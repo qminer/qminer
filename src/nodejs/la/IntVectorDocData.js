@@ -5,9 +5,15 @@ exports.view = {
 
     "example1": "[1, 2, 3]",
     "input1": "4, 5",
-    "output1": "'[1, 2, 3]'",
+    "output1": "'1, 2, 3'",
     "output2": "[1, 4, 5]",
     "output3": "[1]",
+
+    "sortCallback": "intVectorCompareCb",
+    "exampleSort": "[-2, 1, 3]",
+    "inputSort": "function(arg1, arg2) { return Math.abs(arg1) - Math.abs(arg2); }",
+    "outputSort": "[1, -2, 3]",
+    "outputSortAsc": "[-2, 1, 3]",
 
     "skipInner": "skip.",
     "skipSum": "",

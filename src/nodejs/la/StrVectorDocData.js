@@ -5,14 +5,20 @@ exports.view = {
 
 	"example1": "['a', 'b', 'c']",
     "input1": "'d', 'e'",
-    "output1": "'[a, b, c]'",
+    "output1": "'a, b, c'",
     "output2": "['a', 'd', 'e']",
     "output3": "['a']",
+	
+	"sortCallback": "strVectorCompareCb",
+    "exampleSort": "['asd', 'z', 'kkkk']",
+    "inputSort": "function(arg1, arg2) { return arg1.length - arg2.length; }",
+    "outputSort": "['z', 'asd', 'kkkk']",
+    "outputSortAsc": "['asd', 'kkkk', 'z']",
 
 	"skipInner": "skip.",
 	"skipSum": "skip.",
 	"skipGetMaxIdx": "skip.",
-	"skipSort": "skip.",
+	"skipSort": "",
 	"skipOuter": "skip.",
 	"skipInner": "skip.",
 	"skipCosine": "skip.",

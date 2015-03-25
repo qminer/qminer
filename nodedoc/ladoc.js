@@ -885,15 +885,15 @@ exports.ones = function(k) {
 	*/
  exports.Vector.prototype.splice = function (start, deleteCount, itemN) {}
 /**
-	* Adds an element to the beginning of the vector.
-	* @param {number} val - The element added to the vector.
+	* Adds elements to the beginning of the vector.
+	* @param {...number} args - One or more elements to be added to the vector.
 	* @returns {number} The new length of vector.
 	*/
- exports.Vector.prototype.unshift = function (val) {}
+ exports.Vector.prototype.unshift = function (args) {}
 /**
 	* Appends a second vector to the first one.
 	* @param {module:la.Vector} vec - The appended vector.
-	* @returns {boolean} True, if appending the vector is successful. Otherwise, false.
+	* @returns {number} The new length property of the vectors.
 	*/
  exports.Vector.prototype.pushV = function (vec) {}
 /**
@@ -912,11 +912,26 @@ exports.ones = function(k) {
 	*/
  exports.Vector.prototype.getMaxIdx = function () {}
 /**
-	* Sorts the vector in ascending or descending order (in place operation).
-	* @param {boolean} [bool] - Default is true. TODO: support comparator callback
+	* Vector sort comparator callback.
+	* @callback vectorCompareCb
+	* @param {number} arg1 - First argument
+	* @param {number} arg2 - Second argument
+	* @returns {(number | boolean)} If vectorCompareCb(arg1, arg2) is less than 0 or false, sort arg1 to a lower index than arg2, i.e. arg1 comes first.
+	*/
+/**
+	* Sorts the vector (in place operation).
+	* @param {(module:la~vectorCompareCb | boolean)} [arg] - Default is boolean and true.
 	* @returns {module:la.Vector} Self
-	* <br>1. Vector sorted in ascending order, if bool is true.  
-	* <br>2. Vector sorted in descending order, if bool is false.
+	* <br>1. Vector sorted in ascending order, if arg is boolean and true.  
+	* <br>2. Vector sorted in descending order, if arg is boolean and false.
+	* <br>3. Vector sorted by using the comparator callback, if arg is a {@link module:la~vectorCompareCb}.
+	* @example
+	* // create a new vector
+	* var vec = new la.Vector([-2.0, 1.0, 3.0]);
+	* // sort ascending
+	* vec.sort(); // sorts to: [-2.0, 1.0, 3.0]
+	* // sort using callback
+	* vec.sort(function(arg1, arg2) { return Math.abs(arg1) - Math.abs(arg2); }); // sorts to: [1.0, -2.0, 3.0]
 	*/
  exports.Vector.prototype.sort = function (bool) {} 
 /**
@@ -1005,7 +1020,7 @@ exports.ones = function(k) {
 	* // create a new vector
 	* var vec = new la.Vector([1, 2, 3]);
 	* // create vector as string
-	* vec.toString(); // returns '[1, 2, 3]'
+	* vec.toString(); // returns '1, 2, 3'
 	*/
  exports.Vector.prototype.toString = function () {}
 /**
@@ -1127,15 +1142,15 @@ exports.ones = function(k) {
 	*/
  exports.StrVector.prototype.splice = function (start, deleteCount, itemN) {}
 /**
-	* Adds an element to the beginning of the vector.
-	* @param {string} val - The element added to the vector.
+	* Adds elements to the beginning of the vector.
+	* @param {...string} args - One or more elements to be added to the vector.
 	* @returns {number} The new length of vector.
 	*/
- exports.StrVector.prototype.unshift = function (val) {}
+ exports.StrVector.prototype.unshift = function (args) {}
 /**
 	* Appends a second vector to the first one.
 	* @param {module:la.StrVector} vec - The appended vector.
-	* @returns {boolean} True, if appending the vector is successful. Otherwise, false.
+	* @returns {number} The new length property of the vectors.
 	*/
  exports.StrVector.prototype.pushV = function (vec) {}
 /**
@@ -1154,13 +1169,28 @@ exports.ones = function(k) {
 	*/
  skip.exports.StrVector.prototype.getMaxIdx = function () {}
 /**
-	* Sorts the vector in ascending or descending order (in place operation).
-	* @param {boolean} [bool] - Default is true. TODO: support comparator callback
-	* @returns {module:la.StrVector} Self
-	* <br>1. Vector sorted in ascending order, if bool is true.  
-	* <br>2. Vector sorted in descending order, if bool is false.
+	* Vector sort comparator callback.
+	* @callback strVectorCompareCb
+	* @param {string} arg1 - First argument
+	* @param {string} arg2 - Second argument
+	* @returns {(number | boolean)} If strVectorCompareCb(arg1, arg2) is less than 0 or false, sort arg1 to a lower index than arg2, i.e. arg1 comes first.
 	*/
- skip.exports.StrVector.prototype.sort = function (bool) {} 
+/**
+	* Sorts the vector (in place operation).
+	* @param {(module:la~strVectorCompareCb | boolean)} [arg] - Default is boolean and true.
+	* @returns {module:la.StrVector} Self
+	* <br>1. Vector sorted in ascending order, if arg is boolean and true.  
+	* <br>2. Vector sorted in descending order, if arg is boolean and false.
+	* <br>3. Vector sorted by using the comparator callback, if arg is a {@link module:la~strVectorCompareCb}.
+	* @example
+	* // create a new vector
+	* var vec = new la.StrVector(['asd', 'z', 'kkkk']);
+	* // sort ascending
+	* vec.sort(); // sorts to: ['asd', 'kkkk', 'z']
+	* // sort using callback
+	* vec.sort(function(arg1, arg2) { return arg1.length - arg2.length; }); // sorts to: ['z', 'asd', 'kkkk']
+	*/
+ exports.StrVector.prototype.sort = function (bool) {} 
 /**
 	//! * Randomly reorders the elements of the vector.
 	//! *
@@ -1247,7 +1277,7 @@ exports.ones = function(k) {
 	* // create a new vector
 	* var vec = new la.StrVector(['a', 'b', 'c']);
 	* // create vector as string
-	* vec.toString(); // returns '[a, b, c]'
+	* vec.toString(); // returns 'a, b, c'
 	*/
  exports.StrVector.prototype.toString = function () {}
 /**

@@ -26,6 +26,9 @@ public:
 	static double CastVal(const v8::Local<v8::Value>& Value) {
 		return Value->ToNumber()->Value();
 	}
+	static void AssertType(const v8::Local<v8::Value>& Val) {
+		EAssertR(Val->IsNumber(), ClassId + "::AssertType: Value expected to be a number");
+	}
 	static TFlt Parse(const TStr& Str) {
 		return Str.GetFlt();
 	}
@@ -45,6 +48,9 @@ public:
 	static int CastVal(const v8::Local<v8::Value>& Value) {
 		return Value->ToInt32()->Value();
 	}
+	static void AssertType(const v8::Local<v8::Value>& Val) {
+		EAssertR(Val->IsInt32(), ClassId + "::AssertType: Value expected to be an integer");
+	}
 	static TInt Parse(const TStr& Str) {
 		return Str.GetInt();
 	}
@@ -62,6 +68,9 @@ public:
 		v8::String::Utf8Value Utf8(Value);
 		return TStr(*Utf8);
 	}
+	static void AssertType(const v8::Local<v8::Value>& Val) {
+		EAssertR(Val->IsString(), ClassId + "::AssertType: Value expected to be a String");		
+	}
 	static TStr Parse(const TStr& Str) {
 		return Str;
 	}
@@ -78,10 +87,43 @@ public:
 	static bool CastVal(const v8::Local<v8::Value>& Value) {
 		return Value->BooleanValue();
 	}
+	static void AssertType(const v8::Local<v8::Value>& Val) {
+		EAssertR(Val->IsBoolean(), ClassId + "::AssertType: Value expected to be a boolean");
+	}
 	static TBool Parse(const TStr& Str) {
 		return TBool::GetValFromStr(Str);
 	}
 };
+
+template <class TVal = TFlt, class TAux = TAuxFltV>
+class TJsVecComparator {
+private:	
+	// Callbacks
+	v8::Persistent<v8::Function> Callback;
+public:
+	~TJsVecComparator(){
+		Callback.Reset();
+	}
+	TJsVecComparator(v8::Handle<v8::Function> _Callback) { 	Callback.Reset(v8::Isolate::GetCurrent(), _Callback);}
+	bool operator()(const TVal& Val1, const TVal& Val2) const {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+		
+		// prepare arguments
+		v8::Local<v8::Value> Arg1 = TAux::GetObjVal(Val1);
+		v8::Local<v8::Value> Arg2 = TAux::GetObjVal(Val2);
+
+		v8::Local<v8::Function> Callbck = v8::Local<v8::Function>::New(Isolate, Callback);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+		const unsigned Argc = 2;
+		v8::Local<v8::Value> ArgV[Argc] = { Arg1, Arg2 };
+		v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
+
+		EAssertR(ReturnVal->IsBoolean() || ReturnVal->IsNumber(), "Comparator callback must return a boolean or a number!");
+		return ReturnVal->IsBoolean() ? ReturnVal->BooleanValue() : ReturnVal->NumberValue() < 0;
+	}
+};
+
 
 ///////////////////////////////
 // NodeJs-Linalg-Vector
@@ -207,11 +249,11 @@ private:
 
 	//!- len = vector.unshift(val)
 	/**
-	* Adds an element to the beginning of the vector. TODO: support multiple numbers
-	* @param {<% elementType %>} val - The element added to the vector.
+	* Adds elements to the beginning of the vector.
+	* @param {...<% elementType %>} args - One or more elements to be added to the vector.
 	* @returns {number} The new length of vector.
 	*/
-	//# exports.<% className %>.prototype.unshift = function (val) {}
+	//# exports.<% className %>.prototype.unshift = function (args) {}
 	JsDeclareFunction(unshift);
 
 	//!- `bool = vec.pushV(vec2)` -- append vector `vec2` to vector `vec`.
@@ -219,7 +261,7 @@ private:
 	/**
 	* Appends a second vector to the first one.
 	* @param {module:la.<% className %>} vec - The appended vector.
-	* @returns {boolean} True, if appending the vector is successful. Otherwise, false.
+	* @returns {number} The new length property of the vectors.
 	*/
 	//# exports.<% className %>.prototype.pushV = function (vec) {}
 	JsDeclareFunction(pushV);
@@ -247,12 +289,29 @@ private:
 
 	//!- `vec2 = vec.sort(asc)` -- `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 	//!- `intVec2 = intVec.sort(asc)` -- integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
+	
 	/**
-	* Sorts the vector in ascending or descending order (in place operation).
-	* @param {boolean} [bool] - Default is true. TODO: support comparator callback
+	* Vector sort comparator callback.
+	* @callback <% sortCallback %>
+	* @param {<% elementType %>} arg1 - First argument
+	* @param {<% elementType %>} arg2 - Second argument
+	* @returns {(number | boolean)} If <% sortCallback %>(arg1, arg2) is less than 0 or false, sort arg1 to a lower index than arg2, i.e. arg1 comes first.
+	*/
+	
+	/**
+	* Sorts the vector (in place operation).
+	* @param {(module:la~<% sortCallback %> | boolean)} [arg] - Default is boolean and true.
 	* @returns {module:la.<% className %>} Self
-	* <br>1. Vector sorted in ascending order, if bool is true.  
-	* <br>2. Vector sorted in descending order, if bool is false.
+	* <br>1. Vector sorted in ascending order, if arg is boolean and true.  
+	* <br>2. Vector sorted in descending order, if arg is boolean and false.
+	* <br>3. Vector sorted by using the comparator callback, if arg is a {@link module:la~<% sortCallback %>}.
+	* @example
+	* // create a new vector
+	* var vec = new la.<% className %>(<% exampleSort %>);
+	* // sort ascending
+	* vec.sort(); // sorts to: <% outputSortAsc %>
+	* // sort using callback
+	* vec.sort(<% inputSort %>); // sorts to: <% outputSort %>
 	*/
 	//# <% skipSort %>exports.<% className %>.prototype.sort = function (bool) {} 
 	JsDeclareFunction(sort);
@@ -1227,9 +1286,14 @@ void TNodeJsVec<TVal, TAux>::unshift(const v8::FunctionCallbackInfo<v8::Value>& 
 	TNodeJsVec<TVal, TAux>* JsVec =
 		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
 
-	// assume number
-	TVal Val = TAux::CastVal(Args[0]);
-	JsVec->Vec.Ins(0, Val);
+	TVec<TVal> Temp = TVec<TVal>(Args.Length());
+	for (int ArgN = 0; ArgN < Args.Length(); ArgN++) {
+		// assume number
+		TAux::AssertType(Args[ArgN]);
+		Temp[ArgN] = TAux::CastVal(Args[ArgN]);
+	}
+	Temp.AddV(JsVec->Vec);
+	JsVec->Vec = Temp;
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.Len()));
 }
 
@@ -1257,9 +1321,13 @@ void TNodeJsVec<TVal, TAux>::sort(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	TNodeJsVec<TVal, TAux>* JsVec =
 		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
 
-	const bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
-
-	JsVec->Vec.Sort(Asc);
+	if (Args.Length() == 1 && Args[0]->IsFunction()) {
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);				
+		JsVec->Vec.SortCmp(TJsVecComparator<TVal, TAux>(Callback));
+	} else {
+		const bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
+		JsVec->Vec.Sort(Asc);
+	}
 	Args.GetReturnValue().Set(Args.Holder());
 }
 
