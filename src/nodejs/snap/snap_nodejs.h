@@ -66,6 +66,7 @@ private:
 	JsDeclareFunction(adjMat);
 	JsDeclareFunction(dump);
 	JsDeclareFunction(components);
+	JsDeclareFunction(renumber);
 	JsDeclareFunction(degreeCentrality);
 	JsDeclareFunction(load);
 	JsDeclareFunction(save);
@@ -524,9 +525,18 @@ void TNodeJsGraph<T>::components(const v8::FunctionCallbackInfo<v8::Value>& Args
 			Mat[i][j].Key = id;
 			Mat[i][j].Dat = 1;
 		}
+		Mat[i].Sort();
 	}
 
-	Args.GetReturnValue().Set(TNodeJsSpMat::New(Mat));
+	Args.GetReturnValue().Set(TNodeJsSpMat::New(Mat, TLAMisc::GetMaxDimIdx(Mat) + 1));
+}
+
+template <class T>
+void TNodeJsGraph<T>::renumber(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
+	JsGraph->Graph = TSnap::ConvertGraph<TPt<T>, TPt<T> >(JsGraph->Graph, true);
 }
 
 template <class T>

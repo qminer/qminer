@@ -120,6 +120,7 @@ void TNodeJsGraph<TUNGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "adjMat", _adjMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "renumber", _renumber);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
@@ -159,6 +160,7 @@ void TNodeJsGraph<TNGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "adjMat", _adjMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "renumber", _renumber);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
@@ -198,6 +200,7 @@ void TNodeJsGraph<TNEGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "adjMat", _adjMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "renumber", _renumber);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
