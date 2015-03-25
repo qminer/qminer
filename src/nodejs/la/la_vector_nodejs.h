@@ -207,7 +207,7 @@ private:
 
 	//!- len = vector.unshift(val)
 	/**
-	* Adds an element to the beginning of the vector.
+	* Adds an element to the beginning of the vector. TODO: support multiple numbers
 	* @param {<% elementType %>} val - The element added to the vector.
 	* @returns {number} The new length of vector.
 	*/
@@ -1241,7 +1241,7 @@ void TNodeJsVec<TVal, TAux>::pushV(const v8::FunctionCallbackInfo<v8::Value>& Ar
 
 	JsVec->Vec.AddV(OthVec->Vec);
 
-	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.Len()));
 }
 
 template <typename TVal, typename TAux>
@@ -1295,14 +1295,13 @@ void TNodeJsVec<TVal, TAux>::toString(const v8::FunctionCallbackInfo<v8::Value>&
 	TNodeJsVec<TVal, TAux>* JsVec =
 		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
 
-	TStr Str = "[";
+	TStr Str = "";
 	for (int ElN = 0; ElN < JsVec->Vec.Len() - 1; ++ElN) {
 		Str += JsVec->Vec[ElN].GetStr() + ", ";
 	}
 	if (JsVec->Vec.Len() > 0) {
 		Str += JsVec->Vec.Last().GetStr();
-	}
-	Str += "]";
+	}	
 
 	Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Str.CStr()));
 }
