@@ -848,7 +848,7 @@ PBowDocWgtBs TBowDocWgtBs::NewSvmWgt(
         for (int DIdN = 0; DIdN < BowDocWgtBs->GetDocs(); DIdN++) {
             TrainDIdV.Add(BowDocWgtBs->GetDId(DIdN));
         }
-    } else { TrainDIdV = TrainDIdV; }
+    } else { TrainDIdV = _TrainDIdV; }
     // learn svm models and calculate word weights for each category
     TVec<TFltV> CatWgtVV(Cats);
     for (int CId = 0; CId < Cats; CId++) {

@@ -390,12 +390,14 @@ private:
 ///////////////////////////////
 // NodeJs QMiner Record
 class TNodeJsRec: public node::ObjectWrap {
+	friend class TNodeJsUtil;
 private:
 	// Modified node framework: one record template per each base,storeId combination 
 	static TVec<TVec<v8::Persistent<v8::Function> > > BaseStoreIdConstructor;
 public:
 	// Node framework 
 	static void Init(const TWPt<TQm::TStore>& Store);
+	static const TStr ClassId;
 	// when reseting a db we have to clear the old record templates
 	static void Clear(const int& BaseId);
 	// Wrapping C++ object	
@@ -404,8 +406,10 @@ public:
 	TNodeJsRec(): Rec() {}
 	TNodeJsRec(const TQm::TRec& _Rec): Rec(_Rec) {}
 	TNodeJsRec(const TQm::TRec& _Rec, const TInt& _Fq) : Rec(_Rec), Fq(_Fq) {}
-	// Node framework (constructor method)
-	JsDeclareFunction(New);
+
+private:
+	static TNodeJsRec* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
 public:
 	// C++ wrapped object
 	TQm::TRec Rec;	
