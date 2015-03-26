@@ -512,6 +512,8 @@ void TGixItemSet<TKey, TItem, TGixMerger>::AddItem(const TItem& NewItem) {
 			MergedP = Merger->IsLt(ItemV.Last(), NewItem); // compare to the last item in the work buffer
 		}
 	}
+	if (ItemV.Len() == 0)
+		ItemV.Reserve(2);
 	ItemV.Add(NewItem);
 	Dirty = true;
 	TotalCnt++;
@@ -858,6 +860,7 @@ public:
 		int64 res = sizeof(TCRef);
 		res += sizeof(TFAccess);
 		res += 2 * sizeof(int64);
+		res += 3 * sizeof(int);
 		res += sizeof(bool);
 		res += sizeof(PBlobBs);
 		res += sizeof(TGixMerger);
@@ -898,6 +901,9 @@ public:
 	friend class TGixItemSet < TKey, TItem, TGixMerger > ;
 #ifdef GIX_TEST
 	friend class XTest;
+
+	void KillHash() { this->KeyIdH.Clr(); }
+	void KillCache() { this->ItemSetCache.FlushAndClr(); }
 #endif
 };
 
@@ -1048,6 +1054,7 @@ void TGix<TKey, TItem, TGixMerger>::AddItem(const TKey& Key, const TItem& Item) 
 		ItemSet->AddItem(Item);
 		TBlobPt KeyId = EnlistItemSet(ItemSet); // now store this itemset to disk
 		KeyIdH.AddDat(Key, KeyId); // remember the new key and its Id
+		ItemSetCache.Put(KeyId, ItemSet); // add it to cache
 	}
 	// check if we have to drop anything from the cache
 	RefreshMemUsed();
@@ -1175,6 +1182,8 @@ void TGix<TKey, TItem, TGixMerger>::PrintStats() {
 		blob_stats.Puts, blob_stats.PutsNew, blob_stats.Gets,
 		blob_stats.Dels, blob_stats.SizeChngs, blob_stats.AvgGetLen, blob_stats.AvgPutLen, blob_stats.AvgPutNewLen);
 	ItemSetBlobBs->ResetStats();
+	printf(".... hash-table stats - memory=%s size=%d\n", TUInt64::GetKiloStr(KeyIdH.GetMemUsed()).CStr(), KeyIdH.Len());
+	printf(".... gix - memory=%s hash=%s, cache=%s\n", TUInt64::GetMegaStr(GetMemUsed()).CStr(), TUInt64::GetMegaStr(KeyIdH.GetMemUsed()).CStr(), TUInt64::GetMegaStr(ItemSetCache.GetMemUsed()).CStr());
 }
 
 //#endif

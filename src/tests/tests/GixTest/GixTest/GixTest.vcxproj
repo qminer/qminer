@@ -88,6 +88,9 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\glib\base\gix.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="mem_usage.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

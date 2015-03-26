@@ -180,13 +180,15 @@ public:
   TDat& operator()(const TKey& Key){return AddDat(Key);}
   ::TSize GetMemUsed() const {
     // return PortV.GetMemUsed()+KeyDatV.GetMemUsed()+sizeof(bool)+2*sizeof(int);}
-      int64 MemUsed = sizeof(bool)+2*sizeof(int);
-	  MemUsed += int64(PortV.Reserved()) * int64(sizeof(TInt));
-	  for (int KeyDatN = 0; KeyDatN < KeyDatV.Len(); KeyDatN++) {
-          MemUsed += int64(2 * sizeof(TInt));
-          MemUsed += int64(KeyDatV[KeyDatN].Key.GetMemUsed());
-          MemUsed += int64(KeyDatV[KeyDatN].Dat.GetMemUsed());
-      }
+      int64 MemUsed = sizeof(TBool)+2*sizeof(TInt);
+	  //MemUsed += int64(PortV.Reserved()) * int64(sizeof(TInt));
+	  //for (int KeyDatN = 0; KeyDatN < KeyDatV.Len(); KeyDatN++) {
+   //       MemUsed += int64(2 * sizeof(TInt));
+   //       MemUsed += int64(KeyDatV[KeyDatN].Key.GetMemUsed());
+   //       MemUsed += int64(KeyDatV[KeyDatN].Dat.GetMemUsed());
+   //   }
+	  MemUsed += PortV.GetMemUsed();
+	  MemUsed += KeyDatV.GetMemUsed();
       return ::TSize(MemUsed);
   }
 
@@ -1048,7 +1050,11 @@ int64 TCache<TKey, TDat, THashFunc>::GetMemUsed() const {
     const TKey& Key=KeyDatH.GetKey(KeyId);
     const TKeyLNDatPr& KeyLNDatPr=KeyDatH[KeyId];
     TDat Dat=KeyLNDatPr.Val2;
-	MemUsed += int64(Key.GetMemUsed() + Dat->GetMemUsed() + sizeof(TKeyLN));
+	MemUsed += int64(
+		Key.GetMemUsed() +
+		Dat->GetMemUsed() + 
+		sizeof(TKeyLN) + 
+		sizeof(TLstNd<TKey>));
   }
   return MemUsed;
 }
