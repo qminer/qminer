@@ -438,7 +438,7 @@ v8::Local<v8::Object> TNodeJsSA::New(TWPt<TQm::TStreamAggr> _SA) {
 	EAssertR(!constructor.IsEmpty(), "TNodeJsSA::New: constructor is empty. Did you call TNodeJsSA::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
-	
+
 	TNodeJsSA* JsSA = new TNodeJsSA(_SA);
 	JsSA->Wrap(Instance);
 	return HandleScope.Escape(Instance);
@@ -448,7 +448,7 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	if (Args.Length() == 0) { return; } // 
+	if (Args.Length() == 0) { return; } //
 	EAssertR(!constructor.IsEmpty(), "TNodeJsSA::New: constructor is empty. Did you call TNodeJsSA::Init(exports); in this module's init function?");
 
 	QmAssertR(Args.Length() <= 3 && Args.Length() >= 2, "stream aggregator constructor expects at least two parameters");
@@ -481,7 +481,7 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			//TQm::PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args[1]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, "featureSpace")));
 			//StreamAggr = TStreamAggrs::TFtrExtAggr::New(JsBase->Base, AggrName, FtrSpace);
 		}
-		else if (TypeNm == "stmerger") {
+		else if (TypeNm == TQm::TStreamAggrs::TStMerger::GetType()) {
 			// create new aggregate
 			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
 			StreamAggr = TQm::TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
@@ -548,7 +548,7 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			Args.GetReturnValue().Set(Instance);
 			return;
 		}
-		
+
 	}
 	// sa(...) -> calls new sa(...)
 	else {
@@ -559,7 +559,7 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
 			Args.GetReturnValue().Set(Instance);
 			return;
-		}		
+		}
 		if (Args.Length() == 3) {
 			const int Argc = 3;
 			v8::Local<v8::Value> Argv[Argc] = { Args[0], Args[1], Args[2] };

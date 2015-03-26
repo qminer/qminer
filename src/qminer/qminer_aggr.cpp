@@ -2094,6 +2094,7 @@ void TResampler::OnAddRec(const TRec& Rec) {
 		// update fields
 		for (int FieldN = 0; FieldN < InFieldIdV.Len(); FieldN++) {
 			const double FieldVal = InterpolatorV[FieldN]->Interpolate(InterpPointMSecs);
+			EAssertR(!TFlt::IsNan(FieldVal), "TResampler: interpolated to a NaN value!");
 			JsonVal->AddToObj(InStore->GetFieldNm(InFieldIdV[FieldN]), FieldVal);
 		}
 

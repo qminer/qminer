@@ -944,9 +944,18 @@ int TLinAlg::GetColMinIdx(const TFltVV& X, const int& ColN) {
 
 void TLinAlg::GetColMinIdxV(const TFltVV& X, TIntV& IdxV) {
 	int Cols = X.GetCols();
+	int MinIdx;
 	IdxV.Gen(X.GetCols());
 	for (int ColN = 0; ColN < Cols; ColN++) {
-		IdxV[ColN] = GetColMinIdx(X, ColN);
+		MinIdx = GetColMinIdx(X, ColN);
+		//==================================================
+		if (MinIdx < 0) {
+			TFltV ColV;	X.GetCol(ColN, ColV);
+			printf("Column %d: %s\n", ColN, TStrUtil::GetStr(ColV, ", ", "%.7f").CStr());
+		}
+		EAssertR(MinIdx >= 0, "Minimum index is less than 0!");
+		//==================================================
+		IdxV[ColN] = MinIdx;
 	}
 }
 
@@ -4207,6 +4216,21 @@ TTriple<TFullMatrix, TVector, TFullMatrix> TFullMatrix::Svd(const int& k) const 
 TFullMatrix TFullMatrix::GetInverse() const {
 	EAssertR(GetRows() == GetCols(), "Can only invert square matrices!");
 	throw TExcept::New("TFullMatrix::GetInverse: Not implemented!");
+}
+
+bool TFullMatrix::HasNan() const {
+	const int Cols = GetCols();
+	const int Rows = GetRows();
+
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			if (TFlt::IsNan(At(RowN, ColN))) {
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void TFullMatrix::Save(TSOut& SOut) const {

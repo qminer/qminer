@@ -408,6 +408,7 @@ void TDpMeans::Save(TSOut& SOut) const {
 void TDpMeans::Apply(const TFullMatrix& X, const int& MaxIter) {
 	EAssertR(MinClusts <= X.GetCols(), "Matrix should have more rows then the min number of clusters!");
 	EAssertR(MinClusts <= MaxClusts, "Minimum number of cluster should be less than the maximum.");
+	EAssertR(!X.HasNan(), "The input matrix contains NaNs!");
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Executing DPMeans ...");
 
@@ -432,6 +433,8 @@ void TDpMeans::Apply(const TFullMatrix& X, const int& MaxIter) {
 	int i = 0;
 	while (i++ < MaxIter) {
 		if (i % 10 == 0) { Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d", i); }
+
+		EAssertR(!CentroidMat.HasNan(), "The centroid matrix contains NaNs!");
 
 		// add new centroids and compute the distance matrix
 		TFullMatrix D = GetDistMat2(X, NormX2, CentroidMat.ColNorm2V().Transpose(), OnesN, OnesK);

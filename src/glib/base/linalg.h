@@ -1286,6 +1286,7 @@ public:
 	// returns the inverse of this matrix
 	TFullMatrix GetInverse() const;
 
+	bool HasNan() const;
 
 public:
     void Save(TSOut& SOut) const;

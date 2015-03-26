@@ -405,6 +405,8 @@ void TBufferedInterpolator::SetNextInterpTm(const uint64& Time) {
 }
 
 void TBufferedInterpolator::AddPoint(const double& Val, const uint64& Tm) {
+	EAssertR(!TFlt::IsNan(Val), "TBufferedInterpolator::AddPoint: got NaN value!");
+
 	// check if the new point can be added
 	if (!Buff.Empty()) {
 		const TUInt64FltPr& LastRec = Buff.GetNewest();
@@ -470,17 +472,20 @@ TLinear::TLinear(TSIn& SIn):
 double TLinear::Interpolate(const uint64& Tm) const {
 	AssertR(CanInterpolate(Tm), "TLinear::Interpolate: Time not in the desired interval!");
 
-	if (Tm == Buff.GetOldest().Val1) { return Buff.GetOldest().Val2; }
-
 	const TUInt64FltPr& PrevRec = Buff.GetOldest();
+	if (Tm == PrevRec.Val1) { return PrevRec.Val2; }
 	const TUInt64FltPr& NextRec = Buff.GetOldest(1);
 
-	return PrevRec.Val2+((double)(Tm-PrevRec.Val1)/(NextRec.Val1-PrevRec.Val1))*(NextRec.Val2-PrevRec.Val2);
+	// don't need to check if the times of the previous rec and next rec are equal since if
+	// that is true Tm will be equal to PrevRec.Tm and the correct result will be returned
+	const double Result = PrevRec.Val2 + ((double) (Tm - PrevRec.Val1) / (NextRec.Val1 - PrevRec.Val1)) * (NextRec.Val2 - PrevRec.Val2);
+	EAssertR(!TFlt::IsNan(Result), "TLinear: result of interpolation is NaN!");
+	return Result;
 }
 
 bool TLinear::CanInterpolate(const uint64& Tm) const {
 	return (!Buff.Empty() && Buff.GetOldest().Val1 == Tm) ||
-			(Buff.Len() >= 2 && Buff.GetOldest().Val1 <= Tm && Buff.GetOldest(1).Val1 >= Tm);
+			(Buff.Len() >= 2 && Buff.GetOldest().Val1 <= Tm && Tm <= Buff.GetOldest(1).Val1);
 }
 
 ///////////////////////////////////////////////////////////////////
