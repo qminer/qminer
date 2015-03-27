@@ -1044,7 +1044,7 @@ exports.ones = function(k) {
 	* var vec = new la.Vector([1, 2, 3]);
 	* // open write stream
 	* var fout = fs.openWrite('vec.dat');
-	* // save matrix and close write stream
+	* // save vector and close write stream
 	* vec.save(fout).close();
 	*/
  exports.Vector.prototype.save = function (fout) {}
@@ -1059,7 +1059,7 @@ exports.ones = function(k) {
 	* var vec = new la.Vector();
 	* // open a read stream
 	* var fin = fs.openRead('vec.dat');
-	* // load the matrix
+	* // load the vector
 	* vec.load(fin);
 	*/
  exports.Vector.prototype.load = function (fin) {}
@@ -1286,7 +1286,7 @@ exports.ones = function(k) {
 	* var vec = new la.StrVector(['a', 'b', 'c']);
 	* // open write stream
 	* var fout = fs.openWrite('vec.dat');
-	* // save matrix and close write stream
+	* // save vector and close write stream
 	* vec.save(fout).close();
 	*/
  exports.StrVector.prototype.save = function (fout) {}
@@ -1301,7 +1301,7 @@ exports.ones = function(k) {
 	* var vec = new la.StrVector();
 	* // open a read stream
 	* var fin = fs.openRead('vec.dat');
-	* // load the matrix
+	* // load the vector
 	* vec.load(fin);
 	*/
  exports.StrVector.prototype.load = function (fin) {}
