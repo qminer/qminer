@@ -370,4 +370,4 @@ assert.equal(Movies.first.$id, 0, "Movies.first.$id");
 // test last record
 assert.equal(Movies.last.$id, Movies.length - 1, "Movies.last.$id");
 
-base.close();
+//base.close();

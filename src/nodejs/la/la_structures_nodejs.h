@@ -588,17 +588,15 @@ public:
 	*/
 	//# exports.SparseVector.prototype.idxVec = function () {}
 	JsDeclareFunction(idxVec);
-
-	//! //!- `spVec = spVec.print()` -- returns the vector as string. 
-	//! /**
-	//! * Prints sparse vector on-screen.
-	//! * @example
-	//! * // create new sparse vector
-	//! * var spVec = new la.SparseVector([[0, 1], [2, 3]]);
-	//! * // print sparse vector
-	//! * spVec.print(); // shows on-screen [(0, 1), (2, 3)]
-	//! */
-	//! //# exports.SparseVector.prototype.print = function () {}
+		
+	/**
+	* Returns the string representation.
+	* @example
+	* // create new sparse vector
+	* var spVec = new la.SparseVector([[0, 1], [2, 3]]);	
+	* spVec.toString(); // returns the string '[(0, 1), (2, 3)]'
+	*/
+	//# exports.SparseVector.prototype.toString = function () {}
 	JsDeclareFunction(toString);
 public:
 	TIntFltKdV Vec;
