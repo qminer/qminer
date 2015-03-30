@@ -214,10 +214,11 @@ private:
 	void ProcessDeletes();
 
 	/// Ask child vectors about their memory usage
-	int GetChildMemUsed() const {
-		int mem = 0;
-		for (int i = 0; i < ChildrenData.Len(); i++)
-			mem += ChildrenData[i].GetMemUsed();
+	int64 GetChildMemUsed() const {
+		int64 mem = 0;
+        for (int i = 0; i < ChildrenData.Len(); i++) {
+            mem += ChildrenData[i].GetMemUsed();
+        }
 		return mem;
 	}
 
@@ -246,8 +247,8 @@ public:
 	void Save(TMOut& SOut);
 
 	// functions used by TCache
-	int GetMemUsed() const {
-		int res = 2 * sizeof(TBool);
+	int64 GetMemUsed() const {
+		int64 res = 2 * sizeof(TBool);
 		res += sizeof(int);
 		res += sizeof(TCRef);
 		res += sizeof(TGixMerger*);
@@ -259,8 +260,7 @@ public:
 		res += ChildrenData.GetMemUsed();
 		res += GetChildMemUsed();
 		return res;
-
-
+        
 		/*return ItemSetKey.GetMemUsed() + ItemV.GetMemUsed() + ItemVDel.GetMemUsed()
 			+ Children.GetMemUsed() + ChildrenData.GetMemUsed() + GetChildMemUsed()
 			+ 2 * sizeof(TBool) + sizeof(int) + sizeof(TCRef)
@@ -270,7 +270,7 @@ public:
 
 	// key & items
 	const TKey& GetKey() const { return ItemSetKey; }
-	void AddItem(const TItem& NewItem);
+    void AddItem(const TItem& NewItem, const bool& NotifyCacheOnlyDelta = true);
 	void AddItemV(const TVec<TItem>& NewItemV);
 	void OverrideItems(const TVec<TItem>& NewItemV, int From, int Len);
 	/// Get number of items (including child itemsets)
@@ -491,8 +491,9 @@ void TGixItemSet<TKey, TItem, TGixMerger>::PushMergedDataBackToChildren(int firs
 
 
 template <class TKey, class TItem, class TGixMerger>
-void TGixItemSet<TKey, TItem, TGixMerger>::AddItem(const TItem& NewItem) {
-	const int OldSize = GetMemUsed();
+void TGixItemSet<TKey, TItem, TGixMerger>::AddItem(const TItem& NewItem, const bool& NotifyCacheOnlyDelta) {
+    //const int OldSize = GetMemUsed();
+    const int OldSize = (NotifyCacheOnlyDelta ? GetMemUsed() : 0); // avoid calculation of GetMemUsed if not needed
 	if (IsFull()) {
 		Def();
 		if (IsFull()) {
@@ -512,14 +513,19 @@ void TGixItemSet<TKey, TItem, TGixMerger>::AddItem(const TItem& NewItem) {
 			MergedP = Merger->IsLt(ItemV.Last(), NewItem); // compare to the last item in the work buffer
 		}
 	}
-	if (ItemV.Len() == 0)
-		ItemV.Reserve(2);
+    if (ItemV.Len() == 0) {
+        ItemV.Reserve(2);
+    }
 	ItemV.Add(NewItem);
 	Dirty = true;
 	TotalCnt++;
 
 	// notify cache that this item grew
-	Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
+    if (NotifyCacheOnlyDelta) {
+        Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
+    } else {
+        Gix->AddToNewCacheSizeInc(GetMemUsed());
+    }
 }
 
 template <class TKey, class TItem, class TGixMerger>
@@ -1051,7 +1057,7 @@ void TGix<TKey, TItem, TGixMerger>::AddItem(const TKey& Key, const TItem& Item) 
 	} else {
 		// we don't have this key, create a new itemset and add new item immidiatelly
 		PGixItemSet ItemSet = TGixItemSet<TKey, TItem, TGixMerger>::New(Key, &Merger, this);
-		ItemSet->AddItem(Item);
+		ItemSet->AddItem(Item, false);
 		TBlobPt KeyId = EnlistItemSet(ItemSet); // now store this itemset to disk
 		KeyIdH.AddDat(Key, KeyId); // remember the new key and its Id
 		ItemSetCache.Put(KeyId, ItemSet); // add it to cache

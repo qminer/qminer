@@ -990,47 +990,47 @@ typedef TStrHash<TIntV> TStrToIntVSH;
 /////////////////////////////////////////////////
 // Cache
 template <class TKey, class TDat, class THashFunc = TDefaultHashFunc<TKey> >
-class TCache{
+class TCache {
 public:
-  typedef TLstNd<TKey>* TKeyLN;
+    typedef TLstNd<TKey>* TKeyLN;
 private:
-  typedef TLst<TKey> TKeyL; 
-  typedef TPair<TKeyLN, TDat> TKeyLNDatPr;
-  int64 MxMemUsed;
-  int64 CurMemUsed;
-  THash<TKey, TKeyLNDatPr, THashFunc> KeyDatH;
-  TKeyL TimeKeyL;
-  void* RefToBs;
-  void Purge(const int64& MemToPurge);
+    typedef TLst<TKey> TKeyL;
+    typedef TPair<TKeyLN, TDat> TKeyLNDatPr;
+    int64 MxMemUsed;
+    int64 CurMemUsed;
+    THash<TKey, TKeyLNDatPr, THashFunc> KeyDatH;
+    TKeyL TimeKeyL;
+    void* RefToBs;
+    void Purge(const int64& MemToPurge);
 public:
-  TCache(){}
-  TCache(const TCache&);
-  TCache(const int64& _MxMemUsed, const int& Ports, void* _RefToBs):
-    MxMemUsed(_MxMemUsed), CurMemUsed(0),
-    KeyDatH(/*Ports*/), TimeKeyL(), RefToBs(_RefToBs){}
+    TCache() {}
+    TCache(const TCache&);
+    TCache(const int64& _MxMemUsed, const int& Ports, void* _RefToBs) :
+        MxMemUsed(_MxMemUsed), CurMemUsed(0),
+        KeyDatH(/*Ports*/), TimeKeyL(), RefToBs(_RefToBs) {}
 
-  TCache& operator=(const TCache&);
-  int64 GetMemUsed() const;
-  int64 GetMxMemUsed() const { return MxMemUsed; }
-  bool RefreshMemUsed();
+    TCache& operator=(const TCache&);
+    int64 GetMemUsed() const;
+    int64 GetMxMemUsed() const { return MxMemUsed; }
+    bool RefreshMemUsed();
 
-  void Put(const TKey& Key, const TDat& Dat);
-  bool Get(const TKey& Key, TDat& Dat);
-  void Del(const TKey& Key, const bool& DoEventCall=true);
-  void ChangeKey(const TKey& OldKey, const TKey& NewKey);
-  int Len() const { return KeyDatH.Len(); }
-  void Flush();
-  void FlushAndClr();
-  void* FFirstKeyDat();
-  bool FNextKeyDat(void*& KeyDatP, TKey& Key, TDat& Dat);
-  void* FLastKeyDat();
-  bool FPrevKeyDat(void*& KeyDatP, TKey& Key, TDat& Dat);
-  
-  TKeyLN First() const { return TimeKeyL.First(); }
-  TKeyLN Last() const { return TimeKeyL.Last(); }
+    void Put(const TKey& Key, const TDat& Dat);
+    bool Get(const TKey& Key, TDat& Dat);
+    void Del(const TKey& Key, const bool& DoEventCall = true);
+    void ChangeKey(const TKey& OldKey, const TKey& NewKey);
+    int Len() const { return KeyDatH.Len(); }
+    void Flush();
+    void FlushAndClr();
+    void* FFirstKeyDat();
+    bool FNextKeyDat(void*& KeyDatP, TKey& Key, TDat& Dat);
+    void* FLastKeyDat();
+    bool FPrevKeyDat(void*& KeyDatP, TKey& Key, TDat& Dat);
 
-  void PutRefToBs(void* _RefToBs){RefToBs=_RefToBs;}
-  void* GetRefToBs(){return RefToBs;}
+    TKeyLN First() const { return TimeKeyL.First(); }
+    TKeyLN Last() const { return TimeKeyL.Last(); }
+
+    void PutRefToBs(void* _RefToBs) { RefToBs = _RefToBs; }
+    void* GetRefToBs() { return RefToBs; }
 };
 
 template <class TKey, class TDat, class THashFunc>
@@ -1044,19 +1044,26 @@ void TCache<TKey, TDat, THashFunc>::Purge(const int64& MemToPurge){
 
 template <class TKey, class TDat, class THashFunc>
 int64 TCache<TKey, TDat, THashFunc>::GetMemUsed() const {
-  int64 MemUsed = 2 * sizeof(int64);
-  int KeyId=KeyDatH.FFirstKeyId();
-  while (KeyDatH.FNextKeyId(KeyId)){
-    const TKey& Key=KeyDatH.GetKey(KeyId);
-    const TKeyLNDatPr& KeyLNDatPr=KeyDatH[KeyId];
-    TDat Dat=KeyLNDatPr.Val2;
-	MemUsed += int64(
-		Key.GetMemUsed() +
-		Dat->GetMemUsed() + 
-		sizeof(TKeyLN) + 
-		sizeof(TLstNd<TKey>));
-  }
-  return MemUsed;
+	int64 MemUsed = 2 * sizeof(int64);
+	
+    int KeyId = KeyDatH.FFirstKeyId();
+    while (KeyDatH.FNextKeyId(KeyId)) {
+		//const TKey& Key = KeyDatH.GetKey(KeyId);
+		const TKeyLNDatPr& KeyLNDatPr = KeyDatH[KeyId];
+		TDat Dat = KeyLNDatPr.Val2;
+		MemUsed += int64(
+			//Key.GetMemUsed() +
+			Dat->GetMemUsed() 
+            //+
+			//sizeof(TKeyLN) +
+			//sizeof(TLstNd<TKey>)
+            );
+	}
+
+    MemUsed += KeyDatH.GetMemUsed();
+    MemUsed += TimeKeyL.GetMemUsed();
+
+	return MemUsed;
 }
 
 template <class TKey, class TDat, class THashFunc>

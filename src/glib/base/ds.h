@@ -2740,7 +2740,9 @@ public:
 
   PLstNd SearchForw(const TVal& Val);
   PLstNd SearchBack(const TVal& Val);
-
+  uint64 GetMemUsed() const {
+      return (uint64)sizeof(int) + 2 * sizeof(PLstNd) + Nds * sizeof(TVal);
+  }
   friend class TLstNd<TVal>;
 };
 

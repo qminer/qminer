@@ -486,10 +486,11 @@ public:
 		TStr Nm("Test_Feed");
 		TStr FName("data");
 		int loops = 600*1000;
-		int total_words = 10000;
+		int total_words = 100000;
 		int article_max_len = 20;
 		int keys = 0;
 		cache_size *= 10;
+        printf("***** size=%d\n", sizeof(TMyItem));
 		{
 			TMyGix gix(Nm, FName, faCreate, cache_size, split_len);
 			gix.PrintStats();
@@ -502,15 +503,15 @@ public:
 				//	gix.AddItem(TIntUInt64Pr(j, j), TMyItem(doc_counter, 1));
 				//}
 				
-				//// pick random words
-				//int r = rnd.GetUniDevInt(article_max_len);
-				//for (int j = 1; j <= r; j++) {
-				//	int k = rnd.GetUniDevInt(total_words);
-				//	gix.AddItem(TIntUInt64Pr(k, k), TMyItem(doc_counter, 1));
-				//}
+				// pick random words
+				int r = rnd.GetUniDevInt(article_max_len);
+				for (int j = 1; j <= r; j++) {
+					int k = rnd.GetUniDevInt(total_words);
+					gix.AddItem(TIntUInt64Pr(k, k), TMyItem(doc_counter, 1));
+				}
 
-				// each document contains single, unique word => itemset length = 1
-				gix.AddItem(TIntUInt64Pr(doc_counter, doc_counter), TMyItem(doc_counter, 1));
+				//// each document contains single, unique word => itemset length = 1
+				//gix.AddItem(TIntUInt64Pr(doc_counter, doc_counter), TMyItem(doc_counter, 1));
 
 				doc_counter++;
 				if (i % 10000 == 0) {
@@ -522,8 +523,11 @@ public:
 			gix.PrintStats();
 
 			gix.KillHash();
-			//gix.KillCache();
+            gix.PrintStats();
+
+			gix.KillCache();
 			gix.PrintStats();
+
 			//_ASSERTE(_CrtCheckMemory());
 			//_CrtDumpMemoryLeaks();
 		}
