@@ -60,7 +60,7 @@ private:
 	/**
 	 * Returns the store with the specified name.
 	 *
-	 * @param {String} name - name of the store
+	 * @param {string} name - name of the store
 	 * @returns {Store} - the store
 	 */
 	JsDeclareFunction(store);

@@ -1,32 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>JSDoc: Source: ladoc.js</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
-</head>
-
-<body>
-
-<div id="main">
-
-    <h1 class="page-title">Source: ladoc.js</h1>
-
-    
-
-
-
-    
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>/**
+//intellisense start
+exports = {}; require.modules.qminer_la = exports;
+//intellisense end
+/**
 * Linear algebra module.
 * @module la
 * @example
@@ -43,10 +18,10 @@
 * Matrix
 * @classdesc Represents a dense matrix (2d array).
 * @class
-* @param {(module:la~matrixArg | Array&lt;Array&lt;number>> | module:la.Matrix)} [arg] - Constructor arguments. There are three ways of constructing:
-* &lt;br>1. Parameter object {@link module:la~matrixArg}.
-* &lt;br>2. Nested array of matrix elements (row major). Example: [[1,2],[3,4]] has two rows, the first row is [1,2].
-* &lt;br>3. A matrix (copy constructor).
+* @param {(module:la~matrixArg | Array<Array<number>> | module:la.Matrix)} [arg] - Constructor arguments. There are three ways of constructing:
+* <br>1. Parameter object {@link module:la~matrixArg}.
+* <br>2. Nested array of matrix elements (row major). Example: [[1,2],[3,4]] has two rows, the first row is [1,2].
+* <br>3. A matrix (copy constructor).
 * @example
 * // create new matrix with matrixArg
 * var mat = new la.Matrix({"rows": 3, "cols": 2, "random": true}); // creates a 3 x 2 matrix with random values
@@ -82,8 +57,8 @@
 	* Right-hand side multiplication of matrix with parameter.
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
 	* @returns {(module:la.Matrix | module:la.Vector)}
-	* &lt;br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
-	* &lt;br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* <br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
 	* @example
 	* // create a new matrix
 	* var mat = new la.Matrix([[1, 2], [-1, 5]]);
@@ -97,8 +72,8 @@
 	* Matrix transpose and right-hand side multiplication of matrix with parameter.
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
 	* @returns {(module:la.Matrix | module:la.Vector)}
-	* &lt;br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
-	* &lt;br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* <br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
 	* @example
 	* // create a new matrix
 	* var mat = new la.Matrix([[1, 2], [-1, 5]]);
@@ -265,9 +240,9 @@
 * Sparse Vector
 * @classdesc Represents a sparse vector.
 * @class
-* @param {(Array&lt;Array&lt;number>> | module:la.SparseVector)} [arg] - Constructor arguments. There are two ways of constructing:
-* &lt;br>1. Nested array of vector elements. Example: [[0,2],[2,3]] has two nonzero values, first value is 2 at position 0, second value is 3 at position 2.
-* &lt;br>2. A sparse vector (copy constructor).
+* @param {(Array<Array<number>> | module:la.SparseVector)} [arg] - Constructor arguments. There are two ways of constructing:
+* <br>1. Nested array of vector elements. Example: [[0,2],[2,3]] has two nonzero values, first value is 2 at position 0, second value is 3 at position 2.
+* <br>2. A sparse vector (copy constructor).
 * @param {number} [dim] - Maximal length of sparse vector. It is only in combinantion with nested array of vector elements.
 * @example
 * // create new sparse vector with arrays
@@ -358,10 +333,10 @@
 * Sparse Matrix
 * @classdesc Represents a sparse matrix.
 * @class
-* @param {(Array&lt;Array&lt;Array&lt;number>>> | module:la.SparseMatrix)} [arg] - Constructor arguments. There are two ways of constructing:
-* &lt;br>1. A nested array of sparse vectors (columns). A sparse vector is a nested array of pairs, first value is index, second is value.. Example: [[[0,2]], [[0, 1], [2,3]]] has 2 columns.
+* @param {(Array<Array<Array<number>>> | module:la.SparseMatrix)} [arg] - Constructor arguments. There are two ways of constructing:
+* <br>1. A nested array of sparse vectors (columns). A sparse vector is a nested array of pairs, first value is index, second is value.. Example: [[[0,2]], [[0, 1], [2,3]]] has 2 columns.
 * The second nonzero element in second column has a value 3 at index 2.
-* &lt;br>2. A sparse matrix (copy constructor).
+* <br>2. A sparse matrix (copy constructor).
 * @param {number} [rows] - Maximal number of rows in sparse vector. It is only in combinantion with nested array of vector elements.
 * @example
 * // create a new sparse matrix with array
@@ -408,16 +383,16 @@
 	* Multiplies argument with sparse vector.
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
 	* @returns {(module:la.Vector | module:la.Matrix)}
-	* &lt;br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
-	* &lt;br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* <br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
 	*/
  exports.SparseMatrix.prototype.multiply = function (arg) {}
 /**
 	* Sparse matrix transpose and multiplies with argument
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
 	* @returns {(module:la.Vector | module:la.Matrix)}
-	* &lt;br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
-	* &lt;br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* <br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
 	*/
  exports.SparseMatrix.prototype.multiplyT = function (arg) {}
 /**
@@ -541,7 +516,7 @@
     exports.SparseMatrix.prototype.nnz = function () {
         var nnz = 0;
         //iterate over matrix and sum nnz of each column
-        for (var colN = 0; colN &lt; this.cols; colN++) {
+        for (var colN = 0; colN < this.cols; colN++) {
             nnz += this[colN].nnz;
         }
         return nnz;
@@ -590,7 +565,7 @@
     /**
     * Copies the vector into a JavaScript array of numbers.
     * @param {module:la.Vector} vec - Copied vector.
-    * @returns {Array&lt;number>} A JavaScript array of numbers.
+    * @returns {Array<number>} A JavaScript array of numbers.
     * @example
     * // create a new vector
     * var vec = new la.Vector([1, 2, 3]);
@@ -600,15 +575,15 @@
     exports.copyVecToArray = function (vec) {
         var len = vec.length;
         var arr = [];
-        for (var elN = 0; elN &lt; len; elN++) {
+        for (var elN = 0; elN < len; elN++) {
             arr[elN] = vec[elN];
         }
         return arr;
     };
 
     function isInt(value) {
-        return !isNaN(value) &amp;&amp;
-               parseInt(Number(value)) == value &amp;&amp;
+        return !isNaN(value) &&
+               parseInt(Number(value)) == value &&
                !isNaN(parseInt(value, 10));
     }
 
@@ -623,9 +598,9 @@
     * @param {number} [arg1] - Represents dimension of vector or number of rows in matrix. Must be an integer.
     * @param {number} [arg2] - Represents number of columns in matrix. Must be an integer.
     * @returns {(number | module:la.Vector | module:la.Matrix)}
-    * &lt;br>1. Number, if no parameters are given.
-    * &lt;br>2. {@link module:la.Vector}, if parameter arg1 is given.
-    * &lt;br>3. {@link module:la.Matrix}, if parameters arg1 and arg2 are given.
+    * <br>1. Number, if no parameters are given.
+    * <br>2. {@link module:la.Vector}, if parameter arg1 is given.
+    * <br>3. {@link module:la.Matrix}, if parameters arg1 and arg2 are given.
     */
     exports.randn = function () {
         //arguments.length
@@ -643,7 +618,7 @@
             var dim = arguments[0];
             assert(isInt(dim));
             var vec = new exports.Vector({ "vals": dim });
-            for (var elN = 0; elN &lt; dim; elN++) {
+            for (var elN = 0; elN < dim; elN++) {
                 vec.put(elN, exports.randn());
             }
             return vec;
@@ -653,8 +628,8 @@
             assert(isInt(rows));
             assert(isInt(cols));
             var mat = new exports.Matrix({ "cols": cols, "rows": rows });
-            for (var colN = 0; colN &lt; cols; colN++) {
-                for (var rowN = 0; rowN &lt; rows; rowN++) {
+            for (var colN = 0; colN < cols; colN++) {
+                for (var rowN = 0; rowN < rows; rowN++) {
                     mat.put(rowN, colN, exports.randn());
                 }
             }
@@ -684,7 +659,7 @@
     * Returns a JavaScript array, which is a sample of integers from an array.
     * @param {number} n - The upper bound of the array [0, ..., n-1]. Must be an integer.
     * @param {number} k - Length of the sample. Must be smaller or equal to n.
-    * @returns {Array&lt;number>} The sample of k numbers from [0, ..., n-1], sampled without replacement.
+    * @returns {Array<number>} The sample of k numbers from [0, ..., n-1], sampled without replacement.
     */
     exports.randVariation = function (n, k) {
         var n = arguments[0];
@@ -700,7 +675,7 @@
     /**
     * Returns a permutation of elements.
     * @param {number} k - Number of elements to permutate.
-    * @returns {Array&lt;number>} A JavaScript array of integers. Represents a permutation of k elements.
+    * @returns {Array<number>} A JavaScript array of integers. Represents a permutation of k elements.
     */
     exports.randPerm = function (k) {
         assert(isInt(k));
@@ -726,7 +701,7 @@
     */
 exports.eye = function(dim) {
     var identity = new exports.Matrix({ "rows": dim, "cols": dim });
-    for (var rowN = 0; rowN &lt; identity.rows; rowN++) {
+    for (var rowN = 0; rowN < identity.rows; rowN++) {
         identity.put(rowN, rowN, 1.0);
     }
     return identity;
@@ -781,7 +756,7 @@ exports.zeros = function (rows, cols) {
     */
 exports.ones = function(k) {
     var ones_k = new exports.Vector({ "vals": k });
-    for (var i = 0; i &lt; k; i++) {
+    for (var i = 0; i < k; i++) {
         ones_k.put(i, 1.0);
     }
     return ones_k;
@@ -789,7 +764,7 @@ exports.ones = function(k) {
         
     /**
     * Constructs a matrix by concatenating a doubly-nested array of matrices.
-    * @param {Array&lt;Array&lt;module:la.Matrix>> } matrixDoubleArr - An array of block rows, where each block row is an array of matrices.
+    * @param {Array<Array<module:la.Matrix>> } matrixDoubleArr - An array of block rows, where each block row is an array of matrices.
     * For example: [[m11, m12], [m21, m22]] is used to construct a matrix where the (i,j)-th block submatrix is mij. 
     * @returns {module:la.Matrix} Concatenated matrix
     * @example
@@ -814,8 +789,8 @@ exports.cat = function (nestedArrMat) {
     var cdimy = []; //cumulative coldims
     var rows = nestedArrMat.length;
     var cols = nestedArrMat[0].length;
-    for (var row = 0; row &lt; rows; row++) {
-        for (var col = 0; col &lt; cols; col++) {
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
             if (col > 0) {
                 assert(dimx[row] == nestedArrMat[row][col].rows, 'inconsistent row dimensions!');
             } else {
@@ -830,17 +805,17 @@ exports.cat = function (nestedArrMat) {
     }
     cdimx[0] = 0;
     cdimy[0] = 0;
-    for (var row = 1; row &lt; rows; row++) {
+    for (var row = 1; row < rows; row++) {
         cdimx[row] = cdimx[row - 1] + dimx[row - 1];
     }
-    for (var col = 1; col &lt; cols; col++) {
+    for (var col = 1; col < cols; col++) {
         cdimy[col] = cdimy[col - 1] + dimy[col - 1];
     }
 
     var res = new la.Matrix({ rows: (cdimx[rows - 1] + dimx[rows - 1]), cols: (cdimy[cols - 1] + dimy[cols - 1]) });
     // copy submatrices
-    for (var row = 0; row &lt; rows; row++) {
-        for (var col = 0; col &lt; cols; col++) {
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
             res.put(cdimx[row], cdimy[col], nestedArrMat[row][col]);
         }
     }
@@ -865,17 +840,17 @@ exports.cat = function (nestedArrMat) {
         var tol = 1E-16 * Math.max(mat.cols, mat.rows) * svdRes.s.at(svdRes.s.getMaxIdx());
 
         // calculate reciprocal values for diagonal matrix = inverse diagonal
-        for (i = 0; i &lt; svdRes.s.length; i++) {
+        for (i = 0; i < svdRes.s.length; i++) {
             if (svdRes.s.at(i) > tol) svdRes.s.put(i, 1 / svdRes.s.at(i));
             else svdRes.s.put(0);
         }
 
         var sum;
 
-        for (i = 0; i &lt; svdRes.U.cols; i++) {
-            for (j = 0; j &lt; svdRes.V.rows; j++) {
+        for (i = 0; i < svdRes.U.cols; i++) {
+            for (j = 0; j < svdRes.V.rows; j++) {
                 sum = 0;
-                for (k = 0; k &lt; svdRes.U.cols; k++) {
+                for (k = 0; k < svdRes.U.cols; k++) {
                     if (svdRes.s.at(k) != 0) {
                         sum += svdRes.s.at(k) * svdRes.V.at(i, k) * svdRes.U.at(j, k);
                     }
@@ -901,14 +876,14 @@ exports.cat = function (nestedArrMat) {
         var r = b.minus(A.multiply(x));
         var p = new exports.Vector(r); //clone
         var rsold = r.inner(r);
-        for (var i = 0; i &lt; 2 * x.length; i++) {
+        for (var i = 0; i < 2 * x.length; i++) {
             var Ap = A.multiply(p);
             var alpha = rsold / Ap.inner(p);
             x = x.plus(p.multiply(alpha));
             r = r.minus(Ap.multiply(alpha));
             var rsnew = r.inner(r);
             console.log("resid = " + rsnew);
-            if (Math.sqrt(rsnew) &lt; 1e-6) {
+            if (Math.sqrt(rsnew) < 1e-6) {
                 break;
             }
             p = r.plus(p.multiply(rsnew / rsold));
@@ -923,9 +898,9 @@ exports.cat = function (nestedArrMat) {
 * Vector - array of doubles
 * @classdesc Wraps a C++ array.
 * @class
-* @param {(Array&lt;number> | module:la.Vector)} [arg] - Constructor arguments. There are two ways of constructing:
-* &lt;br>1. An array of vector elements. Example: [1, 2, 3] is a vector of length 3.
-* &lt;br>2. A vector (copy constructor).
+* @param {(Array<number> | module:la.Vector)} [arg] - Constructor arguments. There are two ways of constructing:
+* <br>1. An array of vector elements. Example: [1, 2, 3] is a vector of length 3.
+* <br>2. A vector (copy constructor).
 * @example
 * // create a new empty vector
 * var vec = new la.Vector();
@@ -941,7 +916,7 @@ exports.cat = function (nestedArrMat) {
  exports.Vector.prototype.at = function(number) {}
 /**
 	* Returns a subvector.
-	* @param {(Array&lt;number> | module:la.IntVector)} arg - Index array or vector. Indices can repeat (zero based).
+	* @param {(Array<number> | module:la.IntVector)} arg - Index array or vector. Indices can repeat (zero based).
 	* @returns {module:la.Vector} Subvector, where the i-th element is the arg[i]-th element of the instance.
 	*/
  exports.Vector.prototype.subVec = function (arg) {}
@@ -1019,9 +994,9 @@ exports.cat = function (nestedArrMat) {
 	* Sorts the vector (in place operation).
 	* @param {(module:la~vectorCompareCb | boolean)} [arg] - Default is boolean and true.
 	* @returns {module:la.Vector} Self
-	* &lt;br>1. Vector sorted in ascending order, if arg is boolean and true.  
-	* &lt;br>2. Vector sorted in descending order, if arg is boolean and false.
-	* &lt;br>3. Vector sorted by using the comparator callback, if arg is a {@link module:la~vectorCompareCb}.
+	* <br>1. Vector sorted in ascending order, if arg is boolean and true.  
+	* <br>2. Vector sorted in descending order, if arg is boolean and false.
+	* <br>3. Vector sorted by using the comparator callback, if arg is a {@link module:la~vectorCompareCb}.
 	* @example
 	* // create a new vector
 	* var vec = new la.Vector([-2.0, 1.0, 3.0]);
@@ -1180,9 +1155,9 @@ exports.cat = function (nestedArrMat) {
 * Vector - array of strings
 * @classdesc Wraps a C++ array.
 * @class
-* @param {(Array&lt;string> | module:la.StrVector)} [arg] - Constructor arguments. There are two ways of constructing:
-* &lt;br>1. An array of vector elements. Example: ['a', 'b', 'c'] is a vector of length 3.
-* &lt;br>2. A vector (copy constructor).
+* @param {(Array<string> | module:la.StrVector)} [arg] - Constructor arguments. There are two ways of constructing:
+* <br>1. An array of vector elements. Example: ['a', 'b', 'c'] is a vector of length 3.
+* <br>2. A vector (copy constructor).
 * @example
 * // create a new empty vector
 * var vec = new la.StrVector();
@@ -1198,7 +1173,7 @@ exports.cat = function (nestedArrMat) {
  exports.StrVector.prototype.at = function(number) {}
 /**
 	* Returns a subvector.
-	* @param {(Array&lt;number> | module:la.IntVector)} arg - Index array or vector. Indices can repeat (zero based).
+	* @param {(Array<number> | module:la.IntVector)} arg - Index array or vector. Indices can repeat (zero based).
 	* @returns {module:la.StrVector} Subvector, where the i-th element is the arg[i]-th element of the instance.
 	*/
  exports.StrVector.prototype.subVec = function (arg) {}
@@ -1276,9 +1251,9 @@ exports.cat = function (nestedArrMat) {
 	* Sorts the vector (in place operation).
 	* @param {(module:la~strVectorCompareCb | boolean)} [arg] - Default is boolean and true.
 	* @returns {module:la.StrVector} Self
-	* &lt;br>1. Vector sorted in ascending order, if arg is boolean and true.  
-	* &lt;br>2. Vector sorted in descending order, if arg is boolean and false.
-	* &lt;br>3. Vector sorted by using the comparator callback, if arg is a {@link module:la~strVectorCompareCb}.
+	* <br>1. Vector sorted in ascending order, if arg is boolean and true.  
+	* <br>2. Vector sorted in descending order, if arg is boolean and false.
+	* <br>3. Vector sorted by using the comparator callback, if arg is a {@link module:la~strVectorCompareCb}.
 	* @example
 	* // create a new vector
 	* var vec = new la.StrVector(['asd', 'z', 'kkkk']);
@@ -1437,9 +1412,9 @@ exports.cat = function (nestedArrMat) {
 * Vector - array of integers
 * @classdesc Wraps a C++ array.
 * @class
-* @param {(Array&lt;number> | module:la.IntVector)} [arg] - Constructor arguments. There are two ways of constructing:
-* &lt;br>1. An array of vector elements. Example: [1, 2, 3] is a vector of length 3.
-* &lt;br>2. A vector (copy constructor).
+* @param {(Array<number> | module:la.IntVector)} [arg] - Constructor arguments. There are two ways of constructing:
+* <br>1. An array of vector elements. Example: [1, 2, 3] is a vector of length 3.
+* <br>2. A vector (copy constructor).
 * @example
 * // create a new empty vector
 * var vec = new la.IntVector();
@@ -1455,7 +1430,7 @@ exports.cat = function (nestedArrMat) {
  exports.IntVector.prototype.at = function(number) {}
 /**
 	* Returns a subvector.
-	* @param {(Array&lt;number> | module:la.IntVector)} arg - Index array or vector. Indices can repeat (zero based).
+	* @param {(Array<number> | module:la.IntVector)} arg - Index array or vector. Indices can repeat (zero based).
 	* @returns {module:la.IntVector} Subvector, where the i-th element is the arg[i]-th element of the instance.
 	*/
  exports.IntVector.prototype.subVec = function (arg) {}
@@ -1533,9 +1508,9 @@ exports.cat = function (nestedArrMat) {
 	* Sorts the vector (in place operation).
 	* @param {(module:la~intVectorCompareCb | boolean)} [arg] - Default is boolean and true.
 	* @returns {module:la.IntVector} Self
-	* &lt;br>1. Vector sorted in ascending order, if arg is boolean and true.  
-	* &lt;br>2. Vector sorted in descending order, if arg is boolean and false.
-	* &lt;br>3. Vector sorted by using the comparator callback, if arg is a {@link module:la~intVectorCompareCb}.
+	* <br>1. Vector sorted in ascending order, if arg is boolean and true.  
+	* <br>2. Vector sorted in descending order, if arg is boolean and false.
+	* <br>3. Vector sorted by using the comparator callback, if arg is a {@link module:la~intVectorCompareCb}.
 	* @example
 	* // create a new vector
 	* var vec = new la.IntVector([-2, 1, 3]);
@@ -1694,9 +1669,9 @@ exports.cat = function (nestedArrMat) {
 * Vector - array of boolean
 * @classdesc Wraps a C++ array.
 * @class
-* @param {(Array&lt;boolean> | module:la.BoolVector)} [arg] - Constructor arguments. There are two ways of constructing:
-* &lt;br>1. An array of vector elements. Example: [true, true, false] is a vector of length 3.
-* &lt;br>2. A vector (copy constructor).
+* @param {(Array<boolean> | module:la.BoolVector)} [arg] - Constructor arguments. There are two ways of constructing:
+* <br>1. An array of vector elements. Example: [true, true, false] is a vector of length 3.
+* <br>2. A vector (copy constructor).
 * @example
 * // create a new empty vector
 * var vec = new la.BoolVector();
@@ -1712,7 +1687,7 @@ exports.cat = function (nestedArrMat) {
  exports.BoolVector.prototype.at = function(number) {}
 /**
 	* Returns a subvector.
-	* @param {(Array&lt;number> | module:la.IntVector)} arg - Index array or vector. Indices can repeat (zero based).
+	* @param {(Array<number> | module:la.IntVector)} arg - Index array or vector. Indices can repeat (zero based).
 	* @returns {module:la.BoolVector} Subvector, where the i-th element is the arg[i]-th element of the instance.
 	*/
  exports.BoolVector.prototype.subVec = function (arg) {}
@@ -1790,9 +1765,9 @@ exports.cat = function (nestedArrMat) {
 	* Sorts the vector (in place operation).
 	* @param {(module:la~boolVectorCompareCb | boolean)} [arg] - Default is boolean and true.
 	* @returns {module:la.BoolVector} Self
-	* &lt;br>1. Vector sorted in ascending order, if arg is boolean and true.  
-	* &lt;br>2. Vector sorted in descending order, if arg is boolean and false.
-	* &lt;br>3. Vector sorted by using the comparator callback, if arg is a {@link module:la~boolVectorCompareCb}.
+	* <br>1. Vector sorted in ascending order, if arg is boolean and true.  
+	* <br>2. Vector sorted in descending order, if arg is boolean and false.
+	* <br>3. Vector sorted by using the comparator callback, if arg is a {@link module:la~boolVectorCompareCb}.
 	* @example
 	* // create a new vector
 	* var vec = new la.BoolVector([true, false, false]);
@@ -1947,26 +1922,3 @@ exports.cat = function (nestedArrMat) {
 	*/
  exports.BoolVector.prototype.load = function (fin) {}
 
-</code></pre>
-        </article>
-    </section>
-
-
-
-
-</div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.BoolVector.html">BoolVector</a></li><li><a href="module-la.IntVector.html">IntVector</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li><li><a href="module-la.StrVector.html">StrVector</a></li><li><a href="module-la.Vector.html">Vector</a></li></ul>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Mon Mar 30 2015 14:22:01 GMT+0200 (Central Europe Daylight Time)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
-</body>
-</html>

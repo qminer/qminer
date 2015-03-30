@@ -95,6 +95,7 @@
     "sget": "~0.1.5"
   },
   "devDependencies": {
+    "jsdoc": "^3.3.0-beta3",
     "mocha": "^1.17.1"
   },
   "scripts": {
