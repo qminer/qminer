@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: StrVector</title>
+    <title>JSDoc: Class: BoolVector</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: StrVector</h1>
+    <h1 class="page-title">Class: BoolVector</h1>
 
     
 
@@ -31,7 +31,7 @@
         <h2>
             <span class="ancestors"><a href="module-la.html">la</a>.</span>
         
-        StrVector
+        BoolVector
         </h2>
         
             <div class="class-description">Wraps a C++ array.</div>
@@ -48,14 +48,14 @@
     <h2>Constructor</h2>
     
 
-    <h4 class="name" id="StrVector"><span class="type-signature"></span>new StrVector<span class="signature">(arg<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="BoolVector"><span class="type-signature"></span>new BoolVector<span class="signature">(arg<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    Vector - array of strings
+    Vector - array of boolean
 </div>
 
 
@@ -99,10 +99,10 @@
             <td class="type">
             
                 
-<span class="param-type">Array.&lt;string></span>
+<span class="param-type">Array.&lt;boolean></span>
 |
 
-<span class="param-type"><a href="module-la.StrVector.html">module:la.StrVector</a></span>
+<span class="param-type"><a href="module-la.BoolVector.html">module:la.BoolVector</a></span>
 
 
             
@@ -122,7 +122,7 @@
 
             
 
-            <td class="description last">Constructor arguments. There are two ways of constructing:<br>1. An array of vector elements. Example: ['a', 'b', 'c'] is a vector of length 3.<br>2. A vector (copy constructor).</td>
+            <td class="description last">Constructor arguments. There are two ways of constructing:<br>1. An array of vector elements. Example: [true, true, false] is a vector of length 3.<br>2. A vector (copy constructor).</td>
         </tr>
 
     
@@ -163,7 +163,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1164">line 1164</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1678">line 1678</a>
     </li></ul></dd>
     
 
@@ -190,7 +190,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// create a new empty vectorvar vec = new la.StrVector();// create a new vectorvar vec2 = new la.StrVector(['a', 'b', 'c']);</code></pre>
+    <pre class="prettyprint"><code>// create a new empty vectorvar vec = new la.BoolVector();// create a new vectorvar vec2 = new la.BoolVector([true, true, false]);</code></pre>
 
 
 
@@ -256,7 +256,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1341">line 1341</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1855">line 1855</a>
     </li></ul></dd>
     
 
@@ -283,7 +283,7 @@
 
     
 
-    <h4 class="name" id="at"><span class="type-signature"></span>at<span class="signature">(index)</span><span class="type-signature"> &rarr; {string}</span></h4>
+    <h4 class="name" id="at"><span class="type-signature"></span>at<span class="signature">(index)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
 
     
 
@@ -383,7 +383,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1170">line 1170</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1684">line 1684</a>
     </li></ul></dd>
     
 
@@ -421,7 +421,7 @@
     </dt>
     <dd>
         
-<span class="param-type">string</span>
+<span class="param-type">boolean</span>
 
 
     </dd>
@@ -436,7 +436,7 @@
 
     
 
-    <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(fin)</span><span class="type-signature"> &rarr; {<a href="module-la.StrVector.html">module:la.StrVector</a>}</span></h4>
+    <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(fin)</span><span class="type-signature"> &rarr; {<a href="module-la.BoolVector.html">module:la.BoolVector</a>}</span></h4>
 
     
 
@@ -536,7 +536,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1406">line 1406</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1920">line 1920</a>
     </li></ul></dd>
     
 
@@ -574,7 +574,7 @@
     </dt>
     <dd>
         
-<span class="param-type"><a href="module-la.StrVector.html">module:la.StrVector</a></span>
+<span class="param-type"><a href="module-la.BoolVector.html">module:la.BoolVector</a></span>
 
 
     </dd>
@@ -585,7 +585,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// import fs modulevar fs = require('fs.js');// create an empty vectorvar vec = new la.StrVector();// open a read streamvar fin = fs.openRead('vec.dat');// load the vectorvec.load(fin);</code></pre>
+    <pre class="prettyprint"><code>// import fs modulevar fs = require('fs.js');// create an empty vectorvar vec = new la.BoolVector();// open a read streamvar fin = fs.openRead('vec.dat');// load the vectorvec.load(fin);</code></pre>
 
 
 
@@ -643,7 +643,7 @@
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">boolean</span>
 
 
             
@@ -694,7 +694,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1189">line 1189</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1703">line 1703</a>
     </li></ul></dd>
     
 
@@ -796,7 +796,7 @@
             <td class="type">
             
                 
-<span class="param-type"><a href="module-la.StrVector.html">module:la.StrVector</a></span>
+<span class="param-type"><a href="module-la.BoolVector.html">module:la.BoolVector</a></span>
 
 
             
@@ -847,7 +847,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1224">line 1224</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1738">line 1738</a>
     </li></ul></dd>
     
 
@@ -900,7 +900,7 @@
 
     
 
-    <h4 class="name" id="put"><span class="type-signature"></span>put<span class="signature">(idx, val)</span><span class="type-signature"> &rarr; {<a href="module-la.StrVector.html">module:la.StrVector</a>}</span></h4>
+    <h4 class="name" id="put"><span class="type-signature"></span>put<span class="signature">(idx, val)</span><span class="type-signature"> &rarr; {<a href="module-la.BoolVector.html">module:la.BoolVector</a>}</span></h4>
 
     
 
@@ -972,7 +972,7 @@
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">boolean</span>
 
 
             
@@ -1023,7 +1023,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1183">line 1183</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1697">line 1697</a>
     </li></ul></dd>
     
 
@@ -1061,7 +1061,7 @@
     </dt>
     <dd>
         
-<span class="param-type"><a href="module-la.StrVector.html">module:la.StrVector</a></span>
+<span class="param-type"><a href="module-la.BoolVector.html">module:la.BoolVector</a></span>
 
 
     </dd>
@@ -1176,7 +1176,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1391">line 1391</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1905">line 1905</a>
     </li></ul></dd>
     
 
@@ -1225,7 +1225,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// import fs modulevar fs = require('fs.js');// create a new vectorvar vec = new la.StrVector(['a', 'b', 'c']);// open write streamvar fout = fs.openWrite('vec.dat');// save vector and close write streamvec.save(fout).close();</code></pre>
+    <pre class="prettyprint"><code>// import fs modulevar fs = require('fs.js');// create a new vectorvar vec = new la.BoolVector([true, true, false]);// open write streamvar fout = fs.openWrite('vec.dat');// save vector and close write streamvec.save(fout).close();</code></pre>
 
 
 
@@ -1285,7 +1285,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1272">line 1272</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1786">line 1786</a>
     </li></ul></dd>
     
 
@@ -1338,180 +1338,7 @@
 
     
 
-    <h4 class="name" id="sort"><span class="type-signature"></span>sort<span class="signature">(arg<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="module-la.StrVector.html">module:la.StrVector</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Sorts the vector (in place operation).
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-        <th>Attributes</th>
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>arg</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-la.html#~strVectorCompareCb">module:la~strVectorCompareCb</a></span>
-|
-
-<span class="param-type">boolean</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last">Default is boolean and true.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1262">line 1262</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Self<br>1. Vector sorted in ascending order, if arg is boolean and true.  <br>2. Vector sorted in descending order, if arg is boolean and false.<br>3. Vector sorted by using the comparator callback, if arg is a <a href="module-la.html#~strVectorCompareCb">module:la~strVectorCompareCb</a>.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-la.StrVector.html">module:la.StrVector</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-    <h5>Example</h5>
-    
-    <pre class="prettyprint"><code>// create a new vectorvar vec = new la.StrVector(['asd', 'z', 'kkkk']);// sort ascendingvec.sort(); // sorts to: ['asd', 'kkkk', 'z']// sort using callbackvec.sort(function(arg1, arg2) { return arg1.length - arg2.length; }); // sorts to: ['z', 'asd', 'kkkk']</code></pre>
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="splice"><span class="type-signature"></span>splice<span class="signature">(start, deleteCount, itemN<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="module-la.StrVector.html">module:la.StrVector</a>}</span></h4>
+    <h4 class="name" id="splice"><span class="type-signature"></span>splice<span class="signature">(start, deleteCount, itemN<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="module-la.BoolVector.html">module:la.BoolVector</a>}</span></h4>
 
     
 
@@ -1685,7 +1512,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1212">line 1212</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1726">line 1726</a>
     </li></ul></dd>
     
 
@@ -1723,7 +1550,7 @@
     </dt>
     <dd>
         
-<span class="param-type"><a href="module-la.StrVector.html">module:la.StrVector</a></span>
+<span class="param-type"><a href="module-la.BoolVector.html">module:la.BoolVector</a></span>
 
 
     </dd>
@@ -1734,7 +1561,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// create a new vectorvar vec = new la.StrVector(['a', 'b', 'c']);// splice the vector by removing the last two elements and adding 'd', 'e'vec.splice(1, 2, 'd', 'e')// returns vector ['a', 'd', 'e']</code></pre>
+    <pre class="prettyprint"><code>// create a new vectorvar vec = new la.BoolVector([true, true, false]);// splice the vector by removing the last two elements and adding false, truevec.splice(1, 2, false, true)// returns vector [true, false, true]</code></pre>
 
 
 
@@ -1743,7 +1570,7 @@
 
     
 
-    <h4 class="name" id="subVec"><span class="type-signature"></span>subVec<span class="signature">(arg)</span><span class="type-signature"> &rarr; {<a href="module-la.StrVector.html">module:la.StrVector</a>}</span></h4>
+    <h4 class="name" id="subVec"><span class="type-signature"></span>subVec<span class="signature">(arg)</span><span class="type-signature"> &rarr; {<a href="module-la.BoolVector.html">module:la.BoolVector</a>}</span></h4>
 
     
 
@@ -1846,7 +1673,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1176">line 1176</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1690">line 1690</a>
     </li></ul></dd>
     
 
@@ -1884,7 +1711,7 @@
     </dt>
     <dd>
         
-<span class="param-type"><a href="module-la.StrVector.html">module:la.StrVector</a></span>
+<span class="param-type"><a href="module-la.BoolVector.html">module:la.BoolVector</a></span>
 
 
     </dd>
@@ -1950,7 +1777,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1351">line 1351</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1865">line 1865</a>
     </li></ul></dd>
     
 
@@ -1999,7 +1826,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// create a new vectorvar vec = new la.StrVector(['a', 'b', 'c']);// create vector as stringvec.toString(); // returns 'a, b, c'</code></pre>
+    <pre class="prettyprint"><code>// create a new vectorvar vec = new la.BoolVector([true, true, false]);// create vector as stringvec.toString(); // returns 'true, true, false'</code></pre>
 
 
 
@@ -2008,7 +1835,7 @@
 
     
 
-    <h4 class="name" id="trunc"><span class="type-signature"></span>trunc<span class="signature">(idx)</span><span class="type-signature"> &rarr; {<a href="module-la.StrVector.html">module:la.StrVector</a>}</span></h4>
+    <h4 class="name" id="trunc"><span class="type-signature"></span>trunc<span class="signature">(idx)</span><span class="type-signature"> &rarr; {<a href="module-la.BoolVector.html">module:la.BoolVector</a>}</span></h4>
 
     
 
@@ -2057,7 +1884,7 @@
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">boolean</span>
 
 
             
@@ -2108,7 +1935,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1283">line 1283</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1797">line 1797</a>
     </li></ul></dd>
     
 
@@ -2146,7 +1973,7 @@
     </dt>
     <dd>
         
-<span class="param-type"><a href="module-la.StrVector.html">module:la.StrVector</a></span>
+<span class="param-type"><a href="module-la.BoolVector.html">module:la.BoolVector</a></span>
 
 
     </dd>
@@ -2157,7 +1984,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// create a new vectorvar vec = new la.StrVector(['a', 'b', 'c']);// trunc all elements with index 1 or morevec.trunc(1); // returns vector ['a']</code></pre>
+    <pre class="prettyprint"><code>// create a new vectorvar vec = new la.BoolVector([true, true, false]);// trunc all elements with index 1 or morevec.trunc(1); // returns vector [true]</code></pre>
 
 
 
@@ -2217,7 +2044,7 @@
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">boolean</span>
 
 
             
@@ -2278,7 +2105,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1218">line 1218</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1732">line 1732</a>
     </li></ul></dd>
     
 

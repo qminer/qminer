@@ -282,6 +282,67 @@ exports.ones = function(k) {
     }
     return ones_k;
 };
+        
+    /**
+    * Constructs a matrix by concatenating a doubly-nested array of matrices.
+    * @param {Array<Array<module:la.Matrix>> } matrixDoubleArr - An array of block rows, where each block row is an array of matrices.
+    * For example: [[m11, m12], [m21, m22]] is used to construct a matrix where the (i,j)-th block submatrix is mij. 
+    * @returns {module:la.Matrix} Concatenated matrix
+    * @example
+    * // create four matrices and concatenate (2 block columns, 2 block rows)
+    * var la = require('qminer').la;
+    * var A = new la.Matrix([[1,2], [3,4]]);
+    * var B = new la.Matrix([[5,6], [7,8]]);
+    * var C = new la.Matrix([[9,10], [11,12]]);
+    * var D = new la.Matrix([[13,14], [15,16]]);
+    * var mat = la.cat([[A,B], [C,D]]);
+    * // returns the matrix:
+    * // 1  2  5  6
+    * // 3  4  7  8
+    * // 9  10 13 14
+    * // 11 12 15 16
+    */
+    //# exports.cat = function(matrixDoubleArr) {}	
+exports.cat = function (nestedArrMat) {
+    var dimx = []; //cell row dimensions
+    var dimy = []; //cell col dimensions
+    var cdimx = []; //cumulative row dims
+    var cdimy = []; //cumulative coldims
+    var rows = nestedArrMat.length;
+    var cols = nestedArrMat[0].length;
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+            if (col > 0) {
+                assert(dimx[row] == nestedArrMat[row][col].rows, 'inconsistent row dimensions!');
+            } else {
+                dimx[row] = nestedArrMat[row][col].rows;
+            }
+            if (row > 0) {
+                assert(dimy[col] == nestedArrMat[row][col].cols, 'inconsistent column dimensions!');
+            } else {
+                dimy[col] = nestedArrMat[row][col].cols;
+            }            
+        }
+    }
+    cdimx[0] = 0;
+    cdimy[0] = 0;
+    for (var row = 1; row < rows; row++) {
+        cdimx[row] = cdimx[row - 1] + dimx[row - 1];
+    }
+    for (var col = 1; col < cols; col++) {
+        cdimy[col] = cdimy[col - 1] + dimy[col - 1];
+    }
+
+    var res = new la.Matrix({ rows: (cdimx[rows - 1] + dimx[rows - 1]), cols: (cdimy[cols - 1] + dimy[cols - 1]) });
+    // copy submatrices
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+            res.put(cdimx[row], cdimy[col], nestedArrMat[row][col]);
+        }
+    }
+    return res;
+}
+
 
     ///////// ALGORITHMS
 

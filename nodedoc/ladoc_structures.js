@@ -34,13 +34,22 @@
 	*/
  exports.Matrix.prototype.at = function(rowIdx, colIdx) {}
 /**
-	* Sets an element of matrix.
-	* @param {number} rowIdx - Row index (zero based).
+	* Sets an element or a block of matrix.
+	* @param {number} rowIdx - Row index (zero based). 
 	* @param {number} colIdx - Column index (zero based).
-	* @param {number} num - Input value.
+	* @param {(number | module:la.Matrix)} arg - A number or a matrix. If the arg is a matrix, then it gets copied, where the argument's upper left corner, arg.at(0,0), gets copied to (rowIdx, colIdx)
 	* @returns {module:la.Matrix} Self.
+	* @example
+	* // create a new matrix
+	* var mat = new la.Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
+	* var arg = new la.Matrix([[10, 11], [12, 13]]);
+	* mat.put(0, 1, arg);
+	* // updates the matrix to
+    * // 1  10 11
+    * // 4  12 13
+    * // 7  8  9   
 	*/
- exports.Matrix.prototype.put = function(rowIdx, colIdx, num) {}
+ exports.Matrix.prototype.put = function(rowIdx, colIdx, arg) {}
 /**
 	* Right-hand side multiplication of matrix with parameter.
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
@@ -749,6 +758,67 @@ exports.ones = function(k) {
     }
     return ones_k;
 };
+        
+    /**
+    * Constructs a matrix by concatenating a doubly-nested array of matrices.
+    * @param {Array<Array<module:la.Matrix>> } matrixDoubleArr - An array of block rows, where each block row is an array of matrices.
+    * For example: [[m11, m12], [m21, m22]] is used to construct a matrix where the (i,j)-th block submatrix is mij. 
+    * @returns {module:la.Matrix} Concatenated matrix
+    * @example
+    * // create four matrices and concatenate (2 block columns, 2 block rows)
+    * var la = require('qminer').la;
+    * var A = new la.Matrix([[1,2], [3,4]]);
+    * var B = new la.Matrix([[5,6], [7,8]]);
+    * var C = new la.Matrix([[9,10], [11,12]]);
+    * var D = new la.Matrix([[13,14], [15,16]]);
+    * var mat = la.cat([[A,B], [C,D]]);
+    * // returns the matrix:
+    * // 1  2  5  6
+    * // 3  4  7  8
+    * // 9  10 13 14
+    * // 11 12 15 16
+    */
+    //# exports.cat = function(matrixDoubleArr) {}	
+exports.cat = function (nestedArrMat) {
+    var dimx = []; //cell row dimensions
+    var dimy = []; //cell col dimensions
+    var cdimx = []; //cumulative row dims
+    var cdimy = []; //cumulative coldims
+    var rows = nestedArrMat.length;
+    var cols = nestedArrMat[0].length;
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+            if (col > 0) {
+                assert(dimx[row] == nestedArrMat[row][col].rows, 'inconsistent row dimensions!');
+            } else {
+                dimx[row] = nestedArrMat[row][col].rows;
+            }
+            if (row > 0) {
+                assert(dimy[col] == nestedArrMat[row][col].cols, 'inconsistent column dimensions!');
+            } else {
+                dimy[col] = nestedArrMat[row][col].cols;
+            }            
+        }
+    }
+    cdimx[0] = 0;
+    cdimy[0] = 0;
+    for (var row = 1; row < rows; row++) {
+        cdimx[row] = cdimx[row - 1] + dimx[row - 1];
+    }
+    for (var col = 1; col < cols; col++) {
+        cdimy[col] = cdimy[col - 1] + dimy[col - 1];
+    }
+
+    var res = new la.Matrix({ rows: (cdimx[rows - 1] + dimx[rows - 1]), cols: (cdimy[cols - 1] + dimy[cols - 1]) });
+    // copy submatrices
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+            res.put(cdimx[row], cdimy[col], nestedArrMat[row][col]);
+        }
+    }
+    return res;
+}
+
 
     ///////// ALGORITHMS
 

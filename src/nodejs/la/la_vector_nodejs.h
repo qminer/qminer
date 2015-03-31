@@ -301,7 +301,7 @@ private:
 	/**
 	* Sorts the vector (in place operation).
 	* @param {(module:la~<% sortCallback %> | boolean)} [arg] - Default is boolean and true.
-	* @returns {module:la.<% className %>} Self
+	* @returns {module:la.<% className %>} Self.
 	* <br>1. Vector sorted in ascending order, if arg is boolean and true.  
 	* <br>2. Vector sorted in descending order, if arg is boolean and false.
 	* <br>3. Vector sorted by using the comparator callback, if arg is a {@link module:la~<% sortCallback %>}.

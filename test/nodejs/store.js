@@ -240,8 +240,17 @@ function TStore() {
             { "field": "Genres", "type": "value" }
         ]
     }]);
+    // adding two persons
     this.base.store("People").add({ "Name": "Carolina Fortuna", "Gender": "Female" });
     this.base.store("People").add({ "Name": "Blaz Fortuna", "Gender": "Male" });
+
+    // adding two movies
+    this.movie = { "Title": "Every Day", "Plot": "This day really isn't all that different than every other day. Except today, Ned's gay son Jonah wants to go to a college party, his wife is bringing home their elderly father to live with them, and his outrageous boss seems to have become even more crazy and demanding than would even seem possible. As his wife tries to take care of her father reconnect with him, Ned tries to reconnect with Jonah, and then without trying, he seems to have formed a connection with his co-worker. If he can get through days like these, he should be able to get through anything else life throws at him. Ned and Jeannie: married 19 years. Ned has trouble with Garrett, his boss at the cable show he writes, and he's ill-at-ease with his older son Jonah's coming out and wanting to go to a high-school gay student society prom. Jeannie puts work on hold while she attends to Ernie, her sour and mean-spirited father whose ill health forces him to move in with them. While Jeannie taxis the boys, goes to one son's recital, sees to her father's needs, and fixes meals, Garrett assigns Ned to rewrite a script with Robin, an uninhibited, unattached colleague who offers no-strings fun. Can this family hold together while a chicken hawk circles Jonah, Robin inveigles Ned, and death hunts Ernie?", "Year": 2010, "Rating": 5.6, "Genres": ["Comedy", "Drama"], "Director": { "Name": "Levine Richard (III)", "Gender": "Unknown" }, "Actor": [{ "Name": "Beetem Chris", "Gender": "Male" }, { "Name": "Carp Stan", "Gender": "Male" }, { "Name": "Chan Albert M.", "Gender": "Male" }, { "Name": "Dennehy Brian", "Gender": "Male" }, { "Name": "Durell Jesse", "Gender": "Male" }, { "Name": "Farcher Daniel", "Gender": "Male" }, { "Name": "Fortgang Skyler", "Gender": "Male" }, { "Name": "Harbour David (I)", "Gender": "Male" }, { "Name": "Ingram Michael H.", "Gender": "Male" }, { "Name": "Izzard Eddie", "Gender": "Male" }, { "Name": "James Kahan", "Gender": "Male" }, { "Name": "Jones Tilky", "Gender": "Male" }, { "Name": "Kempner Matt", "Gender": "Male" }, { "Name": "Miller Ezra", "Gender": "Male" }, { "Name": "Orchestra Black Diamond", "Gender": "Male" }, { "Name": "Riddle George", "Gender": "Male" }, { "Name": "Routman Steve", "Gender": "Male" }, { "Name": "Schreiber Liev", "Gender": "Male" }, { "Name": "Yelsky Daniel", "Gender": "Male" }, { "Name": "Gard Cassidy", "Gender": "Female" }, { "Name": "Giancoli Bianca", "Gender": "Female" }, { "Name": "Gugino Carla", "Gender": "Female" }, { "Name": "Hahn Sabrina", "Gender": "Female" }, { "Name": "Hunt Helen (I)", "Gender": "Female" }, { "Name": "Miller June (I)", "Gender": "Female" }, { "Name": "Robledo Benita", "Gender": "Female" }] };
+    this.movie2 = { "Title": "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on", "Plot": "no plot available", "Year": 2006, "Rating": 5.8, "Genres": ["Action", "Comedy", "Family", "Fantasy"], "Director": { "Name": "Reyes Tony Y.", "Gender": "Unknown" }, "Actor": [{ "Name": "Aquitania Antonio", "Gender": "Male" }, { "Name": "Ballesteros Paolo", "Gender": "Male" }, { "Name": "Bayola Wally", "Gender": "Male" }, { "Name": "Casimiro Jr. Bayani", "Gender": "Male" }, { "Name": "de Leon Joey", "Gender": "Male" }, { "Name": "Forbes BJ", "Gender": "Male" }, { "Name": "Ignacio Levi", "Gender": "Male" }, { "Name": "K. Allan", "Gender": "Male" }, { "Name": "Lapid Jr. Jess", "Gender": "Male" }, { "Name": "Manalo Jose", "Gender": "Male" }, { "Name": "Salas Paul", "Gender": "Male" }, { "Name": "Santos Jimmy (I)", "Gender": "Male" }, { "Name": "Sotto Gian", "Gender": "Male" }, { "Name": "Sotto Oyo Boy", "Gender": "Male" }, { "Name": "Sotto Tito", "Gender": "Male" }, { "Name": "Sotto Vic", "Gender": "Male" }, { "Name": "V. Michael (I)", "Gender": "Male" }, { "Name": "Zamora Ramon", "Gender": "Male" }, { "Name": "Alano Alyssa", "Gender": "Female" }, { "Name": "Guanio Pia", "Gender": "Female" }, { "Name": "Hermosa Kristine", "Gender": "Female" }, { "Name": "Jones Angelica", "Gender": "Female" }, { "Name": "Loyzaga Bing", "Gender": "Female" }, { "Name": "Madrigal Ehra", "Gender": "Female" }, { "Name": "Parker J.C.", "Gender": "Female" }, { "Name": "Ponti Cassandra", "Gender": "Female" }, { "Name": "Ramirez Mikylla", "Gender": "Female" }, { "Name": "Rodriguez Ruby (I)", "Gender": "Female" }, { "Name": "Seguerra Aiza", "Gender": "Female" }, { "Name": "Sotto Ciara", "Gender": "Female" }, { "Name": "Toengi Giselle", "Gender": "Female" }, { "Name": "V. Ella", "Gender": "Female" }] };
+    
+    this.addMovie = function (movie) {
+        this.base.store("Movies").add(movie);
+    }
 
     this.close = function () {
         this.base.close();
@@ -320,26 +329,24 @@ describe("Two Store Tests", function () {
     });
 
     describe("Add Movie Test", function () {
-        var movie = { "Title": "Every Day", "Plot": "This day really isn't all that different than every other day. Except today, Ned's gay son Jonah wants to go to a college party, his wife is bringing home their elderly father to live with them, and his outrageous boss seems to have become even more crazy and demanding than would even seem possible. As his wife tries to take care of her father reconnect with him, Ned tries to reconnect with Jonah, and then without trying, he seems to have formed a connection with his co-worker. If he can get through days like these, he should be able to get through anything else life throws at him. Ned and Jeannie: married 19 years. Ned has trouble with Garrett, his boss at the cable show he writes, and he's ill-at-ease with his older son Jonah's coming out and wanting to go to a high-school gay student society prom. Jeannie puts work on hold while she attends to Ernie, her sour and mean-spirited father whose ill health forces him to move in with them. While Jeannie taxis the boys, goes to one son's recital, sees to her father's needs, and fixes meals, Garrett assigns Ned to rewrite a script with Robin, an uninhibited, unattached colleague who offers no-strings fun. Can this family hold together while a chicken hawk circles Jonah, Robin inveigles Ned, and death hunts Ernie?", "Year": 2010, "Rating": 5.6, "Genres": ["Comedy", "Drama"], "Director": { "Name": "Levine Richard (III)", "Gender": "Unknown" }, "Actor": [{ "Name": "Beetem Chris", "Gender": "Male" }, { "Name": "Carp Stan", "Gender": "Male" }, { "Name": "Chan Albert M.", "Gender": "Male" }, { "Name": "Dennehy Brian", "Gender": "Male" }, { "Name": "Durell Jesse", "Gender": "Male" }, { "Name": "Farcher Daniel", "Gender": "Male" }, { "Name": "Fortgang Skyler", "Gender": "Male" }, { "Name": "Harbour David (I)", "Gender": "Male" }, { "Name": "Ingram Michael H.", "Gender": "Male" }, { "Name": "Izzard Eddie", "Gender": "Male" }, { "Name": "James Kahan", "Gender": "Male" }, { "Name": "Jones Tilky", "Gender": "Male" }, { "Name": "Kempner Matt", "Gender": "Male" }, { "Name": "Miller Ezra", "Gender": "Male" }, { "Name": "Orchestra Black Diamond", "Gender": "Male" }, { "Name": "Riddle George", "Gender": "Male" }, { "Name": "Routman Steve", "Gender": "Male" }, { "Name": "Schreiber Liev", "Gender": "Male" }, { "Name": "Yelsky Daniel", "Gender": "Male" }, { "Name": "Gard Cassidy", "Gender": "Female" }, { "Name": "Giancoli Bianca", "Gender": "Female" }, { "Name": "Gugino Carla", "Gender": "Female" }, { "Name": "Hahn Sabrina", "Gender": "Female" }, { "Name": "Hunt Helen (I)", "Gender": "Female" }, { "Name": "Miller June (I)", "Gender": "Female" }, { "Name": "Robledo Benita", "Gender": "Female" }] };
-        var movie2 = {"Title":"Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on", "Plot":"no plot available", "Year":2006, "Rating":5.8, "Genres":["Action", "Comedy", "Family", "Fantasy"], "Director":{"Name":"Reyes Tony Y.", "Gender":"Unknown"}, "Actor":[{"Name":"Aquitania Antonio", "Gender":"Male"}, {"Name":"Ballesteros Paolo", "Gender":"Male"}, {"Name":"Bayola Wally", "Gender":"Male"}, {"Name":"Casimiro Jr. Bayani", "Gender":"Male"}, {"Name":"de Leon Joey", "Gender":"Male"}, {"Name":"Forbes BJ", "Gender":"Male"}, {"Name":"Ignacio Levi", "Gender":"Male"}, {"Name":"K. Allan", "Gender":"Male"}, {"Name":"Lapid Jr. Jess", "Gender":"Male"}, {"Name":"Manalo Jose", "Gender":"Male"}, {"Name":"Salas Paul", "Gender":"Male"}, {"Name":"Santos Jimmy (I)", "Gender":"Male"}, {"Name":"Sotto Gian", "Gender":"Male"}, {"Name":"Sotto Oyo Boy", "Gender":"Male"}, {"Name":"Sotto Tito", "Gender":"Male"}, {"Name":"Sotto Vic", "Gender":"Male"}, {"Name":"V. Michael (I)", "Gender":"Male"}, {"Name":"Zamora Ramon", "Gender":"Male"}, {"Name":"Alano Alyssa", "Gender":"Female"}, {"Name":"Guanio Pia", "Gender":"Female"}, {"Name":"Hermosa Kristine", "Gender":"Female"}, {"Name":"Jones Angelica", "Gender":"Female"}, {"Name":"Loyzaga Bing", "Gender":"Female"}, {"Name":"Madrigal Ehra", "Gender":"Female"}, {"Name":"Parker J.C.", "Gender":"Female"}, {"Name":"Ponti Cassandra", "Gender":"Female"}, {"Name":"Ramirez Mikylla", "Gender":"Female"}, {"Name":"Rodriguez Ruby (I)", "Gender":"Female"}, {"Name":"Seguerra Aiza", "Gender":"Female"}, {"Name":"Sotto Ciara", "Gender":"Female"}, {"Name":"Toengi Giselle", "Gender":"Female"}, {"Name":"V. Ella", "Gender":"Female"}]};
-
+        
         it('should add a movie and all people that acted or directed', function () {
-            assert.equal(table.base.store("Movies").add(movie), 0);
+            assert.equal(table.base.store("Movies").add(table.movie), 0);
             assert.equal(table.base.store("Movies").length, 1);
             assert.equal(table.base.store("People").length, 29);
         })
         it('should return the correct values when adding a new movie', function () {
-            assert.equal(table.base.store("Movies").add(movie), 0);
+            assert.equal(table.base.store("Movies").add(table.movie), 0);
 
             assert(table.base.store("Movies")[0] != null);
-            assert.equal(table.base.store("Movies")[0].Title, movie.Title);
-            assert.equal(table.base.store("Movies")[0].Plot, movie.Plot);
-            assert.equal(table.base.store("Movies")[0].Year, movie.Year);
-            assert.equal(table.base.store("Movies")[0].Genres.length, movie.Genres.length);
+            assert.equal(table.base.store("Movies")[0].Title, table.movie.Title);
+            assert.equal(table.base.store("Movies")[0].Plot, table.movie.Plot);
+            assert.equal(table.base.store("Movies")[0].Year, table.movie.Year);
+            assert.equal(table.base.store("Movies")[0].Genres.length, table.movie.Genres.length);
             assert.equal(table.base.store("Movies")[0].Director.Name, "Levine Richard (III)");
         })
         it('should go through the Movies Iteration', function () {
-            assert.equal(table.base.store("Movies").add(movie), 0);
+            table.addMovie(table.movie);
 
             var MoviesIter = table.base.store("Movies").forwardIter;
             assert.equal(MoviesIter.next(), true);
@@ -347,22 +354,93 @@ describe("Two Store Tests", function () {
             assert.equal(MoviesIter.next(), false);
         })
         it('should add 2 movies and all the people that acted or directed', function () {
-            assert.equal(table.base.store("Movies").add(movie), 0);
-            assert.equal(table.base.store("Movies").add(movie2), 1);
+            table.addMovie(table.movie);
+            table.addMovie(table.movie2);
 
             assert.equal(table.base.store("Movies").length, 2);
             assert.equal(table.base.store("People").length, 62);
         })
         it('should return the correct values when adding a new movie', function () {
-            assert.equal(table.base.store("Movies").add(movie), 0);
-            assert.equal(table.base.store("Movies").add(movie2), 1);
+            table.addMovie(table.movie);
+            table.addMovie(table.movie2);
 
             assert(table.base.store("Movies")[1] != null);
-            assert.equal(table.base.store("Movies")[1].Title, movie2.Title);
-            assert.equal(table.base.store("Movies")[1].Plot, movie2.Plot);
-            assert.equal(table.base.store("Movies")[1].Year, movie2.Year);
-            assert.equal(table.base.store("Movies")[1].Genres.length, movie2.Genres.length);
+            assert.equal(table.base.store("Movies")[1].Title, table.movie2.Title);
+            assert.equal(table.base.store("Movies")[1].Plot, table.movie2.Plot);
+            assert.equal(table.base.store("Movies")[1].Year, table.movie2.Year);
+            assert.equal(table.base.store("Movies")[1].Genres.length, table.movie2.Genres.length);
             assert.equal(table.base.store("Movies")[1].Director.Name, "Reyes Tony Y.");
        })
     });
+
+    describe("Sample Test", function () {
+        it('should return a sample of persons out of People', function () {
+            table.addMovie(table.movie);
+            table.addMovie(table.movie2);
+
+            assert.equal(table.base.store("People").sample(0).length, 0);
+            assert.equal(table.base.store("People").sample(1).length, 1);
+            assert.equal(table.base.store("People").sample(10).length, 10);
+            assert.equal(table.base.store("People").sample(62).length, 62);
+            assert.equal(table.base.store("People").sample(63).length, 62);
+            assert.equal(table.base.store("People").sample(100000).length, 62);
+        })
+        it.skip('should throw an exception if sample parameter is negative', function () {
+            table.addMovie(table.movie);
+            table.addMovie(table.movie2);
+
+            assert.throws(function () {
+                table.base.store("People").sample(-10);
+            })
+        })
+    });
+
+    describe("Importing Test", function () {
+        it('should import the movies in the movies_data.txt', function () {
+            var filename = "./sandbox/movies/movies_data.txt"
+            assert.equal(qm.load.jsonFile(table.base.store("Movies"), filename), 167);
+        })
+    })
+})
+
+///////////////////////////////////////////////////////////////////////////////
+// AddTrigger
+
+describe("AddTrigger Tests", function () {
+    
+    var table = undefined;
+    beforeEach(function () {
+        table = new TStore();
+    });
+    afterEach(function () {
+        table.close();
+    });
+
+    describe("Adding the AddTrigger Test", function () {
+        it('should add the addTrigger for the people', function () {
+            var PeopleAdd = 0; var PeopleUpdate = 0;
+            table.base.store("People").addTrigger({
+                onAdd: function (person) {
+                    assert(null != person, "onAdd: person");
+                    assert(null != person.Name, "onAdd: person.Name");
+                    assert(null != person.Gender, "onAdd: person.Gender");
+                    PeopleAdd = PeopleAdd + 1;
+                },
+                onUpdate: function (person) {
+                    assert(null != person, "onAdd: person");
+                    assert(null != person.Name, "onAdd: person.Name");
+                    assert(null != person.Gender, "onAdd: person.Gender");
+                    PeopleUpdate = PeopleUpdate + 1;
+                }
+            });
+
+            // adding the people from movies
+            table.addMovie(table.movie);
+            table.addMovie(table.movie2);
+
+            assert.equal(PeopleAdd, 60);
+            assert.equal(PeopleUpdate, 0);
+        })
+    })
+
 })

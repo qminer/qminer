@@ -231,20 +231,33 @@ void TNodeJsFltVV::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    EAssertR(Args.Length() == 3 && Args[0]->IsInt32() && Args[1]->IsInt32() &&
-        Args[2]->IsNumber(), "Expected two nonnegative integers as indices");
-
-    const int RowIdx = Args[0]->IntegerValue();
-    const int ColIdx = Args[1]->IntegerValue();
-    const double Val = Args[2]->NumberValue();
-
-    TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
-
-    EAssertR(0 <= RowIdx && RowIdx < JsMat->Mat.GetRows(), "Row index out of bounds");
-    EAssertR(0 <= ColIdx && ColIdx < JsMat->Mat.GetCols(), "Column index out of bounds");
-
-    JsMat->Mat.At(RowIdx, ColIdx) = Val;
-
+	EAssertR(Args.Length() == 3 && Args[0]->IsInt32() && Args[1]->IsInt32(), "Expected two nonnegative integers as indices");
+	EAssertR(Args[2]->IsNumber() || TNodeJsUtil::IsArgClass(Args, 2, TNodeJsFltVV::ClassId), "Third argument should be a number or a matrix");
+	
+	TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+	TInt Rows = JsMat->Mat.GetRows();
+	TInt Cols = JsMat->Mat.GetCols();
+	
+	const int Row = Args[0]->IntegerValue();
+	const int Col = Args[1]->IntegerValue();
+	if (Args[2]->IsNumber()) {
+		
+		const double Val = Args[2]->NumberValue();
+		EAssertR(0 <= Row && Row < Rows, "Row index out of bounds");
+		EAssertR(0 <= Col && Col < Cols, "Column index out of bounds");
+		JsMat->Mat.At(Row, Col) = Val;
+	} else {
+		TNodeJsFltVV* JsMat2 = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[2]->ToObject());
+		int Rows2 = JsMat2->Mat.GetRows();
+		int Cols2 = JsMat2->Mat.GetCols();
+		EAssertR(Row >= 0 && Col >= 0 && Row < Rows && Col < Cols && Row + (Rows2 - 1) < Rows && Col + (Cols2 - 1) < Cols, "matrix put matrix: index out of bounds");
+		for (int RowN = 0; RowN < Rows2; RowN++) {
+			for (int ColN = 0; ColN < Cols2; ColN++) {
+				JsMat->Mat.At(Row + RowN, Col + ColN) = JsMat2->Mat.At(RowN, ColN);
+			}
+		}
+	}
+    
     Args.GetReturnValue().Set(Args.Holder());
 }
 
