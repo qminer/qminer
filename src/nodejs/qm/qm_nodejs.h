@@ -33,23 +33,21 @@ private:
 ///////////////////////////////
 // NodeJs QMiner Base
 class TNodeJsBase : public node::ObjectWrap {
+	friend class TNodeJsUtil;
 private:
-	// Node framework
-	static v8::Persistent<v8::Function> constructor;
+	static v8::Persistent<v8::Function> Constructor;
 public:
-	// Node framework
-	static void Init(v8::Handle<v8::Object> exports);
-	// Wrapping C++ object
-	static v8::Local<v8::Object> New(TWPt<TQm::TBase> _Base);
-    // C++ constructors
-	TNodeJsBase() { }
-	TNodeJsBase(TWPt<TQm::TBase> _Base) : Base(_Base) { }
-	// Node framework (constructor method)
-	JsDeclareFunction(New);
-public:
-	// C++ wrapped object
+	static void Init(v8::Handle<v8::Object> Exports);
+	static const TStr ClassId;
+	// wrapped C++ object
 	TWPt<TQm::TBase> Base;
-
+	// C++ constructor
+	TNodeJsBase(const TWPt<TQm::TBase>& Base_) : Base(Base_) { }
+	TNodeJsBase(const TStr& DbPath, const TStr& SchemaFNm, const PJsonVal& Schema, const bool& Create, const bool& ForceCreate, const bool& ReadOnly, const TInt& IndexCache, const TInt& StoreCache);
+private:	
+	// TODO JSDOC
+	// parses arguments, called by javascript constructor 
+	static TNodeJsBase* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 private:
 	//! 
 	//! **Functions and properties:**

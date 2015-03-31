@@ -271,7 +271,7 @@ private:
 	* Returns a vector of column norms.
 	* @returns {module:la.Vector} Vector, where the value at i-th index is the norm of the i-th column of matrix.
 	*/
-	//# exports.Matrix.prototype.colNorms = function () {}
+	//# exports.Matrix.prototype.colNorms = function () { return Object.create(require('qminer').la.IntVector.prototype) }
 	JsDeclareFunction(colNorms);
 
 	//!- `mat = mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation). Returns self.

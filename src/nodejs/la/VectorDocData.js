@@ -33,4 +33,6 @@ exports.view = {
 	"skipToMat": "",
 	"skipSave": "",
     "skipLoad": "",
+    
+    "defaultVal": "0.0",
 }

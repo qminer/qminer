@@ -91,7 +91,8 @@ void TNodeJsQm::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TWPt<TQm::TBase> Base_ = TQm::TStorage::NewBase(Param.DbFPath, SchemaVal, Param.IndexCacheSize, Param.DefStoreCacheSize);
 		// save base		
 		TQm::TStorage::SaveBase(Base_);
-		Args.GetReturnValue().Set(TNodeJsBase::New(Base_));
+		
+		Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsBase>(new TNodeJsBase(Base_)));
 		// once the base is open we need to setup the custom record templates for each store
 		if (!TNodeJsQm::BaseFPathToId.IsKey(Base_->GetFPath())) {
 			TUInt Keys = (uint)TNodeJsQm::BaseFPathToId.Len();
@@ -134,7 +135,7 @@ void TNodeJsQm::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		// load base
 		TWPt<TQm::TBase> Base_ = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
 			Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
-		Args.GetReturnValue().Set(TNodeJsBase::New(Base_));
+		Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsBase>(new TNodeJsBase(Base_)));
 		// once the base is open we need to setup the custom record templates for each store
 		if (!TNodeJsQm::BaseFPathToId.IsKey(Base_->GetFPath())) {
 			TUInt Keys = (uint)TNodeJsQm::BaseFPathToId.Len();
@@ -151,18 +152,26 @@ void TNodeJsQm::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 ///////////////////////////////
 // NodeJs QMiner Base
-
-v8::Persistent<v8::Function> TNodeJsBase::constructor;
+v8::Persistent<v8::Function> TNodeJsBase::Constructor;
+const TStr TNodeJsBase::ClassId = "Base";
 
 void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
-   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-   v8::HandleScope HandleScope(Isolate);
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// template for creating function from javascript using "new", uses _NewJs callback
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsBase>);
+	// child will have the same properties and methods, but a different callback: _NewCpp
+	v8::Local<v8::FunctionTemplate> child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsBase>);
+	child->Inherit(tpl);
 
-   v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-   tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "Base"));
-   // ObjectWrap uses the first internal field to store the wrapped pointer.
-   tpl->InstanceTemplate()->SetInternalFieldCount(1);
+	child->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer
+	child->InstanceTemplate()->SetInternalFieldCount(1);
 
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+	
    // Add all methods, getters and setters here.   
    NODE_SET_PROTOTYPE_METHOD(tpl, "close", _close);
    NODE_SET_PROTOTYPE_METHOD(tpl, "store", _store);
@@ -173,73 +182,124 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
    NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggr", _getStreamAggr);
    NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggrNames", _getStreamAggrNames);
    
-   // This has to be last, otherwise the properties won't show up on the object in JavaScript.
-   constructor.Reset(Isolate, tpl->GetFunction());
-   exports->Set(v8::String::NewFromUtf8(Isolate, "Base"),
+   // This has to be last, otherwise the properties won't show up on the object in JavaScript	
+   // Constructor is used when creating the object from C++
+   Constructor.Reset(Isolate, child->GetFunction());
+   // we need to export the class for calling using "new FIn(...)"
+   exports->Set(v8::String::NewFromUtf8(Isolate, ClassId.CStr()),
 	   tpl->GetFunction());
 
 }
 
-v8::Local<v8::Object> TNodeJsBase::New(TWPt<TQm::TBase> _Base) {
+TNodeJsBase::TNodeJsBase(const TStr& DbFPath, const TStr& SchemaFNm, const PJsonVal& Schema, const bool& Create, const bool& ForceCreate, const bool& RdOnlyP, const TInt& IndexCacheSize, const TInt& StoreCacheSize) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::EscapableHandleScope HandleScope(Isolate);
-	EAssertR(!constructor.IsEmpty(), "TNodeJsBase::New: constructor is empty. Did you call TNodeJsBase::Init(exports); in this module's init function?");
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-	v8::Local<v8::Object> Instance = cons->NewInstance();
+	v8::HandleScope HandleScope(Isolate);
 
-	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TBase");
-	Instance->SetHiddenValue(Key, Value);
-	TNodeJsBase* JsBase = new TNodeJsBase(_Base);
-	JsBase->Wrap(Instance);
-	return HandleScope.Escape(Instance);
+
+	if (ForceCreate) {		
+		
+		if (TDir::Exists(DbFPath)) {
+			TStrV FNmV;
+			TStrV FExtV;
+			TFFile::GetFNmV(DbFPath, FExtV, true, FNmV);
+			bool DirEmpty = FNmV.Len() == 0;
+			if (!DirEmpty) {
+				// delete all files
+				for (int FileN = 0; FileN < FNmV.Len(); FileN++) {
+					TFile::Del(FNmV[FileN], true);
+				}
+			}
+		}
+
+	}
+
+	if (Create) {
+		TStr LockFNm = TDir::GetCurDir() + "./lock";
+		// prepare lock
+		TFileLock Lock(LockFNm);
+
+		Lock.Lock();
+
+		// use file if specified, otherwise use schema (default is empty)
+		PJsonVal SchemaVal = SchemaFNm.Empty() ? Schema :
+			TJsonVal::GetValFromStr(TStr::LoadTxt(SchemaFNm));
+		// initialize base		
+		
+		Base = TQm::TStorage::NewBase(DbFPath, SchemaVal, IndexCacheSize, StoreCacheSize);
+		// save base		
+		TQm::TStorage::SaveBase(Base);		
+
+		// once the base is open we need to setup the custom record templates for each store
+		if (!TNodeJsQm::BaseFPathToId.IsKey(Base->GetFPath())) {
+			TUInt Keys = (uint)TNodeJsQm::BaseFPathToId.Len();
+			TNodeJsQm::BaseFPathToId.AddDat(Base->GetFPath(), Keys);
+		}
+		if (ForceCreate) {
+			// TODO simplify TNodeJsRec template selection: see comment in v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec, const TInt& _Fq)
+			// Since contents of db folder were not empty 
+			//we must reset all record templates (one per store)
+			uint BaseId = TNodeJsQm::BaseFPathToId.GetDat(DbFPath);
+			TNodeJsRec::Clear(BaseId);
+		}
+		for (int StoreN = 0; StoreN < Base->GetStores(); StoreN++) {
+			TNodeJsRec::Init(Base->GetStoreByStoreN(StoreN));
+		}
+
+		// remove lock
+		Lock.Unlock();
+	}
+	if (!Create) { // open mode
+		TStr LockFNm = TDir::GetCurDir() + "./lock";
+
+		// prepare lock
+		TFileLock Lock(LockFNm);
+
+		Lock.Lock();
+		// load database and start the server
+		{
+			// resolve access type
+			TFAccess FAccess = RdOnlyP ? faRdOnly : faUpdate;
+			// load base
+			TStrUInt64H StoreNmCacheSizeH;
+			Base = TQm::TStorage::LoadBase(DbFPath, FAccess,
+				IndexCacheSize, StoreCacheSize, StoreNmCacheSizeH);
+			// once the base is open we need to setup the custom record templates for each store
+			if (!TNodeJsQm::BaseFPathToId.IsKey(Base->GetFPath())) {
+				TUInt Keys = (uint)TNodeJsQm::BaseFPathToId.Len();
+				TNodeJsQm::BaseFPathToId.AddDat(Base->GetFPath(), Keys);
+			}
+			for (int StoreN = 0; StoreN < Base->GetStores(); StoreN++) {
+				TNodeJsRec::Init(Base->GetStoreByStoreN(StoreN));
+			}
+		}
+		// remove lock
+		Lock.Unlock();
+	}
 }
 
-void TNodeJsBase::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);	
-	EAssertR(!constructor.IsEmpty(), "TNodeJsBase::New: constructor is empty. Did you call TNodeJsBase::Init(exports); in this module's init function?");
-	// new base(...)
-	if (Args.IsConstructCall()) {
-	    // new base(fPath, cacheSize);
-		if (Args.Length() == 2) {
-			//printf("construct call, 2 args\n");
-			TStr FPath = TNodeJsUtil::GetArgStr(Args, 0);
-			int CacheSize = TNodeJsUtil::GetArgInt32(Args, 1);
-			TWPt<TQm::TBase> Base_ = TQm::TBase::New(FPath, CacheSize);
-			Args.GetReturnValue().Set(TNodeJsBase::New(Base_));
-			return;
-		}
-		else {
-			//printf("construct call, 0 args expected, got %d\n", Args.Length());
-			// new base(base);
-			TNodeJsBase* JsBase = new TNodeJsBase();
-			v8::Local<v8::Object> Instance = Args.This();
-			JsBase->Wrap(Instance);
-			Args.GetReturnValue().Set(Instance);
-			return;
-		}
+TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	// parse arguments
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject(), "base constructor expects a JSON object with parameters");
+	
+	PJsonVal Val = TNodeJsUtil::GetArgJson(Args, 0);
+
+	TStr DbPath = Val->GetObjStr("dbPath", "./db/");
+	// mode: create, cleanCreate, open, openReadOnly
+	TStr Mode = Val->GetObjBool("mode", "create");
+	
+	TStr SchemaFNm = Val->GetObjBool("schemaPath", "");	
+	PJsonVal Schema = TJsonVal::NewArr();
+	if (Val->IsObjKey("schema")) {
+		Schema = Val->GetObjKey("schema");
 	}
-	// base(...) -> calls new base()
-	else {	
-		//printf("NOT construct call from New!\n");
-		// base(fPath, cacheSize) -> calls new base(fPath, cacheSize)
-		if (Args.Length() == 2) {
-			const int Argc = 2;
-			v8::Local<v8::Value> Argv[Argc] = { Args[0], Args[1] };
-			v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-			v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
-			Args.GetReturnValue().Set(Instance);
-			return;
-		}
-		else {
-			// base()->calls new base()
-			v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-			v8::Local<v8::Object> Instance = cons->NewInstance();
-			Args.GetReturnValue().Set(Instance);
-			return;
-		}
-	}	
+
+	bool Create = Mode == "create" || Mode == "createClean";
+	bool ForceCreate = Mode == "createClean";
+	bool ReadOnly = Mode == "openReadOnly";
+	TInt IndexCache = Val->GetObjInt("indexCache", 1024);
+	TInt StoreCache = Val->GetObjInt("storeCache", 1024);
+
+	return new TNodeJsBase(DbPath, SchemaFNm, Schema,  Create, ForceCreate, ReadOnly, IndexCache, StoreCache);
 }
 
 void TNodeJsBase::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -2284,8 +2344,9 @@ void TNodeJsStore::base(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Self);
+	Info.GetReturnValue().Set(
+		TNodeJsUtil::NewInstance<TNodeJsBase>( new TNodeJsBase(JsStore->Store->GetBase())));
 
-	Info.GetReturnValue().Set(TNodeJsBase::New(JsStore->Store->GetBase()));
 }
 
 ///////////////////////////////

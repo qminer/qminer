@@ -257,11 +257,9 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript	
 	// Constructor is used when creating the object from C++
 	Constructor.Reset(Isolate, child->GetFunction());
-#ifndef MODULE_INCLUDE_FS
 	// we need to export the class for calling using "new FIn(...)"
 	exports->Set(v8::String::NewFromUtf8(Isolate, "FIn"),
 		tpl->GetFunction());
-#endif
 
 }
 
