@@ -70,16 +70,19 @@ private:
 
 /**
 * Base
-* @classdesc Represents the database and holds stores.
+* @classdesc Represents the database and holds stores. //TODO constructor
 * @class
-* 
+* @param {string} filePath - The database folder. 
+* @param {number} CacheSize - Cache size in MB.
 * @example
 * // import qm module
 * var qm = require('qminer');
-* // create a base with the qm configuration
-* var base = qm.config('qm.conf', "", true);
+* // create a base with the qm configuration file, without the predefined schemas, with overwrite = true
+* var base = qm.create('qm.conf', "", true);
+* // create a base with constructor
+* var base2 = new qm.Base('./db/', 1024);
 */
-//# exports.Base = function () {};
+//# exports.Base = function (filePath, CacheSize) {};
 class TNodeJsBase : public node::ObjectWrap {
 private:
 	// Node framework
