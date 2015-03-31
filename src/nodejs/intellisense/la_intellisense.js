@@ -1126,7 +1126,7 @@ exports.cat = function (nestedArrMat) {
 	* var vec = new la.Vector([1, 2, 3]);
 	* // open write stream
 	* var fout = fs.openWrite('vec.dat');
-	* // save matrix and close write stream
+	* // save vector and close write stream
 	* vec.save(fout).close();
 	*/
  exports.Vector.prototype.save = function (fout) {  return Object.create(require('qminer').fs.FOut.prototype); }
@@ -1142,7 +1142,7 @@ exports.cat = function (nestedArrMat) {
 	* var vec = new la.Vector();
 	* // open a read stream
 	* var fin = fs.openRead('vec.dat');
-	* // load the matrix
+	* // load the vector
 	* vec.load(fin);
 	*/
  exports.Vector.prototype.load = function (fin) { return this; }
@@ -1424,7 +1424,7 @@ exports.cat = function (nestedArrMat) {
 	* var vec = new la.StrVector(['a', 'b', 'c']);
 	* // open write stream
 	* var fout = fs.openWrite('vec.dat');
-	* // save matrix and close write stream
+	* // save vector and close write stream
 	* vec.save(fout).close();
 	*/
  exports.StrVector.prototype.save = function (fout) {  return Object.create(require('qminer').fs.FOut.prototype); }
@@ -1440,7 +1440,7 @@ exports.cat = function (nestedArrMat) {
 	* var vec = new la.StrVector();
 	* // open a read stream
 	* var fin = fs.openRead('vec.dat');
-	* // load the matrix
+	* // load the vector
 	* vec.load(fin);
 	*/
  exports.StrVector.prototype.load = function (fin) { return this; }
@@ -1722,7 +1722,7 @@ exports.cat = function (nestedArrMat) {
 	* var vec = new la.IntVector([1, 2, 3]);
 	* // open write stream
 	* var fout = fs.openWrite('vec.dat');
-	* // save matrix and close write stream
+	* // save vector and close write stream
 	* vec.save(fout).close();
 	*/
  exports.IntVector.prototype.save = function (fout) {  return Object.create(require('qminer').fs.FOut.prototype); }
@@ -1738,7 +1738,7 @@ exports.cat = function (nestedArrMat) {
 	* var vec = new la.IntVector();
 	* // open a read stream
 	* var fin = fs.openRead('vec.dat');
-	* // load the matrix
+	* // load the vector
 	* vec.load(fin);
 	*/
  exports.IntVector.prototype.load = function (fin) { return this; }
@@ -2020,7 +2020,7 @@ exports.cat = function (nestedArrMat) {
 	* var vec = new la.BoolVector([true, true, false]);
 	* // open write stream
 	* var fout = fs.openWrite('vec.dat');
-	* // save matrix and close write stream
+	* // save vector and close write stream
 	* vec.save(fout).close();
 	*/
  exports.BoolVector.prototype.save = function (fout) {  return Object.create(require('qminer').fs.FOut.prototype); }
@@ -2036,7 +2036,7 @@ exports.cat = function (nestedArrMat) {
 	* var vec = new la.BoolVector();
 	* // open a read stream
 	* var fin = fs.openRead('vec.dat');
-	* // load the matrix
+	* // load the vector
 	* vec.load(fin);
 	*/
  exports.BoolVector.prototype.load = function (fin) { return this; }

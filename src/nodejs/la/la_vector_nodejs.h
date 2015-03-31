@@ -455,7 +455,7 @@ private:
 	* var vec = new la.<% className %>(<% example1 %>);
 	* // open write stream
 	* var fout = fs.openWrite('vec.dat');
-	* // save matrix and close write stream
+	* // save vector and close write stream
 	* vec.save(fout).close();
 	*/
 	//# <% skipSave %>exports.<% className %>.prototype.save = function (fout) {  return Object.create(require('qminer').fs.FOut.prototype); }
@@ -473,7 +473,7 @@ private:
 	* var vec = new la.<% className %>();
 	* // open a read stream
 	* var fin = fs.openRead('vec.dat');
-	* // load the matrix
+	* // load the vector
 	* vec.load(fin);
 	*/
 	//# <% skipLoad %>exports.<% className %>.prototype.load = function (fin) { return this; }

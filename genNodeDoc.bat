@@ -7,9 +7,11 @@ node makedoc.js src/nodejs/la/la_structures_nodejs.h src/nodejs/scripts/la.js ./
 
 node makedoc.js src/nodejs/la/la_vector_nodejs.h "" ./nodedoc/ladoc.js ./nodedoc/ladoc_structures.js ./src/nodejs/la/VectorDocData.js ./src/nodejs/la/StrVectorDocData.js ./src/nodejs/la/IntVectorDocData.js ./src/nodejs/la/BoolVectorDocData.js
 
+node makedoc.js src/nodejs/qm/qm_nodejs.h "" ./nodedoc/qminerdoc.js
+
 node appendIntellisense nodedoc/fsdoc.js src/nodejs/intellisense/fs_intellisense.js "exports = {}; require.modules.qminer_fs = exports;"
 node appendIntellisense nodedoc/ladoc.js src/nodejs/intellisense/la_intellisense.js "exports = {}; require.modules.qminer_la = exports;"
 node appendIntellisense nodedoc/htdoc.js src/nodejs/intellisense/ht_intellisense.js "exports = {}; require.modules.qminer_ht = exports;"
 node appendIntellisense nodedoc/analyticsdoc.js src/nodejs/intellisense/analytics_intellisense.js "exports = {}; require.modules.qminer_analytics = exports;"
 
-jsdoc nodedoc/htdoc.js nodedoc/fsdoc.js nodedoc/analyticsdoc.js  nodedoc/ladoc.js -d nodedoc
+jsdoc nodedoc/htdoc.js nodedoc/fsdoc.js nodedoc/analyticsdoc.js  nodedoc/ladoc.js nodedoc/qminerdoc.js -d nodedoc
