@@ -50,6 +50,9 @@ public:
       Next=HashKeyDat.Next; HashCd=HashKeyDat.HashCd;
       Key=HashKeyDat.Key; Dat=HashKeyDat.Dat;}
     return *this;}
+  uint64 GetMemUsed() const {
+	  return uint64(2 * sizeof(TInt)) + Key.GetMemUsed() + Dat.GetMemUsed();
+  }
 };
 #pragma pack(pop)
 
@@ -184,11 +187,12 @@ public:
       uint64 MemUsed = sizeof(TBool) + 2 * sizeof(TInt);
 	  //MemUsed += uint64(PortV.Reserved()) * int64(sizeof(TInt));
 	  MemUsed += PortV.GetMemUsed();
-	  for (int KeyDatN = 0; KeyDatN < KeyDatV.Len(); KeyDatN++) {
+	  /*for (int KeyDatN = 0; KeyDatN < KeyDatV.Len(); KeyDatN++) {
           MemUsed += uint64(2 * sizeof(TInt));
           MemUsed += uint64(KeyDatV[KeyDatN].Key.GetMemUsed());
           MemUsed += uint64(KeyDatV[KeyDatN].Dat.GetMemUsed());
-      }
+	  }*/
+	  MemUsed += KeyDatV.GetMemUsedDeep();
 	  return uint64(MemUsed);
   }
   uint64 GetMemUsedFlat() const {

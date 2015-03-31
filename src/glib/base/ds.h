@@ -514,10 +514,22 @@ public:
     return ValT[ValN];}
   /// Returns the memory footprint (the number of bytes) of the vector.
   uint64 GetMemUsed() const {
-    return uint64(2*sizeof(TSizeTy)+sizeof(TVal*)+MxVals*sizeof(TVal));}
+	  return TSizeTy(2 * sizeof(TVal) + sizeof(TSizeTy)*Vals);
+  }
+  /// Returns the memory footprint (the number of bytes) of the vector.
+  uint64 GetMemUsedDeep() const {
+	  uint64 MemSize = 2 * sizeof(TSizeTy) + sizeof(TVal*);
+	  if (ValT != NULL && MxVals != -1){
+		  for (TSizeTy i = 0; i < MxVals; i++){
+			  MemSize += ValT[i].GetMemUsed();
+		  }
+	  }
+	  return MemSize;
+  }
   /// Returns the memory size (the number of bytes) of a binary representation.
-  TSizeTy GetMemSize() const {
-    return TSizeTy(2*sizeof(TVal)+sizeof(TSizeTy)*Vals);}
+  TSizeTy GetMemSize(bool flat = true) const {
+	 return TSizeTy(2*sizeof(TVal)+sizeof(TSizeTy)*Vals);
+  }
   
   /// Returns primary hash code of the vector. Used by \c THash.
   int GetPrimHashCd() const;
@@ -2742,7 +2754,7 @@ public:
   PLstNd SearchForw(const TVal& Val);
   PLstNd SearchBack(const TVal& Val);
   uint64 GetMemUsed() const {
-      return uint64(sizeof(int) + 2 * sizeof(PLstNd) + Nds * sizeof(TVal));
+	  return uint64(sizeof(int) + 2 * sizeof(PLstNd) + Nds * sizeof(TLstNd<TVal>));
   }
   friend class TLstNd<TVal>;
 };

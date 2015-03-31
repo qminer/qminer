@@ -1,6 +1,35 @@
 This file is used for manual inspection of memory usage
 ==========================================================
 
+
+
+
+TGix<TPair<TInt, TUInt64>, TKeyDat<TUInt64, TInt>> [ok]
+	KeyDatH: THash<TPair<TInt, uint64>, TBlobPt> [ok]
+		PortV: TVec<TInt>  [flat] [ok]
+		KeyDatV: TVec<THashKey<TPair<TInt, TUInt64>, TBlobPt>>  [deep] [ok]
+			Key: TPair<TInt, TUInt64> [ok]
+			Dat: TBlobPt [ok]
+	ItemSetCache: TCache<TBlobPt, PGixItemSet> [ok]
+		TimeKeyL: TLst<TBlobPt>  [flat] [ok]
+		KeyDatH: THash<TBlobPt, TPair<TLstNd<TBlobPt>*, PGixItemSet>> [flat] [ok]
+			PortV: TVec<TInt>  [flat] [ok]
+			KeyDatV: TVec<THashKey<TBlobPt, TPair<TLstNd<TBlobPt>*, PGixItemSet>>> [deep]
+				Key: TBlobPt [ok]
+				Dat: TPair<TLstNd<TBlobPt>*, PGixItemSet>> [Problem]
+			
+
+
+
+
+
+
+
+
+
+
+
+
 it looks like TCache is not reporting correctly. 
 Hash table seems ok. 
 There were no memory leaks detected using Deleaker.
