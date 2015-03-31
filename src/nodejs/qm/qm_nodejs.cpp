@@ -194,10 +194,8 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 TNodeJsBase::TNodeJsBase(const TStr& DbFPath, const TStr& SchemaFNm, const PJsonVal& Schema, const bool& Create, const bool& ForceCreate, const bool& RdOnlyP, const TInt& IndexCacheSize, const TInt& StoreCacheSize) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-
-
-	if (ForceCreate) {		
-		
+	
+	if (ForceCreate) {	
 		if (TDir::Exists(DbFPath)) {
 			TStrV FNmV;
 			TStrV FExtV;
@@ -214,6 +212,17 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath, const TStr& SchemaFNm, const PJson
 	}
 
 	if (Create) {
+		if (TDir::Exists(DbFPath)) {
+			TStrV FNmV;
+			TStrV FExtV;
+			TFFile::GetFNmV(DbFPath, FExtV, true, FNmV);
+			bool DirEmpty = FNmV.Len() == 0;
+			if (!DirEmpty) {
+				// if not empty and create was called
+				throw TQm::TQmExcept::New("new base(...): database folder not empty and mode=create. Clear db folder or use mode=createClean!");
+			}
+		}
+
 		TStr LockFNm = TDir::GetCurDir() + "./lock";
 		// prepare lock
 		TFileLock Lock(LockFNm);
@@ -284,10 +293,10 @@ TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>&
 	PJsonVal Val = TNodeJsUtil::GetArgJson(Args, 0);
 
 	TStr DbPath = Val->GetObjStr("dbPath", "./db/");
-	// mode: create, cleanCreate, open, openReadOnly
-	TStr Mode = Val->GetObjBool("mode", "create");
+	// mode: create, createClean, open, openReadOnly
+	TStr Mode = Val->GetObjStr("mode", "open");
 	
-	TStr SchemaFNm = Val->GetObjBool("schemaPath", "");	
+	TStr SchemaFNm = Val->GetObjStr("schemaPath", "");
 	PJsonVal Schema = TJsonVal::NewArr();
 	if (Val->IsObjKey("schema")) {
 		Schema = Val->GetObjKey("schema");
