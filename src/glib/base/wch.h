@@ -98,7 +98,7 @@ public:
   TWChA& operator+=(const TStr& Str){AddCStr(Str.CStr()); return *this;}
   TWChA& operator+=(const TWChA& WChA){WChV.AddV(WChA.WChV); return *this;}
   TWCh operator[](const int& ChN) const {return WChV[ChN];}
-  int GetMemUsed(){return WChV.GetMemUsed();}
+  uint64 GetMemUsed() { return WChV.GetMemUsed(); }
 
   void Clr(){WChV.Clr();}
   int Len() const {return WChV.Len();}

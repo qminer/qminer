@@ -486,10 +486,11 @@ public:
 		TStr Nm("Test_Feed");
 		TStr FName("data");
 		int loops = 600*1000;
-		int total_words = 10000;
-		int article_max_len = 20;
+		int total_words = 20000;
+		int article_max_len = 50;
 		int keys = 0;
 		cache_size *= 10;
+        printf("***** size=%d\n", sizeof(TMyItem));
 		{
 			TMyGix gix(Nm, FName, faCreate, cache_size, split_len);
 			gix.PrintStats();
@@ -522,8 +523,11 @@ public:
 			gix.PrintStats();
 
 			gix.KillHash();
-			//gix.KillCache();
+            gix.PrintStats();
+
+			gix.KillCache();
 			gix.PrintStats();
+
 			//_ASSERTE(_CrtCheckMemory());
 			//_CrtDumpMemoryLeaks();
 		}
