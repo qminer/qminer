@@ -214,8 +214,8 @@ private:
 	void ProcessDeletes();
 
 	/// Ask child vectors about their memory usage
-	int64 GetChildMemUsed() const {
-		int64 mem = 0;
+	uint64 GetChildMemUsed() const {
+		uint64 mem = 0;
         for (int i = 0; i < ChildrenData.Len(); i++) {
             mem += ChildrenData[i].GetMemUsed();
         }
@@ -247,8 +247,8 @@ public:
 	void Save(TMOut& SOut);
 
 	// functions used by TCache
-	int64 GetMemUsed() const {
-		int64 res = 2 * sizeof(TBool);
+	uint64 GetMemUsed() const {
+		uint64 res = 2 * sizeof(TBool);
 		res += sizeof(int);
 		res += sizeof(TCRef);
 		res += sizeof(TGixMerger*);
@@ -492,8 +492,8 @@ void TGixItemSet<TKey, TItem, TGixMerger>::PushMergedDataBackToChildren(int firs
 
 template <class TKey, class TItem, class TGixMerger>
 void TGixItemSet<TKey, TItem, TGixMerger>::AddItem(const TItem& NewItem, const bool& NotifyCacheOnlyDelta) {
-    //const int OldSize = GetMemUsed();
-    const int OldSize = (NotifyCacheOnlyDelta ? GetMemUsed() : 0); // avoid calculation of GetMemUsed if not needed
+    //const uint64 OldSize = GetMemUsed();
+    const uint64 OldSize = (NotifyCacheOnlyDelta ? GetMemUsed() : 0); // avoid calculation of GetMemUsed if not needed
 	if (IsFull()) {
 		Def();
 		if (IsFull()) {
@@ -565,7 +565,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::GetItemV(TVec<TItem>& _ItemV) {
 
 template <class TKey, class TItem, class TGixMerger>
 void TGixItemSet<TKey, TItem, TGixMerger>::DelItem(const TItem& Item) {
-	const int OldSize = GetMemUsed();
+    const uint64 OldSize = GetMemUsed();
 	if (IsFull()) {
 		Def();
 		if (IsFull()) {
@@ -758,8 +758,8 @@ private:
 	/// BLOB handler
 	PBlobBs ItemSetBlobBs;
 
-	int64 CacheResetThreshold;
-	mutable int64 NewCacheSizeInc;
+    uint64 CacheResetThreshold;
+    mutable uint64 NewCacheSizeInc;
 	/// flag if cache is full
 	bool CacheFullP;
 
@@ -882,11 +882,11 @@ public:
 			2*sizeof(int64) + sizeof(bool) + sizeof(TGixStats));*/
 	}
 	int GetNewCacheSizeInc() const { return NewCacheSizeInc; }
-	int64 GetCacheSize() const { return ItemSetCache.GetMemUsed(); }
-	int64 GetMxMemUsed() const { return ItemSetCache.GetMxMemUsed(); }
+    uint64 GetCacheSize() const { return ItemSetCache.GetMemUsed(); }
+    uint64 GetMxMemUsed() const { return ItemSetCache.GetMxMemUsed(); }
 	bool IsCacheFull() const { return CacheFullP; }
 	void RefreshMemUsed();
-	void AddToNewCacheSizeInc(int64 diff) const { NewCacheSizeInc += diff; }
+    void AddToNewCacheSizeInc(uint64 diff) const { NewCacheSizeInc += diff; }
 
 
 	/// print statistics for index keys
@@ -1189,7 +1189,9 @@ void TGix<TKey, TItem, TGixMerger>::PrintStats() {
 		blob_stats.Dels, blob_stats.SizeChngs, blob_stats.AvgGetLen, blob_stats.AvgPutLen, blob_stats.AvgPutNewLen);
 	ItemSetBlobBs->ResetStats();
 	printf(".... hash-table stats - memory=%s size=%d\n", TUInt64::GetKiloStr(KeyIdH.GetMemUsed()).CStr(), KeyIdH.Len());
-	printf(".... gix - memory=%s hash=%s, cache=%s\n", TUInt64::GetMegaStr(GetMemUsed()).CStr(), TUInt64::GetMegaStr(KeyIdH.GetMemUsed()).CStr(), TUInt64::GetMegaStr(ItemSetCache.GetMemUsed()).CStr());
+	printf(".... gix - cnt=%s, memory=%s, hash=%s, cache=%s\n", 
+        TUInt64::GetMegaStr(KeyIdH.Len()).CStr(),
+        TUInt64::GetMegaStr(GetMemUsed()).CStr(), TUInt64::GetMegaStr(KeyIdH.GetMemUsed()).CStr(), TUInt64::GetMegaStr(ItemSetCache.GetMemUsed()).CStr());
 }
 
 //#endif

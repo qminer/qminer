@@ -288,7 +288,7 @@ void TBagOfWords::GenerateNgrams(const TStrV& TokenStrV, TStrV &NgramStrV) const
        const TSize NgramEnd = MIN(TotalStrLen - 1, TokenStrN + NEnd - 1) + 1;
         for(TSize NgramPos = TokenStrN + (NStart - 1); NgramPos < NgramEnd; NgramPos++) {
             TChA NgramChA = TokenStrV[TokenStrN];
-            for (int NgramTokenN = TokenStrN + 1; NgramTokenN <= NgramPos; NgramTokenN++) {
+            for (TSize NgramTokenN = TokenStrN + 1; NgramTokenN <= NgramPos; NgramTokenN++) {
                 NgramChA += " "; NgramChA += TokenStrV[NgramTokenN];
             }
 //            TokenStrV.GetSubValV(TokenStrN, NgramPos, Slice);

@@ -60,7 +60,7 @@ public:
     return (Seg==Pt.Seg)&&(Addr==Pt.Addr);}
   bool operator<(const TBlobPt& Pt) const {
     return (Seg<Pt.Seg)||((Seg==Pt.Seg)&&(Addr<Pt.Addr));}
-  int GetMemUsed() const {return sizeof(TBlobPt);}
+  uint64 GetMemUsed() const {return sizeof(TBlobPt);}
 
   int GetPrimHashCd() const {return abs(int(Addr));}
   int GetSecHashCd() const {return (abs(int(Addr))+int(Seg)*0x10);}

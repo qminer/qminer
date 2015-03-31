@@ -178,18 +178,24 @@ public:
   const TDat& operator[](const int& KeyId) const {return GetHashKeyDat(KeyId).Dat;}
   TDat& operator[](const int& KeyId){return GetHashKeyDat(KeyId).Dat;}
   TDat& operator()(const TKey& Key){return AddDat(Key);}
-  ::TSize GetMemUsed() const {
+  
+  uint64 GetMemUsed() const {
     // return PortV.GetMemUsed()+KeyDatV.GetMemUsed()+sizeof(bool)+2*sizeof(int);}
-      int64 MemUsed = sizeof(TBool)+2*sizeof(TInt);
-	  //MemUsed += int64(PortV.Reserved()) * int64(sizeof(TInt));
-	  //for (int KeyDatN = 0; KeyDatN < KeyDatV.Len(); KeyDatN++) {
-   //       MemUsed += int64(2 * sizeof(TInt));
-   //       MemUsed += int64(KeyDatV[KeyDatN].Key.GetMemUsed());
-   //       MemUsed += int64(KeyDatV[KeyDatN].Dat.GetMemUsed());
-   //   }
+      uint64 MemUsed = sizeof(TBool) + 2 * sizeof(TInt);
+	  //MemUsed += uint64(PortV.Reserved()) * int64(sizeof(TInt));
 	  MemUsed += PortV.GetMemUsed();
-	  MemUsed += KeyDatV.GetMemUsed();
-      return ::TSize(MemUsed);
+	  for (int KeyDatN = 0; KeyDatN < KeyDatV.Len(); KeyDatN++) {
+          MemUsed += uint64(2 * sizeof(TInt));
+          MemUsed += uint64(KeyDatV[KeyDatN].Key.GetMemUsed());
+          MemUsed += uint64(KeyDatV[KeyDatN].Dat.GetMemUsed());
+      }
+	  return uint64(MemUsed);
+  }
+  uint64 GetMemUsedFlat() const {
+      uint64 MemUsed = sizeof(TBool) + 2 * sizeof(TInt);
+      MemUsed += PortV.GetMemUsed();
+      MemUsed += KeyDatV.GetMemUsed();
+      return uint64(MemUsed);
   }
 
   TIter BegI() const {
@@ -1046,6 +1052,9 @@ template <class TKey, class TDat, class THashFunc>
 int64 TCache<TKey, TDat, THashFunc>::GetMemUsed() const {
 	int64 MemUsed = 2 * sizeof(int64);
 	
+    MemUsed += KeyDatH.GetMemUsedFlat();
+    MemUsed += TimeKeyL.GetMemUsed();
+
     int KeyId = KeyDatH.FFirstKeyId();
     while (KeyDatH.FNextKeyId(KeyId)) {
 		//const TKey& Key = KeyDatH.GetKey(KeyId);
@@ -1058,10 +1067,7 @@ int64 TCache<TKey, TDat, THashFunc>::GetMemUsed() const {
 			//sizeof(TKeyLN) +
 			//sizeof(TLstNd<TKey>)
             );
-	}
-
-    MemUsed += KeyDatH.GetMemUsed();
-    MemUsed += TimeKeyL.GetMemUsed();
+	}   
 
 	return MemUsed;
 }
