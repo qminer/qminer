@@ -1,4 +1,3 @@
-// typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
 module.exports = exports = function (pathPrefix) {
     pathPrefix = pathPrefix || '';
 
@@ -24,7 +23,6 @@ module.exports = exports = function (pathPrefix) {
             return callback(null, Iris)
         })
     }
-
 
     // Export function for loading famous Iris dataset
     exports.loadIrisSync = function (_base) {
@@ -60,16 +58,3 @@ module.exports = exports = function (pathPrefix) {
     
     return exports;
 }
-
-
-// TODOL: Later do this with Iris.def 
-//var storeDef = [{
-//    "name": "Iris",
-//    "fields": [
-//         { "name": "SepalLength", "type": "float" },
-//         { "name": "SepalWidth", "type": "float" },
-//         { "name": "PetalLength", "type": "float" },
-//         { "name": "PetalWidth", "type": "float" },
-//         { "name": "Class", "type": "string" },
-//    ]
-//}];
