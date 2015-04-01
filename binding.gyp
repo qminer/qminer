@@ -77,6 +77,24 @@
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
                     }
+                }],
+                ['OS == "win"', {
+                    'configurations': {
+                        'Debug': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                            },
+                        },
+                        'Release': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                            },
+                        },
+		    }
                 }]
             ]
         },{
@@ -114,6 +132,24 @@
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
                     }
+                }],
+                ['OS == "win"', {
+                    'configurations': {
+                        'Debug': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                            },
+                        },
+                        'Release': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                            },
+                        },
+		    }
                 }]
             ]
         }, {
@@ -143,6 +179,24 @@
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
                     }
+                }],
+                ['OS == "win"', {
+                    'configurations': {
+                        'Debug': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                            },
+                        },
+                        'Release': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                            },
+                        },
+		    }
                 }]
             ]
         }, {
@@ -173,6 +227,24 @@
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
                     }
+                }],
+                ['OS == "win"', {
+                    'configurations': {
+                        'Debug': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                            },
+                        },
+                        'Release': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                            },
+                        },
+		    }
                 }]
             ]
         }
