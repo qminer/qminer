@@ -208,9 +208,7 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath, const TStr& SchemaFNm, const PJson
 				}
 			}
 		}
-
 	}
-
 	if (Create) {
 		if (TDir::Exists(DbFPath)) {
 			TStrV FNmV;
@@ -286,6 +284,16 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath, const TStr& SchemaFNm, const PJson
 	}
 }
 
+TNodeJsBase::~TNodeJsBase() {
+	if (!Base.Empty()) {
+		// save base
+		printf("saving base\n");
+		TQm::TStorage::SaveBase(Base);
+		Base.Del();
+		Base.Clr();
+	}
+}
+
 TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// parse arguments
 	EAssertR(Args.Length() == 1 && Args[0]->IsObject(), "base constructor expects a JSON object with parameters");
@@ -294,7 +302,7 @@ TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>&
 
 	TStr DbPath = Val->GetObjStr("dbPath", "./db/");
 	// mode: create, createClean, open, openReadOnly
-	TStr Mode = Val->GetObjStr("mode", "open");
+	TStr Mode = Val->GetObjStr("mode", "openReadOnly");
 	
 	TStr SchemaFNm = Val->GetObjStr("schemaPath", "");
 	PJsonVal Schema = TJsonVal::NewArr();

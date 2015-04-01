@@ -6,5 +6,7 @@ exports.view = {
 	"key2" : "'bar'",
 	"val2" : "20",
 	"keyType" : "string",
-	"datType" : "number"
+	"datType" : "number",
+	"defaultKey" : '',
+	"defaultVal" : 0
 }

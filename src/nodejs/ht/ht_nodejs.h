@@ -207,7 +207,7 @@ public:
 	* @param {<% keyType %>} key - Hashmap key.
 	* @returns {<% datType %>} Hashmap data.
 	*/
-    //# exports.<% className %>.prototype.get = function(key) {}
+    //# exports.<% className %>.prototype.get = function(key) { return <% defaultVal %>; }
     JsDeclareFunction(get);
 	
 	/**
@@ -216,7 +216,7 @@ public:
 	* @param {<% datType %>} data - Hashmap data.
 	* @returns {module:ht.<% className %>} Self.
 	*/
-    //# exports.<% className %>.prototype.put = function(key, data) {}
+    //# exports.<% className %>.prototype.put = function(key, data) { return this; }
     JsDeclareFunction(put);    
 	
 	/**
@@ -224,13 +224,13 @@ public:
 	* @param {<% keyType %>} key - Hashmap key.	
 	* @returns {boolean} True if the map contains key.
 	*/
-    //# exports.<% className %>.prototype.hasKey = function(key) {}
+    //# exports.<% className %>.prototype.hasKey = function(key) { return false; }
     JsDeclareFunction(hasKey);
 	
 	/**
     * @property {number} length - Number of key/dat pairs
 	*/
-	//# exports.<% className %>.prototype.length = undefined;
+	//# exports.<% className %>.prototype.length = 0;
 	JsDeclareProperty(length);
     
 	/**
@@ -238,7 +238,7 @@ public:
 	* @param {number} n - Hashmap key number. Should be between 0 and length-1.	
 	* @returns {<% keyType %>} n-th key.
 	*/
-    //# exports.<% className %>.prototype.key = function(n) {}	
+    //# exports.<% className %>.prototype.key = function(n) { return <% defaultKey %>; }	
     JsDeclareFunction(key);
 
 	/**
@@ -246,7 +246,7 @@ public:
 	* @param {number} n - Hashmap dat number. Should be between 0 and length-1
 	* @returns {<% datType %>} n-th data value.
 	*/
-    //# exports.<% className %>.prototype.dat = function(n) {}
+    //# exports.<% className %>.prototype.dat = function(n) { return <% defaultVal %>; }
     JsDeclareFunction(dat);
     
 	/**
@@ -254,7 +254,7 @@ public:
 	* @param {module:fs.FIn} fin - Input stream.	
 	* @returns {module:ht.<% className %>} Self.
 	*/
-    //# exports.<% className %>.prototype.load = function(fin) {}
+    //# exports.<% className %>.prototype.load = function(fin) { return this; }
     JsDeclareFunction(load);
 
 	/**
@@ -262,21 +262,23 @@ public:
 	* @param {module:fs.FOut} fout - Output stream.	
 	* @returns {module:fs.FOut} fout.
 	*/
-    //# exports.<% className %>.prototype.save = function(fout) {}
+    //# exports.<% className %>.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
 
 	/**
 	* sorts by keys
 	* @param {boolean} [asc=true] - Sort in ascending order?
+	* @returns {module:ht.<% className %>} Self.
 	*/
-	//# exports.<% className %>.prototype.sortKey = function(asc) {}
+	//# exports.<% className %>.prototype.sortKey = function(asc) { return this; }
 	JsDeclareFunction(sortKey);
 
 	/**
 	* sorts by values
-	* @param {boolean} [asc=true] - Sort in ascending order?	
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	* @returns {module:ht.<% className %>} Self.
 	*/
-	//# exports.<% className %>.prototype.sortDat = function(asc) {}
+	//# exports.<% className %>.prototype.sortDat = function(asc) { return this; }
 	JsDeclareFunction(sortDat);
 
 

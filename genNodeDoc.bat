@@ -13,5 +13,6 @@ node appendIntellisense nodedoc/fsdoc.js src/nodejs/intellisense/fs_intellisense
 node appendIntellisense nodedoc/ladoc.js src/nodejs/intellisense/la_intellisense.js "exports = {}; require.modules.qminer_la = exports;"
 node appendIntellisense nodedoc/htdoc.js src/nodejs/intellisense/ht_intellisense.js "exports = {}; require.modules.qminer_ht = exports;"
 node appendIntellisense nodedoc/analyticsdoc.js src/nodejs/intellisense/analytics_intellisense.js "exports = {}; require.modules.qminer_analytics = exports;"
+node appendIntellisense nodedoc/qminerdoc.js src/nodejs/intellisense/qminer_intellisense.js "// this file mimicks the qminer module index.js file\nexports = {}; require.modules.qminer = exports;\nexports.la = require('qminer_la');\nexports.fs = require('qminer_fs');\nexports.analytics = require('qminer_analytics');\nexports.ht= require('qminer_ht');"
 
 jsdoc nodedoc/htdoc.js nodedoc/fsdoc.js nodedoc/analyticsdoc.js  nodedoc/ladoc.js nodedoc/qminerdoc.js -d nodedoc
