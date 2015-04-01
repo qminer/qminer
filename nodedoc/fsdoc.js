@@ -19,7 +19,7 @@
 	* @param {string} fileName - File name.
 	* @returns {module:fs.FIn} Input stream.
 	*/
- exports.openRead = function(fileName) {}
+ exports.openRead = function(fileName) { return Object.create(require('qminer').fs.FIn.prototype); }
 /**
 	* open file in write mode and return file output stream
 	* @param {string} fileName - File name.

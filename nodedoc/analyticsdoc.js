@@ -1,32 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>JSDoc: Source: analytics.js</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
-</head>
-
-<body>
-
-<div id="main">
-
-    <h1 class="page-title">Source: analytics.js</h1>
-
-    
-
-
-
-    
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>/**
+/**
 * Analytics module.
 * @module analytics
 * @example
@@ -262,15 +234,16 @@
 * @class
 * @param {(number|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model by setting gamma=arg. Empty constructor sets gamma to zero.
 * @example
-* qm = require('qminer');
+* la = require('qminer').la;
+* analytics = require('qminer').analytics;
 * // create a new model with gamma = 1.0
-* regmod = new qm.analytics.RidgeReg(1.0);
+* regmod = new analytics.RidgeReg(1.0);
 * // generate a random feature matrix
-* A = qm.la.randn(10,100);
+* A = la.randn(10,100);
 * // generate a random model
-* w = qm.la.randn(10);
+* w = la.randn(10);
 * // generate noise
-* n = qm.la.randn(100).multiply(0.01);
+* n = la.randn(100).multiply(0.01);
 * // generate responses (model'*data + noise)
 * b = A.transpose().multiply(w).plus(n);
 * // fit model
@@ -281,7 +254,7 @@
 * console.log('trained model:'); 
 * regmod.weights.print();
 * // cosine between the true and the estimated model should be close to 1 if the fit succeeded
-* console.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w))
+* console.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w));
 */
  exports.RidgeReg = function(arg) {};
 /**
@@ -536,7 +509,7 @@
                 categories[catName].count++;
             } else {
                 // check if we should ignore this category
-                if (limitCategories &amp;&amp; !qm_util.isInArray(limitCategories, catName)) { return; }
+                if (limitCategories && !qm_util.isInArray(limitCategories, catName)) { return; }
                 // check if we should ignore this category
                 categories[catName] = {
                     name: catName,
@@ -550,14 +523,14 @@
         console.log("newBatchModel", "  preparing target vectors");
         if (target.type === "string_v") {
             // get all possible values for the field
-            for (var i = 0; i &lt; records.length; i++) {
+            for (var i = 0; i < records.length; i++) {
                 var cats = records[i][target.name];
-                for (var j = 0; j &lt; cats.length; j++) {
+                for (var j = 0; j < cats.length; j++) {
                     initCats(targets, cats[j]);
                 }
             }
             // initialized with +1 or -1 for each category
-            for (var i = 0; i &lt; records.length; i++) {
+            for (var i = 0; i < records.length; i++) {
                 var cats = la.copyVecToArray(records[i][target.name]);
                 for (var cat in targets) {
                     targets[cat].target.push(qm_util.isInArray(cats, cat) ? 1.0 : -1.0);
@@ -565,12 +538,12 @@
             }
         } else if (target.type === "string") {
             // get all possible values for the field
-            for (var i = 0; i &lt; records.length; i++) {
+            for (var i = 0; i < records.length; i++) {
                 var recCat = records[i][target.name];
                 initCats(targets, recCat);
             }
             // initialized with +1 or -1 for each category
-            for (var i = 0; i &lt; records.length; i++) {
+            for (var i = 0; i < records.length; i++) {
                 var recCat = records[i][target.name];
                 for (var cat in targets) {
                     targets[cat].target.push((recCat === cat) ? 1.0 : -1.0);
@@ -585,7 +558,7 @@
                 target: new la.Vector({ mxVals: records.length })
 
             };
-            for (var i = 0; i &lt; records.length; i++) {
+            for (var i = 0; i < records.length; i++) {
                 targets[target.name].target.push(records[i][target.name]);
             }
         }
@@ -682,11 +655,11 @@
             querySpVec = ftrSpace.ftrSpVec(queryRec);
             // use sampling? 
             var sq = qRecSet;
-            if (settings.querySampleSize >= 0 &amp;&amp; qRecSet != undefined) {
+            if (settings.querySampleSize >= 0 && qRecSet != undefined) {
                 sq = qRecSet.sample(settings.querySampleSize);
             }
             var sf = fRecSet;
-            if (settings.randomSampleSize >= 0 &amp;&amp; fRecSet != undefined) {
+            if (settings.randomSampleSize >= 0 && fRecSet != undefined) {
                 sf = fRecSet.sample(settings.randomSampleSize);
             }
             // take a union or just qset or just fset if some are undefined
@@ -741,7 +714,7 @@
             if (this.queryMode) { return null; } // must be in SVM mode to return results
             if (!threshold) { threshold = 0; }
             var posIdxArray = [];
-            for (var recN = 0; recN &lt; uRecSet.length; recN++) {
+            for (var recN = 0; recN < uRecSet.length; recN++) {
                 if (resultVec[recN] >= threshold) {
                     posIdxArray.push(recN);
                 }
@@ -757,7 +730,7 @@
             var idxArray = [];
             var marginArray = [];
             var sorted = resultVec.sortPerm(false);
-            for (var recN = 0; recN &lt; uRecSet.length &amp;&amp; recN &lt; limit; recN++) {
+            for (var recN = 0; recN < uRecSet.length && recN < limit; recN++) {
                 idxArray.push(sorted.perm[recN]);
                 var val = sorted.vec[recN];
                 val = val == Number.POSITIVE_INFINITY ? Number.MAX_VALUE : val;
@@ -773,15 +746,15 @@
         // returns record set index of the unlabeled record that is closest to the margin
         //!   - `recSetIdx = alModel.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
         this.selectQuestion = function () {
-            if (posRecIdV.length >= settings.nPos &amp;&amp; negRecIdV.length >= settings.nNeg) { queryMode = false; }
+            if (posRecIdV.length >= settings.nPos && negRecIdV.length >= settings.nNeg) { queryMode = false; }
             if (queryMode) {
-                if (posRecIdV.length &lt; settings.nPos &amp;&amp; nPosQ + 1 &lt; uRecSet.length) {
+                if (posRecIdV.length < settings.nPos && nPosQ + 1 < uRecSet.length) {
                     nPosQ = nPosQ + 1;
                     console.log("query mode, try to get pos");
                     this.selectedQuestionIdx = simVp[simVp.length - 1 - (nPosQ - 1)];
                     return this.selectedQuestionIdx;
                 }
-                if (negRecIdV.length &lt; settings.nNeg &amp;&amp; nNegQ + 1 &lt; uRecSet.length) {
+                if (negRecIdV.length < settings.nNeg && nNegQ + 1 < uRecSet.length) {
                     nNegQ = nNegQ + 1;
                     // TODO if nNegQ == rRecSet.length, find a new sample
                     console.log("query mode, try to get neg");
@@ -795,19 +768,19 @@
                 svm.fit(X, y);//column examples, y float vector of +1/-1, default svm paramvals
 
                 // mark positives
-                for (var i = 0; i &lt; posIdxV.length; i++) {
+                for (var i = 0; i < posIdxV.length; i++) {
                     classVec[posIdxV[i]] = Number.POSITIVE_INFINITY;
                     resultVec[posIdxV[i]] = Number.POSITIVE_INFINITY;
                 }
                 // mark negatives
-                for (var i = 0; i &lt; negIdxV.length; i++) {
+                for (var i = 0; i < negIdxV.length; i++) {
                     classVec[negIdxV[i]] = Number.POSITIVE_INFINITY;
                     resultVec[negIdxV[i]] = Number.NEGATIVE_INFINITY;
                 }
                 var posCount = posIdxV.length;
                 var negCount = negIdxV.length;
                 // classify unlabeled
-                for (var recN = 0; recN &lt; uRecSet.length; recN++) {
+                for (var recN = 0; recN < uRecSet.length; recN++) {
                     if (classVec[recN] !== Number.POSITIVE_INFINITY) {
                         var svmMargin = svm.predict(uMat.getCol(recN));
                         if (svmMargin > 0) {
@@ -921,7 +894,7 @@
 	    this.getMatrix = function () {
 	        if (X.length > 0) {
 	            var A = new la.Matrix({ "cols": X[0].length, "rows": X.length });
-	            for (var i = 0; i &lt; X.length; i++) {
+	            for (var i = 0; i < X.length; i++) {
 	                A.setRow(i, X[i]);
 	            }
 	            return A;
@@ -957,11 +930,11 @@
     	var mc;
     	var ftrSpace;
     	
-    	if (opts.hmcConfig != null &amp;&amp; opts.ftrSpaceConfig != null &amp;&amp; opts.base != null) {
+    	if (opts.hmcConfig != null && opts.ftrSpaceConfig != null && opts.base != null) {
     		mc = opts.sequenceEndV != null ? new exports.HMC(opts.hmcConfig, opts.sequenceEndV) : new exports.HMC(opts.hmcConfig);
     		ftrSpace = new qm.FeatureSpace(opts.base, opts.ftrSpaceConfig);
     	} 
-    	else if (opts.hmcFile != null &amp;&amp; opts.ftrSpaceFile != null) {
+    	else if (opts.hmcFile != null && opts.ftrSpaceFile != null) {
     		mc = new exports.HMC(opts.hmcFile);
     		ftrSpace = new qm.FeatureSpace(opts.base, opts.ftrSpaceFile);
     	}
@@ -1062,7 +1035,7 @@
     			var names = [];
     			
     			var dims = ftrSpace.dims;
-    			for (var i = 0; i &lt; dims.length; i++) {
+    			for (var i = 0; i < dims.length; i++) {
     				names.push(ftrSpace.getFtr(i));
     			}
     			
@@ -1082,7 +1055,7 @@
     			
     			var ftrNames = that.getFtrNames();
     			var features = [];
-    			for (var i = 0; i &lt; invCoords.length; i++) {
+    			for (var i = 0; i < invCoords.length; i++) {
     				features.push({name: ftrNames[i], value: invCoords.at(i)});
     			}
     			
@@ -1102,7 +1075,7 @@
     		histogram: function (stateId, ftrIdx) {
     			var hist = mc.histogram(stateId, ftrIdx);
     			
-    			for (var i = 0; i &lt; hist.binStartV.length; i++) {
+    			for (var i = 0; i < hist.binStartV.length; i++) {
     				hist.binStartV[i] = ftrSpace.invFtr(ftrIdx, hist.binStartV[i]);
     			}
     			
@@ -1128,7 +1101,7 @@
     				var invFtrV = ftrSpace.invFtrVec(ftrV);
     				
     				var features = [];
-    				for (var i = 0; i &lt; invFtrV.length; i++) {
+    				for (var i = 0; i < invFtrV.length; i++) {
     					features.push({name: ftrSpace.getFtr(i), value: invFtrV.at(i)});
     				}
     				
@@ -1144,7 +1117,7 @@
     			var stateIds = mc.stateIds(height);
     			
     			var result = [];
-    			for (var i = 0; i &lt; stateIds.length; i++) {
+    			for (var i = 0; i < stateIds.length; i++) {
     				var stateId = stateIds[i];
     				var coords = ftrSpace.invFtrVec(mc.fullCoords(stateId));
     				
@@ -1160,26 +1133,3 @@
 
 
     
-</code></pre>
-        </article>
-    </section>
-
-
-
-
-</div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li></ul>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Thu Mar 19 2015 15:40:18 GMT+0100 (Central Europe Standard Time)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
-</body>
-</html>
