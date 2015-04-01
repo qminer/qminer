@@ -284,15 +284,6 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath, const TStr& SchemaFNm, const PJson
 	}
 }
 
-TNodeJsBase::~TNodeJsBase() {
-	if (!Base.Empty()) {
-		// save base
-		printf("saving base\n");
-		TQm::TStorage::SaveBase(Base);
-		Base.Del();
-		Base.Clr();
-	}
-}
 
 TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// parse arguments

@@ -1,6 +1,6 @@
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
-var qm = require('../../indexRelease.js');
+var qm = require('qminer');
 qm.delLock();
 //qm.rmDir('db') // run from qminer/test/nodejs 
 

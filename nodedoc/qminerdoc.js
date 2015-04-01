@@ -42,7 +42,11 @@
 /**
 * Base constructor parameter object
 * @typedef {Object} BaseConstructorParam
-* @property  {module:qm~baseModes} [BaseConstructorParam.mode='openReadOnly'] - Base access mode: create (sets up the db folder), createClean (cleans db folder and then sets it up), open (opens the db with read/write permissions), openReadOnly (opens the db in read only mode).
+* @property  {module:qm~baseModes} [BaseConstructorParam.mode='openReadOnly'] - Base access mode: 
+* <br> create (sets up the db folder), 
+* <br> createClean (cleans db folder and then sets it up), 
+* <br> open (opens the db with read/write permissions), 
+* <br> openReadOnly (opens the db in read only mode).
 * @property  {number} [BaseConstructorParam.indexCache=1024] - The ammount of memory reserved for indexing (in MB).
 * @property  {number} [BaseConstructorParam.storeCache=1024] - The ammount of memory reserved for store cache (in MB).
 * @property  {string} [BaseConstructorParam.schemaPath=''] - The path to schema definition file.
