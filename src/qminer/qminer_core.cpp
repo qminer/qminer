@@ -1697,11 +1697,12 @@ namespace TQm {
 		throw TQmExcept::New("Unsupported join type for join " + JoinDesc.GetJoinNm() + "!");
 	}
 
-PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm) const {
-	if (Store->IsJoinNm(JoinNm)) {
-		return DoJoin(Base, Store->GetJoinId(JoinNm));
-	} else {
-        throw TQmExcept::New("Unknown join " + JoinNm);
+	PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm) const {
+		if (Store->IsJoinNm(JoinNm)) {
+			return DoJoin(Base, Store->GetJoinId(JoinNm));
+		} else {
+			throw TQmExcept::New("Unknown join " + JoinNm);
+		}
 	}
 
 	PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV) const {
@@ -1862,9 +1863,9 @@ PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm) const {
 		RecIdFqV.Load(SIn);
 	}
 
-	PRecSet TRecSet::New() {
+	/*PRecSet TRecSet::New() {
 		return new TRecSet();
-	}
+	}*/
 
 	PRecSet TRecSet::New(const TWPt<TStore>& Store) {
 		return new TRecSet(Store, TUInt64V());
@@ -2087,14 +2088,14 @@ PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm) const {
 		return CloneRecSet;
 	}
 
-	PRecSet TRecSet::GetMerge(const TVec<PRecSet>& RecSetV) {
-		if (RecSetV.Len() == 0)
-			return TRecSet::New();
-		PRecSet RecSet = RecSetV[0]->Clone();
-		for (int N = 1; N < RecSetV.Len(); N++)
-			RecSet->Merge(RecSetV[N]);
-		return RecSet;
-	}
+	//PRecSet TRecSet::GetMerge(const TVec<PRecSet>& RecSetV) {
+	//	if (RecSetV.Len() == 0)
+	//		return TRecSet::New();
+	//	PRecSet RecSet = RecSetV[0]->Clone();
+	//	for (int N = 1; N < RecSetV.Len(); N++)
+	//		RecSet->Merge(RecSetV[N]);
+	//	return RecSet;
+	//}
 
 	void TRecSet::Merge(const PRecSet& RecSet) {
 		QmAssert(RecSet->GetStoreId() == GetStoreId());
@@ -2753,24 +2754,26 @@ PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm) const {
 	void TQueryItem::ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
 		const PJsonVal& JsonVal, const bool& IgnoreOrP) {
 
-	// go over other keys and create their corresponding items
-	for (int KeyN = 0; KeyN < JsonVal->GetObjKeys(); KeyN++) {
-		// read the key
-		TStr KeyNm; PJsonVal KeyVal;
-		JsonVal->GetObjKeyVal(KeyN, KeyNm, KeyVal);
-		// check type
-		if (KeyNm.StartsWith("$")) {
-			// special values
-			if (KeyNm == "$or") {
-				if (!IgnoreOrP) {
-					// make sure value is an array ...
-					QmAssertR(KeyVal->IsArr(), "Query: $or expects array as value");
-					// ... handle subordinate items
-					TQueryItemV OrItemV;
-					for (int ValN = 0; ValN < KeyVal->GetArrVals(); ValN++) {
-						PJsonVal Val = KeyVal->GetArrVal(ValN);
-						QmAssertR(Val->IsObj(), "Query: $or expects objects in array.");
-						OrItemV.Add(TQueryItem(Base, Store, Val));
+		// go over other keys and create their corresponding items
+		for (int KeyN = 0; KeyN < JsonVal->GetObjKeys(); KeyN++) {
+			// read the key
+			TStr KeyNm; PJsonVal KeyVal;
+			JsonVal->GetObjKeyVal(KeyN, KeyNm, KeyVal);
+			// check type
+			if (KeyNm.StartsWith("$")) {
+				// special values
+				if (KeyNm == "$or") {
+					if (!IgnoreOrP) {
+						// make sure value is an array ...
+						QmAssertR(KeyVal->IsArr(), "Query: $or expects array as value");
+						// ... handle subordinate items
+						TQueryItemV OrItemV;
+						for (int ValN = 0; ValN < KeyVal->GetArrVals(); ValN++) {
+							PJsonVal Val = KeyVal->GetArrVal(ValN);
+							QmAssertR(Val->IsObj(), "Query: $or expects objects in array.");
+							OrItemV.Add(TQueryItem(Base, Store, Val));
+						}
+						ItemV.Add(TQueryItem(oqitOr, OrItemV));
 					}
 				} else if (KeyNm == "$not") {
 					QmAssertR(KeyVal->IsObj(), "Query: $not expects object as value");
@@ -4308,24 +4311,7 @@ PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm) const {
 #endif
 	}
 
-void TStreamAggr::Init() {
-    Register<TStreamAggrs::TRecBuffer>();
-    Register<TStreamAggrs::TCount>();
-    Register<TStreamAggrs::TTimeSeriesTick>();
-    Register<TStreamAggrs::TTimeSeriesWinBuf>();
-	Register<TStreamAggrs::TWinBufCount>();
-	Register<TStreamAggrs::TWinBufSum>();
-	Register<TStreamAggrs::TWinBufMin>();
-	Register<TStreamAggrs::TWinBufMax>();
-	Register<TStreamAggrs::TMa>();
-    Register<TStreamAggrs::TEma>();
-    Register<TStreamAggrs::TVar>();
-    Register<TStreamAggrs::TCov>();
-    Register<TStreamAggrs::TCorr>();
-    Register<TStreamAggrs::TStMerger>();
-    Register<TStreamAggrs::TResampler>();
-    Register<TStreamAggrs::THierchCtmc>();
-}
+	TAggr::TAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm) : Base(_Base), AggrNm(_AggrNm) {}
 
 	PAggr TAggr::New(const TWPt<TBase>& Base, const PRecSet& RecSet, const TQueryAggr& QueryAggr) {
 		return NewRouter.Fun(QueryAggr.GetType())(Base, QueryAggr.GetNm(), RecSet, QueryAggr.GetParamVal());
