@@ -37,10 +37,10 @@ TStr TSs::GetVal(const int& X, const int& Y) const {
     if ((0<=X)&&(X<CellStrVV[Y]->Len())){
       return CellStrVV[Y]->V[X];
     } else {
-      return TStr::GetNullStr();
+      return TStr();
     }
   } else {
-    return TStr::GetNullStr();
+    return TStr();
   }
 }
 

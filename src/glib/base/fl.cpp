@@ -307,6 +307,13 @@ TFIn::TFIn(const TStr& FNm, bool& OpenedP):
 }
 
 PSIn TFIn::New(const TStr& FNm){
+  try {
+    return PSIn(new TFIn(FNm));
+  } catch (PExcept& Except) {
+    printf("*** Exception: %s\n", Except->GetMsgStr().CStr());
+    EFailR(Except->GetMsgStr());
+  }
+
   return PSIn(new TFIn(FNm));
 }
 
@@ -611,12 +618,6 @@ int TMIn::GetBf(const void* LBf, const TSize& LBfL){
   return LBfS;
 }
 
-void TMIn::GetBfMemCpy(void* LBf, const TSize& LBfL) {
-	EAssertR(TSize(BfC + LBfL) <= TSize(BfL), "Reading beyond the end of stream.");
-	memcpy(LBf, Bf, LBfL);
-	BfC += LBfL;
-}
-
 bool TMIn::GetNextLnBf(TChA& LnChA){
   // not implemented
   FailR(TStr::Fmt("TMIn::GetNextLnBf: not implemented").CStr());
@@ -800,7 +801,7 @@ TFRnd::TFRnd(const TStr& _FNm, const TFAccess& FAccess,
 }
 
 TFRnd::~TFRnd(){
-  EAssertR(fclose(FileId)==0, "Can not close file '"+TStr(FNm)+"'.");
+  EAssertR(fclose(FileId)==0, "Can not close file '"+TStr(FNm.CStr())+"'.");
 }
 
 TStr TFRnd::GetFNm() const {
@@ -1012,8 +1013,7 @@ void TFile::Copy(const TStr& SrcFNm, const TStr& DstFNm,
 
 
 	filesize = lseek(input, 0, SEEK_END);
-	lseek(output, filesize - 1, SEEK_SET);
-	write(output, '\0', 1);
+	posix_fallocate(output, 0, filesize);
 
 	if((source = mmap(0, filesize, PROT_READ, MAP_SHARED, input, 0)) == (void *) -1) {
 		close(input);
@@ -1097,7 +1097,7 @@ TStr TFile::GetUniqueFNm(const TStr& FNm){
   }
   forever{
     NewFNm=TmpFNm;
-    NewFNm.ChangeStr("#", TStr::Fmt("%03d", Cnt)); Cnt++;
+	NewFNm.ChangeStr("#", TStr::Fmt("%03d", Cnt)); Cnt++;
     if (!TFile::Exists(NewFNm)){break;}
   }
   return NewFNm;

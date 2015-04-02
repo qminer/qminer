@@ -85,7 +85,7 @@ public:
   static TStr GetMd5SigStr(const PSIn& SIn){
     PMd5 Md5=TMd5::New(SIn); return Md5->GetSigStr();}
   static TStr GetMd5SigStr(const TStr& Str){
-    return GetMd5SigStr(TStrIn::New(Str));}
+    return GetMd5SigStr(TStrIn::New(Str, false));}
   static TStr GetMd5SigStr(const TMem& Mem){
     return GetMd5SigStr(TMemIn::New(Mem));}
 

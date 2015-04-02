@@ -1697,12 +1697,11 @@ namespace TQm {
 		throw TQmExcept::New("Unsupported join type for join " + JoinDesc.GetJoinNm() + "!");
 	}
 
-	PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm) const {
-		if (Store->IsJoinNm(JoinNm)) {
-			return DoJoin(Base, Store->GetJoinId(JoinNm));
-		} else {
-			return TRecSet::New();
-		}
+PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm) const {
+	if (Store->IsJoinNm(JoinNm)) {
+		return DoJoin(Base, Store->GetJoinId(JoinNm));
+	} else {
+        throw TQmExcept::New("Unknown join " + JoinNm);
 	}
 
 	PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV) const {
@@ -2167,12 +2166,11 @@ namespace TQm {
 	PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm,
 		const int& SampleSize, const bool& SortedP) const {
 
-		if (Store->IsJoinNm(JoinNm)) {
-			return DoJoin(Base, Store->GetJoinId(JoinNm), SampleSize, SortedP);
-		} else {
-			return TRecSet::New();
-		}
+	if (Store->IsJoinNm(JoinNm)) {
+		return DoJoin(Base, Store->GetJoinId(JoinNm), SampleSize, SortedP);
 	}
+    throw TQmExcept::New("Unknown join " + JoinNm);
+}
 
 	PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV, const bool& SortedP) const {
 		PRecSet RecSet = DoJoin(Base, JoinIdV[0].Val1, JoinIdV[0].Val2, SortedP);
@@ -2755,26 +2753,24 @@ namespace TQm {
 	void TQueryItem::ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
 		const PJsonVal& JsonVal, const bool& IgnoreOrP) {
 
-		// go over other keys and create their corresponding items
-		for (int KeyN = 0; KeyN < JsonVal->GetObjKeys(); KeyN++) {
-			// read the key
-			TStr KeyNm; PJsonVal KeyVal;
-			JsonVal->GetObjKeyVal(KeyN, KeyNm, KeyVal);
-			// check type
-			if (KeyNm.IsPrefix("$")) {
-				// special values
-				if (KeyNm == "$or") {
-					if (!IgnoreOrP) {
-						// make sure value is an array ...
-						QmAssertR(KeyVal->IsArr(), "Query: $or expects array as value");
-						// ... handle subordinate items
-						TQueryItemV OrItemV;
-						for (int ValN = 0; ValN < KeyVal->GetArrVals(); ValN++) {
-							PJsonVal Val = KeyVal->GetArrVal(ValN);
-							QmAssertR(Val->IsObj(), "Query: $or expects objects in array.");
-							OrItemV.Add(TQueryItem(Base, Store, Val));
-						}
-						ItemV.Add(TQueryItem(oqitOr, OrItemV));
+	// go over other keys and create their corresponding items
+	for (int KeyN = 0; KeyN < JsonVal->GetObjKeys(); KeyN++) {
+		// read the key
+		TStr KeyNm; PJsonVal KeyVal;
+		JsonVal->GetObjKeyVal(KeyN, KeyNm, KeyVal);
+		// check type
+		if (KeyNm.StartsWith("$")) {
+			// special values
+			if (KeyNm == "$or") {
+				if (!IgnoreOrP) {
+					// make sure value is an array ...
+					QmAssertR(KeyVal->IsArr(), "Query: $or expects array as value");
+					// ... handle subordinate items
+					TQueryItemV OrItemV;
+					for (int ValN = 0; ValN < KeyVal->GetArrVals(); ValN++) {
+						PJsonVal Val = KeyVal->GetArrVal(ValN);
+						QmAssertR(Val->IsObj(), "Query: $or expects objects in array.");
+						OrItemV.Add(TQueryItem(Base, Store, Val));
 					}
 				} else if (KeyNm == "$not") {
 					QmAssertR(KeyVal->IsObj(), "Query: $not expects object as value");
@@ -4312,7 +4308,24 @@ namespace TQm {
 #endif
 	}
 
-	TAggr::TAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm) : Base(_Base), AggrNm(_AggrNm) {}
+void TStreamAggr::Init() {
+    Register<TStreamAggrs::TRecBuffer>();
+    Register<TStreamAggrs::TCount>();
+    Register<TStreamAggrs::TTimeSeriesTick>();
+    Register<TStreamAggrs::TTimeSeriesWinBuf>();
+	Register<TStreamAggrs::TWinBufCount>();
+	Register<TStreamAggrs::TWinBufSum>();
+	Register<TStreamAggrs::TWinBufMin>();
+	Register<TStreamAggrs::TWinBufMax>();
+	Register<TStreamAggrs::TMa>();
+    Register<TStreamAggrs::TEma>();
+    Register<TStreamAggrs::TVar>();
+    Register<TStreamAggrs::TCov>();
+    Register<TStreamAggrs::TCorr>();
+    Register<TStreamAggrs::TStMerger>();
+    Register<TStreamAggrs::TResampler>();
+    Register<TStreamAggrs::THierchCtmc>();
+}
 
 	PAggr TAggr::New(const TWPt<TBase>& Base, const PRecSet& RecSet, const TQueryAggr& QueryAggr) {
 		return NewRouter.Fun(QueryAggr.GetType())(Base, QueryAggr.GetNm(), RecSet, QueryAggr.GetParamVal());

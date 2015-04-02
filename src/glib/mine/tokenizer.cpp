@@ -41,7 +41,7 @@ PTokenizer TTokenizer::Load(TSIn& SIn) {
 }
 
 void TTokenizer::GetTokens(const TStr& Text, TStrV& TokenV) const {
-	PSIn SIn = TStrIn::New(Text);
+	PSIn SIn = TStrIn::New(Text, false);
 	GetTokens(SIn, TokenV);
 }
 
@@ -145,7 +145,7 @@ void THtml::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
 THtmlUnicode::THtmlUnicode(const PSwSet& _SwSet, const PStemmer& _Stemmer, 
         const bool& _ToUcP): THtml(_SwSet, _Stemmer, _ToUcP) {
         
-    EAssertR(TUnicodeDef::IsDef(), "Unicode not initilaized!"); 
+    EAssertR(TUnicodeDef::IsDef(), "Unicode not initialized!");
 }
 
 PTokenizer THtmlUnicode::New(const PJsonVal& ParamVal) {
@@ -170,7 +170,7 @@ void THtmlUnicode::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
 	TStr LineStr; TStrV WordStrV;    
 	while (SIn->GetNextLn(LineStr)) {
         TStr SimpleText = TUStr(LineStr).GetStarterLowerCaseStr();
-        THtml::GetTokens(TStrIn::New(SimpleText), TokenV);
+        THtml::GetTokens(TStrIn::New(SimpleText, false), TokenV);
 	}
 }
 
@@ -216,7 +216,7 @@ void TTokenizerUtil::Sentencize(const PSIn& SIn, TStrV& Sentences, const bool& S
 }
 
 void TTokenizerUtil::Sentencize(const TStr& Text, TStrV& Sentences, const bool& SplitNewLineP) {
-	PSIn StrIn = TStrIn::New(Text);
+	PSIn StrIn = TStrIn::New(Text, false);
 	Sentencize(StrIn, Sentences, SplitNewLineP);
 }
 
@@ -245,7 +245,7 @@ void TTokenizerUtil::Paragraphize(const PSIn& SIn, TStrV& Paragraphs) {
 }
 
 void TTokenizerUtil::Paragraphize(const TStr& Text, TStrV& Paragraphs) {
-	PSIn StrIn = TStrIn::New(Text);
+	PSIn StrIn = TStrIn::New(Text, false);
 	Paragraphize(StrIn, Paragraphs);
 }
 

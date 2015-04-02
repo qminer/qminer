@@ -55,7 +55,7 @@ public:
         NewRouter.Register(TObj::GetType(), TObj::New);
         LoadRouter.Register(TObj::GetType(), TObj::Load);
     }
-private:    
+private:
     /// QMiner Base pointer
     TWPt<TBase> Base;
     
@@ -98,6 +98,11 @@ public:
 	virtual TStr GetFtr(const int& FtrN) const = 0;
    	/// Reset feature extractor to forget all previously seen records
 	virtual void Clr() = 0;
+    /// Get feature distribution. Default is uniform over all dimensions.
+    void GetFtrDist(TFltV& FtrDistV) const;
+    /// Get feature distribution. Default is uniform over all dimensions.
+    virtual void AddFtrDist(TFltV& FtrDistV, int& Offset) const;    
+    
 	/// Update the feature extractor using the info from the given record.
     /// Returns true if the update changes the dimensionality.
 	virtual bool Update(const TRec& Rec) = 0;
@@ -105,6 +110,10 @@ public:
 	virtual void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const = 0;
 	/// Attaches features to a given full feature vectors with a given offset
 	virtual void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	/// Inverts features from the given feature vector. The features must start
+	/// at the given offset. Increases the offset by its dimension
+	virtual void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const = 0;
 
 	// for more strait-forward feature extraction (i.e. used by basic aggregators)
 	// attaches values to the given vector, keeps what is in there already
@@ -184,6 +193,10 @@ public:
 	void GetCentroidSpV(const PRecSet& RecSet, TIntFltKdV& CentroidSpV, const bool& NormalizeP = true) const;
 	/// Compute full centroid of a given record set
 	void GetCentroidV(const PRecSet& RecSet, TFltV& CentroidV, const bool& NormalizeP = true) const;
+	/// Returns the inverse operation on the feature vector
+	void InvertFullV(const TFltV& FullV, TFltV& InvertV) const;
+	/// returns the inverse operation on a single feature
+	double InvertFtr(const int& FtrExtN, const TFlt& FtrVal) const;
     
     /// String vector for a record transformed by a feature extractor
     void ExtractStrV(const int& DimN, const PJsonVal& RecVal, TStrV &StrV) const;
@@ -192,8 +205,12 @@ public:
 	int GetDim() const;
 	/// String representation of the FtrN-th feature
 	TStr GetFtr(const int& FtrN) const;
+    /// Get feature distribution
+    void GetFtrDist(TFltV& FtrDistV) const;
     /// Number of feature extractors
     int GetFtrExts() const;
+    /// Get feature extractor
+    PFtrExt GetFtrExt(const int& FtrExtN) const;
     /// Dimensionality of space formed by FtrExtN-th feature extractor
     int GetFtrExtDim(const int& FtrExtN) const;
     /// Start dimension for the FtrExtN-th feature extractor
@@ -202,7 +219,9 @@ public:
     int GetMxFtrN(const int& FtrExtN) const;
 
 	/// Prepares an empty bow and registers all the features
-	PBowDocBs MakeBowDocBs(const PRecSet& FtrRecSet);    
+	PBowDocBs MakeBowDocBs(const PRecSet& FtrRecSet);
+
+	const TWPt<TBase> GetBase() const { return Base; }
 };
 typedef TPt<TFtrSpace> PFtrSpace;
 
@@ -233,7 +252,9 @@ public:
 	void Clr() { }; 
     bool Update(const TRec& Rec) { return false; }
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
-	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const; 
+	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
 	// flat feature extraction
 	void ExtractFltV(const TRec& FtrRec, TFltV& FltV) const;
@@ -270,6 +291,8 @@ public:
     bool Update(const TRec& Rec) { return false; }
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
 	// flat feature extraction
 	void ExtractFltV(const TRec& FtrRec, TFltV& FltV) const;
@@ -320,6 +343,8 @@ public:
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+
 	// flat feature extraction
 	void ExtractFltV(const TRec& Rec, TFltV& FltV) const;
     
@@ -367,6 +392,8 @@ public:
 	bool Update(const TRec& Rec);
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -422,6 +449,8 @@ public:
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
 	void ExtractTmV(const TRec& Rec, TTmV& TmV) const;
@@ -472,28 +501,27 @@ protected:
 
 private:
     TBagOfWords(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
-                const int& _FieldId, const TBagOfWordsMode& _Mode, 
-                const PTokenizer& Tokenizer, const int& HashDim = -1, 
-                const int& NStart=1, const int& NEnd=1);
-
+        const int& _FieldId, const TBagOfWordsMode& _Mode, 
+        const PTokenizer& Tokenizer, const int& HashDim = -1, 
+        const int& NStart=1, const int& NEnd=1);
     TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     TBagOfWords(const TWPt<TBase>& Base, TSIn& SIn);
     
 public:
-	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const int& FieldId, 
-                       const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
-                        TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
-
-	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, const int& FieldId, 
-                       const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
-                        TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
-
-	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& FieldId, 
-                       const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
-                        TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
-
+	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
+        const int& FieldId, const TBagOfWordsMode& Mode = bowmConcat, 
+        const PTokenizer& Tokenizer = TTokenizers::THtmlUnicode::New(
+        TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
+	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, 
+        const int& FieldId, const TBagOfWordsMode& Mode = bowmConcat, 
+        const PTokenizer& Tokenizer = TTokenizers::THtmlUnicode::New(
+        TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
+	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
+        const int& FieldId, const TBagOfWordsMode& Mode = bowmConcat, 
+        const PTokenizer& Tokenizer = TTokenizers::THtmlUnicode::New(
+        TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
 	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-
+    
     static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
     void Save(TSOut& SOut) const;
     
@@ -502,10 +530,13 @@ public:
 	TStr GetFtr(const int& FtrN) const;
 
 	void Clr() { FtrGen.Clr(); }
+
 	// sparse vector extraction
 	bool Update(const TRec& Rec);
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -552,6 +583,8 @@ public:
 	// sparse vector extraction
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	//void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -602,6 +635,8 @@ public:
 	bool Update(const TRec& FtrRec);
 	void AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const;
 	//void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& FtrRec, TStrV& StrV) const;
@@ -655,6 +690,8 @@ public:
 	bool Update(const TRec& Rec);
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
     // feature extractor type name 
     static TStr GetType() { return "dateWindow"; }

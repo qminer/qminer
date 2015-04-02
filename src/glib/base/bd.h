@@ -20,6 +20,8 @@
 #ifndef bd_h
 #define bd_h
 
+#include <cstdint>
+
 /////////////////////////////////////////////////
 // Basic-Macro-Definitions
 #define forever for(;;)
@@ -75,7 +77,11 @@ typedef ptrdiff_t ssize_t;
 #endif
 
 typedef size_t TSize;
-#define TSizeMx SIZE_MAX
+# ifdef GLib_64Bit
+  #define TSizeMx (18446744073709551615UL)
+# else
+  #define TSizeMx (4294967295U)
+# endif
 
 /////////////////////////////////////////////////
 // Localization
@@ -326,7 +332,7 @@ template <> struct TStaticAssert<true> { enum { value = 1 }; };
 template<int IntVal> struct TStaticAssertTest{};
 
 #define CAssert(Cond) \
-  { typedef TStaticAssertTest<sizeof(TStaticAssert<(Cond)==0?false:true>)> TestStaticAssert; }
+  /* { typedef TStaticAssertTest<sizeof(TStaticAssert<(Cond)==0?false:true>)> TestStaticAssert; } */
 
 /////////////////////////////////////////////////
 // Xml-Object-Serialization
@@ -635,7 +641,8 @@ public:
 // Swap
 template <class TRec>
 void Swap(TRec& Rec1, TRec& Rec2){
-  TRec Rec=Rec1; Rec1=Rec2; Rec2=Rec;
+    std::swap(Rec1, Rec2); // C++11
+  //TRec Rec=Rec1; Rec1=Rec2; Rec2=Rec; // C++98
 }
 
 /////////////////////////////////////////////////
@@ -663,7 +670,7 @@ public:
     return (RQ == 0x7fffffffU) ? 0 : (int) RQ; }
 };
 
-// Depending on the platform and compiler settings choose the faster implementation
+// Depending on the platform and compiler settings choose the faster implementation (of the same hash function)
 #if (defined(GLib_64Bit)) && ! (defined(DEBUG) || defined(_DEBUG))
   typedef TPairHashImpl1 TPairHashImpl;
 #else

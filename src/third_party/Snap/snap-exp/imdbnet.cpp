@@ -384,6 +384,6 @@ TStr TImdbNet::GetMovieTyStr(const TMovieTy& MovieTy) {
     case mtySing : return "Sing";
     case mtyAls : return "Als";
     case mtyEpisod : return "Episod";
-    default: Fail; return TStr::GetNullStr();
+    default: Fail; return TStr();
   }
 }

@@ -126,10 +126,10 @@ public:
 };
 
 #define QmAssert(Cond) \
-  ((Cond) ? static_cast<void>(0) : throw TQmExcept::New(TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) + ": " + TStr(#Cond)))
+  ((Cond) ? static_cast<void>(0) : throw TQm::TQmExcept::New(TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) + ": " + TStr(#Cond)))
 
 #define QmAssertR(Cond, MsgStr) \
-  ((Cond) ? static_cast<void>(0) : throw TQmExcept::New(MsgStr, TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) + ": " + TStr(#Cond)))
+  ((Cond) ? static_cast<void>(0) : throw TQm::TQmExcept::New(MsgStr, TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) + ": " + TStr(#Cond)))
 
 ///////////////////////////////
 /// Join Types
@@ -476,10 +476,11 @@ protected:
     
 	/// Save store to output stream
 	void SaveStore(TSOut& SOut) const;
-    
+public:    
     /// Access to base
     const TWPt<TBase>& GetBase() const { return Base; }
-    /// Access to index
+protected:
+	/// Access to index
     const TWPt<TIndex>& GetIndex() const { return Index; }
     
 	/// Register new field to the store
@@ -751,7 +752,7 @@ public:
 	/// Helper function for returning JSon definition of joins
     PJsonVal GetStoreJoinsJson(const TWPt<TBase>& Base) const;
 	/// Helper function for returning JSon definition of store
-    PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
+    virtual PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
     /// Parse out record id from record JSon serialization
     uint64 GetRecId(const PJsonVal& RecVal) const;
 	
@@ -1263,8 +1264,6 @@ private:
 	TRecSet(const TWPt<TBase>& Base, TSIn& SIn);
 
 public:
-	/// Create empty set
-	static PRecSet New();
 	/// Create empty set for a given store
 	static PRecSet New(const TWPt<TStore>& Store);
 	/// Create record set with one record
@@ -2788,7 +2787,7 @@ public:
         LoadRouter.Register(TObj::GetType(), TObj::Load);
     }
     
-private:
+protected:
     /// QMiner Base pointer
     TWPt<TBase> Base;
 	/// Stream aggreagte name
@@ -3008,8 +3007,9 @@ private:
 private:
     TBase(const TStr& _FPath, const int64& IndexCacheSize);
     TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize);
+public:
 	~TBase();
-
+private:
     // serialization
     void SaveStreamAggrBaseV(TSOut& SOut);
     void LoadStreamAggrBaseV(TSIn& SIn);
@@ -3019,10 +3019,12 @@ private:
 	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall, const TQueryGixUsedType& ParentGixFlag);
 
 public:
-	static PBase New(const TStr& FPath, const int64& IndexCacheSize) { 
-		return new TBase(FPath, IndexCacheSize); }
-	static PBase Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize) {
-		return new TBase(FPath, FAccess, IndexCacheSize); }
+	static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize) {
+		return new TBase(FPath, IndexCacheSize);
+	}
+	static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize) {
+		return new TBase(FPath, FAccess, IndexCacheSize);
+	}
 
 	// check if base already exists
 	static bool Exists(const TStr& FPath);
@@ -3044,7 +3046,7 @@ public:
 	// stores
     void AddStore(const PStore& NewStore);
     int GetStores() const { return StoreH.Len(); }
-    bool IsStoreN(const uchar& StoreN) const { return 0 <= StoreN && StoreN < StoreH.Len(); }
+    bool IsStoreN(const uint& StoreN) const { return StoreN < (uint)StoreH.Len(); }
     const TWPt<TStore> GetStoreByStoreN(const int& StoreN) const;
     bool IsStoreId(const uint& StoreId) const { return !StoreV[StoreId].Empty(); }
     const TWPt<TStore> GetStoreByStoreId(const uint& StoreId) const;

@@ -22,7 +22,7 @@
 
 #include <string>
 #include <qminer.h>
-#include <Snap.h>
+
 
 namespace TQm {
 	namespace TAggrs {
@@ -169,7 +169,7 @@ namespace TQm {
 
 
 				//graphType = {graph | digraph}
-				TStr GType = GraphType.GetLc().ToTrunc();
+				TStr GType = GraphType.GetLc().GetTrunc();
 				if (!GType.EqI("graph") && !GType.EqI("digraph")){
 					printf("Graph type must be: {graph|digraph}\n");
 					return;
@@ -288,11 +288,13 @@ namespace TQm {
 				for (int WordN = 0; WordN < StartIndices.Len(); WordN++) {
 					for (int ChN = StartIndices[WordN] + 1; ChN < TextLen; ChN++) {
 						if (TerminatingChar(Text[ChN]) || ChN == TextLen - 1) {
-							TStr User = Text.GetSubStr(StartIndices[WordN] + 1, ChN - 1);
-							if (User.Len() > 0 && User.Len() <= 15) {
-								Users.Add(User);
+							if (StartIndices[WordN] + 1 <= ChN - 1) {
+								TStr User = Text.GetSubStr(StartIndices[WordN] + 1, ChN - 1);
+								if (User.Len() > 0 && User.Len() <= 15) {
+									Users.Add(User);
+								}
+								break;
 							}
-							break;
 						}
 						
 					}

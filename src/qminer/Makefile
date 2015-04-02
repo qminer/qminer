@@ -12,8 +12,9 @@ GLIB_BASE = $(GLIB)/base/
 GLIB_NET = $(GLIB)/net/
 GLIB_MINE = $(GLIB)/mine/
 GLIB_MISC = $(GLIB)/misc/
+GLIB_CONC = $(GLIB)/concurrent/
 SNAP = ../third_party/Snap/snap-core
-INCLUDE = -I. -I$(SNAP) -I$(GLIB_BASE) -I$(GLIB_NET) -I$(GLIB_MINE) -I$(GLIB_MISC) -I$(LIBUV) -I$(LIBV8)
+INCLUDE = -I. -I$(SNAP) -I$(GLIB_BASE) -I$(GLIB_NET) -I$(GLIB_MINE) -I$(GLIB_MISC) -I$(GLIB_CONC) -I$(LIBUV) -I$(LIBV8)
 
 # main object files
 MAINOBJS = qminer_core.o qminer_ftr.o qminer_aggr.o qminer_op.o \
@@ -23,18 +24,27 @@ all: release
 
 # release target turns on compiler optimizations and disables debugging asserts
 release: CXXFLAGS += -O3 -DNDEBUG
+release: TARGET=release
 release: $(MAINOBJS)
+#release: node_modules
 
 
 # debug target turns on crash debugging, get symbols with <prog> 2>&1 | c++filt
-debug: CXXFLAGS += -g
+debug: CXXFLAGS += -g -DV8_DEBUG
 debug: LDFLAGS += -rdynamic
+debug: TARGET=debug
 debug: $(MAINOBJS)
+#debug: node_modules
 
 
 %.o: %.cpp
 	$(CC) -c $(CXXFLAGS) $< $(INCLUDE) $(LIBS)
 	
+#node_modules:
+#	# compile node modules
+#	make -C ./nodejs $(TARGET)
+	
 clean:
 	rm -f *.o *.gch *.a
+#	make -C ./nodejs clean
 

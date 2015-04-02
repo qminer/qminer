@@ -162,7 +162,7 @@ TStr TTmInfo::GetTmUnitStr(const TTmUnit& TmUnit) {
     case tmuEdges : return "Edges";
     default: Fail;
   }
-  return TStr::GetNullStr();
+  return TStr();
 }
 
 TStr TTmInfo::GetTmZoneDiffStr(const TStr& TmZoneStr){
@@ -817,7 +817,8 @@ TSecTm TSecTm::GetDtTmFromDmyStr(const TStr& DmyStr){
   int MonthN=MonthStr.GetInt(-1);
   int YearN=YearStr.GetInt(-1);
   if (MonthN == -1){
-    MonthN = TTmInfo::GetMonthN(MonthStr.ToCap()); }
+	  MonthN = TTmInfo::GetMonthN(MonthStr = MonthStr.GetCap());
+  }
   if ((DayN==-1)||(MonthN==-1)||(YearN==-1)){
     return TSecTm();
   } else {
@@ -1365,7 +1366,7 @@ void TTmProfiler::PrintReport(const TStr& ProfileNm) const {
 	while (GetTimerIdFNext(TimerId)) {
         // get timer name
         TStr TimerNm = GetTimerNm(TimerId);
-        TimerNm = TStr::GetSpaceStr(TimerNm.Len() - MxNmLen) + TimerNm;
+        TimerNm = TStr::GetSpaceStr(TInt::GetMx(0, TimerNm.Len() - MxNmLen)) + TimerNm;
         // get timer time and precentage
         if (TimerSumSec > 0.0) {
             const double TimerSec = GetTimerSec(TimerId);
@@ -1386,7 +1387,7 @@ void TTmProfiler::PrintReport(const PNotify& Notify, const TStr& ProfileNm) cons
 	while (GetTimerIdFNext(TimerId)) {
 		// get timer name
 		TStr TimerNm = GetTimerNm(TimerId);
-		TimerNm = TStr::GetSpaceStr(TimerNm.Len() - MxNmLen) + TimerNm;
+		TimerNm = TStr::GetSpaceStr(TInt::GetMx(0, TimerNm.Len() - MxNmLen)) + TimerNm;
 		// get timer time and precentage
 		if (TimerSumSec > 0.0) {
 			const double TimerSec = GetTimerSec(TimerId);

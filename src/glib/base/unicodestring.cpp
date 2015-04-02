@@ -139,8 +139,7 @@ void TUStr::GetSubValV(const int& BChN, const int& EChN, TUStr& UniChV){
 }
 
 TUStr TUStr::GetSubValV(const int& BChN, const int& EChN){
-	size_t Len = EChN - BChN + 1;
-	IAssert(Len >= 0);
+	//size_t Len = EChN - BChN + 1;
 	TIntV UniChV; 
 	int capacity = BChN - EChN + 1;
 	if(capacity < this->UniChV.Reserved()){
