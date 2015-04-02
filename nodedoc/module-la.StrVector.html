@@ -163,7 +163,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1095">line 1095</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1193">line 1193</a>
     </li></ul></dd>
     
 
@@ -190,7 +190,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// create a new empty vectorvar vec = new la.StrVector();// create a new vectorvar vec2 = new la.StrVector(['a', 'b', 'c']);</code></pre>
+    <pre class="prettyprint"><code>var la = require('qminer').la;// create a new empty vectorvar vec = new la.StrVector();// create a new vectorvar vec2 = new la.StrVector(['a', 'b', 'c']);</code></pre>
 
 
 
@@ -256,7 +256,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1272">line 1272</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1375">line 1375</a>
     </li></ul></dd>
     
 
@@ -383,7 +383,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1101">line 1101</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1200">line 1200</a>
     </li></ul></dd>
     
 
@@ -443,7 +443,7 @@
 
 
 <div class="description">
-    Loads the vector from input stream.
+    Loads the vector from input stream (binary deserialization).
 </div>
 
 
@@ -536,7 +536,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1337">line 1337</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1443">line 1443</a>
     </li></ul></dd>
     
 
@@ -585,7 +585,165 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// import fs modulevar fs = require('fs.js');// create an empty vectorvar vec = new la.StrVector();// open a read streamvar fin = fs.openRead('vec.dat');// load the matrixvec.load(fin);</code></pre>
+    <pre class="prettyprint"><code>// import fs modulevar fs = require('qminer').fs;var la = require('qminer').la;// create an empty vectorvar vec = new la.StrVector();// open a read streamvar fin = fs.openRead('vec.dat');// load the vectorvec.load(fin);</code></pre>
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="loadascii"><span class="type-signature"></span>loadascii<span class="signature">(fin)</span><span class="type-signature"> &rarr; {<a href="module-la.StrVector.html">module:la.StrVector</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Loads the vector from input stream (ascii deserialization).
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fin</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="module-fs.FIn.html">module:fs.FIn</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Input stream.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1475">line 1475</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Self.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-la.StrVector.html">module:la.StrVector</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// import fs modulevar fs = require('qminer').fs;var la = require('qminer').la;// create an empty vectorvar vec = new la.StrVector();// open a read streamvar fin = fs.openRead('vec.dat');// load the matrixvec.loadascii(fin);</code></pre>
 
 
 
@@ -694,7 +852,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1120">line 1120</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1219">line 1219</a>
     </li></ul></dd>
     
 
@@ -847,7 +1005,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1155">line 1155</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1245">line 1245</a>
     </li></ul></dd>
     
 
@@ -1023,7 +1181,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1114">line 1114</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1213">line 1213</a>
     </li></ul></dd>
     
 
@@ -1083,7 +1241,7 @@
 
 
 <div class="description">
-    Saves the vector as output stream.
+    Saves the vector as output stream (binary serialization).
 </div>
 
 
@@ -1176,7 +1334,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1322">line 1322</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1427">line 1427</a>
     </li></ul></dd>
     
 
@@ -1225,7 +1383,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// import fs modulevar fs = require('fs.js');// create a new vectorvar vec = new la.StrVector(['a', 'b', 'c']);// open write streamvar fout = fs.openWrite('vec.dat');// save matrix and close write streamvec.save(fout).close();</code></pre>
+    <pre class="prettyprint"><code>// import fs modulevar fs = require('qminer').fs;var la = require('qminer').la;// create a new vectorvar vec = new la.StrVector(['a', 'b', 'c']);// open write streamvar fout = fs.openWrite('vec.dat');// save vector and close write streamvec.save(fout).close();</code></pre>
 
 
 
@@ -1234,7 +1392,165 @@
 
     
 
-    <h4 class="name" id="shuffle"><span class="type-signature"></span>shuffle<span class="signature">()</span><span class="type-signature"> &rarr; {boolean}</span></h4>
+    <h4 class="name" id="saveascii"><span class="type-signature"></span>saveascii<span class="signature">(fout)</span><span class="type-signature"> &rarr; {<a href="module-fs.FOut.html">module:fs.FOut</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Saves the vector as output stream (ascii serialization).
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fout</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="module-fs.FOut.html">module:fs.FOut</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Output stream.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1459">line 1459</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    fout.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-fs.FOut.html">module:fs.FOut</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// import fs modulevar fs = require('qminer').fs;var la = require('qminer').la;// create a new vectorvar vec = new la.StrVector(['a', 'b', 'c']);// open write streamvar fout = fs.openWrite('vec.dat');// save matrix and close write streamvec.saveascii(fout).close();</code></pre>
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="shuffle"><span class="type-signature"></span>shuffle<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="module-la.StrVector.html">module:la.StrVector</a>}</span></h4>
 
     
 
@@ -1285,7 +1601,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1203">line 1203</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1303">line 1303</a>
     </li></ul></dd>
     
 
@@ -1312,7 +1628,7 @@
 
         
 <div class="param-desc">
-    True, if reordering was successful. Otherwise, false.
+    Self.
 </div>
 
 
@@ -1323,7 +1639,7 @@
     </dt>
     <dd>
         
-<span class="param-type">boolean</span>
+<span class="param-type"><a href="module-la.StrVector.html">module:la.StrVector</a></span>
 
 
     </dd>
@@ -1412,7 +1728,7 @@
 
             
 
-            <td class="description last">Default is boolean and true.</td>
+            <td class="description last">Sort callback or a boolean ascend flag. Default is boolean and true.</td>
         </tr>
 
     
@@ -1453,7 +1769,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1193">line 1193</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1279">line 1279</a>
     </li></ul></dd>
     
 
@@ -1480,7 +1796,7 @@
 
         
 <div class="param-desc">
-    Self<br>1. Vector sorted in ascending order, if arg is boolean and true.  <br>2. Vector sorted in descending order, if arg is boolean and false.<br>3. Vector sorted by using the comparator callback, if arg is a <a href="module-la.html#~strVectorCompareCb">module:la~strVectorCompareCb</a>.
+    Self.<br>1. Vector sorted in ascending order, if arg is boolean and true.  <br>2. Vector sorted in descending order, if arg is boolean and false.<br>3. Vector sorted by using the comparator callback, if arg is a <a href="module-la.html#~strVectorCompareCb">module:la~strVectorCompareCb</a>.
 </div>
 
 
@@ -1502,7 +1818,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// create a new vectorvar vec = new la.StrVector(['asd', 'z', 'kkkk']);// sort ascendingvec.sort(); // sorts to: ['asd', 'kkkk', 'z']// sort using callbackvec.sort(function(arg1, arg2) { return arg1.length - arg2.length; }); // sorts to: ['z', 'asd', 'kkkk']</code></pre>
+    <pre class="prettyprint"><code>var la = require('qminer').la;// create a new vectorvar vec = new la.StrVector(['asd', 'z', 'kkkk']);// sort ascendingvec.sort(); // sorts to: ['asd', 'kkkk', 'z']// sort using callbackvec.sort(function(arg1, arg2) { return arg1.length - arg2.length; }); // sorts to: ['z', 'asd', 'kkkk']</code></pre>
 
 
 
@@ -1511,7 +1827,177 @@
 
     
 
-    <h4 class="name" id="splice"><span class="type-signature"></span>splice<span class="signature">(start, deleteCount, itemN<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="module-la.StrVector.html">module:la.StrVector</a>}</span></h4>
+    <h4 class="name" id="sortPerm"><span class="type-signature"></span>sortPerm<span class="signature">(asc<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="module-la.html#~SortResult">module:la~SortResult</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Sorts the vector and returns the sorted vector as well as the permutation
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>asc</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Sort in ascending order flag. Default is boolean and true.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1298">line 1298</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Self.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-la.html#~SortResult">module:la~SortResult</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>var la = require('qminer').la;// create a new vectorvar vec = new la.StrVector(['asd', 'z', 'kkkk']);// sort ascendingvar result = vec.sortPerm(); // result.vec: ['asd', 'kkkk', 'z']result.perm; // permutation index vector</code></pre>
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="splice"><span class="type-signature"></span>splice<span class="signature">(start, deleteCount, &hellip;itemN<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="module-la.StrVector.html">module:la.StrVector</a>}</span></h4>
 
     
 
@@ -1639,6 +2125,8 @@
                 
 
                 
+                    &lt;repeatable><br>
+                
                 </td>
             
 
@@ -1685,7 +2173,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1143">line 1143</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1233">line 1233</a>
     </li></ul></dd>
     
 
@@ -1734,7 +2222,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// create a new vectorvar vec = new la.StrVector(['a', 'b', 'c']);// splice the vector by removing the last two elements and adding 'd', 'e'vec.splice(1, 2, 'd', 'e')// returns vector ['a', 'd', 'e']</code></pre>
+    <pre class="prettyprint"><code>var la = require('qminer').la;// create a new vectorvar vec = new la.StrVector(['a', 'b', 'c']);// splice the vector by removing the last two elements and adding 'd', 'e'vec.splice(1, 2, 'd', 'e')// returns vector ['a', 'd', 'e']</code></pre>
 
 
 
@@ -1795,7 +2283,7 @@
 <span class="param-type">Array.&lt;number></span>
 |
 
-<span class="param-type">module:la.IntVector</span>
+<span class="param-type"><a href="module-la.IntVector.html">module:la.IntVector</a></span>
 
 
             
@@ -1846,7 +2334,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1107">line 1107</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1206">line 1206</a>
     </li></ul></dd>
     
 
@@ -1950,7 +2438,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1282">line 1282</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1386">line 1386</a>
     </li></ul></dd>
     
 
@@ -1977,7 +2465,7 @@
 
         
 <div class="param-desc">
-    Instance as string.
+    String representation.
 </div>
 
 
@@ -1999,7 +2487,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// create a new vectorvar vec = new la.StrVector(['a', 'b', 'c']);// create vector as stringvec.toString(); // returns 'a, b, c'</code></pre>
+    <pre class="prettyprint"><code>var la = require('qminer').la;// create a new vectorvar vec = new la.StrVector(['a', 'b', 'c']);// create vector as stringvec.toString(); // returns 'a, b, c'</code></pre>
 
 
 
@@ -2108,7 +2596,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1214">line 1214</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1315">line 1315</a>
     </li></ul></dd>
     
 
@@ -2135,7 +2623,7 @@
 
         
 <div class="param-desc">
-    Self - Without the elements with index idx or more.
+    Self after truncating.
 </div>
 
 
@@ -2157,7 +2645,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// create a new vectorvar vec = new la.StrVector(['a', 'b', 'c']);// trunc all elements with index 1 or morevec.trunc(1); // returns vector ['a']</code></pre>
+    <pre class="prettyprint"><code>var la = require('qminer').la;// create a new vectorvar vec = new la.StrVector(['a', 'b', 'c']);// trunc all elements with index 1 or morevec.trunc(1); // returns vector ['a']</code></pre>
 
 
 
@@ -2278,7 +2766,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1149">line 1149</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1239">line 1239</a>
     </li></ul></dd>
     
 
@@ -2342,13 +2830,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li><li><a href="module-la.StrVector.html">StrVector</a></li><li><a href="module-la.Vector.html">Vector</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-datasets.html">datasets</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li><li><a href="module-qm.html">qm</a></li><li><a href="module-statistics.html">statistics</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.BoolVector.html">BoolVector</a></li><li><a href="module-la.IntVector.html">IntVector</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li><li><a href="module-la.StrVector.html">StrVector</a></li><li><a href="module-la.Vector.html">Vector</a></li><li><a href="module-qm.Base.html">Base</a></li><li><a href="module-qm.Store.html">Store</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Wed Mar 25 2015 09:22:45 GMT+0100 (Central Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Thu Apr 02 2015 17:29:13 GMT+0200 (Central Europe Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

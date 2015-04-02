@@ -3,7 +3,7 @@ console.log(__filename)
 // Sample unit test using standard assert JS library 
 // 
 var assert = require("../../src/nodejs/scripts/assert.js")
-var la = require('../../').la;
+var la = require('qminer').la;
 
 
 describe('Import test', function () {

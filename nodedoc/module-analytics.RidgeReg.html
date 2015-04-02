@@ -159,7 +159,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analytics.js.html">analytics.js</a>, <a href="analytics.js.html#line258">line 258</a>
+        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line259">line 259</a>
     </li></ul></dd>
     
 
@@ -186,7 +186,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>qm = require('qminer');// create a new model with gamma = 1.0regmod = new qm.analytics.RidgeReg(1.0);// generate a random feature matrixA = qm.la.randn(10,100);// generate a random modelw = qm.la.randn(10);// generate noisen = qm.la.randn(100).multiply(0.01);// generate responses (model'*data + noise)b = A.transpose().multiply(w).plus(n);// fit modelregmod.fit(A, b);// compareconsole.log('true model:');w.print();console.log('trained model:'); regmod.weights.print();// cosine between the true and the estimated model should be close to 1 if the fit succeededconsole.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w))</code></pre>
+    <pre class="prettyprint"><code>la = require('qminer').la;analytics = require('qminer').analytics;// create a new model with gamma = 1.0regmod = new analytics.RidgeReg(1.0);// generate a random feature matrixA = la.randn(10,100);// generate a random modelw = la.randn(10);// generate noisen = la.randn(100).multiply(0.01);// generate responses (model'*data + noise)b = A.transpose().multiply(w).plus(n);// fit modelregmod.fit(A, b);// compareconsole.log('true model:');w.print();console.log('trained model:'); regmod.weights.print();// cosine between the true and the estimated model should be close to 1 if the fit succeededconsole.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w));</code></pre>
 
 
 
@@ -300,7 +300,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analytics.js.html">analytics.js</a>, <a href="analytics.js.html#line277">line 277</a>
+        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line278">line 278</a>
     </li></ul></dd>
     
 
@@ -450,7 +450,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analytics.js.html">analytics.js</a>, <a href="analytics.js.html#line266">line 266</a>
+        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line267">line 267</a>
     </li></ul></dd>
     
 
@@ -603,7 +603,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analytics.js.html">analytics.js</a>, <a href="analytics.js.html#line273">line 273</a>
+        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line274">line 274</a>
     </li></ul></dd>
     
 
@@ -756,7 +756,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analytics.js.html">analytics.js</a>, <a href="analytics.js.html#line283">line 283</a>
+        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line284">line 284</a>
     </li></ul></dd>
     
 
@@ -798,13 +798,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li><li><a href="module-la.StrVector.html">StrVector</a></li><li><a href="module-la.Vector.html">Vector</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-datasets.html">datasets</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li><li><a href="module-qm.html">qm</a></li><li><a href="module-statistics.html">statistics</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.BoolVector.html">BoolVector</a></li><li><a href="module-la.IntVector.html">IntVector</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li><li><a href="module-la.StrVector.html">StrVector</a></li><li><a href="module-la.Vector.html">Vector</a></li><li><a href="module-qm.Base.html">Base</a></li><li><a href="module-qm.Store.html">Store</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Wed Mar 25 2015 09:22:44 GMT+0100 (Central Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Thu Apr 02 2015 17:29:12 GMT+0200 (Central Europe Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

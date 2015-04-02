@@ -13,7 +13,7 @@
 */
 /**
 * Matrix
-* @classdesc Represents a dense matrix (2d array).
+* @classdesc Represents a dense matrix (2d array), wraps a C++ object implemented in glib/base/ds.h.
 * @class
 * @param {(module:la~matrixArg | Array<Array<number>> | module:la.Matrix)} [arg] - Constructor arguments. There are three ways of constructing:
 * <br>1. Parameter object {@link module:la~matrixArg}.
@@ -32,15 +32,24 @@
 	* @param {number} colIdx - Column index (zero based).
 	* @returns {number} Matrix element.
 	*/
- exports.Matrix.prototype.at = function(rowIdx, colIdx) {}
+ exports.Matrix.prototype.at = function(rowIdx, colIdx) { return 0.0; }
 /**
-	* Sets an element of matrix.
-	* @param {number} rowIdx - Row index (zero based).
+	* Sets an element or a block of matrix.
+	* @param {number} rowIdx - Row index (zero based). 
 	* @param {number} colIdx - Column index (zero based).
-	* @param {number} num - Input value.
+	* @param {(number | module:la.Matrix)} arg - A number or a matrix. If the arg is a matrix, then it gets copied, where the argument's upper left corner, arg.at(0,0), gets copied to (rowIdx, colIdx)
 	* @returns {module:la.Matrix} Self.
+	* @example
+	* // create a new matrix
+	* var mat = new la.Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
+	* var arg = new la.Matrix([[10, 11], [12, 13]]);
+	* mat.put(0, 1, arg);
+	* // updates the matrix to
+    * // 1  10 11
+    * // 4  12 13
+    * // 7  8  9   
 	*/
- exports.Matrix.prototype.put = function(rowIdx, colIdx, num) {}
+ exports.Matrix.prototype.put = function(rowIdx, colIdx, arg) {}
 /**
 	* Right-hand side multiplication of matrix with parameter.
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
@@ -110,7 +119,7 @@
 	* Returns a vector of column norms.
 	* @returns {module:la.Vector} Vector, where the value at i-th index is the norm of the i-th column of matrix.
 	*/
- exports.Matrix.prototype.colNorms = function () {}
+ exports.Matrix.prototype.colNorms = function () { return Object.create(require('qminer').la.IntVector.prototype) }
 /**
 	* Normalizes each column of matrix
 	* @returns {module:la.Matrix} Self.
@@ -310,14 +319,13 @@
 	*/
  exports.SparseVector.prototype.idxVec = function () {}
 /**
-	//! * Prints sparse vector on-screen.
-	//! * @example
-	//! * // create new sparse vector
-	//! * var spVec = new la.SparseVector([[0, 1], [2, 3]]);
-	//! * // print sparse vector
-	//! * spVec.print(); // shows on-screen [(0, 1), (2, 3)]
-	//! */
- exports.SparseVector.prototype.print = function () {}
+	* Returns the string representation.
+	* @example
+	* // create new sparse vector
+	* var spVec = new la.SparseVector([[0, 1], [2, 3]]);	
+	* spVec.toString(); // returns the string '[(0, 1), (2, 3)]'
+	*/
+ exports.SparseVector.prototype.toString = function () {}
 /**
 * Sparse Matrix
 * @classdesc Represents a sparse matrix.
@@ -486,7 +494,6 @@
     }
 
 
-    //!- `str = SparseMatrix.toString()` -- returns a string displaying rows, columns and number of non-zero elements of a sparse column matrix `spMat`
     /**
     * Returns a string displaying rows, columns and number of non-zero elements of sparse matrix.
     * @returns {string} String displaying row, columns and number of non-zero elements.
@@ -497,7 +504,6 @@
     * var text = mat.toString(); // returns 'rows: -1, cols: 2, nnz: 3'
     */
     exports.SparseMatrix.prototype.toString = function () { return "rows: " + this.rows + ", cols:" + this.cols + ", nnz: " + this.nnz(); }
-    //!- `num = SparseMatrix.nnz()` -- `num` is the number of non-zero elements of sparse column matrix `spMat`
     /**
     * Returns the number of non-zero elements of sparse matrix.
     * @returns {number} Number of non-zero elements.
@@ -511,7 +517,6 @@
         return nnz;
     };
 
-    //!- `SparseVector.print()` -- prints sparse vector
     /**
 	* Prints the sparse vector on-screen.
 	* @example
@@ -522,7 +527,6 @@
 	*/
     exports.SparseVector.prototype.print = function () { console.log(this.toString()); }
 
-    //!- `Matrix.print()` -- prints matrix
     /**
 	* Prints the matrix on-screen. 
 	* @example
@@ -536,7 +540,6 @@
 	*/
     exports.Matrix.prototype.print = function () { console.log(this.toString()); }
 
-    //!- `Vector.print()` -- prints vector
     /**
     * Prints the vector on-screen.
     * @example
@@ -549,8 +552,6 @@
     */
 	exports.Vector.prototype.print = function () { console.log(this.toString()); }
 	
-    
-    //!- `arr = la.copyVecToArray(vec)` -- copies vector `vec` into a JS array of numbers `arr`
     /**
     * Copies the vector into a JavaScript array of numbers.
     * @param {module:la.Vector} vec - Copied vector.
@@ -575,12 +576,8 @@
                parseInt(Number(value)) == value &&
                !isNaN(parseInt(value, 10));
     }
-
     
     ///////// RANDOM GENERATORS
-    //!- `num = la.randn()` -- `num` is a sample from a standard normal random variable
-    //!- `vec = la.randn(dim)` -- `vec` is a dense vector whose elements are independent samples from a standard normal random variable and whos dimension is `dim`
-    //!- `mat = la.randn(rows, cols)` -- `mat` is a dense matrix whose elements are independent samples from a standard normal random variable, with `rows` rows and `cols` columns (integers)
 
     /**
     * Returns an object with random numbers
@@ -591,7 +588,7 @@
     * <br>2. {@link module:la.Vector}, if parameter arg1 is given.
     * <br>3. {@link module:la.Matrix}, if parameters arg1 and arg2 are given.
     */
-    exports.randn = function () {
+    exports.randn = function (arg1, arg2) {
         //arguments.length
         var len = arguments.length;
         if (len === 0) {
@@ -609,9 +606,9 @@
             var vec = new exports.Vector({ "vals": dim });
             for (var elN = 0; elN < dim; elN++) {
                 vec.put(elN, exports.randn());
-            }
-            return vec;
-        } else if (len == 2) {
+            }            
+            return vec;       
+        } else if (len === 2) {
             var rows = arguments[0];
             var cols = arguments[1];
             assert(isInt(rows));
@@ -626,7 +623,6 @@
         }
     };
 
-    //!- `num2 = la.randi(num)` -- returns an integer `num2` which is randomly selected from the set of integers `[0, ..., num-1]`
     /**
     * Returns a randomly selected integer from an array..
     * @param {number} num - The upper bound of the array. Must be an integer.
@@ -643,7 +639,6 @@
         }
     };
 
-    //!- `intArr = la.randVariation(n, k)` -- returns a JS array `arr`, which is a sample of `k` numbers from `[0,...,n-1]`, sampled without replacement. `k` must be smaller or equal to `n`
     /**
     * Returns a JavaScript array, which is a sample of integers from an array.
     * @param {number} n - The upper bound of the array [0, ..., n-1]. Must be an integer.
@@ -750,6 +745,67 @@ exports.ones = function(k) {
     }
     return ones_k;
 };
+        
+    /**
+    * Constructs a matrix by concatenating a doubly-nested array of matrices.
+    * @param {Array<Array<module:la.Matrix>> } matrixDoubleArr - An array of block rows, where each block row is an array of matrices.
+    * For example: [[m11, m12], [m21, m22]] is used to construct a matrix where the (i,j)-th block submatrix is mij. 
+    * @returns {module:la.Matrix} Concatenated matrix
+    * @example
+    * // create four matrices and concatenate (2 block columns, 2 block rows)
+    * var la = require('qminer').la;
+    * var A = new la.Matrix([[1,2], [3,4]]);
+    * var B = new la.Matrix([[5,6], [7,8]]);
+    * var C = new la.Matrix([[9,10], [11,12]]);
+    * var D = new la.Matrix([[13,14], [15,16]]);
+    * var mat = la.cat([[A,B], [C,D]]);
+    * // returns the matrix:
+    * // 1  2  5  6
+    * // 3  4  7  8
+    * // 9  10 13 14
+    * // 11 12 15 16
+    */
+    //# exports.cat = function(matrixDoubleArr) {}	
+exports.cat = function (nestedArrMat) {
+    var dimx = []; //cell row dimensions
+    var dimy = []; //cell col dimensions
+    var cdimx = []; //cumulative row dims
+    var cdimy = []; //cumulative coldims
+    var rows = nestedArrMat.length;
+    var cols = nestedArrMat[0].length;
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+            if (col > 0) {
+                assert(dimx[row] == nestedArrMat[row][col].rows, 'inconsistent row dimensions!');
+            } else {
+                dimx[row] = nestedArrMat[row][col].rows;
+            }
+            if (row > 0) {
+                assert(dimy[col] == nestedArrMat[row][col].cols, 'inconsistent column dimensions!');
+            } else {
+                dimy[col] = nestedArrMat[row][col].cols;
+            }            
+        }
+    }
+    cdimx[0] = 0;
+    cdimy[0] = 0;
+    for (var row = 1; row < rows; row++) {
+        cdimx[row] = cdimx[row - 1] + dimx[row - 1];
+    }
+    for (var col = 1; col < cols; col++) {
+        cdimy[col] = cdimy[col - 1] + dimy[col - 1];
+    }
+
+    var res = new la.Matrix({ rows: (cdimx[rows - 1] + dimx[rows - 1]), cols: (cdimy[cols - 1] + dimy[cols - 1]) });
+    // copy submatrices
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+            res.put(cdimx[row], cdimy[col], nestedArrMat[row][col]);
+        }
+    }
+    return res;
+}
+
 
     ///////// ALGORITHMS
 

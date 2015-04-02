@@ -8,4 +8,6 @@ node makedoc.js src/nodejs/la/la_structures_nodejs.h src/nodejs/scripts/la.js ./
 
 node makedoc.js src/nodejs/la/la_vector_nodejs.h "" ./nodetempdoc/ladoc.js ./nodetempdoc/ladoc_structures.js ./src/nodejs/la/VectorDocData.js ./src/nodejs/la/StrVectorDocData.js ./src/nodejs/la/IntVectorDocData.js ./src/nodejs/la/BoolVectorDocData.js
 
-jsdoc nodetempdoc/htdoc.js nodetempdoc/fsdoc.js nodetempdoc/analytics.js  nodetempdoc/ladoc.js -d nodetempdoc
+node makedoc.js src/nodejs/qm/qm_nodejs.h "" ./nodetempdoc/qminerdoc.js
+
+jsdoc nodetempdoc/htdoc.js nodetempdoc/fsdoc.js nodetempdoc/analytics.js  nodetempdoc/ladoc.js nodetempdoc/qminerdoc.js -d nodetempdoc

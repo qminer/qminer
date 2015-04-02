@@ -1,3 +1,6 @@
+//intellisense start
+exports = {}; require.modules.qminer_analytics = exports;
+//intellisense end
 /**
 * Analytics module.
 * @module analytics
@@ -234,15 +237,16 @@
 * @class
 * @param {(number|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model by setting gamma=arg. Empty constructor sets gamma to zero.
 * @example
-* qm = require('qminer');
+* la = require('qminer').la;
+* analytics = require('qminer').analytics;
 * // create a new model with gamma = 1.0
-* regmod = new qm.analytics.RidgeReg(1.0);
+* regmod = new analytics.RidgeReg(1.0);
 * // generate a random feature matrix
-* A = qm.la.randn(10,100);
+* A = la.randn(10,100);
 * // generate a random model
-* w = qm.la.randn(10);
+* w = la.randn(10);
 * // generate noise
-* n = qm.la.randn(100).multiply(0.01);
+* n = la.randn(100).multiply(0.01);
 * // generate responses (model'*data + noise)
 * b = A.transpose().multiply(w).plus(n);
 * // fit model
@@ -253,7 +257,7 @@
 * console.log('trained model:'); 
 * regmod.weights.print();
 * // cosine between the true and the estimated model should be close to 1 if the fit succeeded
-* console.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w))
+* console.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w));
 */
  exports.RidgeReg = function(arg) {};
 /**
