@@ -109,7 +109,112 @@
 */
  exports.Store = function (base, storeDef) {};
 /**
+	* Returns a record form the store.
+	* @param {string} recName - Record name.
+	* @returns {Object} Returns the record. If record doesn't exist, it returns null. //TODO
+	*/
+ exports.Store.prototype.rec = function (recName) {};
+/**
+	* Executes a function on each record in store.
+	* @param {function} callback - Function to be executed. It takes two parameters:
+	* <br>rec - The current record.
+	* <br>[idx] - The index of the current record.
+	* @returns {module:qm.Store} Self.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a store with some people with fields Name and Gender
+	* var store = //TODO
+	* // change the gender of all records to "Extraterrestrial"
+	* store.each(function (rec) { rec.Gender = "Extraterestrial"; });
+	*/
+ exports.Store.prototype.each = function (callback) {}
+/**
+	* Creates an array of function outputs created from the store records.
+	* @param {function} callback - Function that generates the array. It takes two parameters:
+	* <br>rec - The current record.
+	* <br>[idx] - The index of the current record.
+	* @returns {Array<Object>} The array created by the callback function. //TODO
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a store with some people with fields Name and Gender
+	* var store = //TODO
+	* // make an array of recod names
+	* var arr = store.map(function (rec) { return rec.Name; });
+	*/
+ exports.Store.prototype.map = function (callback) {}
+/**
+	* Adds a record to the store.
+	* @param {Object} rec - The added record. //TODO
+	* @returns {number} The ID of the added record.
+	*/
+ exports.Store.prototype.add = function (rec) {}
+/**
+	* Creates a record set containing random records from store.
+	* @param {number} sampleSize - The size of the record set.
+	* @returns {Array.<module:qm.Record>} Returns a record set containing a random record set.
+	*/
+ exports.Store.prototype.sample = function (sampleSize) {};
+/**
+	* Gets the details of the selected field.
+	* @param {string} fieldName - The name of the field.
+	* @returns {Object} The JSON object containing the details of the field. //TODO
+	*/
+ exports.Store.prototype.field = function (fieldName) {}; 
+/**
+	* Checks if the field is of numeric type.
+	* @param {string} fieldName - The checked field.
+	* @returns {boolean} True, if the field is of numeric type. Otherwise, false.
+	*/
+ exports.Store.prototype.isNumeric = function (fieldName) {};
+/**
+	* Checks if the field is of string type.
+	* @param {string} fieldName - The checked field.
+	* @returns {boolean} True, if the field is of the string type. Otherwise, false.
+	*/
+ exports.Store.prototype.isString = function (fieldName) {}; 
+/**
+	* Returns the details of the selected key.
+	* @param {string} keyName - The selected key.
+	* @returns {Object} The JSON object containing the details of the key. //TODO
+	*/
+ exports.Store.prototype.key = function (keyName) {};
+/**
+	* Returns the store as a JSON.
+	* @returns {Object} The store as a JSON.
+	*/
+ exports.Store.prototype.toJSON = function () {};
+/**
+	* Deletes the records in the store.
+	* @param {number} [num] - The number of deleted records.
+	* @returns {number} The number of remaining records in the store.
+	* @example
+	* // delete all records in store
+	* store.clear();	// returns 0
+	* // deletes the first 10 records
+	* store.clear(10);
+	*/
+ exports.Store.prototype.clear = function (num) {};
+/**
+	* Gives a vector containing the field value of each record.
+	* @param {string} fieldName - The field where the data is taken from records.
+	* @returns {module:la.Vector} The vector containing the field values of each record.
+	*/
+ exports.Store.prototype.getVec = function (fieldName) {};
+/**
+	* Gives the name of the store.
+	*/
+ exports.Store.prototype.name = undefinied;
+/**
+	* Checks if the store is empty.
+	*/
+ exports.Store.prototype.empty = undefinied;
+/**
 	* Gives the number of records.
-	* @returns {number} Number of records.
 	*/
  exports.Store.prototype.length = 0;
+/**
+	* Gives an array of all field descriptor JSON objects.
+	*/
+ exports.Store.prototype.fields = undefinied;

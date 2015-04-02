@@ -78,6 +78,19 @@ describe('Empty Store Tests', function () {
             assert.equal(arr[0].name, "Name");
             assert.equal(arr[1].name, "Gender");
         })
+        it('should return the details of the given field', function () {
+            var detail = table.base.store("People").field("Name");
+            assert.equal(detail.id, 0);
+            assert.equal(detail.name, "Name");
+            assert.equal(detail.type, "string");
+            assert.equal(detail.primary, true);
+
+            var detail2 = table.base.store("People").field("Gender");
+            assert.equal(detail2.id, 1);
+            assert.equal(detail2.name, "Gender");
+            assert.equal(detail2.type, "string");
+            assert.equal(detail2.primary, false);
+        })
     });
 
     describe('Joins Test', function () {
@@ -198,6 +211,96 @@ describe('Store Tests', function () {
             assert.equal(PeopleIter.next(), false);
         })
     });
+
+    describe('Rec Test', function () {
+        it('should return the record of Carolina Fortuna', function () {
+            var record = table.base.store("People").rec("Carolina Fortuna");
+            assert.equal(record.Name, "Carolina Fortuna");
+            assert.equal(record.Gender, "Female");
+        })
+        it('should return the record of Blaz Fortuna', function () {
+            var record = table.base.store("People").rec("Blaz Fortuna");
+            assert.equal(record.Name, "Blaz Fortuna");
+            assert.equal(record.Gender, "Male");
+        })
+        it('should return null if record not found', function () {
+            var record = table.base.store("People").rec("Bender Bending Rodriguez");
+            assert(record == null);
+        })
+    });
+
+    describe('Each Test', function () {
+        it('should change the gender of all records to "Extraterrestrial"', function () {
+            table.base.store("People").each(function (rec) { rec.Gender = "Extraterrestrial" });
+            assert.equal(table.base.store("People")[0].Gender, "Extraterrestrial");
+            assert.equal(table.base.store("People")[1].Gender, "Extraterrestrial");
+        })
+        it('should change the gender only of Blaz Fortuna to "Extraterrestrial"', function () {
+            table.base.store("People").each(function (rec, idx) { if (idx == 1) { rec.Gender = "Extraterrestrial" } });
+            assert.equal(table.base.store("People")[0].Gender, "Female");
+            assert.equal(table.base.store("People")[1].Gender, "Extraterrestrial");
+        })
+        it('shouldn\'t make a new field', function () {
+            table.base.store("People").each(function (rec) { rec.DateOfBirth = "1.1.2015" });
+            assert(table.base.store("People")[0].DateOfBirth == null);
+            assert(table.base.store("People")[1].DateOfBirth == null);
+        })
+    });
+
+    describe('Map Test', function () {
+        it('should return an array of names', function () {
+            var arr = table.base.store("People").map(function (rec) { return rec.Name });
+            assert.equal(arr[0], "Carolina Fortuna");
+            assert.equal(arr[1], "Blaz Fortuna");
+        })
+        it('should return a nested array ["Carolina Fortuna", ["Blaz Fortuna", "Male"]]', function () {
+            var arr = table.base.store("People").map(function (rec, idx) {
+                if (idx == 0) {
+                    return rec.Name;
+                }
+                else if (idx == 1) {
+                    return [rec.Name, rec.Gender];
+                }
+            });
+            assert.equal(arr[0], "Carolina Fortuna");
+            assert.equal(arr[1][0], "Blaz Fortuna");
+            assert.equal(arr[1][1], "Male");
+        })
+    });
+
+    describe('Clear Test', function () {
+        it('should clear all records in "People" store', function () {
+            assert.equal(table.base.store("People").clear(), 0);
+        })
+        it('should clear only the first record in "People" store', function () {
+            assert.equal(table.base.store("People").clear(1), 1);
+            assert(table.base.store("People")[0] == null);
+            assert.equal(table.base.store("People")[1].Name, "Blaz Fortuna");
+        })
+    });
+
+    describe('GetVec Test', function () {
+        it('should return the vector of record names in "People" store', function () {
+            var vec = table.base.store("People").getVec("Name");
+            assert.equal(vec[0], "Carolina Fortuna");
+            assert.equal(vec[1], "Blaz Fortuna");
+        })
+        it('should return the vector of record genders in "People" store', function () {
+            var vec = table.base.store("People").getVec("Gender");
+            assert.equal(vec[0], "Female");
+            assert.equal(vec[1], "Male");
+        })
+        it('should throw an exception if parameter isn\'t given', function () {
+            assert.throws(function () {
+                table.base.store("People").getVec();
+            })
+        })
+        it('should throw an exception if parameter isn\'t a field', function () {
+            assert.throws(function () {
+                table.base.store("People").getVec("Payday");
+            })
+        })
+    });
 })
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -267,14 +370,44 @@ describe("Two Store Tests", function () {
         table.close();
     });
 
-    describe("Length Test", function () {
+    describe('Length Test', function () {
         it('should return the length of both stores', function () {
             assert.equal(table.base.store("People").length, 2);
             assert.equal(table.base.store("Movies").length, 0);
         })
     });
 
-    describe("Joins Test", function () {
+    describe('IsNumeric Test', function () {
+        it('should return true for the fields ""Year" and "Ratings"', function () {
+            assert(table.base.store("Movies").isNumeric("Year"));
+            assert(table.base.store("Movies").isNumeric("Rating"));
+        })
+        it('should return false for the field "Title"', function () {
+            assert(!table.base.store("Movies").isNumeric("Title"));
+        })
+        it('should throw an exception if the field doesn\'t exists', function () {
+            assert.throws(function () {
+                table.base.store("Movies").isNumeric("Actors");
+            })
+        })
+    });
+
+    describe('IsString Test', function () {
+        it('should return true for the fields "Title" and "Plot"', function () {
+            assert(table.base.store("Movies").isString("Title"));
+            assert(table.base.store("Movies").isString("Plot"));
+        })
+        it('should return false for the field "Year"', function () {
+            assert(!table.base.store("Movies").isString("Year"));
+        })
+        it('should throw an exception if the field doesn\'t exist', function () {
+            assert.throws(function () {
+                table.base.store("Movies").isString("Actors");
+            })
+        })
+    });
+
+    describe('Joins Test', function () {
         it('should return the number of joins for each store', function () {
             assert.equal(table.base.store("People").joins.length, 2);
             assert.equal(table.base.store("Movies").joins.length, 2);
@@ -291,7 +424,7 @@ describe("Two Store Tests", function () {
         })
     });
 
-    describe("Key Test", function () {
+    describe('Key Test', function () {
         it('should return the number of keys for each store', function () {
             assert.equal(table.base.store("People").keys.length, 2);
             assert.equal(table.base.store("Movies").keys.length, 4);
@@ -302,15 +435,22 @@ describe("Two Store Tests", function () {
 
             assert.equal(PeopleKeys[0].name, "Name");
             assert.equal(PeopleKeys[1].name, "Gender");
-            
+
             assert.equal(MoviesKeys[0].name, "Title");
             assert.equal(MoviesKeys[1].name, "TitleTxt");
             assert.equal(MoviesKeys[2].name, "Plot");
             assert.equal(MoviesKeys[3].name, "Genres");
         })
+        it('should return the details of the key "Title"', function () {
+            var detail = table.base.store("Movies").key("Title");
+            assert.equal(detail.name, "Title");
+        })
+        it('should return null if the key doesn\'t exist', function () {
+                assert(table.base.store("Movies").key("Watched") == null);
+        })
     });
 
-    describe("Movies Fields Test", function () {
+    describe('Movies Fields Test', function () {
         it.skip('should return the number of fields', function () {
             var arr = table.base.store("Movies").fields;
             console.log(arr);
@@ -326,8 +466,8 @@ describe("Two Store Tests", function () {
         })
     });
 
-    describe("Add Movie Test", function () {
-        
+    describe('Add Movie Test', function () {
+
         it('should add a movie and all people that acted or directed', function () {
             assert.equal(table.base.store("Movies").add(table.movie), 0);
             assert.equal(table.base.store("Movies").length, 1);
@@ -368,10 +508,10 @@ describe("Two Store Tests", function () {
             assert.equal(table.base.store("Movies")[1].Year, table.movie2.Year);
             assert.equal(table.base.store("Movies")[1].Genres.length, table.movie2.Genres.length);
             assert.equal(table.base.store("Movies")[1].Director.Name, "Reyes Tony Y.");
-       })
+        })
     });
 
-    describe("Sample Test", function () {
+    describe('Sample Test', function () {
         it('should return a sample of persons out of People', function () {
             table.addMovie(table.movie);
             table.addMovie(table.movie2);
@@ -393,18 +533,38 @@ describe("Two Store Tests", function () {
         })
     });
 
-    describe("Importing Test", function () {
+    describe('Importing Test', function () {
         it('should import the movies in the movies_data.txt', function () {
             var filename = "./sandbox/movies/movies_data.txt"
             assert.equal(qm.load.jsonFile(table.base.store("Movies"), filename), 167);
         })
     })
-})
+
+    describe('ToJSON Test', function () {
+        it('should return the store "People" as a JSON', function () {
+            var json = table.base.store("People").toJSON();
+            assert.equal(json.storeName, "People");
+            assert.equal(json.storeRecords, 2);
+            assert.equal(json.fields[0].fieldName, "Name");
+            assert.equal(json.fields[1].fieldName, "Gender");
+        })
+        it('should return the store "Movies" as a JSON', function () {
+            var json = table.base.store("Movies").toJSON();
+            assert.equal(json.storeName, "Movies");
+            assert.equal(json.storeRecords, 0);
+            assert.equal(json.fields[0].fieldName, "Title");
+            assert.equal(json.fields[1].fieldName, "Plot");
+            assert.equal(json.fields[2].fieldName, "Year");
+            assert.equal(json.fields[3].fieldName, "Rating");
+            assert.equal(json.fields[4].fieldName, "Genres");
+        })
+    });
+});
 
 ///////////////////////////////////////////////////////////////////////////////
 // AddTrigger
 
-describe("AddTrigger Tests", function () {
+describe('AddTrigger Tests', function () {
     
     var table = undefined;
     beforeEach(function () {
@@ -414,20 +574,20 @@ describe("AddTrigger Tests", function () {
         table.close();
     });
 
-    describe("Adding the AddTrigger Test", function () {
+    describe('Adding the AddTrigger Test', function () {
         it('should add the addTrigger for the people', function () {
             var PeopleAdd = 0; var PeopleUpdate = 0;
             table.base.store("People").addTrigger({
                 onAdd: function (person) {
-                    assert(null != person, "onAdd: person");
-                    assert(null != person.Name, "onAdd: person.Name");
-                    assert(null != person.Gender, "onAdd: person.Gender");
+                    assert(null != person);
+                    assert(null != person.Name);
+                    assert(null != person.Gender);
                     PeopleAdd = PeopleAdd + 1;
                 },
                 onUpdate: function (person) {
-                    assert(null != person, "onAdd: person");
-                    assert(null != person.Name, "onAdd: person.Name");
-                    assert(null != person.Gender, "onAdd: person.Gender");
+                    assert(null != person);
+                    assert(null != person.Name);
+                    assert(null != person.Gender);
                     PeopleUpdate = PeopleUpdate + 1;
                 }
             });
@@ -471,5 +631,28 @@ describe("AddTrigger Tests", function () {
             assert.equal(MoviesUpdate, 0);
         })
     });
+})
 
+///////////////////////////////////////////////////////////////////////////////
+// Query
+
+describe('Query Tests', function () {
+
+    var table = undefined;
+    beforeEach(function () {
+        table = new TStore();
+        table.addMovie(table.movie);
+        table.addMovie(table.movie2);
+    });
+    afterEach(function () {
+        table.close();
+    });
+
+    describe('Creating Query Test', function () {
+        it("should create a query", function () {
+            query = { $from: "People", Name: "john" };
+            assert.equal(query.$from, "People");
+            assert.equal(query.Name, "john");
+        })
+    })
 })
