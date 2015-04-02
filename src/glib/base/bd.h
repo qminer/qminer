@@ -20,6 +20,8 @@
 #ifndef bd_h
 #define bd_h
 
+#include <cstdint>
+
 /////////////////////////////////////////////////
 // Basic-Macro-Definitions
 #define forever for(;;)
@@ -77,7 +79,11 @@ void terminateHandler();
 #endif
 
 typedef size_t TSize;
-#define TSizeMx SIZE_MAX
+# ifdef GLib_64Bit
+  #define TSizeMx (18446744073709551615UL)
+# else
+  #define TSizeMx (4294967295U)
+# endif
 
 /////////////////////////////////////////////////
 // Localization

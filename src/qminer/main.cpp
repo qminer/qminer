@@ -378,6 +378,7 @@ int main(int argc, char* argv[]) {
 		// read config-specific parameters
 		if (!Env.IsSilent()) { printf("\nConfiguration parameters:\n"); }
 		const int PortN = Env.GetIfArgPrefixInt("-port=", 8080, "Port number");
+		const bool ShowHttp = Env.GetIfArgPrefixBool("-disphttp:", true, "Show HTTP");
 		const int CacheSizeMB = Env.GetIfArgPrefixInt("-cache=", 1024, "Cache size");
 		const bool OverwriteP = Env.IsArgStr("-overwrite", "Overwrite existing configuration file");
 		// read create-specific parameters
@@ -516,9 +517,9 @@ int main(int argc, char* argv[]) {
 					}
 #endif
 					// start server
-					PWebSrv WebSrv = TSAppSrv::New(Env.IsArgPrefix("-port=") ? PortN : Param.PortN, SrvFunV, TQm::TEnv::Logger, true, true);
+					PWebSrv WebSrv = TSAppSrv::New(Param.PortN, SrvFunV, TQm::TEnv::Logger, ShowHttp, true);
 					// report we started
-					TQm::TEnv::Logger->OnStatusFmt("Server started on port %d", Env.IsArgPrefix("-port=") ? PortN : Param.PortN);
+					TQm::TEnv::Logger->OnStatusFmt("Server started on port %d", Param.PortN);
 					// wait for the end
 					TLoop::Run();
 				}

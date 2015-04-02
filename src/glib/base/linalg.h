@@ -26,10 +26,11 @@
 	#ifdef INTEL 
 		#include "mkl.h"
 	#endif
-	#ifdef OPENBLAS		
-		#include "cblas.h"
-		#include "lapacke.h"		
-	#endif
+#endif
+
+#ifdef OPENBLAS
+//	#include "cblas.h"
+	#include "lapacke.h"
 #endif
 
 ///////////////////////////////////////////////////////////////////////
@@ -128,6 +129,7 @@ protected:
 
 public:
     TSparseColMatrix(): TMatrix() {}
+    TSparseColMatrix(const int& _RowN, const int& _ColN): RowN(_RowN), ColN(_ColN), ColSpVV() {}
     TSparseColMatrix(TVec<TIntFltKdV> _ColSpVV): TMatrix(), ColSpVV(_ColSpVV) {}
     TSparseColMatrix(TVec<TIntFltKdV> _ColSpVV, const int& _RowN, const int& _ColN): 
 		TMatrix(), RowN(_RowN), ColN(_ColN), ColSpVV(_ColSpVV) {}
@@ -287,6 +289,12 @@ public:
 	// Z := p * X + q * Y
     static void LinComb(const double& p, const TFltVV& X,
         const double& q, const TFltVV& Y, TFltVV& Z);
+	// z := p * X(:,ColId) + q * y
+    //static void LinComb(const double& p, const TFltVV& X, int ColId,
+    //    const double& q, const TFltV& y, TFltV& z);
+	// if (Dim == 1) {z := p * X(:,ColId) + q * y} else if (Dim == 2) {z := p * X(:,RowId) + q * y}
+    static void LinComb(const double& p, const TFltVV& X, int DimId,
+        const double& q, const TFltV& y, TFltV& z, int Dim = 1);
 	// z = p * x + q * y
     static void LinComb(const double& p, const TIntFltKdV& x, const double& q, const TIntFltKdV& y, TIntFltKdV& z);	  
     // z := p * x + (1 - p) * y
@@ -363,8 +371,8 @@ public:
     static double Norm2(const TFltV& x);
     // ||x|| (Euclidian)
     static double Norm(const TFltV& x);
-    // x := x / ||x||
-    static void Normalize(TFltV& x);
+    // x := x / ||x||, returns the norm
+    static double Normalize(TFltV& x);
 	// Normalize X(:,ColId)
 	static void NormalizeColumn(TFltVV& X, const int& ColId);
 	// Normalize the columns of X
@@ -373,6 +381,8 @@ public:
 	static void NormalizeColumns(TTriple<TIntV, TIntV, TFltV>& X);
 	// Normalize the columns of X
 	static void NormalizeColumns(TVec<TIntFltKdV>& X);
+	// Frobenius norm of matrix A
+	static double FrobNorm(const TFltVV& A);
 
     // ||x||^2 (Euclidian), x is sparse
     static double Norm2(const TIntFltKdV& x);
@@ -413,6 +423,14 @@ public:
 	static void GetRowMaxIdxV(const TFltVV& X, TIntV& IdxV);
 	// find the index of maximum elements for each col of X
 	static void GetColMaxIdxV(const TFltVV& X, TIntV& IdxV);
+
+	// find the index of maximum elements for a given each col of X
+	static int GetColMinIdx(const TFltVV& X, const int& ColN);
+	// find the index of maximum elements for each col of X
+	static void GetColMinIdxV(const TFltVV& X, TIntV& IdxV);
+
+	template <class TVal> static TVal GetColMin(const TVVec<TVal>& X, const int& ColN);
+	template <class TVal> static void GetColMinV(const TVVec<TVal>& X, TVec<TVal>& ValV);
 
     // y := k * x
     static void MultiplyScalar(const double& k, const TFltV& x, TFltV& y);
@@ -529,6 +547,32 @@ public:
 	static bool IsOrthonormal(const TFltVV& Vecs, const double& Threshold);
 };
 
+template <class TVal>
+TVal TLinAlg::GetColMin(const TVVec<TVal>& X, const int& ColN) {
+	const int Rows = X.GetRows();
+	EAssertR(Rows > 0, "Input matrix should have at least one row!");
+
+	TVal MinVal = X(0, ColN);
+	for (int RowN = 1; RowN < Rows; RowN++) {
+		TVal Val = X(RowN, ColN);
+		if (Val < MinVal) {
+			MinVal = Val;
+		}
+	}
+
+	return MinVal;
+}
+
+template <class TVal>
+void TLinAlg::GetColMinV(const TVVec<TVal>& X, TVec<TVal>& ValV) {
+	const int Cols = X.GetCols();
+
+	ValV.Gen(Cols);
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		ValV[ColN] = GetColMin(X, ColN);
+	}
+}
+
 //////////////////////////////////////////////////////////////////////
 // Numerical-Recipes-Exception
 class TNSException : public TExcept {
@@ -536,6 +580,11 @@ public:
     TStr Message;
 public:
     TNSException(const TStr& Msg): TExcept(Msg) {}
+	TNSException(const TStr& MsgStr, const TStr& LocStr) : TExcept(MsgStr, LocStr) { }
+	/// Create new numerical exception
+	static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr()) {
+		return PExcept(new TNSException(MsgStr, LocStr));
+	}
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -635,6 +684,7 @@ public:
     // zero elements, so it is efficient for use in matrix inversion.
     static void LUSolve(const TFltVV& A, const TIntV& indx, TFltV& b);
 
+
 	// Finds x[1...f] that minimizes ||A' x - y||^2 + ||Gamma x||^2, where A[1...f][1...n]
 	// is  a matrix with column training examples (rows = features) and y[1...n] is a
 	// vector of targets. 
@@ -660,9 +710,39 @@ public:
 	static void DualLeastSquares(const TFltVV& A, const TFltV& b, const double& kappa, TFltV& x);
 
 
+
+#ifdef OPENBLAS
+    // LU midstep used for LUFactorization and LUSolve
+    // (Warning: the matrix is overwritten in the process)
+    static void LUStep(TFltVV& A, TIntV& PermV);
+    // LUFactorization create the matrices L, U and vector of permutations P such that P*A = L*U.
+    // The L is unit lower triangular matrix and U is an upper triangular matrix.
+    // Vector P tell's us: column i is swapped with column P[i].
+    static void LUFactorization(const TFltVV& A, TFltVV& L, TFltVV& U, TIntV& P);
+    // Solves the system of linear equations A * x = b, where A is a matrix, x and b are vectors.
+    // Solution is saved in x.
+    static void LUSolve(const TFltVV& A, TFltV& x, const TFltV& b);
+    // Solves the system of linear equations A * X = B, where A, X and B are matrices.
+    // Solution is saved in X.
+    static void LUSolve(const TFltVV& A, TFltVV& X, const TFltVV& B);
+
+    // solves the system A * x = b, where A is a triangular matrix, x and b are vectors.
+    // The solution is saved in x.
+    // UpperTriangFlag: if the matrix is upper triangular (true) or lower triangular (false).
+    // DiagUnitFlag: if the matrix has ones on the diagonal (true) or not (false).
+    static void TriangularSolve(TFltVV& A, TFltV& x, TFltV& b,
+    		bool UpperTriangFlag = true, bool DiagonalUnitFlag = false);
+#endif
+
     // Solves system of linear equations A * x = b. A is first decomposed using
     // LUDecomposition and after solved using LUSolve. A is modified!
     static void SolveLinearSystem(TFltVV& A, const TFltV& b, TFltV& x);
+
+    // Computes the eigenvector of A belonging to the specified eigenvalue
+    // uses the inverse iteration algorithm
+    // the algorithms does modify A due to its use of LU decomposition
+    // A is modified!!!
+    static void GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps=1e-7);
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -777,14 +857,14 @@ public:
     static void SaveMatlabTFltVVCol(const TFltVV& m, int ColId, const TStr& FName);
 	// Dumps matrix to file so Matlab can read it
     static void SaveMatlabTFltVV(const TFltVV& m, const TStr& FName);
-	// Dumps matrix to output stream so Matlab can read it
-	static void SaveMatlabTFltVV(const TFltVV& m, TSOut& SOut);
+    // Dumps matrix to the output stream so Matlab can read it
+    static void SaveMatlabTFltVV(const TFltVV& m, TSOut& SOut);
 	// Dumps main minor rowN x colN to file so Matlab can read it
 	static void SaveMatlabTFltVVMjrSubMtrx(const TFltVV& m, int rowN, int colN, const TStr& FName);
     // loads matlab full matrix
-    static void LoadMatlabTFltVV(const TStr& FNm, TVec<TFltV>& ColV);
-    // loads matlab full matrix
-    static void LoadMatlabTFltVV(const TStr& FNm, TFltVV& MatrixVV);
+	static void LoadMatlabTFltVV(const TStr& FNm, TVec<TFltV>& ColV);
+	// loads matlab full matrix
+	static void LoadMatlabTFltVV(const TStr& FNm, TFltVV& MatrixVV);
 	// loads matlab full matrix
 	static void LoadMatlabTFltVV(TVec<TFltV>& ColV, TSIn& SIn);
 	// loads matlab full matrix
@@ -832,7 +912,17 @@ public:
 	// gets the maximal index of a sparse vector
 	static int GetMaxDimIdx(const TIntFltKdV& SpVec);
 	// gets the maximal row index of a sparse column matrix
-	static int GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat);	
+	static int GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat);
+	// returns a vector with a sequence starting at Min and ending at Max
+	static void RangeV(const int& Min, const int& Max, TIntV& Res);
+	// returns the mean value of Vec.
+	static double Mean(const TFltV& Vec);
+	// returns the mean value along the dimension (Dim) of Mat. See Matlab documentation - mean().
+	static void Mean(const TFltVV& Mat, TFltV& Vec, const int& Dim = 1);
+	// returns standard deviation. See Matlab documentation - std().
+	static void Std(const TFltVV& Mat, TFltV& Vec, const int& Flag = 0, const int& Dim = 1);
+	// returns the z-score for each element of X such that columns of X are centered to have mean 0 and scaled to have standard deviation 1.
+	static void ZScore(const TFltVV& Mat, TFltVV& Vec, const int& Flag = 0, const int& Dim = 1);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -898,13 +988,17 @@ class TFullMatrix;
 /////////////////////////////////////////////////////////////////////////
 //// Full-Vector
 class TVector { friend class TFullMatrix;
-private: 
+public:
     bool IsColVector;
     TFltV Vec;
+
 public:
-    TVector(): IsColVector(true), Vec() {}
-    TVector(const int& Dim, const bool _IsColVector=true): IsColVector(_IsColVector), Vec(Dim) {}
-    TVector(const TFltV& Vect, const bool _IsColVector=true): IsColVector(_IsColVector), Vec(Vect) {}
+    TVector(const bool& IsColVector=true);
+    TVector(const int& Dim, const bool IsColVector=true);
+    TVector(const TFltV& Vect, const bool IsColVector=true);
+    TVector(const TIntV& Vect, const bool IsColVector=true);
+    TVector(const TFullMatrix& Mat);
+
     // copy constructor
     TVector(const TVector& Vector);
 #ifdef CPP11
@@ -915,73 +1009,191 @@ public:
     TVector& operator=(TVector Vector);
 
     // returns a new zero vector
-    static TVector Init(const int& Dim, const bool _IsColVect) { return TVector(Dim, _IsColVect); }
+    static TVector Init(const int& Dim, const bool _IsColVect);
+    // returns a vector of ones
+    static TVector Ones(const int& Dim, const bool IsColVect = true);
+    // returns a vector of zeros
+    static TVector Zeros(const int& Dim, const bool IsColVec=true);
+    // returns a vector with a sequence starting with Start (inclusive) and ending
+    // with End (exclusive)
+    static TVector Range(const int& Start, const int& End, const bool IsColVect = true);
+    // returns a vector with a sequence starting with 0 (inclusive) and ending
+    // with End (exclusive)
+    static TVector Range(const int& End, const bool IsColVect = true);
+
+    void Add(const double& Val) { Vec.Add(Val); }
+    void DelLast() { Vec.DelLast(); }
+
+    // returns true if the vectors have the same orientation and the elements are the same
+    bool operator ==(const TVector& Vect) const;
+    // returns the element at index Idx
+    TFlt& operator [](const int& Idx) { return Vec[Idx]; }
+    const TFlt& operator [](const int& Idx) const { return Vec[Idx]; }
 
     TVector GetT() const;
-	void Transpose() { IsColVector = !IsColVector; }
+	TVector& Transpose();
 
 	double DotProduct(const TFltV& y) const;
 	double DotProduct(const TVector& y) const;
 
-	TFlt& operator [] (const int& Idx) { return Vec[Idx]; }
-	const TFlt& operator [] (const int& Idx) const { return Vec[Idx]; }
-
+	// multiplication
     TFullMatrix operator *(const TVector& y) const;
     TVector operator *(const TFullMatrix& Mat) const;
+    TVector operator *(const double& k) const;
+    // multiplies all elements by Lambda
+	TVector& operator *=(const double& Lambda);
 
-    TVector operator *(const double& k) const {
-        TVector Res(Vec.Len(), IsColVec());
-        TLinAlg::MultiplyScalar(k, Vec, Res.Vec);			
-        return Res;		
-    }
-    
-    TVector& operator *=(const TFlt& k) {		
-        TLinAlg::MultiplyScalar(k, Vec, Vec);
-        return *this;
-    }
+	// division
+	// divides all elements by Lambda
+	TVector operator /(const double& Lambda) const;
+	// divides all elements by Lambda
+	TVector& operator /=(const double& Lambda);
+
+    // multiply the transpose of this vector with B (e.g. x'*B)
+	TVector MulT(const TFullMatrix& B) const;
+
+    // addition
+    TVector operator +(const TVector& y) const;
     TVector& operator +=(const TVector& y);
     
+    // subtraction
+    TVector operator -(const TVector& y) const;
+
 public:
-    int GetDim() const {return Vec.Len();}
+    int Len() const { return Vec.Len(); }
     bool IsColVec() const { return IsColVector; }
     bool IsRowVec() const { return !IsColVec(); }
     bool Empty() const { return Vec.Empty(); }
-    
+
+    template<typename TFunc> TVector& Map(const TFunc& Func);
+    // applies sqrt on all elements of this matrix
+	TVector& Sqrt() { return Map([](TFlt Val) { return sqrt(Val); }); }
+
+    // returns a vector containing indexes of all the elements satisfying a condition
+    template<typename TFunc> TVector Find(const TFunc& Func) const;
+    template<typename TFunc, typename TRes> void Find(const TFunc& Func, TRes& Res) const;
+
+    // returns the 'euclidian' L2 norm
+    double Norm() const;
+    // returns the squared 'euclidian' L2 norm
+    double Norm2() const;
+    // returns the sum of elements
+    double Sum() const;
+
+    // returns the euclidean distance to the other vector
+    double EuclDist(const TVector& y) const;
+
+    // returns the underlying list
     const TFltV& GetVec() const { return Vec; }
+    // returns the underlying list
+	TFltV& GetVec() { return Vec; }
+    // returns this vector as a list of integers
+    TIntV GetIntVec() const;
+
+    double GetMaxVal() const;
+    // returns the index of the maximum element
+    int GetMaxIdx() const;
+    // returns the index and value of the maximum element
+    TIntFltPr GetMax() const;
+
+    // returns the index of the minimum element
+	int GetMinIdx() const;
 
     void Save(TSOut& SOut) const { TBool(IsColVector).Save(SOut); Vec.Save(SOut); }
     void Load(TSIn& SIn) { IsColVector = TBool(SIn); Vec.Load(SIn); }
 };
 
+template <typename TFunc>
+TVector& TVector::Map(const TFunc& Func) {
+	const int& Dim = Len();
+
+	for (int i = 0; i < Dim; i++) {
+		Vec[i] = Func(Vec[i]);
+	}
+
+	return *this;
+}
+
+template <typename TFunc>
+TVector TVector::Find(const TFunc& Func) const {
+	TVector Res; Find(Func, Res);
+	return Res;
+//	const int& Dim = Len();
+//
+//	TVector Res(IsColVector);
+//
+//	for (int i = 0; i < Dim; i++) {
+//		if (Func(Vec[i])) {
+//			Res.Vec.Add(i);
+//		}
+//	}
+//
+//	return Res;
+}
+
+template <typename TFunc, typename TRes>
+void TVector::Find(const TFunc& Func, TRes& Res) const {
+	const int& Dim = Len();
+
+	for (int i = 0; i < Dim; i++) {
+		if (Func(Vec[i])) {
+			Res.Add(i);
+		}
+	}
+}
+
 /////////////////////////////////////////////////////////////////////////
 //// Full-Matrix
+typedef TTriple<TFullMatrix, TFullMatrix, TFullMatrix> TFullMatrixTr;
+typedef TTriple<TFullMatrix, TVector, TFullMatrix> TMatVecMatTr;
+
 class TFullMatrix: public TMatrix { friend class TVector;
 private:
-    TFltVV Mat;
+	bool IsWrapper;
+	TFltVV* Mat;
     
 public:
     // constructors/destructors
     // empty matrix with 0 rows and 0 cols
-    TFullMatrix(): Mat(0,0) {}
+    TFullMatrix();
     // zero matrix with the specified number of rows and cols
-    TFullMatrix(const int& _Rows, const int& _Cols): Mat(_Rows, _Cols) {}
-    // matrix from TFltVV
-    TFullMatrix(const TFltVV& _Mat): Mat(_Mat) {}
-
+    TFullMatrix(const int& Rows, const int& Cols);
+    // matrix from TFltVV, if IsWrapper is set to true then the
+    // underlying matrix will not be deleted
+    TFullMatrix(TFltVV& Mat, const bool IsWrapper=false);
+    // matrix from vector
+    TFullMatrix(const TVector& Vec);
     // copy constructor
-	TFullMatrix(const TFullMatrix& _Mat): Mat(_Mat.Mat) {} // { printf("Matrix copied\n"); }
+    TFullMatrix(const TFullMatrix& Mat);
 #ifdef CPP11
 	// move constructor
-	TFullMatrix(const TFullMatrix&& _Mat): Mat(std::move(_Mat.Mat)) {} // { printf("Matrix moved\n"); }
+    TFullMatrix(TFullMatrix&& Mat);
+
+private:
+    // wraps the matrix and takes control of all the cleanup
+    TFullMatrix(TFltVV* Mat);
+
+public:
 #endif
     // destructor
-	virtual ~TFullMatrix() {}
+    virtual ~TFullMatrix();
 
-    // the move and copy assignment operator merged into one
-    TFullMatrix& operator =(TFullMatrix _Mat);
+    // copy constructor
+	TFullMatrix& operator =(const TFullMatrix& Mat);
+	// move constructor
+	TFullMatrix& operator =(TFullMatrix&& _Mat);
     
     // identity matrix
     static TFullMatrix Identity(const int& Dim);
+    // matrix from TVec<TFltV>, each element from the list goes into one row
+    static TFullMatrix RowMatrix(const TVec<TFltV>& Mat);
+    // matrix from TVec<TFltV>, each element from the list goes into one column
+    static TFullMatrix ColMatrix(const TVec<TFltV>& Mat);
+    // get a matrix with the values from the vector are diagonal elements
+    static TFullMatrix Diag(const TVector& Diag);
+
+private:
+    void Clr();
 
 protected:
     virtual void PMultiply(const TFltVV& B, int ColId, TFltV& Result) const;
@@ -992,22 +1204,40 @@ protected:
     virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const;
 
     // getters
-    virtual int PGetRows() const { return Mat.GetRows(); }
-    virtual int PGetCols() const { return Mat.GetCols(); }
+    virtual int PGetRows() const { return Mat->GetRows(); }
+    virtual int PGetCols() const { return Mat->GetCols(); }
 public:
     // returns the underlying TFltVV
-    const TFltVV& GetMat() const { return Mat; }
+    const TFltVV& GetMat() const { return *Mat; }
+    // returns the underlying TFltVV
+    TFltVV& GetMat() { return *Mat; }
     // transposed
     virtual void Transpose();
+    // returns the transpose of this matrix
     TFullMatrix GetT() const;
-    double At(const int& i, const int& j) { return Mat(i,j); }
-    void Set(const double& Val, const int& i, const int& j) { Mat(i,j) = Val; }
-    bool Empty() const { return Mat.Empty(); }
+    // returns the value at position (i,j)
+    TFlt& At(const int& i, const int& j) { return Mat->operator ()(i,j); }
+    const TFlt& At(const int& i, const int& j) const { return Mat->operator ()(i,j); }
+    // sets the value at position (i,j)
+    void Set(const double& Val, const int& i, const int& j) { Mat->operator ()(i,j) = Val; }
+    // returns true if the matrix is empty
+    bool Empty() const { return Mat->Empty(); }
     
+    TFullMatrix& AddCol(const TVector& Col);
+    TFullMatrix& AddCols(const TFullMatrix& Cols);
+
     // operators
-    double operator ()(const int& i, const int& j) { return At(i,j); }
+    TFlt& operator ()(const int& i, const int& j) { return At(i,j); }
+    const TFlt& operator ()(const int& i, const int& j) const { return At(i,j); }
+    // returns a submatrix specified by RowV and ColV
+    template<class TIdxV1, class TIdxV2>
+    TFullMatrix operator ()(const TIdxV1& RowV, const TIdxV2& ColV) const;
+    template<class TIdxV>
+    TVector operator ()(const int& RowIdx, const TIdxV& ColV) const;
     
+    // adds matrix B and returns itself
     TFullMatrix& operator +=(const TFullMatrix& B);
+    // subtracts matrix B and returns itself
     TFullMatrix& operator -=(const TFullMatrix& B);
     
     // add/subtract
@@ -1016,14 +1246,130 @@ public:
     
     // multiply
     TFullMatrix operator *(const TFullMatrix& B) const;
+    TFullMatrix operator *(const TSparseColMatrix& B) const;
+    // multiply the transpose of this matrix with B (e.g. A'*B)
+    TFullMatrix MulT(const TFullMatrix& B) const;
+    // multiplies this matrix with a vector
     TVector operator *(const TVector& x) const;
+    // multiplies this matrix with a vector represented as TFltV
+    // ignores the vectors orientation
     TVector operator *(const TFltV& x) const;
 
     // scalars
+    // multiplies this matrix by a scalar and returns the result
     TFullMatrix operator *(const double& Lambda) const;
-    TFullMatrix operator /(const double& Lambda) const { return operator *(1.0/Lambda); }
+    // divides this matrix by a scalar and returns the result
+    TFullMatrix operator /(const double& Lambda) const;
+
+    // returns the power of this matrix A^n where A is this matrix and n is the argument
+    TFullMatrix Pow(const int& k) const;
+    TFullMatrix operator ^(const int& k) const { return Pow(k); };
+
+    // returns the RowIdx-th row
+    TVector GetRow(const int& RowIdx) const;
+    // returns the ColIdx-th column
+    TVector GetCol(const int& ColIdx) const;
     
+    void SetRow(const int& RowIdx, const TVector& RowV);
+    void SetCol(const int& ColIdx, const TVector& ColV);
+
+    // applies an element-wise operation on this matrix and returns the matrix itself
+    template<typename TFunc> TFullMatrix& Map(const TFunc& Func);
+    // applies sqrt on all elements of this matrix
+    TFullMatrix& Sqrt() { return Map([](TFlt Val) { return sqrt(Val); }); }
+
+    // returns the L2 norm of the specified column
+    double ColNorm(const int& ColIdx) const;
+    // returns the squared L2 norm of the specified column
+    double ColNorm2(const int& ColIdx) const;
+    // returns the L2 norm of each column and returns them in a row vector
+    TVector ColNormV() const;
+    // returns the squared L2 norm of each column and returns them in a row vector
+    TVector ColNorm2V() const;
+    // returns the Frobenius norm of this matrix
+    double FromNorm() const;
+
+    // returns the norm of the i-th row
+    double RowNormL1(const int& i) const;
+    // normalizes the rows using L1 norm
+    void NormalizeRowsL1();
+
+    // returns the sum of the i-th row
+    double RowSum(const int& i) const;
+    // returns a vector containing the sum of rows
+    TVector RowSumV() const;
+
+    // returns a vector containing the minimum values of each column
+    TVector GetColMinV() const;
+
+    // returns the index of the maximum element in each column in a row vector
+    TVector GetColMaxIdxV() const;
+    // returns the index of the minimum element in each column in a row vector
+	TVector GetColMinIdxV() const;
+
+	// transforms the rows of the matrix to have mean 0
+	TFullMatrix& CenterRows();
+	// returns a matrix which has rows centered around zero (check CenterRows)
+	TFullMatrix GetCenteredRows() const;
+
+	// computes the singular value decomposition if this matrix X = U*S*V'
+	// returns a triple where U is stored in the first value, S is stored as a vector
+	// in the second value and V is stored in the third value
+	// k represents the number of singular values that are computed
+	TMatVecMatTr Svd(const int& k) const;
+	TMatVecMatTr Svd() const { return Svd(TMath::Mn(GetRows(), GetCols())); }
+
+	// returns the inverse of this matrix
+	TFullMatrix GetInverse() const;
+
+
 public:
-    void Save(TSOut& SOut) const { TMatrix::Save(SOut); Mat.Save(SOut); }
-    void Load(TSIn& SIn) { TMatrix::Load(SIn); Mat.Load(SIn); }
+    void Save(TSOut& SOut) const;
+    void Load(TSIn& SIn);
 };
+
+template <class TIdxV1, class TIdxV2>
+TFullMatrix TFullMatrix::operator ()(const TIdxV1& RowV, const TIdxV2& ColV) const {
+	const int Rows = RowV.Len();
+	const int Cols = ColV.Len();
+
+	TFullMatrix Result(Rows, Cols);
+	for (int i = 0; i < Rows; i++) {
+		for (int j = 0; j < Cols; j++) {
+			const int Idx1 = RowV[i];
+			const int Idx2 = ColV[j];
+			const TFlt Val = Mat->At(Idx1, Idx2);
+			Result.Mat->PutXY(i, j, Val);
+		}
+	}
+
+	return Result;
+}
+
+template <class TIdxV>
+TVector TFullMatrix::operator ()(const int& RowIdx, const TIdxV& ColIdxV) const {
+	EAssertR(RowIdx < GetRows(), TStr::Fmt("Invalid row index: %d", RowIdx));
+
+	const int Cols = ColIdxV.Len();
+
+	TVector Result(Cols, false);
+	for (int ColIdx = 0; ColIdx < Cols; ColIdx++) {
+		Result[ColIdx] = At(RowIdx, ColIdx);
+	}
+
+	return Result;
+}
+
+template <typename TFunc>
+TFullMatrix& TFullMatrix::Map(const TFunc& Func) {
+	const int& Rows = GetRows();
+	const int& Cols = GetCols();
+
+	for (int i = 0; i < Rows; i++) {
+		for (int j = 0; j < Cols; j++) {
+			Mat->At(i,j) = Func(Mat->At(i,j));
+		}
+	}
+
+	return *this;
+}

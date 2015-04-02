@@ -590,7 +590,7 @@ int CreateDirectory(const char *FNm, void *useless) {
 }
 
 int RemoveDirectory(const char *FNm) {
-  return unlink(FNm)==0;
+  return rmdir(FNm)==0;
 }
 
 #define TICKS_PER_SECOND 10000000

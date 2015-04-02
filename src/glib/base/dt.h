@@ -163,6 +163,9 @@ public:
   void AddBf(const void* Bf, const int& BfL);
   char* GetBf() const {return Bf;}
   TStr GetAsStr(const char& NewNullCh='\0') const;
+  // returns a hexadecimal representation of the byte array
+  TStr GetHexStr() const;
+  static TMem GetFromHex(const TStr& Str);
   PSIn GetSIn() const {
     TMOut MOut(BfL); MOut.SaveBf(Bf, BfL); return MOut.GetSIn();}
 
@@ -277,6 +280,7 @@ public:
   TChA& operator+=(const TStr& Str);
   TChA& operator+=(const char* CStr);
   TChA& operator+=(const char& Ch){
+	Assert(Ch != 0);
     if (BfL==MxBfL){Resize(BfL+1);}
     Bf[BfL]=Ch; BfL++; Bf[BfL]=0; return *this;}
   char operator[](const int& ChN) const {
@@ -992,6 +996,7 @@ public:
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
   TBool& operator=(const TBool& Bool){Val=Bool.Val; return *this;}
+  TBool& operator+=(const TBool& Bool) {Val |= Bool.Val; return *this;}
   bool operator==(const TBool& Bool) const {return Val==Bool.Val;}
   bool operator<(const TBool& Bool) const {//return Val<Bool.Val;
     return (Val==false)&&(Bool.Val==true);}
@@ -1000,6 +1005,8 @@ public:
 
   int GetPrimHashCd() const {return Val;}
   int GetSecHashCd() const {return Val;}
+
+  TStr GetStr() { return GetStr(Val); }
 
   static bool GetRnd(){return Rnd.GetUniDevInt(2)==1;}
 

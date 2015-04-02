@@ -329,6 +329,29 @@ TStr TMem::GetAsStr(const char& NewNullCh) const {
   }
 }
 
+TStr TMem::GetHexStr() const {
+	TChA ChA;	
+	for (int ChN = 0; ChN< BfL ; ChN++){
+		uchar Ch = uchar(Bf[ChN]);
+		char MshCh = TCh::GetHexCh((Ch / 16) % 16);
+		char LshCh = TCh::GetHexCh(Ch % 16);
+		ChA += MshCh; ChA += LshCh;
+	}
+	return TStr(ChA);
+}
+
+TMem TMem::GetFromHex(const TStr& Str) {
+	int StrLen = Str.Len(); IAssert(StrLen % 2 == 0);
+	TChA ChA; int ChN = 0;
+	while (ChN<StrLen){
+		char MshCh = Str.GetCh(ChN); ChN++;
+		char LshCh = Str.GetCh(ChN); ChN++;
+		uchar Ch = uchar(TCh::GetHex(MshCh) * 16 + TCh::GetHex(LshCh));		
+		ChA += Ch;
+	}
+	return TMem(ChA.CStr(), ChA.Len());
+}
+
 /////////////////////////////////////////////////
 // Input-Memory
 TMemIn::TMemIn(const TMem& _Mem, const int& _BfC):
@@ -1047,6 +1070,7 @@ TStr TStr::GetFromHex() const {
 	char MshCh = GetCh(ChN); ChN++;
 	char LshCh = GetCh(ChN); ChN++;
     uchar Ch=uchar(TCh::GetHex(MshCh)*16+TCh::GetHex(LshCh));
+	EAssertR(Ch != 0, "TStr::GetFromHex null terminator found! ");
     ChA+=Ch;
   }
   return TStr(ChA);
@@ -1802,6 +1826,7 @@ TStr TStr::GetFBase() const {
   const int ThisLen=Len(); const char* ThisBf=CStr();
   int ChN=ThisLen-1;
   while ((ChN>=0)&&(ThisBf[ChN]!='/')&&(ThisBf[ChN]!='\\')){ChN--;}
+  if (ChN + 1 > ThisLen - 1) { return TStr(); }
   return GetSubStr(ChN+1, ThisLen - 1);
 }
 
@@ -1816,8 +1841,10 @@ TStr TStr::GetFMid() const {
     if (ThisBf[ChN]=='.'){
       int EChN= --ChN;
       while ((ChN>=0)&&(ThisBf[ChN]!='/')&&(ThisBf[ChN]!='\\')){ChN--;}
+	  if (ChN + 1 > EChN) { return TStr(); }
       return GetSubStr(ChN+1, EChN);
     } else {
+		if (ChN + 1 > ThisLen - 1) { return TStr(); }
       return GetSubStr(ChN+1, ThisLen - 1);
     }
   }
@@ -1828,8 +1855,10 @@ TStr TStr::GetFExt() const {
   int ChN=ThisLen-1;
   while ((ChN>=0)&&(ThisBf[ChN]!='/')&&(ThisBf[ChN]!='\\')&&
    (ThisBf[ChN]!='.')){ChN--;}
-  if ((ChN>=0)&&(ThisBf[ChN]=='.')){return GetSubStr(ChN, Len()-1);}
-  else {return TStr();}
+  if ((ChN>=0)&&(ThisBf[ChN]=='.')){
+	  if (ChN > Len() - 1) { return TStr(); }
+	  return GetSubStr(ChN, Len()-1);
+  } else {return TStr();}
 }
 
 TStr TStr::GetNrFPath(const TStr& FPath){

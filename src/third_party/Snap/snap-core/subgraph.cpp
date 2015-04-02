@@ -79,5 +79,53 @@ PNGraph GetSubGraph(const PNGraph& Graph, const TIntV& NIdV, const bool& Renumbe
   return NewGraphPt;
 }
 
+void GetSubGraph(const PNEGraph& G, const PNGraph& Graph, const PNGraph& GraphE, TInt from, TInt to) {
+
+	for (int i = from; i <= to; i++) {
+		Graph->AddNode(i);
+	}
+
+	for (int i = from; i <= to; i++) {
+		int outdeg = G->GetNI(i).GetOutDeg();
+		for (int j = 0; j < outdeg; j++) {
+			int nid = G->GetNI(i).GetOutNId(j);
+			if (nid >= from && nid < to) {
+				Graph->AddEdge(i, nid);
+			}
+			else {
+				if (!GraphE->IsNode(i))
+					GraphE->AddNode(i);
+				if (!GraphE->IsNode(nid))
+					GraphE->AddNode(nid);
+				GraphE->AddEdge(i, nid);
+			}
+		}
+	}
+}
+
+void GetSubGraph(const PNGraph& G, const PNGraph& Graph, const PNGraph& GraphE, TInt from, TInt to) {
+
+	for (int i = from; i <= to; i++) {
+		Graph->AddNode(i);
+	}
+
+	for (int i = from; i <= to; i++) {
+		int outdeg = G->GetNI(i).GetOutDeg();
+		for (int j = 0; j < outdeg; j++) {
+			int nid = G->GetNI(i).GetOutNId(j);
+			if (nid >= from && nid < to) {
+				Graph->AddEdge(i, nid);
+			}
+			else {
+				if (!GraphE->IsNode(i))
+					GraphE->AddNode(i);
+				if (!GraphE->IsNode(nid))
+					GraphE->AddNode(nid);
+				GraphE->AddEdge(i, nid);
+			}
+		}
+	}
+
+}
 
 } // namespace TSnap

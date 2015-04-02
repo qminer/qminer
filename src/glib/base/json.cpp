@@ -373,9 +373,13 @@ void TJsonVal::GetChAFromVal(const PJsonVal& Val, TChA& ChA){
       ChA+="null"; break;
     case jvtBool:
       if (Val->GetBool()){ChA+="true";} else {ChA+="false";} break;
-    case jvtNum: 
-      ChA += TStr::Fmt("%.16g", Val->GetNum());
-      break;
+    case jvtNum:
+    	if (TFlt::IsNan(Val->GetNum())) {
+    		ChA += "null";
+    	} else {
+    		ChA += TStr::Fmt("%.16g", Val->GetNum());
+    	}
+    	break;
     case jvtStr:
       AddQChAFromStr(Val->GetStr(), ChA); break;
     case jvtArr:

@@ -157,6 +157,8 @@ public:
   TTriple(): Val1(), Val2(), Val3(){}
   TTriple(const TTriple& Triple):
     Val1(Triple.Val1), Val2(Triple.Val2), Val3(Triple.Val3){}
+  TTriple(TTriple&& Triple):
+  	Val1(std::move(Triple.Val1)), Val2(std::move(Triple.Val2)), Val3(std::move(Triple.Val3)) {}
   TTriple(const TVal1& _Val1, const TVal2& _Val2, const TVal3& _Val3):
     Val1(_Val1), Val2(_Val2), Val3(_Val3){}
   explicit TTriple(TSIn& SIn): Val1(SIn), Val2(SIn), Val3(SIn){}
@@ -169,6 +171,14 @@ public:
   TTriple& operator=(const TTriple& Triple){
     if (this!=&Triple){Val1=Triple.Val1; Val2=Triple.Val2; Val3=Triple.Val3;}
     return *this;}
+  TTriple& operator=(TTriple&& Triple) {
+	  if (this != &Triple) {
+		std::swap(Val1, Triple.Val1);
+		std::swap(Val2, Triple.Val2);
+		std::swap(Val3, Triple.Val3);
+	  }
+	  return *this;
+  }
   bool operator==(const TTriple& Triple) const {
     return (Val1==Triple.Val1)&&(Val2==Triple.Val2)&&(Val3==Triple.Val3);}
   bool operator<(const TTriple& Triple) const {
@@ -592,15 +602,15 @@ public:
   TIter GetI(const TSizeTy& ValN) const {return ValT+ValN;}
   
   /// Adds a new element at the end of the vector, after its current last element. ##TVec::Add
-  TSizeTy Add(){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  TSizeTy Add(){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
     if (Vals==MxVals){Resize();} return Vals++;}
   /// Adds a new element at the end of the vector, after its current last element. ##TVec::Add1
-  TSizeTy Add(const TVal& Val){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  TSizeTy Add(const TVal& Val){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
     if (Vals==MxVals){Resize();} ValT[Vals]=Val; return Vals++;}
-  TSizeTy Add(TVal& Val){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  TSizeTy Add(TVal& Val){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
     if (Vals==MxVals){Resize();} ValT[Vals]=Val; return Vals++;}
   /// Adds element \c Val at the end of the vector. #TVec::Add2
-  TSizeTy Add(const TVal& Val, const TSizeTy& ResizeLen){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  TSizeTy Add(const TVal& Val, const TSizeTy& ResizeLen){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
     if (Vals==MxVals){Resize(MxVals+ResizeLen);} ValT[Vals]=Val; return Vals++;}
   /// Adds the elements of the vector \c ValV to the to end of the vector.
   TSizeTy AddV(const TVec<TVal, TSizeTy>& ValV);
@@ -782,7 +792,7 @@ public:
   /// Returns reference to the first occurrence of element \c Val.
   const TVal& GetDat(const TVal& Val) const { return GetVal(SearchForw(Val));}
   /// Returns reference to the first occurrence of element \c Val. ##TVec::GetAddDat
-  TVal& GetAddDat(const TVal& Val){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  TVal& GetAddDat(const TVal& Val){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
     const TSizeTy ValN=SearchForw(Val); if (ValN==-1){Add(Val); return Last();} else {return GetVal(ValN);}}
   /// Returns the position of the largest element in the vector.
   TSizeTy GetMxValN() const;
@@ -905,7 +915,7 @@ TVec<TVal, TSizeTy>::TVec(TVec<TVal, TSizeTy>&& Vec) : MxVals(0), Vals(0), ValT(
 	//TSizeTy MxVals; //!< Vector capacity. Capacity is the size of allocated storage. If <tt>MxVals==-1</tt>, then \c ValT is not owned by the vector, and it won't free it at destruction.
 	//TSizeTy Vals;   //!< Vector length. Length is the number of elements stored in the vector.
     //TVal* ValT;     //!< Pointer to the memory where the elements of the vector are stored.
-	delete ValT;
+	delete[] ValT;
 	MxVals = std::move(Vec.MxVals);
 	Vals = std::move(Vec.Vals);
 	ValT = Vec.ValT;
@@ -944,7 +954,7 @@ TVec<TVal, TSizeTy>& TVec<TVal, TSizeTy>::operator=(const TVec<TVal, TSizeTy>& V
 template <class TVal, class TSizeTy>
 TVec<TVal, TSizeTy>& TVec<TVal, TSizeTy>::operator=(TVec<TVal, TSizeTy>&& Vec) {
 	if (this != &Vec) {
-		delete ValT;
+		delete[] ValT;
 		MxVals = std::move(Vec.MxVals);
 		Vals = std::move(Vec.Vals);		
 		ValT = Vec.ValT;
@@ -1011,14 +1021,14 @@ void TVec<TVal, TSizeTy>::Clr(const bool& DoDel, const TSizeTy& NoDelLim){
     if ((ValT!=NULL)&&(MxVals!=-1)){delete[] ValT;}
     MxVals=Vals=0; ValT=NULL;
   } else {
-    IAssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!"); 
+    IAssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!"); 
     Vals=0;
   }
 }
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Trunc(const TSizeTy& _Vals){
-  IAssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  IAssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   IAssert((_Vals==-1)||(_Vals>=0));
   if ((_Vals!=-1)&&(_Vals>=Vals)){
     return;
@@ -1042,7 +1052,7 @@ void TVec<TVal, TSizeTy>::Trunc(const TSizeTy& _Vals){
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Pack(){
-  IAssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  IAssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   if (Vals==0){
     if (ValT!=NULL){delete[] ValT;} ValT=NULL;
   } else
@@ -1076,14 +1086,14 @@ void TVec<TVal, TSizeTy>::Swap(TVec<TVal, TSizeTy>& Vec){
 
 template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::AddV(const TVec<TVal, TSizeTy>& ValV){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   for (TSizeTy ValN=0; ValN<ValV.Vals; ValN++){Add(ValV[ValN]);}
   return Len();
 }
 
 template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::AddSorted(const TVal& Val, const bool& Asc, const TSizeTy& _MxVals){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   TSizeTy ValN=Add(Val);
   if (Asc){
     while ((ValN>0)&&(ValT[ValN]<ValT[ValN-1])){
@@ -1098,7 +1108,7 @@ TSizeTy TVec<TVal, TSizeTy>::AddSorted(const TVal& Val, const bool& Asc, const T
 
 template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::AddBackSorted(const TVal& Val, const bool& Asc){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   Add();
   TSizeTy ValN=Vals-2;
   while ((ValN>=0)&&((Asc&&(Val<ValT[ValN]))||(!Asc&&(Val>ValT[ValN])))){
@@ -1110,7 +1120,7 @@ TSizeTy TVec<TVal, TSizeTy>::AddBackSorted(const TVal& Val, const bool& Asc){
 
 template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::AddMerged(const TVal& Val){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   TSizeTy ValN=SearchBin(Val);
   if (ValN==-1){return AddSorted(Val);}
   else {GetVal(ValN)=Val; return -1;}
@@ -1118,14 +1128,14 @@ TSizeTy TVec<TVal, TSizeTy>::AddMerged(const TVal& Val){
 
 template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::AddVMerged(const TVec<TVal, TSizeTy>& ValV){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   for (TSizeTy ValN=0; ValN<ValV.Vals; ValN++){AddMerged(ValV[ValN]);}
   return Len();
 }
 
 template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::AddUnique(const TVal& Val){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   TSizeTy ValN=SearchForw(Val);
   if (ValN==-1){return Add(Val);}
   else {GetVal(ValN)=Val; return -1;}
@@ -1155,7 +1165,7 @@ void TVec<TVal, TSizeTy>::GetSubValVMemCpy(const TSizeTy& _BValN, const TSizeTy&
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Ins(const TSizeTy& ValN, const TVal& Val){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   Add();  Assert((0<=ValN)&&(ValN<Vals));
   for (TSizeTy MValN=Vals-2; MValN>=ValN; MValN--){Move(MValN, MValN+1);}
   //for (TSizeTy MValN=Vals-2; MValN>=ValN; MValN--){ValT[MValN+1]=ValT[MValN];}
@@ -1164,7 +1174,7 @@ void TVec<TVal, TSizeTy>::Ins(const TSizeTy& ValN, const TVal& Val){
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Del(const TSizeTy& ValN){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   Assert((0<=ValN)&&(ValN<Vals));
   for (TSizeTy MValN=ValN+1; MValN<Vals; MValN++){Move(MValN, MValN-1);}
   //for (TSizeTy MValN=ValN+1; MValN<Vals; MValN++){ValT[MValN-1]=ValT[MValN];}
@@ -1183,7 +1193,7 @@ void TVec<TVal, TSizeTy>::DelMemCpy(const TSizeTy& ValN) {
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Del(const TSizeTy& MnValN, const TSizeTy& MxValN){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   Assert((0<=MnValN)&&(MnValN<Vals)&&(0<=MxValN)&&(MxValN<Vals));
   Assert(MnValN<=MxValN);
   for (TSizeTy ValN=MxValN+1; ValN<Vals; ValN++){
@@ -1207,7 +1217,7 @@ void TVec<TVal, TSizeTy>::DelMemCpy(const TSizeTy& MnValN, const TSizeTy& MxValN
 
 template <class TVal, class TSizeTy>
 bool TVec<TVal, TSizeTy>::DelIfIn(const TVal& Val){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   TSizeTy ValN=SearchForw(Val);
   if (ValN!=-1){Del(ValN); return true;}
   else {return false;}
@@ -1215,7 +1225,7 @@ bool TVec<TVal, TSizeTy>::DelIfIn(const TVal& Val){
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::DelAll(const TVal& Val){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   TSizeTy ValN;
   while ((ValN=SearchForw(Val))!=-1){Del(ValN);}
 }
@@ -1371,7 +1381,7 @@ void TVec<TVal, TSizeTy>::Reverse(){
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Merge(){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   TVec<TVal, TSizeTy> SortedVec(*this); SortedVec.Sort();
   Clr();
   for (TSizeTy ValN=0; ValN<SortedVec.Len(); ValN++){
@@ -1910,6 +1920,99 @@ void TVecPool<TVal, TSizeTy>::ShuffleAll(TRnd& Rnd) {
   }
 }
 
+///////////////////////////////
+// Linked queue
+template <class TVal, class TSizeTy = TUInt64>
+class TLinkedQueue {
+private:
+	class Node {
+	public:
+		Node* Next;
+		const TVal Val;
+
+		Node(Node* _Next, const TVal& _Val): Next(_Next), Val(_Val) {}
+	};
+
+private:
+	Node* First;
+	Node* Last;
+	TSizeTy Size;
+
+public:
+	TLinkedQueue();
+	TLinkedQueue(TSIn& SIn);
+
+	void Save(TSOut& SOut) const;
+
+	~TLinkedQueue();
+
+	void Push(const TVal& Val);
+	TVal Pop();
+	const TVal& Peek();
+	void DelFirst();
+
+	bool Empty() const { return Len() == 0; };
+	TSizeTy Len() const { return Size; };
+};
+
+template <class TVal, class TSizeTy>
+void TLinkedQueue<TVal, TSizeTy>::Save(TSOut& SOut) const {
+	Size.Save(SOut);
+
+	Node* Curr = First;
+	while (Curr != NULL) {
+		Curr->Val.Save(SOut);
+		Curr = Curr->Next;
+	}
+}
+
+template <class TVal, class TSizeTy>
+TLinkedQueue<TVal, TSizeTy>::~TLinkedQueue() {
+	while (!Empty()) { DelFirst(); }
+}
+
+template <class TVal, class TSizeTy>
+void TLinkedQueue<TVal, TSizeTy>::Push(const TVal& Val) {
+	TLinkedQueue<TVal, TSizeTy>::Node* Node = new TLinkedQueue<TVal, TSizeTy>::Node(NULL, Val);
+
+	if (Size++ == 0) {
+		First = Node;
+		Last = Node;
+	} else {
+		Last->Next = Node;
+		Last = Node;
+	}
+}
+
+template <class TVal, class TSizeTy>
+TVal TLinkedQueue<TVal, TSizeTy>::Pop() {
+	TVal Result = Peek();
+	DelFirst();
+	return Result;
+}
+
+template <class TVal, class TSizeTy>
+const TVal& TLinkedQueue<TVal, TSizeTy>::Peek() {
+	IAssertR(!Empty(), "Cannot peek when the queue is empty!");
+	return First->Val;
+}
+
+template <class TVal, class TSizeTy>
+void TLinkedQueue<TVal, TSizeTy>::DelFirst() {
+	IAssertR(!Empty(), "Cannot delete elements from empty buffer!");
+
+	Node* Temp = First;
+
+	if (--Size == 0) {
+		First = NULL;
+		Last = NULL;
+	} else {
+		First = First->Next;
+	}
+
+	delete Temp;
+}
+
 /////////////////////////////////////////////////
 // Below are old 32-bit implementations of TVec and other classes.
 // Old TVec takes at most 2G elements.
@@ -2285,7 +2388,7 @@ public:
 
   void CopyFrom(const TVVec<TVal, TSizeTy>& VVec);
   void AddXDim();
-  void AddYDim();
+  void AddYDim(const TSizeTy& NDims=1);
   void DelX(const TSizeTy& X);
   void DelY(const TSizeTy& Y);
 
@@ -2370,8 +2473,8 @@ void TVVec<TVal, TSizeTy>::AddXDim(){
 }
 
 template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::AddYDim(){
-  TVVec<TVal, TSizeTy> NewVVec(XDim, YDim+1);
+void TVVec<TVal, TSizeTy>::AddYDim(const TSizeTy& NDims){
+  TVVec<TVal, TSizeTy> NewVVec(XDim, YDim+NDims);
   NewVVec.CopyFrom(*this);
   *this=NewVVec;
 }
@@ -2402,6 +2505,7 @@ void TVVec<TVal, TSizeTy>::DelY(const TSizeTy& Y){
 
 template <class TVal, class TSizeTy>
 void TVVec<TVal, TSizeTy>::GetRow(const TSizeTy& RowN, TVec<TVal, TSizeTy>& Vec) const {
+	EAssert((0 <= RowN) && (RowN<TSizeTy(XDim)));
 	Vec.Gen(GetCols(), 0);
 	for (TSizeTy ColN = 0; ColN < YDim; ColN++) {
 		Vec.Add(At(RowN, ColN));
@@ -2410,12 +2514,13 @@ void TVVec<TVal, TSizeTy>::GetRow(const TSizeTy& RowN, TVec<TVal, TSizeTy>& Vec)
 
 template <class TVal, class TSizeTy>
 void TVVec<TVal, TSizeTy>::GetRowPtr(const TSizeTy& RowN, TVec<TVal, TSizeTy>& Vec) {
-	Assert((0<=RowN)&&(RowN<TSizeTy(XDim)));	
+	EAssert((0<=RowN)&&(RowN<TSizeTy(XDim)));	
 	Vec.GenExt(&ValV[RowN*YDim], YDim);	
 }
 
 template <class TVal, class TSizeTy>
 void TVVec<TVal, TSizeTy>::GetCol(const TSizeTy& ColN, TVec<TVal, TSizeTy>& Vec) const {
+	EAssert((0 <= ColN) && (ColN<TSizeTy(YDim)));
 	Vec.Gen(GetRows(), 0);
 	for (TSizeTy RowN = 0; RowN < XDim; RowN++) {
 		Vec.Add(At(RowN, ColN));
@@ -2423,7 +2528,7 @@ void TVVec<TVal, TSizeTy>::GetCol(const TSizeTy& ColN, TVec<TVal, TSizeTy>& Vec)
 }
 template <class TVal, class TSizeTy>
 void TVVec<TVal, TSizeTy>::SetRow(const TSizeTy& RowN, const TVec<TVal, TSizeTy>& Vec) {
-	Assert((0<=RowN)&&(RowN<TSizeTy(XDim))&&(Vec.Len()==TSizeTy(YDim)));
+	EAssert((0<=RowN)&&(RowN<TSizeTy(XDim))&&(Vec.Len()==TSizeTy(YDim)));
 	for (TSizeTy ColN = 0; ColN < YDim; ColN++) {
 		At(RowN, ColN) = Vec[ColN];
 	}
@@ -2431,7 +2536,7 @@ void TVVec<TVal, TSizeTy>::SetRow(const TSizeTy& RowN, const TVec<TVal, TSizeTy>
 
 template <class TVal, class TSizeTy>
 void TVVec<TVal, TSizeTy>::SetCol(const TSizeTy& ColN, const TVec<TVal, TSizeTy>& Vec) {
-	Assert((0<=ColN)&&(ColN<TSizeTy(YDim))&&(Vec.Len()==TSizeTy(XDim)));
+	EAssert((0<=ColN)&&(ColN<TSizeTy(YDim))&&(Vec.Len()==TSizeTy(XDim)));
 	for (TSizeTy RowN = 0; RowN < XDim; RowN++) {
 		At(RowN, ColN) = Vec[RowN];
 	}

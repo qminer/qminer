@@ -758,7 +758,7 @@ public:
 	/// Helper function for returning JSon definition of joins
     PJsonVal GetStoreJoinsJson(const TWPt<TBase>& Base) const;
 	/// Helper function for returning JSon definition of store
-    PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
+    virtual PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
     /// Parse out record id from record JSon serialization
     uint64 GetRecId(const PJsonVal& RecVal) const;
 	
@@ -2454,7 +2454,7 @@ public:
         LoadRouter.Register(TObj::GetType(), TObj::Load);
     }
     
-private:
+protected:
     /// QMiner Base pointer
     TWPt<TBase> Base;
 	/// Stream aggreagte name
@@ -2686,10 +2686,12 @@ private:
 	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger);
 
 public:
-	static PBase New(const TStr& FPath, const int64& IndexCacheSize) { 
-		return new TBase(FPath, IndexCacheSize); }
-	static PBase Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize) {
-		return new TBase(FPath, FAccess, IndexCacheSize); }
+	static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize) {
+		return new TBase(FPath, IndexCacheSize);
+	}
+	static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize) {
+		return new TBase(FPath, FAccess, IndexCacheSize);
+	}
 
 	// check if base already exists
 	static bool Exists(const TStr& FPath);

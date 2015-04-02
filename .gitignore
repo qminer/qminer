@@ -12,6 +12,16 @@
 *.la
 *.a
 
+# project files folder
+project
+
+# Autoconf
+config.log
+
+# NPM
+npm-debug.log
+node_modules
+
 # project files from Eclipse
 .project
 .cproject
@@ -100,3 +110,6 @@ out
 cha
 
 .DC_Store
+autom4te.cache
+autom4te.cache
+nodetempdoc

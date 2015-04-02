@@ -1032,7 +1032,8 @@ void TFile::Copy(const TStr& SrcFNm, const TStr& DstFNm,
     struct stat stat_source;
     fstat(input, &stat_source);
 
-    sendfile(output, input, 0, stat_source.st_size);
+	filesize = lseek(input, 0, SEEK_END);
+	posix_fallocate(output, 0, filesize);
 
     close(input);
     close(output);
