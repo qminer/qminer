@@ -2271,12 +2271,11 @@ void TNodeJsStore::keys(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 
 	TWPt<TQm::TIndexVoc> IndexVoc = JsStore->Store->GetBase()->GetIndexVoc();
 	TIntSet KeySet = IndexVoc->GetStoreKeys(JsStore->Store->GetStoreId());
-	v8::Local<v8::Array> KeyNmV = v8::Array::New(Isolate, KeySet.Len());
-	int KeySetId = KeySet.FFirstKeyId(), KeyN = 0;
-	while (KeySet.FNextKeyId(KeySetId)){
-		KeyNmV->Set(KeyN, TNodeJsIndexKey::New(JsStore->Store, IndexVoc->GetKey(KeyN)));
-		KeyN++;
-	}
+	TIntV Vec;  KeySet.GetKeyV(Vec);	
+	v8::Local<v8::Array> KeyNmV = v8::Array::New(Isolate, KeySet.Len()); 
+	for (int KeyN = 0; KeyN < Vec.Len(); KeyN++) {
+		KeyNmV->Set(KeyN, TNodeJsIndexKey::New(JsStore->Store, IndexVoc->GetKey(Vec[KeyN])));
+	}	
 	Info.GetReturnValue().Set(KeyNmV);
 }
 

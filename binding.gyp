@@ -16,7 +16,7 @@
                 'src/nodejs/qm/qm_param.h',
                 # la
                 'src/nodejs/la/la_nodejs.h',
-				'src/nodejs/la/la_structures_nodejs.h',
+                'src/nodejs/la/la_structures_nodejs.h',
                 'src/nodejs/la/la_structures_nodejs.cpp',
                 'src/nodejs/la/la_vector_nodejs.h',
                 # analytics
@@ -85,6 +85,9 @@
                                 'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
                                 },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
                             },
                         },
                         'Release': {
@@ -92,9 +95,12 @@
                                 'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
                                 },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
                             },
                         },
-		    }
+                    }
                 }]
             ]
         },{
@@ -140,6 +146,9 @@
                                 'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
                                 },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
                             },
                         },
                         'Release': {
@@ -147,9 +156,12 @@
                                 'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
                                 },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
                             },
                         },
-		    }
+                    }
                 }]
             ]
         }, {
@@ -187,6 +199,9 @@
                                 'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
                                 },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
                             },
                         },
                         'Release': {
@@ -194,9 +209,12 @@
                                 'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
                                 },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
                             },
                         },
-		    }
+                    }
                 }]
             ]
         }, {
@@ -235,6 +253,9 @@
                                 'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
                                 },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
                             },
                         },
                         'Release': {
@@ -242,9 +263,12 @@
                                 'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
                                 },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
                             },
                         },
-		    }
+                    }
                 }]
             ]
         }

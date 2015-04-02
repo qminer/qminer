@@ -1344,7 +1344,7 @@ void TNodeJsVec<TVal, TAux>::trunc(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	const int NewLen = Args[0]->IntegerValue();
 	JsVec->Vec.Trunc(NewLen);
 
-	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 template<typename TVal, typename TAux>

@@ -296,17 +296,15 @@ describe("Two Store Tests", function () {
             assert.equal(table.base.store("People").keys.length, 2);
             assert.equal(table.base.store("Movies").keys.length, 4);
         })
-        it.skip('should return the name of the keys for each store', function () {
+        it('should return the name of the keys for each store', function () {
             var PeopleKeys = table.base.store("People").keys;
             var MoviesKeys = table.base.store("Movies").keys;
 
             assert.equal(PeopleKeys[0].name, "Name");
             assert.equal(PeopleKeys[1].name, "Gender");
-
-            console.log(MoviesKeys);
-
+            
             assert.equal(MoviesKeys[0].name, "Title");
-            assert.equal(MoviesKeys[1].name, "Title");
+            assert.equal(MoviesKeys[1].name, "TitleTxt");
             assert.equal(MoviesKeys[2].name, "Plot");
             assert.equal(MoviesKeys[3].name, "Genres");
         })
