@@ -59,6 +59,16 @@ void TNumeric::AddFtr(const double& Val, TFltV& FullV, int& Offset) const {
     FullV[Offset] = GetFtr(Val); Offset++;
 }
 
+double TNumeric::InvFtr(const TFltV& FullV, int& Offset) const {
+	double Val = FullV[Offset++];
+
+	if (Type != ntNone && MnVal < MxVal) {
+		Val =  Val*(MxVal - MnVal) + MnVal;
+	}
+
+	return Val;
+}
+
 ///////////////////////////////////////
 // Nominal-Feature-Generator
 void TCategorical::Save(TSOut& SOut) const { 
@@ -286,9 +296,9 @@ void TBagOfWords::GenerateNgrams(const TStrV& TokenStrV, TStrV &NgramStrV) const
     	// Start with Token Position
     	// End with Token Position + NEnd - 1 because ngram parameters are 1-based indexes and vectors are 0-based indexes
        const TSize NgramEnd = MIN(TotalStrLen - 1, TokenStrN + NEnd - 1) + 1;
-        for(TSize NgramPos = TokenStrN + (NStart - 1); NgramPos < NgramEnd; NgramPos++) {
+        for (TSize NgramPos = TokenStrN + (NStart - 1); NgramPos < NgramEnd; NgramPos++) {
             TChA NgramChA = TokenStrV[TokenStrN];
-            for (int NgramTokenN = TokenStrN + 1; NgramTokenN <= NgramPos; NgramTokenN++) {
+            for (TSize NgramTokenN = TokenStrN + 1; NgramTokenN <= NgramPos; NgramTokenN++) {
                 NgramChA += " "; NgramChA += TokenStrV[NgramTokenN];
             }
 //            TokenStrV.GetSubValV(TokenStrN, NgramPos, Slice);

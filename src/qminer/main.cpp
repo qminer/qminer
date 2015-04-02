@@ -343,6 +343,8 @@ int main(int argc, char* argv[]) {
 	_setmaxstdio(2048);
 #endif
 
+    // start stopwatch to keep track of runtime
+    TTmStopWatch RunTmSw(true);    
 	try {
 		// initialize QMiner environment
 		TQm::TEnv::Init();
@@ -376,6 +378,7 @@ int main(int argc, char* argv[]) {
 		// read config-specific parameters
 		if (!Env.IsSilent()) { printf("\nConfiguration parameters:\n"); }
 		const int PortN = Env.GetIfArgPrefixInt("-port=", 8080, "Port number");
+		const bool ShowHttp = Env.GetIfArgPrefixBool("-disphttp:", true, "Show HTTP");
 		const int CacheSizeMB = Env.GetIfArgPrefixInt("-cache=", 1024, "Cache size");
 		const bool OverwriteP = Env.IsArgStr("-overwrite", "Overwrite existing configuration file");
 		// read create-specific parameters
@@ -514,7 +517,7 @@ int main(int argc, char* argv[]) {
 					}
 #endif
 					// start server
-					PWebSrv WebSrv = TSAppSrv::New(Param.PortN, SrvFunV, TQm::TEnv::Logger, true, true);
+					PWebSrv WebSrv = TSAppSrv::New(Param.PortN, SrvFunV, TQm::TEnv::Logger, ShowHttp, true);
 					// report we started
 					TQm::TEnv::Logger->OnStatusFmt("Server started on port %d", Param.PortN);
 					// wait for the end
@@ -707,7 +710,7 @@ int main(int argc, char* argv[]) {
                         Base->PrintIndexVoc(DebugFNm + "indexvoc.txt");
                     } else if (Task == "stores") {
                         Base->PrintStores(DebugFNm + "stores.txt");
-                    } else if (Task.IsSuffix("_ALL")) {
+                    } else if (Task.StartsWith("_ALL")) {
                         TStr StoreNm = Task.LeftOfLast('_');
                         Base->GetStoreByStoreNm(StoreNm)->PrintAll(Base, DebugFNm + Task + ".txt");
                     } else if (Base->IsStoreNm(Task)) {
@@ -729,5 +732,8 @@ int main(int argc, char* argv[]) {
 		TQm::ErrorLog("Unknown error");
 		return 1;
 	}
+    // report on runtime
+    RunTmSw.DispTime("Total execution time");
+    // done
 	return TQm::TEnv::ReturnCode.Val;
 }

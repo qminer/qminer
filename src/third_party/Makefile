@@ -3,9 +3,9 @@
 #
 
 all:
-	make -C libuv
-	./v8-checkout.sh
+	make -C libuv	
+
 
 clean:
 	make -C libuv clean
-	rm -rf ./v8/
+
