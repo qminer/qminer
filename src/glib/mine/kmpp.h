@@ -101,7 +101,7 @@ public:
 	}
 	static const PBowSpV& GetDoc(const TBowMatrix *DocVV, int DocId) {
 		return DocVV->ColSpVV[DocId];
-	}	
+	}
 };
 
 template class TKMeans<TIntFltKdV, TLinAlg, TSparseColMatrix>;
@@ -339,7 +339,6 @@ template<class V, class LA, class M>
 void TKMeans<V, LA, M>::MakeCentroids(TVec<TIntV> & ClusterDocs,
 		TIntV & CentroidSize) {
 	// sum centroids
-#pragma omp parallel for
 	for (int CId = 0; CId < k; CId++) {
 		const TIntV & DocIdV = ClusterDocs[CId];
 		TFltV & Cen = Centroid(CId);
@@ -375,25 +374,11 @@ void TKMeans<V, LA, M>::Apply() {
 	for (int Iter = 0; (Iter < maxItr) && !stable; Iter++) {
 		stable = true;
 		// calculate
-#pragma omp parallel for
 		for (int CId = 0; CId < k; CId++) {
 			DocVV->MultiplyT(GetCentroid(CId), DCSim[CId]);
 		}
-		//DocVV.MultiplyT()
-		/*#pragma omp parallel for
-		 for (int d = 0; d < GetDocs(); d++) {
-		 const TIntFltKdV& Doc = GetDoc(d);
-		 for (int c = 0; c < k; c++) {
-		 const TFltV& Cluster = GetCentroid(c);
-		 double Sim = TLinAlg::DotProduct(Cluster, Doc);
-		 //printf("%2.4f\t", Sim);
-		 DCSims(d,c) = Sim;
-		 }
-		 //printf("\n");
-		 }*/
-
+		
 		// reassign
-#pragma omp parallel for
 		for (int DId = 0; DId < GetDocs(); DId++) {
 			double BestSim = 0.0;
 			int BestClust = 0;
