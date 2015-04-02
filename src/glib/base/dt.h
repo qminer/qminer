@@ -1256,6 +1256,8 @@ public:
   TUInt& operator--(){--Val; return *this;} // prefix
   TUInt operator++(int){TUInt oldVal = Val; Val++; return oldVal;} // postfix
   TUInt operator--(int){TUInt oldVal = Val; Val--; return oldVal;} // postfix
+  TUInt& operator+=(const uint& Int){ Val += Int; return *this; }
+  TUInt& operator-=(const uint& Int){ Val -= Int; return *this; }
   //bool operator==(const TUInt& UInt) const {return Val==UInt.Val;}
   //bool operator==(const uint& UInt) const {return Val==UInt;}
   //bool operator!=(const uint& UInt) const {return Val!=UInt;}
