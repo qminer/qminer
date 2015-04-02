@@ -380,6 +380,10 @@ typedef enum {roUndef, roLs, roLEq, roEq, roNEq, roGEq, roGt} TRelOp;
   #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #endif
 
+#ifndef MINMAX
+  #define MINMAX(min, max, val) MIN(max, MAX(min, val))
+#endif
+
 /////////////////////////////////////////////////
 // Comparator-Definitions
 template<class T>
