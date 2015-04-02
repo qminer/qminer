@@ -78,6 +78,7 @@
 // includes
 #if defined (GLib_WIN)
   #define WIN32_LEAN_AND_MEAN
+  #define NOMINMAX
   #include <windows.h>
   #include <oleauto.h>
   #include <shellapi.h>
