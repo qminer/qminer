@@ -175,7 +175,7 @@ void TFullColMatrix::PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const
 }
 
 void TFullColMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {
-    Assert(Vec.Len() >= RowN && Result.Len() >= ColN);
+    //Assert(Vec.Len() >= RowN && Result.Len() >= ColN);
     for (int i = 0; i < ColN; i++) {
         Result[i] = TLinAlg::DotProduct(Vec, ColV[i]);
     }
@@ -190,7 +190,7 @@ void TFullColMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const 
 }
 
 void TFullColMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {
-    Assert(Vec.Len() >= ColN && Result.Len() >= RowN);
+    //Assert(Vec.Len() >= ColN && Result.Len() >= RowN);
     for (int i = 0; i < RowN; i++) { Result[i] = 0.0; }
     for (int i = 0; i < ColN; i++) {
         TLinAlg::AddVec(Vec[i], ColV[i], Result, Result);
@@ -2072,6 +2072,72 @@ void TNumericalStuff::SolveLinearSystem(TFltVV& A, const TFltV& b, TFltV& x) {
     LUDecomposition(A, indx, d);
     x = b;
     LUSolve(A, indx, x);
+}
+
+void TNumericalStuff::LeastSquares(const TFltVV& A, const TFltV& b, const double& Gamma, TFltV& x) {
+	if (A.GetRows() < A.GetCols()) {
+		TNumericalStuff::PrimalLeastSquares(A, b, Gamma, x);
+	}
+	else {
+		TNumericalStuff::DualLeastSquares(A, b, Gamma, x);
+	}
+}
+
+void TNumericalStuff::PrimalLeastSquares(const TFltVV& A, const TFltV& b, const double& Gamma, TFltV& x) {
+	EAssertR(A.GetCols() == b.Len(), "TNumericalStuff::LeastSquares: number of columns (examples) does not match the number of targets (length of b)");
+	if (x.Empty()) {
+		x.Gen(A.GetRows());
+	}
+	else {
+		EAssertR(x.Len() == A.GetRows(), "TNumericalStuff::LeastSquares: solution dimension does not match the number of rows of A (features)");
+	}
+	// x = (A * A' + Gamma^2 * I)^{-1} A * b
+	int Feats = A.GetRows();
+	int N = A.GetCols();
+	// A'
+	TFltVV At = TFltVV(A.GetCols(), A.GetRows());
+	TLinAlg::Transpose(A, At);
+	// A * A'
+	TFltVV B = TFltVV(Feats, Feats);
+	TLinAlg::Multiply(A, At, B);
+	// I
+	TFltVV I = TFltVV(Feats, Feats);
+	TFltV Ones = TFltV(Feats); Ones.PutAll(1.0);
+	TLAMisc::Diag(Ones, I);
+	// B = A * A' + Gamma^2 * I
+	TLinAlg::LinComb(1.0, B, Gamma*Gamma, I, B);
+	// Ab = A * b
+	TFltV Ab = TFltV(Feats);
+	TLinAlg::Multiply(A, b, Ab);
+	TNumericalStuff::SolveLinearSystem(B, Ab, x);
+}
+
+void TNumericalStuff::DualLeastSquares(const TFltVV& A, const TFltV& b, const double& Gamma, TFltV& x) {
+	EAssertR(A.GetCols() == b.Len(), "TNumericalStuff::LeastSquares: number of columns (examples) does not match the number of targets (length of b)");
+	if (x.Empty()) {
+		x.Gen(A.GetRows());
+	}
+	else {
+		EAssertR(x.Len() == A.GetRows(), "TNumericalStuff::DualLeastSquares: solution dimension does not match the number of rows of A (features)");
+	}
+
+	// x = A (A' * A + Gamma^2 * I)^{-1} * b
+	int Feats = A.GetRows();
+	int N = A.GetCols();
+	// B = A' * A
+	TFltVV B = TFltVV(N, N);
+	TLinAlg::MultiplyT(A, A, B);
+	// I
+	TFltVV I = TFltVV(N, N);
+	TFltV Ones = TFltV(N); Ones.PutAll(1.0);
+	TLAMisc::Diag(Ones, I);
+	// B = A' * A + Gamma^2 * I
+	TLinAlg::LinComb(1.0, B, Gamma*Gamma, I, B);
+	// B^{-1}b
+	TFltV InvBb = TFltV(N);
+	TNumericalStuff::SolveLinearSystem(B, b, InvBb);
+	// x = A * InvB
+	TLinAlg::Multiply(A, InvBb, x);
 }
 
 ///////////////////////////////////////////////////////////////////////

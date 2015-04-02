@@ -635,6 +635,31 @@ public:
     // zero elements, so it is efficient for use in matrix inversion.
     static void LUSolve(const TFltVV& A, const TIntV& indx, TFltV& b);
 
+	// Finds x[1...f] that minimizes ||A' x - y||^2 + ||Gamma x||^2, where A[1...f][1...n]
+	// is  a matrix with column training examples (rows = features) and y[1...n] is a
+	// vector of targets. 
+	// Solves the primal problem if the number of features is lower than the number of examples,
+	// or the dual problem in the other case.
+	//Paramter Gamma controls overfitting (large values force models to be simpler)
+	// See http://en.wikipedia.org/wiki/Tikhonov_regularization, where the regularization matrix = Gamma*I
+	static void LeastSquares(const TFltVV& A, const TFltV& b, const double& kappa, TFltV& x);
+
+	// Finds x[1...f] that minimizes ||A' x - y||^2 + ||Gamma x||^2, where A[1...f][1...n]
+	// is  a matrix with column training examples (rows = features) and y[1...n] is a
+	// vector of targets. Paramter Gamma controls overfitting (large values force models to be simpler)
+	// See http://en.wikipedia.org/wiki/Tikhonov_regularization, where the regularization matrix = Gamma*I
+	static void PrimalLeastSquares(const TFltVV& A, const TFltV& b, const double& kappa, TFltV& x);
+	
+	// Finds x[1...f] that minimizes ||A' x - y||^2 + ||Gamma x||^2, where A[1...f][1...n]
+	// is  a matrix with column training examples (rows = features) and y[1...n] is a
+	// vector of targets. Solves the dual version of the problem and exresses it in the
+	// original coordinates in the end - suitable for cases, where the number of examples
+	// is larger than the number of features.
+	// Paramter Gamma controls overfitting (large values force models to be simpler)
+	// See http://en.wikipedia.org/wiki/Tikhonov_regularization, where the regularization matrix = Gamma*I
+	static void DualLeastSquares(const TFltVV& A, const TFltV& b, const double& kappa, TFltV& x);
+
+
     // Solves system of linear equations A * x = b. A is first decomposed using
     // LUDecomposition and after solved using LUSolve. A is modified!
     static void SolveLinearSystem(TFltVV& A, const TFltV& b, TFltV& x);
