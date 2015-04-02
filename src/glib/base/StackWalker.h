@@ -1,3 +1,5 @@
+#ifndef STACKWALKER_H
+#define STACKWALKER_H
 /**********************************************************************
  * 
  * StackWalker.h
@@ -187,4 +189,6 @@ protected:
     c.ContextFlags = contextFlags; \
     RtlCaptureContext(&c); \
 } while(0);
+#endif
+
 #endif
