@@ -441,6 +441,37 @@ describe("AddTrigger Tests", function () {
             assert.equal(PeopleAdd, 60);
             assert.equal(PeopleUpdate, 0);
         })
-    })
+
+        it('should add the addTrigger for movies', function () {
+            var MoviesAdd = 0; var MoviesUpdate = 0;
+            table.base.store("Movies").addTrigger({
+                onAdd: function (movie) {
+                    assert(null != movie, "onAdd: movie");
+                    assert(null != movie.Title, "onAdd: movie.Title");
+                    assert(null != movie.Plot, "onAdd: movie.Plot");
+                    assert(null != movie.Year, "onAdd: movie.Year");
+                    assert(null != movie.Rating, "onAdd: movie.Rating");
+                    assert(null != movie.Genres, "onAdd: movie.Genres");
+                    MoviesAdd = MoviesAdd + 1;
+                },
+                onUpdate: function (movie) {
+                    assert(null != movie, "onAdd: movie");
+                    assert(null != movie.Title, "onAdd: movie.Title");
+                    assert(null != movie.Plot, "onAdd: movie.Plot");
+                    assert(null != movie.Year, "onAdd: movie.Year");
+                    assert(null != movie.Rating, "onAdd: movie.Rating");
+                    assert(null != movie.Genres, "onAdd: movie.Genres");
+                    MoviesUpdate = MoviesUpdate + 1;
+                }
+            });
+
+            // adding the people from movies
+            table.addMovie(table.movie);
+            table.addMovie(table.movie2);
+
+            assert.equal(MoviesAdd, 2);
+            assert.equal(MoviesUpdate, 0);
+        })
+    });
 
 })
