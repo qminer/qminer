@@ -13,7 +13,7 @@
 */
 /**
 * Matrix
-* @classdesc Represents a dense matrix (2d array).
+* @classdesc Represents a dense matrix (2d array), wraps a C++ object implemented in glib/base/ds.h.
 * @class
 * @param {(module:la~matrixArg | Array<Array<number>> | module:la.Matrix)} [arg] - Constructor arguments. There are three ways of constructing:
 * <br>1. Parameter object {@link module:la~matrixArg}.
@@ -32,7 +32,7 @@
 	* @param {number} colIdx - Column index (zero based).
 	* @returns {number} Matrix element.
 	*/
- exports.Matrix.prototype.at = function(rowIdx, colIdx) {}
+ exports.Matrix.prototype.at = function(rowIdx, colIdx) { return 0.0; }
 /**
 	* Sets an element or a block of matrix.
 	* @param {number} rowIdx - Row index (zero based). 

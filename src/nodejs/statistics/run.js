@@ -1,5 +1,5 @@
-var la = require('../../../index.js').la;
-var stat = require('../../../index.js').stat;
+var la = require('qminer').la;
+var stat = require('qminer').statistics;
 
 /////////////////////////
 // Return a new vector or a new matrix 

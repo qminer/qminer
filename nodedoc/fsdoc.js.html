@@ -53,19 +53,19 @@
 	* @param {string} fileName - File name.
 	* @returns {module:fs.FOut} Output stream.
 	*/
- exports.openWrite = function(fileName) {}
+ exports.openWrite = function(fileName) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
 	* open file in append mode and return file output stream
 	* @param {string} fileName - File name.
 	* @returns {module:fs.FOut} Output stream.
 	*/
- exports.openAppend = function(fileName) {}	
+ exports.openAppend = function(fileName) { return Object.create(require('qminer').fs.FOut.prototype); }	
 /**
 	* checks if the file exists
 	* @param {string} fileName - File name.
 	* @returns {boolean} True if file exists.
 	*/
- exports.exists = function(fileName) {}	
+ exports.exists = function(fileName) { return false; }	
 /**
 	* copies a file
 	* @param {string} source - Source file name.
@@ -83,7 +83,7 @@
 	* @param {string} fileName - File name.
 	* @returns {boolean} True if delete succeeded.
 	*/
- exports.del = function(fileName) {}	
+ exports.del = function(fileName) { return false; }	
 /**
 	* renames a file
 	* @param {string} source - Source file name.
@@ -103,27 +103,27 @@
 	* @param {string} fileName - File name.
 	* @returns {module:fs~FileInfo} File info object.
 	*/
- exports.fileInfo = function(fileName) {}	
+ exports.fileInfo = function(fileName) { return { createTime : "",  lastAccessTime: "", lastWriteTime: "", size: 0 }}	
 /**
 	* Creates a folder
 	* @param {string} dirName - Folder name.
 	* @returns {boolean} True if succeeded.
 	*/
- exports.mkdir = function(dirName) {}	
+ exports.mkdir = function(dirName) { return false; }	
 /**
 	* Removes a folder
 	* @param {string} dirName - Folder name.
 	* @returns {boolean} True if succeeded.
 	*/
- exports.rmdir = function(dirName) {}
+ exports.rmdir = function(dirName) { return false; }
 /**
 	* Returns a list fo files in the folder
 	* @param {string} dirName - Folder name.
 	* @param {string} [fileExtension] - Results are filtered by file extension.
 	* @param {boolean} [recursive=false] - Recursively searches for file names if true.
-	* @returns {string[]} True if succeeded.
+	* @returns {string[]} Array of file names.
 	*/
- exports.listFile = function(dirName, fileExtension, recursive) {}
+ exports.listFile = function(dirName, fileExtension, recursive) { return ['']; }
 /**
 	* Input file stream.
 	* @classdesc Used for reading files.
@@ -142,30 +142,30 @@
 	* Peeks a character
 	* @returns {string} Character string.
 	*/
- exports.FIn.prototype.peekCh= function() {}
+ exports.FIn.prototype.peekCh= function() { return ''; }
 /**
 	* Reads a character
 	* @returns {string} Character string.
 	*/
- exports.FIn.prototype.getCh= function() {}
+ exports.FIn.prototype.getCh= function() { return ''; }
 /**
 	* Reads a line	
 	* @returns {string} Line string.
 	*/
- exports.FIn.prototype.readLine = function() {}
+ exports.FIn.prototype.readLine = function() { return ''; }
 /**
 	* @property {boolean} eof - True if end of file is detected.
 	*/
- exports.FIn.prototype.eof = undefined;
+ exports.FIn.prototype.eof = false;
 /**
 	* @property {number} length - Length of input stream.
 	*/
- exports.FIn.prototype.length = undefined;
+ exports.FIn.prototype.length = 0;
 /**
 	* Reads the whole stream
 	* @returns {string} Content of the file.
 	*/
- exports.FIn.prototype.readAll = function() {}
+ exports.FIn.prototype.readAll = function() { return ''; }
 /**
 	* Output file stream.
 	* @classdesc Used for writing files.
@@ -188,18 +188,18 @@
 	* @param {String} str - String to write
 	* @returns {module:fs.FOut} Self.
 	*/
- exports.FOut.prototype.write = function(str) {}
+ exports.FOut.prototype.write = function(str) { return this; }
 /**
 	* Writes a string and adds a new line
 	* @param {String} str - String to write
 	* @returns {module:fs.FOut} Self.
 	*/
- exports.FOut.prototype.writeLine = function(str) {}
+ exports.FOut.prototype.writeLine = function(str) { return this; }
 /**
 	* Flushes the output stream
 	* @returns {module:fs.FOut} Self.
 	*/
- exports.FOut.prototype.flush = function() {}
+ exports.FOut.prototype.flush = function() { return this; }
 /**
 	* Closes the output stream
 	*/
@@ -214,13 +214,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="datasets%2520includes%2520some%2520standard%2520toy%2520datasets.%2520In%2520addition,%2520this%2520module%2520also%2520includes%2520various%250Drandom%2520sample%2520generators%2520that%2520can%2520be%2520used%2520to%2520build%2520artificial%2520datasets%2520of%2520controlled%2520size%2520and%2520complexity.module_.html">datasets includes some standard toy datasets. In addition, this module also includes variousrandom sample generators that can be used to build artificial datasets of controlled size and complexity.</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li><li><a href="module-qm.html">qm</a></li><li><a href="module-stat.html">stat</a></li></ul><h3>Classes</h3><ul><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.BoolVector.html">BoolVector</a></li><li><a href="module-la.IntVector.html">IntVector</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li><li><a href="module-la.StrVector.html">StrVector</a></li><li><a href="module-la.Vector.html">Vector</a></li><li><a href="module-qm.Base.html">Base</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-datasets.html">datasets</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li><li><a href="module-qm.html">qm</a></li><li><a href="module-statistics.html">statistics</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.BoolVector.html">BoolVector</a></li><li><a href="module-la.IntVector.html">IntVector</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li><li><a href="module-la.StrVector.html">StrVector</a></li><li><a href="module-la.Vector.html">Vector</a></li><li><a href="module-qm.Base.html">Base</a></li><li><a href="module-qm.Store.html">Store</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Thu Apr 02 2015 00:21:32 GMT+0200 (Central Europe Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Thu Apr 02 2015 12:33:41 GMT+0200 (Central Europe Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

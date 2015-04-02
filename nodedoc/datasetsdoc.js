@@ -1,10 +1,4 @@
-module.exports = exports = function (pathPrefix) {
-    pathPrefix = pathPrefix || '';
 
-    // Import additional modules
-    var qm = require('bindings')(pathPrefix + '/qm.node'); // This loads only c++ functions of qm
-
-    //!STARTJSDOC
     /**
     * Datasets module includes some standard toy datasets. In addition, this module also includes various
     * random sample generators that can be used to build artificial datasets of controlled size and complexity.
@@ -99,7 +93,4 @@ module.exports = exports = function (pathPrefix) {
         return ("Module includes functions to load and make datasets.");
     }
 
-    //!ENDJSDOC
     
-    return exports;
-}

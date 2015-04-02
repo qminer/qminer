@@ -1,5 +1,5 @@
 console.log(__filename)
-var qm = require('../../');
+var qm = require('qminer');
 var fs = qm.fs;
 var assert = require('assert');
 var analytics = qm.analytics;

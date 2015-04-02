@@ -12,6 +12,10 @@ Example without using templates and without using additional JS implementations:
 ```
 node makedoc.js src/nodejs/fs/fs_nodejs.h "" nodedoc/fsdoc.js
 ```
+Example without using templates and using only JS implementations:
+```
+node makedoc.js "" src/nodejs/datasets/datasets.js nodedoc/datasetsdoc.js
+```
 Example with a templated header (src/nodejs/ht/ht_nodejs.h), custom head for doc output (./src/nodejs/ht/htDocHead.js) and several template view parameters (StrStrDpcData.js, ...):
 ```
 node makedoc.js src/nodejs/ht/ht_nodejs.h src/nodejs/scripts/ht.js nodedoc/htdoc.js ./src/nodejs/ht/htDocHead.js ./src/nodejs/ht/StrStrDocData.js ./src/nodejs/ht/StrIntDocData.js ./src/nodejs/ht/StrFltDocData.js ./src/nodejs/ht/IntStrDocData.js ./src/nodejs/ht/IntIntDocData.js ./src/nodejs/ht/IntFltDocData.js
@@ -22,6 +26,4 @@ Install jsdoc:
 npm install jsdoc -g
 ```
 
-jsdoc nodedoc/htdoc.js nodedoc/fsdoc.js -d nodedoc
-
-jsdoc nodedoc/htdoc.js nodedoc/statdoc.js nodedoc/fsdoc.js node doc/ladoc.js nodedoc/qminerdoc.js nodedoc/analyticsdoc.js -d nodedoc
+jsdoc nodedoc/htdoc.js nodedoc/statdoc.js nodedoc/fsdoc.js nodedoc/ladoc.js nodedoc/qminerdoc.js nodedoc/analyticsdoc.js nodedoc/datasetsdoc.js -d nodedoc

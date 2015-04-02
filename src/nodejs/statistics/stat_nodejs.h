@@ -13,7 +13,7 @@
 
 /**
 * Statistics module.
-* @module stat
+* @module statistics
 * @example
 * // TODO
 */
@@ -34,7 +34,7 @@ public:
 	* <br>1. Number, if input parameters is {@link module:la.Vector}.
     * <br>2. {@link module:la.Vector}, if parameter is {@link module:la.Matrix}.
 	*/
-	//# exports.mean = function(vec) {}
+	//# exports.mean = function (input) { return input instanceof Object.create(require('qminer').la.Vector) ? 0.0 : Object.create(require('qminer').la.Vector); }
 	JsDeclareFunction(mean);
 	
 	// - `vec = la.std(mat)` - returns `vec` containing the standard deviation of each column from matrix `mat`.
@@ -50,7 +50,7 @@ public:
 	* <br>1. Number, if input parameters is {@link module:la.Vector}.
     * <br>2. {@link module:la.Vector}, if parameter is {@link module:la.Matrix}.
 	*/
-	//# exports.std = function(mat, flag, dim) {}
+	//# exports.std = function (input, flag, dim) { return input instanceof Object.create(require('qminer').la.Vector) ? 0.0 : Object.create(require('qminer').la.Vector); }
 	JsDeclareFunction(std);
 
 	// # - `zscoreResult = la.zscore(mat)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`.
@@ -67,7 +67,7 @@ public:
 	* <br>zscoreResult.mu - Mean of input used to compute the z-scores.
 	* <br>zscoreResult.Z - A vector of z-scores has mean 0 and variance 1.
 	*/
-	//# exports.zscoreResult = function(mat, flag, dim) {}
+	//# exports.zscoreResult = function (mat, flag, dim) { return {sigma:'', mu:'', Z:''}; }
 	JsDeclareFunction(zscore);
 private:
    // 

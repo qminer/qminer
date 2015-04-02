@@ -1,4 +1,4 @@
-var qm = require('../../../index.js');
+var qm = require('qminer');
 var datasets = qm.datasets;
 
 qm.delLock();
