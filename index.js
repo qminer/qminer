@@ -6,3 +6,4 @@ exports.ht = require('./src/nodejs/scripts/ht.js')(); // includes additional JS 
 exports.la = require('./src/nodejs/scripts/la.js')(); // includes additional JS implementations
 exports.snap = require('./src/nodejs/scripts/snap.js')(); // includes additional JS implementations
 exports.statistics = require('bindings')('qm.node').statistics; // pure native addon
+exports.datasets = require('./src/nodejs/datasets/datasets.js')(); // includes additional JS implementations

@@ -1,14 +1,16 @@
-var la = require('../../../build/Release/la.node');
-var fs = require('../../../build/Release/fs.node');
+//var la = require('../../../build/Release/la.node');
+//var fs = require('../../../build/Release/fs.node');
+var la = require('../../../index.js').la;
+var fs = require('../../../index.js').fs;
 
 ///////////////////////////
 // Return a new vector or a new matrix 
-la.newVector = function(args) { return la.newVec(args); }
-la.newIntVector = function(args) { return la.newIntVec(args); }
-la.newStrVector = function(args) { return la.newStrVec(args); }
-la.newMatrix = function(args) { return la.newMat(args); }
-la.newSparseVector = function(args) { return la.newSpVec(args); }
-la.newSparseMatrix = function(args) { return la.newSpMat(agrs); }
+la.newVector = function(args) { return new la.Vector(args); }
+la.newIntVector = function(args) { return new la.IntVector(args); }
+la.newStrVector = function(args) { return new la.StrVector(args); }
+la.newMatrix = function(args) { return new la.Matrix(args); }
+la.newSparseVector = function(args) { return new la.SparseVector(args); }
+la.newSparseMatrix = function(args) { return new la.SparseMatrix(agrs); }
 
 var vec = la.newVector([1, 2, 3, 4, 5]);
 var v2 = la.newVector(vec);
@@ -147,7 +149,7 @@ console.log(M12.toString());
 var fout = fs.openWrite("test-mat.bin");
 M12.save(fout);
 fout.close();
-var M12_x = new la.matrix();
+var M12_x = new la.Matrix();
 M12_x.load(fs.openRead("test-mat.bin"));
 console.log(M12_x.toString());
 console.log(" ==== ");
@@ -173,13 +175,13 @@ spMatrix.print();
 
 console.log("x2.toMat().toString() = [" + x2.toMat().toString() + "]");
 
-var v = la.newVec([1,2,3,4,5]);
+var v = la.newVector([1,2,3,4,5]);
 console.log("v: " + v.toString());
 
 var fout = fs.openWrite("test-vec.bin");
 v.save(fout);
 fout.close();
-var u = la.newVec();
+var u = la.newVector();
 u.load(fs.openRead("test-vec.bin"));
 console.log("u: " + u.toString());
 fs.del("test-vec.bin");

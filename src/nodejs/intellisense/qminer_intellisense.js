@@ -5,6 +5,8 @@ exports.la = require('qminer_la');
 exports.fs = require('qminer_fs');
 exports.analytics = require('qminer_analytics');
 exports.ht= require('qminer_ht');
+exports.statistics= require('qminer_stat');
+exports.datasets= require('qminer_datasets');
 //intellisense end
 /**
 * Qminer module.
