@@ -37,58 +37,60 @@ exports = {}; require.modules.qminer_ht = exports;
 	* @param {string} key - Hashmap key.
 	* @returns {string} Hashmap data.
 	*/
- exports.StrStrMap.prototype.get = function(key) {}
+ exports.StrStrMap.prototype.get = function(key) { return ; }
 /**
 	* add/update key-value pair
 	* @param {string} key - Hashmap key.
 	* @param {string} data - Hashmap data.
 	* @returns {module:ht.StrStrMap} Self.
 	*/
- exports.StrStrMap.prototype.put = function(key, data) {}
+ exports.StrStrMap.prototype.put = function(key, data) { return this; }
 /**
 	* returns true if the map has a given key 
 	* @param {string} key - Hashmap key.	
 	* @returns {boolean} True if the map contains key.
 	*/
- exports.StrStrMap.prototype.hasKey = function(key) {}
+ exports.StrStrMap.prototype.hasKey = function(key) { return false; }
 /**
     * @property {number} length - Number of key/dat pairs
 	*/
- exports.StrStrMap.prototype.length = undefined;
+ exports.StrStrMap.prototype.length = 0;
 /**
 	* returns n-th key
 	* @param {number} n - Hashmap key number. Should be between 0 and length-1.	
 	* @returns {string} n-th key.
 	*/
- exports.StrStrMap.prototype.key = function(n) {}	
+ exports.StrStrMap.prototype.key = function(n) { return ; }	
 /**
 	* returns n-th dat
 	* @param {number} n - Hashmap dat number. Should be between 0 and length-1
 	* @returns {string} n-th data value.
 	*/
- exports.StrStrMap.prototype.dat = function(n) {}
+ exports.StrStrMap.prototype.dat = function(n) { return ; }
 /**
 	* loads the hashtable from input stream
 	* @param {module:fs.FIn} fin - Input stream.	
 	* @returns {module:ht.StrStrMap} Self.
 	*/
- exports.StrStrMap.prototype.load = function(fin) {}
+ exports.StrStrMap.prototype.load = function(fin) { return this; }
 /**
 	* saves the hashtable to output stream
 	* @param {module:fs.FOut} fout - Output stream.	
 	* @returns {module:fs.FOut} fout.
 	*/
- exports.StrStrMap.prototype.save = function(fout) {}
+ exports.StrStrMap.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
 	* sorts by keys
 	* @param {boolean} [asc=true] - Sort in ascending order?
+	* @returns {module:ht.StrStrMap} Self.
 	*/
- exports.StrStrMap.prototype.sortKey = function(asc) {}
+ exports.StrStrMap.prototype.sortKey = function(asc) { return this; }
 /**
 	* sorts by values
-	* @param {boolean} [asc=true] - Sort in ascending order?	
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	* @returns {module:ht.StrStrMap} Self.
 	*/
- exports.StrStrMap.prototype.sortDat = function(asc) {}
+ exports.StrStrMap.prototype.sortDat = function(asc) { return this; }
 
 /**
 	* String-Integer hashmap 
@@ -121,58 +123,60 @@ exports = {}; require.modules.qminer_ht = exports;
 	* @param {string} key - Hashmap key.
 	* @returns {number} Hashmap data.
 	*/
- exports.StrIntMap.prototype.get = function(key) {}
+ exports.StrIntMap.prototype.get = function(key) { return 0; }
 /**
 	* add/update key-value pair
 	* @param {string} key - Hashmap key.
 	* @param {number} data - Hashmap data.
 	* @returns {module:ht.StrIntMap} Self.
 	*/
- exports.StrIntMap.prototype.put = function(key, data) {}
+ exports.StrIntMap.prototype.put = function(key, data) { return this; }
 /**
 	* returns true if the map has a given key 
 	* @param {string} key - Hashmap key.	
 	* @returns {boolean} True if the map contains key.
 	*/
- exports.StrIntMap.prototype.hasKey = function(key) {}
+ exports.StrIntMap.prototype.hasKey = function(key) { return false; }
 /**
     * @property {number} length - Number of key/dat pairs
 	*/
- exports.StrIntMap.prototype.length = undefined;
+ exports.StrIntMap.prototype.length = 0;
 /**
 	* returns n-th key
 	* @param {number} n - Hashmap key number. Should be between 0 and length-1.	
 	* @returns {string} n-th key.
 	*/
- exports.StrIntMap.prototype.key = function(n) {}	
+ exports.StrIntMap.prototype.key = function(n) { return ; }	
 /**
 	* returns n-th dat
 	* @param {number} n - Hashmap dat number. Should be between 0 and length-1
 	* @returns {number} n-th data value.
 	*/
- exports.StrIntMap.prototype.dat = function(n) {}
+ exports.StrIntMap.prototype.dat = function(n) { return 0; }
 /**
 	* loads the hashtable from input stream
 	* @param {module:fs.FIn} fin - Input stream.	
 	* @returns {module:ht.StrIntMap} Self.
 	*/
- exports.StrIntMap.prototype.load = function(fin) {}
+ exports.StrIntMap.prototype.load = function(fin) { return this; }
 /**
 	* saves the hashtable to output stream
 	* @param {module:fs.FOut} fout - Output stream.	
 	* @returns {module:fs.FOut} fout.
 	*/
- exports.StrIntMap.prototype.save = function(fout) {}
+ exports.StrIntMap.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
 	* sorts by keys
 	* @param {boolean} [asc=true] - Sort in ascending order?
+	* @returns {module:ht.StrIntMap} Self.
 	*/
- exports.StrIntMap.prototype.sortKey = function(asc) {}
+ exports.StrIntMap.prototype.sortKey = function(asc) { return this; }
 /**
 	* sorts by values
-	* @param {boolean} [asc=true] - Sort in ascending order?	
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	* @returns {module:ht.StrIntMap} Self.
 	*/
- exports.StrIntMap.prototype.sortDat = function(asc) {}
+ exports.StrIntMap.prototype.sortDat = function(asc) { return this; }
 
 /**
 	* String-Float hashmap 
@@ -205,58 +209,60 @@ exports = {}; require.modules.qminer_ht = exports;
 	* @param {string} key - Hashmap key.
 	* @returns {number} Hashmap data.
 	*/
- exports.StrFltMap.prototype.get = function(key) {}
+ exports.StrFltMap.prototype.get = function(key) { return 0; }
 /**
 	* add/update key-value pair
 	* @param {string} key - Hashmap key.
 	* @param {number} data - Hashmap data.
 	* @returns {module:ht.StrFltMap} Self.
 	*/
- exports.StrFltMap.prototype.put = function(key, data) {}
+ exports.StrFltMap.prototype.put = function(key, data) { return this; }
 /**
 	* returns true if the map has a given key 
 	* @param {string} key - Hashmap key.	
 	* @returns {boolean} True if the map contains key.
 	*/
- exports.StrFltMap.prototype.hasKey = function(key) {}
+ exports.StrFltMap.prototype.hasKey = function(key) { return false; }
 /**
     * @property {number} length - Number of key/dat pairs
 	*/
- exports.StrFltMap.prototype.length = undefined;
+ exports.StrFltMap.prototype.length = 0;
 /**
 	* returns n-th key
 	* @param {number} n - Hashmap key number. Should be between 0 and length-1.	
 	* @returns {string} n-th key.
 	*/
- exports.StrFltMap.prototype.key = function(n) {}	
+ exports.StrFltMap.prototype.key = function(n) { return ; }	
 /**
 	* returns n-th dat
 	* @param {number} n - Hashmap dat number. Should be between 0 and length-1
 	* @returns {number} n-th data value.
 	*/
- exports.StrFltMap.prototype.dat = function(n) {}
+ exports.StrFltMap.prototype.dat = function(n) { return 0; }
 /**
 	* loads the hashtable from input stream
 	* @param {module:fs.FIn} fin - Input stream.	
 	* @returns {module:ht.StrFltMap} Self.
 	*/
- exports.StrFltMap.prototype.load = function(fin) {}
+ exports.StrFltMap.prototype.load = function(fin) { return this; }
 /**
 	* saves the hashtable to output stream
 	* @param {module:fs.FOut} fout - Output stream.	
 	* @returns {module:fs.FOut} fout.
 	*/
- exports.StrFltMap.prototype.save = function(fout) {}
+ exports.StrFltMap.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
 	* sorts by keys
 	* @param {boolean} [asc=true] - Sort in ascending order?
+	* @returns {module:ht.StrFltMap} Self.
 	*/
- exports.StrFltMap.prototype.sortKey = function(asc) {}
+ exports.StrFltMap.prototype.sortKey = function(asc) { return this; }
 /**
 	* sorts by values
-	* @param {boolean} [asc=true] - Sort in ascending order?	
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	* @returns {module:ht.StrFltMap} Self.
 	*/
- exports.StrFltMap.prototype.sortDat = function(asc) {}
+ exports.StrFltMap.prototype.sortDat = function(asc) { return this; }
 
 /**
 	* Int-string hashmap 
@@ -289,58 +295,60 @@ exports = {}; require.modules.qminer_ht = exports;
 	* @param {number} key - Hashmap key.
 	* @returns {string} Hashmap data.
 	*/
- exports.IntStrMap.prototype.get = function(key) {}
+ exports.IntStrMap.prototype.get = function(key) { return ; }
 /**
 	* add/update key-value pair
 	* @param {number} key - Hashmap key.
 	* @param {string} data - Hashmap data.
 	* @returns {module:ht.IntStrMap} Self.
 	*/
- exports.IntStrMap.prototype.put = function(key, data) {}
+ exports.IntStrMap.prototype.put = function(key, data) { return this; }
 /**
 	* returns true if the map has a given key 
 	* @param {number} key - Hashmap key.	
 	* @returns {boolean} True if the map contains key.
 	*/
- exports.IntStrMap.prototype.hasKey = function(key) {}
+ exports.IntStrMap.prototype.hasKey = function(key) { return false; }
 /**
     * @property {number} length - Number of key/dat pairs
 	*/
- exports.IntStrMap.prototype.length = undefined;
+ exports.IntStrMap.prototype.length = 0;
 /**
 	* returns n-th key
 	* @param {number} n - Hashmap key number. Should be between 0 and length-1.	
 	* @returns {number} n-th key.
 	*/
- exports.IntStrMap.prototype.key = function(n) {}	
+ exports.IntStrMap.prototype.key = function(n) { return 0; }	
 /**
 	* returns n-th dat
 	* @param {number} n - Hashmap dat number. Should be between 0 and length-1
 	* @returns {string} n-th data value.
 	*/
- exports.IntStrMap.prototype.dat = function(n) {}
+ exports.IntStrMap.prototype.dat = function(n) { return ; }
 /**
 	* loads the hashtable from input stream
 	* @param {module:fs.FIn} fin - Input stream.	
 	* @returns {module:ht.IntStrMap} Self.
 	*/
- exports.IntStrMap.prototype.load = function(fin) {}
+ exports.IntStrMap.prototype.load = function(fin) { return this; }
 /**
 	* saves the hashtable to output stream
 	* @param {module:fs.FOut} fout - Output stream.	
 	* @returns {module:fs.FOut} fout.
 	*/
- exports.IntStrMap.prototype.save = function(fout) {}
+ exports.IntStrMap.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
 	* sorts by keys
 	* @param {boolean} [asc=true] - Sort in ascending order?
+	* @returns {module:ht.IntStrMap} Self.
 	*/
- exports.IntStrMap.prototype.sortKey = function(asc) {}
+ exports.IntStrMap.prototype.sortKey = function(asc) { return this; }
 /**
 	* sorts by values
-	* @param {boolean} [asc=true] - Sort in ascending order?	
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	* @returns {module:ht.IntStrMap} Self.
 	*/
- exports.IntStrMap.prototype.sortDat = function(asc) {}
+ exports.IntStrMap.prototype.sortDat = function(asc) { return this; }
 
 /**
 	* Integer-Integer hashmap 
@@ -373,58 +381,60 @@ exports = {}; require.modules.qminer_ht = exports;
 	* @param {number} key - Hashmap key.
 	* @returns {number} Hashmap data.
 	*/
- exports.IntIntMap.prototype.get = function(key) {}
+ exports.IntIntMap.prototype.get = function(key) { return 0; }
 /**
 	* add/update key-value pair
 	* @param {number} key - Hashmap key.
 	* @param {number} data - Hashmap data.
 	* @returns {module:ht.IntIntMap} Self.
 	*/
- exports.IntIntMap.prototype.put = function(key, data) {}
+ exports.IntIntMap.prototype.put = function(key, data) { return this; }
 /**
 	* returns true if the map has a given key 
 	* @param {number} key - Hashmap key.	
 	* @returns {boolean} True if the map contains key.
 	*/
- exports.IntIntMap.prototype.hasKey = function(key) {}
+ exports.IntIntMap.prototype.hasKey = function(key) { return false; }
 /**
     * @property {number} length - Number of key/dat pairs
 	*/
- exports.IntIntMap.prototype.length = undefined;
+ exports.IntIntMap.prototype.length = 0;
 /**
 	* returns n-th key
 	* @param {number} n - Hashmap key number. Should be between 0 and length-1.	
 	* @returns {number} n-th key.
 	*/
- exports.IntIntMap.prototype.key = function(n) {}	
+ exports.IntIntMap.prototype.key = function(n) { return 0; }	
 /**
 	* returns n-th dat
 	* @param {number} n - Hashmap dat number. Should be between 0 and length-1
 	* @returns {number} n-th data value.
 	*/
- exports.IntIntMap.prototype.dat = function(n) {}
+ exports.IntIntMap.prototype.dat = function(n) { return 0; }
 /**
 	* loads the hashtable from input stream
 	* @param {module:fs.FIn} fin - Input stream.	
 	* @returns {module:ht.IntIntMap} Self.
 	*/
- exports.IntIntMap.prototype.load = function(fin) {}
+ exports.IntIntMap.prototype.load = function(fin) { return this; }
 /**
 	* saves the hashtable to output stream
 	* @param {module:fs.FOut} fout - Output stream.	
 	* @returns {module:fs.FOut} fout.
 	*/
- exports.IntIntMap.prototype.save = function(fout) {}
+ exports.IntIntMap.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
 	* sorts by keys
 	* @param {boolean} [asc=true] - Sort in ascending order?
+	* @returns {module:ht.IntIntMap} Self.
 	*/
- exports.IntIntMap.prototype.sortKey = function(asc) {}
+ exports.IntIntMap.prototype.sortKey = function(asc) { return this; }
 /**
 	* sorts by values
-	* @param {boolean} [asc=true] - Sort in ascending order?	
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	* @returns {module:ht.IntIntMap} Self.
 	*/
- exports.IntIntMap.prototype.sortDat = function(asc) {}
+ exports.IntIntMap.prototype.sortDat = function(asc) { return this; }
 
 /**
 	* Integer-Float hashmap 
@@ -457,58 +467,60 @@ exports = {}; require.modules.qminer_ht = exports;
 	* @param {number} key - Hashmap key.
 	* @returns {number} Hashmap data.
 	*/
- exports.IntFltMap.prototype.get = function(key) {}
+ exports.IntFltMap.prototype.get = function(key) { return 0; }
 /**
 	* add/update key-value pair
 	* @param {number} key - Hashmap key.
 	* @param {number} data - Hashmap data.
 	* @returns {module:ht.IntFltMap} Self.
 	*/
- exports.IntFltMap.prototype.put = function(key, data) {}
+ exports.IntFltMap.prototype.put = function(key, data) { return this; }
 /**
 	* returns true if the map has a given key 
 	* @param {number} key - Hashmap key.	
 	* @returns {boolean} True if the map contains key.
 	*/
- exports.IntFltMap.prototype.hasKey = function(key) {}
+ exports.IntFltMap.prototype.hasKey = function(key) { return false; }
 /**
     * @property {number} length - Number of key/dat pairs
 	*/
- exports.IntFltMap.prototype.length = undefined;
+ exports.IntFltMap.prototype.length = 0;
 /**
 	* returns n-th key
 	* @param {number} n - Hashmap key number. Should be between 0 and length-1.	
 	* @returns {number} n-th key.
 	*/
- exports.IntFltMap.prototype.key = function(n) {}	
+ exports.IntFltMap.prototype.key = function(n) { return 0; }	
 /**
 	* returns n-th dat
 	* @param {number} n - Hashmap dat number. Should be between 0 and length-1
 	* @returns {number} n-th data value.
 	*/
- exports.IntFltMap.prototype.dat = function(n) {}
+ exports.IntFltMap.prototype.dat = function(n) { return 0; }
 /**
 	* loads the hashtable from input stream
 	* @param {module:fs.FIn} fin - Input stream.	
 	* @returns {module:ht.IntFltMap} Self.
 	*/
- exports.IntFltMap.prototype.load = function(fin) {}
+ exports.IntFltMap.prototype.load = function(fin) { return this; }
 /**
 	* saves the hashtable to output stream
 	* @param {module:fs.FOut} fout - Output stream.	
 	* @returns {module:fs.FOut} fout.
 	*/
- exports.IntFltMap.prototype.save = function(fout) {}
+ exports.IntFltMap.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
 	* sorts by keys
 	* @param {boolean} [asc=true] - Sort in ascending order?
+	* @returns {module:ht.IntFltMap} Self.
 	*/
- exports.IntFltMap.prototype.sortKey = function(asc) {}
+ exports.IntFltMap.prototype.sortKey = function(asc) { return this; }
 /**
 	* sorts by values
-	* @param {boolean} [asc=true] - Sort in ascending order?	
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	* @returns {module:ht.IntFltMap} Self.
 	*/
- exports.IntFltMap.prototype.sortDat = function(asc) {}
+ exports.IntFltMap.prototype.sortDat = function(asc) { return this; }
 
 
 

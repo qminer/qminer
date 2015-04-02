@@ -132,6 +132,9 @@
         <dl>
             <dt><a href="module-qm.Base.html">Base</a></dt>
             <dd></dd>
+        
+            <dt><a href="module-qm.Store.html">Store</a></dt>
+            <dd></dd>
         </dl>
     
 
@@ -139,6 +142,203 @@
 
     
 
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="~baseModes"><span class="type-signature">(inner, readonly) </span>baseModes<span class="type-signature"> :string</span></h4>
+
+
+
+
+<div class="description">
+    Base access modes.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">string</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>create</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>createClean</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>open</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>openReadOnly</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line36">line 36</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
     
 
     
@@ -149,7 +349,7 @@
 
     
 
-    <h4 class="name" id=".config"><span class="type-signature">(static) </span>config<span class="signature">(configPath<span class="signature-attributes">opt</span>, overwrite<span class="signature-attributes">opt</span>, portN<span class="signature-attributes">opt</span>, cacheSize<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="module-qm.Base.html">module:qm.Base</a>}</span></h4>
+    <h4 class="name" id=".config"><span class="type-signature">(static) </span>config<span class="signature">(configPath<span class="signature-attributes">opt</span>, overwrite<span class="signature-attributes">opt</span>, portN<span class="signature-attributes">opt</span>, cacheSize<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 
     
 
@@ -184,6 +384,8 @@
         
 
         
+        <th>Default</th>
+        
 
         <th class="last">Description</th>
     </tr>
@@ -219,8 +421,14 @@
             
 
             
+                <td class="default">
+                
+                    'qm.conf'
+                
+                </td>
+            
 
-            <td class="description last">The configuration path. Default: qm.conf</td>
+            <td class="description last">The path to configuration file.</td>
         </tr>
 
     
@@ -252,8 +460,14 @@
             
 
             
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
 
-            <td class="description last">If you want to overwrite the structure. Default: false</td>
+            <td class="description last">If you want to overwrite the configuration file.</td>
         </tr>
 
     
@@ -285,8 +499,14 @@
             
 
             
+                <td class="default">
+                
+                    8080
+                
+                </td>
+            
 
-            <td class="description last">The number of the port. Default: 8080</td>
+            <td class="description last">The number of the port. Currently not used.</td>
         </tr>
 
     
@@ -318,8 +538,14 @@
             
 
             
+                <td class="default">
+                
+                    1024
+                
+                </td>
+            
 
-            <td class="description last">The space to be reserved? Default: 1024</td>
+            <td class="description last">Sets available memory for indexing (in MB).</td>
         </tr>
 
     
@@ -360,7 +586,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line16">line 16</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line15">line 15</a>
     </li></ul></dd>
     
 
@@ -383,24 +609,6 @@
 
 
 
-<h5>Returns:</h5>
-
-        
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-qm.Base.html">module:qm.Base</a></span>
-
-
-    </dd>
-</dl>
-
-    
 
 
 
@@ -409,7 +617,7 @@
 
     
 
-    <h4 class="name" id=".create"><span class="type-signature">(static) </span>create<span class="signature">(configPath, schemaPath<span class="signature-attributes">opt</span>, clear)</span><span class="type-signature"> &rarr; {<a href="module-qm.Base.html">module:qm.Base</a>}</span></h4>
+    <h4 class="name" id=".create"><span class="type-signature">(static) </span>create<span class="signature">(configPath<span class="signature-attributes">opt</span>, schemaPath<span class="signature-attributes">opt</span>, clear<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="module-qm.Base.html">module:qm.Base</a>}</span></h4>
 
     
 
@@ -444,6 +652,8 @@
         
 
         
+        <th>Default</th>
+        
 
         <th class="last">Description</th>
     </tr>
@@ -469,6 +679,8 @@
             
                 <td class="attributes">
                 
+                    &lt;optional><br>
+                
 
                 
 
@@ -477,8 +689,14 @@
             
 
             
+                <td class="default">
+                
+                    'qm.conf'
+                
+                </td>
+            
 
-            <td class="description last">Configuration.</td>
+            <td class="description last">Configuration file path.</td>
         </tr>
 
     
@@ -510,8 +728,14 @@
             
 
             
+                <td class="default">
+                
+                    ''
+                
+                </td>
+            
 
-            <td class="description last">Schema.</td>
+            <td class="description last">Schema file path.</td>
         </tr>
 
     
@@ -533,6 +757,8 @@
             
                 <td class="attributes">
                 
+                    &lt;optional><br>
+                
 
                 
 
@@ -541,8 +767,14 @@
             
 
             
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
 
-            <td class="description last">True, to clear the existing store folder. Otherwise, false.</td>
+            <td class="description last">Clear the existing db folder.</td>
         </tr>
 
     
@@ -583,7 +815,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line24">line 24</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line23">line 23</a>
     </li></ul></dd>
     
 
@@ -632,7 +864,7 @@
 
     
 
-    <h4 class="name" id=".open"><span class="type-signature">(static) </span>open<span class="signature">(configPath, readOnly)</span><span class="type-signature"> &rarr; {<a href="module-qm.Base.html">module:qm.Base</a>}</span></h4>
+    <h4 class="name" id=".open"><span class="type-signature">(static) </span>open<span class="signature">(configPath<span class="signature-attributes">opt</span>, readOnly<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="module-qm.Base.html">module:qm.Base</a>}</span></h4>
 
     
 
@@ -663,7 +895,11 @@
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
+        
+        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -688,10 +924,26 @@
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
 
+                
+
+                
+                </td>
             
 
-            <td class="description last">The configuration.</td>
+            
+                <td class="default">
+                
+                    'qm.conf'
+                
+                </td>
+            
+
+            <td class="description last">The configuration file path.</td>
         </tr>
 
     
@@ -711,10 +963,26 @@
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
 
+                
+
+                
+                </td>
             
 
-            <td class="description last">True, if the store should be read only. Otherwise, false.</td>
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last">Open in read only mode?</td>
         </tr>
 
     
@@ -755,7 +1023,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line31">line 31</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line30">line 30</a>
     </li></ul></dd>
     
 
@@ -803,6 +1071,337 @@
     
 
     
+        <h3 class="subsection-title">Type Definitions</h3>
+
+        
+                
+<h4 class="name" id="~BaseConstructorParam">BaseConstructorParam</h4>
+
+
+
+
+<div class="description">
+    Base constructor parameter object
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>BaseConstructorParam.mode</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="module-qm.html#~baseModes">module:qm~baseModes</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    'openReadOnly'
+                
+                </td>
+            
+
+            <td class="description last">Base access mode: <br> create (sets up the db folder), <br> createClean (cleans db folder and then sets it up), <br> open (opens the db with read/write permissions), <br> openReadOnly (opens the db in read only mode).</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>BaseConstructorParam.indexCache</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    1024
+                
+                </td>
+            
+
+            <td class="description last">The ammount of memory reserved for indexing (in MB).</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>BaseConstructorParam.storeCache</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    1024
+                
+                </td>
+            
+
+            <td class="description last">The ammount of memory reserved for store cache (in MB).</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>BaseConstructorParam.schemaPath</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    ''
+                
+                </td>
+            
+
+            <td class="description last">The path to schema definition file.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>BaseConstructorParam.schema</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    []
+                
+                </td>
+            
+
+            <td class="description last">Schema definition object.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>BaseConstructorParam.dbPath</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    './db/'
+                
+                </td>
+            
+
+            <td class="description last">The path to db directory.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line42">line 42</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+            
+    
 
     
 </article>
@@ -815,13 +1414,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li><li><a href="module-qm.html">qm</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.BoolVector.html">BoolVector</a></li><li><a href="module-la.IntVector.html">IntVector</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li><li><a href="module-la.StrVector.html">StrVector</a></li><li><a href="module-la.Vector.html">Vector</a></li><li><a href="module-qm.Base.html">Base</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li><li><a href="module-qm.html">qm</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.BoolVector.html">BoolVector</a></li><li><a href="module-la.IntVector.html">IntVector</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li><li><a href="module-la.StrVector.html">StrVector</a></li><li><a href="module-la.Vector.html">Vector</a></li><li><a href="module-qm.Base.html">Base</a></li><li><a href="module-qm.Store.html">Store</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Tue Mar 31 2015 14:35:06 GMT+0200 (Central Europe Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Thu Apr 02 2015 08:59:30 GMT+0200 (Central Europe Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

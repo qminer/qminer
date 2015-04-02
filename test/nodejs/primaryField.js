@@ -1,6 +1,6 @@
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); // additional JS implementations
-var qm = require('../../');
+var qm = require('qminer');
 qm.delLock();
 
 var backward = require('../../src/nodejs/scripts/backward.js');

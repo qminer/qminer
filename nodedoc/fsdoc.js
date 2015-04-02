@@ -19,25 +19,25 @@
 	* @param {string} fileName - File name.
 	* @returns {module:fs.FIn} Input stream.
 	*/
- exports.openRead = function(fileName) {}
+ exports.openRead = function(fileName) { return Object.create(require('qminer').fs.FIn.prototype); }
 /**
 	* open file in write mode and return file output stream
 	* @param {string} fileName - File name.
 	* @returns {module:fs.FOut} Output stream.
 	*/
- exports.openWrite = function(fileName) {}
+ exports.openWrite = function(fileName) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
 	* open file in append mode and return file output stream
 	* @param {string} fileName - File name.
 	* @returns {module:fs.FOut} Output stream.
 	*/
- exports.openAppend = function(fileName) {}	
+ exports.openAppend = function(fileName) { return Object.create(require('qminer').fs.FOut.prototype); }	
 /**
 	* checks if the file exists
 	* @param {string} fileName - File name.
 	* @returns {boolean} True if file exists.
 	*/
- exports.exists = function(fileName) {}	
+ exports.exists = function(fileName) { return false; }	
 /**
 	* copies a file
 	* @param {string} source - Source file name.
@@ -55,7 +55,7 @@
 	* @param {string} fileName - File name.
 	* @returns {boolean} True if delete succeeded.
 	*/
- exports.del = function(fileName) {}	
+ exports.del = function(fileName) { return false; }	
 /**
 	* renames a file
 	* @param {string} source - Source file name.
@@ -75,27 +75,27 @@
 	* @param {string} fileName - File name.
 	* @returns {module:fs~FileInfo} File info object.
 	*/
- exports.fileInfo = function(fileName) {}	
+ exports.fileInfo = function(fileName) { return { createTime : "",  lastAccessTime: "", lastWriteTime: "", size: 0 }}	
 /**
 	* Creates a folder
 	* @param {string} dirName - Folder name.
 	* @returns {boolean} True if succeeded.
 	*/
- exports.mkdir = function(dirName) {}	
+ exports.mkdir = function(dirName) { return false; }	
 /**
 	* Removes a folder
 	* @param {string} dirName - Folder name.
 	* @returns {boolean} True if succeeded.
 	*/
- exports.rmdir = function(dirName) {}
+ exports.rmdir = function(dirName) { return false; }
 /**
 	* Returns a list fo files in the folder
 	* @param {string} dirName - Folder name.
 	* @param {string} [fileExtension] - Results are filtered by file extension.
 	* @param {boolean} [recursive=false] - Recursively searches for file names if true.
-	* @returns {string[]} True if succeeded.
+	* @returns {string[]} Array of file names.
 	*/
- exports.listFile = function(dirName, fileExtension, recursive) {}
+ exports.listFile = function(dirName, fileExtension, recursive) { return ['']; }
 /**
 	* Input file stream.
 	* @classdesc Used for reading files.
@@ -114,30 +114,30 @@
 	* Peeks a character
 	* @returns {string} Character string.
 	*/
- exports.FIn.prototype.peekCh= function() {}
+ exports.FIn.prototype.peekCh= function() { return ''; }
 /**
 	* Reads a character
 	* @returns {string} Character string.
 	*/
- exports.FIn.prototype.getCh= function() {}
+ exports.FIn.prototype.getCh= function() { return ''; }
 /**
 	* Reads a line	
 	* @returns {string} Line string.
 	*/
- exports.FIn.prototype.readLine = function() {}
+ exports.FIn.prototype.readLine = function() { return ''; }
 /**
 	* @property {boolean} eof - True if end of file is detected.
 	*/
- exports.FIn.prototype.eof = undefined;
+ exports.FIn.prototype.eof = false;
 /**
 	* @property {number} length - Length of input stream.
 	*/
- exports.FIn.prototype.length = undefined;
+ exports.FIn.prototype.length = 0;
 /**
 	* Reads the whole stream
 	* @returns {string} Content of the file.
 	*/
- exports.FIn.prototype.readAll = function() {}
+ exports.FIn.prototype.readAll = function() { return ''; }
 /**
 	* Output file stream.
 	* @classdesc Used for writing files.
@@ -160,18 +160,18 @@
 	* @param {String} str - String to write
 	* @returns {module:fs.FOut} Self.
 	*/
- exports.FOut.prototype.write = function(str) {}
+ exports.FOut.prototype.write = function(str) { return this; }
 /**
 	* Writes a string and adds a new line
 	* @param {String} str - String to write
 	* @returns {module:fs.FOut} Self.
 	*/
- exports.FOut.prototype.writeLine = function(str) {}
+ exports.FOut.prototype.writeLine = function(str) { return this; }
 /**
 	* Flushes the output stream
 	* @returns {module:fs.FOut} Self.
 	*/
- exports.FOut.prototype.flush = function() {}
+ exports.FOut.prototype.flush = function() { return this; }
 /**
 	* Closes the output stream
 	*/

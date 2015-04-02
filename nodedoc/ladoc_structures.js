@@ -13,7 +13,7 @@
 */
 /**
 * Matrix
-* @classdesc Represents a dense matrix (2d array).
+* @classdesc Represents a dense matrix (2d array), wraps a C++ object implemented in glib/base/ds.h.
 * @class
 * @param {(module:la~matrixArg | Array<Array<number>> | module:la.Matrix)} [arg] - Constructor arguments. There are three ways of constructing:
 * <br>1. Parameter object {@link module:la~matrixArg}.
@@ -32,7 +32,7 @@
 	* @param {number} colIdx - Column index (zero based).
 	* @returns {number} Matrix element.
 	*/
- exports.Matrix.prototype.at = function(rowIdx, colIdx) {}
+ exports.Matrix.prototype.at = function(rowIdx, colIdx) { return 0.0; }
 /**
 	* Sets an element or a block of matrix.
 	* @param {number} rowIdx - Row index (zero based). 
@@ -119,7 +119,7 @@
 	* Returns a vector of column norms.
 	* @returns {module:la.Vector} Vector, where the value at i-th index is the norm of the i-th column of matrix.
 	*/
- exports.Matrix.prototype.colNorms = function () {}
+ exports.Matrix.prototype.colNorms = function () { return Object.create(require('qminer').la.IntVector.prototype) }
 /**
 	* Normalizes each column of matrix
 	* @returns {module:la.Matrix} Self.
@@ -494,7 +494,6 @@
     }
 
 
-    //!- `str = SparseMatrix.toString()` -- returns a string displaying rows, columns and number of non-zero elements of a sparse column matrix `spMat`
     /**
     * Returns a string displaying rows, columns and number of non-zero elements of sparse matrix.
     * @returns {string} String displaying row, columns and number of non-zero elements.
@@ -505,7 +504,6 @@
     * var text = mat.toString(); // returns 'rows: -1, cols: 2, nnz: 3'
     */
     exports.SparseMatrix.prototype.toString = function () { return "rows: " + this.rows + ", cols:" + this.cols + ", nnz: " + this.nnz(); }
-    //!- `num = SparseMatrix.nnz()` -- `num` is the number of non-zero elements of sparse column matrix `spMat`
     /**
     * Returns the number of non-zero elements of sparse matrix.
     * @returns {number} Number of non-zero elements.
@@ -519,7 +517,6 @@
         return nnz;
     };
 
-    //!- `SparseVector.print()` -- prints sparse vector
     /**
 	* Prints the sparse vector on-screen.
 	* @example
@@ -530,7 +527,6 @@
 	*/
     exports.SparseVector.prototype.print = function () { console.log(this.toString()); }
 
-    //!- `Matrix.print()` -- prints matrix
     /**
 	* Prints the matrix on-screen. 
 	* @example
@@ -544,7 +540,6 @@
 	*/
     exports.Matrix.prototype.print = function () { console.log(this.toString()); }
 
-    //!- `Vector.print()` -- prints vector
     /**
     * Prints the vector on-screen.
     * @example
@@ -557,8 +552,6 @@
     */
 	exports.Vector.prototype.print = function () { console.log(this.toString()); }
 	
-    
-    //!- `arr = la.copyVecToArray(vec)` -- copies vector `vec` into a JS array of numbers `arr`
     /**
     * Copies the vector into a JavaScript array of numbers.
     * @param {module:la.Vector} vec - Copied vector.
@@ -583,12 +576,8 @@
                parseInt(Number(value)) == value &&
                !isNaN(parseInt(value, 10));
     }
-
     
     ///////// RANDOM GENERATORS
-    //!- `num = la.randn()` -- `num` is a sample from a standard normal random variable
-    //!- `vec = la.randn(dim)` -- `vec` is a dense vector whose elements are independent samples from a standard normal random variable and whos dimension is `dim`
-    //!- `mat = la.randn(rows, cols)` -- `mat` is a dense matrix whose elements are independent samples from a standard normal random variable, with `rows` rows and `cols` columns (integers)
 
     /**
     * Returns an object with random numbers
@@ -599,7 +588,7 @@
     * <br>2. {@link module:la.Vector}, if parameter arg1 is given.
     * <br>3. {@link module:la.Matrix}, if parameters arg1 and arg2 are given.
     */
-    exports.randn = function () {
+    exports.randn = function (arg1, arg2) {
         //arguments.length
         var len = arguments.length;
         if (len === 0) {
@@ -617,9 +606,9 @@
             var vec = new exports.Vector({ "vals": dim });
             for (var elN = 0; elN < dim; elN++) {
                 vec.put(elN, exports.randn());
-            }
-            return vec;
-        } else if (len == 2) {
+            }            
+            return vec;       
+        } else if (len === 2) {
             var rows = arguments[0];
             var cols = arguments[1];
             assert(isInt(rows));
@@ -634,7 +623,6 @@
         }
     };
 
-    //!- `num2 = la.randi(num)` -- returns an integer `num2` which is randomly selected from the set of integers `[0, ..., num-1]`
     /**
     * Returns a randomly selected integer from an array..
     * @param {number} num - The upper bound of the array. Must be an integer.
@@ -651,7 +639,6 @@
         }
     };
 
-    //!- `intArr = la.randVariation(n, k)` -- returns a JS array `arr`, which is a sample of `k` numbers from `[0,...,n-1]`, sampled without replacement. `k` must be smaller or equal to `n`
     /**
     * Returns a JavaScript array, which is a sample of integers from an array.
     * @param {number} n - The upper bound of the array [0, ..., n-1]. Must be an integer.
