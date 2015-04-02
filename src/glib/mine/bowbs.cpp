@@ -114,7 +114,7 @@ TBowSpV::TBowSpV(const int& _DId, const TFltV& FullVec,
     Norm = sqrt(SqrSum);
 }
 
-TBowSpV::TBowSpV(const int& DId, const TIntFltKdV& SpV) {
+TBowSpV::TBowSpV(const int& _DId, const TIntFltKdV& SpV) : DId(_DId) {
     double SqrSum = 0.0;
     WIdWgtKdV.Gen(SpV.Len(), 0);
     for (int WIdN = 0; WIdN < SpV.Len(); WIdN++) {
@@ -790,7 +790,7 @@ PBowDocWgtBs TBowDocWgtBs::New(const TVec<PBowSpV>& BowSpVV) {
     int AllWords=0; DocWgtBs->DIdV.Gen(BowSpVV.Len(), 0);
     for (int DocN = 0; DocN < BowSpVV.Len(); DocN++) {
         DocWgtBs->DIdV.Add(BowSpVV[DocN]->GetDId());
-        AllWords = TInt::GetMx(AllWords, BowSpVV[DocN]->GetLastWId());
+        AllWords = TInt::GetMx(AllWords, BowSpVV[DocN]->GetLastWId()+1);
     }
     // load documents
     DocWgtBs->WordFqV.Gen(AllWords); 
