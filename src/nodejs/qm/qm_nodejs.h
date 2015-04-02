@@ -400,34 +400,116 @@ private:
 	//!
 	//!- `rec = store.rec(recName)` -- get record named `recName`; 
 	//!     returns `null` when no such record exists
+	/**
+	* Returns a record form the store.
+	* @param {string} recName - Record name.
+	* @returns {Object} Returns the record. If record doesn't exist, it returns null. //TODO
+	*/
+	//# exports.Store.prototype.rec = function (recName) {};
 	JsDeclareFunction(rec);
+
 	//!- `store = store.each(callback)` -- iterates through the store and executes the callback function `callback` on each record. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
 	//!  - `store.each(function (rec) { console.log(JSON.stringify(rec)); })`
 	//!  - `store.each(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
+	/**
+	* Executes a function on each record in store.
+	* @param {function} callback - Function to be executed. It takes two parameters:
+	* <br>rec - The current record.
+	* <br>[idx] - The index of the current record.
+	* @returns {module:qm.Store} Self.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a store with some people with fields Name and Gender
+	* var store = //TODO
+	* // change the gender of all records to "Extraterrestrial"
+	* store.each(function (rec) { rec.Gender = "Extraterestrial"; });
+	*/
+	//# exports.Store.prototype.each = function (callback) {}
 	JsDeclareFunction(each);
+
 	//!- `arr = store.map(callback)` -- iterates through the store, applies callback function `callback` to each record and returns new array with the callback outputs. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Examples:
 	//!  - `arr = store.map(function (rec) { return JSON.stringify(rec); })`
 	//!  - `arr = store.map(function (rec, idx) {  return JSON.stringify(rec) + ', ' + idx; })`
+	/**
+	* Creates an array of function outputs created from the store records.
+	* @param {function} callback - Function that generates the array. It takes two parameters:
+	* <br>rec - The current record.
+	* <br>[idx] - The index of the current record.
+	* @returns {Array<Object>} The array created by the callback function. //TODO
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a store with some people with fields Name and Gender
+	* var store = //TODO
+	* // make an array of recod names
+	* var arr = store.map(function (rec) { return rec.Name; });
+	*/
+	//# exports.Store.prototype.map = function (callback) {}
 	JsDeclareFunction(map);
+
 	//!- `recId = store.add(rec)` -- add record `rec` to the store and return its ID `recId`
+	/**
+	* Adds a record to the store.
+	* @param {Object} rec - The added record. //TODO
+	* @returns {number} The ID of the added record.
+	*/
+	//# exports.Store.prototype.add = function (rec) {}
 	JsDeclareFunction(add);
+
 	//!- `rec = store.newRec(recordJson)` -- creates new record `rec` by (JSON) value `recordJson` (not added to the store)
 	JsDeclareFunction(newRec);
 	//!- `rs = store.newRecSet(idVec)` -- creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);
 	JsDeclareFunction(newRecSet);
+
 	//!- `rs = store.sample(sampleSize)` -- create a record set containing a random 
 	//!     sample of `sampleSize` records
+	/**
+	* Creates a record set containing random records from store.
+	* @param {number} sampleSize - The size of the record set.
+	* @returns {Array.<module:qm.Record>} Returns a record set containing a random record set.
+	*/
+	//# exports.Store.prototype.sample = function (sampleSize) {};
 	JsDeclareFunction(sample);
+
 	//!- `field = store.field(fieldName)` -- get details of field named `fieldName`
+	/**
+	* Gets the details of the selected field.
+	* @param {string} fieldName - The name of the field.
+	* @returns {Object} The JSON object containing the details of the field. //TODO
+	*/
+	//# exports.Store.prototype.field = function (fieldName) {}; 
 	JsDeclareFunction(field);
+
 	//!- `bool = store.isNumeric(fieldName)` -- returns true if the field is of numeric type
+	/**
+	* Checks if the field is of numeric type.
+	* @param {string} fieldName - The checked field.
+	* @returns {boolean} True, if the field is of numeric type. Otherwise, false.
+	*/
+	//# exports.Store.prototype.isNumeric = function (fieldName) {};
 	JsDeclareFunction(isNumeric)
+
 	//!- `bool = store.isString(fieldName)` -- returns true if the field is of String type
+	/**
+	* Checks if the field is of string type.
+	* @param {string} fieldName - The checked field.
+	* @returns {boolean} True, if the field is of the string type. Otherwise, false.
+	*/
+	//# exports.Store.prototype.isString = function (fieldName) {}; 
 	JsDeclareFunction(isString)
+
 	//!- `bool = store.isDate(fieldName)` -- returns true if the field is of type Date
 	JsDeclareFunction(isDate)
 	//!- `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
+	/**
+	* Returns the details of the selected key.
+	* @param {string} keyName - The selected key.
+	* @returns {Object} The JSON object containing the details of the key. //TODO
+	*/
+	//# exports.Store.prototype.key = function (keyName) {};
 	JsDeclareFunction(key);
+
 	////!- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 	//JsDeclareFunction(addTrigger); Deprecated - use new qm.sa(...) instead
 	//!- `sa = store.getStreamAggr(saName)` -- returns a stream aggregate `sa` whose name is `saName`
@@ -435,11 +517,35 @@ private:
 	//!- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
 	JsDeclareFunction(getStreamAggrNames);
 	//!- `objJSON = store.toJSON()` -- returns the store as a JSON
+	/**
+	* Returns the store as a JSON.
+	* @returns {Object} The store as a JSON.
+	*/
+	//# exports.Store.prototype.toJSON = function () {};
 	JsDeclareFunction(toJSON);
+
 	//!- `store.clear()` -- deletes all records
 	//!- `len = store.clear(num)` -- deletes the first `num` records and returns new length `len`
+	/**
+	* Deletes the records in the store.
+	* @param {number} [num] - The number of deleted records.
+	* @returns {number} The number of remaining records in the store.
+	* @example
+	* // delete all records in store
+	* store.clear();	// returns 0
+	* // deletes the first 10 records
+	* store.clear(10);
+	*/
+	//# exports.Store.prototype.clear = function (num) {};
 	JsDeclareFunction(clear);
+
 	//!- `vec = store.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
+	/**
+	* Gives a vector containing the field value of each record.
+	* @param {string} fieldName - The field where the data is taken from records.
+	* @returns {module:la.Vector} The vector containing the field values of each record.
+	*/
+	//# exports.Store.prototype.getVec = function (fieldName) {};
 	JsDeclareFunction(getVec);
 	//!- `mat = store.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
 	JsDeclareFunction(getMat);
@@ -448,21 +554,35 @@ private:
 	JsDeclareFunction(cell);
 
 	//!- `str = store.name` -- name of the store
+	/**
+	* Gives the name of the store.
+	*/
+	//# exports.Store.prototype.name = undefinied;
 	JsDeclareProperty(name);
-	//!- `bool = store.empty` -- `bool = true` when store is empty
-	JsDeclareProperty(empty);
-	//!- `len = store.length` -- number of records in the store
 
+	//!- `bool = store.empty` -- `bool = true` when store is empty
+	/**
+	* Checks if the store is empty.
+	*/
+	//# exports.Store.prototype.empty = undefinied;
+	JsDeclareProperty(empty);
+
+	//!- `len = store.length` -- number of records in the store
 	/**
 	* Gives the number of records.
-	* @returns {number} Number of records.
 	*/
 	//# exports.Store.prototype.length = 0;
 	JsDeclareProperty(length);
+
 	//!- `rs = store.recs` -- create a record set containing all the records from the store
 	JsDeclareProperty(recs);
 	//!- `objArr = store.fields` -- array of all the field descriptor JSON objects
+	/**
+	* Gives an array of all field descriptor JSON objects.
+	*/
+	//# exports.Store.prototype.fields = undefinied;
 	JsDeclareProperty(fields);
+
 	//!- `objArr = store.joins` -- array of all the join names
 	JsDeclareProperty(joins);
 	//!- `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
