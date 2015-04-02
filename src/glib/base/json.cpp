@@ -82,6 +82,14 @@ PJsonVal TJsonVal::NewArr(const TIntV& IntV) {
 	return Val;
 }
 
+PJsonVal TJsonVal::NewArr(const TUInt64V& IntV) {
+	PJsonVal Val = TJsonVal::NewArr();
+	for (int IntN = 0; IntN < IntV.Len(); IntN++) {
+		Val->AddToArr(TJsonVal::NewNum((double) IntV[IntN]));
+	}
+	return Val;
+}
+
 PJsonVal TJsonVal::NewArr(const TFltV& FltV) {
 	PJsonVal Val = TJsonVal::NewArr();
 	for (int FltN = 0; FltN < FltV.Len(); FltN++) {
@@ -366,11 +374,7 @@ void TJsonVal::GetChAFromVal(const PJsonVal& Val, TChA& ChA){
     case jvtBool:
       if (Val->GetBool()){ChA+="true";} else {ChA+="false";} break;
     case jvtNum: 
-      // we want to decide whether to serialize this as a float or as an int
-      if (fabs(Val->GetNum() - round(Val->GetNum())) < 0.000001)
-        ChA += TStr::Fmt("%d", (int) round(Val->GetNum()));
-      else
-        ChA += TStr::Fmt("%f", Val->GetNum());
+      ChA += TStr::Fmt("%.16g", Val->GetNum());
       break;
     case jvtStr:
       AddQChAFromStr(Val->GetStr(), ChA); break;

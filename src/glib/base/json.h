@@ -95,6 +95,7 @@ public:
   static PJsonVal NewArr() { PJsonVal Val = TJsonVal::New(); Val->PutArr(); return Val; }
   static PJsonVal NewArr(const TJsonValV& ValV);
   static PJsonVal NewArr(const TIntV& IntV);
+  static PJsonVal NewArr(const TUInt64V& IntV);
   static PJsonVal NewArr(const TFltV& FltV);
   static PJsonVal NewArr(const double& Val1, const double& Val2);
   static PJsonVal NewArr(const TStrV& StrV);
