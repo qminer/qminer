@@ -514,7 +514,7 @@ public:
     return ValT[ValN];}
   /// Returns the memory footprint (the number of bytes) of the vector.
   uint64 GetMemUsed() const {
-	  return TSizeTy(2 * sizeof(TVal) + sizeof(TSizeTy)*Vals);
+      return TSizeTy(2 * sizeof(TVal) + sizeof(TSizeTy)*(MxVals != -1 ? MxVals : 0));
   }
   /// Returns the memory footprint (the number of bytes) of the vector.
   uint64 GetMemUsedDeep() const {
