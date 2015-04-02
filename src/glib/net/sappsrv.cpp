@@ -63,7 +63,7 @@ bool TSAppSrvFun::GetFldBool(const TStrKdV& FldNmValPrV, const TStr& FldNm, cons
 {
 	if (!IsFldNm(FldNmValPrV, FldNm)) return DefVal;
 	TStr Val = GetFldVal(FldNmValPrV, FldNm, "").GetLc();
-	if (Val == "1" || Val == "true") return true;
+	if (Val == "1" || Val == "true" || Val == "t") return true;
 	return false;
 }
 
@@ -352,6 +352,9 @@ void TSAppSrv::OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq) {
 		}
     } catch (PExcept Except) {
 		// known internal error
+		TNotify::StdNotify->OnNotifyFmt(ntErr, "Error: %s", Except->GetMsgStr().CStr());
+		TNotify::StdNotify->OnNotifyFmt(ntErr, "Error location info: %s", Except->GetLocStr().CStr());
+
         PJsonVal ErrorVal = TJsonVal::NewObj();
         ErrorVal->AddToObj("message", Except->GetMsgStr());
         ErrorVal->AddToObj("location", Except->GetLocStr());
@@ -363,6 +366,7 @@ void TSAppSrv::OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq) {
         // send response
 	    SendHttpResp(SockId, HttpResp);
     } catch (...) {
+		TNotify::StdNotify->OnNotify(ntErr, "Unknown internal error");
 		// unknown internal error
         PJsonVal ResVal = TJsonVal::NewObj("error", "Unknown internal error");
         TStr ResStr = ResVal->SaveStr();
@@ -442,13 +446,24 @@ void TReplaySrv::OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq)
 {
 	// if we are logging requests then log it
 	if (!SOut.Empty()) {
-		PUrl HttpRqUrl = HttpRq->GetUrl();
-		TStr FunNm = HttpRqUrl->GetPathSeg(0);
-		if (LoggingFunNmH.IsKey(FunNm)) {
-			THttpReqSerInfo ReqInfo(HttpRq);
-			ReqInfo.Save(*SOut);
-			if (FlushEachRequest)
-				SOut->Flush();
+		try {
+			PUrl HttpRqUrl = HttpRq->GetUrl();
+			TStr FunNm = HttpRqUrl->GetPathSeg(0);
+			if (LoggingFunNmH.IsKey(FunNm)) {
+				THttpReqSerInfo ReqInfo(HttpRq);
+				ReqInfo.Save(*SOut);
+				if (FlushEachRequest)
+					SOut->Flush();
+			}
+		}
+		catch (PExcept Except) {
+			TFileNotify Notify("ReplaySrvError.txt");
+			Notify.OnNotifyFmt(ntErr, "TReplaySrv::OnHttpRq. Exception %s.", Except->GetMsgStr().CStr());
+			Notify.OnNotifyFmt(ntErr, "TReplaySrv::OnHttpRq. Location info: \n%s.", Except->GetLocStr().CStr());
+		}
+		catch (...) {
+			TFileNotify Notify("ReplaySrvError.txt");
+			Notify.OnNotify(ntErr, "TReplaySrv::OnHttpRq. Unrecognized exception.");
 		}
 	}
 
