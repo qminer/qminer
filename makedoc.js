@@ -9,7 +9,10 @@ console.log('header: ' + hfile + ', javascript: ' + jsfile + ', output: ' + outf
 fs = require('fs');
 
 // hfile: keep looking for /** and //#
-hstr = fs.readFileSync(hfile, 'ascii');
+hstr = '';
+if (hfile != '') {
+	hstr = fs.readFileSync(hfile, 'ascii');
+}
 
 //  start with /** (\/\*\*) end with */ (\*\/) (multiple lines: [\s\S]*?) OR starts with //# (\/\/#)(in a single line)
 var regex = /(\/\*\*([\s\S]*?)\*\/|\/\/#.*)/g;
