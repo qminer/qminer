@@ -29,8 +29,10 @@ public:
 	
 	/**
 	* returns mean of vector.
-	* @param {module:la.Vector} vec - Vector.
-	* @returns {number} number
+	* @param {(module:la.Vector | module:la.Matrix)} input - input can be vector or a matrix.
+	* @returns {(number | module:la.Vector)}
+	* <br>1. Number, if input parameters is {@link module:la.Vector}.
+    * <br>2. {@link module:la.Vector}, if parameter is {@link module:la.Matrix}.
 	*/
 	//# exports.mean = function(vec) {}
 	JsDeclareFunction(mean);
@@ -41,10 +43,12 @@ public:
 	
 	/**
 	* returns vector containing the standard deviation of each column from input matrix.
-	* @param {module:la.Matrix} mat - Matrix
+	* @param {(module:la.Vector | module:la.Matrix)} input - input can be vector or a matrix.
 	* @param {number} [flag=0] - Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
 	* @param {number} [dim=1] - Computes the standard deviations along the dimension of `mat` specified by parameter `dim`. 1 is col std, 2 is row std.
-	* @returns {module:la.Vector} Vector
+	* @returns {(number | module:la.Vector)}
+	* <br>1. Number, if input parameters is {@link module:la.Vector}.
+    * <br>2. {@link module:la.Vector}, if parameter is {@link module:la.Matrix}.
 	*/
 	//# exports.std = function(mat, flag, dim) {}
 	JsDeclareFunction(std);
@@ -55,12 +59,15 @@ public:
 	
 	/**
 	* returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`.
-	* @param {module:la.Matrix} mat - Matrix
+	* @param {module:la.Matrix} input - Matrix
 	* @param {number} [flag=0] - Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
 	* @param {number} [dim=1] - Computes the standard deviations along the dimension of `mat` specified by parameter `dim`. 1 is col std, 2 is row std.
-	* @returns {module:la.Vector} Vector
+	* @returns {zscoreResult}
+	* <br>zscoreResult.sigma - Standard deviation of input used to compute the z-scores.
+	* <br>zscoreResult.mu - Mean of input used to compute the z-scores.
+	* <br>zscoreResult.Z - A vector of z-scores has mean 0 and variance 1.
 	*/
-	//# exports.std = function(mat, flag, dim) {}
+	//# exports.zscoreResult = function(mat, flag, dim) {}
 	JsDeclareFunction(zscore);
 private:
    // 

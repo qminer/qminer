@@ -5,6 +5,8 @@
 var assert = require("assert")
 var la = require("../../../build/Debug/la.node")
 var stat = require('../../../build/Debug/stat.node');
+//var la = require('qminer').la;
+//var stat = require('qminer').stat;
 
 describe('Import test', function(){
     it('if import of qminer.node succeeds, return true', function(){

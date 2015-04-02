@@ -15,7 +15,7 @@ describe('qm.datasets', function () {
 
     });
 
-    describe('#loadIrisSync() - testing synchronious version of Iris dataset loader', function () {
+    describe('#loadIrisSync() - testing synchronous version of Iris dataset loader', function () {
         var base = qm.create('qm.conf', '', true);
         var Iris = datasets.loadIrisSync(base);
 
@@ -38,7 +38,7 @@ describe('qm.datasets', function () {
 
     })
 
-    describe('#loadIris() - testing asynchronious version of Iris dataset loader', function () {
+    describe('#loadIris() - testing asynchronous version of Iris dataset loader', function () {
         var base;
         var Iris;
 

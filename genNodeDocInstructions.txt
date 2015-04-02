@@ -23,3 +23,5 @@ npm install jsdoc -g
 ```
 
 jsdoc nodedoc/htdoc.js nodedoc/fsdoc.js -d nodedoc
+
+jsdoc nodedoc/htdoc.js nodedoc/statdoc.js nodedoc/fsdoc.js node doc/ladoc.js nodedoc/qminerdoc.js nodedoc/analyticsdoc.js -d nodedoc
