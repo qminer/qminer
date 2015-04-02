@@ -45,7 +45,7 @@ TBigStrPool::TBigStrPool(TSIn& SIn, bool LoadCompact) : MxBfL(0), BfL(0), GrowBy
   SIn.Load(Tmp); IAssert(Tmp <= uint64(TSizeMx)); MxBfL=TSize(Tmp);
   SIn.Load(Tmp); IAssert(Tmp <= uint64(TSizeMx)); BfL=TSize(Tmp);
   SIn.Load(GrowBy);
-  IAssert(MxBfL >= BfL);  IAssert(BfL >= 0);  IAssert(GrowBy >= 0);
+  IAssert(MxBfL >= BfL);
   if (LoadCompact) MxBfL = BfL;
   if (MxBfL > 0) { Bf = (char *) malloc(MxBfL); IAssert(Bf); }
   if (BfL > 0) { SIn.LoadBf(Bf, BfL); }

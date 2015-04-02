@@ -50,6 +50,11 @@
 #include "kernelmethods.cpp"
 #include "semspace.cpp"
 
+// some ML methods
+#include "ml.cpp"
+
+// clustering
+#include "mc.cpp"
 
 // Signal-Processing
 #include "signalproc.cpp"

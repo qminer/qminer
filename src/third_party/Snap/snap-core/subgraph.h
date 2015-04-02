@@ -46,6 +46,8 @@ template<class PGraph> PGraph GetRndSubGraph(const PGraph& Graph, const int& NNo
 /// Returns a random subgraph of graph Graph with NEdges edges. ##TSnap::GetRndESubGraph
 template<class PGraph> PGraph GetRndESubGraph(const PGraph& Graph, const int& NEdges);
 
+void GetSubGraph(const PNEGraph& G, const PNGraph& Graph, const PNGraph& GraphE, TInt from, TInt to);
+void GetSubGraph(const PNGraph& G, const PNGraph& Graph, const PNGraph& GraphE, TInt from, TInt to);
 /////////////////////////////////////////////////
 // Implementation
 namespace TSnapDetail {

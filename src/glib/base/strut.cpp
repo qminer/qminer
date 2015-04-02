@@ -28,6 +28,18 @@ TStr TStrUtil::GetStr(const TIntV& IntV, const TStr& DelimiterStr) {
   return ResChA;
 }
 
+TStr TStrUtil::GetStr(const TVec<TIntV>& IntIntV, const TStr& DelimiterStr) {
+	TChA ResChA;
+	for (int RowN = 0; RowN < IntIntV.Len(); RowN++) {
+		for (int ColN = 0; ColN < IntIntV[RowN].Len(); ColN++) {
+			ResChA += IntIntV[RowN][ColN].GetStr();
+			if (ColN < IntIntV[RowN].Len() - 1) { ResChA += DelimiterStr; }
+		}
+		ResChA += "\n";
+	}
+	return ResChA;
+}
+
 TStr TStrUtil::GetStr(const TStrIntPrV& StrIntPrV, 
  const TStr& FieldDelimiterStr, const TStr& DelimiterStr) {
   TChA ResChA;
@@ -47,6 +59,36 @@ TStr TStrUtil::GetStr(const TFltV& FltV, const TStr& DelimiterStr, const TStr& F
     ResChA+=TFlt::GetStr(FltV[FltN], FmtStr);
   }
   return ResChA;
+}
+
+TStr TStrUtil::GetStr(const TFltVV& FltVV, const TStr& DelimiterStr, const TStr& FmtStr) {
+	TChA ResChA;
+
+	for (int i = 0; i < FltVV.GetXDim(); i++) {
+		for (int j = 0; j < FltVV.GetYDim(); j++) {
+			ResChA += TFlt::GetStr(FltVV(i,j), FmtStr);
+			if (j < FltVV.GetYDim() - 1) { ResChA += DelimiterStr; }
+		}
+		if (i < FltVV.GetXDim() - 1) { ResChA += '\n'; }
+	}
+
+	return ResChA;
+}
+
+TStr TStrUtil::GetStr(const TIntIntFltTrV& IntIntFltTrV, const TStr& DelimiterStr, const TStr& FmtStr) {
+	TChA ResChA;
+
+	for (int i = 0; i < IntIntFltTrV.Len(); i++) {
+		const TIntIntFltTr& Val = IntIntFltTrV[i];
+
+		ResChA += "(";
+		ResChA += Val.Val1.GetStr() + ", " + Val.Val2.GetStr() + ", " + TFlt::GetStr(Val.Val3, FmtStr) + ")";
+		if (i < IntIntFltTrV.Len()-1) {
+			ResChA += DelimiterStr;
+		}
+	}
+
+	return ResChA;
 }
 
 TStr TStrUtil::GetStr(const TIntFltKdV& IntFltKdV, const TStr& FieldDelimiterStr, 

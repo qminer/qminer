@@ -58,7 +58,7 @@ TFFile::TFFile(const TStr& FNmWc, const bool& _RecurseP):
   CsImpP(false), RecurseP(_RecurseP), FPathN(0-1),
   FFileDesc(TFFileDesc::New()), SubFFile(), CurFNm(), CurFNmN(0-1){
   // prepare file-base-name wild-card
-  FBaseWc=FNmWc.GetFBase(); if (!CsImpP){FBaseWc.ToUc();}
+	FBaseWc = FNmWc.GetFBase(); if (!CsImpP){ FBaseWc = FBaseWc.GetUc(); }
   // get & assign file-name
   TStr FPath=FNmWc.GetFPath();
   FPathV.Add(TStr::GetNrFPath(FPath));
@@ -71,7 +71,7 @@ TFFile::TFFile(const TStr& _FPath, const TStr& _FExt, const bool& _RecurseP):
   FPathV.Add(TStr::GetNrFPath(_FPath));
   if (!_FExt.Empty()){
     FExtV.Add(TStr::GetNrFExt(_FExt));
-    if (!CsImpP){FExtV.Last().ToUc();}
+	if (!CsImpP){ FExtV.Last() = FExtV.Last().GetUc(); }
   }
 }
 
@@ -86,10 +86,10 @@ TFFile::TFFile(const TStrV& _FPathV, const TStrV& _FExtV, const TStr& _FBaseWc,
   // prepare file-extensions
   for (int FExtN=0; FExtN<FExtV.Len(); FExtN++){
     FExtV[FExtN]=TStr::GetNrFExt(FExtV[FExtN]);
-    if (!CsImpP){FExtV[FExtN].ToUc();}
+	if (!CsImpP){ FExtV[FExtN] = FExtV[FExtN].GetUc(); }
   }
   // prepare file-base wild-card
-  if (!CsImpP){FBaseWc.ToUc();}
+  if (!CsImpP){ FBaseWc = FBaseWc.GetUc(); }
 }
 
 #ifdef GLib_WIN
@@ -123,7 +123,7 @@ bool TFFile::Next(TStr& FNm){
         // return file-name if fits
         if ((FBase!=".")&&(FBase!="..")){
           FNm=FPathV[FPathN]+FBase;
-          TStr FExt=FNm.GetFExt(); if (!CsImpP){FExt.ToUc(); FBase.ToUc();}
+          TStr FExt=FNm.GetFExt(); if (!CsImpP){FExt = FExt.GetUc(); FBase = FBase.GetUc();}
           if (((FExtV.Empty())||(FExtV.SearchForw(FExt)!=-1))&&
            ((FBaseWc.Empty())||(FBase.IsWcMatch(FBaseWc)))){
             CurFNm=FNm; CurFNmN++; return true;}
@@ -155,7 +155,7 @@ bool TFFile::Next(TStr& FNm){
           TStr FBase=FFileDesc->GetFBase();
           if ((FBase!=".")&&(FBase!="..")){
             FNm=FPathV[FPathN]+FBase;
-            TStr FExt=FNm.GetFExt(); if (!CsImpP){FExt.ToUc(); FBase.ToUc();}
+            TStr FExt=FNm.GetFExt(); if (!CsImpP){FExt = FExt.GetUc(); FBase = FBase.GetUc();}
             if (((FExtV.Empty())||(FExtV.SearchForw(FExt)!=-1))&&
              ((FBaseWc.Empty())||(FBase.IsWcMatch(FBaseWc)))){
               CurFNm=FNm; CurFNmN++; return true;
@@ -198,11 +198,11 @@ bool TFFile::Next(TStr& FNm){
 
         struct stat Stat;
         int ErrCd = stat(FNm.CStr(), &Stat);
-        EAssert(ErrCd==0);
+        if (ErrCd != 0) { EAssert(ErrCd==0); }
 
         if (S_ISREG(Stat.st_mode)) {
           if ((FBase!=".")&&(FBase!="..")){
-            TStr FExt=FNm.GetFExt(); if (!CsImpP){FExt.ToUc(); FBase.ToUc();}
+            TStr FExt=FNm.GetFExt(); if (!CsImpP){FExt = FExt.GetUc(); FBase = FBase.GetUc();}
             if (((FExtV.Empty())||(FExtV.SearchForw(FExt)!=-1))&&
              ((FBaseWc.Empty())||(FBase.IsWcMatch(FBaseWc)))){
               CurFNm=FNm; CurFNmN++; return true;}
@@ -221,7 +221,7 @@ bool TFFile::Next(TStr& FNm){
         FFileDesc->DirEnt = NULL;
         int ErrCd = closedir(FFileDesc->FDesc);
         FFileDesc->FDesc = NULL;
-        EAssert(ErrCd==0);
+        if (ErrCd != 0) { EAssert(ErrCd==0); }
         break;
       }
     }
@@ -345,6 +345,7 @@ void TFileLock::Unlock() {
   // check we still have lock file
   EAssertR(TFile::Exists(LockFNm), "Missing lock file");
   // make sure we are deleting our lock file
+  TStr bla = TStr::LoadTxt(LockFNm);
   EAssertR(LockId == TStr::LoadTxt(LockFNm), "Mismatch between lock files");
   // delete the lock file (relasing the lock)
   EAssertR(TFile::Del(LockFNm, false), "Error deleting lock file");

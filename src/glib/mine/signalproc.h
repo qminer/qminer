@@ -485,6 +485,7 @@ private:
     public:
         TNeuron();
         TNeuron(TInt OutputsN, TInt MyId, TTFunc TransFunc);
+        TNeuron(TSIn& SIn);
 
         void SetOutVal(const TFlt& Val) { OutputVal = Val; }
         void SetDeltaWeight(const TInt& InNodeId, const TFlt& Val) { OutEdgeV[InNodeId].Val3 = Val; }
@@ -502,6 +503,8 @@ private:
         void FeedFwd(const TLayer& PrevLayer);
         void CalcOutGradient(TFlt TargVal);
         void CalcHiddenGradient(const TLayer& NextLayer);
+        // Save the model
+        void Save(TSOut& SOut);
     };
 
     /////////////////////////////////////////
@@ -513,6 +516,7 @@ private:
     public:
         TLayer();
         TLayer(const TInt& NeuronsN, const TInt& OutputsN, const TTFunc& TransFunc);
+        TLayer(TSIn& SIn);
 
         int GetNeuronN() const { return NeuronV.Len(); };
         TNeuron& GetNeuron(const TInt& NeuronN) { return NeuronV[NeuronN]; };
@@ -528,6 +532,8 @@ private:
         void CalcOutGradient(int& NeuronN, const TFlt& TargVal) { NeuronV[NeuronN].CalcOutGradient(TargVal); };
         void CalcHiddenGradient(int& NeuronN, const TLayer& NextLayer) { NeuronV[NeuronN].CalcHiddenGradient(NextLayer); };
         void FeedFwd(const TInt& NeuronN, const TLayer& PrevLayer) { NeuronV[NeuronN].FeedFwd(PrevLayer); };
+        // Save the model
+        void Save(TSOut& SOut);
     };
 
     TVec<TLayer> LayerV; 
@@ -543,10 +549,12 @@ public:
     TNNet(const TIntV& LayoutV, const TFlt& _LearnRate = 0.1, 
             const TFlt& _Momentum = 0.5, const TTFunc& TFuncHiddenL = tanHyper,
             const TTFunc& TFuncOutL = tanHyper);
+    TNNet(TSIn& SIn); // JOST: A rabim tudi nov PNNet za ta konstruktor?===
 	static PNNet New(const TIntV& LayoutV, const TFlt& _LearnRate = 0.1, 
             const TFlt& _Momentum = 0.5, const TTFunc& TFuncHiddenL = tanHyper,
             const TTFunc& TFuncOutL = tanHyper)
 			{ return new TNNet(LayoutV, _LearnRate, _Momentum, TFuncHiddenL, TFuncOutL); }
+	static PNNet Load(TSIn& SIn);
     // Feed forward step
     void FeedFwd(const TFltV& InValV);
     // Back propagation step
@@ -555,6 +563,9 @@ public:
     void GetResults(TFltV& ResultV) const;
     // Set learn rate
     void SetLearnRate(const TFlt& NewLearnRate) { LearnRate = NewLearnRate; };
+    // Save the model
+    void Save(TSOut& SOut) const;
+
 };
 
 /////////////////////////////////////////
@@ -589,7 +600,11 @@ public:
 	TRecLinReg& operator =(TRecLinReg LinReg);
 
 	// returns the dimension of the instances
-	int GetDim() const { return Coeffs.GetDim(); }
+	int GetDim() const { return Coeffs.Len(); }
+	// returns the forgetting factor
+	double GetForgetFact() const { return ForgetFact; }
+	// returns the regulatization parameter
+	double GetRegFact() const { return RegFact; }
 	// learns a new sample
 	void Learn(const TFltV& Sample, const double& SampleVal);
 	// predicts a value

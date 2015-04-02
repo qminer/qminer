@@ -1701,7 +1701,7 @@ namespace TQm {
 		if (Store->IsJoinNm(JoinNm)) {
 			return DoJoin(Base, Store->GetJoinId(JoinNm));
 		} else {
-			return TRecSet::New();
+			throw TQmExcept::New("Unknown join " + JoinNm);
 		}
 	}
 
@@ -1863,9 +1863,9 @@ namespace TQm {
 		RecIdFqV.Load(SIn);
 	}
 
-	PRecSet TRecSet::New() {
+	/*PRecSet TRecSet::New() {
 		return new TRecSet();
-	}
+	}*/
 
 	PRecSet TRecSet::New(const TWPt<TStore>& Store) {
 		return new TRecSet(Store, TUInt64V());
@@ -2088,14 +2088,14 @@ namespace TQm {
 		return CloneRecSet;
 	}
 
-	PRecSet TRecSet::GetMerge(const TVec<PRecSet>& RecSetV) {
-		if (RecSetV.Len() == 0)
-			return TRecSet::New();
-		PRecSet RecSet = RecSetV[0]->Clone();
-		for (int N = 1; N < RecSetV.Len(); N++)
-			RecSet->Merge(RecSetV[N]);
-		return RecSet;
-	}
+	//PRecSet TRecSet::GetMerge(const TVec<PRecSet>& RecSetV) {
+	//	if (RecSetV.Len() == 0)
+	//		return TRecSet::New();
+	//	PRecSet RecSet = RecSetV[0]->Clone();
+	//	for (int N = 1; N < RecSetV.Len(); N++)
+	//		RecSet->Merge(RecSetV[N]);
+	//	return RecSet;
+	//}
 
 	void TRecSet::Merge(const PRecSet& RecSet) {
 		QmAssert(RecSet->GetStoreId() == GetStoreId());
@@ -2167,12 +2167,11 @@ namespace TQm {
 	PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm,
 		const int& SampleSize, const bool& SortedP) const {
 
-		if (Store->IsJoinNm(JoinNm)) {
-			return DoJoin(Base, Store->GetJoinId(JoinNm), SampleSize, SortedP);
-		} else {
-			return TRecSet::New();
-		}
+	if (Store->IsJoinNm(JoinNm)) {
+		return DoJoin(Base, Store->GetJoinId(JoinNm), SampleSize, SortedP);
 	}
+    throw TQmExcept::New("Unknown join " + JoinNm);
+}
 
 	PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV, const bool& SortedP) const {
 		PRecSet RecSet = DoJoin(Base, JoinIdV[0].Val1, JoinIdV[0].Val2, SortedP);
@@ -2761,7 +2760,7 @@ namespace TQm {
 			TStr KeyNm; PJsonVal KeyVal;
 			JsonVal->GetObjKeyVal(KeyN, KeyNm, KeyVal);
 			// check type
-			if (KeyNm.IsPrefix("$")) {
+			if (KeyNm.StartsWith("$")) {
 				// special values
 				if (KeyNm == "$or") {
 					if (!IgnoreOrP) {

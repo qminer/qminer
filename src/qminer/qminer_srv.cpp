@@ -101,7 +101,7 @@ void TSfWordVoc::GetWordVoc(const TStrKdV& FldNmValPrV, TStrIntPrV& WordStrFqV) 
 			const int Words = WordStrFqV.Len();
 			for (int WordN = 0; WordN < Words; WordN++) {
 				const TStr& WordStr = WordStrFqV[WordN].Val1;
-				if (WordStr.IsPrefix(PrefixStr)) {
+				if (WordStr.StartsWith(PrefixStr)) {
 					const int WordFq = WordStrFqV[WordN].Val2;
 					WordFqStrV.Add(TIntStrPr(WordFq, WordStr));
 				}

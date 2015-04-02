@@ -1,0 +1,4 @@
+/**
+* Hashtable module.
+* @module ht
+*/

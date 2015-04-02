@@ -581,7 +581,7 @@ private:
     /// Flag if we are using in-memory store
     TBool DataMemP;
 	/// Store for parts of records that should be in-memory
-	TInMemStorage DataMem; 
+	TInMemStorage DataMem;
 	/// Serializator to disk
 	TRecSerializator SerializatorCache;
 	/// Serializator to memory
@@ -728,29 +728,32 @@ public:
     /// Set field value using field id (default implementation throws exception)
     void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV);
     /// Set field value using field id (default implementation throws exception)
-    void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);    
+    void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);
+
+    /// Helper function for returning JSon definition of store
+    PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
 };
 
 ///////////////////////////////
 /// Create new stores from a schema and add them to an existing base
-TVec<TWPt<TStore> > CreateStoresFromSchema(const PBase& Base, const PJsonVal& SchemaVal, 
+TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, 
     const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H());
 
 ///////////////////////////////
 /// Create new base given a schema definition
-PBase NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize, 
-    const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(), 
-    const bool& InitP = true);
+TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
+	const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
+	const bool& InitP = true);
 
 ///////////////////////////////
 /// Load base created from a schema definition
-PBase LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize, 
-    const uint64& StoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(), 
-    const bool& InitP = true);
+TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
+	const uint64& StoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
+	const bool& InitP = true);
 
 ///////////////////////////////
 /// Save base created from a schema definition
-void SaveBase(const PBase& Base);
+void SaveBase(const TWPt<TBase>& Base);
 
 } // TStorage name space
 
