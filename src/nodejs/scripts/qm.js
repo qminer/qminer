@@ -210,7 +210,7 @@ module.exports = exports = function (pathPrefix) {
 
     exports.Store.prototype.addStreamAggr = function (params) {
         // this == store instance: print //console.log(util.inspect(this, { colors: true })); 
-        var streamAggr = new exports.StreamAggr(this.base, params, this.name);
+        return new exports.StreamAggr(this.base, params, this.name);
     }
     
     //==================================================================

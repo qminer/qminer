@@ -1131,5 +1131,81 @@
     	return that;
     };
 
+    /** 
+    * @classdesc Anomaly detector that checks if the test point is too far from 
+    * the nearest known point.
+    * @class
+    * @param {Object} [detectorParam={rate:0.05}] - Constructor parameters
+    * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
+    */
+    exports.NearestNeighborAD = function(detectorParam) {
+        // Parameters
+        detectorParam = detectorParam == undefined ? {} : detectorParam;
+        detectorParam.rate = detectorParam.rate == undefined ? 0.05 : detectorParam.rate;
+        assert(detectorParam.rate > 0 && detectorParam.rate <= 1.0, 'rate parameter not in range (0,1]');
+        // model param
+        this.rate = detectorParam.rate;
+        // default model
+        this.thresh = 0;
+
+        /** 
+        * Gets the 100*(1-rate) percentile
+        * @param {module:la.Vector} vector - Vector of values
+        * @returns {number} Percentile
+        */
+        function getThreshold(vector, rate) {
+            var sorted = vector.sortPerm().vec;
+            var idx = Math.floor((1 - rate) * sorted.length);
+            return sorted[idx];
+        }
+        var neighborDistances = undefined;
+
+        /** 
+        * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
+        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+        * the model.
+        */
+        this.fit = function (A) {
+            this.X = A;
+            // distances
+            var D = la.pdist2(A, A);
+            // add big numbers on the diagonal (exclude the point itself from the nearest point calcualtion)
+            var E = D.plus(D.multiply(la.ones(D.rows)).diag()).multiply(-1);
+            var neighborDistances = new la.Vector({ vals: D.rows });
+            for (var i = 0; i < neighborDistances.length; i++) {
+                // nearest neighbour squared distance
+                neighborDistances[i] = D.at(i, E.rowMaxIdx(i));
+            }
+            this.thresh = getThreshold(neighborDistances, this.rate);
+        }
+
+        /** 
+        * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
+        * @param {module:la.Vector} x - Test vector
+        * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
+        */
+        this.predict = function (x) {
+            // compute squared dist and compare to thresh
+            var d = la.pdist2(this.X, x.toMat()).getCol(0);
+            var idx = d.multiply(-1).getMaxIdx();
+            var p = d[idx];
+            //console.log(p)
+            return p > this.thresh ? 1 : 0;
+        }
+
+        /** 
+        * Adds a new point (or points) to the known points and recomputes the threhshold
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
+        */
+        this.update = function (x) {
+            // append x to known examples and retrain (slow version)
+            // speedup 1: don't reallocate X every time (fixed window, circular buffer)
+            // speedup 2: don't recompute distances d(X,X), just d(X, y), get the minimum
+            // and append to neighborDistances
+            this.fit(la.cat([[this.X, x.toMat()]]));
+            //console.log('new threshold ' + this.thresh);
+        }
+    }
+
 
     

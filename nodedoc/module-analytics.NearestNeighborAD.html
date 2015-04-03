@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: SVC</title>
+    <title>JSDoc: Class: NearestNeighborAD</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: SVC</h1>
+    <h1 class="page-title">Class: NearestNeighborAD</h1>
 
     
 
@@ -31,10 +31,10 @@
         <h2>
             <span class="ancestors"><a href="module-analytics.html">analytics</a>.</span>
         
-        SVC
+        NearestNeighborAD
         </h2>
         
-            <div class="class-description">Support Vector Machine Classifier. Implements a soft margin linear support vector classifier using the PEGASOS algorithm, see: <a href="http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf">Pegasos: Primal Estimated sub-GrAdient SOlver for SVM</a>.</div>
+            <div class="class-description">Anomaly detector that checks if the test point is too far from the nearest known point.</div>
         
     
 </header>
@@ -48,15 +48,11 @@
     <h2>Constructor</h2>
     
 
-    <h4 class="name" id="SVC"><span class="type-signature"></span>new SVC<span class="signature">(arg)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="NearestNeighborAD"><span class="type-signature"></span>new NearestNeighborAD<span class="signature">(detectorParam<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 
     
 
 
-
-<div class="description">
-    SVC
-</div>
 
 
 
@@ -79,7 +75,11 @@
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
+        
+        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -91,26 +91,108 @@
 
         <tr>
             
-                <td class="name"><code>arg</code></td>
+                <td class="name"><code>detectorParam</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="module-fs.FIn.html">module:fs.FIn</a></span>
-|
-
-<span class="param-type"><a href="module-analytics.html#~svcParam">module:analytics~svcParam</a></span>
+<span class="param-type">Object</span>
 
 
             
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
 
+                
+
+                
+                </td>
             
 
-            <td class="description last">File input stream (loads the model from disk) or constructor parameters svcParam.</td>
+            
+                <td class="default">
+                
+                    {rate:0.05}
+                
+                </td>
+            
+
+            <td class="description last">Constructor parameters
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>rate</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    0.05
+                
+                </td>
+            
+
+            <td class="description last">The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
         </tr>
 
     
@@ -151,7 +233,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line60">line 60</a>
+        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line1141">line 1141</a>
     </li></ul></dd>
     
 
@@ -174,11 +256,6 @@
 
 
 
-
-
-    <h5>Example</h5>
-    
-    <pre class="prettyprint"><code>// import modulevar analytics = require('qminer').analytics;// CLASSIFICATION WITH SVC// Set up fake train and test data.// Four training examples with, number of features = 2var featureMatrix = new la.Matrix({rows:2, cols:4, random:true});// classification targets for four examplesvar targets = new la.Vector([-1, -1, 1, 1]);// Set up the classification modelvar SVC = new analytics.SVC({verbose:true});// Train classifierSVC.fit(featureMatrix, targets);// Save the model to diskSVC.save('svc.bin');*// Set up a fake test vectorvar test = new la.Vector([1.1, -0.5]);// Predict the target valuevar prediction = SVC.predict(test);</code></pre>
 
 
 
@@ -196,120 +273,6 @@
     
 
     
-        <h3 class="subsection-title">Members</h3>
-
-        
-            
-<h4 class="name" id="weights"><span class="type-signature"></span>weights<span class="type-signature"></span></h4>
-
-
-
-
-
-
-
-
-
-
-    <h5 class="subsection-title">Properties:</h5>
-
-    
-
-<table class="props">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>weights</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-la.Vector.html">module:la.Vector</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Vector of coefficients of the linear model</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line74">line 74</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-    
 
     
         <h3 class="subsection-title">Methods</h3>
@@ -319,14 +282,14 @@
 
     
 
-    <h4 class="name" id="fit"><span class="type-signature"></span>fit<span class="signature">(X, y)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="fit"><span class="type-signature"></span>fit<span class="signature">(A)</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    fits an SVM classification model, given column examples in a matrix and vector of targets
+    Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
 </div>
 
 
@@ -362,16 +325,13 @@
 
         <tr>
             
-                <td class="name"><code>X</code></td>
+                <td class="name"><code>A</code></td>
             
 
             <td class="type">
             
                 
 <span class="param-type"><a href="module-la.Matrix.html">module:la.Matrix</a></span>
-|
-
-<span class="param-type"><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span>
 
 
             
@@ -381,30 +341,7 @@
 
             
 
-            <td class="description last">Input feature matrix where columns correspond to feature vectors</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>y</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-la.Vector.html">module:la.Vector</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Input vector of targets, one for each column of X</td>
+            <td class="description last">Matrix whose columns correspond to known examples. Gets saved as it is part ofthe model.</td>
         </tr>
 
     
@@ -445,7 +382,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line92">line 92</a>
+        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line1168">line 1168</a>
     </li></ul></dd>
     
 
@@ -476,118 +413,14 @@
 
     
 
-    <h4 class="name" id="getParams"><span class="type-signature"></span>getParams<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="module-analytics.html#~svcParam">module:analytics~svcParam</a>}</span></h4>
+    <h4 class="name" id="predict"><span class="type-signature"></span>predict<span class="signature">(x)</span><span class="type-signature"> &rarr; {number}</span></h4>
 
     
 
 
 
 <div class="description">
-    returns the svc parameters
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line65">line 65</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Parameters of the classifier model.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-analytics.html#~svcParam">module:analytics~svcParam</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="predict"><span class="type-signature"></span>predict<span class="signature">(vec)</span><span class="type-signature"> &rarr; {number}</span></h4>
-
-    
-
-
-
-<div class="description">
-    sends vector through the model and returns the prediction as a real number
+    Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
 </div>
 
 
@@ -623,16 +456,13 @@
 
         <tr>
             
-                <td class="name"><code>vec</code></td>
+                <td class="name"><code>x</code></td>
             
 
             <td class="type">
             
                 
 <span class="param-type"><a href="module-la.Vector.html">module:la.Vector</a></span>
-|
-
-<span class="param-type"><a href="module-la.SparseVector.html">module:la.SparseVector</a></span>
 
 
             
@@ -642,7 +472,7 @@
 
             
 
-            <td class="description last">Input vector</td>
+            <td class="description last">Test vector</td>
         </tr>
 
     
@@ -683,7 +513,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line86">line 86</a>
+        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line1187">line 1187</a>
     </li></ul></dd>
     
 
@@ -710,7 +540,7 @@
 
         
 <div class="param-desc">
-    Prediction real number. Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).
+    Returns 1.0 if x is an anomaly and 0.0 otherwise
 </div>
 
 
@@ -736,14 +566,14 @@
 
     
 
-    <h4 class="name" id="save"><span class="type-signature"></span>save<span class="signature">(fout)</span><span class="type-signature"> &rarr; {<a href="module-fs.FOut.html">module:fs.FOut</a>}</span></h4>
+    <h4 class="name" id="update"><span class="type-signature"></span>update<span class="signature">(x)</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    saves model to output file stream
+    Adds a new point (or points) to the known points and recomputes the threhshold
 </div>
 
 
@@ -779,13 +609,16 @@
 
         <tr>
             
-                <td class="name"><code>fout</code></td>
+                <td class="name"><code>x</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="module-fs.FOut.html">module:fs.FOut</a></span>
+<span class="param-type"><a href="module-la.Vector.html">module:la.Vector</a></span>
+|
+
+<span class="param-type"><a href="module-la.Matrix.html">module:la.Matrix</a></span>
 
 
             
@@ -795,7 +628,7 @@
 
             
 
-            <td class="description last">Output stream.</td>
+            <td class="description last">Test example (vector input) or column examples (matrix input)</td>
         </tr>
 
     
@@ -836,7 +669,138 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line80">line 80</a>
+        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line1200">line 1200</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="~getThreshold"><span class="type-signature">(inner) </span>getThreshold<span class="signature">(vector)</span><span class="type-signature"> &rarr; {number}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Gets the 100*(1-rate) percentile
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>vector</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="module-la.Vector.html">module:la.Vector</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Vector of values</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line1156">line 1156</a>
     </li></ul></dd>
     
 
@@ -863,7 +827,7 @@
 
         
 <div class="param-desc">
-    Output stream
+    Percentile
 </div>
 
 
@@ -874,144 +838,13 @@
     </dt>
     <dd>
         
-<span class="param-type"><a href="module-fs.FOut.html">module:fs.FOut</a></span>
+<span class="param-type">number</span>
 
 
     </dd>
 </dl>
 
     
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="setParams"><span class="type-signature"></span>setParams<span class="signature">(param)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    sets the svc parameters
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>param</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-analytics.html#~svcParam">module:analytics~svcParam</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Classifier training parameters.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line70">line 70</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
