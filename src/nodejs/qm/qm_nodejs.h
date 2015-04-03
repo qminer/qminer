@@ -645,7 +645,6 @@ private:
 * Record
 * @classdesc Represents a record object. //TODO new constructor
 * @class
-* @param {}
 */
 //# exports.Record = function () {};
 class TNodeJsRec: public node::ObjectWrap {
@@ -707,8 +706,15 @@ private:
 
 /**
 * Record Set
-* @classdesc Represents the record set object. TODO new constructor
+* @classdesc Represents the record set object.  TODO new constructor
 * @class
+* @example
+* // import qm module
+* var qm = require('qminer');
+* // factory based construction using store.recs
+* var rs = store.recs;
+* // create with constructor
+* // TODO
 */
 //# exports.RecSet = function () {}
 class TNodeJsRecSet: public node::ObjectWrap {
@@ -735,10 +741,24 @@ private:
 	//! **Functions and properties:**
 	//!   
 	//!- `rs2 = rs.clone()` -- creates new instance of record set
+	/**
+	* Creates a new instance of the record set.
+	* @returns {module:qm.RecSet} A copy of the record set.
+	*/
+	//# exports.RecSet.prototype.clone = function () {};
 	JsDeclareFunction(clone);
+
 	//!- `rs2 = rs.join(joinName)` -- executes a join `joinName` on the records in the set, result is another record set `rs2`.
 	//!- `rs2 = rs.join(joinName, sampleSize)` -- executes a join `joinName` on a sample of `sampleSize` records in the set, result is another record set `rs2`.
+	/**
+	* Creates a new record set out of the join attribute of records.
+	* @param {string} joinName - The name of the join attribute.
+	* @param {number} [sampleSize] - The number of records to be used for construction of the record set.
+	* @returns {module:qm.RecSet} The record set containing the join records.
+	*/
+	//# exports.RecSet.prototype.join = function (joinName, sampleSize) {};
 	JsDeclareFunction(join);
+
 	//!- `aggrsJSON = rs.aggr()` -- returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set
 	//!- `aggr = rs.aggr(aggrQueryJSON)` -- computes the aggregates based on the `aggrQueryJSON` parameter JSON object. If only one aggregate is involved and an array of JSON objects when more than one are returned.
 	JsDeclareFunction(aggr);
@@ -795,13 +815,33 @@ private:
 	JsDeclareFunction(getMat);
 	
 	//!- `storeName = rs.store` -- store of the records
+	/**
+	* Returns the store, where the records in the record set are stored.
+	*/
+	//# exports.RecSet.prototype.store = undefined;
 	JsDeclareProperty(store);
+
 	//!- `len = rs.length` -- number of records in the set
+	/**
+	* Returns the number of records in record set.
+	*/
+	//# exports.RecSet.prototype.length = undefined;
 	JsDeclareProperty(length);
+
 	//!- `bool = rs.empty` -- `bool = true` when record set is empty
+	/**
+	* Checks if the record set is empty. If the record set is empty, then it returns true. Otherwise, it returns false.
+	*/
+	//# exports.RecSet.prototype.empty = undefined;
 	JsDeclareProperty(empty);
+
 	//!- `bool =  rs.weighted` -- `bool = true` when records in the set are assigned weights
+	/**
+	* Checks if the record set is weighted. If the record set is weighted, then it returns true. Otherwise, it returns false.
+	*/
+	//# exports.RecSet.prototype.weighted = undefined;
 	JsDeclareProperty(weighted);
+
 	//!- `rec = rs[n]` -- return n-th record from the record set
 	JsDeclIndexedProperty(indexId);
 };

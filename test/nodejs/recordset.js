@@ -71,9 +71,67 @@ describe('Record Set Tests', function () {
         table.close();
     });
 
-    describe('Store Test', function () {
-        it('should return the string "Movies"', function () {
-            assert.equal(recSet.store, "Movies");
+    describe('Length Test', function () {
+        it('should return the number of records', function () {
+            assert.equal(recSet.length, 2);
         })
-    })
+    });
+
+    describe('Store Test', function () {
+        it('should return the store of recSet', function () {
+            assert.equal(recSet.store.name, "Movies");
+        })
+    });
+
+    describe('Empty Test', function () {
+        it('should return false for a non-empty record set', function () {
+            assert(!recSet.empty);
+        })
+    });
+
+    describe('Weighted Test', function () {
+        it('should return false for non-weighted record sets', function () {
+            assert(!recSet.weighted);
+        })
+    });
+
+    describe('IndexId Test', function () {
+        it('should return the records of index 1 and 2', function () {
+            assert.equal(recSet[0].Title, "Every Day");
+            assert.equal(recSet[1].Title, "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on");
+        })
+    });
+
+    describe('Clone Test', function () {
+        it('should create a new instance of the record set', function () {
+            var recSet2 = recSet.clone();
+            assert.equal(recSet2.length, recSet.length);
+            assert.equal(recSet2[0].Title, recSet[0].Title);
+            assert.equal(recSet2[1].Title, recSet[1].Title);
+            assert.equal(recSet2.store.name, recSet.store.name)
+        })
+    });
+
+    describe('Join Test', function () {
+        it('should return all directors of some movie', function () {
+            var recSet2 = recSet.join("Director");
+            assert.equal(recSet2.length, 2);
+            assert.equal(recSet2[0].Name, "Levine Richard (III)");
+            assert.equal(recSet2[0].Gender, "Unknown");
+            assert.equal(recSet2[1].Name, "Reyes Tony Y.");
+            assert.equal(recSet2[1].Gender, "Unknown");
+        })
+        it('should return all actors of some movie', function () {
+            var recSet2 = recSet.join("Actor");
+            assert.equal(recSet2.length, 58);
+            assert.equal(recSet2[0].Name, "Beetem Chris");
+            assert.equal(recSet2[0].Gender, "Male");
+            assert.equal(recSet2[1].Name, "Carp Stan");
+            assert.equal(recSet2[1].Gender, "Male");
+        })
+        it('should return a record set of 1 sample record', function () {
+            var recSet2 = recSet.join("Director", 1);
+            assert.equal(recSet2.length, 1);
+        })
+    });
 })
