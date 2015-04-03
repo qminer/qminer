@@ -423,7 +423,7 @@ private:
 	* // create a store with some people with fields Name and Gender
 	* var store = //TODO
 	* // change the gender of all records to "Extraterrestrial"
-	* store.each(function (rec) { rec.Gender = "Extraterestrial"; });
+	* store.each(function (rec) { rec.Gender = "Extraterrestrial"; });
 	*/
 	//# exports.Store.prototype.each = function (callback) {}
 	JsDeclareFunction(each);

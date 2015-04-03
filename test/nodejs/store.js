@@ -277,6 +277,9 @@ describe('Store Tests', function () {
             assert(table.base.store("People")[0] == null);
             assert.equal(table.base.store("People")[1].Name, "Blaz Fortuna");
         })
+        it('should clear all the record in "People store"', function () {
+            assert.equal(table.base.store("People").clear(10), 0);
+        })
     });
 
     describe('GetVec Test', function () {
