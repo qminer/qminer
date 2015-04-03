@@ -1,5 +1,6 @@
 var nodefs = require('fs');
 var csv = require('fast-csv');
+var util = require('util');
 
 // typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
 module.exports = exports = function (pathPrefix) {
@@ -211,6 +212,11 @@ module.exports = exports = function (pathPrefix) {
     exports.Store.prototype.addStreamAggr = function (params) {
         // this == store instance: print //console.log(util.inspect(this, { colors: true })); 
         return new exports.StreamAggr(this.base, params, this.name);
+    }
+    
+    exports.Store.prototype.inspect = function (depth) {        
+        var d = depth == null ? 0 : depth;
+        return util.inspect(this, { depth:d,  'customInspect': false });
     }
     
     //==================================================================
