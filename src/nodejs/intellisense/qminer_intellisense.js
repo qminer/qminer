@@ -260,12 +260,46 @@ exports.datasets= require('qminer_datasets');
 * Record
 * @classdesc Represents a record object. //TODO new constructor
 * @class
-* @param {}
 */
  exports.Record = function () {};
 /**
 * Record Set
-* @classdesc Represents the record set object. TODO new constructor
+* @classdesc Represents the record set object.  TODO new constructor
 * @class
+* @example
+* // import qm module
+* var qm = require('qminer');
+* // factory based construction using store.recs
+* var rs = store.recs;
+* // create with constructor
+* // TODO
 */
  exports.RecSet = function () {}
+/**
+	* Creates a new instance of the record set.
+	* @returns {module:qm.RecSet} A copy of the record set.
+	*/
+ exports.RecSet.prototype.clone = function () {};
+/**
+	* Creates a new record set out of the join attribute of records.
+	* @param {string} joinName - The name of the join attribute.
+	* @param {number} [sampleSize] - The number of records to be used for construction of the record set.
+	* @returns {module:qm.RecSet} The record set containing the join records.
+	*/
+ exports.RecSet.prototype.join = function (joinName, sampleSize) {};
+/**
+	* Returns the store, where the records in the record set are stored.
+	*/
+ exports.RecSet.prototype.store = undefined;
+/**
+	* Returns the number of records in record set.
+	*/
+ exports.RecSet.prototype.length = undefined;
+/**
+	* Checks if the record set is empty. If the record set is empty, then it returns true. Otherwise, it returns false.
+	*/
+ exports.RecSet.prototype.empty = undefined;
+/**
+	* Checks if the record set is weighted. If the record set is weighted, then it returns true. Otherwise, it returns false.
+	*/
+ exports.RecSet.prototype.weighted = undefined;
