@@ -542,7 +542,7 @@ private:
 	//!- `vec = store.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
 	/**
 	* Gives a vector containing the field value of each record.
-	* @param {string} fieldName - The field where the data is taken from records.
+	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string
 	* @returns {module:la.Vector} The vector containing the field values of each record.
 	*/
 	//# exports.Store.prototype.getVec = function (fieldName) {};
@@ -640,6 +640,14 @@ private:
 
 ///////////////////////////////
 // NodeJs QMiner Record
+
+/**
+* Record
+* @classdesc Represents a record object. //TODO new constructor
+* @class
+* @param {}
+*/
+//# exports.Record = function () {};
 class TNodeJsRec: public node::ObjectWrap {
 private:
 	// Modified node framework: one record template per each base,storeId combination 
@@ -696,6 +704,13 @@ private:
 
 ///////////////////////////////
 // NodeJs QMiner Record Set
+
+/**
+* Record Set
+* @classdesc Represents the record set object. TODO new constructor
+* @class
+*/
+//# exports.RecSet = function () {}
 class TNodeJsRecSet: public node::ObjectWrap {
 private:
 	// Node framework

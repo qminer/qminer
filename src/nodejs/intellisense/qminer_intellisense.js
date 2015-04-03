@@ -206,7 +206,7 @@ exports.ht= require('qminer_ht');
  exports.Store.prototype.clear = function (num) {};
 /**
 	* Gives a vector containing the field value of each record.
-	* @param {string} fieldName - The field where the data is taken from records.
+	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string
 	* @returns {module:la.Vector} The vector containing the field values of each record.
 	*/
  exports.Store.prototype.getVec = function (fieldName) {};
@@ -254,3 +254,16 @@ exports.ht= require('qminer_ht');
 	* Returns an iterator for iterating over the store form end to start.
 	*/
  exports.Store.prototype.backwardIter = undefined;
+/**
+* Record
+* @classdesc Represents a record object. //TODO new constructor
+* @class
+* @param {}
+*/
+ exports.Record = function () {};
+/**
+* Record Set
+* @classdesc Represents the record set object. TODO new constructor
+* @class
+*/
+ exports.RecSet = function () {}
