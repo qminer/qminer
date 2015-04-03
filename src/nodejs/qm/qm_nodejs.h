@@ -423,7 +423,7 @@ private:
 	* // create a store with some people with fields Name and Gender
 	* var store = //TODO
 	* // change the gender of all records to "Extraterrestrial"
-	* store.each(function (rec) { rec.Gender = "Extraterestrial"; });
+	* store.each(function (rec) { rec.Gender = "Extraterrestrial"; });
 	*/
 	//# exports.Store.prototype.each = function (callback) {}
 	JsDeclareFunction(each);
@@ -542,7 +542,7 @@ private:
 	//!- `vec = store.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
 	/**
 	* Gives a vector containing the field value of each record.
-	* @param {string} fieldName - The field where the data is taken from records.
+	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string
 	* @returns {module:la.Vector} The vector containing the field values of each record.
 	*/
 	//# exports.Store.prototype.getVec = function (fieldName) {};
@@ -557,14 +557,14 @@ private:
 	/**
 	* Gives the name of the store.
 	*/
-	//# exports.Store.prototype.name = undefinied;
+	//# exports.Store.prototype.name = undefined;
 	JsDeclareProperty(name);
 
 	//!- `bool = store.empty` -- `bool = true` when store is empty
 	/**
 	* Checks if the store is empty.
 	*/
-	//# exports.Store.prototype.empty = undefinied;
+	//# exports.Store.prototype.empty = undefined;
 	JsDeclareProperty(empty);
 
 	//!- `len = store.length` -- number of records in the store
@@ -575,7 +575,12 @@ private:
 	JsDeclareProperty(length);
 
 	//!- `rs = store.recs` -- create a record set containing all the records from the store
+	/**
+	* Creates a record set containing all the records from the store.
+	*/
+	//# exports.Store.prototype.recs = undefined;
 	JsDeclareProperty(recs);
+
 	//!- `objArr = store.fields` -- array of all the field descriptor JSON objects
 	/**
 	* Gives an array of all field descriptor JSON objects.
@@ -584,17 +589,47 @@ private:
 	JsDeclareProperty(fields);
 
 	//!- `objArr = store.joins` -- array of all the join names
+	/**
+	* Gives an array of all join descriptor JSON objects.
+	*/
+	//# exports.Store.prototype.joins = undefined;
 	JsDeclareProperty(joins);
+
 	//!- `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
+	/**
+	* Gives an array of all key descriptor JSON objects.
+	*/
+	//# exports.Store.prototype.keys = undefined;
 	JsDeclareProperty(keys);
+
 	//!- `rec = store.first` -- first record from the store
+	/**
+	* Returns the first record of the store.
+	*/
+	//# exports.Store.prototype.first = undefined;
 	JsDeclareProperty(first);
+
 	//!- `rec = store.last` -- last record from the store
+	/**
+	* Returns the last record of the store.
+	*/
+	//# exports.Store.prototype.last = undefined;
 	JsDeclareProperty(last);
+
 	//!- `iter = store.forwardIter` -- returns iterator for iterating over the store from start to end
+	/**
+	* Returns an iterator for iterating over the store from start to end.
+	*/
+	//# exports.Store.prototype.forwardIter = undefined;
 	JsDeclareProperty(forwardIter);
+
 	//!- `iter = store.backwardIter` -- returns iterator for iterating over the store from end to start
+	/**
+	* Returns an iterator for iterating over the store form end to start.
+	*/
+	//# exports.Store.prototype.backwardIter = undefined;
 	JsDeclareProperty(backwardIter);
+
 	//!- `rec = store[recId]` -- get record with ID `recId`; 
 	//!     returns `null` when no such record exists
 	JsDeclIndexedProperty(indexId);	
@@ -605,6 +640,14 @@ private:
 
 ///////////////////////////////
 // NodeJs QMiner Record
+
+/**
+* Record
+* @classdesc Represents a record object. //TODO new constructor
+* @class
+* @param {}
+*/
+//# exports.Record = function () {};
 class TNodeJsRec: public node::ObjectWrap {
 private:
 	// Modified node framework: one record template per each base,storeId combination 
@@ -661,6 +704,13 @@ private:
 
 ///////////////////////////////
 // NodeJs QMiner Record Set
+
+/**
+* Record Set
+* @classdesc Represents the record set object. TODO new constructor
+* @class
+*/
+//# exports.RecSet = function () {}
 class TNodeJsRecSet: public node::ObjectWrap {
 private:
 	// Node framework

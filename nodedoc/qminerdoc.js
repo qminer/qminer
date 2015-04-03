@@ -126,7 +126,7 @@
 	* // create a store with some people with fields Name and Gender
 	* var store = //TODO
 	* // change the gender of all records to "Extraterrestrial"
-	* store.each(function (rec) { rec.Gender = "Extraterestrial"; });
+	* store.each(function (rec) { rec.Gender = "Extraterrestrial"; });
 	*/
  exports.Store.prototype.each = function (callback) {}
 /**
@@ -198,23 +198,64 @@
  exports.Store.prototype.clear = function (num) {};
 /**
 	* Gives a vector containing the field value of each record.
-	* @param {string} fieldName - The field where the data is taken from records.
+	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string
 	* @returns {module:la.Vector} The vector containing the field values of each record.
 	*/
  exports.Store.prototype.getVec = function (fieldName) {};
 /**
 	* Gives the name of the store.
 	*/
- exports.Store.prototype.name = undefinied;
+ exports.Store.prototype.name = undefined;
 /**
 	* Checks if the store is empty.
 	*/
- exports.Store.prototype.empty = undefinied;
+ exports.Store.prototype.empty = undefined;
 /**
 	* Gives the number of records.
 	*/
  exports.Store.prototype.length = 0;
 /**
+	* Creates a record set containing all the records from the store.
+	*/
+ exports.Store.prototype.recs = undefined;
+/**
 	* Gives an array of all field descriptor JSON objects.
 	*/
  exports.Store.prototype.fields = undefinied;
+/**
+	* Gives an array of all join descriptor JSON objects.
+	*/
+ exports.Store.prototype.joins = undefined;
+/**
+	* Gives an array of all key descriptor JSON objects.
+	*/
+ exports.Store.prototype.keys = undefined;
+/**
+	* Returns the first record of the store.
+	*/
+ exports.Store.prototype.first = undefined;
+/**
+	* Returns the last record of the store.
+	*/
+ exports.Store.prototype.last = undefined;
+/**
+	* Returns an iterator for iterating over the store from start to end.
+	*/
+ exports.Store.prototype.forwardIter = undefined;
+/**
+	* Returns an iterator for iterating over the store form end to start.
+	*/
+ exports.Store.prototype.backwardIter = undefined;
+/**
+* Record
+* @classdesc Represents a record object. //TODO new constructor
+* @class
+* @param {}
+*/
+ exports.Record = function () {};
+/**
+* Record Set
+* @classdesc Represents the record set object. TODO new constructor
+* @class
+*/
+ exports.RecSet = function () {}

@@ -277,6 +277,9 @@ describe('Store Tests', function () {
             assert(table.base.store("People")[0] == null);
             assert.equal(table.base.store("People")[1].Name, "Blaz Fortuna");
         })
+        it('should clear all the record in "People store"', function () {
+            assert.equal(table.base.store("People").clear(10), 0);
+        })
     });
 
     describe('GetVec Test', function () {
@@ -466,6 +469,22 @@ describe("Two Store Tests", function () {
         })
     });
 
+    describe('First Test', function () {
+        it('should return the first record of store "Person"', function () {
+            var record = table.base.store("People").first;
+            assert.equal(record.Name, "Carolina Fortuna");
+            assert.equal(record.Gender, "Female");
+        })
+    });
+
+    describe('Last Test', function () {
+        it('should return the last record of the store "People"', function () {
+            var record = table.base.store("People").last;
+            assert.equal(record.Name, "Blaz Fortuna");
+            assert.equal(record.Gender, "Male");
+        })
+    })
+
     describe('Add Movie Test', function () {
 
         it('should add a movie and all people that acted or directed', function () {
@@ -482,14 +501,6 @@ describe("Two Store Tests", function () {
             assert.equal(table.base.store("Movies")[0].Year, table.movie.Year);
             assert.equal(table.base.store("Movies")[0].Genres.length, table.movie.Genres.length);
             assert.equal(table.base.store("Movies")[0].Director.Name, "Levine Richard (III)");
-        })
-        it('should go through the Movies Iteration', function () {
-            table.addMovie(table.movie);
-
-            var MoviesIter = table.base.store("Movies").forwardIter;
-            assert.equal(MoviesIter.next(), true);
-            assert.equal(MoviesIter.rec.$id, 0);
-            assert.equal(MoviesIter.next(), false);
         })
         it('should add 2 movies and all the people that acted or directed', function () {
             table.addMovie(table.movie);
@@ -510,6 +521,38 @@ describe("Two Store Tests", function () {
             assert.equal(table.base.store("Movies")[1].Director.Name, "Reyes Tony Y.");
         })
     });
+
+    describe('ForwardIter Test', function () {
+        it('should go through the Movies iteration from start to end', function () {
+            table.addMovie(table.movie);
+            table.addMovie(table.movie2);
+
+            var MoviesIter = table.base.store("Movies").forwardIter;
+            assert.equal(MoviesIter.next(), true);
+            assert.equal(MoviesIter.rec.$id, 0);
+            assert.equal(MoviesIter.rec.Title, "Every Day");
+            assert.equal(MoviesIter.next(), true);
+            assert.equal(MoviesIter.rec.$id, 1);
+            assert.equal(MoviesIter.rec.Title, "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on");
+            assert.equal(MoviesIter.next(), false);
+        })
+    });
+
+    describe('BackwardIter Test', function () {
+        it('should go through the Movie iteration from end to start', function () {
+            table.addMovie(table.movie);
+            table.addMovie(table.movie2);
+
+            var MoviesIter = table.base.store("Movies").backwardIter;
+            assert.equal(MoviesIter.next(), true);
+            assert.equal(MoviesIter.rec.$id, 1);
+            assert.equal(MoviesIter.rec.Title, "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on");
+            assert.equal(MoviesIter.next(), true);
+            assert.equal(MoviesIter.rec.$id, 0);
+            assert.equal(MoviesIter.rec.Title, "Every Day");
+            assert.equal(MoviesIter.next(), false);
+        })
+    })
 
     describe('Sample Test', function () {
         it('should return a sample of persons out of People', function () {
