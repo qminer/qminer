@@ -485,9 +485,9 @@ public:
 	void Test_SizeTest(int cache_size = 1 * 1024 * 1024, int split_len = 1000) {
 		TStr Nm("Test_Feed");
 		TStr FName("data");
-		int loops = 600*1000;
+		int loops = 200*1000;
 		int total_words = 20000;
-		int article_max_len = 50;
+		int article_max_len = 20;
 		int keys = 0;
 		cache_size *= 10;
         printf("***** size=%d\n", sizeof(TMyItem));
@@ -499,19 +499,19 @@ public:
 			int doc_counter = 0;
 			for (int i = 0; i < loops; i++) {
 				//// every doc contains the same word(s)
-				//for (int j = 1; j <= total_words; j++) {
+				//for (int j = 1; j <= article_max_len; j++) {
 				//	gix.AddItem(TIntUInt64Pr(j, j), TMyItem(doc_counter, 1));
 				//}
 				
-				//// pick random words
-				//int r = rnd.GetUniDevInt(article_max_len);
-				//for (int j = 1; j <= r; j++) {
-				//	int k = rnd.GetUniDevInt(total_words);
-				//	gix.AddItem(TIntUInt64Pr(k, k), TMyItem(doc_counter, 1));
-				//}
+				// pick random words
+				int r = rnd.GetUniDevInt(article_max_len);
+				for (int j = 1; j <= r; j++) {
+					int k = rnd.GetUniDevInt(total_words);
+					gix.AddItem(TIntUInt64Pr(k, k), TMyItem(doc_counter, 1));
+				}
 
-				// each document contains single, unique word => itemset length = 1
-				gix.AddItem(TIntUInt64Pr(doc_counter, doc_counter), TMyItem(doc_counter, 1));
+				//// each document contains single, unique word => itemset length = 1
+				//gix.AddItem(TIntUInt64Pr(doc_counter, doc_counter), TMyItem(doc_counter, 1));
 
 				doc_counter++;
 				if (i % 10000 == 0) {
@@ -522,12 +522,23 @@ public:
 			gix.PartialFlush(100 * 1000);
 			gix.PrintStats();
 
+			std::cout << "------- ";
+			std::cout << "Before disposing hash - press key to continue: ";
+			getchar();
+
 			gix.KillHash();
             gix.PrintStats();
+
+			std::cout << "------- ";
+			std::cout << "Before disposing cache - press key to continue: ";
+			getchar();
 
 			gix.KillCache();
 			gix.PrintStats();
 
+			std::cout << "------- ";
+			std::cout << "Done - press key to continue: ";
+			getchar();
 			//_ASSERTE(_CrtCheckMemory());
 			//_CrtDumpMemoryLeaks();
 		}

@@ -1059,7 +1059,7 @@ int64 TCache<TKey, TDat, THashFunc>::GetMemUsed() const {
 	
     MemUsed += KeyDatH.GetMemUsedFlat();
     MemUsed += TimeKeyL.GetMemUsed();
-
+	int cnt = 0;
     int KeyId = KeyDatH.FFirstKeyId();
     while (KeyDatH.FNextKeyId(KeyId)) {
 		//const TKey& Key = KeyDatH.GetKey(KeyId);
@@ -1072,7 +1072,9 @@ int64 TCache<TKey, TDat, THashFunc>::GetMemUsed() const {
 			//sizeof(TKeyLN) +
 			//sizeof(TLstNd<TKey>)
             );
+		cnt++;
 	}   
+	EAssert(cnt == KeyDatH.Len());
 
 	return MemUsed;
 }

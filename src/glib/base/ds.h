@@ -528,7 +528,7 @@ public:
     return ValT[ValN];}
   /// Returns the memory footprint (the number of bytes) of the vector.
   uint64 GetMemUsed() const {
-      return TSizeTy(2 * sizeof(TVal) + sizeof(TSizeTy)*(MxVals != -1 ? MxVals : 0));
+	  return TSizeTy(2 * sizeof(TSizeTy) + sizeof(TVal*) + sizeof(TVal)*(MxVals != -1 ? MxVals : 0));
   }
   /// Returns the memory footprint (the number of bytes) of the vector.
   uint64 GetMemUsedDeep() const {
@@ -542,7 +542,7 @@ public:
   }
   /// Returns the memory size (the number of bytes) of a binary representation.
   TSizeTy GetMemSize(bool flat = true) const {
-	 return TSizeTy(2*sizeof(TVal)+sizeof(TSizeTy)*Vals);
+	  return TSizeTy(2 * sizeof(TVal) + sizeof(TVal)*Vals);
   }
   
   /// Returns primary hash code of the vector. Used by \c THash.
