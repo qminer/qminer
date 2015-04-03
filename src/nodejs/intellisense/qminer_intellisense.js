@@ -231,11 +231,11 @@ exports.ht= require('qminer_ht');
 	*/
  exports.Store.prototype.fields = undefinied;
 /**
-	* Creates an array of all the join objects.
+	* Gives an array of all join descriptor JSON objects.
 	*/
  exports.Store.prototype.joins = undefined;
 /**
-	* Creates an array of all the key objects.
+	* Gives an array of all key descriptor JSON objects.
 	*/
  exports.Store.prototype.keys = undefined;
 /**
@@ -251,6 +251,6 @@ exports.ht= require('qminer_ht');
 	*/
  exports.Store.prototype.forwardIter = undefined;
 /**
-	* Returns an iterator for iterating over the sotre form end to start.
+	* Returns an iterator for iterating over the store form end to start.
 	*/
  exports.Store.prototype.backwardIter = undefined;
