@@ -205,16 +205,44 @@
 /**
 	* Gives the name of the store.
 	*/
- exports.Store.prototype.name = undefinied;
+ exports.Store.prototype.name = undefined;
 /**
 	* Checks if the store is empty.
 	*/
- exports.Store.prototype.empty = undefinied;
+ exports.Store.prototype.empty = undefined;
 /**
 	* Gives the number of records.
 	*/
  exports.Store.prototype.length = 0;
 /**
+	* Creates a record set containing all the records from the store.
+	*/
+ exports.Store.prototype.recs = undefined;
+/**
 	* Gives an array of all field descriptor JSON objects.
 	*/
  exports.Store.prototype.fields = undefinied;
+/**
+	* Creates an array of all the join objects.
+	*/
+ exports.Store.prototype.joins = undefined;
+/**
+	* Creates an array of all the key objects.
+	*/
+ exports.Store.prototype.keys = undefined;
+/**
+	* Returns the first record of the store.
+	*/
+ exports.Store.prototype.first = undefined;
+/**
+	* Returns the last record of the store.
+	*/
+ exports.Store.prototype.last = undefined;
+/**
+	* Returns an iterator for iterating over the store from start to end.
+	*/
+ exports.Store.prototype.forwardIter = undefined;
+/**
+	* Returns an iterator for iterating over the sotre form end to start.
+	*/
+ exports.Store.prototype.backwardIter = undefined;

@@ -557,14 +557,14 @@ private:
 	/**
 	* Gives the name of the store.
 	*/
-	//# exports.Store.prototype.name = undefinied;
+	//# exports.Store.prototype.name = undefined;
 	JsDeclareProperty(name);
 
 	//!- `bool = store.empty` -- `bool = true` when store is empty
 	/**
 	* Checks if the store is empty.
 	*/
-	//# exports.Store.prototype.empty = undefinied;
+	//# exports.Store.prototype.empty = undefined;
 	JsDeclareProperty(empty);
 
 	//!- `len = store.length` -- number of records in the store
@@ -575,7 +575,12 @@ private:
 	JsDeclareProperty(length);
 
 	//!- `rs = store.recs` -- create a record set containing all the records from the store
+	/**
+	* Creates a record set containing all the records from the store.
+	*/
+	//# exports.Store.prototype.recs = undefined;
 	JsDeclareProperty(recs);
+
 	//!- `objArr = store.fields` -- array of all the field descriptor JSON objects
 	/**
 	* Gives an array of all field descriptor JSON objects.
@@ -584,17 +589,47 @@ private:
 	JsDeclareProperty(fields);
 
 	//!- `objArr = store.joins` -- array of all the join names
+	/**
+	* Creates an array of all the join objects.
+	*/
+	//# exports.Store.prototype.joins = undefined;
 	JsDeclareProperty(joins);
+
 	//!- `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
+	/**
+	* Creates an array of all the key objects.
+	*/
+	//# exports.Store.prototype.keys = undefined;
 	JsDeclareProperty(keys);
+
 	//!- `rec = store.first` -- first record from the store
+	/**
+	* Returns the first record of the store.
+	*/
+	//# exports.Store.prototype.first = undefined;
 	JsDeclareProperty(first);
+
 	//!- `rec = store.last` -- last record from the store
+	/**
+	* Returns the last record of the store.
+	*/
+	//# exports.Store.prototype.last = undefined;
 	JsDeclareProperty(last);
+
 	//!- `iter = store.forwardIter` -- returns iterator for iterating over the store from start to end
+	/**
+	* Returns an iterator for iterating over the store from start to end.
+	*/
+	//# exports.Store.prototype.forwardIter = undefined;
 	JsDeclareProperty(forwardIter);
+
 	//!- `iter = store.backwardIter` -- returns iterator for iterating over the store from end to start
+	/**
+	* Returns an iterator for iterating over the sotre form end to start.
+	*/
+	//# exports.Store.prototype.backwardIter = undefined;
 	JsDeclareProperty(backwardIter);
+
 	//!- `rec = store[recId]` -- get record with ID `recId`; 
 	//!     returns `null` when no such record exists
 	JsDeclIndexedProperty(indexId);	
