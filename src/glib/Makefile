@@ -2,7 +2,7 @@
 # GLib makefile
 #
 
-include ../../Makefile.config
+include Makefile.config
 
 # library headers include
 LIBUV = ../third_party/libuv/include

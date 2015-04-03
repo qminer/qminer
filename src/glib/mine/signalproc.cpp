@@ -538,11 +538,11 @@ TFlt TNNet::TNeuron::TransferFcn(TFlt Sum){
         case fastTanh:
            // sigmoid output range [-1.0..1.0]
            // training data should be scaled to what the transfer function can handle
-           return Sum / (1.0 + abs(Sum));
+           return Sum / (1.0 + fabs(Sum));
         case fastSigmoid:
            // sigmoid output range [0.0..1.0]
            // training data should be scaled to what the transfer function can handle
-           return (Sum / 2.0) / (1.0 + abs(Sum)) + 0.5;
+           return (Sum / 2.0) / (1.0 + fabs(Sum)) + 0.5;
         case linear:
             return Sum;         
     };
@@ -562,9 +562,9 @@ TFlt TNNet::TNeuron::TransferFcnDeriv(TFlt Sum){
            return Fun * (1.0 - Fun);
         }
         case fastTanh:
-           return 1.0 / ((1.0 + abs(Sum)) * (1.0 + abs(Sum)));
+           return 1.0 / ((1.0 + fabs(Sum)) * (1.0 + fabs(Sum)));
         case fastSigmoid:
-           return 1.0 / (2.0 * (1.0 + abs(Sum)) * (1.0 + abs(Sum)));
+           return 1.0 / (2.0 * (1.0 + fabs(Sum)) * (1.0 + fabs(Sum)));
         case linear:
             return 1;         
     };
