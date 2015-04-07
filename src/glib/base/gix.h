@@ -1139,7 +1139,7 @@ void TGix<TKey, TItem, TGixMerger>::SaveTxt(const TStr& FNm, const PGixKeyStr& K
 		// get statistics
 		TStr KeyNm = KeyStr->GetKeyNm(Key);
 		const int Items = ItemSet->GetItems();
-		const int MemUsed = ItemSet->GetMemUsed();
+		const uint64 MemUsed = ItemSet->GetMemUsed();
 		// output statistics
 		FOut.PutStrFmtLn("%s\t%d\t%d", KeyNm.CStr(), Items, MemUsed);
 	}
