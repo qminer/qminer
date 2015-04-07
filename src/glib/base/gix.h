@@ -1183,7 +1183,7 @@ void TGix<TKey, TItem, TGixMerger>::PrintStats() {
 		Stats.CacheAll, Stats.CacheDirty, Stats.CacheAllLoadedPerc, Stats.CacheDirtyLoadedPerc,
 		Stats.AvgLen, Stats.MemUsed);
 	const TBlobBsStats& blob_stats = ItemSetBlobBs->GetStats();
-	printf(".... gix blob stats - puts=%" PRIu64 " puts_new=%" PRIu64 " gets=%" PRIu64 " dels=%" PRIu64 " size_chngs=%" PRIu64 " avg_len_get=%f avg_len_put=%f avg_len_put_new=%f\n",
+	printf(".... gix blob stats - puts=%u puts_new=%u gets=%u dels=%u size_chngs=%u avg_len_get=%f avg_len_put=%f avg_len_put_new=%f\n",
 		blob_stats.Puts, blob_stats.PutsNew, blob_stats.Gets,
 		blob_stats.Dels, blob_stats.SizeChngs, blob_stats.AvgGetLen, blob_stats.AvgPutLen, blob_stats.AvgPutNewLen);
 	ItemSetBlobBs->ResetStats();
