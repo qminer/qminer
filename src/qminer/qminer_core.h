@@ -1857,6 +1857,10 @@ private:
 	TRec Rec;
 	/// Store which this query node returns
 	TUInt StoreId;
+	// This flag indicates which Gix is used in this query its (and its children)
+	TQueryGixUsedType GixFlag;
+	// This method recalculates gix flag - called after query is created
+	void SetGixFlag();
 	
 	/// Parse Value for leaf nodes (result stored in WordIdV)
 	void ParseWordStr(const TStr& WordStr, const TWPt<TIndexVoc>& IndexVoc);
@@ -1951,6 +1955,8 @@ public:
 
 	/// Calculates Gix-usage flag
 	TQueryGixUsedType GetGixFlag() const;
+	/// Optimizes query tree by removing unneeded nodes
+	void Optimize();
 
 	/// Get result store id
 	uint GetStoreId(const TWPt<TBase>& Base) const;
@@ -2065,6 +2071,9 @@ private:
 	TInt Limit;
 	/// Return only records after (and including the) Offset-th record
 	TInt Offset;
+
+	/// Internal method that traverses through the query tree and removes unneeded nodes
+	void Optimize();
 
 	TQuery(const TWPt<TBase>& Base, const TQueryItem& _QueryItem, const int& _SortFieldId, 
 		const bool& _SortAscP, const int& _Limit, const int& _Offset);

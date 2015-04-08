@@ -2863,6 +2863,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const PJsonVal& JsonVal) {
 	} else {
 		throw TQmExcept::New("Query: expected an object: '" + TJsonVal::GetStrFromVal(JsonVal) + "'");
 	}
+	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const PJsonVal& JsonVal) {
@@ -2881,6 +2882,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
 	}
 	// parse the rest of the keys
 	ParseKeys(Base, Store, JsonVal, false);
+	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const TStr& KeyNm, const PJsonVal& KeyVal) {
@@ -2969,23 +2971,26 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
 	} else {
 		throw TQmExcept::New("Query: Invalid key definition: '" + TJsonVal::GetStrFromVal(KeyVal) + "'");
 	}
+	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TWPt<TStore>& Store, const uint64& RecId) :
-	Type(oqitRec), Rec(Store, RecId) {}
+	Type(oqitRec), Rec(Store, RecId) { SetGixFlag(); }
 
 TQueryItem::TQueryItem(const TRec& _Rec) :
-	Type(oqitRec), Rec(_Rec) {}
+	Type(oqitRec), Rec(_Rec) { SetGixFlag(); }
 
 TQueryItem::TQueryItem(const PRecSet& _RecSet) :
 	Type(oqitRecSet), RecSet(_RecSet) {
 	RecSet->SortById();
+	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
 	const uint64& WordId, const TQueryCmpType& _CmpType) : Type(oqitLeafGix),
 	KeyId(_KeyId), CmpType(_CmpType) {
 	WordIdV.Add(WordId);
+	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
@@ -2998,6 +3003,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
 	CmpType = _CmpType;
 	// parse the word string
 	ParseWordStr(WordStr, Base->GetIndexVoc());
+	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm,
@@ -3010,6 +3016,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr&
 	CmpType = _CmpType;
 	// parse the word string
 	ParseWordStr(WordStr, Base->GetIndexVoc());
+	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm,
@@ -3023,6 +3030,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr&
 	CmpType = _CmpType;
 	// parse the word string
 	ParseWordStr(WordStr, Base->GetIndexVoc());
+	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
@@ -3030,6 +3038,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
 	Type(oqitGeo), KeyId(_KeyId), Loc(_Loc), LocRadius(_LocRadius),
 	LocLimit(_LocLimit) {
 	QmAssert(LocLimit > 0);
+	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const uint& StoreId,
@@ -3041,6 +3050,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const uint& StoreId,
 	// get the key
 	QmAssertR(Base->GetIndexVoc()->IsKeyNm(StoreId, KeyNm), "Unknown Key Name: " + KeyNm);
 	KeyId = Base->GetIndexVoc()->GetKeyId(StoreId, KeyNm);
+	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm,
@@ -3053,32 +3063,38 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm,
 	const uint StoreId = Base->GetStoreByStoreNm(StoreNm)->GetStoreId();
 	QmAssertR(Base->GetIndexVoc()->IsKeyNm(StoreId, KeyNm), "Unknown Key Name: " + KeyNm);
 	KeyId = Base->GetIndexVoc()->GetKeyId(StoreId, KeyNm);
+	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TQueryItemType& _Type) : Type(_Type) {
 	QmAssert(Type == oqitAnd || Type == oqitOr);
+	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TQueryItemType& _Type, const TQueryItem& Item) :
 	Type(_Type), ItemV(1, 0) {
 	ItemV.Add(Item);
 	QmAssert(Type == oqitAnd || Type == oqitOr || Type == oqitNot);
+	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TQueryItemType& _Type, const TQueryItem& Item1,
 	const TQueryItem& Item2) : Type(_Type), ItemV(2, 0) {
 	ItemV.Add(Item1); ItemV.Add(Item2);
 	QmAssert(Type == oqitAnd || Type == oqitOr);
+	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TQueryItemType& _Type, const TQueryItemV& _ItemV) :
 	Type(_Type), ItemV(_ItemV) {
 	QmAssert(Type == oqitAnd || Type == oqitOr);
+	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const int& _JoinId, const int& _SampleSize, const TQueryItem& Item) :
 	Type(oqitJoin), ItemV(1, 0), JoinId(_JoinId), SampleSize(_SampleSize) {
 	ItemV.Add(Item);
+	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& JoinNm, const int& _SampleSize,
@@ -3089,6 +3105,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& JoinNm, const int& _
 	const uint StoreId = Item.GetStoreId(Base);
 	const TWPt<TStore>& Store = Base->GetStoreByStoreId(StoreId);
 	JoinId = Store->GetJoinId(JoinNm);
+	SetGixFlag();
 }
 
 uint TQueryItem::GetStoreId(const TWPt<TBase>& Base) const {
@@ -3159,7 +3176,32 @@ void TQueryItem::GetKeyWordV(TKeyWordV& KeyWordPrV) const {
 }
 	
 TQueryGixUsedType TQueryItem::GetGixFlag() const {
-	TQueryGixUsedType GixFlag = qgutUnknown;
+	//TQueryGixUsedType GixFlag = qgutUnknown;
+	//if (IsLeafGix()) {
+	//	GixFlag = qgutNormal;
+	//} else if (IsLeafGixSmall()) {
+	//	GixFlag = qgutSmall;
+	//} else {
+	//	GixFlag = qgutNone;
+	//	int flag = 0;
+	//	for (int i = 0; i < GetItems(); i++) {
+	//		TQueryGixUsedType res = GetItem(i).GetGixFlag();
+	//		if (res == qgutNormal) { flag |= 1; } 
+	//		else if (res == qgutSmall) { flag |= 2; } 
+	//		else if (res == qgutBoth) { flag |= 3; break; }
+	//	}
+	//	if (flag == 1) { GixFlag = qgutNormal; } 
+	//	else if (flag == 2) { GixFlag = qgutSmall; } 
+	//	else if (flag == 3) { GixFlag = qgutBoth; }
+	//}
+	return GixFlag;
+}
+
+void TQueryItem::SetGixFlag() {
+	for (int i = 0; i < GetItems(); i++) {
+		ItemV[i].SetGixFlag();
+	}
+	GixFlag = qgutUnknown;
 	if (IsLeafGix()) {
 		GixFlag = qgutNormal;
 	} else if (IsLeafGixSmall()) {
@@ -3169,15 +3211,22 @@ TQueryGixUsedType TQueryItem::GetGixFlag() const {
 		int flag = 0;
 		for (int i = 0; i < GetItems(); i++) {
 			TQueryGixUsedType res = GetItem(i).GetGixFlag();
-			if (res == qgutNormal) { flag |= 1; } 
-			else if (res == qgutSmall) { flag |= 2; } 
-			else if (res == qgutBoth) { flag |= 3; break; }
+			if (res == qgutNormal) { flag |= 1; } else if (res == qgutSmall) { flag |= 2; } else if (res == qgutBoth) { flag |= 3; break; }
 		}
-		if (flag == 1) { GixFlag = qgutNormal; } 
-		else if (flag == 2) { GixFlag = qgutSmall; } 
-		else if (flag == 3) { GixFlag = qgutBoth; }
+		if (flag == 1) { GixFlag = qgutNormal; } else if (flag == 2) { GixFlag = qgutSmall; } else if (flag == 3) { GixFlag = qgutBoth; }
 	}
-	return GixFlag;
+}
+
+void TQueryItem::Optimize() {
+	for (int i = 0; i < GetItems(); i++) {
+		TQueryItem& child = ItemV[i];
+		child.Optimize();
+		if (child.ItemV.Len() == 1 && (child.Type == oqitAnd || child.Type == oqitOr)) {
+			// child is AND/OR with single child => promote grandchild to child
+			TQueryItem grandchild = ItemV[i].ItemV[0];
+			ItemV[i] = grandchild;
+		}
+	}
 }
 
 ///////////////////////////////
@@ -3263,7 +3312,12 @@ PQuery TQuery::New(const TWPt<TBase>& Base, const PJsonVal& JsonVal) {
 	if (JsonVal->IsObjKey("$offset")) {
 		Query->Offset = TFlt::Round(JsonVal->GetObjNum("$offset"));
 	}
+	Query->Optimize();
 	return Query;
+}
+
+void TQuery::Optimize() {
+	QueryItem.Optimize();
 }
 
 PQuery TQuery::New(const TWPt<TBase>& Base, const TStr& QueryStr) {
@@ -4142,9 +4196,9 @@ void TIndex::SearchOr(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV)
 	TVec<PQmGixExpItemSmall> ExpItemSmallV(KeyWordV.Len(), 0);
 	for (int ItemN = 0; ItemN < KeyWordV.Len(); ItemN++) {			
 		if (UseGixSmall(KeyWordV[ItemN].Val1)) {
-			ExpItemV.Add(TQmGixExpItem::NewItem(KeyWordV[ItemN]));
-		} else {
 			ExpItemSmallV.Add(TQmGixExpItemSmall::NewItem(KeyWordV[ItemN]));
+		} else {
+			ExpItemV.Add(TQmGixExpItem::NewItem(KeyWordV[ItemN]));
 		}
 	}
 	PQmGixExpItem ExpItem = TQmGixExpItem::NewOrV(ExpItemV);
