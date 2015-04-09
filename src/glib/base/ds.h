@@ -73,7 +73,7 @@ public:
   bool operator<(const TPair& Pair) const {
     return (Val1<Pair.Val1)||((Val1==Pair.Val1)&&(Val2<Pair.Val2));}
 
-  int GetMemUsed() const {return Val1.GetMemUsed()+Val2.GetMemUsed();}
+  uint64 GetMemUsed() const {return Val1.GetMemUsed()+Val2.GetMemUsed();}
 
   int GetPrimHashCd() const {return TPairHashImpl::GetHashCd(Val1.GetPrimHashCd(), Val2.GetPrimHashCd()); }
   int GetSecHashCd() const {return TPairHashImpl::GetHashCd(Val2.GetSecHashCd(), Val1.GetSecHashCd()); }
@@ -391,6 +391,7 @@ public:
 
   int GetPrimHashCd() const {return Key.GetPrimHashCd();}
   int GetSecHashCd() const {return Key.GetSecHashCd();}
+  uint64 GetMemUsed() const { return Key.GetMemUsed() + Dat.GetMemUsed(); }
 };
 
 template <class TKey, class TDat>
@@ -533,11 +534,23 @@ public:
     AssertR((0<=ValN)&&(ValN<Vals), GetXOutOfBoundsErrMsg(ValN));
     return ValT[ValN];}
   /// Returns the memory footprint (the number of bytes) of the vector.
-  TSizeTy GetMemUsed() const {
-    return TSizeTy(2*sizeof(TSizeTy)+sizeof(TVal*)+MxVals*sizeof(TVal));}
+  uint64 GetMemUsed() const {
+	  return TSizeTy(2 * sizeof(TSizeTy) + sizeof(TVal*) + sizeof(TVal)*(MxVals != -1 ? MxVals : 0));
+  }
+  /// Returns the memory footprint (the number of bytes) of the vector.
+  uint64 GetMemUsedDeep() const {
+	  uint64 MemSize = 2 * sizeof(TSizeTy) + sizeof(TVal*);
+	  if (ValT != NULL && MxVals != -1){
+		  for (TSizeTy i = 0; i < MxVals; i++){
+			  MemSize += ValT[i].GetMemUsed();
+		  }
+	  }
+	  return MemSize;
+  }
   /// Returns the memory size (the number of bytes) of a binary representation.
-  TSizeTy GetMemSize() const {
-    return TSizeTy(2*sizeof(TVal)+sizeof(TSizeTy)*Vals);}
+  TSizeTy GetMemSize(bool flat = true) const {
+	  return TSizeTy(2 * sizeof(TVal) + sizeof(TVal)*Vals);
+  }
   
   /// Returns primary hash code of the vector. Used by \c THash.
   int GetPrimHashCd() const;
@@ -2899,7 +2912,9 @@ public:
 
   PLstNd SearchForw(const TVal& Val);
   PLstNd SearchBack(const TVal& Val);
-
+  uint64 GetMemUsed() const {
+	  return uint64(sizeof(int) + 2 * sizeof(PLstNd) + Nds * sizeof(TLstNd<TVal>));
+  }
   friend class TLstNd<TVal>;
 };
 

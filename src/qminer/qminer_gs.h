@@ -75,11 +75,11 @@ public:
 	TIndexKeyEx() {}
 
     /// Is indexed by value
-	bool IsValue() const { return KeyType == oiktValue; }
+	bool IsValue() const { return (KeyType & oiktValue) > 0; }
     /// Is indexed as text (tokenized)
-	bool IsText() const { return KeyType == oiktText; }
+	bool IsText() const { return (KeyType & oiktText) > 0; }
     /// Is indexed as geo-location
-	bool IsLocation() const { return KeyType == oiktLocation; }
+	bool IsLocation() const { return (KeyType & oiktLocation) > 0; }
 	// get index type
 	TStr GetKeyType() const { return IsValue() ? "value" : IsText() ? "text" : "location"; }
 
@@ -106,7 +106,8 @@ public:
 	TStoreJoinType JoinType;
     /// Name of reverse join (empty if none)
 	TStr InverseJoinName;
-    
+    /// Flag if index should use small storage
+	TBool IsSmall;
 public:
 	TJoinDescEx(): JoinType(osjtUndef) { }
 };
@@ -239,12 +240,13 @@ public:
 /// Serialization and de-serialization of records to TMem.
 /// This class handles smart serialization of JSON with respect to field 
 /// serialization definitions. It supports NULL flags. It packs fixed-width 
-/// fields together. Variable-width fields are store in two parts - first 
+/// fields together. Variable-width fields are stored in two parts - first 
 /// there's an index array so that for each field we store its offset inside 
 /// the buffer. Then there is the real variable-length part where the content
 /// is stored.
 class TRecSerializator {
 private:
+
     ///////////////////////////////
     /// Field serialization parameters.
     /// This class contains data about field serialization
@@ -489,11 +491,11 @@ private:
                 FieldTypeStr(_FieldTypeStr), KeyId(_KeyId), KeyType(_KeyType), WordVocId(_WordVocId) { }
 
         /// Is indexed by value
-        bool IsValue() const { return KeyType == oiktValue; }
+        bool IsValue() const { return (KeyType & oiktValue) > 0; }
         /// Is indexed as text (tokenized)
-        bool IsText() const { return KeyType == oiktText; }
+		bool IsText() const { return (KeyType & oiktText) > 0; }
         /// Is indexed as geo-location
-        bool IsLocation() const { return KeyType == oiktLocation; }
+		bool IsLocation() const { return (KeyType & oiktLocation) > 0; }
         // get index type
         TStr GetKeyType() const { return IsValue() ? "value" : IsText() ? "text" : "location"; }
     };    

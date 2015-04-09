@@ -331,6 +331,8 @@ TBlobPt TGBlobBs::PutBlob(const PSIn& SIn){
     AssertBlobTag(FBlobBs, btEnd);
   }
   FBlobBs->Flush();
+  Stats.PutsNew++;
+  Stats.AvgPutNewLen += (BfL - Stats.AvgPutNewLen) / Stats.PutsNew;
   return BlobPt;
 }
 
@@ -343,6 +345,7 @@ TBlobPt TGBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn){
   int MxBfL=FBlobBs->GetInt();
   AssertBlobState(FBlobBs, bsActive);
   if (BfL>MxBfL){
+	Stats.SizeChngs++;
     DelBlob(BlobPt);
     return PutBlob(SIn);
   } else {
@@ -353,6 +356,8 @@ TBlobPt TGBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn){
     FBlobBs->PutCs(Cs);
     PutBlobTag(FBlobBs, btEnd);
     FBlobBs->Flush();
+    Stats.Puts++;
+    Stats.AvgPutLen += (BfL - Stats.AvgPutLen) / Stats.Puts;
     return BlobPt;
   }
 }
@@ -368,6 +373,8 @@ PSIn TGBlobBs::GetBlob(const TBlobPt& BlobPt){
   TCs FCs=FBlobBs->GetCs();
   AssertBlobTag(FBlobBs, btEnd);
   AssertBfCsEqFlCs(BfCs, FCs);
+  Stats.Gets++;
+  Stats.AvgGetLen += (BfL - Stats.AvgGetLen) / Stats.Gets;
   return SIn;
 }
 
@@ -390,6 +397,7 @@ void TGBlobBs::DelBlob(const TBlobPt& BlobPt){
   FBlobBs->PutCh(TCh::NullCh, MxBfL+sizeof(TCs));                      // erase existing content
   AssertBlobTag(FBlobBs, btEnd);
   FBlobBs->Flush();                                                    // write to disk
+  Stats.Dels++;
 }
 
 TBlobPt TGBlobBs::FFirstBlobPt(){
@@ -599,4 +607,17 @@ bool TMBlobBs::Exists(const TStr& BlobBsFNm){
   TStr NrFPath; TStr NrFMid; GetNrFPathFMid(BlobBsFNm, NrFPath, NrFMid);
   TStr MainFNm=GetMainFNm(NrFPath, NrFMid);
   return TFile::Exists(MainFNm);
+}
+
+const TBlobBsStats& TMBlobBs::GetStats() {
+	Stats.Reset();
+	for (int i = 0; i < SegV.Len(); i++)
+		Stats.Add(SegV[i]->GetStats());
+	return Stats;
+}
+
+void TMBlobBs::ResetStats() {
+	Stats.Reset();
+	for (int i = 0; i < SegV.Len(); i++)
+		SegV[i]->ResetStats();
 }

@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E5503094-AFDB-4567-928B-1862CE6343FD}</ProjectGuid>
+    <ProjectGuid>{C3763141-9532-4B95-99B7-55918407EF8F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>GixTest</RootNamespace>
+    <RootNamespace>WholeTest</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -100,7 +100,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\..\glib\base;..\..\..\..\glib\misc;..\..\..\..\glib\net;..\..\..\..\glib\mine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\qminer;..\..\..\..\glib\base;..\..\..\..\glib\misc;..\..\..\..\glib\net;..\..\..\..\glib\mine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -150,7 +150,14 @@
     <ClCompile Include="..\..\..\..\glib\base\base.cpp" />
     <ClCompile Include="..\..\..\..\glib\mine\mine.cpp" />
     <ClCompile Include="..\..\..\..\glib\net\net.cpp" />
-    <ClCompile Include="GixTest.cpp" />
+    <ClCompile Include="..\..\..\..\qminer\qminer_aggr.cpp" />
+    <ClCompile Include="..\..\..\..\qminer\qminer_core.cpp" />
+    <ClCompile Include="..\..\..\..\qminer\qminer_ftr.cpp" />
+    <ClCompile Include="..\..\..\..\qminer\qminer_gs.cpp" />
+    <ClCompile Include="..\..\..\..\qminer\qminer_op.cpp" />
+    <ClCompile Include="..\..\..\..\qminer\qminer_snap.cpp" />
+    <ClCompile Include="..\..\..\..\qminer\qminer_srv.cpp" />
+    <ClCompile Include="WholeTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\glib\base\gix.h" />

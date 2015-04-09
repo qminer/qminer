@@ -37,6 +37,7 @@ class TRec;
 class TRecSet; typedef TPt<TRecSet> PRecSet;
 class TIndexVoc; typedef TPt<TIndexVoc> PIndexVoc;
 class TIndex; typedef TPt<TIndex> PIndex;
+class TIndex2; typedef TPt<TIndex2> PIndex2;
 class TOp; typedef TPt<TOp> POp;
 class TAggr; typedef TPt<TAggr> PAggr;
 class TStreamAggr; typedef TPt<TStreamAggr> PStreamAggr;
@@ -170,7 +171,7 @@ public:
 	TJoinDesc(): JoinId(-1), JoinStoreId(TUInt::Mx), JoinType(osjtUndef), InverseJoinId(-1) { } 
 	/// Create an index based join (1-N or N-M)
 	TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId,
-		const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc);
+		const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc, const bool& IsSmall);
 	/// Create a field based join (1-1)
 	TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId, const int& _JoinRecFieldId,
         const int& _JoinFqFieldId): JoinId(-1), JoinNm(_JoinNm), JoinStoreId(_JoinStoreId), 
@@ -1491,7 +1492,8 @@ typedef enum {
 	oiktValue    = (1 << 0), ///< Index by exact value, using inverted index
 	oiktText     = (1 << 1), ///< Index as free text, using inverted index 
 	oiktLocation = (1 << 2), ///< Index as location. using geoindex 
-	oiktInternal = (1 << 3)  ///< Index used internaly for joins, using inverted index
+	oiktInternal = (1 << 3), ///< Index used internaly for joins, using inverted index
+	oiktSmall    = (1 << 4), ///< Index uses small Gix storage type
 } TIndexKeyType;
 
 ///////////////////////////////
@@ -1530,11 +1532,16 @@ private:
 public:
 	/// Empty constructor creates undefined key
 	TIndexKey(): StoreId(TUInt::Mx), KeyId(-1), KeyNm(""), 
-		WordVocId(-1), TypeFlags(oiktUndef), SortType(oikstUndef) { }
+		WordVocId(-1), TypeFlags(oiktUndef), SortType(oikstUndef) {}
 	/// Create internal key, used for index joins
-	TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm): 
-		StoreId(_StoreId), KeyNm(_KeyNm), WordVocId(-1), TypeFlags(oiktInternal), 
-		SortType(oikstUndef), JoinNm(_JoinNm) { TValidNm::AssertValidNm(KeyNm); }
+	TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm, const bool& IsSmall) :
+		StoreId(_StoreId), KeyNm(_KeyNm), WordVocId(-1), TypeFlags(oiktInternal),
+		SortType(oikstUndef), JoinNm(_JoinNm) {
+		if (IsSmall) {
+			TypeFlags = (TIndexKeyType)(TypeFlags | oiktSmall);
+		}
+		TValidNm::AssertValidNm(KeyNm);
+	}
 	/// Create new key using given word vocabulary
 	TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const int& _WordVocId, 
 		const TIndexKeyType& _Type, const TIndexKeySortType& _SortType);
@@ -1555,7 +1562,6 @@ public:
 	/// Set key id (used only when creating new keys)
 	void PutKeyId(const int& _KeyId) { KeyId = _KeyId; }
 
-
     /// Get key type
     TIndexKeyType GetTypeFlags() const { return TypeFlags; }
 	/// Checks key type is value
@@ -1566,6 +1572,8 @@ public:
 	bool IsLocation() const { return ((TypeFlags & oiktLocation) != 0); }
 	/// Checks key type is internal
 	bool IsInternal() const { return ((TypeFlags & oiktInternal) != 0); }
+	/// Get flag that instructs index to use small gix
+	bool IsSmall() const { return (TypeFlags & oiktSmall) != 0; }
 
 	/// Get key sort type
 	TIndexKeySortType GetSortType() const { return SortType; }
@@ -1734,7 +1742,7 @@ public:
 	int AddKey(const uint& StoreId, const TStr& KeyNm, const int& WordVocId, 
 		const TIndexKeyType& Type, const TIndexKeySortType& SortType = oikstUndef);
 	/// Create new internal key
-	int AddInternalKey(const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm);
+	int AddInternalKey(const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm, const bool& IsSmall);
 	/// Linking key to a field
 	void AddKeyField(const int& KeyId, const uint& StoreId, const int& FieldId);
     /// Check if store has any index keys
@@ -1790,6 +1798,7 @@ public:
 typedef enum { 
 	oqitUndef        = 0, 
 	oqitLeafGix      = 1, ///< Leaf inverted index query
+	oqitLeafGixSmall = 10,///< Leaf inverted index query - for small items
 	oqitGeo          = 8, ///< Geoindex query
 	oqitAnd          = 2, ///< AND between two or more queries
 	oqitOr           = 3, ///< OR between two or more queries
@@ -1811,6 +1820,16 @@ typedef enum {
 	oqctNotEqual = 4, ///< Not equal (!=)
 	oqctWildChar = 5  ///< Wildchar string matching (* for zero or more chars, ? for exactly one char)
 } TQueryCmpType;
+
+////////////////////////////////
+/// Flags which gix objects are used in certain query
+typedef enum {
+	qgutUnknown = 0,       ///< Value not known yet
+	qgutNone = 1,          ///< No gix used
+	qgutNormal = 2,        ///< Normal gix is used
+	qgutSmall = 3,         ///< Small-gix is used
+	qgutBoth = 4           ///< Both gixes are used
+} TQueryGixUsedType;
 
 ///////////////////////////////
 /// Query Item
@@ -1845,6 +1864,10 @@ private:
 	TRec Rec;
 	/// Store which this query node returns
 	TUInt StoreId;
+	// This flag indicates which Gix is used in this query its (and its children)
+	TQueryGixUsedType GixFlag;
+	// This method recalculates gix flag - called after query is created
+	void SetGixFlag();
 	
 	/// Parse Value for leaf nodes (result stored in WordIdV)
 	void ParseWordStr(const TStr& WordStr, const TWPt<TIndexVoc>& IndexVoc);
@@ -1865,7 +1888,7 @@ private:
 	/// Construct query item, where key value is given as json
 	TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
 		const TStr& KeyNm, const PJsonVal& KeyVal);
-
+		
 public:
 	/// New undefined item (necessary for resizing vectors)
 	TQueryItem() { };
@@ -1923,6 +1946,8 @@ public:
 	/// Check query type
 	bool IsLeafGix() const { return (Type == oqitLeafGix); }
 	/// Check query type
+	bool IsLeafGixSmall() const { return (Type == oqitLeafGixSmall); }
+	/// Check query type
 	bool IsGeo() const { return (Type == oqitGeo); }
 	/// Check query type
 	bool IsAnd() const { return (Type == oqitAnd); }
@@ -1934,6 +1959,11 @@ public:
 	bool IsJoin() const { return (Type == oqitJoin); }
 	/// Check query type
 	bool IsStore() const { return (Type == oqitStore); }
+
+	/// Calculates Gix-usage flag
+	TQueryGixUsedType GetGixFlag() const;
+	/// Optimizes query tree by removing unneeded nodes
+	void Optimize();
 
 	/// Get result store id
 	uint GetStoreId(const TWPt<TBase>& Base) const;
@@ -2049,6 +2079,9 @@ private:
 	/// Return only records after (and including the) Offset-th record
 	TInt Offset;
 
+	/// Internal method that traverses through the query tree and removes unneeded nodes
+	void Optimize();
+
 	TQuery(const TWPt<TBase>& Base, const TQueryItem& _QueryItem, const int& _SortFieldId, 
 		const bool& _SortAscP, const int& _Limit, const int& _Offset);
 public:
@@ -2102,10 +2135,13 @@ private:
 	friend class TPt<TIndex>;
 public:
     // gix template definitions
-	typedef TKeyWord TQmGixKey; // (KeyId, WordId)
+	typedef TKeyWord TQmGixKey; // (int KeyId, uint64 WordId)
 	typedef TKeyDat<TUInt64, TInt> TQmGixItem; // [RecId, Freq]
+	typedef TKeyDat<TUInt, TSInt> TQmGixItemSmall; // [RecId, Freq]
 	typedef TVec<TQmGixItem> TQmGixItemV;
+	typedef TVec<TQmGixItemSmall> TQmGixItemSmallV;
 	typedef TPt<TGixExpMerger<TQmGixKey, TQmGixItem> > PQmGixExpMerger;
+	typedef TPt<TGixExpMerger<TQmGixKey, TQmGixItemSmall> > PQmGixExpMergerSmall;
 	typedef TPt<TGixKeyStr<TQmGixKey> > PQmGixKeyStr;
 
     /// Merger which sums up the frequencies
@@ -2126,6 +2162,25 @@ public:
 		bool IsLtE(const TQmGixItem& Item1, const TQmGixItem& Item2) const { return Item1 <= Item2; }
 	};
 
+	/// Merger which sums up the frequencies
+	/// For small index data
+	class TQmGixDefMergerSmall : public TGixExpMerger<TQmGixKey, TQmGixItemSmall> {
+	public:
+		static PGixExpMerger New() { return new TQmGixDefMergerSmall(); }
+
+		// overriden abstract methods
+		void Union(TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV) const;
+		void Intrs(TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV) const;
+		void Minus(const TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV, TQmGixItemSmallV& ResV) const;
+		void Def(const TQmGixKey& Key, TQmGixItemSmallV& MainV) const {}
+
+		// methods needed for template
+		void Merge(TQmGixItemSmallV& ItemV, bool IsLocal) const;
+		void Delete(const TQmGixItemSmall& Item, TQmGixItemSmallV& MainV) const { return MainV.DelAll(Item); }
+		bool IsLt(const TQmGixItemSmall& Item1, const TQmGixItemSmall& Item2) const { return Item1 < Item2; }
+		bool IsLtE(const TQmGixItemSmall& Item1, const TQmGixItemSmall& Item2) const { return Item1 <= Item2; }
+	};
+
 	/// Merger which sums the frequencies but removes the duplicates (e.g. 3+1 = 1+1 = 2)
 	class TQmGixRmDupMerger : public TQmGixDefMerger {
 	public:
@@ -2133,6 +2188,16 @@ public:
 
 		void Union(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const;
 		void Intrs(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const;
+	};
+
+	/// Merger which sums the frequencies but removes the duplicates (e.g. 3+1 = 1+1 = 2)
+	/// For small index data
+	class TQmGixRmDupMergerSmall : public TQmGixDefMergerSmall {
+	public:
+		static PGixExpMerger New() { return new TQmGixRmDupMergerSmall(); }
+
+		void Union(TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV) const;
+		void Intrs(TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV) const;
 	};
 
 	/// Giving pretty names to GIX keys when printing debug statistics
@@ -2151,11 +2216,17 @@ public:
 
 	// more typedefs
 	typedef TGixItemSet<TQmGixKey, TQmGixItem, TQmGixDefMerger> TQmGixItemSet;
+	typedef TGixItemSet<TQmGixKey, TQmGixItemSmall, TQmGixDefMergerSmall> TQmGixItemSetSmall;
 	typedef TPt<TQmGixItemSet> PQmGixItemSet;
+	typedef TPt<TQmGixItemSetSmall> PQmGixItemSetSmall;
 	typedef TGix<TQmGixKey, TQmGixItem, TQmGixDefMerger> TQmGix;
+	typedef TGix<TQmGixKey, TQmGixItemSmall, TQmGixDefMergerSmall> TQmGixSmall;
 	typedef TPt<TQmGix> PQmGix;
+	typedef TPt<TQmGixSmall> PQmGixSmall;
 	typedef TGixExpItem<TQmGixKey, TQmGixItem, TQmGixDefMerger> TQmGixExpItem;
+	typedef TGixExpItem<TQmGixKey, TQmGixItemSmall, TQmGixDefMergerSmall> TQmGixExpItemSmall;
 	typedef TPt<TQmGixExpItem> PQmGixExpItem;
+	typedef TPt<TQmGixExpItemSmall> PQmGixExpItemSmall;
 
 private:    
 	/// Remember index location
@@ -2164,26 +2235,50 @@ private:
     TFAccess Access;
     /// Inverted index
     mutable PQmGix Gix;
+	/// Inverted index - small
+	mutable PQmGixSmall GixSmall;
+
 	/// Location index
 	THash<TInt, PGeoIndex> GeoIndexH;
     /// Index Vocabulary
     PIndexVoc IndexVoc;
 	/// Inverted Index Default Merger
 	PQmGixExpMerger DefMerger;
+	/// Inverted Index Default Merger Small
+	PQmGixExpMergerSmall DefMergerSmall;
 
     /// Converts query item tree to GIX query expression
 	PQmGixExpItem ToExpItem(const TQueryItem& QueryItem) const;
+	/// Converts query item tree to GIX-small query expression
+	PQmGixExpItemSmall ToExpItemSmall(const TQueryItem& QueryItem) const;
     /// Executes GIX query expression against the index
     bool DoQuery(const PQmGixExpItem& ExpItem, const PQmGixExpMerger& Merger, 
 		TQmGixItemV& RecIdFqV) const;
+	/// Executes GIX-small query expression against the index
+	bool DoQuerySmall(const PQmGixExpItemSmall& ExpItem, const PQmGixExpMergerSmall& Merger,
+		TQmGixItemSmallV& RecIdFqV) const;
+	/// Determines which Gix should be used for given KeyId
+	bool UseGixSmall(const int& KeyId) const { 
+		return IndexVoc->GetKey(KeyId).IsSmall();
+	}	
 
+	/// Upgrades a vector of small items into a vector of big ones
+	void Upgrade(const TQmGixItemSmallV& Src, TQmGixItemV& Dest) const {
+		Dest.Clr(); Dest.Reserve(Src.Len());
+		for (int i = 0; i < Src.Len(); i++) {
+			Dest.Add(TQmGixItem((uint64)Src[i].Key, (int)Src[i].Dat));
+		}
+	}
+
+	/// Constructor
     TIndex(const TStr& _IndexFPath, const TFAccess& _Access, 
-        const PIndexVoc& IndexVoc, const int64& CacheSize);
+		const PIndexVoc& IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall);
 public:
 	/// Create (Access==faCreate) or open existing index
     static PIndex New(const TStr& IndexFPath, const TFAccess& Access, 
-        const PIndexVoc& IndexVoc, const int64& CacheSize) {
-            return new TIndex(IndexFPath, Access, IndexVoc, CacheSize); }
+		const PIndexVoc& IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall) {
+		return new TIndex(IndexFPath, Access, IndexVoc, CacheSize, CacheSizeSmall);
+	}
 	/// Checks if there is an existing index at the given path
 	static bool Exists(const TStr& IndexFPath) {
 		return TFile::Exists(IndexFPath + "Index.Gix"); }
@@ -2193,12 +2288,14 @@ public:
 
 	/// Get index location
 	TStr GetIndexFPath() const { return IndexFPath; }
-	/// Get index cache size
-	uint64 GetIndexCacheSize() const { return Gix->GetMxCacheSize(); }
+	/// Get index cache size - this one looks obsolete, so it was commented out
+	//uint64 GetIndexCacheSize() const { return Gix->GetCacheSize() + GixSmall->GetCacheSize(); }
     /// Get index vocabulary
     TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
 	/// Get default index merger
 	PQmGixExpMerger GetDefMerger() const { return DefMerger; }
+	/// Get default index merger - small gix
+	PQmGixExpMergerSmall GetDefMergerSmall() const { return DefMergerSmall; }
 
     /// Index RecId under (Key, Word)
     void Index(const int& KeyId, const uint64& WordId, const uint64& RecId);
@@ -2279,18 +2376,18 @@ public:
 	bool LocEquals(const int& KeyId, const TFltPr& Loc1, const TFltPr& Loc2) const;
 
     /// Check if the index is taking all the available cache space
-    bool IsCacheFull() const { return Gix->IsCacheFull(); }
+	bool IsCacheFull() const { Fail; return Gix->IsCacheFull(); } // deprecated
 	/// Check if index opened in read-only mode
 	bool IsReadOnly() const { return Access == faRdOnly; }
     /// Merge with another index
-    void MergeIndex(const TWPt<TIndex>& TmpIndex);
+	void MergeIndex(const TWPt<TIndex>& TmpIndex); // basically deprecated
 
 	/// Do flat AND search, given the vector of inverted index queries
-	void SearchAnd(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const;
+	void SearchAnd(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const;
 	/// Do flat OR search, given the vector of inverted index queries
-	void SearchOr(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const;
+	void SearchOr(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const;
 	/// Search with special Merger (does not handle joins)
-	TPair<TBool, PRecSet> Search(const TWPt<TBase>& Base, const TQueryItem& QueryItem, const PQmGixExpMerger& Merger) const;
+	TPair<TBool, PRecSet> Search(const TWPt<TBase>& Base, const TQueryItem& QueryItem, const PQmGixExpMerger& Merger, const PQmGixExpMergerSmall& MergerSmall) const;
 	/// Do geo-location range (in meters) search
 	PRecSet SearchRange(const TWPt<TBase>& Base, const int& KeyId, 
         const TFltPr& Loc, const double& Radius, const int& Limit) const;
@@ -2302,8 +2399,21 @@ public:
 
 	/// Save debug statistics to a file
 	void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm);
-	/// Save debug statistics to a file - index cache
-	void SaveCacheTxt(const TWPt<TBase>& Base, const TStr& FNm);
+
+	/// get blob stats
+	const TBlobBsStats& GetBlobStats() { 
+		return TBlobBsStats::Add(Gix->GetBlobStats(), GixSmall->GetBlobStats());
+	}
+	/// get gix stats
+	const TGixStats GetGixStats(bool do_refresh = true) { 
+		return TGixStats::Add(Gix->GetGixStats(do_refresh), GixSmall->GetGixStats(do_refresh));
+	}
+
+	/// reset blob stats
+	void ResetStats() { Gix->ResetStats(); GixSmall->ResetStats(); }
+
+	/// perform partial flush of index contents
+	int PartialFlush(int WndInMsec = 500);
 };
 
 ///////////////////////////////
@@ -2683,7 +2793,7 @@ private:
     
 	// searching
 	PRecSet Invert(const PRecSet& RecSet, const TIndex::PQmGixExpMerger& Merger);
-	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger);
+	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall, const TQueryGixUsedType& ParentGixFlag);
 
 public:
 	static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize) {
@@ -2754,7 +2864,7 @@ public:
 	// creates index key, without linking it to a filed, returns the id of created key
 	int NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const TIndexKeyType& Type = oiktValue,
 		const TIndexKeySortType& SortType = oikstUndef);
-    // creates index key, without linking it to a filed using specified vocabulary,
+    // creates index key, without linking it to a field using specified vocabulary,
 	// returns the id of created key
 	int NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& WordVocId, 
 		const TIndexKeyType& Type = oiktValue, const TIndexKeySortType& SortType = oikstUndef);
@@ -2810,7 +2920,16 @@ public:
     void PrintStores(const TStr& FNm, const bool& FullP = false);
 	void PrintIndexVoc(const TStr& FNm);
 	void PrintIndex(const TStr& FNm, const bool& SortP);
-	void PrintIndexCache(const TStr& FNm);
+		
+	/// get gix-blob stats
+	const TBlobBsStats& GetGixBlobStats() { return Index->GetBlobStats(); }
+	/// get gix stats
+	const TGixStats& GetGixStats(bool do_refresh = true) { return Index->GetGixStats(do_refresh); }
+	/// reset gix-blob stats
+	void ResetGixStats() { Index->ResetStats(); }
+
+	// perform partial flush of data
+	int PartialFlush(int WndInMsec = 500) { return Index->PartialFlush(WndInMsec); }
 };
 
 } // namespace

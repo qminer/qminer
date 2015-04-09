@@ -1128,6 +1128,46 @@ public:
   void Save(TSOut& SOut) const {SOut.Save(Val);}
   int GetPrimHashCd() const {return Val;}
   int GetSecHashCd() const {return Val/0x10;}
+  TSInt& operator=(const TSInt& Int) { Val = Int.Val; return *this; }
+  TSInt& operator=(const int16& Int) { Val = Int; return *this; }
+  bool operator==(const TSInt& Int) const { return Val == Int.Val; }
+  bool operator==(const int& Int) const { return Val == Int; }
+  bool operator!=(const int& Int) const { return Val != Int; }
+  bool operator<(const TSInt& Int) const { return Val<Int.Val; }
+  bool operator<(const int16& Int) const { return Val<Int; }
+  int operator()() const { return Val; }
+  TSInt& operator+=(const int16& Int) { Val += Int; return *this; }
+  TSInt& operator-=(const int16& Int) { Val -= Int; return *this; }
+  TSInt& operator++() { ++Val; return *this; } // prefix
+  TSInt& operator--() { --Val; return *this; } // prefix
+};
+
+/////////////////////////////////////////////////
+// Unsigned Short-Integer
+class TUSInt {
+public:
+	uint16 Val;
+public:
+	TUSInt() : Val(0) {}
+	TUSInt(const uint16& _Val) : Val(_Val) {}
+	operator uint16() const { return Val; }
+	explicit TUSInt(TSIn& SIn) { SIn.Load(Val); }
+	void Load(TSIn& SIn) { SIn.Load(Val); }
+	void Save(TSOut& SOut) const { SOut.Save(Val); }
+	int GetPrimHashCd() const { return Val; }
+	int GetSecHashCd() const { return Val / 0x10; }
+	TUSInt& operator=(const TUSInt& Int) { Val = Int.Val; return *this; }
+	TUSInt& operator=(const uint16& Int) { Val = Int; return *this; }
+	bool operator==(const TUSInt& Int) const { return Val == Int.Val; }
+	bool operator==(const int& Int) const { return Val == Int; }
+	bool operator!=(const int& Int) const { return Val != Int; }
+	bool operator<(const TUSInt& Int) const { return Val<Int.Val; }
+	bool operator<(const uint16& Int) const { return Val<Int; }
+	int operator()() const { return Val; }
+	TUSInt& operator+=(const uint16& Int) { Val += Int; return *this; }
+	TUSInt& operator-=(const uint16& Int) { Val -= Int; return *this; }
+	TUSInt& operator++() { ++Val; return *this; } // prefix
+	TUSInt& operator--() { --Val; return *this; } // prefix
 };
 
 /////////////////////////////////////////////////

@@ -1,6 +1,10 @@
 #define GIX_DEBUG
 #define GIX_TEST
 
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
 #include <base.h>
 #include <mine.h>
 
@@ -422,6 +426,124 @@ public:
 		}
 	}
 
+	void Test_RandomGenerateRead(int cache_size = 10 * 1024 * 1024, int split_len = 100) {
+		TStr Nm("Test_Feed");
+		TStr FName("data");
+		int loops = 1000 * 1000;
+		int total_words = 10000;
+		int keys = 0;
+
+
+		// simmulate news feed
+		// many articles, containing 50 random words + everyone containing words 1-5
+		TMyGix gix(Nm, FName, faCreate, cache_size, split_len);
+		TRnd rnd(1);
+		int doc_counter = 0;
+
+		gix.PrintStats();
+		gix.AddItem(TMyKey(5, 5), TMyItem(9000000, 1));
+		gix.PrintStats();
+
+		for (int i = 0; i < loops; i++) {
+			int r = rnd.GetUniDevInt(100);
+			if (i % 100 == 0) printf("==================== %d\n", i);
+			if (r < 10) {
+				// every doc containes the same 5 words
+				for (int j = 1; j <= 5; j++) {
+					gix.AddItem(TIntUInt64Pr(j, j), TMyItem(doc_counter, 1));
+				}
+				// each document contains 50 random words
+				TVec<int> vals;
+				for (int j = 0; j < 50; j++) {
+					int w = rnd.GetUniDevInt(10, total_words);
+
+					// prevent the same word for the same document
+					while (vals.IsIn(w)) {
+						w = rnd.GetUniDevInt(10, total_words);
+					}
+					vals.Add(w);
+
+					auto key = TMyKey(w, w);
+					gix.AddItem(key, TMyItem(doc_counter, 1));
+				}
+				doc_counter++;
+			} else {
+				// perform search in gix
+				int w = rnd.GetUniDevInt(0, total_words);
+				auto key = TMyKey(w, w);
+				if (gix.IsKey(key))
+					gix.GetItemSet(key);
+			}
+			if (i % 10000 == 0) {
+				gix.PrintStats();
+				gix.PartialFlush(100);
+				gix.PrintStats();
+			}
+		}
+	}
+
+	void Test_SizeTest(int cache_size = 1 * 1024 * 1024, int split_len = 1000) {
+		TStr Nm("Test_Feed");
+		TStr FName("data");
+		int loops = 200*1000;
+		int total_words = 20000;
+		int article_max_len = 20;
+		int keys = 0;
+		cache_size *= 10;
+        printf("***** size=%d\n", sizeof(TMyItem));
+		{
+			TMyGix gix(Nm, FName, faCreate, cache_size, split_len);
+			gix.PrintStats();
+
+			TRnd rnd(1);
+			int doc_counter = 0;
+			for (int i = 0; i < loops; i++) {
+				//// every doc contains the same word(s)
+				//for (int j = 1; j <= article_max_len; j++) {
+				//	gix.AddItem(TIntUInt64Pr(j, j), TMyItem(doc_counter, 1));
+				//}
+				
+				// pick random words
+				int r = rnd.GetUniDevInt(article_max_len);
+				for (int j = 1; j <= r; j++) {
+					int k = rnd.GetUniDevInt(total_words);
+					gix.AddItem(TIntUInt64Pr(k, k), TMyItem(doc_counter, 1));
+				}
+
+				//// each document contains single, unique word => itemset length = 1
+				//gix.AddItem(TIntUInt64Pr(doc_counter, doc_counter), TMyItem(doc_counter, 1));
+
+				doc_counter++;
+				if (i % 10000 == 0) {
+					gix.PrintStats();
+				}
+			}
+			gix.PrintStats();
+			gix.PartialFlush(100 * 1000);
+			gix.PrintStats();
+
+			std::cout << "------- ";
+			std::cout << "Before disposing hash - press key to continue: ";
+			getchar();
+
+			gix.KillHash();
+            gix.PrintStats();
+
+			std::cout << "------- ";
+			std::cout << "Before disposing cache - press key to continue: ";
+			getchar();
+
+			gix.KillCache();
+			gix.PrintStats();
+
+			std::cout << "------- ";
+			std::cout << "Done - press key to continue: ";
+			getchar();
+			//_ASSERTE(_CrtCheckMemory());
+			//_CrtDumpMemoryLeaks();
+		}
+	}
+
 	void Test_Delete_1() {
 		TMyGix gix("Test1", "data", faCreate, 10000, 100);
 		int i = 122;
@@ -732,17 +854,22 @@ public:
 		}
 	}
 
-	void Test_BigInserts(int cache_size = 500 * 1024 * 1024, int split_len = 10000) {
+	void Test_BigInserts(int cache_size = 500 * 1024 * 1024, int split_len = 1000) {
 		TStr Nm("Test_Feed_Big");
 		TStr FName("data");
-		int total = 300 * 1000;
+		int total = 200 * 1000;
 		int keys = 0;
+		//int voc_count = 50 * 1000; // number of possible words
 		int voc_count = 50 * 1000; // number of possible words
 
+		split_len = 1000;
+		cache_size = 200 * 1024 * 1024;
+
+		TTmStopWatch sw(true);
 		THash<TInt, TInt> counts;
 		{
 			// simmulate news feed
-			// many articles, containing 50 random words + everyone containing words 1-5
+			// many articles, containing X random words + everyone containing words 1-5
 			auto gix = TMyGix::New(Nm, FName, faCreate, cache_size, split_len);
 			//TMyGix gix(Nm, FName, faCreate, cache_size, TMyMerger::New(), split_len);
 			TRnd rnd(1);
@@ -751,9 +878,10 @@ public:
 				for (int i = 1; i <= 5; i++) {
 					gix->AddItem(TIntUInt64Pr(i, i), TMyItem(j, 1));
 				}
-				// each document contains 100 random words
+				// each document contains X random words
 				TVec<int> vals;
-				for (int i = 0; i < 100; i++) {
+				int len = rnd.GetUniDevInt(50, 200);
+				for (int i = 0; i < len; i++) {
 					int w = rnd.GetUniDevInt(6, voc_count);
 
 					// prevent the same word for the same document
@@ -766,8 +894,12 @@ public:
 					gix->AddItem(key, TMyItem(j, 1));
 					AddToCounter(counts, w);
 				}
-				if (j % 10000 == 0) {
+				if (sw.GetSec() >= 5) {
 					printf("-- %d - %d\n", j, gix->GetCacheSize());
+					gix->PrintStats();
+					gix->PartialFlush();
+					gix->PrintStats();
+					sw.Reset(true);
 				}
 			}
 
@@ -779,6 +911,7 @@ public:
 			CheckCounts(counts, *gix);
 
 			keys = gix->GetKeys();
+			gix->PrintStats();
 			gix->Flush();
 		}
 		{
@@ -805,48 +938,50 @@ public:
 
 	void PerformTests() {
 
-		Test_Simple_1();
+		/*Test_Simple_1();
 		Test_Simple_220();
 		Test_Simple_220_Unsorted();
 		Test_Merge_220_Into_50();
 		Test_Merge_220_Into_120();
-		Test_Merge_22000_Into_50();
+		Test_Merge_22000_Into_50();*/
 
-		Test_BigInserts();
+		//Test_BigInserts();
+		//Test_RandomGenerateRead();
+		Test_SizeTest();
 
-		Test_Delete_1();
-		Test_Delete_20();
-		Test_Delete_20And1();
-		Test_Delete_120();
-		Test_Delete_120And1();
-		Test_Delete_120And110();
-		Test_Delete_22000And1000();
+		//Test_Delete_1();
+		//Test_Delete_20();
+		//Test_Delete_20And1();
+		//Test_Delete_120();
+		//Test_Delete_120And1();
+		//Test_Delete_120And110();
+		//Test_Delete_22000And1000();
 
-		Test_QuasiDelete_120And1And2();
-		Test_QuasiDelete_120And20();
-		Test_QuasiDelete_22000And1000();
+		//Test_QuasiDelete_120And1And2();
+		//Test_QuasiDelete_120And20();
+		//Test_QuasiDelete_22000And1000();
 
-		// this will split only big itemsets
-		WarnNotifyI(TStr("Split only big itemsets\n"));
-		Test_Feed(50 * 1024 * 1025, 1000);
-
-		// this will split probably all itemsets
-		WarnNotifyI(TStr("Split all itemsets\n"));
-		Test_Feed(50 * 1024 * 1025, 100);
+		//// this will split only big itemsets
+		//WarnNotifyI(TStr("Split only big itemsets\n"));
+		//Test_Feed(50 * 1024 * 1025, 1000);
 
 		//// this will split probably all itemsets
-		//// it will also limit cache to less than 10% of the itemsets
-		//WarnNotifyI(TStr("Split all itemsets, small cache\n"));
-		//Test_Feed(5 * 1024 * 1025, 1000);
+		//WarnNotifyI(TStr("Split all itemsets\n"));
+		//Test_Feed(50 * 1024 * 1025, 100);
+
+		////// this will split probably all itemsets
+		////// it will also limit cache to less than 10% of the itemsets
+		////WarnNotifyI(TStr("Split all itemsets, small cache\n"));
+		////Test_Feed(5 * 1024 * 1025, 1000);
 	}
 };
 
 ////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[]) {
-
+	
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-
+	
 	XTest test;
 	test.PerformTests();
 
