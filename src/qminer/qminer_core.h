@@ -1900,16 +1900,16 @@ public:
 	TQueryItem(const PRecSet& _RecSet);
 	/// Create new inverted index leaf query
     TQueryItem(const TWPt<TBase>& Base, const int& _KeyId, const uint64& WordId, 
-		const TQueryCmpType& _CmpType = oqctEqual);
+		const TQueryCmpType& _CmpType = oqctEqual, const bool& IsSmall = false);
 	/// Create new inverted index leaf query
     TQueryItem(const TWPt<TBase>& Base, const int& _KeyId, const TStr& WordStr, 
-		const TQueryCmpType& _CmpType = oqctEqual);
+		const TQueryCmpType& _CmpType = oqctEqual, const bool& IsSmall = false);
 	/// Create new inverted index leaf query
     TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm, 
-		const TStr& WordStr, const TQueryCmpType& _CmpType = oqctEqual);
+		const TStr& WordStr, const TQueryCmpType& _CmpType = oqctEqual, const bool& IsSmall = false);
 	/// Create new inverted index leaf query
     TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm, 
-		const TStr& WordStr, const TQueryCmpType& _CmpType = oqctEqual);
+		const TStr& WordStr, const TQueryCmpType& _CmpType = oqctEqual, const bool& IsSmall = false);
 	/// New leaf location query (limit always required, range used when positive)
 	TQueryItem(const TWPt<TBase>& Base, const int& _KeyId, 
 		const TFltPr& _Loc, const int& _LocLimit = 100, 
