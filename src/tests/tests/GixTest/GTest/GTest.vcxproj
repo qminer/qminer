@@ -67,10 +67,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>D:\Documents\Viktor\programming\github\qminer\src\tests\tests\gtest\include;D:\Documents\Viktor\programming\github\qminer\src\tests\tests\gtest;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\gtest\include;..\..\gtest;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>D:\Documents\Viktor\programming\github\qminer\src\tests\tests\gtest\include;D:\Documents\Viktor\programming\github\qminer\src\tests\tests\gtest;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\gtest\include;..\..\gtest;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
