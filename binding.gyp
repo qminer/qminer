@@ -58,6 +58,7 @@
                 'src/third_party/Snap/qlib-core'
             ],
             'defines': [
+            	'OPENBLAS'
             ],
             'dependencies': [
                 'glib',

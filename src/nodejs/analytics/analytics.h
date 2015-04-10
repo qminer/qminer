@@ -139,7 +139,7 @@ private:
 	TNodeJsRecLinReg(const TSignalProc::PRecLinReg& Model);
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	static const TStr ClassId;
+	static const TStr GetClassId() { return "RecLinReg"; }
 private:
 	//#
 	//# **Constructor:**
@@ -187,6 +187,7 @@ class TNodeJsLogReg : public node::ObjectWrap {
 public:
 	static const TStr ClassId;	// set to LogReg
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "LogReg"; }
 
 private:
 	TMl::TLogReg LogReg;
@@ -239,21 +240,20 @@ public:
  *
  * @constructor
  * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
- * @property {Number} [opts.lambda = 1] - the regularization parameter
- * @property {Boolean} [opts.intercept = false] - if true, the intercept will automatically be included
+ * @property {Number} [opts.lambda = 0] - the regularization parameter
  */
-class TNodeJsExpReg : public node::ObjectWrap {
+class TNodeJsPropHaz : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 public:
-	static const TStr ClassId;
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "PropHazards"; }
 
 private:
-	TMl::TExpReg ExpReg;
+	TMl::TPropHazards Model;
 
-	TNodeJsExpReg(const TMl::TExpReg& _ExpReg): ExpReg(_ExpReg) {}
+	TNodeJsPropHaz(const TMl::TPropHazards& _Model): Model(_Model) {}
 
-	static TNodeJsExpReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+	static TNodeJsPropHaz* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
 	/**
@@ -300,8 +300,8 @@ public:
 class TNodeJsHMChain : public node::ObjectWrap, public TMc::TMcCallback {
 	friend class TNodeJsUtil;
 public:
-	static const TStr ClassId;
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "HMC"; }
 
 private:
 	const static double DEFAULT_DELTA_TM;
@@ -398,9 +398,10 @@ public:
 	JsDeclareFunction(currState);
 
 	/**
-	 * Returns the centroid of the specified state.
+	 * Returns the centroid of the specified state containing only the observation parameters.
 	 *
 	 * @param {Number} stateId - the ID of the state
+	 * @param {Boolean} [observations=true] - indicates wether to output observation or control coordinates
 	 * @returns {Array} - the coordinates of the state
 	 */
 	JsDeclareFunction(fullCoords);
@@ -462,7 +463,8 @@ public:
 	/**
 	 * Rebuilds the histograms using the instances stored in the columns of X.
 	 *
-	 * @param {Matrix} X - the column matrix containing data instances
+	 * @param {Matrix} obsMat - the column matrix containing observation data instances
+	 * @param {Matrix} controlMat - the column matrix containing control data instances
 	 */
 	JsDeclareFunction(rebuildHistograms);
 
@@ -481,6 +483,14 @@ public:
 	 * @param {String} name - name of the state
 	 */
 	JsDeclareFunction(setStateName);
+
+	/**
+	 * Sets the factor of the specified control:
+	 *
+	 * @param {Number} ftrIdx - the index of the control feature
+	 * @param {Number} factor
+	 */
+	JsDeclareFunction(setControlFactor);
 
 	// parameters
 	//#- `hmc = hmc.getParams(params)` -- sets one or more parameters given
@@ -520,8 +530,8 @@ private:
 	static TNodeJsNNet* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
-	static const TStr ClassId;
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "NNet"; }
 
     //#- `NNet = NNet.fit(vec,vec)` -- fits the NNet model in online mode
     //#- `NNet = NNet.fit(mat,mat)` -- fits the NNet model in batch mode
