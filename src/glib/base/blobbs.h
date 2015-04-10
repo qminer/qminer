@@ -111,11 +111,22 @@ public:
 	double AvgGetLen;
 	double AvgPutLen;
 	double AvgPutNewLen;
+	uint64 AllocUsedSize;
+	uint64 AllocUnusedSize;
+	uint64 AllocSize;
+	uint64 AllocCount;
+	uint64 ReleasedCount;
+	uint64 ReleasedSize;
+
+	/// Simple constructor
 	TBlobBsStats() { Reset(); }
+	/// Resets data in this object
 	void Reset() {
 		AvgPutNewLen = AvgGetLen = AvgPutLen = 0;
 		Dels = Puts = PutsNew = Gets = SizeChngs = 0;
+		AllocUsedSize = AllocUnusedSize = AllocSize = AllocCount = ReleasedCount = ReleasedSize = 0;
 	}
+	/// Creates a clone - copies all data
 	TBlobBsStats Clone() const {
 		TBlobBsStats res;
 		res.AvgGetLen = this->AvgGetLen;
@@ -126,14 +137,27 @@ public:
 		res.Puts = this->Puts;
 		res.PutsNew = this->PutsNew;
 		res.SizeChngs = this->SizeChngs;
+		res.AllocUsedSize = this->AllocUsedSize;
+		res.AllocUnusedSize = this->AllocUnusedSize;
+		res.AllocSize = this->AllocSize;
+		res.AllocCount = this->AllocCount;
+		res.ReleasedCount = this->ReleasedCount;
+		res.ReleasedSize = this->ReleasedSize;
 		return res;
 	}
+	/// Correctly add data from another object into this one
 	void Add(const TBlobBsStats& Othr) {
 		Puts += Othr.Puts;
 		PutsNew += Othr.PutsNew;
 		Gets += Othr.Gets;
 		SizeChngs += Othr.SizeChngs;
 		Dels += Othr.Dels;
+		AllocUsedSize += Othr.AllocUsedSize;
+		AllocUnusedSize += Othr.AllocUnusedSize;
+		AllocSize += Othr.AllocSize;
+		AllocCount += Othr.AllocCount;
+		ReleasedCount += Othr.ReleasedCount;
+		ReleasedSize += Othr.ReleasedSize;
 
 		AvgPutNewLen = 0;
 		AvgPutLen = 0;
@@ -149,12 +173,14 @@ public:
 			AvgPutLen = (AvgPutLen*Puts + Othr.AvgPutLen*Othr.Puts) / (Puts + Othr.Puts);
 		}
 	}
+	/// Add two instances together and return combined result.
 	static TBlobBsStats Add(const TBlobBsStats& Stat1, const TBlobBsStats& Stat2) {
 		TBlobBsStats res = Stat1.Clone();
 		res.Add(Stat2);
 		return res;
 	}
 };
+
 
 /////////////////////////////////////////////////
 // Blob-Base

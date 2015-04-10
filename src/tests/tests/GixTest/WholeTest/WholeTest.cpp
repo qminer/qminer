@@ -60,6 +60,138 @@ void WarnNotifyW(TStr& const s) {
 class XTest {
 public:
 
+	void Test_BlobBs_Simple_10() {
+		WarnNotifyI(TStr("Starting BlobBs tests..."));
+		{
+			auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+			auto p1 = blobbs->PutBlob("0123456789"); // length 10
+
+			auto stats = blobbs->GetStats();
+			TAssert(stats.AllocCount == 1, "Invalid AllocCount");
+			TAssert(stats.AllocSize == 10, "Invalid AllocSize");
+			TAssert(stats.AllocUnusedSize == 0, "Invalid AllocUnusedSize");
+			TAssert(stats.AllocUsedSize == 10, "Invalid AllocUsedSize");
+			TAssert(stats.ReleasedCount == 0, "Invalid ReleasedCount");
+			TAssert(stats.ReleasedSize == 0, "Invalid ReleasedSize");
+		}
+		WarnNotifyI(TStr("Finished."));
+	}
+
+	void Test_BlobBs_Simple_7() {
+		WarnNotifyI(TStr("Starting BlobBs tests..."));
+		{
+			auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+			auto p1 = blobbs->PutBlob("0123456"); // length 7
+
+			auto stats = blobbs->GetStats();
+			TAssert(stats.AllocCount == 1, "Invalid AllocCount");
+			TAssert(stats.AllocSize == 8, "Invalid AllocSize");
+			TAssert(stats.AllocUnusedSize == 1, "Invalid AllocUnusedSize");
+			TAssert(stats.AllocUsedSize == 7, "Invalid AllocUsedSize");
+			TAssert(stats.ReleasedCount == 0, "Invalid ReleasedCount");
+			TAssert(stats.ReleasedSize == 0, "Invalid ReleasedSize");
+		}
+		WarnNotifyI(TStr("Finished."));
+	}
+
+	void Test_BlobBs_Medium_12() {
+		WarnNotifyI(TStr("Starting BlobBs tests..."));
+		{
+			auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+			auto p1 = blobbs->PutBlob("0123456"); // length 7
+			auto p2 = blobbs->PutBlob("0123456789012"); // length 13
+
+			auto stats = blobbs->GetStats();
+			TAssert(stats.AllocCount == 2, "Invalid AllocCount");
+			TAssert(stats.AllocSize == 24, "Invalid AllocSize");
+			TAssert(stats.AllocUnusedSize == 4, "Invalid AllocUnusedSize");
+			TAssert(stats.AllocUsedSize == 20, "Invalid AllocUsedSize");
+			TAssert(stats.ReleasedCount == 0, "Invalid ReleasedCount");
+			TAssert(stats.ReleasedSize == 0, "Invalid ReleasedSize");
+		}
+		WarnNotifyI(TStr("Finished."));
+	}
+
+	void Test_BlobBs_Simple_7_Del() {
+		WarnNotifyI(TStr("Starting BlobBs tests..."));
+		{
+			auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+			auto p1 = blobbs->PutBlob("0123456"); // length 7
+			blobbs->DelBlob(p1);
+
+			auto stats = blobbs->GetStats();
+			TAssert(stats.AllocCount == 0, "Invalid AllocCount");
+			TAssert(stats.AllocSize == 0, "Invalid AllocSize");
+			TAssert(stats.AllocUnusedSize == 0, "Invalid AllocUnusedSize");
+			TAssert(stats.AllocUsedSize == 0, "Invalid AllocUsedSize");
+			TAssert(stats.ReleasedCount == 1, "Invalid ReleasedCount");
+			TAssert(stats.ReleasedSize == 8, "Invalid ReleasedSize");
+		}
+		WarnNotifyI(TStr("Finished."));
+	}
+
+	void Test_BlobBs_Medium_12_Del() {
+		WarnNotifyI(TStr("Starting BlobBs tests..."));
+		{
+			auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+			auto p1 = blobbs->PutBlob("0123456"); // length 7
+			auto p2 = blobbs->PutBlob("0123456789012"); // length 13
+			blobbs->DelBlob(p1);
+			blobbs->DelBlob(p2);
+
+			auto stats = blobbs->GetStats();
+			TAssert(stats.AllocCount == 0, "Invalid AllocCount");
+			TAssert(stats.AllocSize == 0, "Invalid AllocSize");
+			TAssert(stats.AllocUnusedSize == 0, "Invalid AllocUnusedSize");
+			TAssert(stats.AllocUsedSize == 0, "Invalid AllocUsedSize");
+			TAssert(stats.ReleasedCount == 2, "Invalid ReleasedCount");
+			TAssert(stats.ReleasedSize == 24, "Invalid ReleasedSize");
+		}
+		WarnNotifyI(TStr("Finished."));
+	}
+
+	void Test_BlobBs_Medium_12_Del_Put() {
+		WarnNotifyI(TStr("Starting BlobBs tests..."));
+		{
+			auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+			auto p1 = blobbs->PutBlob("0123456"); // length 7
+			auto p2 = blobbs->PutBlob("0123456789012"); // length 13
+			blobbs->DelBlob(p1);
+			blobbs->DelBlob(p2);
+			auto p3 = blobbs->PutBlob("0123456"); // length 7
+
+			auto stats = blobbs->GetStats();
+			TAssert(stats.AllocCount == 1, "Invalid AllocCount");
+			TAssert(stats.AllocSize == 8, "Invalid AllocSize");
+			TAssert(stats.AllocUnusedSize == 1, "Invalid AllocUnusedSize");
+			TAssert(stats.AllocUsedSize == 7, "Invalid AllocUsedSize");
+			TAssert(stats.ReleasedCount == 1, "Invalid ReleasedCount");
+			TAssert(stats.ReleasedSize == 16, "Invalid ReleasedSize");
+		}
+		WarnNotifyI(TStr("Finished."));
+	}
+
+	void Test_BlobBs_Medium_12_Del_Put2() {
+		WarnNotifyI(TStr("Starting BlobBs tests..."));
+		{
+			auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+			auto p1 = blobbs->PutBlob("0123456"); // length 7
+			auto p2 = blobbs->PutBlob("0123456789012"); // length 13
+			blobbs->DelBlob(p1);
+			blobbs->DelBlob(p2);
+			auto p3 = blobbs->PutBlob("0123456789012345678"); // length 19
+
+			auto stats = blobbs->GetStats();
+			TAssert(stats.AllocCount == 1, "Invalid AllocCount");
+			TAssert(stats.AllocSize == 20, "Invalid AllocSize");
+			TAssert(stats.AllocUnusedSize == 1, "Invalid AllocUnusedSize");
+			TAssert(stats.AllocUsedSize == 19, "Invalid AllocUsedSize");
+			TAssert(stats.ReleasedCount == 2, "Invalid ReleasedCount");
+			TAssert(stats.ReleasedSize == 24, "Invalid ReleasedSize");
+		}
+		WarnNotifyI(TStr("Finished."));
+	}
+
 	void Test_Simple_1() {
 		WarnNotifyI(TStr("Starting..."));
 		{
@@ -105,8 +237,19 @@ public:
 		WarnNotifyI(TStr("Finished."));
 	}
 
+
+
 	void PerformTests() {
-		Test_Simple_1();
+		//Test_Simple_1();
+
+		Test_BlobBs_Simple_10();
+		Test_BlobBs_Simple_7();
+		Test_BlobBs_Medium_12();
+
+		Test_BlobBs_Simple_7_Del();
+		Test_BlobBs_Medium_12_Del();
+		Test_BlobBs_Medium_12_Del_Put();
+		Test_BlobBs_Medium_12_Del_Put2();
 	}
 
 };

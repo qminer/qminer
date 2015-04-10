@@ -2987,14 +2987,14 @@ TQueryItem::TQueryItem(const PRecSet& _RecSet) :
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
-	const uint64& WordId, const TQueryCmpType& _CmpType) : Type(oqitLeafGix),
+	const uint64& WordId, const TQueryCmpType& _CmpType, const bool& IsSmall) : Type(IsSmall ? oqitLeafGixSmall : oqitLeafGix),
 	KeyId(_KeyId), CmpType(_CmpType) {
 	WordIdV.Add(WordId);
 	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
-	const TStr& WordStr, const TQueryCmpType& _CmpType) : Type(oqitLeafGix) {
+	const TStr& WordStr, const TQueryCmpType& _CmpType, const bool& IsSmall) : Type(IsSmall ? oqitLeafGixSmall : oqitLeafGix) {
 
 	// read the Key
 	KeyId = _KeyId;
@@ -3007,7 +3007,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm,
-	const TStr& WordStr, const TQueryCmpType& _CmpType) : Type(oqitLeafGix) {
+	const TStr& WordStr, const TQueryCmpType& _CmpType, const bool& IsSmall) : Type(IsSmall ? oqitLeafGixSmall : oqitLeafGix) {
 
 	// get the key
 	QmAssertR(Base->GetIndexVoc()->IsKeyNm(StoreId, KeyNm), "Unknown Key Name: " + KeyNm);
@@ -3020,7 +3020,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr&
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm,
-	const TStr& WordStr, const TQueryCmpType& _CmpType) : Type(oqitLeafGix) {
+	const TStr& WordStr, const TQueryCmpType& _CmpType, const bool& IsSmall) : Type(IsSmall ? oqitLeafGixSmall : oqitLeafGix) {
 
 	// get the key
 	const uint StoreId = Base->GetStoreByStoreNm(StoreNm)->GetStoreId();
@@ -4250,7 +4250,7 @@ TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base,
 
 	} else {
 		EAssertR(false, "Error in TIndex::Search - hybrid search is not supported.");
-		Fail; // TODO this is error - should not happen, we have root And node and it wasn't handled above (code was removed...)
+		//Fail; // TODO this is error - should not happen, we have root And node and it wasn't handled above (code was removed...)
 	}
 }
 
