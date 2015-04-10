@@ -48,7 +48,7 @@ public:
 			mem.AddBf(&storage, 4);
 			tmp = mem.GetHexStr();
 			auto res1 = storage.AddVal(mem);
-			EXPECT_TRUE(res1 == 1);
+			EXPECT_TRUE(res1 == 0); // offset of new record
 			auto blob_stats = storage.GetBlobStorage()->GetStats();
 			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
 		}
@@ -56,11 +56,11 @@ public:
 			TQm::TStorage::TInMemStorage storage(Fn, faUpdate);
 			EXPECT_EQ(storage.ValV.Len(), 1);
 			TMem mem;
-			storage.GetVal(0, mem);			
+			storage.GetVal(0, mem);
 			EXPECT_EQ(mem.GetHexStr(), tmp);
 		}
 	}
-	
+
 	static void TInMemStorage_Lazy1() {
 		TStr Fn = "data\\in_mem_storage";
 		TStr tmp;
@@ -70,7 +70,7 @@ public:
 			mem.AddBf(&storage, 4);
 			tmp = mem.GetHexStr();
 			auto res1 = storage.AddVal(mem);
-			EXPECT_TRUE(res1 == 1);
+			EXPECT_TRUE(res1 == 0); // offset of new record
 			auto blob_stats = storage.GetBlobStorage()->GetStats();
 			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
 		}
@@ -80,6 +80,44 @@ public:
 			TMem mem;
 			storage.GetVal(0, mem);
 			EXPECT_EQ(mem.GetHexStr(), tmp);
+		}
+	}
+
+	static void TInMemStorage_Complex1() {
+		TStr Fn = "data\\in_mem_storage";
+		TStr tmp;
+		int cnt = 20;
+		{
+			TQm::TStorage::TInMemStorage storage(Fn);
+			for (int i = 0; i < cnt; i++) {
+				TMem mem;
+				mem.AddBf(&storage, i % 4);
+				tmp = mem.GetHexStr();
+				auto res1 = storage.AddVal(mem);
+			}
+			auto blob_stats = storage.GetBlobStorage()->GetStats();
+			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
+		}
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate);
+			EXPECT_EQ(storage.ValV.Len(), cnt);
+			auto blob_stats = storage.GetBlobStorage()->GetStats();
+			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
+
+			for (int i = 0; i < cnt; i++) {
+				TMem mem;
+				mem.AddBf(&storage, i % 4);
+				tmp = mem.GetHexStr();
+				auto res1 = storage.AddVal(mem);
+			}
+
+			blob_stats = storage.GetBlobStorage()->GetStats();
+			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
+			EXPECT_EQ(storage.ValV.Len(), 2 * cnt);
+		}
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
+			EXPECT_EQ(storage.ValV.Len(), 2 * cnt);
 		}
 	}
 };
@@ -193,50 +231,52 @@ TEST(testTBlobBs, Medium12DelPut2) {
 	EXPECT_EQ(stats.ReleasedCount, 2);
 	EXPECT_EQ(stats.ReleasedSize, 24);
 }
-//
-//TEST(testTBase, myTBaseTest) {
-//	TQm::TEnv::Init();
-//
-//	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
-//	TStr def_dir = "..\\..\\..\\..\\..\\examples\\movies";
-//
-//	//TStr def_file = def_dir + "\\movies.def";
-//	TStr def_file = def_dir + "\\movies_small.def";
-//
-//	//TStr data_file = def_dir + "\\sandbox\\movies\\movies.json";
-//	TStr data_file = "..\\..\\..\\..\\..\\test\\nodejs\\sandbox\\movies\\movies_data.txt";
-//
-//	// init unicode
-//	TUnicodeDef::Load(unicode_file);
-//
-//	// create new base from definition
-//	PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
-//	TPt<TQm::TBase> Base = TQm::TStorage::NewBase("data\\", SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024);
-//
-//	// load movies data
-//	{
-//		{
-//			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("Movies");
-//			{
-//				PSIn fin = TFIn::New(data_file);
-//				TStr s;
-//				while (fin->GetNextLn(s)) {
-//					PJsonVal json = TJsonVal::GetValFromStr(s);
-//					store->AddRec(json);
-//				}
-//			}
-//		}
-//	}
-//	// do some querying
-//
-//	/*auto res = Base->Search("{ \"$from\": \"Movies\", \"$or\": [ { \"Genres\": \"Action\" }, { \"Plot\": \"America\" } ] }");
-//	printf("Records: %d\n", res->GetRecs());*/
-//
-//	auto res = Base->Search("{ \"$join\": { \"$name\": \"Actor\", \"$query\" : { \"$from\": \"Movies\", \"Genres\" : \"Horror\", \"$or\" : [{ \"Title\": \"lost\" }, { \"Plot\": \"lost\" }]}}}");
-//	printf("Records: %d\n", res->GetRecs());
-//}
+
+
+TEST(testTBase, myTBaseTest) {
+	TQm::TEnv::Init();
+
+	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
+	TStr def_dir = "..\\..\\..\\..\\..\\examples\\movies";
+
+	//TStr def_file = def_dir + "\\movies.def";
+	TStr def_file = def_dir + "\\movies_small.def";
+
+	//TStr data_file = def_dir + "\\sandbox\\movies\\movies.json";
+	TStr data_file = "..\\..\\..\\..\\..\\test\\nodejs\\sandbox\\movies\\movies_data.txt";
+
+	// init unicode
+	TUnicodeDef::Load(unicode_file);
+
+	// create new base from definition
+	PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+	TPt<TQm::TBase> Base = TQm::TStorage::NewBase("data\\", SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024);
+
+	// load movies data
+	{
+		{
+			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("Movies");
+			{
+				PSIn fin = TFIn::New(data_file);
+				TStr s;
+				while (fin->GetNextLn(s)) {
+					PJsonVal json = TJsonVal::GetValFromStr(s);
+					store->AddRec(json);
+				}
+			}
+		}
+	}
+	// do some querying
+
+	/*auto res = Base->Search("{ \"$from\": \"Movies\", \"$or\": [ { \"Genres\": \"Action\" }, { \"Plot\": \"America\" } ] }");
+	printf("Records: %d\n", res->GetRecs());*/
+
+	auto res = Base->Search("{ \"$join\": { \"$name\": \"Actor\", \"$query\" : { \"$from\": \"Movies\", \"Genres\" : \"Horror\", \"$or\" : [{ \"Title\": \"lost\" }, { \"Plot\": \"lost\" }]}}}");
+	printf("Records: %d\n", res->GetRecs());
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
 TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
+TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }

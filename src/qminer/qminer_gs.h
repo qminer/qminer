@@ -219,7 +219,7 @@ private:
     mutable TVec<TMem, int64> ValV;
 	/// Blob-pointers - locations where TMem objects are stored inside Blob storage
 	TVec<TBlobPt, int64> BlobPtV;
-	/// "Dirty flags" - 0 - not saved yet, 1 - clean, 2 - dirty
+	/// "Dirty flags" - 0 - new and not saved yet, 1 - existing and clean, 2 - existing but dirty, 3 - existing but not loaded
 	mutable TVec<byte, int64> DirtyV;
     /// Blob storage
 	PBlobBs BlobStorage;

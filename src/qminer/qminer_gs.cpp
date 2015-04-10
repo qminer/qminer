@@ -448,7 +448,7 @@ TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bo
 			DirtyV.Add(1); // init dirty flags
 		} else {
 			ValV.Add(); // empty (non-loaded) data
-			DirtyV.Add(0); // init dirty flags
+			DirtyV.Add(3); // init dirty flags
 		}		
 	}
 }
@@ -458,9 +458,10 @@ TInMemStorage::~TInMemStorage() {
 		// store dirty vectors
 		for (int i = 0; i < BlobPtV.Len(); i++) {
 			switch (DirtyV[i]) {
-				case 0: BlobPtV[i] = BlobStorage->PutBlob(ValV[i].GetSIn()); break; // new data
+				case 0: BlobPtV[i] = BlobStorage->PutBlob(ValV[i].GetSIn()); break; // new data => save it
 				case 1: break;
-				case 2: BlobPtV[i] = BlobStorage->PutBlob(BlobPtV[i], ValV[i].GetSIn()); break; // dirty data
+				case 2: BlobPtV[i] = BlobStorage->PutBlob(BlobPtV[i], ValV[i].GetSIn()); break; // dirty data => save it
+				case 3: break;
 			}
 		}		
 		// save vector
@@ -481,7 +482,7 @@ bool TInMemStorage::IsValId(const uint64& ValId) const {
 
 void TInMemStorage::GetVal(const uint64& ValId, TMem& Val) const {
 	uint64 i = ValId - FirstValOffset;
-	if (DirtyV[i] == 0) {
+	if (DirtyV[i] == 3) {
 		TMem mem;
 		TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[i]), mem); // load from disk
 		ValV[i] = mem;
@@ -491,16 +492,18 @@ void TInMemStorage::GetVal(const uint64& ValId, TMem& Val) const {
 }
 
 uint64 TInMemStorage::AddVal(const TMem& Val) {
-	ValV.Add(Val);
+	uint64 res = ValV.Add(Val);
 	DirtyV.Add(0);
 	BlobPtV.Add();
-	return ValV.Len() + FirstValOffset;
+	return res + FirstValOffset;
 }
 
 void TInMemStorage::SetVal(const uint64& ValId, const TMem& Val) {
 	AssertReadOnly();
     ValV[ValId - FirstValOffset] = Val;
-	DirtyV[ValId - FirstValOffset] = 2;
+	byte& flag = DirtyV[ValId - FirstValOffset];
+	if (flag == 0) { } // new remains new
+	else { flag = 2; } // set as dirty
 }
 
 void TInMemStorage::DelVals(int Vals) {
