@@ -289,6 +289,8 @@ public:
 	/// Pack/merge this itemset - just working buffer
 	void DefLocal();
 
+	/// Flag if itemset is merged
+	bool IsMerged() const { return MergedP; }
 	/// Tests if current itemset is full and subsequent item should be pushed to children
 	bool IsFull() const {
 		return (ItemV.Len() >= Gix->GetSplitLen());
@@ -992,7 +994,7 @@ TGix<TKey, TItem, TGixMerger>::TGix(const TStr& Nm, const TStr& FPath, const TFA
 template <class TKey, class TItem, class TGixMerger>
 TGix<TKey, TItem, TGixMerger>::~TGix() {
 	if ((Access == faCreate) || (Access == faUpdate)) {
-		this->PrintStats();
+		//this->PrintStats();
 		// flush all the latest changes in cache to the disk
 		ItemSetCache.Flush();
 		// save the rest to GixFNm

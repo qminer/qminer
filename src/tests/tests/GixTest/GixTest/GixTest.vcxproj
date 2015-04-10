@@ -71,6 +71,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>D:\Documents\Viktor\programming\github\qminer\src\tests\tests\gtest;D:\Documents\Viktor\programming\github\qminer\src\tests\tests\gtest\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -157,6 +158,11 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="mem_usage.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GTest\GTest.vcxproj">
+      <Project>{4a35d885-1d2e-460c-9fd5-011614b4941a}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
