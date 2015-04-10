@@ -425,21 +425,47 @@ void TStoreSchema::ValidateSchema(const TWPt<TBase>& Base, TStoreSchemaV& Schema
 
 ///////////////////////////////
 // In-memory storage
-TInMemStorage::TInMemStorage(const TStr& _FNm): FNm(_FNm), Access(faCreate) { }
+TInMemStorage::TInMemStorage(const TStr& _FNm): FNm(_FNm), BlobFNm(_FNm + "Blob"), Access(faCreate) {
+	BlobStorage = TMBlobBs::New(BlobFNm, Access);
+}
 
-TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access): 
-        FNm(_FNm), Access(_Access) {
+TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bool& _Lazy) :
+	FNm(_FNm), BlobFNm(_FNm + "Blob"), Access(_Access) {
     
-	// load vector
-	TFIn FIn(FNm); ValV.Load(FIn);
+	// load data
+	TFIn FIn(FNm); 
+	BlobPtV.Load(FIn); // load vector
 	// load rest
 	FirstValOffset.Load(FIn);
+
+	// load data from blob storage
+	BlobStorage = TMBlobBs::New(BlobFNm, Access);
+	for (int i = 0; i < BlobPtV.Len(); i++) {
+		if (!_Lazy) {
+			TMem mem;
+			TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[i]), mem); // load from disk
+			ValV.Add(mem); // store to vector
+			DirtyV.Add(1); // init dirty flags
+		} else {
+			ValV.Add(); // empty (non-loaded) data
+			DirtyV.Add(0); // init dirty flags
+		}		
+	}
 }
 
 TInMemStorage::~TInMemStorage() {
 	if (Access != faRdOnly) {
+		// store dirty vectors
+		for (int i = 0; i < BlobPtV.Len(); i++) {
+			switch (DirtyV[i]) {
+				case 0: BlobPtV[i] = BlobStorage->PutBlob(ValV[i].GetSIn()); break; // new data
+				case 1: break;
+				case 2: BlobPtV[i] = BlobStorage->PutBlob(BlobPtV[i], ValV[i].GetSIn()); break; // dirty data
+			}
+		}		
 		// save vector
-		TFOut FOut(FNm); ValV.Save(FOut);
+		TFOut FOut(FNm); 
+		BlobPtV.Save(FOut);
 		// save rest
 		FirstValOffset.Save(FOut);
 	}
@@ -450,26 +476,41 @@ void TInMemStorage::AssertReadOnly() const {
 }
 
 bool TInMemStorage::IsValId(const uint64& ValId) const {
-	return (ValId >= FirstValOffset.Val) &&
-        (ValId < FirstValOffset.Val + ValV.Len());
+	return (ValId >= FirstValOffset.Val) && (ValId < FirstValOffset.Val + ValV.Len());
 }
 
 void TInMemStorage::GetVal(const uint64& ValId, TMem& Val) const {
-	Val = ValV[ValId - FirstValOffset];
+	uint64 i = ValId - FirstValOffset;
+	if (DirtyV[i] == 0) {
+		TMem mem;
+		TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[i]), mem); // load from disk
+		ValV[i] = mem;
+		DirtyV[i] = 2;
+	}
+	Val = ValV[i];
 }
 
 uint64 TInMemStorage::AddVal(const TMem& Val) {
-	return ValV.Add(Val) + FirstValOffset;
+	ValV.Add(Val);
+	DirtyV.Add(0);
+	BlobPtV.Add();
+	return ValV.Len() + FirstValOffset;
 }
 
 void TInMemStorage::SetVal(const uint64& ValId, const TMem& Val) {
 	AssertReadOnly();
     ValV[ValId - FirstValOffset] = Val;
+	DirtyV[ValId - FirstValOffset] = 2;
 }
 
 void TInMemStorage::DelVals(int Vals) {
 	if (Vals > 0) {
-		ValV.Del(0, Vals - 1);
+		ValV.Del(0, Vals - 1);		
+		DirtyV.Del(0, Vals - 1);
+		for (int i = 0; i < Vals; i++) {
+			BlobStorage->DelBlob(BlobPtV[i]);
+		}
+		BlobPtV.Del(0, Vals - 1);
 		FirstValOffset += Vals;
 	}
 }

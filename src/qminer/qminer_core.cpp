@@ -2987,18 +2987,20 @@ TQueryItem::TQueryItem(const PRecSet& _RecSet) :
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
-	const uint64& WordId, const TQueryCmpType& _CmpType, const bool& IsSmall) : Type(IsSmall ? oqitLeafGixSmall : oqitLeafGix),
+	const uint64& WordId, const TQueryCmpType& _CmpType) : 
 	KeyId(_KeyId), CmpType(_CmpType) {
+	Type = (Base->GetIndexVoc()->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix);
+	Base->GetIndexVoc()->GetKey(KeyId).IsSmall();
 	WordIdV.Add(WordId);
 	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
-	const TStr& WordStr, const TQueryCmpType& _CmpType, const bool& IsSmall) : Type(IsSmall ? oqitLeafGixSmall : oqitLeafGix) {
-
+	const TStr& WordStr, const TQueryCmpType& _CmpType)  {
 	// read the Key
 	KeyId = _KeyId;
 	QmAssertR(Base->GetIndexVoc()->IsKeyId(KeyId), "Unknown Key ID: " + KeyId.GetStr());
+	Type = (Base->GetIndexVoc()->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix);
 	// read the sort type
 	CmpType = _CmpType;
 	// parse the word string
@@ -3007,11 +3009,12 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm,
-	const TStr& WordStr, const TQueryCmpType& _CmpType, const bool& IsSmall) : Type(IsSmall ? oqitLeafGixSmall : oqitLeafGix) {
+	const TStr& WordStr, const TQueryCmpType& _CmpType) {
 
 	// get the key
 	QmAssertR(Base->GetIndexVoc()->IsKeyNm(StoreId, KeyNm), "Unknown Key Name: " + KeyNm);
 	KeyId = Base->GetIndexVoc()->GetKeyId(StoreId, KeyNm);
+	Type = (Base->GetIndexVoc()->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix);
 	// read sort type
 	CmpType = _CmpType;
 	// parse the word string
@@ -3020,12 +3023,13 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr&
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm,
-	const TStr& WordStr, const TQueryCmpType& _CmpType, const bool& IsSmall) : Type(IsSmall ? oqitLeafGixSmall : oqitLeafGix) {
+	const TStr& WordStr, const TQueryCmpType& _CmpType) {
 
 	// get the key
 	const uint StoreId = Base->GetStoreByStoreNm(StoreNm)->GetStoreId();
 	QmAssertR(Base->GetIndexVoc()->IsKeyNm(StoreId, KeyNm), "Unknown Key Name: " + KeyNm);
 	KeyId = Base->GetIndexVoc()->GetKeyId(StoreId, KeyNm);
+	Type = (Base->GetIndexVoc()->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix);
 	// read sort type
 	CmpType = _CmpType;
 	// parse the word string

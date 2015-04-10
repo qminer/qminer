@@ -209,16 +209,23 @@ class TInMemStorage {
 private:
     /// Storage filename
 	TStr FNm;
+	/// Storage filename for Blob storage
+	TStr BlobFNm;
     /// Access type with which the storage is opened
 	TFAccess Access;
     /// Offset of the first record
 	TUInt64 FirstValOffset;
     /// Storage vector
-    TVec<TMem, int64> ValV;
-    
+    mutable TVec<TMem, int64> ValV;
+	/// Blob-pointers - locations where TMem objects are stored inside Blob storage
+	TVec<TBlobPt, int64> BlobPtV;
+	/// "Dirty flags" - 0 - not saved yet, 1 - clean, 2 - dirty
+	mutable TVec<byte, int64> DirtyV;
+    /// Blob storage
+	PBlobBs BlobStorage;
 public:
 	TInMemStorage(const TStr& _FNm);
-	TInMemStorage(const TStr& _FNm, const TFAccess& _Access);
+	TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bool& _Lazy = false);
 	~TInMemStorage();
 
 	// asserts if we are allowed to change stuff
@@ -234,6 +241,10 @@ public:
 	uint64 Len() const;
 	uint64 GetFirstValId() const;
 	uint64 GetLastValId() const;
+#ifdef XTEST
+	friend class XTest;
+	PBlobBs GetBlobStorage() { return BlobStorage; }
+#endif
 };
 
 ////////////////////////////////////

@@ -1,5 +1,5 @@
 #define GIX_DEBUG
-#define GIX_TEST
+#define XTEST
 
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -33,27 +33,6 @@ typedef  TPt < TMyItemSet > PMyItemSet;
 
 typedef TGix<TMyKey, TMyItem, TMyGixDefMerger> TMyGix;
 typedef TPt<TGix<TMyKey, TMyItem, TMyGixDefMerger> > PMyGix;
-
-
-/////////////////////////////////////////////////////////////////////////
-//// for nice outputs
-//
-//HANDLE  hConsole;
-//
-//void WarnNotifyI(TStr& const s) {
-//	SetConsoleTextAttribute(hConsole, 11);
-//	WarnNotify(s);
-//	SetConsoleTextAttribute(hConsole, 15);
-//}
-//void WarnNotifyW(TStr& const s) {
-//	SetConsoleTextAttribute(hConsole, 14);
-//	WarnNotify(s);
-//	SetConsoleTextAttribute(hConsole, 15);
-//}
-//
-//#define ASSERT_TRUE(Cond, MsgCStr) \
-//  ((Cond) ? static_cast<void>(0) : WarnNotifyW( TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) +": "+ MsgCStr))
-
 
 /////////////////////////////////////////////////////////////////////////
 
