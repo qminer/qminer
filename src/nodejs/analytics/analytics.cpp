@@ -683,17 +683,6 @@ void TNodeJsLogReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
-void TNodeJsLogReg::newMatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	TFltV FltV;
-	FltV.Add(1);
-	FltV.Add(2);
-
-	Args.GetReturnValue().Set(TNodeJsFltVV::New(FltV));
-}
-
 ////////////////////////////////////////////////////////
 // Exponential Regression
 const TStr TNodeJsExpReg::ClassId = "ExpReg";
@@ -714,10 +703,8 @@ void TNodeJsExpReg::Init(v8::Handle<v8::Object> exports) {
 
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
-#ifndef MODULE_INCLUDE_ANALYTICS
-	exports->Set(v8::String::NewFromUtf8(Isolate, ClassId.CStr()),
-			   tpl->GetFunction());
-#endif
+
+	exports->Set(v8::String::NewFromUtf8(Isolate, ClassId.CStr()), tpl->GetFunction());
 }
 
 TNodeJsExpReg* TNodeJsExpReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
