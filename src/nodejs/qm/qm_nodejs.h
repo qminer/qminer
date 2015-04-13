@@ -442,7 +442,7 @@ private:
 	* var qm = require('qminer');
 	* // create a store with some people with fields Name and Gender
 	* var store = //TODO
-	* // make an array of recod names
+	* // make an array of record names
 	* var arr = store.map(function (rec) { return rec.Name; });
 	*/
 	//# exports.Store.prototype.map = function (callback) {}
@@ -764,23 +764,79 @@ private:
 	JsDeclareFunction(aggr);
 	//!- `rs = rs.trunc(limit_num)` -- truncate to first `limit_num` record and return self.
 	//!- `rs = rs.trunc(limit_num, offset_num)` -- truncate to `limit_num` record starting with `offset_num` and return self.
+	/**
+	* Truncates the first records.
+	* @param {number} limit_num - How many records to truncate.
+	* @param {number} [offset_num] - Where to start to truncate.
+	* @returns {module:qm.RecSet} Self.
+	* @example
+	* // import qm module
+	* qm = require('qminer');
+	* // construct a record set with 20 records
+	* rs = //TODO
+	* rs2 = //TODO
+	* // truncate the first 10 records
+	* rs.trunc(10); // returns self, only with the first 10 records
+	* // truncate the first 10 records starting with the 5th
+	* rs2.trunc(10, 4);
+	*/
+	//# exports.RecSet.prototype.trunc = function (limit_num, offset_num) {};
 	JsDeclareFunction(trunc);
+
 	//!- `rs2 = rs.sample(num)` -- create new record set by randomly sampling `num` records.
+	/**
+	* Creates a sample of records of the record set.
+	* @param {number} num - The number of records in the sample.
+	* @returns {module:qm.RecSet} A record set containing the sample records.
+	*/
+	//# exports.RecSet.prototype.sample = function (num) {};
 	JsDeclareFunction(sample);
+
 	//!- `rs = rs.shuffle(seed)` -- shuffle order using random integer seed `seed`. Returns self.
+	/**
+	* Shuffles the order of records in the record set.
+	* @param {number} [seed] - Integer.
+	* @returns {module:qm.RecSet} Self.
+	*/
+	//# exports.RecSet.prototype.shuffle = function (seed) {};
 	JsDeclareFunction(shuffle);
+
 	//!- `rs = rs.reverse()` -- reverse record order. Returns self.
+	/**
+	* It reverses the record order.
+	* @returns {module:qm.RecSet} Self. Records are in reversed order.
+	*/
+	//# exports.RecSet.prototype.reverse = function () {};
 	JsDeclareFunction(reverse);
+
 	//!- `rs = rs.sortById(asc)` -- sort records according to record id; if `asc > 0` sorted in ascending order. Returns self.
+	/**
+	* Sorts the records according to record id.
+	* @param {number} [asc=1] - If asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.  
+	* @returns {module:qm.RecSet} Self. Records are sorder according to record id.
+	*/
+	//# exports.RecSet.prototype.sortById = function (asc) {}; 
 	JsDeclareFunction(sortById);
+
 	//!- `rs = rs.sortByFq(asc)` -- sort records according to weight; if `asc > 0` sorted in ascending order. Returns self.
 	JsDeclareFunction(sortByFq);
 	//!- `rs = rs.sortByField(fieldName, asc)` -- sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order (default is desc). Returns self.
 	JsDeclareFunction(sortByField);
 	//!- `rs = rs.sort(comparatorCallback)` -- sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Returns self.
 	JsDeclareFunction(sort);
+
 	//!- `rs = rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`. Returns self.
+	/**
+	* Keeps only records with ids between two values.
+	* @param {number} [minId] - The minimum id.
+	* @param {number} [maxId] - The maximum id.
+	* @returns {module:qm.RecSet} Self. 
+	* <br>1. Contains only the records of the original with ids between minId and maxId, if parameters are given.
+	* <br>2. Contains all the records of the original, if no parameter is given.
+	*/
+	//# exports.RecSet.prototype.filterById = function (minId, maxId) {};
 	JsDeclareFunction(filterById);
+	
 	//!- `rs = rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`. Returns self.
 	JsDeclareFunction(filterByFq);
 	//!- `rs = rs.filterByField(fieldName, minVal, maxVal)` -- keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Returns self.
@@ -791,18 +847,59 @@ private:
 	JsDeclareFunction(filter);
 	//!- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more than 10. Result is an array of record sets. 
 	JsDeclareFunction(split);
+
 	//!- `rs = rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Returns self.
+	/**
+	* Deletes the records, that are also in the other record set.
+	* @param {module:qm.RecSet} rs - The other record set.
+	* @returns {module:qm.RecSet} Self. Contains only the records, that are not in rs.
+	*/
+	//# exports.RecSet.prototype.deleteRecs = function (rs) {}; 
 	JsDeclareFunction(deleteRecs);
+
 	//!- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 	JsDeclareFunction(toJSON);
+
 	//!- `rs = rs.each(callback)` -- iterates through the record set and executes the callback function `callback` on each element. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
 	//!  - `rs.each(function (rec) { console.log(JSON.stringify(rec)); })`
 	//!  - `rs.each(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
+	/**
+	* Executes a function on each record in record set.
+	* @param {function} callback - Function to be executed. It takes two parameters:
+	* <br>rec - The current record.
+	* <br>[idx] - The index of the current record.
+	* @returns {module:qm.RecSet} Self.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a record set with some people with fields Name and Gender
+	* var rs = //TODO
+	* // change the gender of all records to "Extraterrestrial"
+	* rs.each(function (rec) { rec.Gender = "Extraterrestrial"; });
+	*/
+	//# exports.RecSet.prototype.each = function (callback) {}
 	JsDeclareFunction(each);
+
 	//!- `arr = rs.map(callback)` -- iterates through the record set, applies callback function `callback` to each element and returns new array with the callback outputs. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Examples:
 	//!  - `arr = rs.map(function (rec) { return JSON.stringify(rec); })`
 	//!  - `arr = rs.map(function (rec, idx) {  return JSON.stringify(rec) + ', ' + idx; })`
+	/**
+	* Creates an array of function outputs created from the records in record set.
+	* @param {function} callback - Function that generates the array. It takes two parameters:
+	* <br>rec - The current record.
+	* <br>[idx] - The index of the current record.
+	* @returns {Array<Object>} The array created by the callback function. //TODO
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a record set with some people with fields Name and Gender
+	* var rs = //TODO
+	* // make an array of record names
+	* var arr = rs.map(function (rec) { return rec.Name; });
+	*/
+	//# exports.RecSet.prototype.map = function (callback) {}
 	JsDeclareFunction(map);
+
 	//!- `rs3 = rs.setintersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 	JsDeclareFunction(setintersect);
 	//!- `rs3 = rs.setunion(rs2)` -- returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.

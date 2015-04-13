@@ -61,11 +61,12 @@ function TStore() {
 
 describe('Record Set Tests', function () {
 
-    var table = undefined;
-    var recSet = undefined;
+    var table;
+    var recSet, recSet2;
     beforeEach(function () {
         table = new TStore();
         recSet = table.base.store("Movies").recs;
+        recSet2 = table.base.store("People").recs;
     });
     afterEach(function () {
         table.close();
@@ -112,7 +113,7 @@ describe('Record Set Tests', function () {
         })
     });
 
-    describe('Join Test', function () {
+    describe('Join Tests', function () {
         it('should return all directors of some movie', function () {
             var recSet2 = recSet.join("Director");
             assert.equal(recSet2.length, 2);
@@ -148,6 +149,12 @@ describe('Record Set Tests', function () {
             assert.equal(recSet[0].Title, "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on");
             assert.equal(recSet[1], undefined);
         })
+        it('should truncate the first record of the record set', function () {
+            recSet.trunc(1, 0);
+            assert.equal(recSet.length, 1);
+            assert.equal(recSet[0].Title, "Every Day");
+            assert.equal(recSet[1], undefined);
+        })
         it('should truncate all the records from the record set', function () {
             recSet.trunc(2);
             assert.equal(recSet.length, 2);
@@ -163,5 +170,177 @@ describe('Record Set Tests', function () {
                 recSet.trunc();
             })
         })
-    })
+    });
+
+    describe('Sample Tests', function () {
+        it('should return a new record set with 10 random records', function () {
+            var rs = recSet2.sample(10);
+            assert.equal(rs.length, 10);
+            assert.equal(rs.store.name, "People");
+        })
+        it('should return a new record set with 1 random record', function () {
+            var rs = recSet.sample(1);
+            assert.equal(rs.length, 1);
+            assert.equal(rs.store.name, "Movies");
+        })
+        it('should throw an exception, if no parameter is given', function () {
+            assert.throws(function () {
+                var rs = recSet2.sample();
+            })
+        })
+        it('should return a new record set, only with shuffled records', function () {
+            var rs = recSet.sample(2);
+            assert.equal(rs.length, 2);
+        })
+    });
+
+    describe('Shuffle Tests', function () {
+        it('should shuffle the record set', function () {
+            recSet.shuffle(102);
+            assert.equal(recSet.length, 2);
+        })
+        it('should shuffle the record set recSet2', function () {
+            recSet2.shuffle(250);
+            assert.equal(recSet2.length, 62);
+        })
+        it('should shuffle the record set, no parameter given', function () {
+            recSet2.shuffle();
+            assert.equal(recSet2.length, 62);
+        })
+    });
+
+    describe('Reverse Tests', function () {
+        it('should reverse the record set recSet', function () {
+            recSet.reverse();
+            assert.equal(recSet.length, 2);
+            assert.equal(recSet[0].Title, "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on");
+            assert.equal(recSet[1].Title, "Every Day");
+        })
+    });
+
+    describe('SortById Tests', function () {
+        it('should sort the records in ascending order', function () {
+            recSet2.sortById(1);
+            assert.equal(recSet2.length, 62);
+            assert.equal(recSet2[0].Name, "Carolina Fortuna");
+            assert.equal(recSet2[1].Name, "Blaz Fortuna");
+        })
+        it('should sort the records in descending order', function () {
+            recSet2.sortById(-1);
+            assert.equal(recSet2.length, 62);
+            assert.equal(recSet2[60].Name, "Blaz Fortuna");
+            assert.equal(recSet2[61].Name, "Carolina Fortuna");
+        })
+        it('should sort the records in descending order if parameter is zero', function () {
+            recSet2.sortById(0);
+            assert.equal(recSet2.length, 62);
+            assert.equal(recSet2[60].Name, "Blaz Fortuna");
+            assert.equal(recSet2[61].Name, "Carolina Fortuna");
+        })
+        it('should sort the records in ascending order if no parameter is given', function () {
+            assert.throws(function () {
+                recSet2.sortById();
+                assert.equal(recSet2.length, 62);
+                assert.equal(recSet2[0].Name, "Carolina Fortuna");
+                assert.equal(recSet2[1].Name, "Blaz Fortuna");
+            })
+        })
+    });
+
+    describe('FilterById Tests', function () {
+        it('should return the first two records of recSet2', function () {
+            recSet2.filterById(0, 1);
+            assert.equal(recSet2.length, 2);
+            assert.equal(recSet2[0].Name, "Carolina Fortuna");
+            assert.equal(recSet2[1].Name, "Blaz Fortuna");
+        })
+        it('should return only the first record of recSet', function () {
+            recSet.filterById(0, 0);
+            assert.equal(recSet.length, 1);
+            assert.equal(recSet[0].Title, "Every Day");
+        })
+        it('shouldn\'t change the record set recSet', function () {
+            recSet.filterById();
+            assert.equal(recSet.length, 2);
+            assert.equal(recSet[0].Title, "Every Day");
+            assert.equal(recSet[1].Title, "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on");
+        })
+        it('shouldn\'t change the record set recSet2', function () {
+            recSet2.filterById();
+            assert.equal(recSet2.length, 62);
+            assert.equal(recSet2[0].Name, "Carolina Fortuna");
+            assert.equal(recSet2[1].Name, "Blaz Fortuna");
+        })
+        it('should throw an exception', function () {
+            assert.throws(function () {
+                recSet2.filterById(1);
+            })
+        })
+    });
+
+    describe('DeleteRecs Tests', function () {
+        it('should delete the records in recSet2, that are also in rs', function () {
+            var rs = recSet2.clone();
+            rs.filterById(2, 61);
+
+            recSet2.deleteRecs(rs);
+            assert.equal(recSet2.length, 2);
+            assert.equal(recSet2[0].Name, "Carolina Fortuna");
+            assert.equal(recSet2[1].Name, "Blaz Fortuna");
+        })
+        it('should delete all the records in recSet2', function () {
+            var rs = recSet2.clone();
+            recSet2.deleteRecs(rs);
+            assert.equal(recSet2.length, 0);
+        })
+        it('should throw an exception, if parameter is not given', function () {
+            assert.throws(function () {
+                recSet2.deleteRecs();
+            })
+        })
+    });
+
+    describe('Each Tests', function () {
+        it('should change the gender of all records in "People" to "Extraterrestrial"', function () {
+            recSet2.each(function (rec) {
+                rec.Gender = "Extraterrestrial";
+            });
+            for (var i = 0; i < 62; i++) {
+                assert.equal(recSet2[i].Gender, "Extraterrestrial");
+            }
+        })
+        it('should change the gender only to "Carolina Fortuna"', function () {
+            recSet2.each(function (rec, idx) {
+                if (idx == 0) {
+                    rec.Gender = "Extraterrestrial";
+                }
+            })
+            assert.equal(recSet2[0].Gender, "Extraterrestrial");
+            assert.equal(recSet2[1].Gender, "Male");
+        })
+        it('shouldn\'t create a new field', function () {
+            recSet2.each(function (rec) { rec.DateOfBirth = '1.1.1950'; });
+            for (var i = 0; i < 62; i++) {
+                assert.equal(recSet2[i].DateOfBirth, null);
+            }
+        })
+    });
+
+    describe('Map Tests', function () {
+        it('should return an array of movie titles', function () {
+            var arr = recSet.map(function (rec) { return rec.Title; });
+            assert.equal(arr.length, 2);
+            assert.equal(arr[0], recSet[0].Title);
+            assert.equal(arr[1], recSet[1].Title);
+        })
+        it('should return a nested array of names and indeces of people', function () {
+            var arr = recSet2.map(function (rec, idx) {
+                return [idx, rec.Name];
+            })
+            for (var i = 0; i < 62; i++) {
+                assert.equal(arr[i][0], i);
+                assert.equal(arr[i][1], recSet2[i].Name);
+            }
+        })
+    });
 })
