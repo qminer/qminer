@@ -1,3 +1,4 @@
+console.log(__filename)
 var qm = require('qminer');
 var assert = require('assert')
 var datasets = qm.datasets;
@@ -16,13 +17,19 @@ describe('qm.datasets', function () {
     });
 
     describe('#loadIrisSync() - testing synchronous version of Iris dataset loader', function () {
-        var base = qm.create('qm.conf', '', true);
-        var Iris = datasets.loadIrisSync(base);
+        var base;
+        var Iris;
+
+        // Create base and load data before tests
+        before(function () {
+            base = qm.create('qm.conf', '', true);
+            Iris = datasets.loadIrisSync(base);
+        });
 
         // Close base after tests
         after(function () {
             base.close();
-        })
+        });
 
         it('it should load store with iris dataset', function () {
             assert.ok(Iris.name);

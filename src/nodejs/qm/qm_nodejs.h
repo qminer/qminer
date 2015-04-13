@@ -67,9 +67,13 @@ private:
 * @enum {string}
 */
 //# var baseModes = {
+//#    /** sets up the db folder */
 //#    create: 'create',
+//#    /** cleans the db folder and calls create */
 //#    createClean: 'createClean',
+//#    /** opens with write permissions */
 //#    open: 'open',
+//#    /** opens in read-only mode */
 //#    openReadOnly: 'openReadOnly'
 //# }
 
@@ -84,10 +88,208 @@ private:
 * @property  {number} [BaseConstructorParam.indexCache=1024] - The ammount of memory reserved for indexing (in MB).
 * @property  {number} [BaseConstructorParam.storeCache=1024] - The ammount of memory reserved for store cache (in MB).
 * @property  {string} [BaseConstructorParam.schemaPath=''] - The path to schema definition file.
-* @property  {Object} [BaseConstructorParam.schema=[]] - Schema definition object.
+* @property  {Array<module:qm~SchemaDefinition>} [BaseConstructorParam.schema=[]] - Schema definition object array.
 * @property  {string} [BaseConstructorParam.dbPath='./db/'] - The path to db directory.
 */
 
+/**
+* Store schema definition object
+* @typedef {Object} SchemaDefinition
+* @property {string} name - The name of the store. Store name can be composed by from English letters, numbers, _ or $ characters. It can only begin with a character.
+* @property {Array<module:qm~SchemaFieldDefinition>} fields - The array of field descriptors. 
+* @property {Array<module:qm~SchemaJoinDefinition>} [joins=[]] - The array of join descriptors, used for linking records from different stores.
+* @property {Array<module:qm~SchemaKeyDefinition>} [keys=[]] - The array of key descriptors. Keys define how records are indexed, which is needed for search using the query language.
+* @property {qm~SchemaTimeWindowDefinition} [timeWindow] - Time window description. Stores can have a window, which is used by garbage collector to delete records once they fall out of the time window. Window can be defined by number of records or by time.
+* @example
+* var qm = require('qminer');
+* // create a simple movies store, where each record contains only the movie title.
+* var base = new qm.Base({
+*     mode: 'createClean',
+*     schema: [{
+*       "name": "Movies",
+*       "fields": [{ name: "title", type: "string" }]
+*     }]
+* });
+*/
+
+/**
+* Field types.
+* @readonly
+* @enum {string}
+*/
+//# var fieldTypes = {
+//#    /** signed 32-bit integer */
+//#    int: 'int', 
+//#    /** vector of signed 32-bit integers */
+//#    int_v: 'int_v', 
+//# /** string */
+//# string : 'string',
+//# /** vector of strings */
+//# string_v : 'string_v',
+//# /** boolean */
+//# bool : 'bool',
+//# /** double precision floating point number */
+//# float : 'float',
+//# /** a pair of floats, useful for storing geo coordinates */
+//# float_pair : 'float_pair',
+//# /** vector of floats */
+//# float_v : 'float_v',
+//# /** date and time format, stored in a form of milliseconds since 1600 */
+//# datetime : 'datetime',
+//# /** sparse vector(same format as used by QMiner JavaScript linear algebra library) */
+//# num_sp_v : 'num_sp_v',
+//# }
+
+/**
+* Store schema field definition object
+* @typedef {Object} SchemaFieldDefinition
+* @property {string} name - The name of the field.
+* @property {module:qm~fieldTypes} type - The type of the field.
+* @property {boolean} [primary=false] - Field which can be used to identify record. There can be only one primary field in a store. There can be at most one record for each value of the primary field. Currently following fields can be marked as primary: int, uin64, string, float, datetime. Primary fields of type string are also used for record names.
+* @property {boolean} [null=false] - When set to true, null is a possible value for a field (allow missing values).
+* @property {string} [store='memory'] - Defines where to store the field, options are: <b>'cache'</b> or <b>'memory'</b>. The default option is <b>'memory'</b>, which stores the values in RAM. Option <b>'cache'</b> stores the values on disk, with a layer of FIFO cache in RAM, storing the most recently used values.
+* @property {Object} [default] - Default value for field when not given for a new record.
+* @property {boolean} [codebook=false] - Useful when many records have only few different values of this field. If set to true, then a separate table of all values is kept, and records only point to this table (replacing variable string field in record serialisation with fixed-length integer). Useful to decrease memory footprint, and faster to update. (STRING FIELD TYPE SPECIFIC).
+* @property {boolean} [shortstring=false] - Useful for string shorter then 127 characters (STRING FIELD TYPE SPECIFIC).
+* @example
+*  var qm = require('qminer');
+*  var base = new qm.Base({
+*      mode: 'createClean',
+*      schema: [
+*        { name: 'NewsArticles',
+*          fields: [
+*            { name: "ID", primary: true, type: "string", shortstring: true },
+*            { name: "Source", type: "string", codebook: true },
+*            { name: "DateTime", type: "datetime" },
+*            { name: "Title", type: "string", store: "cache" },
+*            { name: "Tokens", type: "string_v", store: "cache", null: true },
+*            { name: "Vector", type: "num_sp_v", store: "cache", null: true }]
+*        }
+*     ]
+*  });
+* // add a record:
+* // - we set the date using the ISO string representation
+* // - we set the string vector Tokens with an array of strings
+* // - we set the numeric sparse vector Vector with an array of two element arrays
+* //   (index, value), see the sparse vector constructor {@link module:la.SparseVector}
+* base.store('NewsArticles').add({
+*   ID: 't12344', 
+*   Source: 's1234', 
+*   DateTime: '2015-01-01T00:05:00', 
+*   Title: 'the title', 
+*   Tokens: ['token1', 'token2'], 
+*   Vector: [[0,1], [1,1]]})
+*/
+
+/**
+* Store schema join definition object
+* @typedef {Object} SchemaJoinDefinition
+* @property {string} name - The name of the join.
+* @property {string} type - The supported types are: <b>'field'</b> and <b>'index'</b>. 
+* <br> A join with type=<b>'field'</b> can point to zero or one record and is implemented as an additional hidden field of type uint64, which can hold the ID of the record it links to. Accessing the record's join returns a record.
+* <br> A join with type=<b>'index'</b> can point to any number of records and is implemented using the inverted index, where for each record a list (vector) of linked records is kept. Accessing the record's join returns a record set.
+* @property {string} store - The store name from which the linked records are.
+* @example
+* var qm = require('qminer');
+* // Create two stores: People which stores only names of persons and Movies, which stores only titles.
+* // Each person can direct zero or more movies, so we use an index join named 'directed' and
+* // each movie has a single director, so we use a field join 'director'. The joins are 
+* // inverses of each other. The inverse join simplifies the linking, since only one join needs
+* // to be specified, and the other direction can be linked automatically (in the example 
+* // below we specify only the 'director' link and the 'directed' join is updated automatically).
+* //
+* var base = new qm.Base({
+*     mode: 'createClean',
+*     schema: [
+*       { name: 'People', 
+*         fields: [{ name: 'name', type: 'string', primary: true }], 
+*         joins: [{ name: 'directed', 'type': 'index', 'store': 'Movies', 'inverse': 'director' }] },
+*       { name: 'Movies', 
+*         fields: [{ name: 'title', type: 'string', primary: true }], 
+*         joins: [{ name: 'director', 'type': 'field', 'store': 'People', 'inverse': 'directed' }] }
+*     ]
+* });
+* // Adds a movie, automatically adds 'Jim Jarmusch' to People, sets the 'director' join (field join)
+* // and automatically updates the index join 'directed', since it's an inverse join of 'director'
+* base.store('Movies').add({ title: 'Broken Flowers', director: { name: 'Jim Jarmusch' } });
+* // Adds a movie, sets the 'director' join, updates the index join of 'Jim Jarmusch'
+* base.store('Movies').add({ title: 'Coffee and Cigarettes', director: { name: 'Jim Jarmusch' } });
+* // Adds movie, automatically adds 'Lars von Trier' to People, sets the 'director' join
+* // and 'directed' inverse join (automatically)
+* base.store('Movies').add({ title: 'Dogville', director: { name: 'Lars von Trier' } });
+*
+* var movie = base.store('Movies')[0]; // get the first movie (Broken Flowers)
+* // Each movie has a property corresponding to the join name: 'director'. 
+* // Accessing the property returns a {@link module:qm.Record} from the store People.
+* var person = movie.director; // get the director
+* console.log(person.name); // prints 'Jim Jarmusch'
+* // Each person has a property corresponding to the join name: 'directed'. 
+* // Accessing the property returns a {@link module:qm.RecSet} from the store People.
+* var movies = person.directed; // get all the movies the person directed.
+* movies.each(function (movie) { console.log(movie.title); }); 
+* // prints: 
+* //   'Broken Flowers'
+* //   'Coffee and Cigarettes'
+*/
+
+/**
+* Store schema key definition object
+* @typedef {Object} SchemaKeyDefinition
+* @property {string} field - The name of the field that will be indexed.
+* @property {string} type - The supported types are: <b>'value'</b>, <b>'text'</b> and <b>'location'</b>.
+* <br> A key with type=<b>'value'</b> indexes records using an inverted index using full value of the field (no processing).
+*  The key type supports 'string', 'string_v' and 'datetime' fields types.
+* <br> A key with type=<b>'text'</b> indexes string fields by using a tokenizer and text processing. Supported by string fields.
+* <br> A key with type=<b>'location'</b> indexes records as points on a sphere and enables nearest-neighbour queries. Supported by float_pair type fields.
+* @property {string} [name] - Allows using a different name for the key in search queries. This allows for multiple keys to be put against the same field. Default value is the name of the field.
+* @property {string} [vocabulary] - defines the name of the vocabulary used to store the tokens or values. This can be used indicate to several keys to use the same vocabulary, to save on memory. Supported by 'value' and 'text' keys.
+* @property {string} [tokenize] - defines the tokenizer that is used for tokenizing the values stored in indexed fields. Tokenizer uses same parameters as in bag-of-words feature extractor. Default is english stopword list and no stemmer. Supported by 'text' keys.
+* @example
+* var qm = require('qminer');
+* // Create a store People which stores only names of persons.
+* var base = new qm.Base({
+*     mode: 'createClean',
+*     schema: [
+*         { name: 'People',
+*           fields: [{ name: 'name', type: 'string', primary: true }],
+*           keys: [
+*             { field: 'name', type: 'value'}, 
+*             { field: 'name', name: 'nameText', type: 'text'}
+*          ]
+*        }
+*     ]
+* });
+*
+* base.store('People').add({name : 'John Smith'});
+* base.store('People').add({name : 'Mary Smith'});
+* // search based on indexed values
+* base.search({$from : 'People', name: 'John Smith'}); // Return the record set containing 'John Smith'
+* // search based on indexed values
+* base.search({$from : 'People', name: 'Smith'}); // Returns the empty record set.
+* // search based on text indexing
+* base.search({$from : 'People', nameText: 'Smith'}); // Returns both records.
+*/
+
+/**
+* Stores can have a window, which is used by garbage collector to delete records once they
+* fall out of the time window. Window can be defined by number of records or by time.
+* Window defined by parameter window, its value being the number of records to be kept.
+* @typedef {Object} SchemaTimeWindowDefinition
+* @property {number} duration - the size of the time window (in number of units).
+* @property {string} unit - defines in which units the window size is specified. Possible values are <b>second</b>, <b>minute</b>, <b>hour</b>, <b>day</b>, <b>week</b> or <b>month</b>.
+* @property {string} [field] - name of the datetime filed, which defines the time of the record. In case it is not given, the insert time is used in its place.
+* @example
+* var qm = require('qminer');
+* // Create a store
+* var base = new qm.Base([{
+* // ...
+*   timeWindow : { 
+*     duration : 12,
+*     unit : "hour",
+*     field : "DateTime"
+*   }
+* }]);
+*/
 
 /**
 * Base
@@ -467,7 +669,7 @@ private:
 	/**
 	* Creates a record set containing random records from store.
 	* @param {number} sampleSize - The size of the record set.
-	* @returns {Array.<module:qm.Record>} Returns a record set containing a random record set.
+	* @returns {module:qm.RecSet} Returns a record set containing random records.
 	*/
 	//# exports.Store.prototype.sample = function (sampleSize) {};
 	JsDeclareFunction(sample);
@@ -501,6 +703,7 @@ private:
 
 	//!- `bool = store.isDate(fieldName)` -- returns true if the field is of type Date
 	JsDeclareFunction(isDate)
+
 	//!- `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 	/**
 	* Returns the details of the selected key.
@@ -547,6 +750,7 @@ private:
 	*/
 	//# exports.Store.prototype.getVec = function (fieldName) {};
 	JsDeclareFunction(getVec);
+
 	//!- `mat = store.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
 	JsDeclareFunction(getMat);
 	//!- `val = store.cell(recId, fieldId)` -- if fieldId (int) corresponds to fieldName, this is equivalent to store[recId][fieldName]
@@ -633,6 +837,7 @@ private:
 	//!- `rec = store[recId]` -- get record with ID `recId`; 
 	//!     returns `null` when no such record exists
 	JsDeclIndexedProperty(indexId);	
+
 	//!- `base = store.base` -- get store base; 
 	JsDeclareProperty(base);
 	//!JSIMPLEMENT:src/qminer/store.js
@@ -813,16 +1018,41 @@ private:
 	/**
 	* Sorts the records according to record id.
 	* @param {number} [asc=1] - If asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.  
-	* @returns {module:qm.RecSet} Self. Records are sorder according to record id.
+	* @returns {module:qm.RecSet} Self. Records are sorted according to record id and asc.
 	*/
 	//# exports.RecSet.prototype.sortById = function (asc) {}; 
 	JsDeclareFunction(sortById);
 
 	//!- `rs = rs.sortByFq(asc)` -- sort records according to weight; if `asc > 0` sorted in ascending order. Returns self.
 	JsDeclareFunction(sortByFq);
+
 	//!- `rs = rs.sortByField(fieldName, asc)` -- sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order (default is desc). Returns self.
+	/**
+	* Sorts the records according to a specific record field.
+	* @param {string} fieldName - The field by which the sort will work.
+	* @param {number} [arc=-1] - if asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.
+	* @returns {module:qm.RecSet} Self. Records are sorted according to fieldName and arc.
+	*/
+	//# exports.RecSet.prototype.sortByField = function (fieldName, asc) {};
 	JsDeclareFunction(sortByField);
+
 	//!- `rs = rs.sort(comparatorCallback)` -- sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Returns self.
+	/**
+	* Sorts the records according to the given callback function.
+	* @param {function} callback - The function used to sort the records. It takes two parameters:
+	* <br>1. rec - The first record.
+	* <br>2. rec2 - The second record.
+	* <br>It returns a boolean object.
+	* @returns {module:qm.RecSet} Self. The records are sorted according to the callback function.
+	* @example
+	* // import qm module
+	* qm = require('qminer');
+	* // construct a new record set of movies (one field is it's Rating)
+	* var rs = //TODO
+	* // sort the records by their rating
+	* rs.sort(function (rec, rec2) { return rec.Rating < rec2.Rating ;});
+	*/
+	//# exports.RecSet.prototype.sort = function (callback) {};
 	JsDeclareFunction(sort);
 
 	//!- `rs = rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`. Returns self.
@@ -839,13 +1069,47 @@ private:
 	
 	//!- `rs = rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`. Returns self.
 	JsDeclareFunction(filterByFq);
+
 	//!- `rs = rs.filterByField(fieldName, minVal, maxVal)` -- keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Returns self.
 	//!- `rs = rs.filterByField(fieldName, minTm, maxTm)` -- keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Returns self.
 	//!- `rs = rs.filterByField(fieldName, str)` -- keeps only records with string value of field `fieldName` equal to `str`. Returns self.
+	/**
+	* Keeps only the records with a specific value of some field.
+	* @param {string} fieldName - The field by which the records will be filtered.
+	* @param {(string | number)} minVal -  
+	* <br>1. Is a string, if the field type is a string. The exact string to compare.
+	* <br>2. Is a number, if the field type is a number. The minimal value for comparison.
+	* <br>3. TODO Time field
+	* @param {number} maxVal - Only in combination with minVal for non-string fields. The maximal value for comparison.
+	* @returns {module:qm.RecSet} Self. Containing only the records with the fieldName value between minVal and maxVal. If the fieldName type is string,
+	* it contains only the records with fieldName equal to minVal.
+	*/
+	//# exports.RecSet.prototype.filterByField = function (fieldName, minVal, maxVal) {};
 	JsDeclareFunction(filterByField);
+
 	//!- `rs = rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function. Returns self.
+	/**
+	* Keeps only the records that pass the callback function.
+	* @param {function} callback - The filter function. It takes one parameter and return a boolean object.
+	* @returns {module:qm.RecSet} Self. Containing only the record that pass the callback function.
+	* @example
+	* // import qm module
+	* qm = require('qminer');
+	* // construct a record set of kitchen appliances
+	* var rs = //TODO
+	* // filter by the field price
+	* rs.filter(function (rec) { return rec.Price > 10000; }); // keeps only the records, where their Price is more than 10000
+	*/
+	//# exports.RecSet.prototype.filter = function (callback) {}; 
 	JsDeclareFunction(filter);
+
 	//!- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more than 10. Result is an array of record sets. 
+	/**
+	* Splits the record set into smaller record sets.
+	* @param {function} callback - The splitter function. It takes two parameters (records) and returns a boolean object.
+	* @returns {Array.<module:qm.RecSet>} An array containing the smaller record sets. The records are split according the callback function.
+	*/
+	//# exports.RecSet.prototype.split = function (callback) {};
 	JsDeclareFunction(split);
 
 	//!- `rs = rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Returns self.
@@ -901,7 +1165,14 @@ private:
 	JsDeclareFunction(map);
 
 	//!- `rs3 = rs.setintersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
+	/**
+	* Returns the intersection (record set) of two record sets.
+	* @param {module:qm.RecSet} rs - The other record set.
+	* @returns {module:qm.RecSet} The intersection of the two record sets.
+	*/
+	//# exports.RecSet.prototype.setintersect = function (rs) {};
 	JsDeclareFunction(setintersect);
+
 	//!- `rs3 = rs.setunion(rs2)` -- returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 	JsDeclareFunction(setunion);
 	//!- `rs3 = rs.setdiff(rs2)` -- returns the set difference (record set) `rs3`=`rs`\`rs2`  between two record sets `rs` and `rs1`, which should point to the same store.

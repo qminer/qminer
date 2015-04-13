@@ -99,7 +99,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line267">line 267</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line464">line 464</a>
     </li></ul></dd>
     
 
@@ -192,7 +192,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line376">line 376</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line633">line 633</a>
     </li></ul></dd>
     
 
@@ -254,7 +254,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line372">line 372</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line629">line 629</a>
     </li></ul></dd>
     
 
@@ -316,7 +316,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line368">line 368</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line625">line 625</a>
     </li></ul></dd>
     
 
@@ -378,7 +378,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line380">line 380</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line637">line 637</a>
     </li></ul></dd>
     
 
@@ -456,7 +456,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line272">line 272</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line469">line 469</a>
     </li></ul></dd>
     
 
@@ -609,7 +609,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line334">line 334</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line585">line 585</a>
     </li></ul></dd>
     
 
@@ -762,7 +762,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line349">line 349</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line600">line 600</a>
     </li></ul></dd>
     
 
@@ -812,6 +812,366 @@
     <h5>Example</h5>
     
     <pre class="prettyprint"><code>// import qm modulevar qm = require('qminer');// create a record set with some people with fields Name and Gendervar rs = //TODO// change the gender of all records to "Extraterrestrial"rs.each(function (rec) { rec.Gender = "Extraterrestrial"; });</code></pre>
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="filter"><span class="type-signature"></span>filter<span class="signature">(callback)</span><span class="type-signature"> &rarr; {<a href="module-qm.RecSet.html">module:qm.RecSet</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Keeps only the records that pass the callback function.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The filter function. It takes one parameter and return a boolean object.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line573">line 573</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Self. Containing only the record that pass the callback function.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-qm.RecSet.html">module:qm.RecSet</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// import qm moduleqm = require('qminer');// construct a record set of kitchen appliancesvar rs = //TODO// filter by the field pricers.filter(function (rec) { return rec.Price > 10000; }); // keeps only the records, where their Price is more than 10000</code></pre>
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="filterByField"><span class="type-signature"></span>filterByField<span class="signature">(fieldName, minVal, maxVal)</span><span class="type-signature"> &rarr; {<a href="module-qm.RecSet.html">module:qm.RecSet</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Keeps only the records with a specific value of some field.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fieldName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The field by which the records will be filtered.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>minVal</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+|
+
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><br>1. Is a string, if the field type is a string. The exact string to compare.<br>2. Is a number, if the field type is a number. The minimal value for comparison.<br>3. TODO Time field</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>maxVal</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Only in combination with minVal for non-string fields. The maximal value for comparison.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line560">line 560</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Self. Containing only the records with the fieldName value between minVal and maxVal. If the fieldName type is string,it contains only the records with fieldName equal to minVal.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-qm.RecSet.html">module:qm.RecSet</a></span>
+
+
+    </dd>
+</dl>
+
+    
 
 
 
@@ -965,7 +1325,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line328">line 328</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line548">line 548</a>
     </li></ul></dd>
     
 
@@ -1161,7 +1521,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line279">line 279</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line476">line 476</a>
     </li></ul></dd>
     
 
@@ -1314,7 +1674,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line364">line 364</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line615">line 615</a>
     </li></ul></dd>
     
 
@@ -1423,7 +1783,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line313">line 313</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line510">line 510</a>
     </li></ul></dd>
     
 
@@ -1576,7 +1936,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line302">line 302</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line499">line 499</a>
     </li></ul></dd>
     
 
@@ -1604,6 +1964,159 @@
         
 <div class="param-desc">
     A record set containing the sample records.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-qm.RecSet.html">module:qm.RecSet</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="setintersect"><span class="type-signature"></span>setintersect<span class="signature">(rs)</span><span class="type-signature"> &rarr; {<a href="module-qm.RecSet.html">module:qm.RecSet</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Returns the intersection (record set) of two record sets.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>rs</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="module-qm.RecSet.html">module:qm.RecSet</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The other record set.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line621">line 621</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    The intersection of the two record sets.
 </div>
 
 
@@ -1741,7 +2254,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line308">line 308</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line505">line 505</a>
     </li></ul></dd>
     
 
@@ -1769,6 +2282,372 @@
         
 <div class="param-desc">
     Self.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-qm.RecSet.html">module:qm.RecSet</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="sort"><span class="type-signature"></span>sort<span class="signature">(callback)</span><span class="type-signature"> &rarr; {<a href="module-qm.RecSet.html">module:qm.RecSet</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Sorts the records according to the given callback function.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The function used to sort the records. It takes two parameters:<br>1. rec - The first record.<br>2. rec2 - The second record.<br>It returns a boolean object.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line539">line 539</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Self. The records are sorted according to the callback function.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-qm.RecSet.html">module:qm.RecSet</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// import qm moduleqm = require('qminer');// construct a new record set of movies (one field is it's Rating)var rs = //TODO// sort the records by their ratingrs.sort(function (rec, rec2) { return rec.Rating &lt; rec2.Rating ;});</code></pre>
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="sortByField"><span class="type-signature"></span>sortByField<span class="signature">(fieldName, arc<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="module-qm.RecSet.html">module:qm.RecSet</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Sorts the records according to a specific record field.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fieldName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">The field by which the sort will work.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>arc</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    -1
+                
+                </td>
+            
+
+            <td class="description last">if asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line523">line 523</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Self. Records are sorted according to fieldName and arc.
 </div>
 
 
@@ -1914,7 +2793,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line319">line 319</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line516">line 516</a>
     </li></ul></dd>
     
 
@@ -1941,7 +2820,7 @@
 
         
 <div class="param-desc">
-    Self. Records are sorder according to record id.
+    Self. Records are sorted according to record id and asc.
 </div>
 
 
@@ -1953,6 +2832,159 @@
     <dd>
         
 <span class="param-type"><a href="module-qm.RecSet.html">module:qm.RecSet</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="split"><span class="type-signature"></span>split<span class="signature">(callback)</span><span class="type-signature"> &rarr; {Array.&lt;<a href="module-qm.RecSet.html">module:qm.RecSet</a>>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Splits the record set into smaller record sets.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The splitter function. It takes two parameters (records) and returns a boolean object.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line579">line 579</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    An array containing the smaller record sets. The records are split according the callback function.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Array.&lt;<a href="module-qm.RecSet.html">module:qm.RecSet</a>></span>
 
 
     </dd>
@@ -2110,7 +3142,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line296">line 296</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line493">line 493</a>
     </li></ul></dd>
     
 
@@ -2185,7 +3217,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Mon Apr 13 2015 09:53:11 GMT+0200 (Central Europe Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Mon Apr 13 2015 15:36:11 GMT+0200 (Central Europe Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>
