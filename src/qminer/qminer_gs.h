@@ -220,9 +220,30 @@ private:
 	/// Blob-pointers - locations where TMem objects are stored inside Blob storage
 	TVec<TBlobPt, int64> BlobPtV;
 	/// "Dirty flags" - 0 - new and not saved yet, 1 - existing and clean, 2 - existing but dirty, 3 - existing but not loaded
-	mutable TVec<byte, int64> DirtyV;
+	mutable TVec<uchar, int64> DirtyV;
     /// Blob storage
 	PBlobBs BlobStorage;
+
+	/// Utility method for loading specific record
+	void LoadRec(int i) const {
+		if (DirtyV[i] == 3) {
+			TMem mem;
+			TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[i]), mem);
+			ValV[i] = mem;
+			DirtyV[i] = 2;
+		}
+	}
+
+	/// Utility method for storing specific record
+	void SaveRec(int i) {
+		switch (DirtyV[i]) {
+		case 0: BlobPtV[i] = BlobStorage->PutBlob(ValV[i].GetSIn()); break; // new data => save it
+		case 1: break;
+		case 2: BlobPtV[i] = BlobStorage->PutBlob(BlobPtV[i], ValV[i].GetSIn()); break; // dirty data => save it
+		case 3: break;
+		}
+	}
+
 public:
 	TInMemStorage(const TStr& _FNm);
 	TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bool& _Lazy = false);
@@ -241,6 +262,10 @@ public:
 	uint64 Len() const;
 	uint64 GetFirstValId() const;
 	uint64 GetLastValId() const;
+
+	void PartialFlush(int WndInMsec = 500);
+	void LoadAll();
+
 #ifdef XTEST
 	friend class XTest;
 	PBlobBs GetBlobStorage() { return BlobStorage; }

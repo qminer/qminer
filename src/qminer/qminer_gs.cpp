@@ -457,12 +457,7 @@ TInMemStorage::~TInMemStorage() {
 	if (Access != faRdOnly) {
 		// store dirty vectors
 		for (int i = 0; i < BlobPtV.Len(); i++) {
-			switch (DirtyV[i]) {
-				case 0: BlobPtV[i] = BlobStorage->PutBlob(ValV[i].GetSIn()); break; // new data => save it
-				case 1: break;
-				case 2: BlobPtV[i] = BlobStorage->PutBlob(BlobPtV[i], ValV[i].GetSIn()); break; // dirty data => save it
-				case 3: break;
-			}
+			SaveRec(i);
 		}		
 		// save vector
 		TFOut FOut(FNm); 
@@ -482,12 +477,7 @@ bool TInMemStorage::IsValId(const uint64& ValId) const {
 
 void TInMemStorage::GetVal(const uint64& ValId, TMem& Val) const {
 	uint64 i = ValId - FirstValOffset;
-	if (DirtyV[i] == 3) {
-		TMem mem;
-		TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[i]), mem); // load from disk
-		ValV[i] = mem;
-		DirtyV[i] = 2;
-	}
+	LoadRec(i);
 	Val = ValV[i];
 }
 
@@ -528,6 +518,20 @@ uint64 TInMemStorage::GetFirstValId() const {
 
 uint64 TInMemStorage::GetLastValId() const {
 	return GetFirstValId() + ValV.Len() - 1;
+}
+
+void TInMemStorage::PartialFlush(int WndInMsec) {
+	TTmStopWatch sw(true);	
+	for (int i = 0; i< ValV.Len();i++){
+		if (sw.GetMSecInt() > WndInMsec) break;		
+		SaveRec(i);
+	}
+}
+
+void TInMemStorage::LoadAll() {
+	for (int i = 0; i < ValV.Len(); i++) {
+		LoadRec(i); 
+	}
 }
 
 ///////////////////////////////

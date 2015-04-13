@@ -120,6 +120,43 @@ public:
 			EXPECT_EQ(storage.ValV.Len(), 2 * cnt);
 		}
 	}
+
+	static void TInMemStorage_LoadAll1() {
+		TStr Fn = "data\\in_mem_storage";
+		TStr tmp;
+		int cnt = 20;
+		{
+			TQm::TStorage::TInMemStorage storage(Fn);
+			for (int i = 0; i < cnt; i++) {
+				TMem mem;
+				mem.AddBf(&storage, i % 4);
+				tmp = mem.GetHexStr();
+				auto res1 = storage.AddVal(mem);
+			}
+			auto blob_stats = storage.GetBlobStorage()->GetStats();
+			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
+		}
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate);
+			
+			int loaded_cnt = 0;
+			for (int i = 0; i < storage.ValV.Len(); i++) {
+				if (storage.DirtyV[i] != 3) { // if loaded
+					loaded_cnt++;
+				}
+			}
+			EXPECT_EQ(loaded_cnt, 0);
+			
+			storage.LoadAll();
+
+			for (int i = 0; i < storage.ValV.Len(); i++) {
+				if (storage.DirtyV[i] != 3) { // if loaded
+					loaded_cnt++;
+				}
+			}
+			EXPECT_EQ(loaded_cnt, storage.ValV.Len());
+		}
+	}
 };
 
 
