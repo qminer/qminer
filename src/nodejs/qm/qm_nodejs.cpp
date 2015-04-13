@@ -195,7 +195,12 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath, const TStr& SchemaFNm, const PJson
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	
-	if (ForceCreate) {	
+	TStr LockFNm = TDir::GetCurDir() + "./lock";
+
+	if (ForceCreate) {			
+		if (TFile::Exists(LockFNm)) {
+			TFile::Del(LockFNm, false);
+		}
 		if (TDir::Exists(DbFPath)) {
 			TStrV FNmV;
 			TStrV FExtV;
@@ -221,7 +226,6 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath, const TStr& SchemaFNm, const PJson
 			}
 		}
 
-		TStr LockFNm = TDir::GetCurDir() + "./lock";
 		// prepare lock
 		TFileLock Lock(LockFNm);
 
@@ -306,6 +310,13 @@ TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>&
 	bool ReadOnly = Mode == "openReadOnly";
 	TInt IndexCache = Val->GetObjInt("indexCache", 1024);
 	TInt StoreCache = Val->GetObjInt("storeCache", 1024);
+
+	TStr UnicodeFNm = Val->GetObjStr("unicode", TQm::TEnv::QMinerFPath + "./UnicodeDef.Bin");
+	if (!TUnicodeDef::IsDef()) { TUnicodeDef::Load(UnicodeFNm); }
+	// Load Stopword Files
+	TStr StopWordsPath = Val->GetObjStr("stopwords", TQm::TEnv::QMinerFPath + "resources/stopwords/");
+	TSwSet::LoadSwDir(StopWordsPath);
+
 
 	return new TNodeJsBase(DbPath, SchemaFNm, Schema,  Create, ForceCreate, ReadOnly, IndexCache, StoreCache);
 }
