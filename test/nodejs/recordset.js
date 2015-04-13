@@ -134,4 +134,34 @@ describe('Record Set Tests', function () {
             assert.equal(recSet2.length, 1);
         })
     });
+
+    describe('Truncate Tests', function () {
+        it('should truncate the first record of the record set', function () {
+            recSet.trunc(1);
+            assert.equal(recSet.length, 1);
+            assert.equal(recSet[0].Title, "Every Day");
+            assert.equal(recSet[1], undefined);
+        })
+        it('should truncate the second record of the record set', function () {
+            recSet.trunc(1, 1);
+            assert.equal(recSet.length, 1);
+            assert.equal(recSet[0].Title, "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on");
+            assert.equal(recSet[1], undefined);
+        })
+        it('should truncate all the records from the record set', function () {
+            recSet.trunc(2);
+            assert.equal(recSet.length, 2);
+            assert.equal(recSet[0].Title, "Every Day");
+            assert.equal(recSet[1].Title, "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on");
+        })
+        it('shouldn\'t truncate any record of the record set', function () {
+            recSet.trunc(0);
+            assert.equal(recSet.length, 0);
+        })
+        it('should throw an exception if no parameter is given', function () {
+            assert.throws(function () {
+                recSet.trunc();
+            })
+        })
+    })
 })
