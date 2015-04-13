@@ -299,7 +299,7 @@ public:
 	friend class TPt < TGixItemSet > ;
 	friend class TGix < TKey, TItem, TGixMerger > ;
 
-#ifdef XTEST
+#ifdef GIX_TEST
 	friend class XTest;
 	void Print() const;
 #endif
@@ -313,7 +313,7 @@ public:
 	}
 };
 
-#ifdef XTEST
+#ifdef GIX_TEST
 
 template <class TKey, class TItem, class TGixMerger>
 void TGixItemSet<TKey, TItem, TGixMerger>::Print() const {
@@ -906,7 +906,7 @@ public:
 
 	friend class TPt < TGix > ;
 	friend class TGixItemSet < TKey, TItem, TGixMerger > ;
-#ifdef XTEST
+#ifdef GIX_TEST
 	friend class XTest;
 
 	void KillHash() { this->KeyIdH.Clr(); }

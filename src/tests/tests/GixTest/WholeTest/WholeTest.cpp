@@ -1,4 +1,5 @@
-#define XTEST
+#define GIX_DEBUG
+#define GIX_TEST
 
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -35,132 +36,8 @@ typedef  TPt < TMyItemSet > PMyItemSet;
 typedef TGix<TMyKey, TMyItem, TMyGixDefMerger> TMyGix;
 typedef TPt<TGix<TMyKey, TMyItem, TMyGixDefMerger> > PMyGix;
 
-///////////////////////////////////////////////////////////////////////
-
-class XTest {
-public:
-	static void TInMemStorage_Simple1() {
-		TStr Fn = "data\\in_mem_storage";
-		TStr tmp;
-		{
-			TQm::TStorage::TInMemStorage storage(Fn);
-			TMem mem;
-			mem.AddBf(&storage, 4);
-			tmp = mem.GetHexStr();
-			auto res1 = storage.AddVal(mem);
-			EXPECT_TRUE(res1 == 0); // offset of new record
-			auto blob_stats = storage.GetBlobStorage()->GetStats();
-			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
-		}
-		{
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate);
-			EXPECT_EQ(storage.ValV.Len(), 1);
-			TMem mem;
-			storage.GetVal(0, mem);
-			EXPECT_EQ(mem.GetHexStr(), tmp);
-		}
-	}
-
-	static void TInMemStorage_Lazy1() {
-		TStr Fn = "data\\in_mem_storage";
-		TStr tmp;
-		{
-			TQm::TStorage::TInMemStorage storage(Fn);
-			TMem mem;
-			mem.AddBf(&storage, 4);
-			tmp = mem.GetHexStr();
-			auto res1 = storage.AddVal(mem);
-			EXPECT_TRUE(res1 == 0); // offset of new record
-			auto blob_stats = storage.GetBlobStorage()->GetStats();
-			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
-		}
-		{
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
-			EXPECT_EQ(storage.ValV.Len(), 1);
-			TMem mem;
-			storage.GetVal(0, mem);
-			EXPECT_EQ(mem.GetHexStr(), tmp);
-		}
-	}
-
-	static void TInMemStorage_Complex1() {
-		TStr Fn = "data\\in_mem_storage";
-		TStr tmp;
-		int cnt = 20;
-		{
-			TQm::TStorage::TInMemStorage storage(Fn);
-			for (int i = 0; i < cnt; i++) {
-				TMem mem;
-				mem.AddBf(&storage, i % 4);
-				tmp = mem.GetHexStr();
-				auto res1 = storage.AddVal(mem);
-			}
-			auto blob_stats = storage.GetBlobStorage()->GetStats();
-			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
-		}
-		{
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate);
-			EXPECT_EQ(storage.ValV.Len(), cnt);
-			auto blob_stats = storage.GetBlobStorage()->GetStats();
-			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
-
-			for (int i = 0; i < cnt; i++) {
-				TMem mem;
-				mem.AddBf(&storage, i % 4);
-				tmp = mem.GetHexStr();
-				auto res1 = storage.AddVal(mem);
-			}
-
-			blob_stats = storage.GetBlobStorage()->GetStats();
-			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
-			EXPECT_EQ(storage.ValV.Len(), 2 * cnt);
-		}
-		{
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
-			EXPECT_EQ(storage.ValV.Len(), 2 * cnt);
-		}
-	}
-
-	static void TInMemStorage_LoadAll1() {
-		TStr Fn = "data\\in_mem_storage";
-		TStr tmp;
-		int cnt = 20;
-		{
-			TQm::TStorage::TInMemStorage storage(Fn);
-			for (int i = 0; i < cnt; i++) {
-				TMem mem;
-				mem.AddBf(&storage, i % 4);
-				tmp = mem.GetHexStr();
-				auto res1 = storage.AddVal(mem);
-			}
-			auto blob_stats = storage.GetBlobStorage()->GetStats();
-			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
-		}
-		{
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate);
-			
-			int loaded_cnt = 0;
-			for (int i = 0; i < storage.ValV.Len(); i++) {
-				if (storage.DirtyV[i] != 3) { // if loaded
-					loaded_cnt++;
-				}
-			}
-			EXPECT_EQ(loaded_cnt, 0);
-			
-			storage.LoadAll();
-
-			for (int i = 0; i < storage.ValV.Len(); i++) {
-				if (storage.DirtyV[i] != 3) { // if loaded
-					loaded_cnt++;
-				}
-			}
-			EXPECT_EQ(loaded_cnt, storage.ValV.Len());
-		}
-	}
-};
 
 
-//////////////////////////////////////////////////
 TEST(testTBlobBs, Simple10) {
 
 	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
@@ -269,7 +146,6 @@ TEST(testTBlobBs, Medium12DelPut2) {
 	EXPECT_EQ(stats.ReleasedSize, 24);
 }
 
-
 TEST(testTBase, myTBaseTest) {
 	TQm::TEnv::Init();
 
@@ -311,9 +187,3 @@ TEST(testTBase, myTBaseTest) {
 	auto res = Base->Search("{ \"$join\": { \"$name\": \"Actor\", \"$query\" : { \"$from\": \"Movies\", \"Genres\" : \"Horror\", \"$or\" : [{ \"Title\": \"lost\" }, { \"Plot\": \"lost\" }]}}}");
 	printf("Records: %d\n", res->GetRecs());
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
-TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
-TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
