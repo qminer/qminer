@@ -74,7 +74,7 @@ exports.datasets= require('qminer_datasets');
 * @property {Array<module:qm~SchemaFieldDefinition>} fields - The array of field descriptors. 
 * @property {Array<module:qm~SchemaJoinDefinition>} [joins=[]] - The array of join descriptors, used for linking records from different stores.
 * @property {Array<module:qm~SchemaKeyDefinition>} [keys=[]] - The array of key descriptors. Keys define how records are indexed, which is needed for search using the query language.
-* @property {qm~SchemaTimeWindowDefinition} [timeWindow] - Time window description. Stores can have a window, which is used by garbage collector to delete records once they fall out of the time window. Window can be defined by number of records or by time.
+* @property {module:qm~SchemaTimeWindowDefinition} [timeWindow] - Time window description. Stores can have a window, which is used by garbage collector to delete records once they fall out of the time window. Window can be defined by number of records or by time.
 * @example
 * var qm = require('qminer');
 * // create a simple movies store, where each record contains only the movie title.
