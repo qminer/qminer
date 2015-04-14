@@ -213,6 +213,15 @@ public:
 
 	/// Convert v8 external array (binary data) to PMem
 	static PMem GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+
+	/// Used for unwrapping objects that depend on TBase being valid
+	template <class TClass>
+	static TClass* UnwrapCheckWatcher(v8::Handle<v8::Object> handle);
+
+
+	template <class TClass>
+	static TClass* Unwrap(v8::Handle<v8::Object> handle) { return ObjectWrap::Unwrap<TClass>(handle); }
+	
 };
 
 
@@ -276,6 +285,13 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Loc
 
 	v8::Handle<v8::Value> Argv[1] = { Arg };
 	Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
+}
+
+template <class TClass>
+TClass* TNodeJsUtil::UnwrapCheckWatcher(v8::Handle<v8::Object> handle) {
+	TClass* Obj = ObjectWrap::Unwrap<TClass>(handle);
+	Obj->Watcher->AssertOpen();
+	return Obj;
 }
 
 

@@ -291,6 +291,20 @@ private:
 * }]);
 */
 
+class TNodeJsBaseWatcher {
+private:
+	// smart pointer
+	TCRef CRef;
+	friend class TPt<TNodeJsBaseWatcher>;
+public:
+	bool OpenP;
+	TNodeJsBaseWatcher() { OpenP = true; }
+	static TPt<TNodeJsBaseWatcher> New() { return new TNodeJsBaseWatcher; }
+	void AssertOpen() { EAssertR(OpenP, "Base is closed!"); }
+	void Close() { OpenP = false; }
+};
+typedef TPt<TNodeJsBaseWatcher> PNodeJsBaseWatcher;
+
 /**
 * Base
 * @classdesc Represents the database and holds stores.
@@ -316,8 +330,10 @@ public:
 	// wrapped C++ object
 	TWPt<TQm::TBase> Base;
 	// C++ constructor
-	TNodeJsBase(const TWPt<TQm::TBase>& Base_) : Base(Base_) { }
+	TNodeJsBase(const TWPt<TQm::TBase>& Base_) : Base(Base_) { Watcher = TNodeJsBaseWatcher::New(); }
 	TNodeJsBase(const TStr& DbPath, const TStr& SchemaFNm, const PJsonVal& Schema, const bool& Create, const bool& ForceCreate, const bool& ReadOnly, const TInt& IndexCache, const TInt& StoreCache);
+	// Object that knows if Base is valid
+	PNodeJsBaseWatcher Watcher;
 private:		
 	// parses arguments, called by javascript constructor 
 	static TNodeJsBase* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
@@ -347,18 +363,25 @@ private:
 	JsDeclareFunction(getStoreList);
 	/**
 	* Creates a new store.
-	* @param {Object} storeDef - The definition of the store(s)
+	* @param {Array<module:qm~SchemaDefinition>} storeDef - The definition of the store(s)
 	* @param {number} [storeSizeInMB = 1024] - The reserved size of the store(s).
 	* @returns {(module:qm.Store | module:qm.Store[])} - Returns a store or an array of stores (if the schema definition was an array)
 	*/
 	//# exports.Base.prototype.createStore = function (storeDef, storeSizeInMB) { return storeDef instanceof Array ? [Object.create(require('qminer').Store.prototype)] : Object.create(require('qminer').Store.prototype) ;}
 	JsDeclareFunction(createStore);
-
-    //!- `rs = base.search(query)` -- execute `query` (Json) specified in [QMiner Query Language](Query Language) 
-    //!   and returns a record set `rs` with results
+	/**
+	* Creates a new store.
+	* @param {module:qm~QueryObject>} query - query language JSON object	
+	* @returns {module:qm.RecSet} - Returns the record set that matches the search criterion
+	*/
+	//# exports.Base.prototype.search = function (query) { return Object.create(require('qminer').RecSet.prototype);}
 	JsDeclareFunction(search);   
-    //!- `base.gc()` -- start garbage collection to remove records outside time windows
+	/**
+	* Calls qminer garbage collector to remove records outside time windows.
+	*/
+	//# exports.Base.prototype.gc = function () { }
 	JsDeclareFunction(gc);
+
 	//!- `sa = base.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
 	JsDeclareFunction(getStreamAggr);
 	//!- `strArr = base.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.

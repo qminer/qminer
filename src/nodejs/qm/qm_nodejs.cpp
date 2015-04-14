@@ -192,6 +192,8 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 }
 
 TNodeJsBase::TNodeJsBase(const TStr& DbFPath, const TStr& SchemaFNm, const PJsonVal& Schema, const bool& Create, const bool& ForceCreate, const bool& RdOnlyP, const TInt& IndexCacheSize, const TInt& StoreCacheSize) {
+	Watcher = TNodeJsBaseWatcher::New();
+
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	
@@ -325,7 +327,10 @@ void TNodeJsBase::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	// unwrap
-	TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+	TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
+	
+	JsBase->Watcher->Close();
+
 	if (!JsBase->Base.Empty()) {
 		// save base
 		TQm::TStorage::SaveBase(JsBase->Base);
@@ -339,7 +344,7 @@ void TNodeJsBase::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::HandleScope HandleScope(Isolate);
    
    // unwrap
-   TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+   TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder()); 
    TWPt<TQm::TBase> Base = JsBase->Base;
 
    const TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
