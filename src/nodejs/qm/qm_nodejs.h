@@ -659,8 +659,21 @@ private:
 	JsDeclareFunction(add);
 
 	//!- `rec = store.newRec(recordJson)` -- creates new record `rec` by (JSON) value `recordJson` (not added to the store)
+	/**
+	* Creates a new record of given store. The record is not added to the store.
+	* @param {Object} json - A JSON value of the record.
+	* @returns {module:qm.Record} The record created by the JSON value and the store.
+	*/
+	//# exports.Store.prototype.newRec = function (json) {};
 	JsDeclareFunction(newRec);
+
 	//!- `rs = store.newRecSet(idVec)` -- creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);
+	/**
+	* Creates a new record set out of the records in store.
+	* @param {module:la.IntVector} idVec - The integer vector containing the ids of selected vectors.
+	* @returns {module:qm.RecSet} The record set that contains the records gained with idVec.
+	*/
+	//# exports.Store.prototype.newRecSet = function (idVec) {};
 	JsDeclareFunction(newRecSet);
 
 	//!- `rs = store.sample(sampleSize)` -- create a record set containing a random 
@@ -756,9 +769,18 @@ private:
 	* @param {string} fieldName - The field name. Field mustn't be of type string.
 	* @returns {(module:la.Matrix | module:la.SparseMatrix)} The matrix containing the field values. 
 	*/
+	//# exports.Store.prototype.getMat = function (fieldName) {};
 	JsDeclareFunction(getMat);
+
 	//!- `val = store.cell(recId, fieldId)` -- if fieldId (int) corresponds to fieldName, this is equivalent to store[recId][fieldName]
 	//!- `val = store.cell(recId, fieldName)` -- equivalent to store[recId][fieldName]
+	/**
+	* Gives the field value of a specific record.
+	* @param {number} recId - The record id.
+	* @param {string} fieldName - The field's name.
+	* @returns {Object} The fieldName value of the record with recId.
+	*/
+	//# exports.Store.prototype.cell = function (recId, fieldName) {};
 	JsDeclareFunction(cell);
 
 	//!- `str = store.name` -- name of the store
@@ -882,25 +904,58 @@ private:
 	//!
 	//! **Functions and properties:**
 	//!
+
     //!- `rec2 = rec.$clone()` -- create a clone of JavaScript wrapper with same record inside
+	/**
+	* Clones the record.
+	* @returns {module:qm.Record} The clone of the record.
+	*/
+	//# exports.Record.prototype.$clone = function () {};
     JsDeclareFunction(clone);
+
     //!- `rec = rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string). Returns self.
     //!- `rec = rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
     JsDeclareFunction(addJoin);
     //!- `rec = rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string). Returns self.
     //!- `rec = rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`. Return self.
     JsDeclareFunction(delJoin);
+
     //!- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
+	/**
+	* Creates a JSON version of the record.
+	* @returns {Object} The JSON version of the record.
+	*/
+	//# exports.Record.prototype.toJSON = function () {};
     JsDeclareFunction(toJSON);
 
 	//!- `recId = rec.$id` -- returns record ID
+	/**
+	* Returns the id of the record.
+	*/
+	//# exports.Record.prototype.$id = undefined;
 	JsDeclareProperty(id);
+
 	//!- `recName = rec.$name` -- returns record name
+	/**
+	* Returns the name of the record.
+	*/
+	//# exports.Record.prototype.$name = undefined;
 	JsDeclareProperty(name);
+
 	//!- `recFq = rec.$fq` -- returns record frequency (used for randomized joins)
+	/**
+	* Returns the frequency of the record.
+	*/
+	//# exports.Record.prototype.$fq = undefined;
 	JsDeclareProperty(fq);
+
 	//!- `recStore = rec.$store` -- returns record store
+	/**
+	* Returns the store the record belongs to.
+	*/
+	//# exports.Record.prototype.$store = undefined;
 	JsDeclareProperty(store);
+
 	//!- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
 	//!- `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
 	JsDeclareSetProperty(getField, setField);
@@ -1285,10 +1340,27 @@ public:
 	//! **Functions and properties:**
 	//!   
 	//!- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
+	/**
+	* Moves to the next record.
+	* @returns {boolean} 
+	* <br>1. True, if the iteration successfully moves to the next record.
+	* <br>2. False, if there is no record left.
+	*/
+	//# exports.Iterator.prototype.next = function () {};
 	JsDeclareFunction(next);
+
 	//!- `store = iter.store` -- get the store
+	/**
+	* Gives the store of the iterator.
+	*/
+	//# exports.Iterator.prototype.store = undefined;
 	JsDeclareProperty(store);
+
 	//!- `rec = iter.rec` -- get current record; reuses JavaScript record wrapper, need to call `rec.$clone()` on it to if there is any wish to store intermediate records.
+	/**
+	* Gives the current record.
+	*/
+	//# exports.Iterator.prototype.rec = undefined;
 	JsDeclareProperty(rec);
 };
 

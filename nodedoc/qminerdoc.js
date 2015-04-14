@@ -348,6 +348,18 @@
 	*/
  exports.Store.prototype.add = function (rec) {}
 /**
+	* Creates a new record of given store. The record is not added to the store.
+	* @param {Object} json - A JSON value of the record.
+	* @returns {module:qm.Record} The record created by the JSON value and the store.
+	*/
+ exports.Store.prototype.newRec = function (json) {};
+/**
+	* Creates a new record set out of the records in store.
+	* @param {module:la.IntVector} idVec - The integer vector containing the ids of selected vectors.
+	* @returns {module:qm.RecSet} The record set that contains the records gained with idVec.
+	*/
+ exports.Store.prototype.newRecSet = function (idVec) {};
+/**
 	* Creates a record set containing random records from store.
 	* @param {number} sampleSize - The size of the record set.
 	* @returns {module:qm.RecSet} Returns a record set containing random records.
@@ -404,6 +416,14 @@
 	* @param {string} fieldName - The field name. Field mustn't be of type string.
 	* @returns {(module:la.Matrix | module:la.SparseMatrix)} The matrix containing the field values. 
 	*/
+ exports.Store.prototype.getMat = function (fieldName) {};
+/**
+	* Gives the field value of a specific record.
+	* @param {number} recId - The record id.
+	* @param {string} fieldName - The field's name.
+	* @returns {Object} The fieldName value of the record with recId.
+	*/
+ exports.Store.prototype.cell = function (recId, fieldName) {};
 /**
 	* Gives the name of the store.
 	*/
@@ -454,6 +474,32 @@
 * @class
 */
  exports.Record = function () {};
+/**
+	* Clones the record.
+	* @returns {module:qm.Record} The clone of the record.
+	*/
+ exports.Record.prototype.$clone = function () {};
+/**
+	* Creates a JSON version of the record.
+	* @returns {Object} The JSON version of the record.
+	*/
+ exports.Record.prototype.toJSON = function () {};
+/**
+	* Returns the id of the record.
+	*/
+ exports.Record.prototype.$id = undefined;
+/**
+	* Returns the name of the record.
+	*/
+ exports.Record.prototype.$name = undefined;
+/**
+	* Returns the frequency of the record.
+	*/
+ exports.Record.prototype.$fq = undefined;
+/**
+	* Returns the store the record belongs to.
+	*/
+ exports.Record.prototype.$store = undefined;
 /**
 * Record Set
 * @classdesc Represents the record set object.  TODO new constructor
@@ -669,3 +715,18 @@
 	* Checks if the record set is weighted. If the record set is weighted, then it returns true. Otherwise, it returns false.
 	*/
  exports.RecSet.prototype.weighted = undefined;
+/**
+	* Moves to the next record.
+	* @returns {boolean} 
+	* <br>1. True, if the iteration successfully moves to the next record.
+	* <br>2. False, if there is no record left.
+	*/
+ exports.Iterator.prototype.next = function () {};
+/**
+	* Gives the store of the iterator.
+	*/
+ exports.Iterator.prototype.store = undefined;
+/**
+	* Gives the current record.
+	*/
+ exports.Iterator.prototype.rec = undefined;
