@@ -344,7 +344,7 @@ void TNodeJsBase::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::HandleScope HandleScope(Isolate);
    
    // unwrap
-   TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder()); 
+   TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder()); 
    TWPt<TQm::TBase> Base = JsBase->Base;
 
    const TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
@@ -362,7 +362,7 @@ void TNodeJsBase::getStoreList(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	// unwrap
-	TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+	TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
 	TWPt<TQm::TBase> Base = JsBase->Base;
 
 	TJsonValV StoreValV;
@@ -379,7 +379,7 @@ void TNodeJsBase::createStore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
    // unwrap
-   TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+   TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
    TWPt<TQm::TBase> Base = JsBase->Base;
    QmAssertR(!Base->IsRdOnly(), "Base opened as read-only");
    // parse arguments
@@ -413,7 +413,7 @@ void TNodeJsBase::search(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::HandleScope HandleScope(Isolate);
    
    // unwrap
-   TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+   TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
    TWPt<TQm::TBase> Base = JsBase->Base;
 
    PJsonVal QueryVal = TNodeJsUtil::GetArgJson(Args, 0);
@@ -427,7 +427,7 @@ void TNodeJsBase::gc(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
    // unwrap
-   TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+   TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
    TWPt<TQm::TBase> Base = JsBase->Base;
 
    Base->GarbageCollect();   
@@ -439,7 +439,7 @@ void TNodeJsBase::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args)
    v8::HandleScope HandleScope(Isolate);
    
    // unwrap
-   TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+   TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
 
    const TStr AggrNm = TNodeJsUtil::GetArgStr(Args, 0);
    if (JsBase->Base->IsStreamAggr(AggrNm)) {
@@ -453,7 +453,7 @@ void TNodeJsBase::getStreamAggrNames(const v8::FunctionCallbackInfo<v8::Value>& 
    v8::HandleScope HandleScope(Isolate);
    
    // unwrap
-   TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+   TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
    TWPt<TQm::TBase> Base = JsBase->Base;
 
    TQm::PStreamAggrBase SABase = JsBase->Base->GetStreamAggrBase();
@@ -542,7 +542,7 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	if (Args.IsConstructCall()) {
 		TQm::PStreamAggr StreamAggr;
 
-		TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject());
+		TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args[0]->ToObject());
 
 		// get aggregate type
 		TStr TypeNm = TNodeJsUtil::GetArgStr(Args, 1, "type", "javaScript");
@@ -1443,7 +1443,7 @@ void TNodeJsStore::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		if (Args.Length() == 2) {
 			QmAssertR(Args[0]->IsString() && Args[1]->IsObject() && TNodeJsUtil::IsClass(Args[1]->ToObject(), "TBase"), "TNodeJsStore constructor expecting store name and base object as arguments");
 			TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
-			TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args[1]->ToObject());
+			TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args[1]->ToObject());
 
 			if (JsBase->Base->IsStoreNm(StoreNm)) {
 				TWPt<TQm::TStore> Store = JsBase->Base->GetStoreByStoreNm(StoreNm);
@@ -3966,7 +3966,7 @@ void TNodeJsFtrSpace::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	QmAssertR(Args.Length() > 1, "FeatureSpace: missing arguments!");
 
 	try {
-		const TWPt<TQm::TBase>& Base = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject())->Base;
+		const TWPt<TQm::TBase>& Base = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args[0]->ToObject())->Base;
 		
 		if (Args[1]->IsString() || TNodeJsUtil::IsArgClass(Args, 1, TNodeJsFIn::ClassId)) {
 			bool IsArgStr = TNodeJsUtil::IsArgStr(Args, 1);//Args[1]->IsString();

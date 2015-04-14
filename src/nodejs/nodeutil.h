@@ -289,7 +289,7 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Loc
 
 template <class TClass>
 TClass* TNodeJsUtil::UnwrapCheckWatcher(v8::Handle<v8::Object> handle) {
-	TClass* Obj = ObjectWrap::Unwrap<TClass>(handle);
+	TClass* Obj = node::ObjectWrap::Unwrap<TClass>(handle);
 	Obj->Watcher->AssertOpen();
 	return Obj;
 }

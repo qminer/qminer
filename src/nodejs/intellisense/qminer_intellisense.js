@@ -295,11 +295,21 @@ exports.datasets= require('qminer_datasets');
  exports.Base.prototype.getStoreList = function () { return [{storeId:'', storeName:'', storeRecords:'', fields: [], keys: [], joins: []}]; }
 /**
 	* Creates a new store.
-	* @param {Object} storeDef - The definition of the store(s)
+	* @param {Array<module:qm~SchemaDefinition>} storeDef - The definition of the store(s)
 	* @param {number} [storeSizeInMB = 1024] - The reserved size of the store(s).
 	* @returns {(module:qm.Store | module:qm.Store[])} - Returns a store or an array of stores (if the schema definition was an array)
 	*/
  exports.Base.prototype.createStore = function (storeDef, storeSizeInMB) { return storeDef instanceof Array ? [Object.create(require('qminer').Store.prototype)] : Object.create(require('qminer').Store.prototype) ;}
+/**
+	* Creates a new store.
+	* @param {module:qm~QueryObject} query - query language JSON object	
+	* @returns {module:qm.RecSet} - Returns the record set that matches the search criterion
+	*/
+ exports.Base.prototype.search = function (query) { return Object.create(require('qminer').RecSet.prototype);}
+/**
+	* Calls qminer garbage collector to remove records outside time windows.
+	*/
+ exports.Base.prototype.gc = function () { }
 /**
 * Store
 * @classdesc Represents the store object. TODO new constructor
@@ -479,13 +489,12 @@ exports.datasets= require('qminer_datasets');
 	*/
  exports.Store.prototype.backwardIter = undefined;
 /**
-* Record
-* @classdesc Represents a record object. //TODO new constructor
-* @class
+* Record (factory pattern result) 
+* @class Record
 */
- exports.Record = function () {};
+ exports.Record = function () {}; 
 /**
-	* Clones the record.
+	* Clones the record. <script language="javascript">  console.log('lol');  </script>
 	* @returns {module:qm.Record} The clone of the record.
 	*/
  exports.Record.prototype.$clone = function () {};

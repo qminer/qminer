@@ -371,7 +371,7 @@ private:
 	JsDeclareFunction(createStore);
 	/**
 	* Creates a new store.
-	* @param {module:qm~QueryObject>} query - query language JSON object	
+	* @param {module:qm~QueryObject} query - query language JSON object	
 	* @returns {module:qm.RecSet} - Returns the record set that matches the search criterion
 	*/
 	//# exports.Base.prototype.search = function (query) { return Object.create(require('qminer').RecSet.prototype);}
@@ -896,11 +896,10 @@ private:
 // NodeJs QMiner Record
 
 /**
-* Record
-* @classdesc Represents a record object. //TODO new constructor
-* @class
+* Record (factory pattern result)
+* @class Record
 */
-//# exports.Record = function () {};
+//# exports.Record = function () {}; 
 class TNodeJsRec: public node::ObjectWrap {
 private:
 	// Modified node framework: one record template per each base,storeId combination 
