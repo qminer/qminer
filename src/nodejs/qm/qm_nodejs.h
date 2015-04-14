@@ -682,8 +682,21 @@ private:
 	JsDeclareFunction(add);
 
 	//!- `rec = store.newRec(recordJson)` -- creates new record `rec` by (JSON) value `recordJson` (not added to the store)
+	/**
+	* Creates a new record of given store. The record is not added to the store.
+	* @param {Object} json - A JSON value of the record.
+	* @returns {module:qm.Record} The record created by the JSON value and the store.
+	*/
+	//# exports.Store.prototype.newRec = function (json) {};
 	JsDeclareFunction(newRec);
+
 	//!- `rs = store.newRecSet(idVec)` -- creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);
+	/**
+	* Creates a new record set out of the records in store.
+	* @param {module:la.IntVector} idVec - The integer vector containing the ids of selected vectors.
+	* @returns {module:qm.RecSet} The record set that contains the records gained with idVec.
+	*/
+	//# exports.Store.prototype.newRecSet = function (idVec) {};
 	JsDeclareFunction(newRecSet);
 
 	//!- `rs = store.sample(sampleSize)` -- create a record set containing a random 
@@ -767,16 +780,30 @@ private:
 	//!- `vec = store.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
 	/**
 	* Gives a vector containing the field value of each record.
-	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string
+	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string...
 	* @returns {module:la.Vector} The vector containing the field values of each record.
 	*/
 	//# exports.Store.prototype.getVec = function (fieldName) {};
 	JsDeclareFunction(getVec);
 
 	//!- `mat = store.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
+	/**
+	* Gives a matrix containing the field values of each record.
+	* @param {string} fieldName - The field name. Field mustn't be of type string.
+	* @returns {(module:la.Matrix | module:la.SparseMatrix)} The matrix containing the field values. 
+	*/
+	//# exports.Store.prototype.getMat = function (fieldName) {};
 	JsDeclareFunction(getMat);
+
 	//!- `val = store.cell(recId, fieldId)` -- if fieldId (int) corresponds to fieldName, this is equivalent to store[recId][fieldName]
 	//!- `val = store.cell(recId, fieldName)` -- equivalent to store[recId][fieldName]
+	/**
+	* Gives the field value of a specific record.
+	* @param {number} recId - The record id.
+	* @param {string} fieldName - The field's name.
+	* @returns {Object} The fieldName value of the record with recId.
+	*/
+	//# exports.Store.prototype.cell = function (recId, fieldName) {};
 	JsDeclareFunction(cell);
 
 	//!- `str = store.name` -- name of the store
@@ -900,25 +927,58 @@ private:
 	//!
 	//! **Functions and properties:**
 	//!
+
     //!- `rec2 = rec.$clone()` -- create a clone of JavaScript wrapper with same record inside
+	/**
+	* Clones the record.
+	* @returns {module:qm.Record} The clone of the record.
+	*/
+	//# exports.Record.prototype.$clone = function () {};
     JsDeclareFunction(clone);
+
     //!- `rec = rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string). Returns self.
     //!- `rec = rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
     JsDeclareFunction(addJoin);
     //!- `rec = rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string). Returns self.
     //!- `rec = rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`. Return self.
     JsDeclareFunction(delJoin);
+
     //!- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
+	/**
+	* Creates a JSON version of the record.
+	* @returns {Object} The JSON version of the record.
+	*/
+	//# exports.Record.prototype.toJSON = function () {};
     JsDeclareFunction(toJSON);
 
 	//!- `recId = rec.$id` -- returns record ID
+	/**
+	* Returns the id of the record.
+	*/
+	//# exports.Record.prototype.$id = undefined;
 	JsDeclareProperty(id);
+
 	//!- `recName = rec.$name` -- returns record name
+	/**
+	* Returns the name of the record.
+	*/
+	//# exports.Record.prototype.$name = undefined;
 	JsDeclareProperty(name);
+
 	//!- `recFq = rec.$fq` -- returns record frequency (used for randomized joins)
+	/**
+	* Returns the frequency of the record.
+	*/
+	//# exports.Record.prototype.$fq = undefined;
 	JsDeclareProperty(fq);
+
 	//!- `recStore = rec.$store` -- returns record store
+	/**
+	* Returns the store the record belongs to.
+	*/
+	//# exports.Record.prototype.$store = undefined;
 	JsDeclareProperty(store);
+
 	//!- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
 	//!- `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
 	JsDeclareSetProperty(getField, setField);
@@ -1144,6 +1204,11 @@ private:
 	JsDeclareFunction(deleteRecs);
 
 	//!- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
+	/**
+	* Returns the record set as a JSON.
+	* @returns {Object} The record set as a JSON.
+	*/
+	//# exports.RecSet.prototype.toJSON = function () {};
 	JsDeclareFunction(toJSON);
 
 	//!- `rs = rs.each(callback)` -- iterates through the record set and executes the callback function `callback` on each element. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
@@ -1188,7 +1253,7 @@ private:
 
 	//!- `rs3 = rs.setintersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 	/**
-	* Returns the intersection (record set) of two record sets.
+	* Creates the set intersection of two record sets.
 	* @param {module:qm.RecSet} rs - The other record set.
 	* @returns {module:qm.RecSet} The intersection of the two record sets.
 	*/
@@ -1196,12 +1261,39 @@ private:
 	JsDeclareFunction(setintersect);
 
 	//!- `rs3 = rs.setunion(rs2)` -- returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
+	/**
+	* Creates the set union of two record sets.
+	* @param {module:qm.RecSet} rs - The other record set.
+	* @returns {module:qm.RecSet} The union of the two record sets.
+	*/
+	//# exports.RecSet.prototype.setunion = function (rs) {};
 	JsDeclareFunction(setunion);
+
 	//!- `rs3 = rs.setdiff(rs2)` -- returns the set difference (record set) `rs3`=`rs`\`rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
+	/**
+	* Creates the set difference between two record sets.
+	* @param {module:qm.RecSet} rs - The other record set.
+	* @returns {module:qm.RecSet} The difference between the two record sets.
+	*/
+	//# exports.RecSet.prototype.setdiff = function (rs) {}; 
 	JsDeclareFunction(setdiff);
+
 	//!- `vec = rs.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
+	/**
+	* Creates a vector containing the field values of records.
+	* @param {string} fieldName - The field from which to take the values. It's type must be one-dimensional, e.g. float, int, string,...
+	* @returns {module:la.Vector} The vector containing the field values of records. The type it contains is dependant of the field type.
+	*/
+	//# exports.RecSet.prototype.getVec = function (fieldName) {}; 
 	JsDeclareFunction(getVec);
+
 	//!- `vec = rs.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
+	/**
+	* Creates a vector containing the field values of records.
+	* @param {string} fieldName - The field from which to take the values. It's type must be numeric, e.g. float, int, float_v, num_sp_v,...
+	* @returns {(module:la.Matrix|module:la.SparseMatrix)} The matrix containing the field values of records.
+	*/
+	//# exports.RecSet.prototype.getVec = function (fieldName) {};
 	JsDeclareFunction(getMat);
 	
 	//!- `storeName = rs.store` -- store of the records
@@ -1271,10 +1363,27 @@ public:
 	//! **Functions and properties:**
 	//!   
 	//!- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
+	/**
+	* Moves to the next record.
+	* @returns {boolean} 
+	* <br>1. True, if the iteration successfully moves to the next record.
+	* <br>2. False, if there is no record left.
+	*/
+	//# exports.Iterator.prototype.next = function () {};
 	JsDeclareFunction(next);
+
 	//!- `store = iter.store` -- get the store
+	/**
+	* Gives the store of the iterator.
+	*/
+	//# exports.Iterator.prototype.store = undefined;
 	JsDeclareProperty(store);
+
 	//!- `rec = iter.rec` -- get current record; reuses JavaScript record wrapper, need to call `rec.$clone()` on it to if there is any wish to store intermediate records.
+	/**
+	* Gives the current record.
+	*/
+	//# exports.Iterator.prototype.rec = undefined;
 	JsDeclareProperty(rec);
 };
 

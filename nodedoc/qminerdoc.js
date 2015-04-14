@@ -348,6 +348,18 @@
 	*/
  exports.Store.prototype.add = function (rec) {}
 /**
+	* Creates a new record of given store. The record is not added to the store.
+	* @param {Object} json - A JSON value of the record.
+	* @returns {module:qm.Record} The record created by the JSON value and the store.
+	*/
+ exports.Store.prototype.newRec = function (json) {};
+/**
+	* Creates a new record set out of the records in store.
+	* @param {module:la.IntVector} idVec - The integer vector containing the ids of selected vectors.
+	* @returns {module:qm.RecSet} The record set that contains the records gained with idVec.
+	*/
+ exports.Store.prototype.newRecSet = function (idVec) {};
+/**
 	* Creates a record set containing random records from store.
 	* @param {number} sampleSize - The size of the record set.
 	* @returns {module:qm.RecSet} Returns a record set containing random records.
@@ -395,10 +407,23 @@
  exports.Store.prototype.clear = function (num) {};
 /**
 	* Gives a vector containing the field value of each record.
-	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string
+	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string...
 	* @returns {module:la.Vector} The vector containing the field values of each record.
 	*/
  exports.Store.prototype.getVec = function (fieldName) {};
+/**
+	* Gives a matrix containing the field values of each record.
+	* @param {string} fieldName - The field name. Field mustn't be of type string.
+	* @returns {(module:la.Matrix | module:la.SparseMatrix)} The matrix containing the field values. 
+	*/
+ exports.Store.prototype.getMat = function (fieldName) {};
+/**
+	* Gives the field value of a specific record.
+	* @param {number} recId - The record id.
+	* @param {string} fieldName - The field's name.
+	* @returns {Object} The fieldName value of the record with recId.
+	*/
+ exports.Store.prototype.cell = function (recId, fieldName) {};
 /**
 	* Gives the name of the store.
 	*/
@@ -449,6 +474,32 @@
 * @class
 */
  exports.Record = function () {};
+/**
+	* Clones the record.
+	* @returns {module:qm.Record} The clone of the record.
+	*/
+ exports.Record.prototype.$clone = function () {};
+/**
+	* Creates a JSON version of the record.
+	* @returns {Object} The JSON version of the record.
+	*/
+ exports.Record.prototype.toJSON = function () {};
+/**
+	* Returns the id of the record.
+	*/
+ exports.Record.prototype.$id = undefined;
+/**
+	* Returns the name of the record.
+	*/
+ exports.Record.prototype.$name = undefined;
+/**
+	* Returns the frequency of the record.
+	*/
+ exports.Record.prototype.$fq = undefined;
+/**
+	* Returns the store the record belongs to.
+	*/
+ exports.Record.prototype.$store = undefined;
 /**
 * Record Set
 * @classdesc Represents the record set object.  TODO new constructor
@@ -584,6 +635,11 @@
 	*/
  exports.RecSet.prototype.deleteRecs = function (rs) {}; 
 /**
+	* Returns the record set as a JSON.
+	* @returns {Object} The record set as a JSON.
+	*/
+ exports.RecSet.prototype.toJSON = function () {};
+/**
 	* Executes a function on each record in record set.
 	* @param {function} callback - Function to be executed. It takes two parameters:
 	* <br>rec - The current record.
@@ -614,11 +670,35 @@
 	*/
  exports.RecSet.prototype.map = function (callback) {}
 /**
-	* Returns the intersection (record set) of two record sets.
+	* Creates the set intersection of two record sets.
 	* @param {module:qm.RecSet} rs - The other record set.
 	* @returns {module:qm.RecSet} The intersection of the two record sets.
 	*/
  exports.RecSet.prototype.setintersect = function (rs) {};
+/**
+	* Creates the set union of two record sets.
+	* @param {module:qm.RecSet} rs - The other record set.
+	* @returns {module:qm.RecSet} The union of the two record sets.
+	*/
+ exports.RecSet.prototype.setunion = function (rs) {};
+/**
+	* Creates the set difference between two record sets.
+	* @param {module:qm.RecSet} rs - The other record set.
+	* @returns {module:qm.RecSet} The difference between the two record sets.
+	*/
+ exports.RecSet.prototype.setdiff = function (rs) {}; 
+/**
+	* Creates a vector containing the field values of records.
+	* @param {string} fieldName - The field from which to take the values. It's type must be one-dimensional, e.g. float, int, string,...
+	* @returns {module:la.Vector} The vector containing the field values of records. The type it contains is dependant of the field type.
+	*/
+ exports.RecSet.prototype.getVec = function (fieldName) {}; 
+/**
+	* Creates a vector containing the field values of records.
+	* @param {string} fieldName - The field from which to take the values. It's type must be numeric, e.g. float, int, float_v, num_sp_v,...
+	* @returns {(module:la.Matrix|module:la.SparseMatrix)} The matrix containing the field values of records.
+	*/
+ exports.RecSet.prototype.getVec = function (fieldName) {};
 /**
 	* Returns the store, where the records in the record set are stored.
 	*/
@@ -635,3 +715,18 @@
 	* Checks if the record set is weighted. If the record set is weighted, then it returns true. Otherwise, it returns false.
 	*/
  exports.RecSet.prototype.weighted = undefined;
+/**
+	* Moves to the next record.
+	* @returns {boolean} 
+	* <br>1. True, if the iteration successfully moves to the next record.
+	* <br>2. False, if there is no record left.
+	*/
+ exports.Iterator.prototype.next = function () {};
+/**
+	* Gives the store of the iterator.
+	*/
+ exports.Iterator.prototype.store = undefined;
+/**
+	* Gives the current record.
+	*/
+ exports.Iterator.prototype.rec = undefined;
