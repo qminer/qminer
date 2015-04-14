@@ -600,21 +600,21 @@ public:
 */
 //# exports.Store = function (base, storeDef) {};
 class TNodeJsStore : public node::ObjectWrap {
+	friend class TNodeJsUtil;
 private:
 	// Node framework
-	static v8::Persistent<v8::Function> constructor;
+	static v8::Persistent<v8::Function> Constructor;
 public:	
-	TWPt<TQm::TStore> Store;
-
 	// Node framework 
 	static void Init(v8::Handle<v8::Object> exports);
-	// Wrapping C++ object
-	static v8::Local<v8::Object> New(TWPt<TQm::TStore> _Store);
-	// C++ constructors
-	TNodeJsStore() { }
-	TNodeJsStore(TWPt<TQm::TStore> _Store) : Store(_Store) { }
-	// Node framework (constructor method)
-	JsDeclareFunction(New);
+	static const TStr ClassId;
+	// Wrapped C++ object
+	TWPt<TQm::TStore> Store;
+	// Object that knows if Base is valid
+	PNodeJsBaseWatcher Watcher;
+	// C++ constructors	
+	TNodeJsStore(TWPt<TQm::TStore> _Store, PNodeJsBaseWatcher& _Watcher) : Store(_Store), Watcher(_Watcher) { }
+
 	// Field accessors
 	static v8::Local<v8::Value> Field(const TQm::TRec& Rec, const int FieldId);
 	static v8::Local<v8::Value> Field(const TWPt<TQm::TStore>& Store, const uint64& RecId, const int FieldId);
@@ -896,31 +896,32 @@ private:
 // NodeJs QMiner Record
 
 /**
-* Record (factory pattern result)
-* @class Record
+* Record (factory pattern).
+* @namespace
 */
 //# exports.Record = function () {}; 
 class TNodeJsRec: public node::ObjectWrap {
+	friend class TNodeJsUtil;
 private:
 	// Modified node framework: one record template per each base,storeId combination 
 	static TVec<TVec<v8::Persistent<v8::Function> > > BaseStoreIdConstructor;
 public:
 	// Node framework 
 	static void Init(const TWPt<TQm::TStore>& Store);
+	static const TStr ClassId;
+
 	// when reseting a db we have to clear the old record templates
 	static void Clear(const int& BaseId);
-	// Wrapping C++ object	
-	static v8::Local<v8::Object> New(const TQm::TRec& Rec, const TInt& _Fq = 0);
-	// C++ constructors
-	TNodeJsRec(): Rec() {}
-	TNodeJsRec(const TQm::TRec& _Rec): Rec(_Rec) {}
-	TNodeJsRec(const TQm::TRec& _Rec, const TInt& _Fq) : Rec(_Rec), Fq(_Fq) {}
-	// Node framework (constructor method)
-	JsDeclareFunction(New);
-public:
+	// Object that knows if Base is valid
+	PNodeJsBaseWatcher Watcher;
 	// C++ wrapped object
-	TQm::TRec Rec;	
+	TQm::TRec Rec;
 	TInt Fq;
+	// C++ constructors	
+	TNodeJsRec(PNodeJsBaseWatcher& _Watcher, const TQm::TRec& _Rec, const TInt& _Fq = 0) : Watcher(_Watcher), Rec(_Rec), Fq(_Fq) {}
+	// Not typical (records have multiple templates), simpler objects get this method from TNodeJsUtil
+	static v8::Local<v8::Object> NewInstance(TNodeJsRec* Obj);
+	
 
 private:
 	//!
@@ -975,7 +976,7 @@ private:
 	/**
 	* Returns the store the record belongs to.
 	*/
-	//# exports.Record.prototype.$store = undefined;
+	//# exports.Record.prototype.store = undefined;
 	JsDeclareProperty(store);
 
 	//!- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
@@ -991,37 +992,30 @@ private:
 // NodeJs QMiner Record Set
 
 /**
-* Record Set
-* @classdesc Represents the record set object.  TODO new constructor
-* @class
+* Record Set (factory pattern)
+* @namespace
 * @example
 * // import qm module
 * var qm = require('qminer');
 * // factory based construction using store.recs
 * var rs = store.recs;
-* // create with constructor
-* // TODO
 */
 //# exports.RecSet = function () {}
 class TNodeJsRecSet: public node::ObjectWrap {
+	friend class TNodeJsUtil;
 private:
 	// Node framework
-	static v8::Persistent<v8::Function> constructor;
+	static v8::Persistent<v8::Function> Constructor;
 public:
 	// Node framework 
 	static void Init(v8::Handle<v8::Object> exports);
-	// Wrapping C++ object	
-	static v8::Local<v8::Object> New();
-	static v8::Local<v8::Object> New(const TQm::PRecSet& Rec);
-	// C++ constructors
-	TNodeJsRecSet() {}
-	TNodeJsRecSet(const TQm::PRecSet& _RecSet) : RecSet(_RecSet) {}
-	// Node framework (constructor method)
-	JsDeclareFunction(New);
-public:
+	static const TStr ClassId;
 	// C++ wrapped object
 	TQm::PRecSet RecSet;
-
+	// Object that knows if Base is valid
+	PNodeJsBaseWatcher Watcher;
+	// C++ constructors
+	TNodeJsRecSet(const TQm::PRecSet& _RecSet, PNodeJsBaseWatcher& _Watcher) : RecSet(_RecSet), Watcher(_Watcher) {}
 private:
 	//! 
 	//! **Functions and properties:**
@@ -1332,29 +1326,41 @@ private:
 //! 
 //! ### Store iterator
 //! 
+/**
+* Store Iterator (factory pattern)
+* @namespace
+* @example
+* // import qm module
+* qm = require('qminer');
+* // factory based construction with store.forwardIter
+* var iter = store.forwardIter;
+*/
+//# exports.Iterator = function () {};
 class TNodeJsStoreIter: public node::ObjectWrap {
+	friend class TNodeJsUtil;
 private:
 	// Node framework
-	static v8::Persistent<v8::Function> constructor;
+	static v8::Persistent<v8::Function> Constructor;
 public:
 	// Node framework 
 	static void Init(v8::Handle<v8::Object> exports);
-	// Wrapping C++ object	
-	static v8::Local<v8::Object> New();
-	static v8::Local<v8::Object> New(const TWPt<TQm::TStore>& Store, const TQm::PStoreIter& Iter);
+	static const TStr ClassId;
+
+	// C++ wrapped object
+	TWPt<TQm::TStore> Store;
+	TQm::PStoreIter Iter;	
+	TNodeJsRec* JsRec;
+	// placeholder for last object
+	v8::Persistent<v8::Object> RecObj;
+	// Object that knows if Base is valid
+	PNodeJsBaseWatcher Watcher;
+	
+
 	// C++ constructors
-	TNodeJsStoreIter() : JsRec(nullptr) {}
-	TNodeJsStoreIter(const TWPt<TQm::TStore>& _Store, const TQm::PStoreIter& _Iter) : Store(_Store), Iter(_Iter), JsRec(nullptr) {}
-	// Node framework (constructor method)
-	JsDeclareFunction(New);
+	TNodeJsStoreIter(const TWPt<TQm::TStore>& _Store, const TQm::PStoreIter& _Iter, PNodeJsBaseWatcher& _Watcher) : Store(_Store), Iter(_Iter), JsRec(nullptr), Watcher(_Watcher) {}
 	
 public:
-	// C++ wrapped object
-	TWPt<TQm::TStore> Store;	
-	TQm::PStoreIter Iter;
-    // placeholder for last object
-	v8::Persistent<v8::Object> RecObj;
-	TNodeJsRec* JsRec;
+	
     // delete placeholder
     ~TNodeJsStoreIter() { RecObj.Reset(); }
 	
@@ -1435,26 +1441,22 @@ public:
 //! ### Index key
 //!
 class TNodeJsIndexKey: public node::ObjectWrap {
+	friend class TNodeJsUtil;
 private:
     // Node framework
-    static v8::Persistent<v8::Function> constructor;
+    static v8::Persistent<v8::Function> Constructor;
 public:
-    // Node framework
+	// Node framework
     static void Init(v8::Handle<v8::Object> exports);
-    // Wrapping C++ object
-    static v8::Local<v8::Object> New();
-    static v8::Local<v8::Object> New(const TWPt<TQm::TStore>& _Store, const TQm::TIndexKey& _IndexKey);
+	static const TStr ClassId;
+	// C++ wrapped object
+	TWPt<TQm::TStore> Store;
+	TQm::TIndexKey IndexKey;
+	// Object that knows if Base is valid
+	PNodeJsBaseWatcher Watcher;
     // C++ constructors
-    TNodeJsIndexKey() {}
-    TNodeJsIndexKey(const TWPt<TQm::TStore>& _Store, const TQm::TIndexKey& _IndexKey):
-        Store(_Store), IndexKey(_IndexKey) { }
-    // Node framework (constructor method)
-    JsDeclareFunction(New);
-    
-public:
-    // C++ wrapped object
-    TWPt<TQm::TStore> Store;
-    TQm::TIndexKey IndexKey;
+	TNodeJsIndexKey(const TWPt<TQm::TStore>& _Store, const TQm::TIndexKey& _IndexKey, PNodeJsBaseWatcher& _Watcher) :
+		Store(_Store), IndexKey(_IndexKey), Watcher(_Watcher) { }
     
 public:
     //!
@@ -1497,7 +1499,9 @@ private:
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
 		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Fun);
-		return TNodeJsUtil::ExecuteFlt(Callback, TNodeJsRec::New(FtrRec));
+		return TNodeJsUtil::ExecuteFlt(Callback,
+			TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), FtrRec))
+		);
 	}
 
 	void ExecuteFuncVec(const TQm::TRec& FtrRec, TFltV& Vec) const {
@@ -1505,7 +1509,7 @@ private:
 		v8::HandleScope HandleScope(Isolate);
 
 		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Fun);
-		v8::Handle<v8::Value> Argv[1] = { TNodeJsRec::New(FtrRec) };
+		v8::Handle<v8::Value> Argv[1] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), FtrRec)) };
 		v8::Handle<v8::Value> RetVal = Callback->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
 
 		// Cast as FltV and copy result

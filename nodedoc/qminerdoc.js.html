@@ -1,14 +1,32 @@
-//intellisense start
-// this file mimicks the qminer module index.js file
-exports = {}; require.modules.qminer = exports;
-exports.la = require('qminer_la');
-exports.fs = require('qminer_fs');
-exports.analytics = require('qminer_analytics');
-exports.ht= require('qminer_ht');
-exports.statistics= require('qminer_stat');
-exports.datasets= require('qminer_datasets');
-//intellisense end
-/**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: qminerdoc.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: qminerdoc.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
 * Qminer module.
 * @module qm
 * @example 
@@ -57,23 +75,23 @@ exports.datasets= require('qminer_datasets');
 * Base constructor parameter object
 * @typedef {Object} BaseConstructorParam
 * @property  {module:qm~baseModes} [BaseConstructorParam.mode='openReadOnly'] - Base access mode: 
-* <br> create (sets up the db folder), 
-* <br> createClean (cleans db folder and then sets it up), 
-* <br> open (opens the db with read/write permissions), 
-* <br> openReadOnly (opens the db in read only mode).
+* &lt;br> create (sets up the db folder), 
+* &lt;br> createClean (cleans db folder and then sets it up), 
+* &lt;br> open (opens the db with read/write permissions), 
+* &lt;br> openReadOnly (opens the db in read only mode).
 * @property  {number} [BaseConstructorParam.indexCache=1024] - The ammount of memory reserved for indexing (in MB).
 * @property  {number} [BaseConstructorParam.storeCache=1024] - The ammount of memory reserved for store cache (in MB).
 * @property  {string} [BaseConstructorParam.schemaPath=''] - The path to schema definition file.
-* @property  {Array<module:qm~SchemaDefinition>} [BaseConstructorParam.schema=[]] - Schema definition object array.
+* @property  {Array&lt;module:qm~SchemaDefinition>} [BaseConstructorParam.schema=[]] - Schema definition object array.
 * @property  {string} [BaseConstructorParam.dbPath='./db/'] - The path to db directory.
 */
 /**
 * Store schema definition object
 * @typedef {Object} SchemaDefinition
 * @property {string} name - The name of the store. Store name can be composed by from English letters, numbers, _ or $ characters. It can only begin with a character.
-* @property {Array<module:qm~SchemaFieldDefinition>} fields - The array of field descriptors. 
-* @property {Array<module:qm~SchemaJoinDefinition>} [joins=[]] - The array of join descriptors, used for linking records from different stores.
-* @property {Array<module:qm~SchemaKeyDefinition>} [keys=[]] - The array of key descriptors. Keys define how records are indexed, which is needed for search using the query language.
+* @property {Array&lt;module:qm~SchemaFieldDefinition>} fields - The array of field descriptors. 
+* @property {Array&lt;module:qm~SchemaJoinDefinition>} [joins=[]] - The array of join descriptors, used for linking records from different stores.
+* @property {Array&lt;module:qm~SchemaKeyDefinition>} [keys=[]] - The array of key descriptors. Keys define how records are indexed, which is needed for search using the query language.
 * @property {module:qm~SchemaTimeWindowDefinition} [timeWindow] - Time window description. Stores can have a window, which is used by garbage collector to delete records once they fall out of the time window. Window can be defined by number of records or by time.
 * @example
 * var qm = require('qminer');
@@ -120,7 +138,7 @@ exports.datasets= require('qminer_datasets');
 * @property {module:qm~fieldTypes} type - The type of the field.
 * @property {boolean} [primary=false] - Field which can be used to identify record. There can be only one primary field in a store. There can be at most one record for each value of the primary field. Currently following fields can be marked as primary: int, uin64, string, float, datetime. Primary fields of type string are also used for record names.
 * @property {boolean} [null=false] - When set to true, null is a possible value for a field (allow missing values).
-* @property {string} [store='memory'] - Defines where to store the field, options are: <b>'cache'</b> or <b>'memory'</b>. The default option is <b>'memory'</b>, which stores the values in RAM. Option <b>'cache'</b> stores the values on disk, with a layer of FIFO cache in RAM, storing the most recently used values.
+* @property {string} [store='memory'] - Defines where to store the field, options are: &lt;b>'cache'&lt;/b> or &lt;b>'memory'&lt;/b>. The default option is &lt;b>'memory'&lt;/b>, which stores the values in RAM. Option &lt;b>'cache'&lt;/b> stores the values on disk, with a layer of FIFO cache in RAM, storing the most recently used values.
 * @property {Object} [default] - Default value for field when not given for a new record.
 * @property {boolean} [codebook=false] - Useful when many records have only few different values of this field. If set to true, then a separate table of all values is kept, and records only point to this table (replacing variable string field in record serialisation with fixed-length integer). Useful to decrease memory footprint, and faster to update. (STRING FIELD TYPE SPECIFIC).
 * @property {boolean} [shortstring=false] - Useful for string shorter then 127 characters (STRING FIELD TYPE SPECIFIC).
@@ -157,9 +175,9 @@ exports.datasets= require('qminer_datasets');
 * Store schema join definition object
 * @typedef {Object} SchemaJoinDefinition
 * @property {string} name - The name of the join.
-* @property {string} type - The supported types are: <b>'field'</b> and <b>'index'</b>. 
-* <br> A join with type=<b>'field'</b> can point to zero or one record and is implemented as an additional hidden field of type uint64, which can hold the ID of the record it links to. Accessing the record's join returns a record.
-* <br> A join with type=<b>'index'</b> can point to any number of records and is implemented using the inverted index, where for each record a list (vector) of linked records is kept. Accessing the record's join returns a record set.
+* @property {string} type - The supported types are: &lt;b>'field'&lt;/b> and &lt;b>'index'&lt;/b>. 
+* &lt;br> A join with type=&lt;b>'field'&lt;/b> can point to zero or one record and is implemented as an additional hidden field of type uint64, which can hold the ID of the record it links to. Accessing the record's join returns a record.
+* &lt;br> A join with type=&lt;b>'index'&lt;/b> can point to any number of records and is implemented using the inverted index, where for each record a list (vector) of linked records is kept. Accessing the record's join returns a record set.
 * @property {string} store - The store name from which the linked records are.
 * @example
 * var qm = require('qminer');
@@ -207,11 +225,11 @@ exports.datasets= require('qminer_datasets');
 * Store schema key definition object
 * @typedef {Object} SchemaKeyDefinition
 * @property {string} field - The name of the field that will be indexed.
-* @property {string} type - The supported types are: <b>'value'</b>, <b>'text'</b> and <b>'location'</b>.
-* <br> A key with type=<b>'value'</b> indexes records using an inverted index using full value of the field (no processing).
+* @property {string} type - The supported types are: &lt;b>'value'&lt;/b>, &lt;b>'text'&lt;/b> and &lt;b>'location'&lt;/b>.
+* &lt;br> A key with type=&lt;b>'value'&lt;/b> indexes records using an inverted index using full value of the field (no processing).
 *  The key type supports 'string', 'string_v' and 'datetime' fields types.
-* <br> A key with type=<b>'text'</b> indexes string fields by using a tokenizer and text processing. Supported by string fields.
-* <br> A key with type=<b>'location'</b> indexes records as points on a sphere and enables nearest-neighbour queries. Supported by float_pair type fields.
+* &lt;br> A key with type=&lt;b>'text'&lt;/b> indexes string fields by using a tokenizer and text processing. Supported by string fields.
+* &lt;br> A key with type=&lt;b>'location'&lt;/b> indexes records as points on a sphere and enables nearest-neighbour queries. Supported by float_pair type fields.
 * @property {string} [name] - Allows using a different name for the key in search queries. This allows for multiple keys to be put against the same field. Default value is the name of the field.
 * @property {string} [vocabulary] - defines the name of the vocabulary used to store the tokens or values. This can be used indicate to several keys to use the same vocabulary, to save on memory. Supported by 'value' and 'text' keys.
 * @property {string} [tokenize] - defines the tokenizer that is used for tokenizing the values stored in indexed fields. Tokenizer uses same parameters as in bag-of-words feature extractor. Default is english stopword list and no stemmer. Supported by 'text' keys.
@@ -246,7 +264,7 @@ exports.datasets= require('qminer_datasets');
 * Window defined by parameter window, its value being the number of records to be kept.
 * @typedef {Object} SchemaTimeWindowDefinition
 * @property {number} duration - the size of the time window (in number of units).
-* @property {string} unit - defines in which units the window size is specified. Possible values are <b>second</b>, <b>minute</b>, <b>hour</b>, <b>day</b>, <b>week</b> or <b>month</b>.
+* @property {string} unit - defines in which units the window size is specified. Possible values are &lt;b>second&lt;/b>, &lt;b>minute&lt;/b>, &lt;b>hour&lt;/b>, &lt;b>day&lt;/b>, &lt;b>week&lt;/b> or &lt;b>month&lt;/b>.
 * @property {string} [field] - name of the datetime filed, which defines the time of the record. In case it is not given, the insert time is used in its place.
 * @example
 * var qm = require('qminer');
@@ -295,7 +313,7 @@ exports.datasets= require('qminer_datasets');
  exports.Base.prototype.getStoreList = function () { return [{storeId:'', storeName:'', storeRecords:'', fields: [], keys: [], joins: []}]; }
 /**
 	* Creates a new store.
-	* @param {Array<module:qm~SchemaDefinition>} storeDef - The definition of the store(s)
+	* @param {Array&lt;module:qm~SchemaDefinition>} storeDef - The definition of the store(s)
 	* @param {number} [storeSizeInMB = 1024] - The reserved size of the store(s).
 	* @returns {(module:qm.Store | module:qm.Store[])} - Returns a store or an array of stores (if the schema definition was an array)
 	*/
@@ -334,8 +352,8 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Executes a function on each record in store.
 	* @param {function} callback - Function to be executed. It takes two parameters:
-	* <br>rec - The current record.
-	* <br>[idx] - The index of the current record.
+	* &lt;br>rec - The current record.
+	* &lt;br>[idx] - The index of the current record.
 	* @returns {module:qm.Store} Self.
 	* @example
 	* // import qm module
@@ -349,9 +367,9 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Creates an array of function outputs created from the store records.
 	* @param {function} callback - Function that generates the array. It takes two parameters:
-	* <br>rec - The current record.
-	* <br>[idx] - The index of the current record.
-	* @returns {Array<Object>} The array created by the callback function. //TODO
+	* &lt;br>rec - The current record.
+	* &lt;br>[idx] - The index of the current record.
+	* @returns {Array&lt;Object>} The array created by the callback function. //TODO
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
@@ -591,9 +609,9 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Sorts the records according to the given callback function.
 	* @param {function} callback - The function used to sort the records. It takes two parameters:
-	* <br>1. rec - The first record.
-	* <br>2. rec2 - The second record.
-	* <br>It returns a boolean object.
+	* &lt;br>1. rec - The first record.
+	* &lt;br>2. rec2 - The second record.
+	* &lt;br>It returns a boolean object.
 	* @returns {module:qm.RecSet} Self. The records are sorted according to the callback function.
 	* @example
 	* // import qm module
@@ -601,7 +619,7 @@ exports.datasets= require('qminer_datasets');
 	* // construct a new record set of movies (one field is it's Rating)
 	* var rs = //TODO
 	* // sort the records by their rating
-	* rs.sort(function (rec, rec2) { return rec.Rating < rec2.Rating ;});
+	* rs.sort(function (rec, rec2) { return rec.Rating &lt; rec2.Rating ;});
 	*/
  exports.RecSet.prototype.sort = function (callback) {};
 /**
@@ -609,17 +627,17 @@ exports.datasets= require('qminer_datasets');
 	* @param {number} [minId] - The minimum id.
 	* @param {number} [maxId] - The maximum id.
 	* @returns {module:qm.RecSet} Self. 
-	* <br>1. Contains only the records of the original with ids between minId and maxId, if parameters are given.
-	* <br>2. Contains all the records of the original, if no parameter is given.
+	* &lt;br>1. Contains only the records of the original with ids between minId and maxId, if parameters are given.
+	* &lt;br>2. Contains all the records of the original, if no parameter is given.
 	*/
  exports.RecSet.prototype.filterById = function (minId, maxId) {};
 /**
 	* Keeps only the records with a specific value of some field.
 	* @param {string} fieldName - The field by which the records will be filtered.
 	* @param {(string | number)} minVal -  
-	* <br>1. Is a string, if the field type is a string. The exact string to compare.
-	* <br>2. Is a number, if the field type is a number. The minimal value for comparison.
-	* <br>3. TODO Time field
+	* &lt;br>1. Is a string, if the field type is a string. The exact string to compare.
+	* &lt;br>2. Is a number, if the field type is a number. The minimal value for comparison.
+	* &lt;br>3. TODO Time field
 	* @param {number} maxVal - Only in combination with minVal for non-string fields. The maximal value for comparison.
 	* @returns {module:qm.RecSet} Self. Containing only the records with the fieldName value between minVal and maxVal. If the fieldName type is string,
 	* it contains only the records with fieldName equal to minVal.
@@ -641,7 +659,7 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Splits the record set into smaller record sets.
 	* @param {function} callback - The splitter function. It takes two parameters (records) and returns a boolean object.
-	* @returns {Array.<module:qm.RecSet>} An array containing the smaller record sets. The records are split according the callback function.
+	* @returns {Array.&lt;module:qm.RecSet>} An array containing the smaller record sets. The records are split according the callback function.
 	*/
  exports.RecSet.prototype.split = function (callback) {};
 /**
@@ -658,8 +676,8 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Executes a function on each record in record set.
 	* @param {function} callback - Function to be executed. It takes two parameters:
-	* <br>rec - The current record.
-	* <br>[idx] - The index of the current record.
+	* &lt;br>rec - The current record.
+	* &lt;br>[idx] - The index of the current record.
 	* @returns {module:qm.RecSet} Self.
 	* @example
 	* // import qm module
@@ -673,9 +691,9 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Creates an array of function outputs created from the records in record set.
 	* @param {function} callback - Function that generates the array. It takes two parameters:
-	* <br>rec - The current record.
-	* <br>[idx] - The index of the current record.
-	* @returns {Array<Object>} The array created by the callback function. //TODO
+	* &lt;br>rec - The current record.
+	* &lt;br>[idx] - The index of the current record.
+	* @returns {Array&lt;Object>} The array created by the callback function. //TODO
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
@@ -744,8 +762,8 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Moves to the next record.
 	* @returns {boolean} 
-	* <br>1. True, if the iteration successfully moves to the next record.
-	* <br>2. False, if there is no record left.
+	* &lt;br>1. True, if the iteration successfully moves to the next record.
+	* &lt;br>2. False, if there is no record left.
 	*/
  exports.Iterator.prototype.next = function () {};
 /**
@@ -756,3 +774,26 @@ exports.datasets= require('qminer_datasets');
 	* Gives the current record.
 	*/
  exports.Iterator.prototype.rec = undefined;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-datasets.html">datasets</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li><li><a href="module-qm.html">qm</a></li><li><a href="module-statistics.html">statistics</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.BoolVector.html">BoolVector</a></li><li><a href="module-la.IntVector.html">IntVector</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li><li><a href="module-la.StrVector.html">StrVector</a></li><li><a href="module-la.Vector.html">Vector</a></li><li><a href="module-qm.Base.html">Base</a></li><li><a href="module-qm.Store.html">Store</a></li></ul><h3>Namespaces</h3><ul><li><a href="module-qm.Iterator.html">Iterator</a></li><li><a href="module-qm.Record.html">Record</a></li><li><a href="module-qm.RecSet.html">RecSet</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Tue Apr 14 2015 21:40:43 GMT+0200 (Central Europe Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

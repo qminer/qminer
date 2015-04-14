@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: datasetsdoc.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: datasetsdoc.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+    /**
+    * Datasets module includes some standard toy datasets. In addition, this module also includes various
+    * random sample generators that can be used to build artificial datasets of controlled size and complexity.
+    * @module datasets 
+    * @example &lt;caption>Asynchronous loading&lt;/caption>
+    * var qm = require('qminer');
+    * var datasets = qm.datasets;
+    * 
+    * qm.delLock();
+    * qm.config('qm.conf', true, 8080, 1024);
+    *
+    * var base = qm.create('qm.conf', '', true);
+    *
+    * // Load Iris dataset in async way
+    * datasets.loadIris(base, function (err, store) {
+    *     if (err) throw err;
+    *     console.log("\nSucessfully loaded database: " + store.name)
+    *     console.log(JSON.stringify(store.first, null, 2));
+    * })
+    * @example &lt;caption>Synchronous loading&lt;/caption>
+    * var qm = require('qminer');
+    * var datasets = qm.datasets;
+    * 
+    * qm.delLock();
+    * qm.config('qm.conf', true, 8080, 1024);
+    *
+    * var base = qm.create('qm.conf', '', true);
+    *
+    * // Load Iris in sync way.
+    * var Iris = datasets.loadIrisSync(base);
+    * console.log("\nSucessfully loaded database: " + Iris.name)
+    * console.log(JSON.stringify(Iris.first, null, 2));
+    */
+
+    /**
+    * Loads Iris dataset in asynchronous way. Returns link to the created Irsi store.
+    * @param {module:qm.Base} base
+    * @returns {module:qm.Store} Store with Iris dataset.
+    */
+    exports.loadIris = function (_base, callback) {
+
+        var options = {
+            file: __dirname + '/data/iris.csv',
+            store: 'Iris',
+            base: _base
+        }
+
+        console.log('Loading dataset ' + options.store + ' ...');
+        _base.loadCSV(options, function (err) {
+            if (err) return callback(err);
+
+            var Iris = _base.store(options.store);
+            console.log(options.store + ' dataset loaded')
+
+            return callback(null, Iris)
+        })
+    }
+
+    /**
+    * Loads Iris dataset in synchronous way. Returns link to the created Iris store.
+    * @param {module:qm.Base} base
+    * @returns {module:qm.Store} Store with Iris dataset.
+    */
+    exports.loadIrisSync = function (_base) {
+
+        var finished = false;
+        var options = {
+            file: __dirname + '/data/iris.csv',
+            store: 'Iris',
+            base: _base
+        }
+
+        console.log('Loading dataset ' + options.store + ' ...');
+        _base.loadCSV(options, function (err) {
+            if (err) return callback(err);
+            
+            var Iris = _base.store(options.store);
+            console.log(options.store + ' dataset loaded')
+
+            finished = true;
+        })
+
+        // Used deasync module to turn this function into sync. 
+        while (finished == false) {
+            require('deasync').runLoopOnce();
+        }
+        return _base.store(options.store);
+    }
+    
+    // Module description
+    exports.description = function () {
+        return ("Module includes functions to load and make datasets.");
+    }
+
+    
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-datasets.html">datasets</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li><li><a href="module-qm.html">qm</a></li><li><a href="module-statistics.html">statistics</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.BoolVector.html">BoolVector</a></li><li><a href="module-la.IntVector.html">IntVector</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li><li><a href="module-la.StrVector.html">StrVector</a></li><li><a href="module-la.Vector.html">Vector</a></li><li><a href="module-qm.Base.html">Base</a></li><li><a href="module-qm.Store.html">Store</a></li></ul><h3>Namespaces</h3><ul><li><a href="module-qm.Iterator.html">Iterator</a></li><li><a href="module-qm.Record.html">Record</a></li><li><a href="module-qm.RecSet.html">RecSet</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Tue Apr 14 2015 21:40:43 GMT+0200 (Central Europe Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
