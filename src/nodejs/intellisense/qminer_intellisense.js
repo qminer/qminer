@@ -649,9 +649,15 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Creates a vector containing the field values of records.
 	* @param {string} fieldName - The field from which to take the values. It's type must be one-dimensional, e.g. float, int, string,...
-	* @returns {(Array.<number> | Array.<string> | Array.<boolean>)} The array containing the field values of records. The type it contains is dependant of the field type.
+	* @returns {module:la.Vector} The vector containing the field values of records. The type it contains is dependant of the field type.
 	*/
  exports.RecSet.prototype.getVec = function (fieldName) {}; 
+/**
+	* Creates a vector containing the field values of records.
+	* @param {string} fieldName - The field from which to take the values. It's type must be numeric, e.g. float, int, float_v, num_sp_v,...
+	* @returns {(module:la.Matrix|module:la.SparseMatrix)} The matrix containing the field values of records.
+	*/
+ exports.RecSet.prototype.getVec = function (fieldName) {};
 /**
 	* Returns the store, where the records in the record set are stored.
 	*/
