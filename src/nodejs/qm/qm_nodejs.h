@@ -744,13 +744,18 @@ private:
 	//!- `vec = store.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
 	/**
 	* Gives a vector containing the field value of each record.
-	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string
+	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string...
 	* @returns {module:la.Vector} The vector containing the field values of each record.
 	*/
 	//# exports.Store.prototype.getVec = function (fieldName) {};
 	JsDeclareFunction(getVec);
 
 	//!- `mat = store.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
+	/**
+	* Gives a matrix containing the field values of each record.
+	* @param {string} fieldName - The field name. Field mustn't be of type string.
+	* @returns {(module:la.Matrix | module:la.SparseMatrix)} The matrix containing the field values. 
+	*/
 	JsDeclareFunction(getMat);
 	//!- `val = store.cell(recId, fieldId)` -- if fieldId (int) corresponds to fieldName, this is equivalent to store[recId][fieldName]
 	//!- `val = store.cell(recId, fieldName)` -- equivalent to store[recId][fieldName]

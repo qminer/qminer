@@ -395,10 +395,15 @@
  exports.Store.prototype.clear = function (num) {};
 /**
 	* Gives a vector containing the field value of each record.
-	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string
+	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string...
 	* @returns {module:la.Vector} The vector containing the field values of each record.
 	*/
  exports.Store.prototype.getVec = function (fieldName) {};
+/**
+	* Gives a matrix containing the field values of each record.
+	* @param {string} fieldName - The field name. Field mustn't be of type string.
+	* @returns {(module:la.Matrix | module:la.SparseMatrix)} The matrix containing the field values. 
+	*/
 /**
 	* Gives the name of the store.
 	*/

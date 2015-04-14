@@ -345,6 +345,13 @@ function TStore() {
             { "field": "Plot", "type": "text", "vocabulary": "voc_01" },
             { "field": "Genres", "type": "value" }
         ]
+    },
+    {
+        "name": "Basketball",
+        "fields": [
+            { "name": "Player", "type": "string", "primary": true },
+            { "name": "Score", "type": "float_v" }
+        ]
     }]);
     // adding two persons
     this.base.store("People").add({ "Name": "Carolina Fortuna", "Gender": "Female" });
@@ -356,6 +363,14 @@ function TStore() {
     
     this.addMovie = function (movie) {
         this.base.store("Movies").add(movie);
+    }
+
+    this.player1 = { "Player": "Goran Dragiæ", "Score": [35, 12, 23] };
+    this.player2 = { "Player": "Michael Jordan", "Score": [90, 100, 95] };
+    this.player3 = { "Player": "Marko Miliæ", "Score": [50, 10, 10, 12] };
+
+    this.addPlayer = function (player) {
+        this.base.store("Basketball").add(player);
     }
 
     this.close = function () {
@@ -582,6 +597,48 @@ describe("Two Store Tests", function () {
             assert.equal(qm.load.jsonFile(table.base.store("Movies"), filename), 167);
         })
     })
+
+    describe('GetMat Test', function () {
+        it('should get a matrix with the players score', function () {
+            table.addPlayer(table.player1);
+            table.addPlayer(table.player2);
+
+            var mat = table.base.store("Basketball").getMat("Score");
+            assert.equal(mat.rows, 3);
+            assert.equal(mat.cols, 2);
+            assert.equal(mat.at(1, 1), 100);
+
+        })
+        it('should throw an exception, if the field values are of different lenghts', function () {
+            table.addPlayer(table.player1);
+            table.addPlayer(table.player2);
+            table.addPlayer(table.player3);
+
+            assert.throws(function () {
+                var mat = table.base.store("Basketball").getMat("Score");
+            })
+        })
+        it('should throw an exception, if the field type is non-numeric', function () {
+            assert.throws(function () {
+                var mat = table.base.store("People").getMat("Name");
+            })
+        })
+        it('should throw an exception, if the parameter is a non-existing field', function () {
+            assert.throws(function () {
+                var mat = table.base.store("People").getMat("DateOfBirth");
+            })
+        })
+        it('should return a 1-by-2 matrix containing the movie relese years', function () {
+            table.addMovie(table.movie);
+            table.addMovie(table.movie2);
+
+            var mat = table.base.store("Movies").getMat("Year");
+            assert.equal(mat.rows, 1);
+            assert.equal(mat.cols, 2);
+            assert.equal(mat.at(0, 0), 2010);
+            assert.equal(mat.at(0, 1), 2006);
+        })
+    });
 
     describe('ToJSON Test', function () {
         it('should return the store "People" as a JSON', function () {
