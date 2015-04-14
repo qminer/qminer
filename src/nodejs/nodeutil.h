@@ -220,7 +220,7 @@ public:
 
 
 	template <class TClass>
-	static TClass* Unwrap(v8::Handle<v8::Object> handle) { return ObjectWrap::Unwrap<TClass>(handle); }
+	static TClass* Unwrap(v8::Handle<v8::Object> handle) { return node::ObjectWrap::Unwrap<TClass>(handle); }
 	
 };
 

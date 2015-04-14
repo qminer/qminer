@@ -311,11 +311,8 @@ exports.datasets= require('qminer_datasets');
 	*/
  exports.Base.prototype.gc = function () { }
 /**
-* Store
-* @classdesc Represents the store object. TODO new constructor
-* @class
-* @param {module:qm.Base} base - The base where the store will be added.
-* @param {module:qm~StoreConstructorParam} paramObj - The store schema object.
+* Store (factory pattern result) 
+* @namespace
 * @example
 * // import qm module
 * var qm = require('qminer');
