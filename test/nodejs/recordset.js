@@ -335,6 +335,11 @@ describe('Record Set Tests', function () {
                 recSet2.filterById(1);
             })
         })
+        it('should return the first two records of recSet2, if second parameter is out of bound', function () {
+            recSet2.filterById(2, 100);
+
+            assert.equal(recSet2.length, 60);
+        })
     });
 
     describe('FilterByField Test', function () {
@@ -475,6 +480,13 @@ describe('Record Set Tests', function () {
                 assert.equal(arr[i][1], recSet2[i].Name);
             }
         })
+        it('should return a null array, if callback function returns a non-existing field', function () {
+            var arr = recSet2.map(function (rec) { return rec.DateOfBirth; });
+            assert.equal(arr.length, 62);
+            for (var i = 0; i < 62; i++) {
+                assert.equal(arr[i], null);
+            }
+        })
     });
 
     describe('Intersect Tests', function () {
@@ -484,6 +496,7 @@ describe('Record Set Tests', function () {
             var rs2 = recSet2.setintersect(rs);
 
             assert.equal(rs2.length, 2);
+            assert.equal(rs2.store.name, "People");
             assert.equal(rs2[0].Name, "Carolina Fortuna");
             assert.equal(rs2[1].Name, "Blaz Fortuna");
         })
@@ -493,6 +506,7 @@ describe('Record Set Tests', function () {
             var rs2 = recSet2.setintersect(rs);
 
             assert.equal(rs2.length, 0);
+            assert.equal(rs2.store.name, "People");
         })
         it('should return an empty record set if the first record set is empty', function () {
             var rs = recSet2.clone();
@@ -500,11 +514,119 @@ describe('Record Set Tests', function () {
             var rs2 = rs.setintersect(recSet2);
 
             assert.equal(rs2.length, 0);
+            assert.equal(rs2.store.name, "People");
         })
         it('should throw an exception if no parameter is given', function () {
             assert.throws(function () {
                 var rs = recSet2.setintersect();
             })
+        })
+    });
+
+    describe('Setunion Tests', function () {
+        it('should return the union of two record sets', function () {
+            var rs = recSet2.clone();
+            var rs2 = recSet2.clone();
+            rs.filterById(0, 0);
+            rs2.filterById(1, 1);
+
+            var rs3 = rs.setunion(rs2);
+            assert.equal(rs3.length, 2);
+            assert.equal(rs3.store.name, "People");
+            assert.equal(rs3[0].Name, "Carolina Fortuna");
+            assert.equal(rs3[1].Name, "Blaz Fortuna");
+        })
+        it('should return the same record set if parameter is empty', function () {
+            var rs = recSet2.clone();
+            rs.trunc(0);
+            var rs2 = recSet2.setunion(rs);
+
+            assert.equal(rs2.length, 62);
+            assert.equal(rs2.store.name, "People");
+        })
+        it('should return the same record set in parameter, if first record set is empty', function () {
+            var rs = recSet2.clone();
+            rs.trunc(0);
+            var rs2 = rs.setunion(recSet2);
+
+            assert.equal(rs2.length, 62);
+            assert.equal(rs2.store.name, "People");
+        })
+        it('should throw an exception, if no parameter is given', function () {
+            assert.throws(function () {
+                var rs = recSet2.setunion();
+            })
+        })
+    });
+
+    describe('Setdiff Tests', function () {
+        it('should return the difference of two record sets', function () {
+            var rs = recSet2.clone();
+            rs.filterById(2, 62);
+            var rs2 = recSet2.setdiff(rs);
+
+            assert.equal(rs2.length, 2);
+            assert.equal(rs2.store.name, "People");
+            assert.equal(rs2[0].Name, "Carolina Fortuna");
+            assert.equal(rs2[1].Name, "Blaz Fortuna");
+        })
+        it('should return the the same record set, if no record is in the intersection', function () {
+            var rs = recSet2.clone();
+            var rs2 = recSet2.clone();
+
+            rs.filterById(0, 1);
+            rs2.filterById(2, 62);
+
+            var rs3 = rs.setdiff(rs2);
+
+            assert.equal(rs3.length, 2);
+            assert.equal(rs3.store.name, "People");
+            assert.equal(rs3[0].Name, "Carolina Fortuna");
+            assert.equal(rs3[1].Name, "Blaz Fortuna");
+        })
+        it('should throw an exception', function () {
+            assert.throws(function () {
+                var rs = recSet2.setdiff();
+            })
+        })
+    });
+
+    describe('GetVec Tests', function () {
+        it('should return the vector containing the names of people', function () {
+            var arr = recSet2.getVec("Name");
+            assert.equal(arr.length, 62);
+            assert.equal(arr[0], "Carolina Fortuna");
+            assert.equal(arr[1], "Blaz Fortuna");
+        })
+        it('should return the vector containing the years of movies', function () {
+            var arr = recSet.getVec("Year");
+            assert.equal(arr.length, 2);
+            assert.equal(arr[0], 2010);
+            assert.equal(arr[1], 2006);
+        })
+        it.skip('should throw an exception, if parameter is not a legit field', function () {
+            assert.throws(function () {
+                var arr = recSet2.getVec("DateOfBirth");
+            })
+        })
+    });
+
+    describe('ToJSON Tests', function () {
+        it('should return recSet as a JSON object', function () {
+            var json = recSet.toJSON();
+            assert.equal(json.$hits, 2);
+            assert.equal(json.records[0].Title, "Every Day");
+            assert.equal(json.records[0].Year, 2010);
+            assert.equal(json.records[0].Rating, 5.6);
+            assert.equal(json.records[1].Title, "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on");
+            assert.equal(json.records[1].Year, 2006);
+            assert.equal(json.records[1].Rating, 5.8);
+        })
+        it('should return recSet2 as a JSON object', function () {
+            var json = recSet2.toJSON();
+            assert.equal(json.$hits, 62);
+            assert.equal(json.records[0].Name, "Carolina Fortuna");
+            assert.equal(json.records[1].Name, "Blaz Fortuna");
         })
     })
 })

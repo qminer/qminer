@@ -584,6 +584,11 @@
 	*/
  exports.RecSet.prototype.deleteRecs = function (rs) {}; 
 /**
+	* Returns the record set as a JSON.
+	* @returns {Object} The record set as a JSON.
+	*/
+ exports.RecSet.prototype.toJSON = function () {};
+/**
 	* Executes a function on each record in record set.
 	* @param {function} callback - Function to be executed. It takes two parameters:
 	* <br>rec - The current record.
@@ -614,11 +619,29 @@
 	*/
  exports.RecSet.prototype.map = function (callback) {}
 /**
-	* Returns the intersection (record set) of two record sets.
+	* Creates the set intersection of two record sets.
 	* @param {module:qm.RecSet} rs - The other record set.
 	* @returns {module:qm.RecSet} The intersection of the two record sets.
 	*/
  exports.RecSet.prototype.setintersect = function (rs) {};
+/**
+	* Creates the set union of two record sets.
+	* @param {module:qm.RecSet} rs - The other record set.
+	* @returns {module:qm.RecSet} The union of the two record sets.
+	*/
+ exports.RecSet.prototype.setunion = function (rs) {};
+/**
+	* Creates the set difference between two record sets.
+	* @param {module:qm.RecSet} rs - The other record set.
+	* @returns {module:qm.RecSet} The difference between the two record sets.
+	*/
+ exports.RecSet.prototype.setdiff = function (rs) {}; 
+/**
+	* Creates a vector containing the field values of records.
+	* @param {string} fieldName - The field from which to take the values. It's type must be one-dimensional, e.g. float, int, string,...
+	* @returns {(Array.<number> | Array.<string> | Array.<boolean>)} The array containing the field values of records. The type it contains is dependant of the field type.
+	*/
+ exports.RecSet.prototype.getVec = function (fieldName) {}; 
 /**
 	* Returns the store, where the records in the record set are stored.
 	*/

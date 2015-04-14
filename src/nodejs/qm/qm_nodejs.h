@@ -1121,6 +1121,11 @@ private:
 	JsDeclareFunction(deleteRecs);
 
 	//!- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
+	/**
+	* Returns the record set as a JSON.
+	* @returns {Object} The record set as a JSON.
+	*/
+	//# exports.RecSet.prototype.toJSON = function () {};
 	JsDeclareFunction(toJSON);
 
 	//!- `rs = rs.each(callback)` -- iterates through the record set and executes the callback function `callback` on each element. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
@@ -1165,7 +1170,7 @@ private:
 
 	//!- `rs3 = rs.setintersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 	/**
-	* Returns the intersection (record set) of two record sets.
+	* Creates the set intersection of two record sets.
 	* @param {module:qm.RecSet} rs - The other record set.
 	* @returns {module:qm.RecSet} The intersection of the two record sets.
 	*/
@@ -1173,11 +1178,32 @@ private:
 	JsDeclareFunction(setintersect);
 
 	//!- `rs3 = rs.setunion(rs2)` -- returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
+	/**
+	* Creates the set union of two record sets.
+	* @param {module:qm.RecSet} rs - The other record set.
+	* @returns {module:qm.RecSet} The union of the two record sets.
+	*/
+	//# exports.RecSet.prototype.setunion = function (rs) {};
 	JsDeclareFunction(setunion);
+
 	//!- `rs3 = rs.setdiff(rs2)` -- returns the set difference (record set) `rs3`=`rs`\`rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
+	/**
+	* Creates the set difference between two record sets.
+	* @param {module:qm.RecSet} rs - The other record set.
+	* @returns {module:qm.RecSet} The difference between the two record sets.
+	*/
+	//# exports.RecSet.prototype.setdiff = function (rs) {}; 
 	JsDeclareFunction(setdiff);
+
 	//!- `vec = rs.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
+	/**
+	* Creates a vector containing the field values of records.
+	* @param {string} fieldName - The field from which to take the values. It's type must be one-dimensional, e.g. float, int, string,...
+	* @returns {(Array.<number> | Array.<string> | Array.<boolean>)} The array containing the field values of records. The type it contains is dependant of the field type.
+	*/
+	//# exports.RecSet.prototype.getVec = function (fieldName) {}; 
 	JsDeclareFunction(getVec);
+
 	//!- `vec = rs.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
 	JsDeclareFunction(getMat);
 	

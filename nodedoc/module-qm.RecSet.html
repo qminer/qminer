@@ -192,7 +192,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line633">line 633</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line656">line 656</a>
     </li></ul></dd>
     
 
@@ -254,7 +254,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line629">line 629</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line652">line 652</a>
     </li></ul></dd>
     
 
@@ -316,7 +316,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line625">line 625</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line648">line 648</a>
     </li></ul></dd>
     
 
@@ -378,7 +378,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line637">line 637</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line660">line 660</a>
     </li></ul></dd>
     
 
@@ -762,7 +762,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line600">line 600</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line605">line 605</a>
     </li></ul></dd>
     
 
@@ -1378,6 +1378,165 @@
 
     
 
+    <h4 class="name" id="getVec"><span class="type-signature"></span>getVec<span class="signature">(fieldName)</span><span class="type-signature"> &rarr; {Array.&lt;number>|Array.&lt;string>|Array.&lt;boolean>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Creates a vector containing the field values of records.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fieldName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The field from which to take the values. It's type must be one-dimensional, e.g. float, int, string,...</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line644">line 644</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    The array containing the field values of records. The type it contains is dependant of the field type.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Array.&lt;number></span>
+|
+
+<span class="param-type">Array.&lt;string></span>
+|
+
+<span class="param-type">Array.&lt;boolean></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
     <h4 class="name" id="join"><span class="type-signature"></span>join<span class="signature">(joinName, sampleSize<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="module-qm.RecSet.html">module:qm.RecSet</a>}</span></h4>
 
     
@@ -1674,7 +1833,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line615">line 615</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line620">line 620</a>
     </li></ul></dd>
     
 
@@ -1989,14 +2148,14 @@
 
     
 
-    <h4 class="name" id="setintersect"><span class="type-signature"></span>setintersect<span class="signature">(rs)</span><span class="type-signature"> &rarr; {<a href="module-qm.RecSet.html">module:qm.RecSet</a>}</span></h4>
+    <h4 class="name" id="setdiff"><span class="type-signature"></span>setdiff<span class="signature">(rs)</span><span class="type-signature"> &rarr; {<a href="module-qm.RecSet.html">module:qm.RecSet</a>}</span></h4>
 
     
 
 
 
 <div class="description">
-    Returns the intersection (record set) of two record sets.
+    Creates the set difference between two record sets.
 </div>
 
 
@@ -2089,7 +2248,160 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line621">line 621</a>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line638">line 638</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    The difference between the two record sets.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-qm.RecSet.html">module:qm.RecSet</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="setintersect"><span class="type-signature"></span>setintersect<span class="signature">(rs)</span><span class="type-signature"> &rarr; {<a href="module-qm.RecSet.html">module:qm.RecSet</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Creates the set intersection of two record sets.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>rs</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="module-qm.RecSet.html">module:qm.RecSet</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The other record set.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line626">line 626</a>
     </li></ul></dd>
     
 
@@ -2117,6 +2429,159 @@
         
 <div class="param-desc">
     The intersection of the two record sets.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-qm.RecSet.html">module:qm.RecSet</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="setunion"><span class="type-signature"></span>setunion<span class="signature">(rs)</span><span class="type-signature"> &rarr; {<a href="module-qm.RecSet.html">module:qm.RecSet</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Creates the set union of two record sets.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>rs</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="module-qm.RecSet.html">module:qm.RecSet</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The other record set.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line632">line 632</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    The union of the two record sets.
 </div>
 
 
@@ -2999,6 +3464,110 @@
 
     
 
+    <h4 class="name" id="toJSON"><span class="type-signature"></span>toJSON<span class="signature">()</span><span class="type-signature"> &rarr; {Object}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Returns the record set as a JSON.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="qminerdoc.js.html">qminerdoc.js</a>, <a href="qminerdoc.js.html#line590">line 590</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    The record set as a JSON.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
     <h4 class="name" id="trunc"><span class="type-signature"></span>trunc<span class="signature">(limit_num, offset_num<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="module-qm.RecSet.html">module:qm.RecSet</a>}</span></h4>
 
     
@@ -3217,7 +3786,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Mon Apr 13 2015 16:08:36 GMT+0200 (Central Europe Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Tue Apr 14 2015 09:13:23 GMT+0200 (Central Europe Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>
