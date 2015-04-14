@@ -479,9 +479,8 @@ exports.datasets= require('qminer_datasets');
 	*/
  exports.Store.prototype.backwardIter = undefined;
 /**
-* Record
-* @classdesc Represents a record object. //TODO new constructor
-* @class
+* Record (factory pattern).
+* @namespace
 */
  exports.Record = function () {};
 /**
@@ -509,18 +508,15 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Returns the store the record belongs to.
 	*/
- exports.Record.prototype.$store = undefined;
+ exports.Record.prototype.store = undefined;
 /**
-* Record Set
-* @classdesc Represents the record set object.  TODO new constructor
-* @class
+* Record Set (factory pattern)
+* @namespace
 * @example
 * // import qm module
 * var qm = require('qminer');
 * // factory based construction using store.recs
 * var rs = store.recs;
-* // create with constructor
-* // TODO
 */
  exports.RecSet = function () {}
 /**
@@ -725,6 +721,16 @@ exports.datasets= require('qminer_datasets');
 	* Checks if the record set is weighted. If the record set is weighted, then it returns true. Otherwise, it returns false.
 	*/
  exports.RecSet.prototype.weighted = undefined;
+/**
+* Store Iterator (factory pattern)
+* @namespace
+* @example
+* // import qm module
+* qm = require('qminer');
+* // factory based construction with store.forwardIter
+* var iter = store.forwardIter;
+*/
+ exports.Iterator = function () {};
 /**
 	* Moves to the next record.
 	* @returns {boolean} 
