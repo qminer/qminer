@@ -374,5 +374,16 @@ module.exports = exports = function (pathPrefix) {
         nodefs.rmdirSync(dirPath);
     };
 
+	function forbidConstructor(obj) {
+		proto = obj.prototype;
+		obj = function () {throw  new Error('constructor is private, ' + obj.prototype.constructor.name +  ' is factory based.');}
+		obj.prototype = proto;
+		return obj;
+	}
+
+	// Forbids constructors that would crash node - these objects are factory constructed
+	exports.Store = forbidConstructor(exports.Store);
+	exports.RecSet = forbidConstructor(exports.RecSet);
+
     return exports;
 }
