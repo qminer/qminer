@@ -147,6 +147,9 @@ TEST(testTBlobBs, Medium12DelPut2) {
 }
 
 TEST(testTBase, myTBaseTest) {
+	// init unicode
+	TUnicodeDef::Load(unicode_file); 
+
 	TQm::TEnv::Init();
 
 	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
@@ -157,9 +160,6 @@ TEST(testTBase, myTBaseTest) {
 
 	//TStr data_file = def_dir + "\\sandbox\\movies\\movies.json";
 	TStr data_file = "..\\..\\..\\..\\..\\test\\nodejs\\sandbox\\movies\\movies_data.txt";
-
-	// init unicode
-	TUnicodeDef::Load(unicode_file);
 
 	// create new base from definition
 	PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
