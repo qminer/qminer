@@ -469,10 +469,11 @@ describe("Two Store Tests", function () {
     });
 
     describe('Movies Fields Test', function () {
-        it.skip('should return the number of fields', function () {
-            var arr = table.base.store("Movies").fields;
+        it('should return the number of fields', function () {
+            var arr = table.base.store("Movies").fields;            
             console.log(arr);
-            assert.equal(arr.length, 5);
+            // it also returns internal fields that are created for index joins (2 additional fields)
+            assert.equal(arr.length, 7);
         })
         it('should return an array of Movies store fields', function () {
             var arr = table.base.store("Movies").fields;
@@ -581,7 +582,7 @@ describe("Two Store Tests", function () {
             assert.equal(table.base.store("People").sample(63).length, 62);
             assert.equal(table.base.store("People").sample(100000).length, 62);
         })
-        it.skip('should throw an exception if sample parameter is negative', function () {
+        it('should throw an exception if sample parameter is negative', function () {
             table.addMovie(table.movie);
             table.addMovie(table.movie2);
 
@@ -669,7 +670,7 @@ describe("Two Store Tests", function () {
             var name = table.base.store("People").cell(3, "Name");
             assert.equal(name, null);
         })
-        it.skip('should throw an exception, if the fieldName doesn\'t exist', function () {
+        it('should throw an exception, if the fieldName doesn\'t exist', function () {
             assert.throws(function () {
                 var date = table.base.store("People").cell(0, "Date");
             })
