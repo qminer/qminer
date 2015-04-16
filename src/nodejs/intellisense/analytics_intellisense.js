@@ -412,11 +412,8 @@ exports = {}; require.modules.qminer_analytics = exports;
 	 *
 	 * @param {FOut} fout - the output stream
 	 */
+ exports.HMC.prototype.save = function(arg) { return arg; }	
 
-
-
-    var la = require(__dirname + '/la.js')(pathPrefix);
-    var qm_util = require(__dirname + '/qm_util.js');
 
     function defarg(arg, defaultval) {
         return arg == undefined ? defaultval : arg;

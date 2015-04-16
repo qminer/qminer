@@ -1,1046 +1,368 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>JSDoc: Class: SVC</title>
+<!doctype html>
+<html>
 
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+<head>
+  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta charset="utf-8">
+  <title>Class: SVC</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
 </head>
 
-<body>
-
-<div id="main">
-
-    <h1 class="page-title">Class: SVC</h1>
-
-    
-
-
-
-
-<section>
-
-<header>
-    
-        <h2>
-            <span class="ancestors"><a href="module-analytics.html">analytics</a>.</span>
-        
-        SVC
-        </h2>
-        
-            <div class="class-description">Support Vector Machine Classifier. Implements a soft margin linear support vector classifier using the PEGASOS algorithm, see: <a href="http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf">Pegasos: Primal Estimated sub-GrAdient SOlver for SVM</a>.</div>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-
-    
-    <h2>Constructor</h2>
-    
-
-    <h4 class="name" id="SVC"><span class="type-signature"></span>new SVC<span class="signature">(arg)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    SVC
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>arg</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-fs.FIn.html">module:fs.FIn</a></span>
-|
-
-<span class="param-type"><a href="module-analytics.html#~svcParam">module:analytics~svcParam</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">File input stream (loads the model from disk) or constructor parameters svcParam.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line60">line 60</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Example</h5>
-    
-    <pre class="prettyprint"><code>// import modulevar analytics = require('qminer').analytics;// CLASSIFICATION WITH SVC// Set up fake train and test data.// Four training examples with, number of features = 2var featureMatrix = new la.Matrix({rows:2, cols:4, random:true});// classification targets for four examplesvar targets = new la.Vector([-1, -1, 1, 1]);// Set up the classification modelvar SVC = new analytics.SVC({verbose:true});// Train classifierSVC.fit(featureMatrix, targets);// Save the model to diskSVC.save('svc.bin');*// Set up a fake test vectorvar test = new la.Vector([1.1, -0.5]);// Predict the target valuevar prediction = SVC.predict(test);</code></pre>
-
-
-
-    
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
     </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-        <h3 class="subsection-title">Members</h3>
-
-        
-            
-<h4 class="name" id="weights"><span class="type-signature"></span>weights<span class="type-signature"></span></h4>
-
-
-
-
-
-
-
-
-
-
-    <h5 class="subsection-title">Properties:</h5>
-
-    
-
-<table class="props">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>weights</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-la.Vector.html">module:la.Vector</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Vector of coefficients of the linear model</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line74">line 74</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-    
-
-    
-        <h3 class="subsection-title">Methods</h3>
-
-        
-            
-
-    
-
-    <h4 class="name" id="fit"><span class="type-signature"></span>fit<span class="signature">(X, y)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    fits an SVM classification model, given column examples in a matrix and vector of targets
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>X</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-la.Matrix.html">module:la.Matrix</a></span>
-|
-
-<span class="param-type"><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Input feature matrix where columns correspond to feature vectors</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>y</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-la.Vector.html">module:la.Vector</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Input vector of targets, one for each column of X</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line92">line 92</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="getParams"><span class="type-signature"></span>getParams<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="module-analytics.html#~svcParam">module:analytics~svcParam</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    returns the svc parameters
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line65">line 65</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Parameters of the classifier model.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-analytics.html#~svcParam">module:analytics~svcParam</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="predict"><span class="type-signature"></span>predict<span class="signature">(vec)</span><span class="type-signature"> &rarr; {number}</span></h4>
-
-    
-
-
-
-<div class="description">
-    sends vector through the model and returns the prediction as a real number
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>vec</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-la.Vector.html">module:la.Vector</a></span>
-|
-
-<span class="param-type"><a href="module-la.SparseVector.html">module:la.SparseVector</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Input vector</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line86">line 86</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Prediction real number. Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">number</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="save"><span class="type-signature"></span>save<span class="signature">(fout)</span><span class="type-signature"> &rarr; {<a href="module-fs.FOut.html">module:fs.FOut</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    saves model to output file stream
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>fout</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-fs.FOut.html">module:fs.FOut</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Output stream.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line80">line 80</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Output stream
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-fs.FOut.html">module:fs.FOut</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="setParams"><span class="type-signature"></span>setParams<span class="signature">(param)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    sets the svc parameters
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>param</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-analytics.html#~svcParam">module:analytics~svcParam</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Classifier training parameters.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="analyticsdoc.js.html">analyticsdoc.js</a>, <a href="analyticsdoc.js.html#line70">line 70</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-    
-
-    
-
-    
-</article>
-
-</section>
-
-
-
-
-</div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-datasets.html">datasets</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li><li><a href="module-qm.html">qm</a></li><li><a href="module-statistics.html">statistics</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.BoolVector.html">BoolVector</a></li><li><a href="module-la.IntVector.html">IntVector</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li><li><a href="module-la.StrVector.html">StrVector</a></li><li><a href="module-la.Vector.html">Vector</a></li><li><a href="module-qm.Base.html">Base</a></li></ul><h3>Namespaces</h3><ul><li><a href="module-qm.Iterator.html">Iterator</a></li><li><a href="module-qm.Record.html">Record</a></li><li><a href="module-qm.RecSet.html">RecSet</a></li><li><a href="module-qm.Store.html">Store</a></li></ul>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Tue Apr 14 2015 21:45:25 GMT+0200 (Central Europe Daylight Time)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">SVC</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-60">analyticsdoc.<wbr>js:60</a></p>
+            <div class="symbol-classdesc">
+              <p>Support Vector Machine Classifier. Implements a soft margin linear support vector classifier using the PEGASOS algorithm, see: <a href="http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf">Pegasos: Primal Estimated sub-GrAdient SOlver for SVM</a>.</p>
+            </div>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Property</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.SVC.html#weights">weights</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.SVC.html#fit">fit(X, y)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.SVC.html#getParams">getParams()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.SVC.html#predict">predict(vec)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.SVC.html#save">save(fout)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.SVC.html#setParams">setParams(param)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2 id="SVC">new&nbsp;<span class="symbol-name">SVC</span><span class="signature"><span class="signature-params">(arg)</span></span></h2>
+            <p>SVC</p>
+            <section>
+              <h3>
+            Example
+        </h3>
+              <div>
+                <pre class="prettyprint"><code>// import module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// CLASSIFICATION WITH SVC
+// Set up fake train and test data.
+// Four training examples with, number of features = 2
+var featureMatrix = new la.Matrix({rows:2, cols:4, random:true});
+// classification targets for four examples
+var targets = new la.Vector([-1, -1, 1, 1]);
+// Set up the classification model
+var SVC = new analytics.SVC({verbose:true});
+// Train classifier
+SVC.fit(featureMatrix, targets);
+// Save the model to disk
+SVC.save(&#x27;svc.bin&#x27;);*
+// Set up a fake test vector
+var test = new la.Vector([1.1, -0.5]);
+// Predict the target value
+var prediction = SVC.predict(test);</code></pre>
+              </div>
+            </section>
+            <section>
+              <h3>Parameter</h3>
+              <table class="jsdoc-details-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p>arg</p>
+                    </td>
+                    <td>
+                      <p>(<a href="module-fs.FIn.html">module:fs.FIn</a> or <a href="module-analytics.html#~svcParam">module:analytics~svcParam</a>)</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>File input stream (loads the model from disk) or constructor parameters svcParam.</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+            <dl class="dl-compact">
+            </dl>
+          </section>
+          <section>
+            <h2>Property</h2>
+            <section>
+              <h3 id="weights"><span class="symbol-name">weights</span></h3>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>weights</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Vector of coefficients of the linear model</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+            </section>
+            <h2>Methods</h2>
+            <section>
+              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X, y)</span></span></h3>
+              <p>fits an SVM classification model, given column examples in a matrix and vector of targets</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>X</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Input feature matrix where columns correspond to feature vectors</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>y</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Input vector of targets, one for each column of X</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~svcParam">module:analytics~svcParam</a></span></span></h3>
+              <p>returns the svc parameters</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-analytics.html#~svcParam">module:analytics~svcParam</a></code>&nbsp;Parameters of the classifier model.</p>
+                </dd>
+              </dl>
+              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(vec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>sends vector through the model and returns the prediction as a real number</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>vec</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Input vector</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;Prediction real number. Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).</p>
+                </dd>
+              </dl>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>saves model to output file stream</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fout</p>
+                      </td>
+                      <td>
+                        <p><a href="module-fs.FOut.html">module:fs.FOut</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Output stream.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Output stream</p>
+                </dd>
+              </dl>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(param)</span></span></h3>
+              <p>sets the svc parameters</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>param</p>
+                      </td>
+                      <td>
+                        <p><a href="module-analytics.html#~svcParam">module:analytics~svcParam</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Classifier training parameters.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 16, 2015.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
 </body>
+
 </html>

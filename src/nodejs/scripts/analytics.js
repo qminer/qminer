@@ -8,11 +8,10 @@ module.exports = exports = function (pathPrefix) {
 
     exports = qm.analytics;
 
-    //!STARTJSDOC
-
-
     var la = require(__dirname + '/la.js')(pathPrefix);
     var qm_util = require(__dirname + '/qm_util.js');
+
+    //!STARTJSDOC
 
     function defarg(arg, defaultval) {
         return arg == undefined ? defaultval : arg;
