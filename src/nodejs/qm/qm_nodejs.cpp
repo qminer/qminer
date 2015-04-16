@@ -1695,7 +1695,7 @@ void TNodeJsStore::sample(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	try {
 		const int SampleSize = TNodeJsUtil::GetArgInt32(Args, 0);
-
+		QmAssertR(SampleSize >= 0, "Store.sample: sample size should be nonnegative!");
 		TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());
 		TWPt<TQm::TStore> Store = JsStore->Store;
 
@@ -2122,14 +2122,16 @@ void TNodeJsStore::cell(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());
 	TWPt<TQm::TStore> Store = JsStore->Store;
-
+	QmAssertR(Args.Length() == 2, "Store.cell: two arguments expected");
 	TInt RecId = TNodeJsUtil::GetArgInt32(Args, 0);
 	TInt FieldId = -1;
 	if (Args.Length() == 2 && Args[1]->IsInt32()) {
 		FieldId = TNodeJsUtil::GetArgInt32(Args, 1);
+		QmAssertR(Store->IsFieldId(FieldId), "Store.cell: field with fieldId not found");
 	}
 	else if (Args.Length() == 2 && Args[1]->IsString()) {
 		TStr FieldNm = TNodeJsUtil::GetArgStr(Args, 1);
+		QmAssertR(Store->IsFieldNm(FieldNm), "Store.cell: field with fieldName not found");
 		if (JsStore->Store->IsFieldNm(FieldNm)) {
 			FieldId = JsStore->Store->GetFieldId(FieldNm);
 		}
@@ -3265,6 +3267,10 @@ void TNodeJsRecSet::getVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TQm::PRecSet RecSet = JsRecSet->RecSet;
 	TWPt<TQm::TStore> Store = RecSet->GetStore();
 	const TStr FieldNm = TNodeJsUtil::GetArgStr(Args, 0);
+	if (!RecSet->GetStore()->IsFieldNm(FieldNm)) {
+		throw TQm::TQmExcept::New("RecSet.getVec: fieldName not found: " + FieldNm);
+	}
+
 	const int FieldId = JsRecSet->RecSet->GetStore()->GetFieldId(FieldNm);
 	int Recs = (int)JsRecSet->RecSet->GetRecs();
 	const TQm::TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
@@ -3338,6 +3344,9 @@ void TNodeJsRecSet::getMat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TQm::PRecSet RecSet = JsRecSet->RecSet;
 	TWPt<TQm::TStore> Store = RecSet->GetStore();
 	const TStr FieldNm = TNodeJsUtil::GetArgStr(Args, 0);
+	if (!RecSet->GetStore()->IsFieldNm(FieldNm)) {
+		throw TQm::TQmExcept::New("RecSet.getMat: fieldName not found: " + FieldNm);
+	}
 	const int FieldId = JsRecSet->RecSet->GetStore()->GetFieldId(FieldNm);
 	int Recs = (int)JsRecSet->RecSet->GetRecs();
 	const TQm::TFieldDesc& Desc = Store->GetFieldDesc(FieldId);

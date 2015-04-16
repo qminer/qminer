@@ -616,7 +616,7 @@ describe('Record Set Tests', function () {
             assert.equal(arr[0], 2010);
             assert.equal(arr[1], 2006);
         })
-        it.skip('should throw an exception, if parameter is not a legit field', function () {
+        it('should throw an exception, if parameter is not a legit field', function () {
             assert.throws(function () {
                 var arr = recSet2.getVec("DateOfBirth");
             })
@@ -652,7 +652,7 @@ describe('Record Set Tests', function () {
                 var mat = recSet3.getMat("Score");
             })
         })
-        it.skip('should throw an exception, if the parameter is a non-existing field', function () {
+        it('should throw an exception, if the parameter is a non-existing field', function () {
             assert.throws(function () {
                 var mat = recSet3.getMat("Game");
             })
