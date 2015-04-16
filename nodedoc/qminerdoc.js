@@ -743,3 +743,61 @@
 	* Gives the current record.
 	*/
  exports.Iterator.prototype.rec = undefined;
+/**
+* Feature Space
+* @classdesc Represents the feature space.
+* @class
+* @param {module:qm.Base} base - The base where the features are extracted from.
+* @param {Array.<Object>} extractors - The extractors.
+* @example
+* // import qm module
+* var qm = require('qminer');
+* // construct a base with the store
+* var base = new qm.Base({
+*	mode: 'createClean',
+*	schema: [
+*		{ name: 'NewsArticles',
+*		  fields: [
+*		{ name: "ID", primary: true, type: "string", shortstring: true },
+*		{ name: "Source", type: "string", codebook: true }
+*		]
+*	}]
+* });
+* // add a record
+* base.store('NewsArticles').add({
+*	ID: 't12344', 
+*	Source: 's1234', 
+*	DateTime: '2015-01-01T00:05:00', 
+*	Title: 'the title', 
+*	Tokens: ['token1', 'token2'], 
+*	Vector: [[0,1], [1,1]]});
+* // create a feature space 
+* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "NewsArticles", field: "Source" });
+*/
+ exports.FeatureSpace = function (base, extractors) {};
+/**
+	* Returns the dimension of the feature space.
+	*/
+ exports.FeatureSpace.prototype.dim = undefined;
+/**
+	* Returns an array of the dimensions of each feature extractor in the feature space.
+	*/
+ exports.FeatureSpace.prototype.dims = undefined;
+/**
+	* Adds a new feature extractor to the feature space.
+	* @param {Object} obj - The added feature extracture.
+	* @returns {module:qm.FeatureSpace} Self.
+	*/
+ exports.FeatureSpace.prototype.add = function (obj) {};
+/**
+	* Creates a sparse feature vector from the given record.
+	* @param {module:qm.Record} rec - The given record.
+	* @returns {module:la.SparseVector} The sparse feature vector gained from rec.
+	*/
+ exports.FeatureSpace.prototype.ftrSpVec = function (rec) {}
+/**
+	* Creates a feature vector from the given record.
+	* @param {module:qm.Record} rec - The given record.
+	* @returns {module:la.Vector} The feature vector gained from rec.
+	*/
+ exports.FeatureSpace.prototype.ftrVec = function (rec) {};
