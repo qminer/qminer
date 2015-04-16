@@ -21,7 +21,7 @@
 #define GIX_H
 
 //#include "tm.h"
-#include <inttypes.h>
+//#include <inttypes.h>
 
 // this file depends only on base.h
 
