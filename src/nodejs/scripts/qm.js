@@ -1,5 +1,6 @@
 var nodefs = require('fs');
 var csv = require('fast-csv');
+var util = require('util');
 
 // typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
 module.exports = exports = function (pathPrefix) {
@@ -210,7 +211,12 @@ module.exports = exports = function (pathPrefix) {
 
     exports.Store.prototype.addStreamAggr = function (params) {
         // this == store instance: print //console.log(util.inspect(this, { colors: true })); 
-        var streamAggr = new exports.StreamAggr(this.base, params, this.name);
+        return new exports.StreamAggr(this.base, params, this.name);
+    }
+    
+    exports.Store.prototype.inspect = function (depth) {        
+        var d = depth == null ? 0 : depth;
+        return util.inspect(this, { depth:d,  'customInspect': false });
     }
     
     //==================================================================
@@ -367,6 +373,17 @@ module.exports = exports = function (pathPrefix) {
             }
         nodefs.rmdirSync(dirPath);
     };
+
+	function forbidConstructor(obj) {
+		proto = obj.prototype;
+		obj = function () {throw  new Error('constructor is private, ' + obj.prototype.constructor.name +  ' is factory based.');}
+		obj.prototype = proto;
+		return obj;
+	}
+
+	// Forbids constructors that would crash node - these objects are factory constructed
+	exports.Store = forbidConstructor(exports.Store);
+	exports.RecSet = forbidConstructor(exports.RecSet);
 
     return exports;
 }

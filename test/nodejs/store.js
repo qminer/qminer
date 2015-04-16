@@ -277,6 +277,9 @@ describe('Store Tests', function () {
             assert(table.base.store("People")[0] == null);
             assert.equal(table.base.store("People")[1].Name, "Blaz Fortuna");
         })
+        it('should clear all the record in "People store"', function () {
+            assert.equal(table.base.store("People").clear(10), 0);
+        })
     });
 
     describe('GetVec Test', function () {
@@ -342,6 +345,13 @@ function TStore() {
             { "field": "Plot", "type": "text", "vocabulary": "voc_01" },
             { "field": "Genres", "type": "value" }
         ]
+    },
+    {
+        "name": "Basketball",
+        "fields": [
+            { "name": "Player", "type": "string", "primary": true },
+            { "name": "Score", "type": "float_v" }
+        ]
     }]);
     // adding two persons
     this.base.store("People").add({ "Name": "Carolina Fortuna", "Gender": "Female" });
@@ -350,9 +360,17 @@ function TStore() {
     // adding two movies
     this.movie = { "Title": "Every Day", "Plot": "This day really isn't all that different than every other day. Except today, Ned's gay son Jonah wants to go to a college party, his wife is bringing home their elderly father to live with them, and his outrageous boss seems to have become even more crazy and demanding than would even seem possible. As his wife tries to take care of her father reconnect with him, Ned tries to reconnect with Jonah, and then without trying, he seems to have formed a connection with his co-worker. If he can get through days like these, he should be able to get through anything else life throws at him. Ned and Jeannie: married 19 years. Ned has trouble with Garrett, his boss at the cable show he writes, and he's ill-at-ease with his older son Jonah's coming out and wanting to go to a high-school gay student society prom. Jeannie puts work on hold while she attends to Ernie, her sour and mean-spirited father whose ill health forces him to move in with them. While Jeannie taxis the boys, goes to one son's recital, sees to her father's needs, and fixes meals, Garrett assigns Ned to rewrite a script with Robin, an uninhibited, unattached colleague who offers no-strings fun. Can this family hold together while a chicken hawk circles Jonah, Robin inveigles Ned, and death hunts Ernie?", "Year": 2010, "Rating": 5.6, "Genres": ["Comedy", "Drama"], "Director": { "Name": "Levine Richard (III)", "Gender": "Unknown" }, "Actor": [{ "Name": "Beetem Chris", "Gender": "Male" }, { "Name": "Carp Stan", "Gender": "Male" }, { "Name": "Chan Albert M.", "Gender": "Male" }, { "Name": "Dennehy Brian", "Gender": "Male" }, { "Name": "Durell Jesse", "Gender": "Male" }, { "Name": "Farcher Daniel", "Gender": "Male" }, { "Name": "Fortgang Skyler", "Gender": "Male" }, { "Name": "Harbour David (I)", "Gender": "Male" }, { "Name": "Ingram Michael H.", "Gender": "Male" }, { "Name": "Izzard Eddie", "Gender": "Male" }, { "Name": "James Kahan", "Gender": "Male" }, { "Name": "Jones Tilky", "Gender": "Male" }, { "Name": "Kempner Matt", "Gender": "Male" }, { "Name": "Miller Ezra", "Gender": "Male" }, { "Name": "Orchestra Black Diamond", "Gender": "Male" }, { "Name": "Riddle George", "Gender": "Male" }, { "Name": "Routman Steve", "Gender": "Male" }, { "Name": "Schreiber Liev", "Gender": "Male" }, { "Name": "Yelsky Daniel", "Gender": "Male" }, { "Name": "Gard Cassidy", "Gender": "Female" }, { "Name": "Giancoli Bianca", "Gender": "Female" }, { "Name": "Gugino Carla", "Gender": "Female" }, { "Name": "Hahn Sabrina", "Gender": "Female" }, { "Name": "Hunt Helen (I)", "Gender": "Female" }, { "Name": "Miller June (I)", "Gender": "Female" }, { "Name": "Robledo Benita", "Gender": "Female" }] };
     this.movie2 = { "Title": "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on", "Plot": "no plot available", "Year": 2006, "Rating": 5.8, "Genres": ["Action", "Comedy", "Family", "Fantasy"], "Director": { "Name": "Reyes Tony Y.", "Gender": "Unknown" }, "Actor": [{ "Name": "Aquitania Antonio", "Gender": "Male" }, { "Name": "Ballesteros Paolo", "Gender": "Male" }, { "Name": "Bayola Wally", "Gender": "Male" }, { "Name": "Casimiro Jr. Bayani", "Gender": "Male" }, { "Name": "de Leon Joey", "Gender": "Male" }, { "Name": "Forbes BJ", "Gender": "Male" }, { "Name": "Ignacio Levi", "Gender": "Male" }, { "Name": "K. Allan", "Gender": "Male" }, { "Name": "Lapid Jr. Jess", "Gender": "Male" }, { "Name": "Manalo Jose", "Gender": "Male" }, { "Name": "Salas Paul", "Gender": "Male" }, { "Name": "Santos Jimmy (I)", "Gender": "Male" }, { "Name": "Sotto Gian", "Gender": "Male" }, { "Name": "Sotto Oyo Boy", "Gender": "Male" }, { "Name": "Sotto Tito", "Gender": "Male" }, { "Name": "Sotto Vic", "Gender": "Male" }, { "Name": "V. Michael (I)", "Gender": "Male" }, { "Name": "Zamora Ramon", "Gender": "Male" }, { "Name": "Alano Alyssa", "Gender": "Female" }, { "Name": "Guanio Pia", "Gender": "Female" }, { "Name": "Hermosa Kristine", "Gender": "Female" }, { "Name": "Jones Angelica", "Gender": "Female" }, { "Name": "Loyzaga Bing", "Gender": "Female" }, { "Name": "Madrigal Ehra", "Gender": "Female" }, { "Name": "Parker J.C.", "Gender": "Female" }, { "Name": "Ponti Cassandra", "Gender": "Female" }, { "Name": "Ramirez Mikylla", "Gender": "Female" }, { "Name": "Rodriguez Ruby (I)", "Gender": "Female" }, { "Name": "Seguerra Aiza", "Gender": "Female" }, { "Name": "Sotto Ciara", "Gender": "Female" }, { "Name": "Toengi Giselle", "Gender": "Female" }, { "Name": "V. Ella", "Gender": "Female" }] };
-    
+
     this.addMovie = function (movie) {
         this.base.store("Movies").add(movie);
+    }
+
+    this.player1 = { "Player": "Goran Dragiæ", "Score": [35, 12, 23] };
+    this.player2 = { "Player": "Michael Jordan", "Score": [90, 100, 95] };
+    this.player3 = { "Player": "Marko Miliæ", "Score": [50, 10, 10, 12] };
+
+    this.addPlayer = function (player) {
+        this.base.store("Basketball").add(player);
     }
 
     this.close = function () {
@@ -446,15 +464,16 @@ describe("Two Store Tests", function () {
             assert.equal(detail.name, "Title");
         })
         it('should return null if the key doesn\'t exist', function () {
-                assert(table.base.store("Movies").key("Watched") == null);
+            assert(table.base.store("Movies").key("Watched") == null);
         })
     });
 
     describe('Movies Fields Test', function () {
-        it.skip('should return the number of fields', function () {
-            var arr = table.base.store("Movies").fields;
+        it('should return the number of fields', function () {
+            var arr = table.base.store("Movies").fields;            
             console.log(arr);
-            assert.equal(arr.length, 5);
+            // it also returns internal fields that are created for index joins (2 additional fields)
+            assert.equal(arr.length, 7);
         })
         it('should return an array of Movies store fields', function () {
             var arr = table.base.store("Movies").fields;
@@ -465,6 +484,22 @@ describe("Two Store Tests", function () {
             assert.equal(arr[4].name, "Genres");
         })
     });
+
+    describe('First Test', function () {
+        it('should return the first record of store "Person"', function () {
+            var record = table.base.store("People").first;
+            assert.equal(record.Name, "Carolina Fortuna");
+            assert.equal(record.Gender, "Female");
+        })
+    });
+
+    describe('Last Test', function () {
+        it('should return the last record of the store "People"', function () {
+            var record = table.base.store("People").last;
+            assert.equal(record.Name, "Blaz Fortuna");
+            assert.equal(record.Gender, "Male");
+        })
+    })
 
     describe('Add Movie Test', function () {
 
@@ -482,14 +517,6 @@ describe("Two Store Tests", function () {
             assert.equal(table.base.store("Movies")[0].Year, table.movie.Year);
             assert.equal(table.base.store("Movies")[0].Genres.length, table.movie.Genres.length);
             assert.equal(table.base.store("Movies")[0].Director.Name, "Levine Richard (III)");
-        })
-        it('should go through the Movies Iteration', function () {
-            table.addMovie(table.movie);
-
-            var MoviesIter = table.base.store("Movies").forwardIter;
-            assert.equal(MoviesIter.next(), true);
-            assert.equal(MoviesIter.rec.$id, 0);
-            assert.equal(MoviesIter.next(), false);
         })
         it('should add 2 movies and all the people that acted or directed', function () {
             table.addMovie(table.movie);
@@ -511,6 +538,38 @@ describe("Two Store Tests", function () {
         })
     });
 
+    describe('ForwardIter Test', function () {
+        it('should go through the Movies iteration from start to end', function () {
+            table.addMovie(table.movie);
+            table.addMovie(table.movie2);
+
+            var MoviesIter = table.base.store("Movies").forwardIter;
+            assert.equal(MoviesIter.next(), true);
+            assert.equal(MoviesIter.rec.$id, 0);
+            assert.equal(MoviesIter.rec.Title, "Every Day");
+            assert.equal(MoviesIter.next(), true);
+            assert.equal(MoviesIter.rec.$id, 1);
+            assert.equal(MoviesIter.rec.Title, "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on");
+            assert.equal(MoviesIter.next(), false);
+        })
+    });
+
+    describe('BackwardIter Test', function () {
+        it('should go through the Movie iteration from end to start', function () {
+            table.addMovie(table.movie);
+            table.addMovie(table.movie2);
+
+            var MoviesIter = table.base.store("Movies").backwardIter;
+            assert.equal(MoviesIter.next(), true);
+            assert.equal(MoviesIter.rec.$id, 1);
+            assert.equal(MoviesIter.rec.Title, "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on");
+            assert.equal(MoviesIter.next(), true);
+            assert.equal(MoviesIter.rec.$id, 0);
+            assert.equal(MoviesIter.rec.Title, "Every Day");
+            assert.equal(MoviesIter.next(), false);
+        })
+    })
+
     describe('Sample Test', function () {
         it('should return a sample of persons out of People', function () {
             table.addMovie(table.movie);
@@ -523,7 +582,7 @@ describe("Two Store Tests", function () {
             assert.equal(table.base.store("People").sample(63).length, 62);
             assert.equal(table.base.store("People").sample(100000).length, 62);
         })
-        it.skip('should throw an exception if sample parameter is negative', function () {
+        it('should throw an exception if sample parameter is negative', function () {
             table.addMovie(table.movie);
             table.addMovie(table.movie2);
 
@@ -539,6 +598,48 @@ describe("Two Store Tests", function () {
             assert.equal(qm.load.jsonFile(table.base.store("Movies"), filename), 167);
         })
     })
+
+    describe('GetMat Test', function () {
+        it('should get a matrix with the players score', function () {
+            table.addPlayer(table.player1);
+            table.addPlayer(table.player2);
+
+            var mat = table.base.store("Basketball").getMat("Score");
+            assert.equal(mat.rows, 3);
+            assert.equal(mat.cols, 2);
+            assert.equal(mat.at(1, 1), 100);
+
+        })
+        it('should throw an exception, if the field values are of different lenghts', function () {
+            table.addPlayer(table.player1);
+            table.addPlayer(table.player2);
+            table.addPlayer(table.player3);
+
+            assert.throws(function () {
+                var mat = table.base.store("Basketball").getMat("Score");
+            })
+        })
+        it('should throw an exception, if the field type is non-numeric', function () {
+            assert.throws(function () {
+                var mat = table.base.store("People").getMat("Name");
+            })
+        })
+        it('should throw an exception, if the parameter is a non-existing field', function () {
+            assert.throws(function () {
+                var mat = table.base.store("People").getMat("DateOfBirth");
+            })
+        })
+        it('should return a 1-by-2 matrix containing the movie relese years', function () {
+            table.addMovie(table.movie);
+            table.addMovie(table.movie2);
+
+            var mat = table.base.store("Movies").getMat("Year");
+            assert.equal(mat.rows, 1);
+            assert.equal(mat.cols, 2);
+            assert.equal(mat.at(0, 0), 2010);
+            assert.equal(mat.at(0, 1), 2006);
+        })
+    });
 
     describe('ToJSON Test', function () {
         it('should return the store "People" as a JSON', function () {
@@ -559,13 +660,70 @@ describe("Two Store Tests", function () {
             assert.equal(json.fields[4].fieldName, "Genres");
         })
     });
+
+    describe('Cell Tests', function () {
+        it('should return the name of the first record in "People"', function () {
+            var name = table.base.store("People").cell(0, "Name");
+            assert.equal(name, "Carolina Fortuna");
+        })
+        it('should return null, if the id is out of bound', function () {
+            var name = table.base.store("People").cell(3, "Name");
+            assert.equal(name, null);
+        })
+        it('should throw an exception, if the fieldName doesn\'t exist', function () {
+            assert.throws(function () {
+                var date = table.base.store("People").cell(0, "Date");
+            })
+        })
+    });
+
+    describe('NewRec Tests', function () {
+        it('should create a new record out of a JSON', function () {
+            var rec = table.base.store("People").newRec({ "Name": "Peter Bailish", "Gender": "Male" });
+
+            assert.equal(rec.Name, "Peter Bailish");
+            assert.equal(rec.Gender, "Male");
+        })
+        it('should create a new record, if fields are not same', function () {
+            var rec = table.base.store("People").newRec({ "Name": "Peter Bailish", "Gender": "Male", "DateOfBirth": "5.3.245" });
+            assert.equal(rec.Name, "Peter Bailish");
+            assert.equal(rec.Gender, "Male");
+            assert.equal(rec.DateOfBirth, null);
+        })
+        it('should create a null record, if no field\'s in the store', function () {
+            var rec = table.base.store("Movies").newRec({ "Name": "Peter Bailish", "Gender": "Male" });
+            assert.equal(rec.Name, null);
+            assert.equal(rec.Gender, null);
+        })
+    });
+
+    describe('NewRecSet Tests', function () {
+        it('should create a new record set out of the integer vector', function () {
+            var recSet = table.base.store("People").newRecSet(new qm.la.IntVector([0, 1]));
+            assert.equal(recSet.length, 2);
+            assert.equal(recSet[0].Name, "Carolina Fortuna");
+            assert.equal(recSet[1].Name, "Blaz Fortuna");
+        })
+        it('should throw an exception, if the parameter is an integer array', function () {
+            assert.throws(function () {
+                var recSet = table.base.store("People").newRecSet([0, 1]);
+            })
+        })
+        it('should create a new record set, even if the vector values are out of bounds', function () {
+            var recSet = table.base.store("People").newRecSet(new qm.la.IntVector([0, 1, 2]));
+            assert.equal(recSet.length, 3);
+            assert.equal(recSet[0].Name, "Carolina Fortuna");
+            assert.equal(recSet[1].Name, "Blaz Fortuna");
+            assert.equal(recSet[2], null);
+        })
+    })
 });
 
 ///////////////////////////////////////////////////////////////////////////////
 // AddTrigger
 
 describe('AddTrigger Tests', function () {
-    
+
     var table = undefined;
     beforeEach(function () {
         table = new TStore();

@@ -1,3 +1,5 @@
+// TODO: use a mock ER service, so that the success of the unit test doesn't depend on the up status of eventregistry
+
 console.log(__filename)
 var er = require('../../src/nodejs/scripts/eventRegistry'); 
 

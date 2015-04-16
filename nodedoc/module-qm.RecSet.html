@@ -1,0 +1,1086 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta charset="utf-8">
+  <title>Namespace: RecSet</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">namespace</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">RecSet</span></h1>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-518">qminerdoc.<wbr>js:518</a></p>
+            <div class="symbol-description">
+              <p>Record Set (factory pattern)</p>
+            </div>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Properties</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.RecSet.html#empty">empty</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#length">length</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.RecSet.html#store">store</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#weighted">weighted</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.RecSet.html#clone">clone()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#deleteRecs">deleteRecs(rs)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#each">each(callback)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#filter">filter(callback)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#filterByField">filterByField(fieldName, minVal, maxVal)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#filterById">filterById([minId][, maxId])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#getVec">getVec(fieldName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#getVec">getVec(fieldName)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.RecSet.html#join">join(joinName[, sampleSize])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#map">map(callback)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#reverse">reverse()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#sample">sample(num)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#setdiff">setdiff(rs)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#setintersect">setintersect(rs)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#setunion">setunion(rs)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#shuffle">shuffle([seed])</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.RecSet.html#sort">sort(callback)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#sortByField">sortByField(fieldName[, arc])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#sortById">sortById([asc])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#split">split(callback)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#toJSON">toJSON()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecSet.html#trunc">trunc(limit_num[, offset_num])</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2>Properties</h2>
+            <section>
+              <h3 id="empty"><span class="symbol-name">empty</span></h3>
+              <p>Checks if the record set is empty. If the record set is empty, then it returns true. Otherwise, it returns false.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="length"><span class="symbol-name">length</span></h3>
+              <p>Returns the number of records in record set.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="store"><span class="symbol-name">store</span></h3>
+              <p>Returns the store, where the records in the record set are stored.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="weighted"><span class="symbol-name">weighted</span></h3>
+              <p>Checks if the record set is weighted. If the record set is weighted, then it returns true. Otherwise, it returns false.</p>
+              <dl class="dl-compact">
+              </dl>
+            </section>
+            <h2>Methods</h2>
+            <section>
+              <h3 id="clone"><span class="symbol-name">clone</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Creates a new instance of the record set.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;A copy of the record set.</p>
+                </dd>
+              </dl>
+              <h3 id="deleteRecs"><span class="symbol-name">deleteRecs</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Deletes the records, that are also in the other record set.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>rs</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.RecSet.html">module:qm.RecSet</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The other record set.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;Self. Contains only the records, that are not in rs.</p>
+                </dd>
+              </dl>
+              <h3 id="each"><span class="symbol-name">each</span><span class="signature"><span class="signature-params">(callback)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Executes a function on each record in record set.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a record set with some people with fields Name and Gender
+var rs = //TODO
+// change the gender of all records to &quot;Extraterrestrial&quot;
+rs.each(function (rec) { rec.Gender = &quot;Extraterrestrial&quot;; });</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>callback</p>
+                      </td>
+                      <td>
+                        <p>function()</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Function to be executed. It takes two parameters:
+                          <br>rec - The current record.
+                          <br>[idx] - The index of the current record.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="filter"><span class="symbol-name">filter</span><span class="signature"><span class="signature-params">(callback)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Keeps only the records that pass the callback function.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+qm = require(&#x27;qminer&#x27;);
+// construct a record set of kitchen appliances
+var rs = //TODO
+// filter by the field price
+rs.filter(function (rec) { return rec.Price &gt; 10000; }); // keeps only the records, where their Price is more than 10000</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>callback</p>
+                      </td>
+                      <td>
+                        <p>function()</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The filter function. It takes one parameter and return a boolean object.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;Self. Containing only the record that pass the callback function.</p>
+                </dd>
+              </dl>
+              <h3 id="filterByField"><span class="symbol-name">filterByField</span><span class="signature"><span class="signature-params">(fieldName, minVal, maxVal)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Keeps only the records with a specific value of some field.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fieldName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The field by which the records will be filtered.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>minVal</p>
+                      </td>
+                      <td>
+                        <p>(string or number)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>
+                          <br>1. Is a string, if the field type is a string. The exact string to compare.
+                          <br>2. Is a number, if the field type is a number. The minimal value for comparison.
+                          <br>3. TODO Time field</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>maxVal</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Only in combination with minVal for non-string fields. The maximal value for comparison.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;Self. Containing only the records with the fieldName value between minVal and maxVal. If the fieldName type is string, it contains only the records with fieldName
+                    equal to minVal.</p>
+                </dd>
+              </dl>
+              <h3 id="filterById"><span class="symbol-name">filterById</span><span class="signature"><span class="signature-params">([minId][, maxId])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Keeps only records with ids between two values.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>minId</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The minimum id.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>maxId</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The maximum id.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;Self.
+                    <br>1. Contains only the records of the original with ids between minId and maxId, if parameters are given.
+                    <br>2. Contains all the records of the original, if no parameter is given.</p>
+                </dd>
+              </dl>
+              <h3 id="getVec"><span class="symbol-name">getVec</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</span></span></h3>
+              <p>Creates a vector containing the field values of records.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fieldName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The field from which to take the values. It's type must be numeric, e.g. float, int, float_v, num_sp_v,...</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>&nbsp;The matrix containing the field values of records.</p>
+                </dd>
+              </dl>
+              <h3 id="getVec"><span class="symbol-name">getVec</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <p>Creates a vector containing the field values of records.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fieldName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The field from which to take the values. It's type must be one-dimensional, e.g. float, int, string,...</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the field values of records. The type it contains is dependant of the field type.</p>
+                </dd>
+              </dl>
+              <h3 id="join"><span class="symbol-name">join</span><span class="signature"><span class="signature-params">(joinName[, sampleSize])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Creates a new record set out of the join attribute of records.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>joinName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the join attribute.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>sampleSize</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The number of records to be used for construction of the record set.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;The record set containing the join records.</p>
+                </dd>
+              </dl>
+              <h3 id="map"><span class="symbol-name">map</span><span class="signature"><span class="signature-params">(callback)</span>&nbsp;&rarr; <span class="signature-returns"> Array of Object</span></span></h3>
+              <p>Creates an array of function outputs created from the records in record set.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a record set with some people with fields Name and Gender
+var rs = //TODO
+// make an array of record names
+var arr = rs.map(function (rec) { return rec.Name; });</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>callback</p>
+                      </td>
+                      <td>
+                        <p>function()</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Function that generates the array. It takes two parameters:
+                          <br>rec - The current record.
+                          <br>[idx] - The index of the current record.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Array of Object</code>&nbsp;The array created by the callback function. //TODO</p>
+                </dd>
+              </dl>
+              <h3 id="reverse"><span class="symbol-name">reverse</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>It reverses the record order.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;Self. Records are in reversed order.</p>
+                </dd>
+              </dl>
+              <h3 id="sample"><span class="symbol-name">sample</span><span class="signature"><span class="signature-params">(num)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Creates a sample of records of the record set.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>num</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The number of records in the sample.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;A record set containing the sample records.</p>
+                </dd>
+              </dl>
+              <h3 id="setdiff"><span class="symbol-name">setdiff</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Creates the set difference between two record sets.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>rs</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.RecSet.html">module:qm.RecSet</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The other record set.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;The difference between the two record sets.</p>
+                </dd>
+              </dl>
+              <h3 id="setintersect"><span class="symbol-name">setintersect</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Creates the set intersection of two record sets.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>rs</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.RecSet.html">module:qm.RecSet</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The other record set.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;The intersection of the two record sets.</p>
+                </dd>
+              </dl>
+              <h3 id="setunion"><span class="symbol-name">setunion</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Creates the set union of two record sets.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>rs</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.RecSet.html">module:qm.RecSet</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The other record set.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;The union of the two record sets.</p>
+                </dd>
+              </dl>
+              <h3 id="shuffle"><span class="symbol-name">shuffle</span><span class="signature"><span class="signature-params">([seed])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Shuffles the order of records in the record set.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>seed</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Integer.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="sort"><span class="symbol-name">sort</span><span class="signature"><span class="signature-params">(callback)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Sorts the records according to the given callback function.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+qm = require(&#x27;qminer&#x27;);
+// construct a new record set of movies (one field is it&#x27;s Rating)
+var rs = //TODO
+// sort the records by their rating
+rs.sort(function (rec, rec2) { return rec.Rating &lt; rec2.Rating ;});</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>callback</p>
+                      </td>
+                      <td>
+                        <p>function()</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The function used to sort the records. It takes two parameters:
+                          <br>1. rec - The first record.
+                          <br>2. rec2 - The second record.
+                          <br>It returns a boolean object.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;Self. The records are sorted according to the callback function.</p>
+                </dd>
+              </dl>
+              <h3 id="sortByField"><span class="symbol-name">sortByField</span><span class="signature"><span class="signature-params">(fieldName[, arc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Sorts the records according to a specific record field.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fieldName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The field by which the sort will work.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>arc</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>if asc &gt; 0, it sorts in ascending order. Otherwise, it sorts in descending order.</p>
+                        <p>Defaults to <code>-1</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;Self. Records are sorted according to fieldName and arc.</p>
+                </dd>
+              </dl>
+              <h3 id="sortById"><span class="symbol-name">sortById</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Sorts the records according to record id.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>asc</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If asc &gt; 0, it sorts in ascending order. Otherwise, it sorts in descending order.</p>
+                        <p>Defaults to <code>1</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;Self. Records are sorted according to record id and asc.</p>
+                </dd>
+              </dl>
+              <h3 id="split"><span class="symbol-name">split</span><span class="signature"><span class="signature-params">(callback)</span>&nbsp;&rarr; <span class="signature-returns"> Array of <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Splits the record set into smaller record sets.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>callback</p>
+                      </td>
+                      <td>
+                        <p>function()</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The splitter function. It takes two parameters (records) and returns a boolean object.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Array of <a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;An array containing the smaller record sets. The records are split according the callback function.</p>
+                </dd>
+              </dl>
+              <h3 id="toJSON"><span class="symbol-name">toJSON</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Returns the record set as a JSON.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;The record set as a JSON.</p>
+                </dd>
+              </dl>
+              <h3 id="trunc"><span class="symbol-name">trunc</span><span class="signature"><span class="signature-params">(limit_num[, offset_num])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Truncates the first records.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+qm = require(&#x27;qminer&#x27;);
+// construct a record set with 20 records
+rs = //TODO
+rs2 = //TODO
+// truncate the first 10 records
+rs.trunc(10); // returns self, only with the first 10 records
+// truncate the first 10 records starting with the 5th
+rs2.trunc(10, 4);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>limit_num</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>How many records to truncate.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>offset_num</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Where to start to truncate.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 16, 2015.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

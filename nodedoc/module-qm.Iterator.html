@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.3.0-beta2">
   <meta charset="utf-8">
-  <title>Module: ht</title>
+  <title>Namespace: Iterator</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -24,60 +24,77 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">ht</span></h1>
-            <p class="source-link">Source: <a href="htdoc.js.html">htdoc.<wbr>js</a></p>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">namespace</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Iterator</span></h1>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-730">qminerdoc.<wbr>js:730</a></p>
             <div class="symbol-description">
-              <p>Hashtable module.</p>
+              <p>Store Iterator (factory pattern)</p>
             </div>
             <dl class="dl-compact">
             </dl>
           </header>
           <section id="summary">
             <div class="summary-callout">
-              <h2 class="summary-callout-heading">Child classes</h2>
+              <h2 class="summary-callout-heading">Properties</h2>
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-ht.IntFltMap.html">IntFltMap()</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-ht.IntIntMap.html">IntIntMap()</a></dt>
+                    <dt><a href="module-qm.Iterator.html#rec">rec</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-ht.IntStrMap.html">IntStrMap()</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-ht.StrFltMap.html">StrFltMap()</a></dt>
+                    <dt><a href="module-qm.Iterator.html#store">store</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Method</h2>
+              <div class="summary-content">
+                <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-ht.StrIntMap.html">StrIntMap()</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-ht.StrStrMap.html">StrStrMap()</a></dt>
+                    <dt><a href="module-qm.Iterator.html#next">next()</a></dt>
                     <dd>
                     </dd>
                   </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+                <div class="summary-column">
                 </div>
               </div>
             </div>
           </section>
           <section>
-            <h2>Classes</h2>
-            <section id='members-links'>
-              <h3><a href="module-ht.IntFltMap.html">IntFltMap</a></h3>
-              <h3><a href="module-ht.IntIntMap.html">IntIntMap</a></h3>
-              <h3><a href="module-ht.IntStrMap.html">IntStrMap</a></h3>
-              <h3><a href="module-ht.StrFltMap.html">StrFltMap</a></h3>
-              <h3><a href="module-ht.StrIntMap.html">StrIntMap</a></h3>
-              <h3><a href="module-ht.StrStrMap.html">StrStrMap</a></h3>
+            <h2>Properties</h2>
+            <section>
+              <h3 id="rec"><span class="symbol-name">rec</span></h3>
+              <p>Gives the current record.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="store"><span class="symbol-name">store</span></h3>
+              <p>Gives the store of the iterator.</p>
+              <dl class="dl-compact">
+              </dl>
+            </section>
+            <h2>Method</h2>
+            <section>
+              <h3 id="next"><span class="symbol-name">next</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
+              <p>Moves to the next record.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>boolean</code>&nbsp;
+                    <br>1. True, if the iteration successfully moves to the next record.
+                    <br>2. False, if there is no record left.</p>
+                </dd>
+              </dl>
             </section>
           </section>
         </div>

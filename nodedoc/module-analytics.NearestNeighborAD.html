@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.3.0-beta2">
   <meta charset="utf-8">
-  <title>Class: Base</title>
+  <title>Class: NearestNeighborAD</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -24,10 +24,10 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Base</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-267">qminerdoc.<wbr>js:267</a></p>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">NearestNeighborAD</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1138">analyticsdoc.<wbr>js:1138</a></p>
             <div class="symbol-classdesc">
-              <p>Represents the database and holds stores.</p>
+              <p>Anomaly detector that checks if the test point is too far from the nearest known point.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -38,56 +38,33 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.Base.html#close">close()</a></dt>
+                    <dt><a href="module-analytics.NearestNeighborAD.html#fit">fit(A)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Base.html#createStore">createStore(storeDef[, storeSizeInMB])</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.Base.html#gc">gc()</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-qm.Base.html#getStoreList">getStoreList()</a></dt>
+                    <dt><a href="module-analytics.NearestNeighborAD.html#predict">predict(x)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.Base.html#search">search(query)</a></dt>
+                    <dt><a href="module-analytics.NearestNeighborAD.html#update">update(x)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Base.html#store">store(name)</a></dt>
+                    <dt><a href="module-analytics.NearestNeighborAD.html#~getThreshold">getThreshold(vector)</a></dt>
                     <dd>
                     </dd>
                   </dl>
+                </div>
+                <div class="summary-column">
                 </div>
               </div>
             </div>
           </section>
           <section>
-            <h2 id="Base">new&nbsp;<span class="symbol-name">Base</span><span class="signature"><span class="signature-params">(paramObj)</span></span></h2>
-            <p>Base</p>
+            <h2 id="NearestNeighborAD">new&nbsp;<span class="symbol-name">NearestNeighborAD</span><span class="signature"><span class="signature-params">([detectorParam])</span></span></h2>
             <section>
-              <h3>
-            Example
-        </h3>
-              <div>
-                <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
-// factory based construction: create a base with the qm configuration file, without the predefined schemas, with overwrite = true
-var base = qm.create(&#x27;qm.conf&#x27;, &quot;&quot;, true);
-base.close();
-// using a constructor, in open mode:
-var base2 = new qm.Base({mode: &#x27;open&#x27;});</code></pre>
-              </div>
-            </section>
-            <section>
-              <h3>Parameter</h3>
+              <h3>Parameters</h3>
               <table class="jsdoc-details-table">
                 <thead>
                   <tr>
@@ -100,16 +77,45 @@ var base2 = new qm.Base({mode: &#x27;open&#x27;});</code></pre>
                 <tbody>
                   <tr>
                     <td>
-                      <p>paramObj</p>
+                      <p>detectorParam</p>
                     </td>
                     <td>
-                      <p><a href="module-qm.html#~BaseConstructorParam">module:qm~BaseConstructorParam</a></p>
+                      <p>Object</p>
                     </td>
                     <td>
-                      <p>&nbsp;</p>
+                      <p>Yes</p>
                     </td>
                     <td>
-                      <p>The base constructor parameter object</p>
+                      <p>Constructor parameters</p>
+                      <p>Defaults to <code>{rate:0.05}</code>.</p>
+                      <p>Values in <code>detectorParam</code> have the following properties:</p>
+                      <table class="jsdoc-details-table">
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Optional</th>
+                            <th>Description</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>
+                              <p>rate</p>
+                            </td>
+                            <td>
+                              <p>&nbsp;</p>
+                            </td>
+                            <td>
+                              <p>Yes</p>
+                            </td>
+                            <td>
+                              <p>The rate is the expected fraction of emmited anomalies (0.05 -&gt; 5% of cases will be classified as anomalies)</p>
+                              <p>Defaults to <code>0.05</code>.</p>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </td>
                   </tr>
                 </tbody>
@@ -121,80 +127,8 @@ var base2 = new qm.Base({mode: &#x27;open&#x27;});</code></pre>
           <section>
             <h2>Methods</h2>
             <section>
-              <h3 id="close"><span class="symbol-name">close</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> null</span></span></h3>
-              <p>Closes the database.</p>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>null</code>&nbsp;</p>
-                </dd>
-              </dl>
-              <h3 id="createStore"><span class="symbol-name">createStore</span><span class="signature"><span class="signature-params">(storeDef[, storeSizeInMB])</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-qm.Store.html">module:qm.Store</a> or Array of <a href="module-qm.Store.html">module:qm.Store</a>)</span></span></h3>
-              <p>Creates a new store.</p>
-              <section>
-                <h4>Parameters</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>storeDef</p>
-                      </td>
-                      <td>
-                        <p>Array of <a href="module-qm.html#~SchemaDefinition">module:qm~SchemaDefinition</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The definition of the store(s)</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>storeSizeInMB</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>The reserved size of the store(s).</p>
-                        <p>Defaults to <code>1024</code>.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>(<a href="module-qm.Store.html">module:qm.Store</a> or Array of <a href="module-qm.Store.html">module:qm.Store</a>)</code>&nbsp;- Returns a store or an array of stores (if the schema definition was an array)</p>
-                </dd>
-              </dl>
-              <h3 id="gc"><span class="symbol-name">gc</span><span class="signature"><span class="signature-params">()</span></span></h3>
-              <p>Calls qminer garbage collector to remove records outside time windows.</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="getStoreList"><span class="symbol-name">getStoreList</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Array of Object</span></span></h3>
-              <p>Returns a list of store descriptors.</p>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>Array of Object</code>&nbsp;</p>
-                </dd>
-              </dl>
-              <h3 id="search"><span class="symbol-name">search</span><span class="signature"><span class="signature-params">(query)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
-              <p>Creates a new store.</p>
+              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(A)</span></span></h3>
+              <p>Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -209,29 +143,25 @@ var base2 = new qm.Base({mode: &#x27;open&#x27;});</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>query</p>
+                        <p>A</p>
                       </td>
                       <td>
-                        <p>module:qm~QueryObject</p>
+                        <p><a href="module-la.Matrix.html">module:la.Matrix</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>query language JSON object</p>
+                        <p>Matrix whose columns correspond to known examples. Gets saved as it is part of the model.</p>
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </section>
               <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;- Returns the record set that matches the search criterion</p>
-                </dd>
               </dl>
-              <h3 id="store"><span class="symbol-name">store</span><span class="signature"><span class="signature-params">(name)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Store.html">module:qm.Store</a></span></span></h3>
-              <p>Returns the store with the specified name.</p>
+              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -246,16 +176,16 @@ var base2 = new qm.Base({mode: &#x27;open&#x27;});</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>name</p>
+                        <p>x</p>
                       </td>
                       <td>
-                        <p>string</p>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Name of the store.</p>
+                        <p>Test vector</p>
                       </td>
                     </tr>
                   </tbody>
@@ -264,7 +194,77 @@ var base2 = new qm.Base({mode: &#x27;open&#x27;});</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.Store.html">module:qm.Store</a></code>&nbsp;The store.</p>
+                  <p><code>number</code>&nbsp;Returns 1.0 if x is an anomaly and 0.0 otherwise</p>
+                </dd>
+              </dl>
+              <h3 id="update"><span class="symbol-name">update</span><span class="signature"><span class="signature-params">(x)</span></span></h3>
+              <p>Adds a new point (or points) to the known points and recomputes the threhshold</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>x</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Test example (vector input) or column examples (matrix input)</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~getThreshold"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">getThreshold</span><span class="signature"><span class="signature-params">(vector)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Gets the 100*(1-rate) percentile</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>vector</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Vector of values</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;Percentile</p>
                 </dd>
               </dl>
             </section>

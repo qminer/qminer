@@ -64,7 +64,13 @@ module.exports = exports = function (pathPrefix) {
 	*/
     exports.Matrix.prototype.print = function () { console.log(this.toString()); }
 
-    /**
+	/**
+	* Returns a copy of the matrix. 
+	* @returns {module:la.Matrix} Copy
+	*/
+	exports.Matrix.prototype.toMat = function () { return new exports.Matrix(this); }
+    
+	/**
     * Prints the vector on-screen.
     * @example
     * // create a new vector
@@ -320,7 +326,7 @@ exports.cat = function (nestedArrMat) {
         cdimy[col] = cdimy[col - 1] + dimy[col - 1];
     }
 
-    var res = new la.Matrix({ rows: (cdimx[rows - 1] + dimx[rows - 1]), cols: (cdimy[cols - 1] + dimy[cols - 1]) });
+    var res = new exports.Matrix({ rows: (cdimx[rows - 1] + dimx[rows - 1]), cols: (cdimy[cols - 1] + dimy[cols - 1]) });
     // copy submatrices
     for (var row = 0; row < rows; row++) {
         for (var col = 0; col < cols; col++) {
@@ -329,7 +335,28 @@ exports.cat = function (nestedArrMat) {
     }
     return res;
 }
+	//////// METHODS
 
+exports.square = function(x) {
+    if (typeof x.length == "undefined") {
+        return x * x;
+    }
+    var res = new exports.Vector(x);
+    for (var i = 0; i < x.length; i++) {
+        res[i] = x[i] * x[i];
+    }
+    return res;
+};
+
+//#- `mat3 = la.pdist2(mat, mat2)` -- computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2
+exports.pdist2 = function (mat, mat2) {
+    var snorm1 = exports.square(mat.colNorms());
+    var snorm2 = exports.square(mat2.colNorms());
+    var ones_1 = exports.ones(mat.cols);
+    var ones_2 = exports.ones(mat2.cols);
+    var D = (mat.multiplyT(mat2).multiply(-2)).plus(snorm1.outer(ones_2)).plus(ones_1.outer(snorm2));
+    return D;
+}
 
     ///////// ALGORITHMS
 

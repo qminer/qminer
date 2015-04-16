@@ -318,7 +318,7 @@ public:
 		
 		TFltIntKdV SimDifV;
 		for (int AssN = 0; AssN < AssignmentN - 1; AssN++) {
-			TFlt AbsDiff = abs(AssignV[AssN].GetSimilarity() - AssignV[AssN + 1].GetSimilarity());
+			TFlt AbsDiff = fabs(AssignV[AssN].GetSimilarity() - AssignV[AssN + 1].GetSimilarity());
 			SimDifV.Add(TFltIntKd(AbsDiff, AssN + 1));
 		} SimDifV.Sort(false);
 //		for (int RowN = 0; RowN < SimDifV.Len(); RowN++){

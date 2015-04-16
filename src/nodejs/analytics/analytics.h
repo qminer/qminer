@@ -707,6 +707,7 @@ public:
 	 *
 	 * @param {FOut} fout - the output stream
 	 */
+	//# exports.HMC.prototype.save = function(arg) { return arg; }	
 	JsDeclareFunction(save);
 
 	// TMcCallback - callbacks
