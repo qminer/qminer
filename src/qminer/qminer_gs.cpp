@@ -135,6 +135,10 @@ TJoinDescEx TStoreSchema::ParseJoinDescEx(const PJsonVal& JoinVal) {
 	if (JoinVal->IsObjKey("inverse")){
 		JoinDescEx.InverseJoinName = JoinVal->GetObjKey("inverse")->GetStr();
 	}
+	// get "is small" flag
+	if (JoinVal->IsObjKey("small")) {
+		JoinDescEx.IsSmall = JoinVal->GetObjKey("small")->GetBool();
+	}
     // done
 	return JoinDescEx;
 }
@@ -162,6 +166,10 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
 		IndexKeyEx.KeyType = oiktLocation;
 	} else {
 		throw TQmExcept::New("Unknown key type " +  KeyTypeStr);
+	}
+	// check if small index should be used
+	if (IndexKeyVal->IsObjKey("small") && IndexKeyVal->GetObjBool("small")) {
+		IndexKeyEx.KeyType = (TIndexKeyType)(IndexKeyEx.KeyType | oiktSmall);
 	}
 	// check field type and index type match
 	if (FieldType == oftStr && IndexKeyEx.IsValue()) {
@@ -191,7 +199,7 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
 	// parse out word vocabulary
 	IndexKeyEx.WordVocName = IndexKeyVal->GetObjStr("vocabulary", "");
     // parse out tokenizer
-    if (IndexKeyEx.KeyType == oiktText) {
+    if (IndexKeyEx.IsText()) {
         if (IndexKeyVal->IsObjKey("tokenizer")) {
             PJsonVal TokenizerVal = IndexKeyVal->GetObjKey("tokenizer");
             QmAssertR(TokenizerVal->IsObjKey("type"), 
@@ -2482,7 +2490,7 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
 				// index join
 				Store->AddJoinDesc(TJoinDesc(JoinDescEx.JoinName, 
                     JoinStore->GetStoreId(), Store->GetStoreId(), 
-                    Base->GetIndexVoc()));
+					Base->GetIndexVoc(), JoinDescEx.IsSmall));
 			} else {
                 ErrorLog("Unknown join type for join " + JoinDescEx.JoinName);
             }

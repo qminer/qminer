@@ -17,6 +17,8 @@
  * 
  */
 
+#ifdef USE_JS
+
 #include "qminer_js.h"
 
 #ifdef GLib_WIN
@@ -9426,3 +9428,5 @@ v8::Handle<v8::Value> TJsMisc::word_co(const v8::Arguments& Args) {
 }
 
 }
+
+#endif

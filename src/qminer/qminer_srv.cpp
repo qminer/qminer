@@ -33,6 +33,7 @@ void TSrvFun::RegDefFun(const TWPt<TBase>& Base, TSAppSrvFunV& SrvFunV) {
 	SrvFunV.Add(TSfStores::New(Base));
 	SrvFunV.Add(TSfWordVoc::New(Base));
 	SrvFunV.Add(TSfStoreRec::New(Base));
+	SrvFunV.Add(TSfPartialFlush::New(Base));
 }
 
 ///////////////////////////////////////////
@@ -215,4 +216,15 @@ TStr TSfDebug::ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) 
 	return TJsonVal::GetStrFromVal(TJsonVal::NewObj("Debug", "Done"));
 }
 
+///////////////////////////////////////////
+// QMiner-Server-Function-Debug
+TStr TSfPartialFlush::ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) {
+	int wnd_in_msec = 500;
+	if (IsFldNm(FldNmValPrV, "wnd_in_msec")) {
+		wnd_in_msec = GetFldVal(FldNmValPrV, "wnd_in_msec").GetInt();
+	}
+	int res = Base->PartialFlush(wnd_in_msec);
+	// report done
+	return TJsonVal::GetStrFromVal(TJsonVal::NewObj("SavedToDisk", res));
+}
 }

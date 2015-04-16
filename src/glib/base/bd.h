@@ -543,6 +543,7 @@ public:
 
   int GetPrimHashCd() const {return Addr->GetPrimHashCd();}
   int GetSecHashCd() const {return Addr->GetSecHashCd();}
+  uint64 GetMemUsed() const { return (Empty() ? 0 : Addr->GetMemUsed()) + sizeof(TPt); }
 
   TPt<TRec> Clone(){return MkClone(*this);}
 };
@@ -580,7 +581,8 @@ public:
   void Del(){delete Addr;}
 
   int GetPrimHashCd() const {return Addr->GetPrimHashCd();}
-  int GetSecHashCd() const {return Addr->GetSecHashCd();}
+  int GetSecHashCd() const { return Addr->GetSecHashCd(); }
+  //uint64 GetMemUsed() const { return (Empty() ? 0 : Addr->GetMemUsed()) + sizeof(TPt); }
 };
 
 /////////////////////////////////////////////////
