@@ -1,3 +1,6 @@
+os:
+- Visual Studio 2015 Preview
+
 environment:
   matrix:
     - nodejs_version: 0.12.0
