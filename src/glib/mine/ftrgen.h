@@ -97,9 +97,9 @@ private:
 
     
 public:
-    TMultinomial(const bool& NormalizeP = true): FtrGen() { }
-    TMultinomial(const bool& NormalizeP, const TStrV& ValV): FtrGen(ValV) { }
-    TMultinomial(const bool& NormalizeP, const int& HashDim): FtrGen(HashDim) { }
+	TMultinomial(const bool& NormalizeP = true) : Type(NormalizeP ? mtNormalize : mtNone), FtrGen() { }
+	TMultinomial(const bool& NormalizeP, const TStrV& ValV) : Type(NormalizeP ? mtNormalize : mtNone), FtrGen(ValV) { }
+	TMultinomial(const bool& NormalizeP, const int& HashDim) : Type(NormalizeP ? mtNormalize : mtNone), FtrGen(HashDim) { }
     TMultinomial(TSIn& SIn): Type(LoadEnum<TMultinomialType>(SIn)), FtrGen(SIn) { }
     void Save(TSOut& SOut) const;
 

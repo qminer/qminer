@@ -6,7 +6,7 @@ describe('Feature Space Tests', function () {
 	var base = undefined;
 	var Store = undefined;
     
-	beforeEach(function () {
+	before(function () {
 	    qm.delLock();
 	    qm.config('qm.conf', true, 8080, 1024);
 	    var backward = require('../../src/nodejs/scripts/backward.js');
@@ -40,7 +40,7 @@ describe('Feature Space Tests', function () {
 	    Store.add({ Value: 2.0, Category: "b", Categories: ["b", "w"], Date: "2014-10-20T00:11:22", Text: "The Barbie doll is an icon that young girls have played with since 1959, when Barbie settled in as an American fixture in the lives of children, first in the United States and in more recent years, worldwide." });
 
     });
-    afterEach(function () {
+    after(function () {
         base.close();
     });
     
@@ -178,7 +178,7 @@ describe('Feature Space Tests', function () {
                 { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
                 { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 }
             ]);
-            var vec = ftr.ftrVec(Store[10]);
+            var vec = ftr.ftrVec(Store[10]);            
             assert.equal(vec.length, 16);
             assert.equal(vec[0], 2.0);
             assert.equal(vec[1], 0);
