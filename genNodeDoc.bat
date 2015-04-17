@@ -21,4 +21,4 @@ node appendIntellisense nodedoc/datasetsdoc.js src/nodejs/intellisense/datasets_
 node appendIntellisense nodedoc/analyticsdoc.js src/nodejs/intellisense/analytics_intellisense.js "exports = {}; require.modules.qminer_analytics = exports;"
 node appendIntellisense nodedoc/qminerdoc.js src/nodejs/intellisense/qminer_intellisense.js "// this file mimicks the qminer module index.js file\nexports = {}; require.modules.qminer = exports;\nexports.la = require('qminer_la');\nexports.fs = require('qminer_fs');\nexports.analytics = require('qminer_analytics');\nexports.ht= require('qminer_ht');\nexports.statistics= require('qminer_stat');\nexports.datasets= require('qminer_datasets');"
 
-jsdoc nodedoc/htdoc.js nodedoc/fsdoc.js nodedoc/analyticsdoc.js  nodedoc/ladoc.js nodedoc/qminerdoc.js nodedoc/statdoc.js nodedoc/datasetsdoc.js -d nodedoc
+jsdoc --template node_modules/jsdoc-baseline nodedoc/htdoc.js nodedoc/fsdoc.js nodedoc/analyticsdoc.js  nodedoc/ladoc.js nodedoc/qminerdoc.js nodedoc/statdoc.js nodedoc/datasetsdoc.js -d nodedoc

@@ -73,7 +73,7 @@ public:
   bool operator<(const TPair& Pair) const {
     return (Val1<Pair.Val1)||((Val1==Pair.Val1)&&(Val2<Pair.Val2));}
 
-  int GetMemUsed() const {return Val1.GetMemUsed()+Val2.GetMemUsed();}
+  uint64 GetMemUsed() const {return Val1.GetMemUsed()+Val2.GetMemUsed();}
 
   int GetPrimHashCd() const {return TPairHashImpl::GetHashCd(Val1.GetPrimHashCd(), Val2.GetPrimHashCd()); }
   int GetSecHashCd() const {return TPairHashImpl::GetHashCd(Val2.GetSecHashCd(), Val1.GetSecHashCd()); }
@@ -387,6 +387,7 @@ public:
 
   int GetPrimHashCd() const {return Key.GetPrimHashCd();}
   int GetSecHashCd() const {return Key.GetSecHashCd();}
+  uint64 GetMemUsed() const { return Key.GetMemUsed() + Dat.GetMemUsed(); }
 };
 
 template <class TKey, class TDat>
@@ -490,8 +491,16 @@ public:
     MxVals(-1), Vals(_Vals), ValT(_ValT){}
   ~TVec(){if ((ValT!=NULL) && (MxVals!=-1)){delete[] ValT;}}
   explicit TVec(TSIn& SIn): MxVals(0), Vals(0), ValT(NULL){Load(SIn);}
+  // For fast deserialization
+  explicit TVec(TMIn& MemIn) : MxVals(0), Vals(0), ValT(NULL) { LoadMemCpy(MemIn); }
+
   void Load(TSIn& SIn);
-  void Save(TSOut& SOut) const;
+  // optimized deserialization from stream, uses memcpy
+  void LoadMemCpy(TMIn& SIn);
+  void Save(TSOut& SOut) const;  
+  // optimized serialization to stream, uses memcpy
+  void SaveMemCpy(TMOut& SOut) const;
+
   /// Sends the vector contents via a socket \c fd.
   int Send(int sd);
   /// Writes \c nbytes bytes starting at \c ptr to a file/socket descriptor \c fd.
@@ -518,11 +527,23 @@ public:
     AssertR((0<=ValN)&&(ValN<Vals), GetXOutOfBoundsErrMsg(ValN));
     return ValT[ValN];}
   /// Returns the memory footprint (the number of bytes) of the vector.
-  TSizeTy GetMemUsed() const {
-    return TSizeTy(2*sizeof(TSizeTy)+sizeof(TVal*)+MxVals*sizeof(TVal));}
+  uint64 GetMemUsed() const {
+	  return TSizeTy(2 * sizeof(TSizeTy) + sizeof(TVal*) + sizeof(TVal)*(MxVals != -1 ? MxVals : 0));
+  }
+  /// Returns the memory footprint (the number of bytes) of the vector.
+  uint64 GetMemUsedDeep() const {
+	  uint64 MemSize = 2 * sizeof(TSizeTy) + sizeof(TVal*);
+	  if (ValT != NULL && MxVals != -1){
+		  for (TSizeTy i = 0; i < MxVals; i++){
+			  MemSize += ValT[i].GetMemUsed();
+		  }
+	  }
+	  return MemSize;
+  }
   /// Returns the memory size (the number of bytes) of a binary representation.
-  TSizeTy GetMemSize() const {
-    return TSizeTy(2*sizeof(TVal)+sizeof(TSizeTy)*Vals);}
+  TSizeTy GetMemSize(bool flat = true) const {
+	  return TSizeTy(2 * sizeof(TVal) + sizeof(TVal)*Vals);
+  }
   
   /// Returns primary hash code of the vector. Used by \c THash.
   int GetPrimHashCd() const;
@@ -599,6 +620,8 @@ public:
     if (Vals==MxVals){Resize(MxVals+ResizeLen);} ValT[Vals]=Val; return Vals++;}
   /// Adds the elements of the vector \c ValV to the to end of the vector.
   TSizeTy AddV(const TVec<TVal, TSizeTy>& ValV);
+  /// Adds the elements of the vector \c ValV to the to end of the vector using memcpy.
+  TSizeTy AddVMemCpy(const TVec<TVal, TSizeTy>& ValV);
   /// Adds element \c Val to a sorted vector. ##TVec::AddSorted
   TSizeTy AddSorted(const TVal& Val, const bool& Asc=true, const TSizeTy& _MxVals=-1);
   /// Adds element \c Val to a sorted vector. ##TVec::AddBackSorted
@@ -617,12 +640,19 @@ public:
   void SetVal(const TSizeTy& ValN, const TVal& Val){AssertR((0<=ValN)&&(ValN<Vals), GetXOutOfBoundsErrMsg(ValN)); ValT[ValN] = Val;}
   /// Returns a vector on elements at positions <tt>BValN...EValN</tt>.
   void GetSubValV(const TSizeTy& BValN, const TSizeTy& EValN, TVec<TVal, TSizeTy>& ValV) const;
+  /// Returns a vector on elements at positions <tt>BValN...EValN</tt> using memcpy.
+  void GetSubValVMemCpy(const TSizeTy& _BValN, const TSizeTy& _EValN, TVec<TVal, TSizeTy>& SubValV) const;
+
   /// Inserts new element \c Val before the element at position \c ValN.
   void Ins(const TSizeTy& ValN, const TVal& Val);
   /// Removes the element at position \c ValN.
   void Del(const TSizeTy& ValN);
+  /// Removes the element at position \c ValN using memcpy
+  void DelMemCpy(const TSizeTy& ValN);
   /// Removes the elements at positions <tt>MnValN...MxValN</tt>.
   void Del(const TSizeTy& MnValN, const TSizeTy& MxValN);
+  /// Removes the elements at positions <tt>MnValN...MxValN</tt> using memcpy
+  void DelMemCpy(const TSizeTy& MnValN, const TSizeTy& MxValN);
   /// Removes the last element of the vector.
   void DelLast(){Del(Len()-1);}
   /// Removes the first occurrence of element \c Val.
@@ -799,6 +829,40 @@ public:
   static TVec<TVal, TSizeTy> GetV(const TVal& Val1, const TVal& Val2, const TVal& Val3, const TVal& Val4, const TVal& Val5, const TVal& Val6, const TVal& Val7, const TVal& Val8, const TVal& Val9){
     TVec<TVal, TSizeTy> V(9, 0); V.Add(Val1); V.Add(Val2); V.Add(Val3); V.Add(Val4); V.Add(Val5); V.Add(Val6); V.Add(Val7); V.Add(Val8); V.Add(Val9); return V;}
 };
+
+// add new vector of data to current vector, use memcpy for performance
+template <class TVal, class TSizeTy>
+TSizeTy TVec<TVal, TSizeTy>::AddVMemCpy(const TVec<TVal, TSizeTy>& ValV) {
+	if (ValV.Len() == 0)
+		return 0;
+	Resize(Vals + ValV.Len());
+	memcpy(ValT + Vals, ValV.ValT, ValV.Len() * sizeof(TVal));
+	Vals += ValV.Len();
+	return ValV.Len();
+}
+
+// optimized deserialization from stream, uses memcpy
+template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::LoadMemCpy(TMIn& SIn) {
+	if ((ValT != NULL) && (MxVals != -1)) { delete[] ValT; }
+	SIn.Load(MxVals);
+	SIn.Load(Vals);
+	MxVals = Vals;
+	if (MxVals == 0) {
+		ValT = NULL;
+	} else {
+		ValT = new TVal[MxVals];
+		SIn.GetBfMemCpy(ValT, Vals*sizeof(TVal));
+	}
+}
+// optimized serialization from stream, uses memcpy
+template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::SaveMemCpy(TMOut& SOut) const {
+	SOut.Save(MxVals);
+	SOut.Save(Vals);
+	if (MxVals > 0)
+		SOut.AppendBf(ValT, Vals*sizeof(TVal));
+}
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Resize(const TSizeTy& _MxVals){
@@ -1088,6 +1152,16 @@ void TVec<TVal, TSizeTy>::GetSubValV(const TSizeTy& _BValN, const TSizeTy& _EVal
 }
 
 template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::GetSubValVMemCpy(const TSizeTy& _BValN, const TSizeTy& _EValN, TVec<TVal, TSizeTy>& SubValV) const {
+	const TSizeTy BValN = TInt::GetInRng(_BValN, 0, Len() - 1);
+	const TSizeTy EValN = TInt::GetInRng(_EValN, 0, Len() - 1);
+	const TSizeTy SubVals = TInt::GetMx(0, EValN - BValN + 1);
+	SubValV.Gen(SubVals, 0);
+	memcpy(SubValV.ValT, ValT + BValN, SubVals * sizeof(TVal));
+	SubValV.Vals += SubVals;
+}
+
+template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Ins(const TSizeTy& ValN, const TVal& Val){
   AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   Add();  Assert((0<=ValN)&&(ValN<Vals));
@@ -1106,6 +1180,16 @@ void TVec<TVal, TSizeTy>::Del(const TSizeTy& ValN){
 }
 
 template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::DelMemCpy(const TSizeTy& ValN) {
+	AssertR(MxVals != -1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+	Assert((0 <= ValN) && (ValN<Vals));
+	if (ValN < Vals - 1) {
+		memmove(ValT + ValN, ValT + ValN + 1, sizeof(TVal) * (Vals - ValN - 1)); // overlapping buffers, use memmove instead of memcpy
+	}
+	ValT[--Vals] = TVal();
+}
+
+template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Del(const TSizeTy& MnValN, const TSizeTy& MxValN){
   AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   Assert((0<=MnValN)&&(MnValN<Vals)&&(0<=MxValN)&&(MxValN<Vals));
@@ -1116,6 +1200,17 @@ void TVec<TVal, TSizeTy>::Del(const TSizeTy& MnValN, const TSizeTy& MxValN){
   for (TSizeTy ValN=Vals-MxValN+MnValN-1; ValN<Vals; ValN++){
     ValT[ValN]=TVal();}
   Vals-=MxValN-MnValN+1;
+}
+
+template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::DelMemCpy(const TSizeTy& MnValN, const TSizeTy& MxValN) {
+	AssertR(MxVals != -1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+	Assert((0 <= MnValN) && (MnValN<Vals) && (0 <= MxValN) && (MxValN<Vals));
+	Assert(MnValN <= MxValN);
+	if (MxValN < Vals - 1) {
+		memmove(ValT + MnValN, ValT + MxValN + 1, sizeof(TVal) * (Vals - MxValN - 1)); // overlapping buffers, use memmove instead of memcpy	
+	}
+	Vals -= MxValN - MnValN + 1;
 }
 
 template <class TVal, class TSizeTy>
@@ -2786,7 +2881,9 @@ public:
 
   PLstNd SearchForw(const TVal& Val);
   PLstNd SearchBack(const TVal& Val);
-
+  uint64 GetMemUsed() const {
+	  return uint64(sizeof(int) + 2 * sizeof(PLstNd) + Nds * sizeof(TLstNd<TVal>));
+  }
   friend class TLstNd<TVal>;
 };
 

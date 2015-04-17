@@ -17,6 +17,8 @@
  * 
  */
 
+#ifdef USE_JS
+
 #ifndef QMINER_JS_H
 #define QMINER_JS_H
 
@@ -4201,5 +4203,7 @@ public:
 
 
 }
+
+#endif
 
 #endif

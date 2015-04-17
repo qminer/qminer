@@ -29,7 +29,7 @@
 	#pragma comment(lib, "WS2_32.lib")
 	#pragma comment(lib, "IPHLPAPI.lib")
 	// include external libuv
-	#include "../../src/third_party/libuv/include/uv.h"
+	#include "../../third_party/libuv/include/uv.h"
 #else
 	// include external libuv
 	typedef size_t ULONG;
