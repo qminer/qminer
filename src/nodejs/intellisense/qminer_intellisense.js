@@ -261,6 +261,52 @@ exports.datasets= require('qminer_datasets');
 * }]);
 */
 /**
+* Feature types.
+* @typedef {Object} FeatureTypes
+* @property {module:qm~FeatureTypeConstant} constant - The constant type.
+* @property {module:qm~FeatureTypeRandom} random - The random type.
+* @property {module:qm~FeatureTypeNumeric} numeric - The numeric type.
+* @property {module:qm~FeatureTypeCategorical} categorical - The categorical type.
+* @property {module:qm~FeatureTypeMultinomial} multinomial - The multinomial type.
+* @property {module:qm~FeatureTypeText} text - The text type.
+* @property {module:qm~FeatureTypeJoin} join - The join type.
+* @property {module:qm~FeatureTypePair} pair - The pair type.
+* @property {module:qm~FeatureTypeJsfunc} jsfunc - The jsfunc type.
+* @property {module:qm~FeatureTypeDateWindow} dateWindow - The dateWindow type.
+*
+*/
+/**
+* Feature type: contant
+* @typedef {Object} FeatureTypeConstant
+* @property {number} [const = 1.0] - A constant number. 
+*/
+/**
+* Feature type: random
+* @typedef {Object} FeatureTypeRandom
+* @property {number} [seed = 0] - A random seed number.
+*/
+/**
+* Feature type: numeric
+* @typedef {Object} FeatureTypeNumeric 
+* @property {boolean} [normalize = false] - Normalize values between 0.0 and 1.0.
+* @property {number} [min] - The minimal value used to form the normalization.
+* @property {number} [max] - The maximal value used to form the normalization.
+* @property {string} field - The name of the field from which to take the value.
+*/
+/**
+* Feature type: categorical
+* @typedef {Object} FeatureTypeCategorical
+* @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set. No dimensionalizy changes if new values are seen in the upgrades.
+* @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hasDimension to get the corresponding dimension.
+* @property {string} field - The name of the field form which to take the values.
+*/
+/**
+* Feature extractor parameter object
+* @typedef {Object} FeatureExtractor
+* @property {module:qm~FeatureTypes} type - The type of the extractor.
+* @property {module:qm~FeatureSource} source - The source of the extractor.
+*/
+/**
 * Base
 * @classdesc Represents the database and holds stores.
 * @class
@@ -811,3 +857,15 @@ exports.datasets= require('qminer_datasets');
 	* @returns {module:la.Vector} The feature vector gained from rec.
 	*/
  exports.FeatureSpace.prototype.ftrVec = function (rec) {};
+/**
+	* Gives the name of feature extractor at given position.
+	* @param {number} idx - The index of the feature extractor in feature space (zero based).
+	* @returns {String} The name of the feature extractor at position idx.
+	*/
+ exports.FeatureSpace.prototype.getFtrExtractor = function (idx) {};
+/**
+	* Gives the name of the feature at the given position.
+	* @param {number} idx - The index of the feature in feature space (zero based).
+	* @returns {String} THe name of the feature at the position idx.
+	*/
+ exports.FeatureSpace.prototype.getFtr = function (idx) {};
