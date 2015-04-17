@@ -1,6 +1,11 @@
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
 var qm = require('qminer');
+
+
+describe('Movies test, old', function () {
+	it('should survive', function () {
+		
 qm.delLock();
 //qm.rmDir('db') // run from qminer/test/nodejs 
 
@@ -371,3 +376,6 @@ assert.equal(Movies.first.$id, 0, "Movies.first.$id");
 assert.equal(Movies.last.$id, Movies.length - 1, "Movies.last.$id");
 
 base.close();
+
+})
+});

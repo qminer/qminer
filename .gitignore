@@ -116,3 +116,8 @@ autom4te.cache
 autom4te.cache
 nodetempdoc
 /x64
+
+/test/nodejs/NN.bin
+/test/nodejs/g.html
+/test/nodejs/svc.bin
+/test/nodejs/svr.bin

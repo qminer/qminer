@@ -20,6 +20,7 @@ install:
   - if "%PLATFORM%" == "x86" SET PATH=C:\python27;%PATH%
   - npm install --verbose --msvs_version=2013
   - cd test\nodejs
+  - npm install -g mocha
   - mocha *.js
 
 build: off

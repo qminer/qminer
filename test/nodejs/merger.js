@@ -2,6 +2,10 @@ console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
 var qm = require('../../');
 
+
+describe('Merger test, old', function () {
+	it('should survive', function () {
+
 qm.delLock();
 qm.config('qm.conf', true, 8080, 1024);
 var backward = require('../../src/nodejs/scripts/backward.js');
@@ -519,3 +523,6 @@ testMerger();
 testResampler();
 
 base.close();
+
+})
+});
