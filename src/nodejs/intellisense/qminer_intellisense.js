@@ -261,6 +261,62 @@ exports.datasets= require('qminer_datasets');
 * }]);
 */
 /**
+* Feature types.
+* @typedef {Object} FeatureTypes
+* @property {module:qm~FeatureTypeConstant} constant - The constant type.
+* @property {module:qm~FeatureTypeRandom} random - The random type.
+* @property {module:qm~FeatureTypeNumeric} numeric - The numeric type.
+* @property {module:qm~FeatureTypeCategorical} categorical - The categorical type.
+* @property {module:qm~FeatureTypeMultinomial} multinomial - The multinomial type.
+* @property {module:qm~FeatureTypeText} text - The text type.
+* @property {module:qm~FeatureTypeJoin} join - The join type.
+* @property {module:qm~FeatureTypePair} pair - The pair type.
+* @property {module:qm~FeatureTypeJsfunc} jsfunc - The jsfunc type.
+* @property {module:qm~FeatureTypeDateWindow} dateWindow - The dateWindow type.
+*
+*/
+/**
+* Feature type: contant
+* @typedef {Object} FeatureTypeConstant
+* @property {number} [const = 1.0] - A constant number. 
+*/
+/**
+* Feature type: random
+* @typedef {Object} FeatureTypeRandom
+* @property {number} [seed = 0] - A random seed number.
+*/
+/**
+* Feature type: numeric
+* @typedef {Object} FeatureTypeNumeric 
+* @property {boolean} [normalize = false] - Normalize values between 0.0 and 1.0.
+* @property {number} [min] - The minimal value used to form the normalization.
+* @property {number} [max] - The maximal value used to form the normalization.
+* @property {string} field - The name of the field from which to take the value.
+*/
+/**
+* Feature type: categorical
+* @typedef {Object} FeatureTypeCategorical
+* @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set. No dimensionalizy changes if new values are seen in the upgrades.
+* @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hasDimension to get the corresponding dimension.
+* @property {string} field - The name of the field form which to take the values.
+*/
+/**
+* Feature type: multinomial
+* @typedef {Object} FeatureTypeMultinomial
+* @property {boolean} [normalize = false] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
+* @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates.
+* @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
+* @property {Object} [datetime = false] - Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
+* <br> This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.
+* @property {string} field - The name of the field from which to take the value.
+*/
+/**
+* Feature extractor parameter object
+* @typedef {Object} FeatureExtractor
+* @property {module:qm~FeatureTypes} type - The type of the extractor.
+* @property {module:qm~FeatureSource} source - The source of the extractor.
+*/
+/**
 * Base
 * @classdesc Represents the database and holds stores.
 * @class
@@ -753,3 +809,73 @@ exports.datasets= require('qminer_datasets');
 	* Gives the current record.
 	*/
  exports.Iterator.prototype.rec = undefined;
+/**
+* Feature Space
+* @classdesc Represents the feature space.
+* @class
+* @param {module:qm.Base} base - The base where the features are extracted from.
+* @param {Array.<Object>} extractors - The extractors.
+* @example
+* // import qm module
+* var qm = require('qminer');
+* // construct a base with the store
+* var base = new qm.Base({
+*	mode: 'createClean',
+*	schema: [
+*		{ name: 'NewsArticles',
+*		  fields: [
+*		{ name: "ID", primary: true, type: "string", shortstring: true },
+*		{ name: "Source", type: "string", codebook: true }
+*		]
+*	}]
+* });
+* // add a record
+* base.store('NewsArticles').add({
+*	ID: 't12344', 
+*	Source: 's1234', 
+*	DateTime: '2015-01-01T00:05:00', 
+*	Title: 'the title', 
+*	Tokens: ['token1', 'token2'], 
+*	Vector: [[0,1], [1,1]]});
+* // create a feature space 
+* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "NewsArticles", field: "Source" });
+*/
+ exports.FeatureSpace = function (base, extractors) {};
+/**
+	* Returns the dimension of the feature space.
+	*/
+ exports.FeatureSpace.prototype.dim = undefined;
+/**
+	* Returns an array of the dimensions of each feature extractor in the feature space.
+	*/
+ exports.FeatureSpace.prototype.dims = undefined;
+/**
+	* Adds a new feature extractor to the feature space.
+	* @param {Object} obj - The added feature extracture.
+	* @returns {module:qm.FeatureSpace} Self.
+	*/
+ exports.FeatureSpace.prototype.add = function (obj) {};
+/**
+	* Creates a sparse feature vector from the given record.
+	* @param {module:qm.Record} rec - The given record.
+	* @returns {module:la.SparseVector} The sparse feature vector gained from rec.
+	*/
+ exports.FeatureSpace.prototype.ftrSpVec = function (rec) {}
+/**
+	* Creates a feature vector from the given record.
+	* @param {module:qm.Record} rec - The given record.
+	* @returns {module:la.Vector} The feature vector gained from rec.
+	*/
+ exports.FeatureSpace.prototype.ftrVec = function (rec) {};
+/**
+	* Gives the name of feature extractor at given position.
+	* @param {number} idx - The index of the feature extractor in feature space (zero based).
+	* @returns {String} The name of the feature extractor at position idx.
+	*/
+ exports.FeatureSpace.prototype.getFtrExtractor = function (idx) {};
+/**
+	* Gives the name of the feature at the given position.
+	* @param {number} idx - The index of the feature in feature space (zero based).
+	* @returns {String} THe name of the feature at the position idx.
+	*/
+ exports.FeatureSpace.prototype.getFtr = function (idx) {};

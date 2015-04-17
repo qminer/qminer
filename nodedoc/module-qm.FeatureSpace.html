@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.3.0-beta2">
   <meta charset="utf-8">
-  <title>Class: SVR</title>
+  <title>Class: FeatureSpace</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -24,26 +24,31 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">SVR</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-129">analyticsdoc.<wbr>js:129</a></p>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">FeatureSpace</span></h1>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-833">qminerdoc.<wbr>js:833</a></p>
             <div class="symbol-classdesc">
-              <p>Support Vector Machine Regression. Implements a soft margin linear support vector regression using the PEGASOS algorithm with epsilon insensitive loss, see: <a href="http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf">Pegasos: Primal Estimated sub-GrAdient SOlver for SVM</a>.</p>
+              <p>Represents the feature space.</p>
             </div>
             <dl class="dl-compact">
             </dl>
           </header>
           <section id="summary">
             <div class="summary-callout">
-              <h2 class="summary-callout-heading">Property</h2>
+              <h2 class="summary-callout-heading">Properties</h2>
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.SVR.html#weights">weights</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#dim">dim</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.FeatureSpace.html#dims">dims</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
                 </div>
                 <div class="summary-column">
                 </div>
@@ -54,27 +59,27 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.SVR.html#fit">fit(X, y)</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#add">add(obj)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.SVR.html#getParams">getParams()</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.SVR.html#predict">predict(vec)</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-analytics.SVR.html#save">save(fout)</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#ftrSpVec">ftrSpVec(rec)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.SVR.html#setParams">setParams(param)</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#ftrVec">ftrVec(rec)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.FeatureSpace.html#getFtr">getFtr(idx)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.FeatureSpace.html#getFtrExtractor">getFtrExtractor(idx)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -83,35 +88,40 @@
             </div>
           </section>
           <section>
-            <h2 id="SVR">new&nbsp;<span class="symbol-name">SVR</span><span class="signature"><span class="signature-params">(arg)</span></span></h2>
-            <p>SVR</p>
+            <h2 id="FeatureSpace">new&nbsp;<span class="symbol-name">FeatureSpace</span><span class="signature"><span class="signature-params">(base, extractors)</span></span></h2>
+            <p>Feature Space</p>
             <section>
               <h3>
             Example
         </h3>
               <div>
-                <pre class="prettyprint"><code>// import module
-var analytics = require(&#x27;qminer&#x27;).analytics;
-// REGRESSION WITH SVR
-// Set up fake train and test data.
-// Four training examples with, number of features = 2
-var featureMatrix = new la.Matrix({rows:2, cols:4, random:true});
-// Regression targets for four examples
-var targets = new la.Vector([1.1, -2, 3, 4.2]);
-// Set up the regression model
-var SVR = new analytics.SVR({verbose:true});
-// Train regression
-SVR.fit(featureMatrix, targets);
-// Save the model to disk
-SVR.save(&#x27;svr.bin&#x27;);*
-// Set up a fake test vector
-var test = new la.Vector([1.1, -0.8]);
-// Predict the target value
-var prediction = SVR.predict(test);</code></pre>
+                <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// construct a base with the store
+var base = new qm.Base({
+	mode: &#x27;createClean&#x27;,
+	schema: [
+		{ name: &#x27;NewsArticles&#x27;,
+		  fields: [
+		{ name: &quot;ID&quot;, primary: true, type: &quot;string&quot;, shortstring: true },
+		{ name: &quot;Source&quot;, type: &quot;string&quot;, codebook: true }
+		]
+	}]
+});
+// add a record
+base.store(&#x27;NewsArticles&#x27;).add({
+	ID: &#x27;t12344&#x27;, 
+	Source: &#x27;s1234&#x27;, 
+	DateTime: &#x27;2015-01-01T00:05:00&#x27;, 
+	Title: &#x27;the title&#x27;, 
+	Tokens: [&#x27;token1&#x27;, &#x27;token2&#x27;], 
+	Vector: [[0,1], [1,1]]});
+// create a feature space 
+var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;NewsArticles&quot;, field: &quot;Source&quot; });</code></pre>
               </div>
             </section>
             <section>
-              <h3>Parameter</h3>
+              <h3>Parameters</h3>
               <table class="jsdoc-details-table">
                 <thead>
                   <tr>
@@ -124,16 +134,30 @@ var prediction = SVR.predict(test);</code></pre>
                 <tbody>
                   <tr>
                     <td>
-                      <p>arg</p>
+                      <p>base</p>
                     </td>
                     <td>
-                      <p>(<a href="module-fs.FIn.html">module:fs.FIn</a> or <a href="module-analytics.html#~svrParam">module:analytics~svrParam</a>)</p>
+                      <p><a href="module-qm.Base.html">module:qm.Base</a></p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
                     </td>
                     <td>
-                      <p>File input stream (loads the model from disk) or constructor parameters svcParam.</p>
+                      <p>The base where the features are extracted from.</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p>extractors</p>
+                    </td>
+                    <td>
+                      <p>Array of Object</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>The extractors.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -143,100 +167,21 @@ var prediction = SVR.predict(test);</code></pre>
             </dl>
           </section>
           <section>
-            <h2>Property</h2>
+            <h2>Properties</h2>
             <section>
-              <h3 id="weights"><span class="symbol-name">weights</span></h3>
-              <section>
-                <h4>Property</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>weights</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Vector of coefficients of the linear model</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
+              <h3 id="dim"><span class="symbol-name">dim</span></h3>
+              <p>Returns the dimension of the feature space.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="dims"><span class="symbol-name">dims</span></h3>
+              <p>Returns an array of the dimensions of each feature extractor in the feature space.</p>
               <dl class="dl-compact">
               </dl>
             </section>
             <h2>Methods</h2>
             <section>
-              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X, y)</span></span></h3>
-              <p>fits an SVM regression model, given column examples in a matrix and vector of targets</p>
-              <section>
-                <h4>Parameters</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>X</p>
-                      </td>
-                      <td>
-                        <p>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Input feature matrix where columns correspond to feature vectors</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>y</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Input vector of targets, one for each column of X</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~svrParam">module:analytics~svrParam</a></span></span></h3>
-              <p>returns the svr parameters</p>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-analytics.html#~svrParam">module:analytics~svrParam</a></code>&nbsp;Parameters of the regression model.</p>
-                </dd>
-              </dl>
-              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(vec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>sends vector through the model and returns the prediction as a real number</p>
+              <h3 id="add"><span class="symbol-name">add</span><span class="signature"><span class="signature-params">(obj)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></span></span></h3>
+              <p>Adds a new feature extractor to the feature space.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -251,16 +196,16 @@ var prediction = SVR.predict(test);</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>vec</p>
+                        <p>obj</p>
                       </td>
                       <td>
-                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>)</p>
+                        <p>Object</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Input vector</p>
+                        <p>The added feature extracture.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -269,11 +214,11 @@ var prediction = SVR.predict(test);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Prediction real number.</p>
+                  <p><code><a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></code>&nbsp;Self.</p>
                 </dd>
               </dl>
-              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>saves model to output file stream</p>
+              <h3 id="ftrSpVec"><span class="symbol-name">ftrSpVec</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseVector.html">module:la.SparseVector</a></span></span></h3>
+              <p>Creates a sparse feature vector from the given record.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -288,16 +233,16 @@ var prediction = SVR.predict(test);</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>fout</p>
+                        <p>rec</p>
                       </td>
                       <td>
-                        <p><a href="module-fs.FOut.html">module:fs.FOut</a></p>
+                        <p><a href="module-qm.Record.html">module:qm.Record</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Output stream.</p>
+                        <p>The given record.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -306,11 +251,11 @@ var prediction = SVR.predict(test);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Output stream</p>
+                  <p><code><a href="module-la.SparseVector.html">module:la.SparseVector</a></code>&nbsp;The sparse feature vector gained from rec.</p>
                 </dd>
               </dl>
-              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(param)</span></span></h3>
-              <p>sets the svr parameters</p>
+              <h3 id="ftrVec"><span class="symbol-name">ftrVec</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <p>Creates a feature vector from the given record.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -325,22 +270,100 @@ var prediction = SVR.predict(test);</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>param</p>
+                        <p>rec</p>
                       </td>
                       <td>
-                        <p><a href="module-analytics.html#~svrParam">module:analytics~svrParam</a></p>
+                        <p><a href="module-qm.Record.html">module:qm.Record</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Regression training parameters.</p>
+                        <p>The given record.</p>
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </section>
               <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The feature vector gained from rec.</p>
+                </dd>
+              </dl>
+              <h3 id="getFtr"><span class="symbol-name">getFtr</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> String</span></span></h3>
+              <p>Gives the name of the feature at the given position.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>idx</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The index of the feature in feature space (zero based).</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>String</code>&nbsp;THe name of the feature at the position idx.</p>
+                </dd>
+              </dl>
+              <h3 id="getFtrExtractor"><span class="symbol-name">getFtrExtractor</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> String</span></span></h3>
+              <p>Gives the name of feature extractor at given position.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>idx</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The index of the feature extractor in feature space (zero based).</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>String</code>&nbsp;The name of the feature extractor at position idx.</p>
+                </dd>
               </dl>
             </section>
           </section>

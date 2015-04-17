@@ -403,10 +403,9 @@ describe('Record Set Tests', function () {
                 recSet2.filter(function (rec) { });
             })
         })
-        it.skip('should throw an exception, if the callback function has no parameter', function () {
-            assert.throws(function () {
-                recSet2.filter(function () { return 1 == 1; });
-            })
+        it('should descard all of the records', function () {
+            recSet2.filter(function () { return 0 == 1; });
+            assert.equal(recSet2.length, 0);
         })
     });
 

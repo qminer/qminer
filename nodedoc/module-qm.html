@@ -34,7 +34,7 @@
           </header>
           <section id="summary">
             <div class="summary-callout">
-              <h2 class="summary-callout-heading">Child class</h2>
+              <h2 class="summary-callout-heading">Child classes</h2>
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
@@ -44,6 +44,11 @@
                   </dl>
                 </div>
                 <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.FeatureSpace.html">FeatureSpace(base, extractors)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
                 </div>
                 <div class="summary-column">
                 </div>
@@ -131,23 +136,44 @@
                     <dt><a href="module-qm.html#~BaseConstructorParam">BaseConstructorParam</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractor">FeatureExtractor</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureTypeCategorical">FeatureTypeCategorical</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureTypeConstant">FeatureTypeConstant</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureTypeMultinomial">FeatureTypeMultinomial</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.html#~FeatureTypeNumeric">FeatureTypeNumeric</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureTypeRandom">FeatureTypeRandom</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureTypes">FeatureTypes</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.html#~SchemaDefinition">SchemaDefinition</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="module-qm.html#~SchemaFieldDefinition">SchemaFieldDefinition</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.html#~SchemaJoinDefinition">SchemaJoinDefinition</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.html#~SchemaJoinDefinition">SchemaJoinDefinition</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.html#~SchemaKeyDefinition">SchemaKeyDefinition</a></dt>
                     <dd>
                     </dd>
@@ -160,9 +186,10 @@
             </div>
           </section>
           <section>
-            <h2>Class</h2>
+            <h2>Classes</h2>
             <section id='members-links'>
               <h3><a href="module-qm.Base.html">Base</a></h3>
+              <h3><a href="module-qm.FeatureSpace.html">FeatureSpace</a></h3>
             </section>
             <h2>Namespaces</h2>
             <section id='members-links'>
@@ -736,6 +763,516 @@
                       <td>
                         <p>The path to db directory.</p>
                         <p>Defaults to <code>'./db/'</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractor"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature extractor parameter object</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureTypes">module:qm~FeatureTypes</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p>module:qm~FeatureSource</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTypeCategorical"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureTypeCategorical</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: categorical</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>values</p>
+                      </td>
+                      <td>
+                        <p>Array of Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A fixed set of values, which form a fixed feature set. No dimensionalizy changes if new values are seen in the upgrades.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>hashDimension</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hasDimension to get the corresponding dimension.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>field</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the field form which to take the values.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTypeConstant"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureTypeConstant</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: contant</p>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>const</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A constant number.</p>
+                        <p>Defaults to <code>1.0</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTypeMultinomial"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureTypeMultinomial</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: multinomial</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>normalize</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Normalize the resulting vector of the extractor to have L2 norm 1.0.</p>
+                        <p>Defaults to <code></code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>values</p>
+                      </td>
+                      <td>
+                        <p>Array of Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>hashDimension</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>datetime</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
+                          <br> This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.</p>
+                        <p>Defaults to <code></code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>field</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the field from which to take the value.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTypeNumeric"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureTypeNumeric</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: numeric</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>normalize</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Normalize values between 0.0 and 1.0.</p>
+                        <p>Defaults to <code></code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>min</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The minimal value used to form the normalization.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>max</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The maximal value used to form the normalization.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>field</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the field from which to take the value.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTypeRandom"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureTypeRandom</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: random</p>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>seed</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A random seed number.</p>
+                        <p>Defaults to <code></code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTypes"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureTypes</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature types.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>constant</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureTypeConstant">module:qm~FeatureTypeConstant</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The constant type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>random</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureTypeRandom">module:qm~FeatureTypeRandom</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The random type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>numeric</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureTypeNumeric">module:qm~FeatureTypeNumeric</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The numeric type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>categorical</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureTypeCategorical">module:qm~FeatureTypeCategorical</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The categorical type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>multinomial</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureTypeMultinomial">module:qm~FeatureTypeMultinomial</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The multinomial type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>text</p>
+                      </td>
+                      <td>
+                        <p>module:qm~FeatureTypeText</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The text type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>join</p>
+                      </td>
+                      <td>
+                        <p>module:qm~FeatureTypeJoin</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The join type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>pair</p>
+                      </td>
+                      <td>
+                        <p>module:qm~FeatureTypePair</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pair type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>jsfunc</p>
+                      </td>
+                      <td>
+                        <p>module:qm~FeatureTypeJsfunc</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The jsfunc type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>dateWindow</p>
+                      </td>
+                      <td>
+                        <p>module:qm~FeatureTypeDateWindow</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The dateWindow type.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -1349,7 +1886,7 @@ var base = new qm.Base([{
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 16, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 17, 2015.
       </p>
     </div>
   </footer>

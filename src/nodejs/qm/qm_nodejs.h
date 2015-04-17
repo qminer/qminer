@@ -291,6 +291,72 @@ private:
 * }]);
 */
 
+/**
+* Feature types.
+* @typedef {Object} FeatureTypes
+* @property {module:qm~FeatureTypeConstant} constant - The constant type.
+* @property {module:qm~FeatureTypeRandom} random - The random type.
+* @property {module:qm~FeatureTypeNumeric} numeric - The numeric type.
+* @property {module:qm~FeatureTypeCategorical} categorical - The categorical type.
+* @property {module:qm~FeatureTypeMultinomial} multinomial - The multinomial type.
+* @property {module:qm~FeatureTypeText} text - The text type.
+* @property {module:qm~FeatureTypeJoin} join - The join type.
+* @property {module:qm~FeatureTypePair} pair - The pair type.
+* @property {module:qm~FeatureTypeJsfunc} jsfunc - The jsfunc type.
+* @property {module:qm~FeatureTypeDateWindow} dateWindow - The dateWindow type.
+*
+*/
+
+/**
+* Feature type: contant
+* @typedef {Object} FeatureTypeConstant
+* @property {number} [const = 1.0] - A constant number. 
+*/
+
+/**
+* Feature type: random
+* @typedef {Object} FeatureTypeRandom
+* @property {number} [seed = 0] - A random seed number.
+*/
+
+/**
+* Feature type: numeric
+* @typedef {Object} FeatureTypeNumeric 
+* @property {boolean} [normalize = false] - Normalize values between 0.0 and 1.0.
+* @property {number} [min] - The minimal value used to form the normalization.
+* @property {number} [max] - The maximal value used to form the normalization.
+* @property {string} field - The name of the field from which to take the value.
+*/
+
+/**
+* Feature type: categorical
+* @typedef {Object} FeatureTypeCategorical
+* @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set. No dimensionalizy changes if new values are seen in the upgrades.
+* @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hasDimension to get the corresponding dimension.
+* @property {string} field - The name of the field form which to take the values.
+*/
+
+/**
+* Feature type: multinomial
+* @typedef {Object} FeatureTypeMultinomial
+* @property {boolean} [normalize = false] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
+* @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates.
+* @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
+* @property {Object} [datetime = false] - Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
+* <br> This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.
+* @property {string} field - The name of the field from which to take the value.
+*/
+
+/**
+* Feature extractor parameter object
+* @typedef {Object} FeatureExtractor
+* @property {module:qm~FeatureTypes} type - The type of the extractor.
+* @property {module:qm~FeatureSource} source - The source of the extractor.
+*/
+
+
+
+
 class TNodeJsBaseWatcher {
 private:
 	// smart pointer
@@ -1552,6 +1618,40 @@ public:
 
 ///////////////////////////////
 // NodeJs QMiner Feature Space
+
+/**
+* Feature Space
+* @classdesc Represents the feature space.
+* @class
+* @param {module:qm.Base} base - The base where the features are extracted from.
+* @param {Array.<Object>} extractors - The extractors.
+* @example
+* // import qm module
+* var qm = require('qminer');
+* // construct a base with the store
+* var base = new qm.Base({
+*	mode: 'createClean',
+*	schema: [
+*		{ name: 'NewsArticles',
+*		  fields: [
+*		{ name: "ID", primary: true, type: "string", shortstring: true },
+*		{ name: "Source", type: "string", codebook: true }
+*		]
+*	}]
+* });
+* // add a record
+* base.store('NewsArticles').add({
+*	ID: 't12344', 
+*	Source: 's1234', 
+*	DateTime: '2015-01-01T00:05:00', 
+*	Title: 'the title', 
+*	Tokens: ['token1', 'token2'], 
+*	Vector: [[0,1], [1,1]]});
+* // create a feature space 
+* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "NewsArticles", field: "Source" });
+*/
+//# exports.FeatureSpace = function (base, extractors) {};
+
 class TNodeJsFtrSpace : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
@@ -1583,14 +1683,31 @@ public:
 	//!
 	//! **Functions and properties:**
 	//!
-    //!- `num = fsp.dim` -- dimensionality of feature space
+    
+	//!- `num = fsp.dim` -- dimensionality of feature space
+	/**
+	* Returns the dimension of the feature space.
+	*/
+	//# exports.FeatureSpace.prototype.dim = undefined;
     JsDeclareProperty(dim);
-    //!- `num_array = fsp.dims` -- dimensionality of feature space for each of the internal feature extarctors
+    
+	//!- `num_array = fsp.dims` -- dimensionality of feature space for each of the internal feature extarctors
+	/**
+	* Returns an array of the dimensions of each feature extractor in the feature space.
+	*/
+	//# exports.FeatureSpace.prototype.dims = undefined;
     JsDeclareProperty(dims);
+
     //!- `fout = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns `fout`.
     JsDeclareFunction(save);
 
 	//!- `fsp = fsp.add(objJson)` -- add a feature extractor parametrized by `objJson`
+	/**
+	* Adds a new feature extractor to the feature space.
+	* @param {Object} obj - The added feature extracture.
+	* @returns {module:qm.FeatureSpace} Self.
+	*/
+	//# exports.FeatureSpace.prototype.add = function (obj) {};
 	JsDeclareFunction(add);
 
     //!- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
@@ -1601,13 +1718,29 @@ public:
     //!     by exposing them to records from record set `rs`. Returns self. For example, this can update
     //!     the vocabulary used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecords);
+
 	//!- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
+	/**
+	* Creates a sparse feature vector from the given record.
+	* @param {module:qm.Record} rec - The given record.
+	* @returns {module:la.SparseVector} The sparse feature vector gained from rec.
+	*/
+	//# exports.FeatureSpace.prototype.ftrSpVec = function (rec) {}
     JsDeclareFunction(ftrSpVec);
+
     //!- `vec = fsp.ftrVec(rec)` -- extracts feature vector `vec` from record  `rec`
-    JsDeclareFunction(ftrVec);
-    //!- `vec = fsp.invFtrVec(ftrVec)` -- performs the inverse operation of ftrVec, returns the results in
+	/**
+	* Creates a feature vector from the given record.
+	* @param {module:qm.Record} rec - The given record.
+	* @returns {module:la.Vector} The feature vector gained from rec.
+	*/
+	//# exports.FeatureSpace.prototype.ftrVec = function (rec) {};
+	JsDeclareFunction(ftrVec);
+    
+	//!- `vec = fsp.invFtrVec(ftrVec)` -- performs the inverse operation of ftrVec, returns the results in
     //!- 	an array
 	JsDeclareFunction(invFtrVec);
+
 	//!- `val = fsp.invFtrVec(ftrIdx, val)` -- inverts a single feature using the feature
 	//!- 	extractor on index `ftrIdx`
 	JsDeclareFunction(invFtr);
@@ -1620,9 +1753,23 @@ public:
     JsDeclareFunction(ftrColMat);
 
 	//!- `name = fsp.getFtrExtractor(ftrExtractor)` -- returns the name `name` (string) of `ftrExtractor`-th feature extractor in feature space `fsp`
+	/**
+	* Gives the name of feature extractor at given position.
+	* @param {number} idx - The index of the feature extractor in feature space (zero based).
+	* @returns {String} The name of the feature extractor at position idx.
+	*/
+	//# exports.FeatureSpace.prototype.getFtrExtractor = function (idx) {};
 	JsDeclareFunction(getFtrExtractor);
+
 	//!- `ftrName = fsp.getFtr(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
+	/**
+	* Gives the name of the feature at the given position.
+	* @param {number} idx - The index of the feature in feature space (zero based).
+	* @returns {String} THe name of the feature at the position idx.
+	*/
+	//# exports.FeatureSpace.prototype.getFtr = function (idx) {};
 	JsDeclareFunction(getFtr);
+
     //!- `vec = fsp.getFtrDist()` -- returns a vector with distribution over the features
     //!- `vec = fsp.getFtrDist(ftrExtractor)` -- returns a vector with distribution over the features for feature extractor ID `ftrExtractor`
     JsDeclareFunction(getFtrDist);
