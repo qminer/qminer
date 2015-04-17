@@ -337,6 +337,17 @@ private:
 */
 
 /**
+* Feature type: multinomial
+* @typedef {Object} FeatureTypeMultinomial
+* @property {boolean} [normalize = false] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
+* @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates.
+* @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
+* @property {Object} [datetime = false] - Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
+* <br> This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.
+* @property {string} field - The name of the field from which to take the value.
+*/
+
+/**
 * Feature extractor parameter object
 * @typedef {Object} FeatureExtractor
 * @property {module:qm~FeatureTypes} type - The type of the extractor.
