@@ -267,6 +267,7 @@ public:
 	void LoadAll();
 
 #ifdef XTEST
+private:
 	friend class XTest;
 	PBlobBs GetBlobStorage() { return BlobStorage; }
 #endif

@@ -299,7 +299,7 @@ public:
 	friend class TPt < TGixItemSet > ;
 	friend class TGix < TKey, TItem, TGixMerger > ;
 
-#ifdef GIX_TEST
+#ifdef XTEST
 	friend class XTest;
 	void Print() const;
 #endif
@@ -313,7 +313,7 @@ public:
 	}
 };
 
-#ifdef GIX_TEST
+#ifdef XTEST
 
 template <class TKey, class TItem, class TGixMerger>
 void TGixItemSet<TKey, TItem, TGixMerger>::Print() const {
@@ -906,7 +906,7 @@ public:
 
 	friend class TPt < TGix > ;
 	friend class TGixItemSet < TKey, TItem, TGixMerger > ;
-#ifdef GIX_TEST
+#ifdef XTEST
 	friend class XTest;
 
 	void KillHash() { this->KeyIdH.Clr(); }
@@ -1121,7 +1121,7 @@ void TGix<TKey, TItem, TGixMerger>::MergeIndex(const TPt<TGix<TKey, TItem, TGixM
 		MyItemSet->AppendItemSet(TmpItemSet);
 		//AddItemV(ItemSet->GetKey(), ItemSet->GetItemV());
 		if (TmpKeyId % 1000 == 0) {
-			TEnv::Logger->OnStatusFmt("[%d/%d]\r", TmpKeyId, TmpKeys);
+			printf("[%d/%d]\r", TmpKeyId, TmpKeys);
 		}
 	}
 }
@@ -1130,11 +1130,11 @@ template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const {
 	TFOut FOut(FNm);
 	// iterate over all the keys
-	TEnv::Logger->OnStatus("Starting Gix SaveTxt\n");
+	printf("Starting Gix SaveTxt\n");
 	int KeyId = FFirstKeyId();
 	int KeyN = 0; const int Keys = GetKeys();
 	while (FNextKeyId(KeyId)) {
-		if (KeyN % 1000 == 0) { TEnv::Logger->OnStatusFmt("%d / %d\r", KeyN, Keys); } KeyN++;
+		if (KeyN % 1000 == 0) { printf("%d / %d\r", KeyN, Keys); } KeyN++;
 		// get key and associated item set
 		const TKey& Key = GetKey(KeyId);
 		PGixItemSet ItemSet = GetItemSet(Key);
@@ -1145,7 +1145,7 @@ void TGix<TKey, TItem, TGixMerger>::SaveTxt(const TStr& FNm, const PGixKeyStr& K
 		// output statistics
 		FOut.PutStrFmtLn("%s\t%d\t%d", KeyNm.CStr(), Items, MemUsed);
 	}
-	TEnv::Logger->OnStatusFmt("Done: %d / %d\n", Keys, Keys);
+	printf("Done: %d / %d\n", Keys, Keys);
 }
 
 /// refreshes statistics for cache

@@ -1,5 +1,4 @@
-#define GIX_DEBUG
-#define GIX_TEST
+#define XTEST
 
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
