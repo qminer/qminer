@@ -937,7 +937,7 @@ int TGix<TKey, TItem, TGixMerger>::PartialFlush(int WndInMsec) {
 		cnt_all++;
 		current = current->PrevNd;
 	}
-	printf("Partial flush - %d itemsets saved to disk, scanned %d - %f.\n", cnt, cnt_all, ((double)cnt / cnt_all));
+	TEnv::Logger->OnStatusFmt("Partial flush - %d itemsets saved to disk, scanned %d - %f.\n", cnt, cnt_all, ((double)cnt / cnt_all));
 	return cnt;
 }
 
@@ -1121,7 +1121,7 @@ void TGix<TKey, TItem, TGixMerger>::MergeIndex(const TPt<TGix<TKey, TItem, TGixM
 		MyItemSet->AppendItemSet(TmpItemSet);
 		//AddItemV(ItemSet->GetKey(), ItemSet->GetItemV());
 		if (TmpKeyId % 1000 == 0) {
-			printf("[%d/%d]\r", TmpKeyId, TmpKeys);
+			TEnv::Logger->OnStatusFmt("[%d/%d]\r", TmpKeyId, TmpKeys);
 		}
 	}
 }
@@ -1130,11 +1130,11 @@ template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const {
 	TFOut FOut(FNm);
 	// iterate over all the keys
-	printf("Starting Gix SaveTxt\n");
+	TEnv::Logger->OnStatus("Starting Gix SaveTxt\n");
 	int KeyId = FFirstKeyId();
 	int KeyN = 0; const int Keys = GetKeys();
 	while (FNextKeyId(KeyId)) {
-		if (KeyN % 1000 == 0) { printf("%d / %d\r", KeyN, Keys); } KeyN++;
+		if (KeyN % 1000 == 0) { TEnv::Logger->OnStatusFmt("%d / %d\r", KeyN, Keys); } KeyN++;
 		// get key and associated item set
 		const TKey& Key = GetKey(KeyId);
 		PGixItemSet ItemSet = GetItemSet(Key);
@@ -1145,7 +1145,7 @@ void TGix<TKey, TItem, TGixMerger>::SaveTxt(const TStr& FNm, const PGixKeyStr& K
 		// output statistics
 		FOut.PutStrFmtLn("%s\t%d\t%d", KeyNm.CStr(), Items, MemUsed);
 	}
-	printf("Done: %d / %d\n", Keys, Keys);
+	TEnv::Logger->OnStatusFmt("Done: %d / %d\n", Keys, Keys);
 }
 
 /// refreshes statistics for cache
@@ -1181,16 +1181,16 @@ void TGix<TKey, TItem, TGixMerger>::RefreshStats() {
 template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::PrintStats() {
 	RefreshStats();
-	printf(".... gix cache stats - all=%d dirty=%d, loaded_perc=%f dirty_loaded_perc=%f, avg_len=%f, mem_used=%d \n",
+	TEnv::Logger->OnStatusFmt(".... gix cache stats - all=%d dirty=%d, loaded_perc=%f dirty_loaded_perc=%f, avg_len=%f, mem_used=%d \n",
 		Stats.CacheAll, Stats.CacheDirty, Stats.CacheAllLoadedPerc, Stats.CacheDirtyLoadedPerc,
 		Stats.AvgLen, Stats.MemUsed);
 	const TBlobBsStats& blob_stats = ItemSetBlobBs->GetStats();
-	printf(".... gix blob stats - puts=%u puts_new=%u gets=%u dels=%u size_chngs=%u avg_len_get=%f avg_len_put=%f avg_len_put_new=%f\n",
+	TEnv::Logger->OnStatusFmt(".... gix blob stats - puts=%u puts_new=%u gets=%u dels=%u size_chngs=%u avg_len_get=%f avg_len_put=%f avg_len_put_new=%f\n",
 		blob_stats.Puts, blob_stats.PutsNew, blob_stats.Gets,
 		blob_stats.Dels, blob_stats.SizeChngs, blob_stats.AvgGetLen, blob_stats.AvgPutLen, blob_stats.AvgPutNewLen);
 	ItemSetBlobBs->ResetStats();
-	printf(".... hash-table stats - memory=%s size=%d\n", TUInt64::GetKiloStr(KeyIdH.GetMemUsed()).CStr(), KeyIdH.Len());
-	printf(".... gix - cnt=%s, memory=%s, hash=%s, cache=%s\n", 
+	TEnv::Logger->OnStatusFmt(".... hash-table stats - memory=%s size=%d\n", TUInt64::GetKiloStr(KeyIdH.GetMemUsed()).CStr(), KeyIdH.Len());
+	TEnv::Logger->OnStatusFmt(".... gix - cnt=%s, memory=%s, hash=%s, cache=%s\n",
         TUInt64::GetMegaStr(KeyIdH.Len()).CStr(),
         TUInt64::GetMegaStr(GetMemUsed()).CStr(), TUInt64::GetMegaStr(KeyIdH.GetMemUsed()).CStr(), TUInt64::GetMegaStr(ItemSetCache.GetMemUsed()).CStr());
 }
@@ -1236,7 +1236,7 @@ template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
 	// check if we have to drop anything from the cache
 	if (NewCacheSizeInc > CacheResetThreshold) {
-		printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr());
+		TEnv::Logger->OnStatusFmt("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr());
 		// pack all the item sets
 		TBlobPt BlobPt;
 		PGixItemSet ItemSet;
@@ -1248,7 +1248,7 @@ void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
 		CacheFullP = ItemSetCache.RefreshMemUsed();
 		NewCacheSizeInc = 0;
 		const uint64 NewSize = ItemSetCache.GetMemUsed();
-		printf("Done [%s]\n", TUInt64::GetMegaStr(NewSize).CStr());
+		TEnv::Logger->OnStatusFmt("Done [%s]\n", TUInt64::GetMegaStr(NewSize).CStr());
 	}
 }
 
