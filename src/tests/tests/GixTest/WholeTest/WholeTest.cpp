@@ -139,7 +139,7 @@ public:
 			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
 		}
 		{
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate);
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
 			
 			int loaded_cnt = 0;
 			for (int i = 0; i < storage.ValV.Len(); i++) {
@@ -151,12 +151,48 @@ public:
 			
 			storage.LoadAll();
 
+			loaded_cnt = 0;
 			for (int i = 0; i < storage.ValV.Len(); i++) {
 				if (storage.DirtyV[i] != 3) { // if loaded
 					loaded_cnt++;
 				}
 			}
 			EXPECT_EQ(loaded_cnt, storage.ValV.Len());
+		}
+	}
+
+
+	static void TInMemStorage_PerfTest() {
+		TStr Fn = "data\\in_mem_storage";
+		TStr Fn2 = "data\\in_mem_storage2";
+		int cnt = 100000;
+		{
+			// generate data
+			TQm::TStorage::TInMemStorage storage(Fn);
+			TVec<TMem, int64> ValV;
+			for (int i = 0; i < cnt; i++) {
+				TMem mem;
+				mem.AddBf(&storage, i % 4);
+				auto res1 = storage.AddVal(mem);
+				ValV.Add(mem);
+			}
+			{
+				// save vector
+				TFOut FOut(Fn2);
+				ValV.Save(FOut);
+			}
+		}
+		{
+			TTmStopWatch sw1(true);
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, false);
+			sw1.Stop();
+			printf("in-mem storage %d\n", sw1.GetMSecInt());
+
+			TTmStopWatch sw2(true);
+			TVec<TMem, int64> ValV;
+			TFIn FIn(Fn2);
+			ValV.Load(FIn);
+			printf("vector storage %d\n", sw2.GetMSecInt());
 		}
 	}
 };
@@ -319,3 +355,5 @@ TEST(testTBase, myTBaseTest) {
 TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
 TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
 TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
+TEST(testTInMemStorage, LoadAll1) { XTest::TInMemStorage_LoadAll1(); }
+TEST(testTInMemStorage, PerfTest) { XTest::TInMemStorage_PerfTest(); }
