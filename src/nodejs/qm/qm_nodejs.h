@@ -292,7 +292,7 @@ private:
 */
 
 /**
-* Feature types.
+* Feature extractor types.
 * @typedef {Object} FeatureExtractors
 * @property {module:qm~FeatureExtractorConstant} constant - The constant type.
 * @property {module:qm~FeatureExtractorRandom} random - The random type.
@@ -392,7 +392,8 @@ private:
 * Feature type: dateWindow
 * @typedef {Object} FeatureExtractorDateWindow
 * @property {string} type - The type of the extractor. It must be equal 'dateWindow'.
-* @property {module:qm~FeatureDateWindowUnit} [unit = 'day'] - How granular is the time window.
+* @property {module:qm~FeatureDateWindowUnit} [unit = 'day'] - How granular is the time window. Options: day, week, month, year, 12hours, 6hours, 4hours, 2hours,
+* <br>hour, 30minutes, 15minutes, 10minutes, minute, second.
 * @property {number} [window = 1] - The size of the window.
 * @property {boolean} [normalize = false] - Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO
 * @property {number} start - //TODO
@@ -411,6 +412,11 @@ private:
 * @property {module:qm~FeatureSource} source - The source of the extractor.
 */
 
+/**
+* From where are the input records taken.
+* @typedef {Object} FeatureSource
+* @property {string} store - The store name.
+*/
 
 class TNodeJsBaseWatcher {
 private:

@@ -66,6 +66,11 @@ describe('Feature Space Tests', function () {
                 console.log("should be seen on screen: none");
             })
         })
+
+        it('shoud construct a new feature space using a base and feature extractor, the extractor gets the store object as source', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "numeric", source: Store.name, field: "Value" });
+            assert.notEqual(ftr, null);
+        })
     });
 
     describe('Dim Tests', function () {
@@ -253,6 +258,24 @@ describe('Feature Space Tests', function () {
             assert.equal(vec.at(1), "a");
         })
     });
+
+    describe.only('InvFtr Tests', function () {
+        it('should inverse the value using the first feature extractor', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
+            var val = ftr.invFtr(0, 1);
+
+            assert.equal(val, 1.0);
+        })
+        it('should inverse the value using the second feature extractor', function () {
+            var ftr = new qm.FeatureSpace(base, [ 
+                {type: "numeric", source: "FtrSpaceTest", field: "Value"},
+                {type: "categorical", source: "FtrSpaceTest", field: "Category", value: ["a", "b", "c"]}
+                ]);
+            var val = ftr.invFtr(1, [0, 1, 0]);
+
+            assert.equal(val, "b");
+        })
+    })
 
     describe('GetFtrExtractor Tests', function () {
         it('should return the name of the first feature extractor', function () {

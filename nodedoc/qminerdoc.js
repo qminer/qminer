@@ -251,7 +251,7 @@
 * }]);
 */
 /**
-* Feature types.
+* Feature extractor types.
 * @typedef {Object} FeatureExtractors
 * @property {module:qm~FeatureExtractorConstant} constant - The constant type.
 * @property {module:qm~FeatureExtractorRandom} random - The random type.
