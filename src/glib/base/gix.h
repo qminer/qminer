@@ -21,7 +21,7 @@
 #define GIX_H
 
 //#include "tm.h"
-#include <inttypes.h>
+//#include <inttypes.h>
 
 // this file depends only on base.h
 
@@ -937,7 +937,7 @@ int TGix<TKey, TItem, TGixMerger>::PartialFlush(int WndInMsec) {
 		cnt_all++;
 		current = current->PrevNd;
 	}
-	TEnv::Logger->OnStatusFmt("Partial flush - %d itemsets saved to disk, scanned %d - %f.\n", cnt, cnt_all, ((double)cnt / cnt_all));
+	printf("Partial flush - %d itemsets saved to disk, scanned %d - %f.\n", cnt, cnt_all, ((double)cnt / cnt_all));
 	return cnt;
 }
 
@@ -1181,16 +1181,16 @@ void TGix<TKey, TItem, TGixMerger>::RefreshStats() {
 template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::PrintStats() {
 	RefreshStats();
-	TEnv::Logger->OnStatusFmt(".... gix cache stats - all=%d dirty=%d, loaded_perc=%f dirty_loaded_perc=%f, avg_len=%f, mem_used=%d \n",
+	printf(".... gix cache stats - all=%d dirty=%d, loaded_perc=%f dirty_loaded_perc=%f, avg_len=%f, mem_used=%d \n",
 		Stats.CacheAll, Stats.CacheDirty, Stats.CacheAllLoadedPerc, Stats.CacheDirtyLoadedPerc,
 		Stats.AvgLen, Stats.MemUsed);
 	const TBlobBsStats& blob_stats = ItemSetBlobBs->GetStats();
-	TEnv::Logger->OnStatusFmt(".... gix blob stats - puts=%u puts_new=%u gets=%u dels=%u size_chngs=%u avg_len_get=%f avg_len_put=%f avg_len_put_new=%f\n",
+	printf(".... gix blob stats - puts=%u puts_new=%u gets=%u dels=%u size_chngs=%u avg_len_get=%f avg_len_put=%f avg_len_put_new=%f\n",
 		blob_stats.Puts, blob_stats.PutsNew, blob_stats.Gets,
 		blob_stats.Dels, blob_stats.SizeChngs, blob_stats.AvgGetLen, blob_stats.AvgPutLen, blob_stats.AvgPutNewLen);
 	ItemSetBlobBs->ResetStats();
-	TEnv::Logger->OnStatusFmt(".... hash-table stats - memory=%s size=%d\n", TUInt64::GetKiloStr(KeyIdH.GetMemUsed()).CStr(), KeyIdH.Len());
-	TEnv::Logger->OnStatusFmt(".... gix - cnt=%s, memory=%s, hash=%s, cache=%s\n",
+	printf(".... hash-table stats - memory=%s size=%d\n", TUInt64::GetKiloStr(KeyIdH.GetMemUsed()).CStr(), KeyIdH.Len());
+	printf(".... gix - cnt=%s, memory=%s, hash=%s, cache=%s\n",
         TUInt64::GetMegaStr(KeyIdH.Len()).CStr(),
         TUInt64::GetMegaStr(GetMemUsed()).CStr(), TUInt64::GetMegaStr(KeyIdH.GetMemUsed()).CStr(), TUInt64::GetMegaStr(ItemSetCache.GetMemUsed()).CStr());
 }
@@ -1236,7 +1236,7 @@ template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
 	// check if we have to drop anything from the cache
 	if (NewCacheSizeInc > CacheResetThreshold) {
-		TEnv::Logger->OnStatusFmt("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr());
+		printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr());
 		// pack all the item sets
 		TBlobPt BlobPt;
 		PGixItemSet ItemSet;
@@ -1248,7 +1248,7 @@ void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
 		CacheFullP = ItemSetCache.RefreshMemUsed();
 		NewCacheSizeInc = 0;
 		const uint64 NewSize = ItemSetCache.GetMemUsed();
-		TEnv::Logger->OnStatusFmt("Done [%s]\n", TUInt64::GetMegaStr(NewSize).CStr());
+		printf("Done [%s]\n", TUInt64::GetMegaStr(NewSize).CStr());
 	}
 }
 
