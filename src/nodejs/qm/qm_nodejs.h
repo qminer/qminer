@@ -1800,10 +1800,23 @@ public:
     
 	//!- `vec = fsp.invFtrVec(ftrVec)` -- performs the inverse operation of ftrVec, returns the results in
     //!- 	an array
+	/**
+	* Performs the inverse operation of ftrVec. Vorks only for numeric feature extractors.
+	* @param {(module:qm.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
+	* @returns {module:qm.Vector} The inverse of ftr as vector.
+	*/
+	//# exports.FeatureSpace.prototype.invFtrVec = function (ftr) {};
 	JsDeclareFunction(invFtrVec);
 
-	//!- `val = fsp.invFtrVec(ftrIdx, val)` -- inverts a single feature using the feature
+	//!- `val = fsp.invFtr(ftrIdx, val)` -- inverts a single feature using the feature
 	//!- 	extractor on index `ftrIdx`
+	/**
+	* Calculates the inverse of a single feature using a specific feature extractor.
+	* @param {number} idx - The index of the specific feature extractor.
+	* @param {Object} val - The value to be inverted.
+	* @returns {Object} The inverse of val using the feature extractor with index idx.
+	*/
+	//# exports.FeatureSpace.prototype.invFtr = function (idx, val) {};
 	JsDeclareFunction(invFtr);
 
     //!- `spMat = fsp.ftrSpColMat(rs)` -- extracts sparse feature vectors from

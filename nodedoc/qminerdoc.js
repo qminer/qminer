@@ -342,7 +342,8 @@
 * Feature type: dateWindow
 * @typedef {Object} FeatureExtractorDateWindow
 * @property {string} type - The type of the extractor. It must be equal 'dateWindow'.
-* @property {module:qm~FeatureDateWindowUnit} [unit = 'day'] - How granular is the time window.
+* @property {module:qm~FeatureDateWindowUnit} [unit = 'day'] - How granular is the time window. Options: day, week, month, year, 12hours, 6hours, 4hours, 2hours,
+* <br>hour, 30minutes, 15minutes, 10minutes, minute, second.
 * @property {number} [window = 1] - The size of the window.
 * @property {boolean} [normalize = false] - Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO
 * @property {number} start - //TODO
@@ -357,6 +358,11 @@
 * @property {function} fun - The javascript function callback. It should take a record as input and return a number or a dense vector.
 * @property {number} [dim = 1] - The dimension of the feature extractor.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
+*/
+/**
+* From where are the input records taken.
+* @typedef {Object} FeatureSource
+* @property {string} store - The store name.
 */
 /**
 * Base
@@ -909,6 +915,19 @@
 	* @returns {module:la.Vector} The feature vector gained from rec.
 	*/
  exports.FeatureSpace.prototype.ftrVec = function (rec) {};
+/**
+	* Performs the inverse operation of ftrVec. Vorks only for numeric feature extractors.
+	* @param {(module:qm.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
+	* @returns {module:qm.Vector} The inverse of ftr as vector.
+	*/
+ exports.FeatureSpace.prototype.invFtrVec = function (ftr) {};
+/**
+	* Calculates the inverse of a single feature using a specific feature extractor.
+	* @param {number} idx - The index of the specific feature extractor.
+	* @param {Object} val - The value to be inverted.
+	* @returns {Object} The inverse of val using the feature extractor with index idx.
+	*/
+ exports.FeatureSpace.prototype.invFtr = function (idx, val) {};
 /**
 	* Gives the name of feature extractor at given position.
 	* @param {number} idx - The index of the feature extractor in feature space (zero based).

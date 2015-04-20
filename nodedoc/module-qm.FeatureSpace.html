@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">FeatureSpace</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-885">qminerdoc.<wbr>js:885</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-891">qminerdoc.<wbr>js:891</a></p>
             <div class="symbol-classdesc">
               <p>Represents the feature space.</p>
             </div>
@@ -65,21 +65,27 @@
                     <dt><a href="module-qm.FeatureSpace.html#ftrSpVec">ftrSpVec(rec)</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="module-qm.FeatureSpace.html#ftrVec">ftrVec(rec)</a></dt>
                     <dd>
                     </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
                     <dt><a href="module-qm.FeatureSpace.html#getFtr">getFtr(idx)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.FeatureSpace.html#getFtrExtractor">getFtrExtractor(idx)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.FeatureSpace.html#invFtr">invFtr(idx, val)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.FeatureSpace.html#getFtrExtractor">getFtrExtractor(idx)</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#invFtrVec">invFtrVec(ftr)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -363,6 +369,94 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;N
                 <dt>Returns</dt>
                 <dd>
                   <p><code>String</code>&nbsp;The name of the feature extractor at position idx.</p>
+                </dd>
+              </dl>
+              <h3 id="invFtr"><span class="symbol-name">invFtr</span><span class="signature"><span class="signature-params">(idx, val)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Calculates the inverse of a single feature using a specific feature extractor.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>idx</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The index of the specific feature extractor.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>val</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The value to be inverted.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;The inverse of val using the feature extractor with index idx.</p>
+                </dd>
+              </dl>
+              <h3 id="invFtrVec"><span class="symbol-name">invFtrVec</span><span class="signature"><span class="signature-params">(ftr)</span>&nbsp;&rarr; <span class="signature-returns"> module:qm.Vector</span></span></h3>
+              <p>Performs the inverse operation of ftrVec. Vorks only for numeric feature extractors.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>ftr</p>
+                      </td>
+                      <td>
+                        <p>(module:qm.Vector or Array of Object)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The feature vector or an array with feature values.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>module:qm.Vector</code>&nbsp;The inverse of ftr as vector.</p>
                 </dd>
               </dl>
             </section>
