@@ -335,7 +335,7 @@ describe('Feature Space Tests', function () {
         })
     });
 
-    describe.skip('Filter Tests', function () {
+    describe('Filter Tests', function () {
         it('should return only the features of a vector for a given feature extractor id', function () {
             var ftr = new qm.FeatureSpace(base, [
                { type: "numeric", source: "FtrSpaceTest", field: "Value" },
@@ -345,11 +345,8 @@ describe('Feature Space Tests', function () {
                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 }
             ]);
 
-            var in_vec = ftr.ftrVec(Store[0]);
-            var out_vec = ftr.filter(in_vec, 1);
-            in_vec.print();
-            out_vec.print();
-
+            var in_vec = ftr.ftrSpVec(Store[0]);
+            var out_vec = ftr.filter(in_vec, 0);
             assert.equal(out_vec.at(0), 1);
             assert.equal(out_vec.at(1), 0);
             assert.equal(out_vec.at(2), 0);
