@@ -283,7 +283,7 @@
 * Feature type: numeric
 * @typedef {Object} FeatureExtractorNumeric 
 * @property {string} type - The type of the extractor. It must be equal 'numeric'.
-* @property {boolean} [normalize = false] - Normalize values between 0.0 and 1.0.
+* @property {boolean} [normalize = 'false'] - Normalize values between 0.0 and 1.0.
 * @property {number} [min] - The minimal value used to form the normalization.
 * @property {number} [max] - The maximal value used to form the normalization.
 * @property {string} field - The name of the field from which to take the value.
@@ -302,7 +302,7 @@
 * Feature type: multinomial
 * @typedef {Object} FeatureExtractorMultinomial
 * @property {string} type - The type of the extractor. It must be equal 'multinomial'.
-* @property {boolean} [normalize = false] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
+* @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
 * @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
 * @property {Object} [datetime = false] - Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
@@ -314,7 +314,7 @@
 * Feature type: text
 * @typedef {Object} FeatureExtractorText
 * @property {string} type - The type of the extractor. It must be equal 'text'.
-* @property {boolean} [normalize = true] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
+* @property {boolean} [normalize = 'true'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
 * @property {module:qm~FeatureWight} weight - Type of weighting used for scoring terms.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
 * @property {string} field - The name of the field from which to take the value.
@@ -342,10 +342,10 @@
 * Feature type: dateWindow
 * @typedef {Object} FeatureExtractorDateWindow
 * @property {string} type - The type of the extractor. It must be equal 'dateWindow'.
-* @property {module:qm~FeatureDateWindowUnit} [unit = 'day'] - How granular is the time window. Options: day, week, month, year, 12hours, 6hours, 4hours, 2hours,
-* <br>hour, 30minutes, 15minutes, 10minutes, minute, second.
+* @property {string} [unit = 'day'] - How granular is the time window. Options: day, week, month, year, 12hours, 6hours, 4hours, 2hours,
+* hour, 30minutes, 15minutes, 10minutes, minute, second.
 * @property {number} [window = 1] - The size of the window.
-* @property {boolean} [normalize = false] - Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO
+* @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO
 * @property {number} start - //TODO
 * @property {number} end - //TODO
 * @property {module:qm~FeatureSource} source - The source of the extractor.
