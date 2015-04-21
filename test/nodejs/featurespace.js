@@ -366,7 +366,7 @@ describe('Feature Space Tests', function () {
         })
     });
 
-    describe.skip('Filter Tests', function () {
+    describe.only('Filter Tests', function () {
         it('should return only the features of a vector for a given feature extractor id = 0', function () {
             var ftr = new qm.FeatureSpace(base, [
                { type: "numeric", source: "FtrSpaceTest", field: "Value" },
@@ -407,7 +407,7 @@ describe('Feature Space Tests', function () {
         })
     });
 
-    describe.only('UpdateRecord Tests', function () {
+    describe('UpdateRecord Tests', function () {
         it('should update the feature space with a new record', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" });
             assert.equal(ftr.ftrVec(Store[0]).at(0), 0);

@@ -87,7 +87,7 @@
   },
   "main": "./index.js",
   "engines": {
-    "node": "0.12.0"
+    "node": "0.12.2"
   },
   "dependencies": {
     "bindings": "~1.2.1",

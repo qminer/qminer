@@ -4242,31 +4242,52 @@ void TNodeJsFtrSpace::filter(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	try {
 		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-
-		const TIntFltKdV& SpV = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject())->Vec;
+		QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId()) || TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpVec::ClassId), "FeatureSpace.filter: expecting a dense or a sparse vector as the first argument!");
 		const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1);
 		const bool KeepOffsetP = TNodeJsUtil::GetArgBool(Args, 2, true);
 		// get dimension border
 		const int MnFtrN = JsFtrSpace->FtrSpace->GetMnFtrN(FtrExtN);
 		const int MxFtrN = JsFtrSpace->FtrSpace->GetMxFtrN(FtrExtN);
 
-		// filter
-		TIntFltKdV NewSpV;
-		for (int FtrN = 0; FtrN < SpV.Len(); FtrN++) {
-			const TIntFltKd& Ftr = SpV[FtrN];
-			if (MnFtrN <= Ftr.Key && Ftr.Key < MxFtrN) {
-				NewSpV.Add(Ftr);
+		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpVec::ClassId)) {
+			const TIntFltKdV& SpV = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject())->Vec;
+			
+			// filter
+			TIntFltKdV NewSpV;
+			for (int FtrN = 0; FtrN < SpV.Len(); FtrN++) {
+				const TIntFltKd& Ftr = SpV[FtrN];
+				if (MnFtrN <= Ftr.Key && Ftr.Key < MxFtrN) {
+					NewSpV.Add(Ftr);
+				}
+			}
+			if (!KeepOffsetP) {
+				for (int NewSpN = 0; NewSpN < NewSpV.Len(); NewSpN++) {
+					NewSpV[NewSpN].Key -= MnFtrN;
+				}
+			}
+
+			const int VecDim = KeepOffsetP ? JsFtrSpace->FtrSpace->GetDim() : (MxFtrN - MnFtrN);
+			Args.GetReturnValue().Set(TNodeJsSpVec::New(NewSpV, VecDim));
+		} else {
+			if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
+				const TFltV& Vec = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject())->Vec;
+				int DimN = JsFtrSpace->FtrSpace->GetFtrExtDim(FtrExtN);
+
+				// filter				
+				TFltV NewVec;
+				if (KeepOffsetP) { 
+					NewVec.Gen(Vec.Len()); 
+				} else {
+					NewVec.Gen(DimN);
+				}
+				int VecOffset = JsFtrSpace->FtrSpace->GetMnFtrN(FtrExtN);
+				int NewVecOffset = KeepOffsetP ? JsFtrSpace->FtrSpace->GetMnFtrN(FtrExtN) : 0;
+				for (int FtrN = 0; FtrN < DimN; FtrN++) {
+					NewVec[FtrN + NewVecOffset] = Vec[FtrN + VecOffset];
+				}
+				Args.GetReturnValue().Set(TNodeJsFltV::New(NewVec));
 			}
 		}
-		if (!KeepOffsetP) {
-			for (int NewSpN = 0; NewSpN < NewSpV.Len(); NewSpN++) {
-				NewSpV[NewSpN].Key -= MnFtrN;
-			}
-		}
-
-		const int VecDim = KeepOffsetP ? JsFtrSpace->FtrSpace->GetDim() : (MxFtrN - MnFtrN);
-
-		Args.GetReturnValue().Set(TNodeJsSpVec::New(NewSpV, VecDim));
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::filter");
 	}
