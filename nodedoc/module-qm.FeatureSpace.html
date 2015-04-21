@@ -68,27 +68,33 @@
                     <dt><a href="module-qm.FeatureSpace.html#ftrSpVec">ftrSpVec(rec)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.FeatureSpace.html#ftrVec">ftrVec(rec)</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.FeatureSpace.html#ftrVec">ftrVec(rec)</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.FeatureSpace.html#getFtr">getFtr(idx)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.FeatureSpace.html#getFtrExtractor">getFtrExtractor(idx)</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="module-qm.FeatureSpace.html#invFtr">invFtr(idx, val)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.FeatureSpace.html#invFtrVec">invFtrVec(ftr)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.FeatureSpace.html#updateRecord">updateRecord(rec)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.FeatureSpace.html#updateRecords">updateRecords(rs)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -549,6 +555,80 @@ var vec3 = ftr.filter(vec, 1, false); // returns vector [0, 1, 0]</code></pre>
                 <dt>Returns</dt>
                 <dd>
                   <p><code>module:qm.Vector</code>&nbsp;The inverse of ftr as vector.</p>
+                </dd>
+              </dl>
+              <h3 id="updateRecord"><span class="symbol-name">updateRecord</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></span></span></h3>
+              <p>Updates the feature space definitions and extractors by adding one record.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>rec</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.Record.html">module:qm.Record</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The record, which updates the feature space.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="updateRecords"><span class="symbol-name">updateRecords</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></span></span></h3>
+              <p>Updates the feature space definitions and extractors by adding all the records of a record set.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>rs</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.RecSet.html">module:qm.RecSet</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The record set, which updates the feature space.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></code>&nbsp;Self.</p>
                 </dd>
               </dl>
             </section>

@@ -460,13 +460,42 @@ describe('Feature Space Tests', function () {
         })
     });
 
-    describe.only('UpdateRecord Tests', function () {
+    describe('UpdateRecord Tests', function () {
         it('should update the feature space with a new record', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" });
-            assert.equal(ftr.ftrVec(Store[0]).at(0), 1);
-            //ftr.updateRecord({ Value: 1.1, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Something something." });
-            //assert.equal(ftr.ftrVec(Store[0]).at(0), 0);
 
+            ftr.updateRecord(Store[0]);
+            assert.equal(ftr.ftrVec(Store[0]).at(0), 1);
+
+            ftr.updateRecord(Store[1]);
+            assert.equal(ftr.ftrVec(Store[0]).at(0), 0);
+            assert.equal(ftr.ftrVec(Store[1]).at(0), 1);
+
+            ftr.updateRecord(Store[2]);
+            assert.eqtol(ftr.ftrVec(Store[0]).at(0), 0);
+            assert.eqtol(ftr.ftrVec(Store[1]).at(0), 0.5);
+            assert.eqtol(ftr.ftrVec(Store[2]).at(0), 1);
+        })
+        it('should update the feature space with a new record, multinomial', function () {
+            var ftr = new qm.FeatureSpace(base,
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
+            );
+
+            ftr.updateRecord(Store[0]);
+            assert.eqtol(ftr.ftrVec(Store[0]).at(0), (1 / Math.sqrt(2)));
+            assert.eqtol(ftr.ftrVec(Store[0]).at(3), (1 / Math.sqrt(2)));
+        })
+    });
+
+    describe('UpdateRecords Tests', function () {
+        it('should update the feature space by adding a whole record space', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" });
+            var rs = Store.recs;
+
+            ftr.updateRecords(rs);
+            for (var i = 0; i < 11; i++) {
+                assert.eqtol(ftr.ftrVec(Store[i]).at(0), i / 10);
+            };
         })
     })
 })

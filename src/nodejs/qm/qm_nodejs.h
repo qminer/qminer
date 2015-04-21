@@ -1774,10 +1774,23 @@ public:
     //!- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
     //!     by exposing them to record `rec`. Returns self. For example, this can update the vocabulary
     //!     used by bag-of-words extractor by taking into account new text.
+	/**
+	* Updates the feature space definitions and extractors by adding one record.
+	* @param {module:qm.Record} rec - The record, which updates the feature space.
+	* @returns {module:qm.FeatureSpace} Self.
+	*/
+	//# exports.FeatureSpace.prototype.updateRecord = function (rec) {};
 	JsDeclareFunction(updateRecord);
+
     //!- `fsp = fsp.updateRecords(rs)` -- update feature space definitions and extractors
     //!     by exposing them to records from record set `rs`. Returns self. For example, this can update
     //!     the vocabulary used by bag-of-words extractor by taking into account new text.
+	/**
+	* Updates the feature space definitions and extractors by adding all the records of a record set.
+	* @param {module:qm.RecSet} rs - The record set, which updates the feature space.
+	* @returns {module:qm.FeatureSpace} Self.
+	*/
+	//# exports.FeatureSpace.prototype.updateRecords = function (rs) {};
 	JsDeclareFunction(updateRecords);
 
 	//!- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`

@@ -914,6 +914,18 @@ exports.datasets= require('qminer_datasets');
 	*/
  exports.FeatureSpace.prototype.add = function (obj) {};
 /**
+	* Updates the feature space definitions and extractors by adding one record.
+	* @param {module:qm.Record} rec - The record, which updates the feature space.
+	* @returns {module:qm.FeatureSpace} Self.
+	*/
+ exports.FeatureSpace.prototype.updateRecord = function (rec) {};
+/**
+	* Updates the feature space definitions and extractors by adding all the records of a record set.
+	* @param {module:qm.RecSet} rs - The record set, which updates the feature space.
+	* @returns {module:qm.FeatureSpace} Self.
+	*/
+ exports.FeatureSpace.prototype.updateRecords = function (rs) {};
+/**
 	* Creates a sparse feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
 	* @returns {module:la.SparseVector} The sparse feature vector gained from rec.
