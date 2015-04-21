@@ -1834,7 +1834,14 @@ public:
 
     //!- `spMat = fsp.ftrSpColMat(rs)` -- extracts sparse feature vectors from
     //!     record set `rs` and returns them as columns in a sparse matrix `spMat`.
+	/**
+	* Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.
+	* @param {module:qm.RecSet} rs - The given record set.
+	* @returns {module:la.SparseMatrix} The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.
+	*/
+	//# exports.FeatureSpace.prototype.ftrSpColMat = function (rs) {};
 	JsDeclareFunction(ftrSpColMat);
+
     //!- `mat = fsp.ftrColMat(rs)` -- extracts feature vectors from
     //!     record set `rs` and returns them as columns in a matrix `mat`.
     JsDeclareFunction(ftrColMat);

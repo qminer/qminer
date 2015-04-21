@@ -65,16 +65,19 @@
                     <dt><a href="module-qm.FeatureSpace.html#filter">filter(vec, idx[, keepOffset])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.FeatureSpace.html#ftrSpVec">ftrSpVec(rec)</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#ftrSpColMat">ftrSpColMat(rs)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.FeatureSpace.html#ftrVec">ftrVec(rec)</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#ftrSpVec">ftrSpVec(rec)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.FeatureSpace.html#ftrVec">ftrVec(rec)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.FeatureSpace.html#getFtr">getFtr(idx)</a></dt>
                     <dd>
                     </dd>
@@ -84,13 +87,13 @@
                     <dt><a href="module-qm.FeatureSpace.html#invFtr">invFtr(idx, val)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.FeatureSpace.html#invFtrVec">invFtrVec(ftr)</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.FeatureSpace.html#invFtrVec">invFtrVec(ftr)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.FeatureSpace.html#updateRecord">updateRecord(rec)</a></dt>
                     <dd>
                     </dd>
@@ -319,6 +322,43 @@ var vec3 = ftr.filter(vec, 1, false); // returns vector [0, 1, 0]</code></pre>
                   <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>)</code>&nbsp;
                     <br>1. module:la.Vector, if vec is of type module:la.Vector.
                     <br>2. module:la.SparseVector, if vec is of type module:la.SparseVector.</p>
+                </dd>
+              </dl>
+              <h3 id="ftrSpColMat"><span class="symbol-name">ftrSpColMat</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
+              <p>Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>rs</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.RecSet.html">module:qm.RecSet</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The given record set.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.</p>
                 </dd>
               </dl>
               <h3 id="ftrSpVec"><span class="symbol-name">ftrSpVec</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseVector.html">module:la.SparseVector</a></span></span></h3>

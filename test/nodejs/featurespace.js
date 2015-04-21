@@ -497,5 +497,64 @@ describe('Feature Space Tests', function () {
                 assert.eqtol(ftr.ftrVec(Store[i]).at(0), i / 10);
             };
         })
-    })
+        it('should update the feature space by adding a whole record space, multinomial', function () {
+            var ftr = new qm.FeatureSpace(base,
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
+            );
+            var rs = Store.recs;
+            ftr.updateRecords(rs);
+
+            assert.eqtol(ftr.ftrVec(Store[0]).at(0), (1 / Math.sqrt(2)));
+            assert.eqtol(ftr.ftrVec(Store[0]).at(3), (1 / Math.sqrt(2)));
+
+            assert.eqtol(ftr.ftrVec(Store[10]).at(1), (1 / Math.sqrt(2)));
+            assert.eqtol(ftr.ftrVec(Store[10]).at(4), (1 / Math.sqrt(2)));
+        })
+        it('should update the feature space by adding a whole record space, numeric, multinomial', function () {
+            var ftr = new qm.FeatureSpace(base, [
+                { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" },
+                { type: "multinomial", source: "FtrSpaceTest", normalize: true, field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
+            ]);
+            var rs = Store.recs;
+            ftr.updateRecords(rs);
+
+            assert.eqtol(ftr.ftrVec(Store[0]).at(0), 0);
+            assert.eqtol(ftr.ftrVec(Store[0]).at(1), (1 / Math.sqrt(2)));
+            assert.eqtol(ftr.ftrVec(Store[0]).at(4), (1 / Math.sqrt(2)));
+
+            assert.eqtol(ftr.ftrVec(Store[10]).at(0), 1);
+            assert.eqtol(ftr.ftrVec(Store[10]).at(2), (1 / Math.sqrt(2)));
+            assert.eqtol(ftr.ftrVec(Store[10]).at(5), (1 / Math.sqrt(2)));
+        })
+    });
+
+    describe('FtrSpColMat Tests', function () {
+        it('should return a sparse matrix gained from the numeric feature extractor', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" });
+            var rs = Store.recs;
+            var mat = ftr.ftrSpColMat(rs);
+
+            assert.eqtol(mat.at(0, 0), 1);
+            assert.eqtol(mat.at(0, 5), 1.5);
+            assert.eqtol(mat.at(0, 10), 2);
+        })
+        it('should return a bigger space matrix gained from the numeric and categorical feature extractor', function () {
+            var ftr = new qm.FeatureSpace(base, [
+                { type: "numeric", source: "FtrSpaceTest", field: "Value" },
+                { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] }
+            ]);
+            var rs = Store.recs;
+            var mat = ftr.ftrSpColMat(rs);
+
+            assert.eqtol(mat.at(0, 0), 1);
+            assert.eqtol(mat.at(1, 0), 1);
+            assert.eqtol(mat.at(3, 0), 0);
+
+            assert.eqtol(mat.at(0, 5), 1.5);
+            assert.eqtol(mat.at(3, 5), 1);
+
+            assert.eqtol(mat.at(0, 10), 2);
+            assert.eqtol(mat.at(2, 10), 1);
+        })
+    });
 })

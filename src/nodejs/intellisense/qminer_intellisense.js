@@ -951,6 +951,12 @@ exports.datasets= require('qminer_datasets');
 	*/
  exports.FeatureSpace.prototype.invFtr = function (idx, val) {};
 /**
+	* Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.
+	* @param {module:qm.RecSet} rs - The given record set.
+	* @returns {module:la.SparseMatrix} The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.
+	*/
+ exports.FeatureSpace.prototype.ftrSpColMat = function (rs) {};
+/**
 	* Gives the name of feature extractor at given position.
 	* @param {number} idx - The index of the feature extractor in feature space (zero based).
 	* @returns {String} The name of the feature extractor at position idx.
