@@ -1847,9 +1847,35 @@ public:
     //!- `vec = fsp.getFtrDist()` -- returns a vector with distribution over the features
     //!- `vec = fsp.getFtrDist(ftrExtractor)` -- returns a vector with distribution over the features for feature extractor ID `ftrExtractor`
     JsDeclareFunction(getFtrDist);
-    //!- `out_vec = fsp.filter(in_vec, ftrExtractor)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`
+    
+	//!- `out_vec = fsp.filter(in_vec, ftrExtractor)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`
     //!- `out_vec = fsp.filter(in_vec, ftrExtractor, keepOffset)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`.
     //!     If `keepOffset` == `true`, then original feature ID offset is kept, otherwise the first feature of `ftrExtractor` starts with position 0.
+	/**
+	* Filters the vector to keep only the elements from the feature extractor.
+	* @param {(module:la.Vector | module:la.SparseVector)} vec - The vector from where the function filters the elements.
+	* @param {number} idx - The index of the feature extractor.
+	* @param {boolean} [keepOffset = 'true'] - For keeping the original indexing in the new vector.
+	* @returns {(module:la.Vector | module:la.SparseVector)} 
+	* <br>1. module:la.Vector, if vec is of type module:la.Vector.
+	* <br>2. module:la.SparseVector, if vec is of type module:la.SparseVector.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new feature space
+	* var ftr = new qm.FeatureSpace(base, [
+    *     { type: "numeric", source: "FtrSpaceTest", field: "Value" },
+    *     { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
+	*     { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] }
+	*     ]);
+	* // create a new vector
+	* var vec = new qm.la.Vector([1, 0, 1, 0, 1, 0, 0, 1, 0, 0]);
+	* // filter the elements from the second feature extractor
+	* var vec2 = ftr.filter(vec, 1); // returns vector [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+	* // filter the elements from the second feature extractor, without keeping the offset
+	* var vec3 = ftr.filter(vec, 1, false); // returns vector [0, 1, 0]
+	*/
+	//# exports.FeatureSpace.prototype.filter = function (vec, idx, keepOffset) {};
     JsDeclareFunction(filter);
 
 	//!- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string

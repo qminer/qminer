@@ -62,29 +62,32 @@
                     <dt><a href="module-qm.FeatureSpace.html#add">add(obj)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.FeatureSpace.html#ftrSpVec">ftrSpVec(rec)</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#filter">filter(vec, idx[, keepOffset])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.FeatureSpace.html#ftrVec">ftrVec(rec)</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#ftrSpVec">ftrSpVec(rec)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.FeatureSpace.html#ftrVec">ftrVec(rec)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.FeatureSpace.html#getFtr">getFtr(idx)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.FeatureSpace.html#getFtrExtractor">getFtrExtractor(idx)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.FeatureSpace.html#invFtr">invFtr(idx, val)</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.FeatureSpace.html#invFtr">invFtr(idx, val)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.FeatureSpace.html#invFtrVec">invFtrVec(ftr)</a></dt>
                     <dd>
                     </dd>
@@ -223,6 +226,95 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;N
                   <p><code><a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></code>&nbsp;Self.</p>
                 </dd>
               </dl>
+              <h3 id="filter"><span class="symbol-name">filter</span><span class="signature"><span class="signature-params">(vec, idx[, keepOffset])</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>)</span></span></h3>
+              <p>Filters the vector to keep only the elements from the feature extractor.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new feature space
+var ftr = new qm.FeatureSpace(base, [
+    { type: &quot;numeric&quot;, source: &quot;FtrSpaceTest&quot;, field: &quot;Value&quot; },
+    { type: &quot;categorical&quot;, source: &quot;FtrSpaceTest&quot;, field: &quot;Category&quot;, values: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;] },
+    { type: &quot;multinomial&quot;, source: &quot;FtrSpaceTest&quot;, field: &quot;Categories&quot;, values: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;q&quot;, &quot;w&quot;, &quot;e&quot;] }
+    ]);
+// create a new vector
+var vec = new qm.la.Vector([1, 0, 1, 0, 1, 0, 0, 1, 0, 0]);
+// filter the elements from the second feature extractor
+var vec2 = ftr.filter(vec, 1); // returns vector [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+// filter the elements from the second feature extractor, without keeping the offset
+var vec3 = ftr.filter(vec, 1, false); // returns vector [0, 1, 0]</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>vec</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The vector from where the function filters the elements.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>idx</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The index of the feature extractor.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>keepOffset</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>For keeping the original indexing in the new vector.</p>
+                        <p>Defaults to <code>'true'</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>)</code>&nbsp;
+                    <br>1. module:la.Vector, if vec is of type module:la.Vector.
+                    <br>2. module:la.SparseVector, if vec is of type module:la.SparseVector.</p>
+                </dd>
+              </dl>
               <h3 id="ftrSpVec"><span class="symbol-name">ftrSpVec</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseVector.html">module:la.SparseVector</a></span></span></h3>
               <p>Creates a sparse feature vector from the given record.</p>
               <section>
@@ -331,7 +423,7 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;N
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>String</code>&nbsp;THe name of the feature at the position idx.</p>
+                  <p><code>String</code>&nbsp;The name of the feature at the position idx.</p>
                 </dd>
               </dl>
               <h3 id="getFtrExtractor"><span class="symbol-name">getFtrExtractor</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> String</span></span></h3>

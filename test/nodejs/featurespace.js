@@ -247,7 +247,7 @@ describe('Feature Space Tests', function () {
             assert.equal(vec.length, 1);
             assert.equal(vec.at(0), 1.0);
         })
-        it.skip('should return the values of the first record: one extractor (parameter is a vector)', function () {
+        it('should return the values of the first record: one extractor (parameter is a vector)', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
             var ftrvec = ftr.ftrVec(Store[0]);
 
@@ -366,54 +366,106 @@ describe('Feature Space Tests', function () {
         })
     });
 
-    describe.only('Filter Tests', function () {
-        it('should return only the features of a vector for a given feature extractor id = 0', function () {
+    describe('Filter Tests', function () {
+        it('should return only the features of a sparse vector for a given feature extractor id = 0', function () {
             var ftr = new qm.FeatureSpace(base, [
                { type: "numeric", source: "FtrSpaceTest", field: "Value" },
                { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
                { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 2 },
                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 }
+            ]);
+
+            var in_vec = ftr.ftrSpVec(Store[0]);
+            var out_vec = ftr.filter(in_vec, 0);
+
+            assert.equal(out_vec.nnz, 1);
+            assert.equal(out_vec.at(0), 1);
+        })
+        it('should return only the features of a sparse vector for the given feature extractor id = 1', function () {
+            var ftr = new qm.FeatureSpace(base, [
+               { type: "numeric", source: "FtrSpaceTest", field: "Value" },
+               { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
+               { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 2 },
+               { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
+               { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 }
+            ]);
+
+            var in_vec = ftr.ftrSpVec(Store[0]);
+            var out_vec = ftr.filter(in_vec, 1);
+
+            assert.equal(out_vec.nnz, 1);
+            assert.equal(out_vec.at(1), 1);
+        })
+        it('should return only the features of a sparse vector for the given extractor id = 3, offset = false', function () {
+            var ftr = new qm.FeatureSpace(base, [
+                { type: "numeric", source: "FtrSpaceTest", field: "Value" },
+                { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
+                { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 2 },
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 }
+            ]);
+
+            var in_vec = ftr.ftrSpVec(Store[0]);
+            var out_vec = ftr.filter(in_vec, 3, false);
+
+            assert.equal(out_vec.nnz, 2);
+            assert.equal(out_vec.at(0), 1);
+            assert.equal(out_vec.at(3), 1);
+        })
+
+        it('should return only the features of a vector for a given extractor id = 0', function () {
+            var ftr = new qm.FeatureSpace(base, [
+                { type: "numeric", source: "FtrSpaceTest", field: "Value" },
+                { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
+                { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 2 },
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 }
             ]);
 
             var in_vec = ftr.ftrVec(Store[0]);
             var out_vec = ftr.filter(in_vec, 0);
 
-            in_vec.print();
-            out_vec.print();
-
+            assert.equal(out_vec.length, 16);
             assert.equal(out_vec.at(0), 1);
-            assert.equal(out_vec.at(1), 0);
-            assert.equal(out_vec.at(2), 0);
         })
-        it('should return only the features of a vector for the given feature extractor id = 1', function () {
+        it('should return only the features of a vector for a given extractor id = 1, offset = false', function () {
             var ftr = new qm.FeatureSpace(base, [
-               { type: "numeric", source: "FtrSpaceTest", field: "Value" },
-               { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
-               { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 2 },
-               { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
-               { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 }
+                { type: "numeric", source: "FtrSpaceTest", field: "Value" },
+                { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
+                { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 2 },
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 }
             ]);
 
             var in_vec = ftr.ftrVec(Store[0]);
-            var out_vec = ftr.filter(in_vec, 4);
+            var out_vec = ftr.filter(in_vec, 1, false);
 
-            in_vec.print();
-            out_vec.print();
-
+            assert.equal(out_vec.length, 3);
             assert.equal(out_vec.at(0), 1);
-            assert.equal(out_vec.at(1), 0);
-            assert.equal(out_vec.at(2), 0);
+        })
+        it.skip('should throw an exception if the vector length is less than the start index of the extractor', function () {
+            var ftr = new qm.FeatureSpace(base, [
+                { type: "numeric", source: "FtrSpaceTest", field: "Value" },
+                { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
+                { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 2 },
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 }
+            ]);
+            var in_vec = new qm.la.Vector([1, 0, 0, 1]);
+            assert.throws(function () {
+                var out_vec = ftr.filter(in_vec, 3, false);
+            })
+
         })
     });
 
-    describe('UpdateRecord Tests', function () {
+    describe.only('UpdateRecord Tests', function () {
         it('should update the feature space with a new record', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" });
-            assert.equal(ftr.ftrVec(Store[0]).at(0), 0);
-            
-            ftr.updateRecord({ Value: 1.1, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Barclays dropped a bombshell." });
-            assert.equal(ftr.ftrVec(Store[0]).at(0), 0);
+            assert.equal(ftr.ftrVec(Store[0]).at(0), 1);
+            //ftr.updateRecord({ Value: 1.1, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Something something." });
+            //assert.equal(ftr.ftrVec(Store[0]).at(0), 0);
 
         })
     })

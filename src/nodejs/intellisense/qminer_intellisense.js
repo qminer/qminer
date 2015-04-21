@@ -947,6 +947,31 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Gives the name of the feature at the given position.
 	* @param {number} idx - The index of the feature in feature space (zero based).
-	* @returns {String} THe name of the feature at the position idx.
+	* @returns {String} The name of the feature at the position idx.
 	*/
  exports.FeatureSpace.prototype.getFtr = function (idx) {};
+/**
+	* Filters the vector to keep only the elements from the feature extractor.
+	* @param {(module:la.Vector | module:la.SparseVector)} vec - The vector from where the function filters the elements.
+	* @param {number} idx - The index of the feature extractor.
+	* @param {boolean} [keepOffset = 'true'] - For keeping the original indexing in the new vector.
+	* @returns {(module:la.Vector | module:la.SparseVector)} 
+	* <br>1. module:la.Vector, if vec is of type module:la.Vector.
+	* <br>2. module:la.SparseVector, if vec is of type module:la.SparseVector.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new feature space
+	* var ftr = new qm.FeatureSpace(base, [
+    *     { type: "numeric", source: "FtrSpaceTest", field: "Value" },
+    *     { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
+	*     { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] }
+	*     ]);
+	* // create a new vector
+	* var vec = new qm.la.Vector([1, 0, 1, 0, 1, 0, 0, 1, 0, 0]);
+	* // filter the elements from the second feature extractor
+	* var vec2 = ftr.filter(vec, 1); // returns vector [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+	* // filter the elements from the second feature extractor, without keeping the offset
+	* var vec3 = ftr.filter(vec, 1, false); // returns vector [0, 1, 0]
+	*/
+ exports.FeatureSpace.prototype.filter = function (vec, idx, keepOffset) {};
