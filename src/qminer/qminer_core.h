@@ -2793,10 +2793,10 @@ private:
 	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall, const TQueryGixUsedType& ParentGixFlag);
 
 public:
-	static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const int& SplitLen) {
+	static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const int& SplitLen = TInt::Giga) {
 		return new TBase(FPath, IndexCacheSize, SplitLen);
 	}
-	static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize, const int& SplitLen) {
+	static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize, const int& SplitLen = TInt::Giga) {
 		return new TBase(FPath, FAccess, IndexCacheSize, SplitLen);
 	}
 
