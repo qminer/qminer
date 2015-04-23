@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">FeatureSpace</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-891">qminerdoc.<wbr>js:891</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-889">qminerdoc.<wbr>js:889</a></p>
             <div class="symbol-classdesc">
               <p>Represents the feature space.</p>
             </div>
@@ -71,29 +71,32 @@
                     <dt><a href="module-qm.FeatureSpace.html#ftrSpColMat">ftrSpColMat(rs)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.FeatureSpace.html#ftrSpVec">ftrSpVec(rec)</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.FeatureSpace.html#ftrSpVec">ftrSpVec(rec)</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.FeatureSpace.html#ftrVec">ftrVec(rec)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.FeatureSpace.html#getFtr">getFtr(idx)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.FeatureSpace.html#getFtrDist">getFtrDist([idx])</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.FeatureSpace.html#getFtrExtractor">getFtrExtractor(idx)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.FeatureSpace.html#invFtr">invFtr(idx, val)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.FeatureSpace.html#invFtr">invFtr(idx, val)</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.FeatureSpace.html#invFtrVec">invFtrVec(ftr)</a></dt>
                     <dd>
                     </dd>
@@ -119,26 +122,24 @@
                 <pre class="prettyprint"><code>// import qm module
 var qm = require(&#x27;qminer&#x27;);
 // construct a base with the store
-var base = new qm.Base({
-	mode: &#x27;createClean&#x27;,
-	schema: [
-		{ name: &#x27;NewsArticles&#x27;,
-		  fields: [
-		{ name: &quot;ID&quot;, primary: true, type: &quot;string&quot;, shortstring: true },
-		{ name: &quot;Source&quot;, type: &quot;string&quot;, codebook: true }
-		]
-	}]
-});
-// add a record
-base.store(&#x27;NewsArticles&#x27;).add({
-	ID: &#x27;t12344&#x27;, 
-	Source: &#x27;s1234&#x27;, 
-	DateTime: &#x27;2015-01-01T00:05:00&#x27;, 
-	Title: &#x27;the title&#x27;, 
-	Tokens: [&#x27;token1&#x27;, &#x27;token2&#x27;], 
-	Vector: [[0,1], [1,1]]});
+base.createStore({
+       &quot;name&quot;: &quot;FtrSpace&quot;,
+       &quot;fields&quot;: [
+         { &quot;name&quot;: &quot;Value&quot;, &quot;type&quot;: &quot;float&quot; },
+         { &quot;name&quot;: &quot;Category&quot;, &quot;type&quot;: &quot;string&quot; },
+         { &quot;name&quot;: &quot;Categories&quot;, &quot;type&quot;: &quot;string_v&quot; },
+       ],
+       &quot;joins&quot;: [],
+       &quot;keys&quot;: []
+   });
+// adding some record
+Store = base.store(&quot;FtrSpace&quot;);
+Store.add({ Value: 1.0, Category: &quot;a&quot;, Categories: [&quot;a&quot;, &quot;q&quot;] });
+Store.add({ Value: 1.1, Category: &quot;b&quot;, Categories: [&quot;b&quot;, &quot;w&quot;] });
+Store.add({ Value: 1.2, Category: &quot;c&quot;, Categories: [&quot;c&quot;, &quot;e&quot;] });
+Store.add({ Value: 1.3, Category: &quot;a&quot;, Categories: [&quot;a&quot;, &quot;q&quot;] });
 // create a feature space 
-var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;NewsArticles&quot;, field: &quot;Source&quot; });</code></pre>
+var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;FtrSpace&quot;, field: &quot;Value&quot; });</code></pre>
               </div>
             </section>
             <section>
@@ -253,12 +254,18 @@ var ftr = new qm.FeatureSpace(base, [
     { type: &quot;categorical&quot;, source: &quot;FtrSpaceTest&quot;, field: &quot;Category&quot;, values: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;] },
     { type: &quot;multinomial&quot;, source: &quot;FtrSpaceTest&quot;, field: &quot;Categories&quot;, values: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;q&quot;, &quot;w&quot;, &quot;e&quot;] }
     ]);
-// create a new vector
+// create a new dense vector
 var vec = new qm.la.Vector([1, 0, 1, 0, 1, 0, 0, 1, 0, 0]);
 // filter the elements from the second feature extractor
 var vec2 = ftr.filter(vec, 1); // returns vector [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
 // filter the elements from the second feature extractor, without keeping the offset
-var vec3 = ftr.filter(vec, 1, false); // returns vector [0, 1, 0]</code></pre>
+var vec3 = ftr.filter(vec, 1, false); // returns vector [0, 1, 0]
+// create a new sparse vector
+var spVec = new qm.la.SparseVector([[0, 1], [2, 1], [4, 1], [7, 1]]);
+// filter the elements from the second feature extractor
+var spVec2 = ftr.filter(spVec, 1); // returns sparse vector [[2, 1]]
+// filter the elements from the second feature extractor, without keeping the offset
+var spVec3 = ftr.filter(spVec, 1, false); // returns sparse vector [[1, 1]]</code></pre>
                 </div>
               </section>
               <section>
@@ -512,6 +519,70 @@ var vec3 = ftr.filter(vec, 1, false); // returns vector [0, 1, 0]</code></pre>
                   <p><code>String</code>&nbsp;The name of the feature at the position idx.</p>
                 </dd>
               </dl>
+              <h3 id="getFtrDist"><span class="symbol-name">getFtrDist</span><span class="signature"><span class="signature-params">([idx])</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
+              <p>Returns an array of values from the uniform distribution over the features.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a feature space 
+var ftr = new qm.FeatureSpace(base, [
+	  { type: &quot;numeric&quot;, source: &quot;FtrSpace&quot;, normalize: true, field: &quot;Values&quot; },
+    { type: &quot;categorical&quot;, source: &quot;FtrSpace&quot;, field: &quot;Category&quot;, values: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;] },
+    { type: &quot;multinomial&quot;, source: &quot;FtrSpace&quot;, field: &quot;Categories&quot;, normalize: true, values: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;q&quot;, &quot;w&quot;, &quot;e&quot;] }
+	  ]);
+// get the uniform distribution of the whole feature space
+// returns the array [1, 1/3, 1/3, 1/3, 1/6, 1/6, 1/6, 1/6, 1/6, 1/6], where the first value 1 belongs to the 
+// uniform distribution of the first extractor, which is of dimension 1. The values 1/3 belong to the uniform 
+// distribution of the second extractor, which is of dimension 3. The values 1/6 belong to the uniform distribution
+// of the third extractor, which is of dimension 6.
+var arr = ftr.getFtrDist(); 
+// get the uniform distribution of the first feature extractor
+var arr2 = ftr.getFtrDist(0); // returns the array [1]
+// get the uniform distribution of the second feature extractor
+var arr3 = ftr.getFtrDist(1); // returns the array [1/3, 1/3, 1/3]
+// get the uniform distribution of the third feature extractor
+var arr4 = ftr.getFtrDist(2); // returns the array [1/6, 1/6, 1/6, 1/6, 1/6, 1/6]</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>idx</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The index of the feature extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Array of number</code>&nbsp;The array with values from the uniform distribution over the features.</p>
+                </dd>
+              </dl>
               <h3 id="getFtrExtractor"><span class="symbol-name">getFtrExtractor</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> String</span></span></h3>
               <p>Gives the name of feature extractor at given position.</p>
               <section>
@@ -638,7 +709,51 @@ var vec3 = ftr.filter(vec, 1, false); // returns vector [0, 1, 0]</code></pre>
                 </dd>
               </dl>
               <h3 id="updateRecord"><span class="symbol-name">updateRecord</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></span></span></h3>
-              <p>Updates the feature space definitions and extractors by adding one record.</p>
+              <p>Updates the feature space definitions and extractors by adding one record.
+                <br> For text feature extractors, it can update it's vocabulary by taking into account the new text.
+                <br> For numeric feature extractors, it can update the minimal and maximal values used to form the normalization.
+                <br> For jsfunc feature extractors, it can update a parameter used in it's function.
+                <br> For dateWindow feature extractor, it can update the start and the end of the window period to form the normalization.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base
+var base = qm.create(&#x27;qm.conf&#x27;, &quot;&quot;, true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
+base.createStore({
+       &quot;name&quot;: &quot;FtrSpace&quot;,
+       &quot;fields&quot;: [
+         { &quot;name&quot;: &quot;Value&quot;, &quot;type&quot;: &quot;float&quot; },
+         { &quot;name&quot;: &quot;Category&quot;, &quot;type&quot;: &quot;string&quot; },
+         { &quot;name&quot;: &quot;Categories&quot;, &quot;type&quot;: &quot;string_v&quot; },
+       ],
+       &quot;joins&quot;: [],
+       &quot;keys&quot;: []
+   });
+   Store = base.store(&quot;FtrSpace&quot;);
+   Store.add({ Value: 1.0, Category: &quot;a&quot;, Categories: [&quot;a&quot;, &quot;q&quot;] });
+   Store.add({ Value: 1.1, Category: &quot;b&quot;, Categories: [&quot;b&quot;, &quot;w&quot;] });
+   Store.add({ Value: 1.2, Category: &quot;c&quot;, Categories: [&quot;c&quot;, &quot;e&quot;] });
+   Store.add({ Value: 1.3, Category: &quot;a&quot;, Categories: [&quot;a&quot;, &quot;q&quot;] });
+// create a new feature space
+var ftr = new qm.FeatureSpace(base, [
+	  { type: &quot;numeric&quot;, source: &quot;FtrSpace&quot;, normalize: true, field: &quot;Values&quot; },
+    { type: &quot;categorical&quot;, source: &quot;FtrSpace&quot;, field: &quot;Category&quot;, values: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;] },
+    { type: &quot;multinomial&quot;, source: &quot;FtrSpace&quot;, field: &quot;Categories&quot;, normalize: true, values: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;q&quot;, &quot;w&quot;, &quot;e&quot;] }
+	  ]);
+// update the feature space with the first three record of the store
+ftr.updateRecord(Store[0]);
+ftr.updateRecord(Store[1]);
+ftr.updateRecord(Store[2]);
+// get the feature vectors of these records
+ftr.getVec(Store[0]); // returns the vector [0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
+ftr.getVec(Store[1]); // returns the vector [1/2, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
+ftr.getVec(Store[2]); // returns the vector [1, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -675,7 +790,51 @@ var vec3 = ftr.filter(vec, 1, false); // returns vector [0, 1, 0]</code></pre>
                 </dd>
               </dl>
               <h3 id="updateRecords"><span class="symbol-name">updateRecords</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></span></span></h3>
-              <p>Updates the feature space definitions and extractors by adding all the records of a record set.</p>
+              <p>Updates the feature space definitions and extractors by adding all the records of a record set.
+                <br> For text feature extractors, it can update it's vocabulary by taking into account the new text.
+                <br> For numeric feature extractors, it can update the minimal and maximal values used to form the normalization.
+                <br> For jsfunc feature extractors, it can update a parameter used in it's function.
+                <br> For dateWindow feature extractor, it can update the start and the end of the window period to form the normalization.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base
+var base = qm.create(&#x27;qm.conf&#x27;, &quot;&quot;, true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
+base.createStore({
+       &quot;name&quot;: &quot;FtrSpace&quot;,
+       &quot;fields&quot;: [
+         { &quot;name&quot;: &quot;Value&quot;, &quot;type&quot;: &quot;float&quot; },
+         { &quot;name&quot;: &quot;Category&quot;, &quot;type&quot;: &quot;string&quot; },
+         { &quot;name&quot;: &quot;Categories&quot;, &quot;type&quot;: &quot;string_v&quot; },
+       ],
+       &quot;joins&quot;: [],
+       &quot;keys&quot;: []
+   });
+   Store = base.store(&quot;FtrSpace&quot;);
+   Store.add({ Value: 1.0, Category: &quot;a&quot;, Categories: [&quot;a&quot;, &quot;q&quot;] });
+   Store.add({ Value: 1.1, Category: &quot;b&quot;, Categories: [&quot;b&quot;, &quot;w&quot;] });
+   Store.add({ Value: 1.2, Category: &quot;c&quot;, Categories: [&quot;c&quot;, &quot;e&quot;] });
+   Store.add({ Value: 1.3, Category: &quot;a&quot;, Categories: [&quot;a&quot;, &quot;q&quot;] });
+// create a new feature space
+var ftr = new qm.FeatureSpace(base, [
+	  { type: &quot;numeric&quot;, source: &quot;FtrSpace&quot;, normalize: true, field: &quot;Values&quot; },
+    { type: &quot;categorical&quot;, source: &quot;FtrSpace&quot;, field: &quot;Category&quot;, values: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;] },
+    { type: &quot;multinomial&quot;, source: &quot;FtrSpace&quot;, field: &quot;Categories&quot;, normalize: true, values: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;q&quot;, &quot;w&quot;, &quot;e&quot;] }
+	  ]);
+// update the feature space with the record set 
+var rs = Store.recs;
+ftr.updateRecords(rs);
+// get the feature vectors of these records
+ftr.getVec(Store[0]); // returns the vector [0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
+ftr.getVec(Store[1]); // returns the vector [1/3, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
+ftr.getVec(Store[2]); // returns the vector [2/3, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
+ftr.getVec(Store[3]); // returns the vector [1, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">

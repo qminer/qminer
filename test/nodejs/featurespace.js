@@ -486,12 +486,44 @@ describe('Feature Space Tests', function () {
             assert.eqtol(ftr.ftrVec(Store[0]).at(3), (1 / Math.sqrt(2)));
         })
 
-        it('should the correnct value based on the last update', function () {
+        it('should the correct value based on the last update', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" });
             ftr.updateRecord(Store[0]);
             ftr.updateRecord(Store[1]);
 
             assert.eqtol(ftr.ftrVec(Store[2]).at(0), 2);
+        })
+        it('should update the feature space with a new record, numeric, categorical and multinomial', function () {
+            var ftr = new qm.FeatureSpace(base, [
+                { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" },
+                { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
+            ]);
+
+            assert.eqtol(ftr.ftrVec(Store[0]).at(0), 1);
+            assert.eqtol(ftr.ftrVec(Store[0]).at(1), 1);
+            assert.eqtol(ftr.ftrVec(Store[0]).at(4), 1 / Math.sqrt(2));
+            assert.eqtol(ftr.ftrVec(Store[0]).at(7), 1 / Math.sqrt(2));
+        
+
+            ftr.updateRecord(Store[0]);
+            ftr.updateRecord(Store[1]);
+            ftr.updateRecord(Store[2]);
+
+            assert.eqtol(ftr.ftrVec(Store[0]).at(0), 0);
+            assert.eqtol(ftr.ftrVec(Store[0]).at(1), 1);
+            assert.eqtol(ftr.ftrVec(Store[0]).at(4), 1 / Math.sqrt(2));
+            assert.eqtol(ftr.ftrVec(Store[0]).at(7), 1 / Math.sqrt(2));
+
+            assert.eqtol(ftr.ftrVec(Store[1]).at(0), 1/2);
+            assert.eqtol(ftr.ftrVec(Store[1]).at(2), 1);
+            assert.eqtol(ftr.ftrVec(Store[1]).at(5), 1 / Math.sqrt(2));
+            assert.eqtol(ftr.ftrVec(Store[1]).at(8), 1 / Math.sqrt(2));
+
+            assert.eqtol(ftr.ftrVec(Store[2]).at(0), 1);
+            assert.eqtol(ftr.ftrVec(Store[2]).at(3), 1);
+            assert.eqtol(ftr.ftrVec(Store[2]).at(6), 1 / Math.sqrt(2));
+            assert.eqtol(ftr.ftrVec(Store[2]).at(9), 1 / Math.sqrt(2));
         })
     });
 
@@ -605,4 +637,54 @@ describe('Feature Space Tests', function () {
             assert.eqtol(mat.at(2, 10), 1);
         })
     });
+
+    describe('GetFtrDist Tests', function () {
+        it('should return a vector with only one value 1.0', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" });
+            var arr = ftr.getFtrDist();
+
+            assert.equal(arr.length, 1);
+            assert.eqtol(arr[0], 1);
+        })
+        it('should return a vector of length 4 with values 1 and 1/3', function () {
+            var ftr = new qm.FeatureSpace(base, [
+                { type: "numeric", source: "FtrSpaceTest", field: "Value" },
+                { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] }
+            ]);
+            var arr = ftr.getFtrDist();
+
+            assert.equal(arr.length, 4);
+            assert.eqtol(arr[0], 1);
+            assert.eqtol(arr[1], 1 / 3);
+            assert.eqtol(arr[2], 1 / 3);
+            assert.eqtol(arr[3], 1 / 3);
+        })
+        it('should return a vector of length 3 with values equal 1/3, parameter is a feature extractor', function () {
+            var ftr = new qm.FeatureSpace(base, [
+                { type: "numeric", source: "FtrSpaceTest", field: "Value" },
+                { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] }
+            ]);
+            var arr = ftr.getFtrDist(1);
+
+            assert.equal(arr.length, 3);
+            assert.eqtol(arr[0], 1 / 3);
+            assert.eqtol(arr[1], 1 / 3);
+            assert.eqtol(arr[2], 1 / 3);
+        })
+    })
+
+
+    // doesn't know how it parses
+    describe.skip('ExtractStrings Test', function () {
+        it('should extract the strings out of the record', function () {
+            var ftr = new qm.FeatureSpace(base, 
+                { type: "text", source: "FtrSpaceTest", field: "Text", ngrams: [1, 1] }
+            );
+            ftr.updateRecord(Store[0]);
+
+            console.log(ftr.extractStrings(Store[0]));
+
+            assert.equal(ftr.extractStrings(Store[0]).length, 0);
+        })
+    })
 })
