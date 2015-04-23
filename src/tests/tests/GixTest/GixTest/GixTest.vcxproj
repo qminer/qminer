@@ -71,7 +71,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\Documents\Viktor\programming\github\qminer\src\tests\tests\gtest;D:\Documents\Viktor\programming\github\qminer\src\tests\tests\gtest\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\gtest;..\..\gtest\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
