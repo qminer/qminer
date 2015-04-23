@@ -191,14 +191,18 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 
 }
 
-TNodeJsBase::TNodeJsBase(const TStr& DbFPath, const TStr& SchemaFNm, const PJsonVal& Schema, const bool& Create, const bool& ForceCreate, const bool& RdOnlyP, const TInt& IndexCacheSize, const TInt& StoreCacheSize) {
+TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJsonVal& Schema, const bool& Create, const bool& ForceCreate, const bool& RdOnlyP, const TInt& IndexCacheSize, const TInt& StoreCacheSize) {
 	Watcher = TNodeJsBaseWatcher::New();
 
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	
-	TStr LockFNm = TDir::GetCurDir() + "./lock";
-
+	TStr DbFPath = DbFPath_;
+	if (!(DbFPath.LastCh() == '/' || DbFPath.LastCh() == '\\')) { DbFPath += "/"; }
+	
+	TStr LockFNm = DbFPath + "lock";
+	
+	// clean folder and lock
 	if (ForceCreate) {			
 		if (TFile::Exists(LockFNm)) {
 			TFile::Del(LockFNm, false);
@@ -226,6 +230,8 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath, const TStr& SchemaFNm, const PJson
 				// if not empty and create was called
 				throw TQm::TQmExcept::New("new base(...): database folder not empty and mode=create. Clear db folder or use mode=createClean!");
 			}
+		} else {
+			TDir::GenDir(DbFPath);
 		}
 
 		// prepare lock
