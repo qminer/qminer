@@ -896,6 +896,12 @@
 	*/
  exports.FeatureSpace.prototype.dims = undefined;
 /**
+	* Serialize the feature space to an output stream.
+	* @param {module:fs.FOut} fout - The output stream.
+	* @returns {module:fs.FOut} The output stream.
+	*/
+ exports.FeatureSpace.prototype.save = function (fout) {};
+/**
 	* Adds a new feature extractor to the feature space.
 	* @param {Object} obj - The added feature extracture.
 	* @returns {module:qm.FeatureSpace} Self.

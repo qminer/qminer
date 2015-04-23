@@ -1758,6 +1758,12 @@ public:
     JsDeclareProperty(dims);
 
     //!- `fout = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns `fout`.
+	/**
+	* Serialize the feature space to an output stream.
+	* @param {module:fs.FOut} fout - The output stream.
+	* @returns {module:fs.FOut} The output stream.
+	*/
+	//# exports.FeatureSpace.prototype.save = function (fout) {};
     JsDeclareFunction(save);
 
 	//!- `fsp = fsp.add(objJson)` -- add a feature extractor parametrized by `objJson`
