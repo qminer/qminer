@@ -3849,15 +3849,16 @@ bool TIndex::DoQuerySmall(const TIndex::PQmGixExpItemSmall& ExpItem,
 }
 
 TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access,
-	const PIndexVoc& _IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall) {
+	const PIndexVoc& _IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall,
+	const int& SplitLen) {
 
 	IndexFPath = _IndexFPath;
 	Access = _Access;
 	// initialize invered index
 	DefMerger = TQmGixDefMerger::New();
-	Gix = TQmGix::New("Index", IndexFPath, Access, CacheSize/*, DefMerger*/);
+	Gix = TQmGix::New("Index", IndexFPath, Access, CacheSize, SplitLen);
 	DefMergerSmall = TQmGixDefMergerSmall::New();
-	GixSmall = TQmGixSmall::New("IndexSmall", IndexFPath, Access, CacheSizeSmall/*, DefMerger*/);
+	GixSmall = TQmGixSmall::New("IndexSmall", IndexFPath, Access, CacheSizeSmall, SplitLen);
 	// initialize location index
 	TStr SphereFNm = IndexFPath + "Index.Geo";
 	if (TFile::Exists(SphereFNm) && Access != faCreate) {
@@ -4322,7 +4323,7 @@ void TTempIndex::NewIndex(const PIndexVoc& IndexVoc) {
 	TempIndexFPathQ.Push(TempIndexFPath);
 	// prepare new temporary index
 	TEnv::Logger->OnStatus(TStr::Fmt("Creating a temporary index in %s ...", TempIndexFPath.CStr()));
-	TempIndex = TIndex::New(TempIndexFPath, faCreate, IndexVoc, IndexCacheSize, IndexCacheSize);
+	TempIndex = TIndex::New(TempIndexFPath, faCreate, IndexVoc, IndexCacheSize, IndexCacheSize, TInt::Giga);
 }
 
 void TTempIndex::Merge(const TWPt<TIndex>& Index) {
@@ -4335,7 +4336,7 @@ void TTempIndex::Merge(const TWPt<TIndex>& Index) {
 		// load index
 		TEnv::Logger->OnStatus(TStr::Fmt("Merging a temporary index from %s ...", TempIndexFPath.CStr()));
 		PIndex NewIndex = TIndex::New(TempIndexFPath,
-			faRdOnly, Index->GetIndexVoc(), int64(10 * TInt::Mega), int64(10 * TInt::Mega));
+			faRdOnly, Index->GetIndexVoc(), int64(10 * TInt::Mega), int64(10 * TInt::Mega), Index->GetSplitLen());
 		// merge with main index
 		Index->MergeIndex(NewIndex);
 		TEnv::Logger->OnStatus("Closing temporary index Start");
@@ -4545,14 +4546,14 @@ void TStreamAggrTrigger::OnDelete(const TRec& Rec) {
 
 ///////////////////////////////
 // QMiner-Base
-TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize) : InitP(false) {
+TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen) : InitP(false) {
 	IAssertR(TEnv::IsInit(), "QMiner environment (TQm::TEnv) is not initialized");
 	// open as create
 	FAccess = faCreate; FPath = _FPath;
 	TEnv::Logger->OnStatus("Opening in create mode");
 	// prepare index
 	IndexVoc = TIndexVoc::New();
-	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize);
+	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, SplitLen);
 	// add standard operators
 	AddOp(TOpLinSearch::New());
 	AddOp(TOpGroupBy::New());
@@ -4566,7 +4567,7 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize) : InitP(false) {
 	TempFPathP = false;
 }
 
-TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize) : InitP(false) {
+TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize, const int& SplitLen) : InitP(false) {
 	IAssertR(TEnv::IsInit(), "QMiner environment (TQm::TEnv) is not initialized");
 	// assert open type and remember location
 	FAccess = _FAccess; FPath = _FPath;
@@ -4581,7 +4582,7 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	// load index
 	TFIn IndexVocFIn(FPath + "IndexVoc.dat");
 	IndexVoc = TIndexVoc::Load(IndexVocFIn);
-	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize);
+	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, SplitLen);
 	// add standard operators
 	AddOp(TOpLinSearch::New());
 	AddOp(TOpGroupBy::New());

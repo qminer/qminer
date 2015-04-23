@@ -780,13 +780,13 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
 /// Create new base given a schema definition
 TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
 	const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
-	const bool& InitP = true);
+	const bool& InitP = true, const int& SplitLen = TInt::Giga);
 
 ///////////////////////////////
 /// Load base created from a schema definition
 TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
 	const uint64& StoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
-	const bool& InitP = true);
+	const bool& InitP = true, const int& SplitLen = TInt::Giga);
 
 ///////////////////////////////
 /// Save base created from a schema definition

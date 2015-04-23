@@ -165,7 +165,7 @@ public:
 	static void TInMemStorage_PerfTest() {
 		TStr Fn = "data\\in_mem_storage";
 		TStr Fn2 = "data\\in_mem_storage2";
-		int cnt = 100000;
+		int cnt = 300000;
 		{
 			// generate data
 			TQm::TStorage::TInMemStorage storage(Fn);
@@ -325,7 +325,7 @@ TEST(testTBase, myTBaseTest) {
 
 	// create new base from definition
 	PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
-	TPt<TQm::TBase> Base = TQm::TStorage::NewBase("data\\", SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024);
+	TPt<TQm::TBase> Base = TQm::TStorage::NewBase("data\\", SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
 
 	// load movies data
 	{
