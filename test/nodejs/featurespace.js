@@ -485,6 +485,14 @@ describe('Feature Space Tests', function () {
             assert.eqtol(ftr.ftrVec(Store[0]).at(0), (1 / Math.sqrt(2)));
             assert.eqtol(ftr.ftrVec(Store[0]).at(3), (1 / Math.sqrt(2)));
         })
+
+        it('should the correnct value based on the last update', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" });
+            ftr.updateRecord(Store[0]);
+            ftr.updateRecord(Store[1]);
+
+            assert.eqtol(ftr.ftrVec(Store[2]).at(0), 2);
+        })
     });
 
     describe('UpdateRecords Tests', function () {
@@ -534,6 +542,8 @@ describe('Feature Space Tests', function () {
             var rs = Store.recs;
             var mat = ftr.ftrSpColMat(rs);
 
+            assert.equal(mat.rows, 1);
+            assert.equal(mat.cols, 11);
             assert.eqtol(mat.at(0, 0), 1);
             assert.eqtol(mat.at(0, 5), 1.5);
             assert.eqtol(mat.at(0, 10), 2);
@@ -545,6 +555,44 @@ describe('Feature Space Tests', function () {
             ]);
             var rs = Store.recs;
             var mat = ftr.ftrSpColMat(rs);
+
+            assert.equal(mat.rows, 4);
+            assert.equal(mat.cols, 11);
+
+            assert.eqtol(mat.at(0, 0), 1);
+            assert.eqtol(mat.at(1, 0), 1);
+            assert.eqtol(mat.at(3, 0), 0);
+
+            assert.eqtol(mat.at(0, 5), 1.5);
+            assert.eqtol(mat.at(3, 5), 1);
+
+            assert.eqtol(mat.at(0, 10), 2);
+            assert.eqtol(mat.at(2, 10), 1);
+        })
+    });
+
+    describe('FtrColMat Tests', function () {
+        it('should return a dense matrix gained from the numeric feature extractor', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" });
+            var rs = Store.recs;
+            var mat = ftr.ftrColMat(rs);
+
+            assert.equal(mat.rows, 1);
+            assert.equal(mat.cols, 11);
+            assert.eqtol(mat.at(0, 0), 1);
+            assert.eqtol(mat.at(0, 5), 1.5);
+            assert.eqtol(mat.at(0, 10), 2);
+        })
+        it('should return a dense matrix gained from the numeric and categorical feature extractor', function () {
+            var ftr = new qm.FeatureSpace(base, [
+                { type: "numeric", source: "FtrSpaceTest", field: "Value" },
+                { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] }
+            ]);
+            var rs = Store.recs;
+            var mat = ftr.ftrColMat(rs);
+
+            assert.equal(mat.rows, 4);
+            assert.equal(mat.cols, 11);
 
             assert.eqtol(mat.at(0, 0), 1);
             assert.eqtol(mat.at(1, 0), 1);
