@@ -1008,7 +1008,7 @@
 	*/
  exports.FeatureSpace.prototype.ftrVec = function (rec) {};
 /**
-	* Performs the inverse operation of ftrVec. Vorks only for numeric feature extractors.
+	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
 	* @param {(module:qm.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
 	* @returns {module:qm.Vector} The inverse of ftr as vector.
 	*/

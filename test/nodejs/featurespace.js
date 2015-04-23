@@ -196,6 +196,35 @@ describe('Feature Space Tests', function () {
             assert.equal(vec[10], 1);
             assert.equal(vec[11], 0);
         })
+        it('should throw an exception, if no parameter is given', function () {
+            var ftr = new qm.FeatureSpace(base, [
+               { type: "numeric", source: "FtrSpaceTest", field: "Value" },
+               { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
+               { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 2 },
+               { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
+               { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 }
+            ]);
+            assert.throws(function () {
+                var vec = ftr.ftrVec();
+            })
+        })
+        it.skip('should throw an exception, if the parameter is not a record of type store', function () {
+            base.createStore({
+                "name": "Mobile",
+                "fields": [
+                  { "name": "TeaMobile", "type": "float" },
+                  { "name": "AvtoMobile", "type": "string" },
+                  { "name": "PerpetumMobile", "type": "string_v" },
+                ],
+                "joins": [],
+                "keys": []
+            });
+            base.store('Mobile').add({ TeaMobile: 10, AvtoMobile: "car", PerpetumMobile: ["more", "cars"] });
+            var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
+            assert.throws(function () {
+                ftr.ftrVec(base.store('Mobile')[0]);
+            });
+        })
     });
 
     describe('FtrSpVec Tests', function () {
@@ -236,6 +265,35 @@ describe('Feature Space Tests', function () {
             assert.equal(vec.at(9), 0);
             assert.equal(vec.at(10), 1);
             assert.equal(vec.at(11), 0);
+        })
+        it('should throw an exception, if no parameter is given', function () {
+            var ftr = new qm.FeatureSpace(base, [
+               { type: "numeric", source: "FtrSpaceTest", field: "Value" },
+               { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
+               { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 2 },
+               { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
+               { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 }
+            ]);
+            assert.throws(function () {
+                var vec = ftr.ftrSpVec();
+            })
+        })
+        it.only('should throw an exception, if the parameter is not a record of type store', function () {
+            base.createStore({
+                "name": "Mobile",
+                "fields": [
+                  { "name": "TeaMobile", "type": "float" },
+                  { "name": "AvtoMobile", "type": "string" },
+                  { "name": "PerpetumMobile", "type": "string_v" },
+                ],
+                "joins": [],
+                "keys": []
+            });
+            base.store('Mobile').add({ TeaMobile: 10, AvtoMobile: "car", PerpetumMobile: ["more", "cars"] });
+            var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
+            assert.throws(function () {
+                ftr.ftrSpVec(base.store('Mobile')[0]);
+            });
         })
     });
 
