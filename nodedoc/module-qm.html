@@ -89,10 +89,16 @@
                     <dt><a href="module-qm.html#~baseModes">baseModes</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.html#~FeatureMode">FeatureMode</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.html#~FeatureStream">FeatureStream</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.html#~fieldTypes">fieldTypes</a></dt>
                     <dd>
                     </dd>
@@ -288,6 +294,136 @@
                       <td>
                         <p>opens in read-only mode</p>
                         <p>Defaults to <code>openReadOnly</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureMode"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureMode</span><small class="property-type">
+                &nbsp;string</small></h3>
+              <p>How are multi-record cases combined into a single vector.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>concatenate</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>//TODO</p>
+                        <p>Defaults to <code>concatenate</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>centroid</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>//TODO</p>
+                        <p>Defaults to <code>centroid</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>tokenized</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>//TODO</p>
+                        <p>Defaults to <code>tokenized</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureStream"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureStream</span><small class="property-type">
+                &nbsp;string</small></h3>
+              <p>Details on forgetting old IDFs when running on stream.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>field</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>(optional) Field name which is providing timestamp, if missing system time is used.</p>
+                        <p>Defaults to <code>field</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>factor</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Forgetting factor, by which the old IDFs are multiplied after each iteration.</p>
+                        <p>Defaults to <code>factor</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>interval</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The time between iterations when the factor is applied, standard JSon time format is used to specify the interval duration.</p>
+                        <p>Defaults to <code>interval</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -1842,7 +1978,7 @@
                         <p>mode</p>
                       </td>
                       <td>
-                        <p>module:qm~FeatureMode</p>
+                        <p><a href="module-qm.html#~FeatureMode">module:qm~FeatureMode</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -1856,7 +1992,7 @@
                         <p>stream</p>
                       </td>
                       <td>
-                        <p>module:qm~FeatureStream</p>
+                        <p><a href="module-qm.html#~FeatureStream">module:qm~FeatureStream</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>

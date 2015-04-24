@@ -471,7 +471,6 @@ describe("Two Store Tests", function () {
     describe('Movies Fields Test', function () {
         it('should return the number of fields', function () {
             var arr = table.base.store("Movies").fields;            
-            console.log(arr);
             // it also returns internal fields that are created for index joins (2 additional fields)
             assert.equal(arr.length, 7);
         })

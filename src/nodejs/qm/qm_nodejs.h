@@ -418,6 +418,34 @@ private:
 * @property {string} store - The store name.
 */
 
+/**
+* How are multi-record cases combined into a single vector.
+* @readonly
+* @enum {string}
+*/
+//# var FeatureMode = {
+//#		/** //TODO */
+//#		concatenate: 'concatenate', 
+//#		/** //TODO */
+//#		centroid: 'centroid', 
+//#		/** //TODO */
+//#		tokenized : 'tokenized'
+//# }
+
+/**
+* Details on forgetting old IDFs when running on stream.
+* @readonly
+* @enum {string}
+*/
+//# var FeatureStream = {
+//# /** (optional) Field name which is providing timestamp, if missing system time is used. */
+//# field: 'field',
+//# /** Forgetting factor, by which the old IDFs are multiplied after each iteration. */
+//# factor: 'factor',
+//# /** The time between iterations when the factor is applied, standard JSon time format is used to specify the interval duration. */
+//# interval: 'interval'
+//# }
+
 class TNodeJsBaseWatcher {
 private:
 	// smart pointer
