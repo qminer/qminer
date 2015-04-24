@@ -5,6 +5,10 @@ var fs = qm.fs;
 // test feature construction
 var analytics = qm.analytics;
 
+
+describe('Time series test, old', function () {
+	it('should survive', function () {
+		
 qm.delLock();
 
 qm.config('qm.conf', true, 8080, 1024);
@@ -161,3 +165,4 @@ for (var i = 0; i < Resampled.length; i++) {
 }
 
 base.close();
+})});

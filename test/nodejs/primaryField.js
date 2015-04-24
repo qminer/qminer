@@ -1,6 +1,10 @@
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); // additional JS implementations
 var qm = require('qminer');
+
+//describe('Primary field, old', function () {
+//	it('should survive', function () {
+
 qm.delLock();
 
 var backward = require('../../src/nodejs/scripts/backward.js');
@@ -108,3 +112,4 @@ assert.equal(base.store("primary_float").length, fltVals.length, "float");
 assert.equal(base.store("primary_tm").length, tmVals.length, "tm");
 
 base.close();
+//})});

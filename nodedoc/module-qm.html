@@ -34,7 +34,7 @@
           </header>
           <section id="summary">
             <div class="summary-callout">
-              <h2 class="summary-callout-heading">Child class</h2>
+              <h2 class="summary-callout-heading">Child classes</h2>
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
@@ -44,6 +44,11 @@
                   </dl>
                 </div>
                 <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.FeatureSpace.html">FeatureSpace(base, extractors)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
                 </div>
                 <div class="summary-column">
                 </div>
@@ -131,23 +136,59 @@
                     <dt><a href="module-qm.html#~BaseConstructorParam">BaseConstructorParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.html#~SchemaDefinition">SchemaDefinition</a></dt>
+                    <dt><a href="module-qm.html#~FeatureExtractorCategorical">FeatureExtractorCategorical</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractorConstant">FeatureExtractorConstant</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractorDateWindow">FeatureExtractorDateWindow</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractorJoin">FeatureExtractorJoin</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractorJsfunc">FeatureExtractorJsfunc</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.html#~FeatureExtractorMultinomial">FeatureExtractorMultinomial</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractorNumeric">FeatureExtractorNumeric</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractorPair">FeatureExtractorPair</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractorRandom">FeatureExtractorRandom</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractors">FeatureExtractors</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractorText">FeatureExtractorText</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.html#~FeatureSource">FeatureSource</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~SchemaDefinition">SchemaDefinition</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.html#~SchemaFieldDefinition">SchemaFieldDefinition</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.html#~SchemaJoinDefinition">SchemaJoinDefinition</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="module-qm.html#~SchemaKeyDefinition">SchemaKeyDefinition</a></dt>
                     <dd>
                     </dd>
@@ -160,9 +201,10 @@
             </div>
           </section>
           <section>
-            <h2>Class</h2>
+            <h2>Classes</h2>
             <section id='members-links'>
               <h3><a href="module-qm.Base.html">Base</a></h3>
+              <h3><a href="module-qm.FeatureSpace.html">FeatureSpace</a></h3>
             </section>
             <h2>Namespaces</h2>
             <section id='members-links'>
@@ -736,6 +778,1139 @@
                       <td>
                         <p>The path to db directory.</p>
                         <p>Defaults to <code>'./db/'</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractorCategorical"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorCategorical</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: categorical</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'categorical'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>values</p>
+                      </td>
+                      <td>
+                        <p>Array of Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A fixed set of values, which form a fixed feature set. No dimensionalizy changes if new values are seen in the upgrades.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>hashDimension</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hasDimension to get the corresponding dimension.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>field</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the field form which to take the values.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractorConstant"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorConstant</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: contant</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'constant'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>const</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A constant number.</p>
+                        <p>Defaults to <code>1.0</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractorDateWindow"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorDateWindow</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: dateWindow</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'dateWindow'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>unit</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>How granular is the time window. Options: day, week, month, year, 12hours, 6hours, 4hours, 2hours, hour, 30minutes, 15minutes, 10minutes, minute, second.</p>
+                        <p>Defaults to <code>'day'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>window</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The size of the window.</p>
+                        <p>Defaults to <code>1</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>normalize</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO</p>
+                        <p>Defaults to <code>'false'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>start</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>//TODO</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>end</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>//TODO</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractorJoin"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorJoin</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: join</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'join'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>bucketSize</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The size of the bucket in which we group consecutive records.</p>
+                        <p>Defaults to <code>1</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractorJsfunc"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorJsfunc</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: jsfunc</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'jsfunc'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The feature's name.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>fun</p>
+                      </td>
+                      <td>
+                        <p>function()</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The javascript function callback. It should take a record as input and return a number or a dense vector.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>dim</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The dimension of the feature extractor.</p>
+                        <p>Defaults to <code>1</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractorMultinomial"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorMultinomial</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: multinomial</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'multinomial'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>normalize</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Normalize the resulting vector of the extractor to have L2 norm 1.0.</p>
+                        <p>Defaults to <code>'false'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>values</p>
+                      </td>
+                      <td>
+                        <p>Array of Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>hashDimension</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>datetime</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
+                          <br> This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.</p>
+                        <p>Defaults to <code></code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>field</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the field from which to take the value.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractorNumeric"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorNumeric</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: numeric</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'numeric'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>normalize</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Normalize values between 0.0 and 1.0.</p>
+                        <p>Defaults to <code>'false'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>min</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The minimal value used to form the normalization.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>max</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The maximal value used to form the normalization.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>field</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the field from which to take the value.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractorPair"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorPair</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: pair</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'pair'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>first</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractors">module:qm~FeatureExtractors</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The first feature extractor.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>second</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractors">module:qm~FeatureExtractors</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The second feature extractor.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractorRandom"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorRandom</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: random</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'random'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>seed</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A random seed number.</p>
+                        <p>Defaults to <code></code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractors"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractors</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature extractor types.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>constant</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractorConstant">module:qm~FeatureExtractorConstant</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The constant type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>random</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractorRandom">module:qm~FeatureExtractorRandom</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The random type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>numeric</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractorNumeric">module:qm~FeatureExtractorNumeric</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The numeric type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>categorical</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractorCategorical">module:qm~FeatureExtractorCategorical</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The categorical type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>multinomial</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractorMultinomial">module:qm~FeatureExtractorMultinomial</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The multinomial type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>text</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractorText">module:qm~FeatureExtractorText</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The text type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>join</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractorJoin">module:qm~FeatureExtractorJoin</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The join type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>pair</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractorPair">module:qm~FeatureExtractorPair</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pair type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>jsfunc</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractorJsfunc">module:qm~FeatureExtractorJsfunc</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The jsfunc type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>dateWindow</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractorDateWindow">module:qm~FeatureExtractorDateWindow</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The dateWindow type.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractorText"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorText</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: text</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'text'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>normalize</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Normalize the resulting vector of the extractor to have L2 norm 1.0.</p>
+                        <p>Defaults to <code>'true'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>weight</p>
+                      </td>
+                      <td>
+                        <p>module:qm~FeatureWight</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Type of weighting used for scoring terms.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>hashDimension</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>field</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the field from which to take the value.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>tokenizer</p>
+                      </td>
+                      <td>
+                        <p>module:qm~FeatureTokenizer</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>mode</p>
+                      </td>
+                      <td>
+                        <p>module:qm~FeatureMode</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>How are multi-record cases combined into single vector.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>stream</p>
+                      </td>
+                      <td>
+                        <p>module:qm~FeatureStream</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Details on forgetting old IDFs when running on stream.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureSource"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureSource</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>From where are the input records taken.</p>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The store name.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -1349,7 +2524,7 @@ var base = new qm.Base([{
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 16, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 24, 2015.
       </p>
     </div>
   </footer>
