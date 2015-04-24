@@ -3,8 +3,8 @@ var assert = require('assert');
 var qm = require('qminer');
 
 
-describe('Record test, old', function () {
-	it('should survive', function () {
+//describe('Record test, old', function () {
+//	it('should survive', function () {
 		
 qm.delLock();
 
@@ -87,4 +87,4 @@ assert.equal(recByVal.Flt, 1.23, "recByVal.Flt");
 console.log("Rec test end");
 
 base.close();
-})});
+//})});
