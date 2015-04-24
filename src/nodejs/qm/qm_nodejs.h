@@ -292,7 +292,7 @@ private:
 */
 
 /**
-* Feature types.
+* Feature extractor types.
 * @typedef {Object} FeatureExtractors
 * @property {module:qm~FeatureExtractorConstant} constant - The constant type.
 * @property {module:qm~FeatureExtractorRandom} random - The random type.
@@ -327,7 +327,7 @@ private:
 * Feature type: numeric
 * @typedef {Object} FeatureExtractorNumeric 
 * @property {string} type - The type of the extractor. It must be equal 'numeric'.
-* @property {boolean} [normalize = false] - Normalize values between 0.0 and 1.0.
+* @property {boolean} [normalize = 'false'] - Normalize values between 0.0 and 1.0.
 * @property {number} [min] - The minimal value used to form the normalization.
 * @property {number} [max] - The maximal value used to form the normalization.
 * @property {string} field - The name of the field from which to take the value.
@@ -348,7 +348,7 @@ private:
 * Feature type: multinomial
 * @typedef {Object} FeatureExtractorMultinomial
 * @property {string} type - The type of the extractor. It must be equal 'multinomial'.
-* @property {boolean} [normalize = false] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
+* @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
 * @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
 * @property {Object} [datetime = false] - Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
@@ -361,7 +361,7 @@ private:
 * Feature type: text
 * @typedef {Object} FeatureExtractorText
 * @property {string} type - The type of the extractor. It must be equal 'text'.
-* @property {boolean} [normalize = true] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
+* @property {boolean} [normalize = 'true'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
 * @property {module:qm~FeatureWight} weight - Type of weighting used for scoring terms.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
 * @property {string} field - The name of the field from which to take the value.
@@ -392,9 +392,10 @@ private:
 * Feature type: dateWindow
 * @typedef {Object} FeatureExtractorDateWindow
 * @property {string} type - The type of the extractor. It must be equal 'dateWindow'.
-* @property {module:qm~FeatureDateWindowUnit} [unit = 'day'] - How granular is the time window.
+* @property {string} [unit = 'day'] - How granular is the time window. Options: day, week, month, year, 12hours, 6hours, 4hours, 2hours,
+* hour, 30minutes, 15minutes, 10minutes, minute, second.
 * @property {number} [window = 1] - The size of the window.
-* @property {boolean} [normalize = false] - Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO
+* @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO
 * @property {number} start - //TODO
 * @property {number} end - //TODO
 * @property {module:qm~FeatureSource} source - The source of the extractor.
@@ -411,6 +412,11 @@ private:
 * @property {module:qm~FeatureSource} source - The source of the extractor.
 */
 
+/**
+* From where are the input records taken.
+* @typedef {Object} FeatureSource
+* @property {string} store - The store name.
+*/
 
 class TNodeJsBaseWatcher {
 private:
@@ -1768,10 +1774,23 @@ public:
     //!- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
     //!     by exposing them to record `rec`. Returns self. For example, this can update the vocabulary
     //!     used by bag-of-words extractor by taking into account new text.
+	/**
+	* Updates the feature space definitions and extractors by adding one record.
+	* @param {module:qm.Record} rec - The record, which updates the feature space.
+	* @returns {module:qm.FeatureSpace} Self.
+	*/
+	//# exports.FeatureSpace.prototype.updateRecord = function (rec) {};
 	JsDeclareFunction(updateRecord);
+
     //!- `fsp = fsp.updateRecords(rs)` -- update feature space definitions and extractors
     //!     by exposing them to records from record set `rs`. Returns self. For example, this can update
     //!     the vocabulary used by bag-of-words extractor by taking into account new text.
+	/**
+	* Updates the feature space definitions and extractors by adding all the records of a record set.
+	* @param {module:qm.RecSet} rs - The record set, which updates the feature space.
+	* @returns {module:qm.FeatureSpace} Self.
+	*/
+	//# exports.FeatureSpace.prototype.updateRecords = function (rs) {};
 	JsDeclareFunction(updateRecords);
 
 	//!- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
@@ -1794,17 +1813,43 @@ public:
     
 	//!- `vec = fsp.invFtrVec(ftrVec)` -- performs the inverse operation of ftrVec, returns the results in
     //!- 	an array
+	/**
+	* Performs the inverse operation of ftrVec. Vorks only for numeric feature extractors.
+	* @param {(module:qm.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
+	* @returns {module:qm.Vector} The inverse of ftr as vector.
+	*/
+	//# exports.FeatureSpace.prototype.invFtrVec = function (ftr) {};
 	JsDeclareFunction(invFtrVec);
 
-	//!- `val = fsp.invFtrVec(ftrIdx, val)` -- inverts a single feature using the feature
+	//!- `val = fsp.invFtr(ftrIdx, val)` -- inverts a single feature using the feature
 	//!- 	extractor on index `ftrIdx`
+	/**
+	* Calculates the inverse of a single feature using a specific feature extractor.
+	* @param {number} idx - The index of the specific feature extractor.
+	* @param {Object} val - The value to be inverted.
+	* @returns {Object} The inverse of val using the feature extractor with index idx.
+	*/
+	//# exports.FeatureSpace.prototype.invFtr = function (idx, val) {};
 	JsDeclareFunction(invFtr);
 
     //!- `spMat = fsp.ftrSpColMat(rs)` -- extracts sparse feature vectors from
     //!     record set `rs` and returns them as columns in a sparse matrix `spMat`.
+	/**
+	* Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.
+	* @param {module:qm.RecSet} rs - The given record set.
+	* @returns {module:la.SparseMatrix} The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.
+	*/
+	//# exports.FeatureSpace.prototype.ftrSpColMat = function (rs) {};
 	JsDeclareFunction(ftrSpColMat);
+
     //!- `mat = fsp.ftrColMat(rs)` -- extracts feature vectors from
     //!     record set `rs` and returns them as columns in a matrix `mat`.
+	/**
+	* Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.
+	* @param {module:qm.RecSet} rs - The given record set.
+	* @returns {module:la.Matrix} The dense matrix, where the i-th column is the feature vector of the i-th record in rs.
+	*/
+	//# exports.FeatureSpace.prototype.ftrColMat = function (rs) {};
     JsDeclareFunction(ftrColMat);
 
 	//!- `name = fsp.getFtrExtractor(ftrExtractor)` -- returns the name `name` (string) of `ftrExtractor`-th feature extractor in feature space `fsp`
@@ -1820,7 +1865,7 @@ public:
 	/**
 	* Gives the name of the feature at the given position.
 	* @param {number} idx - The index of the feature in feature space (zero based).
-	* @returns {String} THe name of the feature at the position idx.
+	* @returns {String} The name of the feature at the position idx.
 	*/
 	//# exports.FeatureSpace.prototype.getFtr = function (idx) {};
 	JsDeclareFunction(getFtr);
@@ -1828,9 +1873,35 @@ public:
     //!- `vec = fsp.getFtrDist()` -- returns a vector with distribution over the features
     //!- `vec = fsp.getFtrDist(ftrExtractor)` -- returns a vector with distribution over the features for feature extractor ID `ftrExtractor`
     JsDeclareFunction(getFtrDist);
-    //!- `out_vec = fsp.filter(in_vec, ftrExtractor)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`
+    
+	//!- `out_vec = fsp.filter(in_vec, ftrExtractor)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`
     //!- `out_vec = fsp.filter(in_vec, ftrExtractor, keepOffset)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`.
     //!     If `keepOffset` == `true`, then original feature ID offset is kept, otherwise the first feature of `ftrExtractor` starts with position 0.
+	/**
+	* Filters the vector to keep only the elements from the feature extractor.
+	* @param {(module:la.Vector | module:la.SparseVector)} vec - The vector from where the function filters the elements.
+	* @param {number} idx - The index of the feature extractor.
+	* @param {boolean} [keepOffset = 'true'] - For keeping the original indexing in the new vector.
+	* @returns {(module:la.Vector | module:la.SparseVector)} 
+	* <br>1. module:la.Vector, if vec is of type module:la.Vector.
+	* <br>2. module:la.SparseVector, if vec is of type module:la.SparseVector.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new feature space
+	* var ftr = new qm.FeatureSpace(base, [
+    *     { type: "numeric", source: "FtrSpaceTest", field: "Value" },
+    *     { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
+	*     { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] }
+	*     ]);
+	* // create a new vector
+	* var vec = new qm.la.Vector([1, 0, 1, 0, 1, 0, 0, 1, 0, 0]);
+	* // filter the elements from the second feature extractor
+	* var vec2 = ftr.filter(vec, 1); // returns vector [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+	* // filter the elements from the second feature extractor, without keeping the offset
+	* var vec3 = ftr.filter(vec, 1, false); // returns vector [0, 1, 0]
+	*/
+	//# exports.FeatureSpace.prototype.filter = function (vec, idx, keepOffset) {};
     JsDeclareFunction(filter);
 
 	//!- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string
