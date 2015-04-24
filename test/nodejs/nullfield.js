@@ -1,3 +1,4 @@
+var assert = require('assert');
 var qm = require('qminer');
 var base1 = new qm.Base({
     mode: 'createClean',
