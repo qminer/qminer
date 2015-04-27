@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>twitter.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>twitter.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <p>This example demonstrates text mining (feature vectors, active learning and classification)
+as well as record set filtering (based on time and classification results). It also builds 
+communication graphs based on sets of twitter messages (twitter specific)</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Import libraries</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> analytics = <span class="hljs-built_in">require</span>(<span class="hljs-string">'analytics.js'</span>);
+<span class="hljs-keyword">var</span> assert = <span class="hljs-built_in">require</span>(<span class="hljs-string">'assert.js'</span>);
+<span class="hljs-keyword">var</span> time = <span class="hljs-built_in">require</span>(<span class="hljs-string">'time'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Load tweets from a file (toy example)
+Set the filename</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> tweetsFile = <span class="hljs-string">"./sandbox/twitter/toytweets.txt"</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Get the store</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> Tweets = qm.store(<span class="hljs-string">"Tweets"</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Load tweets (each line is a json)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>qm.load.jsonFile(Tweets, tweetsFile);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Print number of records</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>console.say(<span class="hljs-string">"number of records: "</span> + Tweets.length);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Select all tweets</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> recSet = Tweets.recs;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>Active learning settings: start svm when 2 positive and 2 negative examples are provided</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> nPos = <span class="hljs-number">2</span>; <span class="hljs-keyword">var</span> nNeg = <span class="hljs-number">2</span>; <span class="hljs-comment">//active learning query mode</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>Initial query for “relevant” documents</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> relevantQuery = <span class="hljs-string">"nice bad"</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>Initial query for positive sentiment</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> sentimentQuery = <span class="hljs-string">"nice"</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>Compute the feature space (if buildFtrSpace is false loads it from disk)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> buildFtrSpace = <span class="hljs-literal">true</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>Learn a model that filters “relevant” documents (if learnSvmFilter is false, then the model is loaded from disk)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> learnSvmFilter = <span class="hljs-literal">true</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>Learn a sentiment model (if learnSvmSentiment is false, then the model is loaded from disk)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> learnSvmSentiment = <span class="hljs-literal">true</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>Load everything?</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> justLoad = <span class="hljs-literal">false</span>;
+<span class="hljs-keyword">if</span> (justLoad) {
+    buildFtrSpace = <span class="hljs-literal">false</span>;
+    learnSvmFilter = <span class="hljs-literal">false</span>;
+    learnSvmSentiment = <span class="hljs-literal">false</span>;
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>The feature space provides the mapping from documents (tweets) to sparse vectors (provided by linear algebra module)
+Create or load feature space</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> ftrSpace = analytics.newFeatureSpace([
+	{ type: <span class="hljs-string">"text"</span>, source: <span class="hljs-string">"Tweets"</span>, field: <span class="hljs-string">"Text"</span> },
+]);
+<span class="hljs-keyword">if</span> (buildFtrSpace) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>Builds a new feature space</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    ftrSpace.updateRecords(recSet);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>Saves the feature space</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> fout = fs.openWrite(<span class="hljs-string">"./sandbox/twitter/fs.dat"</span>);
+    ftrSpace.save(fout);
+    fout.close();
+} <span class="hljs-keyword">else</span> {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>Load the feature space</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> fin = fs.openRead(<span class="hljs-string">"./sandbox/twitter/fs.dat"</span>);
+    ftrSpace = analytics.loadFeatureSpace(fin);
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>Learn a model of relevant tweets </p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">if</span> (learnSvmFilter) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>Constructs the active learner</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> AL = <span class="hljs-keyword">new</span> analytics.activeLearner(ftrSpace, <span class="hljs-string">"Text"</span>, recSet, nPos, nNeg, relevantQuery);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>Starts the active learner (use the keyword stop to quit)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    AL.startLoop();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>Save the model</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> fout = fs.openWrite(<span class="hljs-string">'./sandbox/twitter/svmFilter.bin'</span>);
+    AL.saveSvmModel(fout);
+    fout.close();
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>Load the model from disk</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> fin = fs.openRead(<span class="hljs-string">"./sandbox/twitter/svmFilter.bin"</span>);
+<span class="hljs-keyword">var</span> svmFilter = analytics.loadSvmModel(fin);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>Filter relevant records: records are dropped if svmFilter predicts a v negative value (anonymous function)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>recSet.filter(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(rec)</span> {</span> <span class="hljs-keyword">return</span> svmFilter.predict(ftrSpace.ftrSpVec(rec)) &gt; <span class="hljs-number">0</span>; });</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>Learn a sentiment model </p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">if</span> (learnSvmSentiment) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>Constructs the active learner</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> AL = <span class="hljs-keyword">new</span> analytics.activeLearner(ftrSpace, <span class="hljs-string">"Text"</span>, recSet, nPos, nNeg, sentimentQuery);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <p>Starts the active learner</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    AL.startLoop();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>Saves the sentiment model</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> fout = fs.openWrite(<span class="hljs-string">'./sandbox/twitter/svmSentiment.bin'</span>);
+    AL.saveSvmModel(fout);
+    fout.close();
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <p>Loads the sentiment model</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> fin = fs.openRead(<span class="hljs-string">'./sandbox/twitter/svmSentiment.bin'</span>);
+<span class="hljs-keyword">var</span> svmSentiment = analytics.loadSvmModel(fin);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-30">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <p>Classify the sentiment of the “relevant” tweets</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> recN = <span class="hljs-number">0</span>; recN &lt; recSet.length; recN++) {
+    recSet[recN].Sentiment = svmSentiment.predict(ftrSpace.ftrSpVec(recSet[recN])) &gt; <span class="hljs-number">0</span> ? <span class="hljs-number">1</span> : -<span class="hljs-number">1</span>;
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p>Filter the record set of by time
+Clone the rec set two times</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> recSet1 = recSet.clone();
+<span class="hljs-keyword">var</span> recSet2 = recSet.clone();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-32">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-32">&#182;</a>
+              </div>
+              <p>Set the cutoff date</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> tm = time.parse(<span class="hljs-string">"2011-08-01T00:05:06"</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-33">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <p>Get a record set with tweets older than tm</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>recSet1.filter(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(rec)</span> {</span> <span class="hljs-keyword">return</span> rec.Date.timestamp &lt; tm.timestamp })</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-34">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-34">&#182;</a>
+              </div>
+              <p>Get a record set with tweets newer than tm</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>recSet2.filter(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(rec)</span> {</span> <span class="hljs-keyword">return</span> rec.Date.timestamp &gt; tm.timestamp })</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-35">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-35">&#182;</a>
+              </div>
+              <p>Print the record set length</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>console.say(<span class="hljs-string">"recSet1.length: "</span> + recSet1.length + <span class="hljs-string">", recSet2.length: "</span> + recSet2.length);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-36">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-36">&#182;</a>
+              </div>
+              <p>Build two communication graph snapshots based on the two record sets. Users represent graph nodes. A user “a” is linked to user “b” if “a” authored a tweet that contained the keyword @”b”.
+Each node is assigned a sentiment (majority sentiment based on all the tweets authored by the node)
+Build the first graph and save it in DOT format (implemented in C++ as a qminer aggregate)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> u1 = recSet1.aggr({ name: <span class="hljs-string">"tgraph1"</span>, dotName: <span class="hljs-string">"tesi1"</span>, type: <span class="hljs-string">"twitterGraph"</span>, fName: <span class="hljs-string">"./sandbox/twitter/graph1.gv"</span> });</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-37">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              <p>Build the second graph (based on the second record set) and filter the nodes that were not present in the first graph, finally save it in DOT format</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> u2 = recSet2.aggr({ name: <span class="hljs-string">"tgraph2"</span>, dotName: <span class="hljs-string">"tesi2"</span>, type: <span class="hljs-string">"twitterGraph"</span>, fName: <span class="hljs-string">"./sandbox/twitter/graph2.gv"</span>, userVec: u1 });</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-38">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-38">&#182;</a>
+              </div>
+              <p>Start console</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>console.say(<span class="hljs-string">"Interactive mode: empty line to release"</span>);
+console.start();</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
