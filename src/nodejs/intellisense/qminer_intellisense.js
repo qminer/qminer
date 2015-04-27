@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 //intellisense start
 // this file mimicks the qminer module index.js file
 exports = {}; require.modules.qminer = exports;
@@ -374,6 +381,32 @@ exports.datasets= require('qminer_datasets');
 * @typedef {Object} FeatureSource
 * @property {string} store - The store name.
 */
+/**
+* How are multi-record cases combined into a single vector.
+* @readonly
+* @enum {string}
+*/
+ var FeatureMode = {
+		/** //TODO */
+		concatenate: 'concatenate', 
+		/** //TODO */
+		centroid: 'centroid', 
+		/** //TODO */
+		tokenized : 'tokenized'
+ }
+/**
+* Details on forgetting old IDFs when running on stream.
+* @readonly
+* @enum {string}
+*/
+ var FeatureStream = {
+ /** (optional) Field name which is providing timestamp, if missing system time is used. */
+ field: 'field',
+ /** Forgetting factor, by which the old IDFs are multiplied after each iteration. */
+ factor: 'factor',
+ /** The time between iterations when the factor is applied, standard JSon time format is used to specify the interval duration. */
+ interval: 'interval'
+ }
 /**
 * Base
 * @classdesc Represents the database and holds stores.

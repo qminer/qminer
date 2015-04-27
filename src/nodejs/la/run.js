@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 //var la = require('../../../build/Release/la.node');
 //var fs = require('../../../build/Release/fs.node');
 var la = require('../../../index.js').la;
