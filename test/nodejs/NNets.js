@@ -34,6 +34,11 @@ var assert = require('assert');
 var analytics = qm.analytics;
 var linalg = qm.la;
 
+
+describe('NNets test, old', function () {
+	it('should survive', function () {
+	
+
 console.log("NNets", "Starting test");
 
 var NN = new analytics.NNet({"layout":[2,4,1]});
@@ -123,3 +128,4 @@ console.log("AfterSave and fit Prediction: " + predictions_afterSaveAndFit)
 diff = predictions_afterSave.minus(predictions_beforeSave);
 
 assert.equal(diff.norm(), 0);
+})});

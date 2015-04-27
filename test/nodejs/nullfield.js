@@ -29,6 +29,11 @@
  
 var assert = require('assert');
 var qm = require('qminer');
+
+describe('nullfield test, old', function () {
+	it('should survive', function () {
+	
+
 var base1 = new qm.Base({
     mode: 'createClean',
     schema: [
@@ -45,3 +50,4 @@ store1.add({ name: "Jan" });
 store1.add({ name: null });
 assert(store1.length == 2);
 base1.close();
+})});

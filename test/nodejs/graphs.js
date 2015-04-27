@@ -31,6 +31,9 @@ console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js');
 var snap = require('../../').snap;
 
+describe('Graphs test, old', function () {
+	it('should survive', function () {
+
 var g = new snap.UndirectedGraph();
 
 g.addNode(1);
@@ -60,3 +63,5 @@ m.print();
 
 console.log('Drawing graph to \'g.html\'');
 g.draw('g.html');
+
+})});
