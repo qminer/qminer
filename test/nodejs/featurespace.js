@@ -1361,7 +1361,10 @@ describe('Feature Space Tests', function () {
             assert.eqtol(ftr.ftrVec(Store[11]).at(1), Math.log(4));
         })
         it('should update the feature space, text: normalize-false, tokenizer: { type: "simple", stopwords: "none" }', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", normalize: false, field: "Text", tokenizer: {type: "simple", stopwords: "none"} });
+            var ftr = new qm.FeatureSpace(base, {
+                type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
+                tokenizer: { type: "simple", stopwords: "none" }
+            });
             Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet Beta, Gamma" });
             Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
             Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet Beta Omega" });
@@ -1387,7 +1390,10 @@ describe('Feature Space Tests', function () {
 
         })
         it('should update the feature space, text: normalize-false, tokenizer: { type: "simple", stopwords: "en" }', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", normalize: false, field: "Text", tokenizer: { type: "simple", stopwords: "en" } });
+            var ftr = new qm.FeatureSpace(base, {
+                type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
+                tokenizer: { type: "simple", stopwords: "en" }
+            });
 
             Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
             Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
@@ -1420,7 +1426,10 @@ describe('Feature Space Tests', function () {
             assert.eqtol(ftr.ftrVec(Store[14]).at(2), Math.log(4));
         })
         it('should update the feature space, text: normalize-false, tokenizer: { type: "simple", stopwords: "si" }', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", normalize: false, field: "Text", tokenizer: { type: "simple", stopwords: "si" } });
+            var ftr = new qm.FeatureSpace(base, {
+                type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
+                tokenizer: { type: "simple", stopwords: "si" }
+            });
 
             Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Abeceda" });
             Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Miloš zna abecedo" });
@@ -1440,7 +1449,10 @@ describe('Feature Space Tests', function () {
         })
         // TODO check if everything works allright (no idea how it should parse for es)
         it('should update the feature space, text: normalize-false, tokenizer: { type: "simple", stopwords: "es" }', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", normalize: false, field: "Text", tokenizer: { type: "simple", stopwords: "es" } });
+            var ftr = new qm.FeatureSpace(base, {
+                type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
+                tokenizer: { type: "simple", stopwords: "es" }
+            });
 
             Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "¿Quién se robó mi teléfono?" });         // who stole my phone
             Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Se robó el teléfono!" });                // he stole the phone
@@ -1471,7 +1483,10 @@ describe('Feature Space Tests', function () {
         })
         // TODO check if everything works allright (no idea how it should parse for de)
         it('should update the feature space, text: normalize-false, tokenizer: { type: "simple", stopwords: "de" }', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", normalize: false, field: "Text", tokenizer: { type: "simple", stopwords: "de" } });
+            var ftr = new qm.FeatureSpace(base, {
+                type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
+                tokenizer: { type: "simple", stopwords: "de" }
+            });
 
             Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Die mein Handy gestohlen?" });           // who stole my phone
             Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "er habe das Handy!" });                  // he stole the phone
@@ -1501,7 +1516,6 @@ describe('Feature Space Tests', function () {
             assert.eqtol(ftr.ftrVec(Store[14]).at(10), Math.log(4));
             assert.eqtol(ftr.ftrVec(Store[14]).at(11), Math.log(4));
         })
-
         it('should update the feature space, text: normalize-false, tokenizer: { type: "simple", stopwords: ["an", "a", "butterfly"] }', function () {
             var ftr = new qm.FeatureSpace(base, {
                 type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
@@ -1536,7 +1550,8 @@ describe('Feature Space Tests', function () {
 
             assert.eqtol(ftr.ftrVec(Store[14]).at(11), Math.log(4));
         })
-        it('should update the feature space, text: normalize-false, tokenizer: { type: "simple", uppercase: false}', function () {
+        //TODO shouldn't it not change the text to uppercase?
+        it.skip('should update the feature space, text: normalize-false, tokenizer: { type: "simple", stopwords: "none", uppercase: false}', function () {
             var ftr = new qm.FeatureSpace(base, {
                 type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
                 tokenizer: { type: "simple", stopwords: "none", uppercase: false }
@@ -1555,6 +1570,12 @@ describe('Feature Space Tests', function () {
             for (var i = 0; i < 4; i++) {
                 console.log(ftr.getFtr(i));
             }
+            assert.eqtol(ftr.ftrVec(Store[11]).at(0), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(1), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(2), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[14]).at(3), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[14]).at(4), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[14]).at(5), 2 * Math.log(4));
         })
     });
 

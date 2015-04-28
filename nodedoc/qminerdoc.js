@@ -1,4 +1,11 @@
 /**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+/**
 * Qminer module.
 * @module qm
 * @example 
@@ -315,10 +322,10 @@
 * @typedef {Object} FeatureExtractorText
 * @property {string} type - The type of the extractor. It must be equal 'text'.
 * @property {boolean} [normalize = 'true'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
-* @property {module:qm~FeatureWight} weight - Type of weighting used for scoring terms.
+* @property {module:qm~FeatureWeight} [weight = 'tfidf'] - Type of weighting used for scoring terms.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
 * @property {string} field - The name of the field from which to take the value.
-* @property {module:qm~FeatureTokenizer} tokenizer
+* @property {module:qm~FeatureTokenizer} tokenizer - The settings for extraction of text.
 * @property {module:qm~FeatureMode} mode - How are multi-record cases combined into single vector.
 * @property {module:qm~FeatureStream} stream - Details on forgetting old IDFs when running on stream.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
@@ -364,6 +371,74 @@
 * @typedef {Object} FeatureSource
 * @property {string} store - The store name.
 */
+/**
+* Type of weighting used for scoring terms.
+* @readonly
+* @enum {string}
+*/
+ var FeatureWeight = {
+ /** Sets 1 if term occurs, 0 otherwise. */
+ none: 'none',
+ /** Sets the term frequency in the document. */
+ tf: 'tf',
+ /** Sets the inverse document frequency in the document. */
+ idf: 'idf',
+ /** Sets the product of the tf and idf score. */
+ tfidf: 'tfidf'
+ }
+/**
+* The settings for extraction of text.
+* @typedef {Object} FeatureTokenizer
+* @property {module:qm~FeatureTokenizerType} [type = 'simple'] - The type of the encoding text.
+* @property {module:qm~FeatureTokenizerStopwords} [stopwords = 'en'] - The stopwords used for extraction.
+* @property {module:qm~FeatureTokenizerStemmer} [stemmer = 'none'] - The stemmer used for extraction.
+* @property {boolean} [uppercase = 'true'] - Changing all words to uppercase.
+*/
+/**
+* The type of the encoding text.
+* @readonly
+* @enum {string}
+*/
+ var FeatureTokenizerType = {
+	/** The simple encoding. */
+	simple: 'simple',
+	/** The html encoding. */
+ html: 'html',
+ /** The unicode encoding. */
+ unicode: 'unicode'
+ }
+/**
+* THe stopwords used for extraction.
+* @readonly
+* @enum {Object}
+*/
+ var FeatureTokenizerStopwords = {
+ /** The pre-defined stopword list (none). */
+ none: 'none',
+ /** The pre-defined stopword list (english). */
+ en: 'en',
+ /** The pre-defined stopword list (slovene). */
+ si: 'si',
+ /** The pre-defined stopword list (spanish). */
+ es: 'es',
+ /** The pre-defined stopword list (german). */
+ de: 'de',
+ /** An array of stopwords. The array must be given as a parameter instead of 'array'! */
+ array: 'array'
+ }
+/**
+* The steemer used for extraction.
+* @readonly
+* @enum {Object}
+*/
+ var FeatureTokenizerStemmer = {
+ /** For using the porter stemmer. */
+ true: 'true',
+ /** For using the porter stemmer. */
+ porter: 'porter',
+ /** For using no stemmer. */
+ none: 'none',
+ }
 /**
 * How are multi-record cases combined into a single vector.
 * @readonly
