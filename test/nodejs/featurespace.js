@@ -1140,7 +1140,7 @@ describe('Feature Space Tests', function () {
         })
     });
 
-    describe.only('UpdateRecord Tests', function () {
+    describe('UpdateRecord Tests', function () {
         it('should update the feature space with a new record: constant', function () {
             var ftr = new qm.FeatureSpace(base, { type: "constant", source: "FtrSpaceTest" });
             ftr.updateRecord(Store[0]);
@@ -1241,7 +1241,7 @@ describe('Feature Space Tests', function () {
         // It uses stopwords (letter a is skipped), it uses L2 normalization
         // and three words are kept: alpha, alphabet and alphabeth 
         // Suggestion: multiple tests based on tokenizer settings (normalization, stop words, ...)
-        it('should update the feature space with a new record: text, multiple records', function () {
+        it.skip('should update the feature space with a new record: text, multiple records', function () {
             var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", normalize: false, field: "Text" });
             Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
             Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
@@ -1263,6 +1263,7 @@ describe('Feature Space Tests', function () {
             ftr.updateRecord(Store[12]);
             ftr.updateRecord(Store[13]);
             ftr.updateRecord(Store[14]);
+
             assert.equal(ftr.ftrVec(Store[11]).length, 3);
             assert.equal(ftr.ftrVec(Store[11]).at(0), 2*Math.log(2));
             assert.equal(ftr.ftrVec(Store[11]).at(1), 0);
