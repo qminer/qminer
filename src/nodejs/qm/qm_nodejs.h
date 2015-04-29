@@ -499,16 +499,17 @@ private:
 //# }
 
 /**
-* How are multi-record cases combined into a single vector.
+* How are multi-record cases combined into a single vector. //TODO not implemented for join record cases (works only if the start store and the 
+* feature store are the same)
 * @readonly
 * @enum {string}
 */
 //# var FeatureMode = {
-//#		/** //TODO */
+//#		/** Multi-record cases are merged into one document. */
 //#		concatenate: 'concatenate', 
-//#		/** //TODO */
+//#		/** Treat each case as a separate document. */
 //#		centroid: 'centroid', 
-//#		/** //TODO */
+//#		/** //TODO (Use the tokenizer option) */
 //#		tokenized : 'tokenized'
 //# }
 

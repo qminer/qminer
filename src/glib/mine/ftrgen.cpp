@@ -35,7 +35,13 @@ bool TNumeric::Update(const double& Val) {
 
 double TNumeric::GetFtr(const double& Val) const {
 	if ((Type != ntNone) && (MnVal < MxVal)) {
-        return (Val - MnVal) / (MxVal - MnVal);
+		if (Val > MxVal) { 
+			return 1; 
+		} else if (Val < MnVal) { 
+			return 0; 
+		} else {
+			return (Val - MnVal) / (MxVal - MnVal);
+		}
 	}
     return Val;        
 }

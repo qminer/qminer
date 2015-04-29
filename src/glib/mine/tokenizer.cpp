@@ -78,7 +78,7 @@ void TSimple::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
 			if (SwSet.Empty() || (!SwSet->IsIn(UcStr))) {
 				TStr TokenStr = ToUcP ? UcStr : WordStr;
 				if (!Stemmer.Empty()) {	
-					TokenStr = Stemmer->GetStem(TokenStr); }
+					TokenStr = Stemmer->GetStem(TokenStr,ToUcP); }
 				TokenV.Add(TokenStr);
 			}
 		}
