@@ -320,7 +320,7 @@
               </dl>
               <h3 id="~FeatureMode"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureMode</span><small class="property-type">
                 &nbsp;string</small></h3>
-              <p>How are multi-record cases combined into a single vector.</p>
+              <p>How are multi-record cases combined into a single vector. //TODO not implemented for join record cases (works only if the start store and the feature store are the same)</p>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -344,7 +344,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>//TODO</p>
+                        <p>Multi-record cases are merged into one document.</p>
                         <p>Defaults to <code>concatenate</code>.</p>
                       </td>
                     </tr>
@@ -359,7 +359,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>//TODO</p>
+                        <p>Treat each case as a separate document.</p>
                         <p>Defaults to <code>centroid</code>.</p>
                       </td>
                     </tr>
@@ -374,7 +374,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>//TODO</p>
+                        <p>//TODO (Use the tokenizer option)</p>
                         <p>Defaults to <code>tokenized</code>.</p>
                       </td>
                     </tr>
@@ -465,7 +465,7 @@
                   <tbody>
                     <tr>
                       <td>
-                        <p>true</p>
+                        <p>boolean</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -1262,6 +1262,29 @@
                 &nbsp;Object</small></h3>
               <p>Feature type: categorical</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the student name and it&#x27;s study group
+// here we know the student is part of only one study group
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      &quot;name&quot;: &quot;Class&quot;,
+      &quot;fields&quot;: [
+         { name: &quot;Name&quot;, type: &quot;string&quot; },
+         { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
+      ]
+   }]
+});
+// create a feature space containing the categorical extractor, where the it&#x27;s values
+// are taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot; and &quot;D&quot;
+var ftr = qm.FeatureSpace(base, { type: &quot;categorical&quot;, source: &quot;Class&quot;, field: &quot;StudyGroup&quot;, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;] });</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -1350,7 +1373,25 @@
               </dl>
               <h3 id="~FeatureExtractorConstant"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorConstant</span><small class="property-type">
                 &nbsp;Object</small></h3>
-              <p>Feature type: contant</p>
+              <p>Feature type: constant</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains only a persons name
+var base = new qm.Base({
+  mode: &#x27;createClean&#x27;,
+  schema: [{
+     &quot;name&quot;: &quot;Person&quot;,
+     &quot;fields&quot;: [{ name: &quot;Name&quot;, type: &quot;string&quot; }]
+  }]
+});
+// create a feature space containing the constant extractor, where the constant is equal 5
+var ftr = qm.FeatureSpace(base, { type: &quot;constant&quot;, source: &quot;Person&quot;, const: 5 });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1599,6 +1640,33 @@
                 &nbsp;Object</small></h3>
               <p>Feature type: jsfunc</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the name of the student and his study groups
+// each student is part of multiple study groups
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      &quot;name&quot;: &quot;Class&quot;,
+      &quot;fields&quot;: [
+         { name: &quot;Name&quot;, type: &quot;string&quot; },
+         { name: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
+      ]
+   }]
+});
+// create a feature space containing the jsfunc extractor, where the function counts the number 
+// of study groups each student is part of. The functions name is &quot;NumberOFGroups&quot;, it&#x27;s dimension
+// is 1 (returns only one value, not an array)
+var ftr = qm.FeatureSpace(base, {
+             type: &quot;jsfunc&quot;, source: &quot;Class&quot;, name: &quot;NumberOfGroups&quot;, dim: 1,
+             fun: function (rec) { returns rec.StudyGroups.length; }
+          });</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -1689,6 +1757,31 @@
               <h3 id="~FeatureExtractorMultinomial"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorMultinomial</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: multinomial</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the student name and an array of study groups
+// here we know a student can be part of multiple study groups
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      &quot;name&quot;: &quot;Class&quot;,
+      &quot;fields&quot;: [
+         { name: &quot;Name&quot;, type: &quot;string&quot; },
+         { name: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
+      ]
+   }]
+});
+// create a feature space containing the multinomial extractor, where the values are normalized,
+// and taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;
+var ftr = qm.FeatureSpace(base, { 
+             type: &quot;multinomial&quot;, source: &quot;CLass&quot;, field: &quot;StudyGroups&quot;, normalize: true, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;]
+          });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1810,6 +1903,28 @@
               <h3 id="~FeatureExtractorNumeric"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorNumeric</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: numeric</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the student name and it&#x27;s grade
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      &quot;name&quot;: &quot;Class&quot;,
+      &quot;fields&quot;: [
+         { name: &quot;Name&quot;, type: &quot;string&quot; },
+         { name: &quot;Grade&quot;, type: &quot;number&quot; }
+      ]
+   }]
+});
+// create a feature space containing the numeric extractor, where the values are 
+// normalized, the values are taken from the field &quot;Grade&quot;
+var ftr = qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class&quot;, normalize: true, field: &quot;Grade&quot; });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1991,6 +2106,24 @@
               <h3 id="~FeatureExtractorRandom"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorRandom</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: random</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains only a persons name
+var base = new qm.Base({
+  mode: &#x27;createClean&#x27;,
+  schema: [{
+     &quot;name&quot;: &quot;Person&quot;,
+     &quot;fields&quot;: [{ name: &quot;Name&quot;, type: &quot;string&quot; }]
+  }]
+});
+// create a feature space containing the random extractor
+var ftr = qm.FeatureSpace(base, { type: &quot;random&quot;, source: &quot;Person&quot; });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -2214,6 +2347,31 @@
               <h3 id="~FeatureExtractorText"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorText</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: text</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the title of the article and it&#x27;s content
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      &quot;name&quot;: &quot;Articles&quot;,
+      &quot;fields&quot;: [
+         { name: &quot;Title&quot;, type: &quot;string&quot; },
+         { name: &quot;Text&quot;, type: &quot;string&quot; }
+      ]
+   }]
+});
+// create a feature spave containing the text (bag of words) extractor, where the values are normalized,
+// weighted with &#x27;tfidf&#x27; and the tokenizer is of &#x27;simple&#x27; type, it uses english stopwords.
+var ftr = qm.FeatureSpace(base, { 
+             type: &quot;text&quot;, source: &quot;Articles&quot;, field: &quot;Text&quot;, normalize: true, weight: &quot;tfidf&quot;,
+             tokenizer: { type: &quot;simple&quot;, stopwords: &quot;en&quot;}
+          });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -3079,7 +3237,7 @@ var base = new qm.Base([{
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 28, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 29, 2015.
       </p>
     </div>
   </footer>

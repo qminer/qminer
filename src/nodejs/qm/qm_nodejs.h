@@ -315,11 +315,23 @@ private:
 */
 
 /**
-* Feature type: contant
+* Feature type: constant
 * @typedef {Object} FeatureExtractorConstant
 * @property {string} type - The type of the extractor. It must be equal 'constant'.
 * @property {number} [const = 1.0] - A constant number. 
 * @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains only a persons name
+* var base = new qm.Base({
+*   mode: 'createClean',
+*   schema: [{
+*      "name": "Person",
+*      "fields": [{ name: "Name", type: "string" }]
+*   }]
+* });
+* // create a feature space containing the constant extractor, where the constant is equal 5
+* var ftr = qm.FeatureSpace(base, { type: "constant", source: "Person", const: 5 });
 */
 
 /**
@@ -328,6 +340,18 @@ private:
 * @property {string} type - The type of the extractor. It must be equal 'random'.
 * @property {number} [seed = 0] - A random seed number.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains only a persons name
+* var base = new qm.Base({
+*   mode: 'createClean',
+*   schema: [{
+*      "name": "Person",
+*      "fields": [{ name: "Name", type: "string" }]
+*   }]
+* });
+* // create a feature space containing the random extractor
+* var ftr = qm.FeatureSpace(base, { type: "random", source: "Person" });
 */
 
 /**
@@ -339,6 +363,22 @@ private:
 * @property {number} [max] - The maximal value used to form the normalization.
 * @property {string} field - The name of the field from which to take the value.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains the student name and it's grade
+* var base = new qm.Base({
+*    mode: 'createClean',
+*    schema: [{
+*       "name": "Class",
+*       "fields": [
+*          { name: "Name", type: "string" },
+*          { name: "Grade", type: "number" }
+*       ]
+*    }]
+* });
+* // create a feature space containing the numeric extractor, where the values are 
+* // normalized, the values are taken from the field "Grade"
+* var ftr = qm.FeatureSpace(base, { type: "numeric", source: "Class", normalize: true, field: "Grade" });
 */
 
 /**
@@ -349,6 +389,23 @@ private:
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hasDimension to get the corresponding dimension.
 * @property {string} field - The name of the field form which to take the values.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains the student name and it's study group
+* // here we know the student is part of only one study group
+* var base = new qm.Base({
+*    mode: 'createClean',
+*    schema: [{
+*       "name": "Class",
+*       "fields": [
+*          { name: "Name", type: "string" },
+*          { name: "StudyGroup", type: "string" }
+*       ]
+*    }]
+* });
+* // create a feature space containing the categorical extractor, where the it's values
+* // are taken from the field "StudyGroup": "A", "B", "C" and "D"
+* var ftr = qm.FeatureSpace(base, { type: "categorical", source: "Class", field: "StudyGroup", values: ["A", "B", "C", "D"] });
 */
 
 /**
@@ -362,6 +419,25 @@ private:
 * <br> This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.
 * @property {string} field - The name of the field from which to take the value.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains the student name and an array of study groups
+* // here we know a student can be part of multiple study groups
+* var base = new qm.Base({
+*    mode: 'createClean',
+*    schema: [{
+*       "name": "Class",
+*       "fields": [
+*          { name: "Name", type: "string" },
+*          { name: "StudyGroups", type: "string_v" }
+*       ]
+*    }]
+* });
+* // create a feature space containing the multinomial extractor, where the values are normalized,
+* // and taken from the field "StudyGroup": "A", "B", "C", "D", "E", "F"
+* var ftr = qm.FeatureSpace(base, { 
+*              type: "multinomial", source: "CLass", field: "StudyGroups", normalize: true, values: ["A", "B", "C", "D", "E", "F"]
+*           });
 */
 
 /**
@@ -376,6 +452,25 @@ private:
 * @property {module:qm~FeatureMode} mode - How are multi-record cases combined into single vector.
 * @property {module:qm~FeatureStream} stream - Details on forgetting old IDFs when running on stream.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains the title of the article and it's content
+* var base = new qm.Base({
+*    mode: 'createClean',
+*    schema: [{
+*       "name": "Articles",
+*       "fields": [
+*          { name: "Title", type: "string" },
+*          { name: "Text", type: "string" }
+*       ]
+*    }]
+* });
+* // create a feature spave containing the text (bag of words) extractor, where the values are normalized,
+* // weighted with 'tfidf' and the tokenizer is of 'simple' type, it uses english stopwords.
+* var ftr = qm.FeatureSpace(base, { 
+*              type: "text", source: "Articles", field: "Text", normalize: true, weight: "tfidf",
+*              tokenizer: { type: "simple", stopwords: "en"}
+*           });
 */
 
 /**
@@ -417,6 +512,27 @@ private:
 * @property {function} fun - The javascript function callback. It should take a record as input and return a number or a dense vector.
 * @property {number} [dim = 1] - The dimension of the feature extractor.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains the name of the student and his study groups
+* // each student is part of multiple study groups
+* var base = new qm.Base({
+*    mode: 'createClean',
+*    schema: [{
+*       "name": "Class",
+*       "fields": [
+*          { name: "Name", type: "string" },
+*          { name: "StudyGroups", type: "string_v" }
+*       ]
+*    }]
+* });
+* // create a feature space containing the jsfunc extractor, where the function counts the number 
+* // of study groups each student is part of. The functions name is "NumberOFGroups", it's dimension
+* // is 1 (returns only one value, not an array)
+* var ftr = qm.FeatureSpace(base, {
+*              type: "jsfunc", source: "Class", name: "NumberOfGroups", dim: 1,
+*              fun: function (rec) { returns rec.StudyGroups.length; }
+*           });
 */
 
 /**
@@ -491,7 +607,7 @@ private:
 */
 //# var FeatureTokenizerStemmer = {
 //# /** For using the porter stemmer. */
-//# true: 'true',
+//# boolean: 'true',
 //# /** For using the porter stemmer. */
 //# porter: 'porter',
 //# /** For using no stemmer. */

@@ -1675,7 +1675,7 @@ describe('Feature Space Tests', function () {
     });
 
     describe('UpdateRecords Tests', function () {
-        it('should update the feature space by adding a whole store: constant', function () {
+        it('should update the feature space by adding the whole store: constant', function () {
             var ftr = new qm.FeatureSpace(base, { type: "constant", source: "FtrSpaceTest" });
             var rs = Store.recs;
             ftr.updateRecords(rs);
@@ -1684,7 +1684,7 @@ describe('Feature Space Tests', function () {
                 assert.equal(ftr.ftrVec(Store[i]).at(0), 1);
             }
         })
-        it('should update the feature space by adding a whole store: constant, number 10', function () {
+        it('should update the feature space by adding the whole store: constant, number 10', function () {
             var ftr = new qm.FeatureSpace(base, { type: "constant", source: "FtrSpaceTest", const: 10 });
             var rs = Store.recs;
             ftr.updateRecords(rs);
@@ -1693,7 +1693,7 @@ describe('Feature Space Tests', function () {
                 assert.equal(ftr.ftrVec(Store[i]).at(0), 10);
             }
         })
-        it('should update the feature space by adding a whole store: random', function () {
+        it('should update the feature space by adding the whole store: random', function () {
             var ftr = new qm.FeatureSpace(base, { type: "random", source: "FtrSpaceTest" });
             var rs = Store.recs;
             ftr.updateRecords(rs);
@@ -1702,7 +1702,7 @@ describe('Feature Space Tests', function () {
                 assert.ok(0 <= ftr.ftrVec(Store[i]).at(0) <= 1);
             }
         })
-        it('should update the feature space by adding a whole store: numeric', function () {
+        it('should update the feature space by adding the whole store: numeric', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
             var rs = Store.recs;
 
@@ -1711,7 +1711,7 @@ describe('Feature Space Tests', function () {
                 assert.eqtol(ftr.ftrVec(Store[i]).at(0), 1 + i / 10);
             };
         })
-        it('should update the feature space by adding a whole store: numeric, normalize', function () {
+        it('should update the feature space by adding the whole store: numeric, normalize', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" });
             var rs = Store.recs;
 
@@ -1720,16 +1720,52 @@ describe('Feature Space Tests', function () {
                 assert.eqtol(ftr.ftrVec(Store[i]).at(0), i / 10);
             };
         })
-        it('should update the feature spave by adding a whole store: numeric, normalize, min, max', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value", min: 4, max: 5 });
+        it('should update the feature spave by adding the whole store: numeric, normalize, min, max', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value", min: 1.5, max: 2.5 });
             var rs = Store.recs;
 
             ftr.updateRecords(rs);
-            for (var i = 0; i < 11; i++) {
+            for (var i = 0; i < 6; i++) {
                 assert.eqtol(ftr.ftrVec(Store[i]).at(0), 0);
             };
+            for (var i = 6; i < 11; i++) {
+                assert.eqtol(ftr.ftrVec(Store[i]).at(0), (i-5) / 10);
+            }
         })
-        it('should update the feature space by adding a whole record space, multinomial', function () {
+        it('should update the feature space by adding the whole store: categorical', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] });
+            var rs = Store.recs;
+
+            ftr.updateRecords(rs);
+            assert.equal(ftr.ftrVec(Store[0]).length, 3);
+            assert.equal(ftr.ftrVec(Store[0]).at(0), 1);
+            assert.equal(ftr.ftrVec(Store[0]).at(1), 0);
+            assert.equal(ftr.ftrVec(Store[0]).at(2), 0);
+
+        })
+        it('should update the feature space by adding the whole store: categorical, hashDimension', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 4 });
+            var rs = Store.recs;
+
+            ftr.updateRecords(rs);
+            assert.equal(ftr.ftrVec(Store[0]).length, 4);
+        })
+        it('should update the feature space by adding the whole store: multinomial', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] });
+            var rs = Store.recs;
+
+            ftr.updateRecords(rs);
+            assert.equal(ftr.ftrVec(Store[0]).length, 6);
+            assert.equal(ftr.ftrVec(Store[0]).at(0), 1);
+            assert.equal(ftr.ftrVec(Store[0]).at(1), 0);
+            assert.equal(ftr.ftrVec(Store[0]).at(2), 0);
+            assert.equal(ftr.ftrVec(Store[0]).at(3), 1);
+            assert.equal(ftr.ftrVec(Store[0]).at(4), 0);
+            assert.equal(ftr.ftrVec(Store[0]).at(5), 0);
+
+
+        })
+        it('should update the feature space by adding the whole store: multinomial, normalize', function () {
             var ftr = new qm.FeatureSpace(base,
                 { type: "multinomial", source: "FtrSpaceTest", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
             );
@@ -1741,6 +1777,30 @@ describe('Feature Space Tests', function () {
 
             assert.eqtol(ftr.ftrVec(Store[10]).at(1), (1 / Math.sqrt(2)));
             assert.eqtol(ftr.ftrVec(Store[10]).at(4), (1 / Math.sqrt(2)));
+        })
+        it('should update the feature space by adding the whole store: multinomial, hashDimension', function () {
+            var ftr = new qm.FeatureSpace(base,
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 }
+                );
+            var rs = Store.recs;
+            ftr.updateRecords(rs);
+
+            assert.equal(ftr.ftrVec(Store[0]).length, 4);
+        })
+        it.skip('should update the feature space by adding the whole store: multinomial, datetime', function () {
+
+        })
+        it('should update the feature space by adding the whole store: jsfunc', function () {
+            var ftr = new qm.FeatureSpace(base, {
+                type: "jsfunc", source: "FtrSpaceTest", name: "TestFunc", dim: 1,
+                fun: function (rec) { return rec.Categories.length; }
+            });
+            var rs = Store.recs;
+            ftr.updateRecords(rs);
+            for (var i = 0; i < 11; i++) {
+                assert.equal(ftr.ftrVec(Store[i]).length, 1);
+                assert.eqtol(ftr.ftrVec(Store[i]).at(0), 2);
+            }
         })
         it('should update the feature space by adding a whole record space, numeric, multinomial', function () {
             var ftr = new qm.FeatureSpace(base, [
