@@ -315,11 +315,23 @@ private:
 */
 
 /**
-* Feature type: contant
+* Feature type: constant
 * @typedef {Object} FeatureExtractorConstant
 * @property {string} type - The type of the extractor. It must be equal 'constant'.
 * @property {number} [const = 1.0] - A constant number. 
 * @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains only a persons name
+* var base = new qm.Base({
+*   mode: 'createClean',
+*   schema: [{
+*      "name": "Person",
+*      "fields": [{ name: "Name", type: "string" }]
+*   }]
+* });
+* // create a feature space containing the constant extractor, where the constant is equal 5
+* var ftr = qm.FeatureSpace(base, { type: "constant", source: "Person", const: 5 });
 */
 
 /**
@@ -328,6 +340,18 @@ private:
 * @property {string} type - The type of the extractor. It must be equal 'random'.
 * @property {number} [seed = 0] - A random seed number.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains only a persons name
+* var base = new qm.Base({
+*   mode: 'createClean',
+*   schema: [{
+*      "name": "Person",
+*      "fields": [{ name: "Name", type: "string" }]
+*   }]
+* });
+* // create a feature space containing the random extractor
+* var ftr = qm.FeatureSpace(base, { type: "random", source: "Person" });
 */
 
 /**
@@ -339,6 +363,22 @@ private:
 * @property {number} [max] - The maximal value used to form the normalization.
 * @property {string} field - The name of the field from which to take the value.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains the student name and it's grade
+* var base = new qm.Base({
+*    mode: 'createClean',
+*    schema: [{
+*       "name": "Class",
+*       "fields": [
+*          { name: "Name", type: "string" },
+*          { name: "Grade", type: "number" }
+*       ]
+*    }]
+* });
+* // create a feature space containing the numeric extractor, where the values are 
+* // normalized, the values are taken from the field "Grade"
+* var ftr = qm.FeatureSpace(base, { type: "numeric", source: "Class", normalize: true, field: "Grade" });
 */
 
 /**
@@ -349,6 +389,23 @@ private:
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hasDimension to get the corresponding dimension.
 * @property {string} field - The name of the field form which to take the values.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains the student name and it's study group
+* // here we know the student is part of only one study group
+* var base = new qm.Base({
+*    mode: 'createClean',
+*    schema: [{
+*       "name": "Class",
+*       "fields": [
+*          { name: "Name", type: "string" },
+*          { name: "StudyGroup", type: "string" }
+*       ]
+*    }]
+* });
+* // create a feature space containing the categorical extractor, where the it's values
+* // are taken from the field "StudyGroup": "A", "B", "C" and "D"
+* var ftr = qm.FeatureSpace(base, { type: "categorical", source: "Class", field: "StudyGroup", values: ["A", "B", "C", "D"] });
 */
 
 /**
@@ -362,6 +419,25 @@ private:
 * <br> This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.
 * @property {string} field - The name of the field from which to take the value.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains the student name and an array of study groups
+* // here we know a student can be part of multiple study groups
+* var base = new qm.Base({
+*    mode: 'createClean',
+*    schema: [{
+*       "name": "Class",
+*       "fields": [
+*          { name: "Name", type: "string" },
+*          { name: "StudyGroups", type: "string_v" }
+*       ]
+*    }]
+* });
+* // create a feature space containing the multinomial extractor, where the values are normalized,
+* // and taken from the field "StudyGroup": "A", "B", "C", "D", "E", "F"
+* var ftr = qm.FeatureSpace(base, { 
+*              type: "multinomial", source: "CLass", field: "StudyGroups", normalize: true, values: ["A", "B", "C", "D", "E", "F"]
+*           });
 */
 
 /**
@@ -369,13 +445,32 @@ private:
 * @typedef {Object} FeatureExtractorText
 * @property {string} type - The type of the extractor. It must be equal 'text'.
 * @property {boolean} [normalize = 'true'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
-* @property {module:qm~FeatureWight} weight - Type of weighting used for scoring terms.
+* @property {module:qm~FeatureWeight} [weight = 'tfidf'] - Type of weighting used for scoring terms.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
 * @property {string} field - The name of the field from which to take the value.
-* @property {module:qm~FeatureTokenizer} tokenizer
+* @property {module:qm~FeatureTokenizer} tokenizer - The settings for extraction of text.
 * @property {module:qm~FeatureMode} mode - How are multi-record cases combined into single vector.
 * @property {module:qm~FeatureStream} stream - Details on forgetting old IDFs when running on stream.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains the title of the article and it's content
+* var base = new qm.Base({
+*    mode: 'createClean',
+*    schema: [{
+*       "name": "Articles",
+*       "fields": [
+*          { name: "Title", type: "string" },
+*          { name: "Text", type: "string" }
+*       ]
+*    }]
+* });
+* // create a feature spave containing the text (bag of words) extractor, where the values are normalized,
+* // weighted with 'tfidf' and the tokenizer is of 'simple' type, it uses english stopwords.
+* var ftr = qm.FeatureSpace(base, { 
+*              type: "text", source: "Articles", field: "Text", normalize: true, weight: "tfidf",
+*              tokenizer: { type: "simple", stopwords: "en"}
+*           });
 */
 
 /**
@@ -417,6 +512,27 @@ private:
 * @property {function} fun - The javascript function callback. It should take a record as input and return a number or a dense vector.
 * @property {number} [dim = 1] - The dimension of the feature extractor.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains the name of the student and his study groups
+* // each student is part of multiple study groups
+* var base = new qm.Base({
+*    mode: 'createClean',
+*    schema: [{
+*       "name": "Class",
+*       "fields": [
+*          { name: "Name", type: "string" },
+*          { name: "StudyGroups", type: "string_v" }
+*       ]
+*    }]
+* });
+* // create a feature space containing the jsfunc extractor, where the function counts the number 
+* // of study groups each student is part of. The functions name is "NumberOFGroups", it's dimension
+* // is 1 (returns only one value, not an array)
+* var ftr = qm.FeatureSpace(base, {
+*              type: "jsfunc", source: "Class", name: "NumberOfGroups", dim: 1,
+*              fun: function (rec) { returns rec.StudyGroups.length; }
+*           });
 */
 
 /**
@@ -426,16 +542,90 @@ private:
 */
 
 /**
-* How are multi-record cases combined into a single vector.
+* Type of weighting used for scoring terms.
+* @readonly
+* @enum {string}
+*/
+//# var FeatureWeight = {
+//# /** Sets 1 if term occurs, 0 otherwise. */
+//# none: 'none',
+//# /** Sets the term frequency in the document. */
+//# tf: 'tf',
+//# /** Sets the inverse document frequency in the document. */
+//# idf: 'idf',
+//# /** Sets the product of the tf and idf score. */
+//# tfidf: 'tfidf'
+//# }
+
+/**
+* The settings for extraction of text.
+* @typedef {Object} FeatureTokenizer
+* @property {module:qm~FeatureTokenizerType} [type = 'simple'] - The type of the encoding text.
+* @property {module:qm~FeatureTokenizerStopwords} [stopwords = 'en'] - The stopwords used for extraction.
+* @property {module:qm~FeatureTokenizerStemmer} [stemmer = 'none'] - The stemmer used for extraction.
+* @property {boolean} [uppercase = 'true'] - Changing all words to uppercase.
+*/
+
+/**
+* The type of the encoding text.
+* @readonly
+* @enum {string}
+*/
+//# var FeatureTokenizerType = {
+//#	/** The simple encoding. */
+//#	simple: 'simple',
+//#	/** The html encoding. */
+//# html: 'html',
+//# /** The unicode encoding. */
+//# unicode: 'unicode'
+//# }
+
+/**
+* THe stopwords used for extraction.
+* @readonly
+* @enum {Object}
+*/
+//# var FeatureTokenizerStopwords = {
+//# /** The pre-defined stopword list (none). */
+//# none: 'none',
+//# /** The pre-defined stopword list (english). */
+//# en: 'en',
+//# /** The pre-defined stopword list (slovene). */
+//# si: 'si',
+//# /** The pre-defined stopword list (spanish). */
+//# es: 'es',
+//# /** The pre-defined stopword list (german). */
+//# de: 'de',
+//# /** An array of stopwords. The array must be given as a parameter instead of 'array'! */
+//# array: 'array'
+//# }
+
+/**
+* The steemer used for extraction.
+* @readonly
+* @enum {Object}
+*/
+//# var FeatureTokenizerStemmer = {
+//# /** For using the porter stemmer. */
+//# boolean: 'true',
+//# /** For using the porter stemmer. */
+//# porter: 'porter',
+//# /** For using no stemmer. */
+//# none: 'none',
+//# }
+
+/**
+* How are multi-record cases combined into a single vector. //TODO not implemented for join record cases (works only if the start store and the 
+* feature store are the same)
 * @readonly
 * @enum {string}
 */
 //# var FeatureMode = {
-//#		/** //TODO */
+//#		/** Multi-record cases are merged into one document. */
 //#		concatenate: 'concatenate', 
-//#		/** //TODO */
+//#		/** Treat each case as a separate document. */
 //#		centroid: 'centroid', 
-//#		/** //TODO */
+//#		/** //TODO (Use the tokenizer option) */
 //#		tokenized : 'tokenized'
 //# }
 
@@ -1095,11 +1285,11 @@ private:
 	//# exports.Record.prototype.$clone = function () {};
     JsDeclareFunction(clone);
 
-    //!- `rec = rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string). Returns self.
-    //!- `rec = rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
+    //!- `rec = rec.addJoin(joinName, (joinRecord | joinRecordId))` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string). Returns self.
+    //!- `rec = rec.addJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
     JsDeclareFunction(addJoin);
-    //!- `rec = rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string). Returns self.
-    //!- `rec = rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`. Return self.
+    //!- `rec = rec.delJoin(joinName, (joinRecord | joinRecordId))` -- deletes join record `joinRecord` (or given id, joinRecordId) from join `joinName` (string). Returns self.
+    //!- `rec = rec.delJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- deletes join record `joinRecord` (or given id, joinRecordId) from join `joinName` (string) with join frequency `joinFrequency`. Return self.
     JsDeclareFunction(delJoin);
 
     //!- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify

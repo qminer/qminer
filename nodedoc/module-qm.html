@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html">qminerdoc.<wbr>js</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-8">qminerdoc.<wbr>js:8</a></p>
             <div class="symbol-description">
               <p>Qminer module.</p>
             </div>
@@ -92,19 +92,33 @@
                     <dt><a href="module-qm.html#~FeatureMode">FeatureMode</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.html#~FeatureStream">FeatureStream</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.html#~FeatureStream">FeatureStream</a></dt>
+                    <dt><a href="module-qm.html#~FeatureTokenizerStemmer">FeatureTokenizerStemmer</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureTokenizerStopwords">FeatureTokenizerStopwords</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureTokenizerType">FeatureTokenizerType</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.html#~FeatureWeight">FeatureWeight</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.html#~fieldTypes">fieldTypes</a></dt>
                     <dd>
                     </dd>
                   </dl>
-                </div>
-                <div class="summary-column">
                 </div>
               </div>
             </div>
@@ -157,13 +171,13 @@
                     <dt><a href="module-qm.html#~FeatureExtractorJsfunc">FeatureExtractorJsfunc</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractorMultinomial">FeatureExtractorMultinomial</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.html#~FeatureExtractorMultinomial">FeatureExtractorMultinomial</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.html#~FeatureExtractorNumeric">FeatureExtractorNumeric</a></dt>
                     <dd>
                     </dd>
@@ -179,13 +193,16 @@
                     <dt><a href="module-qm.html#~FeatureExtractorText">FeatureExtractorText</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.html#~FeatureSource">FeatureSource</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureTokenizer">FeatureTokenizer</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.html#~FeatureSource">FeatureSource</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.html#~SchemaDefinition">SchemaDefinition</a></dt>
                     <dd>
                     </dd>
@@ -303,7 +320,7 @@
               </dl>
               <h3 id="~FeatureMode"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureMode</span><small class="property-type">
                 &nbsp;string</small></h3>
-              <p>How are multi-record cases combined into a single vector.</p>
+              <p>How are multi-record cases combined into a single vector. //TODO not implemented for join record cases (works only if the start store and the feature store are the same)</p>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -327,7 +344,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>//TODO</p>
+                        <p>Multi-record cases are merged into one document.</p>
                         <p>Defaults to <code>concatenate</code>.</p>
                       </td>
                     </tr>
@@ -342,7 +359,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>//TODO</p>
+                        <p>Treat each case as a separate document.</p>
                         <p>Defaults to <code>centroid</code>.</p>
                       </td>
                     </tr>
@@ -357,7 +374,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>//TODO</p>
+                        <p>//TODO (Use the tokenizer option)</p>
                         <p>Defaults to <code>tokenized</code>.</p>
                       </td>
                     </tr>
@@ -424,6 +441,326 @@
                       <td>
                         <p>The time between iterations when the factor is applied, standard JSon time format is used to specify the interval duration.</p>
                         <p>Defaults to <code>interval</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTokenizerStemmer"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureTokenizerStemmer</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>The steemer used for extraction.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>For using the porter stemmer.</p>
+                        <p>Defaults to <code>true</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>porter</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>For using the porter stemmer.</p>
+                        <p>Defaults to <code>porter</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>none</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>For using no stemmer.</p>
+                        <p>Defaults to <code>none</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTokenizerStopwords"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureTokenizerStopwords</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>THe stopwords used for extraction.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>none</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pre-defined stopword list (none).</p>
+                        <p>Defaults to <code>none</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>en</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pre-defined stopword list (english).</p>
+                        <p>Defaults to <code>en</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>si</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pre-defined stopword list (slovene).</p>
+                        <p>Defaults to <code>si</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>es</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pre-defined stopword list (spanish).</p>
+                        <p>Defaults to <code>es</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>de</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pre-defined stopword list (german).</p>
+                        <p>Defaults to <code>de</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>array</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>An array of stopwords. The array must be given as a parameter instead of 'array'!</p>
+                        <p>Defaults to <code>array</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTokenizerType"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureTokenizerType</span><small class="property-type">
+                &nbsp;string</small></h3>
+              <p>The type of the encoding text.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>simple</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The simple encoding.</p>
+                        <p>Defaults to <code>simple</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>html</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The html encoding.</p>
+                        <p>Defaults to <code>html</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>unicode</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The unicode encoding.</p>
+                        <p>Defaults to <code>unicode</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureWeight"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureWeight</span><small class="property-type">
+                &nbsp;string</small></h3>
+              <p>Type of weighting used for scoring terms.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>none</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Sets 1 if term occurs, 0 otherwise.</p>
+                        <p>Defaults to <code>none</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>tf</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Sets the term frequency in the document.</p>
+                        <p>Defaults to <code>tf</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>idf</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Sets the inverse document frequency in the document.</p>
+                        <p>Defaults to <code>idf</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>tfidf</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Sets the product of the tf and idf score.</p>
+                        <p>Defaults to <code>tfidf</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -925,6 +1262,29 @@
                 &nbsp;Object</small></h3>
               <p>Feature type: categorical</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the student name and it&#x27;s study group
+// here we know the student is part of only one study group
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      &quot;name&quot;: &quot;Class&quot;,
+      &quot;fields&quot;: [
+         { name: &quot;Name&quot;, type: &quot;string&quot; },
+         { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
+      ]
+   }]
+});
+// create a feature space containing the categorical extractor, where the it&#x27;s values
+// are taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot; and &quot;D&quot;
+var ftr = qm.FeatureSpace(base, { type: &quot;categorical&quot;, source: &quot;Class&quot;, field: &quot;StudyGroup&quot;, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;] });</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -1013,7 +1373,25 @@
               </dl>
               <h3 id="~FeatureExtractorConstant"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorConstant</span><small class="property-type">
                 &nbsp;Object</small></h3>
-              <p>Feature type: contant</p>
+              <p>Feature type: constant</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains only a persons name
+var base = new qm.Base({
+  mode: &#x27;createClean&#x27;,
+  schema: [{
+     &quot;name&quot;: &quot;Person&quot;,
+     &quot;fields&quot;: [{ name: &quot;Name&quot;, type: &quot;string&quot; }]
+  }]
+});
+// create a feature space containing the constant extractor, where the constant is equal 5
+var ftr = qm.FeatureSpace(base, { type: &quot;constant&quot;, source: &quot;Person&quot;, const: 5 });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1262,6 +1640,33 @@
                 &nbsp;Object</small></h3>
               <p>Feature type: jsfunc</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the name of the student and his study groups
+// each student is part of multiple study groups
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      &quot;name&quot;: &quot;Class&quot;,
+      &quot;fields&quot;: [
+         { name: &quot;Name&quot;, type: &quot;string&quot; },
+         { name: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
+      ]
+   }]
+});
+// create a feature space containing the jsfunc extractor, where the function counts the number 
+// of study groups each student is part of. The functions name is &quot;NumberOFGroups&quot;, it&#x27;s dimension
+// is 1 (returns only one value, not an array)
+var ftr = qm.FeatureSpace(base, {
+             type: &quot;jsfunc&quot;, source: &quot;Class&quot;, name: &quot;NumberOfGroups&quot;, dim: 1,
+             fun: function (rec) { returns rec.StudyGroups.length; }
+          });</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -1352,6 +1757,31 @@
               <h3 id="~FeatureExtractorMultinomial"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorMultinomial</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: multinomial</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the student name and an array of study groups
+// here we know a student can be part of multiple study groups
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      &quot;name&quot;: &quot;Class&quot;,
+      &quot;fields&quot;: [
+         { name: &quot;Name&quot;, type: &quot;string&quot; },
+         { name: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
+      ]
+   }]
+});
+// create a feature space containing the multinomial extractor, where the values are normalized,
+// and taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;
+var ftr = qm.FeatureSpace(base, { 
+             type: &quot;multinomial&quot;, source: &quot;CLass&quot;, field: &quot;StudyGroups&quot;, normalize: true, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;]
+          });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1473,6 +1903,28 @@
               <h3 id="~FeatureExtractorNumeric"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorNumeric</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: numeric</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the student name and it&#x27;s grade
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      &quot;name&quot;: &quot;Class&quot;,
+      &quot;fields&quot;: [
+         { name: &quot;Name&quot;, type: &quot;string&quot; },
+         { name: &quot;Grade&quot;, type: &quot;number&quot; }
+      ]
+   }]
+});
+// create a feature space containing the numeric extractor, where the values are 
+// normalized, the values are taken from the field &quot;Grade&quot;
+var ftr = qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class&quot;, normalize: true, field: &quot;Grade&quot; });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1654,6 +2106,24 @@
               <h3 id="~FeatureExtractorRandom"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorRandom</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: random</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains only a persons name
+var base = new qm.Base({
+  mode: &#x27;createClean&#x27;,
+  schema: [{
+     &quot;name&quot;: &quot;Person&quot;,
+     &quot;fields&quot;: [{ name: &quot;Name&quot;, type: &quot;string&quot; }]
+  }]
+});
+// create a feature space containing the random extractor
+var ftr = qm.FeatureSpace(base, { type: &quot;random&quot;, source: &quot;Person&quot; });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1878,6 +2348,31 @@
                 &nbsp;Object</small></h3>
               <p>Feature type: text</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the title of the article and it&#x27;s content
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      &quot;name&quot;: &quot;Articles&quot;,
+      &quot;fields&quot;: [
+         { name: &quot;Title&quot;, type: &quot;string&quot; },
+         { name: &quot;Text&quot;, type: &quot;string&quot; }
+      ]
+   }]
+});
+// create a feature spave containing the text (bag of words) extractor, where the values are normalized,
+// weighted with &#x27;tfidf&#x27; and the tokenizer is of &#x27;simple&#x27; type, it uses english stopwords.
+var ftr = qm.FeatureSpace(base, { 
+             type: &quot;text&quot;, source: &quot;Articles&quot;, field: &quot;Text&quot;, normalize: true, weight: &quot;tfidf&quot;,
+             tokenizer: { type: &quot;simple&quot;, stopwords: &quot;en&quot;}
+          });</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -1923,13 +2418,14 @@
                         <p>weight</p>
                       </td>
                       <td>
-                        <p>module:qm~FeatureWight</p>
+                        <p><a href="module-qm.html#~FeatureWeight">module:qm~FeatureWeight</a></p>
                       </td>
                       <td>
-                        <p>&nbsp;</p>
+                        <p>Yes</p>
                       </td>
                       <td>
                         <p>Type of weighting used for scoring terms.</p>
+                        <p>Defaults to <code>'tfidf'</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -1965,12 +2461,13 @@
                         <p>tokenizer</p>
                       </td>
                       <td>
-                        <p>module:qm~FeatureTokenizer</p>
+                        <p><a href="module-qm.html#~FeatureTokenizer">module:qm~FeatureTokenizer</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
+                        <p>The settings for extraction of text.</p>
                       </td>
                     </tr>
                     <tr>
@@ -2047,6 +2544,86 @@
                       </td>
                       <td>
                         <p>The store name.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTokenizer"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureTokenizer</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>The settings for extraction of text.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureTokenizerType">module:qm~FeatureTokenizerType</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The type of the encoding text.</p>
+                        <p>Defaults to <code>'simple'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>stopwords</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureTokenizerStopwords">module:qm~FeatureTokenizerStopwords</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The stopwords used for extraction.</p>
+                        <p>Defaults to <code>'en'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>stemmer</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureTokenizerStemmer">module:qm~FeatureTokenizerStemmer</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The stemmer used for extraction.</p>
+                        <p>Defaults to <code>'none'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>uppercase</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Changing all words to uppercase.</p>
+                        <p>Defaults to <code>'true'</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -2660,7 +3237,7 @@ var base = new qm.Base([{
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 24, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 29, 2015.
       </p>
     </div>
   </footer>

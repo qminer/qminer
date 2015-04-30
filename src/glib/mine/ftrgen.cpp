@@ -35,7 +35,13 @@ bool TNumeric::Update(const double& Val) {
 
 double TNumeric::GetFtr(const double& Val) const {
 	if ((Type != ntNone) && (MnVal < MxVal)) {
-        return (Val - MnVal) / (MxVal - MnVal);
+		if (Val > MxVal) { 
+			return 1; 
+		} else if (Val < MnVal) { 
+			return 0; 
+		} else {
+			return (Val - MnVal) / (MxVal - MnVal);
+		}
 	}
     return Val;        
 }
@@ -275,11 +281,11 @@ void TBagOfWords::GetFtr(const TStr& Str, TStrV& TokenStrV) const {
     }*/
 }
 
-void TBagOfWords::GenerateNgrams(const TStrV& TokenStrV, TStrV &NgramStrV) const {
-    if((NStart == 1) && (NEnd == 1)) { 
+void TBagOfWords::GenerateNgrams(const TStrV& TokenStrV, TStrV &NgramStrV) const {    
+	if((NStart == 1) && (NEnd == 1)) { 
         NgramStrV = TokenStrV;
-    }
-    
+		return;
+    }    
     const TSize TotalStrLen = TokenStrV.Len();
     for(TSize TokenStrN = 0; TokenStrN < TotalStrLen; TokenStrN++) { // for each token position, generate ngrams starting at that position
     	// Start with Token Position
@@ -368,7 +374,7 @@ void TBagOfWords::AddFtr(const TStrV& TokenStrV, TIntFltKdV& SpV) const {
     // aggregate token counts
     TIntH TermFqH;
 	TStrV NgramStrV;
-    GenerateNgrams(TokenStrV, NgramStrV);
+    GenerateNgrams(TokenStrV, NgramStrV);	
     for (int TokenStrN = 0; TokenStrN < NgramStrV.Len(); TokenStrN++) {
         const TStr& TokenStr = NgramStrV[TokenStrN];
         // get token ID

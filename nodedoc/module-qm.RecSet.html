@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">namespace</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">RecSet</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-658">qminerdoc.<wbr>js:658</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-850">qminerdoc.<wbr>js:850</a></p>
             <div class="symbol-description">
               <p>Record Set (factory pattern)</p>
             </div>
@@ -435,43 +435,6 @@ rs.filter(function (rec) { return rec.Price &gt; 10000; }); // keeps only the re
                     <br>2. Contains all the records of the original, if no parameter is given.</p>
                 </dd>
               </dl>
-              <h3 id="getVec"><span class="symbol-name">getVec</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
-              <p>Creates a vector containing the field values of records.</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>fieldName</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The field from which to take the values. It's type must be one-dimensional, e.g. float, int, string,...</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the field values of records. The type it contains is dependant of the field type.</p>
-                </dd>
-              </dl>
               <h3 id="getVec"><span class="symbol-name">getVec</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</span></span></h3>
               <p>Creates a vector containing the field values of records.</p>
               <section>
@@ -507,6 +470,43 @@ rs.filter(function (rec) { return rec.Price &gt; 10000; }); // keeps only the re
                 <dt>Returns</dt>
                 <dd>
                   <p><code>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>&nbsp;The matrix containing the field values of records.</p>
+                </dd>
+              </dl>
+              <h3 id="getVec"><span class="symbol-name">getVec</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <p>Creates a vector containing the field values of records.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fieldName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The field from which to take the values. It's type must be one-dimensional, e.g. float, int, string,...</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the field values of records. The type it contains is dependant of the field type.</p>
                 </dd>
               </dl>
               <h3 id="join"><span class="symbol-name">join</span><span class="signature"><span class="signature-params">(joinName[, sampleSize])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
@@ -1070,7 +1070,7 @@ rs2.trunc(10, 4);</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 24, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 29, 2015.
       </p>
     </div>
   </footer>

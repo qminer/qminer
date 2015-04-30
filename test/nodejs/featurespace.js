@@ -26,7 +26,7 @@
  * of the authors and should not be interpreted as representing official policies,
  * either expressed or implied, of the FreeBSD Project.
  */
- 
+
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
 var qm = require('qminer');
@@ -1180,6 +1180,7 @@ describe('Feature Space Tests', function () {
             assert.eqtol(ftr.ftrVec(Store[0]).at(0), 0);
             assert.eqtol(ftr.ftrVec(Store[1]).at(0), 0.5);
             assert.eqtol(ftr.ftrVec(Store[2]).at(0), 1);
+            assert.eqtol(ftr.ftrVec(Store[3]).at(0), 1);
         })
         it('should update the feature space with a new record: categorical', function () {
             var ftr = new qm.FeatureSpace(base,
@@ -1235,56 +1236,34 @@ describe('Feature Space Tests', function () {
             assert.equal(ftr.ftrVec(Store[12]).at(0), 0);
             assert.equal(ftr.ftrVec(Store[12]).at(1), 1);
 
-           //ftr.ftrVec(Store[13]); // C++ exception
+            //ftr.ftrVec(Store[13]); // C++ exception
         })
-        //TODO check if it returns the real values (current is fishy)
-        // It uses stopwords (letter a is skipped), it uses L2 normalization
-        // and three words are kept: alpha, alphabet and alphabeth 
-        // Suggestion: multiple tests based on tokenizer settings (normalization, stop words, ...)
-        it.skip('should update the feature space with a new record: text, multiple records', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", field: "Text" });
-            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
-            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
-            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet" });
-            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a" });
-            
+        it.skip('should update the feature space with a new record: pair', function () {
 
-//length: 3 }
-//ftr.ftrVec(Store[11]).print()
-//1, 0, 0
-//ftr.ftrVec(Store[12]).print()
-//0, 1, 0
-//ftr.ftrVec(Store[13]).print()
-//0.92361, 0.383333, 0
-//ftr.ftrVec(Store[14]).print()
-//0, 0.20319, 0.979139	
-            	
-            ftr.updateRecord(Store[11]);
-            ftr.updateRecord(Store[12]);
-            ftr.updateRecord(Store[13]);
-            ftr.updateRecord(Store[14]);
-            assert.equal(ftr.ftrVec(Store[11]).length, 3);
-            assert.equal(ftr.ftrVec(Store[11]).at(0), 1);
-            assert.equal(ftr.ftrVec(Store[11]).at(1), 0);
+        })
+        it.skip('should update the feature space with a new record: dateWindow', function () {
 
-            assert.equal(ftr.ftrVec(Store[12]).length, 3);
-            assert.equal(ftr.ftrVec(Store[12]).at(0), 0);
-            assert.equal(ftr.ftrVec(Store[12]).at(1), 1);
+        })
+        it('should update the feature space with a new record: jsfunc', function () {
+            var ftr = new qm.FeatureSpace(base, {
+                type: "jsfunc", source: "FtrSpaceTest", name: "TestFunc", dim: 1,
+                fun: function (rec) { return rec.Categories.length; }
+            });
+            ftr.updateRecord(Store[0]);
+            ftr.updateRecord(Store[1]);
 
-            assert.equal(ftr.ftrVec(Store[13]).length, 3);
-            assert.equal(ftr.ftrVec(Store[13]).at(0), 1);
-            assert.equal(ftr.ftrVec(Store[13]).at(1), 0);
+            assert.equal(ftr.ftrVec(Store[0]).length, 1);
+            assert.equal(ftr.ftrVec(Store[0]).at(0), 2);
 
-            assert.equal(ftr.ftrVec(Store[14]).length, 3);
-            assert.equal(ftr.ftrVec(Store[14]).at(0), 0);
-            assert.equal(ftr.ftrVec(Store[14]).at(1), 1);
+            assert.equal(ftr.ftrVec(Store[1]).length, 1);
+            assert.equal(ftr.ftrVec(Store[1]).at(0), 2);
         })
         it('should return the correct value based on the last update', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" });
             ftr.updateRecord(Store[0]);
             ftr.updateRecord(Store[1]);
 
-            assert.eqtol(ftr.ftrVec(Store[2]).at(0), 2);
+            assert.eqtol(ftr.ftrVec(Store[2]).at(0), 1);
         })
         it('should update the feature space with a new record, numeric, categorical and multinomial', function () {
             var ftr = new qm.FeatureSpace(base, [
@@ -1320,8 +1299,419 @@ describe('Feature Space Tests', function () {
         })
     });
 
+    describe('Tokenizer Tests', function () {
+        it('should update the feature space, text: default settings', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", field: "Text" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a" });
+
+            ftr.updateRecord(Store[11]);
+            ftr.updateRecord(Store[12]);
+            ftr.updateRecord(Store[13]);
+            ftr.updateRecord(Store[14]);
+
+            assert.equal(ftr.ftrVec(Store[11]).length, 3);
+            assert.eqtol(ftr.ftrVec(Store[11]).at(0), 1);
+            assert.eqtol(ftr.ftrVec(Store[11]).at(1), 0);
+            assert.eqtol(ftr.ftrVec(Store[11]).at(2), 0);
+
+            assert.equal(ftr.ftrVec(Store[12]).length, 3);
+            assert.eqtol(ftr.ftrVec(Store[12]).at(0), 0);
+            assert.eqtol(ftr.ftrVec(Store[12]).at(1), 1);
+            assert.eqtol(ftr.ftrVec(Store[12]).at(2), 0);
+
+            assert.equal(ftr.ftrVec(Store[13]).length, 3);
+            assert.eqtol(ftr.ftrVec(Store[13]).at(0), Math.log(2) / Math.sqrt(Math.log(2) * Math.log(2) + Math.log(4 / 3) * Math.log(4 / 3)));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(1), Math.log(4 / 3) / Math.sqrt(Math.log(2) * Math.log(2) + Math.log(4 / 3) * Math.log(4 / 3)));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(2), 0);
+
+            assert.equal(ftr.ftrVec(Store[14]).length, 3);
+            assert.eqtol(ftr.ftrVec(Store[14]).at(0), 0);
+            assert.eqtol(ftr.ftrVec(Store[14]).at(1), Math.log(4 / 3) / Math.sqrt(Math.log(4) * Math.log(4) + Math.log(4 / 3) * Math.log(4 / 3)));
+            assert.eqtol(ftr.ftrVec(Store[14]).at(2), Math.log(4) / Math.sqrt(Math.log(4) * Math.log(4) + Math.log(4 / 3) * Math.log(4 / 3)));
+        })
+        it('should update the feature space, text: normalize-false, other default settings', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", normalize: false, field: "Text" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a" });
+
+            ftr.updateRecord(Store[11]);
+            ftr.updateRecord(Store[12]);
+            ftr.updateRecord(Store[13]);
+            ftr.updateRecord(Store[14]);
+
+            assert.equal(ftr.ftrVec(Store[11]).length, 3);
+            assert.eqtol(ftr.ftrVec(Store[11]).at(0), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(1), 0);
+            assert.eqtol(ftr.ftrVec(Store[11]).at(2), 0);
+
+            assert.equal(ftr.ftrVec(Store[12]).length, 3);
+            assert.eqtol(ftr.ftrVec(Store[12]).at(0), 0);
+            assert.eqtol(ftr.ftrVec(Store[12]).at(1), Math.log(4 / 3));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(2), 0);
+
+            assert.equal(ftr.ftrVec(Store[13]).length, 3);
+            assert.eqtol(ftr.ftrVec(Store[13]).at(0), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(1), Math.log(4 / 3));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(2), 0);
+
+            assert.equal(ftr.ftrVec(Store[14]).length, 3);
+            assert.eqtol(ftr.ftrVec(Store[14]).at(0), 0);
+            assert.eqtol(ftr.ftrVec(Store[14]).at(1), Math.log(4 / 3));
+            assert.eqtol(ftr.ftrVec(Store[14]).at(2), Math.log(4));
+        })
+        it('should update the feature space, text: normalize-false, ngrams[2, 3]', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", normalize: false, field: "Text", ngrams: [2, 3] });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet Beta, Gamma" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet Beta Omega" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a Omicron, Omicron" });
+
+            ftr.updateRecord(Store[11]);
+            ftr.updateRecord(Store[12]);
+            ftr.updateRecord(Store[13]);
+            ftr.updateRecord(Store[14]);
+
+            assert.equal(ftr.ftrVec(Store[11]).length, 12);
+            assert.eqtol(ftr.ftrVec(Store[11]).at(0), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(1), Math.log(4));
+        })
+        it('should update the feature space, text: normalize-false, tokenizer: { type: "simple", stopwords: "none" }', function () {
+            var ftr = new qm.FeatureSpace(base, {
+                type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
+                tokenizer: { type: "simple", stopwords: "none" }
+            });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet Beta, Gamma" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet Beta Omega" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a Omicron, Omicron" });
+
+            ftr.updateRecord(Store[11]);
+            ftr.updateRecord(Store[12]);
+            ftr.updateRecord(Store[13]);
+            ftr.updateRecord(Store[14]);
+
+            assert.equal(ftr.ftrVec(Store[11]).length, 8);
+            assert.eqtol(ftr.ftrVec(Store[11]).at(0), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(1), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(2), Math.log(4));
+
+            assert.eqtol(ftr.ftrVec(Store[12]).at(3), Math.log(4 / 3));
+
+            assert.eqtol(ftr.ftrVec(Store[13]).at(4), Math.log(4));
+
+            assert.eqtol(ftr.ftrVec(Store[14]).at(5), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[14]).at(6), 2 * Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[14]).at(6), 2 * Math.log(4));
+
+        })
+        it('should update the feature space, text: normalize-false, tokenizer: { type: "simple", stopwords: "en" }', function () {
+            var ftr = new qm.FeatureSpace(base, {
+                type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
+                tokenizer: { type: "simple", stopwords: "en" }
+            });
+
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a" });
+
+            ftr.updateRecord(Store[11]);
+            ftr.updateRecord(Store[12]);
+            ftr.updateRecord(Store[13]);
+            ftr.updateRecord(Store[14]);
+
+            assert.equal(ftr.ftrVec(Store[11]).length, 3);
+            assert.eqtol(ftr.ftrVec(Store[11]).at(0), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(1), 0);
+            assert.eqtol(ftr.ftrVec(Store[11]).at(2), 0);
+
+            assert.equal(ftr.ftrVec(Store[12]).length, 3);
+            assert.eqtol(ftr.ftrVec(Store[12]).at(0), 0);
+            assert.eqtol(ftr.ftrVec(Store[12]).at(1), Math.log(4 / 3));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(2), 0);
+
+            assert.equal(ftr.ftrVec(Store[13]).length, 3);
+            assert.eqtol(ftr.ftrVec(Store[13]).at(0), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(1), Math.log(4 / 3));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(2), 0);
+
+            assert.equal(ftr.ftrVec(Store[14]).length, 3);
+            assert.eqtol(ftr.ftrVec(Store[14]).at(0), 0);
+            assert.eqtol(ftr.ftrVec(Store[14]).at(1), Math.log(4 / 3));
+            assert.eqtol(ftr.ftrVec(Store[14]).at(2), Math.log(4));
+        })
+        it('should update the feature space, text: normalize-false, tokenizer: { type: "simple", stopwords: "si" }', function () {
+            var ftr = new qm.FeatureSpace(base, {
+                type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
+                tokenizer: { type: "simple", stopwords: "si" }
+            });
+
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Abeceda" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Miloš zna abecedo" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Kaj pa to Miloš Abeceda?" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Miloš in Abeceda" });
+
+            ftr.updateRecord(Store[11]);
+            ftr.updateRecord(Store[12]);
+            ftr.updateRecord(Store[13]);
+            ftr.updateRecord(Store[14]);
+
+            assert.equal(ftr.ftrVec(Store[11]).length, 4);
+            assert.eqtol(ftr.ftrVec(Store[11]).at(0), Math.log(4 / 3));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(1), Math.log(4 / 3));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(2), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(3), Math.log(4));
+        })
+        // TODO check if everything works allright (no idea how it should parse for es)
+        it('should update the feature space, text: normalize-false, tokenizer: { type: "simple", stopwords: "es" }', function () {
+            var ftr = new qm.FeatureSpace(base, {
+                type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
+                tokenizer: { type: "simple", stopwords: "es" }
+            });
+
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "¿Quién se robó mi teléfono?" });         // who stole my phone
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Se robó el teléfono!" });                // he stole the phone
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Por cuánto usted vende el teléfono?" }); // for how much do you sell the phone
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "mamá tiene un nuevo teléfono." });       // mom has a new phone
+
+            ftr.updateRecord(Store[11]);
+            ftr.updateRecord(Store[12]);
+            ftr.updateRecord(Store[13]);
+            ftr.updateRecord(Store[14]);
+
+            assert.equal(ftr.ftrVec(Store[11]).length, 8);
+            assert.eqtol(ftr.ftrVec(Store[11]).at(0), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(1), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(2), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(3), Math.log(1));
+
+
+            assert.eqtol(ftr.ftrVec(Store[12]).at(1), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(2), 0);
+            assert.eqtol(ftr.ftrVec(Store[12]).at(3), Math.log(1));
+
+            assert.eqtol(ftr.ftrVec(Store[13]).at(4), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(5), Math.log(4));
+
+            assert.eqtol(ftr.ftrVec(Store[14]).at(6), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[14]).at(7), Math.log(4));
+        })
+        // TODO check if everything works allright (no idea how it should parse for de)
+        it('should update the feature space, text: normalize-false, tokenizer: { type: "simple", stopwords: "de" }', function () {
+            var ftr = new qm.FeatureSpace(base, {
+                type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
+                tokenizer: { type: "simple", stopwords: "de" }
+            });
+
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Die mein Handy gestohlen?" });           // who stole my phone
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "er habe das Handy!" });                  // he stole the phone
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Für wie viel wissen Sie das Telefon verkaufen?" }); // for how much do you sell the phone
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Mutter hat ein neues Handy." });       // mom has a new phone
+
+            ftr.updateRecord(Store[11]);
+            ftr.updateRecord(Store[12]);
+            ftr.updateRecord(Store[13]);
+            ftr.updateRecord(Store[14]);
+
+            assert.equal(ftr.ftrVec(Store[11]).length, 12);
+            assert.eqtol(ftr.ftrVec(Store[11]).at(0), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(1), Math.log(4 / 3));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(2), Math.log(4));
+
+            assert.eqtol(ftr.ftrVec(Store[12]).at(3), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(4), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(1), Math.log(4 / 3));
+
+            assert.eqtol(ftr.ftrVec(Store[13]).at(5), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(6), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(7), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(8), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(9), Math.log(4));
+
+            assert.eqtol(ftr.ftrVec(Store[14]).at(10), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[14]).at(11), Math.log(4));
+        })
+        it('should update the feature space, text: normalize-false, tokenizer: { type: "simple", stopwords: ["an", "a", "butterfly"] }', function () {
+            var ftr = new qm.FeatureSpace(base, {
+                type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
+                tokenizer: { type: "simple", stopwords: ["an", "a", "butterfly"] }
+            });
+
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Have you seen the butterfly?" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "An elephant and a butterfly." });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Is you is or is you ain't my baby?" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "The butterfly dagger!" });
+
+            ftr.updateRecord(Store[11]);
+            ftr.updateRecord(Store[12]);
+            ftr.updateRecord(Store[13]);
+            ftr.updateRecord(Store[14]);
+
+            assert.equal(ftr.ftrVec(Store[11]).length, 12);
+            assert.eqtol(ftr.ftrVec(Store[11]).at(0), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(1), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(2), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(3), Math.log(2));
+
+
+            assert.eqtol(ftr.ftrVec(Store[12]).at(4), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(5), Math.log(4));
+
+            assert.eqtol(ftr.ftrVec(Store[13]).at(6), 3 * Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(7), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(8), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(9), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(10), Math.log(4));
+
+            assert.eqtol(ftr.ftrVec(Store[14]).at(11), Math.log(4));
+        })
+        it('should update the feature space, text: normalize-false, tokenizer: { type: "simple", stopwords: "none", uppercase: false }', function () {
+            var ftr = new qm.FeatureSpace(base, {
+                type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
+                tokenizer: { type: "simple", stopwords: "none", uppercase: false }
+            });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha alphabet" });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "alpha Alphabeth a a" });
+
+            ftr.updateRecord(Store[11]);
+            ftr.updateRecord(Store[12]);
+            ftr.updateRecord(Store[13]);
+            ftr.updateRecord(Store[14]);
+
+            assert.equal(ftr.ftrVec(Store[11]).length, 6);
+            for (var i = 0; i < 6; i++) {
+                console.log(ftr.getFtr(i));
+            }
+            assert.eqtol(ftr.ftrVec(Store[11]).at(0), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(1), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(2), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[14]).at(3), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[14]).at(4), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[14]).at(5), 2 * Math.log(4));
+        })
+        it('should update the feature space, text: normalize: false, tokenizer: { type : "simple", stopwords: "none", stemmer: "false" }', function () {
+            var ftr = new qm.FeatureSpace(base, {
+                type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
+                tokenizer: { type: "simple", stopwords: "none", stemmer: false }
+            });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Jimmy Carr bought a car." });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "My dad sold a lot of cars." });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "The union of dads are buying cars." });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Car Cars Car, buy them!" });
+
+            ftr.updateRecord(Store[11]);
+            ftr.updateRecord(Store[12]);
+            ftr.updateRecord(Store[13]);
+            ftr.updateRecord(Store[14]);
+
+            assert.eqtol(ftr.ftrVec(Store[11]).at(0), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(1), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(2), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(3), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(4), Math.log(2));
+
+            assert.eqtol(ftr.ftrVec(Store[12]).at(5), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(6), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(7), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(8), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(9), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(10), Math.log(4 / 3));
+
+            assert.eqtol(ftr.ftrVec(Store[13]).at(11), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(12), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(13), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(14), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(15), Math.log(4));
+
+            assert.eqtol(ftr.ftrVec(Store[14]).at(16), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[14]).at(17), Math.log(4));
+        })
+        //TODO stemmer changes BUY into BUI and JIMMY into JIMMI, but not MY into MI
+        it('should update the feature space, text: normalize: false, tokenizer: { type : "simple", stopwords: "none", stemmer: "true" }', function () {
+            var ftr = new qm.FeatureSpace(base, {
+                type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
+                tokenizer: { type: "simple", stopwords: "none", stemmer: true }
+            });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Jimmy Carr bought a car." });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "My dad sold a lot of cars." });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "The union of dads are buying cars." });
+            Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Car Cars Car, buy them!" });
+
+            ftr.updateRecord(Store[11]);
+            ftr.updateRecord(Store[12]);
+            ftr.updateRecord(Store[13]);
+            ftr.updateRecord(Store[14]);
+
+            assert.equal(ftr.ftrVec(Store[11]).length, 15);
+            for (var i = 0; i < 15; i++) {
+                console.log(ftr.getFtr(i));
+            }
+            assert.eqtol(ftr.ftrVec(Store[11]).at(0), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(1), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(2), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(3), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[11]).at(4), Math.log(1));
+
+            assert.eqtol(ftr.ftrVec(Store[12]).at(5), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(6), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(7), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(8), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[12]).at(9), Math.log(2));
+
+            assert.eqtol(ftr.ftrVec(Store[13]).at(10), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(11), Math.log(4));
+            assert.eqtol(ftr.ftrVec(Store[13]).at(12), Math.log(4));
+
+            assert.eqtol(ftr.ftrVec(Store[14]).at(13), Math.log(2));
+            assert.eqtol(ftr.ftrVec(Store[14]).at(14), Math.log(4));
+        })
+    });
+
     describe('UpdateRecords Tests', function () {
-        it('should update the feature space by adding a whole record space', function () {
+        it('should update the feature space by adding the whole store: constant', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "constant", source: "FtrSpaceTest" });
+            var rs = Store.recs;
+            ftr.updateRecords(rs);
+            for (var i = 0; i < 11; i++) {
+                assert.equal(ftr.ftrVec(Store[i]).length, 1);
+                assert.equal(ftr.ftrVec(Store[i]).at(0), 1);
+            }
+        })
+        it('should update the feature space by adding the whole store: constant, number 10', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "constant", source: "FtrSpaceTest", const: 10 });
+            var rs = Store.recs;
+            ftr.updateRecords(rs);
+            for (var i = 0; i < 10; i++) {
+                assert.equal(ftr.ftrVec(Store[i]).length, 1);
+                assert.equal(ftr.ftrVec(Store[i]).at(0), 10);
+            }
+        })
+        it('should update the feature space by adding the whole store: random', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "random", source: "FtrSpaceTest" });
+            var rs = Store.recs;
+            ftr.updateRecords(rs);
+            for (var i = 0; i < 10; i++) {
+                assert.equal(ftr.ftrVec(Store[i]).length, 1);
+                assert.ok(0 <= ftr.ftrVec(Store[i]).at(0) <= 1);
+            }
+        })
+        it('should update the feature space by adding the whole store: numeric', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
+            var rs = Store.recs;
+
+            ftr.updateRecords(rs);
+            for (var i = 0; i < 11; i++) {
+                assert.eqtol(ftr.ftrVec(Store[i]).at(0), 1 + i / 10);
+            };
+        })
+        it('should update the feature space by adding the whole store: numeric, normalize', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" });
             var rs = Store.recs;
 
@@ -1330,7 +1720,52 @@ describe('Feature Space Tests', function () {
                 assert.eqtol(ftr.ftrVec(Store[i]).at(0), i / 10);
             };
         })
-        it('should update the feature space by adding a whole record space, multinomial', function () {
+        it('should update the feature spave by adding the whole store: numeric, normalize, min, max', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value", min: 1.5, max: 2.5 });
+            var rs = Store.recs;
+
+            ftr.updateRecords(rs);
+            for (var i = 0; i < 6; i++) {
+                assert.eqtol(ftr.ftrVec(Store[i]).at(0), 0);
+            };
+            for (var i = 6; i < 11; i++) {
+                assert.eqtol(ftr.ftrVec(Store[i]).at(0), (i-5) / 10);
+            }
+        })
+        it('should update the feature space by adding the whole store: categorical', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] });
+            var rs = Store.recs;
+
+            ftr.updateRecords(rs);
+            assert.equal(ftr.ftrVec(Store[0]).length, 3);
+            assert.equal(ftr.ftrVec(Store[0]).at(0), 1);
+            assert.equal(ftr.ftrVec(Store[0]).at(1), 0);
+            assert.equal(ftr.ftrVec(Store[0]).at(2), 0);
+
+        })
+        it('should update the feature space by adding the whole store: categorical, hashDimension', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 4 });
+            var rs = Store.recs;
+
+            ftr.updateRecords(rs);
+            assert.equal(ftr.ftrVec(Store[0]).length, 4);
+        })
+        it('should update the feature space by adding the whole store: multinomial', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] });
+            var rs = Store.recs;
+
+            ftr.updateRecords(rs);
+            assert.equal(ftr.ftrVec(Store[0]).length, 6);
+            assert.equal(ftr.ftrVec(Store[0]).at(0), 1);
+            assert.equal(ftr.ftrVec(Store[0]).at(1), 0);
+            assert.equal(ftr.ftrVec(Store[0]).at(2), 0);
+            assert.equal(ftr.ftrVec(Store[0]).at(3), 1);
+            assert.equal(ftr.ftrVec(Store[0]).at(4), 0);
+            assert.equal(ftr.ftrVec(Store[0]).at(5), 0);
+
+
+        })
+        it('should update the feature space by adding the whole store: multinomial, normalize', function () {
             var ftr = new qm.FeatureSpace(base,
                 { type: "multinomial", source: "FtrSpaceTest", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
             );
@@ -1342,6 +1777,30 @@ describe('Feature Space Tests', function () {
 
             assert.eqtol(ftr.ftrVec(Store[10]).at(1), (1 / Math.sqrt(2)));
             assert.eqtol(ftr.ftrVec(Store[10]).at(4), (1 / Math.sqrt(2)));
+        })
+        it('should update the feature space by adding the whole store: multinomial, hashDimension', function () {
+            var ftr = new qm.FeatureSpace(base,
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 }
+                );
+            var rs = Store.recs;
+            ftr.updateRecords(rs);
+
+            assert.equal(ftr.ftrVec(Store[0]).length, 4);
+        })
+        it.skip('should update the feature space by adding the whole store: multinomial, datetime', function () {
+
+        })
+        it('should update the feature space by adding the whole store: jsfunc', function () {
+            var ftr = new qm.FeatureSpace(base, {
+                type: "jsfunc", source: "FtrSpaceTest", name: "TestFunc", dim: 1,
+                fun: function (rec) { return rec.Categories.length; }
+            });
+            var rs = Store.recs;
+            ftr.updateRecords(rs);
+            for (var i = 0; i < 11; i++) {
+                assert.equal(ftr.ftrVec(Store[i]).length, 1);
+                assert.eqtol(ftr.ftrVec(Store[i]).at(0), 2);
+            }
         })
         it('should update the feature space by adding a whole record space, numeric, multinomial', function () {
             var ftr = new qm.FeatureSpace(base, [

@@ -8,9 +8,15 @@
 
 /////////////////////////////////////////////////
 // Stemmer
-TStr TStemmer::GetStem(const TStr& WordStr){
-  // convert to upper-case
-  TStr UCWordStr=WordStr.GetUc();
+TStr TStemmer::GetStem(const TStr& WordStr, const bool& ToUcP){
+	TStr UCWordStr;
+	if (ToUcP) {
+		// convert to upper-case
+		UCWordStr = WordStr.GetUc();
+	} else {
+		// not convert to upper-case
+		UCWordStr = WordStr;
+	}
   // check for synonyms
   TStr SynomymStr;
   if (SynonymStrToWordStr.IsKeyGetDat(UCWordStr, SynomymStr)){
