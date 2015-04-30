@@ -1,7 +1,15 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+ 
 console.log(__filename)
 var assert = require('assert');
-var analytics = require('../../').analytics;
-var la = require('../../').la;
+var analytics = require('qminer').analytics;
+var la = require('qminer').la;
 
 var vec = new la.Vector({vals:4});
 var mat = new la.Matrix({rows:2, cols:4});

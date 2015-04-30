@@ -16,7 +16,7 @@
                 'src/nodejs/qm/qm_param.h',
                 # la
                 'src/nodejs/la/la_nodejs.h',
-				'src/nodejs/la/la_structures_nodejs.h',
+                'src/nodejs/la/la_structures_nodejs.h',
                 'src/nodejs/la/la_structures_nodejs.cpp',
                 'src/nodejs/la/la_vector_nodejs.h',
                 # analytics
@@ -77,6 +77,30 @@
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
                     }
+                }],
+                ['OS == "win"', {
+                    'configurations': {
+                        'Debug': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
+                            },
+                        },
+                        'Release': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
+                            },
+                        },
+                    }
                 }]
             ]
         },{
@@ -114,6 +138,30 @@
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
                     }
+                }],
+                ['OS == "win"', {
+                    'configurations': {
+                        'Debug': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
+                            },
+                        },
+                        'Release': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
+                            },
+                        },
+                    }
                 }]
             ]
         }, {
@@ -142,6 +190,30 @@
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }],
+                ['OS == "win"', {
+                    'configurations': {
+                        'Debug': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
+                            },
+                        },
+                        'Release': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
+                            },
+                        },
                     }
                 }]
             ]
@@ -172,6 +244,30 @@
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }],
+                ['OS == "win"', {
+                    'configurations': {
+                        'Debug': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
+                            },
+                        },
+                        'Release': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
+                            },
+                        },
                     }
                 }]
             ]

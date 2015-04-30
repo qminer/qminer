@@ -13,7 +13,7 @@
 */
 /**
 * Matrix
-* @classdesc Represents a dense matrix (2d array).
+* @classdesc Represents a dense matrix (2d array), wraps a C++ object implemented in glib/base/ds.h.
 * @class
 * @param {(module:la~matrixArg | Array<Array<number>> | module:la.Matrix)} [arg] - Constructor arguments. There are three ways of constructing:
 * <br>1. Parameter object {@link module:la~matrixArg}.
@@ -32,15 +32,24 @@
 	* @param {number} colIdx - Column index (zero based).
 	* @returns {number} Matrix element.
 	*/
- exports.Matrix.prototype.at = function(rowIdx, colIdx) {}
+ exports.Matrix.prototype.at = function(rowIdx, colIdx) { return 0.0; }
 /**
-	* Sets an element of matrix.
-	* @param {number} rowIdx - Row index (zero based).
+	* Sets an element or a block of matrix.
+	* @param {number} rowIdx - Row index (zero based). 
 	* @param {number} colIdx - Column index (zero based).
-	* @param {number} num - Input value.
+	* @param {(number | module:la.Matrix)} arg - A number or a matrix. If the arg is a matrix, then it gets copied, where the argument's upper left corner, arg.at(0,0), gets copied to (rowIdx, colIdx)
 	* @returns {module:la.Matrix} Self.
+	* @example
+	* // create a new matrix
+	* var mat = new la.Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
+	* var arg = new la.Matrix([[10, 11], [12, 13]]);
+	* mat.put(0, 1, arg);
+	* // updates the matrix to
+    * // 1  10 11
+    * // 4  12 13
+    * // 7  8  9   
 	*/
- exports.Matrix.prototype.put = function(rowIdx, colIdx, num) {}
+ exports.Matrix.prototype.put = function(rowIdx, colIdx, arg) {}
 /**
 	* Right-hand side multiplication of matrix with parameter.
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
@@ -110,7 +119,7 @@
 	* Returns a vector of column norms.
 	* @returns {module:la.Vector} Vector, where the value at i-th index is the norm of the i-th column of matrix.
 	*/
- exports.Matrix.prototype.colNorms = function () {}
+ exports.Matrix.prototype.colNorms = function () { return Object.create(require('qminer').la.IntVector.prototype) }
 /**
 	* Normalizes each column of matrix
 	* @returns {module:la.Matrix} Self.
@@ -310,14 +319,13 @@
 	*/
  exports.SparseVector.prototype.idxVec = function () {}
 /**
-	//! * Prints sparse vector on-screen.
-	//! * @example
-	//! * // create new sparse vector
-	//! * var spVec = new la.SparseVector([[0, 1], [2, 3]]);
-	//! * // print sparse vector
-	//! * spVec.print(); // shows on-screen [(0, 1), (2, 3)]
-	//! */
- exports.SparseVector.prototype.print = function () {}
+	* Returns the string representation.
+	* @example
+	* // create new sparse vector
+	* var spVec = new la.SparseVector([[0, 1], [2, 3]]);	
+	* spVec.toString(); // returns the string '[(0, 1), (2, 3)]'
+	*/
+ exports.SparseVector.prototype.toString = function () {}
 /**
 * Sparse Matrix
 * @classdesc Represents a sparse matrix.
@@ -486,7 +494,6 @@
     }
 
 
-    //!- `str = SparseMatrix.toString()` -- returns a string displaying rows, columns and number of non-zero elements of a sparse column matrix `spMat`
     /**
     * Returns a string displaying rows, columns and number of non-zero elements of sparse matrix.
     * @returns {string} String displaying row, columns and number of non-zero elements.
@@ -497,7 +504,6 @@
     * var text = mat.toString(); // returns 'rows: -1, cols: 2, nnz: 3'
     */
     exports.SparseMatrix.prototype.toString = function () { return "rows: " + this.rows + ", cols:" + this.cols + ", nnz: " + this.nnz(); }
-    //!- `num = SparseMatrix.nnz()` -- `num` is the number of non-zero elements of sparse column matrix `spMat`
     /**
     * Returns the number of non-zero elements of sparse matrix.
     * @returns {number} Number of non-zero elements.
@@ -511,7 +517,6 @@
         return nnz;
     };
 
-    //!- `SparseVector.print()` -- prints sparse vector
     /**
 	* Prints the sparse vector on-screen.
 	* @example
@@ -522,7 +527,6 @@
 	*/
     exports.SparseVector.prototype.print = function () { console.log(this.toString()); }
 
-    //!- `Matrix.print()` -- prints matrix
     /**
 	* Prints the matrix on-screen. 
 	* @example
@@ -536,8 +540,13 @@
 	*/
     exports.Matrix.prototype.print = function () { console.log(this.toString()); }
 
-    //!- `Vector.print()` -- prints vector
-    /**
+	/**
+	* Returns a copy of the matrix. 
+	* @returns {module:la.Matrix} Copy
+	*/
+	exports.Matrix.prototype.toMat = function () { return new exports.Matrix(this); }
+    
+	/**
     * Prints the vector on-screen.
     * @example
     * // create a new vector
@@ -549,8 +558,6 @@
     */
 	exports.Vector.prototype.print = function () { console.log(this.toString()); }
 	
-    
-    //!- `arr = la.copyVecToArray(vec)` -- copies vector `vec` into a JS array of numbers `arr`
     /**
     * Copies the vector into a JavaScript array of numbers.
     * @param {module:la.Vector} vec - Copied vector.
@@ -575,12 +582,8 @@
                parseInt(Number(value)) == value &&
                !isNaN(parseInt(value, 10));
     }
-
     
     ///////// RANDOM GENERATORS
-    //!- `num = la.randn()` -- `num` is a sample from a standard normal random variable
-    //!- `vec = la.randn(dim)` -- `vec` is a dense vector whose elements are independent samples from a standard normal random variable and whos dimension is `dim`
-    //!- `mat = la.randn(rows, cols)` -- `mat` is a dense matrix whose elements are independent samples from a standard normal random variable, with `rows` rows and `cols` columns (integers)
 
     /**
     * Returns an object with random numbers
@@ -591,7 +594,7 @@
     * <br>2. {@link module:la.Vector}, if parameter arg1 is given.
     * <br>3. {@link module:la.Matrix}, if parameters arg1 and arg2 are given.
     */
-    exports.randn = function () {
+    exports.randn = function (arg1, arg2) {
         //arguments.length
         var len = arguments.length;
         if (len === 0) {
@@ -609,9 +612,9 @@
             var vec = new exports.Vector({ "vals": dim });
             for (var elN = 0; elN < dim; elN++) {
                 vec.put(elN, exports.randn());
-            }
-            return vec;
-        } else if (len == 2) {
+            }            
+            return vec;       
+        } else if (len === 2) {
             var rows = arguments[0];
             var cols = arguments[1];
             assert(isInt(rows));
@@ -626,7 +629,6 @@
         }
     };
 
-    //!- `num2 = la.randi(num)` -- returns an integer `num2` which is randomly selected from the set of integers `[0, ..., num-1]`
     /**
     * Returns a randomly selected integer from an array..
     * @param {number} num - The upper bound of the array. Must be an integer.
@@ -643,7 +645,6 @@
         }
     };
 
-    //!- `intArr = la.randVariation(n, k)` -- returns a JS array `arr`, which is a sample of `k` numbers from `[0,...,n-1]`, sampled without replacement. `k` must be smaller or equal to `n`
     /**
     * Returns a JavaScript array, which is a sample of integers from an array.
     * @param {number} n - The upper bound of the array [0, ..., n-1]. Must be an integer.
@@ -750,6 +751,88 @@ exports.ones = function(k) {
     }
     return ones_k;
 };
+        
+    /**
+    * Constructs a matrix by concatenating a doubly-nested array of matrices.
+    * @param {Array<Array<module:la.Matrix>> } matrixDoubleArr - An array of block rows, where each block row is an array of matrices.
+    * For example: [[m11, m12], [m21, m22]] is used to construct a matrix where the (i,j)-th block submatrix is mij. 
+    * @returns {module:la.Matrix} Concatenated matrix
+    * @example
+    * // create four matrices and concatenate (2 block columns, 2 block rows)
+    * var la = require('qminer').la;
+    * var A = new la.Matrix([[1,2], [3,4]]);
+    * var B = new la.Matrix([[5,6], [7,8]]);
+    * var C = new la.Matrix([[9,10], [11,12]]);
+    * var D = new la.Matrix([[13,14], [15,16]]);
+    * var mat = la.cat([[A,B], [C,D]]);
+    * // returns the matrix:
+    * // 1  2  5  6
+    * // 3  4  7  8
+    * // 9  10 13 14
+    * // 11 12 15 16
+    */
+    //# exports.cat = function(matrixDoubleArr) {}	
+exports.cat = function (nestedArrMat) {
+    var dimx = []; //cell row dimensions
+    var dimy = []; //cell col dimensions
+    var cdimx = []; //cumulative row dims
+    var cdimy = []; //cumulative coldims
+    var rows = nestedArrMat.length;
+    var cols = nestedArrMat[0].length;
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+            if (col > 0) {
+                assert(dimx[row] == nestedArrMat[row][col].rows, 'inconsistent row dimensions!');
+            } else {
+                dimx[row] = nestedArrMat[row][col].rows;
+            }
+            if (row > 0) {
+                assert(dimy[col] == nestedArrMat[row][col].cols, 'inconsistent column dimensions!');
+            } else {
+                dimy[col] = nestedArrMat[row][col].cols;
+            }            
+        }
+    }
+    cdimx[0] = 0;
+    cdimy[0] = 0;
+    for (var row = 1; row < rows; row++) {
+        cdimx[row] = cdimx[row - 1] + dimx[row - 1];
+    }
+    for (var col = 1; col < cols; col++) {
+        cdimy[col] = cdimy[col - 1] + dimy[col - 1];
+    }
+
+    var res = new exports.Matrix({ rows: (cdimx[rows - 1] + dimx[rows - 1]), cols: (cdimy[cols - 1] + dimy[cols - 1]) });
+    // copy submatrices
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+            res.put(cdimx[row], cdimy[col], nestedArrMat[row][col]);
+        }
+    }
+    return res;
+}
+	//////// METHODS
+
+exports.square = function(x) {
+    if (typeof x.length == "undefined") {
+        return x * x;
+    }
+    var res = new exports.Vector(x);
+    for (var i = 0; i < x.length; i++) {
+        res[i] = x[i] * x[i];
+    }
+    return res;
+};
+
+//#- `mat3 = la.pdist2(mat, mat2)` -- computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2
+exports.pdist2 = function (mat, mat2) {
+    var snorm1 = exports.square(mat.colNorms());
+    var snorm2 = exports.square(mat2.colNorms());
+    var ones_1 = exports.ones(mat.cols);
+    var ones_2 = exports.ones(mat2.cols);
+    var D = (mat.multiplyT(mat2).multiply(-2)).plus(snorm1.outer(ones_2)).plus(ones_1.outer(snorm2));
+    return D;
+}
 
     ///////// ALGORITHMS
 
@@ -830,87 +913,75 @@ exports.ones = function(k) {
 * <br>1. An array of vector elements. Example: [1, 2, 3] is a vector of length 3.
 * <br>2. A vector (copy constructor).
 * @example
+* var la = require('qminer').la;
 * // create a new empty vector
 * var vec = new la.Vector();
 * // create a new vector
 * var vec2 = new la.Vector([1, 2, 3]);
 */
  exports.Vector = function() {}
+ var VectorDefaultVal = 0.0; // for intellisense
 /**
 	* Returns element at index.
 	* @param {number} index - Element index (zero-based).
 	* @returns {number} Vector element.
 	*/
- exports.Vector.prototype.at = function(number) {}
+ exports.Vector.prototype.at = function(number) { return VectorDefaultVal; }
 /**
 	* Returns a subvector.
 	* @param {(Array<number> | module:la.IntVector)} arg - Index array or vector. Indices can repeat (zero based).
 	* @returns {module:la.Vector} Subvector, where the i-th element is the arg[i]-th element of the instance.
 	*/
- exports.Vector.prototype.subVec = function (arg) {}
+ exports.Vector.prototype.subVec = function (arg) { return Object.create(this); }
 /**
 	* Sets an element in vector.
 	* @param {number} idx - Index (zero based).
 	* @param {number} val - Element value.
 	* @returns {module:la.Vector} Self.
 	*/
- exports.Vector.prototype.put = function (idx, val) {}
+ exports.Vector.prototype.put = function (idx, val) { return this;}
 /**
 	* Adds an element to the end of the vector.
 	* @param {number} val - The element added to the vector.
 	* @returns {number} The new length property of the object upon which the method was called.
 	*/
- exports.Vector.prototype.push = function (val) {}
-/**
-	//! * The splice() method changes the content of an array by removing existing elements and/or adding new elements.
-	//! *
-	//! *  array.splice(start, deleteCount[, item1[, item2[, ...]]])
-	//! *
-	//! * @param {Number} start - Index at which to start changing the array. If greater than the length of the array, actual starting index will be set to the length of the array. If negative, will begin that many elements from the end.
-	//! * @param {Number} deleteCount - An integer indicating the number of old array elements to remove. If deleteCount is 0, no elements are removed. In this case, you should specify at least one new element. If deleteCount is greater than the number of elements left in the array starting at start, then all of the elements through the end of the array will be deleted.
-	//! * @param {Object} [itemN] - The element to add to the array. If you don't specify any elements, splice() will only remove elements from the array.
-	//! * @returns {Vector} - a reference to itself
-	//! */
+ exports.Vector.prototype.push = function (val) { return 0;}
 /**
 	* Changes the vector by removing and adding elements.
 	* @param {number} start - Index at which to start changing the array.
 	* @param {number} deleteCount - Number of elements to be removed.
-	* @param {number} [itemN] - The element(s) to be add to the array. If no elements are given, splice() will only remove elements from the array.
+	* @param {...number} [itemN] - The element(s) to be add to the array. If no elements are given, splice() will only remove elements from the array.
 	* @returns {module:la.Vector} Self.
 	* @example
+	* var la = require('qminer').la;
 	* // create a new vector
 	* var vec = new la.Vector([1, 2, 3]);
 	* // splice the vector by removing the last two elements and adding 4, 5
 	* vec.splice(1, 2, 4, 5)// returns vector [1, 4, 5]
 	*/
- exports.Vector.prototype.splice = function (start, deleteCount, itemN) {}
+ exports.Vector.prototype.splice = function (start, deleteCount, itemN) { return this;}
 /**
 	* Adds elements to the beginning of the vector.
 	* @param {...number} args - One or more elements to be added to the vector.
 	* @returns {number} The new length of vector.
 	*/
- exports.Vector.prototype.unshift = function (args) {}
+ exports.Vector.prototype.unshift = function (args) { return 0;}
 /**
 	* Appends a second vector to the first one.
 	* @param {module:la.Vector} vec - The appended vector.
 	* @returns {number} The new length property of the vectors.
 	*/
- exports.Vector.prototype.pushV = function (vec) {}
-/**
-	//! * Sums the elements in the vector.
-	//! *
-	//! * @returns {Object} - the sum
-	//! */
+ exports.Vector.prototype.pushV = function (vec) { return 0;}
 /** 
 	* Sums the elements in the vector.
 	* @returns {number} The sum of all elements in the instance.
 	*/
- exports.Vector.prototype.sum = function () {}
+ exports.Vector.prototype.sum = function () { return VectorDefaultVal; }
 /**
 	* Gets the index of the maximal element.
 	* @returns {number} Index of the maximal element in the vector.
 	*/
- exports.Vector.prototype.getMaxIdx = function () {}
+ exports.Vector.prototype.getMaxIdx = function () { return 0;}
 /**
 	* Vector sort comparator callback.
 	* @callback vectorCompareCb
@@ -920,12 +991,13 @@ exports.ones = function(k) {
 	*/
 /**
 	* Sorts the vector (in place operation).
-	* @param {(module:la~vectorCompareCb | boolean)} [arg] - Default is boolean and true.
-	* @returns {module:la.Vector} Self
+	* @param {(module:la~vectorCompareCb | boolean)} [arg] - Sort callback or a boolean ascend flag. Default is boolean and true.
+	* @returns {module:la.Vector} Self.
 	* <br>1. Vector sorted in ascending order, if arg is boolean and true.  
 	* <br>2. Vector sorted in descending order, if arg is boolean and false.
 	* <br>3. Vector sorted by using the comparator callback, if arg is a {@link module:la~vectorCompareCb}.
 	* @example
+	* var la = require('qminer').la;
 	* // create a new vector
 	* var vec = new la.Vector([-2.0, 1.0, 3.0]);
 	* // sort ascending
@@ -933,151 +1005,203 @@ exports.ones = function(k) {
 	* // sort using callback
 	* vec.sort(function(arg1, arg2) { return Math.abs(arg1) - Math.abs(arg2); }); // sorts to: [1.0, -2.0, 3.0]
 	*/
- exports.Vector.prototype.sort = function (bool) {} 
+ exports.Vector.prototype.sort = function (bool) { return this; } 
 /**
-	//! * Randomly reorders the elements of the vector.
-	//! *
-	//! * @returns {Vector} - returns a reference to itself
-	//! */
+	* Sort with permutation output result
+	* @typedef {Object} SortResult
+	* @property  {module:la.Vector} SortResult.vec - Sorted vector.
+	* @property  {module:la.IntVector} SortResult.perm - Permutation vector, where SortResult.vec[i] = unsortedVec[SortResult.perm[i]].
+	*/
+/**
+	* Sorts the vector and returns the sorted vector as well as the permutation
+	* @param {boolean} [asc] - Sort in ascending order flag. Default is boolean and true.
+	* @returns {module:la~SortResult} Self.
+	* @example
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.Vector([-2.0, 1.0, 3.0]);
+	* // sort ascending
+	* var result = vec.sortPerm(); // result.vec: [-2.0, 1.0, 3.0]
+	* result.perm; // permutation index vector
+	*/
+ exports.Vector.prototype.sortPerm = function (asc) { return {vec: Object.create(this), perm: Object.create(require('qminer').la.IntVector.prototype) }; } 
 /**
 	* Randomly reorders the elements of the vector (inplace).
-	* @returns {boolean} True, if reordering was successful. Otherwise, false.
+	* @returns {module:la.Vector} Self.
 	*/
- exports.Vector.prototype.shuffle = function () {}
+ exports.Vector.prototype.shuffle = function () { return this; }
 /**
 	* Deletes elements with sprecific index or more.
 	* @param {number} idx - Index (zero based).
-	* @returns {module:la.Vector} Self - Without the elements with index idx or more.
+	* @returns {module:la.Vector} Self after truncating.
 	* @example
+	* var la = require('qminer').la;
 	* // create a new vector
 	* var vec = new la.Vector([1, 2, 3]);
 	* // trunc all elements with index 1 or more
 	* vec.trunc(1); // returns vector [1]
 	*/
- exports.Vector.prototype.trunc = function (idx) {} 
+ exports.Vector.prototype.trunc = function (idx) { return this;} 
 /**
 	* Creates a dense matrix A by multiplying two vectors x and y: A = x * y^T.
 	* @param {module:la.Vector} vec - Second vector.
 	* @returns {module:la.Matrix} Matrix obtained by the outer product of the instance and second vector.
 	* @example
+	* var la = require('qminer').la;
 	* // create two vectors
 	* var x = new la.Vector([1, 2, 3]);
 	* var y = new la.Vector([4, 5]);
 	* // create the outer product of these vectors
 	* var A = vec.outer(vec2); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]
 	*/
- exports.Vector.prototype.outer = function (vec) {}
+ exports.Vector.prototype.outer = function (vec) { return Object.create(require('qminer').la.Matrix.prototype);}
 /**
 	* Computes the inner product.
 	* @param {module:la.Vector} vec - Other vector
 	* @returns {number} Inner product between the instance and the other vector.
 	*/
- exports.Vector.prototype.inner = function(vec) {}
+ exports.Vector.prototype.inner = function(vec) { return 0.0; }
 /**
 	* Returns the cosine between the two vectors.
 	* @param {module:la.Vector} vec - Second vector.
 	* @returns {number} The cosine between the two vectors.
 	* @example
+	* var la = require('qminer').la;
 	* // create two vectors
 	* var x = new la.Vector([1, 0]);
 	* var y = new la.Vector([0, 1]);
 	* // calculate the cosine between those two vectors
 	* var num = x.cosine(y); // returns 0
 	*/
- exports.Vector.prototype.cosine = function (vec) {}
+ exports.Vector.prototype.cosine = function (vec) { return 0.0; }
 /**
 	* Sums the two vectors together.
 	* @param {module:la.Vector} vec - Second vector.
 	* @returns {module:la.Vector} Sum of the instance and the second vector.
 	*/
- exports.Vector.prototype.plus = function (vec) {}
+ exports.Vector.prototype.plus = function (vec) { return Object.create(this); }
 /**
 	* Subtracts one vector from the other.
 	* @param {module:la.Vector} vec - Second vector.
 	* @returns {module:la.Vector} The difference of the instance and the other vector.
 	*/
- exports.Vector.prototype.minus = function (vec) {}
+ exports.Vector.prototype.minus = function (vec) { return Object.create(this); }
 /**
 	* Multiplies the vector with a scalar.
 	* @param {number} val - Scalar.
 	* @returns {module:la.Vector} Product of the vector and scalar.
 	*/
- exports.Vector.prototype.multiply = function (val) {} 
+ exports.Vector.prototype.multiply = function (val) { return Object.create(this); }
 /**
 	* Normalizes vector.
-	* @returns {module:la.Vector} Self - Normalized.
+	* @returns {module:la.Vector} Normalized self.
 	*/
- exports.Vector.prototype.normalize = function () {} 
+ exports.Vector.prototype.normalize = function () { return this; } 
 /**
 	* Gives the length of vector.
 	* @returns {number} Length of vector.
 	*/
- exports.Vector.prototype.length = undefined;
+ exports.Vector.prototype.length = 0;
 /**
 	* Returns the vector as string.
-	* @returns {string} Instance as string.
+	* @returns {string} String representation.
 	* @example
+	* var la = require('qminer').la;
 	* // create a new vector
 	* var vec = new la.Vector([1, 2, 3]);
 	* // create vector as string
 	* vec.toString(); // returns '1, 2, 3'
 	*/
- exports.Vector.prototype.toString = function () {}
+ exports.Vector.prototype.toString = function () { return ''; }
 /**
 	* Creates a dense diagonal matrix out of the vector.
 	* @returns{module:la.Matrix} Diagonal matrix, where the (i, i)-th element is the i-th element of vector.
 	*/
- exports.Vector.prototype.diag = function () {}
+ exports.Vector.prototype.diag = function () { return Object.create(require('qminer').la.Matrix.prototype); }
 /**
 	* Creates a sparse diagonal matrix out of the vector.
 	* @returns {module:la.SparseMatrix} Diagonal matrix, where the (i, i)-th element is the i-th element of vector.
 	*/
- exports.Vector.prototype.spDiag = function () {}
+ exports.Vector.prototype.spDiag = function () { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 /**
 	* Calculates the norm of the vector.
 	* @returns {number} The norm of the vector.
 	*/
- exports.Vector.prototype.norm = function () {}
+ exports.Vector.prototype.norm = function () { return 0.0; }
 /**
 	* Creates the sparse vector representation of the vector.
 	* @returns {module:la.SparseVector} The sparse vector representation.
 	*/
- exports.Vector.prototype.sparse = function () {}
+ exports.Vector.prototype.sparse = function () { return Object.create(require('qminer').la.SparseVector.prototype); }
 /**
 	* Creates a matrix with a single column that is equal to the vector.
 	* @returns {module:la.Matrix} The matrix with a single column that is equal to the instance.
 	*/
- exports.Vector.prototype.toMat = function () {}
+ exports.Vector.prototype.toMat = function () { return Object.create(require('qminer').la.Matrix.prototype); }
 /**
-	* Saves the vector as output stream.
+	* Saves the vector as output stream (binary serialization).
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout.
 	* @example
 	* // import fs module
-	* var fs = require('fs.js');
+	* var fs = require('qminer').fs;
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.Vector([1, 2, 3]);
+	* // open write stream
+	* var fout = fs.openWrite('vec.dat');
+	* // save vector and close write stream
+	* vec.save(fout).close();
+	*/
+ exports.Vector.prototype.save = function (fout) {  return Object.create(require('qminer').fs.FOut.prototype); }
+/**
+	* Loads the vector from input stream (binary deserialization).
+	* @param {module:fs.FIn} fin - Input stream.
+	* @returns {module:la.Vector} Self.
+	* @example
+	* // import fs module
+	* var fs = require('qminer').fs;
+	* var la = require('qminer').la;
+	* // create an empty vector
+	* var vec = new la.Vector();
+	* // open a read stream
+	* var fin = fs.openRead('vec.dat');
+	* // load the vector
+	* vec.load(fin);
+	*/
+ exports.Vector.prototype.load = function (fin) { return this; }
+/**
+	* Saves the vector as output stream (ascii serialization).
+	* @param {module:fs.FOut} fout - Output stream.
+	* @returns {module:fs.FOut} fout.
+	* @example
+	* // import fs module
+	* var fs = require('qminer').fs;
+	* var la = require('qminer').la;
 	* // create a new vector
 	* var vec = new la.Vector([1, 2, 3]);
 	* // open write stream
 	* var fout = fs.openWrite('vec.dat');
 	* // save matrix and close write stream
-	* vec.save(fout).close();
+	* vec.saveascii(fout).close();
 	*/
- exports.Vector.prototype.save = function (fout) {}
+ exports.Vector.prototype.saveascii = function (fout) {  return Object.create(require('qminer').fs.FOut.prototype); }
 /**
-	* Loads the vector from input stream.
+	* Loads the vector from input stream (ascii deserialization).
 	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:la.Vector} Self.
 	* @example
 	* // import fs module
-	* var fs = require('fs.js');
+	* var fs = require('qminer').fs;
+	* var la = require('qminer').la;
 	* // create an empty vector
 	* var vec = new la.Vector();
 	* // open a read stream
 	* var fin = fs.openRead('vec.dat');
 	* // load the matrix
-	* vec.load(fin);
+	* vec.loadascii(fin);
 	*/
- exports.Vector.prototype.load = function (fin) {}
+ exports.Vector.prototype.loadascii = function (fin) { return this; }
 
 /**
 * Vector - array of strings
@@ -1087,87 +1211,75 @@ exports.ones = function(k) {
 * <br>1. An array of vector elements. Example: ['a', 'b', 'c'] is a vector of length 3.
 * <br>2. A vector (copy constructor).
 * @example
+* var la = require('qminer').la;
 * // create a new empty vector
 * var vec = new la.StrVector();
 * // create a new vector
 * var vec2 = new la.StrVector(['a', 'b', 'c']);
 */
  exports.StrVector = function() {}
+ var StrVectorDefaultVal = ''; // for intellisense
 /**
 	* Returns element at index.
 	* @param {number} index - Element index (zero-based).
 	* @returns {string} Vector element.
 	*/
- exports.StrVector.prototype.at = function(number) {}
+ exports.StrVector.prototype.at = function(number) { return StrVectorDefaultVal; }
 /**
 	* Returns a subvector.
 	* @param {(Array<number> | module:la.IntVector)} arg - Index array or vector. Indices can repeat (zero based).
 	* @returns {module:la.StrVector} Subvector, where the i-th element is the arg[i]-th element of the instance.
 	*/
- exports.StrVector.prototype.subVec = function (arg) {}
+ exports.StrVector.prototype.subVec = function (arg) { return Object.create(this); }
 /**
 	* Sets an element in vector.
 	* @param {number} idx - Index (zero based).
 	* @param {string} val - Element value.
 	* @returns {module:la.StrVector} Self.
 	*/
- exports.StrVector.prototype.put = function (idx, val) {}
+ exports.StrVector.prototype.put = function (idx, val) { return this;}
 /**
 	* Adds an element to the end of the vector.
 	* @param {string} val - The element added to the vector.
 	* @returns {number} The new length property of the object upon which the method was called.
 	*/
- exports.StrVector.prototype.push = function (val) {}
-/**
-	//! * The splice() method changes the content of an array by removing existing elements and/or adding new elements.
-	//! *
-	//! *  array.splice(start, deleteCount[, item1[, item2[, ...]]])
-	//! *
-	//! * @param {Number} start - Index at which to start changing the array. If greater than the length of the array, actual starting index will be set to the length of the array. If negative, will begin that many elements from the end.
-	//! * @param {Number} deleteCount - An integer indicating the number of old array elements to remove. If deleteCount is 0, no elements are removed. In this case, you should specify at least one new element. If deleteCount is greater than the number of elements left in the array starting at start, then all of the elements through the end of the array will be deleted.
-	//! * @param {Object} [itemN] - The element to add to the array. If you don't specify any elements, splice() will only remove elements from the array.
-	//! * @returns {Vector} - a reference to itself
-	//! */
+ exports.StrVector.prototype.push = function (val) { return 0;}
 /**
 	* Changes the vector by removing and adding elements.
 	* @param {number} start - Index at which to start changing the array.
 	* @param {number} deleteCount - Number of elements to be removed.
-	* @param {number} [itemN] - The element(s) to be add to the array. If no elements are given, splice() will only remove elements from the array.
+	* @param {...number} [itemN] - The element(s) to be add to the array. If no elements are given, splice() will only remove elements from the array.
 	* @returns {module:la.StrVector} Self.
 	* @example
+	* var la = require('qminer').la;
 	* // create a new vector
 	* var vec = new la.StrVector(['a', 'b', 'c']);
 	* // splice the vector by removing the last two elements and adding 'd', 'e'
 	* vec.splice(1, 2, 'd', 'e')// returns vector ['a', 'd', 'e']
 	*/
- exports.StrVector.prototype.splice = function (start, deleteCount, itemN) {}
+ exports.StrVector.prototype.splice = function (start, deleteCount, itemN) { return this;}
 /**
 	* Adds elements to the beginning of the vector.
 	* @param {...string} args - One or more elements to be added to the vector.
 	* @returns {number} The new length of vector.
 	*/
- exports.StrVector.prototype.unshift = function (args) {}
+ exports.StrVector.prototype.unshift = function (args) { return 0;}
 /**
 	* Appends a second vector to the first one.
 	* @param {module:la.StrVector} vec - The appended vector.
 	* @returns {number} The new length property of the vectors.
 	*/
- exports.StrVector.prototype.pushV = function (vec) {}
-/**
-	//! * Sums the elements in the vector.
-	//! *
-	//! * @returns {Object} - the sum
-	//! */
+ exports.StrVector.prototype.pushV = function (vec) { return 0;}
 /** 
 	* Sums the elements in the vector.
 	* @returns {number} The sum of all elements in the instance.
 	*/
- skip.exports.StrVector.prototype.sum = function () {}
+ skip.exports.StrVector.prototype.sum = function () { return StrVectorDefaultVal; }
 /**
 	* Gets the index of the maximal element.
 	* @returns {number} Index of the maximal element in the vector.
 	*/
- skip.exports.StrVector.prototype.getMaxIdx = function () {}
+ skip.exports.StrVector.prototype.getMaxIdx = function () { return 0;}
 /**
 	* Vector sort comparator callback.
 	* @callback strVectorCompareCb
@@ -1177,12 +1289,13 @@ exports.ones = function(k) {
 	*/
 /**
 	* Sorts the vector (in place operation).
-	* @param {(module:la~strVectorCompareCb | boolean)} [arg] - Default is boolean and true.
-	* @returns {module:la.StrVector} Self
+	* @param {(module:la~strVectorCompareCb | boolean)} [arg] - Sort callback or a boolean ascend flag. Default is boolean and true.
+	* @returns {module:la.StrVector} Self.
 	* <br>1. Vector sorted in ascending order, if arg is boolean and true.  
 	* <br>2. Vector sorted in descending order, if arg is boolean and false.
 	* <br>3. Vector sorted by using the comparator callback, if arg is a {@link module:la~strVectorCompareCb}.
 	* @example
+	* var la = require('qminer').la;
 	* // create a new vector
 	* var vec = new la.StrVector(['asd', 'z', 'kkkk']);
 	* // sort ascending
@@ -1190,149 +1303,797 @@ exports.ones = function(k) {
 	* // sort using callback
 	* vec.sort(function(arg1, arg2) { return arg1.length - arg2.length; }); // sorts to: ['z', 'asd', 'kkkk']
 	*/
- exports.StrVector.prototype.sort = function (bool) {} 
+ exports.StrVector.prototype.sort = function (bool) { return this; } 
 /**
-	//! * Randomly reorders the elements of the vector.
-	//! *
-	//! * @returns {Vector} - returns a reference to itself
-	//! */
+	* Sort with permutation output result
+	* @typedef {Object} SortResult
+	* @property  {module:la.StrVector} SortResult.vec - Sorted vector.
+	* @property  {module:la.IntVector} SortResult.perm - Permutation vector, where SortResult.vec[i] = unsortedVec[SortResult.perm[i]].
+	*/
+/**
+	* Sorts the vector and returns the sorted vector as well as the permutation
+	* @param {boolean} [asc] - Sort in ascending order flag. Default is boolean and true.
+	* @returns {module:la~SortResult} Self.
+	* @example
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.StrVector(['asd', 'z', 'kkkk']);
+	* // sort ascending
+	* var result = vec.sortPerm(); // result.vec: ['asd', 'kkkk', 'z']
+	* result.perm; // permutation index vector
+	*/
+ exports.StrVector.prototype.sortPerm = function (asc) { return {vec: Object.create(this), perm: Object.create(require('qminer').la.IntVector.prototype) }; } 
 /**
 	* Randomly reorders the elements of the vector (inplace).
-	* @returns {boolean} True, if reordering was successful. Otherwise, false.
+	* @returns {module:la.StrVector} Self.
 	*/
- exports.StrVector.prototype.shuffle = function () {}
+ exports.StrVector.prototype.shuffle = function () { return this; }
 /**
 	* Deletes elements with sprecific index or more.
 	* @param {string} idx - Index (zero based).
-	* @returns {module:la.StrVector} Self - Without the elements with index idx or more.
+	* @returns {module:la.StrVector} Self after truncating.
 	* @example
+	* var la = require('qminer').la;
 	* // create a new vector
 	* var vec = new la.StrVector(['a', 'b', 'c']);
 	* // trunc all elements with index 1 or more
 	* vec.trunc(1); // returns vector ['a']
 	*/
- exports.StrVector.prototype.trunc = function (idx) {} 
+ exports.StrVector.prototype.trunc = function (idx) { return this;} 
 /**
 	* Creates a dense matrix A by multiplying two vectors x and y: A = x * y^T.
 	* @param {module:la.StrVector} vec - Second vector.
 	* @returns {module:la.Matrix} Matrix obtained by the outer product of the instance and second vector.
 	* @example
+	* var la = require('qminer').la;
 	* // create two vectors
 	* var x = new la.StrVector([1, 2, 3]);
 	* var y = new la.StrVector([4, 5]);
 	* // create the outer product of these vectors
 	* var A = vec.outer(vec2); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]
 	*/
- skip.exports.StrVector.prototype.outer = function (vec) {}
+ skip.exports.StrVector.prototype.outer = function (vec) { return Object.create(require('qminer').la.Matrix.prototype);}
 /**
 	* Computes the inner product.
 	* @param {module:la.Vector} vec - Other vector
 	* @returns {number} Inner product between the instance and the other vector.
 	*/
- skip.exports.StrVector.prototype.inner = function(vec) {}
+ skip.exports.StrVector.prototype.inner = function(vec) { return 0.0; }
 /**
 	* Returns the cosine between the two vectors.
 	* @param {module:la.StrVector} vec - Second vector.
 	* @returns {number} The cosine between the two vectors.
 	* @example
+	* var la = require('qminer').la;
 	* // create two vectors
 	* var x = new la.StrVector([1, 0]);
 	* var y = new la.StrVector([0, 1]);
 	* // calculate the cosine between those two vectors
 	* var num = x.cosine(y); // returns 0
 	*/
- skip.exports.StrVector.prototype.cosine = function (vec) {}
+ skip.exports.StrVector.prototype.cosine = function (vec) { return 0.0; }
 /**
 	* Sums the two vectors together.
 	* @param {module:la.StrVector} vec - Second vector.
 	* @returns {module:la.StrVector} Sum of the instance and the second vector.
 	*/
- skip.exports.StrVector.prototype.plus = function (vec) {}
+ skip.exports.StrVector.prototype.plus = function (vec) { return Object.create(this); }
 /**
 	* Subtracts one vector from the other.
 	* @param {module:la.StrVector} vec - Second vector.
 	* @returns {module:la.StrVector} The difference of the instance and the other vector.
 	*/
- skip.exports.StrVector.prototype.minus = function (vec) {}
+ skip.exports.StrVector.prototype.minus = function (vec) { return Object.create(this); }
 /**
 	* Multiplies the vector with a scalar.
 	* @param {number} val - Scalar.
 	* @returns {module:la.StrVector} Product of the vector and scalar.
 	*/
- skip.exports.StrVector.prototype.multiply = function (val) {} 
+ skip.exports.StrVector.prototype.multiply = function (val) { return Object.create(this); }
 /**
 	* Normalizes vector.
-	* @returns {module:la.StrVector} Self - Normalized.
+	* @returns {module:la.StrVector} Normalized self.
 	*/
- skip.exports.StrVector.prototype.normalize = function () {} 
+ skip.exports.StrVector.prototype.normalize = function () { return this; } 
 /**
 	* Gives the length of vector.
 	* @returns {number} Length of vector.
 	*/
- exports.StrVector.prototype.length = undefined;
+ exports.StrVector.prototype.length = 0;
 /**
 	* Returns the vector as string.
-	* @returns {string} Instance as string.
+	* @returns {string} String representation.
 	* @example
+	* var la = require('qminer').la;
 	* // create a new vector
 	* var vec = new la.StrVector(['a', 'b', 'c']);
 	* // create vector as string
 	* vec.toString(); // returns 'a, b, c'
 	*/
- exports.StrVector.prototype.toString = function () {}
+ exports.StrVector.prototype.toString = function () { return ''; }
 /**
 	* Creates a dense diagonal matrix out of the vector.
 	* @returns{module:la.Matrix} Diagonal matrix, where the (i, i)-th element is the i-th element of vector.
 	*/
- skip.exports.StrVector.prototype.diag = function () {}
+ skip.exports.StrVector.prototype.diag = function () { return Object.create(require('qminer').la.Matrix.prototype); }
 /**
 	* Creates a sparse diagonal matrix out of the vector.
 	* @returns {module:la.SparseMatrix} Diagonal matrix, where the (i, i)-th element is the i-th element of vector.
 	*/
- skip.exports.StrVector.prototype.spDiag = function () {}
+ skip.exports.StrVector.prototype.spDiag = function () { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 /**
 	* Calculates the norm of the vector.
 	* @returns {number} The norm of the vector.
 	*/
- skip.exports.StrVector.prototype.norm = function () {}
+ skip.exports.StrVector.prototype.norm = function () { return 0.0; }
 /**
 	* Creates the sparse vector representation of the vector.
 	* @returns {module:la.SparseVector} The sparse vector representation.
 	*/
- skip.exports.StrVector.prototype.sparse = function () {}
+ skip.exports.StrVector.prototype.sparse = function () { return Object.create(require('qminer').la.SparseVector.prototype); }
 /**
 	* Creates a matrix with a single column that is equal to the vector.
 	* @returns {module:la.Matrix} The matrix with a single column that is equal to the instance.
 	*/
- skip.exports.StrVector.prototype.toMat = function () {}
+ skip.exports.StrVector.prototype.toMat = function () { return Object.create(require('qminer').la.Matrix.prototype); }
 /**
-	* Saves the vector as output stream.
+	* Saves the vector as output stream (binary serialization).
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout.
 	* @example
 	* // import fs module
-	* var fs = require('fs.js');
+	* var fs = require('qminer').fs;
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.StrVector(['a', 'b', 'c']);
+	* // open write stream
+	* var fout = fs.openWrite('vec.dat');
+	* // save vector and close write stream
+	* vec.save(fout).close();
+	*/
+ exports.StrVector.prototype.save = function (fout) {  return Object.create(require('qminer').fs.FOut.prototype); }
+/**
+	* Loads the vector from input stream (binary deserialization).
+	* @param {module:fs.FIn} fin - Input stream.
+	* @returns {module:la.StrVector} Self.
+	* @example
+	* // import fs module
+	* var fs = require('qminer').fs;
+	* var la = require('qminer').la;
+	* // create an empty vector
+	* var vec = new la.StrVector();
+	* // open a read stream
+	* var fin = fs.openRead('vec.dat');
+	* // load the vector
+	* vec.load(fin);
+	*/
+ exports.StrVector.prototype.load = function (fin) { return this; }
+/**
+	* Saves the vector as output stream (ascii serialization).
+	* @param {module:fs.FOut} fout - Output stream.
+	* @returns {module:fs.FOut} fout.
+	* @example
+	* // import fs module
+	* var fs = require('qminer').fs;
+	* var la = require('qminer').la;
 	* // create a new vector
 	* var vec = new la.StrVector(['a', 'b', 'c']);
 	* // open write stream
 	* var fout = fs.openWrite('vec.dat');
 	* // save matrix and close write stream
-	* vec.save(fout).close();
+	* vec.saveascii(fout).close();
 	*/
- exports.StrVector.prototype.save = function (fout) {}
+ exports.StrVector.prototype.saveascii = function (fout) {  return Object.create(require('qminer').fs.FOut.prototype); }
 /**
-	* Loads the vector from input stream.
+	* Loads the vector from input stream (ascii deserialization).
 	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:la.StrVector} Self.
 	* @example
 	* // import fs module
-	* var fs = require('fs.js');
+	* var fs = require('qminer').fs;
+	* var la = require('qminer').la;
 	* // create an empty vector
 	* var vec = new la.StrVector();
 	* // open a read stream
 	* var fin = fs.openRead('vec.dat');
 	* // load the matrix
+	* vec.loadascii(fin);
+	*/
+ exports.StrVector.prototype.loadascii = function (fin) { return this; }
+
+/**
+* Vector - array of integers
+* @classdesc Wraps a C++ array.
+* @class
+* @param {(Array<number> | module:la.IntVector)} [arg] - Constructor arguments. There are two ways of constructing:
+* <br>1. An array of vector elements. Example: [1, 2, 3] is a vector of length 3.
+* <br>2. A vector (copy constructor).
+* @example
+* var la = require('qminer').la;
+* // create a new empty vector
+* var vec = new la.IntVector();
+* // create a new vector
+* var vec2 = new la.IntVector([1, 2, 3]);
+*/
+ exports.IntVector = function() {}
+ var IntVectorDefaultVal = 0; // for intellisense
+/**
+	* Returns element at index.
+	* @param {number} index - Element index (zero-based).
+	* @returns {number} Vector element.
+	*/
+ exports.IntVector.prototype.at = function(number) { return IntVectorDefaultVal; }
+/**
+	* Returns a subvector.
+	* @param {(Array<number> | module:la.IntVector)} arg - Index array or vector. Indices can repeat (zero based).
+	* @returns {module:la.IntVector} Subvector, where the i-th element is the arg[i]-th element of the instance.
+	*/
+ exports.IntVector.prototype.subVec = function (arg) { return Object.create(this); }
+/**
+	* Sets an element in vector.
+	* @param {number} idx - Index (zero based).
+	* @param {number} val - Element value.
+	* @returns {module:la.IntVector} Self.
+	*/
+ exports.IntVector.prototype.put = function (idx, val) { return this;}
+/**
+	* Adds an element to the end of the vector.
+	* @param {number} val - The element added to the vector.
+	* @returns {number} The new length property of the object upon which the method was called.
+	*/
+ exports.IntVector.prototype.push = function (val) { return 0;}
+/**
+	* Changes the vector by removing and adding elements.
+	* @param {number} start - Index at which to start changing the array.
+	* @param {number} deleteCount - Number of elements to be removed.
+	* @param {...number} [itemN] - The element(s) to be add to the array. If no elements are given, splice() will only remove elements from the array.
+	* @returns {module:la.IntVector} Self.
+	* @example
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.IntVector([1, 2, 3]);
+	* // splice the vector by removing the last two elements and adding 4, 5
+	* vec.splice(1, 2, 4, 5)// returns vector [1, 4, 5]
+	*/
+ exports.IntVector.prototype.splice = function (start, deleteCount, itemN) { return this;}
+/**
+	* Adds elements to the beginning of the vector.
+	* @param {...number} args - One or more elements to be added to the vector.
+	* @returns {number} The new length of vector.
+	*/
+ exports.IntVector.prototype.unshift = function (args) { return 0;}
+/**
+	* Appends a second vector to the first one.
+	* @param {module:la.IntVector} vec - The appended vector.
+	* @returns {number} The new length property of the vectors.
+	*/
+ exports.IntVector.prototype.pushV = function (vec) { return 0;}
+/** 
+	* Sums the elements in the vector.
+	* @returns {number} The sum of all elements in the instance.
+	*/
+ exports.IntVector.prototype.sum = function () { return IntVectorDefaultVal; }
+/**
+	* Gets the index of the maximal element.
+	* @returns {number} Index of the maximal element in the vector.
+	*/
+ exports.IntVector.prototype.getMaxIdx = function () { return 0;}
+/**
+	* Vector sort comparator callback.
+	* @callback intVectorCompareCb
+	* @param {number} arg1 - First argument
+	* @param {number} arg2 - Second argument
+	* @returns {(number | boolean)} If intVectorCompareCb(arg1, arg2) is less than 0 or false, sort arg1 to a lower index than arg2, i.e. arg1 comes first.
+	*/
+/**
+	* Sorts the vector (in place operation).
+	* @param {(module:la~intVectorCompareCb | boolean)} [arg] - Sort callback or a boolean ascend flag. Default is boolean and true.
+	* @returns {module:la.IntVector} Self.
+	* <br>1. Vector sorted in ascending order, if arg is boolean and true.  
+	* <br>2. Vector sorted in descending order, if arg is boolean and false.
+	* <br>3. Vector sorted by using the comparator callback, if arg is a {@link module:la~intVectorCompareCb}.
+	* @example
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.IntVector([-2, 1, 3]);
+	* // sort ascending
+	* vec.sort(); // sorts to: [-2, 1, 3]
+	* // sort using callback
+	* vec.sort(function(arg1, arg2) { return Math.abs(arg1) - Math.abs(arg2); }); // sorts to: [1, -2, 3]
+	*/
+ exports.IntVector.prototype.sort = function (bool) { return this; } 
+/**
+	* Sort with permutation output result
+	* @typedef {Object} SortResult
+	* @property  {module:la.IntVector} SortResult.vec - Sorted vector.
+	* @property  {module:la.IntVector} SortResult.perm - Permutation vector, where SortResult.vec[i] = unsortedVec[SortResult.perm[i]].
+	*/
+/**
+	* Sorts the vector and returns the sorted vector as well as the permutation
+	* @param {boolean} [asc] - Sort in ascending order flag. Default is boolean and true.
+	* @returns {module:la~SortResult} Self.
+	* @example
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.IntVector([-2, 1, 3]);
+	* // sort ascending
+	* var result = vec.sortPerm(); // result.vec: [-2, 1, 3]
+	* result.perm; // permutation index vector
+	*/
+ exports.IntVector.prototype.sortPerm = function (asc) { return {vec: Object.create(this), perm: Object.create(require('qminer').la.IntVector.prototype) }; } 
+/**
+	* Randomly reorders the elements of the vector (inplace).
+	* @returns {module:la.IntVector} Self.
+	*/
+ exports.IntVector.prototype.shuffle = function () { return this; }
+/**
+	* Deletes elements with sprecific index or more.
+	* @param {number} idx - Index (zero based).
+	* @returns {module:la.IntVector} Self after truncating.
+	* @example
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.IntVector([1, 2, 3]);
+	* // trunc all elements with index 1 or more
+	* vec.trunc(1); // returns vector [1]
+	*/
+ exports.IntVector.prototype.trunc = function (idx) { return this;} 
+/**
+	* Creates a dense matrix A by multiplying two vectors x and y: A = x * y^T.
+	* @param {module:la.IntVector} vec - Second vector.
+	* @returns {module:la.Matrix} Matrix obtained by the outer product of the instance and second vector.
+	* @example
+	* var la = require('qminer').la;
+	* // create two vectors
+	* var x = new la.IntVector([1, 2, 3]);
+	* var y = new la.IntVector([4, 5]);
+	* // create the outer product of these vectors
+	* var A = vec.outer(vec2); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]
+	*/
+ skip.exports.IntVector.prototype.outer = function (vec) { return Object.create(require('qminer').la.Matrix.prototype);}
+/**
+	* Computes the inner product.
+	* @param {module:la.Vector} vec - Other vector
+	* @returns {number} Inner product between the instance and the other vector.
+	*/
+ skip.exports.IntVector.prototype.inner = function(vec) { return 0.0; }
+/**
+	* Returns the cosine between the two vectors.
+	* @param {module:la.IntVector} vec - Second vector.
+	* @returns {number} The cosine between the two vectors.
+	* @example
+	* var la = require('qminer').la;
+	* // create two vectors
+	* var x = new la.IntVector([1, 0]);
+	* var y = new la.IntVector([0, 1]);
+	* // calculate the cosine between those two vectors
+	* var num = x.cosine(y); // returns 0
+	*/
+ skip.exports.IntVector.prototype.cosine = function (vec) { return 0.0; }
+/**
+	* Sums the two vectors together.
+	* @param {module:la.IntVector} vec - Second vector.
+	* @returns {module:la.IntVector} Sum of the instance and the second vector.
+	*/
+ skip.exports.IntVector.prototype.plus = function (vec) { return Object.create(this); }
+/**
+	* Subtracts one vector from the other.
+	* @param {module:la.IntVector} vec - Second vector.
+	* @returns {module:la.IntVector} The difference of the instance and the other vector.
+	*/
+ skip.exports.IntVector.prototype.minus = function (vec) { return Object.create(this); }
+/**
+	* Multiplies the vector with a scalar.
+	* @param {number} val - Scalar.
+	* @returns {module:la.IntVector} Product of the vector and scalar.
+	*/
+ skip.exports.IntVector.prototype.multiply = function (val) { return Object.create(this); }
+/**
+	* Normalizes vector.
+	* @returns {module:la.IntVector} Normalized self.
+	*/
+ skip.exports.IntVector.prototype.normalize = function () { return this; } 
+/**
+	* Gives the length of vector.
+	* @returns {number} Length of vector.
+	*/
+ exports.IntVector.prototype.length = 0;
+/**
+	* Returns the vector as string.
+	* @returns {string} String representation.
+	* @example
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.IntVector([1, 2, 3]);
+	* // create vector as string
+	* vec.toString(); // returns '1, 2, 3'
+	*/
+ exports.IntVector.prototype.toString = function () { return ''; }
+/**
+	* Creates a dense diagonal matrix out of the vector.
+	* @returns{module:la.Matrix} Diagonal matrix, where the (i, i)-th element is the i-th element of vector.
+	*/
+ skip.exports.IntVector.prototype.diag = function () { return Object.create(require('qminer').la.Matrix.prototype); }
+/**
+	* Creates a sparse diagonal matrix out of the vector.
+	* @returns {module:la.SparseMatrix} Diagonal matrix, where the (i, i)-th element is the i-th element of vector.
+	*/
+ skip.exports.IntVector.prototype.spDiag = function () { return Object.create(require('qminer').la.SparseMatrix.prototype); }
+/**
+	* Calculates the norm of the vector.
+	* @returns {number} The norm of the vector.
+	*/
+ skip.exports.IntVector.prototype.norm = function () { return 0.0; }
+/**
+	* Creates the sparse vector representation of the vector.
+	* @returns {module:la.SparseVector} The sparse vector representation.
+	*/
+ skip.exports.IntVector.prototype.sparse = function () { return Object.create(require('qminer').la.SparseVector.prototype); }
+/**
+	* Creates a matrix with a single column that is equal to the vector.
+	* @returns {module:la.Matrix} The matrix with a single column that is equal to the instance.
+	*/
+ skip.exports.IntVector.prototype.toMat = function () { return Object.create(require('qminer').la.Matrix.prototype); }
+/**
+	* Saves the vector as output stream (binary serialization).
+	* @param {module:fs.FOut} fout - Output stream.
+	* @returns {module:fs.FOut} fout.
+	* @example
+	* // import fs module
+	* var fs = require('qminer').fs;
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.IntVector([1, 2, 3]);
+	* // open write stream
+	* var fout = fs.openWrite('vec.dat');
+	* // save vector and close write stream
+	* vec.save(fout).close();
+	*/
+ exports.IntVector.prototype.save = function (fout) {  return Object.create(require('qminer').fs.FOut.prototype); }
+/**
+	* Loads the vector from input stream (binary deserialization).
+	* @param {module:fs.FIn} fin - Input stream.
+	* @returns {module:la.IntVector} Self.
+	* @example
+	* // import fs module
+	* var fs = require('qminer').fs;
+	* var la = require('qminer').la;
+	* // create an empty vector
+	* var vec = new la.IntVector();
+	* // open a read stream
+	* var fin = fs.openRead('vec.dat');
+	* // load the vector
 	* vec.load(fin);
 	*/
- exports.StrVector.prototype.load = function (fin) {}
+ exports.IntVector.prototype.load = function (fin) { return this; }
+/**
+	* Saves the vector as output stream (ascii serialization).
+	* @param {module:fs.FOut} fout - Output stream.
+	* @returns {module:fs.FOut} fout.
+	* @example
+	* // import fs module
+	* var fs = require('qminer').fs;
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.IntVector([1, 2, 3]);
+	* // open write stream
+	* var fout = fs.openWrite('vec.dat');
+	* // save matrix and close write stream
+	* vec.saveascii(fout).close();
+	*/
+ exports.IntVector.prototype.saveascii = function (fout) {  return Object.create(require('qminer').fs.FOut.prototype); }
+/**
+	* Loads the vector from input stream (ascii deserialization).
+	* @param {module:fs.FIn} fin - Input stream.
+	* @returns {module:la.IntVector} Self.
+	* @example
+	* // import fs module
+	* var fs = require('qminer').fs;
+	* var la = require('qminer').la;
+	* // create an empty vector
+	* var vec = new la.IntVector();
+	* // open a read stream
+	* var fin = fs.openRead('vec.dat');
+	* // load the matrix
+	* vec.loadascii(fin);
+	*/
+ exports.IntVector.prototype.loadascii = function (fin) { return this; }
+
+/**
+* Vector - array of boolean
+* @classdesc Wraps a C++ array.
+* @class
+* @param {(Array<boolean> | module:la.BoolVector)} [arg] - Constructor arguments. There are two ways of constructing:
+* <br>1. An array of vector elements. Example: [true, true, false] is a vector of length 3.
+* <br>2. A vector (copy constructor).
+* @example
+* var la = require('qminer').la;
+* // create a new empty vector
+* var vec = new la.BoolVector();
+* // create a new vector
+* var vec2 = new la.BoolVector([true, true, false]);
+*/
+ exports.BoolVector = function() {}
+ var BoolVectorDefaultVal = false; // for intellisense
+/**
+	* Returns element at index.
+	* @param {number} index - Element index (zero-based).
+	* @returns {boolean} Vector element.
+	*/
+ exports.BoolVector.prototype.at = function(number) { return BoolVectorDefaultVal; }
+/**
+	* Returns a subvector.
+	* @param {(Array<number> | module:la.IntVector)} arg - Index array or vector. Indices can repeat (zero based).
+	* @returns {module:la.BoolVector} Subvector, where the i-th element is the arg[i]-th element of the instance.
+	*/
+ exports.BoolVector.prototype.subVec = function (arg) { return Object.create(this); }
+/**
+	* Sets an element in vector.
+	* @param {number} idx - Index (zero based).
+	* @param {boolean} val - Element value.
+	* @returns {module:la.BoolVector} Self.
+	*/
+ exports.BoolVector.prototype.put = function (idx, val) { return this;}
+/**
+	* Adds an element to the end of the vector.
+	* @param {boolean} val - The element added to the vector.
+	* @returns {number} The new length property of the object upon which the method was called.
+	*/
+ exports.BoolVector.prototype.push = function (val) { return 0;}
+/**
+	* Changes the vector by removing and adding elements.
+	* @param {number} start - Index at which to start changing the array.
+	* @param {number} deleteCount - Number of elements to be removed.
+	* @param {...number} [itemN] - The element(s) to be add to the array. If no elements are given, splice() will only remove elements from the array.
+	* @returns {module:la.BoolVector} Self.
+	* @example
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.BoolVector([true, true, false]);
+	* // splice the vector by removing the last two elements and adding false, true
+	* vec.splice(1, 2, false, true)// returns vector [true, false, true]
+	*/
+ exports.BoolVector.prototype.splice = function (start, deleteCount, itemN) { return this;}
+/**
+	* Adds elements to the beginning of the vector.
+	* @param {...boolean} args - One or more elements to be added to the vector.
+	* @returns {number} The new length of vector.
+	*/
+ exports.BoolVector.prototype.unshift = function (args) { return 0;}
+/**
+	* Appends a second vector to the first one.
+	* @param {module:la.BoolVector} vec - The appended vector.
+	* @returns {number} The new length property of the vectors.
+	*/
+ exports.BoolVector.prototype.pushV = function (vec) { return 0;}
+/** 
+	* Sums the elements in the vector.
+	* @returns {number} The sum of all elements in the instance.
+	*/
+ skip.exports.BoolVector.prototype.sum = function () { return BoolVectorDefaultVal; }
+/**
+	* Gets the index of the maximal element.
+	* @returns {number} Index of the maximal element in the vector.
+	*/
+ skip.exports.BoolVector.prototype.getMaxIdx = function () { return 0;}
+/**
+	* Vector sort comparator callback.
+	* @callback boolVectorCompareCb
+	* @param {boolean} arg1 - First argument
+	* @param {boolean} arg2 - Second argument
+	* @returns {(number | boolean)} If boolVectorCompareCb(arg1, arg2) is less than 0 or false, sort arg1 to a lower index than arg2, i.e. arg1 comes first.
+	*/
+/**
+	* Sorts the vector (in place operation).
+	* @param {(module:la~boolVectorCompareCb | boolean)} [arg] - Sort callback or a boolean ascend flag. Default is boolean and true.
+	* @returns {module:la.BoolVector} Self.
+	* <br>1. Vector sorted in ascending order, if arg is boolean and true.  
+	* <br>2. Vector sorted in descending order, if arg is boolean and false.
+	* <br>3. Vector sorted by using the comparator callback, if arg is a {@link module:la~boolVectorCompareCb}.
+	* @example
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.BoolVector([true, false, false]);
+	* // sort ascending
+	* vec.sort(); // sorts to: [false, true, true]
+	* // sort using callback
+	* vec.sort(function(arg1, arg2) { return arg2; }); // sorts to: [false, true, true]
+	*/
+ skip.exports.BoolVector.prototype.sort = function (bool) { return this; } 
+/**
+	* Sort with permutation output result
+	* @typedef {Object} SortResult
+	* @property  {module:la.BoolVector} SortResult.vec - Sorted vector.
+	* @property  {module:la.IntVector} SortResult.perm - Permutation vector, where SortResult.vec[i] = unsortedVec[SortResult.perm[i]].
+	*/
+/**
+	* Sorts the vector and returns the sorted vector as well as the permutation
+	* @param {boolean} [asc] - Sort in ascending order flag. Default is boolean and true.
+	* @returns {module:la~SortResult} Self.
+	* @example
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.BoolVector([true, false, false]);
+	* // sort ascending
+	* var result = vec.sortPerm(); // result.vec: [false, true, true]
+	* result.perm; // permutation index vector
+	*/
+ skip.exports.BoolVector.prototype.sortPerm = function (asc) { return {vec: Object.create(this), perm: Object.create(require('qminer').la.IntVector.prototype) }; } 
+/**
+	* Randomly reorders the elements of the vector (inplace).
+	* @returns {module:la.BoolVector} Self.
+	*/
+ exports.BoolVector.prototype.shuffle = function () { return this; }
+/**
+	* Deletes elements with sprecific index or more.
+	* @param {boolean} idx - Index (zero based).
+	* @returns {module:la.BoolVector} Self after truncating.
+	* @example
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.BoolVector([true, true, false]);
+	* // trunc all elements with index 1 or more
+	* vec.trunc(1); // returns vector [true]
+	*/
+ exports.BoolVector.prototype.trunc = function (idx) { return this;} 
+/**
+	* Creates a dense matrix A by multiplying two vectors x and y: A = x * y^T.
+	* @param {module:la.BoolVector} vec - Second vector.
+	* @returns {module:la.Matrix} Matrix obtained by the outer product of the instance and second vector.
+	* @example
+	* var la = require('qminer').la;
+	* // create two vectors
+	* var x = new la.BoolVector([1, 2, 3]);
+	* var y = new la.BoolVector([4, 5]);
+	* // create the outer product of these vectors
+	* var A = vec.outer(vec2); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]
+	*/
+ skip.exports.BoolVector.prototype.outer = function (vec) { return Object.create(require('qminer').la.Matrix.prototype);}
+/**
+	* Computes the inner product.
+	* @param {module:la.Vector} vec - Other vector
+	* @returns {number} Inner product between the instance and the other vector.
+	*/
+ skip.exports.BoolVector.prototype.inner = function(vec) { return 0.0; }
+/**
+	* Returns the cosine between the two vectors.
+	* @param {module:la.BoolVector} vec - Second vector.
+	* @returns {number} The cosine between the two vectors.
+	* @example
+	* var la = require('qminer').la;
+	* // create two vectors
+	* var x = new la.BoolVector([1, 0]);
+	* var y = new la.BoolVector([0, 1]);
+	* // calculate the cosine between those two vectors
+	* var num = x.cosine(y); // returns 0
+	*/
+ skip.exports.BoolVector.prototype.cosine = function (vec) { return 0.0; }
+/**
+	* Sums the two vectors together.
+	* @param {module:la.BoolVector} vec - Second vector.
+	* @returns {module:la.BoolVector} Sum of the instance and the second vector.
+	*/
+ skip.exports.BoolVector.prototype.plus = function (vec) { return Object.create(this); }
+/**
+	* Subtracts one vector from the other.
+	* @param {module:la.BoolVector} vec - Second vector.
+	* @returns {module:la.BoolVector} The difference of the instance and the other vector.
+	*/
+ skip.exports.BoolVector.prototype.minus = function (vec) { return Object.create(this); }
+/**
+	* Multiplies the vector with a scalar.
+	* @param {number} val - Scalar.
+	* @returns {module:la.BoolVector} Product of the vector and scalar.
+	*/
+ skip.exports.BoolVector.prototype.multiply = function (val) { return Object.create(this); }
+/**
+	* Normalizes vector.
+	* @returns {module:la.BoolVector} Normalized self.
+	*/
+ skip.exports.BoolVector.prototype.normalize = function () { return this; } 
+/**
+	* Gives the length of vector.
+	* @returns {number} Length of vector.
+	*/
+ exports.BoolVector.prototype.length = 0;
+/**
+	* Returns the vector as string.
+	* @returns {string} String representation.
+	* @example
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.BoolVector([true, true, false]);
+	* // create vector as string
+	* vec.toString(); // returns 'true, true, false'
+	*/
+ exports.BoolVector.prototype.toString = function () { return ''; }
+/**
+	* Creates a dense diagonal matrix out of the vector.
+	* @returns{module:la.Matrix} Diagonal matrix, where the (i, i)-th element is the i-th element of vector.
+	*/
+ skip.exports.BoolVector.prototype.diag = function () { return Object.create(require('qminer').la.Matrix.prototype); }
+/**
+	* Creates a sparse diagonal matrix out of the vector.
+	* @returns {module:la.SparseMatrix} Diagonal matrix, where the (i, i)-th element is the i-th element of vector.
+	*/
+ skip.exports.BoolVector.prototype.spDiag = function () { return Object.create(require('qminer').la.SparseMatrix.prototype); }
+/**
+	* Calculates the norm of the vector.
+	* @returns {number} The norm of the vector.
+	*/
+ skip.exports.BoolVector.prototype.norm = function () { return 0.0; }
+/**
+	* Creates the sparse vector representation of the vector.
+	* @returns {module:la.SparseVector} The sparse vector representation.
+	*/
+ skip.exports.BoolVector.prototype.sparse = function () { return Object.create(require('qminer').la.SparseVector.prototype); }
+/**
+	* Creates a matrix with a single column that is equal to the vector.
+	* @returns {module:la.Matrix} The matrix with a single column that is equal to the instance.
+	*/
+ skip.exports.BoolVector.prototype.toMat = function () { return Object.create(require('qminer').la.Matrix.prototype); }
+/**
+	* Saves the vector as output stream (binary serialization).
+	* @param {module:fs.FOut} fout - Output stream.
+	* @returns {module:fs.FOut} fout.
+	* @example
+	* // import fs module
+	* var fs = require('qminer').fs;
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.BoolVector([true, true, false]);
+	* // open write stream
+	* var fout = fs.openWrite('vec.dat');
+	* // save vector and close write stream
+	* vec.save(fout).close();
+	*/
+ exports.BoolVector.prototype.save = function (fout) {  return Object.create(require('qminer').fs.FOut.prototype); }
+/**
+	* Loads the vector from input stream (binary deserialization).
+	* @param {module:fs.FIn} fin - Input stream.
+	* @returns {module:la.BoolVector} Self.
+	* @example
+	* // import fs module
+	* var fs = require('qminer').fs;
+	* var la = require('qminer').la;
+	* // create an empty vector
+	* var vec = new la.BoolVector();
+	* // open a read stream
+	* var fin = fs.openRead('vec.dat');
+	* // load the vector
+	* vec.load(fin);
+	*/
+ exports.BoolVector.prototype.load = function (fin) { return this; }
+/**
+	* Saves the vector as output stream (ascii serialization).
+	* @param {module:fs.FOut} fout - Output stream.
+	* @returns {module:fs.FOut} fout.
+	* @example
+	* // import fs module
+	* var fs = require('qminer').fs;
+	* var la = require('qminer').la;
+	* // create a new vector
+	* var vec = new la.BoolVector([true, true, false]);
+	* // open write stream
+	* var fout = fs.openWrite('vec.dat');
+	* // save matrix and close write stream
+	* vec.saveascii(fout).close();
+	*/
+ exports.BoolVector.prototype.saveascii = function (fout) {  return Object.create(require('qminer').fs.FOut.prototype); }
+/**
+	* Loads the vector from input stream (ascii deserialization).
+	* @param {module:fs.FIn} fin - Input stream.
+	* @returns {module:la.BoolVector} Self.
+	* @example
+	* // import fs module
+	* var fs = require('qminer').fs;
+	* var la = require('qminer').la;
+	* // create an empty vector
+	* var vec = new la.BoolVector();
+	* // open a read stream
+	* var fin = fs.openRead('vec.dat');
+	* // load the matrix
+	* vec.loadascii(fin);
+	*/
+ exports.BoolVector.prototype.loadascii = function (fin) { return this; }
 

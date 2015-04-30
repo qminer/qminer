@@ -1,3143 +1,835 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>JSDoc: Class: SparseMatrix</title>
+<!doctype html>
+<html>
 
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+<head>
+  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta charset="utf-8">
+  <title>Class: SparseMatrix</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
 </head>
 
-<body>
-
-<div id="main">
-
-    <h1 class="page-title">Class: SparseMatrix</h1>
-
-    
-
-
-
-
-<section>
-
-<header>
-    
-        <h2>
-            <span class="ancestors"><a href="module-la.html">la</a>.</span>
-        
-        SparseMatrix
-        </h2>
-        
-            <div class="class-description">Represents a sparse matrix.</div>
-        
-    
-</header>
-
-<article>
-    <div class="container-overview">
-    
-        
-
-    
-    <h2>Constructor</h2>
-    
-
-    <h4 class="name" id="SparseMatrix"><span class="type-signature"></span>new SparseMatrix<span class="signature">(arg<span class="signature-attributes">opt</span>, rows<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    Sparse Matrix
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-        <th>Attributes</th>
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>arg</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;Array.&lt;Array.&lt;number>>></span>
-|
-
-<span class="param-type"><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last">Constructor arguments. There are two ways of constructing:<br>1. A nested array of sparse vectors (columns). A sparse vector is a nested array of pairs, first value is index, second is value.. Example: [[[0,2]], [[0, 1], [2,3]]] has 2 columns.The second nonzero element in second column has a value 3 at index 2.<br>2. A sparse matrix (copy constructor).</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>rows</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last">Maximal number of rows in sparse vector. It is only in combinantion with nested array of vector elements.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line336">line 336</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Example</h5>
-    
-    <pre class="prettyprint"><code>// create a new sparse matrix with arrayvar mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);// create a new sparse matrix with specified max rowsvar mat2 = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]], 3);</code></pre>
-
-
-
-    
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
     </div>
-
-    
-
-    
-
-    
-
-     
-
-    
-
-    
-        <h3 class="subsection-title">Members</h3>
-
-        
-            
-<h4 class="name" id="cols"><span class="type-signature"></span>cols<span class="type-signature"></span></h4>
-
-
-
-
-<div class="description">
-    Number of columns of sparse matrix.
-</div>
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line433">line 433</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="rows"><span class="type-signature"></span>rows<span class="type-signature"></span></h4>
-
-
-
-
-<div class="description">
-    Number of rows of sparse matrix.
-</div>
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line428">line 428</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-    
-
-    
-        <h3 class="subsection-title">Methods</h3>
-
-        
-            
-
-    
-
-    <h4 class="name" id="at"><span class="type-signature"></span>at<span class="signature">(rowIdx, colIdx)</span><span class="type-signature"> &rarr; {number}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Returns an element of sparse matrix.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>rowIdx</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Row index (zero based).</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>colIdx</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Column index (zero based).</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line343">line 343</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Matrix value.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">number</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="colNorms"><span class="type-signature"></span>colNorms<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="module-la.Vector.html">module:la.Vector</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Returns the vector of column norms of sparse matrix.
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line408">line 408</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Vector of column norms. Ihe i-th value of said vector is the norm of i-th column of sparse matrix.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-la.Vector.html">module:la.Vector</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="frob"><span class="type-signature"></span>frob<span class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Returns the frobenious norm of sparse matrix.
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line423">line 423</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Frobenious norm of sparse matrix.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">number</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="frob2"><span class="type-signature"></span>frob2<span class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Returns the frobenious norm squared
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line484">line 484</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Frobenious norm squared
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">number</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="full"><span class="type-signature"></span>full<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="module-la.Matrix.html">module:la.Matrix</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Returns the dense representation of sparse matrix.
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line418">line 418</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Dense representation of sparse matrix.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-la.Matrix.html">module:la.Matrix</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="getCol"><span class="type-signature"></span>getCol<span class="signature">(colIdx)</span><span class="type-signature"> &rarr; {<a href="module-la.SparseVector.html">module:la.SparseVector</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Returns the column of sparse matrix.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>colIdx</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Column index (zero based).</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line357">line 357</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Sparse vector corresponding to the colIdx-th column of sparse matrix.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-la.SparseVector.html">module:la.SparseVector</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(fin)</span><span class="type-signature"> &rarr; {<a href="module-la.Matrix.html">module:la.Matrix</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Loads the sparse matrix from input stream.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>fin</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-fs.FIn.html">module:fs.FIn</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Input stream.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line477">line 477</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Self.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-la.Matrix.html">module:la.Matrix</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-    <h5>Example</h5>
-    
-    <pre class="prettyprint"><code>// import fs modulevar fs = require('fs.js');// create an empty matrixvar mat = new la.SparseMatrix();// open a read streamvar fin = fs.openRead('mat.dat');// load the matrixmat.load(fin);</code></pre>
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="minus"><span class="type-signature"></span>minus<span class="signature">(mat)</span><span class="type-signature"> &rarr; {<a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Returns the difference of two matrices.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>mat</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Second sparse matrix.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line398">line 398</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    The difference of two sparse matrices.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="multiply"><span class="type-signature"></span>multiply<span class="signature">(arg)</span><span class="type-signature"> &rarr; {<a href="module-la.Vector.html">module:la.Vector</a>|<a href="module-la.Matrix.html">module:la.Matrix</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Multiplies argument with sparse vector.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>arg</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-|
-
-<span class="param-type"><a href="module-la.Vector.html">module:la.Vector</a></span>
-|
-
-<span class="param-type"><a href="module-la.SparseVector.html">module:la.SparseVector</a></span>
-|
-
-<span class="param-type"><a href="module-la.Matrix.html">module:la.Matrix</a></span>
-|
-
-<span class="param-type"><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Multiplication input. Supports scalar, vector and matrix input.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line378">line 378</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <br>1. <a href="module-la.Matrix.html">module:la.Matrix</a>, if arg is number, <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.<br>2. <a href="module-la.Vector.html">module:la.Vector</a>, if arg is <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-la.Vector.html">module:la.Vector</a></span>
-|
-
-<span class="param-type"><a href="module-la.Matrix.html">module:la.Matrix</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="multiplyT"><span class="type-signature"></span>multiplyT<span class="signature">(arg)</span><span class="type-signature"> &rarr; {<a href="module-la.Vector.html">module:la.Vector</a>|<a href="module-la.Matrix.html">module:la.Matrix</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Sparse matrix transpose and multiplies with argument
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>arg</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-|
-
-<span class="param-type"><a href="module-la.Vector.html">module:la.Vector</a></span>
-|
-
-<span class="param-type"><a href="module-la.SparseVector.html">module:la.SparseVector</a></span>
-|
-
-<span class="param-type"><a href="module-la.Matrix.html">module:la.Matrix</a></span>
-|
-
-<span class="param-type"><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Multiplication input. Supports scalar, vector and matrix input.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line386">line 386</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <br>1. <a href="module-la.Matrix.html">module:la.Matrix</a>, if arg is number, <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.<br>2. <a href="module-la.Vector.html">module:la.Vector</a>, if arg is <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-la.Vector.html">module:la.Vector</a></span>
-|
-
-<span class="param-type"><a href="module-la.Matrix.html">module:la.Matrix</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="nnz"><span class="type-signature"></span>nnz<span class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Returns the number of non-zero elements of sparse matrix.
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line505">line 505</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Number of non-zero elements.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">number</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="normalizeCols"><span class="type-signature"></span>normalizeCols<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Normalizes columns of sparse matrix.
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line413">line 413</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Self - Normalized columns.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="plus"><span class="type-signature"></span>plus<span class="signature">(mat)</span><span class="type-signature"> &rarr; {<a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Returns the sum of two matrices.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>mat</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Second sparse matrix.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line392">line 392</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Sum of two sparse matrices.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="print"><span class="type-signature"></span>print<span class="signature">()</span><span class="type-signature"></span></h4>
-
-    
-
-
-
-<div class="description">
-    Prints sparse matrix on screen.
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line447">line 447</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <h5>Example</h5>
-    
-    <pre class="prettyprint"><code>// create a new sparse matrixvar spMat = new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 8]]]);// print sparse matrix on screen// each row represents a nonzero element, where first value is row index, second // value is column index and third value is element value. For this matrix:// 0  0  1.000000// 0  1  3.000000// 1  1  8.000000spMat.print(); </code></pre>
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="push"><span class="type-signature"></span>push<span class="signature">(spVec)</span><span class="type-signature"> &rarr; {<a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Attaches a column to sparse matrix.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>spVec</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-la.SparseVector.html">module:la.SparseVector</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Attached column as sparse vector.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line370">line 370</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Self.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="put"><span class="type-signature"></span>put<span class="signature">(rowIdx, colIdx, num)</span><span class="type-signature"> &rarr; {<a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Puts an element in sparse matrix.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>rowIdx</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Row index (zero based).</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>colIdx</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Column index (zero based).</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>num</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Element value.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line351">line 351</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Self.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="save"><span class="type-signature"></span>save<span class="signature">(fout)</span><span class="type-signature"> &rarr; {<a href="module-fs.FOut.html">module:fs.FOut</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Saves the sparse matrix as output stream.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>fout</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-fs.FOut.html">module:fs.FOut</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Output stream.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line462">line 462</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    fout.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-fs.FOut.html">module:fs.FOut</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-    <h5>Example</h5>
-    
-    <pre class="prettyprint"><code>// import fs modulevar fs = require('fs.js');// create a new sparse matrixvar mat = new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 12]]]);// open write streamvar fout = fs.openWrite('mat.dat');// save matrix and close write streammat.save(fout).close();</code></pre>
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="setCol"><span class="type-signature"></span>setCol<span class="signature">(colIdx, spVec)</span><span class="type-signature"> &rarr; {<a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Sets a column in sparse matrix.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>colIdx</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Volumn index (zero based).</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>spVec</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="module-la.SparseVector.html">module:la.SparseVector</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">New column sparse vector.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line364">line 364</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Self.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="toString"><span class="type-signature"></span>toString<span class="signature">()</span><span class="type-signature"> &rarr; {string}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Returns a string displaying rows, columns and number of non-zero elements of sparse matrix.
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line499">line 499</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    String displaying row, columns and number of non-zero elements.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">string</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-    <h5>Example</h5>
-    
-    <pre class="prettyprint"><code>// create a new sparse matrixvar mat = new la.SparseMatrix([[[0, 1]], [[0, 2], [1, 8]]]);// create the stringvar text = mat.toString(); // returns 'rows: -1, cols: 2, nnz: 3'</code></pre>
-
-
-
-        
-            
-
-    
-
-    <h4 class="name" id="transpose"><span class="type-signature"></span>transpose<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>}</span></h4>
-
-    
-
-
-
-<div class="description">
-    Returns the transposed sparse matrix.
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line403">line 403</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    Transposed sparse matrix.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-        
-    
-
-    
-
-    
-</article>
-
-</section>
-
-
-
-
-</div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li><li><a href="module-la.StrVector.html">StrVector</a></li><li><a href="module-la.Vector.html">Vector</a></li></ul>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Wed Mar 25 2015 09:22:45 GMT+0100 (Central Europe Standard Time)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">SparseMatrix</span></h1>
+            <p class="source-link">Source: <a href="ladoc.js.html#source-line-344">ladoc.<wbr>js:344</a></p>
+            <div class="symbol-classdesc">
+              <p>Represents a sparse matrix.</p>
+            </div>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Properties</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-la.SparseMatrix.html#cols">cols</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-la.SparseMatrix.html#rows">rows</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-la.SparseMatrix.html#at">at(rowIdx, colIdx)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#colNorms">colNorms()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#frob">frob()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#frob2">frob2()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#full">full()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#getCol">getCol(colIdx)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#load">load(fin)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-la.SparseMatrix.html#minus">minus(mat)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#multiply">multiply(arg)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#multiplyT">multiplyT(arg)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#nnz">nnz()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#normalizeCols">normalizeCols()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#plus">plus(mat)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#print">print()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-la.SparseMatrix.html#push">push(spVec)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#put">put(rowIdx, colIdx, num)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#save">save(fout)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#setCol">setCol(colIdx, spVec)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#toString">toString()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#transpose">transpose()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2 id="SparseMatrix">new&nbsp;<span class="symbol-name">SparseMatrix</span><span class="signature"><span class="signature-params">([arg][, rows])</span></span></h2>
+            <p>Sparse Matrix</p>
+            <section>
+              <h3>
+            Example
+        </h3>
+              <div>
+                <pre class="prettyprint"><code>// create a new sparse matrix with array
+var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
+// create a new sparse matrix with specified max rows
+var mat2 = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]], 3);</code></pre>
+              </div>
+            </section>
+            <section>
+              <h3>Parameters</h3>
+              <table class="jsdoc-details-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p>arg</p>
+                    </td>
+                    <td>
+                      <p>(Array of Array of Array of number or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                    </td>
+                    <td>
+                      <p>Yes</p>
+                    </td>
+                    <td>
+                      <p>Constructor arguments. There are two ways of constructing:
+                        <br>1. A nested array of sparse vectors (columns). A sparse vector is a nested array of pairs, first value is index, second is value.. Example: [[[0,2]], [[0, 1], [2,3]]] has 2 columns. The second nonzero element in second column has
+                        a value 3 at index 2.
+                        <br>2. A sparse matrix (copy constructor).</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p>rows</p>
+                    </td>
+                    <td>
+                      <p>number</p>
+                    </td>
+                    <td>
+                      <p>Yes</p>
+                    </td>
+                    <td>
+                      <p>Maximal number of rows in sparse vector. It is only in combinantion with nested array of vector elements.</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+            <dl class="dl-compact">
+            </dl>
+          </section>
+          <section>
+            <h2>Properties</h2>
+            <section>
+              <h3 id="cols"><span class="symbol-name">cols</span></h3>
+              <p>Number of columns of sparse matrix.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;Number of columns of sparse matrix.</p>
+                </dd>
+              </dl>
+              <h3 id="rows"><span class="symbol-name">rows</span></h3>
+              <p>Number of rows of sparse matrix.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;Number of rows of sparse matrix.</p>
+                </dd>
+              </dl>
+            </section>
+            <h2>Methods</h2>
+            <section>
+              <h3 id="at"><span class="symbol-name">at</span><span class="signature"><span class="signature-params">(rowIdx, colIdx)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Returns an element of sparse matrix.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>rowIdx</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Row index (zero based).</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>colIdx</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Column index (zero based).</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;Matrix value.</p>
+                </dd>
+              </dl>
+              <h3 id="colNorms"><span class="symbol-name">colNorms</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <p>Returns the vector of column norms of sparse matrix.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;Vector of column norms. Ihe i-th value of said vector is the norm of i-th column of sparse matrix.</p>
+                </dd>
+              </dl>
+              <h3 id="frob"><span class="symbol-name">frob</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Returns the frobenious norm of sparse matrix.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;Frobenious norm of sparse matrix.</p>
+                </dd>
+              </dl>
+              <h3 id="frob2"><span class="symbol-name">frob2</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Returns the frobenious norm squared</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;Frobenious norm squared</p>
+                </dd>
+              </dl>
+              <h3 id="full"><span class="symbol-name">full</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <p>Returns the dense representation of sparse matrix.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;Dense representation of sparse matrix.</p>
+                </dd>
+              </dl>
+              <h3 id="getCol"><span class="symbol-name">getCol</span><span class="signature"><span class="signature-params">(colIdx)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseVector.html">module:la.SparseVector</a></span></span></h3>
+              <p>Returns the column of sparse matrix.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>colIdx</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Column index (zero based).</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.SparseVector.html">module:la.SparseVector</a></code>&nbsp;Sparse vector corresponding to the colIdx-th column of sparse matrix.</p>
+                </dd>
+              </dl>
+              <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(fin)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <p>Loads the sparse matrix from input stream.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;fs.js&#x27;);
+// create an empty matrix
+var mat = new la.SparseMatrix();
+// open a read stream
+var fin = fs.openRead(&#x27;mat.dat&#x27;);
+// load the matrix
+mat.load(fin);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fin</p>
+                      </td>
+                      <td>
+                        <p><a href="module-fs.FIn.html">module:fs.FIn</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Input stream.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="minus"><span class="symbol-name">minus</span><span class="signature"><span class="signature-params">(mat)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
+              <p>Returns the difference of two matrices.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>mat</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Second sparse matrix.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;The difference of two sparse matrices.</p>
+                </dd>
+              </dl>
+              <h3 id="multiply"><span class="symbol-name">multiply</span><span class="signature"><span class="signature-params">(arg)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
+              <p>Multiplies argument with sparse vector.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>arg</p>
+                      </td>
+                      <td>
+                        <p>(number, <a href="module-la.Vector.html">module:la.Vector</a>, <a href="module-la.SparseVector.html">module:la.SparseVector</a>, <a href="module-la.Matrix.html">module:la.Matrix</a>, or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Multiplication input. Supports scalar, vector and matrix input.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;
+                    <br>1. <a href="module-la.Matrix.html">module:la.Matrix</a>, if arg is number, <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.
+                    <br>2. <a href="module-la.Vector.html">module:la.Vector</a>, if arg is <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.</p>
+                </dd>
+              </dl>
+              <h3 id="multiplyT"><span class="symbol-name">multiplyT</span><span class="signature"><span class="signature-params">(arg)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
+              <p>Sparse matrix transpose and multiplies with argument</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>arg</p>
+                      </td>
+                      <td>
+                        <p>(number, <a href="module-la.Vector.html">module:la.Vector</a>, <a href="module-la.SparseVector.html">module:la.SparseVector</a>, <a href="module-la.Matrix.html">module:la.Matrix</a>, or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Multiplication input. Supports scalar, vector and matrix input.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;
+                    <br>1. <a href="module-la.Matrix.html">module:la.Matrix</a>, if arg is number, <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.
+                    <br>2. <a href="module-la.Vector.html">module:la.Vector</a>, if arg is <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.</p>
+                </dd>
+              </dl>
+              <h3 id="nnz"><span class="symbol-name">nnz</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Returns the number of non-zero elements of sparse matrix.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;Number of non-zero elements.</p>
+                </dd>
+              </dl>
+              <h3 id="normalizeCols"><span class="symbol-name">normalizeCols</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
+              <p>Normalizes columns of sparse matrix.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Self - Normalized columns.</p>
+                </dd>
+              </dl>
+              <h3 id="plus"><span class="symbol-name">plus</span><span class="signature"><span class="signature-params">(mat)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
+              <p>Returns the sum of two matrices.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>mat</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Second sparse matrix.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Sum of two sparse matrices.</p>
+                </dd>
+              </dl>
+              <h3 id="print"><span class="symbol-name">print</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Prints sparse matrix on screen.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// create a new sparse matrix
+var spMat = new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 8]]]);
+// print sparse matrix on screen
+// each row represents a nonzero element, where first value is row index, second 
+// value is column index and third value is element value. For this matrix:
+// 0  0  1.000000
+// 0  1  3.000000
+// 1  1  8.000000
+spMat.print(); </code></pre>
+                </div>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="push"><span class="symbol-name">push</span><span class="signature"><span class="signature-params">(spVec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
+              <p>Attaches a column to sparse matrix.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>spVec</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.SparseVector.html">module:la.SparseVector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Attached column as sparse vector.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="put"><span class="symbol-name">put</span><span class="signature"><span class="signature-params">(rowIdx, colIdx, num)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
+              <p>Puts an element in sparse matrix.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>rowIdx</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Row index (zero based).</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>colIdx</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Column index (zero based).</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>num</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Element value.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Saves the sparse matrix as output stream.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;fs.js&#x27;);
+// create a new sparse matrix
+var mat = new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 12]]]);
+// open write stream
+var fout = fs.openWrite(&#x27;mat.dat&#x27;);
+// save matrix and close write stream
+mat.save(fout).close();</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fout</p>
+                      </td>
+                      <td>
+                        <p><a href="module-fs.FOut.html">module:fs.FOut</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Output stream.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;fout.</p>
+                </dd>
+              </dl>
+              <h3 id="setCol"><span class="symbol-name">setCol</span><span class="signature"><span class="signature-params">(colIdx, spVec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
+              <p>Sets a column in sparse matrix.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>colIdx</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Volumn index (zero based).</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>spVec</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.SparseVector.html">module:la.SparseVector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>New column sparse vector.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="toString"><span class="symbol-name">toString</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
+              <p>Returns a string displaying rows, columns and number of non-zero elements of sparse matrix.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// create a new sparse matrix
+var mat = new la.SparseMatrix([[[0, 1]], [[0, 2], [1, 8]]]);
+// create the string
+var text = mat.toString(); // returns &#x27;rows: -1, cols: 2, nnz: 3&#x27;</code></pre>
+                </div>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>string</code>&nbsp;String displaying row, columns and number of non-zero elements.</p>
+                </dd>
+              </dl>
+              <h3 id="transpose"><span class="symbol-name">transpose</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
+              <p>Returns the transposed sparse matrix.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Transposed sparse matrix.</p>
+                </dd>
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 24, 2015.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
 </body>
+
 </html>
