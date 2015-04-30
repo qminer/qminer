@@ -2472,10 +2472,10 @@ void TNodeJsRec::addJoin(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args.Holder());
 
 	// read argument as record
-	QmAssertR(Args.Length() >= 2 && Args[1]->IsObject(), "rec.addJoin needs at least 2 args: JoinNm, rec and fq (optional)");
+	QmAssertR(Args.Length() >= 2 && (TNodeJsUtil::IsArgClass(Args, 1, TNodeJsRec::ClassId) || Args[1]->IsInt32()) , "rec.addJoin needs at least 2 args: JoinNm, (rec | recId) and fq (optional)");
+		
 	TStr JoinNm = TNodeJsUtil::GetArgStr(Args, 0);
-	// Check ?
-	TNodeJsRec* JsJoinRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[1]->ToObject());
+	
 	const int JoinFq = TNodeJsUtil::GetArgInt32(Args, 2, 1);
 	// check parameters fine
 	QmAssertR(JsRec->Rec.GetStore()->IsJoinNm(JoinNm), "[addJoin] Unknown join " + JsRec->Rec.GetStore()->GetStoreNm() + "." + JoinNm);
@@ -2483,8 +2483,16 @@ void TNodeJsRec::addJoin(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// get generic store
 	TWPt<TQm::TStore> Store = JsRec->Rec.GetStore();
 	const int JoinId = Store->GetJoinId(JoinNm);
-	// add join
-	Store->AddJoin(JoinId, JsRec->Rec.GetRecId(), JsJoinRec->Rec.GetRecId(), JoinFq);
+		
+	if (Args[1]->IsInt32()) {
+		int RecId = TNodeJsUtil::GetArgInt32(Args, 1);
+		Store->AddJoin(JoinId, JsRec->Rec.GetRecId(), RecId, JoinFq);
+	} else {
+		TNodeJsRec* JsJoinRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[1]->ToObject());
+		// add join
+		Store->AddJoin(JoinId, JsRec->Rec.GetRecId(), JsJoinRec->Rec.GetRecId(), JoinFq);
+	}
+	
 	// return
 	Args.GetReturnValue().Set(Args.Holder());
 }
@@ -2496,10 +2504,9 @@ void TNodeJsRec::delJoin(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 
 	// read argument as record
-	QmAssertR(Args.Length() >= 2 && Args[1]->IsObject(), "rec.addJoin needs at least 2 args: JoinNm, rec and fq (optional)");
+	QmAssertR(Args.Length() >= 2 && (TNodeJsUtil::IsArgClass(Args, 1, TNodeJsRec::ClassId) || Args[1]->IsInt32()), "rec.delJoin needs at least 2 args: JoinNm, (rec | recId) and fq (optional)");
 	TStr JoinNm = TNodeJsUtil::GetArgStr(Args, 0);
-	// Check ?
-	TNodeJsRec* JsJoinRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[1]->ToObject());
+	
 	const int JoinFq = TNodeJsUtil::GetArgInt32(Args, 2, 1);
 	// check parameters fine
 	QmAssertR(JsRec->Rec.GetStore()->IsJoinNm(JoinNm), "[delJoin] Unknown join " + JsRec->Rec.GetStore()->GetStoreNm() + "." + JoinNm);
@@ -2507,8 +2514,15 @@ void TNodeJsRec::delJoin(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// get generic store
 	TWPt<TQm::TStore> Store = JsRec->Rec.GetStore();
 	const int JoinId = Store->GetJoinId(JoinNm);
-	// add join
-	Store->DelJoin(JoinId, JsRec->Rec.GetRecId(), JsJoinRec->Rec.GetRecId(), JoinFq);
+	
+	if (Args[1]->IsInt32()) {
+		int RecId = TNodeJsUtil::GetArgInt32(Args, 1);
+		Store->DelJoin(JoinId, JsRec->Rec.GetRecId(), RecId, JoinFq);
+	} else {
+		TNodeJsRec* JsJoinRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[1]->ToObject());
+		// add join
+		Store->DelJoin(JoinId, JsRec->Rec.GetRecId(), JsJoinRec->Rec.GetRecId(), JoinFq);
+	}	
 	// return
 	Args.GetReturnValue().Set(Args.Holder());
 }

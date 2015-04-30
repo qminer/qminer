@@ -1285,11 +1285,11 @@ private:
 	//# exports.Record.prototype.$clone = function () {};
     JsDeclareFunction(clone);
 
-    //!- `rec = rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string). Returns self.
-    //!- `rec = rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
+    //!- `rec = rec.addJoin(joinName, (joinRecord | joinRecordId))` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string). Returns self.
+    //!- `rec = rec.addJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
     JsDeclareFunction(addJoin);
-    //!- `rec = rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string). Returns self.
-    //!- `rec = rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`. Return self.
+    //!- `rec = rec.delJoin(joinName, (joinRecord | joinRecordId))` -- deletes join record `joinRecord` (or given id, joinRecordId) from join `joinName` (string). Returns self.
+    //!- `rec = rec.delJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- deletes join record `joinRecord` (or given id, joinRecordId) from join `joinName` (string) with join frequency `joinFrequency`. Return self.
     JsDeclareFunction(delJoin);
 
     //!- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
