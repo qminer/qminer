@@ -212,30 +212,18 @@ private:
 	mutable TVec<uchar, int64> DirtyV;
     /// Blob storage
 	PBlobBs BlobStorage;
+	/// How many records are packed together into block;
+	const int BlockSize;
 
 	/// Utility method for loading specific record
-	void LoadRec(int i) const {
-		if (DirtyV[i] == 3) {
-			TMem mem;
-			TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[i]), mem);
-			ValV[i] = mem;
-			DirtyV[i] = 2;
-		}
-	}
+	inline void LoadRec(int i) const;
 
 	/// Utility method for storing specific record
-	void SaveRec(int i) {
-		switch (DirtyV[i]) {
-		case 0: BlobPtV[i] = BlobStorage->PutBlob(ValV[i].GetSIn()); break; // new data => save it
-		case 1: break;
-		case 2: BlobPtV[i] = BlobStorage->PutBlob(BlobPtV[i], ValV[i].GetSIn()); break; // dirty data => save it
-		case 3: break;
-		}
-	}
+	void SaveRec(int i);
 
 public:
-	TInMemStorage(const TStr& _FNm);
-	TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bool& _Lazy = false);
+	TInMemStorage(const TStr& _FNm, const int& _BlockSize = 1000);
+	TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const int& _BlockSize = 1000, const bool& _Lazy = false);
 	~TInMemStorage();
 
 	// asserts if we are allowed to change stuff

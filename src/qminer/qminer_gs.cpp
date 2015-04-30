@@ -414,45 +414,89 @@ void TStoreSchema::ValidateSchema(const TWPt<TBase>& Base, TStoreSchemaV& Schema
 
 ///////////////////////////////
 // In-memory storage
-TInMemStorage::TInMemStorage(const TStr& _FNm): FNm(_FNm), BlobFNm(_FNm + "Blob"), Access(faCreate) {
+TInMemStorage::TInMemStorage(const TStr& _FNm, const int& _BlockSize) : FNm(_FNm), BlobFNm(_FNm + "Blob"), Access(faCreate), BlockSize(_BlockSize) {
 	BlobStorage = TMBlobBs::New(BlobFNm, Access);
 }
 
-TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bool& _Lazy) :
-	FNm(_FNm), BlobFNm(_FNm + "Blob"), Access(_Access) {
+TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const int& _BlockSize, const bool& _Lazy) :
+	FNm(_FNm), BlobFNm(_FNm + "Blob"), Access(_Access), BlockSize(_BlockSize) {
     
 	// load data
 	TFIn FIn(FNm); 
 	BlobPtV.Load(FIn); // load vector
 	// load rest
+	TInt cnt;
+	cnt.Load(FIn);
 	FirstValOffset.Load(FIn);
 
 	// load data from blob storage
 	BlobStorage = TMBlobBs::New(BlobFNm, Access);
-	for (int i = 0; i < BlobPtV.Len(); i++) {
-		if (!_Lazy) {
-			TMem mem;
-			TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[i]), mem); // load from disk
-			ValV.Add(mem); // store to vector
-			DirtyV.Add(1); // init dirty flags
-		} else {
-			ValV.Add(); // empty (non-loaded) data
-			DirtyV.Add(3); // init dirty flags
-		}		
+
+	for (int i = 0; i < cnt; i++) {
+		ValV.Add(); // empty (non-loaded) data
+		DirtyV.Add(3); // init dirty flags
+	}
+	if (!_Lazy) {
+		LoadAll();
 	}
 }
 
 TInMemStorage::~TInMemStorage() {
 	if (Access != faRdOnly) {
 		// store dirty vectors
-		for (int i = 0; i < BlobPtV.Len(); i++) {
+		for (int i = 0; i < ValV.Len(); i++) {
 			SaveRec(i);
 		}		
 		// save vector
 		TFOut FOut(FNm); 
 		BlobPtV.Save(FOut);
 		// save rest
+		TInt(ValV.Len()).Save(FOut);
 		FirstValOffset.Save(FOut);
+	}
+}
+
+/// Utility method for loading specific record
+void TInMemStorage::LoadRec(int i) const {
+	const int ii = i / BlockSize;
+	TMem mem;
+	TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[ii]), mem);
+	PSIn in = mem.GetSIn();
+	for (int j = ii*BlockSize; j < DirtyV.Len() && j < (ii + 1)*BlockSize; j++) {
+		if (DirtyV[j] == 3) {
+			DirtyV[j] = 1;
+			TMem::LoadMem(in, ValV[j]);
+		} else {
+			TMem mem2;
+			TMem::LoadMem(in, mem2);
+		}
+	}
+}
+
+/// Utility method for storing specific record
+void TInMemStorage::SaveRec(int i) {
+	switch (DirtyV[i]) {
+	case 0:
+	case 2:
+		{
+			const int ii = i / BlockSize;
+			TMOut mem;
+			for (int j = ii*BlockSize; j < DirtyV.Len() && j < (ii + 1)*BlockSize; j++) {
+				mem.PutMem(ValV[j]);
+				DirtyV[j] = 1;
+			}
+			while (BlobPtV.Len() <= ii) {
+				BlobPtV.Add();
+			}
+			if (BlobPtV[ii].Empty()) {
+				BlobPtV[ii] = BlobStorage->PutBlob(mem.GetSIn());
+			} else {
+				BlobPtV[ii] = BlobStorage->PutBlob(BlobPtV[ii], mem.GetSIn());
+			}
+		}
+		break; // new data => save it break; BlobPtV[i] = BlobStorage->PutBlob(BlobPtV[i], ValV[i].GetSIn()); break; // dirty data => save it
+	case 1:
+	case 3: break;
 	}
 }
 
@@ -473,7 +517,9 @@ void TInMemStorage::GetVal(const uint64& ValId, TMem& Val) const {
 uint64 TInMemStorage::AddVal(const TMem& Val) {
 	uint64 res = ValV.Add(Val);
 	DirtyV.Add(0);
-	BlobPtV.Add();
+	if (ValV.Len() % BlockSize == 1) {
+		BlobPtV.Add();
+	}
 	return res + FirstValOffset;
 }
 

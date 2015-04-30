@@ -65,7 +65,7 @@ public:
 		TStr Fn = "data\\in_mem_storage";
 		TStr tmp;
 		{
-			TQm::TStorage::TInMemStorage storage(Fn);
+			TQm::TStorage::TInMemStorage storage(Fn, 1000);
 			TMem mem;
 			mem.AddBf(&storage, 4);
 			tmp = mem.GetHexStr();
@@ -75,7 +75,7 @@ public:
 			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
 		}
 		{
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, 1000, true);
 			EXPECT_EQ(storage.ValV.Len(), 1);
 			EXPECT_EQ(storage.DirtyV.Len(), 1);
 			EXPECT_EQ(storage.DirtyV[0], 3); // not loaded yet
@@ -90,7 +90,7 @@ public:
 		TStr tmp;
 		int cnt = 20;
 		{
-			TQm::TStorage::TInMemStorage storage(Fn);
+			TQm::TStorage::TInMemStorage storage(Fn, 1000);
 			for (int i = 0; i < cnt; i++) {
 				TMem mem;
 				mem.AddBf(&storage, i % 4);
@@ -101,7 +101,7 @@ public:
 			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
 		}
 		{
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate);
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, 1000);
 			EXPECT_EQ(storage.ValV.Len(), cnt);
 			auto blob_stats = storage.GetBlobStorage()->GetStats();
 			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
@@ -118,7 +118,7 @@ public:
 			EXPECT_EQ(storage.ValV.Len(), 2 * cnt);
 		}
 		{
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, 1000, true);
 			EXPECT_EQ(storage.ValV.Len(), 2 * cnt);
 		}
 	}
@@ -128,7 +128,7 @@ public:
 		TStr tmp;
 		int cnt = 20;
 		{
-			TQm::TStorage::TInMemStorage storage(Fn);
+			TQm::TStorage::TInMemStorage storage(Fn, 1000);
 			for (int i = 0; i < cnt; i++) {
 				TMem mem;
 				mem.AddBf(&storage, i % 4);
@@ -139,7 +139,7 @@ public:
 			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
 		}
 		{
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, 1000, true);
 			
 			int loaded_cnt = 0;
 			for (int i = 0; i < storage.ValV.Len(); i++) {
@@ -161,6 +161,47 @@ public:
 		}
 	}
 
+	static void TInMemStorage_LoadAll2() {
+		TStr Fn = "data\\in_mem_storage";
+		int cnt = 20;
+		int block = 5;
+		TStrV temp(cnt);
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, block);
+			for (int i = 0; i < cnt; i++) {
+				TMem mem;
+				mem.AddBf(&storage, i % 4);
+				temp.Add(mem.GetHexStr());
+				auto res1 = storage.AddVal(mem);
+			}
+			auto blob_stats = storage.GetBlobStorage()->GetStats();
+			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
+		}
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, block, true);
+
+			int loaded_cnt = 0;
+			for (int i = 0; i < storage.ValV.Len(); i++) {
+				if (storage.DirtyV[i] != 3) { // if loaded
+					loaded_cnt++;
+				}
+			}
+			EXPECT_EQ(loaded_cnt, 0);
+
+			storage.LoadAll();
+
+			loaded_cnt = 0;
+			for (int i = 0; i < storage.ValV.Len(); i++) {
+				if (storage.DirtyV[i] != 3) { // if loaded
+					loaded_cnt++;
+					printf("%s %sn", temp[i].CStr(), storage.ValV[i].GetHexStr().CStr());
+					EXPECT_EQ(temp[i], storage.ValV[i].GetHexStr());
+				}
+			}
+			EXPECT_EQ(loaded_cnt, storage.ValV.Len());
+		}
+	}
+
 
 	static void TInMemStorage_PerfTest() {
 		TStr Fn = "data\\in_mem_storage";
@@ -168,7 +209,7 @@ public:
 		int cnt = 300000;
 		{
 			// generate data
-			TQm::TStorage::TInMemStorage storage(Fn);
+			TQm::TStorage::TInMemStorage storage(Fn, 1000);
 			TVec<TMem, int64> ValV;
 			for (int i = 0; i < cnt; i++) {
 				TMem mem;
@@ -184,7 +225,7 @@ public:
 		}
 		{
 			TTmStopWatch sw1(true);
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, false);
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, 1000, false);
 			sw1.Stop();
 			printf("in-mem storage %d\n", sw1.GetMSecInt());
 
@@ -356,4 +397,5 @@ TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
 TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
 TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
 TEST(testTInMemStorage, LoadAll1) { XTest::TInMemStorage_LoadAll1(); }
+TEST(testTInMemStorage, LoadAll2) { XTest::TInMemStorage_LoadAll2(); }
 TEST(testTInMemStorage, PerfTest) { XTest::TInMemStorage_PerfTest(); }
