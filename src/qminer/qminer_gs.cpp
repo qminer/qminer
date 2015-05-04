@@ -428,6 +428,7 @@ TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const in
 	TInt cnt;
 	cnt.Load(FIn);
 	FirstValOffset.Load(FIn);
+	FirstValOffsetMem.Load(FIn);
 
 	// load data from blob storage
 	BlobStorage = TMBlobBs::New(BlobFNm, Access);
@@ -453,6 +454,7 @@ TInMemStorage::~TInMemStorage() {
 		// save rest
 		TInt(ValV.Len()).Save(FOut);
 		FirstValOffset.Save(FOut);
+		FirstValOffsetMem.Save(FOut);
 	}
 }
 
@@ -497,7 +499,7 @@ void TInMemStorage::SaveRec(int i) {
 				BlobPtV[ii] = BlobStorage->PutBlob(BlobPtV[ii], mem.GetSIn());
 			}
 		}
-		break; // new data => save it break; BlobPtV[i] = BlobStorage->PutBlob(BlobPtV[i], ValV[i].GetSIn()); break; // dirty data => save it
+		break;
 	case 1:
 	case 3: break;
 	}
@@ -508,11 +510,11 @@ void TInMemStorage::AssertReadOnly() const {
 }
 
 bool TInMemStorage::IsValId(const uint64& ValId) const {
-	return (ValId >= FirstValOffset.Val) && (ValId < FirstValOffset.Val + ValV.Len());
+	return (ValId >= FirstValOffset.Val) && (ValId < FirstValOffsetMem.Val + ValV.Len());
 }
 
 void TInMemStorage::GetVal(const uint64& ValId, TMem& Val) const {
-	uint64 i = ValId - FirstValOffset;
+	uint64 i = ValId - FirstValOffsetMem;
 	LoadRec(i);
 	Val = ValV[i];
 }
@@ -523,31 +525,42 @@ uint64 TInMemStorage::AddVal(const TMem& Val) {
 	if (ValV.Len() % BlockSize == 1) {
 		BlobPtV.Add();
 	}
-	return res + FirstValOffset;
+	return res + FirstValOffsetMem;
 }
 
 void TInMemStorage::SetVal(const uint64& ValId, const TMem& Val) {
 	AssertReadOnly();
-    ValV[ValId - FirstValOffset] = Val;
-	uchar& flag = DirtyV[ValId - FirstValOffset];
+    ValV[ValId - FirstValOffsetMem] = Val;
+	uchar& flag = DirtyV[ValId - FirstValOffsetMem];
 	if (flag == 0) { } // new remains new
 	else { flag = 2; } // set as dirty
 }
 
 void TInMemStorage::DelVals(int Vals) {
 	if (Vals > 0) {
-		ValV.Del(0, Vals - 1);		
-		DirtyV.Del(0, Vals - 1);
 		for (int i = 0; i < Vals; i++) {
-			BlobStorage->DelBlob(BlobPtV[i]);
+			ValV[i + FirstValOffset].Clr();
 		}
-		BlobPtV.Del(0, Vals - 1);
+		int blocks_to_delete = Vals / BlockSize;
+		int vals_to_delete = blocks_to_delete * BlockSize;
+
+		if (vals_to_delete > 0) {
+			ValV.Del(0, vals_to_delete - 1);
+			DirtyV.Del(0, vals_to_delete - 1);
+			for (int i = 0; i < blocks_to_delete; i++) {
+				if (!BlobPtV[i].Empty()) {
+					BlobStorage->DelBlob(BlobPtV[i]);
+				}
+			}
+			BlobPtV.Del(0, blocks_to_delete - 1);
+		}
 		FirstValOffset += Vals;
+		FirstValOffsetMem += vals_to_delete;
 	}
 }
 
 uint64 TInMemStorage::Len() const {
-	return ValV.Len();
+	return ValV.Len() - (FirstValOffset - FirstValOffsetMem);
 }
 
 uint64 TInMemStorage::GetFirstValId() const {
@@ -555,20 +568,20 @@ uint64 TInMemStorage::GetFirstValId() const {
 }
 
 uint64 TInMemStorage::GetLastValId() const {
-	return GetFirstValId() + ValV.Len() - 1;
+	return FirstValOffsetMem + ValV.Len() - 1;
 }
 
 void TInMemStorage::PartialFlush(int WndInMsec) {
-	TTmStopWatch sw(true);	
-	for (int i = 0; i< ValV.Len();i++){
-		if (sw.GetMSecInt() > WndInMsec) break;		
+	TTmStopWatch sw(true);
+	for (int i = 0; i< ValV.Len(); i++) {
+		if (sw.GetMSecInt() > WndInMsec) break;
 		SaveRec(i);
 	}
 }
 
 void TInMemStorage::LoadAll() {
 	for (int i = 0; i < ValV.Len(); i++) {
-		LoadRec(i); 
+		LoadRec(i);
 	}
 }
 
@@ -1902,7 +1915,7 @@ TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const uint& StoreId,
     const TStr& StoreName, const TStoreSchema& StoreSchema, const TStr& _StoreFNm, 
     const int64& _MxCacheSize): 
         TStore(Base, StoreId, StoreName), StoreFNm(_StoreFNm), FAccess(faCreate), 
-        DataCache(_StoreFNm + ".Cache", _MxCacheSize, 1024), DataMem(_StoreFNm + ".MemCache") {
+        DataCache(_StoreFNm + ".Cache", _MxCacheSize, 1024), DataMem(_StoreFNm + "MemCache") {
 
     InitFromSchema(StoreSchema);
     // initialize data storage flags
@@ -1914,7 +1927,7 @@ TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const TStr& _StoreFNm,
         TStore(Base, _StoreFNm + ".BaseStore"), 
         StoreFNm(_StoreFNm), FAccess(_FAccess), PrimaryFieldType(oftUndef),
         DataCache(_StoreFNm + ".Cache", _FAccess, _MxCacheSize), 
-        DataMem(_StoreFNm + ".MemCache", _FAccess)  {
+        DataMem(_StoreFNm + "MemCache", _FAccess)  {
 
     // load members
 	TFIn FIn(StoreFNm + ".GenericStore");

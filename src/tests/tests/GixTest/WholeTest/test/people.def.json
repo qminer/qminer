@@ -1,0 +1,7 @@
+﻿{
+    "name": "People",
+    "fields": [
+        { "name": "Name", "type": "string", "primary": true },
+        { "name": "Gender", "type": "string", "shortstring": true }
+    ]
+}

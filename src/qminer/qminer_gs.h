@@ -202,8 +202,10 @@ private:
 	TStr BlobFNm;
     /// Access type with which the storage is opened
 	TFAccess Access;
-    /// Offset of the first record
+    /// Logical offset of the first non-deleted record
 	TUInt64 FirstValOffset;
+	/// Logical offset of the first physical record
+	TUInt64 FirstValOffsetMem;
     /// Storage vector
     mutable TVec<TMem, int64> ValV;
 	/// Blob-pointers - locations where TMem objects are stored inside Blob storage
@@ -236,12 +238,12 @@ public:
 	void SetVal(const uint64& ValId, const TMem& Val);
 	void DelVals(int Vals);
 
-	uint64 Len() const;
-	uint64 GetFirstValId() const;
-	uint64 GetLastValId() const;
+	inline uint64 Len() const;
+	inline uint64 GetFirstValId() const;
+	inline uint64 GetLastValId() const;
 
 	void PartialFlush(int WndInMsec = 500);
-	void LoadAll();
+	inline void LoadAll();
 
 #ifdef XTEST
 private:

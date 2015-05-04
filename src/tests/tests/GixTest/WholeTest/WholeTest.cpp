@@ -140,7 +140,7 @@ public:
 		}
 		{
 			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, 1000, true);
-			
+
 			int loaded_cnt = 0;
 			for (int i = 0; i < storage.ValV.Len(); i++) {
 				if (storage.DirtyV[i] != 3) { // if loaded
@@ -148,7 +148,7 @@ public:
 				}
 			}
 			EXPECT_EQ(loaded_cnt, 0);
-			
+
 			storage.LoadAll();
 
 			loaded_cnt = 0;
@@ -190,14 +190,14 @@ public:
 			}
 			EXPECT_EQ(loaded_cnt, 0);
 
-			storage.LoadAll(); 
+			storage.LoadAll();
 
 			loaded_cnt = 0;
 			for (int i = 0; i < storage.ValV.Len(); i++) {
-				ASSERT_TRUE(storage.DirtyV[i] == 1);				
+				ASSERT_TRUE(storage.DirtyV[i] == 1);
 				loaded_cnt++;
 				//printf("****[%s] * [%s]\n", temp[i].CStr(), storage.ValV[i].GetHexStr().CStr());
-				EXPECT_EQ(temp[i], storage.ValV[i].GetHexStr());				
+				EXPECT_EQ(temp[i], storage.ValV[i].GetHexStr());
 			}
 			EXPECT_EQ(loaded_cnt, storage.ValV.Len());
 		}
@@ -207,7 +207,7 @@ public:
 	static void TInMemStorage_PerfTest() {
 		TStr Fn = "data\\in_mem_storage";
 		TStr Fn2 = "data\\in_mem_storage2";
-		int cnt = 1000*1000;
+		int cnt = 1000 * 1000;
 		int BlockSize = 1000;
 		{
 			// generate data
@@ -267,7 +267,6 @@ TEST(testTBlobBs, Simple7) {
 	EXPECT_EQ(stats.AllocUsedSize, 7);
 	EXPECT_EQ(stats.ReleasedCount, 0);
 	EXPECT_EQ(stats.ReleasedSize, 0);
-
 }
 
 TEST(testTBlobBs, Medium12) {
@@ -282,7 +281,6 @@ TEST(testTBlobBs, Medium12) {
 	EXPECT_EQ(stats.AllocUsedSize, 20);
 	EXPECT_EQ(stats.ReleasedCount, 0);
 	EXPECT_EQ(stats.ReleasedSize, 0);
-
 }
 
 TEST(testTBlobBs, Simple7Del) {
@@ -297,7 +295,6 @@ TEST(testTBlobBs, Simple7Del) {
 	EXPECT_EQ(stats.AllocUsedSize, 0);
 	EXPECT_EQ(stats.ReleasedCount, 1);
 	EXPECT_EQ(stats.ReleasedSize, 8);
-
 }
 
 TEST(testTBlobBs, Medium12Del) {
@@ -351,7 +348,7 @@ TEST(testTBlobBs, Medium12DelPut2) {
 }
 
 
-TEST(testTBase, myTBaseTest) {
+TEST(testTBase, MoviesTest1) {
 	TQm::TEnv::Init();
 
 	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
@@ -393,6 +390,107 @@ TEST(testTBase, myTBaseTest) {
 	printf("Records: %d\n", res->GetRecs());
 }
 
+
+TPt<TQm::TBase> CreatePeopleBase(bool big_file = false) {
+	TQm::TEnv::Init();
+
+	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
+	TStr def_dir = "test";
+
+	TStr def_file = def_dir + "\\people.def.json";
+	TStr data_file = def_dir + (big_file ? "\\people_huge.json" : "\\people_small.json");
+	TStr data_dir = "data\\";
+
+	// init unicode
+	TUnicodeDef::Load(unicode_file);
+
+	// delete existing files
+	if (TDir::Exists(data_dir)) {
+		TStrV FNmV;
+		TStrV FExtV;
+		TFFile::GetFNmV(data_dir, FExtV, true, FNmV);
+		bool DirEmpty = FNmV.Len() == 0;
+
+		// delete all files
+		for (int FileN = 0; FileN < FNmV.Len(); FileN++) {
+			TFile::Del(FNmV[FileN], true);
+		}
+	}
+
+	// create new base from definition
+	PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+	TPt<TQm::TBase> Base = TQm::TStorage::NewBase(data_dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+
+	// load movies data
+	{
+		{
+			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
+			{
+				PSIn fin = TFIn::New(data_file);
+				TStr s;
+				while (fin->GetNextLn(s)) {
+					PJsonVal json = TJsonVal::GetValFromStr(s);
+					store->AddRec(json);
+				}
+			}
+		}
+	}
+	return Base;
+}
+
+TPt<TQm::TBase> OpenPeopleBase() {
+	TQm::TEnv::Init();
+
+	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
+	TStr def_dir = "test";
+	TStr data_dir = "data\\";
+
+	// init unicode
+	TUnicodeDef::Load(unicode_file);
+	TPt<TQm::TBase> Base = TQm::TStorage::LoadBase(data_dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), false, 4 * TInt::Kilo);
+	return Base;
+}
+
+TEST(testTBase, ClearStoreTest1) {
+	auto Base = CreatePeopleBase();
+	auto store = Base->GetStoreByStoreNm("People");
+	store->DeleteFirstNRecs(store->GetRecs());
+	EXPECT_EQ(store->GetRecs(), 0);
+}
+TEST(testTBase, ClearStoreTest2) {
+	auto Base = CreatePeopleBase();
+	auto store = Base->GetStoreByStoreNm("People");
+	store->DeleteFirstNRecs(1);
+	EXPECT_EQ(store->GetRecs(), 1);
+}
+TEST(testTBase, ClearStoreTestBig1) {
+	auto Base = CreatePeopleBase(true);
+	auto store = Base->GetStoreByStoreNm("People");
+	store->DeleteFirstNRecs(store->GetRecs());
+	EXPECT_EQ(store->GetRecs(), 0);
+}
+TEST(testTBase, ClearStoreTestBig2) {
+	auto Base = CreatePeopleBase(true);
+	auto store = Base->GetStoreByStoreNm("People");
+	store->DeleteFirstNRecs(store->GetRecs() - 1);
+	EXPECT_EQ(store->GetRecs(), 1);
+}
+TEST(testTBase, ClearStoreTestBigComplex) {
+	int recs = -1;
+	{
+		auto Base = CreatePeopleBase(true);
+		auto store = Base->GetStoreByStoreNm("People");
+		recs = store->GetRecs();
+		TQm::TStorage::SaveBase(Base);
+	}
+	{
+		auto Base = OpenPeopleBase();
+		auto store = Base->GetStoreByStoreNm("People");
+		EXPECT_EQ(store->GetRecs(), recs);
+		store->DeleteFirstNRecs(store->GetRecs() - 1);
+		EXPECT_EQ(store->GetRecs(), 1);
+	}
+}
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
