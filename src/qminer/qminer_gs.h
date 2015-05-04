@@ -230,6 +230,7 @@ private:
 			TMem mem;
 			TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[i]), mem);
 			ValV[i] = mem;
+			//TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[i]), ValV[i]);
 			DirtyV[i] = 2;
 		}
 	}

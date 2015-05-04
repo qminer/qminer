@@ -165,7 +165,7 @@ public:
 	static void TInMemStorage_PerfTest() {
 		TStr Fn = "data\\in_mem_storage";
 		TStr Fn2 = "data\\in_mem_storage2";
-		int cnt = 300000;
+		int cnt = 1000*1000;
 		{
 			// generate data
 			TQm::TStorage::TInMemStorage storage(Fn);
