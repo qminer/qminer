@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #ifndef QMINER_FS_NODEJS_H
 #define QMINER_FS_NODEJS_H
 
@@ -61,7 +68,7 @@ public:
 	* @param {string} fileName - File name.
 	* @returns {module:fs.FIn} Input stream.
 	*/
-	//# exports.openRead = function(fileName) {}
+	//# exports.openRead = function(fileName) { return Object.create(require('qminer').fs.FIn.prototype); }
     JsDeclareFunction(openRead);
     
 	/**
@@ -69,7 +76,7 @@ public:
 	* @param {string} fileName - File name.
 	* @returns {module:fs.FOut} Output stream.
 	*/
-	//# exports.openWrite = function(fileName) {}
+	//# exports.openWrite = function(fileName) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(openWrite);
 	
 	/**
@@ -77,7 +84,7 @@ public:
 	* @param {string} fileName - File name.
 	* @returns {module:fs.FOut} Output stream.
 	*/
-	//# exports.openAppend = function(fileName) {}	
+	//# exports.openAppend = function(fileName) { return Object.create(require('qminer').fs.FOut.prototype); }	
 	JsDeclareFunction(openAppend);
 	
 	/**
@@ -85,7 +92,7 @@ public:
 	* @param {string} fileName - File name.
 	* @returns {boolean} True if file exists.
 	*/
-	//# exports.exists = function(fileName) {}	
+	//# exports.exists = function(fileName) { return false; }	
     JsDeclareFunction(exists);
 	
 	/**
@@ -109,7 +116,7 @@ public:
 	* @param {string} fileName - File name.
 	* @returns {boolean} True if delete succeeded.
 	*/
-	//# exports.del = function(fileName) {}	
+	//# exports.del = function(fileName) { return false; }	
     JsDeclareFunction(del);
 	
 	/**
@@ -134,7 +141,7 @@ public:
 	* @param {string} fileName - File name.
 	* @returns {module:fs~FileInfo} File info object.
 	*/
-	//# exports.fileInfo = function(fileName) {}	
+	//# exports.fileInfo = function(fileName) { return { createTime : "",  lastAccessTime: "", lastWriteTime: "", size: 0 }}	
     JsDeclareFunction(fileInfo);
 	
 	/**
@@ -142,7 +149,7 @@ public:
 	* @param {string} dirName - Folder name.
 	* @returns {boolean} True if succeeded.
 	*/
-	//# exports.mkdir = function(dirName) {}	
+	//# exports.mkdir = function(dirName) { return false; }	
     JsDeclareFunction(mkdir);
 	
 	/**
@@ -150,7 +157,7 @@ public:
 	* @param {string} dirName - Folder name.
 	* @returns {boolean} True if succeeded.
 	*/
-	//# exports.rmdir = function(dirName) {}
+	//# exports.rmdir = function(dirName) { return false; }
     JsDeclareFunction(rmdir);
 	
 	/**
@@ -158,9 +165,9 @@ public:
 	* @param {string} dirName - Folder name.
 	* @param {string} [fileExtension] - Results are filtered by file extension.
 	* @param {boolean} [recursive=false] - Recursively searches for file names if true.
-	* @returns {string[]} True if succeeded.
+	* @returns {string[]} Array of file names.
 	*/
-	//# exports.listFile = function(dirName, fileExtension, recursive) {}
+	//# exports.listFile = function(dirName, fileExtension, recursive) { return ['']; }
     JsDeclareFunction(listFile);
 };
 
@@ -212,40 +219,40 @@ public:
 	* Peeks a character
 	* @returns {string} Character string.
 	*/
-	//# exports.FIn.prototype.peekCh= function() {}
+	//# exports.FIn.prototype.peekCh= function() { return ''; }
 	JsDeclareFunction(peekCh);	
 	
 	/**
 	* Reads a character
 	* @returns {string} Character string.
 	*/
-	//# exports.FIn.prototype.getCh= function() {}
+	//# exports.FIn.prototype.getCh= function() { return ''; }
 	JsDeclareFunction(getCh);
 	
 	/**
 	* Reads a line	
 	* @returns {string} Line string.
 	*/
-	//# exports.FIn.prototype.readLine = function() {}
+	//# exports.FIn.prototype.readLine = function() { return ''; }
 	JsDeclareFunction(readLine);
 	
 	/**
 	* @property {boolean} eof - True if end of file is detected.
 	*/
-	//# exports.FIn.prototype.eof = undefined;
+	//# exports.FIn.prototype.eof = false;
 	JsDeclareProperty(eof);
 
 	/**
 	* @property {number} length - Length of input stream.
 	*/
-	//# exports.FIn.prototype.length = undefined;
+	//# exports.FIn.prototype.length = 0;
 	JsDeclareProperty(length);
 
 	/**
 	* Reads the whole stream
 	* @returns {string} Content of the file.
 	*/
-	//# exports.FIn.prototype.readAll = function() {}
+	//# exports.FIn.prototype.readAll = function() { return ''; }
 	JsDeclareFunction(readAll);
 };
 
@@ -289,7 +296,7 @@ public:
 	* @param {String} str - String to write
 	* @returns {module:fs.FOut} Self.
 	*/
-	//# exports.FOut.prototype.write = function(str) {}
+	//# exports.FOut.prototype.write = function(str) { return this; }
 	JsDeclareFunction(write);
 
 	/**
@@ -297,14 +304,14 @@ public:
 	* @param {String} str - String to write
 	* @returns {module:fs.FOut} Self.
 	*/
-	//# exports.FOut.prototype.writeLine = function(str) {}
+	//# exports.FOut.prototype.writeLine = function(str) { return this; }
     JsDeclareFunction(writeLine);
 
 	/**
 	* Flushes the output stream
 	* @returns {module:fs.FOut} Self.
 	*/
-	//# exports.FOut.prototype.flush = function() {}
+	//# exports.FOut.prototype.flush = function() { return this; }
     JsDeclareFunction(flush);
 
 	/**

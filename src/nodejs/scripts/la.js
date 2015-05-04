@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 // typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
 module.exports = exports = function (pathPrefix) {
     pathPrefix = pathPrefix || '';
@@ -18,7 +25,6 @@ module.exports = exports = function (pathPrefix) {
     }
 
 
-    //!- `str = SparseMatrix.toString()` -- returns a string displaying rows, columns and number of non-zero elements of a sparse column matrix `spMat`
     /**
     * Returns a string displaying rows, columns and number of non-zero elements of sparse matrix.
     * @returns {string} String displaying row, columns and number of non-zero elements.
@@ -29,7 +35,6 @@ module.exports = exports = function (pathPrefix) {
     * var text = mat.toString(); // returns 'rows: -1, cols: 2, nnz: 3'
     */
     exports.SparseMatrix.prototype.toString = function () { return "rows: " + this.rows + ", cols:" + this.cols + ", nnz: " + this.nnz(); }
-    //!- `num = SparseMatrix.nnz()` -- `num` is the number of non-zero elements of sparse column matrix `spMat`
     /**
     * Returns the number of non-zero elements of sparse matrix.
     * @returns {number} Number of non-zero elements.
@@ -43,7 +48,6 @@ module.exports = exports = function (pathPrefix) {
         return nnz;
     };
 
-    //!- `SparseVector.print()` -- prints sparse vector
     /**
 	* Prints the sparse vector on-screen.
 	* @example
@@ -54,7 +58,6 @@ module.exports = exports = function (pathPrefix) {
 	*/
     exports.SparseVector.prototype.print = function () { console.log(this.toString()); }
 
-    //!- `Matrix.print()` -- prints matrix
     /**
 	* Prints the matrix on-screen. 
 	* @example
@@ -68,8 +71,13 @@ module.exports = exports = function (pathPrefix) {
 	*/
     exports.Matrix.prototype.print = function () { console.log(this.toString()); }
 
-    //!- `Vector.print()` -- prints vector
-    /**
+	/**
+	* Returns a copy of the matrix. 
+	* @returns {module:la.Matrix} Copy
+	*/
+	exports.Matrix.prototype.toMat = function () { return new exports.Matrix(this); }
+    
+	/**
     * Prints the vector on-screen.
     * @example
     * // create a new vector
@@ -81,8 +89,6 @@ module.exports = exports = function (pathPrefix) {
     */
 	exports.Vector.prototype.print = function () { console.log(this.toString()); }
 	
-    
-    //!- `arr = la.copyVecToArray(vec)` -- copies vector `vec` into a JS array of numbers `arr`
     /**
     * Copies the vector into a JavaScript array of numbers.
     * @param {module:la.Vector} vec - Copied vector.
@@ -107,12 +113,8 @@ module.exports = exports = function (pathPrefix) {
                parseInt(Number(value)) == value &&
                !isNaN(parseInt(value, 10));
     }
-
     
     ///////// RANDOM GENERATORS
-    //!- `num = la.randn()` -- `num` is a sample from a standard normal random variable
-    //!- `vec = la.randn(dim)` -- `vec` is a dense vector whose elements are independent samples from a standard normal random variable and whos dimension is `dim`
-    //!- `mat = la.randn(rows, cols)` -- `mat` is a dense matrix whose elements are independent samples from a standard normal random variable, with `rows` rows and `cols` columns (integers)
 
     /**
     * Returns an object with random numbers
@@ -123,7 +125,7 @@ module.exports = exports = function (pathPrefix) {
     * <br>2. {@link module:la.Vector}, if parameter arg1 is given.
     * <br>3. {@link module:la.Matrix}, if parameters arg1 and arg2 are given.
     */
-    exports.randn = function () {
+    exports.randn = function (arg1, arg2) {
         //arguments.length
         var len = arguments.length;
         if (len === 0) {
@@ -141,9 +143,9 @@ module.exports = exports = function (pathPrefix) {
             var vec = new exports.Vector({ "vals": dim });
             for (var elN = 0; elN < dim; elN++) {
                 vec.put(elN, exports.randn());
-            }
-            return vec;
-        } else if (len == 2) {
+            }            
+            return vec;       
+        } else if (len === 2) {
             var rows = arguments[0];
             var cols = arguments[1];
             assert(isInt(rows));
@@ -158,7 +160,6 @@ module.exports = exports = function (pathPrefix) {
         }
     };
 
-    //!- `num2 = la.randi(num)` -- returns an integer `num2` which is randomly selected from the set of integers `[0, ..., num-1]`
     /**
     * Returns a randomly selected integer from an array..
     * @param {number} num - The upper bound of the array. Must be an integer.
@@ -175,7 +176,6 @@ module.exports = exports = function (pathPrefix) {
         }
     };
 
-    //!- `intArr = la.randVariation(n, k)` -- returns a JS array `arr`, which is a sample of `k` numbers from `[0,...,n-1]`, sampled without replacement. `k` must be smaller or equal to `n`
     /**
     * Returns a JavaScript array, which is a sample of integers from an array.
     * @param {number} n - The upper bound of the array [0, ..., n-1]. Must be an integer.
@@ -282,6 +282,88 @@ exports.ones = function(k) {
     }
     return ones_k;
 };
+        
+    /**
+    * Constructs a matrix by concatenating a doubly-nested array of matrices.
+    * @param {Array<Array<module:la.Matrix>> } matrixDoubleArr - An array of block rows, where each block row is an array of matrices.
+    * For example: [[m11, m12], [m21, m22]] is used to construct a matrix where the (i,j)-th block submatrix is mij. 
+    * @returns {module:la.Matrix} Concatenated matrix
+    * @example
+    * // create four matrices and concatenate (2 block columns, 2 block rows)
+    * var la = require('qminer').la;
+    * var A = new la.Matrix([[1,2], [3,4]]);
+    * var B = new la.Matrix([[5,6], [7,8]]);
+    * var C = new la.Matrix([[9,10], [11,12]]);
+    * var D = new la.Matrix([[13,14], [15,16]]);
+    * var mat = la.cat([[A,B], [C,D]]);
+    * // returns the matrix:
+    * // 1  2  5  6
+    * // 3  4  7  8
+    * // 9  10 13 14
+    * // 11 12 15 16
+    */
+    //# exports.cat = function(matrixDoubleArr) {}	
+exports.cat = function (nestedArrMat) {
+    var dimx = []; //cell row dimensions
+    var dimy = []; //cell col dimensions
+    var cdimx = []; //cumulative row dims
+    var cdimy = []; //cumulative coldims
+    var rows = nestedArrMat.length;
+    var cols = nestedArrMat[0].length;
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+            if (col > 0) {
+                assert(dimx[row] == nestedArrMat[row][col].rows, 'inconsistent row dimensions!');
+            } else {
+                dimx[row] = nestedArrMat[row][col].rows;
+            }
+            if (row > 0) {
+                assert(dimy[col] == nestedArrMat[row][col].cols, 'inconsistent column dimensions!');
+            } else {
+                dimy[col] = nestedArrMat[row][col].cols;
+            }            
+        }
+    }
+    cdimx[0] = 0;
+    cdimy[0] = 0;
+    for (var row = 1; row < rows; row++) {
+        cdimx[row] = cdimx[row - 1] + dimx[row - 1];
+    }
+    for (var col = 1; col < cols; col++) {
+        cdimy[col] = cdimy[col - 1] + dimy[col - 1];
+    }
+
+    var res = new exports.Matrix({ rows: (cdimx[rows - 1] + dimx[rows - 1]), cols: (cdimy[cols - 1] + dimy[cols - 1]) });
+    // copy submatrices
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+            res.put(cdimx[row], cdimy[col], nestedArrMat[row][col]);
+        }
+    }
+    return res;
+}
+	//////// METHODS
+
+exports.square = function(x) {
+    if (typeof x.length == "undefined") {
+        return x * x;
+    }
+    var res = new exports.Vector(x);
+    for (var i = 0; i < x.length; i++) {
+        res[i] = x[i] * x[i];
+    }
+    return res;
+};
+
+//#- `mat3 = la.pdist2(mat, mat2)` -- computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2
+exports.pdist2 = function (mat, mat2) {
+    var snorm1 = exports.square(mat.colNorms());
+    var snorm2 = exports.square(mat2.colNorms());
+    var ones_1 = exports.ones(mat.cols);
+    var ones_2 = exports.ones(mat2.cols);
+    var D = (mat.multiplyT(mat2).multiply(-2)).plus(snorm1.outer(ones_2)).plus(ones_1.outer(snorm2));
+    return D;
+}
 
     ///////// ALGORITHMS
 

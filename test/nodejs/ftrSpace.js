@@ -1,14 +1,32 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+ 
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
-var qm = require('../../');
+var qm = require('qminer');
 var fs = qm.fs;
 
-qm.delLock();
-qm.config('qm.conf', true, 8080, 1024);
-var backward = require('../../src/nodejs/scripts/backward.js');
-backward.addToProcess(process); // adds process.isArg function
+describe('Feature Space Tests, old', function () {
+    var base = undefined;
+    beforeEach(function () {
+        qm.delLock();
+		qm.config('qm.conf', true, 8080, 1024);
+		var backward = require('../../src/nodejs/scripts/backward.js');
+		backward.addToProcess(process); // adds process.isArg function
+		base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
 
-var base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+	it('should survive', function () {
+
 
 console.log("FtrSpace", "Testing feature space serialization/deserilization/by value");
 
@@ -22,7 +40,7 @@ assert.consoleTitle = "FtrSpace";
 for (var i = 1000; i < 100; i++) {
     //var diff = qm.sysStat.size; TODO
     base.createStore({
-        "name": "FtrSpaceTest" + i, 
+        "name": "FtrSpaceTestOld" + i, 
         "fields": [ 
           { "name": "Value", "type": "float" },
           { "name": "Category", "type": "string" },
@@ -38,7 +56,7 @@ for (var i = 1000; i < 100; i++) {
 
 // prepare test set
 base.createStore({
-    "name": "FtrSpaceTest", 
+    "name": "FtrSpaceTestOld", 
     "fields": [ 
       { "name": "Value", "type": "float" },
       { "name": "Category", "type": "string" },
@@ -49,7 +67,7 @@ base.createStore({
     "joins": [ ],
     "keys": [ ]
   });
-var Store = base.store("FtrSpaceTest");
+var Store = base.store("FtrSpaceTestOld");
 Store.add({Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Barclays dropped a bombshell on its investment bankers last week." });
 Store.add({Value: 1.1, Category: "b", Categories: ["b", "w"], Date: "2014-10-11T00:11:22", Text: "Amid a general retreat by banks from bond trading and other volatile business lines, Barclays was particularly aggressive." });
 Store.add({Value: 1.2, Category: "c", Categories: ["c", "e"], Date: "2014-10-12T00:11:22", Text: "In what CEO Antony Jenkins dubbed a “bold simplification,” Barclays will cut 7,000 jobs in its investment bank by 2016 and will trim the unit to 30% of the group’s risk-weighted assets." });
@@ -84,17 +102,17 @@ function compareFtrSpace(ftrSpace1, ftrSpace2) {
 console.log("Prepare feature space");
 
 var ftrSpace1 = new qm.FeatureSpace(base, [
-    //{ type: "random", source: "FtrSpaceTest", seed: 1 },
-    { type: "numeric", source: "FtrSpaceTest", field: "Value" },
-    { type: "dateWindow", source: "FtrSpaceTest", field: "Date", window: 3, unit: "12hours", normalize: true },
-    { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
-    { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 2 },
-    { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
-    { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 },
-    { type: "text", source: "FtrSpaceTest", field: "Text", hashDimension: 4, ngrams:[1,4] },
-    { type: "pair", source: "FtrSpaceTest",
-        first: { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
-        second: { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] }
+    //{ type: "random", source: "FtrSpaceTestOld", seed: 1 },
+    { type: "numeric", source: "FtrSpaceTestOld", field: "Value" },
+    { type: "dateWindow", source: "FtrSpaceTestOld", field: "Date", window: 3, unit: "12hours", normalize: true },
+    { type: "categorical", source: "FtrSpaceTestOld", field: "Category", values: ["a", "b", "c"] },
+    { type: "categorical", source: "FtrSpaceTestOld", field: "Category", hashDimension: 2 },
+    { type: "multinomial", source: "FtrSpaceTestOld", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
+    { type: "multinomial", source: "FtrSpaceTestOld", field: "Categories", hashDimension: 4 },
+    { type: "text", source: "FtrSpaceTestOld", field: "Text", hashDimension: 4, ngrams:[1,4] },
+    { type: "pair", source: "FtrSpaceTestOld",
+        first: { type: "categorical", source: "FtrSpaceTestOld", field: "Category", values: ["a", "b", "c"] },
+        second: { type: "multinomial", source: "FtrSpaceTestOld", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] }
     }
 ]);
 ftrSpace1.updateRecords(Store.recs);
@@ -157,8 +175,8 @@ function printError(p, t) {
 var newText = "I like ngrams and tests";
 var testRec = Store.newRec({Value: 2.0, Category: "b", Categories: ["b", "w"], Text: newText });
 var ftrSpace1 = new qm.FeatureSpace(base, [
-    //{ type: "random", source: "FtrSpaceTest", seed: 1 },
-    { type: "text", source: "FtrSpaceTest", field: "Text", ngrams:[1,3], tokenizer:{type:'simple', stopwords: 'none'} },
+    //{ type: "random", source: "FtrSpaceTestOld", seed: 1 },
+    { type: "text", source: "FtrSpaceTestOld", field: "Text", ngrams:[1,3], tokenizer:{type:'simple', stopwords: 'none'} },
 ]);
 var trueAnswer = ['I', 'I LIKE', 'I LIKE NGRAMS', 'LIKE', 'LIKE NGRAMS', 'LIKE NGRAMS AND', 'NGRAMS', 'NGRAMS AND', 'NGRAMS AND TESTS', 'AND', 'AND TESTS', 'TESTS']; 
 ftrSpace1.updateRecords(Store.recs);
@@ -169,8 +187,8 @@ assert.ok(arraysIdentical(testAnswer, trueAnswer), "ngrams 1,3");
 printError(testAnswer, trueAnswer);
 
 var ftrSpace2 = new qm.FeatureSpace(base, [
-    //{ type: "random", source: "FtrSpaceTest", seed: 1 },
-    { type: "text", source: "FtrSpaceTest", field: "Text", tokenizer:{type:'simple', stopwords: 'none'} },
+    //{ type: "random", source: "FtrSpaceTestOld", seed: 1 },
+    { type: "text", source: "FtrSpaceTestOld", field: "Text", tokenizer:{type:'simple', stopwords: 'none'} },
 ]);
 trueAnswer = ['I', 'LIKE', 'NGRAMS', 'AND', 'TESTS'];
 ftrSpace2.updateRecords(Store.recs);
@@ -181,8 +199,8 @@ assert.ok(arraysIdentical(testAnswer, trueAnswer), "ngrams default (1)");
 printError(testAnswer, trueAnswer);
 
 var ftrSpace3 = new qm.FeatureSpace(base, [
-    //{ type: "random", source: "FtrSpaceTest", seed: 1 },
-    { type: "text", source: "FtrSpaceTest", field: "Text", tokenizer:{type:'simple', stopwords: 'none'}, ngrams:[2,4]},
+    //{ type: "random", source: "FtrSpaceTestOld", seed: 1 },
+    { type: "text", source: "FtrSpaceTestOld", field: "Text", tokenizer:{type:'simple', stopwords: 'none'}, ngrams:[2,4]},
 ]);
 trueAnswer = ['I LIKE', 'I LIKE NGRAMS', 'I LIKE NGRAMS AND', 'LIKE NGRAMS', 'LIKE NGRAMS AND', 'LIKE NGRAMS AND TESTS', 'NGRAMS AND', 'NGRAMS AND TESTS', 'AND TESTS'];
 ftrSpace3.updateRecords(Store.recs);
@@ -193,8 +211,8 @@ assert.ok(arraysIdentical(testAnswer, trueAnswer), "ngrams 2, 4");
 printError(testAnswer, trueAnswer);
 
 var ftrSpace4 = new qm.FeatureSpace(base, [
-    //{ type: "random", source: "FtrSpaceTest", seed: 1 },
-    { type: "text", source: "FtrSpaceTest", field: "Text", tokenizer:{type:'simple', stopwords: 'none'}, ngrams:[2,4], hashDimension: 320},
+    //{ type: "random", source: "FtrSpaceTestOld", seed: 1 },
+    { type: "text", source: "FtrSpaceTestOld", field: "Text", tokenizer:{type:'simple', stopwords: 'none'}, ngrams:[2,4], hashDimension: 320},
 ]);
 trueAnswer = [ 239, 183, 57, 274, 266, 153, 257, 200, 8 ];
 trueAnswer = trueAnswer.map(function(n) { return n.toString(); });
@@ -206,8 +224,8 @@ assert.ok(arraysIdentical(testAnswer, trueAnswer), "ngrams 2, 4 with hashing");
 printError(testAnswer, trueAnswer);
 
 var ftrSpace5 = new qm.FeatureSpace(base, [
-    //{ type: "random", source: "FtrSpaceTest", seed: 1 },
-    { type: "text", source: "FtrSpaceTest", field: "Text", tokenizer:{type:'simple', stopwords: 'none'},
+    //{ type: "random", source: "FtrSpaceTestOld", seed: 1 },
+    { type: "text", source: "FtrSpaceTestOld", field: "Text", tokenizer:{type:'simple', stopwords: 'none'},
      ngrams:[2,4], hashDimension: 320, hashTable: true},
 ]);
 trueAnswer = ["OTHER VOLATILE", "UNIT TO", "DEPTHS OF", "WHEN BARBIE SETTLED", "I LIKE"];
@@ -218,4 +236,8 @@ testAnswer = ftrSpace5.getFtr(239).split(",");
 assert.ok(arraysIdentical(testAnswer, trueAnswer), "hashing with tables");
 printError(testAnswer, trueAnswer);
 
-base.close();
+console.log('DONE!');
+
+
+})
+});

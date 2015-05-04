@@ -1,20 +1,9 @@
 /**
- * QMiner - Open Source Analytics Platform
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #ifndef QMINER_GS_H
@@ -223,31 +212,18 @@ private:
 	mutable TVec<uchar, int64> DirtyV;
     /// Blob storage
 	PBlobBs BlobStorage;
+	/// How many records are packed together into block;
+	const int BlockSize;
 
 	/// Utility method for loading specific record
-	void LoadRec(int i) const {
-		if (DirtyV[i] == 3) {
-			TMem mem;
-			TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[i]), mem);
-			ValV[i] = mem;
-			//TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[i]), ValV[i]);
-			DirtyV[i] = 2;
-		}
-	}
+	inline void LoadRec(int i) const;
 
 	/// Utility method for storing specific record
-	void SaveRec(int i) {
-		switch (DirtyV[i]) {
-		case 0: BlobPtV[i] = BlobStorage->PutBlob(ValV[i].GetSIn()); break; // new data => save it
-		case 1: break;
-		case 2: BlobPtV[i] = BlobStorage->PutBlob(BlobPtV[i], ValV[i].GetSIn()); break; // dirty data => save it
-		case 3: break;
-		}
-	}
+	void SaveRec(int i);
 
 public:
-	TInMemStorage(const TStr& _FNm);
-	TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bool& _Lazy = false);
+	TInMemStorage(const TStr& _FNm, const int& _BlockSize = 1000);
+	TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const int& _BlockSize = 1000, const bool& _Lazy = false);
 	~TInMemStorage();
 
 	// asserts if we are allowed to change stuff

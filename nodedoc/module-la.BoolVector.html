@@ -1,0 +1,802 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta charset="utf-8">
+  <title>Class: BoolVector</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">BoolVector</span></h1>
+            <p class="source-link">Source: <a href="ladoc.js.html#source-line-1851">ladoc.<wbr>js:1851</a></p>
+            <div class="symbol-classdesc">
+              <p>Wraps a C++ array.</p>
+            </div>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Property</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-la.BoolVector.html#length">length</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-la.BoolVector.html#at">at(index)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.BoolVector.html#load">load(fin)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.BoolVector.html#loadascii">loadascii(fin)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.BoolVector.html#push">push(val)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.BoolVector.html#pushV">pushV(vec)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-la.BoolVector.html#put">put(idx, val)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.BoolVector.html#save">save(fout)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.BoolVector.html#saveascii">saveascii(fout)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.BoolVector.html#shuffle">shuffle()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.BoolVector.html#splice">splice(start, deleteCount[, .<wbr>.<wbr>.<wbr>itemN])</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-la.BoolVector.html#subVec">subVec(arg)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.BoolVector.html#toString">toString()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.BoolVector.html#trunc">trunc(idx)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.BoolVector.html#unshift">unshift(.<wbr>.<wbr>.<wbr>args)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2 id="BoolVector">new&nbsp;<span class="symbol-name">BoolVector</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
+            <p>Vector - array of boolean</p>
+            <section>
+              <h3>
+            Example
+        </h3>
+              <div>
+                <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+// create a new empty vector
+var vec = new la.BoolVector();
+// create a new vector
+var vec2 = new la.BoolVector([true, true, false]);</code></pre>
+              </div>
+            </section>
+            <section>
+              <h3>Parameter</h3>
+              <table class="jsdoc-details-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p>arg</p>
+                    </td>
+                    <td>
+                      <p>(Array of boolean or <a href="module-la.BoolVector.html">module:la.BoolVector</a>)</p>
+                    </td>
+                    <td>
+                      <p>Yes</p>
+                    </td>
+                    <td>
+                      <p>Constructor arguments. There are two ways of constructing:
+                        <br>1. An array of vector elements. Example: [true, true, false] is a vector of length 3.
+                        <br>2. A vector (copy constructor).</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+            <dl class="dl-compact">
+            </dl>
+          </section>
+          <section>
+            <h2>Property</h2>
+            <section>
+              <h3 id="length"><span class="symbol-name">length</span></h3>
+              <p>Gives the length of vector.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;Length of vector.</p>
+                </dd>
+              </dl>
+            </section>
+            <h2>Methods</h2>
+            <section>
+              <h3 id="at"><span class="symbol-name">at</span><span class="signature"><span class="signature-params">(index)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
+              <p>Returns element at index.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>index</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Element index (zero-based).</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>boolean</code>&nbsp;Vector element.</p>
+                </dd>
+              </dl>
+              <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(fin)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.BoolVector.html">module:la.BoolVector</a></span></span></h3>
+              <p>Loads the vector from input stream (binary deserialization).</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+var la = require(&#x27;qminer&#x27;).la;
+// create an empty vector
+var vec = new la.BoolVector();
+// open a read stream
+var fin = fs.openRead(&#x27;vec.dat&#x27;);
+// load the vector
+vec.load(fin);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fin</p>
+                      </td>
+                      <td>
+                        <p><a href="module-fs.FIn.html">module:fs.FIn</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Input stream.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.BoolVector.html">module:la.BoolVector</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="loadascii"><span class="symbol-name">loadascii</span><span class="signature"><span class="signature-params">(fin)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.BoolVector.html">module:la.BoolVector</a></span></span></h3>
+              <p>Loads the vector from input stream (ascii deserialization).</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+var la = require(&#x27;qminer&#x27;).la;
+// create an empty vector
+var vec = new la.BoolVector();
+// open a read stream
+var fin = fs.openRead(&#x27;vec.dat&#x27;);
+// load the matrix
+vec.loadascii(fin);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fin</p>
+                      </td>
+                      <td>
+                        <p><a href="module-fs.FIn.html">module:fs.FIn</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Input stream.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.BoolVector.html">module:la.BoolVector</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="push"><span class="symbol-name">push</span><span class="signature"><span class="signature-params">(val)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Adds an element to the end of the vector.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>val</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The element added to the vector.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;The new length property of the object upon which the method was called.</p>
+                </dd>
+              </dl>
+              <h3 id="pushV"><span class="symbol-name">pushV</span><span class="signature"><span class="signature-params">(vec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Appends a second vector to the first one.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>vec</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.BoolVector.html">module:la.BoolVector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The appended vector.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;The new length property of the vectors.</p>
+                </dd>
+              </dl>
+              <h3 id="put"><span class="symbol-name">put</span><span class="signature"><span class="signature-params">(idx, val)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.BoolVector.html">module:la.BoolVector</a></span></span></h3>
+              <p>Sets an element in vector.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>idx</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Index (zero based).</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>val</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Element value.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.BoolVector.html">module:la.BoolVector</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Saves the vector as output stream (binary serialization).</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+var la = require(&#x27;qminer&#x27;).la;
+// create a new vector
+var vec = new la.BoolVector([true, true, false]);
+// open write stream
+var fout = fs.openWrite(&#x27;vec.dat&#x27;);
+// save vector and close write stream
+vec.save(fout).close();</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fout</p>
+                      </td>
+                      <td>
+                        <p><a href="module-fs.FOut.html">module:fs.FOut</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Output stream.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;fout.</p>
+                </dd>
+              </dl>
+              <h3 id="saveascii"><span class="symbol-name">saveascii</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Saves the vector as output stream (ascii serialization).</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+var la = require(&#x27;qminer&#x27;).la;
+// create a new vector
+var vec = new la.BoolVector([true, true, false]);
+// open write stream
+var fout = fs.openWrite(&#x27;vec.dat&#x27;);
+// save matrix and close write stream
+vec.saveascii(fout).close();</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fout</p>
+                      </td>
+                      <td>
+                        <p><a href="module-fs.FOut.html">module:fs.FOut</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Output stream.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;fout.</p>
+                </dd>
+              </dl>
+              <h3 id="shuffle"><span class="symbol-name">shuffle</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.BoolVector.html">module:la.BoolVector</a></span></span></h3>
+              <p>Randomly reorders the elements of the vector (inplace).</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.BoolVector.html">module:la.BoolVector</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="splice"><span class="symbol-name">splice</span><span class="signature"><span class="signature-params">(start, deleteCount[, ...itemN])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.BoolVector.html">module:la.BoolVector</a></span></span></h3>
+              <p>Changes the vector by removing and adding elements.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+// create a new vector
+var vec = new la.BoolVector([true, true, false]);
+// splice the vector by removing the last two elements and adding false, true
+vec.splice(1, 2, false, true)// returns vector [true, false, true]</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>start</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Index at which to start changing the array.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>deleteCount</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Number of elements to be removed.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>itemN</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The element(s) to be add to the array. If no elements are given, splice() will only remove elements from the array.</p>
+                        <p>Value can be repeated.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.BoolVector.html">module:la.BoolVector</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="subVec"><span class="symbol-name">subVec</span><span class="signature"><span class="signature-params">(arg)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.BoolVector.html">module:la.BoolVector</a></span></span></h3>
+              <p>Returns a subvector.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>arg</p>
+                      </td>
+                      <td>
+                        <p>(Array of number or <a href="module-la.IntVector.html">module:la.IntVector</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Index array or vector. Indices can repeat (zero based).</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.BoolVector.html">module:la.BoolVector</a></code>&nbsp;Subvector, where the i-th element is the arg[i]-th element of the instance.</p>
+                </dd>
+              </dl>
+              <h3 id="toString"><span class="symbol-name">toString</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
+              <p>Returns the vector as string.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+// create a new vector
+var vec = new la.BoolVector([true, true, false]);
+// create vector as string
+vec.toString(); // returns &#x27;true, true, false&#x27;</code></pre>
+                </div>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>string</code>&nbsp;String representation.</p>
+                </dd>
+              </dl>
+              <h3 id="trunc"><span class="symbol-name">trunc</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.BoolVector.html">module:la.BoolVector</a></span></span></h3>
+              <p>Deletes elements with sprecific index or more.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+// create a new vector
+var vec = new la.BoolVector([true, true, false]);
+// trunc all elements with index 1 or more
+vec.trunc(1); // returns vector [true]</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>idx</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Index (zero based).</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.BoolVector.html">module:la.BoolVector</a></code>&nbsp;Self after truncating.</p>
+                </dd>
+              </dl>
+              <h3 id="unshift"><span class="symbol-name">unshift</span><span class="signature"><span class="signature-params">(...args)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Adds elements to the beginning of the vector.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>args</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>One or more elements to be added to the vector.</p>
+                        <p>Value can be repeated.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;The new length of vector.</p>
+                </dd>
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 29, 2015.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

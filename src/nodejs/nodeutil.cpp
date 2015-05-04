@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #include "nodeutil.h"
 
 /////////////////////////////////////////
@@ -44,7 +51,11 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj, const bool Ig
             const TStr FldNm(*v8::String::Utf8Value(FldNmV->Get(i)->ToString()));
 
 			v8::Local<v8::Value> Val = Obj->Get(FldNmV->Get(i));
-
+			bool ValIsNull = Val->IsNull();
+			if (ValIsNull) {
+				JsonVal->AddToObj(FldNm, TJsonVal::NewNull());
+				continue;
+			}
 			if (!IgnoreFunc || !Val->IsFunction()) {
 				// supported cases. Alternatively, we could set the object to null
 				EAssertR(Val->IsObject() || Val->IsBoolean() || Val->IsNumber() || Val->IsString() || Val->IsArray() || Val->IsNull() || Val->IsRegExp() || Val->IsDate(), "TNodeJsUtil::GetObjJson: Cannot parse!");
@@ -363,8 +374,7 @@ TStr TNodeJsUtil::GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
     EAssertR(Args.Length() >= ArgN, "TNodeJsUtil::GetArgJson: Invalid number of arguments!");
     EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgJson: Argument is not an object!");
-
-    return GetObjJson(Args[ArgN]->ToObject());
+	return GetObjJson(Args[ArgN]->ToObject());
 }
 
 double TNodeJsUtil::ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg) {

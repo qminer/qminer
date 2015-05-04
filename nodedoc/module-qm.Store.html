@@ -1,0 +1,843 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta charset="utf-8">
+  <title>Namespace: Store</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">namespace</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Store</span></h1>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-646">qminerdoc.<wbr>js:646</a></p>
+            <div class="symbol-description">
+              <p>Store (factory pattern result)</p>
+            </div>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Properties</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Store.html#backwardIter">backwardIter</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#empty">empty</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#fields">fields</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#first">first</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Store.html#forwardIter">forwardIter</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#joins">joins</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#keys">keys</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#last">last</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Store.html#length">length</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#name">name</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#recs">recs</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Store.html#add">add(rec)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#cell">cell(recId, fieldName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#clear">clear([num])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#each">each(callback)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#field">field(fieldName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#getMat">getMat(fieldName)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Store.html#getVec">getVec(fieldName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#isNumeric">isNumeric(fieldName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#isString">isString(fieldName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#key">key(keyName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#map">map(callback)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#newRec">newRec(json)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Store.html#newRecSet">newRecSet(idVec)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#rec">rec(recName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#sample">sample(sampleSize)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#toJSON">toJSON()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2>Properties</h2>
+            <section>
+              <h3 id="backwardIter"><span class="symbol-name">backwardIter</span></h3>
+              <p>Returns an iterator for iterating over the store form end to start.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="empty"><span class="symbol-name">empty</span></h3>
+              <p>Checks if the store is empty.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="fields"><span class="symbol-name">fields</span></h3>
+              <p>Gives an array of all field descriptor JSON objects.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="first"><span class="symbol-name">first</span></h3>
+              <p>Returns the first record of the store.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="forwardIter"><span class="symbol-name">forwardIter</span></h3>
+              <p>Returns an iterator for iterating over the store from start to end.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="joins"><span class="symbol-name">joins</span></h3>
+              <p>Gives an array of all join descriptor JSON objects.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="keys"><span class="symbol-name">keys</span></h3>
+              <p>Gives an array of all key descriptor JSON objects.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="last"><span class="symbol-name">last</span></h3>
+              <p>Returns the last record of the store.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="length"><span class="symbol-name">length</span></h3>
+              <p>Gives the number of records.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="name"><span class="symbol-name">name</span></h3>
+              <p>Gives the name of the store.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="recs"><span class="symbol-name">recs</span></h3>
+              <p>Creates a record set containing all the records from the store.</p>
+              <dl class="dl-compact">
+              </dl>
+            </section>
+            <h2>Methods</h2>
+            <section>
+              <h3 id="add"><span class="symbol-name">add</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Adds a record to the store.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>rec</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The added record. //TODO</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;The ID of the added record.</p>
+                </dd>
+              </dl>
+              <h3 id="cell"><span class="symbol-name">cell</span><span class="signature"><span class="signature-params">(recId, fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Gives the field value of a specific record.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>recId</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The record id.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>fieldName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The field's name.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;The fieldName value of the record with recId.</p>
+                </dd>
+              </dl>
+              <h3 id="clear"><span class="symbol-name">clear</span><span class="signature"><span class="signature-params">([num])</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Deletes the records in the store.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// delete all records in store
+store.clear();	// returns 0
+// deletes the first 10 records
+store.clear(10);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>num</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The number of deleted records.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;The number of remaining records in the store.</p>
+                </dd>
+              </dl>
+              <h3 id="each"><span class="symbol-name">each</span><span class="signature"><span class="signature-params">(callback)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Store.html">module:qm.Store</a></span></span></h3>
+              <p>Executes a function on each record in store.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a store with some people with fields Name and Gender
+var store = //TODO
+// change the gender of all records to &quot;Extraterrestrial&quot;
+store.each(function (rec) { rec.Gender = &quot;Extraterrestrial&quot;; });</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>callback</p>
+                      </td>
+                      <td>
+                        <p>function()</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Function to be executed. It takes two parameters:
+                          <br>rec - The current record.
+                          <br>[idx] - The index of the current record.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.Store.html">module:qm.Store</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="field"><span class="symbol-name">field</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Gets the details of the selected field.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fieldName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the field.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;The JSON object containing the details of the field. //TODO</p>
+                </dd>
+              </dl>
+              <h3 id="getMat"><span class="symbol-name">getMat</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</span></span></h3>
+              <p>Gives a matrix containing the field values of each record.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fieldName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The field name. Field mustn't be of type string.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>&nbsp;The matrix containing the field values.</p>
+                </dd>
+              </dl>
+              <h3 id="getVec"><span class="symbol-name">getVec</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <p>Gives a vector containing the field value of each record.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fieldName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The field name. Field must be of one-dimensional type, e.g. int, float, string...</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the field values of each record.</p>
+                </dd>
+              </dl>
+              <h3 id="isNumeric"><span class="symbol-name">isNumeric</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
+              <p>Checks if the field is of numeric type.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fieldName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The checked field.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>boolean</code>&nbsp;True, if the field is of numeric type. Otherwise, false.</p>
+                </dd>
+              </dl>
+              <h3 id="isString"><span class="symbol-name">isString</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
+              <p>Checks if the field is of string type.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fieldName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The checked field.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>boolean</code>&nbsp;True, if the field is of the string type. Otherwise, false.</p>
+                </dd>
+              </dl>
+              <h3 id="key"><span class="symbol-name">key</span><span class="signature"><span class="signature-params">(keyName)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Returns the details of the selected key.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>keyName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The selected key.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;The JSON object containing the details of the key. //TODO</p>
+                </dd>
+              </dl>
+              <h3 id="map"><span class="symbol-name">map</span><span class="signature"><span class="signature-params">(callback)</span>&nbsp;&rarr; <span class="signature-returns"> Array of Object</span></span></h3>
+              <p>Creates an array of function outputs created from the store records.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a store with some people with fields Name and Gender
+var store = //TODO
+// make an array of record names
+var arr = store.map(function (rec) { return rec.Name; });</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>callback</p>
+                      </td>
+                      <td>
+                        <p>function()</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Function that generates the array. It takes two parameters:
+                          <br>rec - The current record.
+                          <br>[idx] - The index of the current record.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Array of Object</code>&nbsp;The array created by the callback function. //TODO</p>
+                </dd>
+              </dl>
+              <h3 id="newRec"><span class="symbol-name">newRec</span><span class="signature"><span class="signature-params">(json)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Record.html">module:qm.Record</a></span></span></h3>
+              <p>Creates a new record of given store. The record is not added to the store.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>json</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>A JSON value of the record.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>&nbsp;The record created by the JSON value and the store.</p>
+                </dd>
+              </dl>
+              <h3 id="newRecSet"><span class="symbol-name">newRecSet</span><span class="signature"><span class="signature-params">(idVec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Creates a new record set out of the records in store.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>idVec</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The integer vector containing the ids of selected vectors.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;The record set that contains the records gained with idVec.</p>
+                </dd>
+              </dl>
+              <h3 id="rec"><span class="symbol-name">rec</span><span class="signature"><span class="signature-params">(recName)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Returns a record form the store.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>recName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Record name.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;Returns the record. If record doesn't exist, it returns null. //TODO</p>
+                </dd>
+              </dl>
+              <h3 id="sample"><span class="symbol-name">sample</span><span class="signature"><span class="signature-params">(sampleSize)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <p>Creates a record set containing random records from store.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>sampleSize</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The size of the record set.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;Returns a record set containing random records.</p>
+                </dd>
+              </dl>
+              <h3 id="toJSON"><span class="symbol-name">toJSON</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Returns the store as a JSON.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;The store as a JSON.</p>
+                </dd>
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 29, 2015.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

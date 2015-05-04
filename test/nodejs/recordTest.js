@@ -1,6 +1,19 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+ 
 console.log(__filename)
 var assert = require('assert');
-var qm = require('../../');
+var qm = require('qminer');
+
+
+//describe('Record test, old', function () {
+//	it('should survive', function () {
+		
 qm.delLock();
 
 qm.config('qm.conf', true, 8080, 1024);
@@ -82,3 +95,4 @@ assert.equal(recByVal.Flt, 1.23, "recByVal.Flt");
 console.log("Rec test end");
 
 base.close();
+//})});

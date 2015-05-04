@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 ///////////////////////////////////////////////////////////////////////
@@ -687,11 +676,28 @@ public:
 
 	// Finds x[1...f] that minimizes ||A' x - y||^2 + ||Gamma x||^2, where A[1...f][1...n]
 	// is  a matrix with column training examples (rows = features) and y[1...n] is a
-	// vector of targets. Paramter Gamma controls overfitting (large values force models to be simpler)
+	// vector of targets. 
+	// Solves the primal problem if the number of features is lower than the number of examples,
+	// or the dual problem in the other case.
+	//Paramter Gamma controls overfitting (large values force models to be simpler)
 	// See http://en.wikipedia.org/wiki/Tikhonov_regularization, where the regularization matrix = Gamma*I
 	static void LeastSquares(const TFltVV& A, const TFltV& b, const double& kappa, TFltV& x);
 
+	// Finds x[1...f] that minimizes ||A' x - y||^2 + ||Gamma x||^2, where A[1...f][1...n]
+	// is  a matrix with column training examples (rows = features) and y[1...n] is a
+	// vector of targets. Paramter Gamma controls overfitting (large values force models to be simpler)
+	// See http://en.wikipedia.org/wiki/Tikhonov_regularization, where the regularization matrix = Gamma*I
+	static void PrimalLeastSquares(const TFltVV& A, const TFltV& b, const double& kappa, TFltV& x);
 
+
+	// Finds x[1...f] that minimizes ||A' x - y||^2 + ||Gamma x||^2, where A[1...f][1...n]
+	// is  a matrix with column training examples (rows = features) and y[1...n] is a
+	// vector of targets. Solves the dual version of the problem and exresses it in the
+	// original coordinates in the end - suitable for cases, where the number of examples
+	// is larger than the number of features.
+	// Paramter Gamma controls overfitting (large values force models to be simpler)
+	// See http://en.wikipedia.org/wiki/Tikhonov_regularization, where the regularization matrix = Gamma*I
+	static void DualLeastSquares(const TFltVV& A, const TFltV& b, const double& kappa, TFltV& x);
 
 #ifdef OPENBLAS
     // LU midstep used for LUFactorization and LUSolve
