@@ -165,13 +165,15 @@ public:
 		TStr Fn = "data\\in_mem_storage";
 		int cnt = 20;
 		int block = 5;
-		TStrV temp(cnt);
+		TVec<TStr> temp;
 		{
 			TQm::TStorage::TInMemStorage storage(Fn, block);
 			for (int i = 0; i < cnt; i++) {
 				TMem mem;
 				mem.AddBf(&storage, i % 4);
-				temp.Add(mem.GetHexStr());
+				TStr x = mem.GetHexStr();
+				//printf("++++%d [%s]\n", i, x.CStr());
+				temp.Add(x);
 				auto res1 = storage.AddVal(mem);
 			}
 			auto blob_stats = storage.GetBlobStorage()->GetStats();
@@ -188,15 +190,14 @@ public:
 			}
 			EXPECT_EQ(loaded_cnt, 0);
 
-			storage.LoadAll();
+			storage.LoadAll(); 
 
 			loaded_cnt = 0;
 			for (int i = 0; i < storage.ValV.Len(); i++) {
-				if (storage.DirtyV[i] != 3) { // if loaded
-					loaded_cnt++;
-					printf("%s %sn", temp[i].CStr(), storage.ValV[i].GetHexStr().CStr());
-					EXPECT_EQ(temp[i], storage.ValV[i].GetHexStr());
-				}
+				ASSERT_TRUE(storage.DirtyV[i] == 1);				
+				loaded_cnt++;
+				//printf("****[%s] * [%s]\n", temp[i].CStr(), storage.ValV[i].GetHexStr().CStr());
+				EXPECT_EQ(temp[i], storage.ValV[i].GetHexStr());				
 			}
 			EXPECT_EQ(loaded_cnt, storage.ValV.Len());
 		}
@@ -207,9 +208,10 @@ public:
 		TStr Fn = "data\\in_mem_storage";
 		TStr Fn2 = "data\\in_mem_storage2";
 		int cnt = 1000*1000;
+		int BlockSize = 1000;
 		{
 			// generate data
-			TQm::TStorage::TInMemStorage storage(Fn, 1000);
+			TQm::TStorage::TInMemStorage storage(Fn, BlockSize);
 			TVec<TMem, int64> ValV;
 			for (int i = 0; i < cnt; i++) {
 				TMem mem;
@@ -225,7 +227,7 @@ public:
 		}
 		{
 			TTmStopWatch sw1(true);
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, 1000, false);
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, BlockSize, false);
 			sw1.Stop();
 			printf("in-mem storage %d\n", sw1.GetMSecInt());
 

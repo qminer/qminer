@@ -458,6 +458,9 @@ TInMemStorage::~TInMemStorage() {
 
 /// Utility method for loading specific record
 void TInMemStorage::LoadRec(int i) const {
+	if (DirtyV[i] != 3) {
+		return;
+	}
 	const int ii = i / BlockSize;
 	TMem mem;
 	TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[ii]), mem);
@@ -465,10 +468,10 @@ void TInMemStorage::LoadRec(int i) const {
 	for (int j = ii*BlockSize; j < DirtyV.Len() && j < (ii + 1)*BlockSize; j++) {
 		if (DirtyV[j] == 3) {
 			DirtyV[j] = 1;
-			TMem::LoadMem(in, ValV[j]);
+			ValV[j].Load(in);
 		} else {
 			TMem mem2;
-			TMem::LoadMem(in, mem2);
+			mem2.Load(in);
 		}
 	}
 }
@@ -482,7 +485,7 @@ void TInMemStorage::SaveRec(int i) {
 			const int ii = i / BlockSize;
 			TMOut mem;
 			for (int j = ii*BlockSize; j < DirtyV.Len() && j < (ii + 1)*BlockSize; j++) {
-				mem.PutMem(ValV[j]);
+				ValV[j].Save(mem);
 				DirtyV[j] = 1;
 			}
 			while (BlobPtV.Len() <= ii) {
