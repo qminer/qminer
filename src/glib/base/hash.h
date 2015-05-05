@@ -1021,7 +1021,6 @@ public:
     int Len() const { return KeyDatH.Len(); }
     void Flush();
     void FlushAndClr();
-	int PartialFlush(const int& WndInMsec);
     void* FFirstKeyDat();
     bool FNextKeyDat(void*& KeyDatP, TKey& Key, TDat& Dat);
     void* FLastKeyDat();
@@ -1033,29 +1032,6 @@ public:
     void PutRefToBs(void* _RefToBs) { RefToBs = _RefToBs; }
     void* GetRefToBs() { return RefToBs; }
 };
-
-template <class TKey, class TDat, class THashFunc>
-int TCache<TKey, TDat, THashFunc>::PartialFlush(const int& WndInMsec) {
-	TTmStopWatch sw(true);
-	int res = 0;
-	TLstNd<TKey>* current = TimeKeyL.Last();
-	while (current != NULL) {
-		if (sw.GetMSecInt() > WndInMsec) {
-			break; // time is up
-		}
-		TKey Key = current->GetVal();
-		int KeyId = KeyDatH.GetKeyId(Key);
-		if (KeyId != -1) {
-			TKeyLNDatPr& KeyLNDatPr = KeyDatH[KeyId];
-			TKeyLN KeyLN = KeyLNDatPr.Val1;
-			TDat& Dat = KeyLNDatPr.Val2;
-			if (Dat->OnDelFromCache(Key, RefToBs))
-				res++;
-		}
-		current = current->Prev();
-	}
-	return res;
-}
 
 template <class TKey, class TDat, class THashFunc>
 void TCache<TKey, TDat, THashFunc>::Purge(const int64& MemToPurge){
@@ -1075,16 +1051,9 @@ int64 TCache<TKey, TDat, THashFunc>::GetMemUsed() const {
 	int cnt = 0;
     int KeyId = KeyDatH.FFirstKeyId();
     while (KeyDatH.FNextKeyId(KeyId)) {
-		//const TKey& Key = KeyDatH.GetKey(KeyId);
 		const TKeyLNDatPr& KeyLNDatPr = KeyDatH[KeyId];
 		TDat Dat = KeyLNDatPr.Val2;
-		MemUsed += int64(
-			//Key.GetMemUsed() +
-			Dat->GetMemUsed() 
-            //+
-			//sizeof(TKeyLN) +
-			//sizeof(TLstNd<TKey>)
-            );
+		MemUsed += int64(Dat->GetMemUsed());
 		cnt++;
 	}   
 	EAssert(cnt == KeyDatH.Len());

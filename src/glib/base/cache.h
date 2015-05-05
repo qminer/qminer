@@ -497,6 +497,10 @@ private:
 		// retrieve value
 		bool IsValId(const int& ValId) const { return (ValId >= 0) && (ValId < ValV.Len()); }
 		const TVal& GetVal(const int& ValId) const { return ValV[ValId]; }
+		// dirty flag
+		bool IsChanged() const { return ChangedP; }
+		void SetChanged() { ChangedP = true; }
+		void SetNotChanged() { ChangedP = false; }
 
 		// need to report size, for keeping up used-up space in cache
 		int64 GetMemUsed() const {
@@ -509,6 +513,7 @@ private:
 		bool OnDelFromCache(const TInt& BlockId, void* WndBlockCache) {
 			if (ChangedP && !((TWndBlockCache*)WndBlockCache)->IsReadOnly()) {
 				((TWndBlockCache*)WndBlockCache)->StoreBlock(BlockId);
+				SetNotChanged();
 				return true;
 			}
 			return false;
@@ -592,7 +597,26 @@ public:
 	// delete first N values
 	int DelVals(const int& _Vals);
 	/// Save part of the data, given time-window
-	int PartialFlush(int WndInMsec = 500) { return BlockCache.PartialFlush(WndInMsec); }
+	int PartialFlush(int WndInMsec = 500) { 
+		TTmStopWatch sw(true);
+		int res = 0;
+		TLstNd<TInt>* current = BlockCache.Last();
+		while (current != NULL) {
+			if (sw.GetMSecInt() > WndInMsec) {
+				break; // time is up
+			}
+			TInt Key = current->GetVal();
+			PBlockDat Dat;
+			BlockCache.Get(Key, Dat);
+			if (Dat->IsChanged()) {
+				StoreBlock(Key);
+				Dat->SetNotChanged();
+				res++;
+			}
+			current = current->Prev();
+		}
+		return res;
+	}
 };
 
 template <class TVal>
