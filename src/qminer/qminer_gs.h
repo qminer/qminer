@@ -221,7 +221,7 @@ private:
 	inline void LoadRec(int i) const;
 
 	/// Utility method for storing specific record
-	void SaveRec(int i);
+	int SaveRec(int i);
 
 public:
 	TInMemStorage(const TStr& _FNm, const int& _BlockSize = 1000);
@@ -242,7 +242,7 @@ public:
 	inline uint64 GetFirstValId() const;
 	inline uint64 GetLastValId() const;
 
-	void PartialFlush(int WndInMsec = 500);
+	int PartialFlush(int WndInMsec = 500);
 	inline void LoadAll();
 
 #ifdef XTEST
@@ -748,6 +748,10 @@ public:
 
     /// Helper function for returning JSon definition of store
     PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
+
+
+	/// Save part of the data, given time-window
+	int PartialFlush(int WndInMsec = 500);
 };
 
 ///////////////////////////////

@@ -754,6 +754,9 @@ public:
     void PrintTypes(const TWPt<TBase>& Base, TSOut& SOut) const;
     /// Prints registered fields and joins, useful for debugging
     void PrintTypes(const TWPt<TBase>& Base, const TStr& FNm) const;
+
+	/// Save part of the data, given time-window
+	virtual int PartialFlush(int WndInMsec = 500) { throw TQmExcept::New("Not implemented"); }
 };
 //typedef THash<TUCh, PStore> TUChStoreH;
 
@@ -2912,7 +2915,43 @@ public:
 	void ResetGixStats() { Index->ResetStats(); }
 
 	// perform partial flush of data
-	int PartialFlush(int WndInMsec = 500) { return Index->PartialFlush(WndInMsec); }
+	int PartialFlush(int WndInMsec = 500) { 
+		int slice = WndInMsec / (GetStores() + 1);
+		int saved = 100;
+		int res = 0;
+		TTmStopWatch sw(true);
+
+		TVec<TPair<TWPt<TStore>, bool>> xstores;
+		bool xindex = true;
+
+		for (int i = 0; i < GetStores(); i++) {
+			xstores.Add(TPair<TWPt<TStore>, bool>(GetStoreByStoreN(i), true));
+		}
+
+		while (saved > 0) {
+			if (sw.GetMSecInt() > WndInMsec) {
+				break; // time is up
+			}
+			saved = 0; // how many saved in this loop
+			int xsaved = 0; // temp variable
+			for (int i = 0; i < xstores.Len(); i++) {
+				if (xstores[i].Val2)
+					continue; // this store had no dirty data in previous loop
+				xsaved = xstores[i].Val1->PartialFlush(slice);
+				if (xsaved == 0) {
+					xstores[i].Val2 = false; // ok, this store is clean now
+				}
+				saved += xsaved;
+			}
+			if (xindex) { // save index
+				xsaved = Index->PartialFlush(slice);
+				xindex = (xsaved > 0);
+				saved += xsaved;
+			}
+			res += saved;
+		}
+		return res;
+	}
 };
 
 } // namespace

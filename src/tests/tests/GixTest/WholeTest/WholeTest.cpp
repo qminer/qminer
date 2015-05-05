@@ -204,11 +204,11 @@ public:
 	}
 
 
-	static void TInMemStorage_PerfTest() {
+	static void TInMemStorage_PerfTest_Internal(int BlockSize) {
+		printf("************ BlockSize %d\n", BlockSize);
 		TStr Fn = "data\\in_mem_storage";
 		TStr Fn2 = "data\\in_mem_storage2";
 		int cnt = 1000 * 1000;
-		int BlockSize = 1000;
 		{
 			// generate data
 			TQm::TStorage::TInMemStorage storage(Fn, BlockSize);
@@ -237,6 +237,18 @@ public:
 			ValV.Load(FIn);
 			printf("vector storage %d\n", sw2.GetMSecInt());
 		}
+	}
+
+	static void TInMemStorage_PerfTest() {
+		TInMemStorage_PerfTest_Internal(5000);
+		TInMemStorage_PerfTest_Internal(1000);
+		TInMemStorage_PerfTest_Internal(500);
+		TInMemStorage_PerfTest_Internal(200);
+		TInMemStorage_PerfTest_Internal(100);
+		/*TInMemStorage_PerfTest_Internal(50);
+		TInMemStorage_PerfTest_Internal(10);
+		TInMemStorage_PerfTest_Internal(5);
+		TInMemStorage_PerfTest_Internal(1);*/
 	}
 };
 
@@ -479,6 +491,7 @@ TEST(testTBase, ClearStoreTestBigComplex) {
 	int recs = -1;
 	{
 		auto Base = CreatePeopleBase(true);
+		Base->PartialFlush(500);
 		auto store = Base->GetStoreByStoreNm("People");
 		recs = store->GetRecs();
 		TQm::TStorage::SaveBase(Base);

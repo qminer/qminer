@@ -479,11 +479,13 @@ void TInMemStorage::LoadRec(int i) const {
 }
 
 /// Utility method for storing specific record
-void TInMemStorage::SaveRec(int i) {
+int TInMemStorage::SaveRec(int i) {
+	int res = 0;
 	switch (DirtyV[i]) {
 	case 0:
 	case 2:
 		{
+			res++;
 			const int ii = i / BlockSize;
 			TMOut mem;
 			for (int j = ii*BlockSize; j < DirtyV.Len() && j < (ii + 1)*BlockSize; j++) {
@@ -503,6 +505,7 @@ void TInMemStorage::SaveRec(int i) {
 	case 1:
 	case 3: break;
 	}
+	return res;
 }
 
 void TInMemStorage::AssertReadOnly() const {
@@ -571,12 +574,15 @@ uint64 TInMemStorage::GetLastValId() const {
 	return FirstValOffsetMem + ValV.Len() - 1;
 }
 
-void TInMemStorage::PartialFlush(int WndInMsec) {
+int TInMemStorage::PartialFlush(int WndInMsec) {
 	TTmStopWatch sw(true);
+	int res = 0;
 	for (int i = 0; i< ValV.Len(); i++) {
-		if (sw.GetMSecInt() > WndInMsec) break;
-		SaveRec(i);
+		if (sw.GetMSecInt() > WndInMsec) 
+			break;
+		res += SaveRec(i);
 	}
+	return res;
 }
 
 void TInMemStorage::LoadAll() {
@@ -2524,6 +2530,16 @@ PJsonVal TStoreImpl::GetStoreJson(const TWPt<TBase>& Base) const {
 	}
 
 	return Result;
+}
+
+
+/// Save part of the data, given time-window
+int TStoreImpl::PartialFlush(int WndInMsec) {
+	int slice = WndInMsec / 2;
+	TTmStopWatch sw(true);
+	int res = DataMem.PartialFlush(slice);
+	res += DataCache.PartialFlush(slice);
+	return res;
 }
 
 ///////////////////////////////
