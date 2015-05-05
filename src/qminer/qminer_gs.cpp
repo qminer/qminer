@@ -266,7 +266,9 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal): StoreId(0), HasStoreIdP(fa
 			JoinDescExV.Add(JoinDescEx);
 		}
 	}
-
+	// parse block size
+	BlockSizeMem = max(1, StoreVal->GetObjInt("block_size_mem", 1000));
+	
 	// parse window size
 	if (StoreVal->IsObjKey("window")) {
         // window size defined in number of records
@@ -418,8 +420,8 @@ TInMemStorage::TInMemStorage(const TStr& _FNm, const int& _BlockSize) : FNm(_FNm
 	BlobStorage = TMBlobBs::New(BlobFNm, Access);
 }
 
-TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const int& _BlockSize, const bool& _Lazy) :
-	FNm(_FNm), BlobFNm(_FNm + "Blob"), Access(_Access), BlockSize(_BlockSize) {
+TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bool& _Lazy) :
+	FNm(_FNm), BlobFNm(_FNm + "Blob"), Access(_Access) {
     
 	// load data
 	TFIn FIn(FNm); 
@@ -429,6 +431,7 @@ TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const in
 	cnt.Load(FIn);
 	FirstValOffset.Load(FIn);
 	FirstValOffsetMem.Load(FIn);
+	BlockSize.Load(FIn);
 
 	// load data from blob storage
 	BlobStorage = TMBlobBs::New(BlobFNm, Access);
@@ -455,6 +458,7 @@ TInMemStorage::~TInMemStorage() {
 		TInt(ValV.Len()).Save(FOut);
 		FirstValOffset.Save(FOut);
 		FirstValOffsetMem.Save(FOut);
+		BlockSize.Save(FOut);
 	}
 }
 
@@ -1919,9 +1923,10 @@ void TStoreImpl::InitDataFlags() {
 
 TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const uint& StoreId, 
     const TStr& StoreName, const TStoreSchema& StoreSchema, const TStr& _StoreFNm, 
-    const int64& _MxCacheSize): 
+	const int64& _MxCacheSize, const int& BlockSize) :
         TStore(Base, StoreId, StoreName), StoreFNm(_StoreFNm), FAccess(faCreate), 
-        DataCache(_StoreFNm + ".Cache", _MxCacheSize, 1024), DataMem(_StoreFNm + "MemCache") {
+		DataCache(_StoreFNm + ".Cache", _MxCacheSize, 1024), 
+		DataMem(_StoreFNm + "MemCache", BlockSize) {
 
     InitFromSchema(StoreSchema);
     // initialize data storage flags
@@ -1933,7 +1938,7 @@ TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const TStr& _StoreFNm,
         TStore(Base, _StoreFNm + ".BaseStore"), 
         StoreFNm(_StoreFNm), FAccess(_FAccess), PrimaryFieldType(oftUndef),
         DataCache(_StoreFNm + ".Cache", _FAccess, _MxCacheSize), 
-        DataMem(_StoreFNm + "MemCache", _FAccess)  {
+		DataMem(_StoreFNm + "MemCache", _FAccess) {
 
     // load members
 	TFIn FIn(StoreFNm + ".GenericStore");
@@ -2555,7 +2560,7 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
     // create stores	
     TVec<TWPt<TStore> > NewStoreV;
 	for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++) {
-		TStoreSchema StoreSchema = SchemaV[SchemaN];
+		TStoreSchema& StoreSchema = SchemaV[SchemaN];
 		TStr StoreNm = StoreSchema.StoreName;
         InfoLog("Creating " + StoreNm);
 		// figure out store id
@@ -2576,7 +2581,7 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
             StoreNmCacheSizeH.GetDat(StoreNm).Val : DefStoreCacheSize;
         // create new store from the schema
         PStore Store = new TStoreImpl(Base, StoreId, StoreNm, 
-            StoreSchema, Base->GetFPath() + StoreNm, StoreCacheSize);
+			StoreSchema, Base->GetFPath() + StoreNm, StoreCacheSize, StoreSchema.BlockSizeMem);
         // add store to base
 		Base->AddStore(Store);
         // remember we create the store

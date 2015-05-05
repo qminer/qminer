@@ -168,6 +168,8 @@ public:
 	TVec<TIndexKeyEx> IndexKeyExV;
     /// Join descriptions
 	TVec<TJoinDescEx> JoinDescExV;
+	/// Size of blocks for memory storage
+	TInt BlockSizeMem;
     
 private:
     /// Parse field description from JSon
@@ -215,7 +217,7 @@ private:
     /// Blob storage
 	PBlobBs BlobStorage;
 	/// How many records are packed together into block;
-	const int BlockSize;
+	TInt BlockSize;
 
 	/// Utility method for loading specific record
 	inline void LoadRec(int i) const;
@@ -225,7 +227,7 @@ private:
 
 public:
 	TInMemStorage(const TStr& _FNm, const int& _BlockSize = 1000);
-	TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const int& _BlockSize = 1000, const bool& _Lazy = false);
+	TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bool& _Lazy = false);
 	~TInMemStorage();
 
 	// asserts if we are allowed to change stuff
@@ -652,7 +654,7 @@ private:
 public:
 	TStoreImpl(const TWPt<TBase>& _Base, const uint& StoreId, 
         const TStr& StoreName, const TStoreSchema& StoreSchema, 
-        const TStr& _StoreFNm, const int64& _MxCacheSize);
+		const TStr& _StoreFNm, const int64& _MxCacheSize, const int& BlockSize);
 	TStoreImpl(const TWPt<TBase>& _Base, const TStr& _StoreFNm,
 		const TFAccess& _FAccess, const int64& _MxCacheSize);
 	// need to override destructor, to clear cache

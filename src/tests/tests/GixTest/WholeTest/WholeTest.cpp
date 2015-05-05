@@ -75,7 +75,7 @@ public:
 			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
 		}
 		{
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, 1000, true);
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
 			EXPECT_EQ(storage.ValV.Len(), 1);
 			EXPECT_EQ(storage.DirtyV.Len(), 1);
 			EXPECT_EQ(storage.DirtyV[0], 3); // not loaded yet
@@ -101,7 +101,7 @@ public:
 			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
 		}
 		{
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, 1000);
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate);
 			EXPECT_EQ(storage.ValV.Len(), cnt);
 			auto blob_stats = storage.GetBlobStorage()->GetStats();
 			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
@@ -118,7 +118,7 @@ public:
 			EXPECT_EQ(storage.ValV.Len(), 2 * cnt);
 		}
 		{
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, 1000, true);
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
 			EXPECT_EQ(storage.ValV.Len(), 2 * cnt);
 		}
 	}
@@ -139,7 +139,7 @@ public:
 			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
 		}
 		{
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, 1000, true);
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
 
 			int loaded_cnt = 0;
 			for (int i = 0; i < storage.ValV.Len(); i++) {
@@ -180,7 +180,7 @@ public:
 			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
 		}
 		{
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, block, true);
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
 
 			int loaded_cnt = 0;
 			for (int i = 0; i < storage.ValV.Len(); i++) {
@@ -227,7 +227,7 @@ public:
 		}
 		{
 			TTmStopWatch sw1(true);
-			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, BlockSize, false);
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, false);
 			sw1.Stop();
 			printf("in-mem storage %d\n", sw1.GetMSecInt());
 
