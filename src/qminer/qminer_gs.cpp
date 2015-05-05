@@ -267,7 +267,7 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal): StoreId(0), HasStoreIdP(fa
 		}
 	}
 	// parse block size
-	BlockSizeMem = max(1, StoreVal->GetObjInt("block_size_mem", 1000));
+	BlockSizeMem = MAX(1, StoreVal->GetObjInt("block_size_mem", 1000));
 	
 	// parse window size
 	if (StoreVal->IsObjKey("window")) {
