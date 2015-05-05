@@ -733,6 +733,12 @@ private:
 	*/
 	//# exports.Base.prototype.gc = function () { }
 	JsDeclareFunction(gc);
+	/**
+	* Calls qminer partial flush - base saves dirty data given some time-window.
+	* @param {number} window - Length of available time-window in msec. Default 500.
+	*/
+	//# exports.Base.prototype.partialFlush = function () { }
+	JsDeclareFunction(partialFlush);
 
 	//!- `sa = base.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
 	JsDeclareFunction(getStreamAggr);

@@ -2935,21 +2935,27 @@ public:
 			saved = 0; // how many saved in this loop
 			int xsaved = 0; // temp variable
 			for (int i = 0; i < xstores.Len(); i++) {
-				if (xstores[i].Val2)
+				if (!xstores[i].Val2)
 					continue; // this store had no dirty data in previous loop
 				xsaved = xstores[i].Val1->PartialFlush(slice);
 				if (xsaved == 0) {
 					xstores[i].Val2 = false; // ok, this store is clean now
 				}
 				saved += xsaved;
+				//TQm::TEnv::Logger->OnStatusFmt("Partial flush:     store %s = %d", xstores[i].Val1->GetStoreNm().CStr(), xsaved);
 			}
 			if (xindex) { // save index
 				xsaved = Index->PartialFlush(slice);
 				xindex = (xsaved > 0);
 				saved += xsaved;
+				//TQm::TEnv::Logger->OnStatusFmt("Partial flush:     index = %d", xsaved);
 			}
 			res += saved;
+			//TQm::TEnv::Logger->OnStatusFmt("Partial flush: this loop = %d", saved);
 		}
+		sw.Stop();
+		TQm::TEnv::Logger->OnStatusFmt("Partial flush: %d msec, res = %d", sw.GetMSecInt(), res);
+
 		return res;
 	}
 };

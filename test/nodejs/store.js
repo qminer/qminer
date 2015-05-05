@@ -373,9 +373,9 @@ function TStore() {
         this.base.store("Movies").add(movie);
     }
 
-    this.player1 = { "Player": "Goran Dragiæ", "Score": [35, 12, 23] };
+    this.player1 = { "Player": "Goran Dragiï¿½", "Score": [35, 12, 23] };
     this.player2 = { "Player": "Michael Jordan", "Score": [90, 100, 95] };
-    this.player3 = { "Player": "Marko Miliæ", "Score": [50, 10, 10, 12] };
+    this.player3 = { "Player": "Marko Miliï¿½", "Score": [50, 10, 10, 12] };
 
     this.addPlayer = function (player) {
         this.base.store("Basketball").add(player);
@@ -394,6 +394,15 @@ describe("Two Store Tests", function () {
     });
     afterEach(function () {
         table.close();
+    });
+
+    describe('PartialFlush Test', function () {
+        it('should return 2', function () {
+            var res = table.base.partialFlush(1000);
+            assert.equal(res, 5);
+            res = table.base.partialFlush(1000);
+            assert.equal(res, 0);
+        })
     });
 
     describe('Length Test', function () {

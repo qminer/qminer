@@ -504,6 +504,7 @@ TEST(testTBase, ClearStoreTestBigComplex) {
 		EXPECT_EQ(store->GetRecs(), 1);
 	}
 }
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
