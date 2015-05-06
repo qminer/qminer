@@ -210,6 +210,7 @@
 #include "ss.h"
 #include "linalg.h"
 #include "tensor.h"
+#include "opt.h"
 #include "json.h"
 #include "zipfl.h"
 

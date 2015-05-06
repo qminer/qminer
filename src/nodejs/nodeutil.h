@@ -177,6 +177,23 @@ public:
     static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const TStr& DefVal);
     /// Extract argument ArgN as GLib Json (PJsonVal)
     static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+
+    /// casts the argument into the appropriate type
+    template <class T>
+    static T* GetArgObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+
+    /// returns true if the given object contains a field with the given name
+    static bool IsObjFld(v8::Local<v8::Object> Obj, const TStr& FldNm);
+    /// returns true is the field is not defined or is null
+    static bool IsFldNull(v8::Local<v8::Object> Obj, const TStr& FldNm);
+    /// returns true if the object contains a field with the specified name and
+    /// that field has the provided ClassId
+    static bool IsFldClass(v8::Local<v8::Object> Obj, const TStr& FldNm, const TStr& ClassId);
+
+    /// extracts the field from the object 'Obj'
+    template <class T>
+    static T* GetObjFld(v8::Local<v8::Object> Obj, const TStr& FldNm);
+
     /// Executes the function with the specified argument and returns a double result.
     static double ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg);
     /// Executes the function with the specified argument and returns an object as a JSON object.
@@ -184,6 +201,9 @@ public:
     /// Executes the function with the specified argument
     template <class TVal>
 	static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg);
+
+    static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& ArgC,
+    		v8::Handle<v8::Value> ArgV[]);
 
 	static uint64 GetJsTimestamp(const uint64& MSecs) { return TTm::GetUnixMSecsFromWinMSecs(MSecs); }
 	static uint64 GetCppTimestamp(const uint64& MSecs) { return TTm::GetWinMSecsFromUnixMSecs(MSecs); }
@@ -222,6 +242,22 @@ public:
 	static PMem GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
 };
 
+template <class T>
+T* TNodeJsUtil::GetArgObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+	EAssertR(ArgN < Args.Length(), "GetArgObj: Not enough arguments!");
+	EAssertR(IsArgClass(Args, ArgN, T::GetClassId()), "Invalid argument class!");
+	return node::ObjectWrap::Unwrap<T>(Args[ArgN]->ToObject());
+}
+
+template <class T>
+T* TNodeJsUtil::GetObjFld(v8::Local<v8::Object> Obj, const TStr& FldNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(IsObjFld(Obj, FldNm), "TNodeJsUtil::GetObjFld: Key " + FldNm + " is missing!");
+
+	return node::ObjectWrap::Unwrap<T>(Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()))->ToObject());
+}
 
 
 template <class TClass>
@@ -233,7 +269,7 @@ void TNodeJsUtil::_NewJs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		v8::Local<v8::Object> Instance = Args.This();
 		v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");
 		// static TStr TClass:ClassId must be defined
-		v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, TClass::ClassId.CStr());
+		v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, TClass::GetClassId().CStr());
 		Instance->SetHiddenValue(key, value);
 		// This is skipped in _NewCpp
 		TClass* Obj = TClass::NewFromArgs(Args);
@@ -241,7 +277,7 @@ void TNodeJsUtil::_NewJs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Args.GetReturnValue().Set(Instance);
 	} catch (const PExcept& Except) {
 		Isolate->ThrowException(v8::Exception::TypeError(
-			v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call, ClassId: ") + TClass::ClassId + ":" + Except->GetMsgStr()).CStr())));
+			v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call, ClassId: ") + TClass::GetClassId() + ":" + Except->GetMsgStr()).CStr())));
 	}
 }
 
@@ -254,14 +290,14 @@ void TNodeJsUtil::_NewCpp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		v8::Local<v8::Object> Instance = Args.This();
 		v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");
 		// static TStr TClass:ClassId must be defined
-		v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, TClass::ClassId.CStr());
+		v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, TClass::GetClassId().CStr());
 		Instance->SetHiddenValue(key, value);
 		// wrap is done elsewhere in cpp
 		Args.GetReturnValue().Set(Instance);
 	}
 	catch (const PExcept& Except) {
 		Isolate->ThrowException(v8::Exception::TypeError(
-			v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call, ClassId: ") + TClass::ClassId + ":" + Except->GetMsgStr()).CStr())));
+			v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call, ClassId: ") + TClass::GetClassId() + ":" + Except->GetMsgStr()).CStr())));
 	}
 }
 

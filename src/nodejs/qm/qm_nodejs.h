@@ -397,7 +397,7 @@ private:
 public:
 	// Node framework 
 	static void Init(const TWPt<TQm::TStore>& Store);
-	static const TStr ClassId;
+	static const TStr GetClassId() { return "TRec"; }
 	// when reseting a db we have to clear the old record templates
 	static void Clear(const int& BaseId);
 	// Wrapping C++ object	

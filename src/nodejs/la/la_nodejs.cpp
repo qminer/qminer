@@ -33,7 +33,7 @@ void TNodeJsLinAlg::svd(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             int k = Args[1]->Int32Value();
             if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) {
                 TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
-                TFullMatrix Mat(JsMat->Mat);
+                TFullMatrix Mat(JsMat->Mat, true);	// only wrap the matrix
                 TLinAlg::ComputeThinSVD(Mat, k, U, s, V, Iters, Tol);
             } else if (TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
                 TNodeJsSpMat* JsMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
@@ -87,8 +87,6 @@ const TStr TAuxBoolV::ClassId = "TBoolV";
 // NodeJs-Qminer-FltVV
 v8::Persistent<v8::Function> TNodeJsFltVV::Constructor;
 
-const TStr TNodeJsFltVV::ClassId = "TFltVV";
-
 void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
@@ -97,11 +95,11 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
 	v8::Local<v8::FunctionTemplate> Child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsFltVV>);
 	Child->Inherit(Tpl);
 
-	Child->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
+	Child->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer
 	Child->InstanceTemplate()->SetInternalFieldCount(1);
 
-	Tpl->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
+	Tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer
 	Tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -256,7 +254,7 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Args.GetReturnValue().Set(New(ResMat));
 	}
 	else if (Args[0]->IsObject()) { // IF vector, then u = A *v 
-		if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
+		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
 			TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
 			EAssertR(JsMat->Mat.GetCols() == JsVec->Vec.Len(), "Matrix-vector multiplication: Dimension mismatch");
 			TFltV Result(JsMat->Mat.GetRows());
@@ -264,7 +262,7 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TLinAlg::Multiply(JsMat->Mat, JsVec->Vec, Result);
 			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result));
 		}
-		else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::ClassId)) { // IF matrix, then C = A * B 
+		else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId())) { // IF matrix, then C = A * B
 			TNodeJsFltVV* FltVV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 			TFltVV Result;
 			// computation
@@ -723,8 +721,6 @@ void TNodeJsFltVV::rows(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 // Sparse-Vector
 v8::Persistent<v8::Function> TNodeJsSpVec::constructor;
 
-const TStr TNodeJsSpVec::ClassId = "TIntFltKdV";
-
 void TNodeJsSpVec::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
@@ -1052,8 +1048,6 @@ void TNodeJsSpVec::dim(v8::Local<v8::String> Name, const v8::PropertyCallbackInf
 ///////////////////////////////
 // NodeJs-QMiner-Sparse-Col-Matrix
 v8::Persistent<v8::Function> TNodeJsSpMat::constructor;
-
-const TStr TNodeJsSpMat::ClassId = "TVec<TIntFltKdV>";
 
 void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();

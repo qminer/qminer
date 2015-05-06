@@ -2291,7 +2291,6 @@ void TNodeJsStore::base(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 ///////////////////////////////
 // NodeJs QMiner Record
 TVec<TVec<v8::Persistent<v8::Function> > > TNodeJsRec::BaseStoreIdConstructor;
-const TStr TNodeJsRec::ClassId = "TRec";
 
 void TNodeJsRec::Init(const TWPt<TQm::TStore>& Store) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -3875,7 +3874,7 @@ void TNodeJsFtrSpace::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	try {
 		const TWPt<TQm::TBase>& Base = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject())->Base;
 		
-		if (Args[1]->IsString() || TNodeJsUtil::IsArgClass(Args, 1, TNodeJsFIn::ClassId)) {
+		if (Args[1]->IsString() || TNodeJsUtil::IsArgClass(Args, 1, TNodeJsFIn::GetClassId())) {
 			bool IsArgStr = TNodeJsUtil::IsArgStr(Args, 1);//Args[1]->IsString();
 
 			PSIn SIn = IsArgStr ?
@@ -4127,14 +4126,15 @@ void TNodeJsFtrSpace::invFtrVec(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	v8::HandleScope HandleScope(Isolate);
 
 	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
-	QmAssertR(Args[0]->IsExternal() || Args[0]->IsArray(), "The argument should be a float array!");
+	QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId()) ||
+		Args[0]->IsArray(), "The argument should be a float array!");
 
 	try {
 		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
 
 		TFltV InvertV;
 
-		if (Args[0]->IsExternal()) {
+		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
 			TFltV& FtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject())->Vec;
 			JsFtrSpace->FtrSpace->InvertFullV(FtrV, InvertV);
 		} else {

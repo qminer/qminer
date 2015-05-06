@@ -2469,6 +2469,7 @@ typedef TVVec<TSFlt> TSFltVV;
 typedef TVVec<TFlt> TFltVV;
 typedef TVVec<TStr> TStrVV;
 typedef TVVec<TIntPr> TIntPrVV;
+typedef TVVec<TUInt64> TUInt64VV;
 
 /////////////////////////////////////////////////
 // 3D-Vector

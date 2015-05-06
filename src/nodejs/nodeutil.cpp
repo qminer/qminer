@@ -350,6 +350,37 @@ PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args
     return GetObjJson(Args[ArgN]->ToObject());
 }
 
+bool TNodeJsUtil::IsObjFld(v8::Local<v8::Object> Obj, const TStr& FldNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	return Obj->Has(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+}
+
+bool TNodeJsUtil::IsFldNull(v8::Local<v8::Object> Obj, const TStr& FldNm) {
+	if (!IsObjFld(Obj, FldNm)) { return true; }
+
+	// the field exists, check if it is null
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+	return FldVal->IsNull() || FldVal->IsUndefined();
+}
+
+bool TNodeJsUtil::IsFldClass(v8::Local<v8::Object> Obj, const TStr& FldNm, const TStr& ClassId) {
+	if (!IsObjFld(Obj, FldNm)) { return false; }
+
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+	v8::Handle<v8::Object> FldObj = v8::Handle<v8::Object>::Cast(FldVal);
+
+	TStr ClassStr = GetClass(FldObj);
+	return ClassStr.EqI(ClassId);
+}
+
 double TNodeJsUtil::ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -372,6 +403,12 @@ PJsonVal TNodeJsUtil::ExecuteJson(const v8::Handle<v8::Function>& Fun, const v8:
 	EAssertR(RetVal->IsObject() || RetVal->IsArray(), "The returned value is not an object!");
 
 	return TNodeJsUtil::GetObjJson(RetVal->ToObject());
+}
+
+void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& ArgC, v8::Handle<v8::Value> ArgV[]) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	Fun->Call(Isolate->GetCurrentContext()->Global(), ArgC, ArgV);
 }
 
 void TNodeJsUtil::ThrowJsException(v8::Isolate* Isolate, const PExcept& Except) {

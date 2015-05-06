@@ -62,8 +62,8 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
 	TNodeJsSVR::Init(NsObj);
 	TNodeJsRecLinReg::Init(NsObj);
 	TNodeJsLogReg::Init(NsObj);
-	TNodeJsExpReg::Init(NsObj);
-	TNodeJsHMChain::Init(NsObj);
+	TNodeJsPropHaz::Init(NsObj);
+	TNodeJsStreamStory::Init(NsObj);
 	TNodeJsNNet::Init(NsObj);
 	TNodeJsTokenizer::Init(NsObj);
 
