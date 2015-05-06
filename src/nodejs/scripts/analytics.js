@@ -554,6 +554,10 @@ module.exports = exports = function (pathPrefix) {
     		return names;
     	}
     	
+    	function getObsFtrCount() {
+			return obsFtrSpace.dims.length;
+		}
+    	
     	function getObsFtrNames() {
     		return getFtrNames(obsFtrSpace);
     	}
@@ -737,8 +741,16 @@ module.exports = exports = function (pathPrefix) {
     		histogram: function (stateId, ftrIdx) {
     			var hist = mc.histogram(stateId, ftrIdx);
     			
-    			for (var i = 0; i < hist.binStartV.length; i++) {
-    				hist.binStartV[i] = obsFtrSpace.invFtr(ftrIdx, hist.binStartV[i]);
+    			var nObsFtrs = getObsFtrCount();
+    			
+    			if (ftrIdx < nObsFtrs) {
+	    			for (var i = 0; i < hist.binStartV.length; i++) {
+	    				hist.binStartV[i] = obsFtrSpace.invFtr(ftrIdx, hist.binStartV[i]);
+	    			}
+    			} else {
+    				for (var i = 0; i < hist.binStartV.length; i++) {
+	    				hist.binStartV[i] = controlFtrSpace.invFtr(ftrIdx - nObsFtrs, hist.binStartV[i]);
+	    			}
     			}
     			
     			return hist;

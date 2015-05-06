@@ -15,9 +15,9 @@ TFullMatrix TEuclDist::GetDist2(const TFullMatrix& X, const TFullMatrix& Y) {
 
 //////////////////////////////////////////////////
 // Abstract clustering
-const int TFullClust::MX_ITER = 10000;
+const int TStateIdentifier::MX_ITER = 10000;
 
-TFullClust::TFullClust(const int _NHistBins, const double& _Sample, const TRnd& _Rnd, const bool& _Verbose):
+TStateIdentifier::TStateIdentifier(const int _NHistBins, const double& _Sample, const TRnd& _Rnd, const bool& _Verbose):
 		Rnd(_Rnd),
 		CentroidMat(),
 		CentroidDistStatV(),
@@ -28,35 +28,35 @@ TFullClust::TFullClust(const int _NHistBins, const double& _Sample, const TRnd& 
 	EAssertR(NHistBins >= 2, "Should have at least 2 bins for the histogram!");
 }
 
-TFullClust::TFullClust(TSIn& SIn) {
+TStateIdentifier::TStateIdentifier(TSIn& SIn) {
 	Rnd = TRnd(SIn);
 	CentroidMat.Load(SIn);
 	ControlCentroidMat.Load(SIn);
 	CentroidDistStatV.Load(SIn);
 	NHistBins = TInt(SIn);
-	FtrBinStartVV.Load(SIn);
+	ObsFtrBinStartVV.Load(SIn);
 	ContrFtrBinStartVV.Load(SIn);
-	HistStat.Load(SIn);
+	ObsHistStat.Load(SIn);
 	Sample = TFlt(SIn);
 	Verbose = TBool(SIn);
 	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
 
-void TFullClust::Save(TSOut& SOut) const {
+void TStateIdentifier::Save(TSOut& SOut) const {
 	GetType().Save(SOut);
 	Rnd.Save(SOut);
 	CentroidMat.Save(SOut);
 	ControlCentroidMat.Save(SOut);
 	CentroidDistStatV.Save(SOut);
 	TInt(NHistBins).Save(SOut);
-	FtrBinStartVV.Save(SOut);
+	ObsFtrBinStartVV.Save(SOut);
 	ContrFtrBinStartVV.Save(SOut);
-	HistStat.Save(SOut);
+	ObsHistStat.Save(SOut);
 	TFlt(Sample).Save(SOut);
 	TBool(Verbose).Save(SOut);
 }
 
-PFullClust TFullClust::Load(TSIn& SIn) {
+PStateIdentifier TStateIdentifier::Load(TSIn& SIn) {
 	const TStr Type(SIn);
 
 	if (Type == "kmeans") {
@@ -68,7 +68,7 @@ PFullClust TFullClust::Load(TSIn& SIn) {
 	}
 }
 
-void TFullClust::Init(const TFullMatrix& X, const TFltVV& ControlFtrVV) {
+void TStateIdentifier::Init(const TFullMatrix& X, const TFltVV& ControlFtrVV) {
 	EAssertR(Sample >= 0, "Cannot sample a negative number of instances!");
 
 	const int NInst = X.GetCols();
@@ -99,25 +99,25 @@ void TFullClust::Init(const TFullMatrix& X, const TFltVV& ControlFtrVV) {
 	Notify->OnNotify(TNotifyType::ntInfo, "Done.");
 }
 
-void TFullClust::InitHistogram(const TFltVV& X, const TFltVV& ControlFtrVV) {
+void TStateIdentifier::InitHistogram(const TFltVV& X, const TFltVV& ControlFtrVV) {
 	Notify->OnNotify(TNotifyType::ntInfo, "Computing histograms ...");
 
 	const int NClusts = GetClusts();
 
 	const TIntV AssignV = Assign(X).GetIntVec();
 
-	InitFtrBinStartVV(X, NHistBins, FtrBinStartVV);
+	InitFtrBinStartVV(X, NHistBins, ObsFtrBinStartVV);
 	InitFtrBinStartVV(ControlFtrVV, NHistBins, ContrFtrBinStartVV);
 
-	InitHist(X, AssignV, FtrBinStartVV, NClusts, NHistBins, HistStat);
+	InitHist(X, AssignV, ObsFtrBinStartVV, NClusts, NHistBins, ObsHistStat);
 	InitHist(ControlFtrVV, AssignV, ContrFtrBinStartVV, NClusts, NHistBins, ControlHistStat);
 }
 
-int TFullClust::Assign(const TVector& x) const {
+int TStateIdentifier::Assign(const TVector& x) const {
 	return GetDistVec(x).GetMinIdx();
 }
 
-TVector TFullClust::Assign(const TFltVV& X) const {
+TVector TStateIdentifier::Assign(const TFltVV& X) const {
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Assigning %d instances ...", X.GetCols());
 
 	const TVector OnesN = TVector::Ones(X.GetCols(), false);
@@ -128,11 +128,11 @@ TVector TFullClust::Assign(const TFltVV& X) const {
 	return Assign(X, NormX2, NormC2, OnesN, OnesK);
 }
 
-void TFullClust::Assign(const TFltVV& InstMat, TIntV& AssignV) const {
+void TStateIdentifier::Assign(const TFltVV& InstMat, TIntV& AssignV) const {
 	AssignV = Assign(InstMat).GetIntVec();
 }
 
-TFullMatrix TFullClust::GetDistMat(const TFltVV& X) const {
+TFullMatrix TStateIdentifier::GetDistMat(const TFltVV& X) const {
 	const TVector OnesN = TVector::Ones(X.GetCols(), false);
 	const TVector OnesK = TVector::Ones(GetClusts(), true);
 	TVector NormX2(X.GetCols(), false);	TLinAlg::GetColNorm2V(X, NormX2.Vec);//X.ColNorm2V();
@@ -141,16 +141,16 @@ TFullMatrix TFullClust::GetDistMat(const TFltVV& X) const {
 	return GetDistMat2(X, NormX2, NormC2, OnesN, OnesK).Sqrt();
 }
 
-TVector TFullClust::GetDistVec(const TVector& x) const {
+TVector TStateIdentifier::GetDistVec(const TVector& x) const {
 	TVector xC = x.IsColVec() ? x.MulT(CentroidMat) : x * CentroidMat;
 	return (CentroidMat.ColNorm2V() - (xC*2) + TVector::Ones(GetClusts(), false) * x.Norm2()).Sqrt();
 }
 
-double TFullClust::GetDist(const int& CentroidIdx, const TVector& Pt) const {
+double TStateIdentifier::GetDist(const int& CentroidIdx, const TVector& Pt) const {
 	return CentroidMat.GetCol(CentroidIdx).EuclDist(Pt);
 }
 
-TVector TFullClust::GetJoinedCentroid(const TIntV& CentroidIdV) const {
+TVector TStateIdentifier::GetJoinedCentroid(const TIntV& CentroidIdV) const {
 	TVector Result(GetDim());
 
 	double TotalSize = 0;
@@ -165,7 +165,7 @@ TVector TFullClust::GetJoinedCentroid(const TIntV& CentroidIdV) const {
 	return Result /= TotalSize;
 }
 
-TVector TFullClust::GetJoinedControlCentroid(const TIntV& CentroidIdV) const {
+TVector TStateIdentifier::GetJoinedControlCentroid(const TIntV& CentroidIdV) const {
 	TVector Result(GetControlDim());
 
 	double TotalSize = 0;
@@ -180,28 +180,32 @@ TVector TFullClust::GetJoinedControlCentroid(const TIntV& CentroidIdV) const {
 	return Result /= TotalSize;
 }
 
-double TFullClust::GetMeanPtCentDist(const int& CentroidIdx) const {
+double TStateIdentifier::GetMeanPtCentDist(const int& CentroidIdx) const {
 	EAssertR(CentroidIdx < GetClusts(), TStr::Fmt("TFullKMeans::GetMeanPtCentDist: Invalid centroid index: %d", CentroidIdx));
 	return CentroidDistStatV[CentroidIdx].Val2 / CentroidDistStatV[CentroidIdx].Val1;
 }
 
-uint64 TFullClust::GetClustSize(const int& ClustIdx) const {
+uint64 TStateIdentifier::GetClustSize(const int& ClustIdx) const {
 	return CentroidDistStatV[ClustIdx].Val1;
 }
 
-void TFullClust::GetHistogram(const int FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV) const {
+void TStateIdentifier::GetHistogram(const int FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV) const {
 	BinV.Gen(NHistBins+2);
 	BinStartV.Clr();
 
-	for (int i = 0; i < FtrBinStartVV.GetCols(); i++) {
-		BinStartV.Add(FtrBinStartVV(FtrId, i));
+	const TFltVV& BinStartVV = FtrId < ObsFtrBinStartVV.GetCols() ? ObsFtrBinStartVV : ContrFtrBinStartVV;
+	const THistStat& HistStat = FtrId < ObsFtrBinStartVV.GetCols() ? ObsHistStat : ControlHistStat;
+	const int FtrN = FtrId < ObsFtrBinStartVV.GetRows() ? FtrId : FtrId - ObsFtrBinStartVV.GetRows();
+
+	for (int i = 0; i < BinStartVV.GetCols(); i++) {
+		BinStartV.Add(BinStartVV(FtrN, i));
 	}
 
 	for (int i = 0; i < StateSet.Len(); i++) {
 		const int ClustId = StateSet[i];
 
 		const TClustHistStat& ClustHistStat = HistStat[ClustId];
-		const TFtrHistStat& FtrHistStat = ClustHistStat[FtrId];
+		const TFtrHistStat& FtrHistStat = ClustHistStat[FtrN];
 		const TUInt64V& CountV = FtrHistStat.Val2;
 
 		for (int j = 0; j < CountV.Len(); j++) {
@@ -212,7 +216,7 @@ void TFullClust::GetHistogram(const int FtrId, const TIntV& StateSet, TFltV& Bin
 	TLinAlg::NormalizeL1(BinV);
 }
 
-void TFullClust::GetCentroidVV(TVec<TFltV>& CentroidVV) const {
+void TStateIdentifier::GetCentroidVV(TVec<TFltV>& CentroidVV) const {
 	CentroidVV.Gen(CentroidMat.GetCols());
 	for (int ColN = 0; ColN < CentroidMat.GetCols(); ColN++) {
 		CentroidVV[ColN].Gen(CentroidMat.GetRows());
@@ -222,7 +226,7 @@ void TFullClust::GetCentroidVV(TVec<TFltV>& CentroidVV) const {
 	}
 }
 
-void TFullClust::GetControlCentroidVV(TStateFtrVV& StateFtrVV) const {
+void TStateIdentifier::GetControlCentroidVV(TStateFtrVV& StateFtrVV) const {
 	const int Cols = ControlCentroidMat.GetCols();
 	const int Rows = ControlCentroidMat.GetRows();
 
@@ -236,26 +240,26 @@ void TFullClust::GetControlCentroidVV(TStateFtrVV& StateFtrVV) const {
 	}
 }
 
-void TFullClust::SetVerbose(const bool& _Verbose) {
+void TStateIdentifier::SetVerbose(const bool& _Verbose) {
 	if (_Verbose != Verbose) {
 		Verbose = _Verbose;
 		Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 	}
 }
 
-TVector TFullClust::Assign(const TFltVV& X, const TVector& NormX2, const TVector& NormC2, const TVector& OnesN, const TVector& OnesK) const {
+TVector TStateIdentifier::Assign(const TFltVV& X, const TVector& NormX2, const TVector& NormC2, const TVector& OnesN, const TVector& OnesK) const {
 	return GetDistMat2(X, NormX2, CentroidMat.ColNorm2V().Transpose(), OnesN, OnesK).GetColMinIdxV();
 }
 
-TFullMatrix TFullClust::GetDistMat2(const TFltVV& X, const TVector& NormX2, const TVector& NormC2, const TVector& OnesN, const TVector& OnesK) const {
+TFullMatrix TStateIdentifier::GetDistMat2(const TFltVV& X, const TVector& NormX2, const TVector& NormC2, const TVector& OnesN, const TVector& OnesK) const {
 	return (NormC2 * OnesN) - (CentroidMat*2).MulT(X) + (OnesK * NormX2);
 }
 
-TFullMatrix TFullClust::SelectInitCentroids(const TFullMatrix& X, const int& NCentroids, TVector& AssignIdxV) {
+TFullMatrix TStateIdentifier::SelectInitCentroids(const TFullMatrix& X, const int& NCentroids, TVector& AssignIdxV) {
 	const int NInst = X.GetCols();
 	const int NAttrs = X.GetRows();
 
-	EAssertR(NInst >= NCentroids, "TFullClust::SelectInitCentroids: The number of initial centroids should be less than the number of data points!");
+	EAssertR(NInst >= NCentroids, "TStateIdentifier::SelectInitCentroids: The number of initial centroids should be less than the number of data points!");
 
 	AssignIdxV = TVector(NCentroids);
 
@@ -275,7 +279,7 @@ TFullMatrix TFullClust::SelectInitCentroids(const TFullMatrix& X, const int& NCe
 	return X(TVector::Range(NAttrs), AssignIdxV);
 }
 
-void TFullClust::UpdateCentroids(const TFullMatrix& X, const TVector& AssignIdxV) {
+void TStateIdentifier::UpdateCentroids(const TFullMatrix& X, const TVector& AssignIdxV) {
 	const int NInst = X.GetCols();
 	const int K = CentroidMat.GetCols();
 
@@ -299,7 +303,7 @@ void TFullClust::UpdateCentroids(const TFullMatrix& X, const TVector& AssignIdxV
 	CentroidMat = ((X * AssignIdxMat) + CentroidMat) * ColSumDiag;
 }
 
-void TFullClust::InitStatistics(const TFullMatrix& X, const TVector& AssignV) {
+void TStateIdentifier::InitStatistics(const TFullMatrix& X, const TVector& AssignV) {
 	const int K = GetClusts();
 	TFullMatrix DistMat = GetDistMat(X.GetMat());
 
@@ -316,7 +320,7 @@ void TFullClust::InitStatistics(const TFullMatrix& X, const TVector& AssignV) {
 	}
 }
 
-void TFullClust::InitControlCentroids(const TFltVV& ObsMat,  const TFltVV& ControlFtrVV) {
+void TStateIdentifier::InitControlCentroids(const TFltVV& ObsMat,  const TFltVV& ControlFtrVV) {
 	const int NCentroids = GetClusts();
 	const int Dim = ControlFtrVV.GetRows();
 	const int NInst = ControlFtrVV.GetCols();
@@ -337,15 +341,15 @@ void TFullClust::InitControlCentroids(const TFltVV& ObsMat,  const TFltVV& Contr
 	}
 }
 
-TVector TFullClust::GetCentroid(const int& CentroidId) const {
+TVector TStateIdentifier::GetCentroid(const int& CentroidId) const {
 	return CentroidMat.GetCol(CentroidId);
 }
 
-TVector TFullClust::GetControlCentroid(const int& CentroidId) const {
+TVector TStateIdentifier::GetControlCentroid(const int& CentroidId) const {
 	return ControlCentroidMat.GetCol(CentroidId);
 }
 
-void TFullClust::InitHist(const TFltVV& InstanceMat, const TIntV& AssignV,
+void TStateIdentifier::InitHist(const TFltVV& InstanceMat, const TIntV& AssignV,
 		const TFltVV& FtrBinStartVV, const int& Clusts, const int& Bins,
 		THistStat& HistStat) {
 	HistStat.Clr();
@@ -391,7 +395,7 @@ void TFullClust::InitHist(const TFltVV& InstanceMat, const TIntV& AssignV,
 	}
 }
 
-void TFullClust::InitFtrBinStartVV(const TFltVV& InstanceMat, const int& Bins,
+void TStateIdentifier::InitFtrBinStartVV(const TFltVV& InstanceMat, const int& Bins,
 		TFltVV& FtrBinStartVV) {
 	const int NInst = InstanceMat.GetCols();
 	const int Dim = InstanceMat.GetRows();
@@ -423,16 +427,16 @@ void TFullClust::InitFtrBinStartVV(const TFltVV& InstanceMat, const int& Bins,
 //////////////////////////////////////////////////
 // K-Means
 TFullKMeans::TFullKMeans(const int& _NHistBins, const double _Sample, const int& _K, const TRnd& _Rnd, const bool& _Verbose):
-		TFullClust(_NHistBins, _Sample, _Rnd, _Verbose),
+		TStateIdentifier(_NHistBins, _Sample, _Rnd, _Verbose),
 		K(_K) {}
 
 TFullKMeans::TFullKMeans(TSIn& SIn):
-		TFullClust(SIn) {
+		TStateIdentifier(SIn) {
 	K.Load(SIn);
 }
 
 void TFullKMeans::Save(TSOut& SOut) const {
-	TFullClust::Save(SOut);
+	TStateIdentifier::Save(SOut);
 	K.Save(SOut);
 }
 
@@ -482,7 +486,7 @@ void TFullKMeans::Apply(const TFullMatrix& X, const int& MaxIter) {
 //////////////////////////////////////////////////
 // DPMeans
 TDpMeans::TDpMeans(const int& _NHistBins, const double& _Sample, const TFlt& _Lambda, const TInt& _MinClusts, const TInt& _MaxClusts, const TRnd& _Rnd, const bool& _Verbose):
-		TFullClust(_NHistBins, _Sample, _Rnd, _Verbose),
+		TStateIdentifier(_NHistBins, _Sample, _Rnd, _Verbose),
 		Lambda(_Lambda),
 		MinClusts(_MinClusts),
 		MaxClusts(_MaxClusts) {
@@ -492,14 +496,14 @@ TDpMeans::TDpMeans(const int& _NHistBins, const double& _Sample, const TFlt& _La
 }
 
 TDpMeans::TDpMeans(TSIn& SIn):
-		TFullClust(SIn) {
+		TStateIdentifier(SIn) {
 	Lambda.Load(SIn);
 	MinClusts.Load(SIn);
 	MaxClusts.Load(SIn);
 }
 
 void TDpMeans::Save(TSOut& SOut) const {
-	TFullClust::Save(SOut);
+	TStateIdentifier::Save(SOut);
 	Lambda.Save(SOut);
 	MinClusts.Save(SOut);
 	MaxClusts.Save(SOut);
@@ -2008,7 +2012,7 @@ void TStateAssist::Save(TSOut& SOut) const {
 	TBool(Verbose).Save(SOut);
 }
 
-void TStateAssist::Init(const TFullMatrix& X, const PFullClust& Clust, const PHierarch& Hierarch) {
+void TStateAssist::Init(const TFullMatrix& X, const PStateIdentifier& Clust, const PHierarch& Hierarch) {
 	// get all the heights from the hierarchy
 	TIntFltPrV StateIdHeightPrV;	Hierarch->GetStateIdHeightPrV(StateIdHeightPrV);
 	TVector AssignV = Clust->Assign(X.GetMat());
@@ -2080,7 +2084,7 @@ void TStateAssist::GetSuggestFtrs(const int& StateId, TFltV& WgtV) const {
 /////////////////////////////////////////////////////////////////
 // Hierarchical continous time Markov Chain
 TStreamStory::TStreamStory():
-		Clust(nullptr),
+		StateIdentifier(nullptr),
 		MChain(nullptr),
 		Hierarch(nullptr),
 		StateAssist(nullptr),
@@ -2092,9 +2096,9 @@ TStreamStory::TStreamStory():
 		Callback(nullptr),
 		Notify(nullptr) {}
 
-TStreamStory::TStreamStory(const PFullClust& _Clust, const PMChain& _MChain,
+TStreamStory::TStreamStory(const PStateIdentifier& _StateIdentifier, const PMChain& _MChain,
 		const PHierarch& _Hierarch, const bool& _Verbose):
-		Clust(_Clust),
+		StateIdentifier(_StateIdentifier),
 		MChain(_MChain),
 		Hierarch(_Hierarch),
 		StateAssist(new TStateAssist(_Verbose)),
@@ -2108,7 +2112,7 @@ TStreamStory::TStreamStory(const PFullClust& _Clust, const PMChain& _MChain,
 }
 
 TStreamStory::TStreamStory(TSIn& SIn):
-	Clust(TFullClust::Load(SIn)),
+		StateIdentifier(TStateIdentifier::Load(SIn)),
 	MChain(TMChain::Load(SIn)),
 	Hierarch(THierarch::Load(SIn)),
 	StateAssist(new TStateAssist(SIn)),
@@ -2126,7 +2130,7 @@ TStreamStory::TStreamStory(TSIn& SIn):
 void TStreamStory::Save(TSOut& SOut) const {
 	Notify->OnNotify(TNotifyType::ntInfo, "TStreamStory::Save: saving to stream ...");
 
-	Clust->Save(SOut);
+	StateIdentifier->Save(SOut);
 	MChain->Save(SOut);
 	Hierarch->Save(SOut);
 	StateAssist->Save(SOut);
@@ -2256,27 +2260,27 @@ void TStreamStory::InitBatches(const TFullMatrix& ObservMat, const TFullMatrix& 
 
 void TStreamStory::InitClust(const TFullMatrix& ObsMat, const TFltVV& FtrVV,
 		TIntV& AssignV) {
-	Clust->Init(ObsMat, FtrVV);
-	Clust->Assign(ObsMat.GetMat(), AssignV);
+	StateIdentifier->Init(ObsMat, FtrVV);
+	StateIdentifier->Assign(ObsMat.GetMat(), AssignV);
 }
 
 void TStreamStory::InitMChain(const TFltVV& FtrVV, const TIntV& AssignV,
 		const TUInt64V& RecTmV, const bool IsBatchData, const TBoolV& EndBatchV) {
-	MChain->Init(FtrVV, Clust->GetClusts(), AssignV, RecTmV, IsBatchData, EndBatchV);
+	MChain->Init(FtrVV, StateIdentifier->GetClusts(), AssignV, RecTmV, IsBatchData, EndBatchV);
 }
 
 void TStreamStory::InitHierarch() {
-	Hierarch->Init(Clust->GetCentroidMat(), MChain->GetCurrStateId());
+	Hierarch->Init(StateIdentifier->GetCentroidMat(), MChain->GetCurrStateId());
 }
 
 void TStreamStory::InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlMat,
 		const TUInt64V& RecTmV, const TBoolV& BatchEndV) {
 	TFltVV FtrVV;	CreateFtrVV(ObsMat, ControlMat, RecTmV, BatchEndV, FtrVV);
-	Clust->InitHistogram(ObsMat, FtrVV);
+	StateIdentifier->InitHistogram(ObsMat, FtrVV);
 }
 
 void TStreamStory::InitStateAssist(const TFullMatrix& X) {
-	StateAssist->Init(X, Clust, Hierarch);
+	StateAssist->Init(X, StateIdentifier, Hierarch);
 }
 
 void TStreamStory::OnAddRec(const uint64& RecTm, const TFltV& ObsFtrV, const TFltV& ContrFtrV) {
@@ -2284,7 +2288,7 @@ void TStreamStory::OnAddRec(const uint64& RecTm, const TFltV& ObsFtrV, const TFl
 	TFltV FtrV;	CreateFtrV(ObsFtrV, ContrFtrV, RecTm, FtrV);
 
 	const int OldStateId = MChain->GetCurrStateId();
-	const int NewStateId = Clust->Assign(ObsFtrV);
+	const int NewStateId = StateIdentifier->Assign(ObsFtrV);
 
 	DetectAnomalies(OldStateId, NewStateId, ObsFtrV, FtrV);
 
@@ -2391,7 +2395,7 @@ void TStreamStory::GetHistogram(const int& StateId, const int& FtrId, TFltV& Bin
 	try {
 		TIntV LeafV;
 		Hierarch->GetLeafDescendantV(StateId, LeafV);
-		Clust->GetHistogram(FtrId, LeafV, BinStartV, ProbV);
+		StateIdentifier->GetHistogram(FtrId, LeafV, BinStartV, ProbV);
 	} catch (const PExcept& Except) {
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetHistogram: Failed to fetch histogram: %s", Except->GetMsgStr().CStr());
 		throw Except;
@@ -2430,7 +2434,9 @@ int TStreamStory::GetCurrStateId(const double& Height) const {
 
 void TStreamStory::GetCentroid(const int& StateId, TFltV& FtrV, const bool ObsCentroid) const {
 	TIntV LeafIdV;	Hierarch->GetLeafDescendantV(StateId, LeafIdV);
-	TVector Centroid = ObsCentroid ? Clust->GetJoinedCentroid(LeafIdV) : Clust->GetJoinedControlCentroid(LeafIdV);
+	TVector Centroid = ObsCentroid ?
+			StateIdentifier->GetJoinedCentroid(LeafIdV) :
+			StateIdentifier->GetJoinedControlCentroid(LeafIdV);
 	FtrV = Centroid.Vec;
 }
 
@@ -2487,7 +2493,7 @@ void TStreamStory::SetVerbose(const bool& _Verbose) {
 		Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 	}
 
-	Clust->SetVerbose(Verbose);
+	StateIdentifier->SetVerbose(Verbose);
 	MChain->SetVerbose(Verbose);
 	Hierarch->SetVerbose(Verbose);
 }
@@ -2534,7 +2540,7 @@ void TStreamStory::CreateFtrV(const TFltV& ObsFtrV, const TFltV& ContrFtrV,
 }
 
 void TStreamStory::GetStateFtrVV(TStateFtrVV& StateFtrVV) const {
-	Clust->GetControlCentroidVV(StateFtrVV);
+	StateIdentifier->GetControlCentroidVV(StateFtrVV);
 
 	const int Cols = StateFtrVV.Len();
 

@@ -32,13 +32,13 @@ public:
 	static TFullMatrix GetDist2(const TFullMatrix& X, const TFullMatrix& Y);
 };
 
-class TFullClust;
-typedef TPt<TFullClust> PFullClust;
-class TFullClust {
+class TStateIdentifier;
+typedef TPt<TStateIdentifier> PStateIdentifier;
+class TStateIdentifier {
 private:
   TCRef CRef;
 public:
-  friend class TPt<TFullClust>;
+  friend class TPt<TStateIdentifier>;
 protected:
   	const static int MX_ITER;
 
@@ -56,9 +56,9 @@ protected:
   	TUInt64FltPrV CentroidDistStatV;
 
   	int NHistBins;			// the number of bins used in a histogram
-  	TFltVV FtrBinStartVV;		// stores where each bin starts
+  	TFltVV ObsFtrBinStartVV;		// stores where each bin starts
   	TFltVV ContrFtrBinStartVV;	// stores where each bin starts for the control matrix
-  	THistStat HistStat;		// stores histogram for every feature in every cluster
+  	THistStat ObsHistStat;		// stores histogram for every feature in every cluster
   	THistStat ControlHistStat;	// stores histogram for every feature in every cluster for the control matrix
 
   	double Sample;
@@ -66,17 +66,17 @@ protected:
   	bool Verbose;
   	PNotify Notify;
 
-  	TFullClust(const int NHistBins, const double& Sample, const TRnd& Rnd=TRnd(0),
+  	TStateIdentifier(const int NHistBins, const double& Sample, const TRnd& Rnd=TRnd(0),
   			const bool& Verbose=false);
-  	TFullClust(TSIn& SIn);
+  	TStateIdentifier(TSIn& SIn);
 
-	virtual ~TFullClust() {}
+	virtual ~TStateIdentifier() {}
 
 public:
 	// saves the model to the output stream
 	virtual void Save(TSOut& SOut) const;
 	// loads the model from the output stream
-	static PFullClust Load(TSIn& SIn);
+	static PStateIdentifier Load(TSIn& SIn);
 
 	// performs the clustering
 	void Init(const TFullMatrix& ObsMat, const TFltVV& FtrVV);
@@ -156,7 +156,7 @@ private:
 
 ///////////////////////////////////////////
 // K-Means
-class TFullKMeans: public TFullClust {
+class TFullKMeans: public TStateIdentifier {
 private:
 	TInt K;
 
@@ -179,7 +179,7 @@ protected:
 
 ///////////////////////////////////////////
 // DPMeans
-class TDpMeans: public TFullClust {
+class TDpMeans: public TStateIdentifier {
 private:
 	TFlt Lambda;
 	TInt MinClusts;
@@ -698,7 +698,7 @@ public:
 
 	void Save(TSOut& SOut) const;
 
-	void Init(const TFullMatrix& X, const PFullClust& Clust, const PHierarch& Hierarch);
+	void Init(const TFullMatrix& X, const PStateIdentifier& Clust, const PHierarch& Hierarch);
 
 	void GetSuggestFtrs(const int& StateId, TFltV& WgtV) const;
 };
@@ -712,7 +712,7 @@ public:
   	friend class TPt<TStreamStory>;
 	class TCallback;	// declaration in the helper classes section
 private:
-	PFullClust Clust;
+	PStateIdentifier StateIdentifier;
     PMChain MChain;
     PHierarch Hierarch;
     PStateAssist StateAssist;
@@ -731,7 +731,7 @@ private:
 public:
     // constructors
     TStreamStory();
-    TStreamStory(const PFullClust& Clust, const PMChain& MChain, const PHierarch& Hierarch,
+    TStreamStory(const PStateIdentifier& Clust, const PMChain& MChain, const PHierarch& Hierarch,
     		const bool& Verbose=true);
     TStreamStory(TSIn& SIn);
 

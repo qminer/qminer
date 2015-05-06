@@ -896,7 +896,7 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 		TMc::PMChain MChain = new TMc::TCtMChain(TimeUnit, DeltaTm, Verbose);
 
 		// clustering
-		TMc::PFullClust Clust = NULL;
+		TMc::PStateIdentifier Clust = NULL;
 
 		const TStr ClustAlg = ClustJson->GetObjStr("type");
 		const double Sample = ClustJson->IsObjKey("sample") ? ClustJson->GetObjNum("sample") : 1;

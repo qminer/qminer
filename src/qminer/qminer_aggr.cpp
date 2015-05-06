@@ -2771,7 +2771,7 @@ int THierchCtmc::GetMaxDepth() const {
 	return MaxDepth;
 }
 
-TMc::PFullClust THierchCtmc::GetClust() const {
+TMc::PStateIdentifier THierchCtmc::GetClust() const {
 	const TStr ClustType = ClustParams->GetObjStr("type");
 
 	if (ClustType == "dpmeans") {
