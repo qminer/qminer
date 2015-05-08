@@ -13,6 +13,8 @@
                 # core qm module
                 'src/nodejs/qm/qm_nodejs.h',
                 'src/nodejs/qm/qm_nodejs.cpp',
+                'src/nodejs/qm/qm_nodejs_streamaggr.h',
+                'src/nodejs/qm/qm_nodejs_streamaggr.cpp',
                 'src/nodejs/qm/qm_param.h',
                 # la
                 'src/nodejs/la/la_nodejs.h',

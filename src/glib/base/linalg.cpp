@@ -2161,7 +2161,7 @@ void TNumericalStuff::PrimalLeastSquares(const TFltVV& A, const TFltV& b, const 
 	int Feats = A.GetRows();
 	int N = A.GetCols();
 	// A'
-	TFltVV At = TFltVV(A.GetCols(), A.GetRows()); 
+	TFltVV At = TFltVV(N, Feats);
 	TLinAlg::Transpose(A, At);
 	// A * A'
 	TFltVV B = TFltVV(Feats, Feats);
@@ -2186,8 +2186,7 @@ void TNumericalStuff::DualLeastSquares(const TFltVV& A, const TFltV& b, const do
 		EAssertR(x.Len() == A.GetRows(), "TNumericalStuff::DualLeastSquares: solution dimension does not match the number of rows of A (features)");
 	}
 
-	// x = A (A' * A + Gamma^2 * I)^{-1} * b
-	int Feats = A.GetRows();
+	// x = A (A' * A + Gamma^2 * I)^{-1} * b	
 	int N = A.GetCols();
 	// B = A' * A
 	TFltVV B = TFltVV(N, N);
