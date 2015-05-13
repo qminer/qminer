@@ -129,14 +129,14 @@ namespace TUnicodeVSM {
 		TUStr  GetWord(int WordIndex)  { Assert(WordIndex < WordIds.Len() && WordIndex >= 0);  return  WordIds.GetKey(WordIndex); }
 		TUStr  GetToken(int TokenIndex);
 		int  GetNumberOfTokens();
-		TInt  GetNumberOfDocs()  { return  MAX(Matrix.Len(), NDocs); }
+		int  GetNumberOfDocs()  { return  (int)MAX(Matrix.Len(), NDocs->Val); }
 		void SaveOldBin(TSOut& SOut) const;
 		void SaveBin(TSOut& SOut) const;
 		//Simple export to text format, outputn directory must exist!
 		void Print(const TStr& Directory="./outputn") const;
 		void LoadOldBin(TSIn& SIn);
 		void LoadBin(TSIn& SIn);
-		void TGlibUBow::DelMatrix();
+		void DelMatrix();
 		//Set Stop Words from File
 		void SetStop(TStr File, TBool BrOnSt=false);
 		void ComputeDocFreq(TIntV &InvDoc, TInt& NDocs);
