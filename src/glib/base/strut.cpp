@@ -19,7 +19,7 @@ TStr TStrUtil::GetStr(const TIntV& IntV, const TStr& DelimiterStr) {
 
 TStr TStrUtil::GetStr(const TVec<T<int64>, int64>& IntV, const TStr& DelimiterStr) {
 	TChA ResChA;
-	for (index IntN = 0; IntN < IntV.Len(); IntN++) {
+	for (int64 IntN = 0; IntN < IntV.Len(); IntN++) {
 		if (!ResChA.Empty()) { ResChA += DelimiterStr; }
 		ResChA += IntV[IntN].GetStr();
 	}
