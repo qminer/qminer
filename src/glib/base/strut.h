@@ -12,6 +12,7 @@ class TStrUtil {
 public:
 	static TStr GetStr(const TIntV& IntV, const TStr& DelimiterStr = ",");
 	static TStr GetStr(const TVec<TIntV>& IntIntV, const TStr& DelimiterStr = ",");
+	static TStr GetStr(const TVec<T<int64>, int64>& IntV, const TStr& DelimiterStr);
 	static TStr GetStr(const TStrIntPrV& StrIntPrV, const TStr& FieldDelimiterStr = ":",
 		const TStr& DelimiterStr = ",");	
 	static TStr GetStr(const TFltV& FltV, const TStr& DelimiterStr = ",", const TStr& FmtStr = "%g");	

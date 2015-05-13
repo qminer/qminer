@@ -129,8 +129,8 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
                 VecN = PosVecIdV[Rnd.GetUniDevInt(PosVecs)];
                 PosCount++;
             }
-            const double VecCfyVal = TargetV[VecN];
-            const double CfyVal = VecCfyVal * TLinAlg::DotProduct(VecV, VecN, WgtV);
+			const double VecCfyVal = TargetV[VecN];
+			const double CfyVal = VecCfyVal * TLinAlg::DotProduct(VecV, VecN, WgtV);
             if (CfyVal < 1.0) { 
                 // with update from the stochastic sub-gradient
                 TLinAlg::AddVec(VecUpdate * VecCfyVal, VecV, VecN, NewWgtV, NewWgtV);
