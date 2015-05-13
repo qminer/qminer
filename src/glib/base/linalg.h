@@ -1938,12 +1938,12 @@ template <class Type, class Size = int, bool ColMajor = false>
 #endif
 	}
 #endif
-	
+
+#ifdef BLAS	
 	// TEST
 	// y := alpha*op(A)*x + beta*y, where op(A) = A -- N, op(A) = A' -- T, op(A) = conj(A') -- C (only for complex)
 	//Andrej ToDo In the future replace Type with T<type> and change double to type
 	template <class Type, class Size = int, bool ColMajor = false>
-	inline
 	static void Multiply(const TVVec<T<Type>, Size, ColMajor>& A, const TVec<T<Type>, Size>& x, TVec<T<Type>, Size>& y, const int& BlasTransposeFlagA, Type alpha = 1.0, Type beta = 0.0) {
 		Size m = A.GetRows();
 		Size n = A.GetCols();
@@ -1996,6 +1996,7 @@ template <class Type, class Size = int, bool ColMajor = false>
 #endif
 #endif
 	}
+#endif
 
 #ifdef BLAS
 	// TEST
