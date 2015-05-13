@@ -29,7 +29,7 @@ private:
 	// LU midstep used for LUFactorization and LUSolve 
 	// (Warning: the matrix is overwritten in the process)
 	template<class Type, class Size, bool ColMajor = false>
-static void LUStep(TVVec<T<Type>, Size, ColMajor>& A, TVec<T<index>, index>& Perm) {//TVec<T<Size>, Size>& Perm)
+static void LUStep(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<index>, index>& Perm) {//TVec<TNum<Size>, Size>& Perm)
 		Assert(A.GetRows() == A.GetCols());
 
 		// data used for factorization
@@ -103,7 +103,7 @@ static void CholeskyStep(TVVec<Type, Size, ColMajor>& A) {
 	// QR midstep used for LUFactorization and QRSolve. 
 	// (Warning: the matrix is overwritten in the process)
 	template<class Type, class Size, bool ColMajor = false>
-static void QRStep(TVVec<Type, Size, ColMajor>& A, TVec<T<index>, index>& Tau) {
+static void QRStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<index>, index>& Tau) {
 		Assert(A.GetRows() >= A.GetCols());
 
 		// data used for factorization
@@ -137,7 +137,7 @@ static void QRStep(TVVec<Type, Size, ColMajor>& A, TVec<T<index>, index>& Tau) {
 	// LQ midstep used for LQFactorization and LQSolve.
 	// (Warning: the matrix is overwritten in the process)
 	template<class Type, class Size, bool ColMajor = false>
-static void LQStep(TVVec<Type, Size, ColMajor>& A, TVec<T<index>, index>& Tau) {
+static void LQStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<index>, index>& Tau) {
 		Assert(A.GetRows() <= A.GetCols());
 
 		Size NumOfRows = A.GetRows();
@@ -177,7 +177,7 @@ public:
 	// Vector P tell's us: column i is swapped with column P[i].
 	template<class Type, class Size, bool ColMajor = false>
 static void LUFactorization(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& L, 
-		TVVec<Type, Size, ColMajor>& U, TVec<T<index>, index>& P) {
+		TVVec<Type, Size, ColMajor>& U, TVec<TNum<index>, index>& P) {
 		Assert(A.GetRows() == A.GetCols());
 
 		Size NumOfRows_Matrix = A.GetRows();
@@ -218,7 +218,7 @@ static void LUFactorization(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, Co
 	// Solves the system of linear equations A * x = b, where A is a matrix, x and b are vectors.
 	// Solution is saved in x.
 	template<class Type, class Size, bool ColMajor = false>
-static void LUSolve(TVVec<T<Type>, Size, ColMajor>& A, TVec<T<Type>, Size>& x, TVec<T<Type>, Size>& b) {
+static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type>, Size>& x, TVec<TNum<Type>, Size>& b) {
 		Assert(A.GetRows() == b.Len());
 
 		// for matrix
@@ -232,9 +232,9 @@ static void LUSolve(TVVec<T<Type>, Size, ColMajor>& A, TVec<T<Type>, Size>& x, T
 		Size NumOfCols_Vector = 1;
 
 		// LU factorization
-		TVVec<T<Type>, Size, ColMajor> M = A;
+		TVVec<TNum<Type>, Size, ColMajor> M = A;
 		//TODO TInt is enough?
-		TVec<T<index>, index> Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+		TVec<TNum<index>, index> Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
 		MKLfunctions::LUStep(M, Perm);
 
 		// solution
@@ -268,7 +268,7 @@ static void LUSolve(TVVec<T<Type>, Size, ColMajor>& A, TVec<T<Type>, Size>& x, T
 	// Solves the system of linear equations A * X = B, where A, X and B are matrices.
 	// Solution is saved in X.
 	template<class Type, class Size, bool ColMajor = false>
-static void LUSolve(TVVec<T<Type>, Size, ColMajor>& A, TVVec<T<Type>, Size, ColMajor>& X, TVVec<T<Type>, Size, ColMajor>& B) {
+static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVVec<TNum<Type>, Size, ColMajor>& X, TVVec<TNum<Type>, Size, ColMajor>& B) {
 		Assert(A.GetRows() == B.GetRows());
 
 		// for matrix
@@ -282,9 +282,9 @@ static void LUSolve(TVVec<T<Type>, Size, ColMajor>& A, TVVec<T<Type>, Size, ColM
 		Size NumOfCols_B = B.GetCols();
 
 		// LU factorization
-		TVVec<T<Type>, Size, ColMajor> M = A;
+		TVVec<TNum<Type>, Size, ColMajor> M = A;
 		//TODO TInt is enough?
-		TVec<T<index>, index> Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+		TVec<TNum<index>, index> Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
 		MKLfunctions::LUStep(M, Perm);
 
 		// solution
@@ -451,7 +451,7 @@ static void CholeskySolve(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColM
 	// UpperTriangFlag: if the matrix is upper triangular (true) or lower triangular (false).
 	// DiagUnitFlag: if the matrix has ones on the diagonal (true) or not (false).
 	template<class Type, class Size, bool ColMajor = false>
-static void TriangularSolve(TVVec<T<Type>, Size, ColMajor>& A, TVec<T<Type>, Size>& x, TVec<T<Type>, Size>& b, 
+static void TriangularSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type>, Size>& x, TVec<TNum<Type>, Size>& b, 
 		bool UpperTriangFlag = true, bool DiagonalUnitFlag = false) {
 		Assert(A.GetRows() == b.Len());
 

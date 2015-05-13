@@ -34,7 +34,7 @@ struct is_float<float>
 { static const bool value = true; };
 
 template<>
-struct is_float<T<float>>
+struct is_float<TNum<float>>
 {
 	static const bool value = true;
 };
@@ -47,7 +47,7 @@ template<>
 struct is_double<double>
 { static const bool value = true; };
 template<>
-struct is_double<T<double>>
+struct is_double<TNum<double>>
 {
 	static const bool value = true;
 };
@@ -63,7 +63,7 @@ struct is_complex_float< std::complex<float> >
 { static const bool value = true; };
 
 template<>
-struct is_complex_float< T<std::complex<float>> >
+struct is_complex_float< TNum<std::complex<float>> >
 {
 	static const bool value = true;
 };
@@ -77,7 +77,7 @@ struct is_complex_double< std::complex<double> >
 { static const bool value = true; };
 
 template<>
-struct is_complex_double< T<std::complex<double>> >
+struct is_complex_double< TNum<std::complex<double>> >
 {
 	static const bool value = true;
 };
@@ -493,7 +493,7 @@ template <class Type, class Size = int, bool ColMajor = false>
 	}
 	// <X[ColId], Vec>
 //template <class Type, class Size = int, bool ColMajor = false>
-//	static Type DotProduct(const TVec<TVec<T<Type>, Size>, Size>& X, int ColId, const TVec<T<Type>, Size>& Vec) {
+//	static Type DotProduct(const TVec<TVec<TNum<Type>, Size>, Size>& X, int ColId, const TVec<TNum<Type>, Size>& Vec) {
 //		EAssert(0 <= ColId && ColId < X.Len());
 //		return DotProduct(X[ColId], y);
 //	}
@@ -596,10 +596,10 @@ template <class Type, class Size = int, bool ColMajor = false>
 
 	//TODO this will work only for glib type TFlt
 template <class Type, class Size = int, bool ColMajor = false>
-static void LinCombInPlace(const Type& alpha, const TVec<T<Type>, Size>& x,
-	const Type& beta, TVec<T<Type>, Size>& y) {
-//static void LinCombInPlace(const double& alpha, const TVec<T<Type>, Size>& x,
-	//const double& beta, TVec<T<Type>, Size>& y) {
+static void LinCombInPlace(const Type& alpha, const TVec<TNum<Type>, Size>& x,
+	const Type& beta, TVec<TNum<Type>, Size>& y) {
+//static void LinCombInPlace(const double& alpha, const TVec<TNum<Type>, Size>& x,
+	//const double& beta, TVec<TNum<Type>, Size>& y) {
 	//EAssert(x.Len() == y.Len() && y.Len() == z.Len());
 #ifdef BLAS
 	if (is_double<Type>::value == true){
@@ -705,8 +705,8 @@ template <class Type, class Size = int, bool ColMajor = false>
 	// TEST
 	//y = k * x + y 
 template <class Type, class Size = int, bool ColMajor = false>
-//	static void AddVec(const double& k, const TVec<T<Type>, Size>& x, TVec<T<Type>, Size>& y) {
-static void AddVec(const Type& k, const TVec<T<Type>, Size>& x, TVec<T<Type>, Size>& y) {
+//	static void AddVec(const double& k, const TVec<TNum<Type>, Size>& x, TVec<TNum<Type>, Size>& y) {
+static void AddVec(const Type& k, const TVec<TNum<Type>, Size>& x, TVec<TNum<Type>, Size>& y) {
 		if (is_double<Type>::value == true){
 			typedef double Loc;
 			cblas_daxpy(x.Len(), *((Loc *)&k), (Loc *)&x[0].Val, 1, (Loc *) &y[0].Val, 1);
@@ -894,7 +894,7 @@ template <class Type, class Size = int>
 	}
 	// Result = ||A||_F (Frobenious)
 template <class Type, class Size = int, bool ColMajor = false>
-static Type Frob(const TVVec<T<Type>, Size, ColMajor> &A) {
+static Type Frob(const TVVec<TNum<Type>, Size, ColMajor> &A) {
 	Type frob = 0;
 	for (int RowN = 0; RowN < A.GetRows(); RowN++) {
 		for (int ColN = 0; ColN < A.GetCols(); ColN++) {
@@ -1153,7 +1153,7 @@ template <class Type, class Size = int, bool ColMajor = false>
 		return sqrt(TLinAlg::Norm2(x));
 	}
 
-	//Andrej switch this to T<Type>
+	//Andrej switch this to TNum<Type>
 	// TEST
     // x := x / ||x||
 	template <class Type, class Size = int, bool ColMajor = false>
@@ -1674,7 +1674,7 @@ template <class Type, class Size = int, bool ColMajor = false>
 	// INTEL
 	//Be careful C should be of the proper size! if not populated (works only for rowmajor!)
 	template <class Type, class Size, bool ColMajor = false>
-	static void MultiplySF(const TTriple<TVec<T<Size>, Size>, TVec<T<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, false>& B, 
+	static void MultiplySF(const TTriple<TVec<TNum<Size>, Size>, TVec<TNum<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, false>& B, 
 		TVVec<Type, Size, ColMajor>& C, const TStr& transa = TStr("N"), const int& format = 0){
 		//B is row_major 
 		Size m, n, k, ldb, ldc;
@@ -1793,7 +1793,7 @@ template <class Type, class Size = int, bool ColMajor = false>
 	// C = op(A) * op(B)
 	template <class Type, class Size = int, bool ColMajor = false>
 	inline
-	static void Multiply(const TVVec<T<Type>, Size, ColMajor>& A, const TVVec<T<Type>, Size, ColMajor>& B, TVVec<T<Type>, Size, ColMajor>& C, 
+	static void Multiply(const TVVec<TNum<Type>, Size, ColMajor>& A, const TVVec<TNum<Type>, Size, ColMajor>& B, TVVec<TNum<Type>, Size, ColMajor>& C, 
 		const int& BlasTransposeFlagA, const int& BlasTransposeFlagB) {
 		//C := alpha*op(A)*op(B) + beta*C,
 		//where:
@@ -1942,9 +1942,9 @@ template <class Type, class Size = int, bool ColMajor = false>
 #ifdef BLAS	
 	// TEST
 	// y := alpha*op(A)*x + beta*y, where op(A) = A -- N, op(A) = A' -- T, op(A) = conj(A') -- C (only for complex)
-	//Andrej ToDo In the future replace Type with T<type> and change double to type
+	//Andrej ToDo In the future replace Type with TNum<type> and change double to type
 	template <class Type, class Size = int, bool ColMajor = false>
-	static void Multiply(const TVVec<T<Type>, Size, ColMajor>& A, const TVec<T<Type>, Size>& x, TVec<T<Type>, Size>& y, const int& BlasTransposeFlagA, Type alpha = 1.0, Type beta = 0.0) {
+	static void Multiply(const TVVec<TNum<Type>, Size, ColMajor>& A, const TVec<TNum<Type>, Size>& x, TVec<TNum<Type>, Size>& y, const int& BlasTransposeFlagA, Type alpha = 1.0, Type beta = 0.0) {
 		Size m = A.GetRows();
 		Size n = A.GetCols();
 		//Can we multiply and store in y?
@@ -2126,7 +2126,7 @@ static void MultiplyT(const TVVec<Type, Size, ColMajor>& A, const TTriple<TVec<I
 
 #if !defined(INTEL) || defined(INDEX_64)
 	template <class Type, class Size = int, bool ColMajor = false>
-	static void Multiply(const TTriple<TVec<T<Size>, Size>, TVec<T<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, ColMajor>& B, 
+	static void Multiply(const TTriple<TVec<TNum<Size>, Size>, TVec<TNum<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, ColMajor>& B, 
 	TVVec<Type, Size, ColMajor>& C) {
 	// A well defined
 	EAssert(A.Val1.Len() == A.Val2.Len() && A.Val2.Len() == A.Val3.Len());
@@ -2148,7 +2148,7 @@ static void MultiplyT(const TVVec<Type, Size, ColMajor>& A, const TTriple<TVec<I
 	// TEST
 	// C:= A' * B
 	template <class Type, class Size = int, bool ColMajor = false>
-	static void MultiplyT(const TTriple<TVec<T<Size>, Size>, TVec<T<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, ColMajor>& B, 
+	static void MultiplyT(const TTriple<TVec<TNum<Size>, Size>, TVec<TNum<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, ColMajor>& B, 
 	TVVec<Type, Size, ColMajor>& C) {
 	// B well defined
 	EAssert(A.Val1.Len() == A.Val2.Len() && A.Val2.Len() == A.Val3.Len());
@@ -2171,7 +2171,7 @@ static void MultiplyT(const TVVec<Type, Size, ColMajor>& A, const TTriple<TVec<I
 // TEST
 //If B and C are not of the proper size all will end very badly
 	template <class Type, class Size = int, bool ColMajor = false>
-static void Multiply(const TTriple<TVec<T<Size>, Size>, TVec<T<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, ColMajor>& B, 
+static void Multiply(const TTriple<TVec<TNum<Size>, Size>, TVec<TNum<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, ColMajor>& B, 
 	TVVec<Type, Size, ColMajor>& C) {
 	// A well defined
 	EAssert(A.Val1.Len() == A.Val2.Len() && A.Val2.Len() == A.Val3.Len());
@@ -2184,7 +2184,7 @@ static void Multiply(const TTriple<TVec<T<Size>, Size>, TVec<T<Size>, Size>, TVe
 
 // TEST
 	template <class Type, class Size = int, bool ColMajor = false>
-	static void MultiplyT(const TTriple<TVec<T<Size>, Size>, TVec<T<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, ColMajor>& B,
+	static void MultiplyT(const TTriple<TVec<TNum<Size>, Size>, TVec<TNum<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, ColMajor>& B,
 	TVVec<Type, Size, ColMajor>& C) {
 	// B well defined
 	EAssert(A.Val1.Len() == A.Val2.Len() && A.Val2.Len() == A.Val3.Len());
