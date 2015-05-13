@@ -1416,11 +1416,11 @@ class TNum<int64>{
 public:
 	int64 Val;
 public:
-	static const T Mn;
-	static const T Mx;
+	static const TNum Mn;
+	static const TNum Mx;
 
 	TNum() : Val(0){}
-	TNum(const T& Int) : Val(Int.Val){}
+	TNum(const TNum& Int) : Val(Int.Val){}
 	TNum(const int64& Int) : Val(Int){}
 	/*explicit T(void* Pt) : Val(0){
 		TConv_Pt64Ints32 Conv(Pt); Val = Conv.GetUInt64();
@@ -1439,19 +1439,19 @@ public:
 	TNum& operator--(){ --Val; return *this; } // prefix
 	TNum operator++(int){ TNum oldVal = Val; Val++; return oldVal; } // postfix
 	TNum operator--(int){ TNum oldVal = Val; Val--; return oldVal; } // postfix
-	int GetMemUsed() const { return sizeof(T); }
+int GetMemUsed() const { return sizeof(TNum); }
 
 	//TStr GetStr() const {return TStr::Fmt("%Lu", Val);}
 	//static TStr GetStr(const T& Int){return TStr::Fmt("%Lu", Int.Val);}
 	//static TStr GetHexStr(const T& Int){return TStr::Fmt("%LX", Int.Val);}
 #ifdef GLib_WIN
 	TStr GetStr() const { return TStr::Fmt("%I64", Val); }
-	static TStr GetStr(const T& Int){ return TStr::Fmt("%I64", Int.Val); }
-	static TStr GetHexStr(const T& Int){ return TStr::Fmt("%I64X", Int.Val); }
+	static TStr GetStr(const TNum& Int){ return TStr::Fmt("%I64", Int.Val); }
+	static TStr GetHexStr(const TNum& Int){ return TStr::Fmt("%I64X", Int.Val); }
 #else
 	TStr GetStr() const { return TStr::Fmt("%ll", Val); }
-	static TStr GetStr(const T& Int){ return TStr::Fmt("%ll", Int.Val); }
-	static TStr GetHexStr(const T& Int){ return TStr::Fmt("%ll", Int.Val); }
+	static TStr GetStr(const TNum& Int){ return TStr::Fmt("%ll", Int.Val); }
+	static TStr GetHexStr(const TNum& Int){ return TStr::Fmt("%ll", Int.Val); }
 #endif
 
 	static TStr GetKiloStr(const int64& Val){
@@ -1520,12 +1520,12 @@ public:
 
   #ifdef GLib_WIN
   TStr GetStr() const {return TStr::Fmt("%I64u", Val);}
-  static TStr GetStr(const T& Int){return TStr::Fmt("%I64u", Int.Val);}
-  static TStr GetHexStr(const T& Int){return TStr::Fmt("%I64X", Int.Val);}
+static TStr GetStr(const TNum& Int){return TStr::Fmt("%I64u", Int.Val);}
+static TStr GetHexStr(const TNum& Int){return TStr::Fmt("%I64X", Int.Val);}
   #else
   TStr GetStr() const {return TStr::Fmt("%llu", Val);}
-  static TStr GetStr(const T& Int){return TStr::Fmt("%llu", Int.Val);}
-  static TStr GetHexStr(const T& Int){return TStr::Fmt("%llX", Int.Val);}
+static TStr GetStr(const TNum& Int){return TStr::Fmt("%llu", Int.Val);}
+static TStr GetHexStr(const TNum& Int){return TStr::Fmt("%llX", Int.Val);}
   #endif
 
   static TStr GetKiloStr(const uint64& Val){
@@ -1628,7 +1628,7 @@ public:
   bool IsNum() const { return IsNum(Val); }
   bool IsNan() const { return IsNan(Val); }
 
-  TStr GetStr() const {return T::GetStr(Val);}
+TStr GetStr() const {return TNum::GetStr(Val);}
   static TStr GetStr(const double& Val, const int& Width=-1, const int& Prec=-1);
   static TStr GetStr(const T& Flt, const int& Width=-1, const int& Prec=-1){
     return GetStr(Flt.Val, Width, Prec);}
