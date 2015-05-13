@@ -840,7 +840,7 @@ public:
 	}
 	const TVal& operator[](const TSizeTy& El) const {
 		TSizeTy index = start + El*stride;
-		AssertR((0 <= ValN) && (index < Vector->Vals), GetXOutOfBoundsErrMsg(index));
+		AssertR((0 <= index) && (index < Vector->Vals), GetXOutOfBoundsErrMsg(index));
 		return (*Vector)[index];
 	}
 	TVal& operator[](const TSizeTy& El){
