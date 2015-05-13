@@ -1256,7 +1256,7 @@ public:
   TNum& operator--(){ --Val; return *this; } // prefix
   TNum operator++(int){ TNum oldVal = Val; Val++; return oldVal; } // postfix
   TNum operator--(int){ TNum oldVal = Val; Val--; return oldVal; } // postfix
-  int GetMemUsed() const {return sizeof(T);}
+int GetMemUsed() const {return sizeof(TNum);}
 
   int GetPrimHashCd() const {return Val;}
   int GetSecHashCd() const {return Val/0x10;}
@@ -1307,7 +1307,7 @@ public:
 
   static TStr GetHexStr(const int& Val){
     char Bf[255]; sprintf(Bf, "%X", Val); return TStr(Bf);}
-  static TStr GetHexStr(const T& Int){
+  static TStr GetHexStr(const TNum& Int){
     return GetHexStr(Int.Val);}
 
   static TStr GetKiloStr(const int& Val){
@@ -1349,7 +1349,7 @@ public:
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
-  TNum& operator=(const T& UInt){ Val = UInt.Val; return *this; }
+  TNum& operator=(const TNum& UInt){ Val = UInt.Val; return *this; }
   TNum& operator=(const uint& _Val){ Val = _Val; return *this; }
   TNum& operator++(){ ++Val; return *this; } // prefix
   TNum& operator--(){ --Val; return *this; } // prefix
@@ -1367,17 +1367,17 @@ public:
   TNum& operator^=(const TNum& UInt){ Val ^= UInt.Val; return *this; }
   TNum& operator>>=(const int& ShiftBits){ Val >>= ShiftBits; return *this; }
   TNum& operator<<=(const int& ShiftBits){ Val <<= ShiftBits; return *this; }
-  int GetMemUsed() const {return sizeof(T);}
+int GetMemUsed() const {return sizeof(TNum);}
 
   int GetPrimHashCd() const {return int(Val);}
   int GetSecHashCd() const {return Val/0x10;}
 
   static uint GetRnd(const uint& Range=0){return Rnd.GetUniDevUInt(Range);}
 
-  TStr GetStr() const {return T::GetStr(Val);}
+TStr GetStr() const {return TNum::GetStr(Val);}
   static TStr GetStr(const uint& Val){
     char Bf[255]; sprintf(Bf, "%u", Val); return TStr(Bf);}
-  static TStr GetStr(const T& UInt){
+  static TStr GetStr(const TNum& UInt){
     return GetStr(UInt.Val);}
   static TStr GetStr(const uint& Val, const char* FmtStr);
   static TStr GetStr(const uint& Val, const TStr& FmtStr){
@@ -1507,7 +1507,7 @@ public:
   TNum& operator--(){ --Val; return *this; } // prefix
   TNum operator++(int){ TNum oldVal = Val; Val++; return oldVal; } // postfix
   TNum operator--(int){ TNum oldVal = Val; Val--; return oldVal; } // postfix
-  int GetMemUsed() const {return sizeof(T);}
+  int GetMemUsed() const {return sizeof(TNum);}
 
   int GetPrimHashCd() const { return (int)GetMsVal() + (int)GetLsVal(); } //TODO: to check
   int GetSecHashCd() const { return ((int)GetMsVal() + (int)GetLsVal()) / 0x10; } //TODO: to check
@@ -1630,7 +1630,7 @@ public:
 
 TStr GetStr() const {return TNum::GetStr(Val);}
   static TStr GetStr(const double& Val, const int& Width=-1, const int& Prec=-1);
-  static TStr GetStr(const T& Flt, const int& Width=-1, const int& Prec=-1){
+  static TStr GetStr(const TNum& Flt, const int& Width=-1, const int& Prec=-1){
     return GetStr(Flt.Val, Width, Prec);}
   static TStr GetStr(const double& Val, const char* FmtStr);
   static TStr GetStr(const double& Val, const TStr& FmtStr){
