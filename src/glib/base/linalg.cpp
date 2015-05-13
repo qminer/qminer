@@ -686,7 +686,7 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
     TFltVV L, U;
 	TFltV OnesV(Dim), TempV(Dim);
 
-	TVec<T<index>, index> PermV;
+	TVec<T<index_t>, index_t> PermV;
 
     // build an initial estimate of the eigenvector
     // decompose (A - Lambda*I) into LU

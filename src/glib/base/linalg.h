@@ -2534,7 +2534,7 @@ static void MultiplyT(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFlt
 	}
 
     // performes Gram-Schmidt ortogonalization on elements of Q
-	template <class Size = index>
+	template <class Size = int>
 	static void GS(TVec<TVec<TFlt, Size>, Size>& Q) {
 		EAssert(Q.Len() > 0);
 		Size m = Q.Len(); // int n = Q[0].Len();

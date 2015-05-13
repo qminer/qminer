@@ -10,9 +10,9 @@
 #define base_h
 
 #ifndef INDEX_64
-typedef int index;
+typedef int index_t;
 #else
-typedef long long index;
+typedef long long index_t;
 #endif
 /////////////////////////////////////////////////
 // Environment defines
