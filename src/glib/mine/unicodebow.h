@@ -129,7 +129,7 @@ namespace TUnicodeVSM {
 		TUStr  GetWord(int WordIndex)  { Assert(WordIndex < WordIds.Len() && WordIndex >= 0);  return  WordIds.GetKey(WordIndex); }
 		TUStr  GetToken(int TokenIndex);
 		int  GetNumberOfTokens();
-		int  GetNumberOfDocs()  { return  (int)MAX(Matrix.Len(), NDocs->Val); }
+		int  GetNumberOfDocs()  { return  (int)MAX(Matrix.Len(), NDocs.Val); }
 		void SaveOldBin(TSOut& SOut) const;
 		void SaveBin(TSOut& SOut) const;
 		//Simple export to text format, outputn directory must exist!
