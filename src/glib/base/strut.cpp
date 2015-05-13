@@ -16,8 +16,8 @@ TStr TStrUtil::GetStr(const TIntV& IntV, const TStr& DelimiterStr) {
   }
   return ResChA;
 }
-
-TStr TStrUtil::GetStr(const TVec<T<int64>, int64>& IntV, const TStr& DelimiterStr) {
+//Explicit 64 bit indexing
+TStr TStrUtil::GetStr(const TVec<TNum<int64>, int64>& IntV, const TStr& DelimiterStr) {
 	TChA ResChA;
 	for (int64 IntN = 0; IntN < IntV.Len(); IntN++) {
 		if (!ResChA.Empty()) { ResChA += DelimiterStr; }

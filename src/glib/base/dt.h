@@ -1343,7 +1343,7 @@ public:
   TNum() : Val(0){}
   TNum(const uint& _Val) : Val(_Val){}
   operator uint() const {return Val;}
-  explicit T(TSIn& SIn){SIn.Load(Val);}
+  explicit TNum(TSIn& SIn){SIn.Load(Val);}
   void Load(TSIn& SIn){SIn.Load(Val);}
   void Save(TSOut& SOut) const {SOut.Save(Val);}
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
@@ -1483,8 +1483,8 @@ class TNum<uint64>{
 public:
   uint64 Val;
 public:
-  static const T Mn;
-  static const T Mx;
+  static const TNum Mn;
+  static const TNum Mx;
 
   TNum() : Val(0){}
   TNum(const TNum& Int) : Val(Int.Val){}
