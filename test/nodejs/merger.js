@@ -12,8 +12,8 @@ var qm = require('../../');
 
 
 describe('Merger test, old', function () {
-	it('should survive', function () {
-
+	it('should survive', function (done) {
+	this.timeout(10000);
 qm.delLock();
 qm.config('qm.conf', true, 8080, 1024);
 var backward = require('../../src/nodejs/scripts/backward.js');
@@ -531,6 +531,8 @@ testMerger();
 testResampler();
 
 base.close();
+
+done();
 
 })
 });
