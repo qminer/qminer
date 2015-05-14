@@ -87,6 +87,7 @@ describe('Record Set Tests', function () {
         recSet = table.base.store("Movies").recs;
         recSet2 = table.base.store("People").recs;
         recSet3 = table.base.store("Basketball").recs;
+        done();
     });
     afterEach(function () {
         table.close();
