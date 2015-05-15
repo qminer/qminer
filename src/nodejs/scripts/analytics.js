@@ -231,12 +231,12 @@ module.exports = exports = function (pathPrefix) {
         //#         or string array (when there are zero or more then one lables).
         this.count = function (correct, predicted) {
             // wrapt classes in arrays if not already
-            if (util.isString(correct)) { this.count([correct], predicted); return; }
-            if (util.isString(predicted)) { this.count(correct, [predicted]); return; }
+            if (qm_util.isString(correct)) { this.count([correct], predicted); return; }
+            if (qm_util.isString(predicted)) { this.count(correct, [predicted]); return; }
             // go over all possible categories and counts
             for (var cat in this.target) {
-                var catCorrect = util.isInArray(correct, cat);
-                var catPredicted = util.isInArray(predicted, cat);
+                var catCorrect = qm_util.isInArray(correct, cat);
+                var catPredicted = qm_util.isInArray(predicted, cat);
                 // update counts for correct categories
                 if (catCorrect) { this.target[cat].count++; }
                 // update counts for how many times category was predicted
