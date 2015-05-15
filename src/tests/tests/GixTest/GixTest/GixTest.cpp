@@ -33,7 +33,6 @@ typedef  TPt < TMyItemSet > PMyItemSet;
 typedef TGix<TMyKey, TMyItem, TMyGixDefMerger> TMyGix;
 typedef TPt<TGix<TMyKey, TMyItem, TMyGixDefMerger> > PMyGix;
 
-
 /////////////////////////////////////////////////////////////////////////
 //// for nice outputs
 //
@@ -341,7 +340,7 @@ public:
 		}
 		printf("Checking counts done.\n");
 	}
-	
+
 	static void OverwriteCounts(THash<TInt, TInt>& counts, TMyGix& gix) {
 		printf("Overwritting counts...\n");
 		for (auto &key : counts) {
@@ -474,12 +473,12 @@ public:
 	static void Test_SizeTest(int cache_size = 1 * 1024 * 1024, int split_len = 1000) {
 		TStr Nm("Test_Feed");
 		TStr FName("data");
-		int loops = 200*1000;
+		int loops = 200 * 1000;
 		int total_words = 20000;
 		int article_max_len = 20;
 		int keys = 0;
 		cache_size *= 10;
-        printf("***** size=%d\n", sizeof(TMyItem));
+		printf("***** size=%d\n", sizeof(TMyItem));
 		{
 			TMyGix gix(Nm, FName, faCreate, cache_size, split_len);
 			gix.PrintStats();
@@ -491,7 +490,7 @@ public:
 				//for (int j = 1; j <= article_max_len; j++) {
 				//	gix.AddItem(TIntUInt64Pr(j, j), TMyItem(doc_counter, 1));
 				//}
-				
+
 				// pick random words
 				int r = rnd.GetUniDevInt(article_max_len);
 				for (int j = 1; j <= r; j++) {
@@ -516,7 +515,7 @@ public:
 			getchar();
 
 			gix.KillHash();
-            gix.PrintStats();
+			gix.PrintStats();
 
 			std::cout << "------- ";
 			std::cout << "Before disposing cache - press key to continue: ";
@@ -925,7 +924,7 @@ public:
 		}
 	}
 
-	void PerformBigTests() {		
+	void PerformBigTests() {
 
 		Test_BigInserts();
 		Test_RandomGenerateRead();
@@ -941,6 +940,35 @@ public:
 		//// it will also limit cache to less than 10% of the itemsets
 		//WarnNotifyI(TStr("Split all itemsets, small cache\n"));
 		//Test_Feed(5 * 1024 * 1025, 1000);
+	}
+
+	static void Test_ReadOnlyAfterCrash() {
+		TStr Nm = "Test1";
+		TStr Path = "data";
+		{
+			// create index and add single item
+			TMyGix gix(Nm, Path, faCreate, 10000, 100);
+			for (int i = 0; i < 100; i++) {
+				auto key = TIntUInt64Pr(i, i);
+				gix.AddItem(key, TMyItem(7234, 1));
+				// now close it when it goes out of scoope
+			}
+		}
+		{
+			// now open in read-only mode as pointer
+			auto gix = new TMyGix(Nm, Path, faRdOnly, 10000, 100);
+			auto key = TIntUInt64Pr(12, 12);
+			auto itemset = gix->GetItemSet(key);
+			// don't delete, this simulates the crash
+		}
+		{
+			// now open again in read-only mode
+			// this simulates situation when it was opened read-only  
+			// and the system crashed
+			TMyGix gix2(Nm, Path, faRdOnly, 10000, 100);
+			auto key2 = TIntUInt64Pr(12, 12);
+			auto itemset2 = gix2.GetItemSet(key2);
+		}
 	}
 };
 
@@ -964,3 +992,4 @@ TEST(testTBlobBs, Delete22000And1000) { XTest::Test_Delete_22000And1000(); }
 TEST(testTBlobBs, QuasiDelete120And1And2) { XTest::Test_QuasiDelete_120And1And2(); }
 TEST(testTBlobBs, QuasiDelete120And20) { XTest::Test_QuasiDelete_120And20(); }
 TEST(testTBlobBs, QuasiDelete22000And1000) { XTest::Test_QuasiDelete_22000And1000(); }
+TEST(testTBlobBs, ReadOnlyAfterCrash) { XTest::Test_ReadOnlyAfterCrash(); }
