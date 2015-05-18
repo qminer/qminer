@@ -438,7 +438,7 @@ TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bo
 
 	for (int i = 0; i < cnt; i++) {
 		ValV.Add(); // empty (non-loaded) data
-		DirtyV.Add(3); // init dirty flags
+		DirtyV.Add(isdfNotLoaded); // init dirty flags
 	}
 	if (!_Lazy) {
 		LoadAll();
@@ -464,7 +464,7 @@ TInMemStorage::~TInMemStorage() {
 
 /// Utility method for loading specific record
 void TInMemStorage::LoadRec(int i) const {
-	if (DirtyV[i] != 3) {
+	if (DirtyV[i] != isdfNotLoaded) {
 		return;
 	}
 	const int ii = i / BlockSize;
@@ -472,8 +472,8 @@ void TInMemStorage::LoadRec(int i) const {
 	TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[ii]), mem);
 	PSIn in = mem.GetSIn();
 	for (int j = ii*BlockSize; j < DirtyV.Len() && j < (ii + 1)*BlockSize; j++) {
-		if (DirtyV[j] == 3) {
-			DirtyV[j] = 1;
+		if (DirtyV[j] == isdfNotLoaded) {
+			DirtyV[j] = isdfClean;
 			ValV[j].Load(in);
 		} else {
 			TMem mem2;
@@ -486,15 +486,15 @@ void TInMemStorage::LoadRec(int i) const {
 int TInMemStorage::SaveRec(int i) {
 	int res = 0;
 	switch (DirtyV[i]) {
-	case 0:
-	case 2:
+	case isdfNew:
+	case isdfDirty:
 		{
 			res++;
 			const int ii = i / BlockSize;
 			TMOut mem;
 			for (int j = ii*BlockSize; j < DirtyV.Len() && j < (ii + 1)*BlockSize; j++) {
 				ValV[j].Save(mem);
-				DirtyV[j] = 1;
+				DirtyV[j] = isdfClean;
 			}
 			while (BlobPtV.Len() <= ii) {
 				BlobPtV.Add();
@@ -506,8 +506,8 @@ int TInMemStorage::SaveRec(int i) {
 			}
 		}
 		break;
-	case 1:
-	case 3: break;
+	case isdfClean:
+	case isdfNotLoaded: break;
 	}
 	return res;
 }
@@ -528,7 +528,7 @@ void TInMemStorage::GetVal(const uint64& ValId, TMem& Val) const {
 
 uint64 TInMemStorage::AddVal(const TMem& Val) {
 	uint64 res = ValV.Add(Val);
-	DirtyV.Add(0);
+	DirtyV.Add(isdfNew);
 	if (ValV.Len() % BlockSize == 1) {
 		BlobPtV.Add();
 	}
@@ -538,9 +538,9 @@ uint64 TInMemStorage::AddVal(const TMem& Val) {
 void TInMemStorage::SetVal(const uint64& ValId, const TMem& Val) {
 	AssertReadOnly();
     ValV[ValId - FirstValOffsetMem] = Val;
-	uchar& flag = DirtyV[ValId - FirstValOffsetMem];
-	if (flag == 0) { } // new remains new
-	else { flag = 2; } // set as dirty
+	TInMemStorageDirtyFlag flag = DirtyV[ValId - FirstValOffsetMem];
+	if (flag == isdfNew) { } // new remains new
+	else { flag = isdfDirty; } // set as dirty
 }
 
 void TInMemStorage::DelVals(int Vals) {

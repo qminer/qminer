@@ -54,7 +54,7 @@ public:
 			TQm::TStorage::TInMemStorage storage(Fn, faUpdate);
 			EXPECT_EQ(storage.ValV.Len(), 1);
 			EXPECT_EQ(storage.DirtyV.Len(), 1);
-			EXPECT_EQ(storage.DirtyV[0], 1); // loaded and clean
+			EXPECT_EQ(storage.DirtyV[0], TQm::TStorage::isdfClean); // loaded and clean
 			TMem mem;
 			storage.GetVal(0, mem);
 			EXPECT_EQ(mem.GetHexStr(), tmp);
@@ -78,7 +78,7 @@ public:
 			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
 			EXPECT_EQ(storage.ValV.Len(), 1);
 			EXPECT_EQ(storage.DirtyV.Len(), 1);
-			EXPECT_EQ(storage.DirtyV[0], 3); // not loaded yet
+			EXPECT_EQ(storage.DirtyV[0], TQm::TStorage::isdfNotLoaded); // not loaded yet
 			TMem mem;
 			storage.GetVal(0, mem);
 			EXPECT_EQ(mem.GetHexStr(), tmp);
@@ -143,7 +143,7 @@ public:
 
 			int loaded_cnt = 0;
 			for (int i = 0; i < storage.ValV.Len(); i++) {
-				if (storage.DirtyV[i] != 3) { // if loaded
+				if (storage.DirtyV[i] != TQm::TStorage::isdfNotLoaded) { // if loaded
 					loaded_cnt++;
 				}
 			}
@@ -153,7 +153,7 @@ public:
 
 			loaded_cnt = 0;
 			for (int i = 0; i < storage.ValV.Len(); i++) {
-				if (storage.DirtyV[i] != 3) { // if loaded
+				if (storage.DirtyV[i] != TQm::TStorage::isdfNotLoaded) { // if loaded
 					loaded_cnt++;
 				}
 			}
@@ -184,7 +184,7 @@ public:
 
 			int loaded_cnt = 0;
 			for (int i = 0; i < storage.ValV.Len(); i++) {
-				if (storage.DirtyV[i] != 3) { // if loaded
+				if (storage.DirtyV[i] != TQm::TStorage::isdfNotLoaded) { // if loaded
 					loaded_cnt++;
 				}
 			}
@@ -194,7 +194,7 @@ public:
 
 			loaded_cnt = 0;
 			for (int i = 0; i < storage.ValV.Len(); i++) {
-				ASSERT_TRUE(storage.DirtyV[i] == 1);
+				ASSERT_TRUE(storage.DirtyV[i] == TQm::TStorage::isdfClean);
 				loaded_cnt++;
 				//printf("****[%s] * [%s]\n", temp[i].CStr(), storage.ValV[i].GetHexStr().CStr());
 				EXPECT_EQ(temp[i], storage.ValV[i].GetHexStr());
@@ -506,6 +506,11 @@ TEST(testTBase, ClearStoreTestBigComplex) {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST(testTInMemStorage, MemFootPrint1) {
+	printf("+++++++++++++ %d\n", sizeof(TQm::TStorage::TInMemStorageDirtyFlag));
+	EXPECT_EQ(sizeof(TQm::TStorage::TInMemStorageDirtyFlag), 1);
+}
 
 TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
 TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
