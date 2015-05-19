@@ -194,12 +194,16 @@ typedef TVec<TStoreSchema> TStoreSchemaV;
 
 /////////////////////////////////////////////////
 // Input-Output-File
-typedef enum { 
-	isdfNew = '\1', 
-	isdfClean = isdfNew << 1,
-	isdfDirty = isdfNew << 2,
-	isdfNotLoaded = isdfNew << 3
-} TInMemStorageDirtyFlag;
+const uchar isdfNew = 1;
+const uchar isdfClean = 1 << 1;
+const uchar isdfDirty = 1 << 2;
+const uchar isdfNotLoaded = 1 << 3;
+//typedef enum { 
+//	isdfNew = '\1', 
+//	isdfClean = isdfNew << 1,
+//	isdfDirty = isdfNew << 2,
+//	isdfNotLoaded = isdfNew << 3
+//} TInMemStorageDirtyFlag;
 
 ///////////////////////////////
 /// In-memory storage.
@@ -222,7 +226,7 @@ private:
 	/// Blob-pointers - locations where TMem objects are stored inside Blob storage
 	TVec<TBlobPt, int64> BlobPtV;
 	/// "Dirty flags" - 0 - new and not saved yet, 1 - existing and clean, 2 - existing but dirty, 3 - existing but not loaded
-	mutable TVec<TInMemStorageDirtyFlag, int64> DirtyV;
+	mutable TVec<uchar, int64> DirtyV;
     /// Blob storage
 	PBlobBs BlobStorage;
 	/// How many records are packed together into block;

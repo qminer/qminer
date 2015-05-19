@@ -507,11 +507,6 @@ TEST(testTBase, ClearStoreTestBigComplex) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST(testTInMemStorage, MemFootPrint1) {
-	printf("+++++++++++++ %d\n", sizeof(TQm::TStorage::TInMemStorageDirtyFlag));
-	EXPECT_EQ(sizeof(TQm::TStorage::TInMemStorageDirtyFlag), 1);
-}
-
 TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
 TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
 TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
