@@ -193,17 +193,16 @@ public:
 typedef TVec<TStoreSchema> TStoreSchemaV;
 
 /////////////////////////////////////////////////
-// Input-Output-File
+// Dirty flags for TInMemStorage
+
+/// Flag for new unsaved entry
 const uchar isdfNew = 1;
+/// Flag for clean, already saved entry
 const uchar isdfClean = 1 << 1;
+/// Flag for dirty entry that needs to be saved
 const uchar isdfDirty = 1 << 2;
+/// Flag for entry that hasn't been loaded yet
 const uchar isdfNotLoaded = 1 << 3;
-//typedef enum { 
-//	isdfNew = '\1', 
-//	isdfClean = isdfNew << 1,
-//	isdfDirty = isdfNew << 2,
-//	isdfNotLoaded = isdfNew << 3
-//} TInMemStorageDirtyFlag;
 
 ///////////////////////////////
 /// In-memory storage.
