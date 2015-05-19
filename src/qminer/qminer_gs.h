@@ -259,6 +259,8 @@ public:
 	int PartialFlush(int WndInMsec = 500);
 	inline void LoadAll();
 
+	TBlobBsStats GetBlobBsStats() { return BlobStorage->GetStats(); }
+
 #ifdef XTEST
 private:
 	friend class XTest;
@@ -766,6 +768,8 @@ public:
 
 	/// Save part of the data, given time-window
 	int PartialFlush(int WndInMsec = 500);
+	/// Retrieve performance statistics for this store
+	PJsonVal GetStats();
 };
 
 ///////////////////////////////

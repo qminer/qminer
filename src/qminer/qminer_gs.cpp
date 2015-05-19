@@ -2547,6 +2547,15 @@ int TStoreImpl::PartialFlush(int WndInMsec) {
 	return res;
 }
 
+/// Retrieve performance statistics for this store
+PJsonVal TStoreImpl::GetStats() {
+	PJsonVal res = TJsonVal::NewObj();
+	res->AddToObj("name", GetStoreNm());
+	res->AddToObj("blob_storage_memory", BlobBsStatsToJson(DataMem.GetBlobBsStats()));
+	res->AddToObj("blob_storage_cache", BlobBsStatsToJson(DataCache.GetBlobBsStats()));
+	return res;
+}
+
 ///////////////////////////////
 /// Create new stores in an existing base from a schema definition
 TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, 

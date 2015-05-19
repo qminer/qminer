@@ -447,6 +447,7 @@ TPt<TQm::TBase> CreatePeopleBase(bool big_file = false) {
 			}
 		}
 	}
+	Base->ResetGixStats();
 	return Base;
 }
 
@@ -499,6 +500,8 @@ TEST(testTBase, ClearStoreTestBigComplex) {
 		auto store = Base->GetStoreByStoreNm("People");
 		recs = store->GetRecs();
 		TQm::TStorage::SaveBase(Base);
+
+		printf("%s\n", Base->GetStats()->SaveStr());
 	}
 	{
 		auto Base = OpenPeopleBase();

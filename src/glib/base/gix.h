@@ -707,6 +707,7 @@ public:
 		res.CacheAll = Stat1.CacheAll + Stat2.CacheAll;
 		res.CacheDirty = Stat1.CacheDirty + Stat2.CacheDirty;
 		res.MemUsed = Stat1.MemUsed + Stat2.MemUsed;
+		res.AvgLen = res.CacheAllLoadedPerc = res.CacheDirtyLoadedPerc = 0;
 		if (res.CacheAll > 0) {
 			res.CacheAllLoadedPerc = (Stat1.CacheAll*Stat1.CacheAllLoadedPerc + Stat2.CacheAll * Stat2.CacheAllLoadedPerc) / res.CacheAll;
 			res.AvgLen = (Stat1.CacheAll*Stat1.AvgLen + Stat2.CacheAll * Stat2.AvgLen) / res.CacheAll;
@@ -1160,9 +1161,13 @@ void TGix<TKey, TItem, TGixMerger>::RefreshStats() {
 			Stats.CacheDirtyLoadedPerc += d;
 		}
 	}
-	Stats.CacheAllLoadedPerc /= Stats.CacheAll;
-	Stats.CacheDirtyLoadedPerc /= Stats.CacheDirty;
-	Stats.AvgLen /= Stats.CacheAll;
+	if (Stats.CacheAll > 0) {
+		Stats.CacheAllLoadedPerc /= Stats.CacheAll;
+		Stats.AvgLen /= Stats.CacheAll;
+		if (Stats.CacheDirty > 0) {
+			Stats.CacheDirtyLoadedPerc /= Stats.CacheDirty;
+		}
+	}
 }
 
 
