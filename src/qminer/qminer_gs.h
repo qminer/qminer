@@ -665,7 +665,7 @@ public:
         const TStr& StoreName, const TStoreSchema& StoreSchema, 
 		const TStr& _StoreFNm, const int64& _MxCacheSize, const int& BlockSize);
 	TStoreImpl(const TWPt<TBase>& _Base, const TStr& _StoreFNm,
-		const TFAccess& _FAccess, const int64& _MxCacheSize);
+		const TFAccess& _FAccess, const int64& _MxCacheSize, const bool& _Lazy = false);
 	// need to override destructor, to clear cache
 	~TStoreImpl();
 

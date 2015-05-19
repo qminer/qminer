@@ -1934,11 +1934,11 @@ TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const uint& StoreId,
 }
 
 TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const TStr& _StoreFNm, 
-    const TFAccess& _FAccess, const int64& _MxCacheSize): 
+	const TFAccess& _FAccess, const int64& _MxCacheSize, const bool& _Lazy) :
         TStore(Base, _StoreFNm + ".BaseStore"), 
         StoreFNm(_StoreFNm), FAccess(_FAccess), PrimaryFieldType(oftUndef),
         DataCache(_StoreFNm + ".Cache", _FAccess, _MxCacheSize), 
-		DataMem(_StoreFNm + "MemCache", _FAccess) {
+		DataMem(_StoreFNm + "MemCache", _FAccess, _Lazy) {
 
     // load members
 	TFIn FIn(StoreFNm + ".GenericStore");
