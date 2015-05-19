@@ -9,6 +9,11 @@
 #ifndef base_h
 #define base_h
 
+#ifndef INDEX_64
+typedef int index_t;
+#else
+typedef long long index_t;
+#endif
 /////////////////////////////////////////////////
 // Environment defines
 #if defined (_WIN32)
@@ -133,6 +138,10 @@
 
 #include <ctype.h>
 #include <float.h>
+//Andrej adds support for complex
+#include <complex>
+#define MKL_Complex8 std::complex<float>
+#define MKL_Complex16 std::complex<double>
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
