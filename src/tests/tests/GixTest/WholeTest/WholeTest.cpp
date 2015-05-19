@@ -450,7 +450,7 @@ TPt<TQm::TBase> CreatePeopleBase(bool big_file = false) {
 	return Base;
 }
 
-TPt<TQm::TBase> OpenPeopleBase() {
+TWPt<TQm::TBase> OpenPeopleBaseWPt(bool read_only = false) {
 	TQm::TEnv::Init();
 
 	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
@@ -459,7 +459,11 @@ TPt<TQm::TBase> OpenPeopleBase() {
 
 	// init unicode
 	TUnicodeDef::Load(unicode_file);
-	TPt<TQm::TBase> Base = TQm::TStorage::LoadBase(data_dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), false, 4 * TInt::Kilo);
+	return TQm::TStorage::LoadBase(data_dir, (read_only ? TFAccess::faRdOnly : TFAccess::faUpdate), 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), false, 4 * TInt::Kilo);
+}
+
+TPt<TQm::TBase> OpenPeopleBase(bool read_only = false) {
+	TPt<TQm::TBase> Base = OpenPeopleBaseWPt(read_only);
 	return Base;
 }
 
@@ -504,6 +508,34 @@ TEST(testTBase, ClearStoreTestBigComplex) {
 		EXPECT_EQ(store->GetRecs(), 1);
 	}
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST(testTBase, ReadOnlyAfterCrash) {
+	int recs = -1;
+	{
+		// create new database
+		auto Base = CreatePeopleBase(true);
+		Base->PartialFlush(500);
+		auto store = Base->GetStoreByStoreNm("People");
+		recs = store->GetRecs();
+		TQm::TStorage::SaveBase(Base);
+	}
+	{
+		// open it in read-only mode
+		auto Base = OpenPeopleBaseWPt(true);
+		auto Base2 = Base();
+		
+	}
+	{
+		auto Base = OpenPeopleBase();
+		auto store = Base->GetStoreByStoreNm("People");
+		EXPECT_EQ(store->GetRecs(), recs);
+		store->DeleteFirstNRecs(store->GetRecs() - 1);
+		EXPECT_EQ(store->GetRecs(), 1);
+	}
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
