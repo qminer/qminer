@@ -187,6 +187,7 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "search", _search);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "gc", _gc);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "partialFlush", _partialFlush);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getStats", _getStats);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggr", _getStreamAggr);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggrNames", _getStreamAggrNames);
 
@@ -465,6 +466,17 @@ void TNodeJsBase::partialFlush(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 
 	int res = Base->PartialFlush(WndInMesc);
 	Args.GetReturnValue().Set(v8::Integer::New(Isolate, res));
+}
+
+void TNodeJsBase::getStats(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
+	TWPt<TQm::TBase> Base = JsBase->Base;
+
+	PJsonVal res = Base->GetStats();
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, res));
 }
 
 void TNodeJsBase::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args) {

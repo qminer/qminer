@@ -739,6 +739,11 @@ private:
 	*/
 	//# exports.Base.prototype.partialFlush = function () { }
 	JsDeclareFunction(partialFlush);
+	/**
+	* Retrieves performance statistics for qminer.
+	*/
+	//# exports.Base.prototype.getStats = function () { }
+	JsDeclareFunction(getStats);
 
 	//!- `sa = base.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
 	JsDeclareFunction(getStreamAggr);
