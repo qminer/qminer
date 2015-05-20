@@ -3290,7 +3290,7 @@ void TNodeJsFtrSpace::ftrSpColMat(const v8::FunctionCallbackInfo<v8::Value>& Arg
 		TNodeJsRecSet* RecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args[0]->ToObject());
 
 		// create feature matrix
-		TVec<TIntFltKdV> SpMat;
+		TVec<TIntFltKdV> SpMat(RecSet->RecSet->GetRecs(), 0);
 		JsFtrSpace->FtrSpace->GetSpVV(RecSet->RecSet, SpMat);
 
 		Args.GetReturnValue().Set(TNodeJsSpMat::New(SpMat, JsFtrSpace->FtrSpace->GetDim()));

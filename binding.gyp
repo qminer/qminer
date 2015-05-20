@@ -101,6 +101,7 @@
                                     'SubSystem' : 1, # Console
                                 },
                             },
+                            'defines' : ['NDEBUG']
                         },
                     }
                 }]
@@ -162,6 +163,7 @@
                                     'SubSystem' : 1, # Console
                                 },
                             },
+                            'defines' : ['NDEBUG']
                         },
                     }
                 }]
@@ -215,6 +217,7 @@
                                     'SubSystem' : 1, # Console
                                 },
                             },
+                            'defines' : ['NDEBUG']
                         },
                     }
                 }]
@@ -269,6 +272,7 @@
                                     'SubSystem' : 1, # Console
                                 },
                             },
+                            'defines' : ['NDEBUG']
                         },
                     }
                 }]
