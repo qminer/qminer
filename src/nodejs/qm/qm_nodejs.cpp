@@ -2472,11 +2472,13 @@ void TNodeJsRec::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		(TNodeJsUtil::IsArgBool(Args, 0) ? TNodeJsUtil::GetArgBool(Args, 0, false) : false) : false;
 	const bool JoinRecFieldsP = TNodeJsUtil::IsArg(Args, 1) ?
 		(TNodeJsUtil::IsArgBool(Args, 1) ? TNodeJsUtil::GetArgBool(Args, 1, false) : false) : false;
+	const bool RecInfoP = TNodeJsUtil::IsArg(Args, 2) && TNodeJsUtil::IsArgBool(Args, 2) ?
+			TNodeJsUtil::GetArgBool(Args, 2) : true;
 
 	const bool FieldsP = true;
 	const bool StoreInfoP = false;
 	
-	PJsonVal RecJson = JsRec->Rec.GetJson(JsRec->Rec.GetStore()->GetBase(), FieldsP, StoreInfoP, JoinRecsP, JoinRecFieldsP);
+	PJsonVal RecJson = JsRec->Rec.GetJson(JsRec->Rec.GetStore()->GetBase(), FieldsP, StoreInfoP, JoinRecsP, JoinRecFieldsP, RecInfoP);
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, RecJson));
 }
 

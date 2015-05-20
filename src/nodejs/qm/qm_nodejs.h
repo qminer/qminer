@@ -427,7 +427,14 @@ private:
     //#- `rec = rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string). Returns self.
     //#- `rec = rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`. Return self.
     JsDeclareFunction(delJoin);
-    //#- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
+
+    /**
+     * Provide json version of record, useful when calling JSON.stringify
+     *
+     * @param {Boolean} - ???
+     * @param {Boolean} - ???
+     * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
+     */
     JsDeclareFunction(toJSON);
 
 	//#- `recId = rec.$id` -- returns record ID

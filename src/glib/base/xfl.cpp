@@ -289,6 +289,21 @@ bool TDir::Exists(const TStr& FPathFNm){
 
 #endif
 
+void TDir::ListFiles(const TStr& DirNm, TStrV& FNmV) {
+	DIR *dp;
+	struct dirent *dirp;
+
+	if ((dp = opendir(DirNm.CStr())) == nullptr) {
+		throw TExcept::New("Failed to open directory " + DirNm, "TDir::ListDir");
+	}
+
+	while ((dirp = readdir(dp)) != nullptr) {
+		FNmV.Add(TStr(dirp->d_name));
+	}
+
+	closedir(dp);
+}
+
 //////////////////////////////////////
 // File-Log
 void TFPathNotify::UpdateSOut(const TTm& Tm) {
