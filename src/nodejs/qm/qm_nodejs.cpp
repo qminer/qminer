@@ -438,7 +438,7 @@ v8::Local<v8::Object> TNodeJsSA::New(TWPt<TQm::TStreamAggr> _SA) {
 	EAssertR(!constructor.IsEmpty(), "TNodeJsSA::New: constructor is empty. Did you call TNodeJsSA::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
-	
+
 	TNodeJsSA* JsSA = new TNodeJsSA(_SA);
 	JsSA->Wrap(Instance);
 	return HandleScope.Escape(Instance);
@@ -448,7 +448,7 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	if (Args.Length() == 0) { return; } // 
+	if (Args.Length() == 0) { return; } //
 	EAssertR(!constructor.IsEmpty(), "TNodeJsSA::New: constructor is empty. Did you call TNodeJsSA::Init(exports); in this module's init function?");
 
 	QmAssertR(Args.Length() <= 3 && Args.Length() >= 2, "stream aggregator constructor expects at least two parameters");
@@ -481,7 +481,7 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			//TQm::PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args[1]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, "featureSpace")));
 			//StreamAggr = TStreamAggrs::TFtrExtAggr::New(JsBase->Base, AggrName, FtrSpace);
 		}
-		else if (TypeNm == "stmerger") {
+		else if (TypeNm == TQm::TStreamAggrs::TStMerger::GetType()) {
 			// create new aggregate
 			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
 			StreamAggr = TQm::TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
@@ -548,7 +548,7 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			Args.GetReturnValue().Set(Instance);
 			return;
 		}
-		
+
 	}
 	// sa(...) -> calls new sa(...)
 	else {
@@ -559,7 +559,7 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
 			Args.GetReturnValue().Set(Instance);
 			return;
-		}		
+		}
 		if (Args.Length() == 3) {
 			const int Argc = 3;
 			v8::Local<v8::Value> Argv[Argc] = { Args[0], Args[1], Args[2] };
@@ -2311,8 +2311,18 @@ void TNodeJsRec::Init(const TWPt<TQm::TStore>& Store) {
 	// initialize template if not already prepared
 	if (BaseStoreIdConstructor[BaseId][(int)StoreId].IsEmpty()) {
 
-		v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-		tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "Rec"));
+		const TStr ClassNm = "Rec";
+
+		v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsRec>);
+
+		v8::Local<v8::FunctionTemplate> child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsRec>);
+		child->Inherit(tpl);
+
+		child->SetClassName(v8::String::NewFromUtf8(Isolate, ClassNm.CStr()));
+		// ObjectWrap uses the first internal field to store the wrapped pointer
+		child->InstanceTemplate()->SetInternalFieldCount(1);
+
+		tpl->SetClassName(v8::String::NewFromUtf8(Isolate, ClassNm.CStr()));
 		// ObjectWrap uses the first internal field to store the wrapped pointer.
 		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -2347,7 +2357,7 @@ void TNodeJsRec::Init(const TWPt<TQm::TStore>& Store) {
 		}
 		
 		// This has to be last, otherwise the properties won't show up on the object in JavaScript.
-		BaseStoreIdConstructor[BaseId][(int)StoreId].Reset(Isolate, tpl->GetFunction());
+		BaseStoreIdConstructor[BaseId][(int)StoreId].Reset(Isolate, child->GetFunction());
 		//exports->Set(v8::String::NewFromUtf8(Isolate, "Rec"), tpl->GetFunction());
 	}
 }
@@ -2362,57 +2372,37 @@ void TNodeJsRec::Clear(const int& BaseId) {
 }
 
 v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec, const TInt& _Fq) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::EscapableHandleScope HandleScope(Isolate);
 	// TODO speed-up without using file paths
 	// Use a map from (uint64)Rec.GetStore()() -> v8::Persistent<v8::Function> constructor
 	// We need a hash table with move constructor/assignment
 	QmAssertR(TNodeJsQm::BaseFPathToId.IsKey(Rec.GetStore()->GetBase()->GetFPath()), "rec constructor: Base Id not found!");
 	uint BaseId = TNodeJsQm::BaseFPathToId.GetDat(Rec.GetStore()->GetBase()->GetFPath());
 	EAssertR(!BaseStoreIdConstructor[BaseId][Rec.GetStoreId()].IsEmpty(), "TNodeJsRec::New: constructor is empty. Did you call TNodeJsRec::Init(exports)?");
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, BaseStoreIdConstructor[BaseId][Rec.GetStoreId()]);
+//	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, BaseStoreIdConstructor[BaseId][Rec.GetStoreId()]);
 
-	v8::Local<v8::Object> Instance = cons->NewInstance();
-
-	TNodeJsRec* JsRec = new TNodeJsRec(Rec, _Fq);
-	JsRec->Wrap(Instance);
-	return HandleScope.Escape(Instance);
+	return TNodeJsUtil::NewInstance(new TNodeJsRec(Rec, _Fq),
+			BaseStoreIdConstructor[BaseId][Rec.GetStoreId()]);
+//	v8::Local<v8::Object> Instance = cons->NewInstance();
+//
+//	TNodeJsRec* JsRec = new TNodeJsRec(Rec, _Fq);
+//	JsRec->Wrap(Instance);
+//	return HandleScope.Escape(Instance);
 }
 
-void TNodeJsRec::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+TNodeJsRec* TNodeJsRec::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	if (Args.IsConstructCall()) {
-		if (Args.Length() == 2) {
-			QmAssertR(Args[0]->IsObject() && Args[1]->IsObject(), "TNodeJsRec constructor expecting record JSON object and store object");
-			// input = recJSON, store
-			PJsonVal RecJSON = TNodeJsUtil::GetArgJson(Args, 0);
-			TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args[1]->ToObject());
-			// build rec
-			TQm::TRec Rec(JsStore->Store, RecJSON);
-			Args.GetReturnValue().Set(TNodeJsRec::New(Rec));
-			return;		
-		}
-		else {
-			TNodeJsRec* JsRec = new TNodeJsRec();
-			v8::Local<v8::Object> Instance = Args.This();
-			JsRec->Wrap(Instance);
-			Args.GetReturnValue().Set(Instance);
-			return;
-		}
+
+	if (Args.Length() == 2) {
+		QmAssertR(Args[0]->IsObject() && Args[1]->IsObject(), "TNodeJsRec constructor expecting record JSON object and store object");
+		// input = recJSON, store
+		PJsonVal RecJSON = TNodeJsUtil::GetArgJson(Args, 0);
+		TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args[1]->ToObject());
+		// build rec
+		return new TNodeJsRec(TQm::TRec(JsStore->Store, RecJSON));
 	}
 	else {
-		QmAssertR(Args[0]->IsObject() && Args[1]->IsObject(), "TNodeJsRec constructor expecting record JSON object and store object");
-		TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args[1]->ToObject());
-
-		QmAssertR(TNodeJsQm::BaseFPathToId.IsKey(JsStore->Store->GetBase()->GetFPath()), "rec constructor: Base Id not found!");
-		uint BaseId = TNodeJsQm::BaseFPathToId.GetDat(JsStore->Store->GetBase()->GetFPath());
-		EAssertR(!BaseStoreIdConstructor[BaseId][JsStore->Store->GetStoreId()].IsEmpty(), "TNodeJsRec::New: constructor is empty. Did you call TNodeJsRec::Init(exports)?");
-		v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, BaseStoreIdConstructor[BaseId][JsStore->Store->GetStoreId()]);
-		
-		v8::Local<v8::Object> Instance = cons->NewInstance();
-		Args.GetReturnValue().Set(Instance);
-		return;
+		return new TNodeJsRec();
 	}
 }
 
@@ -2482,11 +2472,13 @@ void TNodeJsRec::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		(TNodeJsUtil::IsArgBool(Args, 0) ? TNodeJsUtil::GetArgBool(Args, 0, false) : false) : false;
 	const bool JoinRecFieldsP = TNodeJsUtil::IsArg(Args, 1) ?
 		(TNodeJsUtil::IsArgBool(Args, 1) ? TNodeJsUtil::GetArgBool(Args, 1, false) : false) : false;
+	const bool RecInfoP = TNodeJsUtil::IsArg(Args, 2) && TNodeJsUtil::IsArgBool(Args, 2) ?
+			TNodeJsUtil::GetArgBool(Args, 2) : true;
 
 	const bool FieldsP = true;
 	const bool StoreInfoP = false;
 	
-	PJsonVal RecJson = JsRec->Rec.GetJson(JsRec->Rec.GetStore()->GetBase(), FieldsP, StoreInfoP, JoinRecsP, JoinRecFieldsP);
+	PJsonVal RecJson = JsRec->Rec.GetJson(JsRec->Rec.GetStore()->GetBase(), FieldsP, StoreInfoP, JoinRecsP, JoinRecFieldsP, RecInfoP);
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, RecJson));
 }
 
@@ -3884,7 +3876,7 @@ void TNodeJsFtrSpace::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	try {
 		const TWPt<TQm::TBase>& Base = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject())->Base;
 		
-		if (Args[1]->IsString() || TNodeJsUtil::IsArgClass(Args, 1, TNodeJsFIn::ClassId)) {
+		if (Args[1]->IsString() || TNodeJsUtil::IsArgClass(Args, 1, TNodeJsFIn::GetClassId())) {
 			bool IsArgStr = TNodeJsUtil::IsArgStr(Args, 1);//Args[1]->IsString();
 
 			PSIn SIn = IsArgStr ?
@@ -4136,14 +4128,15 @@ void TNodeJsFtrSpace::invFtrVec(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	v8::HandleScope HandleScope(Isolate);
 
 	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
-	QmAssertR(Args[0]->IsExternal() || Args[0]->IsArray(), "The argument should be a float array!");
+	QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId()) ||
+		Args[0]->IsArray(), "The argument should be a float array!");
 
 	try {
 		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
 
 		TFltV InvertV;
 
-		if (Args[0]->IsExternal()) {
+		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
 			TFltV& FtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject())->Vec;
 			JsFtrSpace->FtrSpace->InvertFullV(FtrV, InvertV);
 		} else {

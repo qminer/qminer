@@ -498,7 +498,7 @@ public:
   int WriteN(int fd, char *ptr, int nbytes);
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm="");
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
-  
+
   /// Assigns new contents to the vector, replacing its current content.
   TVec<TVal, TSizeTy>& operator=(const TVec<TVal, TSizeTy>& Vec);
   // Move assignment
@@ -1823,26 +1823,24 @@ void TVecPool<TVal, TSizeTy>::ShuffleAll(TRnd& Rnd) {
 template <class TVal, class TSizeTy = TUInt64>
 class TLinkedQueue {
 private:
-	class Node {
+	class TNode {
 	public:
-		Node* Next;
+		TNode* Next;
 		const TVal Val;
 
-		Node(Node* _Next, const TVal& _Val): Next(_Next), Val(_Val) {}
+		TNode(TNode* Next, const TVal& Val);
 	};
 
-private:
-	Node* First;
-	Node* Last;
+	TNode* First;
+	TNode* Last;
 	TSizeTy Size;
 
 public:
 	TLinkedQueue();
 	TLinkedQueue(TSIn& SIn);
+	~TLinkedQueue();
 
 	void Save(TSOut& SOut) const;
-
-	~TLinkedQueue();
 
 	void Push(const TVal& Val);
 	TVal Pop();
@@ -1854,13 +1852,28 @@ public:
 };
 
 template <class TVal, class TSizeTy>
-void TLinkedQueue<TVal, TSizeTy>::Save(TSOut& SOut) const {
-	Size.Save(SOut);
+TLinkedQueue<TVal, TSizeTy>::TNode::TNode(TNode* _Next, const TVal& _Val):
+		Next(_Next),
+		Val(_Val) {}
 
-	Node* Curr = First;
-	while (Curr != NULL) {
-		Curr->Val.Save(SOut);
-		Curr = Curr->Next;
+template <class TVal, class TSizeTy>
+TLinkedQueue<TVal, TSizeTy>::TLinkedQueue():
+		First(nullptr),
+		Last(nullptr),
+		Size() {
+	Size = 0;	// explicitly set the size in case the default constructor does nothing
+}
+
+template <class TVal, class TSizeTy>
+TLinkedQueue<TVal, TSizeTy>::TLinkedQueue(TSIn& SIn):
+		First(nullptr),
+		Last(nullptr),
+		Size() {
+	Size = 0;	// explicitly set the size in case the default constructor does nothing
+
+	const TSizeTy FinalSize(SIn);
+	for (TSizeTy i = 0; i < FinalSize; i++) {
+		Push(TVal(SIn));
 	}
 }
 
@@ -1870,16 +1883,27 @@ TLinkedQueue<TVal, TSizeTy>::~TLinkedQueue() {
 }
 
 template <class TVal, class TSizeTy>
+void TLinkedQueue<TVal, TSizeTy>::Save(TSOut& SOut) const {
+	Size.Save(SOut);
+
+	TNode* Curr = First;
+	while (Curr != nullptr) {
+		Curr->Val.Save(SOut);
+		Curr = Curr->Next;
+	}
+}
+
+template <class TVal, class TSizeTy>
 void TLinkedQueue<TVal, TSizeTy>::Push(const TVal& Val) {
-	TLinkedQueue<TVal, TSizeTy>::Node* Node = new TLinkedQueue<TVal, TSizeTy>::Node(NULL, Val);
+	TNode* Node = new TNode(nullptr, Val);
 
 	if (Size++ == 0) {
 		First = Node;
-		Last = Node;
 	} else {
 		Last->Next = Node;
-		Last = Node;
 	}
+
+	Last = Node;
 }
 
 template <class TVal, class TSizeTy>
@@ -1899,11 +1923,11 @@ template <class TVal, class TSizeTy>
 void TLinkedQueue<TVal, TSizeTy>::DelFirst() {
 	IAssertR(!Empty(), "Cannot delete elements from empty buffer!");
 
-	Node* Temp = First;
+	TNode* Temp = First;
 
 	if (--Size == 0) {
-		First = NULL;
-		Last = NULL;
+		First = nullptr;
+		Last = nullptr;
 	} else {
 		First = First->Next;
 	}
@@ -2445,6 +2469,7 @@ typedef TVVec<TSFlt> TSFltVV;
 typedef TVVec<TFlt> TFltVV;
 typedef TVVec<TStr> TStrVV;
 typedef TVVec<TIntPr> TIntPrVV;
+typedef TVVec<TUInt64> TUInt64VV;
 
 /////////////////////////////////////////////////
 // 3D-Vector

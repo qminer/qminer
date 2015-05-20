@@ -227,7 +227,6 @@ void TNodeJsFs::listFile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 ///////////////////////////////
 // NodeJs-FIn
 v8::Persistent<v8::Function> TNodeJsFIn::Constructor;
-const TStr TNodeJsFIn::ClassId = "FIn";
 
 void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -238,11 +237,11 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 	v8::Local<v8::FunctionTemplate> child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsFIn>);
 	child->Inherit(tpl);
 
-	child->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
+	child->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer
 	child->InstanceTemplate()->SetInternalFieldCount(1);
 	
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -258,12 +257,9 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript	
 	// Constructor is used when creating the object from C++
 	Constructor.Reset(Isolate, child->GetFunction());
-#ifndef MODULE_INCLUDE_FS
 	// we need to export the class for calling using "new FIn(...)"
 	exports->Set(v8::String::NewFromUtf8(Isolate, "FIn"),
 		tpl->GetFunction());
-#endif
-
 }
 
 TNodeJsFIn* TNodeJsFIn::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -332,7 +328,6 @@ void TNodeJsFIn::length(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 ///////////////////////////////
 // NodeJs-FOut
 v8::Persistent<v8::Function> TNodeJsFOut::constructor;
-TStr TNodeJsFOut::ClassId = "FOut";
 
 void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -380,7 +375,7 @@ void TNodeJsFOut::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// set hidden class id
 	v8::Local<v8::Object> Instance = Args.This();
 	v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, ClassId.CStr());
+	v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, GetClassId().CStr());
 	Instance->SetHiddenValue(key, value);		
 	// empty constructor call just forwards the instance
 	if (Args.Length() == 0) { Args.GetReturnValue().Set(Instance); return; }

@@ -47,16 +47,17 @@ public:
 	void Release();
 };
 
-/** Critical section */
+/**
+ * Critical section - Allows only 1 thread to enter, but the same thread can enter multiple times
+ */
 class TCriticalSection {
 protected:
 	//CRITICAL_SECTION Cs;
-	TCriticalSectionType Type;
 	pthread_mutex_t Cs;
 	pthread_mutexattr_t CsAttr;
 
 public:
-	TCriticalSection(const TCriticalSectionType& _Type = TCriticalSectionType::cstFast);
+	TCriticalSection();
 	~TCriticalSection();
 
 	void Enter();

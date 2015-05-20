@@ -390,12 +390,14 @@ private:
 ///////////////////////////////
 // NodeJs QMiner Record
 class TNodeJsRec: public node::ObjectWrap {
+	friend class TNodeJsUtil;
 private:
 	// Modified node framework: one record template per each base,storeId combination 
 	static TVec<TVec<v8::Persistent<v8::Function> > > BaseStoreIdConstructor;
 public:
 	// Node framework 
 	static void Init(const TWPt<TQm::TStore>& Store);
+	static const TStr GetClassId() { return "TRec"; }
 	// when reseting a db we have to clear the old record templates
 	static void Clear(const int& BaseId);
 	// Wrapping C++ object	
@@ -404,8 +406,10 @@ public:
 	TNodeJsRec(): Rec() {}
 	TNodeJsRec(const TQm::TRec& _Rec): Rec(_Rec) {}
 	TNodeJsRec(const TQm::TRec& _Rec, const TInt& _Fq) : Rec(_Rec), Fq(_Fq) {}
-	// Node framework (constructor method)
-	JsDeclareFunction(New);
+
+private:
+	static TNodeJsRec* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
 public:
 	// C++ wrapped object
 	TQm::TRec Rec;	
@@ -423,7 +427,14 @@ private:
     //#- `rec = rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string). Returns self.
     //#- `rec = rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`. Return self.
     JsDeclareFunction(delJoin);
-    //#- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
+
+    /**
+     * Provide json version of record, useful when calling JSON.stringify
+     *
+     * @param {Boolean} - ???
+     * @param {Boolean} - ???
+     * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
+     */
     JsDeclareFunction(toJSON);
 
 	//#- `recId = rec.$id` -- returns record ID

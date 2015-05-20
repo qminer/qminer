@@ -232,6 +232,13 @@ public:
     TFOut SOut(FNm); Save(SOut);}
 };
 
+enum class TBowClustInitScheme {
+	tbcRnd, // select initial centroids randomly
+	tbcDiam, // select the points which form the diameter
+	tbcMean, // select the mean point
+	tbcKMeansPP // select initial centroids with the KMeans++ approach
+};
+
 /////////////////////////////////////////////////
 // BagOfWords-Clustering
 class TBowClust{
@@ -262,6 +269,20 @@ public:
    const int& Clusts, const int& ClustTrials,
    const double& ConvergEps, const int& MnDocsPerClust,
    const TIntFltPrV& DocIdWgtPrV=TIntFltPrV());
+  static PBowDocPart GetDPMeansPartForDocWgtBs(
+     const PNotify& Notify,
+     const PBowDocWgtBs& BowDocWgtBs,
+     const PBowDocBs& BowDocBs,
+     const PBowSim& BowSim,
+     TRnd& Rnd,
+     const double& Lambda,
+     const int& MinDocsPerClust, const int& MaxClusts,
+     const double& ConvergEps,
+     const TInt& MaxIter = 10000,
+     const TBowClustInitScheme& InitType = TBowClustInitScheme::tbcDiam,
+     const int& InitParam = -1,
+     const TIntFltPrV& DocIdWgtPrV=TIntFltPrV()
+    );
   static PBowDocPart GetHPartForDocWgtBs(
    const PNotify& Notify,
    const PBowDocWgtBs& BowDocWgtBs,
@@ -300,5 +321,16 @@ public:
    const PBowDocBs& BowDocBs, const PBowDocPart& Part, const PBowSim& BowSim,
    const TBowWordWgtType& WordWgtType,
    const TIntV& TrainDIdV, const TIntV& TestDIdV);
+
+private:
+	static void GetInitialClustIdV(
+		const PNotify& Notify,
+		const PBowDocWgtBs& BowDocWgtBs,
+		const PBowSim& BowSim,
+		TRnd& Rnd,
+		TVec<TIntV>& DIdVV,
+		const TBowClustInitScheme& InitType = TBowClustInitScheme::tbcKMeansPP,
+		const int& InitParam = 2
+	);
 };
 

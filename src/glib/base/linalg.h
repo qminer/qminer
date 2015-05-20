@@ -259,6 +259,9 @@ public:
 // Basic Linear Algebra Operations
 class TLinAlg {
 public:
+	// finds tyhe minimum element
+	static double Min(const TFltV& Vec);
+
     // <x,y>
     static double DotProduct(const TFltV& x, const TFltV& y);
     // <X[i],y>
@@ -314,6 +317,8 @@ public:
     static void AddVec(const double& k, const TVec<TIntFltKdV>& X, int ColId, const TFltV& y, TFltV& z);
     // y := k * x + y
     static void AddVec(const double& k, const TIntFltKdV& x, TFltV& y);
+    // y := k * x + y
+    static void AddVec(const double& k, const TFltV& x, TFltV& y);
     // Y(:,Col) += k * X(:,Col)
     static void AddVec(const double& k, const TFltVV& X, int ColIdX, TFltVV& Y, int ColIdY);
 	// Y(:,ColIdY) += k * x
@@ -373,6 +378,7 @@ public:
     static double Norm(const TFltV& x);
     // x := x / ||x||, returns the norm
     static double Normalize(TFltV& x);
+
 	// Normalize X(:,ColId)
 	static void NormalizeColumn(TFltVV& X, const int& ColId);
 	// Normalize the columns of X
@@ -415,6 +421,10 @@ public:
     static void NormalizeLinf(TFltV& x);
     // x := x / ||x||_inf, , x is sparse
     static void NormalizeLinf(TIntFltKdV& x);
+    // stores the squared norm of all the columns into the output vector
+    static void GetColNorm2V(const TFltVV& X, TFltV& ColNormV);
+    // stores the norm of all the columns into the output vector
+    static void GetColNormV(const TFltVV& X, TFltV& ColNormV);
 	// find the index of maximum elements for a given row of X
 	static int GetRowMaxIdx(const TFltVV& X, const int& RowN);
 	// find the index of maximum elements for a given each col of X
@@ -679,6 +689,10 @@ public:
     // zero elements, so it is efficient for use in matrix inversion.
     static void LUSolve(const TFltVV& A, const TIntV& indx, TFltV& b);
 
+    // Solves system of linear equations A * x = b. A is first decomposed using
+    // LUDecomposition and after solved using LUSolve. A is modified!
+    static void SolveLinearSystem(TFltVV& A, const TFltV& b, TFltV& x);
+
 #ifdef OPENBLAS
     // LU midstep used for LUFactorization and LUSolve
     // (Warning: the matrix is overwritten in the process)
@@ -700,16 +714,23 @@ public:
     // DiagUnitFlag: if the matrix has ones on the diagonal (true) or not (false).
     static void TriangularSolve(TFltVV& A, TFltV& x, TFltV& b,
     		bool UpperTriangFlag = true, bool DiagonalUnitFlag = false);
-#endif
 
-    // Solves system of linear equations A * x = b. A is first decomposed using
-    // LUDecomposition and after solved using LUSolve. A is modified!
-    static void SolveLinearSystem(TFltVV& A, const TFltV& b, TFltV& x);
+	///////////////////////////////////////////////////////////////////////////
+	// SVD factorization and solution
+
+	// Makes the SVD factorization of matrix Matrix, such that A = U * Sing * VT.
+	// Sing is the vector containing singular values, U is the matrix with left singular vectors,
+	// VT is the matrix with right singular vectors.
+	static void SVDFactorization(const TFltVV& A, TFltVV& U, TFltV& Sing, TFltVV& VT);
+
+	// SVDSolve solves the Least Squares problem of equation A * x = b, where A is a matrix, x and b are vectors.
+	// The solution is saved in x.
+	static void SVDSolve(const TFltVV& A, TFltV& x, const TFltV& b, const double& EpsSing=0);
+#endif
 
     // Computes the eigenvector of A belonging to the specified eigenvalue
     // uses the inverse iteration algorithm
     // the algorithms does modify A due to its use of LU decomposition
-    // A is modified!!!
     static void GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps=1e-7);
 };
 
@@ -1213,6 +1234,7 @@ public:
     TFullMatrix operator *(const TSparseColMatrix& B) const;
     // multiply the transpose of this matrix with B (e.g. A'*B)
     TFullMatrix MulT(const TFullMatrix& B) const;
+    TFullMatrix MulT(const TFltVV& B) const;
     // multiplies this matrix with a vector
     TVector operator *(const TVector& x) const;
     // multiplies this matrix with a vector represented as TFltV
@@ -1286,6 +1308,7 @@ public:
 	// returns the inverse of this matrix
 	TFullMatrix GetInverse() const;
 
+	bool HasNan() const;
 
 public:
     void Save(TSOut& SOut) const;

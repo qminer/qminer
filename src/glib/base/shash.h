@@ -1406,6 +1406,7 @@ typedef THashSet<TStr> TStrSet;
 typedef THashSet<TUChIntPr> TUChIntPrSet;
 typedef THashSet<TUChUInt64Pr> TUChUInt64PrSet;
 typedef THashSet<TIntPr> TIntPrSet;
+typedef THashSet<TIntFltPr> TIntFltPrSet;
 
 /////////////////////////////////////////////////
 // Packed Vec
