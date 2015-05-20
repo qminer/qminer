@@ -75,7 +75,8 @@
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
                     }
-                }]
+                }],
+		['OS == "win"', { 'libraries': [ '-lliblapacke.lib' ]}]
             ]
         },{
             # qminer library
@@ -103,7 +104,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '-llapacke' ]}],
                 ['OS == "mac"', {
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
@@ -112,7 +113,8 @@
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
                     }
-                }]
+                }],
+		['OS == "win"', { 'libraries': [ '-lliblapacke.lib' ]}]
             ]
         }, {
             # snap external library
@@ -159,7 +161,6 @@
                 'src/glib/misc/'
             ],
             'defines': [
-                'OPENBLAS' 
             ],
             'conditions': [
                 # operating system specific parameters
@@ -172,7 +173,8 @@
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
                     }
-                }]
+                }],
+		['OS == "win"', { 'libraries': [ '-lliblapacke.lib' ]}]
             ]
         }
     ]
