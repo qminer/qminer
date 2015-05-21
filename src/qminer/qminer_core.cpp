@@ -3835,15 +3835,16 @@ bool TIndex::DoQuerySmall(const TIndex::PQmGixExpItemSmall& ExpItem,
 }
 
 TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access,
-	const PIndexVoc& _IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall) {
+	const PIndexVoc& _IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall,
+	const int& SplitLen) {
 
 	IndexFPath = _IndexFPath;
 	Access = _Access;
 	// initialize invered index
 	DefMerger = TQmGixDefMerger::New();
-	Gix = TQmGix::New("Index", IndexFPath, Access, CacheSize/*, DefMerger*/);
+	Gix = TQmGix::New("Index", IndexFPath, Access, CacheSize, SplitLen);
 	DefMergerSmall = TQmGixDefMergerSmall::New();
-	GixSmall = TQmGixSmall::New("IndexSmall", IndexFPath, Access, CacheSizeSmall/*, DefMerger*/);
+	GixSmall = TQmGixSmall::New("IndexSmall", IndexFPath, Access, CacheSizeSmall, SplitLen);
 	// initialize location index
 	TStr SphereFNm = IndexFPath + "Index.Geo";
 	if (TFile::Exists(SphereFNm) && Access != faCreate) {
@@ -4308,7 +4309,7 @@ void TTempIndex::NewIndex(const PIndexVoc& IndexVoc) {
 	TempIndexFPathQ.Push(TempIndexFPath);
 	// prepare new temporary index
 	TEnv::Logger->OnStatus(TStr::Fmt("Creating a temporary index in %s ...", TempIndexFPath.CStr()));
-	TempIndex = TIndex::New(TempIndexFPath, faCreate, IndexVoc, IndexCacheSize, IndexCacheSize);
+	TempIndex = TIndex::New(TempIndexFPath, faCreate, IndexVoc, IndexCacheSize, IndexCacheSize, TInt::Giga);
 }
 
 void TTempIndex::Merge(const TWPt<TIndex>& Index) {
@@ -4321,7 +4322,7 @@ void TTempIndex::Merge(const TWPt<TIndex>& Index) {
 		// load index
 		TEnv::Logger->OnStatus(TStr::Fmt("Merging a temporary index from %s ...", TempIndexFPath.CStr()));
 		PIndex NewIndex = TIndex::New(TempIndexFPath,
-			faRdOnly, Index->GetIndexVoc(), int64(10 * TInt::Mega), int64(10 * TInt::Mega));
+			faRdOnly, Index->GetIndexVoc(), int64(10 * TInt::Mega), int64(10 * TInt::Mega), Index->GetSplitLen());
 		// merge with main index
 		Index->MergeIndex(NewIndex);
 		TEnv::Logger->OnStatus("Closing temporary index Start");
@@ -4531,14 +4532,14 @@ void TStreamAggrTrigger::OnDelete(const TRec& Rec) {
 
 ///////////////////////////////
 // QMiner-Base
-TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize) : InitP(false) {
+TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen) : InitP(false) {
 	IAssertR(TEnv::IsInit(), "QMiner environment (TQm::TEnv) is not initialized");
 	// open as create
 	FAccess = faCreate; FPath = _FPath;
 	TEnv::Logger->OnStatus("Opening in create mode");
 	// prepare index
 	IndexVoc = TIndexVoc::New();
-	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize);
+	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, SplitLen);
 	// add standard operators
 	AddOp(TOpLinSearch::New());
 	AddOp(TOpGroupBy::New());
@@ -4552,7 +4553,7 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize) : InitP(false) {
 	TempFPathP = false;
 }
 
-TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize) : InitP(false) {
+TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize, const int& SplitLen) : InitP(false) {
 	IAssertR(TEnv::IsInit(), "QMiner environment (TQm::TEnv) is not initialized");
 	// assert open type and remember location
 	FAccess = _FAccess; FPath = _FPath;
@@ -4567,7 +4568,7 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	// load index
 	TFIn IndexVocFIn(FPath + "IndexVoc.dat");
 	IndexVoc = TIndexVoc::Load(IndexVocFIn);
-	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize);
+	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, SplitLen);
 	// add standard operators
 	AddOp(TOpLinSearch::New());
 	AddOp(TOpGroupBy::New());
@@ -5277,6 +5278,100 @@ void TBase::PrintIndex(const TStr& FNm, const bool& SortP) {
 	}
 }
 
+// perform partial flush of data
+int TBase::PartialFlush(int WndInMsec) {
+	int slice = WndInMsec / (GetStores() + 1);
+	int saved = 100;
+	int res = 0;
+	TTmStopWatch sw(true);
+
+	TVec<TPair<TWPt<TStore>, bool>> xstores;
+	bool xindex = true;
+
+	for (int i = 0; i < GetStores(); i++) {
+		xstores.Add(TPair<TWPt<TStore>, bool>(GetStoreByStoreN(i), true));
+	}
+
+	while (saved > 0) {
+		if (sw.GetMSecInt() > WndInMsec) {
+			break; // time is up
+		}
+		saved = 0; // how many saved in this loop
+		int xsaved = 0; // temp variable
+		for (int i = 0; i < xstores.Len(); i++) {
+			if (!xstores[i].Val2)
+				continue; // this store had no dirty data in previous loop
+			xsaved = xstores[i].Val1->PartialFlush(slice);
+			if (xsaved == 0) {
+				xstores[i].Val2 = false; // ok, this store is clean now
+			}
+			saved += xsaved;
+			//TQm::TEnv::Logger->OnStatusFmt("Partial flush:     store %s = %d", xstores[i].Val1->GetStoreNm().CStr(), xsaved);
+		}
+		if (xindex) { // save index
+			xsaved = Index->PartialFlush(slice);
+			xindex = (xsaved > 0);
+			saved += xsaved;
+			//TQm::TEnv::Logger->OnStatusFmt("Partial flush:     index = %d", xsaved);
+		}
+		res += saved;
+		//TQm::TEnv::Logger->OnStatusFmt("Partial flush: this loop = %d", saved);
+	}
+	sw.Stop();
+	TQm::TEnv::Logger->OnStatusFmt("Partial flush: %d msec, res = %d", sw.GetMSecInt(), res);
+
+	return res;
+}
+
+/// get performance statistics in JSON form
+PJsonVal TBase::GetStats() {
+	PJsonVal res = TJsonVal::NewObj();
+
+	PJsonVal stores = TJsonVal::NewArr();
+	for (int i = 0; i < GetStores(); i++) {
+		stores->AddToArr(GetStoreByStoreN(i)->GetStats());
+	}
+	res->AddToObj("stores", stores);
+	TGixStats gix_stats = GetGixStats();
+	TBlobBsStats gix_blob_stats = GetGixBlobStats();
+	res->AddToObj("gix_stats", GixStatsToJson(gix_stats));
+	res->AddToObj("gix_blob", BlobBsStatsToJson(gix_blob_stats));
+	return res;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
+
+/// Export TBlobBsStats object to JSON
+PJsonVal BlobBsStatsToJson(const TBlobBsStats& stats) {
+	PJsonVal res = TJsonVal::NewObj();
+	res->AddToObj("alloc_count", stats.AllocCount);
+	res->AddToObj("alloc_size", stats.AllocSize);
+	res->AddToObj("alloc_unused_size", stats.AllocUnusedSize);
+	res->AddToObj("alloc_used_size", stats.AllocUsedSize);
+	res->AddToObj("avg_get_len", stats.AvgGetLen);
+	res->AddToObj("avg_put_len", stats.AvgPutLen);
+	res->AddToObj("avg_put_new_len", stats.AvgPutNewLen);
+	res->AddToObj("dels", stats.Dels);
+	res->AddToObj("gets", stats.Gets);
+	res->AddToObj("puts", stats.Puts);
+	res->AddToObj("puts_new", stats.PutsNew);
+	res->AddToObj("released_count", stats.ReleasedCount);
+	res->AddToObj("released_size", stats.ReleasedSize);
+	res->AddToObj("size_changes", stats.SizeChngs);
+	return res;
+}
+
+
+/// Export TGixStats object to JSON
+PJsonVal GixStatsToJson(const TGixStats& stats) {
+	PJsonVal res = TJsonVal::NewObj();
+	res->AddToObj("avg_len", stats.AvgLen);
+	res->AddToObj("cache_all", stats.CacheAll);
+	res->AddToObj("cache_all_loaded_perc", stats.CacheAllLoadedPerc);
+	res->AddToObj("cache_dirty", stats.CacheDirty);
+	res->AddToObj("cache_dirty_loaded_perc", stats.CacheDirtyLoadedPerc);
+	res->AddToObj("mem_sed", (uint64)stats.MemUsed);
+	return res;
+}
 
 }

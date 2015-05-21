@@ -288,7 +288,7 @@ public:
 	friend class TPt < TGixItemSet > ;
 	friend class TGix < TKey, TItem, TGixMerger > ;
 
-#ifdef GIX_TEST
+#ifdef XTEST
 	friend class XTest;
 	void Print() const;
 #endif
@@ -302,7 +302,7 @@ public:
 	}
 };
 
-#ifdef GIX_TEST
+#ifdef XTEST
 
 template <class TKey, class TItem, class TGixMerger>
 void TGixItemSet<TKey, TItem, TGixMerger>::Print() const {
@@ -707,6 +707,7 @@ public:
 		res.CacheAll = Stat1.CacheAll + Stat2.CacheAll;
 		res.CacheDirty = Stat1.CacheDirty + Stat2.CacheDirty;
 		res.MemUsed = Stat1.MemUsed + Stat2.MemUsed;
+		res.AvgLen = res.CacheAllLoadedPerc = res.CacheDirtyLoadedPerc = 0;
 		if (res.CacheAll > 0) {
 			res.CacheAllLoadedPerc = (Stat1.CacheAll*Stat1.CacheAllLoadedPerc + Stat2.CacheAll * Stat2.CacheAllLoadedPerc) / res.CacheAll;
 			res.AvgLen = (Stat1.CacheAll*Stat1.AvgLen + Stat2.CacheAll * Stat2.AvgLen) / res.CacheAll;
@@ -895,7 +896,7 @@ public:
 
 	friend class TPt < TGix > ;
 	friend class TGixItemSet < TKey, TItem, TGixMerger > ;
-#ifdef GIX_TEST
+#ifdef XTEST
 	friend class XTest;
 
 	void KillHash() { this->KeyIdH.Clr(); }
@@ -1160,9 +1161,13 @@ void TGix<TKey, TItem, TGixMerger>::RefreshStats() {
 			Stats.CacheDirtyLoadedPerc += d;
 		}
 	}
-	Stats.CacheAllLoadedPerc /= Stats.CacheAll;
-	Stats.CacheDirtyLoadedPerc /= Stats.CacheDirty;
-	Stats.AvgLen /= Stats.CacheAll;
+	if (Stats.CacheAll > 0) {
+		Stats.CacheAllLoadedPerc /= Stats.CacheAll;
+		Stats.AvgLen /= Stats.CacheAll;
+		if (Stats.CacheDirty > 0) {
+			Stats.CacheDirtyLoadedPerc /= Stats.CacheDirty;
+		}
+	}
 }
 
 
@@ -1179,7 +1184,7 @@ void TGix<TKey, TItem, TGixMerger>::PrintStats() {
 		blob_stats.Dels, blob_stats.SizeChngs, blob_stats.AvgGetLen, blob_stats.AvgPutLen, blob_stats.AvgPutNewLen);
 	ItemSetBlobBs->ResetStats();
 	printf(".... hash-table stats - memory=%s size=%d\n", TUInt64::GetKiloStr(KeyIdH.GetMemUsed()).CStr(), KeyIdH.Len());
-	printf(".... gix - cnt=%s, memory=%s, hash=%s, cache=%s\n", 
+	printf(".... gix - cnt=%s, memory=%s, hash=%s, cache=%s\n",
         TUInt64::GetMegaStr(KeyIdH.Len()).CStr(),
         TUInt64::GetMegaStr(GetMemUsed()).CStr(), TUInt64::GetMegaStr(KeyIdH.GetMemUsed()).CStr(), TUInt64::GetMegaStr(ItemSetCache.GetMemUsed()).CStr());
 }
