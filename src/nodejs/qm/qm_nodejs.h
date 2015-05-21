@@ -37,33 +37,33 @@ public:
 	// TNodeJsRec needs this to select a template. TODO remove, see comment in v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec, const TInt& _Fq)
 	static THash<TStr, TUInt> BaseFPathToId;
 private:
-	/**
+	/*
 	* Creates a directory structure.
 	* @param {string} [configPath='qm.conf'] - The path to configuration file.
 	* @param {boolean} [overwrite=false] - If you want to overwrite the configuration file.
 	* @param {number} [portN=8080] - The number of the port. Currently not used.
 	* @param {number} [cacheSize=1024] - Sets available memory for indexing (in MB).
 	*/
-	//# exports.config = function(configPath, overwrite, portN, cacheSize) {}
+	// exports.config = function(configPath, overwrite, portN, cacheSize) {}
 	JsDeclareFunction(config);
 
-	/**
+	/*
 	* Creates an empty base.
 	* @param {string} [configPath='qm.conf'] - Configuration file path.
 	* @param {string} [schemaPath=''] - Schema file path.
 	* @param {boolean} [clear=false] - Clear the existing db folder.
 	* @returns {module:qm.Base}
 	*/
-	//# exports.create = function (configPath, schemaPath, clear) { return Object.create(require('qminer').Base.prototype); }
+	// exports.create = function (configPath, schemaPath, clear) { return Object.create(require('qminer').Base.prototype); }
 	JsDeclareFunction(create);
 
-	/**
+	/*
 	* Opens a base.
 	* @param {string} [configPath='qm.conf'] - The configuration file path.
 	* @param {boolean} [readOnly=false] - Open in read only mode?
 	* @returns {module:qm.Base}
 	*/
-	//# exports.open = function (configPath, readOnly) { return Object.create(require('qminer').Base.prototype); }
+	// exports.open = function (configPath, readOnly) { return Object.create(require('qminer').Base.prototype); }
 	JsDeclareFunction(open);
 };
 
@@ -667,11 +667,8 @@ typedef TPt<TNodeJsBaseWatcher> PNodeJsBaseWatcher;
 * @example
 * // import qm module
 * var qm = require('qminer');
-* // factory based construction: create a base with the qm configuration file, without the predefined schemas, with overwrite = true
-* var base = qm.create('qm.conf', "", true);
-* base.close();
 * // using a constructor, in open mode:
-* var base2 = new qm.Base({mode: 'open'});
+* var base = new qm.Base({mode: 'open'});
 */
 //# exports.Base = function (paramObj) {};
 class TNodeJsBase : public node::ObjectWrap {
@@ -1737,17 +1734,20 @@ public:
 * // import qm module
 * var qm = require('qminer');
 * // construct a base with the store
-* base.createStore({
-*        "name": "FtrSpace",
-*        "fields": [
-*          { "name": "Value", "type": "float" },
-*          { "name": "Category", "type": "string" },
-*          { "name": "Categories", "type": "string_v" },
-*        ],
-*        "joins": [],
-*        "keys": []
-*    });
-* // adding some record
+* var base = new qm.Base({
+*   mode: "create",
+*   schema: {
+*     name: "FtrSpace",
+*     fields: [
+*       { name: "Value", type: "float" },
+*       { name: "Category", type: "string" },
+*       { name: "Categories", type: "string_v" },
+*     ],
+*     joins: [],
+*     keys: []
+*   }
+* });
+* // populate the store
 * Store = base.store("FtrSpace");
 * Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
 * Store.add({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
@@ -1837,28 +1837,31 @@ public:
 	* // import qm module
 	* var qm = require('qminer');
 	* // create a new base
-	* var base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
-    * base.createStore({
-    *        "name": "FtrSpace",
-    *        "fields": [
-    *          { "name": "Value", "type": "float" },
-    *          { "name": "Category", "type": "string" },
-    *          { "name": "Categories", "type": "string_v" },
-    *        ],
-    *        "joins": [],
-    *        "keys": []
-    *    });
-    *    Store = base.store("FtrSpace");
-    *    Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
-    *    Store.add({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
-    *    Store.add({ Value: 1.2, Category: "c", Categories: ["c", "e"] });
-    *    Store.add({ Value: 1.3, Category: "a", Categories: ["a", "q"] });
+	* var base = new qm.Base({
+    *   mode: "create",
+    *   schema: {
+    *     name: "FtrSpace",
+    *     fields: [
+    *       { name: "Value", type: "float" },
+    *       { name: "Category", type: "string" },
+    *       { name: "Categories", type: "string_v" },
+    *     ],
+    *     joins: [],
+    *     keys: []
+    *   }
+    * });
+    * // populate the store
+    * Store = base.store("FtrSpace");
+    * Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
+    * Store.add({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
+    * Store.add({ Value: 1.2, Category: "c", Categories: ["c", "e"] });
+    * Store.add({ Value: 1.3, Category: "a", Categories: ["a", "q"] });
 	* // create a new feature space
 	* var ftr = new qm.FeatureSpace(base, [
-	*	  { type: "numeric", source: "FtrSpace", normalize: true, field: "Values" },
-	*     { type: "categorical", source: "FtrSpace", field: "Category", values: ["a", "b", "c"] },
-	*     { type: "multinomial", source: "FtrSpace", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
-	*	  ]);
+	*   { type: "numeric", source: "FtrSpace", normalize: true, field: "Values" },
+	*   { type: "categorical", source: "FtrSpace", field: "Category", values: ["a", "b", "c"] },
+	*   { type: "multinomial", source: "FtrSpace", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
+	* ]);
 	* // update the feature space with the first three record of the store
 	* ftr.updateRecord(Store[0]);
 	* ftr.updateRecord(Store[1]);
@@ -1886,28 +1889,31 @@ public:
 	* // import qm module
 	* var qm = require('qminer');
 	* // create a new base
-	* var base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
-	* base.createStore({
-	*        "name": "FtrSpace",
-	*        "fields": [
-	*          { "name": "Value", "type": "float" },
-	*          { "name": "Category", "type": "string" },
-	*          { "name": "Categories", "type": "string_v" },
-	*        ],
-	*        "joins": [],
-	*        "keys": []
-	*    });
-	*    Store = base.store("FtrSpace");
-	*    Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
-	*    Store.add({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
-	*    Store.add({ Value: 1.2, Category: "c", Categories: ["c", "e"] });
-	*    Store.add({ Value: 1.3, Category: "a", Categories: ["a", "q"] });
+	* var base = new qm.Base({
+    *   mode: "create",
+    *   schema: {
+    *     name: "FtrSpace",
+    *     fields: [
+    *       { name: "Value", type: "float" },
+    *       { name: "Category", type: "string" },
+    *       { name: "Categories", type: "string_v" },
+    *     ],
+    *     joins: [],
+    *     keys: []
+    *   }
+    * });
+    * // populate the store
+	* Store = base.store("FtrSpace");
+	* Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
+	* Store.add({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
+	* Store.add({ Value: 1.2, Category: "c", Categories: ["c", "e"] });
+	* Store.add({ Value: 1.3, Category: "a", Categories: ["a", "q"] });
 	* // create a new feature space
 	* var ftr = new qm.FeatureSpace(base, [
 	*	  { type: "numeric", source: "FtrSpace", normalize: true, field: "Values" },
 	*     { type: "categorical", source: "FtrSpace", field: "Category", values: ["a", "b", "c"] },
 	*     { type: "multinomial", source: "FtrSpace", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
-	*	  ]);
+	* ]);
 	* // update the feature space with the record set 
 	* var rs = Store.recs;
 	* ftr.updateRecords(rs);
