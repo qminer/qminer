@@ -106,9 +106,12 @@ public:
   TMem(const TStr& Str);
   static PMem New(const TStr& Str){return new TMem(Str);}
   ~TMem(){if (Bf!=NULL){delete[] Bf;}}
-  explicit TMem(TSIn& SIn){
-    SIn.Load(MxBfL); SIn.Load(BfL);
-    Bf=new char[MxBfL=BfL]; SIn.LoadBf(Bf, BfL);}
+  explicit TMem(TSIn& SIn) {
+	  SIn.Load(MxBfL); SIn.Load(BfL);
+	  Bf = new char[MxBfL = BfL]; SIn.LoadBf(Bf, BfL); }
+  void Load(PSIn& SIn) {
+	  Clr(); SIn->Load(MxBfL); SIn->Load(BfL);
+	  Bf = new char[MxBfL = BfL]; SIn->LoadBf(Bf, BfL); }
   void Save(TSOut& SOut) const {
     SOut.Save(MxBfL); SOut.Save(BfL); SOut.SaveBf(Bf, BfL);}
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
