@@ -1,5 +1,5 @@
 #include "StemmingTokenization.h"
-#include <omp.h>
+//#include <omp.h>
 
 #ifdef SNOWBALL_STEMMER
 bool SStemmer::setStemmer(const TStr& Name){

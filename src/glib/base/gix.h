@@ -88,8 +88,8 @@ class TGixItemSet {
 private:
 	TCRef CRef;
 	typedef TPt<TGixItemSet<TKey, TItem, TGixMerger> > PGixItemSet;
+    
 private:
-
 	/// This struct contans statistics about child vector
 	struct TGixItemSetChildInfo {
 	public:
@@ -132,7 +132,8 @@ private:
 			Pt.Save(SOut);
 		}
 	};
-
+    
+private:
 	/// The key of this itemset
 	TKey ItemSetKey;
 	/// "Working buffer" of items of this itemset - could be only part of them, others can be stored in child vectors
@@ -141,13 +142,10 @@ private:
 	TVec<int> ItemVDel;
 	/// Combined count - from this itemset and children
 	int TotalCnt;
-
 	// optional data about child vectors - will be populated only for frequent keys
 	mutable TVec<TGixItemSetChildInfo> Children;
-
 	// optional list of child vector contents - will be populated only for frequent keys
 	mutable TVec<TVec<TItem>> ChildrenData;
-
 	// for keeping the items unique and sorted
 	TBool MergedP;
 	// should this itemset be stored to disk?
@@ -156,7 +154,6 @@ private:
 	const TGixMerger *Merger;
 	// pointer to gix - as the storage-layer (serialization of self, loading children, notifying about changes...)
 	const TGix<TKey, TItem, TGixMerger> *Gix;
-
 
 	/// Load single child vector into memory if not present already
 	void LoadChildVector(int i) const {
@@ -214,7 +211,7 @@ private:
 public:
 	/// Standard constructor
 	TGixItemSet(const TKey& _ItemSetKey, const TGixMerger *_Merger, const TGix<TKey, TItem, TGixMerger>* _Gix) :
-		ItemSetKey(_ItemSetKey), MergedP(true), Dirty(true), Merger(_Merger), Gix(_Gix), TotalCnt(0) {}
+		ItemSetKey(_ItemSetKey), TotalCnt(0), MergedP(true), Dirty(true), Merger(_Merger), Gix(_Gix) {}
 	/// Standard factory method
 	static PGixItemSet New(const TKey& ItemSetKey, const TGixMerger* Merger, const TGix<TKey, TItem, TGixMerger>* Gix) {
 		return new TGixItemSet(ItemSetKey, Merger, Gix);
@@ -638,7 +635,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::Def() {
 		InjectWorkBufferToChildren(); // inject data into child vectors
 
 		int first_dirty_child = FirstDirtyChild();
-		if (first_dirty_child >= 0 || Children.Len() > 0 && ItemV.Len() > 0) {
+		if (first_dirty_child >= 0 || (Children.Len() > 0 && ItemV.Len() > 0)) {
 			int first_child_to_merge = (first_dirty_child >= 0 ? first_dirty_child : Children.Len());
 
 			// collect all data from subsequent child vectors and work-buffer

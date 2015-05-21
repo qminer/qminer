@@ -2387,7 +2387,7 @@ public:
 	void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm);
 
 	/// get blob stats
-	const TBlobBsStats& GetBlobStats() { 
+	const TBlobBsStats GetBlobStats() {
 		return TBlobBsStats::Add(Gix->GetBlobStats(), GixSmall->GetBlobStats());
 	}
 	/// get gix stats
@@ -2910,9 +2910,9 @@ public:
 	void PrintIndex(const TStr& FNm, const bool& SortP);
 		
 	/// get gix-blob stats
-	const TBlobBsStats& GetGixBlobStats() { return Index->GetBlobStats(); }
+	const TBlobBsStats GetGixBlobStats() { return Index->GetBlobStats(); }
 	/// get gix stats
-	const TGixStats& GetGixStats(bool do_refresh = true) { return Index->GetGixStats(do_refresh); }
+	const TGixStats GetGixStats(bool do_refresh = true) { return Index->GetGixStats(do_refresh); }
 	/// reset gix-blob stats
 	void ResetGixStats() { Index->ResetStats(); }
 	/// get performance statistics in JSON form

@@ -1639,7 +1639,7 @@ public:
   static bool IsNum(const double& Val){
     return (Mn<=Val)&&(Val<=Mx);}
   static bool IsNan(const double& Val){
-    return (Val!=Val);}
+    return _isnan(Val);}
 
   bool IsNum() const { return IsNum(Val); }
   bool IsNan() const { return IsNan(Val); }
