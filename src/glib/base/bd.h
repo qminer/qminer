@@ -5,7 +5,6 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
-#include <cstdint>
 #ifndef bd_h
 #define bd_h
 
@@ -30,39 +29,38 @@ typedef char int8;
 typedef short int16;
 typedef int int32;
 #ifdef GLib_WIN
-typedef __int64 int64;
+  typedef __int64 int64;
 #elif defined(GLib_GLIBC)
-typedef int64_t int64;
+  typedef int64_t int64;
 #else
-typedef long long int64;
+  typedef long long int64;
 #endif
 
 typedef unsigned char uint8;
 typedef unsigned short uint16;
 typedef unsigned int uint32;
 #ifdef GLib_WIN
-typedef unsigned __int64 uint64;
+  typedef unsigned __int64 uint64;
 #elif defined(GLib_GLIBC)
-typedef u_int64_t uint64;
+  typedef u_int64_t uint64;
 #else
 typedef unsigned long long uint64;
 #endif
 
 #if (!defined(__ssize_t_defined) && !defined(GLib_MACOSX))
-typedef ptrdiff_t ssize_t;
+  typedef ptrdiff_t ssize_t;
 #endif
 
-#if defined(GLib_UNIX)
-#define _isnan(x) isnan(x)
 #if defined(GLib_MACOSX)
+  #define _isnan(x) std::isnan(x)
   #define _finite(x) isfinite(x)
-#else
+#elif defined(GLib_UNIX)
+  #define _isnan(x) isnan(x)
   #define _finite(x) finite(x)
-#endif
 #endif
 
 #if defined(GLib_WIN)
-#define _vsnprintf vsnprintf
+  #define _vsnprintf vsnprintf
 #endif
 
 typedef size_t TSize;

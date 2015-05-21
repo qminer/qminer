@@ -131,7 +131,7 @@ typedef long long index_t;
 #endif
 
 #if defined(GLib_MACOSX)
-  // On OS X Maverics there is not default support for OpenMP
+  // On OS X Maverics there is no default support for OpenMP
 #else
   #define GLib_OPENMP
 #endif
@@ -140,8 +140,8 @@ typedef long long index_t;
 #include <float.h>
 //Andrej adds support for complex
 #include <complex>
-#define MKL_Complex8 std::complex<float>
-#define MKL_Complex16 std::complex<double>
+//#define MKL_Complex8 std::complex<float>
+//#define MKL_Complex16 std::complex<double>
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>

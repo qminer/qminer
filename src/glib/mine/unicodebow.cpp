@@ -24,8 +24,10 @@ namespace TUnicodeVSM {
 		buffer[last_new_line + 1] = '\0';
 		//fseeko for linux
 		//refactoring with ifdef for linux
-#ifdef WIN32
+#if defined(GLib_WIN)
 		_fseeki64(*id, last_new_line - vel + 1, SEEK_CUR);
+#elif defined(GLib_MACOSX)
+        fseeko(*id, last_new_line - vel + 1, SEEK_CUR);
 #else
 		fseeko64(*id, last_new_line - vel + 1, SEEK_CUR);
 #endif
@@ -260,7 +262,7 @@ namespace TUnicodeVSM {
 	TVec<TIntKd> TGlibUBow::TextToVec(TUStr& Text){	
 		switch (Option) {
 		case tWord:
-			return this->TokenizeWords(Text);
+			return this->_TokenizeWords(Text);
 			break;
 		case tWordNgram:
 			return this->TokenizeWordNgrams(Text);
@@ -479,7 +481,7 @@ namespace TUnicodeVSM {
 			this->TokenizeWordNgrams(Doc);
 			break;
 		case tWord:
-			this->TokenizeWords(Doc);
+			this->_TokenizeWords(Doc);
 			break;
 		case tCharNgram:
 			this->TokenizeNgrams(Doc);
@@ -521,7 +523,7 @@ namespace TUnicodeVSM {
 		return Vector;
 	}
 	//Word Tokenization
-	TVec<TIntKd> TGlibUBow::TokenizeWords(TUStr& Text){
+	TVec<TIntKd> TGlibUBow::_TokenizeWords(TUStr& Text){
 		return TGlibUBow::AddTokenizeWords(Text, false, false);
 		//return this->Vector;
 	};

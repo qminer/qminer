@@ -1040,7 +1040,7 @@ TFullMatrix TCtMChain::GetQMatrix() const {
 	TFullMatrix QMatrix(NStates, NStates);
 	for (int i = 0; i < NStates; i++) {
 		for (int j = 0; j < NStates; j++) {
-			printf("(%ld,%.3f)", QMatStats[i][j].Val1.Val, QMatStats[i][j].Val2.Val);
+			printf("(%s,%.3f)", QMatStats[i][j].Val1.GetStr().CStr(), QMatStats[i][j].Val2.Val);
 			if (j != i) {
 				const uint64 N = QMatStats[i][j].Val1;
 				const double Sum = QMatStats[i][j].Val2;

@@ -4205,8 +4205,8 @@ void TIndex::SearchOr(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV)
 	}
 }
 
-TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base,
-	const TQueryItem& QueryItem, const PQmGixExpMerger& Merger, const PQmGixExpMergerSmall& MergerSmall) const {
+TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base, const TQueryItem& QueryItem,
+        const PQmGixExpMerger& Merger, const PQmGixExpMergerSmall& MergerSmall) const {
 
 	// get query result store
 	TWPt<TStore> Store = QueryItem.GetStore(Base);
@@ -4238,14 +4238,12 @@ TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base,
 		PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsWgt());
 		return TPair<TBool, PRecSet>(NotP, RecSet);
 
-	} else {
-		EAssertR(false, "Error in TIndex::Search - hybrid search is not supported.");
-		//Fail; // TODO this is error - should not happen, we have root And node and it wasn't handled above (code was removed...)
 	}
+    throw TQmExcept::New("Error in TIndex::Search - hybrid search is not supported.");
 }
 
 PRecSet TIndex::SearchRange(const TWPt<TBase>& Base, const int& KeyId,
-	const TFltPr& Loc, const double& Radius, const int& Limit) const {
+        const TFltPr& Loc, const double& Radius, const int& Limit) const {
 
 	TUInt64V RecIdV;
 	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
@@ -4254,7 +4252,7 @@ PRecSet TIndex::SearchRange(const TWPt<TBase>& Base, const int& KeyId,
 }
 
 PRecSet TIndex::SearchNn(const TWPt<TBase>& Base, const int& KeyId,
-	const TFltPr& Loc, const int& Limit) const {
+        const TFltPr& Loc, const int& Limit) const {
 
 	TUInt64V RecIdV;
 	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
@@ -4646,7 +4644,7 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
 		//      create AND node with single child and execute it
 		TQueryItem IndexQueryItem(oqitAnd, QueryItem);
 		TPair<TBool, PRecSet> NotRecSet = Index->Search(this, IndexQueryItem, Merger, MergerSmall);
-		PRecSet RecSet; int ItemN = 0; bool NotP = false;
+		PRecSet RecSet; bool NotP = false;
 		NotP = NotRecSet.Val1; RecSet = NotRecSet.Val2;
 		return TPair<TBool, PRecSet>(NotP, RecSet);
 	} else if (QueryItem.IsGeo()) {
