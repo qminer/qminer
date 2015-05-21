@@ -3258,8 +3258,8 @@ TFullMatrix TFullMatrix::operator ()(const TIdxV1& RowV, const TIdxV2& ColV) con
 	TFullMatrix Result(Rows, Cols);
 	for (int i = 0; i < Rows; i++) {
 		for (int j = 0; j < Cols; j++) {
-			const int Idx1 = RowV[i];
-			const int Idx2 = ColV[j];
+			const int Idx1 = (int)RowV[i];
+			const int Idx2 = (int)ColV[j];
 			const TFlt Val = Mat->At(Idx1, Idx2);
 			Result.Mat->PutXY(i, j, Val);
 		}
