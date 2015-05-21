@@ -2064,7 +2064,7 @@ TIntV TVector::GetIntVec() const {
 	 TIntV Res(Dim);
 
 	 for (int i = 0; i < Dim; i++) {
-		 Res[i] = Vec[i];
+		 Res[i] = (int)Vec[i];
 	 }
 
 	 return Res;
