@@ -2552,7 +2552,7 @@ void THierchCtmc::TNode::ExpandState(const int& StateIdx) {
 	TFullMatrix InstanceMat = Model->GetFtrVV(RecIdV);
 	TVector AssignV = Clust->Assign(InstanceMat);
 
-	TVector StateAssignIdxV = AssignV.Find([&] (const int Val) { return Val == StateIdx; });
+	TVector StateAssignIdxV = AssignV.Find([&] (const double Val) { return Val == StateIdx; });
 
 	// if the state doesn't have enough points => ignore
 	if (StateAssignIdxV.Len() < 15) {		// TODO hardcoded remove this part
@@ -2563,7 +2563,7 @@ void THierchCtmc::TNode::ExpandState(const int& StateIdx) {
 	// get the record ids
 	TUInt64V StateRecIdV(StateAssignIdxV.Len(), 0);
 	for (int i = 0; i < StateAssignIdxV.Len(); i++) {
-		StateRecIdV.Add(RecIdV[StateAssignIdxV[i]]);
+		StateRecIdV.Add(RecIdV[(int)StateAssignIdxV[i]]);
 	}
 
 	// get the instance matrix
@@ -2598,7 +2598,7 @@ void THierchCtmc::TNode::InitChildV() {
 	StateIdV.Gen(NStates, 0);
 	for (int i = 0; i < NStates; i++) {
 		ChildV.Add(NULL);
-		StateIdV.Add(Model->GenNodeId());
+		StateIdV.Add((int)Model->GenNodeId());
 	}
 }
 
@@ -2692,7 +2692,7 @@ PStreamAggr THierchCtmc::New(const TWPt<TBase>& Base, const TStr& AggrNm, const 
 PStreamAggr THierchCtmc::New(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal) {
 	const TStr InStoreNm = ParamVal->GetObjStr("source");
 	const TStr AggrNm = ParamVal->GetObjStr("name");
-	const TInt MinRecs = ParamVal->GetObjNum("minRecs");
+	const TInt MinRecs = (int)ParamVal->GetObjNum("minRecs");
 	const PJsonVal ClustParams = ParamVal->GetObjKey("clustering");
 	const TStr TimeFldNm = ParamVal->GetObjStr("timestamp");
 	const TFlt ExpandThreshold = ParamVal->GetObjNum("expandThreshold");
@@ -2795,7 +2795,7 @@ void THierchCtmc::InitRoot() {
 	FtrSpace = TFtrSpace::New(Base, FtrExtV);
 	FtrSpace->Update(AllRecSet);
 
-	RootNode = new TNode(this, AllRecSet, GenNodeId(), 1);
+	RootNode = new TNode(this, AllRecSet, (int)GenNodeId(), 1);
 }
 
 
