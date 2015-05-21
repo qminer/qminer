@@ -38,7 +38,7 @@ namespace TUnicodeVSM {
 		if (enable_stemming){
 			if (Lang == "zh"){//Special Tokenization for Chinese
 				printf("Chinese Tokenizer!\n");
-				this->stemmer_supported = ChineseTokenizer::init();
+				this->stemmer_supported = TChineseTokenizer::init();
 				if (this->stemmer_supported){
 					printf("Chinese Dll OK!\n");
 				}
@@ -69,7 +69,7 @@ namespace TUnicodeVSM {
 		if (enable_stemming){
 			if (Lang == "zh"){//Special Tokenization for Chinese
 				printf("Chinese Tokenizer!\n");
-				this->stemmer_supported = ChineseTokenizer::init();
+				this->stemmer_supported = TChineseTokenizer::init();
 				if (this->stemmer_supported){
 					printf("Chinese Dll OK!\n");
 				}
@@ -120,7 +120,7 @@ namespace TUnicodeVSM {
 		Option.Load(SIn);
 		Lang.Load(SIn);
 		if (Lang == "zh"){//Special Tokenization for Chinese
-			stemmer_supported = ChineseTokenizer::init();
+			stemmer_supported = TChineseTokenizer::init();
 		}
 		else{
 			stemmer_supported = Stemmer.setStemmer(Lang);
@@ -169,7 +169,7 @@ namespace TUnicodeVSM {
 		if (stemmer_supported){
 			bool OK = true;
 			if (Lang == "zh"){//Special Tokenization for Chinese
-				OK = ChineseTokenizer::init();
+				OK = TChineseTokenizer::init();
 			}
 			else{
 				OK = Stemmer.setStemmer(Lang);
@@ -750,7 +750,7 @@ namespace TUnicodeVSM {
 			Text.GetWordUStrV(Words, Seperators);
 		}
 		else{
-			ChineseTokenizer::tokenizeClean(Text.GetStr(), Words);
+			TChineseTokenizer::tokenizeClean(Text.GetStr(), Words);
 		}
 
 		int i = 0;
@@ -794,7 +794,7 @@ namespace TUnicodeVSM {
 			Text.GetWordUStrLst(Words, Seperators);
 		}
 		else{
-			ChineseTokenizer::tokenizeClean(Text.GetStr(), Words, Seperators);
+			TChineseTokenizer::tokenizeClean(Text.GetStr(), Words, Seperators);
 		}
 
 		int i = 0;
