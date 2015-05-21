@@ -252,9 +252,9 @@ public:
 	void SetVal(const uint64& ValId, const TMem& Val);
 	void DelVals(int Vals);
 
-	inline uint64 Len() const;
-	inline uint64 GetFirstValId() const;
-	inline uint64 GetLastValId() const;
+	uint64 Len() const;
+	uint64 GetFirstValId() const;
+	uint64 GetLastValId() const;
 
 	int PartialFlush(int WndInMsec = 500);
 	inline void LoadAll();
