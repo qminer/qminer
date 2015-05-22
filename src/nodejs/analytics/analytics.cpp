@@ -917,12 +917,12 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 		}
 
 		// create the model
-		TMc::PHierarch AggClust = new TMc::THierarch(NPastStates + 1, Verbose);
+		TMc::PHierarch Hierarch = new TMc::THierarch(NPastStates + 1, Verbose);
 
 		// finish
-		TMc::PStreamStory HMcModel = new TMc::TStreamStory(Clust, MChain, AggClust, Verbose);
+		TMc::PStreamStory StreamStory = new TMc::TStreamStory(Clust, MChain, Hierarch, Verbose);
 
-		return new TNodeJsStreamStory(HMcModel);
+		return new TNodeJsStreamStory(StreamStory);
 	}
 }
 

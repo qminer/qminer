@@ -37,6 +37,7 @@ TStateIdentifier::TStateIdentifier(TSIn& SIn) {
 	ObsFtrBinStartVV.Load(SIn);
 	ContrFtrBinStartVV.Load(SIn);
 	ObsHistStat.Load(SIn);
+	ControlHistStat.Load(SIn);
 	Sample = TFlt(SIn);
 	Verbose = TBool(SIn);
 	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
@@ -52,6 +53,7 @@ void TStateIdentifier::Save(TSOut& SOut) const {
 	ObsFtrBinStartVV.Save(SOut);
 	ContrFtrBinStartVV.Save(SOut);
 	ObsHistStat.Save(SOut);
+	ControlHistStat.Save(SOut);
 	TFlt(Sample).Save(SOut);
 	TBool(Verbose).Save(SOut);
 }
@@ -99,17 +101,17 @@ void TStateIdentifier::Init(const TFullMatrix& X, const TFltVV& ControlFtrVV) {
 	Notify->OnNotify(TNotifyType::ntInfo, "Done.");
 }
 
-void TStateIdentifier::InitHistogram(const TFltVV& X, const TFltVV& ControlFtrVV) {
+void TStateIdentifier::InitHistogram(const TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV) {
 	Notify->OnNotify(TNotifyType::ntInfo, "Computing histograms ...");
 
 	const int NClusts = GetClusts();
 
-	const TIntV AssignV = Assign(X).GetIntVec();
+	const TIntV AssignV = Assign(ObsFtrVV).GetIntVec();
 
-	InitFtrBinStartVV(X, NHistBins, ObsFtrBinStartVV);
+	InitFtrBinStartVV(ObsFtrVV, NHistBins, ObsFtrBinStartVV);
 	InitFtrBinStartVV(ControlFtrVV, NHistBins, ContrFtrBinStartVV);
 
-	InitHist(X, AssignV, ObsFtrBinStartVV, NClusts, NHistBins, ObsHistStat);
+	InitHist(ObsFtrVV, AssignV, ObsFtrBinStartVV, NClusts, NHistBins, ObsHistStat);
 	InitHist(ControlFtrVV, AssignV, ContrFtrBinStartVV, NClusts, NHistBins, ControlHistStat);
 }
 
@@ -193,8 +195,8 @@ void TStateIdentifier::GetHistogram(const int FtrId, const TIntV& StateSet, TFlt
 	BinV.Gen(NHistBins+2);
 	BinStartV.Clr();
 
-	const TFltVV& BinStartVV = FtrId < ObsFtrBinStartVV.GetCols() ? ObsFtrBinStartVV : ContrFtrBinStartVV;
-	const THistStat& HistStat = FtrId < ObsFtrBinStartVV.GetCols() ? ObsHistStat : ControlHistStat;
+	const TFltVV& BinStartVV = FtrId < ObsFtrBinStartVV.GetRows() ? ObsFtrBinStartVV : ContrFtrBinStartVV;
+	const THistStat& HistStat = FtrId < ObsFtrBinStartVV.GetRows() ? ObsHistStat : ControlHistStat;
 	const int FtrN = FtrId < ObsFtrBinStartVV.GetRows() ? FtrId : FtrId - ObsFtrBinStartVV.GetRows();
 
 	for (int i = 0; i < BinStartVV.GetCols(); i++) {

@@ -116,7 +116,7 @@ class TNodeJsUtil {
 public:
     /// Convert v8 Json to GLib Json (PJsonVal). Is parameter IgnoreFunc is set to true the method will
 	/// ignore functions otherwise an exception will be thrown when a function is encountered
-    static PJsonVal GetObjJson(const v8::Local<v8::Object>& Obj, const bool IgnoreFunc=false);
+    static PJsonVal GetObjJson(const v8::Local<v8::Value>& Obj, const bool IgnoreFunc=false);
     static PJsonVal GetObjProps(const v8::Local<v8::Object>& Obj) { return GetObjJson(Obj, true); }
     /// Convert GLib Json (PJsonVal) to v8 Json
     static v8::Local<v8::Value> ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal);

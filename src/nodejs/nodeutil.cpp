@@ -3,57 +3,79 @@
 /////////////////////////////////////////
 // Node - Utilities
 
-PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj, const bool IgnoreFunc) {
-    if (!IgnoreFunc) {
-    	EAssertR(!Obj->IsFunction(), "TNodeJsUtil::GetObjJson: Cannot parse functions!");
-    }
+PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool IgnoreFunc) {
+	AssertR(!Val->IsExternal(), "TNodeJsUtil::GetObjJson: Cannot parse v8::External!");
 
-    if (Obj->IsUndefined() || Obj->IsFunction()) {
-        return TJsonVal::New();
-    }
-    else if (Obj->IsNull()) {
-        return TJsonVal::NewNull();
-    }
-    else if (Obj->IsBooleanObject()) {
-		v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(Obj);
-		return TJsonVal::NewBool(BoolObj->ValueOf());
-    }
-    else if (Obj->IsNumberObject()) {
-        return TJsonVal::NewNum(Obj->NumberValue());
-    }
-    else if (Obj->IsStringObject() || Obj->IsRegExp() || Obj->IsDate()) {
-        return TJsonVal::NewStr(TStr(*v8::String::Utf8Value(Obj->ToString())));
-    }
-    else if (Obj->IsArray()) {
-        PJsonVal JsonArr = TJsonVal::NewArr();
+	if (Val->IsObject()) {
+		// if we aren't ignoring functions and the object is a function
+		// then throw an exception
+		EAssertR(IgnoreFunc || !Val->IsFunction(), "TNodeJsUtil::GetObjJson: Cannot parse functions!");
 
-        v8::Array* Arr = v8::Array::Cast(*Obj);
-        for (uint i = 0; i < Arr->Length(); i++) {
-        	if (!IgnoreFunc || !Arr->Get(i)->IsFunction()) {
-        		JsonArr->AddToArr(GetObjJson(Arr->Get(i)->ToObject(), IgnoreFunc));
-        	}
-        }
+		// parse the object
+		if (Val->IsFunction()) {
+			return TJsonVal::New();
+		}
+		else if (Val->IsBooleanObject()) {
+			v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(Val);
+			return TJsonVal::NewBool(BoolObj->ValueOf());
+		}
+		else if (Val->IsNumberObject()) {
+			return TJsonVal::NewNum(Val->NumberValue());
+		}
+		else if (Val->IsStringObject() || Val->IsRegExp() || Val->IsDate()) {
+			return TJsonVal::NewStr(TStr(*v8::String::Utf8Value(Val->ToString())));
+		}
+		else if (Val->IsArray()) {
+			PJsonVal JsonArr = TJsonVal::NewArr();
 
-        return JsonArr;
-    }
-    else { // object
-        PJsonVal JsonVal = TJsonVal::NewObj();
+			v8::Array* Arr = v8::Array::Cast(*Val);
+			for (uint i = 0; i < Arr->Length(); i++) {
+				if (!IgnoreFunc || !Arr->Get(i)->IsFunction()) {
+					JsonArr->AddToArr(GetObjJson(Arr->Get(i), IgnoreFunc));
+				}
+			}
 
-        v8::Local<v8::Array> FldNmV = Obj->GetOwnPropertyNames();
-        for (uint i = 0; i < FldNmV->Length(); i++) {
-            const TStr FldNm(*v8::String::Utf8Value(FldNmV->Get(i)->ToString()));
+			return JsonArr;
+		}
+		else {	// general object with fields
+			PJsonVal JsonVal = TJsonVal::NewObj();
+			v8::Local<v8::Object> Obj = Val->ToObject();
 
-			v8::Local<v8::Value> Val = Obj->Get(FldNmV->Get(i));
+			v8::Local<v8::Array> FldNmV = Obj->GetOwnPropertyNames();
+			for (uint i = 0; i < FldNmV->Length(); i++) {
+				const TStr FldNm(*v8::String::Utf8Value(FldNmV->Get(i)->ToString()));
 
-			if (!IgnoreFunc || !Val->IsFunction()) {
-				// supported cases. Alternatively, we could set the object to null
-				EAssertR(Val->IsObject() || Val->IsBoolean() || Val->IsNumber() || Val->IsString() || Val->IsArray() || Val->IsNull() || Val->IsRegExp() || Val->IsDate(), "TNodeJsUtil::GetObjJson: Cannot parse!");
-				JsonVal->AddToObj(FldNm, GetObjJson(Val->ToObject(), IgnoreFunc));
-            }
-        }
+				v8::Local<v8::Value> FldVal = Obj->Get(FldNmV->Get(i));
 
-        return JsonVal;
-    }
+				if (!IgnoreFunc || !FldVal->IsFunction()) {
+					JsonVal->AddToObj(FldNm, GetObjJson(FldVal, IgnoreFunc));
+				}
+			}
+
+			return JsonVal;
+		}
+	}
+	else {	// primitive
+		if (Val->IsUndefined()) {
+			return TJsonVal::New();
+		}
+		else if (Val->IsNull()) {
+			return TJsonVal::NewNull();
+		}
+		else if (Val->IsBoolean()) {
+			return TJsonVal::NewBool(Val->BooleanValue());
+		}
+		else if (Val->IsNumber()) {
+			return TJsonVal::NewNum(Val->NumberValue());
+		}
+		else if (Val->IsString()) {
+			return TJsonVal::NewStr(TStr(*v8::String::Utf8Value(Val->ToString())));
+		}
+		else {
+			// TODO check for v8::Symbol
+			throw TExcept::New("TNodeJsUtil::GetObjJson: Unknown v8::Primitive type!");
+		}
+	}
 }
 
 v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal) {
