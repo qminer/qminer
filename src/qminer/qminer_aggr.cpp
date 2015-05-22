@@ -7,6 +7,7 @@
  */
 
 #include "qminer_aggr.h"
+#define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
 #ifdef OG_AGGR_DOC_ATLAS
