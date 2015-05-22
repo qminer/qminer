@@ -149,15 +149,14 @@ namespace glib {
 		BfL = CacheSize;
 		MxLoadedPages = CacheSize / PAGE_SIZE;
 		LruFirst = LruLast = -1;
+		Init();
 	}
 
 	/// Destructor
 	TPgBlob::~TPgBlob() {
 		for (int i = 0; i < LoadedPages.Len(); i++) {
-			if (ShouldSavePage(i)) {
-				LoadedPage& a = LoadedPages[i];
-				Files[a.Pt.GetFileIndex()]->SavePage(a.Pt.GetPage(), GetPageBf(i));
-			}
+			LoadedPage& a = LoadedPages[i];
+			Files[a.Pt.GetFileIndex()]->SavePage(a.Pt.GetPage(), GetPageBf(i));
 		}
 		SaveMain();
 		Files.Clr();
@@ -182,16 +181,6 @@ namespace glib {
 			TStr FNmChild = FNm + ".bin" + TStr::GetNrNumFExt(children_cnt);
 			Files.Add(TPgBlobFile::New(FNmChild, Access, TInt::Giga));
 		}
-	}
-
-	/// Factory method for creating new BLOB storage
-	PPgBlob TPgBlob::Create(const TStr& FNm, const uint64& CacheSize) {
-		return PPgBlob(new TPgBlob(FNm, TFAccess::faCreate, CacheSize));
-	}
-
-	/// Factory method for opening existing BLOB storage
-	PPgBlob TPgBlob::Open(const TStr& FNm, const uint64& CacheSize) {
-		return PPgBlob(new TPgBlob(FNm, TFAccess::faUpdate, CacheSize));
 	}
 
 	/// remove given page from LRU list
@@ -291,6 +280,7 @@ namespace glib {
 			if (Pg >= 0) {
 				res.Val1 = TPgBlobPt(Pg, Files.Len() - 1, 0);
 				res.Val2 = LoadPage(res.Val1);
+				InitPageP(res.Val2);
 				return res;
 			}
 		}
@@ -300,56 +290,42 @@ namespace glib {
 		EAssert(Pg >= 0);
 		res.Val1 = TPgBlobPt(Pg, Files.Len() - 1, 0);
 		res.Val2 = LoadPage(res.Val1);
+		InitPageP(res.Val2);
 		return res;
 	}
 
 	//////////////////////////////////////////////////////
 
-#define PgHeaderDirtyFlag (0x01)
-#define PgHeaderSLockFlag (0x02)
-#define PgHeaderXLockFlag (0x04)
-
-	class TTestPgBlob : TPgBlob {
-	private:
-
-		class TPgHeader {
-		public:
-			uchar Flags;
-
-			bool IsDirty() { return (Flags & PgHeaderDirtyFlag) != 0; }
-			bool IsSLock() { return (Flags & PgHeaderSLockFlag) != 0; }
-			bool IsXLock() { return (Flags & PgHeaderXLockFlag) != 0; }
-			bool IsLock() { return (Flags & (PgHeaderSLockFlag | PgHeaderXLockFlag)) != 0; }
-
-			bool SetDirty(bool val) {
-				if (val) {
-					Flags &= PgHeaderDirtyFlag;
-				} else { Flags ^= PgHeaderDirtyFlag; }
+	/// Destructor
+	TTestPgBlob::~TTestPgBlob() {
+		for (int i = 0; i < LoadedPages.Len(); i++) {
+			if (ShouldSavePage(i)) {
+				LoadedPage& a = LoadedPages[i];
+				Files[a.Pt.GetFileIndex()]->SavePage(a.Pt.GetPage(), GetPageBf(i));
 			}
-			bool SetSLock(bool val) {
-				if (val) {
-					Flags &= PgHeaderSLockFlag;
-				} else { Flags ^= PgHeaderSLockFlag; }
-			}
-			bool SetXLock(bool val) {
-				if (val) {
-					Flags &= PgHeaderXLockFlag;
-				} else { Flags ^= PgHeaderXLockFlag; }
-			}
-		};
-	public:
-
-		/// This method should be overridden in derived class to tell 
-		/// if given page should be stored to disk.
-		bool ShouldSavePage(byte* Pt) {
-			return ((TPgHeader*)Pt)->IsDirty();
 		}
+		SaveMain();
+		Files.Clr();
+		delete[] Bf;
+	}
 
-		/// This method should be overridden in derived class to tell 
-		/// if given page can be evicted from cache.
-		bool CanEvictPage(byte* Pt) {
-			return ((TPgHeader*)Pt)->IsLock();
-		}
+	/// Factory method for creating new BLOB storage
+	PTestPgBlob TTestPgBlob::Create(const TStr& FNm, const uint64& CacheSize) {
+		return PTestPgBlob(new TTestPgBlob(FNm, TFAccess::faCreate, CacheSize));
+	}
 
-	};
+	/// Factory method for opening existing BLOB storage
+	PTestPgBlob TTestPgBlob::Open(const TStr& FNm, const uint64& CacheSize) {
+		return PTestPgBlob(new TTestPgBlob(FNm, TFAccess::faUpdate, CacheSize));
+	}
+
+	/// Initialize new page
+	void TTestPgBlob::InitPageP(byte* Pt) {
+		TPgHeader* Pt2 = (TPgHeader*)Pt;
+		Pt2->Flags = PgHeaderDirtyFlag; // not saved yet
+		Pt2->PageSize = PAGE_SIZE;
+		Pt2->PageVersion = 1;
+		Pt2->OffsetFreeStart = sizeof(TPgHeader);
+		Pt2->OffsetFreeEnd = PAGE_SIZE;
+	}
 }
