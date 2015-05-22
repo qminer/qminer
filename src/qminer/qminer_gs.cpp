@@ -427,7 +427,7 @@ TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bo
 	TFIn FIn(FNm); 
 	BlobPtV.Load(FIn); // load vector
 	// load rest
-	TInt cnt;
+	TInt64 cnt;
 	cnt.Load(FIn);
 	FirstValOffset.Load(FIn);
 	FirstValOffsetMem.Load(FIn);
@@ -436,7 +436,7 @@ TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bo
 	// load data from blob storage
 	BlobStorage = TMBlobBs::New(BlobFNm, Access);
 
-	for (int i = 0; i < cnt; i++) {
+	for (int64 i = 0; i < cnt; i++) {
 		ValV.Add(); // empty (non-loaded) data
 		DirtyV.Add(isdfNotLoaded); // init dirty flags
 	}
@@ -455,7 +455,7 @@ TInMemStorage::~TInMemStorage() {
 		TFOut FOut(FNm); 
 		BlobPtV.Save(FOut);
 		// save rest
-		TInt(ValV.Len()).Save(FOut);
+		TInt64(ValV.Len()).Save(FOut);
 		FirstValOffset.Save(FOut);
 		FirstValOffsetMem.Save(FOut);
 		BlockSize.Save(FOut);
