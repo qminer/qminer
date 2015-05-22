@@ -54,8 +54,6 @@ namespace glib {
 		/// get item index within page
 		uint16 GetItemIndex() const { return ItemIndex; }
 
-
-
 		/// Serialization of this object
 		void Save(TSOut& SOut) const {
 			SOut.Save(Page); SOut.Save(FileIndex); SOut.Save(ItemIndex);
@@ -68,30 +66,11 @@ namespace glib {
 		bool Clr() { FileIndex = -1; Page = ItemIndex = 0; }
 
 		/// Assignment operator
-		TPgBlobPt& operator=(const TPgBlobPt& Pt) {
-			if (this != &Pt) {
-				Page = Pt.Page;
-				FileIndex = Pt.FileIndex;
-				ItemIndex = Pt.ItemIndex;
-			}
-			return *this;
-		}
-
+		TPgBlobPt& operator=(const TPgBlobPt& Pt);
 		/// Equality comparer
-		bool operator==(const TPgBlobPt& Pt) const {
-			return
-				(Page == Pt.Page) &&
-				(FileIndex == Pt.FileIndex) &&
-				(ItemIndex == Pt.ItemIndex);
-		}
-
+		bool operator==(const TPgBlobPt& Pt) const;
 		/// Comparison of pointers for sorting
-		bool operator<(const TPgBlobPt& Pt) const {
-			return
-				(FileIndex < Pt.FileIndex) ||
-				((FileIndex == Pt.FileIndex) && (Page < Pt.Page)) ||
-				((FileIndex == Pt.FileIndex) && (Page == Pt.Page) && (ItemIndex < Pt.ItemIndex));
-		}
+		bool operator<(const TPgBlobPt& Pt) const;
 
 		/// Returns memory usage - for caching and other stuff
 		uint64 GetMemUsed() const { return sizeof(TPgBlobPt); }

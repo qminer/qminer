@@ -3,6 +3,33 @@
 
 namespace glib {
 
+	/// Assignment operator
+	TPgBlobPt& TPgBlobPt::operator = (const TPgBlobPt& Pt) {
+		if (this != &Pt) {
+			Page = Pt.Page;
+			FileIndex = Pt.FileIndex;
+			ItemIndex = Pt.ItemIndex;
+		}
+		return *this;
+	}
+
+	/// Equality comparer
+	bool TPgBlobPt::operator==(const TPgBlobPt& Pt) const {
+		return
+			(Page == Pt.Page) &&
+			(FileIndex == Pt.FileIndex) &&
+			(ItemIndex == Pt.ItemIndex);
+	}
+
+	/// Comparison of pointers for sorting
+	bool TPgBlobPt::operator<(const TPgBlobPt& Pt) const {
+		return
+			(FileIndex < Pt.FileIndex) ||
+			((FileIndex == Pt.FileIndex) && (Page < Pt.Page)) ||
+			((FileIndex == Pt.FileIndex) && (Page == Pt.Page) && (ItemIndex < Pt.ItemIndex));
+	}
+
+	/////////////////////////////////////////////////////////////////////////////
 
 	/// Private constructor
 	TPgBlobFile::TPgBlobFile(
@@ -58,9 +85,7 @@ namespace glib {
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-
-
-
+	
 	TPgBlobPage::TPgBlobPage() {}
 
 	TPgBlobPage::~TPgBlobPage() {}
@@ -169,5 +194,9 @@ namespace glib {
 	}
 
 	/// Create new page and return pointers to it
-	void TPgBlob::CreateNewPage(TPgBlobPt& BlobPt, byte** Pt) {}
+	void TPgBlob::CreateNewPage(TPgBlobPt& BlobPt, byte** Pt) {
+		// determine if last file is empty
+
+		
+	}
 }
