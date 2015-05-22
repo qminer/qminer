@@ -162,6 +162,8 @@ namespace glib {
 
 		/// File name
 		TStr FNm;
+		/// File access
+		TFAccess Access;
 		/// Individual files that comprise this BLOB storage
 		TVec<PPgBlobFile> Files;
 		/// Pointers for loaded pages
@@ -185,7 +187,7 @@ namespace glib {
 		byte* GetPageBf(int Pg) { return Bf + Pg*PAGE_SIZE; }
 
 		/// Private constructor
-		TPgBlob(const TStr& _FNm, const uint64& CacheSize);
+		TPgBlob(const TStr& _FNm, const TFAccess& _Access, const uint64& CacheSize);
 		/// remove given page from LRU list
 		void UnlistFromLru(int Pg);
 		/// move given page to the start of LRU list
@@ -195,6 +197,13 @@ namespace glib {
 
 		/// Evicts last possible page from cache.
 		int Evict();
+
+		/// Save main file
+		void SaveMain();
+		/// Load main file
+		void LoadMain();
+		/// Find which child files exist
+		void DetectSegments();
 	public:
 		/// Reference count for smart pointers
 		TCRef CRef;
