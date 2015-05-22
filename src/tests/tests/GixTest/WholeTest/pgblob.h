@@ -17,10 +17,11 @@ namespace glib {
 	class TPgBlobFile;
 	class TPgBlobPage;
 	class TPgBlob;
+	class TTestPgBlob;
 	/// Smart pointers
 	typedef TPt<TPgBlobPage> TPgBlobPtPPgBlobPage;
 	typedef TPt<TPgBlobFile> PPgBlobFile;
-	typedef TPt<TPgBlob> PPgBlob;
+	typedef TPt<TTestPgBlob> PTestPgBlob;
 
 
 	/// Page size is 8kb
@@ -147,7 +148,7 @@ namespace glib {
 	/// Has no clue about the meaning of the data in pages. 
 	/// It doesn't even know if data is dirty.
 	class TPgBlob {
-	private:
+	protected:
 
 		/// Housekeeping record for each loaded page
 		struct LoadedPage {
@@ -188,8 +189,6 @@ namespace glib {
 			return Bf + Pg * PAGE_SIZE; 
 		}
 
-		/// Private constructor
-		TPgBlob(const TStr& _FNm, const TFAccess& _Access, const uint64& CacheSize);
 		/// remove given page from LRU list
 		void UnlistFromLru(int Pg);
 		/// move given page to the start of LRU list
@@ -206,15 +205,14 @@ namespace glib {
 		void LoadMain();
 		/// Find which child files exist
 		void DetectSegments();
+
+		/// Initialization, called at the end of base class constructor
+		virtual void Init() {}
 	public:
-		/// Reference count for smart pointers
-		TCRef CRef;
-		/// Factory method for creating new BLOB storage
-		static PPgBlob Create(const TStr& FNm, const uint64& CacheSize = 10 * TNum<int>::Mega);
-		/// Factory method for opening existing BLOB storage
-		static PPgBlob Open(const TStr& FNm, const uint64& CacheSize = 10 * TNum<int>::Mega);
+		/// Constructor
+		TPgBlob(const TStr& _FNm, const TFAccess& _Access, const uint64& CacheSize);
 		/// Destructor
-		~TPgBlob();
+		virtual ~TPgBlob();
 
 		/// Load given page into memory
 		byte* LoadPage(const TPgBlobPt& Pt);
@@ -222,22 +220,97 @@ namespace glib {
 		/// Create new page and return pointers to it
 		TPair<TPgBlobPt, byte*> CreateNewPage();
 
+		/// This method tells if given page should be stored to disk.
+		bool ShouldSavePage(int Pg) { return ShouldSavePageP(GetPageBf(Pg)); }
+
+		/// This method tells if given page can be evicted from cache.
+		bool CanEvictPage(int Pg) { return CanEvictPageP(GetPageBf(Pg)); }
+
+		// virtual methods //////////////
+
 		/// This method should be overridden in derived class to tell 
 		/// if given page should be stored to disk.
-		virtual bool ShouldSavePage(byte* Pt) { return true; }
+		virtual bool ShouldSavePageP(byte* Pt) { return true; }
 
 		/// This method should be overridden in derived class to tell 
 		/// if given page can be evicted from cache.
-		virtual bool CanEvictPage(byte* Pt) { return true; }
+		virtual bool CanEvictPageP(byte* Pt) { return true; }
 
-		/// This method should be overridden in derived class to tell 
-		/// if given page should be stored to disk.
-		bool ShouldSavePage(int Pg) { return ShouldSavePage(GetPageBf(Pg)); }
-
-		/// This method should be overridden in derived class to tell 
-		/// if given page can be evicted from cache.
-		bool CanEvictPage(int Pg) { return CanEvictPage(GetPageBf(Pg)); }
+		/// Initialize new page.
+		virtual void InitPageP(byte* Pt) { }
 	};
 
+	///////////////////////////////////////////////////////////////////////
+
+
+
+#define PgHeaderDirtyFlag (0x01)
+#define PgHeaderSLockFlag (0x02)
+#define PgHeaderXLockFlag (0x04)
+
+	class TTestPgBlob : public TPgBlob {
+	protected:
+
+		class TPgHeader {
+		public:
+			uint16 PageSize; // page size should not be more than 64k
+			uchar PageVersion;
+			uchar Flags;
+			uint16 OffsetFreeStart;
+			uint16 OffsetFreeEnd;
+
+			bool IsDirty() { return (Flags & PgHeaderDirtyFlag) != 0; }
+			bool IsSLock() { return (Flags & PgHeaderSLockFlag) != 0; }
+			bool IsXLock() { return (Flags & PgHeaderXLockFlag) != 0; }
+			bool IsLock() { return (Flags & (PgHeaderSLockFlag | PgHeaderXLockFlag)) != 0; }
+
+			bool SetDirty(bool val) {
+				if (val) {
+					Flags &= PgHeaderDirtyFlag;
+				} else { Flags ^= PgHeaderDirtyFlag; }
+			}
+			bool SetSLock(bool val) {
+				if (val) {
+					Flags &= PgHeaderSLockFlag;
+				} else { Flags ^= PgHeaderSLockFlag; }
+			}
+			bool SetXLock(bool val) {
+				if (val) {
+					Flags &= PgHeaderXLockFlag;
+				} else { Flags ^= PgHeaderXLockFlag; }
+			}
+		};
+	public:
+		/// Reference count for smart pointers
+		TCRef CRef;
+
+		/// Constructor
+		TTestPgBlob(const TStr& _FNm, const TFAccess& _Access, const uint64& CacheSize) :
+			TPgBlob(_FNm, _Access, CacheSize) {}
+		/// Destructor
+		~TTestPgBlob();
+
+		/// Factory method for creating new BLOB storage
+		static PTestPgBlob Create(const TStr& FNm, const uint64& CacheSize = 10 * TNum<int>::Mega);
+		/// Factory method for opening existing BLOB storage
+		static PTestPgBlob Open(const TStr& FNm, const uint64& CacheSize = 10 * TNum<int>::Mega);
+
+		// overridden virtual methods ////////////////////////////
+
+		/// This method should be overridden in derived class to tell 
+		/// if given page should be stored to disk.
+		bool ShouldSavePageP(byte* Pt) {
+			return ((TPgHeader*)Pt)->IsDirty();
+		}
+
+		/// This method should be overridden in derived class to tell 
+		/// if given page can be evicted from cache.
+		bool CanEvictPageP(byte* Pt) { 
+			return ((TPgHeader*)Pt)->IsLock();
+		}
+
+		/// Initialize new page - inject template.
+		void InitPageP(byte* Pt);
+	};
 }
 #endif

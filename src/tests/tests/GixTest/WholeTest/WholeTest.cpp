@@ -1,8 +1,5 @@
 #define _CRTDBG_MAP_ALLOC
 
-/* Don't complain about _snprintf being insecure. */
-#define _CRT_SECURE_NO_WARNINGS
-
 #include <stdlib.h>
 #include <crtdbg.h>
 
@@ -558,9 +555,13 @@ public:
 
 
 TEST(testTPgBlob, Simple) {
-	auto Base = glib::TPgBlob::Create("data\\xyz");
+	auto Base = glib::TTestPgBlob::Create("data\\xyz");
 	auto new_page = Base->CreateNewPage();
+	EXPECT_EQ(new_page.Val1.GetFileIndex(), 0);
+	EXPECT_EQ(new_page.Val1.GetPage(), 0);
 	printf("%d %d\n", new_page.Val1.GetFileIndex(), new_page.Val1.GetPage());
 	auto new_page2 = Base->CreateNewPage();
+	EXPECT_EQ(new_page2.Val1.GetFileIndex(), 0);
+	EXPECT_EQ(new_page2.Val1.GetPage(), 1);
 	printf("%d %d\n", new_page2.Val1.GetFileIndex(), new_page2.Val1.GetPage());
 }
