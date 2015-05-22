@@ -463,15 +463,15 @@ TInMemStorage::~TInMemStorage() {
 }
 
 /// Utility method for loading specific record
-void TInMemStorage::LoadRec(int i) const {
+void TInMemStorage::LoadRec(int64 i) const {
 	if (DirtyV[i] != isdfNotLoaded) {
 		return;
 	}
-	const int ii = i / BlockSize;
+	const int64 ii = i / BlockSize;
 	TMem mem;
 	TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[ii]), mem);
 	PSIn in = mem.GetSIn();
-	for (int j = ii*BlockSize; j < DirtyV.Len() && j < (ii + 1)*BlockSize; j++) {
+	for (int64 j = ii*BlockSize; j < DirtyV.Len() && j < (ii + 1)*BlockSize; j++) {
 		if (DirtyV[j] == isdfNotLoaded) {
 			DirtyV[j] = isdfClean;
 			ValV[j].Load(in);

@@ -233,7 +233,7 @@ private:
 	TInt BlockSize;
 
 	/// Utility method for loading specific record
-	inline void LoadRec(int i) const;
+	inline void LoadRec(int64 i) const;
 
 	/// Utility method for storing specific record
 	int SaveRec(int i);
