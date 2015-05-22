@@ -617,6 +617,8 @@ public:
 		}
 		return res;
 	}
+	/// Get statistics about BLOB storage
+	TBlobBsStats GetBlobBsStats() { return BlockBlobBs->GetStats(); }
 };
 
 template <class TVal>

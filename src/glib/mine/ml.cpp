@@ -71,7 +71,7 @@ void TFullClust::Init(const TFullMatrix& X) {
 	if (Sample == 1) {
 		Apply(X, MX_ITER);
 	} else {
-		const int NSamples = Sample < 1 ? ceil(NInst*Sample) : TMath::Mn(NInst, int(Sample));
+		const int NSamples = Sample < 1 ? (int)ceil(NInst*Sample) : TMath::Mn(NInst, int(Sample));
 
 		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Sampling %d instances...", NSamples);
 
@@ -204,7 +204,7 @@ TVector TFullClust::GetJoinedCentroid(const TIntV& CentroidIdV) const {
 		const int CentroidIdx = CentroidIdV[i];
 		const uint64 CentroidSize = GetClustSize(CentroidIdx);
 
-		Result += GetCentroid(CentroidIdx)*CentroidSize;
+		Result += GetCentroid(CentroidIdx)*(double)CentroidSize;
 		TotalSize += CentroidSize;
 	}
 
@@ -236,7 +236,7 @@ void TFullClust::GetHistogram(const int FtrId, const TIntV& StateSet, TFltV& Bin
 		const TUInt64V& CountV = FtrHistStat.Val2;
 
 		for (int j = 0; j < CountV.Len(); j++) {
-			BinV[j] += CountV[j];
+			BinV[j] += (double)CountV[j];
 		}
 	}
 

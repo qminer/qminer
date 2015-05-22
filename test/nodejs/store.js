@@ -312,6 +312,14 @@ describe('Store Tests', function () {
             })
         })
     });
+
+    describe('getStats Test', function () {
+        it('should return stats', function () {
+            var stats = table.base.getStats();
+            assert.equal(stats.stores.length, 1);
+        })
+    });
+
 })
 
 ///////////////////////////////////////////////////////////////////////////////
