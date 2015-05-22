@@ -1,4 +1,8 @@
 #define _CRTDBG_MAP_ALLOC
+
+/* Don't complain about _snprintf being insecure. */
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdlib.h>
 #include <crtdbg.h>
 
@@ -472,7 +476,7 @@ TPt<TQm::TBase> OpenPeopleBase(bool read_only = false) {
 TEST(testTBase, ClearStoreTest1) {
 	auto Base = CreatePeopleBase();
 	auto store = Base->GetStoreByStoreNm("People");
-	store->DeleteFirstNRecs(store->GetRecs());
+	store->DeleteFirstNRecs((int)store->GetRecs());
 	EXPECT_EQ(store->GetRecs(), 0);
 }
 TEST(testTBase, ClearStoreTest2) {
@@ -484,13 +488,13 @@ TEST(testTBase, ClearStoreTest2) {
 TEST(testTBase, ClearStoreTestBig1) {
 	auto Base = CreatePeopleBase(true);
 	auto store = Base->GetStoreByStoreNm("People");
-	store->DeleteFirstNRecs(store->GetRecs());
+	store->DeleteFirstNRecs((int)store->GetRecs());
 	EXPECT_EQ(store->GetRecs(), 0);
 }
 TEST(testTBase, ClearStoreTestBig2) {
 	auto Base = CreatePeopleBase(true);
 	auto store = Base->GetStoreByStoreNm("People");
-	store->DeleteFirstNRecs(store->GetRecs() - 1);
+	store->DeleteFirstNRecs((int)store->GetRecs() - 1);
 	EXPECT_EQ(store->GetRecs(), 1);
 }
 TEST(testTBase, ClearStoreTestBigComplex) {
@@ -499,7 +503,7 @@ TEST(testTBase, ClearStoreTestBigComplex) {
 		auto Base = CreatePeopleBase(true);
 		Base->PartialFlush(500);
 		auto store = Base->GetStoreByStoreNm("People");
-		recs = store->GetRecs();
+		recs = (int)store->GetRecs();
 		TQm::TStorage::SaveBase(Base);
 
 		printf("%s\n", Base->GetStats()->SaveStr());
@@ -508,7 +512,7 @@ TEST(testTBase, ClearStoreTestBigComplex) {
 		auto Base = OpenPeopleBase();
 		auto store = Base->GetStoreByStoreNm("People");
 		EXPECT_EQ(store->GetRecs(), recs);
-		store->DeleteFirstNRecs(store->GetRecs() - 1);
+		store->DeleteFirstNRecs((int)store->GetRecs() - 1);
 		EXPECT_EQ(store->GetRecs(), 1);
 	}
 }
@@ -522,7 +526,7 @@ TEST(testTBase, ReadOnlyAfterCrash) {
 		auto Base = CreatePeopleBase(true);
 		Base->PartialFlush(500);
 		auto store = Base->GetStoreByStoreNm("People");
-		recs = store->GetRecs();
+		recs = (int)store->GetRecs();
 		TQm::TStorage::SaveBase(Base);
 	}
 	{
@@ -535,7 +539,7 @@ TEST(testTBase, ReadOnlyAfterCrash) {
 		auto Base = OpenPeopleBase();
 		auto store = Base->GetStoreByStoreNm("People");
 		EXPECT_EQ(store->GetRecs(), recs);
-		store->DeleteFirstNRecs(store->GetRecs() - 1);
+		store->DeleteFirstNRecs((int)store->GetRecs() - 1);
 		EXPECT_EQ(store->GetRecs(), 1);
 	}
 }
