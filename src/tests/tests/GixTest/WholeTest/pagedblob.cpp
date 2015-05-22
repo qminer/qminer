@@ -120,15 +120,31 @@ namespace glib {
 	///////////////////////////////////////////////////////////////////////////
 
 	/// Private constructor
-	TPgBlob::TPgBlob(const TStr& _FNm, const uint64& CacheSize) {
-		// TODO open or create
+	TPgBlob::TPgBlob(const TStr& _FNm, const TFAccess& _Access, const uint64& CacheSize) {
+
 		EAssertR(
 			CacheSize >= PAGE_SIZE,
 			"Invalid cache size for TPgBlob '" + TStr(CacheSize) + "'.");
+
+
+		FNm = _FNm;
+		Access = _Access;
+		switch (Access) {
+		case faCreate:
+			TFile::DelWc(FNm + ".*");
+			SaveMain();
+			break;
+		case faRdOnly:
+		case faUpdate:
+			LoadMain();
+			break;
+		default:
+			FailR("Unsupported TFAccess flag for TPgBlob.");
+		}
+
 		// init cache
 		Bf = new byte[CacheSize];
 		BfL = CacheSize;
-		FNm = _FNm;
 		MxLoadedPages = CacheSize / PAGE_SIZE;
 		LruFirst = LruLast = -1;
 	}
@@ -145,17 +161,33 @@ namespace glib {
 		delete[] Bf;
 	}
 
+
+	/// Save main file
+	void TPgBlob::SaveMain() {
+		PSOut SOut = TFOut::New(FNm + ".main");
+		TInt children_cnt(Files.Len());
+		SOut->Save(children_cnt);
+	}
+	/// Load main file
+	void TPgBlob::LoadMain() {
+		PSIn SIn = TFIn::New(FNm + ".main");
+		int children_cnt;
+		SIn->Load(children_cnt);
+		Files.Clr();
+		for (int i = 0; i < children_cnt; i++) {
+			TStr FNmChild = FNm + ".bin" + TStr::GetNrNumFExt(children_cnt);
+			Files.Add(TPgBlobFile::New(FNmChild, Access, TInt::Giga));
+		}
+	}
+
 	/// Factory method for creating new BLOB storage
 	PPgBlob TPgBlob::Create(const TStr& FNm, const uint64& CacheSize) {
-		// TODO
-		// check if any file exists, delete them if needed
-		return PPgBlob(new TPgBlob(FNm, CacheSize));
+		return PPgBlob(new TPgBlob(FNm, TFAccess::faCreate, CacheSize));
 	}
 
 	/// Factory method for opening existing BLOB storage
 	PPgBlob TPgBlob::Open(const TStr& FNm, const uint64& CacheSize) {
-		// TODO
-		return PPgBlob(new TPgBlob(FNm, CacheSize));
+		return PPgBlob(new TPgBlob(FNm, TFAccess::faUpdate, CacheSize));
 	}
 
 	/// remove given page from LRU list
@@ -212,6 +244,7 @@ namespace glib {
 		if (ShouldSavePage(Pg)) {
 			Files[a.Pt.GetFileIndex()]->SavePage(a.Pt.GetPage(), GetPageBf(Pg));
 		}
+		return Pg;
 	}
 	/// Load given page into memory
 	byte* TPgBlob::LoadPage(const TPgBlobPt& Pt) {
@@ -249,11 +282,17 @@ namespace glib {
 			// try to add to last file
 			uint32 Pg = Files.Last()->CreateNewPage();
 			if (Pg >= 0) {
-				res.Val1 = TPgBlobPt(Pg, Files.Len()-1, 0);
+				res.Val1 = TPgBlobPt(Pg, Files.Len() - 1, 0);
 				res.Val2 = LoadPage(res.Val1);
 				return res;
 			}
 		}
-		Files.Add(TPgBlobFile::New());
+		TStr NewFNm = FNm + ".bin" + TStr::GetNrNumFExt(Files.Len());
+		Files.Add(TPgBlobFile::New(NewFNm, TFAccess::faCreate, TInt::Giga));
+		uint32 Pg = Files.Last()->CreateNewPage();
+		EAssert(Pg >= 0);
+		res.Val1 = TPgBlobPt(Pg, Files.Len() - 1, 0);
+		res.Val2 = LoadPage(res.Val1);
+		return res;
 	}
 }
