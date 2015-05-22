@@ -2454,7 +2454,7 @@ void THierchCtmc::TNode::InitStateStats() {
 
 		StateStatV.Add(TUInt64FltPr(ClustSize, ClustSize * MeanPtCentDist));
 
-		printf("Node: %" PRIu64 ": state %d, points %" PRIu64 ", mean centroid dist %.3f\n",
+		printf("Node: %" "ll" "u" ": state %d, points %" "ll" "u" ", mean centroid dist %.3f\n",
             NodeId.Val, StateIdx, GetStateSize(StateIdx), GetMeanPtCentroidDist(StateIdx));
 	}
 }
