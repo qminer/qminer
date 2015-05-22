@@ -427,7 +427,7 @@ TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bo
 	TFIn FIn(FNm); 
 	BlobPtV.Load(FIn); // load vector
 	// load rest
-	TInt cnt;
+	TInt64 cnt;
 	cnt.Load(FIn);
 	FirstValOffset.Load(FIn);
 	FirstValOffsetMem.Load(FIn);
@@ -436,7 +436,7 @@ TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bo
 	// load data from blob storage
 	BlobStorage = TMBlobBs::New(BlobFNm, Access);
 
-	for (int i = 0; i < cnt; i++) {
+	for (int64 i = 0; i < cnt; i++) {
 		ValV.Add(); // empty (non-loaded) data
 		DirtyV.Add(isdfNotLoaded); // init dirty flags
 	}
@@ -455,7 +455,7 @@ TInMemStorage::~TInMemStorage() {
 		TFOut FOut(FNm); 
 		BlobPtV.Save(FOut);
 		// save rest
-		TInt(ValV.Len()).Save(FOut);
+		TInt64(ValV.Len()).Save(FOut);
 		FirstValOffset.Save(FOut);
 		FirstValOffsetMem.Save(FOut);
 		BlockSize.Save(FOut);
@@ -463,15 +463,15 @@ TInMemStorage::~TInMemStorage() {
 }
 
 /// Utility method for loading specific record
-void TInMemStorage::LoadRec(int i) const {
+void TInMemStorage::LoadRec(int64 i) const {
 	if (DirtyV[i] != isdfNotLoaded) {
 		return;
 	}
-	const int ii = i / BlockSize;
+	const int64 ii = i / BlockSize;
 	TMem mem;
 	TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[ii]), mem);
 	PSIn in = mem.GetSIn();
-	for (int j = ii*BlockSize; j < DirtyV.Len() && j < (ii + 1)*BlockSize; j++) {
+	for (int64 j = ii*BlockSize; j < DirtyV.Len() && j < (ii + 1)*BlockSize; j++) {
 		if (DirtyV[j] == isdfNotLoaded) {
 			DirtyV[j] = isdfClean;
 			ValV[j].Load(in);
