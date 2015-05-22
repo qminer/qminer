@@ -306,7 +306,7 @@ void TNumericalStuff::SymetricToTridiag(TFltVV& a, int n, TFltV& d, TFltV& e) {
                     e[j]=g=e[j]-hh*f;
                     for (k=1;k<=j;k++) { //Reduce a, equation (11.2.13).
                         a(j-1,k-1) -= (f*e[k]+g*a(i-1,k-1));
-                        EAssert(_isnan(a(j-1,k-1)) == 0);
+                        EAssert(!a(j-1,k-1).IsNan());
                     }
                 }
             }
@@ -328,7 +328,7 @@ void TNumericalStuff::SymetricToTridiag(TFltVV& a, int n, TFltV& d, TFltV& e) {
                     g += a(i-1,k-1)*a(k-1,j-1);
                 for (k=1;k<=l;k++) {
                     a(k-1,j-1) -= g*a(k-1,i-1);
-                    EAssert(_isnan(a(k-1,j-1)) == 0);
+                    EAssert(!a(k-1,j-1).IsNan());
                 }
             }
         }
@@ -617,7 +617,6 @@ void TNumericalStuff::PrimalLeastSquares(const TFltVV& A, const TFltV& b, const 
 	}
 	// x = (A * A' + Gamma^2 * I)^{-1} A * b
 	int Feats = A.GetRows();
-	int N = A.GetCols();
 	// A'
 	TFltVV At = TFltVV(A.GetCols(), A.GetRows()); 
 	TLinAlg::Transpose(A, At);
@@ -645,7 +644,6 @@ void TNumericalStuff::DualLeastSquares(const TFltVV& A, const TFltV& b, const do
 	}
 
 	// x = A (A' * A + Gamma^2 * I)^{-1} * b
-	int Feats = A.GetRows();
 	int N = A.GetCols();
 	// B = A' * A
 	TFltVV B = TFltVV(N, N);
@@ -2066,7 +2064,7 @@ TIntV TVector::GetIntVec() const {
 	 TIntV Res(Dim);
 
 	 for (int i = 0; i < Dim; i++) {
-		 Res[i] = Vec[i];
+		 Res[i] = (int)Vec[i];
 	 }
 
 	 return Res;

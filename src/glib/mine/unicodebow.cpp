@@ -24,8 +24,10 @@ namespace TUnicodeVSM {
 		buffer[last_new_line + 1] = '\0';
 		//fseeko for linux
 		//refactoring with ifdef for linux
-#ifdef WIN32
+#if defined(GLib_WIN)
 		_fseeki64(*id, last_new_line - vel + 1, SEEK_CUR);
+#elif defined(GLib_MACOSX)
+        fseeko(*id, last_new_line - vel + 1, SEEK_CUR);
 #else
 		fseeko64(*id, last_new_line - vel + 1, SEEK_CUR);
 #endif
@@ -36,7 +38,7 @@ namespace TUnicodeVSM {
 		if (enable_stemming){
 			if (Lang == "zh"){//Special Tokenization for Chinese
 				printf("Chinese Tokenizer!\n");
-				this->stemmer_supported = ChineseTokenizer::init();
+				this->stemmer_supported = TChineseTokenizer::init();
 				if (this->stemmer_supported){
 					printf("Chinese Dll OK!\n");
 				}
@@ -67,7 +69,7 @@ namespace TUnicodeVSM {
 		if (enable_stemming){
 			if (Lang == "zh"){//Special Tokenization for Chinese
 				printf("Chinese Tokenizer!\n");
-				this->stemmer_supported = ChineseTokenizer::init();
+				this->stemmer_supported = TChineseTokenizer::init();
 				if (this->stemmer_supported){
 					printf("Chinese Dll OK!\n");
 				}
@@ -118,7 +120,7 @@ namespace TUnicodeVSM {
 		Option.Load(SIn);
 		Lang.Load(SIn);
 		if (Lang == "zh"){//Special Tokenization for Chinese
-			stemmer_supported = ChineseTokenizer::init();
+			stemmer_supported = TChineseTokenizer::init();
 		}
 		else{
 			stemmer_supported = Stemmer.setStemmer(Lang);
@@ -167,7 +169,7 @@ namespace TUnicodeVSM {
 		if (stemmer_supported){
 			bool OK = true;
 			if (Lang == "zh"){//Special Tokenization for Chinese
-				OK = ChineseTokenizer::init();
+				OK = TChineseTokenizer::init();
 			}
 			else{
 				OK = Stemmer.setStemmer(Lang);
@@ -260,7 +262,7 @@ namespace TUnicodeVSM {
 	TVec<TIntKd> TGlibUBow::TextToVec(TUStr& Text){	
 		switch (Option) {
 		case tWord:
-			return this->TokenizeWords(Text);
+			return this->_TokenizeWords(Text);
 			break;
 		case tWordNgram:
 			return this->TokenizeWordNgrams(Text);
@@ -479,7 +481,7 @@ namespace TUnicodeVSM {
 			this->TokenizeWordNgrams(Doc);
 			break;
 		case tWord:
-			this->TokenizeWords(Doc);
+			this->_TokenizeWords(Doc);
 			break;
 		case tCharNgram:
 			this->TokenizeNgrams(Doc);
@@ -521,7 +523,7 @@ namespace TUnicodeVSM {
 		return Vector;
 	}
 	//Word Tokenization
-	TVec<TIntKd> TGlibUBow::TokenizeWords(TUStr& Text){
+	TVec<TIntKd> TGlibUBow::_TokenizeWords(TUStr& Text){
 		return TGlibUBow::AddTokenizeWords(Text, false, false);
 		//return this->Vector;
 	};
@@ -748,7 +750,7 @@ namespace TUnicodeVSM {
 			Text.GetWordUStrV(Words, Seperators);
 		}
 		else{
-			ChineseTokenizer::tokenizeClean(Text.GetStr(), Words);
+			TChineseTokenizer::tokenizeClean(Text.GetStr(), Words);
 		}
 
 		int i = 0;
@@ -792,7 +794,7 @@ namespace TUnicodeVSM {
 			Text.GetWordUStrLst(Words, Seperators);
 		}
 		else{
-			ChineseTokenizer::tokenizeClean(Text.GetStr(), Words, Seperators);
+			TChineseTokenizer::tokenizeClean(Text.GetStr(), Words, Seperators);
 		}
 
 		int i = 0;

@@ -1281,13 +1281,13 @@ public:
   inline static int GetPrimHashCd(const char *p) {
     const char *r = p;  while (*r) { r++; }
     //const void * key = (const void*)&p;
-    const int len = r - p;
+    const int len = (int)(r - p);
     return (int) MurmurHash3(p, len) & 0x7fffffff; // convert to int but > 0
   }
   inline static int GetSecHashCd(const char *p) {
     const char *r = p;  while (*r) { r++; }
     //const void *key = (cont void*)&p;
-    const int len = r - p;
+    const int len = (int)(r - p);
     return (int) MurmurHash3(p, len) & 0x7fffffff;
   }
   inline static int GetPrimHashCd(const TStr& s) { return GetPrimHashCd(s.CStr()); }

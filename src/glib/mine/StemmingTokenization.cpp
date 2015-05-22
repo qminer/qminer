@@ -1,15 +1,15 @@
 #include "StemmingTokenization.h"
-#include <omp.h>
+//#include <omp.h>
 
 #ifdef SNOWBALL_STEMMER
-bool SStemmer::setStemmer(const TStr& Name){
+bool TSStemmer::setStemmer(const TStr& Name){
     this->Name = Name; 
     this->stemmer  = sb_stemmer_new(Name.CStr(), "UTF_8"); 
     this->supported =  (this->stemmer != NULL); 
     return supported;
 }
 
-TStr SStemmer::stem(const TStr& word){ 
+TStr TSStemmer::stem(const TStr& word){ 
 	if(!supported){
 		return word;
 	}
@@ -26,7 +26,7 @@ TStr SStemmer::stem(const TStr& word){
 /*Stem in place.  
   Argument is not modified if stemmer is not supported
 */
-void SStemmer::stem(TStr& word){ 
+void TSStemmer::stem(TStr& word){ 
 	if(!supported){
 		return;
 	}
@@ -37,7 +37,7 @@ void SStemmer::stem(TStr& word){
 	}
 }
 //Conversion to Unicode and Back -- cannot be avoided
-void SStemmer::stem(TUStr& word){ 
+void TSStemmer::stem(TUStr& word){ 
 	if(!supported){
 		return;
 	}
@@ -47,7 +47,7 @@ void SStemmer::stem(TUStr& word){
 		word = TUStr((const char *)stemmed_word);
 	}
 }
-TStrV SStemmer::getSupportedAsStrV(){
+TStrV TSStemmer::getSupportedAsStrV(){
 	const char **z =  sb_stemmer_list();
 	TStrV List;
 	while(*z){
@@ -62,9 +62,9 @@ TStrV SStemmer::getSupportedAsStrV(){
 
 #ifdef CHINESE_TOKENIZATION
 #include <iostream>
-bool ChineseTokenizer::init(TStr dir){ return ICTCLAS_Init(dir.CStr());}
-bool ChineseTokenizer::init(){ return ICTCLAS_Init("./StemmingTokenization/");}
-int ChineseTokenizer::tokenize(const TStr & Paragraph, TStr & Tokenized){//Spaces seperate the tokens
+bool TChineseTokenizer::init(TStr dir){ return ICTCLAS_Init(dir.CStr());}
+bool TChineseTokenizer::init(){ return ICTCLAS_Init("./StemmingTokenization/");}
+int TChineseTokenizer::tokenize(const TStr & Paragraph, TStr & Tokenized){//Spaces seperate the tokens
 	//FILE *file = fopen("report.txt", "a");
     if(Paragraph.Empty()) return 0;
 	int n = Paragraph.Len(); char * result = (char *)malloc(n*10);
@@ -78,7 +78,7 @@ int ChineseTokenizer::tokenize(const TStr & Paragraph, TStr & Tokenized){//Space
 	//std::cout << n << " strlen " << strlen(Paragraph.CStr()) << " / " << 10*n << " Tokens " << tokens << " " << Tokenized.Len() << "\n";
 	return tokens;
 }
-int ChineseTokenizer::cleanNumbersEnglish(const TStr & input, TUStrV & result){
+int TChineseTokenizer::cleanNumbersEnglish(const TStr & input, TUStrV & result){
 	TStrV tokens;
 	input.SplitOnAllAnyCh(" ", tokens);//][!\"#$%&'()*+,./:;<=>?@\\^_`{|}~-
 	int num_words = 0;
@@ -105,7 +105,7 @@ int ChineseTokenizer::cleanNumbersEnglish(const TStr & input, TUStrV & result){
 	return num_words;
 }
 
-int ChineseTokenizer::cleanNumbersEnglish(const TStr & input, TLst<TUStr> & result, TLst<TBool> & seperate){
+int TChineseTokenizer::cleanNumbersEnglish(const TStr & input, TLst<TUStr> & result, TLst<TBool> & seperate){
 	TStrV tokens;
 	input.SplitOnAllAnyCh(" ", tokens);//][!\"#$%&'()*+,./:;<=>?@\\^_`{|}~-
 	int num_words = 0;
@@ -133,7 +133,7 @@ int ChineseTokenizer::cleanNumbersEnglish(const TStr & input, TLst<TUStr> & resu
 	return num_words;
 }
 
-int ChineseTokenizer::tokenizeClean(const TStr & input, TUStrV & result){
+int TChineseTokenizer::tokenizeClean(const TStr & input, TUStrV & result){
 	TStr temp;
 	tokenize(input, temp);
 	//std::cout << "Tokenize Clean Start\n";
@@ -142,7 +142,7 @@ int ChineseTokenizer::tokenizeClean(const TStr & input, TUStrV & result){
 	return tokens;
 }
 
-int ChineseTokenizer::tokenizeClean(const TStr & input, TLst<TUStr> & result, TLst<TBool> & seperate){
+int TChineseTokenizer::tokenizeClean(const TStr & input, TLst<TUStr> & result, TLst<TBool> & seperate){
 	TStr temp;
 	tokenize(input, temp);
 	//std::cout << "Tokenize Clean Start\n";
