@@ -33,10 +33,11 @@ namespace glib {
 
 	/// Private constructor
 	TPgBlobFile::TPgBlobFile(
-		const TStr& _FNm, const TFAccess& _Access, const int& _MxSegLen) {
+		const TStr& _FNm, const TFAccess& _Access, const uint32& _MxSegLen) {
 
 		Access = _Access;
 		FNm = _FNm;
+		MxFileLen = _MxSegLen*PAGE_SIZE;
 
 		switch (Access) {
 		case faCreate:
@@ -84,15 +85,42 @@ namespace glib {
 		return 0;
 	}
 
+	/// Refresh the position - internal check
+	void TPgBlobFile::RefreshFPos() {
+		EAssertR(
+			fseek(FileId, 0, SEEK_CUR) == 0,
+			"Error seeking into file '" + TStr(FNm) + "'.");
+	}
+
+	/// Set position in the file
+	void TPgBlobFile::SetFPos(const int& FPos) {
+		EAssertR(
+			fseek(FileId, FPos, SEEK_SET) == 0,
+			"Error seeking into file '" + TStr(FNm) + "'.");
+	}
+
+	/// Save buffer to page within the file 
+	uint32 TPgBlobFile::CreateNewPage() {
+		EAssertR(
+			fseek(FileId, 0, SEEK_END) == 0,
+			"Error seeking into file '" + TStr(FNm) + "'.");
+		long len = ftell(FileId);
+		if (MxFileLen > 0 && len >= MxFileLen) {
+			return -1;
+		}
+		return (uint32)(len / PAGE_SIZE);
+	}
+
 	///////////////////////////////////////////////////////////////////////////
-	
+
 	TPgBlobPage::TPgBlobPage() {}
 
 	TPgBlobPage::~TPgBlobPage() {}
 
 	///////////////////////////////////////////////////////////////////////////
 
-	TPgBlob::TPgBlob(const TStr& FNm, const uint64& CacheSize) {
+	/// Private constructor
+	TPgBlob::TPgBlob(const TStr& _FNm, const uint64& CacheSize) {
 		// TODO open or create
 		EAssertR(
 			CacheSize >= PAGE_SIZE,
@@ -100,26 +128,36 @@ namespace glib {
 		// init cache
 		Bf = new byte[CacheSize];
 		BfL = CacheSize;
+		FNm = _FNm;
 		MxLoadedPages = CacheSize / PAGE_SIZE;
 		LruFirst = LruLast = -1;
 	}
 
+	/// Destructor
 	TPgBlob::~TPgBlob() {
-		// TODO write all to disk
+		for (uint64 i = 0; i < LoadedPages.Len(); i++) {
+			if (ShouldSavePage(i)) {
+				LoadedPage& a = LoadedPages[i];
+				Files[a.Pt.GetFileIndex()]->SavePage(a.Pt.GetPage(), GetPageBf(i));
+			}
+		}
 		Files.Clr();
 		delete[] Bf;
 	}
 
+	/// Factory method for creating new BLOB storage
 	PPgBlob TPgBlob::Create(const TStr& FNm, const uint64& CacheSize) {
 		// TODO
 		// check if any file exists, delete them if needed
 		return PPgBlob(new TPgBlob(FNm, CacheSize));
 	}
 
+	/// Factory method for opening existing BLOB storage
 	PPgBlob TPgBlob::Open(const TStr& FNm, const uint64& CacheSize) {
 		// TODO
 		return PPgBlob(new TPgBlob(FNm, CacheSize));
 	}
+
 	/// remove given page from LRU list
 	void TPgBlob::UnlistFromLru(int Pg) {
 		LoadedPage& a = LoadedPages[Pg];
@@ -159,23 +197,33 @@ namespace glib {
 		}
 	}
 
+	/// Evicts last possible page from cache.
+	int TPgBlob::Evict() {
+		int Pg = LruLast;
+		while (Pg != LruFirst) {
+			if (CanEvictPage(Pg)) {
+				break;
+			}
+			Pg = LoadedPages[Pg].LruPrev;
+		}
+		LoadedPage& a = LoadedPages[Pg];
+		UnlistFromLru(Pg);
+		LoadedPagesH.DelKey(a.Pt);
+		if (ShouldSavePage(Pg)) {
+			Files[a.Pt.GetFileIndex()]->SavePage(a.Pt.GetPage(), GetPageBf(Pg));
+		}
+	}
 	/// Load given page into memory
 	byte* TPgBlob::LoadPage(const TPgBlobPt& Pt) {
 		int Pg;
-		if (LoadedPagesH.IsKeyGetDat(Pt, Pg)) {
+		if (LoadedPagesH.IsKeyGetDat(Pt, Pg)) { // is page in cache
 			MoveToStartLru(Pg);
 			return GetPageBf(Pg);
 		}
 		if (LoadedPages.Len() == MxLoadedPages) {
-			// evict last page
-			Pg = LruLast;
+			// evict last page + load new page
+			Pg = Evict();
 			LoadedPage& a = LoadedPages[Pg];
-			UnlistFromLru(Pg);
-			LoadedPagesH.DelKey(a.Pt);
-			if (ShouldSavePage(Pg)) {
-				Files[a.Pt.GetFileIndex()]->SavePage(a.Pt.GetPage(), GetPageBf(Pg));
-			}
-			// load new page
 			Files[Pt.GetFileIndex()]->LoadPage(Pt.GetPage(), GetPageBf(Pg));
 			a.Pt = Pt;
 			EnlistToStartLru(Pg);
@@ -194,9 +242,18 @@ namespace glib {
 	}
 
 	/// Create new page and return pointers to it
-	void TPgBlob::CreateNewPage(TPgBlobPt& BlobPt, byte** Pt) {
+	TPair<TPgBlobPt, byte*> TPgBlob::CreateNewPage() {
+		TPair<TPgBlobPt, byte*> res;
 		// determine if last file is empty
-
-		
+		if (Files.Len() > 0) {
+			// try to add to last file
+			uint32 Pg = Files.Last()->CreateNewPage();
+			if (Pg >= 0) {
+				res.Val1 = TPgBlobPt(Pg, Files.Len()-1, 0);
+				res.Val2 = LoadPage(res.Val1);
+				return res;
+			}
+		}
+		Files.Add(TPgBlobFile::New());
 	}
 }

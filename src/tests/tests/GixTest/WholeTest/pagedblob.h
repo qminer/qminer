@@ -46,6 +46,10 @@ namespace glib {
 		TPgBlobPt(TSIn& SIn) {
 			SIn.Load(Page);  SIn.Load(FileIndex); SIn.Load(ItemIndex);
 		}
+		// Set constructor
+		TPgBlobPt(uint32 _Page, int16 _FileIndex, uint16 _ItemIndex) {
+			Page = _Page; FileIndex = _FileIndex; ItemIndex = _ItemIndex;
+		}
 
 		/// get index of page within the file
 		uint32 GetPage() const { return Page; }
@@ -85,7 +89,7 @@ namespace glib {
 	private:
 
 		/// Maximal length of single file
-		int MxSegLen;
+		long MxFileLen;
 		/// File name
 		TStr FNm;
 		/// File access type
@@ -95,21 +99,13 @@ namespace glib {
 
 		/// Private constructor
 		TPgBlobFile(const TStr& _FNm, const TFAccess& _Access = faRdOnly,
-			const int& _MxSegLen = -1);
+			const uint32& _MxSegLen = -1);
 
 		/// Refresh the position - internal check
-		void RefreshFPos() {
-			EAssertR(
-				fseek(FileId, 0, SEEK_CUR) == 0,
-				"Error seeking into file '" + TStr(FNm) + "'.");
-		}
-
+		void RefreshFPos();
 		/// Set position in the file
-		void SetFPos(const int& FPos) {
-			EAssertR(
-				fseek(FileId, FPos, SEEK_SET) == 0,
-				"Error seeking into file '" + TStr(FNm) + "'.");
-		}
+		void SetFPos(const int& FPos);
+
 	public:
 		/// Reference count for smart pointers
 		TCRef CRef;
@@ -119,7 +115,7 @@ namespace glib {
 
 		/// Factory method
 		static PPgBlobFile New(const TStr& FNm, const TFAccess& Access = faRdOnly,
-			const int& MxSegLen = -1) {
+			const uint32& MxSegLen = -1) {
 			return PPgBlobFile(new TPgBlobFile(FNm, Access, MxSegLen));
 		}
 
@@ -127,6 +123,8 @@ namespace glib {
 		int LoadPage(const uint32& Page, void* Bf);
 		/// Save buffer to page within the file 
 		int SavePage(const uint32& Page, const void* Bf);
+		/// Reserve new space in the file if needed. Returns -1 if file is full.
+		uint32 CreateNewPage();
 	};
 
 	////////////////////////////////////////////////////////////
@@ -162,6 +160,8 @@ namespace glib {
 			int LruPrev;
 		};
 
+		/// File name
+		TStr FNm;
 		/// Individual files that comprise this BLOB storage
 		TVec<PPgBlobFile> Files;
 		/// Pointers for loaded pages
@@ -185,13 +185,16 @@ namespace glib {
 		byte* GetPageBf(int Pg) { return Bf + Pg*PAGE_SIZE; }
 
 		/// Private constructor
-		TPgBlob(const TStr& FNm, const uint64& CacheSize);
+		TPgBlob(const TStr& _FNm, const uint64& CacheSize);
 		/// remove given page from LRU list
 		void UnlistFromLru(int Pg);
 		/// move given page to the start of LRU list
 		void MoveToStartLru(int Pg);
 		/// insert given (new) page to the start of LRU list
 		void EnlistToStartLru(int Pg);
+
+		/// Evicts last possible page from cache.
+		int Evict();
 	public:
 		/// Reference count for smart pointers
 		TCRef CRef;
@@ -206,7 +209,7 @@ namespace glib {
 		byte* LoadPage(const TPgBlobPt& Pt);
 
 		/// Create new page and return pointers to it
-		void CreateNewPage(TPgBlobPt& BlobPt, byte** Pt);
+		TPair<TPgBlobPt, byte*> CreateNewPage();
 
 		/// This method should be overridden in derived class to tell 
 		/// if given page should be stored to disk.
