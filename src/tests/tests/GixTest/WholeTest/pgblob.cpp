@@ -1,5 +1,5 @@
 
-#include "pagedblob.h"
+#include "pgblob.h"
 
 namespace glib {
 
@@ -81,7 +81,7 @@ namespace glib {
 		SetFPos(Page * PAGE_SIZE);
 		EAssertR(
 			fwrite(Bf, 1, PAGE_SIZE, FileId) == PAGE_SIZE,
-			"Error reading file '" + TStr(FNm) + "'.");
+			"Error writing file '" + TStr(FNm) + "'.");
 		return 0;
 	}
 
@@ -99,7 +99,7 @@ namespace glib {
 			"Error seeking into file '" + TStr(FNm) + "'.");
 	}
 
-	/// Save buffer to page within the file 
+	/// Reserve new space in the file. Returns -1 if file is full.
 	uint32 TPgBlobFile::CreateNewPage() {
 		EAssertR(
 			fseek(FileId, 0, SEEK_END) == 0,
@@ -108,6 +108,10 @@ namespace glib {
 		if (MxFileLen > 0 && len >= MxFileLen) {
 			return -1;
 		}
+		// write to the end of file - take what-ever chunk of memory
+		EAssertR(
+			fwrite(this, 1, PAGE_SIZE, FileId) == PAGE_SIZE,
+			"Error writing file '" + TStr(FNm) + "'.");
 		return (uint32)(len / PAGE_SIZE);
 	}
 
@@ -122,7 +126,7 @@ namespace glib {
 	/// Private constructor
 	TPgBlob::TPgBlob(const TStr& _FNm, const TFAccess& _Access, const uint64& CacheSize) {
 
-		EAssertR( CacheSize >= PAGE_SIZE, "Invalid cache size for TPgBlob.");
+		EAssertR(CacheSize >= PAGE_SIZE, "Invalid cache size for TPgBlob.");
 
 		FNm = _FNm;
 		Access = _Access;
@@ -155,6 +159,7 @@ namespace glib {
 				Files[a.Pt.GetFileIndex()]->SavePage(a.Pt.GetPage(), GetPageBf(i));
 			}
 		}
+		SaveMain();
 		Files.Clr();
 		delete[] Bf;
 	}
@@ -297,4 +302,54 @@ namespace glib {
 		res.Val2 = LoadPage(res.Val1);
 		return res;
 	}
+
+	//////////////////////////////////////////////////////
+
+#define PgHeaderDirtyFlag (0x01)
+#define PgHeaderSLockFlag (0x02)
+#define PgHeaderXLockFlag (0x04)
+
+	class TTestPgBlob : TPgBlob {
+	private:
+
+		class TPgHeader {
+		public:
+			uchar Flags;
+
+			bool IsDirty() { return (Flags & PgHeaderDirtyFlag) != 0; }
+			bool IsSLock() { return (Flags & PgHeaderSLockFlag) != 0; }
+			bool IsXLock() { return (Flags & PgHeaderXLockFlag) != 0; }
+			bool IsLock() { return (Flags & (PgHeaderSLockFlag | PgHeaderXLockFlag)) != 0; }
+
+			bool SetDirty(bool val) {
+				if (val) {
+					Flags &= PgHeaderDirtyFlag;
+				} else { Flags ^= PgHeaderDirtyFlag; }
+			}
+			bool SetSLock(bool val) {
+				if (val) {
+					Flags &= PgHeaderSLockFlag;
+				} else { Flags ^= PgHeaderSLockFlag; }
+			}
+			bool SetXLock(bool val) {
+				if (val) {
+					Flags &= PgHeaderXLockFlag;
+				} else { Flags ^= PgHeaderXLockFlag; }
+			}
+		};
+	public:
+
+		/// This method should be overridden in derived class to tell 
+		/// if given page should be stored to disk.
+		bool ShouldSavePage(byte* Pt) {
+			return ((TPgHeader*)Pt)->IsDirty();
+		}
+
+		/// This method should be overridden in derived class to tell 
+		/// if given page can be evicted from cache.
+		bool CanEvictPage(byte* Pt) {
+			return ((TPgHeader*)Pt)->IsLock();
+		}
+
+	};
 }

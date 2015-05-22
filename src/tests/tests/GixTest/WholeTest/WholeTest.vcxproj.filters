@@ -48,7 +48,7 @@
     <ClCompile Include="WholeTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pagedblob.cpp">
+    <ClCompile Include="pgblob.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,7 +56,7 @@
     <ClInclude Include="..\..\..\..\glib\base\gix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pagedblob.h">
+    <ClInclude Include="pgblob.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

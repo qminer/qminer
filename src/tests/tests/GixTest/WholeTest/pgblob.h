@@ -79,7 +79,7 @@ namespace glib {
 		/// Returns memory usage - for caching and other stuff
 		uint64 GetMemUsed() const { return sizeof(TPgBlobPt); }
 
-		int GetPrimHashCd() const { return abs(int(Page) + ItemIndex + FileIndex ); }
+		int GetPrimHashCd() const { return abs(int(Page) + ItemIndex + FileIndex); }
 		int GetSecHashCd() const { return (abs(int(Page)) + int(ItemIndex) * 0x10 + +int(FileIndex) * 0x100); }
 	};
 
@@ -123,7 +123,7 @@ namespace glib {
 		int LoadPage(const uint32& Page, void* Bf);
 		/// Save buffer to page within the file 
 		int SavePage(const uint32& Page, const void* Bf);
-		/// Reserve new space in the file if needed. Returns -1 if file is full.
+		/// Reserve new space in the file. Returns -1 if file is full.
 		uint32 CreateNewPage();
 	};
 
@@ -184,7 +184,9 @@ namespace glib {
 		uint64 MxLoadedPages;
 
 		/// Returns starting address of page in Bf
-		byte* GetPageBf(int Pg) { return Bf + Pg*PAGE_SIZE; }
+		byte* GetPageBf(int Pg) {
+			return Bf + Pg * PAGE_SIZE; 
+		}
 
 		/// Private constructor
 		TPgBlob(const TStr& _FNm, const TFAccess& _Access, const uint64& CacheSize);
