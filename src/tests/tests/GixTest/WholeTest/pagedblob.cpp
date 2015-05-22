@@ -122,13 +122,11 @@ namespace glib {
 	/// Private constructor
 	TPgBlob::TPgBlob(const TStr& _FNm, const TFAccess& _Access, const uint64& CacheSize) {
 
-		EAssertR(
-			CacheSize >= PAGE_SIZE,
-			"Invalid cache size for TPgBlob.");
-
+		EAssertR( CacheSize >= PAGE_SIZE, "Invalid cache size for TPgBlob.");
 
 		FNm = _FNm;
 		Access = _Access;
+
 		switch (Access) {
 		case faCreate:
 			TFile::DelWc(FNm + ".*");
@@ -168,6 +166,7 @@ namespace glib {
 		TInt children_cnt(Files.Len());
 		SOut->Save(children_cnt);
 	}
+
 	/// Load main file
 	void TPgBlob::LoadMain() {
 		PSIn SIn = TFIn::New(FNm + ".main");
@@ -206,6 +205,7 @@ namespace glib {
 			LoadedPages[a.LruPrev].LruNext = a.LruNext;
 		}
 	}
+
 	/// insert given (new) page to the start of LRU list
 	void TPgBlob::EnlistToStartLru(int Pg) {
 		LoadedPage& a = LoadedPages[Pg];
@@ -246,6 +246,7 @@ namespace glib {
 		}
 		return Pg;
 	}
+
 	/// Load given page into memory
 	byte* TPgBlob::LoadPage(const TPgBlobPt& Pt) {
 		int Pg;
