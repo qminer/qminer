@@ -124,7 +124,7 @@ namespace glib {
 
 		EAssertR(
 			CacheSize >= PAGE_SIZE,
-			"Invalid cache size for TPgBlob '" + TStr(CacheSize) + "'.");
+			"Invalid cache size for TPgBlob.");
 
 
 		FNm = _FNm;
@@ -151,7 +151,7 @@ namespace glib {
 
 	/// Destructor
 	TPgBlob::~TPgBlob() {
-		for (uint64 i = 0; i < LoadedPages.Len(); i++) {
+		for (int i = 0; i < LoadedPages.Len(); i++) {
 			if (ShouldSavePage(i)) {
 				LoadedPage& a = LoadedPages[i];
 				Files[a.Pt.GetFileIndex()]->SavePage(a.Pt.GetPage(), GetPageBf(i));
@@ -272,6 +272,7 @@ namespace glib {
 			int hid = LoadedPagesH.AddKey(Pt);
 			LoadedPagesH[hid] = Pg;
 		}
+		return GetPageBf(Pg);
 	}
 
 	/// Create new page and return pointers to it
