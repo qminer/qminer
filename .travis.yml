@@ -8,7 +8,7 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq uuid-dev
   - sudo apt-get install build-essential
-  - if [ "$CXX" = "clang++" ]; then sudo apt-get install clang-3.6; fi
+  - if [ "$CXX" = "clang++-3.6" ]; then sudo apt-get install clang-3.6; fi
   - npm install -g mocha
 install:
   - npm install $NPMOPT
