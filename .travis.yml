@@ -8,15 +8,15 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq uuid-dev
   - sudo apt-get install build-essential
-
-  - sudo apt-add-repository --yes ppa:ubuntu-toolchain-r/test
-  - sudo sh -c "echo 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.6 main' >> /etc/apt/sources.list"
-  - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -
-  - sudo apt-get update
-  - apt-cache search clang
-
-  - if [ "$CXX" = "clang++-3.6" ]; then sudo apt-get install -y clang-3.6; fi
   - npm install -g mocha
+
+  # clang setup
+  - if [ "$CXX" = "clang++-3.6" ]; then sudo apt-add-repository --yes ppa:ubuntu-toolchain-r/test; fi
+  - if [ "$CXX" = "clang++-3.6" ]; then sudo sh -c "echo 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.6 main' >> /etc/apt/sources.list"; fi
+  - if [ "$CXX" = "clang++-3.6" ]; then wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -; fi
+  - if [ "$CXX" = "clang++-3.6" ]; then sudo apt-get update; fi
+  - if [ "$CXX" = "clang++-3.6" ]; then apt-cache search clang; fi
+  - if [ "$CXX" = "clang++-3.6" ]; then sudo apt-get install -y clang-3.6; fi
 install:
   - npm install $NPMOPT
 script:   
