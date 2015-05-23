@@ -1,11 +1,16 @@
 language: node_js
 node_js:
-  - "0.12.0"
+  - "0.12.3"
+env:  
+  - CXXFLAGS=-std=c++0x CXX=g++ CC=gcc  
+  - CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq uuid-dev
   - sudo apt-get install build-essential
   - npm install -g mocha
+install:
+  - npm install $NPMOPT
 script:   
   - ./test/nodejs/test.sh
 os: linux
