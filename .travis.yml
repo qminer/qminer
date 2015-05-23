@@ -3,11 +3,12 @@ node_js:
   - "0.12.3"
 env:  
   - CXXFLAGS=-std=c++0x CXX=g++ CC=gcc  
-  - CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1
+  - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq uuid-dev
   - sudo apt-get install build-essential
+  - if [ "$CXX" = "clang++" ]; then sudo apt-get install clang-3.6; fi
   - npm install -g mocha
 install:
   - npm install $NPMOPT
