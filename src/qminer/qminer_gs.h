@@ -168,6 +168,8 @@ public:
 	TVec<TIndexKeyEx> IndexKeyExV;
     /// Join descriptions
 	TVec<TJoinDescEx> JoinDescExV;
+	/// Size of blocks for memory storage
+	TInt BlockSizeMem;
     
 private:
     /// Parse field description from JSon
@@ -190,6 +192,18 @@ public:
 };
 typedef TVec<TStoreSchema> TStoreSchemaV;
 
+/////////////////////////////////////////////////
+// Dirty flags for TInMemStorage
+
+/// Flag for new unsaved entry
+const uchar isdfNew = 1;
+/// Flag for clean, already saved entry
+const uchar isdfClean = 1 << 1;
+/// Flag for dirty entry that needs to be saved
+const uchar isdfDirty = 1 << 2;
+/// Flag for entry that hasn't been loaded yet
+const uchar isdfNotLoaded = 1 << 3;
+
 ///////////////////////////////
 /// In-memory storage.
 /// Wrapper around TVec of TMems.
@@ -198,16 +212,34 @@ class TInMemStorage {
 private:
     /// Storage filename
 	TStr FNm;
+	/// Storage filename for Blob storage
+	TStr BlobFNm;
     /// Access type with which the storage is opened
 	TFAccess Access;
-    /// Offset of the first record
+    /// Logical offset of the first non-deleted record
 	TUInt64 FirstValOffset;
+	/// Logical offset of the first physical record
+	TUInt64 FirstValOffsetMem;
     /// Storage vector
-    TVec<TMem, int64> ValV;
-    
+    mutable TVec<TMem, int64> ValV;
+	/// Blob-pointers - locations where TMem objects are stored inside Blob storage
+	TVec<TBlobPt, int64> BlobPtV;
+	/// "Dirty flags" - 0 - new and not saved yet, 1 - existing and clean, 2 - existing but dirty, 3 - existing but not loaded
+	mutable TVec<uchar, int64> DirtyV;
+    /// Blob storage
+	PBlobBs BlobStorage;
+	/// How many records are packed together into block;
+	TInt BlockSize;
+
+	/// Utility method for loading specific record
+	inline void LoadRec(int64 i) const;
+
+	/// Utility method for storing specific record
+	int SaveRec(int i);
+
 public:
-	TInMemStorage(const TStr& _FNm);
-	TInMemStorage(const TStr& _FNm, const TFAccess& _Access);
+	TInMemStorage(const TStr& _FNm, const int& _BlockSize = 1000);
+	TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bool& _Lazy = false);
 	~TInMemStorage();
 
 	// asserts if we are allowed to change stuff
@@ -223,6 +255,17 @@ public:
 	uint64 Len() const;
 	uint64 GetFirstValId() const;
 	uint64 GetLastValId() const;
+
+	int PartialFlush(int WndInMsec = 500);
+	inline void LoadAll();
+
+	TBlobBsStats GetBlobBsStats() { return BlobStorage->GetStats(); }
+
+#ifdef XTEST
+private:
+	friend class XTest;
+	PBlobBs GetBlobStorage() { return BlobStorage; }
+#endif
 };
 
 ////////////////////////////////////
@@ -625,9 +668,9 @@ private:
 public:
 	TStoreImpl(const TWPt<TBase>& _Base, const uint& StoreId, 
         const TStr& StoreName, const TStoreSchema& StoreSchema, 
-        const TStr& _StoreFNm, const int64& _MxCacheSize);
+		const TStr& _StoreFNm, const int64& _MxCacheSize, const int& BlockSize);
 	TStoreImpl(const TWPt<TBase>& _Base, const TStr& _StoreFNm,
-		const TFAccess& _FAccess, const int64& _MxCacheSize);
+		const TFAccess& _FAccess, const int64& _MxCacheSize, const bool& _Lazy = false);
 	// need to override destructor, to clear cache
 	~TStoreImpl();
 
@@ -721,6 +764,12 @@ public:
 
     /// Helper function for returning JSon definition of store
     PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
+
+
+	/// Save part of the data, given time-window
+	int PartialFlush(int WndInMsec = 500);
+	/// Retrieve performance statistics for this store
+	PJsonVal GetStats();
 };
 
 ///////////////////////////////
@@ -732,13 +781,13 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
 /// Create new base given a schema definition
 TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
 	const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
-	const bool& InitP = true);
+	const bool& InitP = true, const int& SplitLen = TInt::Giga);
 
 ///////////////////////////////
 /// Load base created from a schema definition
 TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
 	const uint64& StoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
-	const bool& InitP = true);
+	const bool& InitP = true, const int& SplitLen = TInt::Giga);
 
 ///////////////////////////////
 /// Save base created from a schema definition

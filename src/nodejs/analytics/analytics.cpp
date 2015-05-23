@@ -1076,8 +1076,8 @@ void TNodeJsHMChain::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TNodeJsFltV* JsRecTmV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
 
 	TUInt64V RecTmV(JsRecTmV->Vec.Len(), 0);
-	for (int64 i = 0; i < JsRecTmV->Vec.Len(); i++) {
-		RecTmV.Add(TNodeJsUtil::GetCppTimestamp(JsRecTmV->Vec[i]));
+	for (int i = 0; i < JsRecTmV->Vec.Len(); i++) {
+		RecTmV.Add(TNodeJsUtil::GetCppTimestamp((uint64)JsRecTmV->Vec[i]));
 	}
 
 	if (Args.Length() > 2 && !(Args[2]->IsNull() || Args[2]->IsUndefined())) {
@@ -1104,7 +1104,7 @@ void TNodeJsHMChain::update(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		RecTm = 0;
 	} else {
 		// Args[1] is a timestamp (UNIX timestamp)
-		RecTm = TTm::GetWinMSecsFromUnixMSecs(TNodeJsUtil::GetArgFlt(Args, 1));
+		RecTm = TTm::GetWinMSecsFromUnixMSecs((uint64)TNodeJsUtil::GetArgFlt(Args, 1));
 	}
 
 	JsMChain->McModel->OnAddRec(RecTm, JsFtrV->Vec);
@@ -1402,7 +1402,7 @@ void TNodeJsHMChain::getStateWgtV(const v8::FunctionCallbackInfo<v8::Value>& Arg
 
 	TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
 
-	const double StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 
 	TFltV WgtV;
 	JsMChain->McModel->GetStateWgtV(StateId, WgtV);

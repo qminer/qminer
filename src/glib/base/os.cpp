@@ -556,7 +556,7 @@ int GetModuleFileName(void *hModule, char *Bf, int MxBfL) {
 }
 
 int GetCurrentDirectory(const int MxBfL, char *Bf) {
-  getcwd(Bf, MxBfL);
+  EAssert(getcwd(Bf, MxBfL) != NULL);
   return (int) strlen(Bf);
 }
 
@@ -786,7 +786,7 @@ TStr TSysProc::GetExeFNm() {
 }
 
 void TSysProc::SetLowPriority() {
-  nice(19);
+  EAssert(nice(19) != -1);
 }
 
 bool TSysProc::ExeProc(const TStr& ExeFNm, TStr& ParamStr) {

@@ -186,6 +186,8 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "createStore", _createStore);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "search", _search);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "gc", _gc);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "partialFlush", _partialFlush);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getStats", _getStats);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggr", _getStreamAggr);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggrNames", _getStreamAggrNames);
 
@@ -453,6 +455,30 @@ void TNodeJsBase::gc(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
+void TNodeJsBase::partialFlush(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
+	TWPt<TQm::TBase> Base = JsBase->Base;
+	
+	const TInt WndInMesc = TNodeJsUtil::GetArgInt32(Args, 0, 500);
+
+	int res = Base->PartialFlush(WndInMesc);
+	Args.GetReturnValue().Set(v8::Integer::New(Isolate, res));
+}
+
+void TNodeJsBase::getStats(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
+	TWPt<TQm::TBase> Base = JsBase->Base;
+
+	PJsonVal res = Base->GetStats();
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, res));
+}
+
 void TNodeJsBase::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -598,7 +624,7 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 			// milliseconds from 1601-01-01T00:00:00Z
 			double WinMSecs = (double)TTm::GetMSecsFromTm(FieldTm);
 			// milliseconds from 1970-01-01T00:00:00Z, which is 11644473600 seconds after Windows file time start
-			double UnixMSecs = TNodeJsUtil::GetJsTimestamp(WinMSecs);
+			double UnixMSecs = (double)TNodeJsUtil::GetJsTimestamp((uint64)WinMSecs);
 			return HandleScope.Escape(v8::Date::New(Isolate, UnixMSecs));
 		}
 		else {
@@ -670,7 +696,7 @@ void TNodeJsStore::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TQm::PStoreIter Iter = Store->ForwardIter();
 
 			QmAssert(Iter->Next());
-			uint64 Count = 0;
+			uint32_t Count = 0;
 			uint64 RecId = Iter->GetRecId();
 			const unsigned Argc = 2;
 
@@ -704,7 +730,7 @@ void TNodeJsStore::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());
 
 		const TWPt<TQm::TStore> Store = JsStore->Store;
-		const uint64 Recs = Store->GetRecs();
+		const int Recs = (int)Store->GetRecs();
 
 		v8::Handle<v8::Array> ResultV = v8::Array::New(Isolate, Recs);
 
@@ -714,7 +740,7 @@ void TNodeJsStore::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TQm::PStoreIter Iter = Store->ForwardIter();
 
 			QmAssert(Iter->Next());
-			uint64 Count = 0;
+			uint32_t Count = 0;
 			uint64 RecId = Iter->GetRecId();
 			const unsigned Argc = 2;
 
@@ -755,7 +781,7 @@ void TNodeJsStore::add(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		PJsonVal RecVal = TNodeJsUtil::GetArgJson(Args, 0);
 		const uint64 RecId = Store->AddRec(RecVal);
 
-		Args.GetReturnValue().Set(v8::Integer::NewFromUnsigned(Isolate, RecId));
+		Args.GetReturnValue().Set(v8::Integer::NewFromUnsigned(Isolate, (uint32_t)RecId));
 	}
 	catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
@@ -1109,7 +1135,7 @@ void TNodeJsStore::getVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TTm Tm;
 			for (int RecN = 0; RecN < Recs; RecN++) {
 				Store->GetFieldTm(Iter->GetRecId(), FieldId, Tm);
-				ColV[RecN] = TNodeJsUtil::GetJsTimestamp((double)TTm::GetMSecsFromTm(Tm));
+				ColV[RecN] = (double)TNodeJsUtil::GetJsTimestamp(TTm::GetMSecsFromTm(Tm));
 				Iter->Next();
 			}
 			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
@@ -1653,7 +1679,7 @@ void TNodeJsRec::id(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v
 
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Self);
-	Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsRec->Rec.GetRecId()));
+	Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsRec->Rec.GetRecId()));
 }
 
 void TNodeJsRec::name(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -3290,7 +3316,7 @@ void TNodeJsFtrSpace::ftrSpColMat(const v8::FunctionCallbackInfo<v8::Value>& Arg
 		TNodeJsRecSet* RecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args[0]->ToObject());
 
 		// create feature matrix
-		TVec<TIntFltKdV> SpMat;
+		TVec<TIntFltKdV> SpMat(RecSet->RecSet->GetRecs(), 0);
 		JsFtrSpace->FtrSpace->GetSpVV(RecSet->RecSet, SpMat);
 
 		Args.GetReturnValue().Set(TNodeJsSpMat::New(SpMat, JsFtrSpace->FtrSpace->GetDim()));

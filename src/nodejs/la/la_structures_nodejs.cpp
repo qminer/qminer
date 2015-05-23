@@ -221,8 +221,8 @@ void TNodeJsFltVV::at(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() == 2 && Args[0]->IsInt32() && Args[1]->IsInt32(),
         "Expected two nonnegative integers as indices");
 
-    const int RowIdx = Args[0]->IntegerValue();
-    const int ColIdx = Args[1]->IntegerValue();
+    const int RowIdx = Args[0]->Int32Value();
+	const int ColIdx = Args[1]->Int32Value();
 
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
 
@@ -245,8 +245,8 @@ void TNodeJsFltVV::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TInt Rows = JsMat->Mat.GetRows();
 	TInt Cols = JsMat->Mat.GetCols();
 	
-	const int Row = Args[0]->IntegerValue();
-	const int Col = Args[1]->IntegerValue();
+	const int Row = Args[0]->Int32Value();
+	const int Col = Args[1]->Int32Value();
 	if (Args[2]->IsNumber()) {
 		
 		const double Val = Args[2]->NumberValue();

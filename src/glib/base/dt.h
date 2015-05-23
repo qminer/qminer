@@ -106,9 +106,12 @@ public:
   TMem(const TStr& Str);
   static PMem New(const TStr& Str){return new TMem(Str);}
   ~TMem(){if (Bf!=NULL){delete[] Bf;}}
-  explicit TMem(TSIn& SIn){
-    SIn.Load(MxBfL); SIn.Load(BfL);
-    Bf=new char[MxBfL=BfL]; SIn.LoadBf(Bf, BfL);}
+  explicit TMem(TSIn& SIn) {
+	  SIn.Load(MxBfL); SIn.Load(BfL);
+	  Bf = new char[MxBfL = BfL]; SIn.LoadBf(Bf, BfL); }
+  void Load(PSIn& SIn) {
+	  Clr(); SIn->Load(MxBfL); SIn->Load(BfL);
+	  Bf = new char[MxBfL = BfL]; SIn->LoadBf(Bf, BfL); }
   void Save(TSOut& SOut) const {
     SOut.Save(MxBfL); SOut.Save(BfL); SOut.SaveBf(Bf, BfL);}
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
@@ -399,6 +402,8 @@ template <class TVal, class TSizeTy> class TVec;
 typedef TVec<TStr, int> TStrV;
 
 class TStr{
+public:
+	typedef const char* TIter;  //!< Random access iterator.
 private:
   /// Used to construct empty strings ("") to be returned by CStr()
   const static char EmptyStr;
@@ -431,6 +436,17 @@ public:
   
   /// We only delete when not empty
   ~TStr() { Clr(); }
+
+  /// Returns an iterator pointing to the first element in the string.
+  TIter BegI() const { return Empty() ? &EmptyStr : Inner; }
+  /// Returns an iterator pointing to the first element in the string (used by C++11)
+  TIter begin() const { return Empty() ? &EmptyStr : Inner; }
+  /// Returns an iterator referring to the past-the-end element in the string.
+  TIter EndI() const { return Empty() ? &EmptyStr : Inner + Len(); }
+  /// Returns an iterator referring to the past-the-end element in the string (used by C++11))
+  TIter end() const { return Empty() ? &EmptyStr : Inner + Len(); }
+  /// Returns an iterator an element at position \c ValN.
+  TIter GetI(const int ValN) const { return Empty() ? &EmptyStr : Inner + ValN; }
 
   /// Deserialize TStr from stream, when IsSmall, the string is saved as CStr,
   /// otherwise the format is first the length and then the data including last \0
@@ -486,7 +502,7 @@ public:
   /// Get last character in string (before null terminator)
   char LastCh() const {return GetCh(Len()-1);}
   /// Get String Length (null terminator not included)
-  int Len() const { return Empty() ? 0 : strlen(Inner); }
+  int Len() const { return Empty() ? 0 : (int)strlen(Inner); }
   /// Check if this is an empty string
   bool Empty() const { IAssertR(Inner == nullptr || Inner[0] != 0, "TStr::Empty string is not nullptr. Fix immediately!");  return  Inner == nullptr; }
   /// Deletes the char pointer if it is not nullptr. (not thread safe)
@@ -1623,7 +1639,7 @@ public:
   static bool IsNum(const double& Val){
     return (Mn<=Val)&&(Val<=Mx);}
   static bool IsNan(const double& Val){
-    return (Val!=Val);}
+    return _isnan(Val);}
 
   bool IsNum() const { return IsNum(Val); }
   bool IsNan() const { return IsNan(Val); }

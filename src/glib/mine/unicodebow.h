@@ -83,7 +83,7 @@ namespace TUnicodeVSM {
 		TStr Lang;
 		TBool stemmer_supported;
 		//Stemmer if supported
-		SStemmer Stemmer;
+		TSStemmer Stemmer;
 		//Potential stop words
 		TSwSet StopSet;
 		//Maximal Index of the word - number of words
@@ -150,7 +150,7 @@ namespace TUnicodeVSM {
 	//AddTokenizeWords could and should use TokenizeWords instead of resuing the code
 	//Code will be refactored on first occasion
 	public:
-		TVec<TIntKd> TokenizeWords(TUStr& Text);
+		TVec<TIntKd> _TokenizeWords(TUStr& Text);
 		TVec<TIntKd> AddTokenizeWords(TUStr& Text, TBool AddToMatrix = true, TBool UpdateVoc = true);
 	public:
 		TVec<TIntKd>     TokenizeWordNgrams(TUStr& Text);

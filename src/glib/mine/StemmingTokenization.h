@@ -9,14 +9,14 @@
 
 #ifdef SNOWBALL_STEMMER
 #include "libstemmer.h"
-class SStemmer{
+class TSStemmer{
 	private:
 			struct sb_stemmer* stemmer;
 			TBool supported;
 		    TStr Name;
 	public:
-		//~SStemmer(){sb_stemmer_delete(stemmer);}
-		SStemmer& operator=(const SStemmer& Stemmer){
+		//~TSStemmer(){sb_stemmer_delete(stemmer);}
+		TSStemmer& operator=(const TSStemmer& Stemmer){
 			this->stemmer = Stemmer.stemmer;
 			this->Name    = Stemmer.Name;
 			return *this;
@@ -31,14 +31,14 @@ class SStemmer{
 };
 #else//Dummy compilation
 
-class SStemmer{
+class TSStemmer{
 private:
 	struct sb_stemmer* stemmer;
 	TBool supported;
 	TStr Name;
 public:
-	//~SStemmer(){sb_stemmer_delete(stemmer);}
-	SStemmer& operator=(const SStemmer& Stemmer){
+	//~TSStemmer(){sb_stemmer_delete(stemmer);}
+	TSStemmer& operator=(const TSStemmer& Stemmer){
 		this->stemmer = Stemmer.stemmer;
 		this->Name    = Stemmer.Name;
 		return *this;
@@ -56,7 +56,7 @@ public:
 
 #ifdef CHINESE_TOKENIZATION
 #include "ChineseStemmer.h"
-class ChineseTokenizer{
+class TChineseTokenizer{
 	public:
 		static bool init(TStr dir);
 		static bool init();
@@ -67,7 +67,7 @@ class ChineseTokenizer{
 		static int tokenizeClean(const TStr & input, TLst<TUStr> & result, TLst<TBool> & separate);
 };
 #else//Dummy Compilation
-class ChineseTokenizer{
+class TChineseTokenizer{
 public:
 	static bool init(TStr dir){ return false; };
 	static bool init(){ return false; };
