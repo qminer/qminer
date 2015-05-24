@@ -11,11 +11,9 @@ var assert = require('../../src/nodejs/scripts/assert.js');     //adds assert.ru
 var qm = require('qminer');
 qm.delLock();
 
-qm.config('qm.conf', true, 8080, 1024);
-
 // the database/store, from which we get the record set
 function TStore() {
-    this.base = qm.create('qm.conf', "", true);
+    this.base = new qm.Base({ mode: 'createClean' });
     this.base.createStore([{
         "name": "People",
         "fields": [
@@ -28,8 +26,8 @@ function TStore() {
         ]
     }]);
     // adding two persons
-    this.base.store("People").add({ "Name": "Carolina Fortuna", "Gender": "Female", $fq: 5 });
-    this.base.store("People").add({ "Name": "Blaz Fortuna", "Gender": "Male", $fq: 3 });
+    this.base.store("People").push({ "Name": "Carolina Fortuna", "Gender": "Female", $fq: 5 });
+    this.base.store("People").push({ "Name": "Blaz Fortuna", "Gender": "Male", $fq: 3 });
 
     this.close = function () {
         this.base.close();
@@ -108,19 +106,19 @@ describe('StoreIterator Tests', function () {
     describe('Next Test', function () {
         it('should give the first record of the store', function () {
             assert.equal(iter.next(), true);
-            assert.equal(iter.rec.Name, "Carolina Fortuna");
-            assert.equal(iter.rec.Gender, "Female");
+            assert.equal(iter.record.Name, "Carolina Fortuna");
+            assert.equal(iter.record.Gender, "Female");
             assert.equal(iter.store.name, "People");
         })
         it('should go through all the records of the store', function () {
             assert.equal(iter.next(), true);
-            assert.equal(iter.rec.Name, "Carolina Fortuna");
-            assert.equal(iter.rec.Gender, "Female");
+            assert.equal(iter.record.Name, "Carolina Fortuna");
+            assert.equal(iter.record.Gender, "Female");
             assert.equal(iter.store.name, "People");
 
             assert.equal(iter.next(), true);
-            assert.equal(iter.rec.Name, "Blaz Fortuna");
-            assert.equal(iter.rec.Gender, "Male");
+            assert.equal(iter.record.Name, "Blaz Fortuna");
+            assert.equal(iter.record.Gender, "Male");
             assert.equal(iter.store.name, "People");
 
             assert.equal(iter.next(), false);

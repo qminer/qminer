@@ -83,7 +83,8 @@ module.exports = exports = function (pathPrefix) {
 
     //!- `batchModel = analytics.newBatchModel(rs, features, target)` -- learns a new batch model
     //!     using record set `rs` as training data and `features`; `target` is
-    //!     a field descriptor JSON object for the records which we are trying to predict (obtained by calling store.field("Rating");
+    //!     a field descriptor JSON object for the records which we are trying to predict 
+	//!     (obtained by calling store.field("Rating");
     //!     if target field string or string vector, the result is a SVM classification model,
     //!     and if target field is a float, the result is a SVM regression model; resulting 
     //!     model has the following functions:

@@ -10,19 +10,19 @@ var base = new qm.Base({
     ]
 });
 
-var id1 = base.store('People').add({name : "John"});
-var id2 = base.store('People').add({name : "Mary"});
-var id3 = base.store('People').add({name : "Jim"});
+var id1 = base.store('People').push({name : "John"});
+var id2 = base.store('People').push({name : "Mary"});
+var id3 = base.store('People').push({name : "Jim"});
 
-base.store('People')[id1].addJoin('friends', id2);
-base.store('People')[id1].addJoin('friends', id3);
+base.store('People')[id1].$addJoin('friends', id2);
+base.store('People')[id1].$addJoin('friends', id3);
 
-base.store('People')[id2].addJoin('friends', base.store('People')[id1]);
-base.store('People')[id2].addJoin('friends', base.store('People')[id2]);
+base.store('People')[id2].$addJoin('friends', base.store('People')[id1]);
+base.store('People')[id2].$addJoin('friends', base.store('People')[id2]);
 
 assert(base.store('People')[id1].friends.length == 2);
 assert(base.store('People')[id2].friends.length == 2);
 
-base.store('People')[id2].friends.each(function (rec) {console.log(rec.name)});
+base.store('People')[id2].friends.each(function (rec) { console.log(rec.name); });
 
 base.close();
