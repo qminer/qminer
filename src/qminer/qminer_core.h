@@ -1791,7 +1791,7 @@ typedef enum {
 	oqitRecSet       = 6, ///< Pass on a records set
 	oqitRec          = 7, ///< Pass on a record
 	oqitStore        = 9  ///< Incude all records from a store
-} TQueryItemType;
+} TQueryItemType; 
 
 ///////////////////////////////
 /// Index Query Comparison Operators.

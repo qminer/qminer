@@ -627,7 +627,7 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 			// milliseconds from 1601-01-01T00:00:00Z
 			double WinMSecs = (double)TTm::GetMSecsFromTm(FieldTm);
 			// milliseconds from 1970-01-01T00:00:00Z, which is 11644473600 seconds after Windows file time start
-			double UnixMSecs = TNodeJsUtil::GetJsTimestamp(WinMSecs);
+			double UnixMSecs = (double)TNodeJsUtil::GetJsTimestamp((uint64)WinMSecs);
 			return HandleScope.Escape(v8::Date::New(Isolate, UnixMSecs));
 		}
 		else {
@@ -697,7 +697,7 @@ void TNodeJsStore::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TQm::PStoreIter Iter = Store->ForwardIter();
 
 			QmAssert(Iter->Next());
-			uint64 Count = 0;
+			uint32_t Count = 0;
 			uint64 RecId = Iter->GetRecId();
 			const unsigned Argc = 2;
 
@@ -732,7 +732,7 @@ void TNodeJsStore::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());
 
 		const TWPt<TQm::TStore> Store = JsStore->Store;
-		const uint64 Recs = Store->GetRecs();
+		const int Recs = (int)Store->GetRecs();
 
 		v8::Handle<v8::Array> ResultV = v8::Array::New(Isolate, Recs);
 
@@ -742,7 +742,7 @@ void TNodeJsStore::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TQm::PStoreIter Iter = Store->ForwardIter();
 
 			QmAssert(Iter->Next());
-			uint64 Count = 0;
+			uint32_t Count = 0;
 			uint64 RecId = Iter->GetRecId();
 			const unsigned Argc = 2;
 
@@ -784,7 +784,7 @@ void TNodeJsStore::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		PJsonVal RecVal = TNodeJsUtil::GetArgJson(Args, 0);
 		const uint64 RecId = Store->AddRec(RecVal);
 
-		Args.GetReturnValue().Set(v8::Integer::NewFromUnsigned(Isolate, RecId));
+		Args.GetReturnValue().Set(v8::Integer::NewFromUnsigned(Isolate, (uint32_t)RecId));
 	}
 	catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
@@ -1143,7 +1143,7 @@ void TNodeJsStore::getVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TTm Tm;
 			for (int RecN = 0; RecN < Recs; RecN++) {
 				Store->GetFieldTm(Iter->GetRecId(), FieldId, Tm);
-				ColV[RecN] = TNodeJsUtil::GetJsTimestamp((double)TTm::GetMSecsFromTm(Tm));
+				ColV[RecN] = (double)TNodeJsUtil::GetJsTimestamp(TTm::GetMSecsFromTm(Tm));
 				Iter->Next();
 			}
 			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
@@ -1701,7 +1701,7 @@ void TNodeJsRec::id(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v
 
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Self);
-	Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsRec->Rec.GetRecId()));
+	Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsRec->Rec.GetRecId()));
 }
 
 void TNodeJsRec::name(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {

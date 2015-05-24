@@ -576,10 +576,10 @@ void TMChain::Init(const int& _NStates, const TIntV& StateAssignV, const TUInt64
 	InitStats(NStates);
 
 	// update states
-	const uint64 NRecs = TmV.Len();
-	for (uint64 i = 0; i < NRecs; i++) {
+	const int NRecs = TmV.Len();
+	for (int i = 0; i < NRecs; i++) {
 		if (i % 10000 == 0) {
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, TUInt64::GetStr(i).CStr());
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, TInt::GetStr(i).CStr());
 		}
 
 		const bool EndsBatch = HasHiddenState ? bool(EndBatchV[i]) : false;
@@ -844,7 +844,7 @@ const uint64 TCtMChain::TU_SECOND = 1000;
 const uint64 TCtMChain::TU_MINUTE = TU_SECOND*60;
 const uint64 TCtMChain::TU_HOUR = TU_MINUTE*60;
 const uint64 TCtMChain::TU_DAY = TU_HOUR*24;
-const uint64 TCtMChain::TU_MONTH = 365.25 * TU_DAY / 12;
+const uint64 TCtMChain::TU_MONTH = (uint64)(365.25 * TU_DAY / 12);
 const double TCtMChain::MIN_JUMP_TM = 1e-2;
 const double TCtMChain::HIDDEN_STATE_INTENSITY = 1 / MIN_JUMP_TM;
 
@@ -914,13 +914,13 @@ void TCtMChain::GetProbVOverTm(const double& Height, const int& StateId, const d
 	EAssertR(StateIdx >= 0, "Could not find target state!");
 	EAssertR(StartTm <= 0 && EndTm >= 0, "The start and end times should include the current time!");
 
-	const int FutureSteps = ceil(EndTm / DeltaTm);
+	const int FutureSteps = (int)ceil(EndTm / DeltaTm);
 	const TFullMatrix FutProbMat = GetFutureProbMat(StateSetV, DeltaTm);
 
 	GetFutureProbVOverTm(FutProbMat, StateIdx, FutureSteps, FutProbVV, Notify);
 
 	if (StartTm < 0) {
-		const int PastSteps = ceil(-StartTm / DeltaTm);
+		const int PastSteps = (int)ceil(-StartTm / DeltaTm);
 		const TFullMatrix PastProbMat = GetPastProbMat(StateSetV, DeltaTm);
 		GetFutureProbVOverTm(PastProbMat, StateIdx, PastSteps, PastProbVV, Notify, false);
 	}
@@ -994,13 +994,13 @@ void TCtMChain::AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool 
 	// update intensities
 	if (UpdateStats && CurrStateId != -1 && StateId != CurrStateId /*&&
 			(!HasHiddenState || CurrStateId != GetHiddenStateId())*/) {	// the state has changed
-		UpdateIntensity(CurrStateId, StateId, RecTm - PrevJumpTm);
+		UpdateIntensity(CurrStateId, StateId, (double)(RecTm - PrevJumpTm));
 	}
 
 	if (StateId != CurrStateId) { PrevJumpTm = RecTm; }
 
 	if (HasHiddenState && EndsBatch) {
-		UpdateIntensity(StateId, GetHiddenStateId(), RecTm - PrevJumpTm);
+		UpdateIntensity(StateId, GetHiddenStateId(), (double)(RecTm - PrevJumpTm));
 	}
 }
 
@@ -1361,8 +1361,12 @@ void TStateAssist::Init(const TFullMatrix& X, const PFullClust& Clust, const PHi
 
 		const TIntSet TargetStateSet(StateSetV[StateIdx]);
 
-		TIntV TargetIdxV;	AssignV.Find([&](const TFlt& StateId) { return TargetStateSet.IsKey(TInt(StateId)); }, TargetIdxV);
-		TIntV NonTargetIdxV;	AssignV.Find([&](const TFlt& StateId) { return !TargetStateSet.IsKey(TInt(StateId)); }, NonTargetIdxV);
+		TIntV TargetIdxV;	
+		AssignV.Find([&](const TFlt& StateId) { 
+			return TargetStateSet.IsKey((int)StateId); }, TargetIdxV);
+		TIntV NonTargetIdxV;	
+		AssignV.Find([&](const TFlt& StateId) { 
+			return !TargetStateSet.IsKey((int)StateId); }, NonTargetIdxV);
 
 		if (TargetIdxV.Len() == 0 || NonTargetIdxV.Len() == 0) continue;
 

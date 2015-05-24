@@ -160,10 +160,12 @@
     <ClCompile Include="..\..\..\..\qminer\qminer_op.cpp" />
     <ClCompile Include="..\..\..\..\qminer\qminer_snap.cpp" />
     <ClCompile Include="..\..\..\..\qminer\qminer_srv.cpp" />
+    <ClCompile Include="pagedblob.cpp" />
     <ClCompile Include="WholeTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\glib\base\gix.h" />
+    <ClInclude Include="pagedblob.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GTest\GTest.vcxproj">

@@ -83,7 +83,7 @@ namespace TUnicodeVSM {
 		TStr Lang;
 		TBool stemmer_supported;
 		//Stemmer if supported
-		SStemmer Stemmer;
+		TSStemmer Stemmer;
 		//Potential stop words
 		TSwSet StopSet;
 		//Maximal Index of the word - number of words
