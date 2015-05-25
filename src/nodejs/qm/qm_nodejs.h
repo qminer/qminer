@@ -859,19 +859,24 @@ private:
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
-	* // create a store with some people with fields Name and Gender
-	* var store = new qm.Base({
-*		mode: "createClean",
-*		schema: [{
-*			"name": "Class",
-*			"fields": [
-*				{ "name", "Name", "type": "string" },
-*				{ "name", "StudyGroup", "type": "string" }
-*			]
-*		}]
-*	 })
-	* // change the gender of all records to "Extraterrestrial"
-	* store.each(function (rec) { rec.Gender = "Extraterrestrial"; });
+	* // create a base containing the store Class
+	* var base = new qm.Base({
+	*	mode: "createClean",
+	*	schema: [{
+	*		"name": "Class",
+	*		"fields": [
+	*			{ "name", "Name", "type": "string" },
+	*			{ "name", "StudyGroup", "type": "string" }
+	*		]
+	*	}]
+	* })
+	* // add some records to the store
+	* base.store("Class").add({ "Name": "Bob", "StudyGroup": "A" });
+	* base.store("Class").add({ "Name": "John", "StudyGroup": "B" });
+	* base.store("Class").add({ "Name": "Marco", "StudyGroup": "C" });
+	* base.store("Class").add({ "Name": "Dana", "StudyGroup": "A" });
+	* // change the StudyGroup of all records of store Class to "A"
+	* base.store("Class").each(function (rec) { rec.StudyGroup = "A"; });	// all records in Class are now in study group A
 	*/
 	//# exports.Store.prototype.each = function (callback) {}
 	JsDeclareFunction(each);
@@ -888,10 +893,24 @@ private:
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
-	* // create a store with some people with fields Name and Gender
-	* var store = //TODO
+	* // create a base containing the store Class
+	* var base = new qm.Base({
+	*	mode: "createClean",
+	*	schema: [{
+	*		"name": "Class",
+	*		"fields": [
+	*			{ "name", "Name", "type": "string" },
+	*			{ "name", "StudyGroup", "type": "string" }
+	*		]
+	*	}]
+	* })
+	* // add some records to the store
+	* base.store("Class").add({ "Name": "Bob", "StudyGroup": "A" });
+	* base.store("Class").add({ "Name": "John", "StudyGroup": "B" });
+	* base.store("Class").add({ "Name": "Marco", "StudyGroup": "C" });
+	* base.store("Class").add({ "Name": "Dana", "StudyGroup": "A" });
 	* // make an array of record names
-	* var arr = store.map(function (rec) { return rec.Name; });
+	* var arr = base.store("Class").map(function (rec) { return rec.Name; }); // returns an array ["Bob", "John", "Marco", "Dana"]
 	*/
 	//# exports.Store.prototype.map = function (callback) {}
 	JsDeclareFunction(map);
