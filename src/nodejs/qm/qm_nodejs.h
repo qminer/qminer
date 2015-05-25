@@ -34,37 +34,45 @@ class TNodeJsQm : public node::ObjectWrap {
 public:
 	// Node framework
 	static void Init(v8::Handle<v8::Object> exports);	
-	// TNodeJsRec needs this to select a template. TODO remove, see comment in v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec, const TInt& _Fq)
+	// TNodeJsRec needs this to select a template. TODO remove, see comment in
+    //   v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec, const TInt& _Fq)
 	static THash<TStr, TUInt> BaseFPathToId;
 private:
-	/**
+	/*
 	* Creates a directory structure.
 	* @param {string} [configPath='qm.conf'] - The path to configuration file.
 	* @param {boolean} [overwrite=false] - If you want to overwrite the configuration file.
 	* @param {number} [portN=8080] - The number of the port. Currently not used.
 	* @param {number} [cacheSize=1024] - Sets available memory for indexing (in MB).
 	*/
-	//# exports.config = function(configPath, overwrite, portN, cacheSize) {}
+	// exports.config = function(configPath, overwrite, portN, cacheSize) {}
 	JsDeclareFunction(config);
 
-	/**
+	/*
 	* Creates an empty base.
 	* @param {string} [configPath='qm.conf'] - Configuration file path.
 	* @param {string} [schemaPath=''] - Schema file path.
 	* @param {boolean} [clear=false] - Clear the existing db folder.
 	* @returns {module:qm.Base}
 	*/
-	//# exports.create = function (configPath, schemaPath, clear) { return Object.create(require('qminer').Base.prototype); }
+	// exports.create = function (configPath, schemaPath, clear) { return Object.create(require('qminer').Base.prototype); }
 	JsDeclareFunction(create);
 
-	/**
+	/*
 	* Opens a base.
 	* @param {string} [configPath='qm.conf'] - The configuration file path.
 	* @param {boolean} [readOnly=false] - Open in read only mode?
 	* @returns {module:qm.Base}
 	*/
-	//# exports.open = function (configPath, readOnly) { return Object.create(require('qminer').Base.prototype); }
+	// exports.open = function (configPath, readOnly) { return Object.create(require('qminer').Base.prototype); }
 	JsDeclareFunction(open);
+    
+	/**
+	* Set verbosity of QMiner internals.
+	* @param {number} [level=0] - verbosity level: 0 = no output, 1 = log output, 2 = log and debug output.
+	*/
+	//# exports.verbosity = function (level) { }
+	JsDeclareFunction(verbosity);
 };
 
 ///////////////////////////////
@@ -181,7 +189,7 @@ private:
 * // - we set the string vector Tokens with an array of strings
 * // - we set the numeric sparse vector Vector with an array of two element arrays
 * //   (index, value), see the sparse vector constructor {@link module:la.SparseVector}
-* base.store('NewsArticles').add({
+* base.store('NewsArticles').push({
 *   ID: 't12344', 
 *   Source: 's1234', 
 *   DateTime: '2015-01-01T00:05:00', 
@@ -220,12 +228,12 @@ private:
 * });
 * // Adds a movie, automatically adds 'Jim Jarmusch' to People, sets the 'director' join (field join)
 * // and automatically updates the index join 'directed', since it's an inverse join of 'director'
-* base.store('Movies').add({ title: 'Broken Flowers', director: { name: 'Jim Jarmusch' } });
+* base.store('Movies').push({ title: 'Broken Flowers', director: { name: 'Jim Jarmusch' } });
 * // Adds a movie, sets the 'director' join, updates the index join of 'Jim Jarmusch'
-* base.store('Movies').add({ title: 'Coffee and Cigarettes', director: { name: 'Jim Jarmusch' } });
+* base.store('Movies').push({ title: 'Coffee and Cigarettes', director: { name: 'Jim Jarmusch' } });
 * // Adds movie, automatically adds 'Lars von Trier' to People, sets the 'director' join
 * // and 'directed' inverse join (automatically)
-* base.store('Movies').add({ title: 'Dogville', director: { name: 'Lars von Trier' } });
+* base.store('Movies').push({ title: 'Dogville', director: { name: 'Lars von Trier' } });
 *
 * var movie = base.store('Movies')[0]; // get the first movie (Broken Flowers)
 * // Each movie has a property corresponding to the join name: 'director'. 
@@ -269,8 +277,8 @@ private:
 *     ]
 * });
 *
-* base.store('People').add({name : 'John Smith'});
-* base.store('People').add({name : 'Mary Smith'});
+* base.store('People').push({name : 'John Smith'});
+* base.store('People').push({name : 'Mary Smith'});
 * // search based on indexed values
 * base.search({$from : 'People', name: 'John Smith'}); // Return the record set containing 'John Smith'
 * // search based on indexed values
@@ -667,11 +675,8 @@ typedef TPt<TNodeJsBaseWatcher> PNodeJsBaseWatcher;
 * @example
 * // import qm module
 * var qm = require('qminer');
-* // factory based construction: create a base with the qm configuration file, without the predefined schemas, with overwrite = true
-* var base = qm.create('qm.conf', "", true);
-* base.close();
 * // using a constructor, in open mode:
-* var base2 = new qm.Base({mode: 'open'});
+* var base = new qm.Base({mode: 'open'});
 */
 //# exports.Base = function (paramObj) {};
 class TNodeJsBase : public node::ObjectWrap {
@@ -733,8 +738,8 @@ private:
 	/**
 	* Calls qminer garbage collector to remove records outside time windows.
 	*/
-	//# exports.Base.prototype.gc = function () { }
-	JsDeclareFunction(gc);
+	//# exports.Base.prototype.garbageCollect = function () { }
+	JsDeclareFunction(garbageCollect);
 	/**
 	* Calls qminer partial flush - base saves dirty data given some time-window.
 	* @param {number} window - Length of available time-window in msec. Default 500.
@@ -843,32 +848,32 @@ private:
 	//# exports.Store.prototype.map = function (callback) {}
 	JsDeclareFunction(map);
 
-	//!- `recId = store.add(rec)` -- add record `rec` to the store and return its ID `recId`
+	//!- `recId = store.push(rec)` -- add record `rec` to the store and return its ID `recId`
 	/**
 	* Adds a record to the store.
 	* @param {Object} rec - The added record. //TODO
 	* @returns {number} The ID of the added record.
 	*/
-	//# exports.Store.prototype.add = function (rec) {}
-	JsDeclareFunction(add);
+	//# exports.Store.prototype.push = function (rec) {}
+	JsDeclareFunction(push);
 
-	//!- `rec = store.newRec(recordJson)` -- creates new record `rec` by (JSON) value `recordJson` (not added to the store)
+	//!- `rec = store.newRecord(recordJson)` -- creates new record `rec` by (JSON) value `recordJson` (not added to the store)
 	/**
 	* Creates a new record of given store. The record is not added to the store.
 	* @param {Object} json - A JSON value of the record.
 	* @returns {module:qm.Record} The record created by the JSON value and the store.
 	*/
-	//# exports.Store.prototype.newRec = function (json) {};
-	JsDeclareFunction(newRec);
+	//# exports.Store.prototype.newRecord = function (json) {};
+	JsDeclareFunction(newRecord);
 
-	//!- `rs = store.newRecSet(idVec)` -- creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);
+	//!- `rs = store.newRecordSet(idVec)` -- creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);
 	/**
 	* Creates a new record set out of the records in store.
 	* @param {module:la.IntVector} idVec - The integer vector containing the ids of selected vectors.
 	* @returns {module:qm.RecSet} The record set that contains the records gained with idVec.
 	*/
-	//# exports.Store.prototype.newRecSet = function (idVec) {};
-	JsDeclareFunction(newRecSet);
+	//# exports.Store.prototype.newRecordSet = function (idVec) {};
+	JsDeclareFunction(newRecordSet);
 
 	//!- `rs = store.sample(sampleSize)` -- create a record set containing a random 
 	//!     sample of `sampleSize` records
@@ -948,23 +953,23 @@ private:
 	//# exports.Store.prototype.clear = function (num) {};
 	JsDeclareFunction(clear);
 
-	//!- `vec = store.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
+	//!- `vec = store.getVector(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
 	/**
 	* Gives a vector containing the field value of each record.
 	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string...
 	* @returns {module:la.Vector} The vector containing the field values of each record.
 	*/
-	//# exports.Store.prototype.getVec = function (fieldName) {};
-	JsDeclareFunction(getVec);
+	//# exports.Store.prototype.getVector = function (fieldName) {};
+	JsDeclareFunction(getVector);
 
-	//!- `mat = store.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
+	//!- `mat = store.getMatrix(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
 	/**
 	* Gives a matrix containing the field values of each record.
 	* @param {string} fieldName - The field name. Field mustn't be of type string.
 	* @returns {(module:la.Matrix | module:la.SparseMatrix)} The matrix containing the field values. 
 	*/
-	//# exports.Store.prototype.getMat = function (fieldName) {};
-	JsDeclareFunction(getMat);
+	//# exports.Store.prototype.getMatrix = function (fieldName) {};
+	JsDeclareFunction(getMatrix);
 
 	//!- `val = store.cell(recId, fieldId)` -- if fieldId (int) corresponds to fieldName, this is equivalent to store[recId][fieldName]
 	//!- `val = store.cell(recId, fieldName)` -- equivalent to store[recId][fieldName]
@@ -1093,7 +1098,6 @@ public:
 	// Not typical (records have multiple templates), simpler objects get this method from TNodeJsUtil
 	static v8::Local<v8::Object> NewInstance(TNodeJsRec* Obj);
 	
-
 private:
 	//!
 	//! **Functions and properties:**
@@ -1213,6 +1217,7 @@ private:
 	//!- `aggrsJSON = rs.aggr()` -- returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set
 	//!- `aggr = rs.aggr(aggrQueryJSON)` -- computes the aggregates based on the `aggrQueryJSON` parameter JSON object. If only one aggregate is involved and an array of JSON objects when more than one are returned.
 	JsDeclareFunction(aggr);
+    
 	//!- `rs = rs.trunc(limit_num)` -- truncate to first `limit_num` record and return self.
 	//!- `rs = rs.trunc(limit_num, offset_num)` -- truncate to `limit_num` record starting with `offset_num` and return self.
 	/**
@@ -1358,14 +1363,14 @@ private:
 	//# exports.RecSet.prototype.split = function (callback) {};
 	JsDeclareFunction(split);
 
-	//!- `rs = rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Returns self.
+	//!- `rs = rs.deleteRecords(rs2)` -- delete from `rs` records that are also in `rs2`. Returns self.
 	/**
 	* Deletes the records, that are also in the other record set.
 	* @param {module:qm.RecSet} rs - The other record set.
 	* @returns {module:qm.RecSet} Self. Contains only the records, that are not in rs.
 	*/
-	//# exports.RecSet.prototype.deleteRecs = function (rs) {}; 
-	JsDeclareFunction(deleteRecs);
+	//# exports.RecSet.prototype.deleteRecords = function (rs) {}; 
+	JsDeclareFunction(deleteRecords);
 
 	//!- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 	/**
@@ -1415,50 +1420,50 @@ private:
 	//# exports.RecSet.prototype.map = function (callback) {}
 	JsDeclareFunction(map);
 
-	//!- `rs3 = rs.setintersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
+	//!- `rs3 = rs.setIntersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 	/**
 	* Creates the set intersection of two record sets.
 	* @param {module:qm.RecSet} rs - The other record set.
 	* @returns {module:qm.RecSet} The intersection of the two record sets.
 	*/
-	//# exports.RecSet.prototype.setintersect = function (rs) {};
-	JsDeclareFunction(setintersect);
+	//# exports.RecSet.prototype.setIntersect = function (rs) {};
+	JsDeclareFunction(setIntersect);
 
-	//!- `rs3 = rs.setunion(rs2)` -- returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
+	//!- `rs3 = rs.setUnion(rs2)` -- returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 	/**
 	* Creates the set union of two record sets.
 	* @param {module:qm.RecSet} rs - The other record set.
 	* @returns {module:qm.RecSet} The union of the two record sets.
 	*/
-	//# exports.RecSet.prototype.setunion = function (rs) {};
-	JsDeclareFunction(setunion);
+	//# exports.RecSet.prototype.setUnion = function (rs) {};
+	JsDeclareFunction(setUnion);
 
-	//!- `rs3 = rs.setdiff(rs2)` -- returns the set difference (record set) `rs3`=`rs`\`rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
+	//!- `rs3 = rs.setDiff(rs2)` -- returns the set difference (record set) `rs3`=`rs`\`rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
 	/**
 	* Creates the set difference between two record sets.
 	* @param {module:qm.RecSet} rs - The other record set.
 	* @returns {module:qm.RecSet} The difference between the two record sets.
 	*/
-	//# exports.RecSet.prototype.setdiff = function (rs) {}; 
-	JsDeclareFunction(setdiff);
+	//# exports.RecSet.prototype.setDiff = function (rs) {}; 
+	JsDeclareFunction(setDiff);
 
-	//!- `vec = rs.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
+	//!- `vec = rs.getVector(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
 	/**
 	* Creates a vector containing the field values of records.
 	* @param {string} fieldName - The field from which to take the values. It's type must be one-dimensional, e.g. float, int, string,...
 	* @returns {module:la.Vector} The vector containing the field values of records. The type it contains is dependant of the field type.
 	*/
-	//# exports.RecSet.prototype.getVec = function (fieldName) {}; 
-	JsDeclareFunction(getVec);
+	//# exports.RecSet.prototype.getVector = function (fieldName) {}; 
+	JsDeclareFunction(getVector);
 
-	//!- `vec = rs.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
+	//!- `vec = rs.getMatrix(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
 	/**
 	* Creates a vector containing the field values of records.
 	* @param {string} fieldName - The field from which to take the values. It's type must be numeric, e.g. float, int, float_v, num_sp_v,...
 	* @returns {(module:la.Matrix|module:la.SparseMatrix)} The matrix containing the field values of records.
 	*/
-	//# exports.RecSet.prototype.getVec = function (fieldName) {};
-	JsDeclareFunction(getMat);
+	//# exports.RecSet.prototype.getMatrix = function (fieldName) {};
+	JsDeclareFunction(getMatrix);
 	
 	//!- `storeName = rs.store` -- store of the records
 	/**
@@ -1555,12 +1560,12 @@ public:
 	//# exports.Iterator.prototype.store = undefined;
 	JsDeclareProperty(store);
 
-	//!- `rec = iter.rec` -- get current record; reuses JavaScript record wrapper, need to call `rec.$clone()` on it to if there is any wish to store intermediate records.
+	//!- `rec = iter.record` -- get current record; reuses JavaScript record wrapper, need to call `rec.$clone()` on it to if there is any wish to store intermediate records.
 	/**
 	* Gives the current record.
 	*/
-	//# exports.Iterator.prototype.rec = undefined;
-	JsDeclareProperty(rec);
+	//# exports.Iterator.prototype.record = undefined;
+	JsDeclareProperty(record);
 };
 
 ///////////////////////////////
@@ -1637,9 +1642,9 @@ public:
 	JsDeclareProperty(store);
 	//!- `keyName = key.name` -- gets the key's name
 	JsDeclareProperty(name);
-	//!- `strArr = key.voc` -- gets the array of words (as strings) in the vocabulary
-	JsDeclareProperty(voc);
-	//!- `strArr = key.fq` -- gets the array of weights (as strings) in the vocabulary
+	//!- `strArr = key.vocabulary` -- gets the array of words (as strings) in the vocabulary
+	JsDeclareProperty(vocabulary);
+	//!- `strArr = key.fq` -- gets the array of weights (as ints) in the vocabulary
 	JsDeclareProperty(fq);
 };
 
@@ -1652,56 +1657,31 @@ public:
 class TNodeJsFuncFtrExt : public TQm::TFtrExt {
 private:
 	// private constructor
-	TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal, const v8::Handle<v8::Function> _Fun, v8::Isolate* Isolate);
-
+	TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal,
+        const v8::Handle<v8::Function> _Fun, v8::Isolate* Isolate);
 	~TNodeJsFuncFtrExt() { Fun.Reset(); }
 public:
 	// public smart pointer
-	static TQm::PFtrExt NewFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal, const v8::Handle<v8::Function>& Fun, v8::Isolate* Isolate);
-// Core functionality
+	static TQm::PFtrExt NewFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal,
+        const v8::Handle<v8::Function>& Fun, v8::Isolate* Isolate);
 private:
 	// Core part
 	TInt Dim;
 	TStr Name;
-	
+	// callback
 	v8::Persistent<v8::Function> Fun;
 
-	double ExecuteFunc(const TQm::TRec& FtrRec) const {
-		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-		v8::HandleScope HandleScope(Isolate);
-		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Fun);
-		return TNodeJsUtil::ExecuteFlt(Callback,
-			TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), FtrRec))
-		);
-	}
-
-	void ExecuteFuncVec(const TQm::TRec& FtrRec, TFltV& Vec) const {
-		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-		v8::HandleScope HandleScope(Isolate);
-
-		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Fun);
-		v8::Handle<v8::Value> Argv[1] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), FtrRec)) };
-		v8::Handle<v8::Value> RetVal = Callback->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
-
-		// Cast as FltV and copy result
-		v8::Handle<v8::Object> RetValObj = v8::Handle<v8::Object>::Cast(RetVal);
-
-		QmAssertR(TNodeJsUtil::IsClass(RetValObj, TNodeJsFltV::GetClassId()), "TJsFuncFtrExt::ExecuteFuncVec callback should return a dense vector (same type as la.newVec()).");
-
-    	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(RetValObj->GetInternalField(0));
-		// cast it to js vector and copy internal vector
-		TNodeJsFltV* JsVec = static_cast<TNodeJsFltV*>(WrappedObject->Value());
-
-		Vec = JsVec->Vec;
-	}
+	double ExecuteFunc(const TQm::TRec& FtrRec) const;
+	void ExecuteFuncVec(const TQm::TRec& FtrRec, TFltV& Vec) const;
+    // will throw exception (saving, loading not supported)
+	TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal);
+    // will throw exception (saving, loading not supported)
+	TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, TSIn& SIn);
 public:
-// Feature extractor API
-private:
-	TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal); // will throw exception (saving, loading not supported)
-	TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, TSIn& SIn); // will throw exception (saving, loading not supported)
-public:
-	static TQm::PFtrExt New(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal); // will throw exception (saving, loading not supported)
-	static TQm::PFtrExt Load(const TWPt<TQm::TBase>& Base, TSIn& SIn); // will throw exception (saving, loading not supported)
+    // will throw exception (saving, loading not supported)
+	static TQm::PFtrExt New(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal);
+    // will throw exception (saving, loading not supported)
+	static TQm::PFtrExt Load(const TWPt<TQm::TBase>& Base, TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
 	TStr GetNm() const { return Name; }
@@ -1712,14 +1692,11 @@ public:
 	bool Update(const TQm::TRec& Rec) { return false; }
 	void AddSpV(const TQm::TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	void AddFullV(const TQm::TRec& Rec, TFltV& FullV, int& Offset) const;
-
 	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-		throw TExcept::New("Not implemented yet!", "TJsFuncFtrExt::InvFullV");
-	}
+		throw TExcept::New("Not implemented yet!", "TJsFuncFtrExt::InvFullV"); }
 
 	// flat feature extraction
 	void ExtractFltV(const TQm::TRec& FtrRec, TFltV& FltV) const;
-
 	// feature extractor type name
 	static TStr GetType() { return "jsfunc"; }
 };
@@ -1737,22 +1714,25 @@ public:
 * // import qm module
 * var qm = require('qminer');
 * // construct a base with the store
-* base.createStore({
-*        "name": "FtrSpace",
-*        "fields": [
-*          { "name": "Value", "type": "float" },
-*          { "name": "Category", "type": "string" },
-*          { "name": "Categories", "type": "string_v" },
-*        ],
-*        "joins": [],
-*        "keys": []
-*    });
-* // adding some record
+* var base = new qm.Base({
+*   mode: "create",
+*   schema: {
+*     name: "FtrSpace",
+*     fields: [
+*       { name: "Value", type: "float" },
+*       { name: "Category", type: "string" },
+*       { name: "Categories", type: "string_v" },
+*     ],
+*     joins: [],
+*     keys: []
+*   }
+* });
+* // populate the store
 * Store = base.store("FtrSpace");
-* Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
-* Store.add({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
-* Store.add({ Value: 1.2, Category: "c", Categories: ["c", "e"] });
-* Store.add({ Value: 1.3, Category: "a", Categories: ["a", "q"] });
+* Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
+* Store.push({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
+* Store.push({ Value: 1.2, Category: "c", Categories: ["c", "e"] });
+* Store.push({ Value: 1.3, Category: "a", Categories: ["a", "q"] });
 * // create a feature space 
 * var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpace", field: "Value" });
 */
@@ -1813,14 +1793,14 @@ public:
 	//# exports.FeatureSpace.prototype.save = function (fout) {};
     JsDeclareFunction(save);
 
-	//!- `fsp = fsp.add(objJson)` -- add a feature extractor parametrized by `objJson`
+	//!- `fsp = fsp.addFeatureExtractor(objJson)` -- add a feature extractor parametrized by `objJson`
 	/**
 	* Adds a new feature extractor to the feature space.
 	* @param {Object} obj - The added feature extracture.
 	* @returns {module:qm.FeatureSpace} Self.
 	*/
-	//# exports.FeatureSpace.prototype.add = function (obj) {};
-	JsDeclareFunction(add);
+	//# exports.FeatureSpace.prototype.addFeatureExtractor = function (obj) {};
+	JsDeclareFunction(addFeatureExtractor);
 
     //!- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
     //!     by exposing them to record `rec`. Returns self. For example, this can update the vocabulary
@@ -1837,36 +1817,39 @@ public:
 	* // import qm module
 	* var qm = require('qminer');
 	* // create a new base
-	* var base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
-    * base.createStore({
-    *        "name": "FtrSpace",
-    *        "fields": [
-    *          { "name": "Value", "type": "float" },
-    *          { "name": "Category", "type": "string" },
-    *          { "name": "Categories", "type": "string_v" },
-    *        ],
-    *        "joins": [],
-    *        "keys": []
-    *    });
-    *    Store = base.store("FtrSpace");
-    *    Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
-    *    Store.add({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
-    *    Store.add({ Value: 1.2, Category: "c", Categories: ["c", "e"] });
-    *    Store.add({ Value: 1.3, Category: "a", Categories: ["a", "q"] });
+	* var base = new qm.Base({
+    *   mode: "create",
+    *   schema: {
+    *     name: "FtrSpace",
+    *     fields: [
+    *       { name: "Value", type: "float" },
+    *       { name: "Category", type: "string" },
+    *       { name: "Categories", type: "string_v" },
+    *     ],
+    *     joins: [],
+    *     keys: []
+    *   }
+    * });
+    * // populate the store
+    * Store = base.store("FtrSpace");
+    * Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
+    * Store.push({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
+    * Store.push({ Value: 1.2, Category: "c", Categories: ["c", "e"] });
+    * Store.push({ Value: 1.3, Category: "a", Categories: ["a", "q"] });
 	* // create a new feature space
 	* var ftr = new qm.FeatureSpace(base, [
-	*	  { type: "numeric", source: "FtrSpace", normalize: true, field: "Values" },
-	*     { type: "categorical", source: "FtrSpace", field: "Category", values: ["a", "b", "c"] },
-	*     { type: "multinomial", source: "FtrSpace", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
-	*	  ]);
+	*   { type: "numeric", source: "FtrSpace", normalize: true, field: "Values" },
+	*   { type: "categorical", source: "FtrSpace", field: "Category", values: ["a", "b", "c"] },
+	*   { type: "multinomial", source: "FtrSpace", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
+	* ]);
 	* // update the feature space with the first three record of the store
 	* ftr.updateRecord(Store[0]);
 	* ftr.updateRecord(Store[1]);
 	* ftr.updateRecord(Store[2]);
 	* // get the feature vectors of these records
-	* ftr.getVec(Store[0]); // returns the vector [0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
-	* ftr.getVec(Store[1]); // returns the vector [1/2, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
-	* ftr.getVec(Store[2]); // returns the vector [1, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
+	* ftr.extractVector(Store[0]); // returns the vector [0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
+	* ftr.extractVector(Store[1]); // returns the vector [1/2, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
+	* ftr.extractVector(Store[2]); // returns the vector [1, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
 	*/
 	//# exports.FeatureSpace.prototype.updateRecord = function (rec) {};
 	JsDeclareFunction(updateRecord);
@@ -1886,69 +1869,72 @@ public:
 	* // import qm module
 	* var qm = require('qminer');
 	* // create a new base
-	* var base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
-	* base.createStore({
-	*        "name": "FtrSpace",
-	*        "fields": [
-	*          { "name": "Value", "type": "float" },
-	*          { "name": "Category", "type": "string" },
-	*          { "name": "Categories", "type": "string_v" },
-	*        ],
-	*        "joins": [],
-	*        "keys": []
-	*    });
-	*    Store = base.store("FtrSpace");
-	*    Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
-	*    Store.add({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
-	*    Store.add({ Value: 1.2, Category: "c", Categories: ["c", "e"] });
-	*    Store.add({ Value: 1.3, Category: "a", Categories: ["a", "q"] });
+	* var base = new qm.Base({
+    *   mode: "create",
+    *   schema: {
+    *     name: "FtrSpace",
+    *     fields: [
+    *       { name: "Value", type: "float" },
+    *       { name: "Category", type: "string" },
+    *       { name: "Categories", type: "string_v" },
+    *     ],
+    *     joins: [],
+    *     keys: []
+    *   }
+    * });
+    * // populate the store
+	* Store = base.store("FtrSpace");
+	* Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
+	* Store.push({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
+	* Store.push({ Value: 1.2, Category: "c", Categories: ["c", "e"] });
+	* Store.push({ Value: 1.3, Category: "a", Categories: ["a", "q"] });
 	* // create a new feature space
 	* var ftr = new qm.FeatureSpace(base, [
 	*	  { type: "numeric", source: "FtrSpace", normalize: true, field: "Values" },
 	*     { type: "categorical", source: "FtrSpace", field: "Category", values: ["a", "b", "c"] },
 	*     { type: "multinomial", source: "FtrSpace", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
-	*	  ]);
+	* ]);
 	* // update the feature space with the record set 
 	* var rs = Store.recs;
 	* ftr.updateRecords(rs);
 	* // get the feature vectors of these records
-	* ftr.getVec(Store[0]); // returns the vector [0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
-	* ftr.getVec(Store[1]); // returns the vector [1/3, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
-	* ftr.getVec(Store[2]); // returns the vector [2/3, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
-	* ftr.getVec(Store[3]); // returns the vector [1, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
+	* ftr.extractVector(Store[0]); // returns the vector [0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
+	* ftr.extractVector(Store[1]); // returns the vector [1/3, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
+	* ftr.extractVector(Store[2]); // returns the vector [2/3, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
+	* ftr.extractVector(Store[3]); // returns the vector [1, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
 	*/
 	//# exports.FeatureSpace.prototype.updateRecords = function (rs) {};
 	JsDeclareFunction(updateRecords);
 
-	//!- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
+	//!- `spVec = fsp.extractSparseVector(rec)` -- extracts sparse feature vector `spVec` from record `rec`
 	/**
 	* Creates a sparse feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
 	* @returns {module:la.SparseVector} The sparse feature vector gained from rec.
 	*/
-	//# exports.FeatureSpace.prototype.ftrSpVec = function (rec) {}
-    JsDeclareFunction(ftrSpVec);
+	//# exports.FeatureSpace.prototype.extractSparseVector = function (rec) {}
+    JsDeclareFunction(extractSparseVector);
 
-    //!- `vec = fsp.ftrVec(rec)` -- extracts feature vector `vec` from record  `rec`
+    //!- `vec = fsp.extractVector(rec)` -- extracts feature vector `vec` from record  `rec`
 	/**
 	* Creates a feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
 	* @returns {module:la.Vector} The feature vector gained from rec.
 	*/
-	//# exports.FeatureSpace.prototype.ftrVec = function (rec) {};
-	JsDeclareFunction(ftrVec);
+	//# exports.FeatureSpace.prototype.extractVector = function (rec) {};
+	JsDeclareFunction(extractVector);
     
-	//!- `vec = fsp.invFtrVec(ftrVec)` -- performs the inverse operation of ftrVec, returns the results in
+	//!- `vec = fsp.invertFeatureVector(ftrVec)` -- performs the inverse operation of ftrVec, returns the results in
     //!- 	an array
 	/**
 	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
 	* @param {(module:qm.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
 	* @returns {module:qm.Vector} The inverse of ftr as vector.
 	*/
-	//# exports.FeatureSpace.prototype.invFtrVec = function (ftr) {};
-	JsDeclareFunction(invFtrVec);
+	//# exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) {};
+	JsDeclareFunction(invertFeatureVector);
 
-	//!- `val = fsp.invFtr(ftrIdx, val)` -- inverts a single feature using the feature
+	//!- `val = fsp.invertFeature(ftrIdx, val)` -- inverts a single feature using the feature
 	//!- 	extractor on index `ftrIdx`
 	/**
 	* Calculates the inverse of a single feature using a specific feature extractor.
@@ -1956,77 +1942,46 @@ public:
 	* @param {Object} val - The value to be inverted.
 	* @returns {Object} The inverse of val using the feature extractor with index idx.
 	*/
-	//# exports.FeatureSpace.prototype.invFtr = function (idx, val) {};
-	JsDeclareFunction(invFtr);
+	//# exports.FeatureSpace.prototype.invertFeature = function (idx, val) {};
+	JsDeclareFunction(invertFeature);
 
-    //!- `spMat = fsp.ftrSpColMat(rs)` -- extracts sparse feature vectors from
+    //!- `spMat = fsp.extractSparseMatrix(rs)` -- extracts sparse feature vectors from
     //!     record set `rs` and returns them as columns in a sparse matrix `spMat`.
 	/**
 	* Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.
 	* @param {module:qm.RecSet} rs - The given record set.
 	* @returns {module:la.SparseMatrix} The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.
 	*/
-	//# exports.FeatureSpace.prototype.ftrSpColMat = function (rs) {};
-	JsDeclareFunction(ftrSpColMat);
+	//# exports.FeatureSpace.prototype.extractSparseMatrix = function (rs) {};
+	JsDeclareFunction(extractSparseMatrix);
 
-    //!- `mat = fsp.ftrColMat(rs)` -- extracts feature vectors from
+    //!- `mat = fsp.extractMatrix(rs)` -- extracts feature vectors from
     //!     record set `rs` and returns them as columns in a matrix `mat`.
 	/**
 	* Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.
 	* @param {module:qm.RecSet} rs - The given record set.
 	* @returns {module:la.Matrix} The dense matrix, where the i-th column is the feature vector of the i-th record in rs.
 	*/
-	//# exports.FeatureSpace.prototype.ftrColMat = function (rs) {};
-    JsDeclareFunction(ftrColMat);
+	//# exports.FeatureSpace.prototype.extractMatrix = function (rs) {};
+    JsDeclareFunction(extractMatrix);
 
-	//!- `name = fsp.getFtrExtractor(ftrExtractor)` -- returns the name `name` (string) of `ftrExtractor`-th feature extractor in feature space `fsp`
+	//!- `name = fsp.getFeatureExtractor(ftrExtractor)` -- returns the name `name` (string) of `ftrExtractor`-th feature extractor in feature space `fsp`
 	/**
 	* Gives the name of feature extractor at given position.
 	* @param {number} idx - The index of the feature extractor in feature space (zero based).
 	* @returns {String} The name of the feature extractor at position idx.
 	*/
-	//# exports.FeatureSpace.prototype.getFtrExtractor = function (idx) {};
-	JsDeclareFunction(getFtrExtractor);
+	//# exports.FeatureSpace.prototype.getFeatureExtractor = function (idx) {};
+	JsDeclareFunction(getFeatureExtractor);
 
-	//!- `ftrName = fsp.getFtr(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
+	//!- `ftrName = fsp.getFeature(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
 	/**
 	* Gives the name of the feature at the given position.
 	* @param {number} idx - The index of the feature in feature space (zero based).
 	* @returns {String} The name of the feature at the position idx.
 	*/
-	//# exports.FeatureSpace.prototype.getFtr = function (idx) {};
-	JsDeclareFunction(getFtr);
-
-    //!- `vec = fsp.getFtrDist()` -- returns a vector with distribution over the features
-    //!- `vec = fsp.getFtrDist(ftrExtractor)` -- returns a vector with distribution over the features for feature extractor ID `ftrExtractor`
-	/**
-	* Returns an array of values from the uniform distribution over the features.
-	* @param {number} [idx] - The index of the feature extractor.
-	* @returns {Array.<number>} The array with values from the uniform distribution over the features.
-	* @example
-	* // import qm module
-	* var qm = require('qminer');
-	* // create a feature space 
-	* var ftr = new qm.FeatureSpace(base, [
-	*	  { type: "numeric", source: "FtrSpace", normalize: true, field: "Values" },
-	*     { type: "categorical", source: "FtrSpace", field: "Category", values: ["a", "b", "c"] },
-	*     { type: "multinomial", source: "FtrSpace", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
-	*	  ]);
-	* // get the uniform distribution of the whole feature space
-	* // returns the array [1, 1/3, 1/3, 1/3, 1/6, 1/6, 1/6, 1/6, 1/6, 1/6], where the first value 1 belongs to the 
-	* // uniform distribution of the first extractor, which is of dimension 1. The values 1/3 belong to the uniform 
-	* // distribution of the second extractor, which is of dimension 3. The values 1/6 belong to the uniform distribution
-	* // of the third extractor, which is of dimension 6.
-	* var arr = ftr.getFtrDist(); 
-	* // get the uniform distribution of the first feature extractor
-	* var arr2 = ftr.getFtrDist(0); // returns the array [1]
-	* // get the uniform distribution of the second feature extractor
-	* var arr3 = ftr.getFtrDist(1); // returns the array [1/3, 1/3, 1/3]
-	* // get the uniform distribution of the third feature extractor
-	* var arr4 = ftr.getFtrDist(2); // returns the array [1/6, 1/6, 1/6, 1/6, 1/6, 1/6]
-	*/
-	//# exports.FeatureSpace.prototype.getFtrDist = function (idx) {};
-    JsDeclareFunction(getFtrDist);
+	//# exports.FeatureSpace.prototype.getFeature = function (idx) {};
+	JsDeclareFunction(getFeature);
     
 	//!- `out_vec = fsp.filter(in_vec, ftrExtractor)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`
     //!- `out_vec = fsp.filter(in_vec, ftrExtractor, keepOffset)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`.

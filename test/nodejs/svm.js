@@ -18,13 +18,13 @@ var vec = new la.Vector({vals:4});
 var mat = new la.Matrix({rows:2, cols:4});
 var x = new la.Vector({vals:2});
 
-var SVC = new analytics.SVC({verbose:true});
+var SVC = new analytics.SVC({verbose:false});
 SVC.fit(mat,vec);
 SVC.save('svc.bin');
 
 var y1 = SVC.predict(x);
 
-var SVR = new analytics.SVR({verbose:true});
+var SVR = new analytics.SVR({verbose:false});
 SVR.fit(mat,vec);
 SVR.save('svr.bin');
 

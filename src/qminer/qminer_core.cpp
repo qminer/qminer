@@ -50,7 +50,7 @@ void TEnv::Init() {
 };
 
 void TEnv::InitLogger(const int& _Verbosity,
-	const TStr& FPath, const bool& TimestampP) {
+        const TStr& FPath, const bool& TimestampP) {
 
 	// direct logger to appropriate output
 	if (FPath == "null") {

@@ -30,10 +30,10 @@ var base2 = new qm.Base({
 });
 
 var store1 = base1.store("People");
-store1.add({ name: "Jan" });
+store1.push({ name: "Jan" });
 var rec1 = store1.first;
 var store2 = base2.store("Movies");
-store2.add({ title: "Movie" });
+store2.push({ title: "Movie" });
 var rec2 = store2.first;
 
 var assert = require('assert');

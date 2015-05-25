@@ -9,7 +9,8 @@ var nodefs = require('fs');
 var csv = require('fast-csv');
 var util = require('util');
 
-// typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
+// typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'.
+// Empty argument is supported as well (the first binary that the bindings finds will be used)
 module.exports = exports = function (pathPrefix) {
     pathPrefix = pathPrefix || '';
     
@@ -17,8 +18,6 @@ module.exports = exports = function (pathPrefix) {
     var fs = qm.fs;
     
     exports = qm;
-
-    
 
     //==================================================================
     // BASE
@@ -134,7 +133,7 @@ module.exports = exports = function (pathPrefix) {
 	    			
 	    			// insert all the record in the buffer into the store
 	    			buff.forEach(function (data) {
-	    				store.add(data);
+	    				store.push(data);
 	    			})
     			} catch (e) {
     				if (callback != null)
@@ -178,7 +177,7 @@ module.exports = exports = function (pathPrefix) {
     		   			initFieldTypes(data);
     		   		
     		   		if (store != null)
-    		   			store.add(data);
+    		   			store.push(data);
     		   		else
     		   			buff.push(data);
     		   	})
@@ -186,7 +185,8 @@ module.exports = exports = function (pathPrefix) {
     		   		if (callback != null) {
     		   			if (!fieldTypesInitialized()) {
         		   			var fieldNames = getUninitializedFlds();
-        		   			callback(new Error('Finished with uninitialized fields: ' + JSON.stringify(fieldNames)) + ', add them to ignore list!');
+        		   			callback(new Error('Finished with uninitialized fields: ' + 
+								JSON.stringify(fieldNames)) + ', add them to ignore list!');
         		   			return;
         		   		} else {
         		   			callback();
@@ -211,8 +211,8 @@ module.exports = exports = function (pathPrefix) {
             onAdd: trigger.onAdd,
             saveJson: function (limit) { return {}; }
         };
-        if (trigger.onUpdate != undefined) Callbacks["onUpdate"] = trigger.onUpdate;
-        if (trigger.onDelete != undefined) Callbacks["onDelete"] = trigger.onDelete;
+        if (trigger.onUpdate != undefined) { Callbacks["onUpdate"] = trigger.onUpdate; }
+        if (trigger.onDelete != undefined) { Callbacks["onDelete"] = trigger.onDelete; }
         var streamAggr = new exports.StreamAggr(this.base, Callbacks, this.name);
     }
 
@@ -222,8 +222,8 @@ module.exports = exports = function (pathPrefix) {
     }
     
     exports.Store.prototype.inspect = function (depth) {        
-        var d = depth == null ? 0 : depth;
-        return util.inspect(this, { depth:d,  'customInspect': false });
+        var d = (depth == null) ? 0 : depth;
+        return util.inspect(this, { depth: d, 'customInspect': false });
     }
     
     //==================================================================
@@ -233,12 +233,14 @@ module.exports = exports = function (pathPrefix) {
     /**
      * Saves the record set into a CSV file specified in the opts parameter.
      * 
-     * @param {object} opts - The options parameter contains 2 fields. The first field 'opts.fname' specifies the output file. The second field 'opts.headers' specifies if headers should be included in the output file.
+     * @param {object} opts - The options parameter contains 2 fields. 
+	 *      The first field 'opts.fname' specifies the output file. 
+	 *      The second field 'opts.headers' specifies if headers should be included in the output file.
      * @param {function} [callback] - The callback fired when the operation finishes.
      */
     exports.RecSet.prototype.saveCSV = function (opts, callback) {
     	// defaults
-    	if (opts.headers == null) opts.headers = true;
+    	if (opts.headers == null) { opts.headers = true; }
     	
     	try {
     		console.log('Writing ' + this.length + ' lines to CSV file: ' + opts.fname + ' ...');
@@ -262,32 +264,37 @@ module.exports = exports = function (pathPrefix) {
 	    	});
 	    	
 	    	out.on('error', function (e) {
-	    		if (callback != null)
+	    		if (callback != null) {
 	    			callback(e);
+				}
 	    	});
 	    	
 	    	out.on('finish', function () {
-	    		if (callback != null)
+	    		if (callback != null) {
 	    			callback();
+				}
 	    	});
 	    	
 	    	csvOut.pipe(out);
 	    	
 	    	this.each(function (rec, idx) {
 	    		try {
-		    		if (idx % 10000 == 0)
+		    		if (idx % 10000 == 0) {
 		    			console.log(idx);
+					}
 		    		csvOut.write(rec.toJSON());
 	    		} catch (e) {
-	    			if (callback != null)
+	    			if (callback != null) {
 	    				callback(e);
+					}
 	    		}
 	    	});
 	    	
 	    	csvOut.end();
     	} catch (e) {
-    		if (callback != null)
+    		if (callback != null) {
     			callback(e);
+			}
     	}
     }
     
@@ -295,14 +302,15 @@ module.exports = exports = function (pathPrefix) {
     // FEATURE SPACE
     //==================================================================
     
-    //#- `qm.FeatureSpace.getSpFeatVecCols(spVec)` -- Return array of feature names based on feature space `fsp` where the elements of a sparse feature vector `spVec` are non-zero.
-    exports.FeatureSpace.prototype.getSpFeatVecCols = function (spVec) {
-        // get index and value vectors
-        var valVec = spVec.valVec();
+    //#- `qm.FeatureSpace.getSparseVectorFeatures(spVec)` -- Return array of feature 
+	//#  names based on feature space `fsp` where the elements of a sparse feature
+	//#  vector `spVec` are non-zero.
+    exports.FeatureSpace.prototype.getSparseVectorFeatures = function (spVec) {
+        // get index vector
         var idxVec = spVec.idxVec();
         var cols = [];
         for (var elN = 0; elN < idxVec.length; elN++) {
-            cols.push(this.getFtr(idxVec[elN]));
+            cols.push(this.getFeature(idxVec[elN]));
         }
         return cols;
     }
@@ -327,11 +335,11 @@ module.exports = exports = function (pathPrefix) {
                 if (line == "") { continue; }
                 try {
                     var rec = JSON.parse(line);
-                    store.add(rec);
+                    store.push(rec);
                     // count, GC and report
                     count++;
                     if (count % 1000 == 0) {
-                        store.base.gc();
+                        store.base.garbageCollect();
                     }
                     if (count % 10000 == 0) {
                         console.log("  " + count + " records");
