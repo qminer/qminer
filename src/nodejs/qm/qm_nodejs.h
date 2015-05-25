@@ -329,7 +329,7 @@ private:
 *   mode: 'createClean',
 *   schema: [{
 *      "name": "Person",
-*      "fields": [{ name: "Name", type: "string" }]
+*      "fields": [{ "name": "Name", "type": "string" }]
 *   }]
 * });
 * // create a feature space containing the constant extractor, where the constant is equal 5
@@ -349,7 +349,7 @@ private:
 *   mode: 'createClean',
 *   schema: [{
 *      "name": "Person",
-*      "fields": [{ name: "Name", type: "string" }]
+*      "fields": [{ "name": "Name", "type": "string" }]
 *   }]
 * });
 * // create a feature space containing the random extractor
@@ -373,8 +373,8 @@ private:
 *    schema: [{
 *       "name": "Class",
 *       "fields": [
-*          { name: "Name", type: "string" },
-*          { name: "Grade", type: "number" }
+*          { "name": "Name", "type": "string" },
+*          { "name": "Grade", "type": "number" }
 *       ]
 *    }]
 * });
@@ -400,8 +400,8 @@ private:
 *    schema: [{
 *       "name": "Class",
 *       "fields": [
-*          { name: "Name", type: "string" },
-*          { name: "StudyGroup", type: "string" }
+*          { "name": "Name", "type": "string" },
+*          { "name": "StudyGroup", "type": "string" }
 *       ]
 *    }]
 * });
@@ -430,8 +430,8 @@ private:
 *    schema: [{
 *       "name": "Class",
 *       "fields": [
-*          { name: "Name", type: "string" },
-*          { name: "StudyGroups", type: "string_v" }
+*          { "name": "Name", "type": "string" },
+*          { "name": "StudyGroups", "type": "string_v" }
 *       ]
 *    }]
 * });
@@ -462,8 +462,8 @@ private:
 *    schema: [{
 *       "name": "Articles",
 *       "fields": [
-*          { name: "Title", type: "string" },
-*          { name: "Text", type: "string" }
+*          { "name": "Title", "type": "string" },
+*          { "name": "Text", "type": "string" }
 *       ]
 *    }]
 * });
@@ -523,8 +523,8 @@ private:
 *    schema: [{
 *       "name": "Class",
 *       "fields": [
-*          { name: "Name", type: "string" },
-*          { name: "StudyGroups", type: "string_v" }
+*          { "name": "Name", "type": "string" },
+*          { "name": "StudyGroups", "type": "string_v" }
 *       ]
 *    }]
 * });
@@ -765,9 +765,53 @@ private:
 * // import qm module
 * var qm = require('qminer');
 * // factory based construction using base.createStore
-* // TODO
+* var base = qm.create('qm.conf', "", true);
+* base.createStore([{
+*		"name": "People",
+*		"fields": [
+*				{ "name": "Name", "type": "string", "primary": true },
+*				{ "name": "Gender", "type": "string", "shortstring": true },
+*				{ "name": "Age", "type": "int" }
+*		],
+*		"joins": [
+*				{ "name": "ActedIn", "type": "index", "store": "Movies", "inverse": "Actor" },
+*				{ "name": "Directed", "type": "index", "store": "Movies", "inverse": "Director" }
+*		],
+*		"keys": [
+*				{ "field": "Name", "type": "text" },
+*				{ "field": "Gender", "type": "value" }
+*		]
+*	},
+*	{
+*		"name": "Movies",
+*		"fields": [
+*				{ "name": "Title", "type": "string", "primary": true },
+*				{ "name": "Plot", "type": "string", "store": "cache" },
+*				{ "name": "Year", "type": "int" },
+*				{ "name": "Rating", "type": "float" },
+*				{ "name": "Genres", "type": "string_v", "codebook": true }
+*		],
+*		"joins": [
+*				{ "name": "Actor", "type": "index", "store": "People", "inverse": "ActedIn" },
+*				{ "name": "Director", "type": "index", "store": "People", "inverse": "Directed" }
+*		],
+*		"keys": [
+*				{ "field": "Title", "type": "value" },
+*				{ "field": "Plot", "type": "text", "vocabulary": "voc_01" },
+*				{ "field": "Genres", "type": "value" }
+*		]
+*	},
 * // using a constructor
-* // TODO
+* var base = new qm.Base({
+*		mode: "createClean",
+*		schema: [{
+*			"name": "Class",
+*			"fields": [
+*				{ "name", "Name", "type": "string" },
+*				{ "name", "StudyGroup", "type": "string" }
+*			]
+*		}]
+*	 })
 */
 //# exports.Store = function (base, storeDef) {};
 class TNodeJsStore : public node::ObjectWrap {
@@ -798,7 +842,7 @@ private:
 	/**
 	* Returns a record form the store.
 	* @param {string} recName - Record name.
-	* @returns {Object} Returns the record. If record doesn't exist, it returns null. //TODO
+	* @returns {Object} Returns the record. If the record doesn't exist, it returns null. //TODO
 	*/
 	//# exports.Store.prototype.rec = function (recName) {};
 	JsDeclareFunction(rec);
@@ -816,7 +860,16 @@ private:
 	* // import qm module
 	* var qm = require('qminer');
 	* // create a store with some people with fields Name and Gender
-	* var store = //TODO
+	* var store = new qm.Base({
+*		mode: "createClean",
+*		schema: [{
+*			"name": "Class",
+*			"fields": [
+*				{ "name", "Name", "type": "string" },
+*				{ "name", "StudyGroup", "type": "string" }
+*			]
+*		}]
+*	 })
 	* // change the gender of all records to "Extraterrestrial"
 	* store.each(function (rec) { rec.Gender = "Extraterrestrial"; });
 	*/
