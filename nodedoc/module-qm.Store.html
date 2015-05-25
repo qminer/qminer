@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">namespace</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Store</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-646">qminerdoc.<wbr>js:646</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-745">qminerdoc.<wbr>js:745</a></p>
             <div class="symbol-description">
               <p>Store (factory pattern result)</p>
             </div>
@@ -88,9 +88,6 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.Store.html#add">add(rec)</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.Store.html#cell">cell(recId, fieldName)</a></dt>
                     <dd>
                     </dd>
@@ -103,16 +100,16 @@
                     <dt><a href="module-qm.Store.html#field">field(fieldName)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Store.html#getMat">getMat(fieldName)</a></dt>
+                    <dt><a href="module-qm.Store.html#getMatrix">getMatrix(fieldName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#getVector">getVector(fieldName)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.Store.html#getVec">getVec(fieldName)</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.Store.html#isNumeric">isNumeric(fieldName)</a></dt>
                     <dd>
                     </dd>
@@ -125,14 +122,17 @@
                     <dt><a href="module-qm.Store.html#map">map(callback)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Store.html#newRec">newRec(json)</a></dt>
+                    <dt><a href="module-qm.Store.html#newRecord">newRecord(json)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#newRecordSet">newRecordSet(idVec)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.Store.html#newRecSet">newRecSet(idVec)</a></dt>
+                    <dt><a href="module-qm.Store.html#push">push(rec)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.Store.html#rec">rec(recName)</a></dt>
@@ -199,43 +199,6 @@
             </section>
             <h2>Methods</h2>
             <section>
-              <h3 id="add"><span class="symbol-name">add</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Adds a record to the store.</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>rec</p>
-                      </td>
-                      <td>
-                        <p>Object</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The added record. //TODO</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>number</code>&nbsp;The ID of the added record.</p>
-                </dd>
-              </dl>
               <h3 id="cell"><span class="symbol-name">cell</span><span class="signature"><span class="signature-params">(recId, fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Gives the field value of a specific record.</p>
               <section>
@@ -294,10 +257,29 @@
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>// delete all records in store
-store.clear();	// returns 0
-// deletes the first 10 records
-store.clear(10);</code></pre>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;TVSeries&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+           { &quot;name&quot;: &quot;NumberOfEpisodes&quot;, &quot;type&quot;: &quot;int&quot; }
+       ]
+   }]
+})
+// add some records in the store
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Archer&quot;, &quot;NumberOfEpisodes&quot;: 75 });
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;The Simpsons&quot;, &quot;NumberOfEpisodes&quot;: 574 });
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;New Girl&quot;, &quot;NumberOfEpisodes&quot;: 94);
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Rick and Morty&quot;, &quot;NumberOfEpisodes&quot;: 11});
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Game of Thrones&quot;, &quot;NumberOfEpisodes&quot;: 47 });
+// deletes the first 2 records (&quot;Archer&quot; and &quot;The Simpsons&quot;) in &quot;TVSeries&quot;
+store.clear(2);	// returns 3
+// delete all remaining records in &quot;TVStore&quot;
+store.clear();	// returns 0</code></pre>
                 </div>
               </section>
               <section>
@@ -344,10 +326,24 @@ store.clear(10);</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
 var qm = require(&#x27;qminer&#x27;);
-// create a store with some people with fields Name and Gender
-var store = //TODO
-// change the gender of all records to &quot;Extraterrestrial&quot;
-store.each(function (rec) { rec.Gender = &quot;Extraterrestrial&quot;; });</code></pre>
+// create a base containing the store Class
+var base = new qm.Base({
+	mode: &quot;createClean&quot;,
+	schema: [{
+		&quot;name&quot;: &quot;Class&quot;,
+		&quot;fields&quot;: [
+			{ &quot;name&quot;, &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+			{ &quot;name&quot;, &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+		]
+	}]
+})
+// add some records to the store
+base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Abed&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
+base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Annie&quot;, &quot;StudyGroup&quot;: &quot;B&quot; });
+base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Britta&quot;, &quot;StudyGroup&quot;: &quot;C&quot; });
+base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Jeff&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
+// change the StudyGroup of all records of store Class to A
+base.store(&quot;Class&quot;).each(function (rec) { rec.StudyGroup = &quot;A&quot;; });	// all records in Class are now in study group A</code></pre>
                 </div>
               </section>
               <section>
@@ -424,7 +420,7 @@ store.each(function (rec) { rec.Gender = &quot;Extraterrestrial&quot;; });</code
                   <p><code>Object</code>&nbsp;The JSON object containing the details of the field. //TODO</p>
                 </dd>
               </dl>
-              <h3 id="getMat"><span class="symbol-name">getMat</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</span></span></h3>
+              <h3 id="getMatrix"><span class="symbol-name">getMatrix</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</span></span></h3>
               <p>Gives a matrix containing the field values of each record.</p>
               <section>
                 <h4>Parameter</h4>
@@ -461,7 +457,7 @@ store.each(function (rec) { rec.Gender = &quot;Extraterrestrial&quot;; });</code
                   <p><code>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>&nbsp;The matrix containing the field values.</p>
                 </dd>
               </dl>
-              <h3 id="getVec"><span class="symbol-name">getVec</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <h3 id="getVector"><span class="symbol-name">getVector</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Gives a vector containing the field value of each record.</p>
               <section>
                 <h4>Parameter</h4>
@@ -618,10 +614,24 @@ store.each(function (rec) { rec.Gender = &quot;Extraterrestrial&quot;; });</code
                 <div>
                   <pre class="prettyprint"><code>// import qm module
 var qm = require(&#x27;qminer&#x27;);
-// create a store with some people with fields Name and Gender
-var store = //TODO
+// create a base containing the store Class
+var base = new qm.Base({
+	mode: &quot;createClean&quot;,
+	schema: [{
+		&quot;name&quot;: &quot;Class&quot;,
+		&quot;fields&quot;: [
+			{ &quot;name&quot;, &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+			{ &quot;name&quot;, &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+		]
+	}]
+})
+// add some records to the store
+base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Shirley&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
+base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Troy&quot;, &quot;StudyGroup&quot;: &quot;B&quot; });
+base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroup&quot;: &quot;C&quot; });
+base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Pierce&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
 // make an array of record names
-var arr = store.map(function (rec) { return rec.Name; });</code></pre>
+var arr = base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; }); // returns an array [&quot;Shirley&quot;, &quot;Troy&quot;, &quot;Chang&quot;, &quot;Pierce&quot;]</code></pre>
                 </div>
               </section>
               <section>
@@ -661,7 +671,7 @@ var arr = store.map(function (rec) { return rec.Name; });</code></pre>
                   <p><code>Array of Object</code>&nbsp;The array created by the callback function. //TODO</p>
                 </dd>
               </dl>
-              <h3 id="newRec"><span class="symbol-name">newRec</span><span class="signature"><span class="signature-params">(json)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Record.html">module:qm.Record</a></span></span></h3>
+              <h3 id="newRecord"><span class="symbol-name">newRecord</span><span class="signature"><span class="signature-params">(json)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Record.html">module:qm.Record</a></span></span></h3>
               <p>Creates a new record of given store. The record is not added to the store.</p>
               <section>
                 <h4>Parameter</h4>
@@ -698,7 +708,7 @@ var arr = store.map(function (rec) { return rec.Name; });</code></pre>
                   <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>&nbsp;The record created by the JSON value and the store.</p>
                 </dd>
               </dl>
-              <h3 id="newRecSet"><span class="symbol-name">newRecSet</span><span class="signature"><span class="signature-params">(idVec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <h3 id="newRecordSet"><span class="symbol-name">newRecordSet</span><span class="signature"><span class="signature-params">(idVec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
               <p>Creates a new record set out of the records in store.</p>
               <section>
                 <h4>Parameter</h4>
@@ -735,8 +745,45 @@ var arr = store.map(function (rec) { return rec.Name; });</code></pre>
                   <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;The record set that contains the records gained with idVec.</p>
                 </dd>
               </dl>
+              <h3 id="push"><span class="symbol-name">push</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Adds a record to the store.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>rec</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The added record. //TODO</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;The ID of the added record.</p>
+                </dd>
+              </dl>
               <h3 id="rec"><span class="symbol-name">rec</span><span class="signature"><span class="signature-params">(recName)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
-              <p>Returns a record form the store.</p>
+              <p>Returns a record from the store.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -769,7 +816,7 @@ var arr = store.map(function (rec) { return rec.Name; });</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;Returns the record. If record doesn't exist, it returns null. //TODO</p>
+                  <p><code>Object</code>&nbsp;Returns the record. If the record doesn't exist, it returns null. //TODO</p>
                 </dd>
               </dl>
               <h3 id="sample"><span class="symbol-name">sample</span><span class="signature"><span class="signature-params">(sampleSize)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
@@ -827,7 +874,7 @@ var arr = store.map(function (rec) { return rec.Name; });</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 29, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on May 25, 2015.
       </p>
     </div>
   </footer>

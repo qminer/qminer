@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">namespace</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">RecSet</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-850">qminerdoc.<wbr>js:850</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-996">qminerdoc.<wbr>js:996</a></p>
             <div class="symbol-description">
               <p>Record Set (factory pattern)</p>
             </div>
@@ -68,7 +68,7 @@
                     <dt><a href="module-qm.RecSet.html#clone">clone()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.RecSet.html#deleteRecs">deleteRecs(rs)</a></dt>
+                    <dt><a href="module-qm.RecSet.html#deleteRecords">deleteRecords(rs)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.RecSet.html#each">each(callback)</a></dt>
@@ -83,10 +83,10 @@
                     <dt><a href="module-qm.RecSet.html#filterById">filterById([minId][, maxId])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.RecSet.html#getVec">getVec(fieldName)</a></dt>
+                    <dt><a href="module-qm.RecSet.html#getMatrix">getMatrix(fieldName)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.RecSet.html#getVec">getVec(fieldName)</a></dt>
+                    <dt><a href="module-qm.RecSet.html#getVector">getVector(fieldName)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -105,13 +105,13 @@
                     <dt><a href="module-qm.RecSet.html#sample">sample(num)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.RecSet.html#setdiff">setdiff(rs)</a></dt>
+                    <dt><a href="module-qm.RecSet.html#setDiff">setDiff(rs)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.RecSet.html#setintersect">setintersect(rs)</a></dt>
+                    <dt><a href="module-qm.RecSet.html#setIntersect">setIntersect(rs)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.RecSet.html#setunion">setunion(rs)</a></dt>
+                    <dt><a href="module-qm.RecSet.html#setUnion">setUnion(rs)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.RecSet.html#shuffle">shuffle([seed])</a></dt>
@@ -174,7 +174,7 @@
                   <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;A copy of the record set.</p>
                 </dd>
               </dl>
-              <h3 id="deleteRecs"><span class="symbol-name">deleteRecs</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <h3 id="deleteRecords"><span class="symbol-name">deleteRecords</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
               <p>Deletes the records, that are also in the other record set.</p>
               <section>
                 <h4>Parameter</h4>
@@ -435,7 +435,7 @@ rs.filter(function (rec) { return rec.Price &gt; 10000; }); // keeps only the re
                     <br>2. Contains all the records of the original, if no parameter is given.</p>
                 </dd>
               </dl>
-              <h3 id="getVec"><span class="symbol-name">getVec</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</span></span></h3>
+              <h3 id="getMatrix"><span class="symbol-name">getMatrix</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</span></span></h3>
               <p>Creates a vector containing the field values of records.</p>
               <section>
                 <h4>Parameter</h4>
@@ -472,7 +472,7 @@ rs.filter(function (rec) { return rec.Price &gt; 10000; }); // keeps only the re
                   <p><code>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>&nbsp;The matrix containing the field values of records.</p>
                 </dd>
               </dl>
-              <h3 id="getVec"><span class="symbol-name">getVec</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <h3 id="getVector"><span class="symbol-name">getVector</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Creates a vector containing the field values of records.</p>
               <section>
                 <h4>Parameter</h4>
@@ -657,7 +657,7 @@ var arr = rs.map(function (rec) { return rec.Name; });</code></pre>
                   <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;A record set containing the sample records.</p>
                 </dd>
               </dl>
-              <h3 id="setdiff"><span class="symbol-name">setdiff</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <h3 id="setDiff"><span class="symbol-name">setDiff</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
               <p>Creates the set difference between two record sets.</p>
               <section>
                 <h4>Parameter</h4>
@@ -694,7 +694,7 @@ var arr = rs.map(function (rec) { return rec.Name; });</code></pre>
                   <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;The difference between the two record sets.</p>
                 </dd>
               </dl>
-              <h3 id="setintersect"><span class="symbol-name">setintersect</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <h3 id="setIntersect"><span class="symbol-name">setIntersect</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
               <p>Creates the set intersection of two record sets.</p>
               <section>
                 <h4>Parameter</h4>
@@ -731,7 +731,7 @@ var arr = rs.map(function (rec) { return rec.Name; });</code></pre>
                   <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;The intersection of the two record sets.</p>
                 </dd>
               </dl>
-              <h3 id="setunion"><span class="symbol-name">setunion</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <h3 id="setUnion"><span class="symbol-name">setUnion</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
               <p>Creates the set union of two record sets.</p>
               <section>
                 <h4>Parameter</h4>
@@ -1070,7 +1070,7 @@ rs2.trunc(10, 4);</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 29, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on May 25, 2015.
       </p>
     </div>
   </footer>

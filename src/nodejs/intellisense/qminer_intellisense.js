@@ -23,28 +23,10 @@ exports.datasets= require('qminer_datasets');
 * var qm = require('qminer');
 */
 /**
-	* Creates a directory structure.
-	* @param {string} [configPath='qm.conf'] - The path to configuration file.
-	* @param {boolean} [overwrite=false] - If you want to overwrite the configuration file.
-	* @param {number} [portN=8080] - The number of the port. Currently not used.
-	* @param {number} [cacheSize=1024] - Sets available memory for indexing (in MB).
+	* Set verbosity of QMiner internals.
+	* @param {number} [level=0] - verbosity level: 0 = no output, 1 = log output, 2 = log and debug output.
 	*/
- exports.config = function(configPath, overwrite, portN, cacheSize) {}
-/**
-	* Creates an empty base.
-	* @param {string} [configPath='qm.conf'] - Configuration file path.
-	* @param {string} [schemaPath=''] - Schema file path.
-	* @param {boolean} [clear=false] - Clear the existing db folder.
-	* @returns {module:qm.Base}
-	*/
- exports.create = function (configPath, schemaPath, clear) { return Object.create(require('qminer').Base.prototype); }
-/**
-	* Opens a base.
-	* @param {string} [configPath='qm.conf'] - The configuration file path.
-	* @param {boolean} [readOnly=false] - Open in read only mode?
-	* @returns {module:qm.Base}
-	*/
- exports.open = function (configPath, readOnly) { return Object.create(require('qminer').Base.prototype); }
+ exports.verbosity = function (level) { }
 /**
 * Base access modes.
 * @readonly
@@ -152,7 +134,7 @@ exports.datasets= require('qminer_datasets');
 * // - we set the string vector Tokens with an array of strings
 * // - we set the numeric sparse vector Vector with an array of two element arrays
 * //   (index, value), see the sparse vector constructor {@link module:la.SparseVector}
-* base.store('NewsArticles').add({
+* base.store('NewsArticles').push({
 *   ID: 't12344', 
 *   Source: 's1234', 
 *   DateTime: '2015-01-01T00:05:00', 
@@ -190,12 +172,12 @@ exports.datasets= require('qminer_datasets');
 * });
 * // Adds a movie, automatically adds 'Jim Jarmusch' to People, sets the 'director' join (field join)
 * // and automatically updates the index join 'directed', since it's an inverse join of 'director'
-* base.store('Movies').add({ title: 'Broken Flowers', director: { name: 'Jim Jarmusch' } });
+* base.store('Movies').push({ title: 'Broken Flowers', director: { name: 'Jim Jarmusch' } });
 * // Adds a movie, sets the 'director' join, updates the index join of 'Jim Jarmusch'
-* base.store('Movies').add({ title: 'Coffee and Cigarettes', director: { name: 'Jim Jarmusch' } });
+* base.store('Movies').push({ title: 'Coffee and Cigarettes', director: { name: 'Jim Jarmusch' } });
 * // Adds movie, automatically adds 'Lars von Trier' to People, sets the 'director' join
 * // and 'directed' inverse join (automatically)
-* base.store('Movies').add({ title: 'Dogville', director: { name: 'Lars von Trier' } });
+* base.store('Movies').push({ title: 'Dogville', director: { name: 'Lars von Trier' } });
 *
 * var movie = base.store('Movies')[0]; // get the first movie (Broken Flowers)
 * // Each movie has a property corresponding to the join name: 'director'. 
@@ -238,8 +220,8 @@ exports.datasets= require('qminer_datasets');
 *     ]
 * });
 *
-* base.store('People').add({name : 'John Smith'});
-* base.store('People').add({name : 'Mary Smith'});
+* base.store('People').push({name : 'John Smith'});
+* base.store('People').push({name : 'Mary Smith'});
 * // search based on indexed values
 * base.search({$from : 'People', name: 'John Smith'}); // Return the record set containing 'John Smith'
 * // search based on indexed values
@@ -295,7 +277,7 @@ exports.datasets= require('qminer_datasets');
 *   mode: 'createClean',
 *   schema: [{
 *      "name": "Person",
-*      "fields": [{ name: "Name", type: "string" }]
+*      "fields": [{ "name": "Name", "type": "string" }]
 *   }]
 * });
 * // create a feature space containing the constant extractor, where the constant is equal 5
@@ -314,7 +296,7 @@ exports.datasets= require('qminer_datasets');
 *   mode: 'createClean',
 *   schema: [{
 *      "name": "Person",
-*      "fields": [{ name: "Name", type: "string" }]
+*      "fields": [{ "name": "Name", "type": "string" }]
 *   }]
 * });
 * // create a feature space containing the random extractor
@@ -337,8 +319,8 @@ exports.datasets= require('qminer_datasets');
 *    schema: [{
 *       "name": "Class",
 *       "fields": [
-*          { name: "Name", type: "string" },
-*          { name: "Grade", type: "number" }
+*          { "name": "Name", "type": "string" },
+*          { "name": "Grade", "type": "number" }
 *       ]
 *    }]
 * });
@@ -363,8 +345,8 @@ exports.datasets= require('qminer_datasets');
 *    schema: [{
 *       "name": "Class",
 *       "fields": [
-*          { name: "Name", type: "string" },
-*          { name: "StudyGroup", type: "string" }
+*          { "name": "Name", "type": "string" },
+*          { "name": "StudyGroup", "type": "string" }
 *       ]
 *    }]
 * });
@@ -392,8 +374,8 @@ exports.datasets= require('qminer_datasets');
 *    schema: [{
 *       "name": "Class",
 *       "fields": [
-*          { name: "Name", type: "string" },
-*          { name: "StudyGroups", type: "string_v" }
+*          { "name": "Name", "type": "string" },
+*          { "name": "StudyGroups", "type": "string_v" }
 *       ]
 *    }]
 * });
@@ -423,8 +405,8 @@ exports.datasets= require('qminer_datasets');
 *    schema: [{
 *       "name": "Articles",
 *       "fields": [
-*          { name: "Title", type: "string" },
-*          { name: "Text", type: "string" }
+*          { "name": "Title", "type": "string" },
+*          { "name": "Text", "type": "string" }
 *       ]
 *    }]
 * });
@@ -479,8 +461,8 @@ exports.datasets= require('qminer_datasets');
 *    schema: [{
 *       "name": "Class",
 *       "fields": [
-*          { name: "Name", type: "string" },
-*          { name: "StudyGroups", type: "string_v" }
+*          { "name": "Name", "type": "string" },
+*          { "name": "StudyGroups", "type": "string_v" }
 *       ]
 *    }]
 * });
@@ -596,15 +578,12 @@ exports.datasets= require('qminer_datasets');
 * Base
 * @classdesc Represents the database and holds stores.
 * @class
-* @param {module:qm~BaseConstructorParam} paramObj - The base constructor parameter object
+* @param {module:qm~BaseConstructorParam} paramObj - The base constructor parameter object.
 * @example
 * // import qm module
 * var qm = require('qminer');
-* // factory based construction: create a base with the qm configuration file, without the predefined schemas, with overwrite = true
-* var base = qm.create('qm.conf', "", true);
-* base.close();
 * // using a constructor, in open mode:
-* var base2 = new qm.Base({mode: 'open'});
+* var base = new qm.Base({mode: 'open'});
 */
  exports.Base = function (paramObj) {};
 /**
@@ -617,6 +596,31 @@ exports.datasets= require('qminer_datasets');
 	 *
 	 * @param {string} name - Name of the store.
 	 * @returns {module:qm.Store} The store.
+	 * @example
+	 * // import qm module
+	 * var qm = require('qminer');
+	 * // create a base with two stores
+	 * var base = new qm.Base({
+	 *    mode: "createClean",
+	 *    schema: [
+	 *    {
+	 *        "name": "Kwik-E-Mart",
+	 *        "fields": [
+	 *            { "name": "Worker", "type": "string" },
+	 *            { "name": "Groceries", "type": "string_v" }
+	 *        ]
+	 *    },
+	 *    {
+	 *        "name": "NuclearPowerplant",
+	 *        "fields": [
+	 *            { "name": "Owner", "type": "string" },
+	 *            { "name": "NumberOfAccidents", "type": "int" },
+	 *            { "name": "Workers", "type": "string_v" }
+	 *        ]
+	 *    }]
+	 * })
+	 * // get the "Kwik-E-Mart" store 
+	 * var store = base.store("Kwik-E-Mart");	// returns the store with the name "Kwik-E-Mart"
 	 */
  exports.Base.prototype.store = function (name) { return Object.create(require('qminer').Store.prototype); }
 /**
@@ -627,21 +631,72 @@ exports.datasets= require('qminer_datasets');
  exports.Base.prototype.getStoreList = function () { return [{storeId:'', storeName:'', storeRecords:'', fields: [], keys: [], joins: []}]; }
 /**
 	* Creates a new store.
-	* @param {Array<module:qm~SchemaDefinition>} storeDef - The definition of the store(s)
+	* @param {Array<module:qm~SchemaDefinition>} storeDef - The definition of the store(s).
 	* @param {number} [storeSizeInMB = 1024] - The reserved size of the store(s).
-	* @returns {(module:qm.Store | module:qm.Store[])} - Returns a store or an array of stores (if the schema definition was an array)
+	* @returns {(module:qm.Store | module:qm.Store[])} - Returns a store or an array of stores (if the schema definition was an array).
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base with one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [
+	*    {
+	*        "name": "Superheroes",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Superpowers", "type": "string_v" },
+	*            { "name": "YearsActive", "type": "int" }
+	*        ]
+	*    }]
+	* })
+	* // create a new store called "Supervillains" in the base
+	* base.createStore({
+	*    "name": "Supervillians"
+	*    "fields": [
+	*        { "name": "Name", "type": "string" },
+	*        { "name": "Superpowers", "type": "string_v" },
+	*        { "name": "YearsActive", "type": "int" }
+	*    ]
+	* })
+	* // create two new stores called "Cities" and "Leagues"
+	* base.createStore([
+	*    {
+	*        "name": "Cities",
+	*        "fields": [
+	*            { "name": "Name", "type": "string", "primary": true },
+	*            { "name": "Population", "type": "int" }
+	*        ]
+	*    },
+	*    {
+	*        "name": "Leagues",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Members", "type": "string_v" }
+	*        ]
+	*    }
+	* ])
 	*/
  exports.Base.prototype.createStore = function (storeDef, storeSizeInMB) { return storeDef instanceof Array ? [Object.create(require('qminer').Store.prototype)] : Object.create(require('qminer').Store.prototype) ;}
 /**
 	* Creates a new store.
 	* @param {module:qm~QueryObject} query - query language JSON object	
-	* @returns {module:qm.RecSet} - Returns the record set that matches the search criterion
+	* @returns {module:qm.RecordSet} - Returns the record set that matches the search criterion
 	*/
- exports.Base.prototype.search = function (query) { return Object.create(require('qminer').RecSet.prototype);}
+ exports.Base.prototype.search = function (query) { return Object.create(require('qminer').RecordSet.prototype);}
 /**
 	* Calls qminer garbage collector to remove records outside time windows.
 	*/
- exports.Base.prototype.gc = function () { }
+ exports.Base.prototype.garbageCollect = function () { }
+/**
+	* Calls qminer partial flush - base saves dirty data given some time-window.
+	* @param {number} window - Length of available time-window in msec. Default 500.
+	*/
+ exports.Base.prototype.partialFlush = function () { }
+/**
+	* Retrieves performance statistics for qminer.
+	*/
+ exports.Base.prototype.getStats = function () { }
 /**
 * Store (factory pattern result) 
 * @namespace
@@ -649,15 +704,59 @@ exports.datasets= require('qminer_datasets');
 * // import qm module
 * var qm = require('qminer');
 * // factory based construction using base.createStore
-* // TODO
+* var base = qm.create('qm.conf', "", true);
+* base.createStore([{
+*		"name": "People",
+*		"fields": [
+*				{ "name": "Name", "type": "string", "primary": true },
+*				{ "name": "Gender", "type": "string", "shortstring": true },
+*				{ "name": "Age", "type": "int" }
+*		],
+*		"joins": [
+*				{ "name": "ActedIn", "type": "index", "store": "Movies", "inverse": "Actor" },
+*				{ "name": "Directed", "type": "index", "store": "Movies", "inverse": "Director" }
+*		],
+*		"keys": [
+*				{ "field": "Name", "type": "text" },
+*				{ "field": "Gender", "type": "value" }
+*		]
+*	},
+*	{
+*		"name": "Movies",
+*		"fields": [
+*				{ "name": "Title", "type": "string", "primary": true },
+*				{ "name": "Plot", "type": "string", "store": "cache" },
+*				{ "name": "Year", "type": "int" },
+*				{ "name": "Rating", "type": "float" },
+*				{ "name": "Genres", "type": "string_v", "codebook": true }
+*		],
+*		"joins": [
+*				{ "name": "Actor", "type": "index", "store": "People", "inverse": "ActedIn" },
+*				{ "name": "Director", "type": "index", "store": "People", "inverse": "Directed" }
+*		],
+*		"keys": [
+*				{ "field": "Title", "type": "value" },
+*				{ "field": "Plot", "type": "text", "vocabulary": "voc_01" },
+*				{ "field": "Genres", "type": "value" }
+*		]
+*	},
 * // using a constructor
-* // TODO
+* var base = new qm.Base({
+*		mode: "createClean",
+*		schema: [{
+*			"name": "Class",
+*			"fields": [
+*				{ "name", "Name", "type": "string" },
+*				{ "name", "StudyGroup", "type": "string" }
+*			]
+*		}]
+*	 })
 */
  exports.Store = function (base, storeDef) {};
 /**
-	* Returns a record form the store.
+	* Returns a record from the store.
 	* @param {string} recName - Record name.
-	* @returns {Object} Returns the record. If record doesn't exist, it returns null. //TODO
+	* @returns {Object} Returns the record. If the record doesn't exist, it returns null. //TODO
 	*/
  exports.Store.prototype.rec = function (recName) {};
 /**
@@ -669,10 +768,24 @@ exports.datasets= require('qminer_datasets');
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
-	* // create a store with some people with fields Name and Gender
-	* var store = //TODO
-	* // change the gender of all records to "Extraterrestrial"
-	* store.each(function (rec) { rec.Gender = "Extraterrestrial"; });
+	* // create a base containing the store Class
+	* var base = new qm.Base({
+	*	mode: "createClean",
+	*	schema: [{
+	*		"name": "Class",
+	*		"fields": [
+	*			{ "name", "Name", "type": "string" },
+	*			{ "name", "StudyGroup", "type": "string" }
+	*		]
+	*	}]
+	* })
+	* // add some records to the store
+	* base.store("Class").add({ "Name": "Abed", "StudyGroup": "A" });
+	* base.store("Class").add({ "Name": "Annie", "StudyGroup": "B" });
+	* base.store("Class").add({ "Name": "Britta", "StudyGroup": "C" });
+	* base.store("Class").add({ "Name": "Jeff", "StudyGroup": "A" });
+	* // change the StudyGroup of all records of store Class to A
+	* base.store("Class").each(function (rec) { rec.StudyGroup = "A"; });	// all records in Class are now in study group A
 	*/
  exports.Store.prototype.each = function (callback) {}
 /**
@@ -684,10 +797,24 @@ exports.datasets= require('qminer_datasets');
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
-	* // create a store with some people with fields Name and Gender
-	* var store = //TODO
+	* // create a base containing the store Class
+	* var base = new qm.Base({
+	*	mode: "createClean",
+	*	schema: [{
+	*		"name": "Class",
+	*		"fields": [
+	*			{ "name", "Name", "type": "string" },
+	*			{ "name", "StudyGroup", "type": "string" }
+	*		]
+	*	}]
+	* })
+	* // add some records to the store
+	* base.store("Class").add({ "Name": "Shirley", "StudyGroup": "A" });
+	* base.store("Class").add({ "Name": "Troy", "StudyGroup": "B" });
+	* base.store("Class").add({ "Name": "Chang", "StudyGroup": "C" });
+	* base.store("Class").add({ "Name": "Pierce", "StudyGroup": "A" });
 	* // make an array of record names
-	* var arr = store.map(function (rec) { return rec.Name; });
+	* var arr = base.store("Class").map(function (rec) { return rec.Name; }); // returns an array ["Shirley", "Troy", "Chang", "Pierce"]
 	*/
  exports.Store.prototype.map = function (callback) {}
 /**
@@ -695,19 +822,19 @@ exports.datasets= require('qminer_datasets');
 	* @param {Object} rec - The added record. //TODO
 	* @returns {number} The ID of the added record.
 	*/
- exports.Store.prototype.add = function (rec) {}
+ exports.Store.prototype.push = function (rec) {}
 /**
 	* Creates a new record of given store. The record is not added to the store.
 	* @param {Object} json - A JSON value of the record.
 	* @returns {module:qm.Record} The record created by the JSON value and the store.
 	*/
- exports.Store.prototype.newRec = function (json) {};
+ exports.Store.prototype.newRecord = function (json) {};
 /**
 	* Creates a new record set out of the records in store.
 	* @param {module:la.IntVector} idVec - The integer vector containing the ids of selected vectors.
 	* @returns {module:qm.RecSet} The record set that contains the records gained with idVec.
 	*/
- exports.Store.prototype.newRecSet = function (idVec) {};
+ exports.Store.prototype.newRecordSet = function (idVec) {};
 /**
 	* Creates a record set containing random records from store.
 	* @param {number} sampleSize - The size of the record set.
@@ -748,10 +875,29 @@ exports.datasets= require('qminer_datasets');
 	* @param {number} [num] - The number of deleted records.
 	* @returns {number} The number of remaining records in the store.
 	* @example
-	* // delete all records in store
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a base with one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "TVSeries",
+	*        "fields": [
+	*            { "name": "Title", "type": "string", "primary": true },
+	*            { "name": "NumberOfEpisodes", "type": "int" }
+	*        ]
+	*    }]
+	* })
+	* // add some records in the store
+	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
+	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
+	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94);
+	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11});
+	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
+	* // deletes the first 2 records ("Archer" and "The Simpsons") in "TVSeries"
+	* store.clear(2);	// returns 3
+	* // delete all remaining records in "TVStore"
 	* store.clear();	// returns 0
-	* // deletes the first 10 records
-	* store.clear(10);
 	*/
  exports.Store.prototype.clear = function (num) {};
 /**
@@ -759,13 +905,13 @@ exports.datasets= require('qminer_datasets');
 	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string...
 	* @returns {module:la.Vector} The vector containing the field values of each record.
 	*/
- exports.Store.prototype.getVec = function (fieldName) {};
+ exports.Store.prototype.getVector = function (fieldName) {};
 /**
 	* Gives a matrix containing the field values of each record.
 	* @param {string} fieldName - The field name. Field mustn't be of type string.
 	* @returns {(module:la.Matrix | module:la.SparseMatrix)} The matrix containing the field values. 
 	*/
- exports.Store.prototype.getMat = function (fieldName) {};
+ exports.Store.prototype.getMatrix = function (fieldName) {};
 /**
 	* Gives the field value of a specific record.
 	* @param {number} recId - The record id.
@@ -978,7 +1124,7 @@ exports.datasets= require('qminer_datasets');
 	* @param {module:qm.RecSet} rs - The other record set.
 	* @returns {module:qm.RecSet} Self. Contains only the records, that are not in rs.
 	*/
- exports.RecSet.prototype.deleteRecs = function (rs) {}; 
+ exports.RecSet.prototype.deleteRecords = function (rs) {}; 
 /**
 	* Returns the record set as a JSON.
 	* @returns {Object} The record set as a JSON.
@@ -1019,31 +1165,31 @@ exports.datasets= require('qminer_datasets');
 	* @param {module:qm.RecSet} rs - The other record set.
 	* @returns {module:qm.RecSet} The intersection of the two record sets.
 	*/
- exports.RecSet.prototype.setintersect = function (rs) {};
+ exports.RecSet.prototype.setIntersect = function (rs) {};
 /**
 	* Creates the set union of two record sets.
 	* @param {module:qm.RecSet} rs - The other record set.
 	* @returns {module:qm.RecSet} The union of the two record sets.
 	*/
- exports.RecSet.prototype.setunion = function (rs) {};
+ exports.RecSet.prototype.setUnion = function (rs) {};
 /**
 	* Creates the set difference between two record sets.
 	* @param {module:qm.RecSet} rs - The other record set.
 	* @returns {module:qm.RecSet} The difference between the two record sets.
 	*/
- exports.RecSet.prototype.setdiff = function (rs) {}; 
+ exports.RecSet.prototype.setDiff = function (rs) {}; 
 /**
 	* Creates a vector containing the field values of records.
 	* @param {string} fieldName - The field from which to take the values. It's type must be one-dimensional, e.g. float, int, string,...
 	* @returns {module:la.Vector} The vector containing the field values of records. The type it contains is dependant of the field type.
 	*/
- exports.RecSet.prototype.getVec = function (fieldName) {}; 
+ exports.RecSet.prototype.getVector = function (fieldName) {}; 
 /**
 	* Creates a vector containing the field values of records.
 	* @param {string} fieldName - The field from which to take the values. It's type must be numeric, e.g. float, int, float_v, num_sp_v,...
 	* @returns {(module:la.Matrix|module:la.SparseMatrix)} The matrix containing the field values of records.
 	*/
- exports.RecSet.prototype.getVec = function (fieldName) {};
+ exports.RecSet.prototype.getMatrix = function (fieldName) {};
 /**
 	* Returns the store, where the records in the record set are stored.
 	*/
@@ -1084,7 +1230,7 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Gives the current record.
 	*/
- exports.Iterator.prototype.rec = undefined;
+ exports.Iterator.prototype.record = undefined;
 /**
 * Feature Space
 * @classdesc Represents the feature space.
@@ -1095,22 +1241,25 @@ exports.datasets= require('qminer_datasets');
 * // import qm module
 * var qm = require('qminer');
 * // construct a base with the store
-* base.createStore({
-*        "name": "FtrSpace",
-*        "fields": [
-*          { "name": "Value", "type": "float" },
-*          { "name": "Category", "type": "string" },
-*          { "name": "Categories", "type": "string_v" },
-*        ],
-*        "joins": [],
-*        "keys": []
-*    });
-* // adding some record
+* var base = new qm.Base({
+*   mode: "create",
+*   schema: {
+*     name: "FtrSpace",
+*     fields: [
+*       { name: "Value", type: "float" },
+*       { name: "Category", type: "string" },
+*       { name: "Categories", type: "string_v" },
+*     ],
+*     joins: [],
+*     keys: []
+*   }
+* });
+* // populate the store
 * Store = base.store("FtrSpace");
-* Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
-* Store.add({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
-* Store.add({ Value: 1.2, Category: "c", Categories: ["c", "e"] });
-* Store.add({ Value: 1.3, Category: "a", Categories: ["a", "q"] });
+* Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
+* Store.push({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
+* Store.push({ Value: 1.2, Category: "c", Categories: ["c", "e"] });
+* Store.push({ Value: 1.3, Category: "a", Categories: ["a", "q"] });
 * // create a feature space 
 * var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpace", field: "Value" });
 */
@@ -1134,7 +1283,7 @@ exports.datasets= require('qminer_datasets');
 	* @param {Object} obj - The added feature extracture.
 	* @returns {module:qm.FeatureSpace} Self.
 	*/
- exports.FeatureSpace.prototype.add = function (obj) {};
+ exports.FeatureSpace.prototype.addFeatureExtractor = function (obj) {};
 /**
 	* Updates the feature space definitions and extractors by adding one record.
 	* <br> For text feature extractors, it can update it's vocabulary by taking into account the new text.
@@ -1147,36 +1296,39 @@ exports.datasets= require('qminer_datasets');
 	* // import qm module
 	* var qm = require('qminer');
 	* // create a new base
-	* var base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
-    * base.createStore({
-    *        "name": "FtrSpace",
-    *        "fields": [
-    *          { "name": "Value", "type": "float" },
-    *          { "name": "Category", "type": "string" },
-    *          { "name": "Categories", "type": "string_v" },
-    *        ],
-    *        "joins": [],
-    *        "keys": []
-    *    });
-    *    Store = base.store("FtrSpace");
-    *    Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
-    *    Store.add({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
-    *    Store.add({ Value: 1.2, Category: "c", Categories: ["c", "e"] });
-    *    Store.add({ Value: 1.3, Category: "a", Categories: ["a", "q"] });
+	* var base = new qm.Base({
+    *   mode: "create",
+    *   schema: {
+    *     name: "FtrSpace",
+    *     fields: [
+    *       { name: "Value", type: "float" },
+    *       { name: "Category", type: "string" },
+    *       { name: "Categories", type: "string_v" },
+    *     ],
+    *     joins: [],
+    *     keys: []
+    *   }
+    * });
+    * // populate the store
+    * Store = base.store("FtrSpace");
+    * Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
+    * Store.push({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
+    * Store.push({ Value: 1.2, Category: "c", Categories: ["c", "e"] });
+    * Store.push({ Value: 1.3, Category: "a", Categories: ["a", "q"] });
 	* // create a new feature space
 	* var ftr = new qm.FeatureSpace(base, [
-	*	  { type: "numeric", source: "FtrSpace", normalize: true, field: "Values" },
-	*     { type: "categorical", source: "FtrSpace", field: "Category", values: ["a", "b", "c"] },
-	*     { type: "multinomial", source: "FtrSpace", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
-	*	  ]);
+	*   { type: "numeric", source: "FtrSpace", normalize: true, field: "Values" },
+	*   { type: "categorical", source: "FtrSpace", field: "Category", values: ["a", "b", "c"] },
+	*   { type: "multinomial", source: "FtrSpace", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
+	* ]);
 	* // update the feature space with the first three record of the store
 	* ftr.updateRecord(Store[0]);
 	* ftr.updateRecord(Store[1]);
 	* ftr.updateRecord(Store[2]);
 	* // get the feature vectors of these records
-	* ftr.getVec(Store[0]); // returns the vector [0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
-	* ftr.getVec(Store[1]); // returns the vector [1/2, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
-	* ftr.getVec(Store[2]); // returns the vector [1, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
+	* ftr.extractVector(Store[0]); // returns the vector [0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
+	* ftr.extractVector(Store[1]); // returns the vector [1/2, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
+	* ftr.extractVector(Store[2]); // returns the vector [1, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
 	*/
  exports.FeatureSpace.prototype.updateRecord = function (rec) {};
 /**
@@ -1191,36 +1343,39 @@ exports.datasets= require('qminer_datasets');
 	* // import qm module
 	* var qm = require('qminer');
 	* // create a new base
-	* var base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
-	* base.createStore({
-	*        "name": "FtrSpace",
-	*        "fields": [
-	*          { "name": "Value", "type": "float" },
-	*          { "name": "Category", "type": "string" },
-	*          { "name": "Categories", "type": "string_v" },
-	*        ],
-	*        "joins": [],
-	*        "keys": []
-	*    });
-	*    Store = base.store("FtrSpace");
-	*    Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
-	*    Store.add({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
-	*    Store.add({ Value: 1.2, Category: "c", Categories: ["c", "e"] });
-	*    Store.add({ Value: 1.3, Category: "a", Categories: ["a", "q"] });
+	* var base = new qm.Base({
+    *   mode: "create",
+    *   schema: {
+    *     name: "FtrSpace",
+    *     fields: [
+    *       { name: "Value", type: "float" },
+    *       { name: "Category", type: "string" },
+    *       { name: "Categories", type: "string_v" },
+    *     ],
+    *     joins: [],
+    *     keys: []
+    *   }
+    * });
+    * // populate the store
+	* Store = base.store("FtrSpace");
+	* Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"] });
+	* Store.push({ Value: 1.1, Category: "b", Categories: ["b", "w"] });
+	* Store.push({ Value: 1.2, Category: "c", Categories: ["c", "e"] });
+	* Store.push({ Value: 1.3, Category: "a", Categories: ["a", "q"] });
 	* // create a new feature space
 	* var ftr = new qm.FeatureSpace(base, [
 	*	  { type: "numeric", source: "FtrSpace", normalize: true, field: "Values" },
 	*     { type: "categorical", source: "FtrSpace", field: "Category", values: ["a", "b", "c"] },
 	*     { type: "multinomial", source: "FtrSpace", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
-	*	  ]);
+	* ]);
 	* // update the feature space with the record set 
 	* var rs = Store.recs;
 	* ftr.updateRecords(rs);
 	* // get the feature vectors of these records
-	* ftr.getVec(Store[0]); // returns the vector [0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
-	* ftr.getVec(Store[1]); // returns the vector [1/3, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
-	* ftr.getVec(Store[2]); // returns the vector [2/3, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
-	* ftr.getVec(Store[3]); // returns the vector [1, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
+	* ftr.extractVector(Store[0]); // returns the vector [0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
+	* ftr.extractVector(Store[1]); // returns the vector [1/3, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
+	* ftr.extractVector(Store[2]); // returns the vector [2/3, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
+	* ftr.extractVector(Store[3]); // returns the vector [1, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
 	*/
  exports.FeatureSpace.prototype.updateRecords = function (rs) {};
 /**
@@ -1228,77 +1383,50 @@ exports.datasets= require('qminer_datasets');
 	* @param {module:qm.Record} rec - The given record.
 	* @returns {module:la.SparseVector} The sparse feature vector gained from rec.
 	*/
- exports.FeatureSpace.prototype.ftrSpVec = function (rec) {}
+ exports.FeatureSpace.prototype.extractSparseVector = function (rec) {}
 /**
 	* Creates a feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
 	* @returns {module:la.Vector} The feature vector gained from rec.
 	*/
- exports.FeatureSpace.prototype.ftrVec = function (rec) {};
+ exports.FeatureSpace.prototype.extractVector = function (rec) {};
 /**
 	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
 	* @param {(module:qm.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
 	* @returns {module:qm.Vector} The inverse of ftr as vector.
 	*/
- exports.FeatureSpace.prototype.invFtrVec = function (ftr) {};
+ exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) {};
 /**
 	* Calculates the inverse of a single feature using a specific feature extractor.
 	* @param {number} idx - The index of the specific feature extractor.
 	* @param {Object} val - The value to be inverted.
 	* @returns {Object} The inverse of val using the feature extractor with index idx.
 	*/
- exports.FeatureSpace.prototype.invFtr = function (idx, val) {};
+ exports.FeatureSpace.prototype.invertFeature = function (idx, val) {};
 /**
 	* Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.
 	* @param {module:qm.RecSet} rs - The given record set.
 	* @returns {module:la.SparseMatrix} The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.
 	*/
- exports.FeatureSpace.prototype.ftrSpColMat = function (rs) {};
+ exports.FeatureSpace.prototype.extractSparseMatrix = function (rs) {};
 /**
 	* Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.
 	* @param {module:qm.RecSet} rs - The given record set.
 	* @returns {module:la.Matrix} The dense matrix, where the i-th column is the feature vector of the i-th record in rs.
 	*/
- exports.FeatureSpace.prototype.ftrColMat = function (rs) {};
+ exports.FeatureSpace.prototype.extractMatrix = function (rs) {};
 /**
 	* Gives the name of feature extractor at given position.
 	* @param {number} idx - The index of the feature extractor in feature space (zero based).
 	* @returns {String} The name of the feature extractor at position idx.
 	*/
- exports.FeatureSpace.prototype.getFtrExtractor = function (idx) {};
+ exports.FeatureSpace.prototype.getFeatureExtractor = function (idx) {};
 /**
 	* Gives the name of the feature at the given position.
 	* @param {number} idx - The index of the feature in feature space (zero based).
 	* @returns {String} The name of the feature at the position idx.
 	*/
- exports.FeatureSpace.prototype.getFtr = function (idx) {};
-/**
-	* Returns an array of values from the uniform distribution over the features.
-	* @param {number} [idx] - The index of the feature extractor.
-	* @returns {Array.<number>} The array with values from the uniform distribution over the features.
-	* @example
-	* // import qm module
-	* var qm = require('qminer');
-	* // create a feature space 
-	* var ftr = new qm.FeatureSpace(base, [
-	*	  { type: "numeric", source: "FtrSpace", normalize: true, field: "Values" },
-	*     { type: "categorical", source: "FtrSpace", field: "Category", values: ["a", "b", "c"] },
-	*     { type: "multinomial", source: "FtrSpace", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
-	*	  ]);
-	* // get the uniform distribution of the whole feature space
-	* // returns the array [1, 1/3, 1/3, 1/3, 1/6, 1/6, 1/6, 1/6, 1/6, 1/6], where the first value 1 belongs to the 
-	* // uniform distribution of the first extractor, which is of dimension 1. The values 1/3 belong to the uniform 
-	* // distribution of the second extractor, which is of dimension 3. The values 1/6 belong to the uniform distribution
-	* // of the third extractor, which is of dimension 6.
-	* var arr = ftr.getFtrDist(); 
-	* // get the uniform distribution of the first feature extractor
-	* var arr2 = ftr.getFtrDist(0); // returns the array [1]
-	* // get the uniform distribution of the second feature extractor
-	* var arr3 = ftr.getFtrDist(1); // returns the array [1/3, 1/3, 1/3]
-	* // get the uniform distribution of the third feature extractor
-	* var arr4 = ftr.getFtrDist(2); // returns the array [1/6, 1/6, 1/6, 1/6, 1/6, 1/6]
-	*/
- exports.FeatureSpace.prototype.getFtrDist = function (idx) {};
+ exports.FeatureSpace.prototype.getFeature = function (idx) {};
 /**
 	* Filters the vector to keep only the elements from the feature extractor.
 	* @param {(module:la.Vector | module:la.SparseVector)} vec - The vector from where the function filters the elements.

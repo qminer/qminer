@@ -671,7 +671,7 @@ typedef TPt<TNodeJsBaseWatcher> PNodeJsBaseWatcher;
 * Base
 * @classdesc Represents the database and holds stores.
 * @class
-* @param {module:qm~BaseConstructorParam} paramObj - The base constructor parameter object
+* @param {module:qm~BaseConstructorParam} paramObj - The base constructor parameter object.
 * @example
 * // import qm module
 * var qm = require('qminer');
@@ -709,6 +709,31 @@ private:
 	 *
 	 * @param {string} name - Name of the store.
 	 * @returns {module:qm.Store} The store.
+	 * @example
+	 * // import qm module
+	 * var qm = require('qminer');
+	 * // create a base with two stores
+	 * var base = new qm.Base({
+	 *    mode: "createClean",
+	 *    schema: [
+	 *    {
+	 *        "name": "Kwik-E-Mart",
+	 *        "fields": [
+	 *            { "name": "Worker", "type": "string" },
+	 *            { "name": "Groceries", "type": "string_v" }
+	 *        ]
+	 *    },
+	 *    {
+	 *        "name": "NuclearPowerplant",
+	 *        "fields": [
+	 *            { "name": "Owner", "type": "string" },
+	 *            { "name": "NumberOfAccidents", "type": "int" },
+	 *            { "name": "Workers", "type": "string_v" }
+	 *        ]
+	 *    }]
+	 * })
+	 * // get the "Kwik-E-Mart" store 
+	 * var store = base.store("Kwik-E-Mart");	// returns the store with the name "Kwik-E-Mart"
 	 */
 	//# exports.Base.prototype.store = function (name) { return Object.create(require('qminer').Store.prototype); }
 	JsDeclareFunction(store);
@@ -720,31 +745,77 @@ private:
 	 */
 	//# exports.Base.prototype.getStoreList = function () { return [{storeId:'', storeName:'', storeRecords:'', fields: [], keys: [], joins: []}]; }
 	JsDeclareFunction(getStoreList);
+
 	/**
 	* Creates a new store.
-	* @param {Array<module:qm~SchemaDefinition>} storeDef - The definition of the store(s)
+	* @param {Array<module:qm~SchemaDefinition>} storeDef - The definition of the store(s).
 	* @param {number} [storeSizeInMB = 1024] - The reserved size of the store(s).
-	* @returns {(module:qm.Store | module:qm.Store[])} - Returns a store or an array of stores (if the schema definition was an array)
+	* @returns {(module:qm.Store | module:qm.Store[])} - Returns a store or an array of stores (if the schema definition was an array).
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base with one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [
+	*    {
+	*        "name": "Superheroes",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Superpowers", "type": "string_v" },
+	*            { "name": "YearsActive", "type": "int" }
+	*        ]
+	*    }]
+	* })
+	* // create a new store called "Supervillains" in the base
+	* base.createStore({
+	*    "name": "Supervillians"
+	*    "fields": [
+	*        { "name": "Name", "type": "string" },
+	*        { "name": "Superpowers", "type": "string_v" },
+	*        { "name": "YearsActive", "type": "int" }
+	*    ]
+	* })
+	* // create two new stores called "Cities" and "Leagues"
+	* base.createStore([
+	*    {
+	*        "name": "Cities",
+	*        "fields": [
+	*            { "name": "Name", "type": "string", "primary": true },
+	*            { "name": "Population", "type": "int" }
+	*        ]
+	*    },
+	*    {
+	*        "name": "Leagues",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Members", "type": "string_v" }
+	*        ]
+	*    }
+	* ])
 	*/
 	//# exports.Base.prototype.createStore = function (storeDef, storeSizeInMB) { return storeDef instanceof Array ? [Object.create(require('qminer').Store.prototype)] : Object.create(require('qminer').Store.prototype) ;}
 	JsDeclareFunction(createStore);
 	/**
 	* Creates a new store.
 	* @param {module:qm~QueryObject} query - query language JSON object	
-	* @returns {module:qm.RecSet} - Returns the record set that matches the search criterion
+	* @returns {module:qm.RecordSet} - Returns the record set that matches the search criterion
 	*/
-	//# exports.Base.prototype.search = function (query) { return Object.create(require('qminer').RecSet.prototype);}
+	//# exports.Base.prototype.search = function (query) { return Object.create(require('qminer').RecordSet.prototype);}
+
 	JsDeclareFunction(search);   
 	/**
 	* Calls qminer garbage collector to remove records outside time windows.
 	*/
 	//# exports.Base.prototype.garbageCollect = function () { }
+
 	JsDeclareFunction(garbageCollect);
 	/**
 	* Calls qminer partial flush - base saves dirty data given some time-window.
 	* @param {number} window - Length of available time-window in msec. Default 500.
 	*/
 	//# exports.Base.prototype.partialFlush = function () { }
+
 	JsDeclareFunction(partialFlush);
 	/**
 	* Retrieves performance statistics for qminer.
@@ -754,6 +825,7 @@ private:
 
 	//!- `sa = base.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
 	JsDeclareFunction(getStreamAggr);
+
 	//!- `strArr = base.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
 	JsDeclareFunction(getStreamAggrNames);	
 	//!JSIMPLEMENT:src/qminer/qminer.js    
@@ -845,7 +917,7 @@ private:
 	//!- `rec = store.rec(recName)` -- get record named `recName`; 
 	//!     returns `null` when no such record exists
 	/**
-	* Returns a record form the store.
+	* Returns a record from the store.
 	* @param {string} recName - Record name.
 	* @returns {Object} Returns the record. If the record doesn't exist, it returns null. //TODO
 	*/
@@ -876,11 +948,11 @@ private:
 	*	}]
 	* })
 	* // add some records to the store
-	* base.store("Class").add({ "Name": "Bob", "StudyGroup": "A" });
-	* base.store("Class").add({ "Name": "John", "StudyGroup": "B" });
-	* base.store("Class").add({ "Name": "Marco", "StudyGroup": "C" });
-	* base.store("Class").add({ "Name": "Dana", "StudyGroup": "A" });
-	* // change the StudyGroup of all records of store Class to "A"
+	* base.store("Class").add({ "Name": "Abed", "StudyGroup": "A" });
+	* base.store("Class").add({ "Name": "Annie", "StudyGroup": "B" });
+	* base.store("Class").add({ "Name": "Britta", "StudyGroup": "C" });
+	* base.store("Class").add({ "Name": "Jeff", "StudyGroup": "A" });
+	* // change the StudyGroup of all records of store Class to A
 	* base.store("Class").each(function (rec) { rec.StudyGroup = "A"; });	// all records in Class are now in study group A
 	*/
 	//# exports.Store.prototype.each = function (callback) {}
@@ -910,12 +982,12 @@ private:
 	*	}]
 	* })
 	* // add some records to the store
-	* base.store("Class").add({ "Name": "Bob", "StudyGroup": "A" });
-	* base.store("Class").add({ "Name": "John", "StudyGroup": "B" });
-	* base.store("Class").add({ "Name": "Marco", "StudyGroup": "C" });
-	* base.store("Class").add({ "Name": "Dana", "StudyGroup": "A" });
+	* base.store("Class").add({ "Name": "Shirley", "StudyGroup": "A" });
+	* base.store("Class").add({ "Name": "Troy", "StudyGroup": "B" });
+	* base.store("Class").add({ "Name": "Chang", "StudyGroup": "C" });
+	* base.store("Class").add({ "Name": "Pierce", "StudyGroup": "A" });
 	* // make an array of record names
-	* var arr = base.store("Class").map(function (rec) { return rec.Name; }); // returns an array ["Bob", "John", "Marco", "Dana"]
+	* var arr = base.store("Class").map(function (rec) { return rec.Name; }); // returns an array ["Shirley", "Troy", "Chang", "Pierce"]
 	*/
 	//# exports.Store.prototype.map = function (callback) {}
 	JsDeclareFunction(map);
@@ -1017,10 +1089,29 @@ private:
 	* @param {number} [num] - The number of deleted records.
 	* @returns {number} The number of remaining records in the store.
 	* @example
-	* // delete all records in store
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a base with one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "TVSeries",
+	*        "fields": [
+	*            { "name": "Title", "type": "string", "primary": true },
+	*            { "name": "NumberOfEpisodes", "type": "int" }
+	*        ]
+	*    }]
+	* })
+	* // add some records in the store
+	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
+	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
+	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94);
+	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11});
+	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
+	* // deletes the first 2 records ("Archer" and "The Simpsons") in "TVSeries"
+	* store.clear(2);	// returns 3
+	* // delete all remaining records in "TVStore"
 	* store.clear();	// returns 0
-	* // deletes the first 10 records
-	* store.clear(10);
 	*/
 	//# exports.Store.prototype.clear = function (num) {};
 	JsDeclareFunction(clear);
