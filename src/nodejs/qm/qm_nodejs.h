@@ -1058,8 +1058,30 @@ private:
 	//!- `rs = store.newRecordSet(idVec)` -- creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);
 	/**
 	* Creates a new record set out of the records in store.
-	* @param {module:la.IntVector} idVec - The integer vector containing the ids of selected vectors.
+	* @param {module:la.IntVector} idVec - The integer vector containing the ids of selected records.
 	* @returns {module:qm.RecordSet} The record set that contains the records gained with idVec.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base with one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "Superheroes",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Superpowers", "type": "string_v" }
+	*        ]
+	*    }]
+	* })
+	* // add some new records to the store
+	* base.store("Superheroes").push({ "Name": "Superman", "Superpowers": ["Superhuman strength, speed, hearing", "Flight", "Heat vision"] });
+	* base.store("Superheroes").push({ "Name": "Batman", "Superpowers": ["Genius-level intellect", "Peak physical and mental conditioning", "Master detective"] });
+	* base.store("Superheroes").push({ "Name": "Thor", "Superpowers": ["Superhuman strength, endurance and longevity", "Abilities via Mjolnir"] });
+	* base.store("Superheroes").push({ "Name": "Wonder Woman", "Superpowers": ["Superhuman strength, agility and endurance", "Flight", "Highly skilled hand-to-hand combatant"] });
+	* // create a new record set containing only the DC Comic superheroes (those with the record id's 0, 1 and 3)
+	* var intVec = new qm.la.IntVector([0, 1, 3]);
+	* var DCHeroes = base.store("Superheroes").newRecordSet(intVec);
 	*/
 	//# exports.Store.prototype.newRecordSet = function (idVec) {};
 	JsDeclareFunction(newRecordSet);
@@ -1070,6 +1092,28 @@ private:
 	* Creates a record set containing random records from store.
 	* @param {number} sampleSize - The size of the record set.
 	* @returns {module:qm.RecordSet} Returns a record set containing random records.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a base with one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "TVSeries",
+	*        "fields": [
+	*            { "name": "Title", "type": "string", "primary": true },
+	*            { "name": "NumberOfEpisodes", "type": "int" }
+	*        ]
+	*    }]
+	* })
+	* // add some records in the store
+	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
+	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
+	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94 });
+	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11 });
+	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
+	* // create a sample record set containing 3 records
+	* var randomRecordSet = base.store("TVSeries").sample(3); // contains 3 random records from the TVSeries store
 	*/
 	//# exports.Store.prototype.sample = function (sampleSize) {};
 	JsDeclareFunction(sample);
@@ -1078,7 +1122,26 @@ private:
 	/**
 	* Gets the details of the selected field.
 	* @param {string} fieldName - The name of the field.
-	* @returns {Object} The JSON object containing the details of the field. //TODO
+	* @returns {Object} The JSON object containing the details of the field. 
+	* @example
+	* // import qm module
+	* var qm = require("qminer");
+	* // create a new base with one store
+	* var base = new qm.Base({
+	*    mode: "createClear",
+	*    schema: [{
+	*        "name": "People",
+	*        "fields": [
+	*            { "name": "Name", "type": "string", "primary": true },
+	*            { "name": "Gender", "type": "string" },
+	*            { "name": "Age", "type": "int" }
+	*        ]
+	*    }]
+	* })
+	* // get the details of the field "Name" of store "People"
+	* // it returns a JSON object:
+	* // { id: 0, name: "Name", type: "string", primary: true }
+	* var details = base.store("People").field("Name");
 	*/
 	//# exports.Store.prototype.field = function (fieldName) {}; 
 	JsDeclareFunction(field);

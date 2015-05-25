@@ -413,6 +413,31 @@ base.store(&quot;Class&quot;).each(function (rec) { rec.StudyGroup = &quot;A&quo
               <h3 id="field"><span class="symbol-name">field</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Gets the details of the selected field.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&quot;qminer&quot;);
+// create a new base with one store
+var base = new qm.Base({
+   mode: &quot;createClear&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;People&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+           { &quot;name&quot;: &quot;Gender&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Age&quot;, &quot;type&quot;: &quot;int&quot; }
+       ]
+   }]
+})
+// get the details of the field &quot;Name&quot; of store &quot;People&quot;
+// it returns a JSON object:
+// { id: 0, name: &quot;Name&quot;, type: &quot;string&quot;, primary: true }
+var details = base.store(&quot;People&quot;).field(&quot;Name&quot;);</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -444,7 +469,7 @@ base.store(&quot;Class&quot;).each(function (rec) { rec.StudyGroup = &quot;A&quo
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;The JSON object containing the details of the field. //TODO</p>
+                  <p><code>Object</code>&nbsp;The JSON object containing the details of the field.</p>
                 </dd>
               </dl>
               <h3 id="getMatrix"><span class="symbol-name">getMatrix</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</span></span></h3>
@@ -789,6 +814,34 @@ var planet = base.store(&quot;Planets&quot;).newRecord({ &quot;Name&quot;: &quot
               <h3 id="newRecordSet"><span class="symbol-name">newRecordSet</span><span class="signature"><span class="signature-params">(idVec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
               <p>Creates a new record set out of the records in store.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base with one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;Superheroes&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       ]
+   }]
+})
+// add some new records to the store
+base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Superman&quot;, &quot;Superpowers&quot;: [&quot;Superhuman strength, speed, hearing&quot;, &quot;Flight&quot;, &quot;Heat vision&quot;] });
+base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Batman&quot;, &quot;Superpowers&quot;: [&quot;Genius-level intellect&quot;, &quot;Peak physical and mental conditioning&quot;, &quot;Master detective&quot;] });
+base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Thor&quot;, &quot;Superpowers&quot;: [&quot;Superhuman strength, endurance and longevity&quot;, &quot;Abilities via Mjolnir&quot;] });
+base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Wonder Woman&quot;, &quot;Superpowers&quot;: [&quot;Superhuman strength, agility and endurance&quot;, &quot;Flight&quot;, &quot;Highly skilled hand-to-hand combatant&quot;] });
+// create a new record set containing only the DC Comic superheroes (those with the record id&#x27;s 0, 1 and 3)
+var intVec = new qm.la.IntVector([0, 1, 3]);
+var DCHeroes = base.store(&quot;Superheroes&quot;).newRecordSet(intVec);</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -811,7 +864,7 @@ var planet = base.store(&quot;Planets&quot;).newRecord({ &quot;Name&quot;: &quot
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The integer vector containing the ids of selected vectors.</p>
+                        <p>The integer vector containing the ids of selected records.</p>
                       </td>
                     </tr>
                   </tbody>
