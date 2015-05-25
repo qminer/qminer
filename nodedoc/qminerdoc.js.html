@@ -2067,9 +2067,53 @@
 
 	* Returns the details of the selected key.
 
-	* @param {string} keyName - The selected key.
+	* @param {string} keyName - The selected key as a JSON object.
 
 	* @returns {Object} The JSON object containing the details of the key. //TODO
+
+	* @example
+
+	* // import qm module
+
+	* var qm = require(&#x27;qminer&#x27;);
+
+	* // create a new base containing one store
+
+	* var base = new qm.Base({
+
+	*    mode: &quot;createClean&quot;,
+
+	*    schema: [{
+
+	*        &quot;name&quot;: &quot;Countries&quot;,
+
+	*        &quot;fields&quot;: [
+
+	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+
+	*            { &quot;name&quot;: &quot;Population&quot;, &quot;type&quot;: &quot;int&quot; },
+
+	*            { &quot;name&quot;: &quot;Continent&quot;, &quot;type&quot;: &quot;string&quot; }
+
+	*        ],
+
+	*        &quot;keys&quot;: [
+
+	*            { &quot;field&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;text&quot; },
+
+	*            { &quot;field&quot;: &quot;Population&quot;, &quot;type&quot;: &quot;value&quot; },
+
+	*            { &quot;field&quot;: &quot;Continent&quot;, &quot;type&quot;: &quot;text&quot; }
+
+	*        ]
+
+	*    }]
+
+	* })
+
+	* // get the details of the key of the field &quot;Population&quot;
+
+	* var details = base.store(&quot;Countries&quot;).key(&quot;Population&quot;); //TODO, what are the details
 
 	*/
 
@@ -2080,6 +2124,40 @@
 	* Returns the store as a JSON.
 
 	* @returns {Object} The store as a JSON.
+
+	* @example
+
+	* // import qm module
+
+	* var qm = require(&#x27;qminer&#x27;);
+
+	* // create a new base with one store
+
+	* var base = new qm.Base({
+
+	*    mode: &quot;createClear&quot;,
+
+	*    schema: [{
+
+	*        &quot;name&quot;: &quot;FootballPlayers&quot;,
+
+	*        &quot;fields&quot;: [
+
+	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+
+	*            { &quot;name&quot;: &quot;FootballClubs&quot;, &quot;type&quot;: &quot;string_v&quot; },
+
+	*            { &quot;name&quot;: &quot;GoalsPerSeason&quot;, &quot;type&quot;: &quot;int_v&quot; },
+
+	*        ]
+
+	*    }]
+
+	* })
+
+	* // get the store as a JSON
+
+	* var json = base.store(&quot;FootballPlayers&quot;).toJSON();
 
 	*/
 
@@ -2204,6 +2282,56 @@
 	* @param {string} fieldName - The field name. Field mustn&#x27;t be of type string.
 
 	* @returns {(module:la.Matrix | module:la.SparseMatrix)} The matrix containing the field values. 
+
+	* @example
+
+	* // import qm module
+
+	* var qm = require(&#x27;qminer&#x27;);
+
+	* // create a new base containing one store
+
+	* var base = new qm.Base({
+
+	*    mode: &quot;createClean&quot;,
+
+	*    schema: [{
+
+	*        &quot;name&quot;: &quot;ArcheryChampionship&quot;,
+
+	*        &quot;fields&quot;: [
+
+	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+
+	*            { &quot;name&quot;: &quot;ScorePerRound&quot;, &quot;type&quot;: &quot;int_v&quot; }
+
+	*        ]
+
+	*    }]
+
+	* })
+
+	* // set new records in the store
+
+	* base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Robin Hood&quot;, &quot;ScorePerRound&quot;: [50, 48, 48] });
+
+	* base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Oliver Queen&quot;, &quot;ScorePerRound&quot;: [44, 46, 44] });
+
+	* base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Legolas&quot;, &quot;ScorePerRound&quot;: [50, 50, 48] });
+
+	* // get the matrix containing the &quot;score per round&quot; values
+
+	* // The values of the i-th column are the values of the i-th record.
+
+	* // The function will give the matrix:
+
+	* // 50  44  50
+
+	* // 48  46  50
+
+	* // 48  44  48
+
+	* var matrix = base.store(&quot;ArcheryChampionship&quot;).getMatrix(&quot;ScorePerRound&quot;);
 
 	*/
 

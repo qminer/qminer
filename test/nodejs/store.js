@@ -377,9 +377,9 @@ function TStore() {
         this.base.store("Movies").push(movie);
     }
 
-    this.player1 = { "Player": "Goran Dragi�", "Score": [35, 12, 23] };
+    this.player1 = { "Player": "Goran Dragic", "Score": [35, 12, 23] };
     this.player2 = { "Player": "Michael Jordan", "Score": [90, 100, 95] };
-    this.player3 = { "Player": "Marko Mili�", "Score": [50, 10, 10, 12] };
+    this.player3 = { "Player": "Marko Milic", "Score": [50, 10, 10, 12] };
 
     this.addPlayer = function (player) {
         this.base.store("Basketball").push(player);
@@ -480,9 +480,9 @@ describe("Two Store Tests", function () {
             assert.equal(MoviesKeys[2].name, "Plot");
             assert.equal(MoviesKeys[3].name, "Genres");
         })
-        it('should return the details of the key "Title"', function () {
-            var detail = table.base.store("Movies").key("Title");
-            assert.equal(detail.name, "Title");
+        it('should return the details of the key "Plot"', function () {
+            var detail = table.base.store("Movies").key("Plot");
+            assert.equal(detail.name, "Plot");
         })
         it('should return null if the key doesn\'t exist', function () {
             assert(table.base.store("Movies").key("Watched") == null);
