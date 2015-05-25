@@ -105,25 +105,6 @@ void TFtrExt::Save(TSOut& SOut) const {
     FtrStore->SaveId(SOut);
 }
 
-void TFtrExt::GetFtrDist(TFltV& FtrDistV) const {
-    // reserve space for all features
-    FtrDistV.Gen(GetDim()); FtrDistV.PutAll(0.0);
-    // write in the vector feature distribution
-    int Offset = 0; AddFtrDist(FtrDistV, Offset);
-}
-
-void TFtrExt::AddFtrDist(TFltV& FtrDistV, int& Offset) const {
-    // get uniform value
-    const int Vals = GetDim();
-    if (Vals > 0) {
-        const double UniVal = 1.0 / (double)Vals;
-        for (int ValN = 0; ValN < Vals; ValN++) {
-            FtrDistV[Offset + ValN] = UniVal;
-        }
-        Offset += Vals;
-    }
-}
-
 void TFtrExt::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     // get sparse vector
     TIntFltKdV SpV; AddSpV(Rec, SpV, Offset);
@@ -356,15 +337,6 @@ TStr TFtrSpace::GetFtr(const int& FtrN) const {
 	}
 	throw TQmExcept::New("Feature number out of bounds!");
 	return TStr();
-}
-
-void TFtrSpace::GetFtrDist(TFltV& FtrDistV) const {
-    // create empty full vector
-    FtrDistV.Gen(GetDim()); FtrDistV.PutAll(0.0);
-	int Offset = 0;
-	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
-		FtrExtV[FtrExtN]->AddFtrDist(FtrDistV, Offset);
-	}
 }
 
 int TFtrSpace::GetFtrExts() const {

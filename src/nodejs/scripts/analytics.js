@@ -44,7 +44,7 @@ module.exports = exports = function (pathPrefix) {
         }
 
         this.predict = function (record) {
-            var vec = this.featureSpace.ftrSpVec(record);
+            var vec = this.featureSpace.extractSparseVector(record);
             var result = {};
             for (var cat in this.models) {
                 result[cat] = this.models[cat].model.predict(vec);
@@ -83,7 +83,8 @@ module.exports = exports = function (pathPrefix) {
 
     //!- `batchModel = analytics.newBatchModel(rs, features, target)` -- learns a new batch model
     //!     using record set `rs` as training data and `features`; `target` is
-    //!     a field descriptor JSON object for the records which we are trying to predict (obtained by calling store.field("Rating");
+    //!     a field descriptor JSON object for the records which we are trying to predict 
+	//!     (obtained by calling store.field("Rating");
     //!     if target field string or string vector, the result is a SVM classification model,
     //!     and if target field is a float, the result is a SVM regression model; resulting 
     //!     model has the following functions:
@@ -105,7 +106,7 @@ module.exports = exports = function (pathPrefix) {
         console.log("newBatchModel", "  number of dimensions = " + featureSpace.dim);
         // prepare spare vectors
         console.log("newBatchModel", "  preparing feature vectors");
-        var sparseVecs = featureSpace.ftrSpColMat(records);
+        var sparseVecs = featureSpace.extractSparseMatrix(records);
         // prepare target vectors
         var targets = {};
         // figure out if new category name, or update count
@@ -425,8 +426,8 @@ module.exports = exports = function (pathPrefix) {
 
         if (settings.extractFeatures) {
             var temp = {}; temp[settings.textField] = query;
-            var queryRec = qRecSet.store.newRec(temp); // record
-            querySpVec = ftrSpace.ftrSpVec(queryRec);
+            var queryRec = qRecSet.store.newRecord(temp); // record
+            querySpVec = ftrSpace.extractSparseVector(queryRec);
             // use sampling? 
             var sq = qRecSet;
             if (settings.querySampleSize >= 0 && qRecSet != undefined) {
@@ -439,7 +440,7 @@ module.exports = exports = function (pathPrefix) {
             // take a union or just qset or just fset if some are undefined
             uRecSet = (sq != undefined) ? ((sf != undefined) ? sq.setunion(sf) : sq) : sf;
             if (uRecSet == undefined) { throw 'undefined record set for active learning!';}
-            uMat = ftrSpace.ftrSpColMat(uRecSet);
+            uMat = ftrSpace.extractSparseMatrix(uRecSet);
 
         } else {
             querySpVec = stts.querySpVec;
@@ -581,13 +582,13 @@ module.exports = exports = function (pathPrefix) {
             if (ALanswer === "y") {
                 posIdxV.push(recSetIdx);
                 posRecIdV.push(uRecSet[recSetIdx].$id);
-                //X.push(ftrSpace.ftrSpVec(uRecSet[recSetIdx]));
+                //X.push(ftrSpace.extractSparseVector(uRecSet[recSetIdx]));
                 X.push(uMat.getCol(recSetIdx));
                 y.push(1.0);
             } else {
                 negIdxV.push(recSetIdx);
                 negRecIdV.push(uRecSet[recSetIdx].$id);
-                //X.push(ftrSpace.ftrSpVec(uRecSet[recSetIdx]));
+                //X.push(ftrSpace.extractSparseVector(uRecSet[recSetIdx]));
                 X.push(uMat.getCol(recSetIdx));
                 y.push(-1.0);
             }
@@ -729,8 +730,8 @@ module.exports = exports = function (pathPrefix) {
     			log.info('Updating feature space ...');
     			ftrSpace.updateRecords(recSet);
     			
-    			var colMat = ftrSpace.ftrColMat(recSet);
-    			var timeV = recSet.getVec(timeField);
+    			var colMat = ftrSpace.extractMatrix(recSet);
+    			var timeV = recSet.getVector(timeField);
     			
     			log.info('Creating model ...');
     			mc.fit(colMat, timeV, batchEndV);
@@ -743,7 +744,7 @@ module.exports = exports = function (pathPrefix) {
     		 * Adds a new record. Doesn't update the models statistics.
     		 */
     		update: function (rec) {
-    			var ftrVec = ftrSpace.ftrVec(rec);
+    			var ftrVec = ftrSpace.extractVector(rec);
     			var recTm = rec.time;
     			var timestamp = recTm.getTime();
     			
@@ -810,7 +811,7 @@ module.exports = exports = function (pathPrefix) {
     			
     			var dims = ftrSpace.dims;
     			for (var i = 0; i < dims.length; i++) {
-    				names.push(ftrSpace.getFtr(i));
+    				names.push(ftrSpace.getFeature(i));
     			}
     			
     			return names;
@@ -876,7 +877,7 @@ module.exports = exports = function (pathPrefix) {
     				
     				var features = [];
     				for (var i = 0; i < invFtrV.length; i++) {
-    					features.push({name: ftrSpace.getFtr(i), value: invFtrV.at(i)});
+    					features.push({name: ftrSpace.getFeature(i), value: invFtrV.at(i)});
     				}
     				
     				callback(features);
