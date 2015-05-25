@@ -355,14 +355,14 @@ store.clear();  // returns 0</code></pre>
 var qm = require(&#x27;qminer&#x27;);
 // create a base containing the store Class
 var base = new qm.Base({
-	mode: &quot;createClean&quot;,
-	schema: [{
-		&quot;name&quot;: &quot;Class&quot;,
-		&quot;fields&quot;: [
-			{ &quot;name&quot;, &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-			{ &quot;name&quot;, &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
-		]
-	}]
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;Class&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;, &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;, &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+       ]
+   }]
 })
 // add some records to the store
 base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Abed&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
@@ -575,6 +575,30 @@ var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;)
               <h3 id="isNumeric"><span class="symbol-name">isNumeric</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
               <p>Checks if the field is of numeric type.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;TVSeries&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+           { &quot;name&quot;: &quot;NumberOfEpisodes&quot;, &quot;type&quot;: &quot;int&quot; }
+       ]
+   }]
+})
+// check if the field &quot;Title&quot; is of numeric type
+var isTitleNumeric = base.store(&quot;TVSeries&quot;).isNumeric(&quot;Title&quot;); // returns false
+// check if the field &quot;NumberOfEpisodes&quot; is of numeric type
+var isNumberOfEpisodesNumeric = base.store(&quot;TVSeries&quot;).isNumeric(&quot;NumberOfEpisodes&quot;); // returns true</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -611,6 +635,31 @@ var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;)
               </dl>
               <h3 id="isString"><span class="symbol-name">isString</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
               <p>Checks if the field is of string type.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&quot;qminer&quot;);
+// create a new base with one store
+var base = new qm.Base({
+   mode: &quot;createClear&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;People&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+           { &quot;name&quot;: &quot;Gender&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Age&quot;, &quot;type&quot;: &quot;int&quot; }
+       ]
+   }]
+})
+// check if the field &quot;Name&quot; is of string type
+var isNameString = base.store(&quot;People&quot;).isString(&quot;Name&quot;); // returns true
+// check if the field &quot;Age&quot; is of string type
+var isAgeString = base.store(&quot;People&quot;).isString(&quot;Age&quot;); // returns false</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -694,14 +743,14 @@ var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;)
 var qm = require(&#x27;qminer&#x27;);
 // create a base containing the store Class
 var base = new qm.Base({
-	mode: &quot;createClean&quot;,
-	schema: [{
-		&quot;name&quot;: &quot;Class&quot;,
-		&quot;fields&quot;: [
-			{ &quot;name&quot;, &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-			{ &quot;name&quot;, &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
-		]
-	}]
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;Class&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;, &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;, &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+       ]
+   }]
 })
 // add some records to the store
 base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Shirley&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
@@ -933,7 +982,7 @@ base.store(&quot;Supervillians&quot;).push({ &quot;Name&quot;: &quot;Lex Luthor&
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The added record. //TODO</p>
+                        <p>The added record. The record must be a JSON object corresponding to the store schema.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -945,8 +994,35 @@ base.store(&quot;Supervillians&quot;).push({ &quot;Name&quot;: &quot;Lex Luthor&
                   <p><code>number</code>&nbsp;The ID of the added record.</p>
                 </dd>
               </dl>
-              <h3 id="rec"><span class="symbol-name">rec</span><span class="signature"><span class="signature-params">(recName)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <h3 id="rec"><span class="symbol-name">rec</span><span class="signature"><span class="signature-params">(recName)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-qm.Record.html">module:qm.Record</a> or null)</span></span></h3>
               <p>Returns a record from the store.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base containing the store Class
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;Class&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;, &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;, &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+       ]
+   }]
+})
+// add some records to the store
+base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Dean&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
+base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroup&quot;: &quot;D&quot; });
+base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Magnitude&quot;, &quot;StudyGroup&quot;: &quot;C&quot; });
+base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Leonard&quot;, &quot;StudyGroup&quot;: &quot;B&quot; });
+// get the record with the name &quot;Magnitude&quot;
+var record = base.store(&quot;Class&quot;).rec(&quot;Magnitude&quot;);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -979,7 +1055,7 @@ base.store(&quot;Supervillians&quot;).push({ &quot;Name&quot;: &quot;Lex Luthor&
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;Returns the record. If the record doesn't exist, it returns null. //TODO</p>
+                  <p><code>(<a href="module-qm.Record.html">module:qm.Record</a> or null)</code>&nbsp;Returns the record. If the record doesn't exist, it returns null.</p>
                 </dd>
               </dl>
               <h3 id="sample"><span class="symbol-name">sample</span><span class="signature"><span class="signature-params">(sampleSize)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>

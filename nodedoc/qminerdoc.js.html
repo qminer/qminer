@@ -1525,7 +1525,49 @@
 
 	* @param {string} recName - Record name.
 
-	* @returns {Object} Returns the record. If the record doesn&#x27;t exist, it returns null. //TODO
+	* @returns {(module:qm.Record | null)} Returns the record. If the record doesn&#x27;t exist, it returns null.
+
+	* @example
+
+	* // import qm module
+
+	* var qm = require(&#x27;qminer&#x27;);
+
+	* // create a base containing the store Class
+
+	* var base = new qm.Base({
+
+	*    mode: &quot;createClean&quot;,
+
+	*    schema: [{
+
+	*        &quot;name&quot;: &quot;Class&quot;,
+
+	*        &quot;fields&quot;: [
+
+	*            { &quot;name&quot;, &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+
+	*            { &quot;name&quot;, &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+
+	*        ]
+
+	*    }]
+
+	* })
+
+	* // add some records to the store
+
+	* base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Dean&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
+
+	* base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroup&quot;: &quot;D&quot; });
+
+	* base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Magnitude&quot;, &quot;StudyGroup&quot;: &quot;C&quot; });
+
+	* base.store(&quot;Class&quot;).add({ &quot;Name&quot;: &quot;Leonard&quot;, &quot;StudyGroup&quot;: &quot;B&quot; });
+
+	* // get the record with the name &quot;Magnitude&quot;
+
+	* var record = base.store(&quot;Class&quot;).rec(&quot;Magnitude&quot;);
 
 	*/
 
@@ -1553,21 +1595,21 @@
 
 	* var base = new qm.Base({
 
-	*	mode: &quot;createClean&quot;,
+	*    mode: &quot;createClean&quot;,
 
-	*	schema: [{
+	*    schema: [{
 
-	*		&quot;name&quot;: &quot;Class&quot;,
+	*        &quot;name&quot;: &quot;Class&quot;,
 
-	*		&quot;fields&quot;: [
+	*        &quot;fields&quot;: [
 
-	*			{ &quot;name&quot;, &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { &quot;name&quot;, &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
 
-	*			{ &quot;name&quot;, &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { &quot;name&quot;, &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
 
-	*		]
+	*        ]
 
-	*	}]
+	*    }]
 
 	* })
 
@@ -1611,21 +1653,21 @@
 
 	* var base = new qm.Base({
 
-	*	mode: &quot;createClean&quot;,
+	*    mode: &quot;createClean&quot;,
 
-	*	schema: [{
+	*    schema: [{
 
-	*		&quot;name&quot;: &quot;Class&quot;,
+	*        &quot;name&quot;: &quot;Class&quot;,
 
-	*		&quot;fields&quot;: [
+	*        &quot;fields&quot;: [
 
-	*			{ &quot;name&quot;, &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { &quot;name&quot;, &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
 
-	*			{ &quot;name&quot;, &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { &quot;name&quot;, &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
 
-	*		]
+	*        ]
 
-	*	}]
+	*    }]
 
 	* })
 
@@ -1651,7 +1693,7 @@
 
 	* Adds a record to the store.
 
-	* @param {Object} rec - The added record. //TODO
+	* @param {Object} rec - The added record. The record must be a JSON object corresponding to the store schema.
 
 	* @returns {number} The ID of the added record.
 
@@ -1931,6 +1973,42 @@
 
 	* @returns {boolean} True, if the field is of numeric type. Otherwise, false.
 
+	* @example
+
+	* // import qm module
+
+	* var qm = require(&#x27;qminer&#x27;);
+
+	* // create a base with one store
+
+	* var base = new qm.Base({
+
+	*    mode: &quot;createClean&quot;,
+
+	*    schema: [{
+
+	*        &quot;name&quot;: &quot;TVSeries&quot;,
+
+	*        &quot;fields&quot;: [
+
+	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+
+	*            { &quot;name&quot;: &quot;NumberOfEpisodes&quot;, &quot;type&quot;: &quot;int&quot; }
+
+	*        ]
+
+	*    }]
+
+	* })
+
+	* // check if the field &quot;Title&quot; is of numeric type
+
+	* var isTitleNumeric = base.store(&quot;TVSeries&quot;).isNumeric(&quot;Title&quot;); // returns false
+
+	* // check if the field &quot;NumberOfEpisodes&quot; is of numeric type
+
+	* var isNumberOfEpisodesNumeric = base.store(&quot;TVSeries&quot;).isNumeric(&quot;NumberOfEpisodes&quot;); // returns true
+
 	*/
 
  exports.Store.prototype.isNumeric = function (fieldName) {};
@@ -1942,6 +2020,44 @@
 	* @param {string} fieldName - The checked field.
 
 	* @returns {boolean} True, if the field is of string type. Otherwise, false.
+
+	* @example
+
+	* // import qm module
+
+	* var qm = require(&quot;qminer&quot;);
+
+	* // create a new base with one store
+
+	* var base = new qm.Base({
+
+	*    mode: &quot;createClear&quot;,
+
+	*    schema: [{
+
+	*        &quot;name&quot;: &quot;People&quot;,
+
+	*        &quot;fields&quot;: [
+
+	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+
+	*            { &quot;name&quot;: &quot;Gender&quot;, &quot;type&quot;: &quot;string&quot; },
+
+	*            { &quot;name&quot;: &quot;Age&quot;, &quot;type&quot;: &quot;int&quot; }
+
+	*        ]
+
+	*    }]
+
+	* })
+
+	* // check if the field &quot;Name&quot; is of string type
+
+	* var isNameString = base.store(&quot;People&quot;).isString(&quot;Name&quot;); // returns true
+
+	* // check if the field &quot;Age&quot; is of string type
+
+	* var isAgeString = base.store(&quot;People&quot;).isString(&quot;Age&quot;); // returns false
 
 	*/
 
