@@ -3,8 +3,10 @@
 
 namespace glib {
 
+	///////////////////////////////////////////////////////////////////////////
+
 	/// Assignment operator
-	TPgBlobPt& TPgBlobPt::operator = (const TPgBlobPt& Pt) {
+	TPgBlobPt& TPgBlobPt::operator=(const TPgBlobPt& Pt) {
 		if (this != &Pt) {
 			Page = Pt.Page;
 			FileIndex = Pt.FileIndex;
@@ -29,7 +31,7 @@ namespace glib {
 			((FileIndex == Pt.FileIndex) && (Page == Pt.Page) && (ItemIndex < Pt.ItemIndex));
 	}
 
-	/////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////
 
 	/// Private constructor
 	TPgBlobFile::TPgBlobFile(
@@ -117,14 +119,72 @@ namespace glib {
 
 	///////////////////////////////////////////////////////////////////////////
 
-	TPgBlobPage::TPgBlobPage() {}
+	/// Add given buffer to page, return item-index
+	uint16 TPgBlob::AddItem(byte* Pg, byte* Bf, int BfL) {
+		// TODO locks?
+		TPgHeader* Header = (TPgHeader*)Pg;
+		EAssert(BfL + sizeof(TPgBlobPageItem) <= Header->GetFreeMem());
 
-	TPgBlobPage::~TPgBlobPage() {}
+		uint16 res = Header->ItemCount;
+		TPgBlobPageItem* NewItem = GetItemRec(Pg, Header->ItemCount);
+		NewItem->Len = BfL;
+		NewItem->Offset = Header->OffsetFreeEnd - BfL;
 
-	///////////////////////////////////////////////////////////////////////////
+		if (Bf != NULL) { // only copy when there is some data
+			memcpy(Pg + NewItem->Offset, Bf, BfL);
+		}
+
+		Header->ItemCount++;
+		Header->OffsetFreeEnd -= BfL;
+		Header->OffsetFreeStart += sizeof(TPgBlobPageItem);
+
+		Header->SetDirty(true);
+		return res;
+	}
+
+	/// Retrieve buffer from specified page
+	void TPgBlob::GetItem(byte* Pg, uint16 ItemIndex, byte** Bf, int& BfL) {
+		// TODO locks?
+		TPgBlobPageItem* Item = GetItemRec(Pg, ItemIndex);
+		BfL = Item->Len;
+		*Bf = Pg + Item->Offset;
+	}
+
+	/// Delete buffer from specified page
+	void TPgBlob::DeleteItem(byte* Pg, uint16 ItemIndex) {
+		// TODO locks?
+
+		TPgBlobPageItem* Item = GetItemRec(Pg, ItemIndex);
+		int PackOffset = Item->Len;
+		TPgHeader* Header = (TPgHeader*)Pg;
+		byte* OldFreeEnd = Pg + Header->OffsetFreeEnd;
+		for (int i = ItemIndex + 1; i < Header->ItemCount; i++) {
+			TPgBlobPageItem* ItemX = GetItemRec(Pg, ItemIndex);
+			if (ItemX->Len > 0) {
+				continue;
+			}
+			ItemX->Offset += PackOffset;
+		}
+		Header->OffsetFreeEnd += PackOffset;
+		memmove(OldFreeEnd, OldFreeEnd + PackOffset, PackOffset);
+
+		Item->Len = 0;
+		Header->SetDirty(true);
+	}
+
+	/// Get pointer to item record - in it are offset and length
+	TPgBlob::TPgBlobPageItem* TPgBlob::GetItemRec(
+		byte* Pg, uint16 ItemIndex) {
+		// TODO locks?
+		return (TPgBlob::TPgBlobPageItem*)(
+			Pg
+			+ sizeof(TPgBlob::TPgHeader)
+			+ ItemIndex * sizeof(TPgBlobPageItem));
+	}
 
 	/// Private constructor
-	TPgBlob::TPgBlob(const TStr& _FNm, const TFAccess& _Access, const uint64& CacheSize) {
+	TPgBlob::TPgBlob(const TStr& _FNm, const TFAccess& _Access,
+		const uint64& CacheSize) {
 
 		EAssertR(CacheSize >= PAGE_SIZE, "Invalid cache size for TPgBlob.");
 
@@ -149,20 +209,20 @@ namespace glib {
 		BfL = CacheSize;
 		MxLoadedPages = CacheSize / PAGE_SIZE;
 		LruFirst = LruLast = -1;
-		Init();
 	}
 
 	/// Destructor
 	TPgBlob::~TPgBlob() {
 		for (int i = 0; i < LoadedPages.Len(); i++) {
-			LoadedPage& a = LoadedPages[i];
-			Files[a.Pt.GetFileIndex()]->SavePage(a.Pt.GetPage(), GetPageBf(i));
+			if (ShouldSavePage(i)) {
+				LoadedPage& a = LoadedPages[i];
+				Files[a.Pt.GetFileIndex()]->SavePage(a.Pt.GetPage(), GetPageBf(i));
+			}
 		}
 		SaveMain();
 		Files.Clr();
 		delete[] Bf;
 	}
-
 
 	/// Save main file
 	void TPgBlob::SaveMain() {
@@ -294,38 +354,24 @@ namespace glib {
 		return res;
 	}
 
-	//////////////////////////////////////////////////////
-
-	/// Destructor
-	TTestPgBlob::~TTestPgBlob() {
-		for (int i = 0; i < LoadedPages.Len(); i++) {
-			if (ShouldSavePage(i)) {
-				LoadedPage& a = LoadedPages[i];
-				Files[a.Pt.GetFileIndex()]->SavePage(a.Pt.GetPage(), GetPageBf(i));
-			}
-		}
-		SaveMain();
-		Files.Clr();
-		delete[] Bf;
-	}
-
 	/// Factory method for creating new BLOB storage
-	PTestPgBlob TTestPgBlob::Create(const TStr& FNm, const uint64& CacheSize) {
-		return PTestPgBlob(new TTestPgBlob(FNm, TFAccess::faCreate, CacheSize));
+	PPgBlob TPgBlob::Create(const TStr& FNm, const uint64& CacheSize) {
+		return PPgBlob(new TPgBlob(FNm, TFAccess::faCreate, CacheSize));
 	}
 
 	/// Factory method for opening existing BLOB storage
-	PTestPgBlob TTestPgBlob::Open(const TStr& FNm, const uint64& CacheSize) {
-		return PTestPgBlob(new TTestPgBlob(FNm, TFAccess::faUpdate, CacheSize));
+	PPgBlob TPgBlob::Open(const TStr& FNm, const uint64& CacheSize) {
+		return PPgBlob(new TPgBlob(FNm, TFAccess::faUpdate, CacheSize));
 	}
 
 	/// Initialize new page
-	void TTestPgBlob::InitPageP(byte* Pt) {
+	void TPgBlob::InitPageP(byte* Pt) {
 		TPgHeader* Pt2 = (TPgHeader*)Pt;
 		Pt2->Flags = PgHeaderDirtyFlag; // not saved yet
 		Pt2->PageSize = PAGE_SIZE;
 		Pt2->PageVersion = 1;
 		Pt2->OffsetFreeStart = sizeof(TPgHeader);
 		Pt2->OffsetFreeEnd = PAGE_SIZE;
+		Pt2->ItemCount = 0;
 	}
 }

@@ -247,10 +247,78 @@ public:
 		TInMemStorage_PerfTest_Internal(500);
 		TInMemStorage_PerfTest_Internal(200);
 		TInMemStorage_PerfTest_Internal(100);
-		/*TInMemStorage_PerfTest_Internal(50);
+		TInMemStorage_PerfTest_Internal(50);
 		TInMemStorage_PerfTest_Internal(10);
 		TInMemStorage_PerfTest_Internal(5);
-		TInMemStorage_PerfTest_Internal(1);*/
+		TInMemStorage_PerfTest_Internal(1);
+	}
+
+	static void TPgBlob_Complex1() {
+		auto Base = glib::TPgBlob::Create("data\\xyz");
+		auto new_page = Base->CreateNewPage();
+		EXPECT_EQ(new_page.Val1.GetFileIndex(), 0);
+		EXPECT_EQ(new_page.Val1.GetPage(), 0);
+		printf("%d %d\n", new_page.Val1.GetFileIndex(), new_page.Val1.GetPage());
+		auto new_page2 = Base->CreateNewPage();
+		EXPECT_EQ(new_page2.Val1.GetFileIndex(), 0);
+		EXPECT_EQ(new_page2.Val1.GetPage(), 1);
+		printf("%d %d\n", new_page2.Val1.GetFileIndex(), new_page2.Val1.GetPage());
+	}
+
+	static void TPgBlob_Page_Init() {
+		byte* bf = new byte[PAGE_SIZE];
+		
+		glib::TPgBlob::InitPageP(bf);
+		auto header = (glib::TPgBlob::TPgHeader*)bf;
+
+		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->IsDirty(), true); // new page is not saved yet
+		EXPECT_EQ(header->IsLock(), false);
+		EXPECT_EQ(header->ItemCount, 0);
+		EXPECT_EQ(header->OffsetFreeStart, 10);
+		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE);
+
+		delete [] bf;
+	}
+
+	static void TPgBlob_Page_AddInt() {
+		byte* bf = new byte[PAGE_SIZE];
+		int data = 8765;
+
+		glib::TPgBlob::InitPageP(bf);
+
+		auto res = glib::TPgBlob::AddItem(bf, (byte*)&data, sizeof(int));
+		EXPECT_EQ(res, 0);
+
+		auto header = (glib::TPgBlob::TPgHeader*)bf;
+		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->IsDirty(), true);
+		EXPECT_EQ(header->IsLock(), false);
+		EXPECT_EQ(header->ItemCount, 1);
+		EXPECT_EQ(header->OffsetFreeStart, 10 + 4); // item record
+		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 4);
+
+		delete[] bf;
+	}
+
+	static void TPgBlob_Page_AddDouble() {
+		byte* bf = new byte[PAGE_SIZE];
+		double data = 8765.4321;
+
+		glib::TPgBlob::InitPageP(bf);
+
+		auto res = glib::TPgBlob::AddItem(bf, (byte*)&data, sizeof(double));
+		EXPECT_EQ(res, 0);
+
+		auto header = (glib::TPgBlob::TPgHeader*)bf;
+		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->IsDirty(), true);
+		EXPECT_EQ(header->IsLock(), false);
+		EXPECT_EQ(header->ItemCount, 1);
+		EXPECT_EQ(header->OffsetFreeStart, 10 + 4); // item record
+		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 8);
+
+		delete[] bf;
 	}
 };
 
@@ -554,14 +622,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////
 
 
-TEST(testTPgBlob, Simple) {
-	auto Base = glib::TTestPgBlob::Create("data\\xyz");
-	auto new_page = Base->CreateNewPage();
-	EXPECT_EQ(new_page.Val1.GetFileIndex(), 0);
-	EXPECT_EQ(new_page.Val1.GetPage(), 0);
-	printf("%d %d\n", new_page.Val1.GetFileIndex(), new_page.Val1.GetPage());
-	auto new_page2 = Base->CreateNewPage();
-	EXPECT_EQ(new_page2.Val1.GetFileIndex(), 0);
-	EXPECT_EQ(new_page2.Val1.GetPage(), 1);
-	printf("%d %d\n", new_page2.Val1.GetFileIndex(), new_page2.Val1.GetPage());
-}
+//TEST(testTPgBlob, Simple) { XTest::TPgBlob_Complex1(); }
+TEST(testTPgBlob, PageInit) { XTest::TPgBlob_Page_Init(); }
+TEST(testTPgBlob, PageAddInt) { XTest::TPgBlob_Page_AddInt(); }
+TEST(testTPgBlob, PageAddDouble) { XTest::TPgBlob_Page_AddDouble(); }

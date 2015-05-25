@@ -17,15 +17,16 @@ namespace glib {
 	class TPgBlobFile;
 	class TPgBlobPage;
 	class TPgBlob;
-	class TTestPgBlob;
-	/// Smart pointers
+	// Smart pointers
 	typedef TPt<TPgBlobPage> TPgBlobPtPPgBlobPage;
 	typedef TPt<TPgBlobFile> PPgBlobFile;
-	typedef TPt<TTestPgBlob> PTestPgBlob;
+	typedef TPt<TPgBlob> PPgBlob;
 
-
-	/// Page size is 8kb
-#define PAGE_SIZE 8192
+	// Macros and constants	
+#define PAGE_SIZE (8 * 1024) // Page size is 8kb
+#define PgHeaderDirtyFlag (0x01)
+#define PgHeaderSLockFlag (0x02)
+#define PgHeaderXLockFlag (0x04)
 
 	////////////////////////////////////////////////////////////
 	/// Pointer into Paged-Blob storage 
@@ -129,21 +130,6 @@ namespace glib {
 	};
 
 	////////////////////////////////////////////////////////////
-	/// Page, used in multi-file paged-BLOB-storage
-	class TPgBlobPage {
-	private:
-		TPgBlobPage();
-	public:
-		~TPgBlobPage();
-
-		/// Reference count for smart pointers
-		TCRef CRef;
-
-		/// Parent class 
-		friend class TPgBlob;
-	};
-
-	////////////////////////////////////////////////////////////
 	/// Multi-file paged-BLOB-storage with cache.
 	/// Has no clue about the meaning of the data in pages. 
 	/// It doesn't even know if data is dirty.
@@ -159,6 +145,58 @@ namespace glib {
 			int LruNext;
 			/// Previous item in LRU list
 			int LruPrev;
+		};
+		
+		/// Single record in item index section
+		struct TPgBlobPageItem{
+			/// Offset of data from start of page
+			uint16 Offset;
+			/// Length of data, 0 means it was deleted
+			uint16 Len;
+		};
+
+		/// Wrapper for header-data of the page
+		class TPgHeader {
+		public:
+			/// Size of the page that is stored
+			uint16 PageSize; // page size should not be more than 64k
+			/// Version of page layout
+			uchar PageVersion;
+			/// Page flags - dirty, lock etc.
+			uchar Flags;
+			/// Number of items in this page, including deleted ones
+			uint16 ItemCount;
+			/// Offset of free space in the block
+			uint16 OffsetFreeStart;
+			/// Offset of end of the free space
+			uint16 OffsetFreeEnd;
+
+			/// Is this page dirty
+			bool IsDirty() { return (Flags & PgHeaderDirtyFlag) != 0; }
+			/// Is this page shared-lock-ed
+			bool IsSLock() { return (Flags & PgHeaderSLockFlag) != 0; }
+			/// Is this page exclusive-lock-ed
+			bool IsXLock() { return (Flags & PgHeaderXLockFlag) != 0; }
+			/// Is this page locked (any type)
+			bool IsLock() { return (Flags & (PgHeaderSLockFlag | PgHeaderXLockFlag)) != 0; }
+
+			/// Set dirty flag for this page
+			void SetDirty(bool val) {
+				if (val) { Flags |= PgHeaderDirtyFlag; } 
+				else { Flags ^= PgHeaderDirtyFlag; }
+			}
+			/// Set S-lock flag for this page
+			void SetSLock(bool val) {
+				if (val) { Flags |= PgHeaderSLockFlag; } 
+				else { Flags ^= PgHeaderSLockFlag; }
+			}
+			/// Set X-lock flag for this page
+			void SetXLock(bool val) {
+				if (val) { Flags |= PgHeaderXLockFlag; } 
+				else { Flags ^= PgHeaderXLockFlag; }
+			}
+			/// Get amount of free space in this page
+			int GetFreeMem() { return OffsetFreeEnd - OffsetFreeStart; }
 		};
 
 		/// File name
@@ -185,9 +223,7 @@ namespace glib {
 		uint64 MxLoadedPages;
 
 		/// Returns starting address of page in Bf
-		byte* GetPageBf(int Pg) {
-			return Bf + Pg * PAGE_SIZE; 
-		}
+		byte* GetPageBf(int Pg) { return Bf + Pg * PAGE_SIZE; }
 
 		/// remove given page from LRU list
 		void UnlistFromLru(int Pg);
@@ -206,13 +242,19 @@ namespace glib {
 		/// Find which child files exist
 		void DetectSegments();
 
-		/// Initialization, called at the end of base class constructor
-		virtual void Init() {}
-	public:
-		/// Constructor
-		TPgBlob(const TStr& _FNm, const TFAccess& _Access, const uint64& CacheSize);
-		/// Destructor
-		virtual ~TPgBlob();
+		/// This method tells if given page should be stored to disk.
+		bool ShouldSavePage(int Pg) { return ShouldSavePageP(GetPageBf(Pg)); }
+
+		/// This method tells if given page can be evicted from cache.
+		bool CanEvictPage(int Pg) { return CanEvictPageP(GetPageBf(Pg)); }
+
+		/// This method should be overridden in derived class to tell 
+		/// if given page should be stored to disk.
+		bool ShouldSavePageP(byte* Pt) { return ((TPgHeader*)Pt)->IsDirty(); }
+
+		/// This method should be overridden in derived class to tell 
+		/// if given page can be evicted from cache.
+		bool CanEvictPageP(byte* Pt) { return ((TPgHeader*)Pt)->IsLock(); }
 
 		/// Load given page into memory
 		byte* LoadPage(const TPgBlobPt& Pt);
@@ -220,97 +262,36 @@ namespace glib {
 		/// Create new page and return pointers to it
 		TPair<TPgBlobPt, byte*> CreateNewPage();
 
-		/// This method tells if given page should be stored to disk.
-		bool ShouldSavePage(int Pg) { return ShouldSavePageP(GetPageBf(Pg)); }
-
-		/// This method tells if given page can be evicted from cache.
-		bool CanEvictPage(int Pg) { return CanEvictPageP(GetPageBf(Pg)); }
-
-		// virtual methods //////////////
-
-		/// This method should be overridden in derived class to tell 
-		/// if given page should be stored to disk.
-		virtual bool ShouldSavePageP(byte* Pt) { return true; }
-
-		/// This method should be overridden in derived class to tell 
-		/// if given page can be evicted from cache.
-		virtual bool CanEvictPageP(byte* Pt) { return true; }
-
 		/// Initialize new page.
-		virtual void InitPageP(byte* Pt) { }
-	};
+		static void InitPageP(byte* Pt);
 
-	///////////////////////////////////////////////////////////////////////
+		/// Get pointer to item record - in it are offset and length
+		static TPgBlobPageItem* GetItemRec(byte* Pg, uint16 ItemIndex);
+		/// Add given buffer to page, return item-index
+		static uint16 AddItem(byte* Pg, byte* Bf, int BfL);
+		/// Retrieve buffer from specified page
+		static void GetItem(byte* Pg, uint16 ItemIndex, byte** Bf, int& BfL);
+		/// Delete buffer from specified page
+		static void DeleteItem(byte* Pg, uint16 ItemIndex);
 
-
-
-#define PgHeaderDirtyFlag (0x01)
-#define PgHeaderSLockFlag (0x02)
-#define PgHeaderXLockFlag (0x04)
-
-	class TTestPgBlob : public TPgBlob {
-	protected:
-
-		class TPgHeader {
-		public:
-			uint16 PageSize; // page size should not be more than 64k
-			uchar PageVersion;
-			uchar Flags;
-			uint16 OffsetFreeStart;
-			uint16 OffsetFreeEnd;
-
-			bool IsDirty() { return (Flags & PgHeaderDirtyFlag) != 0; }
-			bool IsSLock() { return (Flags & PgHeaderSLockFlag) != 0; }
-			bool IsXLock() { return (Flags & PgHeaderXLockFlag) != 0; }
-			bool IsLock() { return (Flags & (PgHeaderSLockFlag | PgHeaderXLockFlag)) != 0; }
-
-			bool SetDirty(bool val) {
-				if (val) {
-					Flags &= PgHeaderDirtyFlag;
-				} else { Flags ^= PgHeaderDirtyFlag; }
-			}
-			bool SetSLock(bool val) {
-				if (val) {
-					Flags &= PgHeaderSLockFlag;
-				} else { Flags ^= PgHeaderSLockFlag; }
-			}
-			bool SetXLock(bool val) {
-				if (val) {
-					Flags &= PgHeaderXLockFlag;
-				} else { Flags ^= PgHeaderXLockFlag; }
-			}
-		};
 	public:
+
 		/// Reference count for smart pointers
 		TCRef CRef;
 
 		/// Constructor
-		TTestPgBlob(const TStr& _FNm, const TFAccess& _Access, const uint64& CacheSize) :
-			TPgBlob(_FNm, _Access, CacheSize) {}
+		TPgBlob(const TStr& _FNm, const TFAccess& _Access, const uint64& CacheSize);
 		/// Destructor
-		~TTestPgBlob();
+		~TPgBlob();
 
 		/// Factory method for creating new BLOB storage
-		static PTestPgBlob Create(const TStr& FNm, const uint64& CacheSize = 10 * TNum<int>::Mega);
+		static PPgBlob Create(const TStr& FNm, const uint64& CacheSize = 10 * TNum<int>::Mega);
 		/// Factory method for opening existing BLOB storage
-		static PTestPgBlob Open(const TStr& FNm, const uint64& CacheSize = 10 * TNum<int>::Mega);
+		static PPgBlob Open(const TStr& FNm, const uint64& CacheSize = 10 * TNum<int>::Mega);
 
-		// overridden virtual methods ////////////////////////////
-
-		/// This method should be overridden in derived class to tell 
-		/// if given page should be stored to disk.
-		bool ShouldSavePageP(byte* Pt) {
-			return ((TPgHeader*)Pt)->IsDirty();
-		}
-
-		/// This method should be overridden in derived class to tell 
-		/// if given page can be evicted from cache.
-		bool CanEvictPageP(byte* Pt) { 
-			return ((TPgHeader*)Pt)->IsLock();
-		}
-
-		/// Initialize new page - inject template.
-		void InitPageP(byte* Pt);
+#ifdef XTEST
+		friend class XTest;
+#endif
 	};
 }
 #endif
