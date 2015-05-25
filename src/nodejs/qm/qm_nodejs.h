@@ -997,6 +997,31 @@ private:
 	* Adds a record to the store.
 	* @param {Object} rec - The added record. //TODO
 	* @returns {number} The ID of the added record.
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base with one two stores
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [
+	*    {
+	*        "name": "Superheroes",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Superpowers", "type": "string_v" }
+	*        ]
+	*    },
+	*    {
+	*        "name": "Supervillians",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Superpowers", "type": "string_v" }
+	*        ]
+	*    }]
+	* })
+	* // add a new superhero to the Superheroes store
+	* base.store("Superheroes").push({ "Name": "Superman", "Superpowers": ["flight", "heat vision", "bulletproof"] });
+	* // add a new supervillian to the Supervillians store
+	* base.store("Supervillians").push({ "Name": "Lex Luthor", "Superpowers": ["expert engineer", "genius-level intellect", "money"] });
 	*/
 	//# exports.Store.prototype.push = function (rec) {}
 	JsDeclareFunction(push);
@@ -1014,7 +1039,7 @@ private:
 	/**
 	* Creates a new record set out of the records in store.
 	* @param {module:la.IntVector} idVec - The integer vector containing the ids of selected vectors.
-	* @returns {module:qm.RecSet} The record set that contains the records gained with idVec.
+	* @returns {module:qm.RecordSet} The record set that contains the records gained with idVec.
 	*/
 	//# exports.Store.prototype.newRecordSet = function (idVec) {};
 	JsDeclareFunction(newRecordSet);
@@ -1024,7 +1049,7 @@ private:
 	/**
 	* Creates a record set containing random records from store.
 	* @param {number} sampleSize - The size of the record set.
-	* @returns {module:qm.RecSet} Returns a record set containing random records.
+	* @returns {module:qm.RecordSet} Returns a record set containing random records.
 	*/
 	//# exports.Store.prototype.sample = function (sampleSize) {};
 	JsDeclareFunction(sample);
@@ -1051,7 +1076,7 @@ private:
 	/**
 	* Checks if the field is of string type.
 	* @param {string} fieldName - The checked field.
-	* @returns {boolean} True, if the field is of the string type. Otherwise, false.
+	* @returns {boolean} True, if the field is of string type. Otherwise, false.
 	*/
 	//# exports.Store.prototype.isString = function (fieldName) {}; 
 	JsDeclareFunction(isString)
@@ -1074,6 +1099,7 @@ private:
 	JsDeclareFunction(getStreamAggr);
 	//!- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
 	JsDeclareFunction(getStreamAggrNames);
+
 	//!- `objJSON = store.toJSON()` -- returns the store as a JSON
 	/**
 	* Returns the store as a JSON.
@@ -1108,10 +1134,10 @@ private:
 	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94);
 	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11});
 	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
-	* // deletes the first 2 records ("Archer" and "The Simpsons") in "TVSeries"
-	* store.clear(2);	// returns 3
-	* // delete all remaining records in "TVStore"
-	* store.clear();	// returns 0
+	* // deletes the first 2 records (Archer and The Simpsons) in TVSeries
+	* store.clear(2); // returns 3
+	* // delete all remaining records in TVStore
+	* store.clear();  // returns 0
 	*/
 	//# exports.Store.prototype.clear = function (num) {};
 	JsDeclareFunction(clear);
@@ -1121,6 +1147,26 @@ private:
 	* Gives a vector containing the field value of each record.
 	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string...
 	* @returns {module:la.Vector} The vector containing the field values of each record.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a base with one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "Companies",
+	*        "fields": [
+	*            { "name": "Name", "type": "string", "primary": true },
+	*            { "name": "Location", "type": "string" }
+	*        ]
+	*    }]
+	* })
+	* // add some records to the store
+	* base.store("Companies").push({ "Name": "DC Comics", "Location": "Burbank, California" });
+	* base.store("Companies").push({ "Name": "DC Shoes", "Location": "Huntington Beach, California" });
+	* base.store("Companies").push({ "Name": "21st Century Fox", "Location": "New York City, New York" });
+	* // get the vector of company names
+	* var companyNames = base.store("Companies").getVector("Name");	// returns a vector ["DC Comics", "DC Shoes", "21st Century Fox"]
 	*/
 	//# exports.Store.prototype.getVector = function (fieldName) {};
 	JsDeclareFunction(getVector);

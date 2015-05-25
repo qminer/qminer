@@ -885,15 +885,36 @@
 	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11});
 	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
 	* // deletes the first 2 records ("Archer" and "The Simpsons") in "TVSeries"
-	* store.clear(2);	// returns 3
+	* store.clear(2); // returns 3
 	* // delete all remaining records in "TVStore"
-	* store.clear();	// returns 0
+	* store.clear();  // returns 0
 	*/
  exports.Store.prototype.clear = function (num) {};
 /**
 	* Gives a vector containing the field value of each record.
 	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string...
 	* @returns {module:la.Vector} The vector containing the field values of each record.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a base with one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "Companies",
+	*        "fields": [
+	*            { "name": "Name", "type": "string", "primary": true },
+	*            { "name": "Location", "type": "string" }
+	*        ]
+	*    }]
+	* })
+	* // add some records to the store
+	* base.store("Companies").push({ "Name": "DC Comics", "Location": "Burbank, California" });
+	* base.store("Companies").push({ "Name": "DC Shoes", "Location": "Huntington Beach, California" });
+	* base.store("Companies").push({ "Name": "21st Century Fox", "Location": "New York City, New York" });
+	* // get the vector of company names
+	* var companyNames = base.store("Companies").getVector("Name");	// returns a vector ["DC Comics", "DC Shoes", "21st Century Fox"]
+	*
 	*/
  exports.Store.prototype.getVector = function (fieldName) {};
 /**

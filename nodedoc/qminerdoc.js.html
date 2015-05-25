@@ -1803,11 +1803,11 @@
 
 	* // deletes the first 2 records (&quot;Archer&quot; and &quot;The Simpsons&quot;) in &quot;TVSeries&quot;
 
-	* store.clear(2);	// returns 3
+	* store.clear(2); // returns 3
 
 	* // delete all remaining records in &quot;TVStore&quot;
 
-	* store.clear();	// returns 0
+	* store.clear();  // returns 0
 
 	*/
 
@@ -1820,6 +1820,48 @@
 	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string...
 
 	* @returns {module:la.Vector} The vector containing the field values of each record.
+
+	* @example
+
+	* // import qm module
+
+	* var qm = require(&#x27;qminer&#x27;);
+
+	* // create a base with one store
+
+	* var base = new qm.Base({
+
+	*    mode: &quot;createClean&quot;,
+
+	*    schema: [{
+
+	*        &quot;name&quot;: &quot;Companies&quot;,
+
+	*        &quot;fields&quot;: [
+
+	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+
+	*            { &quot;name&quot;: &quot;Location&quot;, &quot;type&quot;: &quot;string&quot; }
+
+	*        ]
+
+	*    }]
+
+	* })
+
+	* // add some records to the store
+
+	* base.store(&quot;Companies&quot;).push({ &quot;Name&quot;: &quot;DC Comics&quot;, &quot;Location&quot;: &quot;Burbank, California&quot; });
+
+	* base.store(&quot;Companies&quot;).push({ &quot;Name&quot;: &quot;DC Shoes&quot;, &quot;Location&quot;: &quot;Huntington Beach, California&quot; });
+
+	* base.store(&quot;Companies&quot;).push({ &quot;Name&quot;: &quot;21st Century Fox&quot;, &quot;Location&quot;: &quot;New York City, New York&quot; });
+
+	* // get the vector of company names
+
+	* var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;);	// returns a vector [&quot;DC Comics&quot;, &quot;DC Shoes&quot;, &quot;21st Century Fox&quot;]
+
+	*
 
 	*/
 

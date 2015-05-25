@@ -277,9 +277,9 @@ base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;New Girl&quot;,
 base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Rick and Morty&quot;, &quot;NumberOfEpisodes&quot;: 11});
 base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Game of Thrones&quot;, &quot;NumberOfEpisodes&quot;: 47 });
 // deletes the first 2 records (&quot;Archer&quot; and &quot;The Simpsons&quot;) in &quot;TVSeries&quot;
-store.clear(2);	// returns 3
+store.clear(2); // returns 3
 // delete all remaining records in &quot;TVStore&quot;
-store.clear();	// returns 0</code></pre>
+store.clear();  // returns 0</code></pre>
                 </div>
               </section>
               <section>
@@ -459,6 +459,32 @@ base.store(&quot;Class&quot;).each(function (rec) { rec.StudyGroup = &quot;A&quo
               </dl>
               <h3 id="getVector"><span class="symbol-name">getVector</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Gives a vector containing the field value of each record.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;Companies&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+           { &quot;name&quot;: &quot;Location&quot;, &quot;type&quot;: &quot;string&quot; }
+       ]
+   }]
+})
+// add some records to the store
+base.store(&quot;Companies&quot;).push({ &quot;Name&quot;: &quot;DC Comics&quot;, &quot;Location&quot;: &quot;Burbank, California&quot; });
+base.store(&quot;Companies&quot;).push({ &quot;Name&quot;: &quot;DC Shoes&quot;, &quot;Location&quot;: &quot;Huntington Beach, California&quot; });
+base.store(&quot;Companies&quot;).push({ &quot;Name&quot;: &quot;21st Century Fox&quot;, &quot;Location&quot;: &quot;New York City, New York&quot; });
+// get the vector of company names
+var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;);	// returns a vector [&quot;DC Comics&quot;, &quot;DC Shoes&quot;, &quot;21st Century Fox&quot;]</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
