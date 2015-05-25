@@ -28,7 +28,6 @@ typedef long long index_t;
 #elif defined(__sun__)
   #define GLib_UNIX
   #define GLib_SOLARIS __sun__
-  // !bn: defined in ctype_iso.h but apears as a parameter in GLib
   #undef _C
 #elif defined(__FreeBSD__)
   #define GLib_UNIX
@@ -51,7 +50,6 @@ typedef long long index_t;
 #endif
 #if defined (__GNUC__)
   #define GLib_GCC __GNUC__
-// !bn: to bo not samo dokler ne ugotovim kje so primerjave problematicne
   #ifdef FLTWARN
     #undef _CMPWARN
     #define _CMPWARN __attribute__ ((deprecated))
@@ -138,10 +136,7 @@ typedef long long index_t;
 
 #include <ctype.h>
 #include <float.h>
-//Andrej adds support for complex
 #include <complex>
-//#define MKL_Complex8 std::complex<float>
-//#define MKL_Complex16 std::complex<double>
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
