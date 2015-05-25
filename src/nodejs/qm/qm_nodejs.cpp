@@ -24,8 +24,12 @@ void TNodeJsQm::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_METHOD(exports, "config", _config);
 	NODE_SET_METHOD(exports, "create", _create);
 	NODE_SET_METHOD(exports, "open", _open);
+	NODE_SET_METHOD(exports, "verbosity", _verbosity);
 
+    // initialize QMiner environment
 	TQm::TEnv::Init();
+    // default to no output
+    TQm::TEnv::InitLogger(0, "std");
 }
 
 void TNodeJsQm::config(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -156,6 +160,14 @@ void TNodeJsQm::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Lock.Unlock();
 }
 
+void TNodeJsQm::verbosity(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// get verbosity level
+	const int Verbosity = TNodeJsUtil::GetArgInt32(Args, 0, 0);
+    // set verbosity level
+    TQm::TEnv::InitLogger(Verbosity, "std");
+}
 
 ///////////////////////////////
 // NodeJs QMiner Base

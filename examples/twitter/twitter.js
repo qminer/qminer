@@ -7,9 +7,7 @@ var qm = require('../../index.js');
 var analytics = qm.analytics;
 var fs = qm.fs;
 
-qm.delLock();
-qm.config('qm.conf', true, 8080, 1024);
-var base = qm.create('qm.conf', 'twitter.def', true); // 2nd arg: schema, 3rd arg: clear db folder = true
+var base = new qm.Base({ mode: "createClean", schemaPath: "twitter.def" });
 
 // Load tweets from a file (toy example)
 // Set the filename
@@ -81,7 +79,7 @@ if (learnSvmFilter) {
 var fin = fs.openRead("./sandbox/twitter/svmFilter.bin");
 var svmFilter = new analytics.SVC(fin);
 // Filter relevant records: records are dropped if svmFilter predicts a v negative value (anonymous function)
-recSet.filter(function (rec) { return svmFilter.predict(ftrSpace.ftrSpVec(rec)) > 0; });
+recSet.filter(function (rec) { return svmFilter.predict(ftrSpace.extractSparseVector(rec)) > 0; });
 
 // Learn a sentiment model 
 if (learnSvmSentiment) {
@@ -102,7 +100,7 @@ var svmSentiment = new analytics.SVC(fin);
 
 // Classify the sentiment of the "relevant" tweets
 for (var recN = 0; recN < recSet.length; recN++) {
-    recSet[recN].Sentiment = svmSentiment.predict(ftrSpace.ftrSpVec(recSet[recN])) > 0 ? 1 : -1;
+    recSet[recN].Sentiment = svmSentiment.predict(ftrSpace.extractSparseVector(recSet[recN])) > 0 ? 1 : -1;
 }
 
 // Filter the record set of by time

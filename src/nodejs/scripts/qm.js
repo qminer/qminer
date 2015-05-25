@@ -339,7 +339,7 @@ module.exports = exports = function (pathPrefix) {
                     // count, GC and report
                     count++;
                     if (count % 1000 == 0) {
-                        store.base.gc();
+                        store.base.garbageCollect();
                     }
                     if (count % 10000 == 0) {
                         console.log("  " + count + " records");

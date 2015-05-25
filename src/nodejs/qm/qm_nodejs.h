@@ -34,7 +34,8 @@ class TNodeJsQm : public node::ObjectWrap {
 public:
 	// Node framework
 	static void Init(v8::Handle<v8::Object> exports);	
-	// TNodeJsRec needs this to select a template. TODO remove, see comment in v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec, const TInt& _Fq)
+	// TNodeJsRec needs this to select a template. TODO remove, see comment in
+    //   v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec, const TInt& _Fq)
 	static THash<TStr, TUInt> BaseFPathToId;
 private:
 	/*
@@ -65,6 +66,13 @@ private:
 	*/
 	// exports.open = function (configPath, readOnly) { return Object.create(require('qminer').Base.prototype); }
 	JsDeclareFunction(open);
+    
+	/**
+	* Set verbosity of QMiner internals.
+	* @param {number} [level=0] - verbosity level: 0 = no output, 1 = log output, 2 = log and debug output.
+	*/
+	//# exports.verbosity = function (level) { }
+	JsDeclareFunction(verbosity);
 };
 
 ///////////////////////////////
