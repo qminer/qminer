@@ -985,6 +985,34 @@ base.store(&quot;Supervillians&quot;).push({ &quot;Name&quot;: &quot;Lex Luthor&
               <h3 id="sample"><span class="symbol-name">sample</span><span class="signature"><span class="signature-params">(sampleSize)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
               <p>Creates a record set containing random records from store.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;TVSeries&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+           { &quot;name&quot;: &quot;NumberOfEpisodes&quot;, &quot;type&quot;: &quot;int&quot; }
+       ]
+   }]
+})
+// add some records in the store
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Archer&quot;, &quot;NumberOfEpisodes&quot;: 75 });
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;The Simpsons&quot;, &quot;NumberOfEpisodes&quot;: 574 });
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;New Girl&quot;, &quot;NumberOfEpisodes&quot;: 94 });
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Rick and Morty&quot;, &quot;NumberOfEpisodes&quot;: 11 });
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Game of Thrones&quot;, &quot;NumberOfEpisodes&quot;: 47 });
+// create a sample record set containing 3 records
+var randomRecordSet = base.store(&quot;TVSeries&quot;).sample(3); // contains 3 random records from the TVSeries store</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>

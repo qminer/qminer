@@ -896,6 +896,28 @@
 	* Creates a record set containing random records from store.
 	* @param {number} sampleSize - The size of the record set.
 	* @returns {module:qm.RecordSet} Returns a record set containing random records.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a base with one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "TVSeries",
+	*        "fields": [
+	*            { "name": "Title", "type": "string", "primary": true },
+	*            { "name": "NumberOfEpisodes", "type": "int" }
+	*        ]
+	*    }]
+	* })
+	* // add some records in the store
+	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
+	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
+	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94 });
+	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11 });
+	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
+	* // create a sample record set containing 3 records
+	* var randomRecordSet = base.store("TVSeries").sample(3); // contains 3 random records from the TVSeries store
 	*/
  exports.Store.prototype.sample = function (sampleSize) {};
 /**
