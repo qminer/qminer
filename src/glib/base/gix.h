@@ -1225,9 +1225,11 @@ void TGix<TKey, TItem, TGixMerger>::GetChildVector(const TBlobPt& KeyId, TVec<TI
 
 template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
+    // only report when cache size bigger then 10GB
+    const int ReportP = CacheResetThreshold > (uint64)(TInt::Giga);
 	// check if we have to drop anything from the cache
 	if (NewCacheSizeInc > CacheResetThreshold) {
-		printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr());
+        if (ReportP) { printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr()); }
 		// pack all the item sets
 		TBlobPt BlobPt;
 		PGixItemSet ItemSet;
@@ -1239,7 +1241,7 @@ void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
 		CacheFullP = ItemSetCache.RefreshMemUsed();
 		NewCacheSizeInc = 0;
 		const uint64 NewSize = ItemSetCache.GetMemUsed();
-		printf("Done [%s]\n", TUInt64::GetMegaStr(NewSize).CStr());
+		if (ReportP) { printf("Done [%s]\n", TUInt64::GetMegaStr(NewSize).CStr()); }
 	}
 }
 
