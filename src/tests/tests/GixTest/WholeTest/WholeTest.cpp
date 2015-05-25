@@ -258,16 +258,16 @@ public:
 		auto new_page = Base->CreateNewPage();
 		EXPECT_EQ(new_page.Val1.GetFileIndex(), 0);
 		EXPECT_EQ(new_page.Val1.GetPage(), 0);
-		printf("%d %d\n", new_page.Val1.GetFileIndex(), new_page.Val1.GetPage());
+		//printf("%d %d\n", new_page.Val1.GetFileIndex(), new_page.Val1.GetPage());
 		auto new_page2 = Base->CreateNewPage();
 		EXPECT_EQ(new_page2.Val1.GetFileIndex(), 0);
 		EXPECT_EQ(new_page2.Val1.GetPage(), 1);
-		printf("%d %d\n", new_page2.Val1.GetFileIndex(), new_page2.Val1.GetPage());
+		//printf("%d %d\n", new_page2.Val1.GetFileIndex(), new_page2.Val1.GetPage());
 	}
 
 	static void TPgBlob_Page_Init() {
 		byte* bf = new byte[PAGE_SIZE];
-		
+
 		glib::TPgBlob::InitPageP(bf);
 		auto header = (glib::TPgBlob::TPgHeader*)bf;
 
@@ -278,7 +278,7 @@ public:
 		EXPECT_EQ(header->OffsetFreeStart, 10);
 		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE);
 
-		delete [] bf;
+		delete[] bf;
 	}
 
 	static void TPgBlob_Page_AddInt() {
@@ -287,9 +287,11 @@ public:
 
 		glib::TPgBlob::InitPageP(bf);
 
+		// add value
 		auto res = glib::TPgBlob::AddItem(bf, (byte*)&data, sizeof(int));
 		EXPECT_EQ(res, 0);
 
+		// check internal state
 		auto header = (glib::TPgBlob::TPgHeader*)bf;
 		EXPECT_EQ(header->PageSize, PAGE_SIZE);
 		EXPECT_EQ(header->IsDirty(), true);
@@ -297,6 +299,11 @@ public:
 		EXPECT_EQ(header->ItemCount, 1);
 		EXPECT_EQ(header->OffsetFreeStart, 10 + 4); // item record
 		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 4);
+
+		// retrieve value
+		auto rec = glib::TPgBlob::GetItemRec(bf, res);
+		int* b = (int*)(bf + rec->Offset);
+		EXPECT_EQ(*b, data);
 
 		delete[] bf;
 	}
@@ -307,9 +314,11 @@ public:
 
 		glib::TPgBlob::InitPageP(bf);
 
+		// add value
 		auto res = glib::TPgBlob::AddItem(bf, (byte*)&data, sizeof(double));
 		EXPECT_EQ(res, 0);
 
+		// check internal state
 		auto header = (glib::TPgBlob::TPgHeader*)bf;
 		EXPECT_EQ(header->PageSize, PAGE_SIZE);
 		EXPECT_EQ(header->IsDirty(), true);
@@ -317,6 +326,120 @@ public:
 		EXPECT_EQ(header->ItemCount, 1);
 		EXPECT_EQ(header->OffsetFreeStart, 10 + 4); // item record
 		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 8);
+
+		// retrieve value
+		auto rec = glib::TPgBlob::GetItemRec(bf, res);
+		double* b = (double*)(bf + rec->Offset);
+		EXPECT_EQ(*b, data);
+
+		delete[] bf;
+	}
+
+	static void TPgBlob_Page_AddIntSeveral() {
+		byte* bf = new byte[PAGE_SIZE];
+		int data1 = 8765;
+		int data2 = 77;
+		int data3 = 91826;
+
+		glib::TPgBlob::InitPageP(bf);
+
+		// add value
+		auto res1 = glib::TPgBlob::AddItem(bf, (byte*)&data1, sizeof(int));
+		auto res2 = glib::TPgBlob::AddItem(bf, (byte*)&data2, sizeof(int));
+		auto res3 = glib::TPgBlob::AddItem(bf, (byte*)&data3, sizeof(int));
+		EXPECT_EQ(res1, 0);
+		EXPECT_EQ(res2, 1);
+		EXPECT_EQ(res3, 2);
+
+		// check internal state
+		auto header = (glib::TPgBlob::TPgHeader*)bf;
+		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->IsDirty(), true);
+		EXPECT_EQ(header->IsLock(), false);
+		EXPECT_EQ(header->ItemCount, 3);
+		EXPECT_EQ(header->OffsetFreeStart, 10 + 3 * 4); // item record
+		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 3 * 4);
+
+		// retrieve values
+		auto rec1 = glib::TPgBlob::GetItemRec(bf, res1);
+		int* b1 = (int*)(bf + rec1->Offset);
+		EXPECT_EQ(*b1, data1);
+		auto rec2 = glib::TPgBlob::GetItemRec(bf, res2);
+		int* b2 = (int*)(bf + rec2->Offset);
+		EXPECT_EQ(*b2, data2);
+		auto rec3 = glib::TPgBlob::GetItemRec(bf, res3);
+		int* b3 = (int*)(bf + rec3->Offset);
+		EXPECT_EQ(*b3, data3);
+
+		delete[] bf;
+	}
+
+	static void TPgBlob_Page_AddIntSeveralDelete() {
+		byte* bf = new byte[PAGE_SIZE];
+		int data1 = 8765;
+		int data2 = 77;
+		int data3 = 91826;
+
+		glib::TPgBlob::InitPageP(bf);
+
+		// add value
+		auto res1 = glib::TPgBlob::AddItem(bf, (byte*)&data1, sizeof(int));
+		auto res2 = glib::TPgBlob::AddItem(bf, (byte*)&data2, sizeof(int));
+		auto res3 = glib::TPgBlob::AddItem(bf, (byte*)&data3, sizeof(int));    
+
+		glib::TPgBlob::DeleteItem(bf, res2);
+
+		// check internal state
+		auto header = (glib::TPgBlob::TPgHeader*)bf;
+		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->IsDirty(), true);
+		EXPECT_EQ(header->IsLock(), false);
+		EXPECT_EQ(header->ItemCount, 3);
+		EXPECT_EQ(header->OffsetFreeStart, 10 + 3 * 4); // 3 items
+		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 2 * 4); // 2 actually contain data
+
+		// retrieve values
+		auto rec1 = glib::TPgBlob::GetItemRec(bf, res1);
+		int* b1 = (int*)(bf + rec1->Offset);
+		EXPECT_EQ(*b1, data1);
+		auto rec3 = glib::TPgBlob::GetItemRec(bf, res3);
+		int* b3 = (int*)(bf + rec3->Offset);
+		EXPECT_EQ(*b3, data3);
+
+		delete[] bf;
+	}
+
+	static void TPgBlob_Page_AddIntSeveralDelete2() {
+		byte* bf = new byte[PAGE_SIZE];
+		int data1 = 8765;
+		int data2 = 77;
+		int data3 = 91826;
+
+		glib::TPgBlob::InitPageP(bf);
+
+		// add value
+		auto res1 = glib::TPgBlob::AddItem(bf, (byte*)&data1, sizeof(int));
+		auto res2 = glib::TPgBlob::AddItem(bf, (byte*)&data2, sizeof(int));
+		auto res3 = glib::TPgBlob::AddItem(bf, (byte*)&data3, sizeof(int));
+
+		glib::TPgBlob::DeleteItem(bf, res1);
+
+		// check internal state
+		auto header = (glib::TPgBlob::TPgHeader*)bf;
+		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->IsDirty(), true);
+		EXPECT_EQ(header->IsLock(), false);
+		EXPECT_EQ(header->ItemCount, 3);
+		EXPECT_EQ(header->OffsetFreeStart, 10 + 3 * 4); // 3 items
+		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 2 * 4); // 2 actually contain data
+
+		// retrieve values
+		auto rec2 = glib::TPgBlob::GetItemRec(bf, res2);
+		int* b2 = (int*)(bf + rec2->Offset);
+		EXPECT_EQ(*b2, data2);
+		auto rec3 = glib::TPgBlob::GetItemRec(bf, res3);
+		int* b3 = (int*)(bf + rec3->Offset);
+		EXPECT_EQ(*b3, data3);
 
 		delete[] bf;
 	}
@@ -622,7 +745,10 @@ public:
 ///////////////////////////////////////////////////////////////////////////
 
 
-//TEST(testTPgBlob, Simple) { XTest::TPgBlob_Complex1(); }
+TEST(testTPgBlob, Simple) { XTest::TPgBlob_Complex1(); }
 TEST(testTPgBlob, PageInit) { XTest::TPgBlob_Page_Init(); }
 TEST(testTPgBlob, PageAddInt) { XTest::TPgBlob_Page_AddInt(); }
 TEST(testTPgBlob, PageAddDouble) { XTest::TPgBlob_Page_AddDouble(); }
+TEST(testTPgBlob, PageAddIntSeveral) { XTest::TPgBlob_Page_AddIntSeveral(); }
+TEST(testTPgBlob, PageAddIntSeveralDelete) { XTest::TPgBlob_Page_AddIntSeveralDelete(); }
+TEST(testTPgBlob, PageAddIntSeveralDelete2) { XTest::TPgBlob_Page_AddIntSeveralDelete2(); }

@@ -158,15 +158,17 @@ namespace glib {
 		int PackOffset = Item->Len;
 		TPgHeader* Header = (TPgHeader*)Pg;
 		byte* OldFreeEnd = Pg + Header->OffsetFreeEnd;
+		int Len = 0;
 		for (int i = ItemIndex + 1; i < Header->ItemCount; i++) {
-			TPgBlobPageItem* ItemX = GetItemRec(Pg, ItemIndex);
-			if (ItemX->Len > 0) {
+			TPgBlobPageItem* ItemX = GetItemRec(Pg, i);
+			if (ItemX->Len == 0) {
 				continue;
 			}
+			Len += ItemX->Len;
 			ItemX->Offset += PackOffset;
 		}
 		Header->OffsetFreeEnd += PackOffset;
-		memmove(OldFreeEnd, OldFreeEnd + PackOffset, PackOffset);
+		memmove(OldFreeEnd + PackOffset, OldFreeEnd, Len);
 
 		Item->Len = 0;
 		Header->SetDirty(true);
