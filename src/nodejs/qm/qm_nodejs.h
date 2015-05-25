@@ -997,6 +997,7 @@ private:
 	* Adds a record to the store.
 	* @param {Object} rec - The added record. //TODO
 	* @returns {number} The ID of the added record.
+	* @example
 	* // import qm module
 	* var qm = require('qminer');
 	* // create a new base with one two stores

@@ -1655,6 +1655,58 @@
 
 	* @returns {number} The ID of the added record.
 
+	* @example
+
+	* // import qm module
+
+	* var qm = require(&#x27;qminer&#x27;);
+
+	* // create a new base with one two stores
+
+	* var base = new qm.Base({
+
+	*    mode: &quot;createClean&quot;,
+
+	*    schema: [
+
+	*    {
+
+	*        &quot;name&quot;: &quot;Superheroes&quot;,
+
+	*        &quot;fields&quot;: [
+
+	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+
+	*            { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; }
+
+	*        ]
+
+	*    },
+
+	*    {
+
+	*        &quot;name&quot;: &quot;Supervillians&quot;,
+
+	*        &quot;fields&quot;: [
+
+	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+
+	*            { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; }
+
+	*        ]
+
+	*    }]
+
+	* })
+
+	* // add a new superhero to the Superheroes store
+
+	* base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Superman&quot;, &quot;Superpowers&quot;: [&quot;flight&quot;, &quot;heat vision&quot;, &quot;bulletproof&quot;] });
+
+	* // add a new supervillian to the Supervillians store
+
+	* base.store(&quot;Supervillians&quot;).push({ &quot;Name&quot;: &quot;Lex Luthor&quot;, &quot;Superpowers&quot;: [&quot;expert engineer&quot;, &quot;genius-level intellect&quot;, &quot;money&quot;] });
+
 	*/
 
  exports.Store.prototype.push = function (rec) {}
@@ -1677,7 +1729,7 @@
 
 	* @param {module:la.IntVector} idVec - The integer vector containing the ids of selected vectors.
 
-	* @returns {module:qm.RecSet} The record set that contains the records gained with idVec.
+	* @returns {module:qm.RecordSet} The record set that contains the records gained with idVec.
 
 	*/
 
@@ -1689,7 +1741,7 @@
 
 	* @param {number} sampleSize - The size of the record set.
 
-	* @returns {module:qm.RecSet} Returns a record set containing random records.
+	* @returns {module:qm.RecordSet} Returns a record set containing random records.
 
 	*/
 
@@ -1725,7 +1777,7 @@
 
 	* @param {string} fieldName - The checked field.
 
-	* @returns {boolean} True, if the field is of the string type. Otherwise, false.
+	* @returns {boolean} True, if the field is of string type. Otherwise, false.
 
 	*/
 
@@ -1801,11 +1853,11 @@
 
 	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Game of Thrones&quot;, &quot;NumberOfEpisodes&quot;: 47 });
 
-	* // deletes the first 2 records (&quot;Archer&quot; and &quot;The Simpsons&quot;) in &quot;TVSeries&quot;
+	* // deletes the first 2 records (Archer and The Simpsons) in TVSeries
 
 	* store.clear(2); // returns 3
 
-	* // delete all remaining records in &quot;TVStore&quot;
+	* // delete all remaining records in TVStore
 
 	* store.clear();  // returns 0
 
@@ -1860,8 +1912,6 @@
 	* // get the vector of company names
 
 	* var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;);	// returns a vector [&quot;DC Comics&quot;, &quot;DC Shoes&quot;, &quot;21st Century Fox&quot;]
-
-	*
 
 	*/
 

@@ -276,9 +276,9 @@ base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;The Simpsons&qu
 base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;New Girl&quot;, &quot;NumberOfEpisodes&quot;: 94);
 base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Rick and Morty&quot;, &quot;NumberOfEpisodes&quot;: 11});
 base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Game of Thrones&quot;, &quot;NumberOfEpisodes&quot;: 47 });
-// deletes the first 2 records (&quot;Archer&quot; and &quot;The Simpsons&quot;) in &quot;TVSeries&quot;
+// deletes the first 2 records (Archer and The Simpsons) in TVSeries
 store.clear(2); // returns 3
-// delete all remaining records in &quot;TVStore&quot;
+// delete all remaining records in TVStore
 store.clear();  // returns 0</code></pre>
                 </div>
               </section>
@@ -591,7 +591,7 @@ var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;)
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>boolean</code>&nbsp;True, if the field is of the string type. Otherwise, false.</p>
+                  <p><code>boolean</code>&nbsp;True, if the field is of string type. Otherwise, false.</p>
                 </dd>
               </dl>
               <h3 id="key"><span class="symbol-name">key</span><span class="signature"><span class="signature-params">(keyName)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
@@ -734,7 +734,7 @@ var arr = base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; })
                   <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>&nbsp;The record created by the JSON value and the store.</p>
                 </dd>
               </dl>
-              <h3 id="newRecordSet"><span class="symbol-name">newRecordSet</span><span class="signature"><span class="signature-params">(idVec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <h3 id="newRecordSet"><span class="symbol-name">newRecordSet</span><span class="signature"><span class="signature-params">(idVec)</span>&nbsp;&rarr; <span class="signature-returns"> module:qm.RecordSet</span></span></h3>
               <p>Creates a new record set out of the records in store.</p>
               <section>
                 <h4>Parameter</h4>
@@ -768,11 +768,43 @@ var arr = base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; })
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;The record set that contains the records gained with idVec.</p>
+                  <p><code>module:qm.RecordSet</code>&nbsp;The record set that contains the records gained with idVec.</p>
                 </dd>
               </dl>
               <h3 id="push"><span class="symbol-name">push</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Adds a record to the store.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base with one two stores
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       &quot;name&quot;: &quot;Superheroes&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       ]
+   },
+   {
+       &quot;name&quot;: &quot;Supervillians&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       ]
+   }]
+})
+// add a new superhero to the Superheroes store
+base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Superman&quot;, &quot;Superpowers&quot;: [&quot;flight&quot;, &quot;heat vision&quot;, &quot;bulletproof&quot;] });
+// add a new supervillian to the Supervillians store
+base.store(&quot;Supervillians&quot;).push({ &quot;Name&quot;: &quot;Lex Luthor&quot;, &quot;Superpowers&quot;: [&quot;expert engineer&quot;, &quot;genius-level intellect&quot;, &quot;money&quot;] });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -845,7 +877,7 @@ var arr = base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; })
                   <p><code>Object</code>&nbsp;Returns the record. If the record doesn't exist, it returns null. //TODO</p>
                 </dd>
               </dl>
-              <h3 id="sample"><span class="symbol-name">sample</span><span class="signature"><span class="signature-params">(sampleSize)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecSet.html">module:qm.RecSet</a></span></span></h3>
+              <h3 id="sample"><span class="symbol-name">sample</span><span class="signature"><span class="signature-params">(sampleSize)</span>&nbsp;&rarr; <span class="signature-returns"> module:qm.RecordSet</span></span></h3>
               <p>Creates a record set containing random records from store.</p>
               <section>
                 <h4>Parameter</h4>
@@ -879,7 +911,7 @@ var arr = base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; })
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.RecSet.html">module:qm.RecSet</a></code>&nbsp;Returns a record set containing random records.</p>
+                  <p><code>module:qm.RecordSet</code>&nbsp;Returns a record set containing random records.</p>
                 </dd>
               </dl>
               <h3 id="toJSON"><span class="symbol-name">toJSON</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
