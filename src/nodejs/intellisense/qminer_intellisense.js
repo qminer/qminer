@@ -936,8 +936,8 @@ exports.datasets= require('qminer_datasets');
 	* // add some records in the store
 	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
 	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
-	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94);
-	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11});
+	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94 });
+	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11 });
 	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
 	* // deletes the first 2 records (Archer and The Simpsons) in TVSeries
 	* store.clear(2); // returns 3
@@ -982,6 +982,27 @@ exports.datasets= require('qminer_datasets');
 	* @param {number} recId - The record id.
 	* @param {string} fieldName - The field's name.
 	* @returns {Object} The fieldName value of the record with recId.
+	* @example
+	* //import qm module
+	* var qm = require('qminer');
+	* // create a new base with one store
+	* var base = new qm.Base({
+	*    mode: "createClear",
+	*    schema: [{
+	*        "name": "Festivals",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Type", "type": "string" },
+	*            { "name": "Location", "type": "string" }
+	*        ]
+	*    }]
+	* })
+	* // add some records in the store
+	* base.store("Festivals").push({ "Name": "Metaldays", "Type": "music", "Location": "Tolmin, Slovenia" });
+	* base.store("Festivals").push({ "Name": "Festival de Cannes", "Type": "movie", "Location": "Cannes, France" });
+	* base.store("Festivals").push({ "Name": "The Festival of Chocolate", "Type": "food", "Location": "Hillsborough, USA" });
+	* // get the field value of the second record for field "Type"
+	* var fieldValue = base.store("Festivals").cell(1, "Type"); // returns "movie"
 	*/
  exports.Store.prototype.cell = function (recId, fieldName) {};
 /**

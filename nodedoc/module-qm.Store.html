@@ -202,6 +202,33 @@
               <h3 id="cell"><span class="symbol-name">cell</span><span class="signature"><span class="signature-params">(recId, fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Gives the field value of a specific record.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>//import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base with one store
+var base = new qm.Base({
+   mode: &quot;createClear&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;Festivals&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Type&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Location&quot;, &quot;type&quot;: &quot;string&quot; }
+       ]
+   }]
+})
+// add some records in the store
+base.store(&quot;Festivals&quot;).push({ &quot;Name&quot;: &quot;Metaldays&quot;, &quot;Type&quot;: &quot;music&quot;, &quot;Location&quot;: &quot;Tolmin, Slovenia&quot; });
+base.store(&quot;Festivals&quot;).push({ &quot;Name&quot;: &quot;Festival de Cannes&quot;, &quot;Type&quot;: &quot;movie&quot;, &quot;Location&quot;: &quot;Cannes, France&quot; });
+base.store(&quot;Festivals&quot;).push({ &quot;Name&quot;: &quot;The Festival of Chocolate&quot;, &quot;Type&quot;: &quot;food&quot;, &quot;Location&quot;: &quot;Hillsborough, USA&quot; });
+// get the field value of the second record for field &quot;Type&quot;
+var fieldValue = base.store(&quot;Festivals&quot;).cell(1, &quot;Type&quot;); // returns &quot;movie&quot;</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -273,8 +300,8 @@ var base = new qm.Base({
 // add some records in the store
 base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Archer&quot;, &quot;NumberOfEpisodes&quot;: 75 });
 base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;The Simpsons&quot;, &quot;NumberOfEpisodes&quot;: 574 });
-base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;New Girl&quot;, &quot;NumberOfEpisodes&quot;: 94);
-base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Rick and Morty&quot;, &quot;NumberOfEpisodes&quot;: 11});
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;New Girl&quot;, &quot;NumberOfEpisodes&quot;: 94 });
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Rick and Morty&quot;, &quot;NumberOfEpisodes&quot;: 11 });
 base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Game of Thrones&quot;, &quot;NumberOfEpisodes&quot;: 47 });
 // deletes the first 2 records (Archer and The Simpsons) in TVSeries
 store.clear(2); // returns 3
