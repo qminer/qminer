@@ -834,15 +834,34 @@
 	*    }]
 	* })
 	* // add a new superhero to the Superheroes store
-	* base.store("Superheroes").push({ "Name": "Superman", "Superpowers": ["flight", "heat vision", "bulletproof"] });
+	* base.store("Superheroes").push({ "Name": "Superman", "Superpowers": ["flight", "heat vision", "bulletproof"] }); // returns 0
 	* // add a new supervillian to the Supervillians store
-	* base.store("Supervillians").push({ "Name": "Lex Luthor", "Superpowers": ["expert engineer", "genius-level intellect", "money"] });
+	* base.store("Supervillians").push({ "Name": "Lex Luthor", "Superpowers": ["expert engineer", "genius-level intellect", "money"] }); // returns 0
 	*/
  exports.Store.prototype.push = function (rec) {}
 /**
 	* Creates a new record of given store. The record is not added to the store.
 	* @param {Object} json - A JSON value of the record.
 	* @returns {module:qm.Record} The record created by the JSON value and the store.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClear",
+	*    schema: [{
+	*        "name": "Planets",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Diameter", "type": "int" },
+	*            { "name": "NearestStars", "type": "string_v" }
+	*        ]
+	*    }]
+	* })
+	* // add a new planet in the store
+	* base.store("Planets").push({ "Name": "Earth", "Diameter": 299196522, "NearestStars": ["Sun"] });
+	* // create a record of a planet (not added to the Planets store)
+	* var planet = base.store("Planets").newRecord({ "Name": "Tatooine", "Diameter": 10465, "NearestStars": ["Tatoo 1", "Tatoo 2"] });
 	*/
  exports.Store.prototype.newRecord = function (json) {};
 /**
@@ -1039,24 +1058,24 @@
 * // factory based construction using store.recs
 * var rs = store.recs;
 */
- exports.RecSet = function () {}
+ exports.RecordSet = function () {}
 /**
 	* Creates a new instance of the record set.
-	* @returns {module:qm.RecSet} A copy of the record set.
+	* @returns {module:qm.RecordSet} A copy of the record set.
 	*/
- exports.RecSet.prototype.clone = function () {};
+ exports.RecordSet.prototype.clone = function () {};
 /**
 	* Creates a new record set out of the join attribute of records.
 	* @param {string} joinName - The name of the join attribute.
 	* @param {number} [sampleSize] - The number of records to be used for construction of the record set.
-	* @returns {module:qm.RecSet} The record set containing the join records.
+	* @returns {module:qm.RecordSet} The record set containing the join records.
 	*/
- exports.RecSet.prototype.join = function (joinName, sampleSize) {};
+ exports.RecordSet.prototype.join = function (joinName, sampleSize) {};
 /**
 	* Truncates the first records.
 	* @param {number} limit_num - How many records to truncate.
 	* @param {number} [offset_num] - Where to start to truncate.
-	* @returns {module:qm.RecSet} Self.
+	* @returns {module:qm.RecordSet} Self.
 	* @example
 	* // import qm module
 	* qm = require('qminer');
@@ -1068,44 +1087,44 @@
 	* // truncate the first 10 records starting with the 5th
 	* rs2.trunc(10, 4);
 	*/
- exports.RecSet.prototype.trunc = function (limit_num, offset_num) {};
+ exports.RecordSet.prototype.trunc = function (limit_num, offset_num) {};
 /**
 	* Creates a sample of records of the record set.
 	* @param {number} num - The number of records in the sample.
-	* @returns {module:qm.RecSet} A record set containing the sample records.
+	* @returns {module:qm.RecordSet} A record set containing the sample records.
 	*/
- exports.RecSet.prototype.sample = function (num) {};
+ exports.RecordSet.prototype.sample = function (num) {};
 /**
 	* Shuffles the order of records in the record set.
 	* @param {number} [seed] - Integer.
-	* @returns {module:qm.RecSet} Self.
+	* @returns {module:qm.RecordSet} Self.
 	*/
- exports.RecSet.prototype.shuffle = function (seed) {};
+ exports.RecordSet.prototype.shuffle = function (seed) {};
 /**
 	* It reverses the record order.
-	* @returns {module:qm.RecSet} Self. Records are in reversed order.
+	* @returns {module:qm.RecordSet} Self. Records are in reversed order.
 	*/
- exports.RecSet.prototype.reverse = function () {};
+ exports.RecordSet.prototype.reverse = function () {};
 /**
 	* Sorts the records according to record id.
 	* @param {number} [asc=1] - If asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.  
-	* @returns {module:qm.RecSet} Self. Records are sorted according to record id and asc.
+	* @returns {module:qm.RecordSet} Self. Records are sorted according to record id and asc.
 	*/
- exports.RecSet.prototype.sortById = function (asc) {}; 
+ exports.RecordSet.prototype.sortById = function (asc) {}; 
 /**
 	* Sorts the records according to a specific record field.
 	* @param {string} fieldName - The field by which the sort will work.
 	* @param {number} [arc=-1] - if asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.
-	* @returns {module:qm.RecSet} Self. Records are sorted according to fieldName and arc.
+	* @returns {module:qm.RecordSet} Self. Records are sorted according to fieldName and arc.
 	*/
- exports.RecSet.prototype.sortByField = function (fieldName, asc) {};
+ exports.RecordSet.prototype.sortByField = function (fieldName, asc) {};
 /**
 	* Sorts the records according to the given callback function.
 	* @param {function} callback - The function used to sort the records. It takes two parameters:
 	* <br>1. rec - The first record.
 	* <br>2. rec2 - The second record.
 	* <br>It returns a boolean object.
-	* @returns {module:qm.RecSet} Self. The records are sorted according to the callback function.
+	* @returns {module:qm.RecordSet} Self. The records are sorted according to the callback function.
 	* @example
 	* // import qm module
 	* qm = require('qminer');
@@ -1114,16 +1133,16 @@
 	* // sort the records by their rating
 	* rs.sort(function (rec, rec2) { return rec.Rating < rec2.Rating ;});
 	*/
- exports.RecSet.prototype.sort = function (callback) {};
+ exports.RecordSet.prototype.sort = function (callback) {};
 /**
 	* Keeps only records with ids between two values.
 	* @param {number} [minId] - The minimum id.
 	* @param {number} [maxId] - The maximum id.
-	* @returns {module:qm.RecSet} Self. 
+	* @returns {module:qm.RecordSet} Self. 
 	* <br>1. Contains only the records of the original with ids between minId and maxId, if parameters are given.
 	* <br>2. Contains all the records of the original, if no parameter is given.
 	*/
- exports.RecSet.prototype.filterById = function (minId, maxId) {};
+ exports.RecordSet.prototype.filterById = function (minId, maxId) {};
 /**
 	* Keeps only the records with a specific value of some field.
 	* @param {string} fieldName - The field by which the records will be filtered.
@@ -1132,14 +1151,14 @@
 	* <br>2. Is a number, if the field type is a number. The minimal value for comparison.
 	* <br>3. TODO Time field
 	* @param {number} maxVal - Only in combination with minVal for non-string fields. The maximal value for comparison.
-	* @returns {module:qm.RecSet} Self. Containing only the records with the fieldName value between minVal and maxVal. If the fieldName type is string,
+	* @returns {module:qm.RecordSet} Self. Containing only the records with the fieldName value between minVal and maxVal. If the fieldName type is string,
 	* it contains only the records with fieldName equal to minVal.
 	*/
- exports.RecSet.prototype.filterByField = function (fieldName, minVal, maxVal) {};
+ exports.RecordSet.prototype.filterByField = function (fieldName, minVal, maxVal) {};
 /**
 	* Keeps only the records that pass the callback function.
 	* @param {function} callback - The filter function. It takes one parameter and return a boolean object.
-	* @returns {module:qm.RecSet} Self. Containing only the record that pass the callback function.
+	* @returns {module:qm.RecordSet} Self. Containing only the record that pass the callback function.
 	* @example
 	* // import qm module
 	* qm = require('qminer');
@@ -1148,30 +1167,30 @@
 	* // filter by the field price
 	* rs.filter(function (rec) { return rec.Price > 10000; }); // keeps only the records, where their Price is more than 10000
 	*/
- exports.RecSet.prototype.filter = function (callback) {}; 
+ exports.RecordSet.prototype.filter = function (callback) {}; 
 /**
 	* Splits the record set into smaller record sets.
 	* @param {function} callback - The splitter function. It takes two parameters (records) and returns a boolean object.
-	* @returns {Array.<module:qm.RecSet>} An array containing the smaller record sets. The records are split according the callback function.
+	* @returns {Array.<module:qm.RecordSet>} An array containing the smaller record sets. The records are split according the callback function.
 	*/
- exports.RecSet.prototype.split = function (callback) {};
+ exports.RecordSet.prototype.split = function (callback) {};
 /**
 	* Deletes the records, that are also in the other record set.
-	* @param {module:qm.RecSet} rs - The other record set.
-	* @returns {module:qm.RecSet} Self. Contains only the records, that are not in rs.
+	* @param {module:qm.RecordSet} rs - The other record set.
+	* @returns {module:qm.RecordSet} Self. Contains only the records, that are not in rs.
 	*/
- exports.RecSet.prototype.deleteRecords = function (rs) {}; 
+ exports.RecordSet.prototype.deleteRecords = function (rs) {}; 
 /**
 	* Returns the record set as a JSON.
 	* @returns {Object} The record set as a JSON.
 	*/
- exports.RecSet.prototype.toJSON = function () {};
+ exports.RecordSet.prototype.toJSON = function () {};
 /**
 	* Executes a function on each record in record set.
 	* @param {function} callback - Function to be executed. It takes two parameters:
 	* <br>rec - The current record.
 	* <br>[idx] - The index of the current record.
-	* @returns {module:qm.RecSet} Self.
+	* @returns {module:qm.RecordSet} Self.
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
@@ -1180,7 +1199,7 @@
 	* // change the gender of all records to "Extraterrestrial"
 	* rs.each(function (rec) { rec.Gender = "Extraterrestrial"; });
 	*/
- exports.RecSet.prototype.each = function (callback) {}
+ exports.RecordSet.prototype.each = function (callback) {}
 /**
 	* Creates an array of function outputs created from the records in record set.
 	* @param {function} callback - Function that generates the array. It takes two parameters:
@@ -1195,53 +1214,53 @@
 	* // make an array of record names
 	* var arr = rs.map(function (rec) { return rec.Name; });
 	*/
- exports.RecSet.prototype.map = function (callback) {}
+ exports.RecordSet.prototype.map = function (callback) {}
 /**
 	* Creates the set intersection of two record sets.
-	* @param {module:qm.RecSet} rs - The other record set.
-	* @returns {module:qm.RecSet} The intersection of the two record sets.
+	* @param {module:qm.RecordSet} rs - The other record set.
+	* @returns {module:qm.RecordSet} The intersection of the two record sets.
 	*/
- exports.RecSet.prototype.setIntersect = function (rs) {};
+ exports.RecordSet.prototype.setIntersect = function (rs) {};
 /**
 	* Creates the set union of two record sets.
-	* @param {module:qm.RecSet} rs - The other record set.
-	* @returns {module:qm.RecSet} The union of the two record sets.
+	* @param {module:qm.RecordSet} rs - The other record set.
+	* @returns {module:qm.RecordSet} The union of the two record sets.
 	*/
- exports.RecSet.prototype.setUnion = function (rs) {};
+ exports.RecordSet.prototype.setUnion = function (rs) {};
 /**
 	* Creates the set difference between two record sets.
-	* @param {module:qm.RecSet} rs - The other record set.
-	* @returns {module:qm.RecSet} The difference between the two record sets.
+	* @param {module:qm.RecordSet} rs - The other record set.
+	* @returns {module:qm.RecordSet} The difference between the two record sets.
 	*/
- exports.RecSet.prototype.setDiff = function (rs) {}; 
+ exports.RecordSet.prototype.setDiff = function (rs) {}; 
 /**
 	* Creates a vector containing the field values of records.
 	* @param {string} fieldName - The field from which to take the values. It's type must be one-dimensional, e.g. float, int, string,...
 	* @returns {module:la.Vector} The vector containing the field values of records. The type it contains is dependant of the field type.
 	*/
- exports.RecSet.prototype.getVector = function (fieldName) {}; 
+ exports.RecordSet.prototype.getVector = function (fieldName) {}; 
 /**
 	* Creates a vector containing the field values of records.
 	* @param {string} fieldName - The field from which to take the values. It's type must be numeric, e.g. float, int, float_v, num_sp_v,...
 	* @returns {(module:la.Matrix|module:la.SparseMatrix)} The matrix containing the field values of records.
 	*/
- exports.RecSet.prototype.getMatrix = function (fieldName) {};
+ exports.RecordSet.prototype.getMatrix = function (fieldName) {};
 /**
 	* Returns the store, where the records in the record set are stored.
 	*/
- exports.RecSet.prototype.store = undefined;
+ exports.RecordSet.prototype.store = undefined;
 /**
 	* Returns the number of records in record set.
 	*/
- exports.RecSet.prototype.length = undefined;
+ exports.RecordSet.prototype.length = undefined;
 /**
 	* Checks if the record set is empty. If the record set is empty, then it returns true. Otherwise, it returns false.
 	*/
- exports.RecSet.prototype.empty = undefined;
+ exports.RecordSet.prototype.empty = undefined;
 /**
 	* Checks if the record set is weighted. If the record set is weighted, then it returns true. Otherwise, it returns false.
 	*/
- exports.RecSet.prototype.weighted = undefined;
+ exports.RecordSet.prototype.weighted = undefined;
 /**
 * Store Iterator (factory pattern)
 * @namespace
@@ -1373,7 +1392,7 @@
 	* <br> For numeric feature extractors, it can update the minimal and maximal values used to form the normalization.
 	* <br> For jsfunc feature extractors, it can update a parameter used in it's function.
 	* <br> For dateWindow feature extractor, it can update the start and the end of the window period to form the normalization.
-	* @param {module:qm.RecSet} rs - The record set, which updates the feature space.
+	* @param {module:qm.RecordSet} rs - The record set, which updates the feature space.
 	* @returns {module:qm.FeatureSpace} Self.
 	* @example
 	* // import qm module
@@ -1441,13 +1460,13 @@
  exports.FeatureSpace.prototype.invertFeature = function (idx, val) {};
 /**
 	* Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.
-	* @param {module:qm.RecSet} rs - The given record set.
+	* @param {module:qm.RecordSet} rs - The given record set.
 	* @returns {module:la.SparseMatrix} The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.
 	*/
  exports.FeatureSpace.prototype.extractSparseMatrix = function (rs) {};
 /**
 	* Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.
-	* @param {module:qm.RecSet} rs - The given record set.
+	* @param {module:qm.RecordSet} rs - The given record set.
 	* @returns {module:la.Matrix} The dense matrix, where the i-th column is the feature vector of the i-th record in rs.
 	*/
  exports.FeatureSpace.prototype.extractMatrix = function (rs) {};

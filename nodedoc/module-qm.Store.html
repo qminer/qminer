@@ -700,6 +700,31 @@ var arr = base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; })
               <h3 id="newRecord"><span class="symbol-name">newRecord</span><span class="signature"><span class="signature-params">(json)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Record.html">module:qm.Record</a></span></span></h3>
               <p>Creates a new record of given store. The record is not added to the store.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base containing one store
+var base = new qm.Base({
+   mode: &quot;createClear&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;Planets&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Diameter&quot;, &quot;type&quot;: &quot;int&quot; },
+           { &quot;name&quot;: &quot;NearestStars&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       ]
+   }]
+})
+// add a new planet in the store
+base.store(&quot;Planets&quot;).push({ &quot;Name&quot;: &quot;Earth&quot;, &quot;Diameter&quot;: 299196522, &quot;NearestStars&quot;: [&quot;Sun&quot;] });
+// create a record of a planet (not added to the Planets store)
+var planet = base.store(&quot;Planets&quot;).newRecord({ &quot;Name&quot;: &quot;Tatooine&quot;, &quot;Diameter&quot;: 10465, &quot;NearestStars&quot;: [&quot;Tatoo 1&quot;, &quot;Tatoo 2&quot;] });</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -734,7 +759,7 @@ var arr = base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; })
                   <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>&nbsp;The record created by the JSON value and the store.</p>
                 </dd>
               </dl>
-              <h3 id="newRecordSet"><span class="symbol-name">newRecordSet</span><span class="signature"><span class="signature-params">(idVec)</span>&nbsp;&rarr; <span class="signature-returns"> module:qm.RecordSet</span></span></h3>
+              <h3 id="newRecordSet"><span class="symbol-name">newRecordSet</span><span class="signature"><span class="signature-params">(idVec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
               <p>Creates a new record set out of the records in store.</p>
               <section>
                 <h4>Parameter</h4>
@@ -768,7 +793,7 @@ var arr = base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; })
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>module:qm.RecordSet</code>&nbsp;The record set that contains the records gained with idVec.</p>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;The record set that contains the records gained with idVec.</p>
                 </dd>
               </dl>
               <h3 id="push"><span class="symbol-name">push</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
@@ -800,9 +825,9 @@ var base = new qm.Base({
    }]
 })
 // add a new superhero to the Superheroes store
-base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Superman&quot;, &quot;Superpowers&quot;: [&quot;flight&quot;, &quot;heat vision&quot;, &quot;bulletproof&quot;] });
+base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Superman&quot;, &quot;Superpowers&quot;: [&quot;flight&quot;, &quot;heat vision&quot;, &quot;bulletproof&quot;] }); // returns 0
 // add a new supervillian to the Supervillians store
-base.store(&quot;Supervillians&quot;).push({ &quot;Name&quot;: &quot;Lex Luthor&quot;, &quot;Superpowers&quot;: [&quot;expert engineer&quot;, &quot;genius-level intellect&quot;, &quot;money&quot;] });</code></pre>
+base.store(&quot;Supervillians&quot;).push({ &quot;Name&quot;: &quot;Lex Luthor&quot;, &quot;Superpowers&quot;: [&quot;expert engineer&quot;, &quot;genius-level intellect&quot;, &quot;money&quot;] }); // returns 0</code></pre>
                 </div>
               </section>
               <section>
@@ -877,7 +902,7 @@ base.store(&quot;Supervillians&quot;).push({ &quot;Name&quot;: &quot;Lex Luthor&
                   <p><code>Object</code>&nbsp;Returns the record. If the record doesn't exist, it returns null. //TODO</p>
                 </dd>
               </dl>
-              <h3 id="sample"><span class="symbol-name">sample</span><span class="signature"><span class="signature-params">(sampleSize)</span>&nbsp;&rarr; <span class="signature-returns"> module:qm.RecordSet</span></span></h3>
+              <h3 id="sample"><span class="symbol-name">sample</span><span class="signature"><span class="signature-params">(sampleSize)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
               <p>Creates a record set containing random records from store.</p>
               <section>
                 <h4>Parameter</h4>
@@ -911,7 +936,7 @@ base.store(&quot;Supervillians&quot;).push({ &quot;Name&quot;: &quot;Lex Luthor&
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>module:qm.RecordSet</code>&nbsp;Returns a record set containing random records.</p>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Returns a record set containing random records.</p>
                 </dd>
               </dl>
               <h3 id="toJSON"><span class="symbol-name">toJSON</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
