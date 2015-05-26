@@ -362,7 +362,8 @@ function TStore() {
         "name": "Basketball",
         "fields": [
             { "name": "Player", "type": "string", "primary": true },
-            { "name": "Score", "type": "float_v" }
+            { "name": "Score", "type": "float_v" },
+            { "name": "FirstPlayed", "type": "datetime" }
         ]
     }]);
     // adding two persons
@@ -377,9 +378,9 @@ function TStore() {
         this.base.store("Movies").push(movie);
     }
 
-    this.player1 = { "Player": "Goran Dragic", "Score": [35, 12, 23] };
-    this.player2 = { "Player": "Michael Jordan", "Score": [90, 100, 95] };
-    this.player3 = { "Player": "Marko Milic", "Score": [50, 10, 10, 12] };
+    this.player1 = { "Player": "Goran Dragic", "Score": [35, 12, 23], "FirstPlayed": 12109824000000 };
+    this.player2 = { "Player": "Michael Jordan", "Score": [90, 100, 95], "FirstPlayed": 12709008000000 };
+    this.player3 = { "Player": "Marko Milic", "Score": [50, 10, 10, 12], "FirstPlayed": 12330576000000 };
 
     this.addPlayer = function (player) {
         this.base.store("Basketball").push(player);
@@ -660,6 +661,15 @@ describe("Two Store Tests", function () {
             assert.equal(mat.at(0, 1), 2006);
         })
     });
+
+    describe('isDate Test', function () {
+        it('should return true for FirstPlayed field', function () {
+            assert.ok(table.base.store("Basketball").isDate("FirstPlayed"));
+        })
+        it('should return false for Score field', function () {
+            assert.ok(!table.base.store("Basketball").isDate("Score"));
+        })
+    })
 
     describe('ToJSON Test', function () {
         it('should return the store "People" as a JSON', function () {
