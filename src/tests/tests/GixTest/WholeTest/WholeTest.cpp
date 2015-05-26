@@ -374,6 +374,39 @@ public:
 		delete[] bf;
 	}
 
+	static void TPgBlob_Page_AddIntMany() {
+		byte* bf = new byte[PAGE_SIZE];
+		int data1 = 5;
+
+		glib::TPgBlob::InitPageP(bf);
+
+		// add values
+		for (int i = 0; i < 1000; i++) {
+			glib::TPgBlob::AddItem(bf, (byte*)&data1, sizeof(int));
+			data1 += 3;
+		}
+
+		// check internal state
+		auto header = (glib::TPgBlob::TPgHeader*)bf;
+		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->IsDirty(), true);
+		EXPECT_EQ(header->IsLock(), false);
+		EXPECT_EQ(header->ItemCount, 1000);
+		EXPECT_EQ(header->OffsetFreeStart, 10 + 1000 * 4); // item record
+		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 1000 * 4);
+
+		// retrieve values
+		data1 = 5;
+		for (int i = 0; i < 1000; i++) {
+			auto rec1 = glib::TPgBlob::GetItemRec(bf, i);
+			int* b1 = (int*)(bf + rec1->Offset);
+			EXPECT_EQ(*b1, data1);
+			data1 += 3;
+		}
+
+		delete[] bf;
+	}
+
 	static void TPgBlob_Page_AddIntSeveralDelete() {
 		byte* bf = new byte[PAGE_SIZE];
 		int data1 = 8765;
@@ -748,6 +781,7 @@ public:
 TEST(testTPgBlob, Simple) { XTest::TPgBlob_Complex1(); }
 TEST(testTPgBlob, PageInit) { XTest::TPgBlob_Page_Init(); }
 TEST(testTPgBlob, PageAddInt) { XTest::TPgBlob_Page_AddInt(); }
+TEST(testTPgBlob, PageAddIntMany) { XTest::TPgBlob_Page_AddIntMany(); }
 TEST(testTPgBlob, PageAddDouble) { XTest::TPgBlob_Page_AddDouble(); }
 TEST(testTPgBlob, PageAddIntSeveral) { XTest::TPgBlob_Page_AddIntSeveral(); }
 TEST(testTPgBlob, PageAddIntSeveralDelete) { XTest::TPgBlob_Page_AddIntSeveralDelete(); }
