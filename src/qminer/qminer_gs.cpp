@@ -623,31 +623,31 @@ void TRecSerializator::TFieldSerialDesc::Load(TSIn& SIn) {
 
 ///////////////////////////////
 /// Thin Input-Memory used within TStoreSerializator
-TRecSerializator::TThinMIn::TThinMIn(const TMem& Mem):
+TThinMIn::TThinMIn(const TMem& Mem):
 		TSBase("Thin input memory"), TSIn("Thin input memory"), Bf(NULL), BfC(0), BfL(0) {
 
 	Bf = (uchar*)Mem.GetBf();
 	BfL = Mem.Len();
 }
 
-TRecSerializator::TThinMIn::TThinMIn(const void* _Bf, const int& _BfL):
+TThinMIn::TThinMIn(const void* _Bf, const int& _BfL):
 		TSBase("Thin input memory"), TSIn("Thin input memory"),
 		Bf(NULL), BfC(0), BfL(_BfL) {
 
 	Bf = (uchar*)_Bf;
 }
 
-char TRecSerializator::TThinMIn::GetCh() {
+char TThinMIn::GetCh() {
 	QmAssertR(BfC<BfL, "Reading beyond the end of stream.");
 	return Bf[BfC++];
 }
 
-char TRecSerializator::TThinMIn::PeekCh() {
+char TThinMIn::PeekCh() {
 	QmAssertR(BfC<BfL, "Reading beyond the end of stream.");
 	return Bf[BfC];
 }
 
-int TRecSerializator::TThinMIn::GetBf(const void* LBf, const TSize& LBfL) {
+int TThinMIn::GetBf(const void* LBf, const TSize& LBfL) {
 	Assert(TSize(BfC+LBfL)<=TSize(BfL));
 	int LBfS=0;
 	for (TSize LBfC=0; LBfC<LBfL; LBfC++) {
@@ -656,12 +656,12 @@ int TRecSerializator::TThinMIn::GetBf(const void* LBf, const TSize& LBfL) {
 	return LBfS;
 }
 
-void TRecSerializator::TThinMIn::MoveTo(int Offset) {
+void TThinMIn::MoveTo(int Offset) {
 	QmAssertR(Offset<BfL, "Reading beyond the end of stream.");
 	BfC = Offset;
 }
 
-bool TRecSerializator::TThinMIn::GetNextLnBf(TChA& LnChA) {
+bool TThinMIn::GetNextLnBf(TChA& LnChA) {
 	FailR("TMIn::GetNextLnBf: not implemented"); return false;
 }
 

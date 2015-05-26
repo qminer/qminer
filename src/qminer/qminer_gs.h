@@ -268,6 +268,29 @@ private:
 #endif
 };
 
+/////////////////////////////////////////////////
+/// Thin Input-Memory. Used to present existing TMem as TSIn. 
+/// It doesn't allocate or release any memory.
+class TThinMIn: public TSIn {
+private:
+	uchar* Bf;
+	int BfC, BfL;
+private:
+public:
+	TThinMIn(const TMem& Mem);
+	TThinMIn(const void* _Bf, const int& _BfL);
+		
+	bool Eof() { return BfC == BfL; }
+	int Len() const { return BfL-BfC; }
+	char GetCh();
+	char PeekCh();
+	int GetBf(const void* LBf, const TSize& LBfL);
+	void Reset() { Cs = TCs(); BfC = 0; }
+	uchar* GetBfAddr() { return Bf; }
+	void MoveTo(int Offset);
+	bool GetNextLnBf(TChA& LnChA);
+};
+
 ////////////////////////////////////
 /// Serialization and de-serialization of records to TMem.
 /// This class handles smart serialization of JSON with respect to field 
@@ -310,29 +333,6 @@ private:
 		// methods required for (de)serialization of this class inside TVec into TSOut and TSIn
 		void Save(TSOut& SOut) const;
 		void Load(TSIn& SIn);
-	};
-
-	/////////////////////////////////////////////////
-	/// Thin Input-Memory. Used to present existing TMem as TSIn. 
-	/// It doesn't allocate or release any memory.
-	class TThinMIn: public TSIn {
-	private:
-		uchar* Bf;
-		int BfC, BfL;
-	private:
-	public:
-		TThinMIn(const TMem& Mem);
-		TThinMIn(const void* _Bf, const int& _BfL);
-		
-		bool Eof() { return BfC == BfL; }
-		int Len() const { return BfL-BfC; }
-		char GetCh();
-		char PeekCh();
-		int GetBf(const void* LBf, const TSize& LBfL);
-		void Reset() { Cs = TCs(); BfC = 0; }
-		uchar* GetBfAddr() { return Bf; }
-		void MoveTo(int Offset);
-		bool GetNextLnBf(TChA& LnChA);
 	};
 	
 private: 

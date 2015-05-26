@@ -9,6 +9,9 @@
 #include <base.h>
 #include <mine.h>
 
+#include <qminer_core.h>
+#include <qminer_gs.h>
+
 namespace glib {
 
 	//////////////////////////////////////////////////////////////////
@@ -146,9 +149,9 @@ namespace glib {
 			/// Previous item in LRU list
 			int LruPrev;
 		};
-		
+
 		/// Single record in item index section
-		struct TPgBlobPageItem{
+		struct TPgBlobPageItem {
 			/// Offset of data from start of page
 			uint16 Offset;
 			/// Length of data, 0 means it was deleted
@@ -182,18 +185,15 @@ namespace glib {
 
 			/// Set dirty flag for this page
 			void SetDirty(bool val) {
-				if (val) { Flags |= PgHeaderDirtyFlag; } 
-				else { Flags ^= PgHeaderDirtyFlag; }
+				if (val) { Flags |= PgHeaderDirtyFlag; } else { Flags ^= PgHeaderDirtyFlag; }
 			}
 			/// Set S-lock flag for this page
 			void SetSLock(bool val) {
-				if (val) { Flags |= PgHeaderSLockFlag; } 
-				else { Flags ^= PgHeaderSLockFlag; }
+				if (val) { Flags |= PgHeaderSLockFlag; } else { Flags ^= PgHeaderSLockFlag; }
 			}
 			/// Set X-lock flag for this page
 			void SetXLock(bool val) {
-				if (val) { Flags |= PgHeaderXLockFlag; } 
-				else { Flags ^= PgHeaderXLockFlag; }
+				if (val) { Flags |= PgHeaderXLockFlag; } else { Flags ^= PgHeaderXLockFlag; }
 			}
 			/// Get amount of free space in this page
 			int GetFreeMem() { return OffsetFreeEnd - OffsetFreeStart; }
@@ -289,6 +289,8 @@ namespace glib {
 		/// Factory method for opening existing BLOB storage
 		static PPgBlob Open(const TStr& FNm, const uint64& CacheSize = 10 * TNum<int>::Mega);
 
+		TPgBlobPt Put(const TQm::TStorage::TThinMIn& Data);
+		TQm::TStorage::TThinMIn Get(TPgBlobPt);
 #ifdef XTEST
 		friend class XTest;
 #endif

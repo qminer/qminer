@@ -124,7 +124,7 @@ namespace glib {
 		// TODO locks?
 		TPgHeader* Header = (TPgHeader*)Pg;
 		EAssert(BfL + sizeof(TPgBlobPageItem) <= Header->GetFreeMem());
-
+		
 		uint16 res = Header->ItemCount;
 		TPgBlobPageItem* NewItem = GetItemRec(Pg, Header->ItemCount);
 		NewItem->Len = BfL;
