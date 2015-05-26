@@ -255,14 +255,14 @@ public:
 
 	static void TPgBlob_Complex1() {
 		auto Base = glib::TPgBlob::Create("data\\xyz");
-		auto new_page = Base->CreateNewPage();
-		EXPECT_EQ(new_page.Val1.GetFIx(), 0);
-		EXPECT_EQ(new_page.Val1.GetPg(), 0);
-		//printf("%d %d\n", new_page.Val1.GetFileIndex(), new_page.Val1.GetPage());
-		auto new_page2 = Base->CreateNewPage();
-		EXPECT_EQ(new_page2.Val1.GetFIx(), 0);
-		EXPECT_EQ(new_page2.Val1.GetPg(), 1);
-		//printf("%d %d\n", new_page2.Val1.GetFileIndex(), new_page2.Val1.GetPage());
+		glib::TPgBlobPt Pt;
+		byte* BfPt;
+		Base->CreateNewPage(Pt, &BfPt);
+		EXPECT_EQ(Pt.GetFIx(), 0);
+		EXPECT_EQ(Pt.GetPg(), 0);
+		Base->CreateNewPage(Pt, &BfPt);
+		EXPECT_EQ(Pt.GetFIx(), 0);
+		EXPECT_EQ(Pt.GetPg(), 1);
 	}
 
 	static void TPgBlob_Page_Init() {
@@ -476,8 +476,129 @@ public:
 
 		delete[] bf;
 	}
+
+	//////////////////////////////////////////////////////////////////
+
+	
 };
 
+//
+//TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
+//TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
+//TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
+//TEST(testTInMemStorage, LoadAll1) { XTest::TInMemStorage_LoadAll1(); }
+//TEST(testTInMemStorage, LoadAll2) { XTest::TInMemStorage_LoadAll2(); }
+//TEST(testTInMemStorage, PerfTest) { XTest::TInMemStorage_PerfTest(); }
+
+
+TEST(testTPgBlob, Simple) { XTest::TPgBlob_Complex1(); }
+TEST(testTPgBlob, PageInit) { XTest::TPgBlob_Page_Init(); }
+TEST(testTPgBlob, PageAddInt) { XTest::TPgBlob_Page_AddInt(); }
+TEST(testTPgBlob, PageAddIntMany) { XTest::TPgBlob_Page_AddIntMany(); }
+TEST(testTPgBlob, PageAddDouble) { XTest::TPgBlob_Page_AddDouble(); }
+TEST(testTPgBlob, PageAddIntSeveral) { XTest::TPgBlob_Page_AddIntSeveral(); }
+TEST(testTPgBlob, PageAddIntSeveralDelete) { XTest::TPgBlob_Page_AddIntSeveralDelete(); }
+TEST(testTPgBlob, PageAddIntSeveralDelete2) { XTest::TPgBlob_Page_AddIntSeveralDelete2(); }
+
+//////////////////////////////////////////////////////////////////////////////
+
+
+TEST(testTPgBlobFsm, Add1) {
+	glib::TPgBlobFsm fsm;
+	for (int i = 0; i < 5; i++) {
+		glib::TPgBlobPt pt(i,0,0);
+		fsm.FsmAddPage(pt, i);
+	}
+	
+	EXPECT_EQ(fsm.Len(), 5);
+	EXPECT_EQ(fsm[0].GetPg(), 4);
+	EXPECT_EQ(fsm[1].GetPg(), 3);
+	EXPECT_EQ(fsm[2].GetPg(), 1);
+	EXPECT_EQ(fsm[3].GetPg(), 0);
+	EXPECT_EQ(fsm[4].GetPg(), 2);
+	EXPECT_EQ(fsm[0].GetIIx(), 4);
+	EXPECT_EQ(fsm[1].GetIIx(), 3);
+	EXPECT_EQ(fsm[2].GetIIx(), 1);
+	EXPECT_EQ(fsm[3].GetIIx(), 0);
+	EXPECT_EQ(fsm[4].GetIIx(), 2);
+
+	bool res1;
+	glib::TPgBlobPt pt1;
+	res1 = fsm.FsmGetFreePage(2, pt1);
+	EXPECT_EQ(res1, true);
+	EXPECT_EQ(pt1.GetPg(), 4);
+
+	res1 = fsm.FsmGetFreePage(6, pt1);
+	EXPECT_EQ(res1, false);
+}
+
+TEST(testTPgBlobFsm, AddUpdateInc) {
+	glib::TPgBlobFsm fsm;
+	for (int i = 0; i < 5; i++) {
+		glib::TPgBlobPt pt(i, 0, 0);
+		fsm.FsmAddPage(pt, i);
+	}
+
+	glib::TPgBlobPt pt(1, 0, 0);
+	fsm.FsmUpdatePage(pt, 6); // 1,1 -> 1,6
+	EXPECT_EQ(fsm.Len(), 5);
+	EXPECT_EQ(fsm[0].GetPg(), 1);
+	EXPECT_EQ(fsm[1].GetPg(), 4);
+	EXPECT_EQ(fsm[2].GetPg(), 2);
+	EXPECT_EQ(fsm[3].GetPg(), 0);
+	EXPECT_EQ(fsm[4].GetPg(), 3);
+	EXPECT_EQ(fsm[0].GetIIx(), 6);
+	EXPECT_EQ(fsm[1].GetIIx(), 4);
+	EXPECT_EQ(fsm[2].GetIIx(), 2);
+	EXPECT_EQ(fsm[3].GetIIx(), 0);
+	EXPECT_EQ(fsm[4].GetIIx(), 3);
+}
+
+TEST(testTPgBlobFsm, AddUpdateInc2) {
+	glib::TPgBlobFsm fsm;
+	for (int i = 0; i < 5; i++) {
+		glib::TPgBlobPt pt(i, 0, 0);
+		fsm.FsmAddPage(pt, i);
+	}
+
+	glib::TPgBlobPt pt(1, 0, 0);
+	fsm.FsmUpdatePage(pt, 4); // 1,1 -> 1,4
+
+	EXPECT_EQ(fsm.Len(), 5);
+	EXPECT_EQ(fsm[0].GetPg(), 4);
+	EXPECT_EQ(fsm[1].GetPg(), 1);
+	EXPECT_EQ(fsm[2].GetPg(), 2);
+	EXPECT_EQ(fsm[3].GetPg(), 0);
+	EXPECT_EQ(fsm[4].GetPg(), 3);
+	EXPECT_EQ(fsm[0].GetIIx(), 4);
+	EXPECT_EQ(fsm[1].GetIIx(), 4);
+	EXPECT_EQ(fsm[2].GetIIx(), 2);
+	EXPECT_EQ(fsm[3].GetIIx(), 0);
+	EXPECT_EQ(fsm[4].GetIIx(), 3);
+}
+
+TEST(testTPgBlobFsm, AddUpdateDec) {
+	glib::TPgBlobFsm fsm;
+	for (int i = 0; i < 5; i++) {
+		glib::TPgBlobPt pt(i, 0, 0);
+		fsm.FsmAddPage(pt, i);
+	}
+
+	glib::TPgBlobPt pt(1, 0, 0);
+	fsm.FsmUpdatePage(pt, 0); // 1,1 -> 1,0
+
+	EXPECT_EQ(fsm.Len(), 5);
+	EXPECT_EQ(fsm[0].GetPg(), 4);
+	EXPECT_EQ(fsm[1].GetPg(), 3);
+	EXPECT_EQ(fsm[2].GetPg(), 2);
+	EXPECT_EQ(fsm[3].GetPg(), 0);
+	EXPECT_EQ(fsm[4].GetPg(), 1);
+	EXPECT_EQ(fsm[0].GetIIx(), 4);
+	EXPECT_EQ(fsm[1].GetIIx(), 3);
+	EXPECT_EQ(fsm[2].GetIIx(), 2);
+	EXPECT_EQ(fsm[3].GetIIx(), 0);
+	EXPECT_EQ(fsm[4].GetIIx(), 0);
+}
 
 //////////////////////////////////////////////////
 //TEST(testTBlobBs, Simple10) {
@@ -767,22 +888,3 @@ public:
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
-//TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
-//TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
-//TEST(testTInMemStorage, LoadAll1) { XTest::TInMemStorage_LoadAll1(); }
-//TEST(testTInMemStorage, LoadAll2) { XTest::TInMemStorage_LoadAll2(); }
-//TEST(testTInMemStorage, PerfTest) { XTest::TInMemStorage_PerfTest(); }
-
-///////////////////////////////////////////////////////////////////////////
-
-
-TEST(testTPgBlob, Simple) { XTest::TPgBlob_Complex1(); }
-TEST(testTPgBlob, PageInit) { XTest::TPgBlob_Page_Init(); }
-TEST(testTPgBlob, PageAddInt) { XTest::TPgBlob_Page_AddInt(); }
-TEST(testTPgBlob, PageAddIntMany) { XTest::TPgBlob_Page_AddIntMany(); }
-TEST(testTPgBlob, PageAddDouble) { XTest::TPgBlob_Page_AddDouble(); }
-TEST(testTPgBlob, PageAddIntSeveral) { XTest::TPgBlob_Page_AddIntSeveral(); }
-TEST(testTPgBlob, PageAddIntSeveralDelete) { XTest::TPgBlob_Page_AddIntSeveralDelete(); }
-TEST(testTPgBlob, PageAddIntSeveralDelete2) { XTest::TPgBlob_Page_AddIntSeveralDelete2(); }

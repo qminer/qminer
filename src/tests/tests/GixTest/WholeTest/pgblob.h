@@ -95,7 +95,8 @@ namespace glib {
 	///////////////////////////////////////////////////////////////////////
 	/// Free-space-map (heap)
 
-	class TPgBlobFsm : public TVec < TPgBlobPt > {
+	class TPgBlobFsm : public TVec<TPgBlobPt> {
+	public:
 		/// Add new page to free-space-map
 		void FsmAddPage(const TPgBlobPt& Pt, const uint16& FreeSpace);
 		/// Update existing page inside free-space-map
@@ -287,7 +288,7 @@ namespace glib {
 		/// Load given page into memory
 		byte* LoadPage(const TPgBlobPt& Pt);
 		/// Create new page and return pointers to it
-		TPair<TPgBlobPt, byte*> CreateNewPage();
+		void TPgBlob::CreateNewPage(TPgBlobPt& Pt, byte** Bf);
 
 		// Methods for manupulating raw page //////////////////////////////
 
@@ -296,7 +297,7 @@ namespace glib {
 		/// Get pointer to item record - in it are offset and length
 		static TPgBlobPageItem* GetItemRec(byte* Pg, uint16 ItemIndex);
 		/// Add given buffer to page, return item-index
-		static uint16 AddItem(byte* Pg, byte* Bf, int BfL);
+		static uint16 AddItem(byte* Pg, const byte* Bf, const int BfL);
 		/// Retrieve buffer from specified page
 		static void GetItem(byte* Pg, uint16 ItemIndex, byte** Bf, int& BfL);
 		/// Delete buffer from specified page

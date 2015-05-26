@@ -137,7 +137,7 @@ namespace glib {
 	///////////////////////////////////////////////////////////////////////////
 
 	/// Add given buffer to page, return item-index
-	uint16 TPgBlob::AddItem(byte* Pg, byte* Bf, int BfL) {
+	uint16 TPgBlob::AddItem(byte* Pg, const byte* Bf, const int BfL) {
 		// TODO locks?
 		TPgHeader* Header = (TPgHeader*)Pg;
 		EAssert(BfL + sizeof(TPgBlobPageItem) <= Header->GetFreeMem());
@@ -352,27 +352,25 @@ namespace glib {
 	}
 
 	/// Create new page and return pointers to it
-	TPair<TPgBlobPt, byte*> TPgBlob::CreateNewPage() {
-		TPair<TPgBlobPt, byte*> res;
+	void TPgBlob::CreateNewPage(TPgBlobPt& Pt, byte** Bf) {
 		// determine if last file is empty
 		if (Files.Len() > 0) {
 			// try to add to last file
 			uint32 Pg = Files.Last()->CreateNewPage();
 			if (Pg >= 0) {
-				res.Val1 = TPgBlobPt(Pg, Files.Len() - 1, 0);
-				res.Val2 = LoadPage(res.Val1);
-				InitPageP(res.Val2);
-				return res;
+				Pt = TPgBlobPt(Pg, Files.Len() - 1, 0);
+				*Bf = LoadPage(Pt);
+				InitPageP(*Bf);
+				return;
 			}
 		}
 		TStr NewFNm = FNm + ".bin" + TStr::GetNrNumFExt(Files.Len());
 		Files.Add(TPgBlobFile::New(NewFNm, TFAccess::faCreate, TInt::Giga));
 		uint32 Pg = Files.Last()->CreateNewPage();
 		EAssert(Pg >= 0);
-		res.Val1 = TPgBlobPt(Pg, Files.Len() - 1, 0);
-		res.Val2 = LoadPage(res.Val1);
-		InitPageP(res.Val2);
-		return res;
+		Pt = TPgBlobPt(Pg, Files.Len() - 1, 0);
+		*Bf = LoadPage(Pt);
+		InitPageP(*Bf);
 	}
 
 	/// Factory method for creating new BLOB storage
@@ -398,8 +396,81 @@ namespace glib {
 
 	/// Store BLOB to storage
 	TPgBlobPt TPgBlob::Put(const byte* Bf, const int& BfL) {
-		// TODO find page
-		return TPgBlobPt();
+		// find page
+		TPgBlobPt Pt;
+		byte* PgBf = NULL;
+		TPgHeader* PgH = NULL;
+		bool is_new_page = false;
+
+		// first scan those that are in memory
+		// use the first one with enough space
+		// TODO is there a faster way? is this slow?
+		for (int i = 0; i < LoadedPages.Len(); i++) {
+			byte* PgBfTmp = GetPageBf(i);
+			PgH = (TPgHeader*)PgBfTmp;
+			if (PgH->GetFreeMem()) {
+				PgBf = PgBfTmp;
+				break;
+			}
+		}
+
+		// then use FSM
+		if (Fsm.FsmGetFreePage(BfL + sizeof(TPgBlobPageItem), Pt)) {
+			PgBf = LoadPage(Pt);
+		} else {
+			CreateNewPage(Pt, &PgBf);
+			is_new_page = true;
+		}
+
+		// 
+		uint16 ii = AddItem(PgBf, Bf, BfL);
+		Pt.Set(Pt.GetFIx(), Pt.GetPg(), ii);
+		PgH = (TPgHeader*)PgBf;
+
+		// update free-space-map
+		if (is_new_page) {
+			Fsm.FsmAddPage(Pt, PgH->GetFreeMem());
+		} else {
+			Fsm.FsmUpdatePage(Pt, PgH->GetFreeMem());
+		}
+		return Pt;
+	}
+
+	/// Store existing BLOB to storage
+	TPgBlobPt TPgBlob::Put(
+		const byte* Bf, const int& BfL, const TPgBlobPt& Pt) {
+		
+		// find page
+		TPgBlobPt Pt2;
+		byte* PgBf = NULL;
+		TPgHeader* PgH = NULL;
+		TPgBlobPageItem* ItemRec = NULL;
+
+		PgBf = LoadPage(Pt);
+		PgH = (TPgHeader*)PgBf;
+		ItemRec = GetItemRec(PgBf, Pt.GetIIx());
+
+		int existing_size = ItemRec->Len;
+		if (existing_size == BfL) { // we're so lucky, just overwrite buffer
+			// TODO
+
+		} else if (existing_size + PgH->GetFreeMem() >= BfL) { 
+			// ok, everything can still be inside this page
+			// TODO
+
+
+		} else {
+			// bad luck, we need to move data to new page
+			DeleteItem(PgBf, Pt.GetIIx());
+			Fsm.FsmUpdatePage(Pt, PgH->GetFreeMem());
+
+			CreateNewPage(Pt2, &PgBf);
+			uint16 ii = AddItem(PgBf, Bf, BfL);
+			Pt2.Set(Pt2.GetFIx(), Pt2.GetPg(), ii);
+			PgH = (TPgHeader*)PgBf;
+			Fsm.FsmUpdatePage(Pt, PgH->GetFreeMem());
+			return Pt;
+		}
 	}
 
 	/// Retrieve BLOB from storage
@@ -448,7 +519,7 @@ namespace glib {
 			return false;
 		}
 		Pg = GetVal(0);
-		return true;
+		return (Pg.GetIIx() >= RequiredSpace);
 	}
 
 	/// Move item up the heap if needed
