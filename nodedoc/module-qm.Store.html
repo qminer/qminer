@@ -110,6 +110,9 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Store.html#isDate">isDate(fieldName)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.Store.html#isNumeric">isNumeric(fieldName)</a></dt>
                     <dd>
                     </dd>
@@ -125,13 +128,13 @@
                     <dt><a href="module-qm.Store.html#newRecord">newRecord(json)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Store.html#newRecordSet">newRecordSet(idVec)</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Store.html#newRecordSet">newRecordSet(idVec)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.Store.html#push">push(rec)</a></dt>
                     <dd>
                     </dd>
@@ -603,6 +606,68 @@ var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;)
                   <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the field values of each record.</p>
                 </dd>
               </dl>
+              <h3 id="isDate"><span class="symbol-name">isDate</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
+              <p>Checks if the field is of type Date.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base containing one store
+var base = new qm.Base({
+   mode: &quot;createClear&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;BasketballPlayers&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;SeasonScore&quot;, &quot;type&quot;: &quot;int_v&quot; },
+           { &quot;name&quot;: &quot;FirstPlayed&quot;, &quot;type&quot;: &quot;datetime&quot; }
+       ]
+   }]
+})
+// check if the SeasonScore field is of type Date
+var isSeasonScoreDate = base.store(&quot;BasketballPlayers&quot;).isDate(&quot;SeasonScore&quot;); // returns false
+// check if the FirstPlayed field is of type Date
+var isFistPlayedDate = base.score(&quot;BasketballPlayers&quot;).isDate(&quot;FirstPlayed&quot;); // returns true</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fieldName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The checked field.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>boolean</code>&nbsp;True, if the field is of type Date. Otherwise, false.</p>
+                </dd>
+              </dl>
               <h3 id="isNumeric"><span class="symbol-name">isNumeric</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
               <p>Checks if the field is of numeric type.</p>
               <section>
@@ -727,7 +792,7 @@ var isAgeString = base.store(&quot;People&quot;).isString(&quot;Age&quot;); // r
                 </dd>
               </dl>
               <h3 id="key"><span class="symbol-name">key</span><span class="signature"><span class="signature-params">(keyName)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
-              <p>Returns the details of the selected key.</p>
+              <p>Returns the details of the selected key as a JSON object.</p>
               <section>
                 <h4>
             Example
@@ -1223,7 +1288,7 @@ var json = base.store(&quot;FootballPlayers&quot;).toJSON();</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on May 25, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on May 26, 2015.
       </p>
     </div>
   </footer>

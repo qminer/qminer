@@ -1223,11 +1223,36 @@ private:
 	JsDeclareFunction(isString)
 
 	//!- `bool = store.isDate(fieldName)` -- returns true if the field is of type Date
+	/**
+	* Checks if the field is of type Date.
+	* @param {string} fieldName - The checked field.
+	* @returns {boolean} True, if the field is of type Date. Otherwise, false.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClear",
+	*    schema: [{
+	*        "name": "BasketballPlayers",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "SeasonScore", "type": "int_v" },
+	*            { "name": "FirstPlayed", "type": "datetime" }
+	*        ]
+	*    }]
+	* })
+	* // check if the SeasonScore field is of type Date
+	* var isSeasonScoreDate = base.store("BasketballPlayers").isDate("SeasonScore"); // returns false
+	* // check if the FirstPlayed field is of type Date
+	* var isFistPlayedDate = base.score("BasketballPlayers").isDate("FirstPlayed"); // returns true
+	*/
+	//# exports.Store.prototype.isDate = function (fieldName) {}
 	JsDeclareFunction(isDate)
 
 	//!- `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 	/**
-	* Returns the details of the selected key.
+	* Returns the details of the selected key as a JSON object.
 	* @param {string} keyName - The selected key as a JSON object.
 	* @returns {Object} The JSON object containing the details of the key. //TODO
 	* @example
