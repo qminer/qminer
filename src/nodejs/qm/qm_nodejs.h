@@ -844,51 +844,51 @@ private:
 * // factory based construction using base.createStore
 * var base = qm.create('qm.conf', "", true);
 * base.createStore([{
-*		"name": "People",
-*		"fields": [
-*				{ "name": "Name", "type": "string", "primary": true },
-*				{ "name": "Gender", "type": "string", "shortstring": true },
-*				{ "name": "Age", "type": "int" }
-*		],
-*		"joins": [
-*				{ "name": "ActedIn", "type": "index", "store": "Movies", "inverse": "Actor" },
-*				{ "name": "Directed", "type": "index", "store": "Movies", "inverse": "Director" }
-*		],
-*		"keys": [
-*				{ "field": "Name", "type": "text" },
-*				{ "field": "Gender", "type": "value" }
-*		]
-*	},
-*	{
-*		"name": "Movies",
-*		"fields": [
-*				{ "name": "Title", "type": "string", "primary": true },
-*				{ "name": "Plot", "type": "string", "store": "cache" },
-*				{ "name": "Year", "type": "int" },
-*				{ "name": "Rating", "type": "float" },
-*				{ "name": "Genres", "type": "string_v", "codebook": true }
-*		],
-*		"joins": [
-*				{ "name": "Actor", "type": "index", "store": "People", "inverse": "ActedIn" },
-*				{ "name": "Director", "type": "index", "store": "People", "inverse": "Directed" }
-*		],
-*		"keys": [
-*				{ "field": "Title", "type": "value" },
-*				{ "field": "Plot", "type": "text", "vocabulary": "voc_01" },
-*				{ "field": "Genres", "type": "value" }
-*		]
-*	},
-* // using a constructor
+*    "name": "People",
+*    "fields": [
+*        { "name": "Name", "type": "string", "primary": true },
+*        { "name": "Gender", "type": "string", "shortstring": true },
+*        { "name": "Age", "type": "int" }
+*    ],
+*    "joins": [
+*        { "name": "ActedIn", "type": "index", "store": "Movies", "inverse": "Actor" },
+*        { "name": "Directed", "type": "index", "store": "Movies", "inverse": "Director" }
+*    ],
+*    "keys": [
+*        { "field": "Name", "type": "text" },
+*        { "field": "Gender", "type": "value" }
+*    ]
+* },
+* {
+*    "name": "Movies",
+*    "fields": [
+*        { "name": "Title", "type": "string", "primary": true },
+*        { "name": "Plot", "type": "string", "store": "cache" },
+*        { "name": "Year", "type": "int" },
+*        { "name": "Rating", "type": "float" },
+*        { "name": "Genres", "type": "string_v", "codebook": true }
+*    ],
+*    "joins": [
+*        { "name": "Actor", "type": "index", "store": "People", "inverse": "ActedIn" },
+*        { "name": "Director", "type": "index", "store": "People", "inverse": "Directed" }
+*    ],
+*    "keys": [
+*        { "field": "Title", "type": "value" },
+*        { "field": "Plot", "type": "text", "vocabulary": "voc_01" },
+*        { "field": "Genres", "type": "value" }
+*    ]
+* }]);
+* // using the base constructor
 * var base = new qm.Base({
-*		mode: "createClean",
-*		schema: [{
-*			"name": "Class",
-*			"fields": [
-*				{ "name", "Name", "type": "string" },
-*				{ "name", "StudyGroup", "type": "string" }
-*			]
-*		}]
-*	 })
+*    mode: "createClean",
+*    schema: [{
+*        "name": "Class",
+*        "fields": [
+*            { "name": "Name", "type": "string" },
+*            { "name": "StudyGroup", "type": "string" }
+*        ]
+*    }]
+* });
 */
 //# exports.Store = function (base, storeDef) {};
 class TNodeJsStore : public node::ObjectWrap {
@@ -923,22 +923,22 @@ private:
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
-	* // create a base containing the store Class
+	* // create a base containing the store Class. Let the Name field be the primary field. 
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
 	*        "name": "Class",
 	*        "fields": [
-	*            { "name", "Name", "type": "string" },
-	*            { "name", "StudyGroup", "type": "string" }
+	*            { "name": "Name", "type": "string", "primary": true },
+	*            { "name": "StudyGroup", "type": "string" }
 	*        ]
 	*    }]
-	* })
+	* });
 	* // add some records to the store
-	* base.store("Class").add({ "Name": "Dean", "StudyGroup": "A" });
-	* base.store("Class").add({ "Name": "Chang", "StudyGroup": "D" });
-	* base.store("Class").add({ "Name": "Magnitude", "StudyGroup": "C" });
-	* base.store("Class").add({ "Name": "Leonard", "StudyGroup": "B" });
+	* base.store("Class").push({ "Name": "Dean", "StudyGroup": "A" });
+	* base.store("Class").push({ "Name": "Chang", "StudyGroup": "D" });
+	* base.store("Class").push({ "Name": "Magnitude", "StudyGroup": "C" });
+	* base.store("Class").push({ "Name": "Leonard", "StudyGroup": "B" });
 	* // get the record with the name "Magnitude"
 	* var record = base.store("Class").rec("Magnitude");
 	*/
@@ -963,16 +963,16 @@ private:
 	*    schema: [{
 	*        "name": "Class",
 	*        "fields": [
-	*            { "name", "Name", "type": "string" },
-	*            { "name", "StudyGroup", "type": "string" }
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "StudyGroup", "type": "string" }
 	*        ]
 	*    }]
-	* })
+	* });
 	* // add some records to the store
-	* base.store("Class").add({ "Name": "Abed", "StudyGroup": "A" });
-	* base.store("Class").add({ "Name": "Annie", "StudyGroup": "B" });
-	* base.store("Class").add({ "Name": "Britta", "StudyGroup": "C" });
-	* base.store("Class").add({ "Name": "Jeff", "StudyGroup": "A" });
+	* base.store("Class").push({ "Name": "Abed", "StudyGroup": "A" });
+	* base.store("Class").push({ "Name": "Annie", "StudyGroup": "B" });
+	* base.store("Class").push({ "Name": "Britta", "StudyGroup": "C" });
+	* base.store("Class").push({ "Name": "Jeff", "StudyGroup": "A" });
 	* // change the StudyGroup of all records of store Class to A
 	* base.store("Class").each(function (rec) { rec.StudyGroup = "A"; });	// all records in Class are now in study group A
 	*/
@@ -997,16 +997,16 @@ private:
 	*    schema: [{
 	*        "name": "Class",
 	*        "fields": [
-	*            { "name", "Name", "type": "string" },
-	*            { "name", "StudyGroup", "type": "string" }
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "StudyGroup", "type": "string" }
 	*        ]
 	*    }]
-	* })
+	* });
 	* // add some records to the store
-	* base.store("Class").add({ "Name": "Shirley", "StudyGroup": "A" });
-	* base.store("Class").add({ "Name": "Troy", "StudyGroup": "B" });
-	* base.store("Class").add({ "Name": "Chang", "StudyGroup": "C" });
-	* base.store("Class").add({ "Name": "Pierce", "StudyGroup": "A" });
+	* base.store("Class").push({ "Name": "Shirley", "StudyGroup": "A" });
+	* base.store("Class").push({ "Name": "Troy", "StudyGroup": "B" });
+	* base.store("Class").push({ "Name": "Chang", "StudyGroup": "C" });
+	* base.store("Class").push({ "Name": "Pierce", "StudyGroup": "A" });
 	* // make an array of record names
 	* var arr = base.store("Class").map(function (rec) { return rec.Name; }); // returns an array ["Shirley", "Troy", "Chang", "Pierce"]
 	*/
@@ -1021,7 +1021,7 @@ private:
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
-	* // create a new base with one two stores
+	* // create a new base containing two stores
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [
@@ -1039,7 +1039,7 @@ private:
 	*            { "name": "Superpowers", "type": "string_v" }
 	*        ]
 	*    }]
-	* })
+	* });
 	* // add a new superhero to the Superheroes store
 	* base.store("Superheroes").push({ "Name": "Superman", "Superpowers": ["flight", "heat vision", "bulletproof"] }); // returns 0
 	* // add a new supervillian to the Supervillians store
@@ -1058,7 +1058,7 @@ private:
 	* var qm = require('qminer');
 	* // create a new base containing one store
 	* var base = new qm.Base({
-	*    mode: "createClear",
+	*    mode: "createClean",
 	*    schema: [{
 	*        "name": "Planets",
 	*        "fields": [
@@ -1067,7 +1067,7 @@ private:
 	*            { "name": "NearestStars", "type": "string_v" }
 	*        ]
 	*    }]
-	* })
+	* });
 	* // add a new planet in the store
 	* base.store("Planets").push({ "Name": "Earth", "Diameter": 299196522, "NearestStars": ["Sun"] });
 	* // create a record of a planet (not added to the Planets store)
@@ -1084,7 +1084,7 @@ private:
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
-	* // create a new base with one store
+	* // create a new base containing one store
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
@@ -1094,13 +1094,13 @@ private:
 	*            { "name": "Superpowers", "type": "string_v" }
 	*        ]
 	*    }]
-	* })
+	* });
 	* // add some new records to the store
 	* base.store("Superheroes").push({ "Name": "Superman", "Superpowers": ["Superhuman strength, speed, hearing", "Flight", "Heat vision"] });
 	* base.store("Superheroes").push({ "Name": "Batman", "Superpowers": ["Genius-level intellect", "Peak physical and mental conditioning", "Master detective"] });
 	* base.store("Superheroes").push({ "Name": "Thor", "Superpowers": ["Superhuman strength, endurance and longevity", "Abilities via Mjolnir"] });
 	* base.store("Superheroes").push({ "Name": "Wonder Woman", "Superpowers": ["Superhuman strength, agility and endurance", "Flight", "Highly skilled hand-to-hand combatant"] });
-	* // create a new record set containing only the DC Comic superheroes (those with the record id's 0, 1 and 3)
+	* // create a new record set containing only the DC Comic superheroes (those with the record ids 0, 1 and 3)
 	* var intVec = new qm.la.IntVector([0, 1, 3]);
 	* var DCHeroes = base.store("Superheroes").newRecordSet(intVec);
 	*/
@@ -1116,7 +1116,7 @@ private:
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
-	* // create a base with one store
+	* // create a base containing one store
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
@@ -1126,7 +1126,7 @@ private:
 	*            { "name": "NumberOfEpisodes", "type": "int" }
 	*        ]
 	*    }]
-	* })
+	* });
 	* // add some records in the store
 	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
 	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
@@ -1147,9 +1147,9 @@ private:
 	* @example
 	* // import qm module
 	* var qm = require("qminer");
-	* // create a new base with one store
+	* // create a new base containing one store
 	* var base = new qm.Base({
-	*    mode: "createClear",
+	*    mode: "createClean",
 	*    schema: [{
 	*        "name": "People",
 	*        "fields": [
@@ -1158,7 +1158,7 @@ private:
 	*            { "name": "Age", "type": "int" }
 	*        ]
 	*    }]
-	* })
+	* });
 	* // get the details of the field "Name" of store "People"
 	* // it returns a JSON object:
 	* // { id: 0, name: "Name", type: "string", primary: true }
@@ -1175,7 +1175,7 @@ private:
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
-	* // create a base with one store
+	* // create a base containing one store
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
@@ -1185,7 +1185,7 @@ private:
 	*            { "name": "NumberOfEpisodes", "type": "int" }
 	*        ]
 	*    }]
-	* })
+	* });
 	* // check if the field "Title" is of numeric type
 	* var isTitleNumeric = base.store("TVSeries").isNumeric("Title"); // returns false
 	* // check if the field "NumberOfEpisodes" is of numeric type
@@ -1202,9 +1202,9 @@ private:
 	* @example
 	* // import qm module
 	* var qm = require("qminer");
-	* // create a new base with one store
+	* // create a new base containing one store
 	* var base = new qm.Base({
-	*    mode: "createClear",
+	*    mode: "createClean",
 	*    schema: [{
 	*        "name": "People",
 	*        "fields": [
@@ -1213,7 +1213,7 @@ private:
 	*            { "name": "Age", "type": "int" }
 	*        ]
 	*    }]
-	* })
+	* });
 	* // check if the field "Name" is of string type
 	* var isNameString = base.store("People").isString("Name"); // returns true
 	* // check if the field "Age" is of string type
@@ -1232,7 +1232,7 @@ private:
 	* var qm = require('qminer');
 	* // create a new base containing one store
 	* var base = new qm.Base({
-	*    mode: "createClear",
+	*    mode: "createClean",
 	*    schema: [{
 	*        "name": "BasketballPlayers",
 	*        "fields": [
@@ -1241,11 +1241,11 @@ private:
 	*            { "name": "FirstPlayed", "type": "datetime" }
 	*        ]
 	*    }]
-	* })
+	* });
 	* // check if the SeasonScore field is of type Date
 	* var isSeasonScoreDate = base.store("BasketballPlayers").isDate("SeasonScore"); // returns false
 	* // check if the FirstPlayed field is of type Date
-	* var isFistPlayedDate = base.score("BasketballPlayers").isDate("FirstPlayed"); // returns true
+	* var isFirstPlayedDate = base.store("BasketballPlayers").isDate("FirstPlayed"); // returns true
 	*/
 	//# exports.Store.prototype.isDate = function (fieldName) {}
 	JsDeclareFunction(isDate)
@@ -1270,13 +1270,14 @@ private:
 	*        ],
 	*        "keys": [
 	*            { "field": "Name", "type": "text" },
-	*            { "field": "Population", "type": "value" },
-	*            { "field": "Continent", "type": "text" }
+	*            { "field": "Continent", "type": "value" }
 	*        ]
 	*    }]
-	* })
-	* // get the details of the key of the field "Population"
-	* var details = base.store("Countries").key("Population"); //TODO, what are the details
+	* });
+	* // get the details of the key of the field "Continent"
+	* // returns a JSON object containing the details of the key:
+	* // { fq: { length: 0 }, vocabulary: { length: 0 }, name: 'Continent', store: { name: 'Countries', ... }}
+	* var details = base.store("Countries").key("Continent");
 	*/
 	//# exports.Store.prototype.key = function (keyName) {};
 	JsDeclareFunction(key);
@@ -1284,8 +1285,18 @@ private:
 	////!- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 	//JsDeclareFunction(addTrigger); Deprecated - use new qm.sa(...) instead
 	//!- `sa = store.getStreamAggr(saName)` -- returns a stream aggregate `sa` whose name is `saName`
+	/**
+	* //TODO
+	* @param {string} saName - The name of the stream aggregate.
+	*/
+	//# exports.Store.prototype.getStreamAggr = function (saName) {}
 	JsDeclareFunction(getStreamAggr);
+
 	//!- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
+	/**
+	* //TODO
+	*/
+	//# exports.Store.prototype.getStreamAggrNames = function () {}
 	JsDeclareFunction(getStreamAggrNames);
 
 	//!- `objJSON = store.toJSON()` -- returns the store as a JSON
@@ -1295,9 +1306,9 @@ private:
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
-	* // create a new base with one store
+	* // create a new base containing one store
 	* var base = new qm.Base({
-	*    mode: "createClear",
+	*    mode: "createClean",
 	*    schema: [{
 	*        "name": "FootballPlayers",
 	*        "fields": [
@@ -1306,8 +1317,10 @@ private:
 	*            { "name": "GoalsPerSeason", "type": "int_v" },
 	*        ]
 	*    }]
-	* })
-	* // get the store as a JSON
+	* });
+	* // get the store as a JSON object
+	* // the returned JSON object is:
+	* // { storeId: 0, storeName: 'FootballPlayers', storeRecords: 0, fields: [...], keys: [], joins: [] }
 	* var json = base.store("FootballPlayers").toJSON();
 	*/
 	//# exports.Store.prototype.toJSON = function () {};
@@ -1317,12 +1330,12 @@ private:
 	//!- `len = store.clear(num)` -- deletes the first `num` records and returns new length `len`
 	/**
 	* Deletes the records in the store.
-	* @param {number} [num] - The number of deleted records.
+	* @param {number} [num] - The number of deleted records. If the number is given, the first num records will be deleted.
 	* @returns {number} The number of remaining records in the store.
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
-	* // create a base with one store
+	* // create a base containing one store
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
@@ -1332,7 +1345,7 @@ private:
 	*            { "name": "NumberOfEpisodes", "type": "int" }
 	*        ]
 	*    }]
-	* })
+	* });
 	* // add some records in the store
 	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
 	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
@@ -1340,9 +1353,9 @@ private:
 	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11 });
 	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
 	* // deletes the first 2 records (Archer and The Simpsons) in TVSeries
-	* store.clear(2); // returns 3
+	* base.store("TVSeries").clear(2); // returns 3
 	* // delete all remaining records in TVStore
-	* store.clear();  // returns 0
+	* base.store("TVSeries").clear();  // returns 0
 	*/
 	//# exports.Store.prototype.clear = function (num) {};
 	JsDeclareFunction(clear);
@@ -1355,7 +1368,7 @@ private:
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
-	* // create a base with one store
+	* // create a base containing one store
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
@@ -1365,7 +1378,7 @@ private:
 	*            { "name": "Location", "type": "string" }
 	*        ]
 	*    }]
-	* })
+	* });
 	* // add some records to the store
 	* base.store("Companies").push({ "Name": "DC Comics", "Location": "Burbank, California" });
 	* base.store("Companies").push({ "Name": "DC Shoes", "Location": "Huntington Beach, California" });
@@ -1391,10 +1404,10 @@ private:
 	*        "name": "ArcheryChampionship",
 	*        "fields": [
 	*            { "name": "Name", "type": "string" },
-	*            { "name": "ScorePerRound", "type": "int_v" }
+	*            { "name": "ScorePerRound", "type": "float_v" }
 	*        ]
 	*    }]
-	* })
+	* });
 	* // set new records in the store
 	* base.store("ArcheryChampionship").push({ "Name": "Robin Hood", "ScorePerRound": [50, 48, 48] });
 	* base.store("ArcheryChampionship").push({ "Name": "Oliver Queen", "ScorePerRound": [44, 46, 44] });
@@ -1420,9 +1433,9 @@ private:
 	* @example
 	* //import qm module
 	* var qm = require('qminer');
-	* // create a new base with one store
+	* // create a new base containing one store
 	* var base = new qm.Base({
-	*    mode: "createClear",
+	*    mode: "createClean",
 	*    schema: [{
 	*        "name": "Festivals",
 	*        "fields": [
@@ -1431,7 +1444,7 @@ private:
 	*            { "name": "Location", "type": "string" }
 	*        ]
 	*    }]
-	* })
+	* });
 	* // add some records in the store
 	* base.store("Festivals").push({ "Name": "Metaldays", "Type": "music", "Location": "Tolmin, Slovenia" });
 	* base.store("Festivals").push({ "Name": "Festival de Cannes", "Type": "movie", "Location": "Cannes, France" });
@@ -1524,6 +1537,10 @@ private:
 	JsDeclIndexedProperty(indexId);	
 
 	//!- `base = store.base` -- get store base; 
+	/**
+	* Returns the base, in which the store is contained.
+	*/
+	//# exports.Store.prototype.base = undefined;
 	JsDeclareProperty(base);
 	//!JSIMPLEMENT:src/qminer/store.js
 };

@@ -216,6 +216,25 @@ describe('Store Tests', function () {
         })
     });
 
+    describe('Base Test', function () {
+        it('should return the base, in which the store is contained', function () {
+            var base = table.base.store("People").base;
+            assert.equal(base.store("People").name, "People");
+        })
+    });
+
+    describe('IndexId Test', function () {
+        it('should return the record at index 0: Carolina Fortuna', function () {
+            assert.equal(table.base.store("People")[0].Name, "Carolina Fortuna");
+        })
+        it.skip('should return null if index is out of bound, lesser than 0', function () {
+            assert.equal(table.base.store("People")[-1] == null);
+        })
+        it.skip('should return null if index is out of bound, greater than number of records', function () {
+            assert.equal(table.base.store("People")[3] == null);
+        })
+    })
+
     describe('Rec Test', function () {
         it('should return the record of Carolina Fortuna', function () {
             var record = table.base.store("People").rec("Carolina Fortuna");
@@ -378,9 +397,9 @@ function TStore() {
         this.base.store("Movies").push(movie);
     }
 
-    this.player1 = { "Player": "Goran Dragic", "Score": [35, 12, 23], "FirstPlayed": 12109824000000 };
-    this.player2 = { "Player": "Michael Jordan", "Score": [90, 100, 95], "FirstPlayed": 12709008000000 };
-    this.player3 = { "Player": "Marko Milic", "Score": [50, 10, 10, 12], "FirstPlayed": 12330576000000 };
+    this.player1 = { "Player": "Goran Dragic", "Score": [35, 12, 23], "FirstPlayed": "1984-01-01T00:00:00" };
+    this.player2 = { "Player": "Michael Jordan", "Score": [90, 100, 95], "FirstPlayed": "2003-01-01T00:00:00" };
+    this.player3 = { "Player": "Marko Milic", "Score": [50, 10, 10, 12], "FirstPlayed": "1991-01-01T00:00:00" };
 
     this.addPlayer = function (player) {
         this.base.store("Basketball").push(player);
