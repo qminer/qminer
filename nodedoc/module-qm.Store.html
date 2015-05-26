@@ -153,6 +153,9 @@
                     <dt><a href="module-qm.Store.html#sample">sample(sampleSize)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.Store.html#store">store(recId)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.Store.html#toJSON">toJSON()</a></dt>
                     <dd>
                     </dd>
@@ -1296,6 +1299,43 @@ var randomRecordSet = base.store(&quot;TVSeries&quot;).sample(3); // contains 3 
                 <dt>Returns</dt>
                 <dd>
                   <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Returns a record set containing random records.</p>
+                </dd>
+              </dl>
+              <h3 id="store"><span class="symbol-name">store</span><span class="signature"><span class="signature-params">(recId)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Record.html">module:qm.Record</a></span></span></h3>
+              <p>Gets the record with the given ID. //TODO</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>recId</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The id of the record.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>&nbsp;The record with the ID equal to recId.</p>
                 </dd>
               </dl>
               <h3 id="toJSON"><span class="symbol-name">toJSON</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>

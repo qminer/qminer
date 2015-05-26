@@ -227,11 +227,11 @@ describe('Store Tests', function () {
         it('should return the record at index 0: Carolina Fortuna', function () {
             assert.equal(table.base.store("People")[0].Name, "Carolina Fortuna");
         })
-        it.skip('should return null if index is out of bound, lesser than 0', function () {
-            assert.equal(table.base.store("People")[-1] == null);
+        it('should return null if index is out of bound, lesser than 0', function () {
+            assert.ok(table.base.store("People")[-1] == null);
         })
-        it.skip('should return null if index is out of bound, greater than number of records', function () {
-            assert.equal(table.base.store("People")[3] == null);
+        it('should return null if index is out of bound, greater than number of records', function () {
+            assert.ok(table.base.store("People")[3] == null);
         })
     })
 

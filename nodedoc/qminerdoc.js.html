@@ -2557,6 +2557,18 @@
 
 /**
 
+	* Gets the record with the given ID. //TODO
+
+	* @param {number} recId - The id of the record.
+
+	* @returns {module:qm.Record} The record with the ID equal to recId.
+
+	*/
+
+ exports.Store.prototype.store = function (recId) {};
+
+/**
+
 	* Returns the base, in which the store is contained.
 
 	*/
@@ -2579,15 +2591,133 @@
 
 	* @returns {module:qm.Record} The clone of the record.
 
+	* @example
+
+	* // import qm module
+
+	* var qm = require(&#x27;qminer&#x27;);
+
+	* // create a new base containing one store
+
+	* var base = new qm.Base({
+
+	*    mode: &quot;createClean&quot;,
+
+	*    schema: [{
+
+	*        &quot;name&quot;: &quot;StarWarsMovies&quot;,
+
+	*        &quot;fields&quot;: [
+
+	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+
+	*            { &quot;name&quot;: &quot;ReleseDate&quot;, &quot;type&quot;: &quot;datetime&quot; },
+
+	*            { &quot;name&quot;: &quot;Length&quot;, &quot;type&quot;: &quot;int&quot; }
+
+	*        ]
+
+	*    }]
+
+	* });
+
+	* // create some records in the new store
+
+	* base.store(&quot;StarWarsMovies&quot;).push({&quot;Title&quot;: &quot;Attack of the Clones&quot;, &quot;ReleseDate&quot;: &quot;2002-05-16T00:00:00&quot;, &quot;Length&quot;: 142 });
+
+	* base.store(&quot;StarWarsMovies&quot;).push({&quot;Title&quot;: &quot;The Empire Strikes Back&quot;, &quot;ReleseDate&quot;: &quot;1980-06-20T00:00:00&quot;, &quot;Length&quot;: 124 });
+
+	* base.store(&quot;StarWarsMovies&quot;).push({&quot;Title&quot;: &quot;Return of the Jedi&quot;, &quot;ReleseDate&quot;: &quot;1983-05-25T00:00:00&quot;, &quot;Length&quot;: 134 });
+
+	* // create a clone of the &quot;Attack of the Clones&quot; record
+
+	* var clone = base.store(&quot;StarWarsMovies&quot;)[0].$clone();
+
 	*/
 
  exports.Record.prototype.$clone = function () {};
 
 /**
 
+	* addJoin // TODO
+
+	* @param {string} joinName
+
+	* @param {(module:qm.Record | number)} joinRecord
+
+	* @param {number} [joinFrequency]
+
+	* @returns {module:qm.Record} Record.
+
+	*/
+
+ exports.Record.prototype.addJoin = function (joinName, joinRecord, joinFrequency) {}
+
+/**
+
+	* delJoin // TODO
+
+	* @param {string} joinName
+
+	* @param {(module:qm.Record | number)} joinRecord
+
+	* @param {number} [joinFrequency]
+
+	* @returns {module:qm.Record} Record.
+
+	*/
+
+ exports.Record.prototype.delJoin = function (joinName, joinRecord, joinFrequency) {}
+
+/**
+
 	* Creates a JSON version of the record.
 
 	* @returns {Object} The JSON version of the record.
+
+	* @example
+
+	* // import qm module
+
+	* var qm = require(&#x27;qminer&#x27;);
+
+	* // create a new base containing one store
+
+	* var base = new qm.Base({
+
+	*    mode: &quot;createClean&quot;,
+
+	*    schema: [{
+
+	*        &quot;name&quot;: &quot;Musicians&quot;,
+
+	*        &quot;fields&quot;: [
+
+	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+
+	*            { &quot;name&quot;: &quot;ActiveSince&quot;, &quot;type&quot;: &quot;datetime&quot; },
+
+	*            { &quot;name&quot;: &quot;GreatestHits&quot;, &quot;type&quot;: &quot;string_v&quot; }
+
+	*        ]
+
+	*    }]
+
+	* });
+
+	* // create some records
+
+	* base.store(&quot;Musicians&quot;).push({ &quot;Name&quot;: &quot;Jimmy Page&quot;, &quot;ActiveSince&quot;:  &quot;1957-01-01T00:00:00&quot;, &quot;GreatestHits&quot;: [&quot;Stairway to Heaven&quot;, &quot;Whole Lotta Love&quot;] });
+
+	* base.store(&quot;Musicians&quot;).push({ &quot;Name&quot;: &quot;Beyonce&quot;, &quot;ActiveSince&quot;: &quot;1997-01-01T00:00:00&quot;, &quot;GreatestHits&quot;: [&quot;Single Ladies (Put a Ring on It)&quot;] });
+
+	* // get a JSON version of the &quot;Beyonce&quot; record 
+
+	* // The JSON object for this example si:
+
+	* // { &#x27;$id&#x27;: 1, Name: &#x27;Beyonce&#x27;, ActiveSince: &#x27;1997-01-01T00:00:00&#x27;, GreatestHits: [&#x27;Single Ladies (Put a Ring on It)&#x27;] }
+
+	* var json = base.store(&quot;Musicians&quot;).rec(&quot;Beyonce&quot;).toJSON();
 
 	*/
 
@@ -2651,6 +2781,50 @@
 
 	* @returns {module:qm.RecordSet} A copy of the record set.
 
+	* @example
+
+	* // import qm module
+
+	* var qm = require(&#x27;qminer&#x27;);
+
+	* // create a new base containing one store
+
+	* var base = new qm.Base({
+
+	*    mode: &quot;createClean&quot;,
+
+	*    schema: [{
+
+	*        &quot;name&quot;: &quot;Philosophers&quot;,
+
+	*        &quot;fields&quot;: [
+
+	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+
+	*            { &quot;name&quot;: &quot;Era&quot;, &quot;type&quot;: &quot;string&quot; }
+
+	*        ]
+
+	*    }]
+
+	* });
+
+	* // put some records in the store
+
+	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Plato&quot;, &quot;Era&quot;: &quot;Ancient philosophy&quot; });
+
+	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Immanuel Kant&quot;, &quot;Era&quot;: &quot;18th-century philosophy&quot; });
+
+	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Emmanuel Levinas&quot;, &quot;Era&quot;: &quot;20th-century philosophy&quot; });
+
+	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Rene Descartes&quot;, &quot;Era&quot;: &quot;17th-century philosophy&quot; });
+
+	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Confucius&quot;, &quot;Era&quot;: &quot;Ancient philosophy&quot; });
+
+	* // clone the record set of the &quot;Philosophers&quot; store
+
+	* var philosophers = base.store(&quot;Philosophers&quot;).recs.clone();
+
 	*/
 
  exports.RecordSet.prototype.clone = function () {};
@@ -2664,6 +2838,82 @@
 	* @param {number} [sampleSize] - The number of records to be used for construction of the record set.
 
 	* @returns {module:qm.RecordSet} The record set containing the join records.
+
+	* @example
+
+	* // import qm module
+
+	* var qm = require(&#x27;qminer&#x27;);
+
+	* // create a new base containing two stores, with join attributes
+
+	* var base = new qm.Base({
+
+	*    mode: &quot;createClean&quot;,
+
+	*    schema: [
+
+	*    {
+
+	*        &quot;name&quot;: &quot;Musicians&quot;,
+
+	*        &quot;fields&quot;: [
+
+	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+
+	*            { &quot;name&quot;: &quot;Instruments&quot;, &quot;type&quot;: &quot;string_v&quot; }
+
+	*        ],
+
+	*        &quot;joins&quot;: [
+
+	*            { &quot;name&quot;: &quot;PlaysIn&quot;, &quot;type&quot;: &quot;index&quot;, &quot;store&quot;: &quot;Bands&quot;, &quot;inverse&quot;: &quot;Members&quot; }
+
+	*        ]
+
+	*    },
+
+	*    {
+
+	*        &quot;name&quot;: &quot;Bands&quot;,
+
+	*        &quot;fields&quot;: [
+
+	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+
+	*            { &quot;name&quot;: &quot;Genre&quot;, &quot;type&quot;: &quot;string&quot; }
+
+	*        ],
+
+	*        &quot;joins&quot;: [
+
+	*            { &quot;name&quot;: &quot;Members&quot;, &quot;type&quot;: &quot;index&quot;, &quot;store&quot;: &quot;Musicians&quot;, &quot;inverse&quot;: &quot;PlaysIn&quot; }
+
+	*        ]
+
+	*    }]
+
+	* });
+
+	* // add some new records to both stores
+
+	* base.store(&quot;Musicians&quot;).push({ &quot;Name&quot;: &quot;Robert Plant&quot;, &quot;Instruments&quot;: [&quot;Vocals&quot;], &quot;PlaysIn&quot;: [{&quot;Name&quot;: &quot;Led Zeppelin&quot;, &quot;Genre&quot;: &quot;Rock&quot; }] });
+
+	* base.store(&quot;Musicians&quot;).push({ &quot;Name&quot;: &quot;Jimmy Page&quot;, &quot;Instruments&quot;: [&quot;Guitar&quot;], &quot;PlaysIn&quot;: [{&quot;Name&quot;: &quot;Led Zeppelin&quot;, &quot;Genre&quot;: &quot;Rock&quot; }] });
+
+	* base.store(&quot;Bands&quot;).push({ &quot;Name&quot;: &quot;The White Stripes&quot;, &quot;Genre&quot;: &quot;Rock&quot; });
+
+	* // create a record set containing the musicians, that are members of some bend
+
+	* // returns a record set containing the records of &quot;Robert Plant&quot; and &quot;Jimmy Page&quot;
+
+	* var ledZeppelin = base.store(&quot;Bands&quot;).recs.join(&quot;Members&quot;);
+
+	* // create a record set containing the first musician, that is a member of some band
+
+	* // returns a record set containing only one record, which is &quot;Robert Plant&quot; or &quot;Jimmy Page&quot;
+
+	* var robertPlant = base.store(&quot;Bands&quot;).recs.join(&quot;Members&quot;, 1);
 
 	*/
 
@@ -2683,21 +2933,55 @@
 
 	* // import qm module
 
-	* qm = require(&#x27;qminer&#x27;);
+	* var qm = require(&#x27;qminer&#x27;);
 
-	* // construct a record set with 20 records
+	* // create a new base containing one store
 
-	* rs = //TODO
+	* var base = new qm.Base({
 
-	* rs2 = //TODO
+	*    mode: &quot;createClean&quot;,
 
-	* // truncate the first 10 records
+	*    schema: [{
 
-	* rs.trunc(10); // returns self, only with the first 10 records
+	*        &quot;name&quot;: &quot;Philosophers&quot;,
 
-	* // truncate the first 10 records starting with the 5th
+	*        &quot;fields&quot;: [
 
-	* rs2.trunc(10, 4);
+	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+
+	*            { &quot;name&quot;: &quot;Era&quot;, &quot;type&quot;: &quot;string&quot; }
+
+	*        ]
+
+	*    }]
+
+	* });
+
+	* // put some records in the store
+
+	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Plato&quot;, &quot;Era&quot;: &quot;Ancient philosophy&quot; });
+
+	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Immanuel Kant&quot;, &quot;Era&quot;: &quot;18th-century philosophy&quot; });
+
+	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Emmanuel Levinas&quot;, &quot;Era&quot;: &quot;20th-century philosophy&quot; });
+
+	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Rene Descartes&quot;, &quot;Era&quot;: &quot;17th-century philosophy&quot; });
+
+	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Confucius&quot;, &quot;Era&quot;: &quot;Ancient philosophy&quot; });
+
+	* // create two identical record sets of the &quot;Philosophers&quot; store
+
+	* var recordSet1 = base.store(&quot;Philosophers&quot;).recs;
+
+	* var recordSet2 = base.store(&quot;Philosophers&quot;).recs;
+
+	* // truncate the first 3 records in recordSet1
+
+	* recordSet1.trunc(3); // return self, containing only the first 3 records (&quot;Plato&quot;, &quot;Immanuel Kant&quot;, &quot;Emmanuel Levinas&quot;)
+
+	* // truncate the first 2 records in recordSet2, starting with &quot;Emmanuel Levinas&quot;
+
+	* recordSet2.trunc(2, 2); // returns self, containing only the 2 records (&quot;Emmanuel Levinas&quot;, &quot;Rene Descartes&quot;)
 
 	*/
 
@@ -2705,7 +2989,7 @@
 
 /**
 
-	* Creates a sample of records of the record set.
+	* Creates a random sample of records of the record set.
 
 	* @param {number} num - The number of records in the sample.
 

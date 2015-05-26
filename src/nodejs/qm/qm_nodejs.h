@@ -1284,6 +1284,7 @@ private:
 
 	////!- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 	//JsDeclareFunction(addTrigger); Deprecated - use new qm.sa(...) instead
+
 	//!- `sa = store.getStreamAggr(saName)` -- returns a stream aggregate `sa` whose name is `saName`
 	/**
 	* //TODO
@@ -1534,6 +1535,12 @@ private:
 
 	//!- `rec = store[recId]` -- get record with ID `recId`; 
 	//!     returns `null` when no such record exists
+	/**
+	* Gets the record with the given ID. //TODO
+	* @param {number} recId - The id of the record.
+	* @returns {module:qm.Record} The record with the ID equal to recId.
+	*/
+	//# exports.Store.prototype.store = function (recId) {};
 	JsDeclIndexedProperty(indexId);	
 
 	//!- `base = store.base` -- get store base; 
@@ -1584,21 +1591,81 @@ private:
 	/**
 	* Clones the record.
 	* @returns {module:qm.Record} The clone of the record.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "StarWarsMovies",
+	*        "fields": [
+	*            { "name": "Title", "type": "string" },
+	*            { "name": "ReleseDate", "type": "datetime" },
+	*            { "name": "Length", "type": "int" }
+	*        ]
+	*    }]
+	* });
+	* // create some records in the new store
+	* base.store("StarWarsMovies").push({"Title": "Attack of the Clones", "ReleseDate": "2002-05-16T00:00:00", "Length": 142 });
+	* base.store("StarWarsMovies").push({"Title": "The Empire Strikes Back", "ReleseDate": "1980-06-20T00:00:00", "Length": 124 });
+	* base.store("StarWarsMovies").push({"Title": "Return of the Jedi", "ReleseDate": "1983-05-25T00:00:00", "Length": 134 });
+	* // create a clone of the "Attack of the Clones" record
+	* var clone = base.store("StarWarsMovies")[0].$clone();
 	*/
 	//# exports.Record.prototype.$clone = function () {};
     JsDeclareFunction(clone);
 
     //!- `rec = rec.addJoin(joinName, (joinRecord | joinRecordId))` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string). Returns self.
     //!- `rec = rec.addJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
-    JsDeclareFunction(addJoin);
+	/**
+	* addJoin // TODO
+	* @param {string} joinName
+	* @param {(module:qm.Record | number)} joinRecord
+	* @param {number} [joinFrequency]
+	* @returns {module:qm.Record} Record.
+	*/
+	//# exports.Record.prototype.addJoin = function (joinName, joinRecord, joinFrequency) {}
+	JsDeclareFunction(addJoin);
+
     //!- `rec = rec.delJoin(joinName, (joinRecord | joinRecordId))` -- deletes join record `joinRecord` (or given id, joinRecordId) from join `joinName` (string). Returns self.
     //!- `rec = rec.delJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- deletes join record `joinRecord` (or given id, joinRecordId) from join `joinName` (string) with join frequency `joinFrequency`. Return self.
-    JsDeclareFunction(delJoin);
+	/**
+	* delJoin // TODO
+	* @param {string} joinName
+	* @param {(module:qm.Record | number)} joinRecord
+	* @param {number} [joinFrequency]
+	* @returns {module:qm.Record} Record.
+	*/
+	//# exports.Record.prototype.delJoin = function (joinName, joinRecord, joinFrequency) {}
+	JsDeclareFunction(delJoin);
 
     //!- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
 	/**
 	* Creates a JSON version of the record.
 	* @returns {Object} The JSON version of the record.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "Musicians",
+	*        "fields": [
+	*            { "name": "Name", "type": "string", "primary": true },
+	*            { "name": "ActiveSince", "type": "datetime" },
+	*            { "name": "GreatestHits", "type": "string_v" }
+	*        ]
+	*    }]
+	* });
+	* // create some records
+	* base.store("Musicians").push({ "Name": "Jimmy Page", "ActiveSince":  "1957-01-01T00:00:00", "GreatestHits": ["Stairway to Heaven", "Whole Lotta Love"] });
+	* base.store("Musicians").push({ "Name": "Beyonce", "ActiveSince": "1997-01-01T00:00:00", "GreatestHits": ["Single Ladies (Put a Ring on It)"] });
+	* // get a JSON version of the "Beyonce" record 
+	* // The JSON object for this example si:
+	* // { '$id': 1, Name: 'Beyonce', ActiveSince: '1997-01-01T00:00:00', GreatestHits: ['Single Ladies (Put a Ring on It)'] }
+	* var json = base.store("Musicians").rec("Beyonce").toJSON();
 	*/
 	//# exports.Record.prototype.toJSON = function () {};
     JsDeclareFunction(toJSON);
@@ -1676,6 +1743,28 @@ private:
 	/**
 	* Creates a new instance of the record set.
 	* @returns {module:qm.RecordSet} A copy of the record set.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "Philosophers",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Era", "type": "string" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the store
+	* base.store("Philosophers").push({ "Name": "Plato", "Era": "Ancient philosophy" });
+	* base.store("Philosophers").push({ "Name": "Immanuel Kant", "Era": "18th-century philosophy" });
+	* base.store("Philosophers").push({ "Name": "Emmanuel Levinas", "Era": "20th-century philosophy" });
+	* base.store("Philosophers").push({ "Name": "Rene Descartes", "Era": "17th-century philosophy" });
+	* base.store("Philosophers").push({ "Name": "Confucius", "Era": "Ancient philosophy" });
+	* // clone the record set of the "Philosophers" store
+	* var philosophers = base.store("Philosophers").recs.clone();
 	*/
 	//# exports.RecordSet.prototype.clone = function () {};
 	JsDeclareFunction(clone);
@@ -1687,6 +1776,44 @@ private:
 	* @param {string} joinName - The name of the join attribute.
 	* @param {number} [sampleSize] - The number of records to be used for construction of the record set.
 	* @returns {module:qm.RecordSet} The record set containing the join records.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing two stores, with join attributes
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [
+	*    {
+	*        "name": "Musicians",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Instruments", "type": "string_v" }
+	*        ],
+	*        "joins": [
+	*            { "name": "PlaysIn", "type": "index", "store": "Bands", "inverse": "Members" }
+	*        ]
+	*    },
+	*    {
+	*        "name": "Bands",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Genre", "type": "string" }
+	*        ],
+	*        "joins": [
+	*            { "name": "Members", "type": "index", "store": "Musicians", "inverse": "PlaysIn" }
+	*        ]
+	*    }]
+	* });
+	* // add some new records to both stores
+	* base.store("Musicians").push({ "Name": "Robert Plant", "Instruments": ["Vocals"], "PlaysIn": [{"Name": "Led Zeppelin", "Genre": "Rock" }] });
+	* base.store("Musicians").push({ "Name": "Jimmy Page", "Instruments": ["Guitar"], "PlaysIn": [{"Name": "Led Zeppelin", "Genre": "Rock" }] });
+	* base.store("Bands").push({ "Name": "The White Stripes", "Genre": "Rock" });
+	* // create a record set containing the musicians, that are members of some bend
+	* // returns a record set containing the records of "Robert Plant" and "Jimmy Page"
+	* var ledZeppelin = base.store("Bands").recs.join("Members");
+	* // create a record set containing the first musician, that is a member of some band
+	* // returns a record set containing only one record, which is "Robert Plant" or "Jimmy Page"
+	* var robertPlant = base.store("Bands").recs.join("Members", 1);
 	*/
 	//# exports.RecordSet.prototype.join = function (joinName, sampleSize) {};
 	JsDeclareFunction(join);
@@ -1704,21 +1831,38 @@ private:
 	* @returns {module:qm.RecordSet} Self.
 	* @example
 	* // import qm module
-	* qm = require('qminer');
-	* // construct a record set with 20 records
-	* rs = //TODO
-	* rs2 = //TODO
-	* // truncate the first 10 records
-	* rs.trunc(10); // returns self, only with the first 10 records
-	* // truncate the first 10 records starting with the 5th
-	* rs2.trunc(10, 4);
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "Philosophers",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Era", "type": "string" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the store
+	* base.store("Philosophers").push({ "Name": "Plato", "Era": "Ancient philosophy" });
+	* base.store("Philosophers").push({ "Name": "Immanuel Kant", "Era": "18th-century philosophy" });
+	* base.store("Philosophers").push({ "Name": "Emmanuel Levinas", "Era": "20th-century philosophy" });
+	* base.store("Philosophers").push({ "Name": "Rene Descartes", "Era": "17th-century philosophy" });
+	* base.store("Philosophers").push({ "Name": "Confucius", "Era": "Ancient philosophy" });
+	* // create two identical record sets of the "Philosophers" store
+	* var recordSet1 = base.store("Philosophers").recs;
+	* var recordSet2 = base.store("Philosophers").recs;
+	* // truncate the first 3 records in recordSet1
+	* recordSet1.trunc(3); // return self, containing only the first 3 records ("Plato", "Immanuel Kant", "Emmanuel Levinas")
+	* // truncate the first 2 records in recordSet2, starting with "Emmanuel Levinas"
+	* recordSet2.trunc(2, 2); // returns self, containing only the 2 records ("Emmanuel Levinas", "Rene Descartes")
 	*/
 	//# exports.RecordSet.prototype.trunc = function (limit_num, offset_num) {};
 	JsDeclareFunction(trunc);
 
 	//!- `rs2 = rs.sample(num)` -- create new record set by randomly sampling `num` records.
 	/**
-	* Creates a sample of records of the record set.
+	* Creates a random sample of records of the record set.
 	* @param {number} num - The number of records in the sample.
 	* @returns {module:qm.RecordSet} A record set containing the sample records.
 	*/
