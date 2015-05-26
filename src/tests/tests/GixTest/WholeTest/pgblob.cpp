@@ -31,6 +31,23 @@ namespace glib {
 			((FileIndex == Pt.FileIndex) && (Page == Pt.Page) && (ItemIndex < Pt.ItemIndex));
 	}
 
+	/// set all values
+	void TPgBlobPt::Set(int16 fi, uint32 pg, uint16 ii) {
+		Page = pg;
+		FileIndex = fi;
+		ItemIndex = ii;
+	}
+
+	/// for insertion into THash
+	int TPgBlobPt::GetPrimHashCd() const {
+		return abs(int(Page) + ItemIndex + FileIndex);
+	}
+
+	/// for insertion into THash
+	int TPgBlobPt::GetSecHashCd() const {
+		return abs(int(Page)) + int(ItemIndex) * 0x10 + +int(FileIndex) * 0x100;
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 
 	/// Private constructor
@@ -124,7 +141,7 @@ namespace glib {
 		// TODO locks?
 		TPgHeader* Header = (TPgHeader*)Pg;
 		EAssert(BfL + sizeof(TPgBlobPageItem) <= Header->GetFreeMem());
-		
+
 		uint16 res = Header->ItemCount;
 		TPgBlobPageItem* NewItem = GetItemRec(Pg, Header->ItemCount);
 		NewItem->Len = BfL;
@@ -218,7 +235,7 @@ namespace glib {
 		for (int i = 0; i < LoadedPages.Len(); i++) {
 			if (ShouldSavePage(i)) {
 				LoadedPage& a = LoadedPages[i];
-				Files[a.Pt.GetFileIndex()]->SavePage(a.Pt.GetPage(), GetPageBf(i));
+				Files[a.Pt.GetFIx()]->SavePage(a.Pt.GetPg(), GetPageBf(i));
 			}
 		}
 		SaveMain();
@@ -228,16 +245,18 @@ namespace glib {
 
 	/// Save main file
 	void TPgBlob::SaveMain() {
-		PSOut SOut = TFOut::New(FNm + ".main");
+		TFOut SOut(FNm + ".main");
 		TInt children_cnt(Files.Len());
-		SOut->Save(children_cnt);
+		children_cnt.Save(SOut);
+		Fsm.Save(SOut);
 	}
 
 	/// Load main file
 	void TPgBlob::LoadMain() {
-		PSIn SIn = TFIn::New(FNm + ".main");
-		int children_cnt;
-		SIn->Load(children_cnt);
+		TFIn SIn(FNm + ".main");
+		TInt children_cnt;
+		children_cnt.Load(SIn);
+		Fsm.Load(SIn);
 		Files.Clr();
 		for (int i = 0; i < children_cnt; i++) {
 			TStr FNmChild = FNm + ".bin" + TStr::GetNrNumFExt(children_cnt);
@@ -298,7 +317,7 @@ namespace glib {
 		UnlistFromLru(Pg);
 		LoadedPagesH.DelKey(a.Pt);
 		if (ShouldSavePage(Pg)) {
-			Files[a.Pt.GetFileIndex()]->SavePage(a.Pt.GetPage(), GetPageBf(Pg));
+			Files[a.Pt.GetFIx()]->SavePage(a.Pt.GetPg(), GetPageBf(Pg));
 		}
 		return Pg;
 	}
@@ -314,7 +333,7 @@ namespace glib {
 			// evict last page + load new page
 			Pg = Evict();
 			LoadedPage& a = LoadedPages[Pg];
-			Files[Pt.GetFileIndex()]->LoadPage(Pt.GetPage(), GetPageBf(Pg));
+			Files[Pt.GetFIx()]->LoadPage(Pt.GetPg(), GetPageBf(Pg));
 			a.Pt = Pt;
 			EnlistToStartLru(Pg);
 			int hid = LoadedPagesH.AddKey(Pt);
@@ -323,7 +342,7 @@ namespace glib {
 			// simply load the page
 			Pg = LoadedPages.Add();
 			LoadedPage& a = LoadedPages[Pg];
-			Files[Pt.GetFileIndex()]->LoadPage(Pt.GetPage(), GetPageBf(Pg));
+			Files[Pt.GetFIx()]->LoadPage(Pt.GetPg(), GetPageBf(Pg));
 			a.Pt = Pt;
 			EnlistToStartLru(Pg);
 			int hid = LoadedPagesH.AddKey(Pt);
@@ -375,5 +394,71 @@ namespace glib {
 		Pt2->OffsetFreeStart = sizeof(TPgHeader);
 		Pt2->OffsetFreeEnd = PAGE_SIZE;
 		Pt2->ItemCount = 0;
+	}
+
+	/// Store BLOB to storage
+	TPgBlobPt TPgBlob::Put(const byte* Bf, const int& BfL) {
+		// TODO find page
+		return TPgBlobPt();
+	}
+
+	/// Retrieve BLOB from storage
+	TQm::TStorage::TThinMIn TPgBlob::Get(const TPgBlobPt& Pt) {
+		byte* Pg = LoadPage(Pt);
+		TPgBlobPageItem* Item = GetItemRec(Pg, Pt.GetIIx());
+		byte* Data;
+		int Len = Item->Len;
+		GetItem(Pg, Pt.GetIIx(), &Data, Len);
+		return TQm::TStorage::TThinMIn(Data, Len);
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+
+	/// Add new page to free-space-map
+	void TPgBlobFsm::FsmAddPage(const TPgBlobPt& Pt, const uint16& FreeSpace) {
+		int index = Len();
+		Add(TPgBlobPt(Pt.GetPg(), Pt.GetFIx(), FreeSpace));
+		FsmSiftUp(index);
+	}
+
+	/// Update existing page inside free-space-map
+	void TPgBlobFsm::FsmUpdatePage(const TPgBlobPt& Pt, const uint16& FreeSpace) {
+		// find record
+		int rec = -1;
+		for (int i = 0; i < Len(); i++) {
+			if (GetVal(i).GetPg() == Pt.GetPg() &&
+				GetVal(i).GetFIx() == Pt.GetFIx()) {
+				rec = i;
+				break;
+			}
+		}
+		EAssert(rec >= 0);
+		if (rec < Len() - 1) {
+			GetVal(rec) = Last();
+			DelLast();
+			FsmAddPage(Pt, FreeSpace);
+		}
+	}
+
+	/// Find page with most open space.
+	/// Returns false if no such page, true otherwise
+	/// If page exists, pointer to it is stored into sent parameter
+	bool TPgBlobFsm::FsmGetFreePage(int RequiredSpace, TPgBlobPt& Pg) {
+		if (Len() == 0) {
+			return false;
+		}
+		Pg = GetVal(0);
+		return true;
+	}
+
+	/// Move item up the heap if needed
+	void TPgBlobFsm::FsmSiftUp(int index) {
+		if (index <= 0)
+			return;
+		int parent_index = FsmParent(index);
+		if (GetVal(parent_index).GetIIx() < GetVal(index).GetIIx()) {
+			Swap(parent_index, index);
+			FsmSiftUp(parent_index);
+		}
 	}
 }

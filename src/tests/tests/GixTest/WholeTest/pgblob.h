@@ -57,11 +57,13 @@ namespace glib {
 		}
 
 		/// get index of page within the file
-		uint32 GetPage() const { return Page; }
+		uint32 GetPg() const { return Page; }
 		/// get index of file - -1 means NULL pointer
-		int16 GetFileIndex() const { return FileIndex; }
+		int16 GetFIx() const { return FileIndex; }
 		/// get item index within page
-		uint16 GetItemIndex() const { return ItemIndex; }
+		uint16 GetIIx() const { return ItemIndex; }
+		/// set all values
+		void Set(int16 fi, uint32 pg, uint16 ii);
 
 		/// Serialization of this object
 		void Save(TSOut& SOut) const {
@@ -84,8 +86,32 @@ namespace glib {
 		/// Returns memory usage - for caching and other stuff
 		uint64 GetMemUsed() const { return sizeof(TPgBlobPt); }
 
-		int GetPrimHashCd() const { return abs(int(Page) + ItemIndex + FileIndex); }
-		int GetSecHashCd() const { return (abs(int(Page)) + int(ItemIndex) * 0x10 + +int(FileIndex) * 0x100); }
+		/// for insertion into THash
+		int GetPrimHashCd() const;
+		/// for insertion into THash
+		int GetSecHashCd() const;
+	};
+
+	///////////////////////////////////////////////////////////////////////
+	/// Free-space-map (heap)
+
+	class TPgBlobFsm : public TVec < TPgBlobPt > {
+		/// Add new page to free-space-map
+		void FsmAddPage(const TPgBlobPt& Pt, const uint16& FreeSpace);
+		/// Update existing page inside free-space-map
+		void FsmUpdatePage(const TPgBlobPt& Pt, const uint16& FreeSpace);
+		/// Find page with most open space
+		/// Returns false if no such page, true otherwise
+		/// If page exists, pointer to it is stored into sent parameter
+		bool FsmGetFreePage(int RequiredSpace, TPgBlobPt& Pg);
+		/// Move item up the heap if needed
+		void FsmSiftUp(int index);
+		/// Return index of left child
+		int FsmLeftChild(int index) { return 2 * index + 1; }
+		/// Return index of right child
+		int FsmRightChild(int index) { return 2 * index + 2; }
+		/// Index of parent
+		int FsmParent(int index) { return (index - 1) / 2; }
 	};
 
 	///////////////////////////////////////////////////////////////////////
@@ -209,6 +235,8 @@ namespace glib {
 		THash<TPgBlobPt, int> LoadedPagesH;
 		/// Pointers for loaded pages
 		TVec<LoadedPage> LoadedPages;
+		/// Heap structure that keeps track of free space in pages
+		TPgBlobFsm Fsm;
 
 		/// Next item in LRU list - this one was accessed last
 		int LruFirst;
@@ -224,6 +252,8 @@ namespace glib {
 
 		/// Returns starting address of page in Bf
 		byte* GetPageBf(int Pg) { return Bf + Pg * PAGE_SIZE; }
+
+		// Method for handling LRU list ///////////////////////////////////
 
 		/// remove given page from LRU list
 		void UnlistFromLru(int Pg);
@@ -242,29 +272,27 @@ namespace glib {
 		/// Find which child files exist
 		void DetectSegments();
 
+		// Method for handling page cache //////////////////////////////////
+
 		/// This method tells if given page should be stored to disk.
 		bool ShouldSavePage(int Pg) { return ShouldSavePageP(GetPageBf(Pg)); }
-
 		/// This method tells if given page can be evicted from cache.
 		bool CanEvictPage(int Pg) { return CanEvictPageP(GetPageBf(Pg)); }
-
 		/// This method should be overridden in derived class to tell 
 		/// if given page should be stored to disk.
 		bool ShouldSavePageP(byte* Pt) { return ((TPgHeader*)Pt)->IsDirty(); }
-
 		/// This method should be overridden in derived class to tell 
 		/// if given page can be evicted from cache.
 		bool CanEvictPageP(byte* Pt) { return ((TPgHeader*)Pt)->IsLock(); }
-
 		/// Load given page into memory
 		byte* LoadPage(const TPgBlobPt& Pt);
-
 		/// Create new page and return pointers to it
 		TPair<TPgBlobPt, byte*> CreateNewPage();
 
+		// Methods for manupulating raw page //////////////////////////////
+
 		/// Initialize new page.
 		static void InitPageP(byte* Pt);
-
 		/// Get pointer to item record - in it are offset and length
 		static TPgBlobPageItem* GetItemRec(byte* Pg, uint16 ItemIndex);
 		/// Add given buffer to page, return item-index
@@ -289,8 +317,14 @@ namespace glib {
 		/// Factory method for opening existing BLOB storage
 		static PPgBlob Open(const TStr& FNm, const uint64& CacheSize = 10 * TNum<int>::Mega);
 
-		TPgBlobPt Put(const TQm::TStorage::TThinMIn& Data);
-		TQm::TStorage::TThinMIn Get(TPgBlobPt);
+		/// Store new BLOB to storage
+		TPgBlobPt Put(const byte* Bf, const int& BfL);
+		/// Store existing BLOB to storage
+		TPgBlobPt Put(const byte* Bf, const int& BfL, const TPgBlobPt& Pt);
+		/// Retrieve BLOB from storage
+		TQm::TStorage::TThinMIn Get(const TPgBlobPt& Pt);
+
+
 #ifdef XTEST
 		friend class XTest;
 #endif

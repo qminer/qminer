@@ -59,5 +59,8 @@
     <ClInclude Include="pgblob.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="test_heap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

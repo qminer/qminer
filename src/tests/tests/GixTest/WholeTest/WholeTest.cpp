@@ -256,12 +256,12 @@ public:
 	static void TPgBlob_Complex1() {
 		auto Base = glib::TPgBlob::Create("data\\xyz");
 		auto new_page = Base->CreateNewPage();
-		EXPECT_EQ(new_page.Val1.GetFileIndex(), 0);
-		EXPECT_EQ(new_page.Val1.GetPage(), 0);
+		EXPECT_EQ(new_page.Val1.GetFIx(), 0);
+		EXPECT_EQ(new_page.Val1.GetPg(), 0);
 		//printf("%d %d\n", new_page.Val1.GetFileIndex(), new_page.Val1.GetPage());
 		auto new_page2 = Base->CreateNewPage();
-		EXPECT_EQ(new_page2.Val1.GetFileIndex(), 0);
-		EXPECT_EQ(new_page2.Val1.GetPage(), 1);
+		EXPECT_EQ(new_page2.Val1.GetFIx(), 0);
+		EXPECT_EQ(new_page2.Val1.GetPg(), 1);
 		//printf("%d %d\n", new_page2.Val1.GetFileIndex(), new_page2.Val1.GetPage());
 	}
 
