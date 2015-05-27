@@ -52,7 +52,7 @@ namespace glib {
 			SIn.Load(Page);  SIn.Load(FileIndex); SIn.Load(ItemIndex);
 		}
 		// Set constructor
-		TPgBlobPt(uint32 _Page, int16 _FileIndex, uint16 _ItemIndex) {
+		TPgBlobPt(int16 _FileIndex, uint32 _Page, uint16 _ItemIndex) {
 			Page = _Page; FileIndex = _FileIndex; ItemIndex = _ItemIndex;
 		}
 
@@ -71,7 +71,7 @@ namespace glib {
 		}
 
 		/// Is this NULL pointer
-		bool Empty() { return (FileIndex < 0); }
+		bool Empty() const { return (FileIndex < 0); }
 
 		/// Clear this pointer - make it NULL
 		bool Clr() { FileIndex = -1; Page = ItemIndex = 0; }
@@ -224,6 +224,8 @@ namespace glib {
 			}
 			/// Get amount of free space in this page
 			int GetFreeMem() { return OffsetFreeEnd - OffsetFreeStart; }
+			/// Test if given buffer could be stored to page
+			bool CanStoreBf(int Len) { return GetFreeMem() > Len + sizeof(TPgBlobPageItem); }
 		};
 
 		/// File name
@@ -302,7 +304,10 @@ namespace glib {
 		static void GetItem(byte* Pg, uint16 ItemIndex, byte** Bf, int& BfL);
 		/// Delete buffer from specified page
 		static void DeleteItem(byte* Pg, uint16 ItemIndex);
-
+		/// Add given buffer to page, to existing item that has length 0
+		static void ChangeItem(
+			byte* Pg, uint16 ItemIndex, const byte* Bf, const int BfL);
+				
 	public:
 
 		/// Reference count for smart pointers

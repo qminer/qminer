@@ -479,7 +479,34 @@ public:
 
 	//////////////////////////////////////////////////////////////////
 
-	
+
+
+	static void TPgBlob_AddBf1() {
+		
+		double d1 = 65.43;
+		double d2 = 111234.7;
+		TFlt tmp = 0;
+
+		auto pb = glib::TPgBlob("data/pb", TFAccess::faCreate, 4194304);
+		auto p1 = pb.Put((byte*)&d1, sizeof(double));
+		auto p2 = pb.Put((byte*)&d2, sizeof(double));
+
+		EXPECT_EQ(p1.GetFIx(), 0);
+		EXPECT_EQ(p1.GetPg(), 0);
+		EXPECT_EQ(p1.GetIIx(), 0);
+
+		EXPECT_EQ(p2.GetFIx(), 0);
+		EXPECT_EQ(p2.GetPg(), 0);
+		EXPECT_EQ(p2.GetIIx(), 1);
+
+		auto sin1 = pb.Get(p1);
+		tmp.Load(sin1);
+		EXPECT_EQ(tmp, d1);
+
+		auto sin2 = pb.Get(p2);
+		tmp.Load(sin2);
+		EXPECT_EQ(tmp, d2);
+	}
 };
 
 //
@@ -499,6 +526,8 @@ TEST(testTPgBlob, PageAddDouble) { XTest::TPgBlob_Page_AddDouble(); }
 TEST(testTPgBlob, PageAddIntSeveral) { XTest::TPgBlob_Page_AddIntSeveral(); }
 TEST(testTPgBlob, PageAddIntSeveralDelete) { XTest::TPgBlob_Page_AddIntSeveralDelete(); }
 TEST(testTPgBlob, PageAddIntSeveralDelete2) { XTest::TPgBlob_Page_AddIntSeveralDelete2(); }
+
+TEST(testTPgBlob, AddBf1) { XTest::TPgBlob_AddBf1(); }
 
 //////////////////////////////////////////////////////////////////////////////
 
