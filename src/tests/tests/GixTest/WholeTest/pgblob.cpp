@@ -6,6 +6,49 @@ namespace glib {
 	///////////////////////////////////////////////////////////////////////////
 
 	/// Assignment operator
+	TPgBlobPgPt& TPgBlobPgPt::operator=(const TPgBlobPgPt& Pt) {
+		if (this != &Pt) {
+			Page = Pt.Page;
+			FileIndex = Pt.FileIndex;
+		}
+		return *this;
+	}
+
+	/// Equality comparer
+	bool TPgBlobPgPt::operator==(const TPgBlobPgPt& Pt) const {
+		return (Page == Pt.Page) && (FileIndex == Pt.FileIndex);
+	}
+
+	/// Comparison of pointers for sorting
+	bool TPgBlobPgPt::operator<(const TPgBlobPgPt& Pt) const {
+		return
+			(FileIndex < Pt.FileIndex) ||
+			((FileIndex == Pt.FileIndex) && (Page < Pt.Page));
+	}
+
+	/// set all values
+	void TPgBlobPgPt::Set(int16 fi, uint32 pg) {
+		Page = pg;
+		FileIndex = fi;
+	}
+
+	/// for TPgBlobPgPt into THash
+	int TPgBlobPgPt::GetPrimHashCd() const {
+		return abs(int(Page) + FileIndex);
+	}
+
+	/// for insertion into THash
+	int TPgBlobPgPt::GetSecHashCd() const {
+		return abs(int(Page)) + int(FileIndex) * 0x10;
+	}
+
+	TPgBlobPgPt::TPgBlobPgPt(const TPgBlobPt& Src) { 
+		Set(Src.GetFIx(), Src.GetPg()); 
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+
+	/// Assignment operator
 	TPgBlobPt& TPgBlobPt::operator=(const TPgBlobPt& Pt) {
 		if (this != &Pt) {
 			Page = Pt.Page;
@@ -45,7 +88,7 @@ namespace glib {
 
 	/// for insertion into THash
 	int TPgBlobPt::GetSecHashCd() const {
-		return abs(int(Page)) + int(ItemIndex) * 0x10 + +int(FileIndex) * 0x100;
+		return abs(int(Page)) + int(ItemIndex) * 0x10 + int(FileIndex) * 0x100;
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -162,7 +205,7 @@ namespace glib {
 	uint16 TPgBlob::AddItem(byte* Pg, const byte* Bf, const int BfL) {
 		// TODO locks?
 		TPgHeader* Header = (TPgHeader*)Pg;
-		EAssert(BfL + sizeof(TPgBlobPageItem) <= Header->GetFreeMem());
+		EAssert(Header->CanStoreBf(BfL));
 
 		uint16 res = Header->ItemCount;
 		TPgBlobPageItem* NewItem = GetItemRec(Pg, Header->ItemCount);
@@ -345,7 +388,7 @@ namespace glib {
 	}
 
 	/// Load given page into memory
-	byte* TPgBlob::LoadPage(const TPgBlobPt& Pt) {
+	byte* TPgBlob::LoadPage(const TPgBlobPgPt& Pt) {
 		int Pg;
 		if (LoadedPagesH.IsKeyGetDat(Pt, Pg)) { // is page in cache
 			MoveToStartLru(Pg);
@@ -374,13 +417,13 @@ namespace glib {
 	}
 
 	/// Create new page and return pointers to it
-	void TPgBlob::CreateNewPage(TPgBlobPt& Pt, byte** Bf) {
+	void TPgBlob::CreateNewPage(TPgBlobPgPt& Pt, byte** Bf) {
 		// determine if last file is empty
 		if (Files.Len() > 0) {
 			// try to add to last file
 			uint32 Pg = Files.Last()->CreateNewPage();
 			if (Pg >= 0) {
-				Pt = TPgBlobPt(Files.Len() - 1, Pg, 0);
+				Pt.Set(Files.Len() - 1, Pg);
 				*Bf = LoadPage(Pt);
 				InitPageP(*Bf);
 				return;
@@ -390,7 +433,7 @@ namespace glib {
 		Files.Add(TPgBlobFile::New(NewFNm, TFAccess::faCreate, TInt::Giga));
 		uint32 Pg = Files.Last()->CreateNewPage();
 		EAssert(Pg >= 0);
-		Pt = TPgBlobPt(Files.Len() - 1, Pg, 0);
+		Pt.Set(Files.Len() - 1, Pg);
 		*Bf = LoadPage(Pt);
 		InitPageP(*Bf);
 	}
@@ -419,7 +462,7 @@ namespace glib {
 	/// Store BLOB to storage
 	TPgBlobPt TPgBlob::Put(const byte* Bf, const int& BfL) {
 		// find page
-		TPgBlobPt Pt;
+		TPgBlobPgPt PgPt;
 		byte* PgBf = NULL;
 		TPgHeader* PgH = NULL;
 		bool is_new_page = false;
@@ -432,31 +475,31 @@ namespace glib {
 			PgH = (TPgHeader*)PgBfTmp;
 			if (PgH->CanStoreBf(BfL)) {
 				PgBf = PgBfTmp;
-				Pt = LoadedPages[i].Pt;
+				PgPt = LoadedPages[i].Pt;
 				break;
 			}
 		}
 
 		// if no page found in memory, use FSM
 		if (PgBf == NULL) {
-			if (Fsm.FsmGetFreePage(BfL + sizeof(TPgBlobPageItem), Pt)) {
-				PgBf = LoadPage(Pt);
+			if (Fsm.FsmGetFreePage(BfL + sizeof(TPgBlobPageItem), PgPt)) {
+				PgBf = LoadPage(PgPt);
 			} else {
-				CreateNewPage(Pt, &PgBf);
+				CreateNewPage(PgPt, &PgBf);
 				is_new_page = true;
 			}
 		}
 
 		// add data
 		uint16 ii = AddItem(PgBf, Bf, BfL);
-		Pt.Set(Pt.GetFIx(), Pt.GetPg(), ii);
+		TPgBlobPt Pt(PgPt.GetFIx(), PgPt.GetPg(), ii);
 		PgH = (TPgHeader*)PgBf;
 
 		// update free-space-map
 		if (is_new_page) {
-			Fsm.FsmAddPage(Pt, PgH->GetFreeMem());
+			Fsm.FsmAddPage(PgPt, PgH->GetFreeMem());
 		} else {
-			Fsm.FsmUpdatePage(Pt, PgH->GetFreeMem());
+			Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
 		}
 		return Pt;
 	}
@@ -464,35 +507,37 @@ namespace glib {
 	/// Store existing BLOB to storage
 	TPgBlobPt TPgBlob::Put(
 		const byte* Bf, const int& BfL, const TPgBlobPt& Pt) {
-		
+
 		// find page
-		TPgBlobPt Pt2;
 		byte* PgBf = NULL;
 		TPgHeader* PgH = NULL;
 		TPgBlobPageItem* ItemRec = NULL;
 
-		PgBf = LoadPage(Pt);
+		TPgBlobPgPt PgPt = Pt;
+		PgBf = LoadPage(PgPt);
 		PgH = (TPgHeader*)PgBf;
 		ItemRec = GetItemRec(PgBf, Pt.GetIIx());
 
 		int existing_size = ItemRec->Len;
-		if (existing_size == BfL) { 
+		if (existing_size == BfL) {
 			// we're so lucky, just overwrite buffer
 			memcpy(PgBf + ItemRec->Offset, Bf, BfL);
 
-		} else if (existing_size + PgH->GetFreeMem() >= BfL) { 
+		} else if (existing_size + PgH->GetFreeMem() >= BfL) {
 			// ok, everything can still be inside this page
 			DeleteItem(PgBf, Pt.GetIIx());
 			ChangeItem(PgBf, Pt.GetIIx(), Bf, BfL);
+			Fsm.FsmUpdatePage(Pt, PgH->GetFreeMem());
 
 		} else {
 			// bad luck, we need to move data to new page
 			DeleteItem(PgBf, Pt.GetIIx());
-			Fsm.FsmUpdatePage(Pt, PgH->GetFreeMem());
+			Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
 
-			CreateNewPage(Pt2, &PgBf);
+			CreateNewPage(PgPt, &PgBf);
 			uint16 ii = AddItem(PgBf, Bf, BfL);
-			Pt2.Set(Pt2.GetFIx(), Pt2.GetPg(), ii);
+
+			TPgBlobPt Pt2(PgPt.GetFIx(), PgPt.GetPg(), ii);
 			PgH = (TPgHeader*)PgBf;
 			Fsm.FsmUpdatePage(Pt, PgH->GetFreeMem());
 			return Pt;
@@ -512,14 +557,14 @@ namespace glib {
 	///////////////////////////////////////////////////////////////////////////
 
 	/// Add new page to free-space-map
-	void TPgBlobFsm::FsmAddPage(const TPgBlobPt& Pt, const uint16& FreeSpace) {
+	void TPgBlobFsm::FsmAddPage(const TPgBlobPgPt& Pt, const uint16& FreeSpace) {
 		int index = Len();
 		Add(TPgBlobPt(Pt.GetFIx(), Pt.GetPg(), FreeSpace));
 		FsmSiftUp(index);
 	}
 
 	/// Update existing page inside free-space-map
-	void TPgBlobFsm::FsmUpdatePage(const TPgBlobPt& Pt, const uint16& FreeSpace) {
+	void TPgBlobFsm::FsmUpdatePage(const TPgBlobPgPt& Pt, const uint16& FreeSpace) {
 		// find record
 		int rec = -1;
 		for (int i = 0; i < Len(); i++) {
@@ -533,29 +578,74 @@ namespace glib {
 		if (rec < Len() - 1) {
 			GetVal(rec) = Last();
 			DelLast();
+			FsmPushDown(rec);
 			FsmAddPage(Pt, FreeSpace);
+		} else {
+			Last().SetIIx(FreeSpace);
+			FsmSiftUp(rec);
 		}
 	}
 
 	/// Find page with most open space.
 	/// Returns false if no such page, true otherwise
 	/// If page exists, pointer to it is stored into sent parameter
-	bool TPgBlobFsm::FsmGetFreePage(int RequiredSpace, TPgBlobPt& Pg) {
+	bool TPgBlobFsm::FsmGetFreePage(int RequiredSpace, TPgBlobPgPt& PgPt) {
 		if (Len() == 0) {
 			return false;
 		}
-		Pg = GetVal(0);
-		return (Pg.GetIIx() >= RequiredSpace);
+		TPgBlobPt& Pt = GetVal(0);
+		PgPt.Set(Pt.GetFIx(), Pt.GetPg());
+		return (Pt.GetIIx() >= RequiredSpace);
 	}
 
 	/// Move item up the heap if needed
-	void TPgBlobFsm::FsmSiftUp(int index) {
-		if (index <= 0)
-			return;
+	int TPgBlobFsm::FsmSiftUp(int index) {
+		EAssert(index < Len());
+		EAssert(index >= 0);
+		if (index == 0)
+			return index;
 		int parent_index = FsmParent(index);
 		if (GetVal(parent_index).GetIIx() < GetVal(index).GetIIx()) {
 			Swap(parent_index, index);
 			FsmSiftUp(parent_index);
 		}
+	}
+
+	/// Move item down the heap if needed
+	int TPgBlobFsm::FsmPushDown(int index) {
+		EAssert(index < Len());
+		EAssert(index >= 0);
+		int child1 = FsmLeftChild(index);
+		int child2 = FsmRightChild(index);
+		if (child1 >= Len())
+			child1 = -1;
+		if (child2 >= Len())
+			child2 = -1;
+
+		if (child1 < 0)
+			return index; // no children
+		if (child2 < 0) {
+			// compare to child1
+			if (GetVal(index).GetIIx() < GetVal(child1).GetIIx()) {
+				Swap(child1, index);
+				return FsmPushDown(child1);
+			}
+		} else {
+			uint16 v1 = GetVal(child1).GetIIx();
+			uint16 v2 = GetVal(child2).GetIIx();
+			bool v2_is_bigger = (v2 > v1);
+			if (v2_is_bigger) {
+				if (GetVal(index).GetIIx() < v2) {
+					Swap(child2, index);
+					return FsmPushDown(child2);
+				}
+			} else {
+				if (GetVal(index).GetIIx() < v1) {
+					Swap(child1, index);
+					return FsmPushDown(child1);
+				}
+			}
+		}
+		return index;
 	}
 }

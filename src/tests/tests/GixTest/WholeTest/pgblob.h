@@ -16,6 +16,7 @@ namespace glib {
 
 	//////////////////////////////////////////////////////////////////
 	// Foward declarations
+	class TPgBlobPgPt;
 	class TPgBlobPt;
 	class TPgBlobFile;
 	class TPgBlobPage;
@@ -31,21 +32,67 @@ namespace glib {
 #define PgHeaderSLockFlag (0x02)
 #define PgHeaderXLockFlag (0x04)
 
+
+	////////////////////////////////////////////////////////////
+	/// Pointer to Paged-Blob page
+	class TPgBlobPgPt {
+	protected:
+		/// index of page within the file
+		uint32 Page;
+		/// index of file - -1 means NULL pointer
+		int16 FileIndex;
+	public:
+		/// Default constructor
+		TPgBlobPgPt() { FileIndex = -1; Page = 0; }
+		/// Deserialization constructor
+		TPgBlobPgPt(TSIn& SIn) { SIn.Load(Page);  SIn.Load(FileIndex); }
+		// Set constructor
+		TPgBlobPgPt(int16 _FileIndex, uint32 _Page) { Set(_FileIndex, _Page); }
+		// Set constructor
+		TPgBlobPgPt(const TPgBlobPt& Src);
+
+		/// get index of page within the file
+		uint32 GetPg() const { return Page; }
+		/// get index of file - -1 means NULL pointer
+		int16 GetFIx() const { return FileIndex; }
+
+		/// Set internal values
+		void Set(int16 fi, uint32 pg);
+		/// Serialization of this object
+		void Save(TSOut& SOut) const { SOut.Save(Page); SOut.Save(FileIndex); }
+
+		/// Assignment operator
+		TPgBlobPgPt& operator=(const TPgBlobPgPt& Pt);
+		/// Equality comparer
+		bool operator==(const TPgBlobPgPt& Pt) const;
+		/// Comparison of pointers for sorting
+		bool operator<(const TPgBlobPgPt& Pt) const;
+
+		/// Returns memory usage - for caching and other stuff
+		uint64 GetMemUsed() const { return sizeof(TPgBlobPgPt); }
+
+		/// for insertion into THash
+		int GetPrimHashCd() const;
+		/// for insertion into THash
+		int GetSecHashCd() const;
+	};
+
 	////////////////////////////////////////////////////////////
 	/// Pointer into Paged-Blob storage 
 	class TPgBlobPt {
-	private:
+	protected:
 
 		/// index of page within the file
 		uint32 Page;
 		/// index of file - -1 means NULL pointer
 		int16 FileIndex;
-		/// item index within page
+		/// item index within page.
+		/// alternatively can also be used to store free-space.
 		uint16 ItemIndex;
 
 	public:
 		/// Default constructor
-		TPgBlobPt() : Page(0), FileIndex(-1), ItemIndex(0) {}
+		TPgBlobPt() { FileIndex = -1; Page = 0; ItemIndex = 0; }
 
 		/// Deserialization constructor
 		TPgBlobPt(TSIn& SIn) {
@@ -64,6 +111,8 @@ namespace glib {
 		uint16 GetIIx() const { return ItemIndex; }
 		/// set all values
 		void Set(int16 fi, uint32 pg, uint16 ii);
+		/// set only ItemIndex
+		void SetIIx(uint16 ii) { ItemIndex = ii; }
 
 		/// Serialization of this object
 		void Save(TSOut& SOut) const {
@@ -82,6 +131,8 @@ namespace glib {
 		bool operator==(const TPgBlobPt& Pt) const;
 		/// Comparison of pointers for sorting
 		bool operator<(const TPgBlobPt& Pt) const;
+		// conversion to A (type-cast operator)
+		operator TPgBlobPgPt() { return TPgBlobPgPt(FileIndex, Page); }
 
 		/// Returns memory usage - for caching and other stuff
 		uint64 GetMemUsed() const { return sizeof(TPgBlobPt); }
@@ -95,18 +146,20 @@ namespace glib {
 	///////////////////////////////////////////////////////////////////////
 	/// Free-space-map (heap)
 
-	class TPgBlobFsm : public TVec<TPgBlobPt> {
+	class TPgBlobFsm : public TVec < TPgBlobPt > {
 	public:
 		/// Add new page to free-space-map
-		void FsmAddPage(const TPgBlobPt& Pt, const uint16& FreeSpace);
+		void FsmAddPage(const TPgBlobPgPt& Pt, const uint16& FreeSpace);
 		/// Update existing page inside free-space-map
-		void FsmUpdatePage(const TPgBlobPt& Pt, const uint16& FreeSpace);
+		void FsmUpdatePage(const TPgBlobPgPt& Pt, const uint16& FreeSpace);
 		/// Find page with most open space
 		/// Returns false if no such page, true otherwise
 		/// If page exists, pointer to it is stored into sent parameter
-		bool FsmGetFreePage(int RequiredSpace, TPgBlobPt& Pg);
+		bool FsmGetFreePage(int RequiredSpace, TPgBlobPgPt& Pg);
 		/// Move item up the heap if needed
-		void FsmSiftUp(int index);
+		int FsmSiftUp(int index);
+		/// Move item down the heap if needed
+		int FsmPushDown(int index);
 		/// Return index of left child
 		int FsmLeftChild(int index) { return 2 * index + 1; }
 		/// Return index of right child
@@ -170,7 +223,7 @@ namespace glib {
 		struct LoadedPage {
 		public:
 			/// Blob pointer of this page
-			TPgBlobPt Pt;
+			TPgBlobPgPt Pt;
 			/// Next item in LRU list
 			int LruNext;
 			/// Previous item in LRU list
@@ -235,7 +288,7 @@ namespace glib {
 		/// Individual files that comprise this BLOB storage
 		TVec<PPgBlobFile> Files;
 		/// Pointers for loaded pages
-		THash<TPgBlobPt, int> LoadedPagesH;
+		THash<TPgBlobPgPt, int> LoadedPagesH;
 		/// Pointers for loaded pages
 		TVec<LoadedPage> LoadedPages;
 		/// Heap structure that keeps track of free space in pages
@@ -288,9 +341,9 @@ namespace glib {
 		/// if given page can be evicted from cache.
 		bool CanEvictPageP(byte* Pt) { return ((TPgHeader*)Pt)->IsLock(); }
 		/// Load given page into memory
-		byte* LoadPage(const TPgBlobPt& Pt);
+		byte* LoadPage(const TPgBlobPgPt& Pt);
 		/// Create new page and return pointers to it
-		void TPgBlob::CreateNewPage(TPgBlobPt& Pt, byte** Bf);
+		void TPgBlob::CreateNewPage(TPgBlobPgPt& Pt, byte** Bf);
 
 		// Methods for manupulating raw page //////////////////////////////
 
@@ -307,7 +360,7 @@ namespace glib {
 		/// Add given buffer to page, to existing item that has length 0
 		static void ChangeItem(
 			byte* Pg, uint16 ItemIndex, const byte* Bf, const int BfL);
-				
+
 	public:
 
 		/// Reference count for smart pointers
