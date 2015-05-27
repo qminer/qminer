@@ -1254,7 +1254,7 @@ private:
 	/**
 	* Returns the details of the selected key as a JSON object.
 	* @param {string} keyName - The selected key as a JSON object.
-	* @returns {Object} The JSON object containing the details of the key. //TODO
+	* @returns {Object} The JSON object containing the details of the key.
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
@@ -1289,6 +1289,7 @@ private:
 	/**
 	* //TODO
 	* @param {string} saName - The name of the stream aggregate.
+	* @ignore
 	*/
 	//# exports.Store.prototype.getStreamAggr = function (saName) {}
 	JsDeclareFunction(getStreamAggr);
@@ -1296,6 +1297,7 @@ private:
 	//!- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
 	/**
 	* //TODO
+	* @ignore
 	*/
 	//# exports.Store.prototype.getStreamAggrNames = function () {}
 	JsDeclareFunction(getStreamAggrNames);
@@ -1687,6 +1689,7 @@ private:
 	//!- `recFq = rec.$fq` -- returns record frequency (used for randomized joins)
 	/**
 	* Returns the frequency of the record.
+	* @ignore
 	*/
 	//# exports.Record.prototype.$fq = undefined;
 	JsDeclareProperty(fq);
@@ -1824,6 +1827,7 @@ private:
 	* Aggr // TODO
 	* @param {Object} [aggrQueryJSON] 
 	* @returns {Object} Aggregate
+	* @ignore
 	*/
 	//# exports.RecordSet.prototype.aggr = function (aggrQueryJSON) {};
 	JsDeclareFunction(aggr);
@@ -1914,18 +1918,17 @@ private:
 	*        "fields": [
 	*            { "name": "Weather", "type": "string" },
 	*            { "name": "Date", "type": "datetime" },
-	*            { "name": "Temperature (degrees)", "type": "int" },
-	*            { "name": "Humidity", "type": "int" }
+	*            { "name": "Temperature (degrees)", "type": "int" }
 	*        ]
 	*    }]
 	* });
 	* // put some records in the "WeatherForecast" store
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "Temperature (degrees)": "19", "Humidity": 60 });
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "Temperature (degrees)": "22", "Humidity": 48 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "Temperature (degrees)": "25", "Humidity": 51 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "Temperature (degrees)": "25", "Humidity": 54 });
-	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "Temperature (degrees)": "24", "Humidity": 63 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "Temperature (degrees)": "27", "Humidity": 54 });
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "Temperature (degrees)": 19 });
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "Temperature (degrees)": 22 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "Temperature (degrees)": 25 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "Temperature (degrees)": 25 });
+	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "Temperature (degrees)": 24 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "Temperature (degrees)": 27 });
 	* // get the record set containing the records from the "WeatherForcast" store
 	* var recordSet = base.store("WeatherForcast").recs;
 	* // shuffle the records in the newly created record set. Use the number 100 as the seed for the shuffle
@@ -1954,12 +1957,12 @@ private:
 	*    }]
 	* });
 	* // put some records in the "WeatherForecast" store
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "Temperature (degrees)": "19" });
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "Temperature (degrees)": "22" });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "Temperature (degrees)": "25" });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "Temperature (degrees)": "25" });
-	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "Temperature (degrees)": "24" });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "Temperature (degrees)": "27" });
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "Temperature (degrees)": 19 });
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "Temperature (degrees)": 22 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "Temperature (degrees)": 25 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "Temperature (degrees)": 25 });
+	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "Temperature (degrees)": 24 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "Temperature (degrees)": 27 });
 	* // get the record set containing the records from the "WeatherForcast" store
 	* var recordSet = base.store("WeatherForcast").recs;
 	* // reverse the record order in the record set
@@ -2008,6 +2011,7 @@ private:
 	* Sorts the records according to their weight.
 	* @param {number} [asc=1] - If asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.
 	* @returns {module:qm.RecordSet} Self. Records are sorted according to record weight and asc.
+	* @ignore
 	*/
 	//# exports.RecordSet.prototype.sortByFq = function (asc) {}; 
 	JsDeclareFunction(sortByFq);
@@ -2128,6 +2132,7 @@ private:
 	* @returns {module:qm.RecordSet} Self.
 	* <br>1. Contains only the records of the original with weights between minFq and maxFq, if parameters are given.
 	* <br>2. Contains all the records of the original, if no parameter is given.
+	* @ignore
 	*/
 	//# exports.RecordSet.prototype.filterByFq = function (minFq, maxFq) {};
 	JsDeclareFunction(filterByFq);
@@ -2161,12 +2166,12 @@ private:
 	*    }]
 	* });
 	* // put some records in the "WeatherForecast" store
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "Temperature (degrees)": "19" });
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "Temperature (degrees)": "22" });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "Temperature (degrees)": "25" });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "Temperature (degrees)": "25" });
-	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "Temperature (degrees)": "24" });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "Temperature (degrees)": "27" });
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "Temperature (degrees)": 19 });
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "Temperature (degrees)": 22 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "Temperature (degrees)": 25 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "Temperature (degrees)": 25 });
+	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "Temperature (degrees)": 24 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "Temperature (degrees)": 27 });
 	* // get the record set containing the records from the "WeatherForcast" store
 	* var recordSet = base.store("WeatherForcast").recs;
 	* // filter only the records, where the weather is Mostly Cloudy
@@ -2231,11 +2236,16 @@ private:
 	* base.store("SocialGames").push({ "Title": "DungeonsAndDragons", "Type": "Role-Playing", "MinPlayers": 5, "MaxPlayers": 5 });
 	* base.store("SocialGames").push({ "Title": "Dobble", "Type": "Card", "MinPlayers": 2, "MaxPlayers": 8 });
 	* base.store("SocialGames").push({ "Title": "Settlers of Catan", "Type": "Board", "MinPlayers": 3, "MaxPlayers": 4 });
-	* base.store("SocialGames").push({ "Title": "Muchkin", "Type": "Card", "MinPlayers": 3, "MaxPlayers": 6 });
+	* base.store("SocialGames").push({ "Title": "Munchkin", "Type": "Card", "MinPlayers": 3, "MaxPlayers": 6 });
 	* // create a record set out of the records of the store
 	* var recordSet = base.store("SocialGames").recs;
-	* // split the record set
-	* // TODO
+	* // sort the records by MinPlayers in ascending order
+	* recordSet.sortByField("MinPlayers", true);
+	* // split the record set by the minimum number of players
+	* // returns an array containing three record sets: the first containing the "DungeonsAndDragons" record,
+	* // the second containing the "Settlers of Catan" and "Munchkin" records and the third containing the 
+	* // "Dobble" record
+	* // recordSet.split(function (rec, rec2) { return rec.MinPlayers < rec2.MinPlayers; });
 	*/
 	//# exports.RecordSet.prototype.split = function (callback) {};
 	JsDeclareFunction(split);
@@ -2248,6 +2258,32 @@ private:
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "BookWriters",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Genre", "type": "string" },
+	*            { "name": "Books", "type": "string_v" }
+	*        ]
+	*    }]
+	* });
+	* // set new records in the store
+	* base.store("BookWriters").push({ "Name": "Terry Pratchett", "Genre": "Fantasy", "Books": ["The Colour of Magic", "Going Postal", "Mort", "Guards! Guards!"] });
+	* base.store("BookWriters").push({ "Name": "Douglas Adams", "Genre": "Sci-fi", "Books": ["The Hitchhiker's Guide to the Galaxy", "So Long, and Thanks for All the Fish"] });
+	* base.store("BookWriters").push({ "Name": "Fyodor Dostoyevsky", "Genre": "Drama", "Books": ["Crime and Punishment", "Demons"] });
+	* base.store("BookWriters").push({ "Name": "J.R.R. Tolkien", "Genre": "Fantasy", "Books": ["The Hobbit", "The Two Towers", "The Silmarillion" ] });
+	* base.store("BookWriters").push({ "Name": "George R.R. Martin", "Genre": "Fantasy", "Books": ["A Game of Thrones", "A Feast of Crows"] });
+	* base.store("BookWriters").push({ "Name": "J. K. Rowling", "Genre": "Fantasy", "Books": ["Harry Potter and the Philosopher's Stone"] });
+	* base.store("BookWriters").push({ "Name": "Ivan Cankar", "Genre": "Drama", "Books": ["On the Hill", "The King of Betajnova", "The Serfs"] });
+	* // create one record set containing all records of store
+	* var recordSet = base.store("BookWriters").recs;
+	* // create one record set containing the records with genre "Fantasy"
+	* var fantasy = base.store("BookWriters").recs.filterByField("Genre", "Fantasy");
+	* // delete the records in recordSet, that are also in fantasy
+	* recordSet.deleteRecords(fantasy); // returns self, containing only three records: "Douglas Adams", "Fyodor Dostoyevsky" and "Ivan Cankar"
 	*/
 	//# exports.RecordSet.prototype.deleteRecords = function (rs) {}; 
 	JsDeclareFunction(deleteRecords);
@@ -2294,10 +2330,25 @@ private:
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
-	* // create a record set with some people with fields Name and Gender
-	* var rs = //TODO
-	* // change the gender of all records to "Extraterrestrial"
-	* rs.each(function (rec) { rec.Gender = "Extraterrestrial"; });
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "People",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Gender", "type": "string" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the store
+	* base.store("People").push({ "Name": "Eric Sugar", "Gender": "Male" });
+	* base.store("People").push({ "Name": "Jane Tokyo", "Gender": "Female" });
+	* base.store("People").push({ "Name": "Mister Tea", "Gender": "Male" });
+	* // create a record set out of the records of the store
+	* var recordSet = base.store("People").recs;
+	* // change the Name of all records into "Anonymous"
+	* recordSet.each(function (rec) { rec.Name = "Anonymous"; }); // returns self, all record's Name are "Anonymous"
 	*/
 	//# exports.RecordSet.prototype.each = function (callback) {}
 	JsDeclareFunction(each);
@@ -2314,10 +2365,25 @@ private:
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
-	* // create a record set with some people with fields Name and Gender
-	* var rs = //TODO
-	* // make an array of record names
-	* var arr = rs.map(function (rec) { return rec.Name; });
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "People",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Gender", "type": "string" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the store
+	* base.store("People").push({ "Name": "Eric Sugar", "Gender": "Male" });
+	* base.store("People").push({ "Name": "Jane Tokyo", "Gender": "Female" });
+	* base.store("People").push({ "Name": "Mister Tea", "Gender": "Male" });
+	* // create a record set out of the records of the store
+	* var recordSet = base.store("People").recs;
+	* // make an array of record Names
+	* var arr = recordSet.map(function (rec) { return rec.Name; }); // returns an array: ["Eric Sugar", "Jane Tokyo", "Mister Tea"]
 	*/
 	//# exports.RecordSet.prototype.map = function (callback) {}
 	JsDeclareFunction(map);
@@ -2327,6 +2393,33 @@ private:
 	* Creates the set intersection of two record sets.
 	* @param {module:qm.RecordSet} rs - The other record set.
 	* @returns {module:qm.RecordSet} The intersection of the two record sets.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base with one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "Movies",
+	*        "fields": [
+	*            { "name": "Title", "type": "string" },
+	*            { "name": "Length", "type": "int" },
+	*            { "name": "Director", "type": "string" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the store
+	* base.store("Movies").push({ "Title": "The Nightmare Before Christmas", "Length": 76, "Director": "Henry Selick" });
+	* base.store("Movies").push({ "Title": "Jurassic Part", "Length": 127, "Director": "Steven Spielberg" });
+	* base.store("Movies").push({ "Title": "The Avengers", "Length": 143, "Director": "Joss Whedon" });
+	* base.store("Movies").push({ "Title": "The Clockwork Orange", "Length": 136, "Director": "Stanley Kubrick" });
+	* base.store("Movies").push({ "Title": "Full Metal Jacket", "Length": 116, "Director": "Stanely Kubrick" });
+	* // create a record set out of the records in store, where length of the movie is greater than 110
+	* var greaterSet = base.store("Movies").recs.filterByField("Length", 110);
+	* // create a record set out of the records in store, where the length of the movie is lesser than 130
+	* var lesserSet = base.store("Movies").recs.filterByField("Length", 0, 130);
+	* // get the intersection of greaterSet and lesserSet
+	* var intersection = greaterSet.setIntersect(lesserSet); // returns a record set, containing the movies with lengths between 110 and 130
 	*/
 	//# exports.RecordSet.prototype.setIntersect = function (rs) {};
 	JsDeclareFunction(setIntersect);
@@ -2336,6 +2429,32 @@ private:
 	* Creates the set union of two record sets.
 	* @param {module:qm.RecordSet} rs - The other record set.
 	* @returns {module:qm.RecordSet} The union of the two record sets.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "TVSeries",
+	*        "fields": [
+	*            { "name": "Title", "type": "string", "primary": true },
+	*            { "name": "NumberOfEpisodes", "type": "int" }
+	*        ]
+	*    }]
+	* });
+	* // add some records in the store
+	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
+	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
+	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94 });
+	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11 });
+	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
+	* // create a record set out of the records in store, where the number of episodes is lesser than 47
+	* var lesserSet = base.store("TVSeries").recs.filterByField("NumberOfEpisodes", 0, 47);
+	* // create a record set out of the records in store, where the number of episodes is greater than 100
+	* var greaterSet = base.store("TVSeries").recs.filterByField("NumberOfEpisodes", 100);
+	* // get the union of lesserSet and greaterSet
+	* var union = lesserSet.setUnion(greaterSet); // returns a record set, which is the union of the two record sets
 	*/
 	//# exports.RecordSet.prototype.setUnion = function (rs) {};
 	JsDeclareFunction(setUnion);
@@ -2345,6 +2464,35 @@ private:
 	* Creates the set difference between two record sets.
 	* @param {module:qm.RecordSet} rs - The other record set.
 	* @returns {module:qm.RecordSet} The difference between the two record sets.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "BookWriters",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Genre", "type": "string" },
+	*            { "name": "Books", "type": "string_v" }
+	*        ]
+	*    }]
+	* });
+	* // set new records in the store
+	* base.store("BookWriters").push({ "Name": "Terry Pratchett", "Genre": "Fantasy", "Books": ["The Colour of Magic", "Going Postal", "Mort", "Guards! Guards!"] });
+	* base.store("BookWriters").push({ "Name": "Douglas Adams", "Genre": "Sci-fi", "Books": ["The Hitchhiker's Guide to the Galaxy", "So Long, and Thanks for All the Fish"] });
+	* base.store("BookWriters").push({ "Name": "Fyodor Dostoyevsky", "Genre": "Drama", "Books": ["Crime and Punishment", "Demons"] });
+	* base.store("BookWriters").push({ "Name": "J.R.R. Tolkien", "Genre": "Fantasy", "Books": ["The Hobbit", "The Two Towers", "The Silmarillion" ] });
+	* base.store("BookWriters").push({ "Name": "George R.R. Martin", "Genre": "Fantasy", "Books": ["A Game of Thrones", "A Feast of Crows"] });
+	* base.store("BookWriters").push({ "Name": "J. K. Rowling", "Genre": "Fantasy", "Books": ["Harry Potter and the Philosopher's Stone"] });
+	* base.store("BookWriters").push({ "Name": "Ivan Cankar", "Genre": "Drama", "Books": ["On the Hill", "The King of Betajnova", "The Serfs"] });
+	* // create one record set containing all records of store
+	* var recordSet = base.store("BookWriters").recs;
+	* // create one record set containing the records with genre "Fantasy"
+	* var fantasy = base.store("BookWriters").recs.filterByField("Genre", "Fantasy");
+	* // create a new record set containing the difference of recordSet and fantasy
+	* var difference = recordSet.setDiff(fantasy); // returns a record set, containing the records of Douglas Adams, Fyodor Dostoyevsky and Ivan Cankar
 	*/
 	//# exports.RecordSet.prototype.setDiff = function (rs) {}; 
 	JsDeclareFunction(setDiff);
@@ -2354,6 +2502,31 @@ private:
 	* Creates a vector containing the field values of records.
 	* @param {string} fieldName - The field from which to take the values. It's type must be one-dimensional, e.g. float, int, string,...
 	* @returns {module:la.Vector} The vector containing the field values of records. The type it contains is dependant of the field type.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "TVSeries",
+	*        "fields": [
+	*            { "name": "Title", "type": "string", "primary": true },
+	*            { "name": "NumberOfEpisodes", "type": "int" }
+	*        ]
+	*    }]
+	* });
+	* // add some records in the store
+	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
+	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
+	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94 });
+	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11 });
+	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
+	* // create a record set of the records of store
+	* var recordSet = base.store("TVSeries").recs;
+	* // create a vector containing the number of episodes for each series
+	* // the vector will look like [75, 574, 94, 11, 47]
+	* var vector = recordSet.getVector("NumberOfEpisodes");
 	*/
 	//# exports.RecordSet.prototype.getVector = function (fieldName) {}; 
 	JsDeclareFunction(getVector);
@@ -2363,6 +2536,33 @@ private:
 	* Creates a vector containing the field values of records.
 	* @param {string} fieldName - The field from which to take the values. It's type must be numeric, e.g. float, int, float_v, num_sp_v,...
 	* @returns {(module:la.Matrix|module:la.SparseMatrix)} The matrix containing the field values of records.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "ArcheryChampionship",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "ScorePerRound", "type": "float_v" }
+	*        ]
+	*    }]
+	* });
+	* // set new records in the store
+	* base.store("ArcheryChampionship").push({ "Name": "Robin Hood", "ScorePerRound": [50, 48, 48] });
+	* base.store("ArcheryChampionship").push({ "Name": "Oliver Queen", "ScorePerRound": [44, 46, 44] });
+	* base.store("ArcheryChampionship").push({ "Name": "Legolas", "ScorePerRound": [50, 50, 48] });
+	* // create a record set of the records in store
+	* var recordSet = base.store("ArcheryChampionship").recs;
+	* // create a matrix from the "ScorePerRound" field
+	* // the i-th column of the matrix is the data of the i-th record in record set
+	* // the matrix will look like
+	* // 50  44  50
+	* // 48  46  50
+	* // 48  44  48
+	* var matrix = recordSet.getMatrix("ScorePerRound");
 	*/
 	//# exports.RecordSet.prototype.getMatrix = function (fieldName) {};
 	JsDeclareFunction(getMatrix);
