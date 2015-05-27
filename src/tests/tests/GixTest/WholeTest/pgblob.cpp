@@ -363,6 +363,8 @@ namespace glib {
 		if (LruFirst < 0) { // empty LRU list
 			a.LruNext = a.LruPrev = -1;
 			LruFirst = LruLast = Pg;
+		} else if (LruFirst == Pg) {
+			// it's ok, already at start LRU
 		} else {
 			UnlistFromLru(Pg);
 			EnlistToStartLru(Pg);
@@ -522,12 +524,14 @@ namespace glib {
 		if (existing_size == BfL) {
 			// we're so lucky, just overwrite buffer
 			memcpy(PgBf + ItemRec->Offset, Bf, BfL);
+			return Pt;
 
 		} else if (existing_size + PgH->GetFreeMem() >= BfL) {
 			// ok, everything can still be inside this page
 			DeleteItem(PgBf, Pt.GetIIx());
 			ChangeItem(PgBf, Pt.GetIIx(), Bf, BfL);
 			Fsm.FsmUpdatePage(Pt, PgH->GetFreeMem());
+			return Pt;
 
 		} else {
 			// bad luck, we need to move data to new page
@@ -539,8 +543,8 @@ namespace glib {
 
 			TPgBlobPt Pt2(PgPt.GetFIx(), PgPt.GetPg(), ii);
 			PgH = (TPgHeader*)PgBf;
-			Fsm.FsmUpdatePage(Pt, PgH->GetFreeMem());
-			return Pt;
+			Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
+			return Pt2;
 		}
 	}
 
@@ -607,7 +611,9 @@ namespace glib {
 		int parent_index = FsmParent(index);
 		if (GetVal(parent_index).GetIIx() < GetVal(index).GetIIx()) {
 			Swap(parent_index, index);
-			FsmSiftUp(parent_index);
+			return FsmSiftUp(parent_index);
+		} else {
+			return index;
 		}
 	}
 
