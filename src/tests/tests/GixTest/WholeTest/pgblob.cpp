@@ -136,6 +136,28 @@ namespace glib {
 
 	///////////////////////////////////////////////////////////////////////////
 
+	/// Add given buffer to page, to existing item that has length 0
+	void TPgBlob::ChangeItem(
+		// TODO locks?
+		byte* Pg, uint16 ItemIndex, const byte* Bf, const int BfL) {
+
+		TPgHeader* Header = (TPgHeader*)Pg;
+		EAssert(BfL + sizeof(TPgBlobPageItem) <= Header->GetFreeMem());
+
+		uint16 res = Header->ItemCount;
+		TPgBlobPageItem* NewItem = GetItemRec(Pg, ItemIndex);
+		EAssert(NewItem->Len == 0);
+		NewItem->Len = BfL;
+		NewItem->Offset = Header->OffsetFreeEnd - BfL;
+
+		if (Bf != NULL) { // only copy when there is some data
+			memcpy(Pg + NewItem->Offset, Bf, BfL);
+		}
+
+		Header->OffsetFreeEnd -= BfL;
+		Header->SetDirty(true);
+	}
+
 	/// Add given buffer to page, return item-index
 	uint16 TPgBlob::AddItem(byte* Pg, const byte* Bf, const int BfL) {
 		// TODO locks?
@@ -358,7 +380,7 @@ namespace glib {
 			// try to add to last file
 			uint32 Pg = Files.Last()->CreateNewPage();
 			if (Pg >= 0) {
-				Pt = TPgBlobPt(Pg, Files.Len() - 1, 0);
+				Pt = TPgBlobPt(Files.Len() - 1, Pg, 0);
 				*Bf = LoadPage(Pt);
 				InitPageP(*Bf);
 				return;
@@ -368,7 +390,7 @@ namespace glib {
 		Files.Add(TPgBlobFile::New(NewFNm, TFAccess::faCreate, TInt::Giga));
 		uint32 Pg = Files.Last()->CreateNewPage();
 		EAssert(Pg >= 0);
-		Pt = TPgBlobPt(Pg, Files.Len() - 1, 0);
+		Pt = TPgBlobPt(Files.Len() - 1, Pg, 0);
 		*Bf = LoadPage(Pt);
 		InitPageP(*Bf);
 	}
@@ -404,25 +426,28 @@ namespace glib {
 
 		// first scan those that are in memory
 		// use the first one with enough space
-		// TODO is there a faster way? is this slow?
+		// TODO is there a faster way? is this slow? it's linear...
 		for (int i = 0; i < LoadedPages.Len(); i++) {
 			byte* PgBfTmp = GetPageBf(i);
 			PgH = (TPgHeader*)PgBfTmp;
-			if (PgH->GetFreeMem()) {
+			if (PgH->CanStoreBf(BfL)) {
 				PgBf = PgBfTmp;
+				Pt = LoadedPages[i].Pt;
 				break;
 			}
 		}
 
-		// then use FSM
-		if (Fsm.FsmGetFreePage(BfL + sizeof(TPgBlobPageItem), Pt)) {
-			PgBf = LoadPage(Pt);
-		} else {
-			CreateNewPage(Pt, &PgBf);
-			is_new_page = true;
+		// if no page found in memory, use FSM
+		if (PgBf == NULL) {
+			if (Fsm.FsmGetFreePage(BfL + sizeof(TPgBlobPageItem), Pt)) {
+				PgBf = LoadPage(Pt);
+			} else {
+				CreateNewPage(Pt, &PgBf);
+				is_new_page = true;
+			}
 		}
 
-		// 
+		// add data
 		uint16 ii = AddItem(PgBf, Bf, BfL);
 		Pt.Set(Pt.GetFIx(), Pt.GetPg(), ii);
 		PgH = (TPgHeader*)PgBf;
@@ -451,13 +476,14 @@ namespace glib {
 		ItemRec = GetItemRec(PgBf, Pt.GetIIx());
 
 		int existing_size = ItemRec->Len;
-		if (existing_size == BfL) { // we're so lucky, just overwrite buffer
-			// TODO
+		if (existing_size == BfL) { 
+			// we're so lucky, just overwrite buffer
+			memcpy(PgBf + ItemRec->Offset, Bf, BfL);
 
 		} else if (existing_size + PgH->GetFreeMem() >= BfL) { 
 			// ok, everything can still be inside this page
-			// TODO
-
+			DeleteItem(PgBf, Pt.GetIIx());
+			ChangeItem(PgBf, Pt.GetIIx(), Bf, BfL);
 
 		} else {
 			// bad luck, we need to move data to new page
@@ -488,7 +514,7 @@ namespace glib {
 	/// Add new page to free-space-map
 	void TPgBlobFsm::FsmAddPage(const TPgBlobPt& Pt, const uint16& FreeSpace) {
 		int index = Len();
-		Add(TPgBlobPt(Pt.GetPg(), Pt.GetFIx(), FreeSpace));
+		Add(TPgBlobPt(Pt.GetFIx(), Pt.GetPg(), FreeSpace));
 		FsmSiftUp(index);
 	}
 
