@@ -65,6 +65,9 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.RecordSet.html#aggr">aggr([aggrQueryJSON])</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.RecordSet.html#clone">clone()</a></dt>
                     <dd>
                     </dd>
@@ -80,19 +83,22 @@
                     <dt><a href="module-qm.RecordSet.html#filterByField">filterByField(fieldName, minVal, maxVal)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.RecordSet.html#filterByFq">filterByFq([minFq][, maxFq])</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.RecordSet.html#filterById">filterById([minId][, maxId])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.RecordSet.html#getMatrix">getMatrix(fieldName)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.RecordSet.html#getVector">getVector(fieldName)</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.RecordSet.html#getVector">getVector(fieldName)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.RecordSet.html#join">join(joinName[, sampleSize])</a></dt>
                     <dd>
                     </dd>
@@ -125,6 +131,9 @@
                     <dd>
                     </dd>
                     <dt><a href="module-qm.RecordSet.html#sortByField">sortByField(fieldName[, arc])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecordSet.html#sortByFq">sortByFq([asc])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.RecordSet.html#sortById">sortById([asc])</a></dt>
@@ -166,6 +175,42 @@
             </section>
             <h2>Methods</h2>
             <section>
+              <h3 id="aggr"><span class="symbol-name">aggr</span><span class="signature"><span class="signature-params">([aggrQueryJSON])</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Aggr // TODO</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>aggrQueryJSON</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;Aggregate</p>
+                </dd>
+              </dl>
               <h3 id="clone"><span class="symbol-name">clone</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
               <p>Creates a new instance of the record set.</p>
               <section>
@@ -204,6 +249,15 @@ var philosophers = base.store(&quot;Philosophers&quot;).recs.clone();</code></pr
               </dl>
               <h3 id="deleteRecords"><span class="symbol-name">deleteRecords</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
               <p>Deletes the records, that are also in the other record set.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -299,11 +353,26 @@ rs.each(function (rec) { rec.Gender = &quot;Extraterrestrial&quot;; });</code></
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-qm = require(&#x27;qminer&#x27;);
-// construct a record set of kitchen appliances
-var rs = //TODO
-// filter by the field price
-rs.filter(function (rec) { return rec.Price &gt; 10000; }); // keeps only the records, where their Price is more than 10000</code></pre>
+var qm = require(&#x27;qminer&#x27;);
+// create a new base containing one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;ArcheryChampionship&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;ScorePerRound&quot;, &quot;type&quot;: &quot;float_v&quot; }
+       ]
+   }]
+});
+// set new records in the store
+base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Robin Hood&quot;, &quot;ScorePerRound&quot;: [50, 48, 48] });
+base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Oliver Queen&quot;, &quot;ScorePerRound&quot;: [44, 46, 44] });
+base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Legolas&quot;, &quot;ScorePerRound&quot;: [50, 50, 48] });
+// create a record set out of the records of the store
+var recordSet = base.store(&quot;ArcheryChampionship&quot;).recs;
+// filter the records: which archers have scored 48 points in the third round
+recordSet.filter(function (rec) { return rec.ScorePerRound[2] == 48; }); // keeps only the records, where their Price is more than 10000</code></pre>
                 </div>
               </section>
               <section>
@@ -343,6 +412,38 @@ rs.filter(function (rec) { return rec.Price &gt; 10000; }); // keeps only the re
               </dl>
               <h3 id="filterByField"><span class="symbol-name">filterByField</span><span class="signature"><span class="signature-params">(fieldName, minVal, maxVal)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
               <p>Keeps only the records with a specific value of some field.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base containing one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;WeatherForcast&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Weather&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Date&quot;, &quot;type&quot;: &quot;datetime&quot; },
+           { &quot;name&quot;: &quot;Temperature (degrees)&quot;, &quot;type&quot;: &quot;int&quot; },
+       ]
+   }]
+});
+// put some records in the &quot;WeatherForecast&quot; store
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;19&quot; });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;22&quot; });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;25&quot; });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;25&quot; });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;24&quot; });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;27&quot; });
+// get the record set containing the records from the &quot;WeatherForcast&quot; store
+var recordSet = base.store(&quot;WeatherForcast&quot;).recs;
+// filter only the records, where the weather is Mostly Cloudy
+recordSet.filterByField(&quot;Weather&quot;, &quot;Mostly Cloudy&quot;); // returns self, containing only the records, where the weather is &quot;Mostly Cloudy&quot;</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -410,8 +511,93 @@ rs.filter(function (rec) { return rec.Price &gt; 10000; }); // keeps only the re
                     equal to minVal.</p>
                 </dd>
               </dl>
+              <h3 id="filterByFq"><span class="symbol-name">filterByFq</span><span class="signature"><span class="signature-params">([minFq][, maxFq])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
+              <p>Keeps only the records with weight between two values.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>minFq</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The minimum value.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>maxFq</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The maximum value.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self.
+                    <br>1. Contains only the records of the original with weights between minFq and maxFq, if parameters are given.
+                    <br>2. Contains all the records of the original, if no parameter is given.</p>
+                </dd>
+              </dl>
               <h3 id="filterById"><span class="symbol-name">filterById</span><span class="signature"><span class="signature-params">([minId][, maxId])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
-              <p>Keeps only records with ids between two values.</p>
+              <p>Keeps only records with ids between or equal two values.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm require
+var qm = require(&#x27;qminer&#x27;);
+// create a new base containing one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;Frank Sinatra Greatest Hits&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Length&quot;, &quot;type&quot;: &quot;int&quot; }
+       ]
+   }]
+});
+// put some records in the &quot;Frank Sinatra Greates Hits&quot; store
+base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;Strangers in the Night&quot;, &quot;Length&quot;: 145 });
+base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;Summer Wind&quot;, &quot;Length&quot;: 173 });
+base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;It Was a Very Good Year&quot;, &quot;Length&quot;: 265 });
+base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;Somewhere in Your Heart&quot;, &quot;Length&quot;: 146 });
+base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;Forget Domani&quot;, &quot;Length&quot;: 156 });
+base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;Somethin&#x27; Stupid&quot;, &quot;Length&quot;: 155 });
+base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;This Town&quot;, &quot;Length&quot;: 186 });
+// get the records of the store as a record set
+var recordSet = base.store(&quot;Frank Sinatra Greates Hits&quot;).recs;
+// from the record set keep the records with indeces between or equal 2 and 5
+recordSet.filterById(2, 5);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -686,6 +872,38 @@ var arr = rs.map(function (rec) { return rec.Name; });</code></pre>
               </dl>
               <h3 id="reverse"><span class="symbol-name">reverse</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
               <p>It reverses the record order.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base containing one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;WeatherForcast&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Weather&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Date&quot;, &quot;type&quot;: &quot;datetime&quot; },
+           { &quot;name&quot;: &quot;Temperature (degrees)&quot;, &quot;type&quot;: &quot;int&quot; },
+       ]
+   }]
+});
+// put some records in the &quot;WeatherForecast&quot; store
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;19&quot; });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;22&quot; });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;25&quot; });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;25&quot; });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;24&quot; });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;27&quot; });
+// get the record set containing the records from the &quot;WeatherForcast&quot; store
+var recordSet = base.store(&quot;WeatherForcast&quot;).recs;
+// reverse the record order in the record set
+recordSet.reverse(); // returns self, the records in the record set are in the reverse order</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -694,6 +912,35 @@ var arr = rs.map(function (rec) { return rec.Name; });</code></pre>
               </dl>
               <h3 id="sample"><span class="symbol-name">sample</span><span class="signature"><span class="signature-params">(num)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
               <p>Creates a random sample of records of the record set.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base with one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;Movies&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Length&quot;, &quot;type&quot;: &quot;int&quot; },
+           { &quot;name&quot;: &quot;Director&quot;, &quot;type&quot;: &quot;string&quot; }
+       ]
+   }]
+});
+// put some records in the store
+base.store(&quot;Movies&quot;).push({ &quot;Title&quot;: &quot;The Nightmare Before Christmas&quot;, &quot;Length&quot;: 76, &quot;Director&quot;: &quot;Henry Selick&quot; });
+base.store(&quot;Movies&quot;).push({ &quot;Title&quot;: &quot;Jurassic Part&quot;, &quot;Length&quot;: 127, &quot;Director&quot;: &quot;Steven Spielberg&quot; });
+base.store(&quot;Movies&quot;).push({ &quot;Title&quot;: &quot;The Avengers&quot;, &quot;Length&quot;: 143, &quot;Director&quot;: &quot;Joss Whedon&quot; });
+base.store(&quot;Movies&quot;).push({ &quot;Title&quot;: &quot;The Clockwork Orange&quot;, &quot;Length&quot;: 136, &quot;Director&quot;: &quot;Stanley Kubrick&quot; });
+base.store(&quot;Movies&quot;).push({ &quot;Title&quot;: &quot;Full Metal Jacket&quot;, &quot;Length&quot;: 116, &quot;Director&quot;: &quot;Stanely Kubrick&quot; });
+// create a sample record set of containing 3 records from the &quot;Movies&quot; store
+var sample = base.store(&quot;Movies&quot;).recs.sample(3);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -843,6 +1090,39 @@ var arr = rs.map(function (rec) { return rec.Name; });</code></pre>
               <h3 id="shuffle"><span class="symbol-name">shuffle</span><span class="signature"><span class="signature-params">([seed])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
               <p>Shuffles the order of records in the record set.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base containing one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;WeatherForcast&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Weather&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Date&quot;, &quot;type&quot;: &quot;datetime&quot; },
+           { &quot;name&quot;: &quot;Temperature (degrees)&quot;, &quot;type&quot;: &quot;int&quot; },
+           { &quot;name&quot;: &quot;Humidity&quot;, &quot;type&quot;: &quot;int&quot; }
+       ]
+   }]
+});
+// put some records in the &quot;WeatherForecast&quot; store
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;19&quot;, &quot;Humidity&quot;: 60 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;22&quot;, &quot;Humidity&quot;: 48 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;25&quot;, &quot;Humidity&quot;: 51 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;25&quot;, &quot;Humidity&quot;: 54 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;24&quot;, &quot;Humidity&quot;: 63 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;Temperature (degrees)&quot;: &quot;27&quot;, &quot;Humidity&quot;: 54 });
+// get the record set containing the records from the &quot;WeatherForcast&quot; store
+var recordSet = base.store(&quot;WeatherForcast&quot;).recs;
+// shuffle the records in the newly created record set. Use the number 100 as the seed for the shuffle
+recordSet.shuffle(100); // returns self, the records in the record set are shuffled</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -874,7 +1154,7 @@ var arr = rs.map(function (rec) { return rec.Name; });</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. The records in the record set are in a different order.</p>
                 </dd>
               </dl>
               <h3 id="sort"><span class="symbol-name">sort</span><span class="signature"><span class="signature-params">(callback)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
@@ -885,11 +1165,28 @@ var arr = rs.map(function (rec) { return rec.Name; });</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-qm = require(&#x27;qminer&#x27;);
-// construct a new record set of movies (one field is it&#x27;s Rating)
-var rs = //TODO
-// sort the records by their rating
-rs.sort(function (rec, rec2) { return rec.Rating &lt; rec2.Rating ;});</code></pre>
+var qm = require(&#x27;qminer&#x27;);
+// create a new base containing one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;TVSeries&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+           { &quot;name&quot;: &quot;NumberOfEpisodes&quot;, &quot;type&quot;: &quot;int&quot; }
+       ]
+   }]
+});
+// add some records in the store
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Archer&quot;, &quot;NumberOfEpisodes&quot;: 75 });
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;The Simpsons&quot;, &quot;NumberOfEpisodes&quot;: 574 });
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;New Girl&quot;, &quot;NumberOfEpisodes&quot;: 94 });
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Rick and Morty&quot;, &quot;NumberOfEpisodes&quot;: 11 });
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Game of Thrones&quot;, &quot;NumberOfEpisodes&quot;: 47 });
+// get the records of the &quot;TVSeries&quot; store as a record set
+var recordSet = base.store(&quot;TVSeries&quot;).recs;
+// sort the records by their number of episodes
+recordSet.sort(function (rec, rec2) { return rec.NumberOfEpisodes &lt; rec2.NumberOfEpisodes; }); // returns self, records are sorted by the number of episodes</code></pre>
                 </div>
               </section>
               <section>
@@ -932,6 +1229,36 @@ rs.sort(function (rec, rec2) { return rec.Rating &lt; rec2.Rating ;});</code></p
               </dl>
               <h3 id="sortByField"><span class="symbol-name">sortByField</span><span class="signature"><span class="signature-params">(fieldName[, arc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
               <p>Sorts the records according to a specific record field.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base containing one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;TVSeries&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+           { &quot;name&quot;: &quot;NumberOfEpisodes&quot;, &quot;type&quot;: &quot;int&quot; }
+       ]
+   }]
+});
+// add some records in the store
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Archer&quot;, &quot;NumberOfEpisodes&quot;: 75 });
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;The Simpsons&quot;, &quot;NumberOfEpisodes&quot;: 574 });
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;New Girl&quot;, &quot;NumberOfEpisodes&quot;: 94 });
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Rick and Morty&quot;, &quot;NumberOfEpisodes&quot;: 11 });
+base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Game of Thrones&quot;, &quot;NumberOfEpisodes&quot;: 47 });
+// get the records of the &quot;TVSeries&quot; store as a record set
+var recordSet = base.store(&quot;TVSeries&quot;).recs;
+// sort the records by their &quot;Title&quot; field in descending order 
+recordSet.sortByField(&quot;Title&quot;); // returns self, record are sorted by their &quot;Title&quot;</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -982,8 +1309,78 @@ rs.sort(function (rec, rec2) { return rec.Rating &lt; rec2.Rating ;});</code></p
                   <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Records are sorted according to fieldName and arc.</p>
                 </dd>
               </dl>
+              <h3 id="sortByFq"><span class="symbol-name">sortByFq</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
+              <p>Sorts the records according to their weight.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>asc</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If asc &gt; 0, it sorts in ascending order. Otherwise, it sorts in descending order.</p>
+                        <p>Defaults to <code>1</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Records are sorted according to record weight and asc.</p>
+                </dd>
+              </dl>
               <h3 id="sortById"><span class="symbol-name">sortById</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
               <p>Sorts the records according to record id.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base containing one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;Tea&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Type&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Origin&quot;, &quot;type&quot;: &quot;string&quot; }
+       ]
+   }]
+});
+// put some records in the &quot;Tea&quot; store
+base.store(&quot;Tea&quot;).push({ &quot;Name&quot;: &quot;Tanyang Gongfu&quot;, &quot;Type&quot;: &quot;Black&quot;, &quot;Origin&quot;: &quot;Tanyang&quot; });
+base.store(&quot;Tea&quot;).push({ &quot;Name&quot;: &quot;Rou Gui&quot;, &quot;Type&quot;: &quot;White&quot; });
+base.store(&quot;Tea&quot;).push({ &quot;Name&quot;: &quot;Tieluohan Tea&quot;, &quot;Type&quot;: &quot;Wuyi&quot;, &quot;Origin&quot;: &quot;Northern Fujian&quot; });
+base.store(&quot;Tea&quot;).push({ &quot;Name&quot;: &quot;Red Robe&quot;, &quot;Type&quot;: &quot;Oolong&quot;, &quot;Origin&quot;: &quot;Wuyi Mountains&quot; });
+// get the records of the &quot;Tea&quot; store as a record set
+var recordSet = base.store(&quot;Tea&quot;).recs;
+// sort the records in the record set by their id in descending order
+recordSet.sortById(-1); // returns self, the records are sorted in descending order
+// sort the records in the record set by their id in ascending order
+recordSet.sortById(); // returns self, the records are sorted in ascending order (default)</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -1023,6 +1420,37 @@ rs.sort(function (rec, rec2) { return rec.Rating &lt; rec2.Rating ;});</code></p
               <h3 id="split"><span class="symbol-name">split</span><span class="signature"><span class="signature-params">(callback)</span>&nbsp;&rarr; <span class="signature-returns"> Array of <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
               <p>Splits the record set into smaller record sets.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&quot;qminer&quot;);
+// create a new base containing one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;SocialGames&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Type&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;MinPlayers&quot;, &quot;type&quot;: &quot;int&quot; },
+           { &quot;name&quot;: &quot;MaxPlayers&quot;, &quot;type&quot;: &quot;int&quot; }
+       ]
+   }]
+});
+// set new records in the store
+base.store(&quot;SocialGames&quot;).push({ &quot;Title&quot;: &quot;DungeonsAndDragons&quot;, &quot;Type&quot;: &quot;Role-Playing&quot;, &quot;MinPlayers&quot;: 5, &quot;MaxPlayers&quot;: 5 });
+base.store(&quot;SocialGames&quot;).push({ &quot;Title&quot;: &quot;Dobble&quot;, &quot;Type&quot;: &quot;Card&quot;, &quot;MinPlayers&quot;: 2, &quot;MaxPlayers&quot;: 8 });
+base.store(&quot;SocialGames&quot;).push({ &quot;Title&quot;: &quot;Settlers of Catan&quot;, &quot;Type&quot;: &quot;Board&quot;, &quot;MinPlayers&quot;: 3, &quot;MaxPlayers&quot;: 4 });
+base.store(&quot;SocialGames&quot;).push({ &quot;Title&quot;: &quot;Muchkin&quot;, &quot;Type&quot;: &quot;Card&quot;, &quot;MinPlayers&quot;: 3, &quot;MaxPlayers&quot;: 6 });
+// create a record set out of the records of the store
+var recordSet = base.store(&quot;SocialGames&quot;).recs;
+// split the record set
+// TODO</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -1059,6 +1487,34 @@ rs.sort(function (rec, rec2) { return rec.Rating &lt; rec2.Rating ;});</code></p
               </dl>
               <h3 id="toJSON"><span class="symbol-name">toJSON</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Returns the record set as a JSON.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base containing one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;Musicians&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+           { &quot;name&quot;: &quot;DateOfBirth&quot;, &quot;type&quot;: &quot;datetime&quot; },
+           { &quot;name&quot;: &quot;GreatestHits&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       ]
+   }]
+});
+// create some records
+base.store(&quot;Musicians&quot;).push({ &quot;Name&quot;: &quot;Jimmy Page&quot;, &quot;DateOfBirth&quot;:  &quot;1944-01-09T00:00:00&quot;, &quot;GreatestHits&quot;: [&quot;Stairway to Heaven&quot;, &quot;Whole Lotta Love&quot;] });
+base.store(&quot;Musicians&quot;).push({ &quot;Name&quot;: &quot;Beyonce&quot;, &quot;DateOfBirth&quot;: &quot;1981-09-04T00:00:00&quot;, &quot;GreatestHits&quot;: [&quot;Single Ladies (Put a Ring on It)&quot;] });
+// create a record set out of the records in the &quot;Musicians&quot; store
+var recordSet = base.store(&quot;Musicians&quot;).recs;
+// create a JSON object out of the record set
+var json = recordSet.toJSON();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -1159,7 +1615,7 @@ recordSet2.trunc(2, 2); // returns self, containing only the 2 records (&quot;Em
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on May 26, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on May 27, 2015.
       </p>
     </div>
   </footer>

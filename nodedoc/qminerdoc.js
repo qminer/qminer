@@ -1030,14 +1030,14 @@
 	*        "fields": [
 	*            { "name": "Name", "type": "string" },
 	*            { "name": "SeasonScore", "type": "int_v" },
-	*            { "name": "FirstPlayed", "type": "datetime" }
+	*            { "name": "DateOfBirth", "type": "datetime" }
 	*        ]
 	*    }]
 	* });
 	* // check if the SeasonScore field is of type Date
 	* var isSeasonScoreDate = base.store("BasketballPlayers").isDate("SeasonScore"); // returns false
 	* // check if the FirstPlayed field is of type Date
-	* var isFirstPlayedDate = base.store("BasketballPlayers").isDate("FirstPlayed"); // returns true
+	* var isFirstPlayedDate = base.store("BasketballPlayers").isDate("DateOfBirth"); // returns true
 	*/
  exports.Store.prototype.isDate = function (fieldName) {}
 /**
@@ -1331,17 +1331,17 @@
 	*        "name": "Musicians",
 	*        "fields": [
 	*            { "name": "Name", "type": "string", "primary": true },
-	*            { "name": "ActiveSince", "type": "datetime" },
+	*            { "name": "DateOfBirth", "type": "datetime" },
 	*            { "name": "GreatestHits", "type": "string_v" }
 	*        ]
 	*    }]
 	* });
 	* // create some records
-	* base.store("Musicians").push({ "Name": "Jimmy Page", "ActiveSince":  "1957-01-01T00:00:00", "GreatestHits": ["Stairway to Heaven", "Whole Lotta Love"] });
-	* base.store("Musicians").push({ "Name": "Beyonce", "ActiveSince": "1997-01-01T00:00:00", "GreatestHits": ["Single Ladies (Put a Ring on It)"] });
+	* base.store("Musicians").push({ "Name": "Jimmy Page", "DateOfBirth":  "1944-01-09T00:00:00", "GreatestHits": ["Stairway to Heaven", "Whole Lotta Love"] });
+	* base.store("Musicians").push({ "Name": "Beyonce", "DateOfBirth": "1981-09-04T00:00:00", "GreatestHits": ["Single Ladies (Put a Ring on It)"] });
 	* // get a JSON version of the "Beyonce" record 
 	* // The JSON object for this example si:
-	* // { '$id': 1, Name: 'Beyonce', ActiveSince: '1997-01-01T00:00:00', GreatestHits: ['Single Ladies (Put a Ring on It)'] }
+	* // { '$id': 1, Name: 'Beyonce', ActiveSince: '1981-09-04T00:00:00', GreatestHits: ['Single Ladies (Put a Ring on It)'] }
 	* var json = base.store("Musicians").rec("Beyonce").toJSON();
 	*/
  exports.Record.prototype.toJSON = function () {};
@@ -1444,6 +1444,12 @@
 	*/
  exports.RecordSet.prototype.join = function (joinName, sampleSize) {};
 /**
+	* Aggr // TODO
+	* @param {Object} [aggrQueryJSON] 
+	* @returns {Object} Aggregate
+	*/
+ exports.RecordSet.prototype.aggr = function (aggrQueryJSON) {};
+/**
 	* Truncates the first records.
 	* @param {number} limit_num - How many records to truncate.
 	* @param {number} [offset_num] - Where to start to truncate.
@@ -1481,30 +1487,162 @@
 	* Creates a random sample of records of the record set.
 	* @param {number} num - The number of records in the sample.
 	* @returns {module:qm.RecordSet} A record set containing the sample records.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base with one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "Movies",
+	*        "fields": [
+	*            { "name": "Title", "type": "string" },
+	*            { "name": "Length", "type": "int" },
+	*            { "name": "Director", "type": "string" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the store
+	* base.store("Movies").push({ "Title": "The Nightmare Before Christmas", "Length": 76, "Director": "Henry Selick" });
+	* base.store("Movies").push({ "Title": "Jurassic Part", "Length": 127, "Director": "Steven Spielberg" });
+	* base.store("Movies").push({ "Title": "The Avengers", "Length": 143, "Director": "Joss Whedon" });
+	* base.store("Movies").push({ "Title": "The Clockwork Orange", "Length": 136, "Director": "Stanley Kubrick" });
+	* base.store("Movies").push({ "Title": "Full Metal Jacket", "Length": 116, "Director": "Stanely Kubrick" });
+	* // create a sample record set of containing 3 records from the "Movies" store
+	* var sample = base.store("Movies").recs.sample(3);
 	*/
  exports.RecordSet.prototype.sample = function (num) {};
 /**
 	* Shuffles the order of records in the record set.
 	* @param {number} [seed] - Integer.
-	* @returns {module:qm.RecordSet} Self.
+	* @returns {module:qm.RecordSet} Self. The records in the record set are in a different order.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "WeatherForcast",
+	*        "fields": [
+	*            { "name": "Weather", "type": "string" },
+	*            { "name": "Date", "type": "datetime" },
+	*            { "name": "Temperature (degrees)", "type": "int" },
+	*            { "name": "Humidity", "type": "int" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the "WeatherForecast" store
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "Temperature (degrees)": "19", "Humidity": 60 });
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "Temperature (degrees)": "22", "Humidity": 48 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "Temperature (degrees)": "25", "Humidity": 51 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "Temperature (degrees)": "25", "Humidity": 54 });
+	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "Temperature (degrees)": "24", "Humidity": 63 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "Temperature (degrees)": "27", "Humidity": 54 });
+	* // get the record set containing the records from the "WeatherForcast" store
+	* var recordSet = base.store("WeatherForcast").recs;
+	* // shuffle the records in the newly created record set. Use the number 100 as the seed for the shuffle
+	* recordSet.shuffle(100); // returns self, the records in the record set are shuffled
 	*/
  exports.RecordSet.prototype.shuffle = function (seed) {};
 /**
 	* It reverses the record order.
 	* @returns {module:qm.RecordSet} Self. Records are in reversed order.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "WeatherForcast",
+	*        "fields": [
+	*            { "name": "Weather", "type": "string" },
+	*            { "name": "Date", "type": "datetime" },
+	*            { "name": "Temperature (degrees)", "type": "int" },
+	*        ]
+	*    }]
+	* });
+	* // put some records in the "WeatherForecast" store
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "Temperature (degrees)": "19" });
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "Temperature (degrees)": "22" });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "Temperature (degrees)": "25" });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "Temperature (degrees)": "25" });
+	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "Temperature (degrees)": "24" });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "Temperature (degrees)": "27" });
+	* // get the record set containing the records from the "WeatherForcast" store
+	* var recordSet = base.store("WeatherForcast").recs;
+	* // reverse the record order in the record set
+	* recordSet.reverse(); // returns self, the records in the record set are in the reverse order
 	*/
  exports.RecordSet.prototype.reverse = function () {};
 /**
 	* Sorts the records according to record id.
 	* @param {number} [asc=1] - If asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.  
 	* @returns {module:qm.RecordSet} Self. Records are sorted according to record id and asc.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "Tea",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "Type", "type": "string" },
+	*            { "name": "Origin", "type": "string" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the "Tea" store
+	* base.store("Tea").push({ "Name": "Tanyang Gongfu", "Type": "Black", "Origin": "Tanyang" });
+	* base.store("Tea").push({ "Name": "Rou Gui", "Type": "White" });
+	* base.store("Tea").push({ "Name": "Tieluohan Tea", "Type": "Wuyi", "Origin": "Northern Fujian" });
+	* base.store("Tea").push({ "Name": "Red Robe", "Type": "Oolong", "Origin": "Wuyi Mountains" });
+	* // get the records of the "Tea" store as a record set
+	* var recordSet = base.store("Tea").recs;
+	* // sort the records in the record set by their id in descending order
+	* recordSet.sortById(-1); // returns self, the records are sorted in descending order
+	* // sort the records in the record set by their id in ascending order
+	* recordSet.sortById(); // returns self, the records are sorted in ascending order (default)
 	*/
  exports.RecordSet.prototype.sortById = function (asc) {}; 
+/**
+	* Sorts the records according to their weight.
+	* @param {number} [asc=1] - If asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.
+	* @returns {module:qm.RecordSet} Self. Records are sorted according to record weight and asc.
+	*/
+ exports.RecordSet.prototype.sortByFq = function (asc) {}; 
 /**
 	* Sorts the records according to a specific record field.
 	* @param {string} fieldName - The field by which the sort will work.
 	* @param {number} [arc=-1] - if asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.
 	* @returns {module:qm.RecordSet} Self. Records are sorted according to fieldName and arc.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "TVSeries",
+	*        "fields": [
+	*            { "name": "Title", "type": "string", "primary": true },
+	*            { "name": "NumberOfEpisodes", "type": "int" }
+	*        ]
+	*    }]
+	* });
+	* // add some records in the store
+	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
+	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
+	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94 });
+	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11 });
+	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
+	* // get the records of the "TVSeries" store as a record set
+	* var recordSet = base.store("TVSeries").recs;
+	* // sort the records by their "Title" field in descending order 
+	* recordSet.sortByField("Title"); // returns self, record are sorted by their "Title"
 	*/
  exports.RecordSet.prototype.sortByField = function (fieldName, asc) {};
 /**
@@ -1516,32 +1654,110 @@
 	* @returns {module:qm.RecordSet} Self. The records are sorted according to the callback function.
 	* @example
 	* // import qm module
-	* qm = require('qminer');
-	* // construct a new record set of movies (one field is it's Rating)
-	* var rs = //TODO
-	* // sort the records by their rating
-	* rs.sort(function (rec, rec2) { return rec.Rating < rec2.Rating ;});
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "TVSeries",
+	*        "fields": [
+	*            { "name": "Title", "type": "string", "primary": true },
+	*            { "name": "NumberOfEpisodes", "type": "int" }
+	*        ]
+	*    }]
+	* });
+	* // add some records in the store
+	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
+	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
+	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94 });
+	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11 });
+	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
+	* // get the records of the "TVSeries" store as a record set
+	* var recordSet = base.store("TVSeries").recs;
+	* // sort the records by their number of episodes
+	* recordSet.sort(function (rec, rec2) { return rec.NumberOfEpisodes < rec2.NumberOfEpisodes; }); // returns self, records are sorted by the number of episodes
 	*/
  exports.RecordSet.prototype.sort = function (callback) {};
 /**
-	* Keeps only records with ids between two values.
+	* Keeps only records with ids between or equal two values.
 	* @param {number} [minId] - The minimum id.
 	* @param {number} [maxId] - The maximum id.
 	* @returns {module:qm.RecordSet} Self. 
 	* <br>1. Contains only the records of the original with ids between minId and maxId, if parameters are given.
 	* <br>2. Contains all the records of the original, if no parameter is given.
+	* @example
+	* // import qm require
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "Frank Sinatra Greatest Hits",
+	*        "fields": [
+	*            { "name": "Title", "type": "string" },
+	*            { "name": "Length", "type": "int" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the "Frank Sinatra Greates Hits" store
+	* base.store("Frank Sinatra Greates Hits").push({ "Title": "Strangers in the Night", "Length": 145 });
+	* base.store("Frank Sinatra Greates Hits").push({ "Title": "Summer Wind", "Length": 173 });
+	* base.store("Frank Sinatra Greates Hits").push({ "Title": "It Was a Very Good Year", "Length": 265 });
+	* base.store("Frank Sinatra Greates Hits").push({ "Title": "Somewhere in Your Heart", "Length": 146 });
+	* base.store("Frank Sinatra Greates Hits").push({ "Title": "Forget Domani", "Length": 156 });
+	* base.store("Frank Sinatra Greates Hits").push({ "Title": "Somethin' Stupid", "Length": 155 });
+	* base.store("Frank Sinatra Greates Hits").push({ "Title": "This Town", "Length": 186 });
+	* // get the records of the store as a record set
+	* var recordSet = base.store("Frank Sinatra Greates Hits").recs;
+	* // from the record set keep the records with indeces between or equal 2 and 5
+	* recordSet.filterById(2, 5);
 	*/
  exports.RecordSet.prototype.filterById = function (minId, maxId) {};
 /**
+	* Keeps only the records with weight between two values.
+	* @param {number} [minFq] - The minimum value.
+	* @param {number} [maxFq] - The maximum value.
+	* @returns {module:qm.RecordSet} Self.
+	* <br>1. Contains only the records of the original with weights between minFq and maxFq, if parameters are given.
+	* <br>2. Contains all the records of the original, if no parameter is given.
+	*/
+ exports.RecordSet.prototype.filterByFq = function (minFq, maxFq) {};
+/**
 	* Keeps only the records with a specific value of some field.
 	* @param {string} fieldName - The field by which the records will be filtered.
-	* @param {(string | number)} minVal -  
+	* @param {(string | number)} minVal -
 	* <br>1. Is a string, if the field type is a string. The exact string to compare.
 	* <br>2. Is a number, if the field type is a number. The minimal value for comparison.
 	* <br>3. TODO Time field
 	* @param {number} maxVal - Only in combination with minVal for non-string fields. The maximal value for comparison.
 	* @returns {module:qm.RecordSet} Self. Containing only the records with the fieldName value between minVal and maxVal. If the fieldName type is string,
 	* it contains only the records with fieldName equal to minVal.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "WeatherForcast",
+	*        "fields": [
+	*            { "name": "Weather", "type": "string" },
+	*            { "name": "Date", "type": "datetime" },
+	*            { "name": "Temperature (degrees)", "type": "int" },
+	*        ]
+	*    }]
+	* });
+	* // put some records in the "WeatherForecast" store
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "Temperature (degrees)": "19" });
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "Temperature (degrees)": "22" });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "Temperature (degrees)": "25" });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "Temperature (degrees)": "25" });
+	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "Temperature (degrees)": "24" });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "Temperature (degrees)": "27" });
+	* // get the record set containing the records from the "WeatherForcast" store
+	* var recordSet = base.store("WeatherForcast").recs;
+	* // filter only the records, where the weather is Mostly Cloudy
+	* recordSet.filterByField("Weather", "Mostly Cloudy"); // returns self, containing only the records, where the weather is "Mostly Cloudy"
 	*/
  exports.RecordSet.prototype.filterByField = function (fieldName, minVal, maxVal) {};
 /**
@@ -1550,28 +1766,93 @@
 	* @returns {module:qm.RecordSet} Self. Containing only the record that pass the callback function.
 	* @example
 	* // import qm module
-	* qm = require('qminer');
-	* // construct a record set of kitchen appliances
-	* var rs = //TODO
-	* // filter by the field price
-	* rs.filter(function (rec) { return rec.Price > 10000; }); // keeps only the records, where their Price is more than 10000
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "ArcheryChampionship",
+	*        "fields": [
+	*            { "name": "Name", "type": "string" },
+	*            { "name": "ScorePerRound", "type": "float_v" }
+	*        ]
+	*    }]
+	* });
+	* // set new records in the store
+	* base.store("ArcheryChampionship").push({ "Name": "Robin Hood", "ScorePerRound": [50, 48, 48] });
+	* base.store("ArcheryChampionship").push({ "Name": "Oliver Queen", "ScorePerRound": [44, 46, 44] });
+	* base.store("ArcheryChampionship").push({ "Name": "Legolas", "ScorePerRound": [50, 50, 48] });
+	* // create a record set out of the records of the store
+	* var recordSet = base.store("ArcheryChampionship").recs;
+	* // filter the records: which archers have scored 48 points in the third round
+	* recordSet.filter(function (rec) { return rec.ScorePerRound[2] == 48; }); // keeps only the records, where their Price is more than 10000
 	*/
  exports.RecordSet.prototype.filter = function (callback) {}; 
 /**
 	* Splits the record set into smaller record sets.
 	* @param {function} callback - The splitter function. It takes two parameters (records) and returns a boolean object.
 	* @returns {Array.<module:qm.RecordSet>} An array containing the smaller record sets. The records are split according the callback function.
+	* @example
+	* // import qm module
+	* var qm = require("qminer");
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "SocialGames",
+	*        "fields": [
+	*            { "name": "Title", "type": "string" },
+	*            { "name": "Type", "type": "string" },
+	*            { "name": "MinPlayers", "type": "int" },
+	*            { "name": "MaxPlayers", "type": "int" }
+	*        ]
+	*    }]
+	* });
+	* // set new records in the store
+	* base.store("SocialGames").push({ "Title": "DungeonsAndDragons", "Type": "Role-Playing", "MinPlayers": 5, "MaxPlayers": 5 });
+	* base.store("SocialGames").push({ "Title": "Dobble", "Type": "Card", "MinPlayers": 2, "MaxPlayers": 8 });
+	* base.store("SocialGames").push({ "Title": "Settlers of Catan", "Type": "Board", "MinPlayers": 3, "MaxPlayers": 4 });
+	* base.store("SocialGames").push({ "Title": "Muchkin", "Type": "Card", "MinPlayers": 3, "MaxPlayers": 6 });
+	* // create a record set out of the records of the store
+	* var recordSet = base.store("SocialGames").recs;
+	* // split the record set
+	* // TODO
 	*/
  exports.RecordSet.prototype.split = function (callback) {};
 /**
 	* Deletes the records, that are also in the other record set.
 	* @param {module:qm.RecordSet} rs - The other record set.
 	* @returns {module:qm.RecordSet} Self. Contains only the records, that are not in rs.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
 	*/
  exports.RecordSet.prototype.deleteRecords = function (rs) {}; 
 /**
 	* Returns the record set as a JSON.
 	* @returns {Object} The record set as a JSON.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "Musicians",
+	*        "fields": [
+	*            { "name": "Name", "type": "string", "primary": true },
+	*            { "name": "DateOfBirth", "type": "datetime" },
+	*            { "name": "GreatestHits", "type": "string_v" }
+	*        ]
+	*    }]
+	* });
+	* // create some records
+	* base.store("Musicians").push({ "Name": "Jimmy Page", "DateOfBirth":  "1944-01-09T00:00:00", "GreatestHits": ["Stairway to Heaven", "Whole Lotta Love"] });
+	* base.store("Musicians").push({ "Name": "Beyonce", "DateOfBirth": "1981-09-04T00:00:00", "GreatestHits": ["Single Ladies (Put a Ring on It)"] });
+	* // create a record set out of the records in the "Musicians" store
+	* var recordSet = base.store("Musicians").recs;
+	* // create a JSON object out of the record set
+	* var json = recordSet.toJSON();
 	*/
  exports.RecordSet.prototype.toJSON = function () {};
 /**
