@@ -512,6 +512,14 @@ public:
 		// now insert int instead of double
 		p1 = pb.Put((byte*)&i1, sizeof(int), p1);
 
+		EXPECT_EQ(p1.GetFIx(), 0);
+		EXPECT_EQ(p1.GetPg(), 0);
+		EXPECT_EQ(p1.GetIIx(), 0);
+
+		EXPECT_EQ(p2.GetFIx(), 0);
+		EXPECT_EQ(p2.GetPg(), 0);
+		EXPECT_EQ(p2.GetIIx(), 1);
+
 		auto sin3 = pb.Get(p1);
 		tmp3.Load(sin3);
 		EXPECT_EQ(tmp3, i1);
@@ -519,6 +527,15 @@ public:
 		auto sin4 = pb.Get(p2);
 		tmp.Load(sin4);
 		EXPECT_EQ(tmp, d2);
+
+		// peek into internal structure and check state
+		auto pg_item = (glib::TPgBlob::TPgBlobPageItem*)
+			(pb.GetPageBf(0) + sizeof(glib::TPgBlob::TPgHeader));
+		EXPECT_EQ(pg_item->Len, 4);
+		EXPECT_EQ(pg_item->Offset, 8180);
+		pg_item++;
+		EXPECT_EQ(pg_item->Len, 8);
+		EXPECT_EQ(pg_item->Offset, 8184);
 	}
 };
 
