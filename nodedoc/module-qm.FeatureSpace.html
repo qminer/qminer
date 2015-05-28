@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">FeatureSpace</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-2221">qminerdoc.<wbr>js:2221</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-2233">qminerdoc.<wbr>js:2233</a></p>
             <div class="symbol-classdesc">
               <p>Represents the feature space.</p>
             </div>
@@ -208,6 +208,39 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;F
               <h3 id="addFeatureExtractor"><span class="symbol-name">addFeatureExtractor</span><span class="signature"><span class="signature-params">(obj)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></span></span></h3>
               <p>Adds a new feature extractor to the feature space.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base containing one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;WeatherForcast&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Weather&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Date&quot;, &quot;type&quot;: &quot;datetime&quot; },
+           { &quot;name&quot;: &quot;TemperatureDegrees&quot;, &quot;type&quot;: &quot;int&quot; }
+       ]
+   }]
+});
+// put some records in the &quot;WeatherForecast&quot; store
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 19 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 22 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 24 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 27 });
+// create a feature space 
+var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;WeatherForcast&quot;, field: &quot;TemperatureDegrees&quot; });
+// add a new feature extractor to the feature space
+// it adds the new feature extractor to the pre-existing feature extractors in the feature space
+ftr.addFeatureExtractor({ type: &quot;text&quot;, source: &quot;WeatherForcast&quot;, field: &quot;Weather&quot;, normalize: true, weight: &quot;tfidf&quot; });      </code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -230,7 +263,7 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;F
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The added feature extracture.</p>
+                        <p>The added feature extractor. It must be given as a JSON object.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -319,6 +352,38 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;F
               <h3 id="extractSparseVector"><span class="symbol-name">extractSparseVector</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseVector.html">module:la.SparseVector</a></span></span></h3>
               <p>Creates a sparse feature vector from the given record.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base containing the store Class. Let the Name field be the primary field. 
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;Class&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+           { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+       ]
+   }]
+});
+// add some records to the store
+base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Dean&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
+base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroup&quot;: &quot;D&quot; });
+base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Magnitude&quot;, &quot;StudyGroup&quot;: &quot;C&quot; });
+base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Leonard&quot;, &quot;StudyGroup&quot;: &quot;B&quot; });
+// create a new feature space
+var ftr = new qm.FeatureSpace(base, [
+   { type: &quot;text&quot;, source: &quot;Class&quot;, field: &quot;Name&quot;, normalize: false },
+   { type: &quot;categorical&quot;, source: &quot;Class&quot;, field: &quot;StudyGroup&quot;, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;] } // TODO
+]);
+// get the sparse extractor vector for the first record in store
+var vec = ftr.extractSparseVector(base.store(&quot;Class&quot;)[0]);</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -355,6 +420,38 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;F
               </dl>
               <h3 id="extractVector"><span class="symbol-name">extractVector</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Creates a feature vector from the given record.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base containing the store Class. Let the Name field be the primary field.
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;Class&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+           { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+       ]
+   }]
+});
+// add some records to the store
+base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Dean&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
+base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroup&quot;: &quot;D&quot; });
+base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Magnitude&quot;, &quot;StudyGroup&quot;: &quot;C&quot; });
+base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Leonard&quot;, &quot;StudyGroup&quot;: &quot;B&quot; });
+// create a new feature space
+var ftr = new qm.FeatureSpace(base, [
+   { type: &quot;text&quot;, source: &quot;Class&quot;, field: &quot;Name&quot;, normalize: false },
+   { type: &quot;categorical&quot;, source: &quot;Class&quot;, field: &quot;StudyGroup&quot;, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;] } // TODO 
+]);
+// get the extractor vector for the first record in store
+var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">

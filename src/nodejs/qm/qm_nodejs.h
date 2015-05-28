@@ -2612,10 +2612,25 @@ private:
 * @example
 * // import qm module
 * qm = require('qminer');
-* // factory based construction with store.forwardIter
-* var iter = store.forwardIter;
+* // create a new base with a simple store
+* var base = new qm.Base({ mode: "createClean" });
+* base.createStore({
+*     "name": "People",
+*     "fields": [
+*         { "name": "Name", "type": "string" },
+*         { "name": "Gendre", "type": "string" }
+*     ]
+* });
+* // add new records to the store
+* base.store("People").push({ "Name": "Geronimo", "Gender": "Male" });
+* base.store("People").push({ "Name": "Pochahontas", "Gender": "Female" });
+* base.store("People").push({ "Name": "John Rolfe", "Gender": "Male" });
+* base.store("People").push({ "Name": "John Smith", "Gender": "Male"});
+* // factory based construction with forwardIter
+* var iter = base.store("People").forwardIter;
 */
 //# exports.Iterator = function () {};
+
 class TNodeJsStoreIter: public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
@@ -2926,8 +2941,35 @@ public:
 	//!- `fsp = fsp.addFeatureExtractor(objJson)` -- add a feature extractor parametrized by `objJson`
 	/**
 	* Adds a new feature extractor to the feature space.
-	* @param {Object} obj - The added feature extracture.
+	* @param {Object} obj - The added feature extractor. It must be given as a JSON object.
 	* @returns {module:qm.FeatureSpace} Self.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "WeatherForcast",
+	*        "fields": [
+	*            { "name": "Weather", "type": "string" },
+	*            { "name": "Date", "type": "datetime" },
+	*            { "name": "TemperatureDegrees", "type": "int" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the "WeatherForecast" store
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "TemperatureDegrees": 19 });
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "TemperatureDegrees": 22 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "TemperatureDegrees": 25 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "TemperatureDegrees": 25 });
+	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "TemperatureDegrees": 24 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "TemperatureDegrees": 27 });
+	* // create a feature space 
+	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "WeatherForcast", field: "TemperatureDegrees" });
+	* // add a new feature extractor to the feature space
+	* // it adds the new feature extractor to the pre-existing feature extractors in the feature space
+	* ftr.addFeatureExtractor({ type: "text", source: "WeatherForcast", field: "Weather", normalize: true, weight: "tfidf" });      
 	*/
 	//# exports.FeatureSpace.prototype.addFeatureExtractor = function (obj) {};
 	JsDeclareFunction(addFeatureExtractor);
@@ -3041,6 +3083,32 @@ public:
 	* Creates a sparse feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
 	* @returns {module:la.SparseVector} The sparse feature vector gained from rec.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a base containing the store Class. Let the Name field be the primary field. 
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "Class",
+	*        "fields": [
+	*            { "name": "Name", "type": "string", "primary": true },
+	*            { "name": "StudyGroup", "type": "string" }
+	*        ]
+	*    }]
+	* });
+	* // add some records to the store
+	* base.store("Class").push({ "Name": "Dean", "StudyGroup": "A" });
+	* base.store("Class").push({ "Name": "Chang", "StudyGroup": "D" });
+	* base.store("Class").push({ "Name": "Magnitude", "StudyGroup": "C" });
+	* base.store("Class").push({ "Name": "Leonard", "StudyGroup": "B" });
+	* // create a new feature space
+	* var ftr = new qm.FeatureSpace(base, [
+	*    { type: "text", source: "Class", field: "Name", normalize: false },
+	*    { type: "categorical", source: "Class", field: "StudyGroup", values: ["A", "B", "C", "D"] } // TODO
+	* ]);
+	* // get the sparse extractor vector for the first record in store
+	* var vec = ftr.extractSparseVector(base.store("Class")[0]);
 	*/
 	//# exports.FeatureSpace.prototype.extractSparseVector = function (rec) {}
     JsDeclareFunction(extractSparseVector);
@@ -3050,6 +3118,32 @@ public:
 	* Creates a feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
 	* @returns {module:la.Vector} The feature vector gained from rec.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a base containing the store Class. Let the Name field be the primary field.
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "Class",
+	*        "fields": [
+	*            { "name": "Name", "type": "string", "primary": true },
+	*            { "name": "StudyGroup", "type": "string" }
+	*        ]
+	*    }]
+	* });
+	* // add some records to the store
+	* base.store("Class").push({ "Name": "Dean", "StudyGroup": "A" });
+	* base.store("Class").push({ "Name": "Chang", "StudyGroup": "D" });
+	* base.store("Class").push({ "Name": "Magnitude", "StudyGroup": "C" });
+	* base.store("Class").push({ "Name": "Leonard", "StudyGroup": "B" });
+	* // create a new feature space
+	* var ftr = new qm.FeatureSpace(base, [
+	*    { type: "text", source: "Class", field: "Name", normalize: false },
+	*    { type: "categorical", source: "Class", field: "StudyGroup", values: ["A", "B", "C", "D"] } // TODO 
+	* ]);
+	* // get the extractor vector for the first record in store
+	* var vec = ftr.extractVector(base.store("Class")[0]);
 	*/
 	//# exports.FeatureSpace.prototype.extractVector = function (rec) {};
 	JsDeclareFunction(extractVector);
