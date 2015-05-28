@@ -2723,15 +2723,13 @@ private:
 
 public:
 	// Householder reduction of a real, symmetric matrix a[1..n][1..n].
-	// On output, a is replaced by the orthogonal matrix Q e
-	ecting the
-		// transformation. d[1..n] returns the diagonal elements of the
-		// tridiagonal matrix, and e[1..n] the o
-		- diagonal elements, with
-		// e[1]=0. Several statements, as noted in comments, can be omitted
-		// if only eigenvalues are to be found, in which case a contains no
-		// useful information on output. Otherwise they are to be included.
-		static void SymetricToTridiag(TFltVV& a, int n, TFltV& d, TFltV& e);
+	// On output, a is replaced by the orthogonal matrix Q eecting the
+	// transformation. d[1..n] returns the diagonal elements of the
+	// tridiagonal matrix, and e[1..n] the o-diagonal elements, with
+	// e[1]=0. Several statements, as noted in comments, can be omitted
+	// if only eigenvalues are to be found, in which case a contains no
+	// useful information on output. Otherwise they are to be included.
+	static void SymetricToTridiag(TFltVV& a, int n, TFltV& d, TFltV& e);
 
 	// QL algorithm with implicit shifts, to determine the eigenvalues
 	// and eigenvectors of a real, symmetric, tridiagonal matrix, or of
