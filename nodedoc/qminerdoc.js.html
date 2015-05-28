@@ -4329,6 +4329,62 @@
 
 	* &amp;lt;br&gt;2. False, if there is no record left.
 
+	* @example
+
+	* // import qm module
+
+	* var qm = require(&#x27;qminer&#x27;);
+
+	* // create a new base containing one store
+
+	* var base = new qm.Base({
+
+	*    mode: &quot;createClean&quot;,
+
+	*    schema: [{
+
+	*        &quot;name&quot;: &quot;TheWitcherSaga&quot;,
+
+	*        &quot;fields&quot;: [
+
+	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+
+	*            { &quot;name&quot;: &quot;YearOfRelese&quot;, &quot;type&quot;: &quot;int&quot; },
+
+	*            { &quot;name&quot;: &quot;EnglishEdition&quot;, &quot;type&quot;: &quot;bool&quot; }
+
+	*        ]
+
+	*    }]
+
+	* });
+
+	* // put some records in the store
+
+	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Blood of Elves&quot;, &quot;YearOfRelese&quot;: 1994, &quot;EnglishEdition&quot;: true });
+
+	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Time of Contempt&quot;, &quot;YearOfRelese&quot;: 1995, &quot;EnglishEdition&quot;: true });
+
+	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Baptism of Fire&quot;, &quot;YearOfRelese&quot;: 1996, &quot;EnglishEdition&quot;: true });
+
+	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;The Swallow&#x27;s Tower&quot;, &quot;YearOfRelese&quot;: 1997, &quot;EnglishEdition&quot;: false });
+
+	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Lady of the Lake&quot;, &quot;YearOfRelese&quot;: 1999, &quot;EnglishEdition&quot;: false });
+
+	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Season of Storms&quot;, &quot;YearOfRelese&quot;: 2013, &quot;EnglishEdition&quot;: false });
+
+	* // create an iterator for the store
+
+	* var iter = base.store(&quot;TheWitcherSaga&quot;).forwardIter;
+
+	* // go to the first record in the store
+
+	* iter.next(); // returns true
+
+	* // get the title of the first record
+
+	* iter.record.Title; // returns &quot;Blood of Elves&quot;
+
 	*/
 
  exports.Iterator.prototype.next = function () {};

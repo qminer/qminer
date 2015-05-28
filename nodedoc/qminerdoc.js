@@ -2148,6 +2148,34 @@
 	* @returns {boolean} 
 	* <br>1. True, if the iteration successfully moves to the next record.
 	* <br>2. False, if there is no record left.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        "name": "TheWitcherSaga",
+	*        "fields": [
+	*            { "name": "Title", "type": "string" },
+	*            { "name": "YearOfRelese", "type": "int" },
+	*            { "name": "EnglishEdition", "type": "bool" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the store
+	* base.store("TheWitcherSaga").push({ "Title": "Blood of Elves", "YearOfRelese": 1994, "EnglishEdition": true });
+	* base.store("TheWitcherSaga").push({ "Title": "Time of Contempt", "YearOfRelese": 1995, "EnglishEdition": true });
+	* base.store("TheWitcherSaga").push({ "Title": "Baptism of Fire", "YearOfRelese": 1996, "EnglishEdition": true });
+	* base.store("TheWitcherSaga").push({ "Title": "The Swallow's Tower", "YearOfRelese": 1997, "EnglishEdition": false });
+	* base.store("TheWitcherSaga").push({ "Title": "Lady of the Lake", "YearOfRelese": 1999, "EnglishEdition": false });
+	* base.store("TheWitcherSaga").push({ "Title": "Season of Storms", "YearOfRelese": 2013, "EnglishEdition": false });
+	* // create an iterator for the store
+	* var iter = base.store("TheWitcherSaga").forwardIter;
+	* // go to the first record in the store
+	* iter.next(); // returns true
+	* // get the title of the first record
+	* iter.record.Title; // returns "Blood of Elves"
 	*/
  exports.Iterator.prototype.next = function () {};
 /**
