@@ -192,8 +192,10 @@ base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Immanuel Kan
 base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Emmanuel Levinas&quot;, &quot;Era&quot;: &quot;20th-century philosophy&quot; });
 base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Rene Descartes&quot;, &quot;Era&quot;: &quot;17th-century philosophy&quot; });
 base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Confucius&quot;, &quot;Era&quot;: &quot;Ancient philosophy&quot; });
+// create a record set out of the records in store
+var recordSet = base.store(&quot;Philosophers&quot;).recs;
 // clone the record set of the &quot;Philosophers&quot; store
-var philosophers = base.store(&quot;Philosophers&quot;).recs.clone();</code></pre>
+var philosophers = recordSet.clone();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -368,7 +370,7 @@ base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Legol
 // create a record set out of the records of the store
 var recordSet = base.store(&quot;ArcheryChampionship&quot;).recs;
 // filter the records: which archers have scored 48 points in the third round
-recordSet.filter(function (rec) { return rec.ScorePerRound[2] == 48; }); // keeps only the records, where their Price is more than 10000</code></pre>
+recordSet.filter(function (rec) { return rec.ScorePerRound[2] == 48; }); // keeps only the records, where the score of the third round is equal 48</code></pre>
                 </div>
               </section>
               <section>
@@ -423,17 +425,17 @@ var base = new qm.Base({
        &quot;fields&quot;: [
            { &quot;name&quot;: &quot;Weather&quot;, &quot;type&quot;: &quot;string&quot; },
            { &quot;name&quot;: &quot;Date&quot;, &quot;type&quot;: &quot;datetime&quot; },
-           { &quot;name&quot;: &quot;Temperature (degrees)&quot;, &quot;type&quot;: &quot;int&quot; },
+           { &quot;name&quot;: &quot;TemperatureDegrees&quot;, &quot;type&quot;: &quot;int&quot; },
        ]
    }]
 });
 // put some records in the &quot;WeatherForecast&quot; store
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 19 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 22 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 25 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 25 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 24 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 27 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 19 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 22 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 24 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 27 });
 // get the record set containing the records from the &quot;WeatherForcast&quot; store
 var recordSet = base.store(&quot;WeatherForcast&quot;).recs;
 // filter only the records, where the weather is Mostly Cloudy
@@ -520,23 +522,23 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;Frank Sinatra Greatest Hits&quot;,
+       &quot;name&quot;: &quot;FrankSinatraGreatestHits&quot;,
        &quot;fields&quot;: [
            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
            { &quot;name&quot;: &quot;Length&quot;, &quot;type&quot;: &quot;int&quot; }
        ]
    }]
 });
-// put some records in the &quot;Frank Sinatra Greates Hits&quot; store
-base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;Strangers in the Night&quot;, &quot;Length&quot;: 145 });
-base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;Summer Wind&quot;, &quot;Length&quot;: 173 });
-base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;It Was a Very Good Year&quot;, &quot;Length&quot;: 265 });
-base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;Somewhere in Your Heart&quot;, &quot;Length&quot;: 146 });
-base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;Forget Domani&quot;, &quot;Length&quot;: 156 });
-base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;Somethin&#x27; Stupid&quot;, &quot;Length&quot;: 155 });
-base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;This Town&quot;, &quot;Length&quot;: 186 });
+// put some records in the &quot;FrankSinatraGreatesHits&quot; store
+base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;Strangers in the Night&quot;, &quot;Length&quot;: 145 });
+base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;Summer Wind&quot;, &quot;Length&quot;: 173 });
+base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;It Was a Very Good Year&quot;, &quot;Length&quot;: 265 });
+base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;Somewhere in Your Heart&quot;, &quot;Length&quot;: 146 });
+base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;Forget Domani&quot;, &quot;Length&quot;: 156 });
+base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;Somethin&#x27; Stupid&quot;, &quot;Length&quot;: 155 });
+base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;This Town&quot;, &quot;Length&quot;: 186 });
 // get the records of the store as a record set
-var recordSet = base.store(&quot;Frank Sinatra Greates Hits&quot;).recs;
+var recordSet = base.store(&quot;FrankSinatraGreatestHits&quot;).recs;
 // from the record set keep the records with indeces between or equal 2 and 5
 recordSet.filterById(2, 5);</code></pre>
                 </div>
@@ -889,7 +891,7 @@ var arr = recordSet.map(function (rec) { return rec.Name; }); // returns an arra
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of Object</code>&nbsp;The array created by the callback function. //TODO</p>
+                  <p><code>Array of Object</code>&nbsp;The array created by the callback function.</p>
                 </dd>
               </dl>
               <h3 id="reverse"><span class="symbol-name">reverse</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
@@ -909,17 +911,17 @@ var base = new qm.Base({
        &quot;fields&quot;: [
            { &quot;name&quot;: &quot;Weather&quot;, &quot;type&quot;: &quot;string&quot; },
            { &quot;name&quot;: &quot;Date&quot;, &quot;type&quot;: &quot;datetime&quot; },
-           { &quot;name&quot;: &quot;Temperature (degrees)&quot;, &quot;type&quot;: &quot;int&quot; },
+           { &quot;name&quot;: &quot;TemperatureDegrees&quot;, &quot;type&quot;: &quot;int&quot; },
        ]
    }]
 });
 // put some records in the &quot;WeatherForecast&quot; store
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 19 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 22 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 25 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 25 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 24 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 27 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 19 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 22 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 24 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 27 });
 // get the record set containing the records from the &quot;WeatherForcast&quot; store
 var recordSet = base.store(&quot;WeatherForcast&quot;).recs;
 // reverse the record order in the record set
@@ -1226,17 +1228,17 @@ var base = new qm.Base({
        &quot;fields&quot;: [
            { &quot;name&quot;: &quot;Weather&quot;, &quot;type&quot;: &quot;string&quot; },
            { &quot;name&quot;: &quot;Date&quot;, &quot;type&quot;: &quot;datetime&quot; },
-           { &quot;name&quot;: &quot;Temperature (degrees)&quot;, &quot;type&quot;: &quot;int&quot; }
+           { &quot;name&quot;: &quot;TemperatureDegrees&quot;, &quot;type&quot;: &quot;int&quot; }
        ]
    }]
 });
 // put some records in the &quot;WeatherForecast&quot; store
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 19 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 22 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 25 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 25 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 24 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 27 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 19 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 22 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 24 });
+base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 27 });
 // get the record set containing the records from the &quot;WeatherForcast&quot; store
 var recordSet = base.store(&quot;WeatherForcast&quot;).recs;
 // shuffle the records in the newly created record set. Use the number 100 as the seed for the shuffle
@@ -1703,7 +1705,7 @@ recordSet2.trunc(2, 2); // returns self, containing only the 2 records (&quot;Em
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on May 27, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on May 28, 2015.
       </p>
     </div>
   </footer>

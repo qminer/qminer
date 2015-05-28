@@ -1766,8 +1766,10 @@ private:
 	* base.store("Philosophers").push({ "Name": "Emmanuel Levinas", "Era": "20th-century philosophy" });
 	* base.store("Philosophers").push({ "Name": "Rene Descartes", "Era": "17th-century philosophy" });
 	* base.store("Philosophers").push({ "Name": "Confucius", "Era": "Ancient philosophy" });
+	* // create a record set out of the records in store
+	* var recordSet = base.store("Philosophers").recs;
 	* // clone the record set of the "Philosophers" store
-	* var philosophers = base.store("Philosophers").recs.clone();
+	* var philosophers = recordSet.clone();
 	*/
 	//# exports.RecordSet.prototype.clone = function () {};
 	JsDeclareFunction(clone);
@@ -1918,17 +1920,17 @@ private:
 	*        "fields": [
 	*            { "name": "Weather", "type": "string" },
 	*            { "name": "Date", "type": "datetime" },
-	*            { "name": "Temperature (degrees)", "type": "int" }
+	*            { "name": "TemperatureDegrees", "type": "int" }
 	*        ]
 	*    }]
 	* });
 	* // put some records in the "WeatherForecast" store
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "Temperature (degrees)": 19 });
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "Temperature (degrees)": 22 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "Temperature (degrees)": 25 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "Temperature (degrees)": 25 });
-	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "Temperature (degrees)": 24 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "Temperature (degrees)": 27 });
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "TemperatureDegrees": 19 });
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "TemperatureDegrees": 22 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "TemperatureDegrees": 25 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "TemperatureDegrees": 25 });
+	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "TemperatureDegrees": 24 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "TemperatureDegrees": 27 });
 	* // get the record set containing the records from the "WeatherForcast" store
 	* var recordSet = base.store("WeatherForcast").recs;
 	* // shuffle the records in the newly created record set. Use the number 100 as the seed for the shuffle
@@ -1952,17 +1954,17 @@ private:
 	*        "fields": [
 	*            { "name": "Weather", "type": "string" },
 	*            { "name": "Date", "type": "datetime" },
-	*            { "name": "Temperature (degrees)", "type": "int" },
+	*            { "name": "TemperatureDegrees", "type": "int" },
 	*        ]
 	*    }]
 	* });
 	* // put some records in the "WeatherForecast" store
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "Temperature (degrees)": 19 });
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "Temperature (degrees)": 22 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "Temperature (degrees)": 25 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "Temperature (degrees)": 25 });
-	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "Temperature (degrees)": 24 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "Temperature (degrees)": 27 });
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "TemperatureDegrees": 19 });
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "TemperatureDegrees": 22 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "TemperatureDegrees": 25 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "TemperatureDegrees": 25 });
+	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "TemperatureDegrees": 24 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "TemperatureDegrees": 27 });
 	* // get the record set containing the records from the "WeatherForcast" store
 	* var recordSet = base.store("WeatherForcast").recs;
 	* // reverse the record order in the record set
@@ -2101,23 +2103,23 @@ private:
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Frank Sinatra Greatest Hits",
+	*        "name": "FrankSinatraGreatestHits",
 	*        "fields": [
 	*            { "name": "Title", "type": "string" },
 	*            { "name": "Length", "type": "int" }
 	*        ]
 	*    }]
 	* });
-	* // put some records in the "Frank Sinatra Greates Hits" store
-	* base.store("Frank Sinatra Greates Hits").push({ "Title": "Strangers in the Night", "Length": 145 });
-	* base.store("Frank Sinatra Greates Hits").push({ "Title": "Summer Wind", "Length": 173 });
-	* base.store("Frank Sinatra Greates Hits").push({ "Title": "It Was a Very Good Year", "Length": 265 });
-	* base.store("Frank Sinatra Greates Hits").push({ "Title": "Somewhere in Your Heart", "Length": 146 });
-	* base.store("Frank Sinatra Greates Hits").push({ "Title": "Forget Domani", "Length": 156 });
-	* base.store("Frank Sinatra Greates Hits").push({ "Title": "Somethin' Stupid", "Length": 155 });
-	* base.store("Frank Sinatra Greates Hits").push({ "Title": "This Town", "Length": 186 });
+	* // put some records in the "FrankSinatraGreatesHits" store
+	* base.store("FrankSinatraGreatestHits").push({ "Title": "Strangers in the Night", "Length": 145 });
+	* base.store("FrankSinatraGreatestHits").push({ "Title": "Summer Wind", "Length": 173 });
+	* base.store("FrankSinatraGreatestHits").push({ "Title": "It Was a Very Good Year", "Length": 265 });
+	* base.store("FrankSinatraGreatestHits").push({ "Title": "Somewhere in Your Heart", "Length": 146 });
+	* base.store("FrankSinatraGreatestHits").push({ "Title": "Forget Domani", "Length": 156 });
+	* base.store("FrankSinatraGreatestHits").push({ "Title": "Somethin' Stupid", "Length": 155 });
+	* base.store("FrankSinatraGreatestHits").push({ "Title": "This Town", "Length": 186 });
 	* // get the records of the store as a record set
-	* var recordSet = base.store("Frank Sinatra Greates Hits").recs;
+	* var recordSet = base.store("FrankSinatraGreatestHits").recs;
 	* // from the record set keep the records with indeces between or equal 2 and 5
 	* recordSet.filterById(2, 5);
 	*/
@@ -2161,17 +2163,17 @@ private:
 	*        "fields": [
 	*            { "name": "Weather", "type": "string" },
 	*            { "name": "Date", "type": "datetime" },
-	*            { "name": "Temperature (degrees)", "type": "int" },
+	*            { "name": "TemperatureDegrees", "type": "int" },
 	*        ]
 	*    }]
 	* });
 	* // put some records in the "WeatherForecast" store
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "Temperature (degrees)": 19 });
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "Temperature (degrees)": 22 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "Temperature (degrees)": 25 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "Temperature (degrees)": 25 });
-	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "Temperature (degrees)": 24 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "Temperature (degrees)": 27 });
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "TemperatureDegrees": 19 });
+	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "TemperatureDegrees": 22 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "TemperatureDegrees": 25 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "TemperatureDegrees": 25 });
+	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "TemperatureDegrees": 24 });
+	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "TemperatureDegrees": 27 });
 	* // get the record set containing the records from the "WeatherForcast" store
 	* var recordSet = base.store("WeatherForcast").recs;
 	* // filter only the records, where the weather is Mostly Cloudy
@@ -2206,7 +2208,7 @@ private:
 	* // create a record set out of the records of the store
 	* var recordSet = base.store("ArcheryChampionship").recs;
 	* // filter the records: which archers have scored 48 points in the third round
-	* recordSet.filter(function (rec) { return rec.ScorePerRound[2] == 48; }); // keeps only the records, where their Price is more than 10000
+	* recordSet.filter(function (rec) { return rec.ScorePerRound[2] == 48; }); // keeps only the records, where the score of the third round is equal 48
 	*/
 	//# exports.RecordSet.prototype.filter = function (callback) {}; 
 	JsDeclareFunction(filter);
@@ -2361,7 +2363,7 @@ private:
 	* @param {function} callback - Function that generates the array. It takes two parameters:
 	* <br>rec - The current record.
 	* <br>[idx] - The index of the current record.
-	* @returns {Array<Object>} The array created by the callback function. //TODO
+	* @returns {Array<Object>} The array created by the callback function.
 	* @example
 	* // import qm module
 	* var qm = require('qminer');

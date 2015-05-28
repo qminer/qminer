@@ -2827,9 +2827,13 @@
 
 	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Confucius&quot;, &quot;Era&quot;: &quot;Ancient philosophy&quot; });
 
+	* // create a record set out of the records in store
+
+	* var recordSet = base.store(&quot;Philosophers&quot;).recs;
+
 	* // clone the record set of the &quot;Philosophers&quot; store
 
-	* var philosophers = base.store(&quot;Philosophers&quot;).recs.clone();
+	* var philosophers = recordSet.clone();
 
 	*/
 
@@ -3095,7 +3099,7 @@
 
 	*            { &quot;name&quot;: &quot;Date&quot;, &quot;type&quot;: &quot;datetime&quot; },
 
-	*            { &quot;name&quot;: &quot;Temperature (degrees)&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { &quot;name&quot;: &quot;TemperatureDegrees&quot;, &quot;type&quot;: &quot;int&quot; }
 
 	*        ]
 
@@ -3105,17 +3109,17 @@
 
 	* // put some records in the &quot;WeatherForecast&quot; store
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 19 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 19 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 22 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 22 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 25 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 25 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 24 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 24 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 27 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 27 });
 
 	* // get the record set containing the records from the &quot;WeatherForcast&quot; store
 
@@ -3157,7 +3161,7 @@
 
 	*            { &quot;name&quot;: &quot;Date&quot;, &quot;type&quot;: &quot;datetime&quot; },
 
-	*            { &quot;name&quot;: &quot;Temperature (degrees)&quot;, &quot;type&quot;: &quot;int&quot; },
+	*            { &quot;name&quot;: &quot;TemperatureDegrees&quot;, &quot;type&quot;: &quot;int&quot; },
 
 	*        ]
 
@@ -3167,17 +3171,17 @@
 
 	* // put some records in the &quot;WeatherForecast&quot; store
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 19 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 19 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 22 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 22 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 25 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 25 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 24 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 24 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 27 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 27 });
 
 	* // get the record set containing the records from the &quot;WeatherForcast&quot; store
 
@@ -3425,7 +3429,7 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Frank Sinatra Greatest Hits&quot;,
+	*        &quot;name&quot;: &quot;FrankSinatraGreatestHits&quot;,
 
 	*        &quot;fields&quot;: [
 
@@ -3439,25 +3443,25 @@
 
 	* });
 
-	* // put some records in the &quot;Frank Sinatra Greates Hits&quot; store
+	* // put some records in the &quot;FrankSinatraGreatesHits&quot; store
 
-	* base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;Strangers in the Night&quot;, &quot;Length&quot;: 145 });
+	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;Strangers in the Night&quot;, &quot;Length&quot;: 145 });
 
-	* base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;Summer Wind&quot;, &quot;Length&quot;: 173 });
+	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;Summer Wind&quot;, &quot;Length&quot;: 173 });
 
-	* base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;It Was a Very Good Year&quot;, &quot;Length&quot;: 265 });
+	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;It Was a Very Good Year&quot;, &quot;Length&quot;: 265 });
 
-	* base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;Somewhere in Your Heart&quot;, &quot;Length&quot;: 146 });
+	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;Somewhere in Your Heart&quot;, &quot;Length&quot;: 146 });
 
-	* base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;Forget Domani&quot;, &quot;Length&quot;: 156 });
+	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;Forget Domani&quot;, &quot;Length&quot;: 156 });
 
-	* base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;Somethin&#x27; Stupid&quot;, &quot;Length&quot;: 155 });
+	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;Somethin&#x27; Stupid&quot;, &quot;Length&quot;: 155 });
 
-	* base.store(&quot;Frank Sinatra Greates Hits&quot;).push({ &quot;Title&quot;: &quot;This Town&quot;, &quot;Length&quot;: 186 });
+	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;This Town&quot;, &quot;Length&quot;: 186 });
 
 	* // get the records of the store as a record set
 
-	* var recordSet = base.store(&quot;Frank Sinatra Greates Hits&quot;).recs;
+	* var recordSet = base.store(&quot;FrankSinatraGreatestHits&quot;).recs;
 
 	* // from the record set keep the records with indeces between or equal 2 and 5
 
@@ -3529,7 +3533,7 @@
 
 	*            { &quot;name&quot;: &quot;Date&quot;, &quot;type&quot;: &quot;datetime&quot; },
 
-	*            { &quot;name&quot;: &quot;Temperature (degrees)&quot;, &quot;type&quot;: &quot;int&quot; },
+	*            { &quot;name&quot;: &quot;TemperatureDegrees&quot;, &quot;type&quot;: &quot;int&quot; },
 
 	*        ]
 
@@ -3539,17 +3543,17 @@
 
 	* // put some records in the &quot;WeatherForecast&quot; store
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 19 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 19 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 22 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 22 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 25 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 25 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 24 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 24 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;Temperature (degrees)&quot;: 27 });
+	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 27 });
 
 	* // get the record set containing the records from the &quot;WeatherForcast&quot; store
 
@@ -3613,7 +3617,7 @@
 
 	* // filter the records: which archers have scored 48 points in the third round
 
-	* recordSet.filter(function (rec) { return rec.ScorePerRound[2] == 48; }); // keeps only the records, where their Price is more than 10000
+	* recordSet.filter(function (rec) { return rec.ScorePerRound[2] == 48; }); // keeps only the records, where the score of the third round is equal 48
 
 	*/
 
@@ -3885,7 +3889,7 @@
 
 	* &amp;lt;br&gt;[idx] - The index of the current record.
 
-	* @returns {Array&amp;lt;Object&gt;} The array created by the callback function. //TODO
+	* @returns {Array&amp;lt;Object&gt;} The array created by the callback function.
 
 	* @example
 
@@ -4809,7 +4813,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on May 27, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on May 28, 2015.
       </p>
     </div>
   </footer>
