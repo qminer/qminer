@@ -1445,7 +1445,7 @@
 	* var ledZeppelin = base.store("Bands").recs.join("Members");
 	* // create a record set containing the first musician, that is a member of some band
 	* // returns a record set containing only one record, which is "Robert Plant" or "Jimmy Page"
-	* var robertPlant = base.store("Bands").recs.join("Members", 1);
+	* var ledMember = base.store("Bands").recs.join("Members", 1);
 	*/
  exports.RecordSet.prototype.join = function (joinName, sampleSize) {};
 /**
@@ -1583,7 +1583,7 @@
  exports.RecordSet.prototype.reverse = function () {};
 /**
 	* Sorts the records according to record id.
-	* @param {number} [asc=1] - If asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.  
+	* @param {number} [asc=-1] - If asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.  
 	* @returns {module:qm.RecordSet} Self. Records are sorted according to record id and asc.
 	* @example
 	* // import qm module
@@ -1595,8 +1595,8 @@
 	*        "name": "Tea",
 	*        "fields": [
 	*            { "name": "Name", "type": "string" },
-	*            { "name": "Type", "type": "string" },
-	*            { "name": "Origin", "type": "string" }
+	*            { "name": "Type", "type": "string"},
+	*            { "name": "Origin", "type": "string", "null": true  }
 	*        ]
 	*    }]
 	* });
@@ -1608,9 +1608,9 @@
 	* // get the records of the "Tea" store as a record set
 	* var recordSet = base.store("Tea").recs;
 	* // sort the records in the record set by their id in descending order
-	* recordSet.sortById(-1); // returns self, the records are sorted in descending order
+	* recordSet.sortById(); // returns self, the records are sorted in descending order (default)
 	* // sort the records in the record set by their id in ascending order
-	* recordSet.sortById(); // returns self, the records are sorted in ascending order (default)
+	* recordSet.sortById(1); // returns self, the records are sorted in ascending order
 	*/
  exports.RecordSet.prototype.sortById = function (asc) {}; 
 /**
@@ -1647,8 +1647,8 @@
 	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
 	* // get the records of the "TVSeries" store as a record set
 	* var recordSet = base.store("TVSeries").recs;
-	* // sort the records by their "Title" field in descending order 
-	* recordSet.sortByField("Title"); // returns self, record are sorted by their "Title"
+	* // sort the records by their "Title" field in ascending order 
+	* recordSet.sortByField("Title", true); // returns self, record are sorted by their "Title"
 	*/
  exports.RecordSet.prototype.sortByField = function (fieldName, asc) {};
 /**
@@ -1828,7 +1828,7 @@
 	* // returns an array containing three record sets: the first containing the "DungeonsAndDragons" record,
 	* // the second containing the "Settlers of Catan" and "Munchkin" records and the third containing the 
 	* // "Dobble" record
-	* // recordSet.split(function (rec, rec2) { return rec.MinPlayers < rec2.MinPlayers; });
+	* var arr = recordSet.split(function (rec, rec2) { return rec.MinPlayers < rec2.MinPlayers; });
 	*/
  exports.RecordSet.prototype.split = function (callback) {};
 /**
@@ -1979,7 +1979,7 @@
 	* base.store("Movies").push({ "Title": "The Clockwork Orange", "Length": 136, "Director": "Stanley Kubrick" });
 	* base.store("Movies").push({ "Title": "Full Metal Jacket", "Length": 116, "Director": "Stanely Kubrick" });
 	* // create a record set out of the records in store, where length of the movie is greater than 110
-	* var greaterSet = base.store("Movies").recs.filterByField("Length", 110);
+	* var greaterSet = base.store("Movies").recs.filterByField("Length", 110, 150);
 	* // create a record set out of the records in store, where the length of the movie is lesser than 130
 	* var lesserSet = base.store("Movies").recs.filterByField("Length", 0, 130);
 	* // get the intersection of greaterSet and lesserSet
@@ -2013,7 +2013,7 @@
 	* // create a record set out of the records in store, where the number of episodes is lesser than 47
 	* var lesserSet = base.store("TVSeries").recs.filterByField("NumberOfEpisodes", 0, 47);
 	* // create a record set out of the records in store, where the number of episodes is greater than 100
-	* var greaterSet = base.store("TVSeries").recs.filterByField("NumberOfEpisodes", 100);
+	* var greaterSet = base.store("TVSeries").recs.filterByField("NumberOfEpisodes", 100, 600);
 	* // get the union of lesserSet and greaterSet
 	* var union = lesserSet.setUnion(greaterSet); // returns a record set, which is the union of the two record sets
 	*/

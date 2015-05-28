@@ -2923,7 +2923,7 @@
 
 	* // returns a record set containing only one record, which is &quot;Robert Plant&quot; or &quot;Jimmy Page&quot;
 
-	* var robertPlant = base.store(&quot;Bands&quot;).recs.join(&quot;Members&quot;, 1);
+	* var ledMember = base.store(&quot;Bands&quot;).recs.join(&quot;Members&quot;, 1);
 
 	*/
 
@@ -3199,7 +3199,7 @@
 
 	* Sorts the records according to record id.
 
-	* @param {number} [asc=1] - If asc &gt; 0, it sorts in ascending order. Otherwise, it sorts in descending order.  
+	* @param {number} [asc=-1] - If asc &gt; 0, it sorts in ascending order. Otherwise, it sorts in descending order.  
 
 	* @returns {module:qm.RecordSet} Self. Records are sorted according to record id and asc.
 
@@ -3223,9 +3223,9 @@
 
 	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Type&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { &quot;name&quot;: &quot;Type&quot;, &quot;type&quot;: &quot;string&quot;},
 
-	*            { &quot;name&quot;: &quot;Origin&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { &quot;name&quot;: &quot;Origin&quot;, &quot;type&quot;: &quot;string&quot;, &quot;null&quot;: true  }
 
 	*        ]
 
@@ -3249,11 +3249,11 @@
 
 	* // sort the records in the record set by their id in descending order
 
-	* recordSet.sortById(-1); // returns self, the records are sorted in descending order
+	* recordSet.sortById(); // returns self, the records are sorted in descending order (default)
 
 	* // sort the records in the record set by their id in ascending order
 
-	* recordSet.sortById(); // returns self, the records are sorted in ascending order (default)
+	* recordSet.sortById(1); // returns self, the records are sorted in ascending order
 
 	*/
 
@@ -3327,9 +3327,9 @@
 
 	* var recordSet = base.store(&quot;TVSeries&quot;).recs;
 
-	* // sort the records by their &quot;Title&quot; field in descending order 
+	* // sort the records by their &quot;Title&quot; field in ascending order 
 
-	* recordSet.sortByField(&quot;Title&quot;); // returns self, record are sorted by their &quot;Title&quot;
+	* recordSet.sortByField(&quot;Title&quot;, true); // returns self, record are sorted by their &quot;Title&quot;
 
 	*/
 
@@ -3689,7 +3689,7 @@
 
 	* // &quot;Dobble&quot; record
 
-	* // recordSet.split(function (rec, rec2) { return rec.MinPlayers &amp;lt; rec2.MinPlayers; });
+	* var arr = recordSet.split(function (rec, rec2) { return rec.MinPlayers &amp;lt; rec2.MinPlayers; });
 
 	*/
 
@@ -3991,7 +3991,7 @@
 
 	* // create a record set out of the records in store, where length of the movie is greater than 110
 
-	* var greaterSet = base.store(&quot;Movies&quot;).recs.filterByField(&quot;Length&quot;, 110);
+	* var greaterSet = base.store(&quot;Movies&quot;).recs.filterByField(&quot;Length&quot;, 110, 150);
 
 	* // create a record set out of the records in store, where the length of the movie is lesser than 130
 
@@ -4059,7 +4059,7 @@
 
 	* // create a record set out of the records in store, where the number of episodes is greater than 100
 
-	* var greaterSet = base.store(&quot;TVSeries&quot;).recs.filterByField(&quot;NumberOfEpisodes&quot;, 100);
+	* var greaterSet = base.store(&quot;TVSeries&quot;).recs.filterByField(&quot;NumberOfEpisodes&quot;, 100, 600);
 
 	* // get the union of lesserSet and greaterSet
 
