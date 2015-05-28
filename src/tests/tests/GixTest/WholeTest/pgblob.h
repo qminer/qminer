@@ -380,9 +380,15 @@ namespace glib {
 		TPgBlobPt Put(const byte* Bf, const int& BfL);
 		/// Store existing BLOB to storage
 		TPgBlobPt Put(const byte* Bf, const int& BfL, const TPgBlobPt& Pt);
+		/// Marks page as dirty - data inside was written directly
+		void SetDirty(const TPgBlobPt& Pt);
 		/// Retrieve BLOB from storage
 		TQm::TStorage::TThinMIn Get(const TPgBlobPt& Pt);
 
+		/// Save part of the data, given time-window
+		void PartialFlush(int WndInMsec = 500);
+		/// Retrieve statistics for this object
+		PJsonVal GetStats();
 
 #ifdef XTEST
 		friend class XTest;
