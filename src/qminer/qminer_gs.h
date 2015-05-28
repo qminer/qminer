@@ -291,7 +291,7 @@ public:
 	bool GetNextLnBf(TChA& LnChA);
 };
 
-////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 /// Serialization and de-serialization of records to TMem.
 /// This class handles smart serialization of JSON with respect to field 
 /// serialization definitions. It supports NULL flags. It packs fixed-width 

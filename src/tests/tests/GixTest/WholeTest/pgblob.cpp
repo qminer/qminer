@@ -558,6 +558,42 @@ namespace glib {
 		return TQm::TStorage::TThinMIn(Data, Len);
 	}
 
+	/// Save part of the data, given time-window
+	void TPgBlob::PartialFlush(int WndInMsec) {
+		TTmStopWatch sw(true);
+		for (int i = 0; i < LoadedPages.Len(); i++) {
+			if (ShouldSavePage(i)) {
+				LoadedPage& a = LoadedPages[i];
+				Files[a.Pt.GetFIx()]->SavePage(a.Pt.GetPg(), GetPageBf(i));
+				if (sw.GetMSec() > WndInMsec)
+					break;
+			}
+		}
+	}
+
+	/// Marks page as dirty - data inside was written directly
+	void TPgBlob::SetDirty(const TPgBlobPt& Pt) {
+		byte* Pg = LoadPage(Pt);
+		((TPgHeader*)Pg)->SetDirty(true);
+	}
+
+	/// Retrieve statistics for this object
+	PJsonVal TPgBlob::GetStats() {
+		int dirty = 0;
+		for (int i = 0; i < LoadedPages.Len(); i++) {
+			if (ShouldSavePage(i)) {
+				dirty++;
+			}
+		}
+
+		PJsonVal res = TJsonVal::NewObj();
+		res->AddToObj("page_size", PAGE_SIZE);
+		res->AddToObj("loaded_pages", LoadedPages.Len());
+		res->AddToObj("dirty_pages", dirty);
+		res->AddToObj("cache_size", BfL);
+		return res;
+	}
+
 	///////////////////////////////////////////////////////////////////////////
 
 	/// Add new page to free-space-map

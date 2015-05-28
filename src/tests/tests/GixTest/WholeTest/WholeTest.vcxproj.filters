@@ -51,6 +51,9 @@
     <ClCompile Include="pgblob.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="qminer_pbs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\glib\base\gix.h">
