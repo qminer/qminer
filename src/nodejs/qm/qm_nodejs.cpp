@@ -543,7 +543,7 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// Add all prototype methods, getters and setters here.
-	NODE_SET_PROTOTYPE_METHOD(tpl, "rec", _rec);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "recordByName", _recordByName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "each", _each);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "map", _map);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "push", _push);
@@ -567,7 +567,7 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "name"), _name);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "empty"), _empty);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "recs"), _recs);
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "allRecords"), _allRecords);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "fields"), _fields);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "joins"), _joins);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "keys"), _keys);
@@ -671,7 +671,7 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TWPt<TQm::TStore>& Store, const u
 	return HandleScope.Escape(Field(Rec, FieldId));
 }
 
-void TNodeJsStore::rec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStore::recordByName(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -1335,7 +1335,7 @@ void TNodeJsStore::length(v8::Local<v8::String> Name, const v8::PropertyCallback
 	Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsStore->Store->GetRecs()));
 }
 
-void TNodeJsStore::recs(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStore::allRecords(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 

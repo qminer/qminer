@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
  * 
@@ -580,7 +580,7 @@ describe('Feature Space Tests', function () {
         })
         it('should inverse the value for extractor type: numeric, normalize', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" });
-            ftr.updateRecords(Store.recs);
+            ftr.updateRecords(Store.allRecords);
             var val = ftr.invertFeature(0, 0.8);
             assert.eqtol(val, 1.8);
         })
@@ -917,7 +917,7 @@ describe('Feature Space Tests', function () {
         })
         it('should return only the features of a sparse vector for extractor type: numeric, normalize', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value", normalize: true });
-            ftr.updateRecords(Store.recs);
+            ftr.updateRecords(Store.allRecords);
 
             var in_vec = ftr.extractSparseVector(Store[0]);
             var out_vec = ftr.filter(in_vec, 0);
@@ -927,7 +927,7 @@ describe('Feature Space Tests', function () {
         })
         it('should return only the features of a dense vector for extractor type: numeric, normalize', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value", normalize: true });
-            ftr.updateRecords(Store.recs);
+            ftr.updateRecords(Store.allRecords);
 
             var in_vec = ftr.extractVector(Store[0]);
             var out_vec = ftr.filter(in_vec, 0);
@@ -1655,7 +1655,7 @@ describe('Feature Space Tests', function () {
     describe('UpdateRecords Tests', function () {
         it('should update the feature space by adding the whole store: constant', function () {
             var ftr = new qm.FeatureSpace(base, { type: "constant", source: "FtrSpaceTest" });
-            var rs = Store.recs;
+            var rs = Store.allRecords;
             ftr.updateRecords(rs);
             for (var i = 0; i < 11; i++) {
                 assert.equal(ftr.extractVector(Store[i]).length, 1);
@@ -1664,7 +1664,7 @@ describe('Feature Space Tests', function () {
         })
         it('should update the feature space by adding the whole store: constant, number 10', function () {
             var ftr = new qm.FeatureSpace(base, { type: "constant", source: "FtrSpaceTest", const: 10 });
-            var rs = Store.recs;
+            var rs = Store.allRecords;
             ftr.updateRecords(rs);
             for (var i = 0; i < 10; i++) {
                 assert.equal(ftr.extractVector(Store[i]).length, 1);
@@ -1673,7 +1673,7 @@ describe('Feature Space Tests', function () {
         })
         it('should update the feature space by adding the whole store: random', function () {
             var ftr = new qm.FeatureSpace(base, { type: "random", source: "FtrSpaceTest" });
-            var rs = Store.recs;
+            var rs = Store.allRecords;
             ftr.updateRecords(rs);
             for (var i = 0; i < 10; i++) {
                 assert.equal(ftr.extractVector(Store[i]).length, 1);
@@ -1682,7 +1682,7 @@ describe('Feature Space Tests', function () {
         })
         it('should update the feature space by adding the whole store: numeric', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
-            var rs = Store.recs;
+            var rs = Store.allRecords;
 
             ftr.updateRecords(rs);
             for (var i = 0; i < 11; i++) {
@@ -1691,7 +1691,7 @@ describe('Feature Space Tests', function () {
         })
         it('should update the feature space by adding the whole store: numeric, normalize', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" });
-            var rs = Store.recs;
+            var rs = Store.allRecords;
 
             ftr.updateRecords(rs);
             for (var i = 0; i < 11; i++) {
@@ -1700,7 +1700,7 @@ describe('Feature Space Tests', function () {
         })
         it('should update the feature spave by adding the whole store: numeric, normalize, min, max', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value", min: 1.5, max: 2.5 });
-            var rs = Store.recs;
+            var rs = Store.allRecords;
 
             ftr.updateRecords(rs);
             for (var i = 0; i < 6; i++) {
@@ -1712,7 +1712,7 @@ describe('Feature Space Tests', function () {
         })
         it('should update the feature space by adding the whole store: categorical', function () {
             var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] });
-            var rs = Store.recs;
+            var rs = Store.allRecords;
 
             ftr.updateRecords(rs);
             assert.equal(ftr.extractVector(Store[0]).length, 3);
@@ -1723,14 +1723,14 @@ describe('Feature Space Tests', function () {
         })
         it('should update the feature space by adding the whole store: categorical, hashDimension', function () {
             var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 4 });
-            var rs = Store.recs;
+            var rs = Store.allRecords;
 
             ftr.updateRecords(rs);
             assert.equal(ftr.extractVector(Store[0]).length, 4);
         })
         it('should update the feature space by adding the whole store: multinomial', function () {
             var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] });
-            var rs = Store.recs;
+            var rs = Store.allRecords;
 
             ftr.updateRecords(rs);
             assert.equal(ftr.extractVector(Store[0]).length, 6);
@@ -1747,7 +1747,7 @@ describe('Feature Space Tests', function () {
             var ftr = new qm.FeatureSpace(base,
                 { type: "multinomial", source: "FtrSpaceTest", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
             );
-            var rs = Store.recs;
+            var rs = Store.allRecords;
             ftr.updateRecords(rs);
 
             assert.eqtol(ftr.extractVector(Store[0]).at(0), (1 / Math.sqrt(2)));
@@ -1760,7 +1760,7 @@ describe('Feature Space Tests', function () {
             var ftr = new qm.FeatureSpace(base,
                 { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 }
                 );
-            var rs = Store.recs;
+            var rs = Store.allRecords;
             ftr.updateRecords(rs);
 
             assert.equal(ftr.extractVector(Store[0]).length, 4);
@@ -1773,7 +1773,7 @@ describe('Feature Space Tests', function () {
                 type: "jsfunc", source: "FtrSpaceTest", name: "TestFunc", dim: 1,
                 fun: function (rec) { return rec.Categories.length; }
             });
-            var rs = Store.recs;
+            var rs = Store.allRecords;
             ftr.updateRecords(rs);
             for (var i = 0; i < 11; i++) {
                 assert.equal(ftr.extractVector(Store[i]).length, 1);
@@ -1785,7 +1785,7 @@ describe('Feature Space Tests', function () {
                 { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" },
                 { type: "multinomial", source: "FtrSpaceTest", normalize: true, field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
             ]);
-            var rs = Store.recs;
+            var rs = Store.allRecords;
             ftr.updateRecords(rs);
 
             assert.eqtol(ftr.extractVector(Store[0]).at(0), 0);
@@ -1801,7 +1801,7 @@ describe('Feature Space Tests', function () {
     describe('extractSparseMatrix Tests', function () {
         it('should return a sparse matrix gained from the numeric feature extractor', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" });
-            var rs = Store.recs;
+            var rs = Store.allRecords;
             var mat = ftr.extractSparseMatrix(rs);
 
             //assert.equal(mat.rows, 1);
@@ -1815,7 +1815,7 @@ describe('Feature Space Tests', function () {
                 { type: "numeric", source: "FtrSpaceTest", field: "Value" },
                 { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] }
             ]);
-            var rs = Store.recs;
+            var rs = Store.allRecords;
             var mat = ftr.extractSparseMatrix(rs);
 
             //assert.equal(mat.rows, 4);
@@ -1836,7 +1836,7 @@ describe('Feature Space Tests', function () {
     describe('FtrColMat Tests', function () {
         it('should return a dense matrix gained from the numeric feature extractor', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: true, field: "Value" });
-            var rs = Store.recs;
+            var rs = Store.allRecords;
             var mat = ftr.extractMatrix(rs);
 
             assert.equal(mat.rows, 1);
@@ -1850,7 +1850,7 @@ describe('Feature Space Tests', function () {
                 { type: "numeric", source: "FtrSpaceTest", field: "Value" },
                 { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] }
             ]);
-            var rs = Store.recs;
+            var rs = Store.allRecords;
             var mat = ftr.extractMatrix(rs);
 
             assert.equal(mat.rows, 4);
