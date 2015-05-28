@@ -9,16 +9,16 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 
 **[Mailing list](https://groups.google.com/forum/#!forum/qminer)**
 
-QMiner is developed in collaboration between [AILab](http://ailab.ijs.si/) at 
-[Jozef Stefan Institute](http://www.ijs.si/) and [Quintelligence](http://quintelligence.com).
 
 ### Install 
 
 **Prerequisites:**
 
- - Python v2.7.3 is recommended. It was also tested on python 2.6. It doesn't work on python 3.
- - Node v0-12-0: [http://blog.nodejs.org/2015/02/06/node-v0-12-0-stable/]. On Windows install it using the msi file.
- - npm:  [https://www.npmjs.com/package/npm]. On Windows npm is installed with Node when using the msi file.
+ - Python v2.7.3 is recommended. It was also tested on python 2.6. Does not work on python 3.
+ - Node v0-12-0: [http://blog.nodejs.org/2015/02/06/node-v0-12-0-stable/].
+   - On Windows install it using the msi file.
+ - npm:  [https://www.npmjs.com/package/npm]. 
+   - On Windows npm is installed with Node when using the msi file.
  - Windows: Visual Studio 2013
 
 ---
@@ -68,4 +68,7 @@ For more detailed installation check the following instructions:
 
 ## Acknowledgments
 
-**Thanks to [Deleaker](http://deleaker.com) we find leaks in our project.**
+[QMiner](http://qminer.ijs.si/) is developed by [AILab](http://ailab.ijs.si/) at 
+[Jozef Stefan Institute](http://www.ijs.si/), [Quintelligence](http://quintelligence.com) and other contributors.
+
+Thanks to [Deleaker](http://deleaker.com) for supporting open-source projects.
