@@ -166,6 +166,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\glib\base\gix.h" />
     <ClInclude Include="pgblob.h" />
+    <ClInclude Include="qminer_pbs.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GTest\GTest.vcxproj">
