@@ -490,14 +490,7 @@ public:
 			result += x[i] * y[i];
 		return result;
 	}
-	// <X[ColId], Vec>
-	//  template <class Type, class Size = int, bool ColMajor = false>
-	//	static Type DotProduct(const TVec<TVec<TNum<Type>, Size>, Size>& X,
-	//          int ColId, const TVec<TNum<Type>, Size>& Vec) {
-	//
-	//		EAssert(0 <= ColId && ColId < X.Len());
-	//		return DotProduct(X[ColId], y);
-	//	}
+
 	static double DotProduct(const TVec<TFltV>& X, int ColId, const TFltV& y) {
 		EAssert(0 <= ColId && ColId < X.Len());
 		return DotProduct(X[ColId], y);
