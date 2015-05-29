@@ -7,8 +7,9 @@
  */
 #include "bd.h"
 #include "base.h"
+#ifdef LAPACKE
 #include "MKLfunctions.h"
-
+#endif
 
 #ifdef EIGEN
 #include <Eigen/Dense>
