@@ -291,6 +291,19 @@ public:
 	bool GetNextLnBf(TChA& LnChA);
 };
 
+/////////////////////////////////////////////////
+// Simple read-only buffer
+//class TBufferRO {
+//private:
+//	const byte* Bf;
+//	const int BfL;
+//public:
+//	TBufferRO(const TMem& mem) : Bf(mem.GetBf()), BfL(BfL) {}
+//	TBufferRO(const byte* _Bf, const int& _BfL) : Bf(_Bf), BfL(BfL) {}
+//	int Len() const { return BfL; }
+//	byte* GetBf() const { return Bf; }
+//};
+
 //////////////////////////////////////////////////////////////////////////////
 /// Serialization and de-serialization of records to TMem.
 /// This class handles smart serialization of JSON with respect to field 
@@ -354,22 +367,38 @@ private:
 
 	/// Dump report used on failed asserts
 	TStr GetErrorMsg(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
-	
+	/// Dump report used on failed asserts
+	TStr GetErrorMsg(const char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc) const;
+
 	/// returns field serialization description
 	const TFieldSerialDesc& GetFieldSerialDesc(const int& FieldId) const;
 	/// finds location inside the buffer for fixed-width fields
-	uchar* GetLocationFixed(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
+	byte* GetLocationFixed(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
 	/// finds location inside the buffer for variable-width fields
 	int GetOffsetVar(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
 	/// finds location inside the buffer for variable-width fields
-	uchar* GetLocationVar(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
+	byte* GetLocationVar(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
 	/// calculates length of buffer where given var-length field is stored
 	int GetVarPartBfLen(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc);
+
+	/// finds location inside the buffer for fixed-width fields
+	byte* GetLocationFixed(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc) const;
+	/// finds location inside the buffer for variable-width fields
+	int GetOffsetVar(const char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc) const;
+	/// finds location inside the buffer for variable-width fields
+	byte* GetLocationVar(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc) const;
+	/// calculates length of buffer where given var-length field is stored
+	int GetVarPartBfLen(const char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc);
+
 	
 	/// set content offset for specified variable field
 	void SetLocationVar(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int& VarOffset) const;
 	/// sets or un-sets NULL flag for specified field
 	void SetFieldNull(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const bool& NullP) const;
+	/// set content offset for specified variable field
+	void SetLocationVar(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const int& VarOffset) const;
+	/// sets or un-sets NULL flag for specified field
+	void SetFieldNull(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const bool& NullP) const;
 	
 	/// Fixed-length field setter
 	void SetFieldInt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int& Int);
@@ -389,6 +418,26 @@ private:
 	void SetFieldTmMSecs(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs);
 	/// Parse fixed-length type field JSon value and serialize it accordingly to it's type
 	void SetFixedJsonVal(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, 
+		const TFieldDesc& FieldDesc, const PJsonVal& JsonVal);
+
+	/// Fixed-length field setter
+	void SetFieldInt(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const int& Int);
+	/// Fixed-length field setter
+	void SetFieldUInt64(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64);
+	/// Fixed-length field setter
+	void SetFieldStr(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const TStr& Str);
+	/// Fixed-length field setter
+	void SetFieldBool(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const bool& Bool);
+	/// Fixed-length field setter
+	void SetFieldFlt(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const double& Flt);
+	/// Fixed-length field setter
+	void SetFieldFltPr(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr);
+	/// Fixed-length field setter
+	void SetFieldTm(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm);
+	/// Fixed-length field setter
+	void SetFieldTmMSecs(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs);
+	/// Parse fixed-length type field JSon value and serialize it accordingly to it's type
+	void SetFixedJsonVal(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc,
 		const TFieldDesc& FieldDesc, const PJsonVal& JsonVal);
 
 	/// Variable-length field setter
@@ -435,6 +484,35 @@ public:
 	bool IsFieldId(const int& FieldId) const { return FieldIdToSerialDescIdH.IsKey(FieldId); }
 	
 	/// Field getter
+	bool IsFieldNull(const byte* RecMem, const int& FieldId) const;
+	/// Field getter
+	int GetFieldInt(const byte* RecMem, const int& FieldId) const;
+	/// Field getter
+	void GetFieldIntV(const byte* RecMem, const int& FieldId, TIntV& IntV) const;
+	/// Field getter
+	uint64 GetFieldUInt64(const byte* RecMem, const int& FieldId) const;
+	/// Field getter
+	TStr GetFieldStr(const byte* RecMem, const int& FieldId) const;
+	/// Field getter
+	void GetFieldStrV(const byte* RecMem, const int& FieldId, TStrV& StrV) const;
+	/// Field getter
+	bool GetFieldBool(const byte* RecMem, const int& FieldId) const;
+	/// Field getter
+	double GetFieldFlt(const byte* RecMem, const int& FieldId) const;
+	/// Field getter
+	TFltPr GetFieldFltPr(const byte* RecMem, const int& FieldId) const;
+	/// Field getter
+	void GetFieldFltV(const byte* RecMem, const int& FieldId, TFltV& FltV) const;
+	/// Field getter
+	void GetFieldTm(const byte* RecMem, const int& FieldId, TTm& Tm) const;
+	/// Field getter
+	uint64 GetFieldTmMSecs(const byte* RecMem, const int& FieldId) const;
+	/// Field getter
+	void GetFieldNumSpV(const byte* RecMem, const int& FieldId, TIntFltKdV& SpV) const;
+	/// Field getter
+	void GetFieldBowSpV(const byte* RecMem, const int& FieldId, PBowSpV& SpV) const;
+
+	/// Field getter
 	bool IsFieldNull(const TMem& RecMem, const int& FieldId) const;
 	/// Field getter
 	int GetFieldInt(const TMem& RecMem, const int& FieldId) const;
@@ -461,8 +539,8 @@ public:
 	/// Field getter
 	void GetFieldNumSpV(const TMem& RecMem, const int& FieldId, TIntFltKdV& SpV) const;
 	/// Field getter
-	void GetFieldBowSpV(const TMem& RecMem, const int& FieldId, PBowSpV& SpV) const;    
-
+	void GetFieldBowSpV(const TMem& RecMem, const int& FieldId, PBowSpV& SpV) const;   
+	
 	/// Field setter
 	void SetFieldNull(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId);
 	/// Field setter

@@ -25,7 +25,8 @@ namespace TQm {
 	class TStorePbBlob : public TStore {
 	private:
 
-		/// For temporarily storing inverse joins which need to be indexed after adding records
+		/// For temporarily storing inverse joins which need to be 
+		/// indexed after adding records
 		struct TFieldJoinDat {
 			TWPt<TStore> JoinStore;
 			TInt InverseJoinId;
@@ -56,8 +57,18 @@ namespace TQm {
 		/// Hash map from TTm primary field to record ID
 		THash<TUInt64, TUInt64> PrimaryTmMSecsIdH;
 
+
+		/// Flag if we are using cache store
+		TBool DataBlobP;
 		/// Store for records
-		PPgBlob Data;
+		PPgBlob DataBlob;
+		/// Hash map from record ID to BLOB pointer
+		THash<TUInt64, TPgBlobPt> RecIdBlobPtH;
+		/// Flag if we are using in-memory store
+		TBool DataMemP;
+		/// Store for parts of records that should be in-memory
+		TInMemStorage DataMem;
+
 		/// Counter for record IDs
 		TUInt64 RecIdCounter;
 
@@ -67,23 +78,22 @@ namespace TQm {
 		TRecSerializator SerializatorMem;
 		/// Map from fields to storage location
 		TVec<TStoreLoc> FieldLocV;
-
+		
 		// record indexer
 		TRecIndexer RecIndexer;
-
 		/// Time window settings
 		TStoreWndDesc WndDesc;
 
 		/// initialize field storage location map
 		void InitFieldLocV();
-		/// Get TMem serialization of record from specified storage
-		void GetRecMem(const TStoreLoc& RecLoc, const uint64& RecId, TMem& Rec) const;
-		/// Get TMem serialization of record from specified where field is stored
-		void GetRecMem(const uint64& RecId, const int& FieldId, TMem& Rec) const;
-		/// Set TMem serialization of record to a specified storage
-		void PutRecMem(const TStoreLoc& RecLoc, const uint64& RecId, const TMem& Rec);
-		/// Set TMem serialization of record to storage where field is stored
-		void PutRecMem(const uint64& RecId, const int& FieldId, const TMem& Rec);
+		///// Get TMem serialization of record from specified storage
+		//void GetRecMem(const TStoreLoc& RecLoc, const uint64& RecId, TMem& Rec) const;
+		///// Get TMem serialization of record from specified where field is stored
+		//void GetRecMem(const uint64& RecId, const int& FieldId, TMem& Rec) const;
+		///// Set TMem serialization of record to a specified storage
+		//void PutRecMem(const TStoreLoc& RecLoc, const uint64& RecId, const TMem& Rec);
+		///// Set TMem serialization of record to storage where field is stored
+		//void PutRecMem(const uint64& RecId, const int& FieldId, const TMem& Rec);
 		
 
 		/// Get serializator for given location
