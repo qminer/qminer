@@ -2423,10 +2423,10 @@
 	*    }]
 	* });
 	* // add some records to the store
-	* base.store("Class").push({ "Name": "Dean", "StudyGroup": "A" });
-	* base.store("Class").push({ "Name": "Chang", "StudyGroup": "D" });
-	* base.store("Class").push({ "Name": "Magnitude", "StudyGroup": "C" });
-	* base.store("Class").push({ "Name": "Leonard", "StudyGroup": "B" });
+	* base.store("Class").push({ "Name": "Jeff", "StudyGroup": "A" });
+	* base.store("Class").push({ "Name": "Britta", "StudyGroup": "D" });
+	* base.store("Class").push({ "Name": "Abed", "StudyGroup": "C" });
+	* base.store("Class").push({ "Name": "Annie", "StudyGroup": "B" });
 	* // create a new feature space
 	* var ftr = new qm.FeatureSpace(base, [
 	*    { type: "text", source: "Class", field: "Name", normalize: false },
