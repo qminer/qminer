@@ -15,7 +15,6 @@ class TSStemmer{
 			TBool supported;
 		    TStr Name;
 	public:
-		//~TSStemmer(){sb_stemmer_delete(stemmer);}
 		TSStemmer& operator=(const TSStemmer& Stemmer){
 			this->stemmer = Stemmer.stemmer;
 			this->Name    = Stemmer.Name;
@@ -37,7 +36,6 @@ private:
 	TBool supported;
 	TStr Name;
 public:
-	//~TSStemmer(){sb_stemmer_delete(stemmer);}
 	TSStemmer& operator=(const TSStemmer& Stemmer){
 		this->stemmer = Stemmer.stemmer;
 		this->Name    = Stemmer.Name;

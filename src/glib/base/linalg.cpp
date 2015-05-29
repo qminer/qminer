@@ -7,6 +7,7 @@
  */
 #include "bd.h"
 #include "base.h"
+#include "MKLfunctions.h"
 
 
 #ifdef EIGEN

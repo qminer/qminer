@@ -707,7 +707,6 @@ public:
 	// TEST
 	//y = k * x + y 
 	template <class Type, class Size = int, bool ColMajor = false>
-	//	static void AddVec(const double& k, const TVec<TNum<Type>, Size>& x, TVec<TNum<Type>, Size>& y) {
 	static void AddVec(const Type& k, const TVec<TNum<Type>, Size>& x, TVec<TNum<Type>, Size>& y) {
 		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
@@ -1522,14 +1521,11 @@ public:
 	}
 
 	// y := A * x
+	template <class Type, class Size = int, bool ColMajor = false>
+	static void Multiply(const TVVec<Type, Size, ColMajor>& A, const TVec<Type, Size>& x, TVec<Type, Size>& y) {
 #ifdef BLAS
-	template <class Type, class Size = int, bool ColMajor = false>
-	static void Multiply(const TVVec<Type, Size, ColMajor>& A, const TVec<Type, Size>& x, TVec<Type, Size>& y) {
 		TLinAlg::Multiply(A, x, y, TLinAlgBlasTranspose::NOTRANS, 1.0, 0.0);
-	}
 #else
-	template <class Type, class Size = int, bool ColMajor = false>
-	static void Multiply(const TVVec<Type, Size, ColMajor>& A, const TVec<Type, Size>& x, TVec<Type, Size>& y) {
 		if (y.Empty()) y.Gen(A.GetRows());
 		EAssert(A.GetCols() == x.Len() && A.GetRows() == y.Len());
 		int n = A.GetRows(), m = A.GetCols();
@@ -1538,8 +1534,8 @@ public:
 			for (int j = 0; j < m; j++)
 				y[i] += A(i, j) * x[j];
 		}
-	}
 #endif
+	}
 
 	// TEST
 	// C(:, ColId) := A * x
@@ -1803,73 +1799,6 @@ public:
 			//op(A) is an m-by-k matrix,
 			//op(B) is a k-by-n matrix,
 			//C is an m-by-n matrix.
-			//		int m, k, n;
-			//		//if (BlasTransposeFlagA == TLinAlgBlasTranspose::TRANS){
-			//		//	m = A.GetCols(), k = A.GetRows();
-			//		//}
-			//		//else{
-			//		//	m = A.GetRows(), k = A.GetCols();
-			//		//}
-			//		//if (BlasTransposeFlagB == TLinAlgBlasTranspose::TRANS){
-			//		//	EAssert(k == B.GetCols());
-			//		//	n = B.GetRows();
-			//		//}
-			//		//else{
-			//		//	EAssert(k == B.GetRows());
-			//		//	n = B.GetCols();
-			//		//}
-			//		
-			//		m = A.GetRows(), k = A.GetCols();
-			//			
-			//		EAssert(k = B.GetRows());
-			//		n = B.GetCols();
-			//
-			//		EAssert(m == C.GetRows() && n == C.GetCols());
-			//		//Simplified interface
-			//		double alpha = 1.0; double beta = 0.0;
-			//
-			//		int lda, ldb, ldc;
-			//		/*if (BlasTransposeFlagA == TLinAlgBlasTranspose::TRANS) {
-			//			lda = ColMajor ? k : m;
-			//		}
-			//		else {
-			//			lda = ColMajor ? m : k;
-			//		}
-			//		if (BlasTransposeFlagB == TLinAlgBlasTranspose::TRANS) {
-			//			ldb = ColMajor ? n : k;
-			//		}
-			//		else {
-			//			ldb = ColMajor ? k : n;
-			//		}*/
-			//		lda = ColMajor ? m : k;
-			//		ldb = ColMajor ? k : n;
-			//		ldc = ColMajor ? m : n;
-			////
-			////#ifdef CBLAS //Standard CBLAS interface
-			////		CBLAS_TRANSPOSE BlasTransA = CblasNoTrans, BlasTransB = CblasNoTrans;
-			////		CBLAS_ORDER Matrix_Layout = ColMajor ? CblasColMajor : CblasRowMajor;
-			////		if (ColMajor == true) {
-			////			if (BlasTransposeFlagA){ BlasTransA = CblasTrans; }
-			////			if (!BlasTransposeFlagA){ lda = k; }
-			////			if (BlasTransposeFlagB){ BlasTransB = CblasTrans; }
-			////			if (!BlasTransposeFlagB){ ldb = n; }
-			////		}
-			////		else {
-			////			if (BlasTransposeFlagA){ BlasTransA = CblasTrans; lda = k; }
-			////			if (BlasTransposeFlagB){ BlasTransB = CblasTrans; ldb = n; }
-			////		}
-			//	
-			//		//EAssert(k == B.GetRows() && m == C.GetRows() && n == C.GetCols());
-			//		////Simplified interface
-			//		//double alpha = 1.0; double beta = 0.0;
-			//
-			//		//int lda, ldb, ldc;
-			//		//if (BlasTransposeFlagA == TLinAlgBlasTranspose::TRANS) { lda = ColMajor ? k : m; }
-			//		//else { lda = ColMajor ? m : k; }
-			//
-			//		//if (BlasTransposeFlagB == TLinAlgBlasTranspose::TRANS) { lda = ColMajor ? n : k; }
-			//		//else { lda = ColMajor ? k : n; }
-
 			Size m, n, k, lda, ldb, ldc;
 			if (BlasTransposeFlagA == TLinAlg::TLinAlgBlasTranspose::TRANS) {
 				m = A.GetCols();
@@ -1997,18 +1926,14 @@ public:
 #endif
 	}
 #endif
-
-#ifdef BLAS
 	// TEST
 	// C = A * B
 	template <class Type, class Size = int, bool ColMajor = false>
 	static void Multiply(const TVVec<Type, Size, ColMajor>& A, const TVVec<Type, Size, ColMajor>& B, TVVec<Type, Size, ColMajor>& C) {
 		EAssert(A.GetRows() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetCols() == B.GetRows());
+#ifdef BLAS
 		TLinAlg::Multiply(A, B, C, TLinAlgBlasTranspose::NOTRANS, TLinAlgBlasTranspose::NOTRANS);
-	}
 #else
-	template <class Type, class Size = int, bool ColMajor = false>
-	static void Multiply(const TVVec<Type, Size, ColMajor>& A, const TVVec<Type, Size, ColMajor>& B, TVVec<Type, Size, ColMajor>& C) {
 		EAssert(A.GetRows() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetCols() == B.GetRows());
 		Size n = C.GetRows(), m = C.GetCols(), l = A.GetCols();
 		for (Size i = 0; i < n; i++) {
@@ -2019,33 +1944,19 @@ public:
 				C(i, j) = sum;
 			}
 		}
-	}
 #endif
 
-#ifdef BLAS
+	}
+
+
 	// TEST
 	// C = A' * B
 	template <class Type, class Size = int, bool ColMajor = false>
 	static void MultiplyT(const TVVec<Type, Size, ColMajor>& A, const TVVec<Type, Size, ColMajor>& B, TVVec<Type, Size, ColMajor>& C) {
-		TLinAlg::Multiply(A, B, C, TLinAlgBlasTranspose::TRANS, TLinAlgBlasTranspose::NOTRANS);
-		//    EAssert(A.GetCols() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetRows() == B.GetRows());
-		////C := alpha*op(A)*op(B) + beta*C,
-		////where:
-		////op(X) is one of op(X) = X, or op(X) = XT, or op(X) = XH,
-		////alpha and beta are scalars,
-		////A, B and C are matrices:
-		////op(A) is an m-by-k matrix,
-		////op(B) is a k-by-n matrix,
-		////C is an m-by-n matrix.
-		//	int m = A.GetCols(), k = A.GetRows();
-		//	int n = B.GetCols(); 
-		//	double alpha = 1.0; double beta = 0.0;
-		//	cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans, m, n, k, alpha, &A(0,0).Val, k, &B(0,0).Val, n, beta, &C(0,0).Val, n);
-	}
-#else
-	template <class Type, class Size = int, bool ColMajor = false>
-	static void MultiplyT(const TVVec<Type, Size, ColMajor>& A, const TVVec<Type, Size, ColMajor>& B, TVVec<Type, Size, ColMajor>& C) {
 		EAssert(A.GetCols() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetRows() == B.GetRows());
+#ifdef BLAS
+		TLinAlg::Multiply(A, B, C, TLinAlgBlasTranspose::TRANS, TLinAlgBlasTranspose::NOTRANS);
+#else
 		Size n = C.GetRows(), m = C.GetCols(), l = A.GetRows(); double sum;
 		for (Size i = 0; i < n; i++) {
 			for (Size j = 0; j < m; j++) {
@@ -2055,36 +1966,15 @@ public:
 				C(i, j) = sum;
 			}
 		}
-	}
 #endif
+	}
+
 
 	//////////////////
 	//  DENSE-SPARSE, SPARSE-DENSE
 
 	// TEST
 	// C := A * B
-#ifndef INTELS
-	template <class IndexType = TInt, class Type, class Size = int, bool ColMajor = false>
-	static void Multiply(const TVVec<Type, Size, ColMajor>& A, const TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& B,
-		TVVec<Type, Size, ColMajor>& C) {
-		// B well defined
-		EAssert(B.Val1.Len() == B.Val2.Len() && B.Val2.Len() == B.Val3.Len());
-		// Dimensions must match
-		C.PutAll(0.0);
-		if (B.Val1.Len() == 0) {
-			return;
-		}
-		Size Nonzeros = B.Val1.Len();
-		IndexType MaxRowN = B.Val1[B.Val1.GetMxValN()];
-		IndexType MaxColN = B.Val2[B.Val2.GetMxValN()];
-		EAssert(A.GetRows() == C.GetRows() && (MaxColN + 1) <= C.GetCols() && (MaxRowN + 1) <= A.GetCols());
-		for (Size RowN = 0; RowN < A.GetRows(); RowN++) {
-			for (Size ElN = 0; ElN < Nonzeros; ElN++) {
-				C.At(RowN, B.Val2[ElN]) += A.At(RowN, B.Val1[ElN]) * B.Val3[ElN];
-			}
-		}
-	}
-#else
 	template <class IndexType = TInt, class Type, class Size = int, bool ColMajor = false>
 	static void Multiply(const TVVec<Type, Size, ColMajor>& A, const TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& B,
 		TVVec<Type, Size, ColMajor>& C){
@@ -2095,9 +1985,20 @@ public:
 		if (B.Val1.Len() == 0) {
 			return;
 		}
+#ifdef INTELS
 		TLinAlg::MultiplyFS(const_cast<TVVec<Type, Size, ColMajor> &>(A), B, C);
-	}
+#else
+		Size Nonzeros = B.Val1.Len();
+		IndexType MaxRowN = B.Val1[B.Val1.GetMxValN()];
+		IndexType MaxColN = B.Val2[B.Val2.GetMxValN()];
+		EAssert(A.GetRows() == C.GetRows() && (MaxColN + 1) <= C.GetCols() && (MaxRowN + 1) <= A.GetCols());
+		for (Size RowN = 0; RowN < A.GetRows(); RowN++) {
+			for (Size ElN = 0; ElN < Nonzeros; ElN++) {
+				C.At(RowN, B.Val2[ElN]) += A.At(RowN, B.Val1[ElN]) * B.Val3[ElN];
+			}
+		}
 #endif
+	}
 
 	// TEST
 	// C:= A' * B
@@ -2124,7 +2025,7 @@ public:
 	// TEST
 	// C := A * B
 
-#if !defined(INTEL) || defined(INDEX_64)
+//#if !defined(INTEL) || defined(INDEX_64)
 	template <class Type, class Size = int, bool ColMajor = false>
 	static void Multiply(const TTriple<TVec<TNum<Size>, Size>, TVec<TNum<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, ColMajor>& B,
 		TVVec<Type, Size, ColMajor>& C) {
@@ -2135,6 +2036,7 @@ public:
 		if (A.Val1.Len() == 0) {
 			return;
 		}
+#if !defined(INTEL) || defined(INDEX_64)
 		Size Nonzeros = A.Val1.Len();
 		Size MaxRowN = A.Val1[A.Val1.GetMxValN()];
 		Size MaxColN = A.Val2[A.Val2.GetMxValN()];
@@ -2144,6 +2046,9 @@ public:
 				C.At(A.Val1[ElN], ColN) += A.Val3[ElN] * B.At(A.Val2[ElN], ColN);
 			}
 		}
+#else
+		TLinAlg::MultiplySF(A, B, C);
+#endif
 	}
 	// TEST
 	// C:= A' * B
@@ -2157,6 +2062,7 @@ public:
 		if (A.Val1.Len() == 0) {
 			return;
 		}
+#if !defined(INTEL) || defined(INDEX_64)
 		Size Nonzeros = A.Val1.Len();
 		Size MaxRowN = A.Val1[A.Val1.GetMxValN()];
 		Size MaxColN = A.Val2[A.Val2.GetMxValN()];
@@ -2166,34 +2072,11 @@ public:
 				C.At(A.Val2[ElN], ColN) += A.Val3[ElN] * B.At(A.Val1[ElN], ColN);
 			}
 		}
-	}
 #else
-	// TEST
-	//If B and C are not of the proper size all will end very badly
-	template <class Type, class Size = int, bool ColMajor = false>
-	static void Multiply(const TTriple<TVec<TNum<Size>, Size>, TVec<TNum<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, ColMajor>& B,
-		TVVec<Type, Size, ColMajor>& C) {
-		// A well defined
-		EAssert(A.Val1.Len() == A.Val2.Len() && A.Val2.Len() == A.Val3.Len());
-		// Dimensions must match
-		if (A.Val1.Len() == 0) {
-			return;
-		}
-		TLinAlg::MultiplySF(A, B, C);
+		TLinAlg::MultiplySF(A, B, C, "T");
+#endif
 	}
 
-	// TEST
-	template <class Type, class Size = int, bool ColMajor = false>
-	static void MultiplyT(const TTriple<TVec<TNum<Size>, Size>, TVec<TNum<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, ColMajor>& B,
-		TVVec<Type, Size, ColMajor>& C) {
-		// B well defined
-		EAssert(A.Val1.Len() == A.Val2.Len() && A.Val2.Len() == A.Val3.Len());
-		if (A.Val1.Len() == 0) {
-			return;
-		}
-		TLinAlg::MultiplySF(A, B, C, "T");
-	}
-#endif
 	// DENSE-SPARSECOLMAT, SPARSECOLMAT-DENSE
 	// C := A * B
 
@@ -2224,8 +2107,22 @@ public:
 	}
 
 	// C:= A' * B
-#ifndef INTEL
+	template <class IndexType = TInt, class Type, class Size = int, bool ColMajor = false>
 	static void MultiplyT(const TFltVV& A, const TVec<TIntFltKdV>& B, TFltVV& C) {
+		// C = A' B = (B' A)'
+#ifdef INTEL
+		TTriple<TVec<IndexType, Size>, TVec<TInt, Size>, TVec<Type, Size>> BB;
+		TLinAlg::Convert(B, BB); // convert the matrix to a coordinate form
+		TVVec<Type, Size, ColMajor> CC(B.Len(), A.GetCols());
+		TLinAlg::MultiplyT(BB, A, CC);
+		if (C.Empty()) {
+			C.Gen(A.GetCols(), B.Len());
+		}
+		else {
+			EAssert(C.GetRows() == A.GetCols() && C.GetCols() == B.Len());
+		}
+		TLinAlg::Transpose(CC, C);
+#else
 		// B = sparse column matrix
 		if (C.Empty()) {
 			C.Gen(A.GetCols(), B.Len());
@@ -2245,24 +2142,8 @@ public:
 				}
 			}
 		}
-	}
-#else
-	template <class IndexType = TInt, class Type, class Size = int, bool ColMajor = false>
-	static void MultiplyT(const TFltVV& A, const TVec<TIntFltKdV>& B, TFltVV& C) {
-		// C = A' B = (B' A)'
-		TTriple<TVec<IndexType, Size>, TVec<TInt, Size>, TVec<Type, Size>> BB;
-		TLinAlg::Convert(B, BB); // convert the matrix to a coordinate form
-		TVVec<Type, Size, ColMajor> CC(B.Len(), A.GetCols());
-		TLinAlg::MultiplyT(BB, A, CC);
-		if (C.Empty()) {
-			C.Gen(A.GetCols(), B.Len());
-		}
-		else {
-			EAssert(C.GetRows() == A.GetCols() && C.GetCols() == B.Len());
-		}
-		TLinAlg::Transpose(CC, C);
-	}
 #endif
+	}
 
 
 	// C := A * B

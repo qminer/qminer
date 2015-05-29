@@ -1,6 +1,12 @@
 #ifndef MKLFUNCTIONS_H
 #define MKLFUNCTIONS_H
 
+#ifdef INDEX_64
+typedef int64 index;
+#else
+typedef int index;
+#endif
+
 
 
 #ifdef INTEL
