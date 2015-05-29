@@ -1541,6 +1541,7 @@ private:
 	* Gets the record with the given ID. //TODO
 	* @param {number} recId - The id of the record.
 	* @returns {module:qm.Record} The record with the ID equal to recId.
+	* @ignore
 	*/
 	//# exports.Store.prototype.store = function (recId) {};
 	JsDeclIndexedProperty(indexId);	
