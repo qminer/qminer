@@ -626,7 +626,7 @@ void TRecSerializator::TFieldSerialDesc::Load(TSIn& SIn) {
 TThinMIn::TThinMIn(const TMem& Mem):
 		TSBase("Thin input memory"), TSIn("Thin input memory"), Bf(NULL), BfC(0), BfL(0) {
 
-	Bf = (uchar*)Mem.GetBf();
+	Bf = (byte*)Mem.GetBf();
 	BfL = Mem.Len();
 }
 
@@ -634,7 +634,7 @@ TThinMIn::TThinMIn(const void* _Bf, const int& _BfL):
 		TSBase("Thin input memory"), TSIn("Thin input memory"),
 		Bf(NULL), BfC(0), BfL(_BfL) {
 
-	Bf = (uchar*)_Bf;
+	Bf = (byte*)_Bf;
 }
 
 char TThinMIn::GetCh() {
@@ -667,6 +667,7 @@ bool TThinMIn::GetNextLnBf(TChA& LnChA) {
 
 ///////////////////////////////
 // Serialization and de-serialization of records to TMem
+
 TStr TRecSerializator::GetErrorMsg(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const {
 	return TStr::Fmt("FPO:%d VIPO:%d VCPO:%d|L:%d|FID:%d NMP:%d NMM:%d FP:%s O:%d",
 		FixedPartOffset.Val, VarIndexPartOffset.Val, VarContentPartOffset.Val,
@@ -674,67 +675,134 @@ TStr TRecSerializator::GetErrorMsg(const TMem& RecMem, const TFieldSerialDesc& F
 		(int)FieldSerialDesc.NullMapMask.Val, FieldSerialDesc.FixedPartP ? "T" : "F",
 		FieldSerialDesc.Offset);
 }
-
+TStr TRecSerializator::GetErrorMsg(const char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc) const {
+	return TStr::Fmt("FPO:%d VIPO:%d VCPO:%d|L:%d|FID:%d NMP:%d NMM:%d FP:%s O:%d",
+		FixedPartOffset.Val, VarIndexPartOffset.Val, VarContentPartOffset.Val,
+		BfL, FieldSerialDesc.FieldId.Val, (int)FieldSerialDesc.NullMapByte.Val,
+		(int)FieldSerialDesc.NullMapMask.Val, FieldSerialDesc.FixedPartP ? "T" : "F",
+		FieldSerialDesc.Offset);
+}
 const TRecSerializator::TFieldSerialDesc& TRecSerializator::GetFieldSerialDesc(const int& FieldId) const {
 	QmAssertR(FieldIdToSerialDescIdH.IsKey(FieldId),
 		"Field with ID not found: " + TInt::GetStr(FieldId));
 	return FieldSerialDescV[FieldIdToSerialDescIdH.GetDat(FieldId)];
 }
 
-uchar* TRecSerializator::GetLocationFixed(const TMem& RecMem,
-		const TFieldSerialDesc& FieldSerialDesc) const {
+//////////////////////
 
-	uchar* bf = (uchar*)RecMem.GetBf() + FixedPartOffset + FieldSerialDesc.Offset;
-	AssertR(bf < ((uchar*)RecMem.GetBf() + RecMem.Len()), GetErrorMsg(RecMem, FieldSerialDesc));
-	return bf;
+byte* TRecSerializator::GetLocationFixed(const TMem& RecMem,
+		const TFieldSerialDesc& FieldSerialDesc) const {
+	return GetLocationFixed(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc);
+	//byte* bf = (byte*)RecMem.GetBf() + FixedPartOffset + FieldSerialDesc.Offset;
+	//AssertR(bf < ((byte*)RecMem.GetBf() + RecMem.Len()), GetErrorMsg(RecMem, FieldSerialDesc));
+	//return bf;
 }
 
 int TRecSerializator::GetOffsetVar(const TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc) const {
-
-	uchar* bf = (uchar*)RecMem.GetBf();
-	int Offset = *((int*)(bf + VarIndexPartOffset + FieldSerialDesc.Offset));
-	AssertR(VarContentPartOffset + Offset < RecMem.Len(), GetErrorMsg(RecMem, FieldSerialDesc));
-	return VarContentPartOffset + Offset;
+	return GetOffsetVar(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc);
+	//byte* bf = (byte*)RecMem.GetBf();
+	//int Offset = *((int*)(bf + VarIndexPartOffset + FieldSerialDesc.Offset));
+	//AssertR(VarContentPartOffset + Offset < RecMem.Len(), GetErrorMsg(RecMem, FieldSerialDesc));
+	//return VarContentPartOffset + Offset;
 }
 
-uchar* TRecSerializator::GetLocationVar(const TMem& RecMem,
+byte* TRecSerializator::GetLocationVar(const TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc) const {
-
-	uchar* bf = (uchar*)RecMem.GetBf();
-	int Offset = *((int*)(bf + VarIndexPartOffset + FieldSerialDesc.Offset));
-	uchar* bf2 = (bf + VarContentPartOffset) + Offset;
-	AssertR(bf2 < ((uchar*)RecMem.GetBf() + RecMem.Len()), GetErrorMsg(RecMem, FieldSerialDesc));
-	return bf2;
+	return GetLocationVar(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc);
+	//byte* bf = (byte*)RecMem.GetBf();
+	//int Offset = *((int*)(bf + VarIndexPartOffset + FieldSerialDesc.Offset));
+	//byte* bf2 = (bf + VarContentPartOffset) + Offset;
+	//AssertR(bf2 < ((byte*)RecMem.GetBf() + RecMem.Len()), GetErrorMsg(RecMem, FieldSerialDesc));
+	//return bf2;
 }
 
 int TRecSerializator::GetVarPartBfLen(const TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc) {
+	return GetVarPartBfLen(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc);
+	//byte* bf = (byte*)RecMem.GetBf();
+	//int Offset1 = *((int*)(bf + VarIndexPartOffset + FieldSerialDesc.Offset));
+	//int Offset2 = -1;
+	//if (VarIndexPartOffset + FieldSerialDesc.Offset + (int)sizeof(int) < VarContentPartOffset) {
+	//	Offset2 = *((int*)(bf + VarIndexPartOffset + FieldSerialDesc.Offset + sizeof(int)));
+	//} else {
+	//	Offset2 = RecMem.Len() - VarContentPartOffset;
+	//}
+	//AssertR(Offset2 - Offset1 >= 0, GetErrorMsg(RecMem, FieldSerialDesc));
+	//return Offset2 - Offset1;
+}
 
-	uchar* bf = (uchar*)RecMem.GetBf();
-	int Offset1 = *((int*)(bf + VarIndexPartOffset + FieldSerialDesc.Offset));
+//////////////////////////
+
+byte* TRecSerializator::GetLocationFixed(char* Bf, const int& BfL,
+	const TFieldSerialDesc& FieldSerialDesc) const {
+
+	byte* bf = (byte*)(Bf + FixedPartOffset + FieldSerialDesc.Offset);
+	AssertR(bf < (byte*)(Bf + BfL), GetErrorMsg(Bf, BfL, FieldSerialDesc));
+	return bf;
+}
+
+int TRecSerializator::GetOffsetVar(const char* Bf, const int& BfL,
+	const TFieldSerialDesc& FieldSerialDesc) const {
+
+	int Offset = *((int*)(Bf + VarIndexPartOffset + FieldSerialDesc.Offset));
+	AssertR(VarContentPartOffset + Offset < BfL, GetErrorMsg(Bf, BfL, FieldSerialDesc));
+	return VarContentPartOffset + Offset;
+}
+
+byte* TRecSerializator::GetLocationVar(char* Bf, const int& BfL,
+	const TFieldSerialDesc& FieldSerialDesc) const {
+
+	int Offset = *((int*)(Bf + VarIndexPartOffset + FieldSerialDesc.Offset));
+	byte* bf2 = (byte*)(Bf + VarContentPartOffset) + Offset;
+	AssertR(bf2 < (byte*)(Bf + BfL), GetErrorMsg(Bf, BfL, FieldSerialDesc));
+	return bf2;
+}
+
+int TRecSerializator::GetVarPartBfLen(const char* Bf, const int& BfL,
+	const TFieldSerialDesc& FieldSerialDesc) {
+	const char* bf = (Bf + VarIndexPartOffset.Val + FieldSerialDesc.Offset);
+	int Offset1 = *((int*)bf);
 	int Offset2 = -1;
 	if (VarIndexPartOffset + FieldSerialDesc.Offset + (int)sizeof(int) < VarContentPartOffset) {
-		Offset2 = *((int*)(bf + VarIndexPartOffset + FieldSerialDesc.Offset + sizeof(int)));
+		Offset2 = *((int*)(bf + sizeof(int)));
 	} else {
-		Offset2 = RecMem.Len() - VarContentPartOffset;
+		Offset2 = BfL - VarContentPartOffset;
 	}
-	AssertR(Offset2 - Offset1 >= 0, GetErrorMsg(RecMem, FieldSerialDesc));
+	AssertR(Offset2 - Offset1 >= 0, GetErrorMsg(Bf, BfL, FieldSerialDesc));
 	return Offset2 - Offset1;
 }
 
+///////////////////////////////
+
 void TRecSerializator::SetLocationVar(TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const int& VarOffset) const {
-
-	AssertR(VarIndexPartOffset + FieldSerialDesc.Offset <= (RecMem.Len() - 4), GetErrorMsg(RecMem, FieldSerialDesc));
-	*((int*)(RecMem.GetBf() + VarIndexPartOffset + FieldSerialDesc.Offset)) = VarOffset;
+	SetLocationVar(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, VarOffset);
+	//AssertR(VarIndexPartOffset + FieldSerialDesc.Offset <= (RecMem.Len() - 4), GetErrorMsg(RecMem, FieldSerialDesc));
+	//*((int*)(RecMem.GetBf() + VarIndexPartOffset + FieldSerialDesc.Offset)) = VarOffset;
 }
 
 void TRecSerializator::SetFieldNull(TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const bool& NullP) const {
+	SetFieldNull(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, NullP);
+	//byte* bf = (byte*)RecMem.GetBf() + FieldSerialDesc.NullMapByte;
+	//AssertR(bf < ((byte*)RecMem.GetBf() + RecMem.Len()), GetErrorMsg(RecMem, FieldSerialDesc));
+	//if (NullP) {
+	//	*bf |= FieldSerialDesc.NullMapMask;
+	//} else {
+	//	*bf &= ~FieldSerialDesc.NullMapMask;
+	//}
+}
 
-	uchar* bf = (uchar*)RecMem.GetBf() + FieldSerialDesc.NullMapByte;
-	AssertR(bf < ((uchar*)RecMem.GetBf() + RecMem.Len()), GetErrorMsg(RecMem, FieldSerialDesc));
+/// set content offset for specified variable field
+void TRecSerializator::SetLocationVar(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const int& VarOffset) const {
+	AssertR(VarIndexPartOffset + FieldSerialDesc.Offset <= (BfL - 4), GetErrorMsg(Bf, BfL, FieldSerialDesc));
+	*((int*)(Bf + VarIndexPartOffset + FieldSerialDesc.Offset)) = VarOffset;
+}
+/// sets or un-sets NULL flag for specified field
+void TRecSerializator::SetFieldNull(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const bool& NullP) const {
+	byte* bf = (byte*)Bf + FieldSerialDesc.NullMapByte;
+	AssertR(bf < ((byte*)Bf + BfL), GetErrorMsg(Bf, BfL, FieldSerialDesc));
 	if (NullP) {
 		*bf |= FieldSerialDesc.NullMapMask;
 	} else {
@@ -742,116 +810,231 @@ void TRecSerializator::SetFieldNull(TMem& RecMem,
 	}
 }
 
+
 void TRecSerializator::SetFieldInt(TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const int& Int) {
-
-	uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-	*((int*)bf) = Int;
+	SetFieldInt(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Int);
+	//byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+	//*((int*)bf) = Int;
 }
 
 void TRecSerializator::SetFieldUInt64(TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64) {
-
-	uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-	*((uint64*)bf) = UInt64;
+	SetFieldUInt64(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, UInt64);
+	//byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+	//*((uint64*)bf) = UInt64;
 }
 
 void TRecSerializator::SetFieldStr(TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const TStr& Str) {
-
-	uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-	const int StrId = CodebookH.AddKey(Str);
-	*((int*)bf) = StrId;
+	SetFieldStr(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Str);
+	//byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+	//const int StrId = CodebookH.AddKey(Str);
+	//*((int*)bf) = StrId;
 }
 
 void TRecSerializator::SetFieldBool(TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const bool& Bool) {
-
-	uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-	*((bool*)bf) = Bool;
+	SetFieldBool(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Bool);
+	//byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+	//*((bool*)bf) = Bool;
 }
 
 void TRecSerializator::SetFieldFlt(TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const double& Flt) {
-
-	uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-	*((double*)bf) = Flt;
+	SetFieldFlt(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Flt);
+	//byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+	//*((double*)bf) = Flt;
 }
 
 void TRecSerializator::SetFieldFltPr(TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr) {
-
-	uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-	*((double*)bf) = FltPr.Val1.Val;
-	*(((double*)bf) + 1) = FltPr.Val2.Val;
+	SetFieldFltPr(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, FltPr);
+	//byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+	//*((double*)bf) = FltPr.Val1.Val;
+	//*(((double*)bf) + 1) = FltPr.Val2.Val;
 }
 
 void TRecSerializator::SetFieldTm(TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm) {
-
-	uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-	uint64 TmMSecs = TTm::GetMSecsFromTm(Tm);
-	*((uint64*)bf) = TmMSecs;
+	SetFieldTm(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Tm);
+	//byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+	//uint64 TmMSecs = TTm::GetMSecsFromTm(Tm);
+	//*((uint64*)bf) = TmMSecs;
 }
 
 void TRecSerializator::SetFieldTmMSecs(TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs) {
-
-	uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-	*((uint64*)bf) = TmMSecs;
+	SetFieldTmMSecs(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, TmMSecs);
+	//byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+	//*((uint64*)bf) = TmMSecs;
 }
 
 void TRecSerializator::SetFixedJsonVal(TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const TFieldDesc& FieldDesc,
 		const PJsonVal& JsonVal) {
+	SetFixedJsonVal(RecMem, FieldSerialDesc, FieldDesc, JsonVal);
+	//// call type-appropriate setter
+	//switch (FieldDesc.GetFieldType()) {
+	//	case oftInt:
+	//		QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+	//		SetFieldInt(RecMem, FieldSerialDesc, JsonVal->GetInt());
+	//		break;
+	//	case oftUInt64:
+	//		QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+	//		SetFieldUInt64(RecMem, FieldSerialDesc, (uint64)JsonVal->GetInt());
+	//		break;
+	//	case oftStr:
+	//		// this string should be encoded using a codebook
+	//		QmAssertR(JsonVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not string.");
+	//		SetFieldStr(RecMem, FieldSerialDesc, JsonVal->GetStr());
+	//		break;
+	//	case oftBool:
+	//		QmAssertR(JsonVal->IsBool(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not boolean.");
+	//		SetFieldBool(RecMem, FieldSerialDesc, JsonVal->GetBool());
+	//		break;
+	//	case oftFlt:
+	//		QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+	//		SetFieldFlt(RecMem, FieldSerialDesc, JsonVal->GetNum());
+	//		break;
+	//	case oftFltPr: {
+	//		// make sure it's array of length two
+	//		QmAssertR(JsonVal->IsArr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array.");
+	//		QmAssertR(JsonVal->GetArrVals() == 2, "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array - expected 2 fields.");
+	//		PJsonVal JsonVal1 = JsonVal->GetArrVal(0);
+	//		PJsonVal JsonVal2 = JsonVal->GetArrVal(1);
+	//		// make sure both elements are numeric
+	//		QmAssertR(JsonVal1->IsNum(), "The first element in the JSon array in data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+	//		QmAssertR(JsonVal2->IsNum(), "The second element in the JSon array in data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+	//		// update
+	//		SetFieldFltPr(RecMem, FieldSerialDesc, TFltPr(JsonVal1->GetNum(), JsonVal2->GetNum()));
+	//		break;
+	//	}
+	//	case oftTm: {
+	//		QmAssertR(JsonVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not string that represents DateTime.");
+	//		TStr TmStr = JsonVal->GetStr();
+	//		TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
+	//		SetFieldTm(RecMem, FieldSerialDesc, Tm);
+	//		break;
+	//	}
+	//	default:
+	//		throw TQmExcept::New("Unsupported JSon data type for DB storage (fixed part): " + FieldDesc.GetFieldTypeStr());
+	//}
+}
+
+void TRecSerializator::SetFieldInt(char* Bf, const int& BfL,
+	const TFieldSerialDesc& FieldSerialDesc, const int& Int) {
+
+	byte* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
+	*((int*)bf) = Int;
+}
+
+void TRecSerializator::SetFieldUInt64(char* Bf, const int& BfL,
+	const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64) {
+
+	byte* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
+	*((uint64*)bf) = UInt64;
+}
+
+void TRecSerializator::SetFieldStr(char* Bf, const int& BfL,
+	const TFieldSerialDesc& FieldSerialDesc, const TStr& Str) {
+
+	byte* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
+	const int StrId = CodebookH.AddKey(Str);
+	*((int*)bf) = StrId;
+}
+
+void TRecSerializator::SetFieldBool(char* Bf, const int& BfL,
+	const TFieldSerialDesc& FieldSerialDesc, const bool& Bool) {
+
+	byte* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
+	*((bool*)bf) = Bool;
+}
+
+void TRecSerializator::SetFieldFlt(char* Bf, const int& BfL,
+	const TFieldSerialDesc& FieldSerialDesc, const double& Flt) {
+
+	byte* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
+	*((double*)bf) = Flt;
+}
+
+void TRecSerializator::SetFieldFltPr(char* Bf, const int& BfL,
+	const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr) {
+
+	byte* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
+	*((double*)bf) = FltPr.Val1.Val;
+	*(((double*)bf) + 1) = FltPr.Val2.Val;
+}
+
+void TRecSerializator::SetFieldTm(char* Bf, const int& BfL,
+	const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm) {
+
+	byte* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
+	uint64 TmMSecs = TTm::GetMSecsFromTm(Tm);
+	*((uint64*)bf) = TmMSecs;
+}
+
+void TRecSerializator::SetFieldTmMSecs(char* Bf, const int& BfL,
+	const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs) {
+
+	byte* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
+	*((uint64*)bf) = TmMSecs;
+}
+
+void TRecSerializator::SetFixedJsonVal(char* Bf, const int& BfL,
+	const TFieldSerialDesc& FieldSerialDesc, const TFieldDesc& FieldDesc,
+	const PJsonVal& JsonVal) {
 
 	// call type-appropriate setter
 	switch (FieldDesc.GetFieldType()) {
-		case oftInt:
-			QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
-			SetFieldInt(RecMem, FieldSerialDesc, JsonVal->GetInt());
-			break;
-		case oftUInt64:
-			QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
-			SetFieldUInt64(RecMem, FieldSerialDesc, (uint64)JsonVal->GetInt());
-			break;
-		case oftStr:
-			// this string should be encoded using a codebook
-			QmAssertR(JsonVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not string.");
-			SetFieldStr(RecMem, FieldSerialDesc, JsonVal->GetStr());
-			break;
-		case oftBool:
-			QmAssertR(JsonVal->IsBool(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not boolean.");
-			SetFieldBool(RecMem, FieldSerialDesc, JsonVal->GetBool());
-			break;
-		case oftFlt:
-			QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
-			SetFieldFlt(RecMem, FieldSerialDesc, JsonVal->GetNum());
-			break;
-		case oftFltPr: {
-			// make sure it's array of length two
-			QmAssertR(JsonVal->IsArr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array.");
-			QmAssertR(JsonVal->GetArrVals() == 2, "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array - expected 2 fields.");
-			PJsonVal JsonVal1 = JsonVal->GetArrVal(0);
-			PJsonVal JsonVal2 = JsonVal->GetArrVal(1);
-			// make sure both elements are numeric
-			QmAssertR(JsonVal1->IsNum(), "The first element in the JSon array in data field " + FieldDesc.GetFieldNm() + " is not numeric.");
-			QmAssertR(JsonVal2->IsNum(), "The second element in the JSon array in data field " + FieldDesc.GetFieldNm() + " is not numeric.");
-			// update
-			SetFieldFltPr(RecMem, FieldSerialDesc, TFltPr(JsonVal1->GetNum(), JsonVal2->GetNum()));
-			break;
-		}
-		case oftTm: {
-			QmAssertR(JsonVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not string that represents DateTime.");
-			TStr TmStr = JsonVal->GetStr();
-			TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
-			SetFieldTm(RecMem, FieldSerialDesc, Tm);
-			break;
-		}
-		default:
-			throw TQmExcept::New("Unsupported JSon data type for DB storage (fixed part): " + FieldDesc.GetFieldTypeStr());
+	case oftInt:
+		QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+		SetFieldInt(Bf, BfL, FieldSerialDesc, JsonVal->GetInt());
+		break;
+	case oftUInt64:
+		QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+		SetFieldUInt64(Bf, BfL, FieldSerialDesc, (uint64)JsonVal->GetInt());
+		break;
+	case oftStr:
+		// this string should be encoded using a codebook
+		QmAssertR(JsonVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not string.");
+		SetFieldStr(Bf, BfL, FieldSerialDesc, JsonVal->GetStr());
+		break;
+	case oftBool:
+		QmAssertR(JsonVal->IsBool(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not boolean.");
+		SetFieldBool(Bf, BfL, FieldSerialDesc, JsonVal->GetBool());
+		break;
+	case oftFlt:
+		QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+		SetFieldFlt(Bf, BfL, FieldSerialDesc, JsonVal->GetNum());
+		break;
+	case oftFltPr: {
+		// make sure it's array of length two
+		QmAssertR(JsonVal->IsArr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array.");
+		QmAssertR(JsonVal->GetArrVals() == 2, "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array - expected 2 fields.");
+		PJsonVal JsonVal1 = JsonVal->GetArrVal(0);
+		PJsonVal JsonVal2 = JsonVal->GetArrVal(1);
+		// make sure both elements are numeric
+		QmAssertR(JsonVal1->IsNum(), "The first element in the JSon array in data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+		QmAssertR(JsonVal2->IsNum(), "The second element in the JSon array in data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+		// update
+		SetFieldFltPr(Bf, BfL, FieldSerialDesc, TFltPr(JsonVal1->GetNum(), JsonVal2->GetNum()));
+		break;
+	}
+	case oftTm: {
+		QmAssertR(JsonVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not string that represents DateTime.");
+		TStr TmStr = JsonVal->GetStr();
+		TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
+		SetFieldTm(Bf, BfL, FieldSerialDesc, Tm);
+		break;
+	}
+	default:
+		throw TQmExcept::New("Unsupported JSon data type for DB storage (fixed part): " + FieldDesc.GetFieldTypeStr());
 	}
 }
+
+
+/////////////////////
 
 void TRecSerializator::SetFieldIntV(TMem& RecMem, TMOut& SOut,
 		const TFieldSerialDesc& FieldSerialDesc, const TIntV& IntV) {
@@ -974,7 +1157,7 @@ void TRecSerializator::CopyFieldVar(const TMem& InRecMem, TMem& FixedMem,
 	int OldVarLength = GetVarPartBfLen(InRecMem, FieldSerialDesc);
 	if (OldVarLength > 0) {
 		// get location of old variable
-		uchar* OldVarBf = GetLocationVar(InRecMem, FieldSerialDesc);
+		byte* OldVarBf = GetLocationVar(InRecMem, FieldSerialDesc);
 		// move it to output stream for new serialization
 		VarSOut.AppendBf(OldVarBf, OldVarLength);
 	}
@@ -1196,16 +1379,17 @@ void TRecSerializator::SerializeUpdate(const PJsonVal& RecVal, const TMem& InRec
 	Merge(FixedMem, VarSOut, OutRecMem);
 }
 
-bool TRecSerializator::IsFieldNull(const TMem& RecMem, const int& FieldId) const {
+///////////////////////////
 
+bool TRecSerializator::IsFieldNull(const TMem& RecMem, const int& FieldId) const {
 	const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
-	uchar* bf = (uchar*)RecMem.GetBf() + FieldSerialDesc.NullMapByte;
+	byte* bf = (byte*)RecMem.GetBf() + FieldSerialDesc.NullMapByte;
 	return ((*bf & FieldSerialDesc.NullMapMask) != 0);
 }
 
 int TRecSerializator::GetFieldInt(const TMem& RecMem, const int& FieldId) const {
 	// get pointer to location
-	uchar* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+	byte* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
 	// cast to return value
 	return *((int*)bf);
 }
@@ -1220,7 +1404,7 @@ void TRecSerializator::GetFieldIntV(const TMem& RecMem, const int& FieldId, TInt
 
 uint64 TRecSerializator::GetFieldUInt64(const TMem& RecMem, const int& FieldId) const {
 	// get pointer to location
-	uchar* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+	byte* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
 	// cast to return value
 	return *((uint64*)bf);
 }
@@ -1229,7 +1413,7 @@ TStr TRecSerializator::GetFieldStr(const TMem& RecMem, const int& FieldId) const
 	const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
 	if (FieldSerialDesc.FixedPartP) {
 		// get pointer to location
-		uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+		byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
 		// cast to codebook id value
 		int StrId = *((int*)bf);
 		// return string from codebook
@@ -1254,21 +1438,21 @@ void TRecSerializator::GetFieldStrV(const TMem& RecMem, const int& FieldId, TStr
 
 bool TRecSerializator::GetFieldBool(const TMem& RecMem, const int& FieldId) const {
 	// get pointer to location
-	uchar* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+	byte* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
 	// cast to return value
 	return *((bool*)bf);
 }
 
 double TRecSerializator::GetFieldFlt(const TMem& RecMem, const int& FieldId) const {
 	// get pointer to location
-	uchar* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+	byte* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
 	// cast to return value
 	return *((double*)bf);
 }
 
 TFltPr TRecSerializator::GetFieldFltPr(const TMem& RecMem, const int& FieldId) const {
 	// get pointer to location
-	uchar* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+	byte* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
 	// cast to return value
 	return TFltPr(*((double*)bf), *(((double*)bf) + 1));
 }
@@ -1283,7 +1467,7 @@ void TRecSerializator::GetFieldFltV(const TMem& RecMem, const int& FieldId, TFlt
 
 void TRecSerializator::GetFieldTm(const TMem& RecMem, const int& FieldId, TTm& Tm) const {
 	// get pointer to location
-	uchar* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+	byte* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
 	// cast to return value
 	uint64 val = *((uint64*)bf);
 	Tm = TTm::GetTmFromMSecs(val);
@@ -1291,7 +1475,7 @@ void TRecSerializator::GetFieldTm(const TMem& RecMem, const int& FieldId, TTm& T
 
 uint64 TRecSerializator::GetFieldTmMSecs(const TMem& RecMem, const int& FieldId) const {
 	// get pointer to location
-	uchar* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+	byte* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
 	// cast to return value
 	return *((uint64*)bf);
 }
