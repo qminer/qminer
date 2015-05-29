@@ -2114,7 +2114,14 @@ void TNodeJsRecSet::sortById(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
-	const bool Asc = TNodeJsUtil::GetArgInt32(Args, 0, 0) > 0;
+	bool Asc = false;
+	if (Args.Length() > 0) {
+		QmAssertR(TNodeJsUtil::IsArgBool(Args, 0) || TNodeJsUtil::IsArgFlt(Args, 0),
+			"TNodeJsRecSet::sortById: Argument 0 expected to be bool or int!");
+		Asc = TNodeJsUtil::IsArgBool(Args, 0) ?
+			TNodeJsUtil::GetArgBool(Args, 0) :
+			TNodeJsUtil::GetArgFlt(Args, 0) > 0;
+	}
 	JsRecSet->RecSet->SortById(Asc);
 	Args.GetReturnValue().Set(Args.Holder());
 }
@@ -2124,7 +2131,14 @@ void TNodeJsRecSet::sortByFq(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::HandleScope HandleScope(Isolate);
 	TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
-	const bool Asc = TNodeJsUtil::GetArgInt32(Args, 0, 0) > 0;
+	bool Asc = false;
+	if (Args.Length() > 0) {
+		QmAssertR(TNodeJsUtil::IsArgBool(Args, 0) || TNodeJsUtil::IsArgFlt(Args, 0),
+			"TNodeJsRecSet::sortByFq: Argument 0 expected to be bool or int!");
+		Asc = TNodeJsUtil::IsArgBool(Args, 0) ?
+			TNodeJsUtil::GetArgBool(Args, 0) :
+			TNodeJsUtil::GetArgFlt(Args, 0) > 0;
+	}
 	JsRecSet->RecSet->SortByFq(Asc);
 	Args.GetReturnValue().Set(Args.Holder());
 }
