@@ -632,6 +632,8 @@ module.exports = exports = function (pathPrefix) {
     		 * Adds a new record. Doesn't update the models statistics.
     		 */
     		update: function (rec) {
+    			if (rec == null) return;
+    			
     			var obsFtrVec = obsFtrSpace.ftrVec(rec);
     			var contFtrVec = controlFtrSpace.ftrVec(rec);
     			var timestamp = rec.time.getTime();

@@ -2007,6 +2007,8 @@ bool TStMerger::CanInterpolate() {
 
 	for (int i = 0; i < NInFlds; i++) {
 		if (!InterpV[i]->CanInterpolate(NextInterpTm)) {
+			if (i == NInFlds - 1)
+				printf("Interplator %d cannot interpolate!\n", i);
 			return false;
 		}
 	}

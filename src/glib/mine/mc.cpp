@@ -908,6 +908,7 @@ void THierarch::SetTarget(const int& StateId, const double& Height) {
 
 void THierarch::RemoveTarget(const int& StateId, const double& Height) {
 	EAssertR(IsOnHeight(StateId, Height), "State " + TInt(StateId).GetStr() + " is not on height " + TFlt(Height).GetStr());
+	EAssertR(IsTarget(StateId, Height), "State " + TInt(StateId).GetStr() + " is not a target on height " + TFlt(Height).GetStr());
 
 	double StateHeight = GetNearestHeight(Height);
 	TIntFltPr StateIdHeightPr(StateId, StateHeight);
