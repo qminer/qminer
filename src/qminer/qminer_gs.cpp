@@ -922,6 +922,10 @@ void TRecSerializator::SetFixedJsonVal(TMem& RecMem,
 	//}
 }
 
+void TRecSerializator::SetFieldNull(byte* Bf, const int& BfL, const int& FieldId, const bool& NullP) {
+	SetFieldNull((char*)Bf, BfL, GetFieldSerialDesc(FieldId), NullP);
+}
+
 void TRecSerializator::SetFieldInt(char* Bf, const int& BfL,
 	const TFieldSerialDesc& FieldSerialDesc, const int& Int) {
 

@@ -16,6 +16,26 @@ namespace TQm {
 	}
 
 
+	/// Set the value of given field to NULL
+	void TStorePbBlob::SetFieldNull(const uint64& RecId, const int& FieldId) {
+		if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+			TPgBlobPt& PgPt = RecIdBlobPtH.GetDat(RecId);
+			TThinMIn min = DataBlob->Get(PgPt);
+			SerializatorMem.SetFieldNull((byte*)min.GetBfAddr(), min.Len(), FieldId, true);
+			DataBlob->SetDirty(PgPt);
+		} else {
+			TMem Rec;
+			DataMem.GetVal(RecId, Rec);
+			TMem OutRecMem; 
+			SerializatorMem.SetFieldNull(Rec, OutRecMem, FieldId);
+			RecIndexer.UpdateRec(Rec, OutRecMem, RecId, FieldId, SerializatorMem);
+			DataMem.SetVal(RecId, Rec);
+		}		
+	}
+
+
+
+
 	/// Return iterator over store
 	PStoreIter TStorePbBlob::GetIter() const {
 		if (Empty()) { return TStoreIterVec::New(); }

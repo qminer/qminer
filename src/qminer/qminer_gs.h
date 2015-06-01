@@ -539,7 +539,26 @@ public:
 	/// Field getter
 	void GetFieldNumSpV(const TMem& RecMem, const int& FieldId, TIntFltKdV& SpV) const;
 	/// Field getter
-	void GetFieldBowSpV(const TMem& RecMem, const int& FieldId, PBowSpV& SpV) const;   
+	void GetFieldBowSpV(const TMem& RecMem, const int& FieldId, PBowSpV& SpV) const;  
+
+	/// Field setter
+	void SetFieldNull(byte* Bf, const int& BfL, const int& FieldId, const bool& NullP);
+	/// Fixed-length field setter
+	void SetFieldInt(byte* Bf, const int& BfL, const int& FieldId, const int& Int);
+	/// Fixed-length field setter
+	void SetFieldUInt64(byte* Bf, const int& BfL, const int& FieldId, const uint64& UInt64);
+	/// Fixed-length field setter
+	void SetFieldStr(byte* Bf, const int& BfL, const int& FieldId, const TStr& Str);
+	/// Fixed-length field setter
+	void SetFieldBool(byte* Bf, const int& BfL, const int& FieldId, const bool& Bool);
+	/// Fixed-length field setter
+	void SetFieldFlt(byte* Bf, const int& BfL, const int& FieldId, const double& Flt);
+	/// Fixed-length field setter
+	void SetFieldFltPr(byte* Bf, const int& BfL, const int& FieldId, const TFltPr& FltPr);
+	/// Fixed-length field setter
+	void SetFieldTm(byte* Bf, const int& BfL, const int& FieldId, const TTm& Tm);
+	/// Fixed-length field setter
+	void SetFieldTmMSecs(byte* Bf, const int& BfL, const int& FieldId, const uint64& TmMSecs);
 	
 	/// Field setter
 	void SetFieldNull(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId);
