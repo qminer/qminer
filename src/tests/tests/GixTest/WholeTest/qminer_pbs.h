@@ -86,6 +86,9 @@ namespace TQm {
 
 		/// initialize field storage location map
 		void InitFieldLocV();
+
+		/// Load page with with given record and return pointer to it
+		const byte* GetPgBf(const uint64& RecId) const;
 		///// Get TMem serialization of record from specified storage
 		//void GetRecMem(const TStoreLoc& RecLoc, const uint64& RecId, TMem& Rec) const;
 		///// Get TMem serialization of record from specified where field is stored
@@ -129,11 +132,16 @@ namespace TQm {
 		// need to override destructor, to clear cache
 		~TStorePbBlob();
 
+		/// Check if given ID is valid
 		bool IsRecId(const uint64& RecId) const;
 		bool HasRecNm() const { return RecNmFieldP; }
+		/// Check if record with given name exists
 		bool IsRecNm(const TStr& RecNm) const;
+		/// Find name of the record with given ID
 		TStr GetRecNm(const uint64& RecId) const;
+		/// Return ID of record with given name
 		uint64 GetRecId(const TStr& RecNm) const;
+		/// Get number of record
 		uint64 GetRecs() const;
 		uint64 GetFirstRecId() const { return DataMem.GetFirstValId(); }
 		uint64 GetLastRecId() const { return DataMem.GetLastValId(); }
