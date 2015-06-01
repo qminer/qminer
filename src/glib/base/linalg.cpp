@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 #include "bd.h"
-#include "base.h"
+//#include "base.h"
 #ifdef LAPACKE
 #include "MKLfunctions.h"
 #endif
