@@ -14,7 +14,7 @@
 // text processing
 #include "stopword.cpp"
 #include "stemming.cpp"
-#include "StemmingTokenization.cpp"
+#include "stemmingtokenization.cpp"
 #include "phrase.cpp"
 #include "tokenizer.cpp"
 #include "unicodebow.cpp"

@@ -38,7 +38,7 @@ namespace TUnicodeVSM {
 		if (enable_stemming){
 			if (Lang == "zh"){//Special Tokenization for Chinese
 				printf("Chinese Tokenizer!\n");
-				this->stemmer_supported = TChineseTokenizer::init();
+				this->stemmer_supported = TChineseTokenizer::Init();
 				if (this->stemmer_supported){
 					printf("Chinese Dll OK!\n");
 				}
@@ -47,7 +47,7 @@ namespace TUnicodeVSM {
 				}
 			}
 			else{//Snowball Stemmers
-				this->stemmer_supported = Stemmer.setStemmer(Lang);
+				this->stemmer_supported = Stemmer.SetStemmer(Lang);
 				if (this->stemmer_supported){
 					TStr Message = ("Creation Done SnowBall stemmer for" + Lang + " !");
 					printf("%s\n", Message.CStr());
@@ -69,7 +69,7 @@ namespace TUnicodeVSM {
 		if (enable_stemming){
 			if (Lang == "zh"){//Special Tokenization for Chinese
 				printf("Chinese Tokenizer!\n");
-				this->stemmer_supported = TChineseTokenizer::init();
+				this->stemmer_supported = TChineseTokenizer::Init();
 				if (this->stemmer_supported){
 					printf("Chinese Dll OK!\n");
 				}
@@ -78,7 +78,7 @@ namespace TUnicodeVSM {
 				}
 			}
 			else{//Snowball Stemmers
-				this->stemmer_supported = Stemmer.setStemmer(Lang);
+				this->stemmer_supported = Stemmer.SetStemmer(Lang);
 				if (this->stemmer_supported){
 					TStr Message = ("Creation Done SnowBall stemmer for" + Lang + " !");
 					printf("%s\n", Message.CStr());
@@ -120,10 +120,10 @@ namespace TUnicodeVSM {
 		Option.Load(SIn);
 		Lang.Load(SIn);
 		if (Lang == "zh"){//Special Tokenization for Chinese
-			stemmer_supported = TChineseTokenizer::init();
+			stemmer_supported = TChineseTokenizer::Init();
 		}
 		else{
-			stemmer_supported = Stemmer.setStemmer(Lang);
+			stemmer_supported = Stemmer.SetStemmer(Lang);
 		}
 		StopSet.Load(SIn);
 		MaxIndex.Load(SIn);
@@ -169,10 +169,10 @@ namespace TUnicodeVSM {
 		if (stemmer_supported){
 			bool OK = true;
 			if (Lang == "zh"){//Special Tokenization for Chinese
-				OK = TChineseTokenizer::init();
+				OK = TChineseTokenizer::Init();
 			}
 			else{
-				OK = Stemmer.setStemmer(Lang);
+				OK = Stemmer.SetStemmer(Lang);
 			}
 			if (!OK){
 				printf("%s\n",("Stemmer initialization failed but originaly stemmer for " + Lang + " was used! You will obtain meaningless results!\n").CStr());
@@ -750,7 +750,7 @@ namespace TUnicodeVSM {
 			Text.GetWordUStrV(Words, Seperators);
 		}
 		else{
-			TChineseTokenizer::tokenizeClean(Text.GetStr(), Words);
+			TChineseTokenizer::TokenizeClean(Text.GetStr(), Words);
 		}
 
 		int i = 0;
@@ -782,8 +782,8 @@ namespace TUnicodeVSM {
 					continue;
 				}
 			}
-			if (Stemmer.isSupported()){
-				Stemmer.stem(Word);
+			if (Stemmer.IsSupported()){
+				Stemmer.Stem(Word);
 				Words[i] = (TUStr)(Word);
 			}
 			i++;
@@ -794,7 +794,7 @@ namespace TUnicodeVSM {
 			Text.GetWordUStrLst(Words, Seperators);
 		}
 		else{
-			TChineseTokenizer::tokenizeClean(Text.GetStr(), Words, Seperators);
+			TChineseTokenizer::TokenizeClean(Text.GetStr(), Words, Seperators);
 		}
 
 		int i = 0;
@@ -838,8 +838,8 @@ namespace TUnicodeVSM {
 					continue;
 				}
 			}
-			if (Stemmer.isSupported()){
-				Stemmer.stem(Word);
+			if (Stemmer.IsSupported()){
+				Stemmer.Stem(Word);
 				WordNode->Val = (TUStr)(Word);
 			}
 			BoolNode = BoolNode->NextNd;
