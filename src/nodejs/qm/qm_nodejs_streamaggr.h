@@ -15,6 +15,13 @@
 #include "../fs/fs_nodejs.h"
 #include "../nodeutil.h"
 
+/**
+* Qminer module.
+* @module qm
+* @example
+* // import module
+* var qm = require('qminer');
+*/
 
 //! 
 //! ### NodeJs Stream Aggregate
@@ -42,8 +49,8 @@
 *        ]
 *    }]
 * });
-* // create a new stream aggregate for counting the length of the name (with the function object)
-* var aggr = new qm.sa(base, new function () {
+* // create a new stream aggregator for "People" store: get the length of the record name (with the function object)
+* var aggr = new qm.StreamAggr(base, new function () {
 *    var length = 0;
 *    this.name = 'nameLength',
 *    this.onAdd = function (rec) {
@@ -52,11 +59,11 @@
 *    this.saveJson = function (limit) {
 *        return { val: length };
 *    }
-* });
-* // create a new stream aggregate for gendre seperation (with the JSON object)
-* var aggr2 = new qm.sa(base, { type: , name: 'gendreSeperator', outStore: 'People', createStore: false}
+* }, "People");
+* // create a new stream aggregator for "People" store: get gendre (with the JSON object)
+* var aggr2 = new qm.StreamAggr(base, { type: , name: 'gendreSeperator', outStore: 'People', createStore: false}
 */
-//# exports.StreamAggregate = function (base, json, storeName) {};
+//# exports.StreamAggr = function (base, json, storeName) {};
 class TNodeJsSA : public node::ObjectWrap {
 private:
 	// Node framework
@@ -89,7 +96,14 @@ public:
 	//! **Functions and properties:**
 	//! 	
 	//!- `sa = sa.onAdd(rec)` -- executes onAdd function given an input record `rec` and returns self
+	/**
+	* Executes the function when a new record is put in store.
+	* @param {module:qm.Record} rec - The record given to the stream aggregator.
+	* @returns {module:qm.StreamAggr} Self.
+	*/
+	//# exports.StreamAggr.prototype.onAdd = function (rec) {};
 	JsDeclareFunction(onAdd);
+
 	//!- `sa = sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` and returns self
 	JsDeclareFunction(onUpdate);
 	//!- `sa = sa.onDelete(rec)` -- executes onDelete function given an input record `rec` and returns self

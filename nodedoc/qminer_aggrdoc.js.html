@@ -45,6 +45,20 @@
 
 /**
 
+* Qminer module.
+
+* @module qm
+
+* @example
+
+* // import module
+
+* var qm = require(&#x27;qminer&#x27;);
+
+*/
+
+/**
+
 * Stream Aggregate
 
 * @classdesc Represents the stream aggregate.
@@ -85,9 +99,9 @@
 
 * });
 
-* // create a new stream aggregate for counting the length of the name (with the function object)
+* // create a new stream aggregator for &quot;People&quot; store: get the length of the record name (with the function object)
 
-* var aggr = new qm.sa(base, new function () {
+* var aggr = new qm.StreamAggr(base, new function () {
 
 *    var length = 0;
 
@@ -105,15 +119,27 @@
 
 *    }
 
-* });
+* }, &quot;People&quot;);
 
-* // create a new stream aggregate for gendre seperation (with the JSON object)
+* // create a new stream aggregator for &quot;People&quot; store: get gendre (with the JSON object)
 
-* var aggr2 = new qm.sa(base, { type: , name: &#x27;gendreSeperator&#x27;, outStore: &#x27;People&#x27;, createStore: false}
+* var aggr2 = new qm.StreamAggr(base, { type: , name: &#x27;gendreSeperator&#x27;, outStore: &#x27;People&#x27;, createStore: false}
 
 */
 
- exports.StreamAggregate = function (base, json, storeName) {};
+ exports.StreamAggr = function (base, json, storeName) {};
+
+/**
+
+	* Executes the function when a new record is put in store.
+
+	* @param {module:qm.Record} rec - The record given to the stream aggregator.
+
+	* @returns {module:qm.StreamAggr} Self.
+
+	*/
+
+ exports.StreamAggr.prototype.onAdd = function (rec) {};
 
 </code></pre>
           </article>
