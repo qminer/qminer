@@ -207,6 +207,15 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal): StoreId(0), HasStoreIdP(fa
 	// get store name
 	QmAssertR(StoreVal->IsObjKey("name"), "Missing store name.");
 	StoreName = StoreVal->GetObjStr("name");
+	// get additional options
+	if (StoreVal->IsObjKey("options")) {
+		PJsonVal options = StoreVal->GetObjKey("options");
+		if (options->IsObjKey("type")) {
+			StoreType = options->GetObjStr("type");
+		}
+		// parse block size
+		BlockSizeMem = MAX(1, options->GetObjInt("block_size_mem", 1000));
+	}
 	// get id (optional)
 	if (StoreVal->IsObjKey("id")) {
 		const int _StoreId = StoreVal->GetObjInt("id");
@@ -266,8 +275,6 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal): StoreId(0), HasStoreIdP(fa
 			JoinDescExV.Add(JoinDescEx);
 		}
 	}
-	// parse block size
-	BlockSizeMem = MAX(1, StoreVal->GetObjInt("block_size_mem", 1000));
 	
 	// parse window size
 	if (StoreVal->IsObjKey("window")) {
@@ -3022,8 +3029,14 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
 		const uint64 StoreCacheSize = StoreNmCacheSizeH.IsKey(StoreNm) ?
 			StoreNmCacheSizeH.GetDat(StoreNm).Val : DefStoreCacheSize;
 		// create new store from the schema
-		PStore Store = new TStoreImpl(Base, StoreId, StoreNm, 
-			StoreSchema, Base->GetFPath() + StoreNm, StoreCacheSize, StoreSchema.BlockSizeMem);
+		PStore Store;
+		//if (StoreSchema.StoreType == "paged") {
+		//	Store = new TStorePbBlob(Base, StoreId, StoreNm,
+		//		StoreSchema, Base->GetFPath() + StoreNm, StoreCacheSize, StoreSchema.BlockSizeMem);
+		//} else {
+			Store = new TStoreImpl(Base, StoreId, StoreNm,
+				StoreSchema, Base->GetFPath() + StoreNm, StoreCacheSize, StoreSchema.BlockSizeMem);
+		//}
 		// add store to base
 		Base->AddStore(Store);
 		// remember we create the store

@@ -126,9 +126,10 @@ namespace TQm {
 	public:
 		TStorePbBlob(const TWPt<TBase>& _Base, const uint& StoreId,
 			const TStr& StoreName, const TStoreSchema& StoreSchema,
-			const TStr& _StoreFNm, const int64& _MxCacheSize);
+			const TStr& _StoreFNm, const int64& _MxCacheSize, const int& BlockSize);
 		TStorePbBlob(const TWPt<TBase>& _Base, const TStr& _StoreFNm,
-			const TFAccess& _FAccess, const int64& _MxCacheSize);
+			const TFAccess& _FAccess, const int64& _MxCacheSize, const int& BlockSize,
+			const bool& _Lazy);
 		// need to override destructor, to clear cache
 		~TStorePbBlob();
 
@@ -235,6 +236,15 @@ namespace TQm {
 		PJsonVal GetStats();
 	};
 
+
+	TWPt<TBase> NewBase2(
+		const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
+		const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP, const int& SplitLen);
+	///////////////////////////////
+	/// Create new stores in an existing base from a schema definition
+	TVec<TWPt<TStore> > CreateStoresFromSchema2(
+		const TWPt<TBase>& Base, const PJsonVal& SchemaVal,
+		const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH);
 }
 
 #endif
