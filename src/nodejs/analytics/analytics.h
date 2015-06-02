@@ -759,6 +759,7 @@ public:
  private:
 	TSignalProc::TTFunc ExtractFuncFromString(const TStr& FuncString);
 };
+
 // QMiner-JavaScript-Tokenizer
 //!
 //! ### Tokenizer

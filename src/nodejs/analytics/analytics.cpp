@@ -1842,7 +1842,8 @@ void TNodeJsTokenizer::Init(v8::Handle<v8::Object> exports) {
 v8::Local<v8::Object> TNodeJsTokenizer::New(const PTokenizer& Tokenizer) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope EscapableHandleScope(Isolate);
-	EAssertR(!constructor.IsEmpty(), "TNodeJsTokenizer::New: constructor is empty. Did you call TNodeJsTokenizer::Init(exports); in this module's init function?");
+	EAssertR(!constructor.IsEmpty(), "TNodeJsTokenizer::New: constructor is empty. "
+        "Did you call TNodeJsTokenizer::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
@@ -1855,7 +1856,6 @@ v8::Local<v8::Object> TNodeJsTokenizer::New(const PTokenizer& Tokenizer) {
 void TNodeJsTokenizer::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-
 	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 	QmAssertR(ParamVal->IsObjKey("type"),
 		"Missing tokenizer type " + ParamVal->SaveStr());
