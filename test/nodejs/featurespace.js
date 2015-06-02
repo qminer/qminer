@@ -1564,9 +1564,6 @@ describe('Feature Space Tests', function () {
             ftr.updateRecord(Store[14]);
 
             assert.equal(ftr.extractVector(Store[11]).length, 6);
-            for (var i = 0; i < 6; i++) {
-                console.log(ftr.getFeature(i));
-            }
             assert.eqtol(ftr.extractVector(Store[11]).at(0), Math.log(4));
             assert.eqtol(ftr.extractVector(Store[12]).at(1), Math.log(2));
             assert.eqtol(ftr.extractVector(Store[13]).at(2), Math.log(4));
@@ -1628,9 +1625,7 @@ describe('Feature Space Tests', function () {
             ftr.updateRecord(Store[14]);
 
             assert.equal(ftr.extractVector(Store[11]).length, 15);
-            for (var i = 0; i < 15; i++) {
-                console.log(ftr.getFeature(i));
-            }
+           
             assert.eqtol(ftr.extractVector(Store[11]).at(0), Math.log(4));
             assert.eqtol(ftr.extractVector(Store[11]).at(1), Math.log(4));
             assert.eqtol(ftr.extractVector(Store[11]).at(2), Math.log(4));

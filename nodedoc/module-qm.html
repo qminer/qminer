@@ -69,7 +69,7 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.RecSet.html">RecSet</a></dt>
+                    <dt><a href="module-qm.RecordSet.html">RecordSet</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.Store.html">Store</a></dt>
@@ -123,28 +123,18 @@
               </div>
             </div>
             <div class="summary-callout">
-              <h2 class="summary-callout-heading">Methods</h2>
+              <h2 class="summary-callout-heading">Method</h2>
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.html#.config">config([configPath][, overwrite][, portN][, cacheSize])</a></dt>
+                    <dt><a href="module-qm.html#.verbosity">verbosity([level])</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.html#.create">create([configPath][, schemaPath][, clear])</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
                 </div>
                 <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.html#.open">open([configPath][, readOnly])</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
                 </div>
               </div>
             </div>
@@ -233,7 +223,7 @@
             <section id='members-links'>
               <h3><a href="module-qm.Iterator.html">Iterator</a></h3>
               <h3><a href="module-qm.Record.html">Record</a></h3>
-              <h3><a href="module-qm.RecSet.html">RecSet</a></h3>
+              <h3><a href="module-qm.RecordSet.html">RecordSet</a></h3>
               <h3><a href="module-qm.Store.html">Store</a></h3>
             </section>
             <h2>Properties</h2>
@@ -939,12 +929,12 @@
               <dl class="dl-compact">
               </dl>
             </section>
-            <h2>Methods</h2>
+            <h2>Method</h2>
             <section>
-              <h3 id=".config"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">config</span><span class="signature"><span class="signature-params">([configPath][, overwrite][, portN][, cacheSize])</span></span></h3>
-              <p>Creates a directory structure.</p>
+              <h3 id=".verbosity"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">verbosity</span><span class="signature"><span class="signature-params">([level])</span></span></h3>
+              <p>Set verbosity of QMiner internals.</p>
               <section>
-                <h4>Parameters</h4>
+                <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -957,37 +947,7 @@
                   <tbody>
                     <tr>
                       <td>
-                        <p>configPath</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>The path to configuration file.</p>
-                        <p>Defaults to <code>'qm.conf'</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>overwrite</p>
-                      </td>
-                      <td>
-                        <p>boolean</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>If you want to overwrite the configuration file.</p>
-                        <p>Defaults to <code></code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>portN</p>
+                        <p>level</p>
                       </td>
                       <td>
                         <p>number</p>
@@ -996,86 +956,7 @@
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>The number of the port. Currently not used.</p>
-                        <p>Defaults to <code>8080</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>cacheSize</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Sets available memory for indexing (in MB).</p>
-                        <p>Defaults to <code>1024</code>.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id=".create"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">create</span><span class="signature"><span class="signature-params">([configPath][, schemaPath][, clear])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Base.html">module:qm.Base</a></span></span></h3>
-              <p>Creates an empty base.</p>
-              <section>
-                <h4>Parameters</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>configPath</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Configuration file path.</p>
-                        <p>Defaults to <code>'qm.conf'</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>schemaPath</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Schema file path.</p>
-                        <p>Defaults to <code>''</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>clear</p>
-                      </td>
-                      <td>
-                        <p>boolean</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Clear the existing db folder.</p>
+                        <p>verbosity level: 0 = no output, 1 = log output, 2 = log and debug output.</p>
                         <p>Defaults to <code></code>.</p>
                       </td>
                     </tr>
@@ -1083,63 +964,6 @@
                 </table>
               </section>
               <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-qm.Base.html">module:qm.Base</a></code>&nbsp;</p>
-                </dd>
-              </dl>
-              <h3 id=".open"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">open</span><span class="signature"><span class="signature-params">([configPath][, readOnly])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Base.html">module:qm.Base</a></span></span></h3>
-              <p>Opens a base.</p>
-              <section>
-                <h4>Parameters</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>configPath</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>The configuration file path.</p>
-                        <p>Defaults to <code>'qm.conf'</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>readOnly</p>
-                      </td>
-                      <td>
-                        <p>boolean</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Open in read only mode?</p>
-                        <p>Defaults to <code></code>.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-qm.Base.html">module:qm.Base</a></code>&nbsp;</p>
-                </dd>
               </dl>
             </section>
             <h2>Abstract types</h2>
@@ -1274,8 +1098,8 @@ var base = new qm.Base({
    schema: [{
       &quot;name&quot;: &quot;Class&quot;,
       &quot;fields&quot;: [
-         { name: &quot;Name&quot;, type: &quot;string&quot; },
-         { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
+         { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+         { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
       ]
    }]
 });
@@ -1385,7 +1209,7 @@ var base = new qm.Base({
   mode: &#x27;createClean&#x27;,
   schema: [{
      &quot;name&quot;: &quot;Person&quot;,
-     &quot;fields&quot;: [{ name: &quot;Name&quot;, type: &quot;string&quot; }]
+     &quot;fields&quot;: [{ &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; }]
   }]
 });
 // create a feature space containing the constant extractor, where the constant is equal 5
@@ -1652,8 +1476,8 @@ var base = new qm.Base({
    schema: [{
       &quot;name&quot;: &quot;Class&quot;,
       &quot;fields&quot;: [
-         { name: &quot;Name&quot;, type: &quot;string&quot; },
-         { name: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
+         { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+         { &quot;name&quot;: &quot;StudyGroups&quot;, &quot;type&quot;: &quot;string_v&quot; }
       ]
    }]
 });
@@ -1770,8 +1594,8 @@ var base = new qm.Base({
    schema: [{
       &quot;name&quot;: &quot;Class&quot;,
       &quot;fields&quot;: [
-         { name: &quot;Name&quot;, type: &quot;string&quot; },
-         { name: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
+         { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+         { &quot;name&quot;: &quot;StudyGroups&quot;, &quot;type&quot;: &quot;string_v&quot; }
       ]
    }]
 });
@@ -1915,8 +1739,8 @@ var base = new qm.Base({
    schema: [{
       &quot;name&quot;: &quot;Class&quot;,
       &quot;fields&quot;: [
-         { name: &quot;Name&quot;, type: &quot;string&quot; },
-         { name: &quot;Grade&quot;, type: &quot;number&quot; }
+         { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+         { &quot;name&quot;: &quot;Grade&quot;, &quot;type&quot;: &quot;number&quot; }
       ]
    }]
 });
@@ -2117,7 +1941,7 @@ var base = new qm.Base({
   mode: &#x27;createClean&#x27;,
   schema: [{
      &quot;name&quot;: &quot;Person&quot;,
-     &quot;fields&quot;: [{ name: &quot;Name&quot;, type: &quot;string&quot; }]
+     &quot;fields&quot;: [{ &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; }]
   }]
 });
 // create a feature space containing the random extractor
@@ -2359,8 +2183,8 @@ var base = new qm.Base({
    schema: [{
       &quot;name&quot;: &quot;Articles&quot;,
       &quot;fields&quot;: [
-         { name: &quot;Title&quot;, type: &quot;string&quot; },
-         { name: &quot;Text&quot;, type: &quot;string&quot; }
+         { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+         { &quot;name&quot;: &quot;Text&quot;, &quot;type&quot;: &quot;string&quot; }
       ]
    }]
 });
@@ -2767,7 +2591,7 @@ var base = new qm.Base({
 // - we set the string vector Tokens with an array of strings
 // - we set the numeric sparse vector Vector with an array of two element arrays
 //   (index, value), see the sparse vector constructor {@link module:la.SparseVector}
-base.store(&#x27;NewsArticles&#x27;).add({
+base.store(&#x27;NewsArticles&#x27;).push({
   ID: &#x27;t12344&#x27;, 
   Source: &#x27;s1234&#x27;, 
   DateTime: &#x27;2015-01-01T00:05:00&#x27;, 
@@ -2942,12 +2766,12 @@ var base = new qm.Base({
 });
 // Adds a movie, automatically adds &#x27;Jim Jarmusch&#x27; to People, sets the &#x27;director&#x27; join (field join)
 // and automatically updates the index join &#x27;directed&#x27;, since it&#x27;s an inverse join of &#x27;director&#x27;
-base.store(&#x27;Movies&#x27;).add({ title: &#x27;Broken Flowers&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });
+base.store(&#x27;Movies&#x27;).push({ title: &#x27;Broken Flowers&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });
 // Adds a movie, sets the &#x27;director&#x27; join, updates the index join of &#x27;Jim Jarmusch&#x27;
-base.store(&#x27;Movies&#x27;).add({ title: &#x27;Coffee and Cigarettes&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });
+base.store(&#x27;Movies&#x27;).push({ title: &#x27;Coffee and Cigarettes&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });
 // Adds movie, automatically adds &#x27;Lars von Trier&#x27; to People, sets the &#x27;director&#x27; join
 // and &#x27;directed&#x27; inverse join (automatically)
-base.store(&#x27;Movies&#x27;).add({ title: &#x27;Dogville&#x27;, director: { name: &#x27;Lars von Trier&#x27; } });
+base.store(&#x27;Movies&#x27;).push({ title: &#x27;Dogville&#x27;, director: { name: &#x27;Lars von Trier&#x27; } });
 
 var movie = base.store(&#x27;Movies&#x27;)[0]; // get the first movie (Broken Flowers)
 // Each movie has a property corresponding to the join name: &#x27;director&#x27;. 
@@ -3047,8 +2871,8 @@ var base = new qm.Base({
     ]
 });
 
-base.store(&#x27;People&#x27;).add({name : &#x27;John Smith&#x27;});
-base.store(&#x27;People&#x27;).add({name : &#x27;Mary Smith&#x27;});
+base.store(&#x27;People&#x27;).push({name : &#x27;John Smith&#x27;});
+base.store(&#x27;People&#x27;).push({name : &#x27;Mary Smith&#x27;});
 // search based on indexed values
 base.search({$from : &#x27;People&#x27;, name: &#x27;John Smith&#x27;}); // Return the record set containing &#x27;John Smith&#x27;
 // search based on indexed values
@@ -3237,7 +3061,7 @@ var base = new qm.Base([{
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 29, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on May 29, 2015.
       </p>
     </div>
   </footer>
