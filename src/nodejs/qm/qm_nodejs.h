@@ -690,7 +690,9 @@ public:
 	TWPt<TQm::TBase> Base;
 	// C++ constructor
 	TNodeJsBase(const TWPt<TQm::TBase>& Base_) : Base(Base_) { Watcher = TNodeJsBaseWatcher::New(); }
-	TNodeJsBase(const TStr& DbPath, const TStr& SchemaFNm, const PJsonVal& Schema, const bool& Create, const bool& ForceCreate, const bool& ReadOnly, const TInt& IndexCache, const TInt& StoreCache);
+	TNodeJsBase(const TStr& DbPath, const TStr& SchemaFNm, const PJsonVal& Schema,
+        const bool& Create, const bool& ForceCreate, const bool& ReadOnly,
+        const uint64& IndexCache, const uint64& StoreCache);
 	// Object that knows if Base is valid
 	PNodeJsBaseWatcher Watcher;
 private:		

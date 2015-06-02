@@ -58,7 +58,9 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj, const bool Ig
 			}
 			if (!IgnoreFunc || !Val->IsFunction()) {
 				// supported cases. Alternatively, we could set the object to null
-				EAssertR(Val->IsObject() || Val->IsBoolean() || Val->IsNumber() || Val->IsString() || Val->IsArray() || Val->IsNull() || Val->IsRegExp() || Val->IsDate(), "TNodeJsUtil::GetObjJson: Cannot parse!");
+				EAssertR(Val->IsObject() || Val->IsBoolean() || Val->IsNumber() || Val->IsString() ||
+                    Val->IsArray() || Val->IsNull() || Val->IsRegExp() || Val->IsDate(),
+                    "TNodeJsUtil::GetObjJson: Cannot parse!");
 				JsonVal->AddToObj(FldNm, GetObjJson(Val->ToObject()));
             }
         }

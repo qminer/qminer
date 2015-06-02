@@ -214,7 +214,7 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 
 TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJsonVal& Schema,
         const bool& Create, const bool& ForceCreate, const bool& RdOnlyP,
-        const TInt& IndexCacheSize, const TInt& StoreCacheSize) {
+        const uint64& IndexCacheSize, const uint64& StoreCacheSize) {
     
     Watcher = TNodeJsBaseWatcher::New();
 
@@ -340,8 +340,8 @@ TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>&
 	bool Create = ((Mode == "create") || (Mode == "createClean"));
 	bool ForceCreate = (Mode == "createClean");
 	bool ReadOnly = (Mode == "openReadOnly");
-	TInt IndexCache = Val->GetObjInt("indexCache", 1024);
-	TInt StoreCache = Val->GetObjInt("storeCache", 1024);
+	uint64 IndexCache = (uint64)Val->GetObjInt("indexCache", 1024) * (uint64)TInt::Mega;
+	uint64 StoreCache = (uint64)Val->GetObjInt("storeCache", 1024) * (uint64)TInt::Mega;
 
 	TStr UnicodeFNm = Val->GetObjStr("unicode", TQm::TEnv::QMinerFPath + "./UnicodeDef.Bin");
 	if (!TUnicodeDef::IsDef()) { TUnicodeDef::Load(UnicodeFNm); }
@@ -792,7 +792,7 @@ void TNodeJsStore::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		// check we can write
 		QmAssertR(!Base->IsRdOnly(), "Base opened as read-only");
-
+    
 		PJsonVal RecVal = TNodeJsUtil::GetArgJson(Args, 0);
 		const uint64 RecId = Store->AddRec(RecVal);
 
