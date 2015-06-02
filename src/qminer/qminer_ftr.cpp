@@ -1,23 +1,9 @@
 /**
- * QMiner - Open Source Analytics Platform
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Quintelligence d.o.o.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
- * Contact: 
- *   Blaz Fortuna <blaz@blazfortuna.com>
- *
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #include "qminer_ftr.h"
@@ -117,25 +103,6 @@ PFtrExt TFtrExt::Load(const TWPt<TBase>& Base, TSIn& SIn) {
 void TFtrExt::Save(TSOut& SOut) const { 
     JoinSeqH.Save(SOut); 
     FtrStore->SaveId(SOut);
-}
-
-void TFtrExt::GetFtrDist(TFltV& FtrDistV) const {
-    // reserve space for all features
-    FtrDistV.Gen(GetDim()); FtrDistV.PutAll(0.0);
-    // write in the vector feature distribution
-    int Offset = 0; AddFtrDist(FtrDistV, Offset);
-}
-
-void TFtrExt::AddFtrDist(TFltV& FtrDistV, int& Offset) const {
-    // get uniform value
-    const int Vals = GetDim();
-    if (Vals > 0) {
-        const double UniVal = 1.0 / (double)Vals;
-        for (int ValN = 0; ValN < Vals; ValN++) {
-            FtrDistV[Offset + ValN] = UniVal;
-        }
-        Offset += Vals;
-    }
 }
 
 void TFtrExt::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
@@ -370,15 +337,6 @@ TStr TFtrSpace::GetFtr(const int& FtrN) const {
 	}
 	throw TQmExcept::New("Feature number out of bounds!");
 	return TStr();
-}
-
-void TFtrSpace::GetFtrDist(TFltV& FtrDistV) const {
-    // create empty full vector
-    FtrDistV.Gen(GetDim()); FtrDistV.PutAll(0.0);
-	int Offset = 0;
-	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
-		FtrExtV[FtrExtN]->AddFtrDist(FtrDistV, Offset);
-	}
 }
 
 int TFtrSpace::GetFtrExts() const {

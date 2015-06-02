@@ -13,10 +13,14 @@
                 # core qm module
                 'src/nodejs/qm/qm_nodejs.h',
                 'src/nodejs/qm/qm_nodejs.cpp',
+                'src/nodejs/qm/qm_nodejs_streamaggr.h',
+                'src/nodejs/qm/qm_nodejs_streamaggr.cpp',
                 'src/nodejs/qm/qm_param.h',
                 # la
                 'src/nodejs/la/la_nodejs.h',
-                'src/nodejs/la/la_nodejs.cpp',
+                'src/nodejs/la/la_structures_nodejs.h',
+                'src/nodejs/la/la_structures_nodejs.cpp',
+                'src/nodejs/la/la_vector_nodejs.h',
                 # analytics
                 'src/nodejs/analytics/analytics.h',
                 'src/nodejs/analytics/analytics.cpp',
@@ -76,6 +80,31 @@
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
                     }
+                }],
+                ['OS == "win"', {
+                    'configurations': {
+                        'Debug': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
+                            },
+                        },
+                        'Release': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
+                            },
+                            'defines' : ['NDEBUG']
+                        },
+                    }
                 }]
             ]
         },{
@@ -113,6 +142,31 @@
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
                     }
+                }],
+                ['OS == "win"', {
+                    'configurations': {
+                        'Debug': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
+                            },
+                        },
+                        'Release': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
+                            },
+                            'defines' : ['NDEBUG']
+                        },
+                    }
                 }]
             ]
         }, {
@@ -141,6 +195,31 @@
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }],
+                ['OS == "win"', {
+                    'configurations': {
+                        'Debug': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
+                            },
+                        },
+                        'Release': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
+                            },
+                            'defines' : ['NDEBUG']
+                        },
                     }
                 }]
             ]
@@ -172,6 +251,31 @@
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }],
+                ['OS == "win"', {
+                    'configurations': {
+                        'Debug': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
+                            },
+                        },
+                        'Release': {
+                            'msvs_settings': {
+                                'VCCLCompilerTool': {
+                                    'RuntimeTypeInfo': 'true',      # /GR
+                                },
+                                'VCLinkerTool': {
+                                    'SubSystem' : 1, # Console
+                                },
+                            },
+                            'defines' : ['NDEBUG']
+                        },
                     }
                 }]
             ]

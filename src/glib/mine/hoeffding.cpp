@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 namespace THoeffding {
    ///////////////////////////////
    // constant-definitions
@@ -448,7 +456,7 @@ namespace THoeffding {
                BinsV.GetVal(Idx).Id));
          } else { // Otherwise, increment the closest bin 
             Idx = 0;
-            PrevDist = CrrDist = abs(Val - BinsV.GetVal(0).GetVal());
+            PrevDist = CrrDist = fabs(Val - BinsV.GetVal(0).GetVal());
             // NOTE: We could use binary search because of the ordering
             // invariant; but the number of bins rarely exeecds 100 
             // While distance starts increasing, stop --- our bin is the one
@@ -457,7 +465,7 @@ namespace THoeffding {
                EAssertR(BinsV.GetVal(BinN-1).GetVal() <=
                   BinsV.GetVal(BinN).GetVal(), "Bins not sorted.");
                PrevDist = CrrDist;
-               CrrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
+               CrrDist = fabs(Val - BinsV.GetVal(BinN).GetVal());
                if (CrrDist > PrevDist) {
                   Idx = BinN-1; break;
                }
@@ -506,13 +514,13 @@ namespace THoeffding {
          // NOTE: For debugging purposes 
          EAssertR(BinN < BinsV.Len(), "No suitable Bin with Bin.ID<=Ex.ID.");
          PrevIdx = Idx = BinN; // First suitable bin 
-         PrevDist = CrrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
+         PrevDist = CrrDist = fabs(Val - BinsV.GetVal(BinN).GetVal());
          // The order is preserved even though new bins might have been
          // created between the old ones 
          for (; BinN < BinsV.Len(); ++BinN) {
             if (BinsV.GetVal(BinN).Id <= Example->BinId) {
                PrevDist = CrrDist;
-               CrrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
+               CrrDist = fabs(Val - BinsV.GetVal(BinN).GetVal());
                if (CrrDist > PrevDist) {
                   Idx = PrevIdx; break;
                } else { PrevIdx = BinN; }
@@ -537,12 +545,12 @@ namespace THoeffding {
             BinsV.GetVal(Idx).Inc(RegValue);
          } else { // Otherwise, increment the closest bin 
             Idx = 0;
-            CrrDist = PrevDist = abs(Val - BinsV.GetVal(0).GetVal());
+            CrrDist = PrevDist = fabs(Val - BinsV.GetVal(0).GetVal());
             for (BinN = 1; BinN < BinsV.Len(); ++BinN) {
                PrevDist = CrrDist;
                // We are fine, because bins are ordered inside the vector
                // by the initialization values 
-               CrrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
+               CrrDist = fabs(Val - BinsV.GetVal(BinN).GetVal());
                if (CrrDist > PrevDist) {
                   Idx = BinN - 1;
                   break;
@@ -1496,7 +1504,7 @@ namespace THoeffding {
             const double IG1 = SplitAttr.Val1.Val2;
             // Preprunning [Hulten et al., 2001] 
             // Note that (H-IG1)-H == -IG1 
-            EAssertR(abs((H-IG1)-H - (-IG1)) < 0.000001, "(H-IG1)-H != -IG1");
+            EAssertR(fabs((H-IG1)-H - (-IG1)) < 0.000001, "(H-IG1)-H != -IG1");
             if (-IG1 > Eps || (IG1 < Eps && Eps < TieBreaking)) {
                printf("[DEBUG] Preprunned.\n");
                return;
@@ -2121,7 +2129,7 @@ namespace THoeffding {
       const double& Pred) const {
       ++Node->All; // Number of examples that passed through the node 
       // Update the mean error [Knuth, TAOCP, Vol. 2, p. 232] 
-      const double TmpErr = abs(Val-Pred);
+      const double TmpErr = fabs(Val-Pred);
       const double CrrErr = Node->PhAvgErr;
       Node->PhAvgErr = CrrErr + (TmpErr-CrrErr)/Node->All;
       // Update cumulative sum 
@@ -2246,7 +2254,7 @@ namespace THoeffding {
       }
       if (JsonParams->IsObjKey("maxNodes") &&
          JsonParams->GetObjKey("maxNodes")->IsNum()) {
-         MxNodes = JsonParams->GetObjNum("maxNodes");
+         MxNodes = (int)JsonParams->GetObjNum("maxNodes");
          // printf("MxNodes = %d\n", MxNodes);
       }
       if (JsonParams->IsObjKey("conceptDriftP") &&
@@ -2336,7 +2344,7 @@ namespace THoeffding {
       // InitN, the number of examples for mean value to "stabilize" 
       if (JsonParams->IsObjKey("phInit") &&
          JsonParams->GetObjKey("phInit")->IsNum()) {
-         PhInitN = JsonParams->GetObjNum("phInit");
+         PhInitN = (int)JsonParams->GetObjNum("phInit");
          EAssertR(PhInitN >= 0,
             "JSON config error: phInit must be nonnegative");
       }

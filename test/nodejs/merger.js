@@ -1,13 +1,24 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+ 
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
 var qm = require('../../');
 
+
+describe('Merger test, old', function () {
+	it('should survive', function (done) {
+	this.timeout(10000);
 qm.delLock();
-qm.config('qm.conf', true, 8080, 1024);
 var backward = require('../../src/nodejs/scripts/backward.js');
 backward.addToProcess(process); // adds process.isArg function
 
-var base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
+var base = new qm.Base({ mode: 'createClean' });
 
 
 console.log("Merger", "Testing merger");
@@ -163,7 +174,7 @@ function testMerger() {
         };
 
         console.log('inserting: ' + JSON.stringify(insertObj));
-        store.add(insertObj);
+        store.push(insertObj);
     }
 
     var store = base.store('joined');
@@ -266,7 +277,7 @@ function testMerger() {
         };
 
         console.log('inserting: ' + JSON.stringify(insertObj));
-        store.add(insertObj);
+        store.push(insertObj);
     }
 
     var store = base.store('joined1');
@@ -370,7 +381,7 @@ function testMerger() {
         };
 
         console.log('inserting: ' + JSON.stringify(insertObj));
-        store.add(insertObj);
+        store.push(insertObj);
     }
 
     var store = base.store('joined11');
@@ -490,7 +501,7 @@ function testResampler() {
         };
 
         console.log('inserting: ' + JSON.stringify(insertObj));
-        rawStore.add(insertObj);
+        rawStore.push(insertObj);
     }
 
     var recSet = resampledStore.recs;
@@ -519,3 +530,8 @@ testMerger();
 testResampler();
 
 base.close();
+
+done();
+
+})
+});

@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 #include "mc.h"
 
 using namespace TMc;
@@ -604,7 +612,7 @@ TFullMatrix TEuclMds::Project(const TFullMatrix& X, const int& d) {
 	// so X_d = V_d * diag({|s_i|})
 	TMatVecMatTr Svd = X1.Svd(d);
 
-	const TVector& EigValsSqrt = Svd.Val2.Map([&](const TFlt& Val) { return abs(Val); });
+	const TVector& EigValsSqrt = Svd.Val2.Map([&](const TFlt& Val) { return fabs(Val); });
 	const TFullMatrix& V = Svd.Val3;
 
 	TFullMatrix X_d = V*TFullMatrix::Diag(EigValsSqrt);

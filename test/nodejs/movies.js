@@ -1,15 +1,25 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+ 
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
-var qm = require('../../');
-qm.delLock();
-//qm.rmDir('db') // run from qminer/test/nodejs 
+var qm = require('qminer');
 
-qm.config('qm.conf', true, 8080, 1024);
+
+//describe('Movies test, old', function () {
+//	it('should survive', function () {
+		
+qm.delLock();
 // add store.addTrigger method
 var backward = require('../../src/nodejs/scripts/backward.js');
 backward.addToProcess(process); // adds process.isArg function
 
-var base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
+var base = new qm.Base({ mode: 'createClean' });
 
 console.log("Movies", "Starting test based on IMDB sample");
 
@@ -117,31 +127,31 @@ Movies.addTrigger({
 });
 
 // insert a person
-assert.equal(People.add({ "Name": "Carolina Fortuna", "Gender": "Female" }), 0, "Person.add");
+assert.equal(People.push({ "Name": "Carolina Fortuna", "Gender": "Female" }), 0, "Person.add");
 assert.equal(People.length, 1, "People.length");
 assert(null != People[0], "People[0]");
 assert.equal(People[0].Name, "Carolina Fortuna", "People[0].Name");
 assert.equal(People[0].Gender, "Female", "People[0].Gender");
 // insert a person
-assert.equal(People.add({"Name": "Blaz Fortuna", "Gender": "Male"}), 1, "Person.add");
+assert.equal(People.push({"Name": "Blaz Fortuna", "Gender": "Male"}), 1, "Person.add");
 assert.equal(People.length, 2, "People.length");
 assert(null != People[1], "People[1]");
 assert.equal(People[1].Name, "Blaz Fortuna", "People[1].Name");
 assert.equal(People[1].Gender, "Male", "People[1].Gender");
 // insert existing person
-assert.equal(People.add({"Name": "Blaz Fortuna", "Gender": "Male"}), 1, "Person.add");
+assert.equal(People.push({"Name": "Blaz Fortuna", "Gender": "Male"}), 1, "Person.add");
 assert.equal(People.length, 2, "People.length");
 
 var PeopleIter = People.forwardIter;
 assert.equal(PeopleIter.next(), true, "People.forwardIter.next()");
-assert.equal(PeopleIter.rec.$id, 0, "People.forwardIter.rec.$id");
+assert.equal(PeopleIter.record.$id, 0, "People.forwardIter.record.$id");
 assert.equal(PeopleIter.next(), true, "People.forwardIter.next()");
-assert.equal(PeopleIter.rec.$id, 1, "People.forwardIter.rec.$id");
+assert.equal(PeopleIter.record.$id, 1, "People.forwardIter.record.$id");
 assert.equal(PeopleIter.next(), false, "People.forwardIter.next()");
 
 // insert a movie
 var movie1 = {"Title":"Every Day", "Plot":"This day really isn't all that different than every other day. Except today, Ned's gay son Jonah wants to go to a college party, his wife is bringing home their elderly father to live with them, and his outrageous boss seems to have become even more crazy and demanding than would even seem possible. As his wife tries to take care of her father reconnect with him, Ned tries to reconnect with Jonah, and then without trying, he seems to have formed a connection with his co-worker. If he can get through days like these, he should be able to get through anything else life throws at him. Ned and Jeannie: married 19 years. Ned has trouble with Garrett, his boss at the cable show he writes, and he's ill-at-ease with his older son Jonah's coming out and wanting to go to a high-school gay student society prom. Jeannie puts work on hold while she attends to Ernie, her sour and mean-spirited father whose ill health forces him to move in with them. While Jeannie taxis the boys, goes to one son's recital, sees to her father's needs, and fixes meals, Garrett assigns Ned to rewrite a script with Robin, an uninhibited, unattached colleague who offers no-strings fun. Can this family hold together while a chicken hawk circles Jonah, Robin inveigles Ned, and death hunts Ernie?", "Year":2010, "Rating":5.6, "Genres":["Comedy", "Drama"], "Director":{"Name":"Levine Richard (III)", "Gender":"Unknown"}, "Actor":[{"Name":"Beetem Chris", "Gender":"Male"}, {"Name":"Carp Stan", "Gender":"Male"}, {"Name":"Chan Albert M.", "Gender":"Male"}, {"Name":"Dennehy Brian", "Gender":"Male"}, {"Name":"Durell Jesse", "Gender":"Male"}, {"Name":"Farcher Daniel", "Gender":"Male"}, {"Name":"Fortgang Skyler", "Gender":"Male"}, {"Name":"Harbour David (I)", "Gender":"Male"}, {"Name":"Ingram Michael H.", "Gender":"Male"}, {"Name":"Izzard Eddie", "Gender":"Male"}, {"Name":"James Kahan", "Gender":"Male"}, {"Name":"Jones Tilky", "Gender":"Male"}, {"Name":"Kempner Matt", "Gender":"Male"}, {"Name":"Miller Ezra", "Gender":"Male"}, {"Name":"Orchestra Black Diamond", "Gender":"Male"}, {"Name":"Riddle George", "Gender":"Male"}, {"Name":"Routman Steve", "Gender":"Male"}, {"Name":"Schreiber Liev", "Gender":"Male"}, {"Name":"Yelsky Daniel", "Gender":"Male"}, {"Name":"Gard Cassidy", "Gender":"Female"}, {"Name":"Giancoli Bianca", "Gender":"Female"}, {"Name":"Gugino Carla", "Gender":"Female"}, {"Name":"Hahn Sabrina", "Gender":"Female"}, {"Name":"Hunt Helen (I)", "Gender":"Female"}, {"Name":"Miller June (I)", "Gender":"Female"}, {"Name":"Robledo Benita", "Gender":"Female"}]};
-assert.equal(Movies.add(movie1), 0, "Movies.add");
+assert.equal(Movies.push(movie1), 0, "Movies.add");
 assert.equal(Movies.length, 1, "Movies.length");
 assert.equal(People.length, 29, "People.length");
 // check correctly asserted
@@ -154,12 +164,12 @@ assert.equal(Movies[0].Director.Name, "Levine Richard (III)", "Movies[0].Directo
 
 var MoviesIter = Movies.forwardIter;
 assert.equal(MoviesIter.next(), true, "Movies.forwardIter.next()");
-assert.equal(MoviesIter.rec.$id, 0, "Movies.forwardIter.rec.$id");
+assert.equal(MoviesIter.record.$id, 0, "Movies.forwardIter.record.$id");
 assert.equal(MoviesIter.next(), false, "Movies.forwardIter.next()");
 
 // insert a movie
 var movie2 = {"Title":"Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on", "Plot":"no plot available", "Year":2006, "Rating":5.8, "Genres":["Action", "Comedy", "Family", "Fantasy"], "Director":{"Name":"Reyes Tony Y.", "Gender":"Unknown"}, "Actor":[{"Name":"Aquitania Antonio", "Gender":"Male"}, {"Name":"Ballesteros Paolo", "Gender":"Male"}, {"Name":"Bayola Wally", "Gender":"Male"}, {"Name":"Casimiro Jr. Bayani", "Gender":"Male"}, {"Name":"de Leon Joey", "Gender":"Male"}, {"Name":"Forbes BJ", "Gender":"Male"}, {"Name":"Ignacio Levi", "Gender":"Male"}, {"Name":"K. Allan", "Gender":"Male"}, {"Name":"Lapid Jr. Jess", "Gender":"Male"}, {"Name":"Manalo Jose", "Gender":"Male"}, {"Name":"Salas Paul", "Gender":"Male"}, {"Name":"Santos Jimmy (I)", "Gender":"Male"}, {"Name":"Sotto Gian", "Gender":"Male"}, {"Name":"Sotto Oyo Boy", "Gender":"Male"}, {"Name":"Sotto Tito", "Gender":"Male"}, {"Name":"Sotto Vic", "Gender":"Male"}, {"Name":"V. Michael (I)", "Gender":"Male"}, {"Name":"Zamora Ramon", "Gender":"Male"}, {"Name":"Alano Alyssa", "Gender":"Female"}, {"Name":"Guanio Pia", "Gender":"Female"}, {"Name":"Hermosa Kristine", "Gender":"Female"}, {"Name":"Jones Angelica", "Gender":"Female"}, {"Name":"Loyzaga Bing", "Gender":"Female"}, {"Name":"Madrigal Ehra", "Gender":"Female"}, {"Name":"Parker J.C.", "Gender":"Female"}, {"Name":"Ponti Cassandra", "Gender":"Female"}, {"Name":"Ramirez Mikylla", "Gender":"Female"}, {"Name":"Rodriguez Ruby (I)", "Gender":"Female"}, {"Name":"Seguerra Aiza", "Gender":"Female"}, {"Name":"Sotto Ciara", "Gender":"Female"}, {"Name":"Toengi Giselle", "Gender":"Female"}, {"Name":"V. Ella", "Gender":"Female"}]};
-assert.equal(Movies.add(movie2), 1, "Movies.add");
+assert.equal(Movies.push(movie2), 1, "Movies.add");
 assert.equal(Movies.length, 2, "Movies.length");
 assert.equal(People.length, 62, "People.length");
 // check correctly inserted
@@ -354,7 +364,7 @@ for (var i = 0; i < queries.length; i++) {
 var moviesIter = Movies.forwardIter;
 var moviesCount = 0;
 while (moviesIter.next()) {
-    assert.equal(moviesCount, moviesIter.rec.$id, "moviesCount == moviesIter.rec.$id");
+    assert.equal(moviesCount, moviesIter.record.$id, "moviesCount == moviesIter.record.$id");
     moviesCount++;
 }
 assert.equal(moviesCount, Movies.length, "moviesCount = Movies.length");
@@ -362,7 +372,7 @@ assert.equal(moviesCount, Movies.length, "moviesCount = Movies.length");
 var moviesIter = Movies.backwardIter;
 while (moviesIter.next()) {
     moviesCount--;
-    assert.equal(moviesCount, moviesIter.rec.$id, "moviesCount == moviesIter.rec.$id");
+    assert.equal(moviesCount, moviesIter.record.$id, "moviesCount == moviesIter.record.$id");
 }
 assert.equal(moviesCount, 0, "moviesCount = 0");
 // test first record
@@ -371,3 +381,5 @@ assert.equal(Movies.first.$id, 0, "Movies.first.$id");
 assert.equal(Movies.last.$id, Movies.length - 1, "Movies.last.$id");
 
 base.close();
+
+//})});

@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #ifndef QMINER_SNAP_NODEJS
 #define QMINER_SNAP_NODEJS
 
@@ -66,7 +73,10 @@ private:
 	JsDeclareFunction(adjMat);
 	JsDeclareFunction(dump);
 	JsDeclareFunction(components);
+	JsDeclareFunction(renumber);
 	JsDeclareFunction(degreeCentrality);
+	JsDeclareFunction(load);
+	JsDeclareFunction(save);
 private:
 	static v8::Persistent<v8::Function> constructor;
 };
@@ -202,7 +212,7 @@ void TNodeJsGraph<T>::addNode(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			v8::String::NewFromUtf8(Isolate, "Expected number")));
 	}
 	else {
-		int id = Args[0]->ToNumber()->Value();
+		int id = TNodeJsUtil::GetArgInt32(Args, 0);
 		if (!NodeJsGraph->Graph->IsNode(id))
 			NodeJsGraph->Graph->AddNode(id);
 	}
@@ -221,8 +231,8 @@ void TNodeJsGraph<T>::addEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			v8::String::NewFromUtf8(Isolate, "Expected 2 arguments.")));
 	}
 	else {
-		int SrcId = Args[0]->ToNumber()->Value();
-		int DstId = Args[1]->ToNumber()->Value();
+		int SrcId = TNodeJsUtil::GetArgInt32(Args, 0);
+		int DstId = TNodeJsUtil::GetArgInt32(Args, 1);
 		if (NodeJsGraph->Graph->IsNode(SrcId) && NodeJsGraph->Graph->IsNode(DstId))
 			NodeJsGraph->Graph->AddEdge(SrcId, DstId);
 	}
@@ -248,7 +258,7 @@ void TNodeJsGraph<T>::delNode(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			v8::String::NewFromUtf8(Isolate, "Expected number")));
 	}
 	else {
-		int id = Args[0]->ToNumber()->Value();
+		int id = TNodeJsUtil::GetArgInt32(Args, 0);
 		if (NodeJsGraph->Graph->IsNode(id))
 			NodeJsGraph->Graph->DelNode(id);
 	}
@@ -267,8 +277,8 @@ void TNodeJsGraph<T>::delEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			v8::String::NewFromUtf8(Isolate, "Expected 2 arguments.")));
 	}
 	else {
-		int SrcId = Args[0]->ToNumber()->Value();
-		int DstId = Args[1]->ToNumber()->Value();
+		int SrcId = TNodeJsUtil::GetArgInt32(Args, 0);
+		int DstId = TNodeJsUtil::GetArgInt32(Args, 1);
 		if (NodeJsGraph->Graph->IsEdge(SrcId, DstId))
 			NodeJsGraph->Graph->DelEdge(SrcId, DstId);
 	}
@@ -298,7 +308,7 @@ void TNodeJsGraph<T>::isNode(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, node));
 	}
 	else {
-		int id = Args[0]->ToNumber()->Value();
+		int id = TNodeJsUtil::GetArgInt32(Args, 0);
 		node = NodeJsGraph->Graph->IsNode(id);
 		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, node));
 	}
@@ -320,8 +330,8 @@ void TNodeJsGraph<T>::isEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, edge));
 	}
 	else {
-		int SrcId = Args[0]->ToNumber()->Value();
-		int DstId = Args[1]->ToNumber()->Value();
+		int SrcId = TNodeJsUtil::GetArgInt32(Args, 0);
+		int DstId = TNodeJsUtil::GetArgInt32(Args, 1);
 		edge = NodeJsGraph->Graph->IsEdge(SrcId, DstId);
 		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, edge));
 	}
@@ -353,7 +363,7 @@ template <class T>
 void TNodeJsGraph<T>::node(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	int id = Args[0]->ToNumber()->Value();
+	int id = TNodeJsUtil::GetArgInt32(Args, 0);
 
 	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsGraph* NodeJsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Self);
@@ -522,9 +532,18 @@ void TNodeJsGraph<T>::components(const v8::FunctionCallbackInfo<v8::Value>& Args
 			Mat[i][j].Key = id;
 			Mat[i][j].Dat = 1;
 		}
+		Mat[i].Sort();
 	}
 
-	Args.GetReturnValue().Set(TNodeJsSpMat::New(Mat));
+	Args.GetReturnValue().Set(TNodeJsSpMat::New(Mat, TLAMisc::GetMaxDimIdx(Mat) + 1));
+}
+
+template <class T>
+void TNodeJsGraph<T>::renumber(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
+	JsGraph->Graph = TSnap::ConvertGraph<TPt<T>, TPt<T> >(JsGraph->Graph, true);
 }
 
 template <class T>
@@ -545,6 +564,36 @@ void TNodeJsGraph<T>::degreeCentrality(const v8::FunctionCallbackInfo<v8::Value>
 	Args.GetReturnValue().Set(v8::Number::New(ReturnCentrality));*/
 }
 
+
+template <class T>
+void TNodeJsGraph<T>::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject() && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::ClassId),
+		"Expected a FIn object as the argument.");
+	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
+
+	TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+	PSIn SIn = JsFIn->SIn;
+	JsGraph->Graph = JsGraph->Graph->Load(*SIn);
+	Args.GetReturnValue().Set(Args.Holder());
+}
+
+template <class T>
+void TNodeJsGraph<T>::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject() && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFOut::ClassId),
+		"Expected a FOut object as the argument.");
+	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
+
+	TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+	PSOut SOut = JsFOut->SOut;
+	JsGraph->Graph->Save(*SOut);
+	Args.GetReturnValue().Set(Args[0]);
+}
 
 
 ///// node implementations
@@ -645,7 +694,7 @@ template <class T>
 void TNodeJsNode<T>::nbrId(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	int N = Args[0]->ToNumber()->Value();
+	int N = TNodeJsUtil::GetArgInt32(Args, 0);
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 	int nbrid = JsNode->Node.GetNbrNId(N);
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, nbrid));

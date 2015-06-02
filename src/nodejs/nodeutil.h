@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #ifndef QMINER_NODEJS_UTILS
 #define QMINER_NODEJS_UTILS
 
@@ -159,7 +166,9 @@ public:
     static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Extract argument ArgN as int, and use DefVal in case when not present
     static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const int& DefVal);
-    /// Extract argument ArgN property as int
+	/// Extract argument ArgN property as int
+	static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property);
+	/// Extract argument ArgN property as int
     static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const int& DefVal);
 
     /// Extract argument ArgN as double
@@ -240,6 +249,15 @@ public:
 
 	/// Convert v8 external array (binary data) to PMem
 	static PMem GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+
+	/// Used for unwrapping objects that depend on TBase being valid
+	template <class TClass>
+	static TClass* UnwrapCheckWatcher(v8::Handle<v8::Object> handle);
+
+
+	template <class TClass>
+	static TClass* Unwrap(v8::Handle<v8::Object> handle) { return node::ObjectWrap::Unwrap<TClass>(handle); }
+	
 };
 
 template <class T>
@@ -324,6 +342,13 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Loc
 
 	v8::Handle<v8::Value> Argv[1] = { Arg };
 	Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
+}
+
+template <class TClass>
+TClass* TNodeJsUtil::UnwrapCheckWatcher(v8::Handle<v8::Object> handle) {
+	TClass* Obj = node::ObjectWrap::Unwrap<TClass>(handle);
+	Obj->Watcher->AssertOpen();
+	return Obj;
 }
 
 

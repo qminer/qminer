@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #include "nodeutil.h"
 
 /////////////////////////////////////////
@@ -152,7 +159,8 @@ bool TNodeJsUtil::IsArgClass(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d of class %s", ArgN, ClassNm.CStr()));
-    EAssertR(Args[ArgN]->IsObject(), TStr("Argument expected to be '" + ClassNm + "' but is not even an object!"));
+    
+	if (!Args[ArgN]->IsObject()) return false;
     v8::Handle<v8::Value> Val = Args[ArgN];
     v8::Handle<v8::Object> Data = v8::Handle<v8::Object>::Cast(Val);
     TStr ClassStr = GetClass(Data);
@@ -277,6 +285,22 @@ int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     return Val->Int32Value();
 }
 
+
+int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() > ArgN, "insufficient number of arguments!");
+
+	EAssertR(Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr())), TStr::Fmt("Argument %d, missing property %s", ArgN, Property.CStr()).CStr());
+
+	v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
+	bool IsInt = Val->IsInt32();
+	EAssertR(IsInt,
+		TStr::Fmt("Argument %d, property %s expected to be int32", ArgN, Property.CStr()).CStr());
+	return Val->ToNumber()->Int32Value();	
+}
+
 int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const int& DefVal) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -368,8 +392,7 @@ TStr TNodeJsUtil::GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
     EAssertR(Args.Length() >= ArgN, "TNodeJsUtil::GetArgJson: Invalid number of arguments!");
     EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgJson: Argument is not an object!");
-
-    return GetObjJson(Args[ArgN]->ToObject());
+	return GetObjJson(Args[ArgN]->ToObject());
 }
 
 bool TNodeJsUtil::IsObjFld(v8::Local<v8::Object> Obj, const TStr& FldNm) {
@@ -413,28 +436,6 @@ double TNodeJsUtil::ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Lo
 	EAssertR(RetVal->IsNumber(), "Return type expected to be number");
 
 	return RetVal->NumberValue();
-}
-
-PJsonVal TNodeJsUtil::ExecuteJson(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg1, const v8::Local<v8::Object>& Arg2) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	v8::Handle<v8::Value> Argv[2] = { Arg1, Arg2 };
-	v8::Handle<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 2, Argv);
-
-	EAssertR(RetVal->IsObject() || RetVal->IsArray(), "The returned value is not an object!");
-
-	return TNodeJsUtil::GetObjJson(RetVal->ToObject());
-}
-
-void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& ArgC, v8::Handle<v8::Value> ArgV[]) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-	Fun->Call(Isolate->GetCurrentContext()->Global(), ArgC, ArgV);
-}
-
-void TNodeJsUtil::ThrowJsException(v8::Isolate* Isolate, const PExcept& Except) {
-	Isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr())));
 }
 
 v8::Local<v8::Value> TNodeJsUtil::V8JsonToV8Str(const v8::Handle<v8::Value>& Json) {

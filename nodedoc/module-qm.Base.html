@@ -1,0 +1,412 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta charset="utf-8">
+  <title>Class: Base</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Base</span></h1>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-578">qminerdoc.<wbr>js:578</a></p>
+            <div class="symbol-classdesc">
+              <p>Represents the database and holds stores.</p>
+            </div>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Base.html#close">close()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Base.html#createStore">createStore(storeDef[, storeSizeInMB])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Base.html#garbageCollect">garbageCollect()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Base.html#getStats">getStats()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Base.html#getStoreList">getStoreList()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Base.html#partialFlush">partialFlush(window)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Base.html#search">search(query)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Base.html#store">store(name)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2 id="Base">new&nbsp;<span class="symbol-name">Base</span><span class="signature"><span class="signature-params">(paramObj)</span></span></h2>
+            <p>Base</p>
+            <section>
+              <h3>
+            Example
+        </h3>
+              <div>
+                <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// using a constructor, in open mode:
+var base = new qm.Base({mode: &#x27;open&#x27;});</code></pre>
+              </div>
+            </section>
+            <section>
+              <h3>Parameter</h3>
+              <table class="jsdoc-details-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p>paramObj</p>
+                    </td>
+                    <td>
+                      <p><a href="module-qm.html#~BaseConstructorParam">module:qm~BaseConstructorParam</a></p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>The base constructor parameter object.</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+            <dl class="dl-compact">
+            </dl>
+          </section>
+          <section>
+            <h2>Methods</h2>
+            <section>
+              <h3 id="close"><span class="symbol-name">close</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> null</span></span></h3>
+              <p>Closes the database.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>null</code>&nbsp;</p>
+                </dd>
+              </dl>
+              <h3 id="createStore"><span class="symbol-name">createStore</span><span class="signature"><span class="signature-params">(storeDef[, storeSizeInMB])</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-qm.Store.html">module:qm.Store</a> or Array of <a href="module-qm.Store.html">module:qm.Store</a>)</span></span></h3>
+              <p>Creates a new store.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base with one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       &quot;name&quot;: &quot;Superheroes&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; },
+           { &quot;name&quot;: &quot;YearsActive&quot;, &quot;type&quot;: &quot;int&quot; }
+       ]
+   }]
+})
+// create a new store called &quot;Supervillains&quot; in the base
+base.createStore({
+   &quot;name&quot;: &quot;Supervillians&quot;
+   &quot;fields&quot;: [
+       { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+       { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; },
+       { &quot;name&quot;: &quot;YearsActive&quot;, &quot;type&quot;: &quot;int&quot; }
+   ]
+})
+// create two new stores called &quot;Cities&quot; and &quot;Leagues&quot;
+base.createStore([
+   {
+       &quot;name&quot;: &quot;Cities&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+           { &quot;name&quot;: &quot;Population&quot;, &quot;type&quot;: &quot;int&quot; }
+       ]
+   },
+   {
+       &quot;name&quot;: &quot;Leagues&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Members&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       ]
+   }
+])</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>storeDef</p>
+                      </td>
+                      <td>
+                        <p>Array of <a href="module-qm.html#~SchemaDefinition">module:qm~SchemaDefinition</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The definition of the store(s).</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>storeSizeInMB</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The reserved size of the store(s).</p>
+                        <p>Defaults to <code>1024</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>(<a href="module-qm.Store.html">module:qm.Store</a> or Array of <a href="module-qm.Store.html">module:qm.Store</a>)</code>&nbsp;- Returns a store or an array of stores (if the schema definition was an array).</p>
+                </dd>
+              </dl>
+              <h3 id="garbageCollect"><span class="symbol-name">garbageCollect</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Calls qminer garbage collector to remove records outside time windows.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="getStats"><span class="symbol-name">getStats</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Retrieves performance statistics for qminer.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="getStoreList"><span class="symbol-name">getStoreList</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Array of Object</span></span></h3>
+              <p>Returns a list of store descriptors.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Array of Object</code>&nbsp;</p>
+                </dd>
+              </dl>
+              <h3 id="partialFlush"><span class="symbol-name">partialFlush</span><span class="signature"><span class="signature-params">(window)</span></span></h3>
+              <p>Calls qminer partial flush - base saves dirty data given some time-window.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>window</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Length of available time-window in msec. Default 500.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="search"><span class="symbol-name">search</span><span class="signature"><span class="signature-params">(query)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
+              <p>Creates a new store.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>query</p>
+                      </td>
+                      <td>
+                        <p>module:qm~QueryObject</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>query language JSON object</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;- Returns the record set that matches the search criterion</p>
+                </dd>
+              </dl>
+              <h3 id="store"><span class="symbol-name">store</span><span class="signature"><span class="signature-params">(name)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Store.html">module:qm.Store</a></span></span></h3>
+              <p>Returns the store with the specified name.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with two stores
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       &quot;name&quot;: &quot;Kwik-E-Mart&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Worker&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;Groceries&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       ]
+   },
+   {
+       &quot;name&quot;: &quot;NuclearPowerplant&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Owner&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;NumberOfAccidents&quot;, &quot;type&quot;: &quot;int&quot; },
+           { &quot;name&quot;: &quot;Workers&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       ]
+   }]
+})
+// get the &quot;Kwik-E-Mart&quot; store 
+var store = base.store(&quot;Kwik-E-Mart&quot;);	// returns the store with the name &quot;Kwik-E-Mart&quot;</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Name of the store.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.Store.html">module:qm.Store</a></code>&nbsp;The store.</p>
+                </dd>
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on May 29, 2015.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

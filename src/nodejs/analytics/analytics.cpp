@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #include "analytics.h"
 
 //////////////////////////////////////////////////////
@@ -10,7 +17,7 @@ TNodeJsSvmModel::TNodeJsSvmModel(const PJsonVal& ParamVal):
 		Algorithm("SGD"),
 		SvmCost(1.0),
 		SvmUnbalance(1.0),
-		SvmEps(1.0),
+		SvmEps(0.1),
 		SampleSize(1000),
 		MxIter(10000),
 		MxTime(1000*1),
@@ -61,7 +68,7 @@ void TNodeJsSvmModel::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	try {
-		QmAssertR(Args.IsConstructCall(), "SVC: not a constructor call!");
+		QmAssertR(Args.IsConstructCall(), "SVM: not a constructor call!");
 		if (Args.Length() == 0) {
 			Args.GetReturnValue().Set(TNodeJsSvmModel::WrapInst(Args.This(), TJsonVal::NewObj()));
 			return;
@@ -93,7 +100,7 @@ void TNodeJsSvmModel::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args)
 			Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Model->GetParams()));
 		}
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsStreamStory::getParams");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "SVM::getParams");
 	}
 }
 
@@ -112,7 +119,7 @@ void TNodeJsSvmModel::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args)
 
 		Args.GetReturnValue().Set(Args.Holder());
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsStreamStory::getParams");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "SVM::setParams");
 	}
 }
 
@@ -578,6 +585,7 @@ void TNodeJsLogReg::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "newMatrix", _newMatrix);
 
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
@@ -675,6 +683,17 @@ void TNodeJsLogReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	JsModel->LogReg.Save(*JsFOut->SOut);
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsLogReg::newMatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TFltV FltV;
+	FltV.Add(1);
+	FltV.Add(2);
+
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(FltV));
 }
 
 ////////////////////////////////////////////////////////
@@ -1275,7 +1294,7 @@ void TNodeJsStreamStory::getStateWgtV(const v8::FunctionCallbackInfo<v8::Value>&
 
 	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	const double StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 
 	TFltV WgtV;
 	JsMChain->StreamStory->GetStateWgtV(StateId, WgtV);

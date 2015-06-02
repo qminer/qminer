@@ -1,20 +1,9 @@
 /**
- * QMiner - Open Source Analytics Platform
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #include "qminer_gs.h"
@@ -135,6 +124,10 @@ TJoinDescEx TStoreSchema::ParseJoinDescEx(const PJsonVal& JoinVal) {
 	if (JoinVal->IsObjKey("inverse")){
 		JoinDescEx.InverseJoinName = JoinVal->GetObjKey("inverse")->GetStr();
 	}
+	// get "is small" flag
+	if (JoinVal->IsObjKey("small")) {
+		JoinDescEx.IsSmall = JoinVal->GetObjKey("small")->GetBool();
+	}
     // done
 	return JoinDescEx;
 }
@@ -162,6 +155,10 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
 		IndexKeyEx.KeyType = oiktLocation;
 	} else {
 		throw TQmExcept::New("Unknown key type " +  KeyTypeStr);
+	}
+	// check if small index should be used
+	if (IndexKeyVal->IsObjKey("small") && IndexKeyVal->GetObjBool("small")) {
+		IndexKeyEx.KeyType = (TIndexKeyType)(IndexKeyEx.KeyType | oiktSmall);
 	}
 	// check field type and index type match
 	if (FieldType == oftStr && IndexKeyEx.IsValue()) {
@@ -191,7 +188,7 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
 	// parse out word vocabulary
 	IndexKeyEx.WordVocName = IndexKeyVal->GetObjStr("vocabulary", "");
     // parse out tokenizer
-    if (IndexKeyEx.KeyType == oiktText) {
+    if (IndexKeyEx.IsText()) {
         if (IndexKeyVal->IsObjKey("tokenizer")) {
             PJsonVal TokenizerVal = IndexKeyVal->GetObjKey("tokenizer");
             QmAssertR(TokenizerVal->IsObjKey("type"), 
@@ -269,7 +266,9 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal): StoreId(0), HasStoreIdP(fa
 			JoinDescExV.Add(JoinDescEx);
 		}
 	}
-
+	// parse block size
+	BlockSizeMem = MAX(1, StoreVal->GetObjInt("block_size_mem", 1000));
+	
 	// parse window size
 	if (StoreVal->IsObjKey("window")) {
         // window size defined in number of records
@@ -417,24 +416,100 @@ void TStoreSchema::ValidateSchema(const TWPt<TBase>& Base, TStoreSchemaV& Schema
 
 ///////////////////////////////
 // In-memory storage
-TInMemStorage::TInMemStorage(const TStr& _FNm): FNm(_FNm), Access(faCreate) { }
+TInMemStorage::TInMemStorage(const TStr& _FNm, const int& _BlockSize) : FNm(_FNm), BlobFNm(_FNm + "Blob"), Access(faCreate), BlockSize(_BlockSize) {
+	BlobStorage = TMBlobBs::New(BlobFNm, Access);
+}
 
-TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access): 
-        FNm(_FNm), Access(_Access) {
+TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bool& _Lazy) :
+	FNm(_FNm), BlobFNm(_FNm + "Blob"), Access(_Access) {
     
-	// load vector
-	TFIn FIn(FNm); ValV.Load(FIn);
+	// load data
+	TFIn FIn(FNm); 
+	BlobPtV.Load(FIn); // load vector
 	// load rest
+	TInt64 cnt;
+	cnt.Load(FIn);
 	FirstValOffset.Load(FIn);
+	FirstValOffsetMem.Load(FIn);
+	BlockSize.Load(FIn);
+
+	// load data from blob storage
+	BlobStorage = TMBlobBs::New(BlobFNm, Access);
+
+	for (int64 i = 0; i < cnt; i++) {
+		ValV.Add(); // empty (non-loaded) data
+		DirtyV.Add(isdfNotLoaded); // init dirty flags
+	}
+	if (!_Lazy) {
+		LoadAll();
+	}
 }
 
 TInMemStorage::~TInMemStorage() {
 	if (Access != faRdOnly) {
+		// store dirty vectors
+		for (int i = 0; i < ValV.Len(); i++) {
+			SaveRec(i);
+		}		
 		// save vector
-		TFOut FOut(FNm); ValV.Save(FOut);
+		TFOut FOut(FNm); 
+		BlobPtV.Save(FOut);
 		// save rest
+		TInt64(ValV.Len()).Save(FOut);
 		FirstValOffset.Save(FOut);
+		FirstValOffsetMem.Save(FOut);
+		BlockSize.Save(FOut);
 	}
+}
+
+/// Utility method for loading specific record
+void TInMemStorage::LoadRec(int64 i) const {
+	if (DirtyV[i] != isdfNotLoaded) {
+		return;
+	}
+	const int64 ii = i / BlockSize;
+	TMem mem;
+	TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[ii]), mem);
+	PSIn in = mem.GetSIn();
+	for (int64 j = ii*BlockSize; j < DirtyV.Len() && j < (ii + 1)*BlockSize; j++) {
+		if (DirtyV[j] == isdfNotLoaded) {
+			DirtyV[j] = isdfClean;
+			ValV[j].Load(in);
+		} else {
+			TMem mem2;
+			mem2.Load(in);
+		}
+	}
+}
+
+/// Utility method for storing specific record
+int TInMemStorage::SaveRec(int i) {
+	int res = 0;
+	switch (DirtyV[i]) {
+	case isdfNew:
+	case isdfDirty:
+		{
+			res++;
+			const int ii = i / BlockSize;
+			TMOut mem;
+			for (int j = ii*BlockSize; j < DirtyV.Len() && j < (ii + 1)*BlockSize; j++) {
+				ValV[j].Save(mem);
+				DirtyV[j] = isdfClean;
+			}
+			while (BlobPtV.Len() <= ii) {
+				BlobPtV.Add();
+			}
+			if (BlobPtV[ii].Empty()) {
+				BlobPtV[ii] = BlobStorage->PutBlob(mem.GetSIn());
+			} else {
+				BlobPtV[ii] = BlobStorage->PutBlob(BlobPtV[ii], mem.GetSIn());
+			}
+		}
+		break;
+	case isdfClean:
+	case isdfNotLoaded: break;
+	}
+	return res;
 }
 
 void TInMemStorage::AssertReadOnly() const {
@@ -442,32 +517,57 @@ void TInMemStorage::AssertReadOnly() const {
 }
 
 bool TInMemStorage::IsValId(const uint64& ValId) const {
-	return (ValId >= FirstValOffset.Val) &&
-        (ValId < FirstValOffset.Val + ValV.Len());
+	return (ValId >= FirstValOffset.Val) && (ValId < FirstValOffsetMem.Val + ValV.Len());
 }
 
 void TInMemStorage::GetVal(const uint64& ValId, TMem& Val) const {
-	Val = ValV[ValId - FirstValOffset];
+	uint64 i = ValId - FirstValOffsetMem;
+	LoadRec(i);
+	Val = ValV[i];
 }
 
 uint64 TInMemStorage::AddVal(const TMem& Val) {
-	return ValV.Add(Val) + FirstValOffset;
+	uint64 res = ValV.Add(Val);
+	DirtyV.Add(isdfNew);
+	if (ValV.Len() % BlockSize == 1) {
+		BlobPtV.Add();
+	}
+	return res + FirstValOffsetMem;
 }
 
 void TInMemStorage::SetVal(const uint64& ValId, const TMem& Val) {
 	AssertReadOnly();
-    ValV[ValId - FirstValOffset] = Val;
+    ValV[ValId - FirstValOffsetMem] = Val;
+	uchar flag = DirtyV[ValId - FirstValOffsetMem];
+	if (flag == isdfNew) { } // new remains new
+	else { flag = isdfDirty; } // set as dirty
 }
 
 void TInMemStorage::DelVals(int Vals) {
 	if (Vals > 0) {
-		ValV.Del(0, Vals - 1);
+		for (int i = 0; i < Vals; i++) {
+			ValV[i + FirstValOffset].Clr();
+		}
+		int blocks_to_delete = Vals / BlockSize;
+		int vals_to_delete = blocks_to_delete * BlockSize;
+
+		if (vals_to_delete > 0) {
+			ValV.Del(0, vals_to_delete - 1);
+			DirtyV.Del(0, vals_to_delete - 1);
+			for (int i = 0; i < blocks_to_delete; i++) {
+				if (!BlobPtV[i].Empty()) {
+					BlobStorage->DelBlob(BlobPtV[i]);
+				}
+			}
+			BlobPtV.Del(0, blocks_to_delete - 1);
+		}
 		FirstValOffset += Vals;
+		FirstValOffsetMem += vals_to_delete;
 	}
 }
 
 uint64 TInMemStorage::Len() const {
-	return ValV.Len();
+	return ValV.Len() - (FirstValOffset - FirstValOffsetMem);
 }
 
 uint64 TInMemStorage::GetFirstValId() const {
@@ -475,7 +575,24 @@ uint64 TInMemStorage::GetFirstValId() const {
 }
 
 uint64 TInMemStorage::GetLastValId() const {
-	return GetFirstValId() + ValV.Len() - 1;
+	return FirstValOffsetMem + ValV.Len() - 1;
+}
+
+int TInMemStorage::PartialFlush(int WndInMsec) {
+	TTmStopWatch sw(true);
+	int res = 0;
+	for (int i = 0; i< ValV.Len(); i++) {
+		if (sw.GetMSecInt() > WndInMsec) 
+			break;
+		res += SaveRec(i);
+	}
+	return res;
+}
+
+void TInMemStorage::LoadAll() {
+	for (int i = 0; i < ValV.Len(); i++) {
+		LoadRec(i);
+	}
 }
 
 ///////////////////////////////
@@ -1806,9 +1923,10 @@ void TStoreImpl::InitDataFlags() {
 
 TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const uint& StoreId, 
     const TStr& StoreName, const TStoreSchema& StoreSchema, const TStr& _StoreFNm, 
-    const int64& _MxCacheSize): 
+	const int64& _MxCacheSize, const int& BlockSize) :
         TStore(Base, StoreId, StoreName), StoreFNm(_StoreFNm), FAccess(faCreate), 
-        DataCache(_StoreFNm + ".Cache", _MxCacheSize, 1024), DataMem(_StoreFNm + ".MemCache") {
+		DataCache(_StoreFNm + ".Cache", _MxCacheSize, 1024), 
+		DataMem(_StoreFNm + "MemCache", BlockSize) {
 
     InitFromSchema(StoreSchema);
     // initialize data storage flags
@@ -1816,11 +1934,11 @@ TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const uint& StoreId,
 }
 
 TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const TStr& _StoreFNm, 
-    const TFAccess& _FAccess, const int64& _MxCacheSize): 
+	const TFAccess& _FAccess, const int64& _MxCacheSize, const bool& _Lazy) :
         TStore(Base, _StoreFNm + ".BaseStore"), 
         StoreFNm(_StoreFNm), FAccess(_FAccess), PrimaryFieldType(oftUndef),
         DataCache(_StoreFNm + ".Cache", _FAccess, _MxCacheSize), 
-        DataMem(_StoreFNm + ".MemCache", _FAccess)  {
+		DataMem(_StoreFNm + "MemCache", _FAccess, _Lazy) {
 
     // load members
 	TFIn FIn(StoreFNm + ".GenericStore");
@@ -2419,6 +2537,25 @@ PJsonVal TStoreImpl::GetStoreJson(const TWPt<TBase>& Base) const {
 	return Result;
 }
 
+
+/// Save part of the data, given time-window
+int TStoreImpl::PartialFlush(int WndInMsec) {
+	int slice = WndInMsec / 2;
+	TTmStopWatch sw(true);
+	int res = DataMem.PartialFlush(slice);
+	res += DataCache.PartialFlush(slice);
+	return res;
+}
+
+/// Retrieve performance statistics for this store
+PJsonVal TStoreImpl::GetStats() {
+	PJsonVal res = TJsonVal::NewObj();
+	res->AddToObj("name", GetStoreNm());
+	res->AddToObj("blob_storage_memory", BlobBsStatsToJson(DataMem.GetBlobBsStats()));
+	res->AddToObj("blob_storage_cache", BlobBsStatsToJson(DataCache.GetBlobBsStats()));
+	return res;
+}
+
 ///////////////////////////////
 /// Create new stores in an existing base from a schema definition
 TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, 
@@ -2432,7 +2569,7 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
     // create stores	
     TVec<TWPt<TStore> > NewStoreV;
 	for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++) {
-		TStoreSchema StoreSchema = SchemaV[SchemaN];
+		TStoreSchema& StoreSchema = SchemaV[SchemaN];
 		TStr StoreNm = StoreSchema.StoreName;
         InfoLog("Creating " + StoreNm);
 		// figure out store id
@@ -2453,7 +2590,7 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
             StoreNmCacheSizeH.GetDat(StoreNm).Val : DefStoreCacheSize;
         // create new store from the schema
         PStore Store = new TStoreImpl(Base, StoreId, StoreNm, 
-            StoreSchema, Base->GetFPath() + StoreNm, StoreCacheSize);
+			StoreSchema, Base->GetFPath() + StoreNm, StoreCacheSize, StoreSchema.BlockSizeMem);
         // add store to base
 		Base->AddStore(Store);
         // remember we create the store
@@ -2482,7 +2619,7 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
 				// index join
 				Store->AddJoinDesc(TJoinDesc(JoinDescEx.JoinName, 
                     JoinStore->GetStoreId(), Store->GetStoreId(), 
-                    Base->GetIndexVoc()));
+					Base->GetIndexVoc(), JoinDescEx.IsSmall));
 			} else {
                 ErrorLog("Unknown join type for join " + JoinDescEx.JoinName);
             }
@@ -2520,11 +2657,11 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
 ///////////////////////////////
 /// Create new base given a schema definition
 TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
-	const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP) {
+	const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP, const int& SplitLen) {
 
 	// create empty base
 	InfoLog("Creating new base from schema");
-	TWPt<TBase> Base = TBase::New(FPath, IndexCacheSize);
+	TWPt<TBase> Base = TBase::New(FPath, IndexCacheSize, SplitLen);
 	// parse and apply the schema
 	CreateStoresFromSchema(Base, SchemaVal, DefStoreCacheSize, StoreNmCacheSizeH);
 	// finish base initialization if so required (default is true)
@@ -2537,10 +2674,10 @@ TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& 
 ///////////////////////////////
 /// Load base created from a schema definition
 TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
-	const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP) {
+	const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP, const int& SplitLen) {
 
 	InfoLog("Loading base created from schema definition");
-	TWPt<TBase> Base = TBase::Load(FPath, FAccess, IndexCacheSize);
+	TWPt<TBase> Base = TBase::Load(FPath, FAccess, IndexCacheSize, SplitLen);
 	// load stores
 	InfoLog("Loading stores");
 	// read store names from file

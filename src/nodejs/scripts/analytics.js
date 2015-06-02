@@ -1,15 +1,24 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 // typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
 module.exports = exports = function (pathPrefix) {
     pathPrefix = pathPrefix || '';
-//    exports = require('bindings')(pathPrefix + '/analytics.node');
     var sget = require('sget');
     var qm = require('bindings')(pathPrefix + '/qm.node');
     var fs = qm.fs;
-    
+    var assert = require('assert');
+
     exports = qm.analytics;
 
     var la = require(__dirname + '/la.js')(pathPrefix);
     var qm_util = require(__dirname + '/qm_util.js');
+
+    //!STARTJSDOC
 
     function defarg(arg, defaultval) {
         return arg == undefined ? defaultval : arg;
@@ -35,7 +44,7 @@ module.exports = exports = function (pathPrefix) {
         }
 
         this.predict = function (record) {
-            var vec = this.featureSpace.ftrSpVec(record);
+            var vec = this.featureSpace.extractSparseVector(record);
             var result = {};
             for (var cat in this.models) {
                 result[cat] = this.models[cat].model.predict(vec);
@@ -72,20 +81,21 @@ module.exports = exports = function (pathPrefix) {
         return this;
     }
 
-    //#- `batchModel = analytics.newBatchModel(rs, features, target)` -- learns a new batch model
-    //#     using record set `rs` as training data and `features`; `target` is
-    //#     a field descriptor JSON object for the records which we are trying to predict (obtained by calling store.field("Rating");
-    //#     if target field string or string vector, the result is a SVM classification model,
-    //#     and if target field is a float, the result is a SVM regression model; resulting 
-    //#     model has the following functions:
-    //#   - `strArr = batchModel.target` -- array of categories for which we have models
-    //#   - `scoreArr = batchModel.predict(rec)` -- creates feature vector from record `rec`, sends it
-    //#     through the model and returns the result as a dictionary where labels are keys and scores (numbers) are values.
-    //#   - `labelArr = batchModel.predictLabels(rec)` -- creates feature vector from record `rec`, 
-    //#     sends it through the model and returns the labels with positive weights as `labelArr`.
-    //#   - `labelStr = batchModel.predictTop(rec)` -- creates feature vector from record `rec`, 
-    //#     sends it through the model and returns the top ranked label `labelStr`.
-    //#   - `batchModel.save(fout)` -- saves the model to `fout` output stream
+    //!- `batchModel = analytics.newBatchModel(rs, features, target)` -- learns a new batch model
+    //!     using record set `rs` as training data and `features`; `target` is
+    //!     a field descriptor JSON object for the records which we are trying to predict 
+	//!     (obtained by calling store.field("Rating");
+    //!     if target field string or string vector, the result is a SVM classification model,
+    //!     and if target field is a float, the result is a SVM regression model; resulting 
+    //!     model has the following functions:
+    //!   - `strArr = batchModel.target` -- array of categories for which we have models
+    //!   - `scoreArr = batchModel.predict(rec)` -- creates feature vector from record `rec`, sends it
+    //!     through the model and returns the result as a dictionary where labels are keys and scores (numbers) are values.
+    //!   - `labelArr = batchModel.predictLabels(rec)` -- creates feature vector from record `rec`, 
+    //!     sends it through the model and returns the labels with positive weights as `labelArr`.
+    //!   - `labelStr = batchModel.predictTop(rec)` -- creates feature vector from record `rec`, 
+    //!     sends it through the model and returns the top ranked label `labelStr`.
+    //!   - `batchModel.save(fout)` -- saves the model to `fout` output stream
     exports.newBatchModel = function (records, features, target, limitCategories) {
         console.log("newBatchModel", "Start");
         // prepare feature space
@@ -96,7 +106,7 @@ module.exports = exports = function (pathPrefix) {
         console.log("newBatchModel", "  number of dimensions = " + featureSpace.dim);
         // prepare spare vectors
         console.log("newBatchModel", "  preparing feature vectors");
-        var sparseVecs = featureSpace.ftrSpColMat(records);
+        var sparseVecs = featureSpace.extractSparseMatrix(records);
         // prepare target vectors
         var targets = {};
         // figure out if new category name, or update count
@@ -184,7 +194,7 @@ module.exports = exports = function (pathPrefix) {
         return new createBatchModel(featureSpace, models);
     };
 
-    //#- `batchModel = analytics.loadBatchModel(base, fin)` -- loads batch model frm input stream `fin`
+    //!- `batchModel = analytics.loadBatchModel(base, fin)` -- loads batch model frm input stream `fin`
     exports.loadBatchModel = function (base, sin) {
         var models = JSON.parse(sin.readLine());
         var featureSpace = new qm.FeatureSpace(base, sin);
@@ -196,19 +206,188 @@ module.exports = exports = function (pathPrefix) {
     };
 
 
+    //#- `cs = new analytics.classificaitonScore(cats)` -- for evaluating 
+    //#     provided categories. Returns an object, which can track classification
+    //#     statistics (precision, recall, F1).
+    exports.classifcationScore = function (cats) {
+        this.target = {};
+
+        this.targetList = [];
+        for (var i = 0; i < cats.length; i++) {
+            this.target[cats[i]] = {
+                id: i, count: 0, predictionCount: 0,
+                TP: 0, TN: 0, FP: 0, FN: 0,
+                all: function () { return this.TP + this.FP + this.TN + this.FN; },
+                precision: function () { return (this.FP == 0) ? 1 : this.TP / (this.TP + this.FP); },
+                recall: function () { return this.TP / (this.TP + this.FN); },
+                f1: function () { return 2 * this.precision() * this.recall() / (this.precision() + this.recall()); },
+                accuracy: function () { return (this.TP + this.TN) / this.all(); }
+            };
+            this.targetList.push(cats[i]);
+        }
+
+        //#    - `cs.count(correct, predicted)` -- adds prediction to the current
+        //#         statistics. `correct` corresponds to the correct label(s), `predicted`
+        //#         correspond to predicted lable(s). Labels can be either string
+        //#         or string array (when there are zero or more then one lables).
+        this.count = function (correct, predicted) {
+            // wrapt classes in arrays if not already
+            if (qm_util.isString(correct)) { this.count([correct], predicted); return; }
+            if (qm_util.isString(predicted)) { this.count(correct, [predicted]); return; }
+            // go over all possible categories and counts
+            for (var cat in this.target) {
+                var catCorrect = qm_util.isInArray(correct, cat);
+                var catPredicted = qm_util.isInArray(predicted, cat);
+                // update counts for correct categories
+                if (catCorrect) { this.target[cat].count++; }
+                // update counts for how many times category was predicted
+                if (catPredicted) { this.target[cat].predictionCount++; }
+                // update true/false positive/negative count
+                if (catCorrect && catPredicted) {
+                    // both predicted and correct say true
+                    this.target[cat].TP++;
+                } else if (catCorrect) {
+                    // this was only correct but not predicted
+                    this.target[cat].FN++;
+                } else if (catPredicted) {
+                    // this was only predicted but not correct
+                    this.target[cat].FP++;
+                } else {
+                    // both predicted and correct say false
+                    this.target[cat].TN++;
+                }
+                // update confusion matrix
+            }
+        };
+
+        //#    - `cs.report()` -- prints current statisitcs for each category
+        this.report = function () {
+            for (var cat in this.target) {
+                console.log(cat +
+                    ": Count " + this.target[cat].count +
+                    ", All " + this.target[cat].all() +
+                    ", Precission " + this.target[cat].precision().toFixed(2) +
+                    ", Recall " + this.target[cat].recall().toFixed(2) +
+                    ", F1 " + this.target[cat].f1().toFixed(2) +
+                    ", Accuracy " + this.target[cat].accuracy().toFixed(2));
+            }
+        };
+
+        //#    - `cs.reportAvg()` -- prints current statisitcs averaged over all cagtegories
+        this.reportAvg = function () {
+            var count = 0, precision = 0, recall = 0, f1 = 0, accuracy = 0;
+            for (var cat in this.target) {
+                count++;
+                precision = precision + this.target[cat].precision();
+                recall = recall + this.target[cat].recall();
+                f1 = f1 + this.target[cat].f1();
+                accuracy = accuracy + this.target[cat].accuracy();
+            }
+            console.log("Categories " + count +
+                ", Precission " + (precision / count).toFixed(2) +
+                ", Recall " + (recall / count).toFixed(2) +
+                ", F1 " + (f1 / count).toFixed(2) +
+                ", Accuracy " + (accuracy / count).toFixed(2));
+        }
+
+        //#    - `cs.reportCSV(fout)` -- current statisitcs for each category to fout as CSV 
+        this.reportCSV = function (fout) {
+            // precison recall
+            fout.writeLine("category,count,precision,recall,f1,accuracy");
+            for (var cat in this.target) {
+                fout.writeLine(cat +
+                    "," + this.target[cat].count +
+                    "," + this.target[cat].precision().toFixed(2) +
+                    "," + this.target[cat].recall().toFixed(2) +
+                    "," + this.target[cat].f1().toFixed(2) +
+                    "," + this.target[cat].accuracy().toFixed(2));
+            }
+            return fout;
+        };
+
+        //#    - `res = cs.results()` -- get current statistics; `res` is an array
+        //#         of object with members `precision`, `recall`, `f1` and `accuracy`
+        this.results = function () {
+            var res = {};
+            for (var cat in this.target) {
+                res[cat] = {
+                    precision: this.target[cat].precision(),
+                    recall: this.target[cat].recall(),
+                    f1: this.target[cat].f1(),
+                    accuracy: this.target[cat].accuracy(),
+                };
+            }
+        };
+    }
+
+    //#- `result = analytics.crossValidation(rs, features, target, folds)` -- creates a batch
+    //#     model for records from record set `rs` using `features; `target` is the
+    //#     target field and is assumed discrete; the result is a results object
+    //#     with the following API:
+    //#     - `result.target` -- an object with categories as keys and the following
+    //#       counts as members of these keys: `count`, `TP`, `TN`, `FP`, `FN`,
+    //#       `all()`, `precision()`, `recall()`, `accuracy()`.
+    //#     - `result.confusion` -- confusion matrix between categories
+    //#     - `result.report()` -- prints basic report on to the console
+    //#     - `result.reportCSV(fout)` -- prints CSV output to the `fout` output stream
+    exports.crossValidation = function (records, features, target, folds, limitCategories) {
+        // create empty folds
+        var fold = [];
+        for (var i = 0; i < folds; i++) {
+            fold.push(new la.IntVector());
+        }
+        // split records into folds
+        records.shuffle(1);
+        var fold_i = 0;
+        for (var i = 0; i < records.length; i++) {
+            fold[fold_i].push(records[i].$id);
+            fold_i++; if (fold_i >= folds) { fold_i = 0; }
+        }
+        // do cross validation
+        var cfyRes = null;
+        for (var fold_i = 0; fold_i < folds; fold_i++) {
+            // prepare train and test record sets
+            var train = new la.IntVector();
+            var test = new la.IntVector();
+            for (var i = 0; i < folds; i++) {
+                if (i == fold_i) {
+                    test.pushV(fold[i]);
+                } else {
+                    train.pushV(fold[i]);
+                }
+            }
+            var trainRecs = records.store.newRecSet(train);
+            var testRecs = records.store.newRecSet(test);
+            console.log("Fold " + fold_i + ": " + trainRecs.length + " training and " + testRecs.length + " testing");
+            // create model for the fold
+            var model = exports.newBatchModel(trainRecs, features, target, limitCategories);
+            // prepare test counts for each target
+            if (!cfyRes) { cfyRes = new exports.classifcationScore(model.target); }
+            // evaluate predictions
+            for (var i = 0; i < testRecs.length; i++) {
+                var correct = testRecs[i][target.name];
+                var predicted = model.predictLabels(testRecs[i]);
+                cfyRes.count(correct, predicted);
+            }
+            // report
+            cfyRes.report();
+        }
+        return cfyRes;
+    };
 
 
-    //#- `alModel = analytics.newActiveLearner(query, qRecSet, fRecSet, ftrSpace, settings)` -- initializes the
-    //#    active learning. The algorihm is run by calling `model.startLoop()`. The algorithm has two stages: query mode, where the algorithm suggests potential
-    //#    positive and negative examples based on the query text, and SVM mode, where the algorithm keeps
-    //#   selecting examples that are closest to the SVM margin (every time an example is labeled, the SVM
-    //#   is retrained.
-    //#   The inputs are: query (text), record set `qRecSet`, record set `fRecSet`,  the feature space `ftrSpace` and a 
-    //#   `settings`JSON object. The settings object specifies:`textField` (string) which is the name
-    //#    of the field in records that is used to create feature vectors, `nPos` (integer) and `nNeg` (integer) set the number of positive and negative
-    //#    examples that have to be identified in the query mode before the program enters SVM mode.
-    //#   We can set two additional parameters `querySampleSize` and `randomSampleSize` which specify the sizes of subsamples of qRecSet and fRecSet, where the rest of the data is ignored in the active learning.
-    //#   Final parameters are all SVM parameters (c, j, batchSize, maxIterations, maxTime, minDiff, verbose).
+
+    //!- `alModel = analytics.newActiveLearner(query, qRecSet, fRecSet, ftrSpace, settings)` -- initializes the
+    //!    active learning. The algorihm is run by calling `model.startLoop()`. The algorithm has two stages: query mode, where the algorithm suggests potential
+    //!    positive and negative examples based on the query text, and SVM mode, where the algorithm keeps
+    //!   selecting examples that are closest to the SVM margin (every time an example is labeled, the SVM
+    //!   is retrained.
+    //!   The inputs are: query (text), record set `qRecSet`, record set `fRecSet`,  the feature space `ftrSpace` and a 
+    //!   `settings`JSON object. The settings object specifies:`textField` (string) which is the name
+    //!    of the field in records that is used to create feature vectors, `nPos` (integer) and `nNeg` (integer) set the number of positive and negative
+    //!    examples that have to be identified in the query mode before the program enters SVM mode.
+    //!   We can set two additional parameters `querySampleSize` and `randomSampleSize` which specify the sizes of subsamples of qRecSet and fRecSet, where the rest of the data is ignored in the active learning.
+    //!   Final parameters are all SVM parameters (c, j, batchSize, maxIterations, maxTime, minDiff, verbose).
     exports.newActiveLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
         return new exports.ActiveLearner(query, qRecSet, fRecSet, ftrSpace, stts);
     }
@@ -247,8 +426,8 @@ module.exports = exports = function (pathPrefix) {
 
         if (settings.extractFeatures) {
             var temp = {}; temp[settings.textField] = query;
-            var queryRec = qRecSet.store.newRec(temp); // record
-            querySpVec = ftrSpace.ftrSpVec(queryRec);
+            var queryRec = qRecSet.store.newRecord(temp); // record
+            querySpVec = ftrSpace.extractSparseVector(queryRec);
             // use sampling? 
             var sq = qRecSet;
             if (settings.querySampleSize >= 0 && qRecSet != undefined) {
@@ -261,7 +440,7 @@ module.exports = exports = function (pathPrefix) {
             // take a union or just qset or just fset if some are undefined
             uRecSet = (sq != undefined) ? ((sf != undefined) ? sq.setunion(sf) : sq) : sf;
             if (uRecSet == undefined) { throw 'undefined record set for active learning!';}
-            uMat = ftrSpace.ftrSpColMat(uRecSet);
+            uMat = ftrSpace.extractSparseMatrix(uRecSet);
 
         } else {
             querySpVec = stts.querySpVec;
@@ -296,16 +475,16 @@ module.exports = exports = function (pathPrefix) {
         var resultVec = new la.Vector({ "vals": uRecSet.length }); // non-absolute svm scores for record set
 
 
-        //#   - `rs = alModel.getRecSet()` -- returns the record set that is being used (result of sampling)
+        //!   - `rs = alModel.getRecSet()` -- returns the record set that is being used (result of sampling)
         this.getRecSet = function () { return uRecSet };
 
-        //#   - `idx = alModel.selectedQuestionIdx()` -- returns the index of the last selected question in alModel.getRecSet()
+        //!   - `idx = alModel.selectedQuestionIdx()` -- returns the index of the last selected question in alModel.getRecSet()
         this.selectedQuestionIdx = -1;
 
-        //#   - `bool = alModel.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
+        //!   - `bool = alModel.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
         this.getQueryMode = function () { return queryMode; };
 
-        //#   - `numArr = alModel.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.
+        //!   - `numArr = alModel.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.
         this.getPos = function (threshold) {
             if (this.queryMode) { return null; } // must be in SVM mode to return results
             if (!threshold) { threshold = 0; }
@@ -336,11 +515,11 @@ module.exports = exports = function (pathPrefix) {
             return { posIdx: idxArray, margins: marginArray };
         };
 
-        //#   - `objJSON = alModel.getSettings()` -- returns the settings object
+        //!   - `objJSON = alModel.getSettings()` -- returns the settings object
         this.getSettings = function () { return settings; }
 
         // returns record set index of the unlabeled record that is closest to the margin
-        //#   - `recSetIdx = alModel.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
+        //!   - `recSetIdx = alModel.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
         this.selectQuestion = function () {
             if (posRecIdV.length >= settings.nPos && negRecIdV.length >= settings.nNeg) { queryMode = false; }
             if (queryMode) {
@@ -396,27 +575,27 @@ module.exports = exports = function (pathPrefix) {
 
         };
         // asks the user for class label given a record set index
-        //#   - `alModel.getAnswer(ALAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
-        //#      The user input should be either "y" (indicating that recSet[recSetIdx] is a positive example), "n" (negative example).
+        //!   - `alModel.getAnswer(ALAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
+        //!      The user input should be either "y" (indicating that recSet[recSetIdx] is a positive example), "n" (negative example).
         this.getAnswer = function (ALanswer, recSetIdx) {
             //todo options: ?newQuery
             if (ALanswer === "y") {
                 posIdxV.push(recSetIdx);
                 posRecIdV.push(uRecSet[recSetIdx].$id);
-                //X.push(ftrSpace.ftrSpVec(uRecSet[recSetIdx]));
+                //X.push(ftrSpace.extractSparseVector(uRecSet[recSetIdx]));
                 X.push(uMat.getCol(recSetIdx));
                 y.push(1.0);
             } else {
                 negIdxV.push(recSetIdx);
                 negRecIdV.push(uRecSet[recSetIdx].$id);
-                //X.push(ftrSpace.ftrSpVec(uRecSet[recSetIdx]));
+                //X.push(ftrSpace.extractSparseVector(uRecSet[recSetIdx]));
                 X.push(uMat.getCol(recSetIdx));
                 y.push(-1.0);
             }
             // +k query // rank unlabeled according to query, ask for k most similar
             // -k query // rank unlabeled according to query, ask for k least similar
         };
-        //#   - `alModel.startLoop()` -- starts the active learning loop in console
+        //!   - `alModel.startLoop()` -- starts the active learning loop in console
         this.startLoop = function () {
             while (true) {
                 var recSetIdx = this.selectQuestion();               
@@ -426,7 +605,7 @@ module.exports = exports = function (pathPrefix) {
                 this.getAnswer(ALanswer, recSetIdx);
             }
         };
-        //#   - `alModel.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
+        //!   - `alModel.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
         this.saveSvmModel = function (outputStream) {
             // must be in SVM mode
             if (queryMode) {
@@ -446,16 +625,16 @@ module.exports = exports = function (pathPrefix) {
 
 	//////////// RIDGE REGRESSION 
 	// solve a regularized least squares problem
-	//#- `ridgeRegressionModel = new analytics.RidgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
-	//#  regression problem: min|X w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
-	//#  `dim` the dimension of the model and (optional) parameter `buffer` (integer) which specifies
-	//#  the length of the window of tracked examples (useful in online mode). The model exposes the following functions:
+	//!- `ridgeRegressionModel = new analytics.RidgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
+	//!  regression problem: min|X w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
+	//!  `dim` the dimension of the model and (optional) parameter `buffer` (integer) which specifies
+	//!  the length of the window of tracked examples (useful in online mode). The model exposes the following functions:
 	exports.RidgeRegression = function (kappa, dim, buffer) {
 	    var X = [];
 	    var y = [];
 	    buffer = typeof buffer !== 'undefined' ? buffer : -1;
 	    var w = new la.Vector({ "vals": dim });
-	    //#   - `ridgeRegressionModel.add(vec, num)` -- adds a vector `vec` and target `num` (number) to the training set
+	    //!   - `ridgeRegressionModel.add(vec, num)` -- adds a vector `vec` and target `num` (number) to the training set
 	    this.add = function (x, target) {
 	        X.push(x);
 	        y.push(target);
@@ -465,25 +644,25 @@ module.exports = exports = function (pathPrefix) {
 	            }
 	        }
 	    };
-	    //#   - `ridgeRegressionModel.addupdate(vec, num)` -- adds a vector `vec` and target `num` (number) to the training set and retrains the model
+	    //!   - `ridgeRegressionModel.addupdate(vec, num)` -- adds a vector `vec` and target `num` (number) to the training set and retrains the model
 	    this.addupdate = function (x, target) {
 	        this.add(x, target);
 	        this.update();
 	    }
-	    //#   - `ridgeRegressionModel.forget(n)` -- deletes first `n` (integer) examples from the training set
+	    //!   - `ridgeRegressionModel.forget(n)` -- deletes first `n` (integer) examples from the training set
 	    this.forget = function (ndeleted) {
 	        ndeleted = typeof ndeleted !== 'undefined' ? ndeleted : 1;
 	        ndeleted = Math.min(X.length, ndeleted);
 	        X.splice(0, ndeleted);
 	        y.splice(0, ndeleted);
 	    };
-	    //#   - `ridgeRegressionModel.update()` -- recomputes the model
+	    //!   - `ridgeRegressionModel.update()` -- recomputes the model
 	    this.update = function () {
 	        var A = this.getMatrix();
 	        var b = new la.Vector(y);
 	        w = this.compute(A, b);
 	    };
-	    //#   - `vec = ridgeRegressionModel.getModel()` -- returns the parameter vector `vec` (dense vector)
+	    //!   - `vec = ridgeRegressionModel.getModel()` -- returns the parameter vector `vec` (dense vector)
 	    this.getModel = function () {
 	        return w;
 	    };
@@ -496,16 +675,16 @@ module.exports = exports = function (pathPrefix) {
 	            return A;
 	        }
 	    };
-	    //#   - `vec2 = ridgeRegressionModel.compute(mat, vec)` -- computes the model parameters `vec2`, given 
-	    //#    a row training example matrix `mat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |mat' vec2 - vec|^2 + kappa |vec2|^2.
-	    //#   - `vec2 = ridgeRegressionModel.compute(spMat, vec)` -- computes the model parameters `vec2`, given 
-	    //#    a row training example sparse matrix `spMat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |spMat' vec2 - vec|^2 + kappa |vec2|^2.
+	    //!   - `vec2 = ridgeRegressionModel.compute(mat, vec)` -- computes the model parameters `vec2`, given 
+	    //!    a row training example matrix `mat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |mat' vec2 - vec|^2 + kappa |vec2|^2.
+	    //!   - `vec2 = ridgeRegressionModel.compute(spMat, vec)` -- computes the model parameters `vec2`, given 
+	    //!    a row training example sparse matrix `spMat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |spMat' vec2 - vec|^2 + kappa |vec2|^2.
 	    this.compute = function (A, b) {
 	        var I = la.eye(A.cols);
 	        var coefs = (A.transpose().multiply(A).plus(I.multiply(kappa))).solve(A.transpose().multiply(b));
 	        return coefs;
 	    };
-	    //#   - `num = model.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.
+	    //!   - `num = model.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.
 	    this.predict = function (x) {
 	        return w.inner(x);
 	    };
@@ -513,7 +692,9 @@ module.exports = exports = function (pathPrefix) {
 	    
     
     /**
-     * Hierarchical Markov model.
+     * StreamStory.  
+     * @class
+     * @param {opts} HierarchMarkovParam - parameters. TODO typedef and describe
      */
     exports.HierarchMarkov = function (opts) {
     	// constructor
@@ -814,6 +995,85 @@ module.exports = exports = function (pathPrefix) {
     	
     	return that;
     };
+
+    /** 
+    * @classdesc Anomaly detector that checks if the test point is too far from 
+    * the nearest known point.
+    * @class
+    * @param {Object} [detectorParam={rate:0.05}] - Constructor parameters
+    * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
+    */
+    exports.NearestNeighborAD = function(detectorParam) {
+        // Parameters
+        detectorParam = detectorParam == undefined ? {} : detectorParam;
+        detectorParam.rate = detectorParam.rate == undefined ? 0.05 : detectorParam.rate;
+        assert(detectorParam.rate > 0 && detectorParam.rate <= 1.0, 'rate parameter not in range (0,1]');
+        // model param
+        this.rate = detectorParam.rate;
+        // default model
+        this.thresh = 0;
+
+        /** 
+        * Gets the 100*(1-rate) percentile
+        * @param {module:la.Vector} vector - Vector of values
+        * @returns {number} Percentile
+        */
+        function getThreshold(vector, rate) {
+            var sorted = vector.sortPerm().vec;
+            var idx = Math.floor((1 - rate) * sorted.length);
+            return sorted[idx];
+        }
+        var neighborDistances = undefined;
+
+        /** 
+        * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
+        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+        * the model.
+        */
+        this.fit = function (A) {
+            this.X = A;
+            // distances
+            var D = la.pdist2(A, A);
+            // add big numbers on the diagonal (exclude the point itself from the nearest point calcualtion)
+            var E = D.plus(D.multiply(la.ones(D.rows)).diag()).multiply(-1);
+            var neighborDistances = new la.Vector({ vals: D.rows });
+            for (var i = 0; i < neighborDistances.length; i++) {
+                // nearest neighbour squared distance
+                neighborDistances[i] = D.at(i, E.rowMaxIdx(i));
+            }
+            this.thresh = getThreshold(neighborDistances, this.rate);
+        }
+
+        /** 
+        * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
+        * @param {module:la.Vector} x - Test vector
+        * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
+        */
+        this.predict = function (x) {
+            // compute squared dist and compare to thresh
+            var d = la.pdist2(this.X, x.toMat()).getCol(0);
+            var idx = d.multiply(-1).getMaxIdx();
+            var p = d[idx];
+            //console.log(p)
+            return p > this.thresh ? 1 : 0;
+        }
+
+        /** 
+        * Adds a new point (or points) to the known points and recomputes the threhshold
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
+        */
+        this.update = function (x) {
+            // append x to known examples and retrain (slow version)
+            // speedup 1: don't reallocate X every time (fixed window, circular buffer)
+            // speedup 2: don't recompute distances d(X,X), just d(X, y), get the minimum
+            // and append to neighborDistances
+            this.fit(la.cat([[this.X, x.toMat()]]));
+            //console.log('new threshold ' + this.thresh);
+        }
+    }
+
+
+    //!ENDJSDOC
 
     return exports;
 }
