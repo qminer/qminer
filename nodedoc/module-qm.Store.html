@@ -222,18 +222,18 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;Festivals&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;Type&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;Location&quot;, &quot;type&quot;: &quot;string&quot; }
+       name: &quot;Festivals&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;Type&quot;, type: &quot;string&quot; },
+           { name: &quot;Location&quot;, type: &quot;string&quot; }
        ]
    }]
 });
 // add some records in the store
-base.store(&quot;Festivals&quot;).push({ &quot;Name&quot;: &quot;Metaldays&quot;, &quot;Type&quot;: &quot;music&quot;, &quot;Location&quot;: &quot;Tolmin, Slovenia&quot; });
-base.store(&quot;Festivals&quot;).push({ &quot;Name&quot;: &quot;Festival de Cannes&quot;, &quot;Type&quot;: &quot;movie&quot;, &quot;Location&quot;: &quot;Cannes, France&quot; });
-base.store(&quot;Festivals&quot;).push({ &quot;Name&quot;: &quot;The Festival of Chocolate&quot;, &quot;Type&quot;: &quot;food&quot;, &quot;Location&quot;: &quot;Hillsborough, USA&quot; });
+base.store(&quot;Festivals&quot;).push({ Name: &quot;Metaldays&quot;, Type: &quot;music&quot;, Location: &quot;Tolmin, Slovenia&quot; });
+base.store(&quot;Festivals&quot;).push({ Name: &quot;Festival de Cannes&quot;, Type: &quot;movie&quot;, Location: &quot;Cannes, France&quot; });
+base.store(&quot;Festivals&quot;).push({ Name: &quot;The Festival of Chocolate&quot;, Type: &quot;food&quot;, Location: &quot;Hillsborough, USA&quot; });
 // get the field value of the second record for field &quot;Type&quot;
 var fieldValue = base.store(&quot;Festivals&quot;).cell(1, &quot;Type&quot;); // returns &quot;movie&quot;</code></pre>
                 </div>
@@ -300,19 +300,19 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;TVSeries&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
-           { &quot;name&quot;: &quot;NumberOfEpisodes&quot;, &quot;type&quot;: &quot;int&quot; }
+       name: &quot;TVSeries&quot;,
+       fields: [
+           { name: &quot;Title&quot;, type: &quot;string&quot;, primary: true },
+           { name: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
        ]
    }]
 });
 // add some records in the store
-base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Archer&quot;, &quot;NumberOfEpisodes&quot;: 75 });
-base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;The Simpsons&quot;, &quot;NumberOfEpisodes&quot;: 574 });
-base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;New Girl&quot;, &quot;NumberOfEpisodes&quot;: 94 });
-base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Rick and Morty&quot;, &quot;NumberOfEpisodes&quot;: 11 });
-base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Game of Thrones&quot;, &quot;NumberOfEpisodes&quot;: 47 });
+base.store(&quot;TVSeries&quot;).push({ Title: &quot;Archer&quot;, NumberOfEpisodes: 75 });
+base.store(&quot;TVSeries&quot;).push({ Title: &quot;The Simpsons&quot;, NumberOfEpisodes: 574 });
+base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpisodes: 94 });
+base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
+base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 // deletes the first 2 records (Archer and The Simpsons) in TVSeries
 base.store(&quot;TVSeries&quot;).clear(2); // returns 3
 // delete all remaining records in TVStore
@@ -367,18 +367,18 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;Class&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+       name: &quot;Class&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
        ]
    }]
 });
 // add some records to the store
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Abed&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Annie&quot;, &quot;StudyGroup&quot;: &quot;B&quot; });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Britta&quot;, &quot;StudyGroup&quot;: &quot;C&quot; });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Jeff&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Abed&quot;, StudyGroup: &quot;A&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Annie&quot;, StudyGroup: &quot;B&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Britta&quot;, StudyGroup: &quot;C&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Jeff&quot;, StudyGroup: &quot;A&quot; });
 // change the StudyGroup of all records of store Class to A
 base.store(&quot;Class&quot;).each(function (rec) { rec.StudyGroup = &quot;A&quot;; });	// all records in Class are now in study group A</code></pre>
                 </div>
@@ -433,11 +433,11 @@ var qm = require(&quot;qminer&quot;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;People&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
-           { &quot;name&quot;: &quot;Gender&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;Age&quot;, &quot;type&quot;: &quot;int&quot; }
+       name: &quot;People&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+           { name: &quot;Gender&quot;, type: &quot;string&quot; },
+           { name: &quot;Age&quot;, type: &quot;int&quot; }
        ]
    }]
 });
@@ -495,17 +495,17 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;ArcheryChampionship&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;ScorePerRound&quot;, &quot;type&quot;: &quot;float_v&quot; }
+       name: &quot;ArcheryChampionship&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;ScorePerRound&quot;, type: &quot;float_v&quot; }
        ]
    }]
 });
 // set new records in the store
-base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Robin Hood&quot;, &quot;ScorePerRound&quot;: [50, 48, 48] });
-base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Oliver Queen&quot;, &quot;ScorePerRound&quot;: [44, 46, 44] });
-base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Legolas&quot;, &quot;ScorePerRound&quot;: [50, 50, 48] });
+base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Robin Hood&quot;, ScorePerRound: [50, 48, 48] });
+base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Oliver Queen&quot;, ScorePerRound: [44, 46, 44] });
+base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Legolas&quot;, ScorePerRound: [50, 50, 48] });
 // get the matrix containing the &quot;score per round&quot; values
 // The values of the i-th column are the values of the i-th record.
 // The function will give the matrix:
@@ -563,17 +563,17 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;Companies&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
-           { &quot;name&quot;: &quot;Location&quot;, &quot;type&quot;: &quot;string&quot; }
+       name: &quot;Companies&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+           { name: &quot;Location&quot;, type: &quot;string&quot; }
        ]
    }]
 });
 // add some records to the store
-base.store(&quot;Companies&quot;).push({ &quot;Name&quot;: &quot;DC Comics&quot;, &quot;Location&quot;: &quot;Burbank, California&quot; });
-base.store(&quot;Companies&quot;).push({ &quot;Name&quot;: &quot;DC Shoes&quot;, &quot;Location&quot;: &quot;Huntington Beach, California&quot; });
-base.store(&quot;Companies&quot;).push({ &quot;Name&quot;: &quot;21st Century Fox&quot;, &quot;Location&quot;: &quot;New York City, New York&quot; });
+base.store(&quot;Companies&quot;).push({ Name: &quot;DC Comics&quot;, Location: &quot;Burbank, California&quot; });
+base.store(&quot;Companies&quot;).push({ Name: &quot;DC Shoes&quot;, Location: &quot;Huntington Beach, California&quot; });
+base.store(&quot;Companies&quot;).push({ Name: &quot;21st Century Fox&quot;, Location: &quot;New York City, New York&quot; });
 // get the vector of company names
 var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;);	// returns a vector [&quot;DC Comics&quot;, &quot;DC Shoes&quot;, &quot;21st Century Fox&quot;]</code></pre>
                 </div>
@@ -626,11 +626,11 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;BasketballPlayers&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;SeasonScore&quot;, &quot;type&quot;: &quot;int_v&quot; },
-           { &quot;name&quot;: &quot;DateOfBirth&quot;, &quot;type&quot;: &quot;datetime&quot; }
+       name: &quot;BasketballPlayers&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;SeasonScore&quot;, type: &quot;int_v&quot; },
+           { name: &quot;DateOfBirth&quot;, type: &quot;datetime&quot; }
        ]
    }]
 });
@@ -688,10 +688,10 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;TVSeries&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
-           { &quot;name&quot;: &quot;NumberOfEpisodes&quot;, &quot;type&quot;: &quot;int&quot; }
+       name: &quot;TVSeries&quot;,
+       fields: [
+           { name: &quot;Title&quot;, type: &quot;string&quot;, primary: true },
+           { name: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
        ]
    }]
 });
@@ -749,11 +749,11 @@ var qm = require(&quot;qminer&quot;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;People&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
-           { &quot;name&quot;: &quot;Gender&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;Age&quot;, &quot;type&quot;: &quot;int&quot; }
+       name: &quot;People&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+           { name: &quot;Gender&quot;, type: &quot;string&quot; },
+           { name: &quot;Age&quot;, type: &quot;int&quot; }
        ]
    }]
 });
@@ -811,15 +811,15 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;Countries&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
-           { &quot;name&quot;: &quot;Population&quot;, &quot;type&quot;: &quot;int&quot; },
-           { &quot;name&quot;: &quot;Continent&quot;, &quot;type&quot;: &quot;string&quot; }
+       name: &quot;Countries&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+           { name: &quot;Population&quot;, type: &quot;int&quot; },
+           { name: &quot;Continent&quot;, type: &quot;string&quot; }
        ],
-       &quot;keys&quot;: [
-           { &quot;field&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;text&quot; },
-           { &quot;field&quot;: &quot;Continent&quot;, &quot;type&quot;: &quot;value&quot; }
+       keys: [
+           { field: &quot;Name&quot;, type: &quot;text&quot; },
+           { field: &quot;Continent&quot;, type: &quot;value&quot; }
        ]
    }]
 });
@@ -877,18 +877,18 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;Class&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+       name: &quot;Class&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
        ]
    }]
 });
 // add some records to the store
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Shirley&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Troy&quot;, &quot;StudyGroup&quot;: &quot;B&quot; });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroup&quot;: &quot;C&quot; });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Pierce&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Shirley&quot;, StudyGroup: &quot;A&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Troy&quot;, StudyGroup: &quot;B&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Chang&quot;, StudyGroup: &quot;C&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Pierce&quot;, StudyGroup: &quot;A&quot; });
 // make an array of record names
 var arr = base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; }); // returns an array [&quot;Shirley&quot;, &quot;Troy&quot;, &quot;Chang&quot;, &quot;Pierce&quot;]</code></pre>
                 </div>
@@ -943,18 +943,18 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;Planets&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;Diameter&quot;, &quot;type&quot;: &quot;int&quot; },
-           { &quot;name&quot;: &quot;NearestStars&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       name: &quot;Planets&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;Diameter&quot;, type: &quot;int&quot; },
+           { name: &quot;NearestStars&quot;, type: &quot;string_v&quot; }
        ]
    }]
 });
 // add a new planet in the store
-base.store(&quot;Planets&quot;).push({ &quot;Name&quot;: &quot;Earth&quot;, &quot;Diameter&quot;: 299196522, &quot;NearestStars&quot;: [&quot;Sun&quot;] });
+base.store(&quot;Planets&quot;).push({ Name: &quot;Earth&quot;, Diameter: 299196522, NearestStars: [&quot;Sun&quot;] });
 // create a record of a planet (not added to the Planets store)
-var planet = base.store(&quot;Planets&quot;).newRecord({ &quot;Name&quot;: &quot;Tatooine&quot;, &quot;Diameter&quot;: 10465, &quot;NearestStars&quot;: [&quot;Tatoo 1&quot;, &quot;Tatoo 2&quot;] });</code></pre>
+var planet = base.store(&quot;Planets&quot;).newRecord({ Name: &quot;Tatooine&quot;, Diameter: 10465, NearestStars: [&quot;Tatoo 1&quot;, &quot;Tatoo 2&quot;] });</code></pre>
                 </div>
               </section>
               <section>
@@ -1005,18 +1005,18 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;Superheroes&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       name: &quot;Superheroes&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;Superpowers&quot;, type: &quot;string_v&quot; }
        ]
    }]
 });
 // add some new records to the store
-base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Superman&quot;, &quot;Superpowers&quot;: [&quot;Superhuman strength, speed, hearing&quot;, &quot;Flight&quot;, &quot;Heat vision&quot;] });
-base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Batman&quot;, &quot;Superpowers&quot;: [&quot;Genius-level intellect&quot;, &quot;Peak physical and mental conditioning&quot;, &quot;Master detective&quot;] });
-base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Thor&quot;, &quot;Superpowers&quot;: [&quot;Superhuman strength, endurance and longevity&quot;, &quot;Abilities via Mjolnir&quot;] });
-base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Wonder Woman&quot;, &quot;Superpowers&quot;: [&quot;Superhuman strength, agility and endurance&quot;, &quot;Flight&quot;, &quot;Highly skilled hand-to-hand combatant&quot;] });
+base.store(&quot;Superheroes&quot;).push({ Name: &quot;Superman&quot;, Superpowers: [&quot;Superhuman strength, speed, hearing&quot;, &quot;Flight&quot;, &quot;Heat vision&quot;] });
+base.store(&quot;Superheroes&quot;).push({ Name: &quot;Batman&quot;, Superpowers: [&quot;Genius-level intellect&quot;, &quot;Peak physical and mental conditioning&quot;, &quot;Master detective&quot;] });
+base.store(&quot;Superheroes&quot;).push({ Name: &quot;Thor&quot;, Superpowers: [&quot;Superhuman strength, endurance and longevity&quot;, &quot;Abilities via Mjolnir&quot;] });
+base.store(&quot;Superheroes&quot;).push({ Name: &quot;Wonder Woman&quot;, Superpowers: [&quot;Superhuman strength, agility and endurance&quot;, &quot;Flight&quot;, &quot;Highly skilled hand-to-hand combatant&quot;] });
 // create a new record set containing only the DC Comic superheroes (those with the record ids 0, 1 and 3)
 var intVec = new qm.la.IntVector([0, 1, 3]);
 var DCHeroes = base.store(&quot;Superheroes&quot;).newRecordSet(intVec);</code></pre>
@@ -1071,24 +1071,24 @@ var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [
    {
-       &quot;name&quot;: &quot;Superheroes&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       name: &quot;Superheroes&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;Superpowers&quot;, type: &quot;string_v&quot; }
        ]
    },
    {
-       &quot;name&quot;: &quot;Supervillians&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       name: &quot;Supervillians&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;Superpowers&quot;, type: &quot;string_v&quot; }
        ]
    }]
 });
 // add a new superhero to the Superheroes store
-base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Superman&quot;, &quot;Superpowers&quot;: [&quot;flight&quot;, &quot;heat vision&quot;, &quot;bulletproof&quot;] }); // returns 0
+base.store(&quot;Superheroes&quot;).push({ Name: &quot;Superman&quot;, Superpowers: [&quot;flight&quot;, &quot;heat vision&quot;, &quot;bulletproof&quot;] }); // returns 0
 // add a new supervillian to the Supervillians store
-base.store(&quot;Supervillians&quot;).push({ &quot;Name&quot;: &quot;Lex Luthor&quot;, &quot;Superpowers&quot;: [&quot;expert engineer&quot;, &quot;genius-level intellect&quot;, &quot;money&quot;] }); // returns 0</code></pre>
+base.store(&quot;Supervillians&quot;).push({ Name: &quot;Lex Luthor&quot;, Superpowers: [&quot;expert engineer&quot;, &quot;genius-level intellect&quot;, &quot;money&quot;] }); // returns 0</code></pre>
                 </div>
               </section>
               <section>
@@ -1139,18 +1139,18 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;Class&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
-           { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+       name: &quot;Class&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+           { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
        ]
    }]
 });
 // add some records to the store
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Dean&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroup&quot;: &quot;D&quot; });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Magnitude&quot;, &quot;StudyGroup&quot;: &quot;C&quot; });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Leonard&quot;, &quot;StudyGroup&quot;: &quot;B&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Dean&quot;, StudyGroup: &quot;A&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Chang&quot;, StudyGroup: &quot;D&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Magnitude&quot;, StudyGroup: &quot;C&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Leonard&quot;, StudyGroup: &quot;B&quot; });
 // get the record with the name &quot;Magnitude&quot;
 var record = base.store(&quot;Class&quot;).rec(&quot;Magnitude&quot;);</code></pre>
                 </div>
@@ -1203,19 +1203,19 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;TVSeries&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
-           { &quot;name&quot;: &quot;NumberOfEpisodes&quot;, &quot;type&quot;: &quot;int&quot; }
+       name: &quot;TVSeries&quot;,
+       fields: [
+           { name: &quot;Title&quot;, type: &quot;string&quot;, primary: true },
+           { name: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
        ]
    }]
 });
 // add some records in the store
-base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Archer&quot;, &quot;NumberOfEpisodes&quot;: 75 });
-base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;The Simpsons&quot;, &quot;NumberOfEpisodes&quot;: 574 });
-base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;New Girl&quot;, &quot;NumberOfEpisodes&quot;: 94 });
-base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Rick and Morty&quot;, &quot;NumberOfEpisodes&quot;: 11 });
-base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Game of Thrones&quot;, &quot;NumberOfEpisodes&quot;: 47 });
+base.store(&quot;TVSeries&quot;).push({ Title: &quot;Archer&quot;, NumberOfEpisodes: 75 });
+base.store(&quot;TVSeries&quot;).push({ Title: &quot;The Simpsons&quot;, NumberOfEpisodes: 574 });
+base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpisodes: 94 });
+base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
+base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 // create a sample record set containing 3 records
 var randomRecordSet = base.store(&quot;TVSeries&quot;).sample(3); // contains 3 random records from the TVSeries store</code></pre>
                 </div>
@@ -1268,11 +1268,11 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;FootballPlayers&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;FootballClubs&quot;, &quot;type&quot;: &quot;string_v&quot; },
-           { &quot;name&quot;: &quot;GoalsPerSeason&quot;, &quot;type&quot;: &quot;int_v&quot; },
+       name: &quot;FootballPlayers&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;FootballClubs&quot;, type: &quot;string_v&quot; },
+           { name: &quot;GoalsPerSeason&quot;, type: &quot;int_v&quot; },
        ]
    }]
 });
@@ -1298,7 +1298,7 @@ var json = base.store(&quot;FootballPlayers&quot;).toJSON();</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on May 29, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on June 2, 2015.
       </p>
     </div>
   </footer>

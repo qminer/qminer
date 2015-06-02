@@ -70,8 +70,8 @@ exports.datasets= require('qminer_datasets');
 * var base = new qm.Base({
 *     mode: 'createClean',
 *     schema: [{
-*       "name": "Movies",
-*       "fields": [{ name: "title", type: "string" }]
+*       type: "Movies",
+*       type: [{ name: "title", type: "string" }]
 *     }]
 * });
 */
@@ -276,8 +276,8 @@ exports.datasets= require('qminer_datasets');
 * var base = new qm.Base({
 *   mode: 'createClean',
 *   schema: [{
-*      "name": "Person",
-*      "fields": [{ "name": "Name", "type": "string" }]
+*      type: "Person",
+*      type: [{ type: "Name", type: "string" }]
 *   }]
 * });
 * // create a feature space containing the constant extractor, where the constant is equal 5
@@ -295,8 +295,8 @@ exports.datasets= require('qminer_datasets');
 * var base = new qm.Base({
 *   mode: 'createClean',
 *   schema: [{
-*      "name": "Person",
-*      "fields": [{ "name": "Name", "type": "string" }]
+*      type: "Person",
+*      type: [{ type: "Name", type: "string" }]
 *   }]
 * });
 * // create a feature space containing the random extractor
@@ -317,10 +317,10 @@ exports.datasets= require('qminer_datasets');
 * var base = new qm.Base({
 *    mode: 'createClean',
 *    schema: [{
-*       "name": "Class",
-*       "fields": [
-*          { "name": "Name", "type": "string" },
-*          { "name": "Grade", "type": "number" }
+*       type: "Class",
+*       type: [
+*          { type: "Name", type: "string" },
+*          { type: "Grade", type: "number" }
 *       ]
 *    }]
 * });
@@ -343,10 +343,10 @@ exports.datasets= require('qminer_datasets');
 * var base = new qm.Base({
 *    mode: 'createClean',
 *    schema: [{
-*       "name": "Class",
-*       "fields": [
-*          { "name": "Name", "type": "string" },
-*          { "name": "StudyGroup", "type": "string" }
+*       type: "Class",
+*       type: [
+*          { type: "Name", type: "string" },
+*          { type: "StudyGroup", type: "string" }
 *       ]
 *    }]
 * });
@@ -372,10 +372,10 @@ exports.datasets= require('qminer_datasets');
 * var base = new qm.Base({
 *    mode: 'createClean',
 *    schema: [{
-*       "name": "Class",
-*       "fields": [
-*          { "name": "Name", "type": "string" },
-*          { "name": "StudyGroups", "type": "string_v" }
+*       type: "Class",
+*       type: [
+*          { type: "Name", type: "string" },
+*          { type: "StudyGroups", type: "string_v" }
 *       ]
 *    }]
 * });
@@ -403,10 +403,10 @@ exports.datasets= require('qminer_datasets');
 * var base = new qm.Base({
 *    mode: 'createClean',
 *    schema: [{
-*       "name": "Articles",
-*       "fields": [
-*          { "name": "Title", "type": "string" },
-*          { "name": "Text", "type": "string" }
+*       type: "Articles",
+*       type: [
+*          { type: "Title", type: "string" },
+*          { type: "Text", type: "string" }
 *       ]
 *    }]
 * });
@@ -459,10 +459,10 @@ exports.datasets= require('qminer_datasets');
 * var base = new qm.Base({
 *    mode: 'createClean',
 *    schema: [{
-*       "name": "Class",
-*       "fields": [
-*          { "name": "Name", "type": "string" },
-*          { "name": "StudyGroups", "type": "string_v" }
+*       type: "Class",
+*       type: [
+*          { type: "Name", type: "string" },
+*          { type: "StudyGroups", type: "string_v" }
 *       ]
 *    }]
 * });
@@ -604,23 +604,23 @@ exports.datasets= require('qminer_datasets');
 	 *    mode: "createClean",
 	 *    schema: [
 	 *    {
-	 *        "name": "Kwik-E-Mart",
-	 *        "fields": [
-	 *            { "name": "Worker", "type": "string" },
-	 *            { "name": "Groceries", "type": "string_v" }
+	 *        name: "KwikEMart",
+	 *        fields: [
+	 *            { name: "Worker", type: "string" },
+	 *            { name: "Groceries", type: "string_v" }
 	 *        ]
 	 *    },
 	 *    {
-	 *        "name": "NuclearPowerplant",
-	 *        "fields": [
-	 *            { "name": "Owner", "type": "string" },
-	 *            { "name": "NumberOfAccidents", "type": "int" },
-	 *            { "name": "Workers", "type": "string_v" }
+	 *        name: "NuclearPowerplant",
+	 *        fields: [
+	 *            { name: "Owner", type: "string" },
+	 *            { name: "NumberOfAccidents", type: "int" },
+	 *            { name: "Workers", type: "string_v" }
 	 *        ]
 	 *    }]
 	 * })
-	 * // get the "Kwik-E-Mart" store 
-	 * var store = base.store("Kwik-E-Mart");	// returns the store with the name "Kwik-E-Mart"
+	 * // get the "KwikEMart" store 
+	 * var store = base.store("KwikEMart");	// returns the store with the name "KwikEMart"
 	 */
  exports.Base.prototype.store = function (name) { return Object.create(require('qminer').Store.prototype); }
 /**
@@ -642,37 +642,37 @@ exports.datasets= require('qminer_datasets');
 	*    mode: "createClean",
 	*    schema: [
 	*    {
-	*        "name": "Superheroes",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Superpowers", "type": "string_v" },
-	*            { "name": "YearsActive", "type": "int" }
+	*        name: "Superheroes",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "Superpowers", type: "string_v" },
+	*            { name": "YearsActive", type: "int" }
 	*        ]
 	*    }]
 	* })
 	* // create a new store called "Supervillains" in the base
 	* base.createStore({
-	*    "name": "Supervillians"
-	*    "fields": [
-	*        { "name": "Name", "type": "string" },
-	*        { "name": "Superpowers", "type": "string_v" },
-	*        { "name": "YearsActive", "type": "int" }
+	*    name: "Supervillians"
+	*    fields: [
+	*        { name: "Name", type: "string" },
+	*        { name: "Superpowers", type: "string_v" },
+	*        { name: "YearsActive", type: "int" }
 	*    ]
 	* })
 	* // create two new stores called "Cities" and "Leagues"
 	* base.createStore([
 	*    {
-	*        "name": "Cities",
-	*        "fields": [
-	*            { "name": "Name", "type": "string", "primary": true },
-	*            { "name": "Population", "type": "int" }
+	*        name: "Cities",
+	*        fields: [
+	*            { name: "Name", type: "string", primary: true },
+	*            { name: "Population", type: "int" }
 	*        ]
 	*    },
 	*    {
-	*        "name": "Leagues",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Members", "type": "string_v" }
+	*        name: "Leagues",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "Members", type: "string_v" }
 	*        ]
 	*    }
 	* ])
@@ -706,48 +706,48 @@ exports.datasets= require('qminer_datasets');
 * // factory based construction using base.createStore
 * var base = qm.create('qm.conf', "", true);
 * base.createStore([{
-*    "name": "People",
-*    "fields": [
-*        { "name": "Name", "type": "string", "primary": true },
-*        { "name": "Gender", "type": "string", "shortstring": true },
-*        { "name": "Age", "type": "int" }
+*    name: "People",
+*    fields: [
+*        { name: "Name", type: "string", primary: true },
+*        { name: "Gender", type: "string", shortstring: true },
+*        { name: "Age", type: "int" }
 *    ],
-*    "joins": [
-*        { "name": "ActedIn", "type": "index", "store": "Movies", "inverse": "Actor" },
-*        { "name": "Directed", "type": "index", "store": "Movies", "inverse": "Director" }
+*    joins: [
+*        { name: "ActedIn", type: "index", store: "Movies", inverse: "Actor" },
+*        { name: "Directed", type: "index", store: "Movies", inverse: "Director" }
 *    ],
-*    "keys": [
-*        { "field": "Name", "type": "text" },
-*        { "field": "Gender", "type": "value" }
+*    keys: [
+*        { field: "Name", type: "text" },
+*        { field: "Gender", type: "value" }
 *    ]
 * },
 * {
-*    "name": "Movies",
-*    "fields": [
-*        { "name": "Title", "type": "string", "primary": true },
-*        { "name": "Plot", "type": "string", "store": "cache" },
-*        { "name": "Year", "type": "int" },
-*        { "name": "Rating", "type": "float" },
-*        { "name": "Genres", "type": "string_v", "codebook": true }
+*    name: "Movies",
+*    fields: [
+*        { name: "Title", type: "string", primary: true },
+*        { name: "Plot", type: "string", store: "cache" },
+*        { name: "Year", type: "int" },
+*        { name: "Rating", type: "float" },
+*        { name: "Genres", type: "string_v", codebook: true }
 *    ],
-*    "joins": [
-*        { "name": "Actor", "type": "index", "store": "People", "inverse": "ActedIn" },
-*        { "name": "Director", "type": "index", "store": "People", "inverse": "Directed" }
+*    joins: [
+*        { name: "Actor", type: "index", store: "People", inverse: "ActedIn" },
+*        { name: "Director", type: "index", store: "People", inverse: "Directed" }
 *    ],
-*    "keys": [
-*        { "field": "Title", "type": "value" },
-*        { "field": "Plot", "type": "text", "vocabulary": "voc_01" },
-*        { "field": "Genres", "type": "value" }
+*    keys: [
+*        { field: "Title", type: "value" },
+*        { field: "Plot", type: "text", vocabulary: "voc_01" },
+*        { field: "Genres", type: "value" }
 *    ]
 * }]);
 * // using the base constructor
 * var base = new qm.Base({
 *    mode: "createClean",
 *    schema: [{
-*        "name": "Class",
-*        "fields": [
-*            { "name": "Name", "type": "string" },
-*            { "name": "StudyGroup", "type": "string" }
+*        name: "Class",
+*        fields: [
+*            { name: "Name", type: "string" },
+*            { name: "StudyGroup", type: "string" }
 *        ]
 *    }]
 * });
@@ -764,18 +764,18 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Class",
-	*        "fields": [
-	*            { "name": "Name", "type": "string", "primary": true },
-	*            { "name": "StudyGroup", "type": "string" }
+	*        name: "Class",
+	*        fields: [
+	*            { name: "Name", type: "string", primary: true },
+	*            { name: "StudyGroup", type: "string" }
 	*        ]
 	*    }]
 	* });
 	* // add some records to the store
-	* base.store("Class").push({ "Name": "Dean", "StudyGroup": "A" });
-	* base.store("Class").push({ "Name": "Chang", "StudyGroup": "D" });
-	* base.store("Class").push({ "Name": "Magnitude", "StudyGroup": "C" });
-	* base.store("Class").push({ "Name": "Leonard", "StudyGroup": "B" });
+	* base.store("Class").push({ Name: "Dean", StudyGroup: "A" });
+	* base.store("Class").push({ Name: "Chang", StudyGroup: "D" });
+	* base.store("Class").push({ Name: "Magnitude", StudyGroup: "C" });
+	* base.store("Class").push({ Name: "Leonard", StudyGroup: "B" });
 	* // get the record with the name "Magnitude"
 	* var record = base.store("Class").rec("Magnitude");
 	*/
@@ -793,18 +793,18 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Class",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "StudyGroup", "type": "string" }
+	*        name: "Class",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "StudyGroup", type: "string" }
 	*        ]
 	*    }]
 	* });
 	* // add some records to the store
-	* base.store("Class").push({ "Name": "Abed", "StudyGroup": "A" });
-	* base.store("Class").push({ "Name": "Annie", "StudyGroup": "B" });
-	* base.store("Class").push({ "Name": "Britta", "StudyGroup": "C" });
-	* base.store("Class").push({ "Name": "Jeff", "StudyGroup": "A" });
+	* base.store("Class").push({ Name: "Abed", StudyGroup: "A" });
+	* base.store("Class").push({ Name: "Annie", StudyGroup: "B" });
+	* base.store("Class").push({ Name: "Britta", StudyGroup: "C" });
+	* base.store("Class").push({ Name: "Jeff", StudyGroup: "A" });
 	* // change the StudyGroup of all records of store Class to A
 	* base.store("Class").each(function (rec) { rec.StudyGroup = "A"; });	// all records in Class are now in study group A
 	*/
@@ -822,18 +822,18 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Class",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "StudyGroup", "type": "string" }
+	*        name: "Class",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "StudyGroup", type: "string" }
 	*        ]
 	*    }]
 	* });
 	* // add some records to the store
-	* base.store("Class").push({ "Name": "Shirley", "StudyGroup": "A" });
-	* base.store("Class").push({ "Name": "Troy", "StudyGroup": "B" });
-	* base.store("Class").push({ "Name": "Chang", "StudyGroup": "C" });
-	* base.store("Class").push({ "Name": "Pierce", "StudyGroup": "A" });
+	* base.store("Class").push({ Name: "Shirley", StudyGroup: "A" });
+	* base.store("Class").push({ Name: "Troy", StudyGroup: "B" });
+	* base.store("Class").push({ Name: "Chang", StudyGroup: "C" });
+	* base.store("Class").push({ Name: "Pierce", StudyGroup: "A" });
 	* // make an array of record names
 	* var arr = base.store("Class").map(function (rec) { return rec.Name; }); // returns an array ["Shirley", "Troy", "Chang", "Pierce"]
 	*/
@@ -850,24 +850,24 @@ exports.datasets= require('qminer_datasets');
 	*    mode: "createClean",
 	*    schema: [
 	*    {
-	*        "name": "Superheroes",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Superpowers", "type": "string_v" }
+	*        name: "Superheroes",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "Superpowers", type: "string_v" }
 	*        ]
 	*    },
 	*    {
-	*        "name": "Supervillians",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Superpowers", "type": "string_v" }
+	*        name: "Supervillians",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "Superpowers", type: "string_v" }
 	*        ]
 	*    }]
 	* });
 	* // add a new superhero to the Superheroes store
-	* base.store("Superheroes").push({ "Name": "Superman", "Superpowers": ["flight", "heat vision", "bulletproof"] }); // returns 0
+	* base.store("Superheroes").push({ Name: "Superman", Superpowers: ["flight", "heat vision", "bulletproof"] }); // returns 0
 	* // add a new supervillian to the Supervillians store
-	* base.store("Supervillians").push({ "Name": "Lex Luthor", "Superpowers": ["expert engineer", "genius-level intellect", "money"] }); // returns 0
+	* base.store("Supervillians").push({ Name: "Lex Luthor", Superpowers: ["expert engineer", "genius-level intellect", "money"] }); // returns 0
 	*/
  exports.Store.prototype.push = function (rec) {}
 /**
@@ -881,18 +881,18 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Planets",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Diameter", "type": "int" },
-	*            { "name": "NearestStars", "type": "string_v" }
+	*        name: "Planets",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "Diameter", type: "int" },
+	*            { name: "NearestStars", type: "string_v" }
 	*        ]
 	*    }]
 	* });
 	* // add a new planet in the store
-	* base.store("Planets").push({ "Name": "Earth", "Diameter": 299196522, "NearestStars": ["Sun"] });
+	* base.store("Planets").push({ Name: "Earth", Diameter: 299196522, NearestStars: ["Sun"] });
 	* // create a record of a planet (not added to the Planets store)
-	* var planet = base.store("Planets").newRecord({ "Name": "Tatooine", "Diameter": 10465, "NearestStars": ["Tatoo 1", "Tatoo 2"] });
+	* var planet = base.store("Planets").newRecord({ Name: "Tatooine", Diameter: 10465, NearestStars: ["Tatoo 1", "Tatoo 2"] });
 	*/
  exports.Store.prototype.newRecord = function (json) {};
 /**
@@ -906,18 +906,18 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Superheroes",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Superpowers", "type": "string_v" }
+	*        name: "Superheroes",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "Superpowers", type: "string_v" }
 	*        ]
 	*    }]
 	* });
 	* // add some new records to the store
-	* base.store("Superheroes").push({ "Name": "Superman", "Superpowers": ["Superhuman strength, speed, hearing", "Flight", "Heat vision"] });
-	* base.store("Superheroes").push({ "Name": "Batman", "Superpowers": ["Genius-level intellect", "Peak physical and mental conditioning", "Master detective"] });
-	* base.store("Superheroes").push({ "Name": "Thor", "Superpowers": ["Superhuman strength, endurance and longevity", "Abilities via Mjolnir"] });
-	* base.store("Superheroes").push({ "Name": "Wonder Woman", "Superpowers": ["Superhuman strength, agility and endurance", "Flight", "Highly skilled hand-to-hand combatant"] });
+	* base.store("Superheroes").push({ Name: "Superman", Superpowers: ["Superhuman strength, speed, hearing", "Flight", "Heat vision"] });
+	* base.store("Superheroes").push({ Name: "Batman", Superpowers: ["Genius-level intellect", "Peak physical and mental conditioning", "Master detective"] });
+	* base.store("Superheroes").push({ Name: "Thor", Superpowers: ["Superhuman strength, endurance and longevity", "Abilities via Mjolnir"] });
+	* base.store("Superheroes").push({ Name: "Wonder Woman", Superpowers: ["Superhuman strength, agility and endurance", "Flight", "Highly skilled hand-to-hand combatant"] });
 	* // create a new record set containing only the DC Comic superheroes (those with the record ids 0, 1 and 3)
 	* var intVec = new qm.la.IntVector([0, 1, 3]);
 	* var DCHeroes = base.store("Superheroes").newRecordSet(intVec);
@@ -934,19 +934,19 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "TVSeries",
-	*        "fields": [
-	*            { "name": "Title", "type": "string", "primary": true },
-	*            { "name": "NumberOfEpisodes", "type": "int" }
+	*        name: "TVSeries",
+	*        fields: [
+	*            { name: "Title", type: "string", primary: true },
+	*            { name: "NumberOfEpisodes", type: "int" }
 	*        ]
 	*    }]
 	* });
 	* // add some records in the store
-	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
-	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
-	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94 });
-	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11 });
-	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
+	* base.store("TVSeries").push({ Title: "Archer", NumberOfEpisodes: 75 });
+	* base.store("TVSeries").push({ Title: "The Simpsons", NumberOfEpisodes: 574 });
+	* base.store("TVSeries").push({ Title: "New Girl", NumberOfEpisodes: 94 });
+	* base.store("TVSeries").push({ Title: "Rick and Morty", NumberOfEpisodes: 11 });
+	* base.store("TVSeries").push({ Title: "Game of Thrones", NumberOfEpisodes: 47 });
 	* // create a sample record set containing 3 records
 	* var randomRecordSet = base.store("TVSeries").sample(3); // contains 3 random records from the TVSeries store
 	*/
@@ -962,11 +962,11 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "People",
-	*        "fields": [
-	*            { "name": "Name", "type": "string", "primary": true },
-	*            { "name": "Gender", "type": "string" },
-	*            { "name": "Age", "type": "int" }
+	*        name: "People",
+	*        fields: [
+	*            { name: "Name", type: "string", primary: true },
+	*            { name: "Gender", type: "string" },
+	*            { name: "Age", type: "int" }
 	*        ]
 	*    }]
 	* });
@@ -987,10 +987,10 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "TVSeries",
-	*        "fields": [
-	*            { "name": "Title", "type": "string", "primary": true },
-	*            { "name": "NumberOfEpisodes", "type": "int" }
+	*        name: "TVSeries",
+	*        fields: [
+	*            { name: "Title", type: "string", primary: true },
+	*            { name: "NumberOfEpisodes", type: "int" }
 	*        ]
 	*    }]
 	* });
@@ -1011,11 +1011,11 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "People",
-	*        "fields": [
-	*            { "name": "Name", "type": "string", "primary": true },
-	*            { "name": "Gender", "type": "string" },
-	*            { "name": "Age", "type": "int" }
+	*        name: "People",
+	*        fields: [
+	*            { name: "Name", type: "string", primary: true },
+	*            { name: "Gender", type: "string" },
+	*            { name: "Age", type: "int" }
 	*        ]
 	*    }]
 	* });
@@ -1036,11 +1036,11 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "BasketballPlayers",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "SeasonScore", "type": "int_v" },
-	*            { "name": "DateOfBirth", "type": "datetime" }
+	*        name: "BasketballPlayers",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "SeasonScore", type: "int_v" },
+	*            { name: "DateOfBirth", type: "datetime" }
 	*        ]
 	*    }]
 	* });
@@ -1061,15 +1061,15 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Countries",
-	*        "fields": [
-	*            { "name": "Name", "type": "string", "primary": true },
-	*            { "name": "Population", "type": "int" },
-	*            { "name": "Continent", "type": "string" }
+	*        name: "Countries",
+	*        fields: [
+	*            { name: "Name", type: "string", primary: true },
+	*            { name: "Population", type: "int" },
+	*            { name: "Continent", type: "string" }
 	*        ],
-	*        "keys": [
-	*            { "field": "Name", "type": "text" },
-	*            { "field": "Continent", "type": "value" }
+	*        keys: [
+	*            { field: "Name", type: "text" },
+	*            { field: "Continent", type: "value" }
 	*        ]
 	*    }]
 	* });
@@ -1100,11 +1100,11 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "FootballPlayers",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "FootballClubs", "type": "string_v" },
-	*            { "name": "GoalsPerSeason", "type": "int_v" },
+	*        name: "FootballPlayers",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "FootballClubs", type: "string_v" },
+	*            { name: "GoalsPerSeason", type: "int_v" },
 	*        ]
 	*    }]
 	* });
@@ -1125,19 +1125,19 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "TVSeries",
-	*        "fields": [
-	*            { "name": "Title", "type": "string", "primary": true },
-	*            { "name": "NumberOfEpisodes", "type": "int" }
+	*        name: "TVSeries",
+	*        fields: [
+	*            { name: "Title", type: "string", primary: true },
+	*            { name: "NumberOfEpisodes", type: "int" }
 	*        ]
 	*    }]
 	* });
 	* // add some records in the store
-	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
-	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
-	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94 });
-	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11 });
-	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
+	* base.store("TVSeries").push({ Title: "Archer", NumberOfEpisodes: 75 });
+	* base.store("TVSeries").push({ Title: "The Simpsons", NumberOfEpisodes: 574 });
+	* base.store("TVSeries").push({ Title: "New Girl", NumberOfEpisodes: 94 });
+	* base.store("TVSeries").push({ Title: "Rick and Morty", NumberOfEpisodes: 11 });
+	* base.store("TVSeries").push({ Title: "Game of Thrones", NumberOfEpisodes: 47 });
 	* // deletes the first 2 records (Archer and The Simpsons) in TVSeries
 	* base.store("TVSeries").clear(2); // returns 3
 	* // delete all remaining records in TVStore
@@ -1155,17 +1155,17 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Companies",
-	*        "fields": [
-	*            { "name": "Name", "type": "string", "primary": true },
-	*            { "name": "Location", "type": "string" }
+	*        name: "Companies",
+	*        fields: [
+	*            { name: "Name", type: "string", primary: true },
+	*            { name: "Location", type: "string" }
 	*        ]
 	*    }]
 	* });
 	* // add some records to the store
-	* base.store("Companies").push({ "Name": "DC Comics", "Location": "Burbank, California" });
-	* base.store("Companies").push({ "Name": "DC Shoes", "Location": "Huntington Beach, California" });
-	* base.store("Companies").push({ "Name": "21st Century Fox", "Location": "New York City, New York" });
+	* base.store("Companies").push({ Name: "DC Comics", Location: "Burbank, California" });
+	* base.store("Companies").push({ Name: "DC Shoes", Location: "Huntington Beach, California" });
+	* base.store("Companies").push({ Name: "21st Century Fox", Location: "New York City, New York" });
 	* // get the vector of company names
 	* var companyNames = base.store("Companies").getVector("Name");	// returns a vector ["DC Comics", "DC Shoes", "21st Century Fox"]
 	*/
@@ -1181,17 +1181,17 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "ArcheryChampionship",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "ScorePerRound", "type": "float_v" }
+	*        name: "ArcheryChampionship",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "ScorePerRound", type: "float_v" }
 	*        ]
 	*    }]
 	* });
 	* // set new records in the store
-	* base.store("ArcheryChampionship").push({ "Name": "Robin Hood", "ScorePerRound": [50, 48, 48] });
-	* base.store("ArcheryChampionship").push({ "Name": "Oliver Queen", "ScorePerRound": [44, 46, 44] });
-	* base.store("ArcheryChampionship").push({ "Name": "Legolas", "ScorePerRound": [50, 50, 48] });
+	* base.store("ArcheryChampionship").push({ Name: "Robin Hood", ScorePerRound: [50, 48, 48] });
+	* base.store("ArcheryChampionship").push({ Name: "Oliver Queen", ScorePerRound: [44, 46, 44] });
+	* base.store("ArcheryChampionship").push({ Name: "Legolas", ScorePerRound: [50, 50, 48] });
 	* // get the matrix containing the "score per round" values
 	* // The values of the i-th column are the values of the i-th record.
 	* // The function will give the matrix:
@@ -1213,18 +1213,18 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Festivals",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Type", "type": "string" },
-	*            { "name": "Location", "type": "string" }
+	*        name: "Festivals",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "Type", type: "string" },
+	*            { name: "Location", type: "string" }
 	*        ]
 	*    }]
 	* });
 	* // add some records in the store
-	* base.store("Festivals").push({ "Name": "Metaldays", "Type": "music", "Location": "Tolmin, Slovenia" });
-	* base.store("Festivals").push({ "Name": "Festival de Cannes", "Type": "movie", "Location": "Cannes, France" });
-	* base.store("Festivals").push({ "Name": "The Festival of Chocolate", "Type": "food", "Location": "Hillsborough, USA" });
+	* base.store("Festivals").push({ Name: "Metaldays", Type: "music", Location: "Tolmin, Slovenia" });
+	* base.store("Festivals").push({ Name: "Festival de Cannes", Type: "movie", Location: "Cannes, France" });
+	* base.store("Festivals").push({ Name: "The Festival of Chocolate", Type: "food", Location: "Hillsborough, USA" });
 	* // get the field value of the second record for field "Type"
 	* var fieldValue = base.store("Festivals").cell(1, "Type"); // returns "movie"
 	*/
@@ -1299,18 +1299,18 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "StarWarsMovies",
-	*        "fields": [
-	*            { "name": "Title", "type": "string" },
-	*            { "name": "ReleseDate", "type": "datetime" },
-	*            { "name": "Length", "type": "int" }
+	*        name: "StarWarsMovies",
+	*        fields: [
+	*            { name: "Title", type: "string" },
+	*            { name: "ReleseDate", type: "datetime" },
+	*            { name: "Length", type: "int" }
 	*        ]
 	*    }]
 	* });
 	* // create some records in the new store
-	* base.store("StarWarsMovies").push({"Title": "Attack of the Clones", "ReleseDate": "2002-05-16T00:00:00", "Length": 142 });
-	* base.store("StarWarsMovies").push({"Title": "The Empire Strikes Back", "ReleseDate": "1980-06-20T00:00:00", "Length": 124 });
-	* base.store("StarWarsMovies").push({"Title": "Return of the Jedi", "ReleseDate": "1983-05-25T00:00:00", "Length": 134 });
+	* base.store("StarWarsMovies").push({ Title: "Attack of the Clones", ReleseDate: "2002-05-16T00:00:00", Length: 142 });
+	* base.store("StarWarsMovies").push({ Title: "The Empire Strikes Back", ReleseDate: "1980-06-20T00:00:00", Length: 124 });
+	* base.store("StarWarsMovies").push({ Title: "Return of the Jedi", ReleseDate: "1983-05-25T00:00:00", Length: 134 });
 	* // create a clone of the "Attack of the Clones" record
 	* var clone = base.store("StarWarsMovies")[0].$clone();
 	*/
@@ -1341,17 +1341,17 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Musicians",
-	*        "fields": [
-	*            { "name": "Name", "type": "string", "primary": true },
-	*            { "name": "DateOfBirth", "type": "datetime" },
-	*            { "name": "GreatestHits", "type": "string_v" }
+	*        name: "Musicians",
+	*        fields: [
+	*            { name: "Name", type: "string", primary: true },
+	*            { name: "DateOfBirth", type: "datetime" },
+	*            { name: "GreatestHits", type: "string_v" }
 	*        ]
 	*    }]
 	* });
 	* // create some records
-	* base.store("Musicians").push({ "Name": "Jimmy Page", "DateOfBirth":  "1944-01-09T00:00:00", "GreatestHits": ["Stairway to Heaven", "Whole Lotta Love"] });
-	* base.store("Musicians").push({ "Name": "Beyonce", "DateOfBirth": "1981-09-04T00:00:00", "GreatestHits": ["Single Ladies (Put a Ring on It)"] });
+	* base.store("Musicians").push({ Name: "Jimmy Page", DateOfBirth:  "1944-01-09T00:00:00", GreatestHits: ["Stairway to Heaven", "Whole Lotta Love"] });
+	* base.store("Musicians").push({ Name: "Beyonce", DateOfBirth: "1981-09-04T00:00:00", GreatestHits: ["Single Ladies (Put a Ring on It)"] });
 	* // get a JSON version of the "Beyonce" record 
 	* // The JSON object for this example si:
 	* // { '$id': 1, Name: 'Beyonce', ActiveSince: '1981-09-04T00:00:00', GreatestHits: ['Single Ladies (Put a Ring on It)'] }
@@ -1395,19 +1395,19 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Philosophers",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Era", "type": "string" }
+	*        name: "Philosophers",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "Era", type: "string" }
 	*        ]
 	*    }]
 	* });
 	* // put some records in the store
-	* base.store("Philosophers").push({ "Name": "Plato", "Era": "Ancient philosophy" });
-	* base.store("Philosophers").push({ "Name": "Immanuel Kant", "Era": "18th-century philosophy" });
-	* base.store("Philosophers").push({ "Name": "Emmanuel Levinas", "Era": "20th-century philosophy" });
-	* base.store("Philosophers").push({ "Name": "Rene Descartes", "Era": "17th-century philosophy" });
-	* base.store("Philosophers").push({ "Name": "Confucius", "Era": "Ancient philosophy" });
+	* base.store("Philosophers").push({ Name: "Plato", Era: "Ancient philosophy" });
+	* base.store("Philosophers").push({ Name: "Immanuel Kant", Era: "18th-century philosophy" });
+	* base.store("Philosophers").push({ Name: "Emmanuel Levinas", Era: "20th-century philosophy" });
+	* base.store("Philosophers").push({ Name: "Rene Descartes", Era: "17th-century philosophy" });
+	* base.store("Philosophers").push({ Name: "Confucius", Era: "Ancient philosophy" });
 	* // create a record set out of the records in store
 	* var recordSet = base.store("Philosophers").recs;
 	* // clone the record set of the "Philosophers" store
@@ -1427,30 +1427,30 @@ exports.datasets= require('qminer_datasets');
 	*    mode: "createClean",
 	*    schema: [
 	*    {
-	*        "name": "Musicians",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Instruments", "type": "string_v" }
+	*        name: "Musicians",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "Instruments", type: "string_v" }
 	*        ],
-	*        "joins": [
-	*            { "name": "PlaysIn", "type": "index", "store": "Bands", "inverse": "Members" }
+	*        joins: [
+	*            { name: "PlaysIn", type: "index", store: "Bands", inverse: "Members" }
 	*        ]
 	*    },
 	*    {
-	*        "name": "Bands",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Genre", "type": "string" }
+	*        name: "Bands",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "Genre", type: "string" }
 	*        ],
-	*        "joins": [
-	*            { "name": "Members", "type": "index", "store": "Musicians", "inverse": "PlaysIn" }
+	*        joins: [
+	*            { name: "Members", type: "index", store: "Musicians", inverse: "PlaysIn" }
 	*        ]
 	*    }]
 	* });
 	* // add some new records to both stores
-	* base.store("Musicians").push({ "Name": "Robert Plant", "Instruments": ["Vocals"], "PlaysIn": [{"Name": "Led Zeppelin", "Genre": "Rock" }] });
-	* base.store("Musicians").push({ "Name": "Jimmy Page", "Instruments": ["Guitar"], "PlaysIn": [{"Name": "Led Zeppelin", "Genre": "Rock" }] });
-	* base.store("Bands").push({ "Name": "The White Stripes", "Genre": "Rock" });
+	* base.store("Musicians").push({ Name: "Robert Plant", Instruments: ["Vocals"], PlaysIn: [{Name: "Led Zeppelin", "Genre": "Rock" }] });
+	* base.store("Musicians").push({ Name: "Jimmy Page", Instruments: ["Guitar"], PlaysIn: [{Name: "Led Zeppelin", "Genre": "Rock" }] });
+	* base.store("Bands").push({ Name: "The White Stripes", Genre: "Rock" });
 	* // create a record set containing the musicians, that are members of some bend
 	* // returns a record set containing the records of "Robert Plant" and "Jimmy Page"
 	* var ledZeppelin = base.store("Bands").recs.join("Members");
@@ -1478,19 +1478,19 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Philosophers",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Era", "type": "string" }
+	*        name: "Philosophers",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "Era", type: "string" }
 	*        ]
 	*    }]
 	* });
 	* // put some records in the store
-	* base.store("Philosophers").push({ "Name": "Plato", "Era": "Ancient philosophy" });
-	* base.store("Philosophers").push({ "Name": "Immanuel Kant", "Era": "18th-century philosophy" });
-	* base.store("Philosophers").push({ "Name": "Emmanuel Levinas", "Era": "20th-century philosophy" });
-	* base.store("Philosophers").push({ "Name": "Rene Descartes", "Era": "17th-century philosophy" });
-	* base.store("Philosophers").push({ "Name": "Confucius", "Era": "Ancient philosophy" });
+	* base.store("Philosophers").push({ Name: "Plato", Era: "Ancient philosophy" });
+	* base.store("Philosophers").push({ Name: "Immanuel Kant", Era: "18th-century philosophy" });
+	* base.store("Philosophers").push({ Name: "Emmanuel Levinas", Era: "20th-century philosophy" });
+	* base.store("Philosophers").push({ Name: "Rene Descartes", Era: "17th-century philosophy" });
+	* base.store("Philosophers").push({ Name: "Confucius", Era: "Ancient philosophy" });
 	* // create two identical record sets of the "Philosophers" store
 	* var recordSet1 = base.store("Philosophers").recs;
 	* var recordSet2 = base.store("Philosophers").recs;
@@ -1511,20 +1511,20 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Movies",
-	*        "fields": [
-	*            { "name": "Title", "type": "string" },
-	*            { "name": "Length", "type": "int" },
-	*            { "name": "Director", "type": "string" }
+	*        name: "Movies",
+	*        fields: [
+	*            { name: "Title", type: "string" },
+	*            { name: "Length", type: "int" },
+	*            { name: "Director", type: "string" }
 	*        ]
 	*    }]
 	* });
 	* // put some records in the store
-	* base.store("Movies").push({ "Title": "The Nightmare Before Christmas", "Length": 76, "Director": "Henry Selick" });
-	* base.store("Movies").push({ "Title": "Jurassic Part", "Length": 127, "Director": "Steven Spielberg" });
-	* base.store("Movies").push({ "Title": "The Avengers", "Length": 143, "Director": "Joss Whedon" });
-	* base.store("Movies").push({ "Title": "The Clockwork Orange", "Length": 136, "Director": "Stanley Kubrick" });
-	* base.store("Movies").push({ "Title": "Full Metal Jacket", "Length": 116, "Director": "Stanely Kubrick" });
+	* base.store("Movies").push({ Title: "The Nightmare Before Christmas", Length: 76, Director: "Henry Selick" });
+	* base.store("Movies").push({ Title: "Jurassic Part", Length: 127, Director: "Steven Spielberg" });
+	* base.store("Movies").push({ Title: "The Avengers", Length: 143, Director: "Joss Whedon" });
+	* base.store("Movies").push({ Title: "The Clockwork Orange", Length: 136, Director: "Stanley Kubrick" });
+	* base.store("Movies").push({ Title: "Full Metal Jacket", Length: 116, Director: "Stanely Kubrick" });
 	* // create a sample record set of containing 3 records from the "Movies" store
 	* var sample = base.store("Movies").recs.sample(3);
 	*/
@@ -1540,21 +1540,21 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "WeatherForcast",
-	*        "fields": [
-	*            { "name": "Weather", "type": "string" },
-	*            { "name": "Date", "type": "datetime" },
-	*            { "name": "TemperatureDegrees", "type": "int" }
+	*        name: "WeatherForcast",
+	*        fields: [
+	*            { name: "Weather", type: "string" },
+	*            { name: "Date", type: "datetime" },
+	*            { name: "TemperatureDegrees", type: "int" }
 	*        ]
 	*    }]
 	* });
 	* // put some records in the "WeatherForecast" store
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "TemperatureDegrees": 19 });
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "TemperatureDegrees": 22 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "TemperatureDegrees": 25 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "TemperatureDegrees": 25 });
-	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "TemperatureDegrees": 24 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "TemperatureDegrees": 27 });
+	* base.store("WeatherForcast").push({ Weather: "Partly Cloudy", Date: "2015-05-27T11:00:00", TemperatureDegrees: 19 });
+	* base.store("WeatherForcast").push({ Weather: "Partly Cloudy", Date: "2015-05-28T11:00:00", TemperatureDegrees: 22 });
+	* base.store("WeatherForcast").push({ Weather: "Mostly Cloudy", Date: "2015-05-29T11:00:00", TemperatureDegrees: 25 });
+	* base.store("WeatherForcast").push({ Weather: "Mostly Cloudy", Date: "2015-05-30T11:00:00", TemperatureDegrees: 25 });
+	* base.store("WeatherForcast").push({ Weather: "Scattered Showers", Date: "2015-05-31T11:00:00", TemperatureDegrees: 24 });
+	* base.store("WeatherForcast").push({ Weather: "Mostly Cloudy", Date: "2015-06-01T11:00:00", TemperatureDegrees: 27 });
 	* // get the record set containing the records from the "WeatherForcast" store
 	* var recordSet = base.store("WeatherForcast").recs;
 	* // shuffle the records in the newly created record set. Use the number 100 as the seed for the shuffle
@@ -1571,21 +1571,21 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "WeatherForcast",
-	*        "fields": [
-	*            { "name": "Weather", "type": "string" },
-	*            { "name": "Date", "type": "datetime" },
-	*            { "name": "TemperatureDegrees", "type": "int" },
+	*        name: "WeatherForcast",
+	*        fields: [
+	*            { name: "Weather", type: "string" },
+	*            { name: "Date", type: "datetime" },
+	*            { name: "TemperatureDegrees", type: "int" },
 	*        ]
 	*    }]
 	* });
 	* // put some records in the "WeatherForecast" store
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "TemperatureDegrees": 19 });
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "TemperatureDegrees": 22 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "TemperatureDegrees": 25 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "TemperatureDegrees": 25 });
-	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "TemperatureDegrees": 24 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "TemperatureDegrees": 27 });
+	* base.store("WeatherForcast").push({ Weather: "Partly Cloudy", Date: "2015-05-27T11:00:00", TemperatureDegrees: 19 });
+	* base.store("WeatherForcast").push({ Weather: "Partly Cloudy", Date: "2015-05-28T11:00:00", TemperatureDegrees: 22 });
+	* base.store("WeatherForcast").push({ Weather: "Mostly Cloudy", Date: "2015-05-29T11:00:00", TemperatureDegrees: 25 });
+	* base.store("WeatherForcast").push({ Weather: "Mostly Cloudy", Date: "2015-05-30T11:00:00", TemperatureDegrees: 25 });
+	* base.store("WeatherForcast").push({ Weather: "Scattered Showers", Date: "2015-05-31T11:00:00", TemperatureDegrees: 24 });
+	* base.store("WeatherForcast").push({ Weather: "Mostly Cloudy", Date: "2015-06-01T11:00:00", TemperatureDegrees: 27 });
 	* // get the record set containing the records from the "WeatherForcast" store
 	* var recordSet = base.store("WeatherForcast").recs;
 	* // reverse the record order in the record set
@@ -1603,19 +1603,19 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Tea",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Type", "type": "string"},
-	*            { "name": "Origin", "type": "string", "null": true  }
+	*        name: "Tea",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "Type", type: "string"},
+	*            { name: "Origin", type: "string", "null": true  }
 	*        ]
 	*    }]
 	* });
 	* // put some records in the "Tea" store
-	* base.store("Tea").push({ "Name": "Tanyang Gongfu", "Type": "Black", "Origin": "Tanyang" });
-	* base.store("Tea").push({ "Name": "Rou Gui", "Type": "White" });
-	* base.store("Tea").push({ "Name": "Tieluohan Tea", "Type": "Wuyi", "Origin": "Northern Fujian" });
-	* base.store("Tea").push({ "Name": "Red Robe", "Type": "Oolong", "Origin": "Wuyi Mountains" });
+	* base.store("Tea").push({ Name: "Tanyang Gongfu", Type: "Black", Origin: "Tanyang" });
+	* base.store("Tea").push({ Name: "Rou Gui", Type: "White" });
+	* base.store("Tea").push({ Name: "Tieluohan Tea", Type: "Wuyi", Origin: "Northern Fujian" });
+	* base.store("Tea").push({ Name: "Red Robe", Type: "Oolong", Origin: "Wuyi Mountains" });
 	* // get the records of the "Tea" store as a record set
 	* var recordSet = base.store("Tea").recs;
 	* // sort the records in the record set by their id in descending order
@@ -1643,19 +1643,19 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "TVSeries",
-	*        "fields": [
-	*            { "name": "Title", "type": "string", "primary": true },
-	*            { "name": "NumberOfEpisodes", "type": "int" }
+	*        name: "TVSeries",
+	*        fields: [
+	*            { name: "Title", type: "string", primary: true },
+	*            { name: "NumberOfEpisodes", type: "int" }
 	*        ]
 	*    }]
 	* });
 	* // add some records in the store
-	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
-	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
-	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94 });
-	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11 });
-	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
+	* base.store("TVSeries").push({ Title: "Archer", NumberOfEpisodes: 75 });
+	* base.store("TVSeries").push({ Title: "The Simpsons", NumberOfEpisodes: 574 });
+	* base.store("TVSeries").push({ Title: "New Girl", NumberOfEpisodes: 94 });
+	* base.store("TVSeries").push({ Title: "Rick and Morty", NumberOfEpisodes: 11 });
+	* base.store("TVSeries").push({ Title: "Game of Thrones", NumberOfEpisodes: 47 });
 	* // get the records of the "TVSeries" store as a record set
 	* var recordSet = base.store("TVSeries").recs;
 	* // sort the records by their "Title" field in ascending order 
@@ -1676,19 +1676,19 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "TVSeries",
-	*        "fields": [
-	*            { "name": "Title", "type": "string", "primary": true },
-	*            { "name": "NumberOfEpisodes", "type": "int" }
+	*        name: "TVSeries",
+	*        fields: [
+	*            { name: "Title", type: "string", primary: true },
+	*            { name: "NumberOfEpisodes", type: "int" }
 	*        ]
 	*    }]
 	* });
 	* // add some records in the store
-	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
-	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
-	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94 });
-	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11 });
-	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
+	* base.store("TVSeries").push({ Title: "Archer", NumberOfEpisodes: 75 });
+	* base.store("TVSeries").push({ Title: "The Simpsons", NumberOfEpisodes: 574 });
+	* base.store("TVSeries").push({ Title: "New Girl", NumberOfEpisodes: 94 });
+	* base.store("TVSeries").push({ Title: "Rick and Morty", NumberOfEpisodes: 11 });
+	* base.store("TVSeries").push({ Title: "Game of Thrones", NumberOfEpisodes: 47 });
 	* // get the records of the "TVSeries" store as a record set
 	* var recordSet = base.store("TVSeries").recs;
 	* // sort the records by their number of episodes
@@ -1709,21 +1709,21 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "FrankSinatraGreatestHits",
-	*        "fields": [
-	*            { "name": "Title", "type": "string" },
-	*            { "name": "Length", "type": "int" }
+	*        name: "FrankSinatraGreatestHits",
+	*        fields: [
+	*            { name: "Title", type: "string" },
+	*            { name: "Length", type: "int" }
 	*        ]
 	*    }]
 	* });
 	* // put some records in the "FrankSinatraGreatesHits" store
-	* base.store("FrankSinatraGreatestHits").push({ "Title": "Strangers in the Night", "Length": 145 });
-	* base.store("FrankSinatraGreatestHits").push({ "Title": "Summer Wind", "Length": 173 });
-	* base.store("FrankSinatraGreatestHits").push({ "Title": "It Was a Very Good Year", "Length": 265 });
-	* base.store("FrankSinatraGreatestHits").push({ "Title": "Somewhere in Your Heart", "Length": 146 });
-	* base.store("FrankSinatraGreatestHits").push({ "Title": "Forget Domani", "Length": 156 });
-	* base.store("FrankSinatraGreatestHits").push({ "Title": "Somethin' Stupid", "Length": 155 });
-	* base.store("FrankSinatraGreatestHits").push({ "Title": "This Town", "Length": 186 });
+	* base.store("FrankSinatraGreatestHits").push({ Title: "Strangers in the Night", Length: 145 });
+	* base.store("FrankSinatraGreatestHits").push({ Title: "Summer Wind", Length: 173 });
+	* base.store("FrankSinatraGreatestHits").push({ Title: "It Was a Very Good Year", Length: 265 });
+	* base.store("FrankSinatraGreatestHits").push({ Title: "Somewhere in Your Heart", Length: 146 });
+	* base.store("FrankSinatraGreatestHits").push({ Title: "Forget Domani", Length: 156 });
+	* base.store("FrankSinatraGreatestHits").push({ Title: "Somethin' Stupid", Length: 155 });
+	* base.store("FrankSinatraGreatestHits").push({ Title: "This Town", Length: 186 });
 	* // get the records of the store as a record set
 	* var recordSet = base.store("FrankSinatraGreatestHits").recs;
 	* // from the record set keep the records with indeces between or equal 2 and 5
@@ -1757,21 +1757,21 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "WeatherForcast",
-	*        "fields": [
-	*            { "name": "Weather", "type": "string" },
-	*            { "name": "Date", "type": "datetime" },
-	*            { "name": "TemperatureDegrees", "type": "int" },
+	*        name: "WeatherForcast",
+	*        fields: [
+	*            { name: "Weather", type: "string" },
+	*            { name: "Date", type: "datetime" },
+	*            { name: "TemperatureDegrees", type: "int" },
 	*        ]
 	*    }]
 	* });
 	* // put some records in the "WeatherForecast" store
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "TemperatureDegrees": 19 });
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "TemperatureDegrees": 22 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "TemperatureDegrees": 25 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "TemperatureDegrees": 25 });
-	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "TemperatureDegrees": 24 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "TemperatureDegrees": 27 });
+	* base.store("WeatherForcast").push({ Weather: "Partly Cloudy", Date: "2015-05-27T11:00:00", TemperatureDegrees: 19 });
+	* base.store("WeatherForcast").push({ Weather: "Partly Cloudy", Date: "2015-05-28T11:00:00", TemperatureDegrees: 22 });
+	* base.store("WeatherForcast").push({ Weather: "Mostly Cloudy", Date: "2015-05-29T11:00:00", TemperatureDegrees: 25 });
+	* base.store("WeatherForcast").push({ Weather: "Mostly Cloudy", Date: "2015-05-30T11:00:00", TemperatureDegrees: 25 });
+	* base.store("WeatherForcast").push({ Weather: "Scattered Showers", Date: "2015-05-31T11:00:00", TemperatureDegrees: 24 });
+	* base.store("WeatherForcast").push({ Weather: "Mostly Cloudy", Date: "2015-06-01T11:00:00", TemperatureDegrees: 27 });
 	* // get the record set containing the records from the "WeatherForcast" store
 	* var recordSet = base.store("WeatherForcast").recs;
 	* // filter only the records, where the weather is Mostly Cloudy
@@ -1789,17 +1789,17 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "ArcheryChampionship",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "ScorePerRound", "type": "float_v" }
+	*        name: "ArcheryChampionship",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "ScorePerRound", type: "float_v" }
 	*        ]
 	*    }]
 	* });
 	* // set new records in the store
-	* base.store("ArcheryChampionship").push({ "Name": "Robin Hood", "ScorePerRound": [50, 48, 48] });
-	* base.store("ArcheryChampionship").push({ "Name": "Oliver Queen", "ScorePerRound": [44, 46, 44] });
-	* base.store("ArcheryChampionship").push({ "Name": "Legolas", "ScorePerRound": [50, 50, 48] });
+	* base.store("ArcheryChampionship").push({ Name: "Robin Hood", ScorePerRound: [50, 48, 48] });
+	* base.store("ArcheryChampionship").push({ Name: "Oliver Queen", ScorePerRound: [44, 46, 44] });
+	* base.store("ArcheryChampionship").push({ Name: "Legolas", ScorePerRound: [50, 50, 48] });
 	* // create a record set out of the records of the store
 	* var recordSet = base.store("ArcheryChampionship").recs;
 	* // filter the records: which archers have scored 48 points in the third round
@@ -1817,20 +1817,20 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "SocialGames",
-	*        "fields": [
-	*            { "name": "Title", "type": "string" },
-	*            { "name": "Type", "type": "string" },
-	*            { "name": "MinPlayers", "type": "int" },
-	*            { "name": "MaxPlayers", "type": "int" }
+	*        name: "SocialGames",
+	*        fields: [
+	*            { name: "Title", type: "string" },
+	*            { name: "Type", type: "string" },
+	*            { name: "MinPlayers", type: "int" },
+	*            { name: "MaxPlayers", type: "int" }
 	*        ]
 	*    }]
 	* });
 	* // set new records in the store
-	* base.store("SocialGames").push({ "Title": "DungeonsAndDragons", "Type": "Role-Playing", "MinPlayers": 5, "MaxPlayers": 5 });
-	* base.store("SocialGames").push({ "Title": "Dobble", "Type": "Card", "MinPlayers": 2, "MaxPlayers": 8 });
-	* base.store("SocialGames").push({ "Title": "Settlers of Catan", "Type": "Board", "MinPlayers": 3, "MaxPlayers": 4 });
-	* base.store("SocialGames").push({ "Title": "Munchkin", "Type": "Card", "MinPlayers": 3, "MaxPlayers": 6 });
+	* base.store("SocialGames").push({ Title: "DungeonsAndDragons", Type: "Role-Playing", MinPlayers: 5, MaxPlayers: 5 });
+	* base.store("SocialGames").push({ Title: "Dobble", Type: "Card", MinPlayers: 2, MaxPlayers: 8 });
+	* base.store("SocialGames").push({ Title: "Settlers of Catan", Type: "Board", MinPlayers: 3, MaxPlayers: 4 });
+	* base.store("SocialGames").push({ Title: "Munchkin", Type: "Card", MinPlayers: 3, MaxPlayers: 6 });
 	* // create a record set out of the records of the store
 	* var recordSet = base.store("SocialGames").recs;
 	* // sort the records by MinPlayers in ascending order
@@ -1853,22 +1853,22 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "BookWriters",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Genre", "type": "string" },
-	*            { "name": "Books", "type": "string_v" }
+	*        name: "BookWriters",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "Genre", type: "string" },
+	*            { name: "Books", type: "string_v" }
 	*        ]
 	*    }]
 	* });
 	* // set new records in the store
-	* base.store("BookWriters").push({ "Name": "Terry Pratchett", "Genre": "Fantasy", "Books": ["The Colour of Magic", "Going Postal", "Mort", "Guards! Guards!"] });
-	* base.store("BookWriters").push({ "Name": "Douglas Adams", "Genre": "Sci-fi", "Books": ["The Hitchhiker's Guide to the Galaxy", "So Long, and Thanks for All the Fish"] });
-	* base.store("BookWriters").push({ "Name": "Fyodor Dostoyevsky", "Genre": "Drama", "Books": ["Crime and Punishment", "Demons"] });
-	* base.store("BookWriters").push({ "Name": "J.R.R. Tolkien", "Genre": "Fantasy", "Books": ["The Hobbit", "The Two Towers", "The Silmarillion" ] });
-	* base.store("BookWriters").push({ "Name": "George R.R. Martin", "Genre": "Fantasy", "Books": ["A Game of Thrones", "A Feast of Crows"] });
-	* base.store("BookWriters").push({ "Name": "J. K. Rowling", "Genre": "Fantasy", "Books": ["Harry Potter and the Philosopher's Stone"] });
-	* base.store("BookWriters").push({ "Name": "Ivan Cankar", "Genre": "Drama", "Books": ["On the Hill", "The King of Betajnova", "The Serfs"] });
+	* base.store("BookWriters").push({ Name: "Terry Pratchett", Genre: "Fantasy", Books: ["The Colour of Magic", "Going Postal", "Mort", "Guards! Guards!"] });
+	* base.store("BookWriters").push({ Name: "Douglas Adams", Genre: "Sci-fi", Books: ["The Hitchhiker's Guide to the Galaxy", "So Long, and Thanks for All the Fish"] });
+	* base.store("BookWriters").push({ Name: "Fyodor Dostoyevsky", Genre: "Drama", Books: ["Crime and Punishment", "Demons"] });
+	* base.store("BookWriters").push({ Name: "J.R.R. Tolkien", Genre: "Fantasy", Books: ["The Hobbit", "The Two Towers", "The Silmarillion" ] });
+	* base.store("BookWriters").push({ Name: "George R.R. Martin", Genre: "Fantasy", Books: ["A Game of Thrones", "A Feast of Crows"] });
+	* base.store("BookWriters").push({ Name: "J. K. Rowling", Genre: "Fantasy", Books: ["Harry Potter and the Philosopher's Stone"] });
+	* base.store("BookWriters").push({ Name: "Ivan Cankar", Genre: "Drama", Books: ["On the Hill", "The King of Betajnova", "The Serfs"] });
 	* // create one record set containing all records of store
 	* var recordSet = base.store("BookWriters").recs;
 	* // create one record set containing the records with genre "Fantasy"
@@ -1887,17 +1887,17 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Musicians",
-	*        "fields": [
-	*            { "name": "Name", "type": "string", "primary": true },
-	*            { "name": "DateOfBirth", "type": "datetime" },
-	*            { "name": "GreatestHits", "type": "string_v" }
+	*        name: "Musicians",
+	*        fields: [
+	*            { name: "Name", type: "string", primary: true },
+	*            { name: "DateOfBirth", type: "datetime" },
+	*            { name: "GreatestHits", type: "string_v" }
 	*        ]
 	*    }]
 	* });
 	* // create some records
-	* base.store("Musicians").push({ "Name": "Jimmy Page", "DateOfBirth":  "1944-01-09T00:00:00", "GreatestHits": ["Stairway to Heaven", "Whole Lotta Love"] });
-	* base.store("Musicians").push({ "Name": "Beyonce", "DateOfBirth": "1981-09-04T00:00:00", "GreatestHits": ["Single Ladies (Put a Ring on It)"] });
+	* base.store("Musicians").push({ Name: "Jimmy Page", DateOfBirth:  "1944-01-09T00:00:00", GreatestHits: ["Stairway to Heaven", "Whole Lotta Love"] });
+	* base.store("Musicians").push({ Name: "Beyonce", DateOfBirth: "1981-09-04T00:00:00", GreatestHits: ["Single Ladies (Put a Ring on It)"] });
 	* // create a record set out of the records in the "Musicians" store
 	* var recordSet = base.store("Musicians").recs;
 	* // create a JSON object out of the record set
@@ -1917,17 +1917,17 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "People",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Gender", "type": "string" }
+	*        type: "People",
+	*        fields: [
+	*            { type: "Name", type: "string" },
+	*            { type: "Gender", type: "string" }
 	*        ]
 	*    }]
 	* });
 	* // put some records in the store
-	* base.store("People").push({ "Name": "Eric Sugar", "Gender": "Male" });
-	* base.store("People").push({ "Name": "Jane Tokyo", "Gender": "Female" });
-	* base.store("People").push({ "Name": "Mister Tea", "Gender": "Male" });
+	* base.store("People").push({ Name: "Eric Sugar", Gender: "Male" });
+	* base.store("People").push({ Name: "Jane Tokyo", Gender: "Female" });
+	* base.store("People").push({ Name: "Mister Tea", Gender: "Male" });
 	* // create a record set out of the records of the store
 	* var recordSet = base.store("People").recs;
 	* // change the Name of all records into "Anonymous"
@@ -1947,17 +1947,17 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "People",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Gender", "type": "string" }
+	*        type: "People",
+	*        fields: [
+	*            { type: "Name", type: "string" },
+	*            { type: "Gender", type: "string" }
 	*        ]
 	*    }]
 	* });
 	* // put some records in the store
-	* base.store("People").push({ "Name": "Eric Sugar", "Gender": "Male" });
-	* base.store("People").push({ "Name": "Jane Tokyo", "Gender": "Female" });
-	* base.store("People").push({ "Name": "Mister Tea", "Gender": "Male" });
+	* base.store("People").push({ Name: "Eric Sugar", Gender: "Male" });
+	* base.store("People").push({ Name: "Jane Tokyo", Gender: "Female" });
+	* base.store("People").push({ Name: "Mister Tea", Gender: "Male" });
 	* // create a record set out of the records of the store
 	* var recordSet = base.store("People").recs;
 	* // make an array of record Names
@@ -1975,20 +1975,20 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Movies",
-	*        "fields": [
-	*            { "name": "Title", "type": "string" },
-	*            { "name": "Length", "type": "int" },
-	*            { "name": "Director", "type": "string" }
+	*        type: "Movies",
+	*        fields: [
+	*            { type: "Title", type: "string" },
+	*            { type: "Length", type: "int" },
+	*            { type: "Director", type: "string" }
 	*        ]
 	*    }]
 	* });
 	* // put some records in the store
-	* base.store("Movies").push({ "Title": "The Nightmare Before Christmas", "Length": 76, "Director": "Henry Selick" });
-	* base.store("Movies").push({ "Title": "Jurassic Part", "Length": 127, "Director": "Steven Spielberg" });
-	* base.store("Movies").push({ "Title": "The Avengers", "Length": 143, "Director": "Joss Whedon" });
-	* base.store("Movies").push({ "Title": "The Clockwork Orange", "Length": 136, "Director": "Stanley Kubrick" });
-	* base.store("Movies").push({ "Title": "Full Metal Jacket", "Length": 116, "Director": "Stanely Kubrick" });
+	* base.store("Movies").push({ Title: "The Nightmare Before Christmas", Length: 76, Director: "Henry Selick" });
+	* base.store("Movies").push({ Title: "Jurassic Part", Length: 127, Director: "Steven Spielberg" });
+	* base.store("Movies").push({ Title: "The Avengers", Length: 143, Director: "Joss Whedon" });
+	* base.store("Movies").push({ Title: "The Clockwork Orange", Length: 136, Director: "Stanley Kubrick" });
+	* base.store("Movies").push({ Title: "Full Metal Jacket", Length: 116, Director: "Stanely Kubrick" });
 	* // create a record set out of the records in store, where length of the movie is greater than 110
 	* var greaterSet = base.store("Movies").recs.filterByField("Length", 110, 150);
 	* // create a record set out of the records in store, where the length of the movie is lesser than 130
@@ -2008,19 +2008,19 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "TVSeries",
-	*        "fields": [
-	*            { "name": "Title", "type": "string", "primary": true },
-	*            { "name": "NumberOfEpisodes", "type": "int" }
+	*        type: "TVSeries",
+	*        fields: [
+	*            { type: "Title", type: "string", "primary": true },
+	*            { type: "NumberOfEpisodes", type: "int" }
 	*        ]
 	*    }]
 	* });
 	* // add some records in the store
-	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
-	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
-	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94 });
-	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11 });
-	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
+	* base.store("TVSeries").push({ Title: "Archer", NumberOfEpisodes: 75 });
+	* base.store("TVSeries").push({ Title: "The Simpsons", NumberOfEpisodes: 574 });
+	* base.store("TVSeries").push({ Title: "New Girl", NumberOfEpisodes: 94 });
+	* base.store("TVSeries").push({ Title: "Rick and Morty", NumberOfEpisodes: 11 });
+	* base.store("TVSeries").push({ Title: "Game of Thrones", NumberOfEpisodes: 47 });
 	* // create a record set out of the records in store, where the number of episodes is lesser than 47
 	* var lesserSet = base.store("TVSeries").recs.filterByField("NumberOfEpisodes", 0, 47);
 	* // create a record set out of the records in store, where the number of episodes is greater than 100
@@ -2040,22 +2040,22 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "BookWriters",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Genre", "type": "string" },
-	*            { "name": "Books", "type": "string_v" }
+	*        type: "BookWriters",
+	*        fields: [
+	*            { type: "Name", type: "string" },
+	*            { type: "Genre", type: "string" },
+	*            { type: "Books", type: "string_v" }
 	*        ]
 	*    }]
 	* });
 	* // set new records in the store
-	* base.store("BookWriters").push({ "Name": "Terry Pratchett", "Genre": "Fantasy", "Books": ["The Colour of Magic", "Going Postal", "Mort", "Guards! Guards!"] });
-	* base.store("BookWriters").push({ "Name": "Douglas Adams", "Genre": "Sci-fi", "Books": ["The Hitchhiker's Guide to the Galaxy", "So Long, and Thanks for All the Fish"] });
-	* base.store("BookWriters").push({ "Name": "Fyodor Dostoyevsky", "Genre": "Drama", "Books": ["Crime and Punishment", "Demons"] });
-	* base.store("BookWriters").push({ "Name": "J.R.R. Tolkien", "Genre": "Fantasy", "Books": ["The Hobbit", "The Two Towers", "The Silmarillion" ] });
-	* base.store("BookWriters").push({ "Name": "George R.R. Martin", "Genre": "Fantasy", "Books": ["A Game of Thrones", "A Feast of Crows"] });
-	* base.store("BookWriters").push({ "Name": "J. K. Rowling", "Genre": "Fantasy", "Books": ["Harry Potter and the Philosopher's Stone"] });
-	* base.store("BookWriters").push({ "Name": "Ivan Cankar", "Genre": "Drama", "Books": ["On the Hill", "The King of Betajnova", "The Serfs"] });
+	* base.store("BookWriters").push({ Name: "Terry Pratchett", Genre: "Fantasy", Books: ["The Colour of Magic", "Going Postal", "Mort", "Guards! Guards!"] });
+	* base.store("BookWriters").push({ Name: "Douglas Adams", Genre: "Sci-fi", Books: ["The Hitchhiker's Guide to the Galaxy", "So Long, and Thanks for All the Fish"] });
+	* base.store("BookWriters").push({ Name: "Fyodor Dostoyevsky", Genre: "Drama", Books: ["Crime and Punishment", "Demons"] });
+	* base.store("BookWriters").push({ Name: "J.R.R. Tolkien", Genre: "Fantasy", Books: ["The Hobbit", "The Two Towers", "The Silmarillion" ] });
+	* base.store("BookWriters").push({ Name: "George R.R. Martin", Genre: "Fantasy", Books: ["A Game of Thrones", "A Feast of Crows"] });
+	* base.store("BookWriters").push({ Name: "J. K. Rowling", Genre: "Fantasy", Books: ["Harry Potter and the Philosopher's Stone"] });
+	* base.store("BookWriters").push({ Name: "Ivan Cankar", Genre: "Drama", Books: ["On the Hill", "The King of Betajnova", "The Serfs"] });
 	* // create one record set containing all records of store
 	* var recordSet = base.store("BookWriters").recs;
 	* // create one record set containing the records with genre "Fantasy"
@@ -2075,19 +2075,19 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "TVSeries",
-	*        "fields": [
-	*            { "name": "Title", "type": "string", "primary": true },
-	*            { "name": "NumberOfEpisodes", "type": "int" }
+	*        type: "TVSeries",
+	*        fields: [
+	*            { type: "Title", type: "string", "primary": true },
+	*            { type: "NumberOfEpisodes", type: "int" }
 	*        ]
 	*    }]
 	* });
 	* // add some records in the store
-	* base.store("TVSeries").push({ "Title": "Archer", "NumberOfEpisodes": 75 });
-	* base.store("TVSeries").push({ "Title": "The Simpsons", "NumberOfEpisodes": 574 });
-	* base.store("TVSeries").push({ "Title": "New Girl", "NumberOfEpisodes": 94 });
-	* base.store("TVSeries").push({ "Title": "Rick and Morty", "NumberOfEpisodes": 11 });
-	* base.store("TVSeries").push({ "Title": "Game of Thrones", "NumberOfEpisodes": 47 });
+	* base.store("TVSeries").push({ Title: "Archer", NumberOfEpisodes: 75 });
+	* base.store("TVSeries").push({ Title: "The Simpsons", NumberOfEpisodes: 574 });
+	* base.store("TVSeries").push({ Title: "New Girl", NumberOfEpisodes: 94 });
+	* base.store("TVSeries").push({ Title: "Rick and Morty", NumberOfEpisodes: 11 });
+	* base.store("TVSeries").push({ Title: "Game of Thrones", NumberOfEpisodes: 47 });
 	* // create a record set of the records of store
 	* var recordSet = base.store("TVSeries").recs;
 	* // create a vector containing the number of episodes for each series
@@ -2106,17 +2106,17 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "ArcheryChampionship",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "ScorePerRound", "type": "float_v" }
+	*        type: "ArcheryChampionship",
+	*        fields: [
+	*            { type: "Name", type: "string" },
+	*            { type: "ScorePerRound", type: "float_v" }
 	*        ]
 	*    }]
 	* });
 	* // set new records in the store
-	* base.store("ArcheryChampionship").push({ "Name": "Robin Hood", "ScorePerRound": [50, 48, 48] });
-	* base.store("ArcheryChampionship").push({ "Name": "Oliver Queen", "ScorePerRound": [44, 46, 44] });
-	* base.store("ArcheryChampionship").push({ "Name": "Legolas", "ScorePerRound": [50, 50, 48] });
+	* base.store("ArcheryChampionship").push({ Name: "Robin Hood", ScorePerRound: [50, 48, 48] });
+	* base.store("ArcheryChampionship").push({ Name: "Oliver Queen", ScorePerRound: [44, 46, 44] });
+	* base.store("ArcheryChampionship").push({ Name: "Legolas", ScorePerRound: [50, 50, 48] });
 	* // create a record set of the records in store
 	* var recordSet = base.store("ArcheryChampionship").recs;
 	* // create a matrix from the "ScorePerRound" field
@@ -2153,17 +2153,17 @@ exports.datasets= require('qminer_datasets');
 * // create a new base with a simple store
 * var base = new qm.Base({ mode: "createClean" });
 * base.createStore({
-*     "name": "People",
-*     "fields": [
-*         { "name": "Name", "type": "string" },
-*         { "name": "Gendre", "type": "string" }
+*     type: "People",
+*     fields: [
+*         { type: "Name", type: "string" },
+*         { type: "Gendre", type: "string" }
 *     ]
 * });
 * // add new records to the store
-* base.store("People").push({ "Name": "Geronimo", "Gender": "Male" });
-* base.store("People").push({ "Name": "Pochahontas", "Gender": "Female" });
-* base.store("People").push({ "Name": "John Rolfe", "Gender": "Male" });
-* base.store("People").push({ "Name": "John Smith", "Gender": "Male"});
+* base.store("People").push({ Name: "Geronimo", Gender: "Male" });
+* base.store("People").push({ Name: "Pochahontas", Gender: "Female" });
+* base.store("People").push({ Name: "John Rolfe", Gender: "Male" });
+* base.store("People").push({ Name: "John Smith", Gender: "Male"});
 * // factory based construction with forwardIter
 * var iter = base.store("People").forwardIter;
 */
@@ -2180,21 +2180,21 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "TheWitcherSaga",
-	*        "fields": [
-	*            { "name": "Title", "type": "string" },
-	*            { "name": "YearOfRelese", "type": "int" },
-	*            { "name": "EnglishEdition", "type": "bool" }
+	*        type: "TheWitcherSaga",
+	*        fields: [
+	*            { type: "Title", type: "string" },
+	*            { type: "YearOfRelese", type: "int" },
+	*            { type: "EnglishEdition", type: "bool" }
 	*        ]
 	*    }]
 	* });
 	* // put some records in the store
-	* base.store("TheWitcherSaga").push({ "Title": "Blood of Elves", "YearOfRelese": 1994, "EnglishEdition": true });
-	* base.store("TheWitcherSaga").push({ "Title": "Time of Contempt", "YearOfRelese": 1995, "EnglishEdition": true });
-	* base.store("TheWitcherSaga").push({ "Title": "Baptism of Fire", "YearOfRelese": 1996, "EnglishEdition": true });
-	* base.store("TheWitcherSaga").push({ "Title": "The Swallow's Tower", "YearOfRelese": 1997, "EnglishEdition": false });
-	* base.store("TheWitcherSaga").push({ "Title": "Lady of the Lake", "YearOfRelese": 1999, "EnglishEdition": false });
-	* base.store("TheWitcherSaga").push({ "Title": "Season of Storms", "YearOfRelese": 2013, "EnglishEdition": false });
+	* base.store("TheWitcherSaga").push({ Title: "Blood of Elves", YearOfRelease: 1994, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Time of Contempt", YearOfRelease: 1995, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Baptism of Fire", YearOfRelease: 1996, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "The Swallow's Tower", YearOfRelease: 1997, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Lady of the Lake", YearOfRelease: 1999, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Season of Storms", YearOfRelease: 2013, EnglishEdition: false });
 	* // create an iterator for the store
 	* var iter = base.store("TheWitcherSaga").forwardIter;
 	* // go to the first record in the store
@@ -2267,21 +2267,21 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "WeatherForcast",
-	*        "fields": [
-	*            { "name": "Weather", "type": "string" },
-	*            { "name": "Date", "type": "datetime" },
-	*            { "name": "TemperatureDegrees", "type": "int" }
+	*        type: "WeatherForcast",
+	*        fields: [
+	*            { type: "Weather", type: "string" },
+	*            { type: "Date", type: "datetime" },
+	*            { type: "TemperatureDegrees", type: "int" }
 	*        ]
 	*    }]
 	* });
 	* // put some records in the "WeatherForecast" store
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-27T11:00:00", "TemperatureDegrees": 19 });
-	* base.store("WeatherForcast").push({ "Weather": "Partly Cloudy", "Date": "2015-05-28T11:00:00", "TemperatureDegrees": 22 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-29T11:00:00", "TemperatureDegrees": 25 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-05-30T11:00:00", "TemperatureDegrees": 25 });
-	* base.store("WeatherForcast").push({ "Weather": "Scattered Showers", "Date": "2015-05-31T11:00:00", "TemperatureDegrees": 24 });
-	* base.store("WeatherForcast").push({ "Weather": "Mostly Cloudy", "Date": "2015-06-01T11:00:00", "TemperatureDegrees": 27 });
+	* base.store("WeatherForcast").push({ Weather: "Partly Cloudy", Date: "2015-05-27T11:00:00", TemperatureDegrees: 19 });
+	* base.store("WeatherForcast").push({ Weather: "Partly Cloudy", Date: "2015-05-28T11:00:00", TemperatureDegrees: 22 });
+	* base.store("WeatherForcast").push({ Weather: "Mostly Cloudy", Date: "2015-05-29T11:00:00", TemperatureDegrees: 25 });
+	* base.store("WeatherForcast").push({ Weather: "Mostly Cloudy", Date: "2015-05-30T11:00:00", TemperatureDegrees: 25 });
+	* base.store("WeatherForcast").push({ Weather: "Scattered Showers", Date: "2015-05-31T11:00:00", TemperatureDegrees: 24 });
+	* base.store("WeatherForcast").push({ Weather: "Mostly Cloudy", Date: "2015-06-01T11:00:00", TemperatureDegrees: 27 });
 	* // create a feature space 
 	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "WeatherForcast", field: "TemperatureDegrees" });
 	* // add a new feature extractor to the feature space
@@ -2394,18 +2394,18 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Class",
-	*        "fields": [
-	*            { "name": "Name", "type": "string", "primary": true },
-	*            { "name": "StudyGroup", "type": "string" }
+	*        type: "Class",
+	*        fields: [
+	*            { type: "Name", type: "string", primary: true },
+	*            { type: "StudyGroup", type: "string" }
 	*        ]
 	*    }]
 	* });
 	* // add some records to the store
-	* base.store("Class").push({ "Name": "Dean", "StudyGroup": "A" });
-	* base.store("Class").push({ "Name": "Chang", "StudyGroup": "D" });
-	* base.store("Class").push({ "Name": "Magnitude", "StudyGroup": "C" });
-	* base.store("Class").push({ "Name": "Leonard", "StudyGroup": "B" });
+	* base.store("Class").push({ Name: "Dean", StudyGroup: "A" });
+	* base.store("Class").push({ Name: "Chang", StudyGroup: "D" });
+	* base.store("Class").push({ Name: "Magnitude", StudyGroup: "C" });
+	* base.store("Class").push({ Name: "Leonard", StudyGroup: "B" });
 	* // create a new feature space
 	* // the feature space is of dimensions [0, 4]; 4 is the dimension of the categorical feature extractor
 	* // and 0 is the dimension of text feature extractor (the text feature extractor doesn't have any words,
@@ -2431,18 +2431,18 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Class",
-	*        "fields": [
-	*            { "name": "Name", "type": "string", "primary": true },
-	*            { "name": "StudyGroup", "type": "string" }
+	*        type: "Class",
+	*        fields: [
+	*            { type: "Name", type: "string", primary: true },
+	*            { type: "StudyGroup", type: "string" }
 	*        ]
 	*    }]
 	* });
 	* // add some records to the store
-	* base.store("Class").push({ "Name": "Jeff", "StudyGroup": "A" });
-	* base.store("Class").push({ "Name": "Britta", "StudyGroup": "D" });
-	* base.store("Class").push({ "Name": "Abed", "StudyGroup": "C" });
-	* base.store("Class").push({ "Name": "Annie", "StudyGroup": "B" });
+	* base.store("Class").push({ Name: "Jeff", StudyGroup: "A" });
+	* base.store("Class").push({ Name: "Britta", StudyGroup: "D" });
+	* base.store("Class").push({ Name: "Abed", StudyGroup: "C" });
+	* base.store("Class").push({ Name: "Annie", StudyGroup: "B" });
 	* // create a new feature space
 	* // the feature space is of dimensions [0, 4]; 4 is the dimension of the categorical feature extractor
 	* // and 0 is the dimension of text feature extractor (the text feature extractor doesn't have any words,
@@ -2468,21 +2468,21 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "TheWitcherSaga",
-	*        "fields": [
-	*            { "name": "Title", "type": "string" },
-	*            { "name": "YearOfRelese", "type": "int" },
-	*            { "name": "EnglishEdition", "type": "bool" }
+	*        type: "TheWitcherSaga",
+	*        fields: [
+	*            { type: "Title", type: "string" },
+	*            { type: "YearOfRelease", type: "int" },
+	*            { type: "EnglishEdition", type: "bool" }
 	*        ]
 	*    }]
 	* });
 	* // put some records in the store
-	* base.store("TheWitcherSaga").push({ "Title": "Blood of Elves", "YearOfRelese": 1994, "EnglishEdition": true });
-	* base.store("TheWitcherSaga").push({ "Title": "Time of Contempt", "YearOfRelese": 1995, "EnglishEdition": true });
-	* base.store("TheWitcherSaga").push({ "Title": "Baptism of Fire", "YearOfRelese": 1996, "EnglishEdition": true });
-	* base.store("TheWitcherSaga").push({ "Title": "The Swallow's Tower", "YearOfRelese": 1997, "EnglishEdition": false });
-	* base.store("TheWitcherSaga").push({ "Title": "Lady of the Lake", "YearOfRelese": 1999, "EnglishEdition": false });
-	* base.store("TheWitcherSaga").push({ "Title": "Season of Storms", "YearOfRelese": 2013, "EnglishEdition": false });
+	* base.store("TheWitcherSaga").push({ Title: "Blood of Elves", YearOfRelease: 1994, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Time of Contempt", YearOfRelease: 1995, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Baptism of Fire", YearOfRelease: 1996, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "The Swallow's Tower", YearOfRelease: 1997, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Lady of the Lake", YearOfRelease: 1999, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Season of Storms", YearOfRelease: 2013, EnglishEdition: false });
 	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
 	* // for update, look the method updateRecords in feature space
 	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "TheWitcherSaga", field: "YearOfRelese", normalize: true });
@@ -2508,21 +2508,21 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "TheWitcherSaga",
-	*        "fields": [
-	*            { "name": "Title", "type": "string" },
-	*            { "name": "YearOfRelese", "type": "int" },
-	*            { "name": "EnglishEdition", "type": "bool" }
+	*        type: "TheWitcherSaga",
+	*        fields: [
+	*            { type: "Title", type: "string" },
+	*            { type: "YearOfRelease", type: "int" },
+	*            { type: "EnglishEdition", type: "bool" }
 	*        ]
 	*    }]
 	* });
 	* // put some records in the store
-	* base.store("TheWitcherSaga").push({ "Title": "Blood of Elves", "YearOfRelese": 1994, "EnglishEdition": true });
-	* base.store("TheWitcherSaga").push({ "Title": "Time of Contempt", "YearOfRelese": 1995, "EnglishEdition": true });
-	* base.store("TheWitcherSaga").push({ "Title": "Baptism of Fire", "YearOfRelese": 1996, "EnglishEdition": true });
-	* base.store("TheWitcherSaga").push({ "Title": "The Swallow's Tower", "YearOfRelese": 1997, "EnglishEdition": false });
-	* base.store("TheWitcherSaga").push({ "Title": "Lady of the Lake", "YearOfRelese": 1999, "EnglishEdition": false });
-	* base.store("TheWitcherSaga").push({ "Title": "Season of Storms", "YearOfRelese": 2013, "EnglishEdition": false });
+	* base.store("TheWitcherSaga").push({ Title: "Blood of Elves", YearOfRelease: 1994, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Time of Contempt", YearOfRelease: 1995, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Baptism of Fire", YearOfRelease: 1996, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "The Swallow's Tower", YearOfRelease: 1997, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Lady of the Lake", YearOfRelease: 1999, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Season of Storms", YearOfRelease: 2013, EnglishEdition: false });
 	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
 	* // for update, look the method updateRecords in feature space
 	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "TheWitcherSaga", field: "YearOfRelese", normalize: true });
@@ -2544,18 +2544,18 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Class",
-	*        "fields": [
-	*            { "name": "Name", "type": "string", "primary": true },
-	*            { "name": "StudyGroups", "type": "string_v" }
+	*        type: "Class",
+	*        fields: [
+	*            { type: "Name", type: "string", primary: true },
+	*            { type: "StudyGroups", type: "string_v" }
 	*        ]
 	*    }]
 	* });
 	* // add some records to the store
-	* base.store("Class").push({ "Name": "Dean", "StudyGroups": ["A", "D"] });
-	* base.store("Class").push({ "Name": "Chang", "StudyGroups": ["B", "D"] });
-	* base.store("Class").push({ "Name": "Magnitude", "StudyGroups": ["B", "C"] });
-	* base.store("Class").push({ "Name": "Leonard", "StudyGroups": ["A", "B"] });
+	* base.store("Class").push({ Name: "Dean", StudyGroups: ["A", "D"] });
+	* base.store("Class").push({ Name: "Chang", StudyGroups: ["B", "D"] });
+	* base.store("Class").push({ Name: "Magnitude", StudyGroups: ["B", "C"] });
+	* base.store("Class").push({ Name: "Leonard", StudyGroups: ["A", "B"] });
 	* // create a feature space containing the multinomial feature extractor
 	* var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "Class", field: "StudyGroups", values: ["A", "B", "C", "D"] });
 	* // create a sparse feature matrix out of the records of the store by using the feature space
@@ -2575,18 +2575,18 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Class",
-	*        "fields": [
-	*            { "name": "Name", "type": "string", "primary": true },
-	*            { "name": "StudyGroups", "type": "string_v" }
+	*        type: "Class",
+	*        fields: [
+	*            { type: "Name", type: "string", primary: true },
+	*            { type: "StudyGroups", type: "string_v" }
 	*        ]
 	*    }]
 	* });
 	* // add some records to the store
-	* base.store("Class").push({ "Name": "Dean", "StudyGroups": ["A", "D"] });
-	* base.store("Class").push({ "Name": "Chang", "StudyGroups": ["B", "D"] });
-	* base.store("Class").push({ "Name": "Magnitude", "StudyGroups": ["B", "C"] });
-	* base.store("Class").push({ "Name": "Leonard", "StudyGroups": ["A", "B"] });
+	* base.store("Class").push({ Name: "Dean", StudyGroups: ["A", "D"] });
+	* base.store("Class").push({ Name: "Chang", StudyGroups: ["B", "D"] });
+	* base.store("Class").push({ Name: "Magnitude", StudyGroups: ["B", "C"] });
+	* base.store("Class").push({ Name: "Leonard", StudyGroups: ["A", "B"] });
 	* // create a feature space containing the multinomial feature extractor
 	* var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "Class", field: "StudyGroups", values: ["A", "B", "C", "D"] });
 	* // create a feature matrix out of the records of the store by using the feature space
@@ -2609,11 +2609,11 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "People",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Gendre", "type": "string" },
-	*            { "name": "Age", "type": "int" }
+	*        type: "People",
+	*        fields: [
+	*            { type: "Name", type: "string" },
+	*            { type: "Gendre", type: "string" },
+	*            { type: "Age", type: "int" }
 	*        ]
 	*    }]
 	* });
@@ -2637,18 +2637,18 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Class",
-	*        "fields": [
-	*            { "name": "Name", "type": "string", "primary": true },
-	*            { "name": "StudyGroups", "type": "string_v" }
+	*        type: "Class",
+	*        fields: [
+	*            { type: "Name", type: "string", primary: true },
+	*            { type: "StudyGroups", type: "string_v" }
 	*        ]
 	*    }]
 	* });
 	* // add some records to the store
-	* base.store("Class").push({ "Name": "Dean", "StudyGroups": ["A", "D"] });
-	* base.store("Class").push({ "Name": "Chang", "StudyGroups": ["B", "D"] });
-	* base.store("Class").push({ "Name": "Magnitude", "StudyGroups": ["B", "C"] });
-	* base.store("Class").push({ "Name": "Leonard", "StudyGroups": ["A", "B"] });
+	* base.store("Class").push({ Name: "Dean", StudyGroups: ["A", "D"] });
+	* base.store("Class").push({ Name: "Chang", StudyGroups: ["B", "D"] });
+	* base.store("Class").push({ Name: "Magnitude", StudyGroups: ["B", "C"] });
+	* base.store("Class").push({ Name: "Leonard", StudyGroups: ["A", "B"] });
 	* // create a feature space containing the multinomial feature extractor
 	* var ftr = new qm.FeatureSpace(base, [
 	* { type: "text", source: "Class", field: "Name" },
@@ -2677,12 +2677,12 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        "name": "Academics",
-	*        "fields": [
-	*            { "name": "Name", "type": "string" },
-	*            { "name": "Age", "type": "int" },
-	*            { "name": "Gendre", "type": "string" },
-	*            { "name": "Skills", "type": "string_v" }
+	*        type: "Academics",
+	*        fields: [
+	*            { type: "Name", type: "string" },
+	*            { type: "Age", type: "int" },
+	*            { type: "Gendre", type: "string" },
+	*            { type: "Skills", type: "string_v" }
 	*        ]
 	*    }]
 	* });

@@ -153,9 +153,9 @@
 
 *     schema: [{
 
-*       &quot;name&quot;: &quot;Movies&quot;,
+*       type: &quot;Movies&quot;,
 
-*       &quot;fields&quot;: [{ name: &quot;title&quot;, type: &quot;string&quot; }]
+*       type: [{ name: &quot;title&quot;, type: &quot;string&quot; }]
 
 *     }]
 
@@ -565,9 +565,9 @@
 
 *   schema: [{
 
-*      &quot;name&quot;: &quot;Person&quot;,
+*      type: &quot;Person&quot;,
 
-*      &quot;fields&quot;: [{ &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; }]
+*      type: [{ type: &quot;Name&quot;, type: &quot;string&quot; }]
 
 *   }]
 
@@ -603,9 +603,9 @@
 
 *   schema: [{
 
-*      &quot;name&quot;: &quot;Person&quot;,
+*      type: &quot;Person&quot;,
 
-*      &quot;fields&quot;: [{ &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; }]
+*      type: [{ type: &quot;Name&quot;, type: &quot;string&quot; }]
 
 *   }]
 
@@ -647,13 +647,13 @@
 
 *    schema: [{
 
-*       &quot;name&quot;: &quot;Class&quot;,
+*       type: &quot;Class&quot;,
 
-*       &quot;fields&quot;: [
+*       type: [
 
-*          { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+*          { type: &quot;Name&quot;, type: &quot;string&quot; },
 
-*          { &quot;name&quot;: &quot;Grade&quot;, &quot;type&quot;: &quot;number&quot; }
+*          { type: &quot;Grade&quot;, type: &quot;number&quot; }
 
 *       ]
 
@@ -699,13 +699,13 @@
 
 *    schema: [{
 
-*       &quot;name&quot;: &quot;Class&quot;,
+*       type: &quot;Class&quot;,
 
-*       &quot;fields&quot;: [
+*       type: [
 
-*          { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+*          { type: &quot;Name&quot;, type: &quot;string&quot; },
 
-*          { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+*          { type: &quot;StudyGroup&quot;, type: &quot;string&quot; }
 
 *       ]
 
@@ -757,13 +757,13 @@
 
 *    schema: [{
 
-*       &quot;name&quot;: &quot;Class&quot;,
+*       type: &quot;Class&quot;,
 
-*       &quot;fields&quot;: [
+*       type: [
 
-*          { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+*          { type: &quot;Name&quot;, type: &quot;string&quot; },
 
-*          { &quot;name&quot;: &quot;StudyGroups&quot;, &quot;type&quot;: &quot;string_v&quot; }
+*          { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
 
 *       ]
 
@@ -819,13 +819,13 @@
 
 *    schema: [{
 
-*       &quot;name&quot;: &quot;Articles&quot;,
+*       type: &quot;Articles&quot;,
 
-*       &quot;fields&quot;: [
+*       type: [
 
-*          { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+*          { type: &quot;Title&quot;, type: &quot;string&quot; },
 
-*          { &quot;name&quot;: &quot;Text&quot;, &quot;type&quot;: &quot;string&quot; }
+*          { type: &quot;Text&quot;, type: &quot;string&quot; }
 
 *       ]
 
@@ -931,13 +931,13 @@
 
 *    schema: [{
 
-*       &quot;name&quot;: &quot;Class&quot;,
+*       type: &quot;Class&quot;,
 
-*       &quot;fields&quot;: [
+*       type: [
 
-*          { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+*          { type: &quot;Name&quot;, type: &quot;string&quot; },
 
-*          { &quot;name&quot;: &quot;StudyGroups&quot;, &quot;type&quot;: &quot;string_v&quot; }
+*          { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
 
 *       ]
 
@@ -1221,13 +1221,13 @@
 
 	 *    {
 
-	 *        &quot;name&quot;: &quot;Kwik-E-Mart&quot;,
+	 *        name: &quot;KwikEMart&quot;,
 
-	 *        &quot;fields&quot;: [
+	 *        fields: [
 
-	 *            { &quot;name&quot;: &quot;Worker&quot;, &quot;type&quot;: &quot;string&quot; },
+	 *            { name: &quot;Worker&quot;, type: &quot;string&quot; },
 
-	 *            { &quot;name&quot;: &quot;Groceries&quot;, &quot;type&quot;: &quot;string_v&quot; }
+	 *            { name: &quot;Groceries&quot;, type: &quot;string_v&quot; }
 
 	 *        ]
 
@@ -1235,15 +1235,15 @@
 
 	 *    {
 
-	 *        &quot;name&quot;: &quot;NuclearPowerplant&quot;,
+	 *        name: &quot;NuclearPowerplant&quot;,
 
-	 *        &quot;fields&quot;: [
+	 *        fields: [
 
-	 *            { &quot;name&quot;: &quot;Owner&quot;, &quot;type&quot;: &quot;string&quot; },
+	 *            { name: &quot;Owner&quot;, type: &quot;string&quot; },
 
-	 *            { &quot;name&quot;: &quot;NumberOfAccidents&quot;, &quot;type&quot;: &quot;int&quot; },
+	 *            { name: &quot;NumberOfAccidents&quot;, type: &quot;int&quot; },
 
-	 *            { &quot;name&quot;: &quot;Workers&quot;, &quot;type&quot;: &quot;string_v&quot; }
+	 *            { name: &quot;Workers&quot;, type: &quot;string_v&quot; }
 
 	 *        ]
 
@@ -1251,9 +1251,9 @@
 
 	 * })
 
-	 * // get the &quot;Kwik-E-Mart&quot; store 
+	 * // get the &quot;KwikEMart&quot; store 
 
-	 * var store = base.store(&quot;Kwik-E-Mart&quot;);	// returns the store with the name &quot;Kwik-E-Mart&quot;
+	 * var store = base.store(&quot;KwikEMart&quot;);	// returns the store with the name &quot;KwikEMart&quot;
 
 	 */
 
@@ -1297,15 +1297,15 @@
 
 	*    {
 
-	*        &quot;name&quot;: &quot;Superheroes&quot;,
+	*        name: &quot;Superheroes&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; },
+	*            { name: &quot;Superpowers&quot;, type: &quot;string_v&quot; },
 
-	*            { &quot;name&quot;: &quot;YearsActive&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { name&quot;: &quot;YearsActive&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -1317,15 +1317,15 @@
 
 	* base.createStore({
 
-	*    &quot;name&quot;: &quot;Supervillians&quot;
+	*    name: &quot;Supervillians&quot;
 
-	*    &quot;fields&quot;: [
+	*    fields: [
 
-	*        { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*        { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*        { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; },
+	*        { name: &quot;Superpowers&quot;, type: &quot;string_v&quot; },
 
-	*        { &quot;name&quot;: &quot;YearsActive&quot;, &quot;type&quot;: &quot;int&quot; }
+	*        { name: &quot;YearsActive&quot;, type: &quot;int&quot; }
 
 	*    ]
 
@@ -1337,13 +1337,13 @@
 
 	*    {
 
-	*        &quot;name&quot;: &quot;Cities&quot;,
+	*        name: &quot;Cities&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;Population&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { name: &quot;Population&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -1351,13 +1351,13 @@
 
 	*    {
 
-	*        &quot;name&quot;: &quot;Leagues&quot;,
+	*        name: &quot;Leagues&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Members&quot;, &quot;type&quot;: &quot;string_v&quot; }
+	*            { name: &quot;Members&quot;, type: &quot;string_v&quot; }
 
 	*        ]
 
@@ -1425,31 +1425,31 @@
 
 * base.createStore([{
 
-*    &quot;name&quot;: &quot;People&quot;,
+*    name: &quot;People&quot;,
 
-*    &quot;fields&quot;: [
+*    fields: [
 
-*        { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+*        { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
 
-*        { &quot;name&quot;: &quot;Gender&quot;, &quot;type&quot;: &quot;string&quot;, &quot;shortstring&quot;: true },
+*        { name: &quot;Gender&quot;, type: &quot;string&quot;, shortstring: true },
 
-*        { &quot;name&quot;: &quot;Age&quot;, &quot;type&quot;: &quot;int&quot; }
-
-*    ],
-
-*    &quot;joins&quot;: [
-
-*        { &quot;name&quot;: &quot;ActedIn&quot;, &quot;type&quot;: &quot;index&quot;, &quot;store&quot;: &quot;Movies&quot;, &quot;inverse&quot;: &quot;Actor&quot; },
-
-*        { &quot;name&quot;: &quot;Directed&quot;, &quot;type&quot;: &quot;index&quot;, &quot;store&quot;: &quot;Movies&quot;, &quot;inverse&quot;: &quot;Director&quot; }
+*        { name: &quot;Age&quot;, type: &quot;int&quot; }
 
 *    ],
 
-*    &quot;keys&quot;: [
+*    joins: [
 
-*        { &quot;field&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;text&quot; },
+*        { name: &quot;ActedIn&quot;, type: &quot;index&quot;, store: &quot;Movies&quot;, inverse: &quot;Actor&quot; },
 
-*        { &quot;field&quot;: &quot;Gender&quot;, &quot;type&quot;: &quot;value&quot; }
+*        { name: &quot;Directed&quot;, type: &quot;index&quot;, store: &quot;Movies&quot;, inverse: &quot;Director&quot; }
+
+*    ],
+
+*    keys: [
+
+*        { field: &quot;Name&quot;, type: &quot;text&quot; },
+
+*        { field: &quot;Gender&quot;, type: &quot;value&quot; }
 
 *    ]
 
@@ -1457,37 +1457,37 @@
 
 * {
 
-*    &quot;name&quot;: &quot;Movies&quot;,
+*    name: &quot;Movies&quot;,
 
-*    &quot;fields&quot;: [
+*    fields: [
 
-*        { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+*        { name: &quot;Title&quot;, type: &quot;string&quot;, primary: true },
 
-*        { &quot;name&quot;: &quot;Plot&quot;, &quot;type&quot;: &quot;string&quot;, &quot;store&quot;: &quot;cache&quot; },
+*        { name: &quot;Plot&quot;, type: &quot;string&quot;, store: &quot;cache&quot; },
 
-*        { &quot;name&quot;: &quot;Year&quot;, &quot;type&quot;: &quot;int&quot; },
+*        { name: &quot;Year&quot;, type: &quot;int&quot; },
 
-*        { &quot;name&quot;: &quot;Rating&quot;, &quot;type&quot;: &quot;float&quot; },
+*        { name: &quot;Rating&quot;, type: &quot;float&quot; },
 
-*        { &quot;name&quot;: &quot;Genres&quot;, &quot;type&quot;: &quot;string_v&quot;, &quot;codebook&quot;: true }
-
-*    ],
-
-*    &quot;joins&quot;: [
-
-*        { &quot;name&quot;: &quot;Actor&quot;, &quot;type&quot;: &quot;index&quot;, &quot;store&quot;: &quot;People&quot;, &quot;inverse&quot;: &quot;ActedIn&quot; },
-
-*        { &quot;name&quot;: &quot;Director&quot;, &quot;type&quot;: &quot;index&quot;, &quot;store&quot;: &quot;People&quot;, &quot;inverse&quot;: &quot;Directed&quot; }
+*        { name: &quot;Genres&quot;, type: &quot;string_v&quot;, codebook: true }
 
 *    ],
 
-*    &quot;keys&quot;: [
+*    joins: [
 
-*        { &quot;field&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;value&quot; },
+*        { name: &quot;Actor&quot;, type: &quot;index&quot;, store: &quot;People&quot;, inverse: &quot;ActedIn&quot; },
 
-*        { &quot;field&quot;: &quot;Plot&quot;, &quot;type&quot;: &quot;text&quot;, &quot;vocabulary&quot;: &quot;voc_01&quot; },
+*        { name: &quot;Director&quot;, type: &quot;index&quot;, store: &quot;People&quot;, inverse: &quot;Directed&quot; }
 
-*        { &quot;field&quot;: &quot;Genres&quot;, &quot;type&quot;: &quot;value&quot; }
+*    ],
+
+*    keys: [
+
+*        { field: &quot;Title&quot;, type: &quot;value&quot; },
+
+*        { field: &quot;Plot&quot;, type: &quot;text&quot;, vocabulary: &quot;voc_01&quot; },
+
+*        { field: &quot;Genres&quot;, type: &quot;value&quot; }
 
 *    ]
 
@@ -1501,13 +1501,13 @@
 
 *    schema: [{
 
-*        &quot;name&quot;: &quot;Class&quot;,
+*        name: &quot;Class&quot;,
 
-*        &quot;fields&quot;: [
+*        fields: [
 
-*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-*            { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+*            { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
 
 *        ]
 
@@ -1541,13 +1541,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Class&quot;,
+	*        name: &quot;Class&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
 
 	*        ]
 
@@ -1557,13 +1557,13 @@
 
 	* // add some records to the store
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Dean&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Dean&quot;, StudyGroup: &quot;A&quot; });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroup&quot;: &quot;D&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Chang&quot;, StudyGroup: &quot;D&quot; });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Magnitude&quot;, &quot;StudyGroup&quot;: &quot;C&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Magnitude&quot;, StudyGroup: &quot;C&quot; });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Leonard&quot;, &quot;StudyGroup&quot;: &quot;B&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Leonard&quot;, StudyGroup: &quot;B&quot; });
 
 	* // get the record with the name &quot;Magnitude&quot;
 
@@ -1599,13 +1599,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Class&quot;,
+	*        name: &quot;Class&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
 
 	*        ]
 
@@ -1615,13 +1615,13 @@
 
 	* // add some records to the store
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Abed&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Abed&quot;, StudyGroup: &quot;A&quot; });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Annie&quot;, &quot;StudyGroup&quot;: &quot;B&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Annie&quot;, StudyGroup: &quot;B&quot; });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Britta&quot;, &quot;StudyGroup&quot;: &quot;C&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Britta&quot;, StudyGroup: &quot;C&quot; });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Jeff&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Jeff&quot;, StudyGroup: &quot;A&quot; });
 
 	* // change the StudyGroup of all records of store Class to A
 
@@ -1657,13 +1657,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Class&quot;,
+	*        name: &quot;Class&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
 
 	*        ]
 
@@ -1673,13 +1673,13 @@
 
 	* // add some records to the store
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Shirley&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Shirley&quot;, StudyGroup: &quot;A&quot; });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Troy&quot;, &quot;StudyGroup&quot;: &quot;B&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Troy&quot;, StudyGroup: &quot;B&quot; });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroup&quot;: &quot;C&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Chang&quot;, StudyGroup: &quot;C&quot; });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Pierce&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Pierce&quot;, StudyGroup: &quot;A&quot; });
 
 	* // make an array of record names
 
@@ -1713,13 +1713,13 @@
 
 	*    {
 
-	*        &quot;name&quot;: &quot;Superheroes&quot;,
+	*        name: &quot;Superheroes&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; }
+	*            { name: &quot;Superpowers&quot;, type: &quot;string_v&quot; }
 
 	*        ]
 
@@ -1727,13 +1727,13 @@
 
 	*    {
 
-	*        &quot;name&quot;: &quot;Supervillians&quot;,
+	*        name: &quot;Supervillians&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; }
+	*            { name: &quot;Superpowers&quot;, type: &quot;string_v&quot; }
 
 	*        ]
 
@@ -1743,11 +1743,11 @@
 
 	* // add a new superhero to the Superheroes store
 
-	* base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Superman&quot;, &quot;Superpowers&quot;: [&quot;flight&quot;, &quot;heat vision&quot;, &quot;bulletproof&quot;] }); // returns 0
+	* base.store(&quot;Superheroes&quot;).push({ Name: &quot;Superman&quot;, Superpowers: [&quot;flight&quot;, &quot;heat vision&quot;, &quot;bulletproof&quot;] }); // returns 0
 
 	* // add a new supervillian to the Supervillians store
 
-	* base.store(&quot;Supervillians&quot;).push({ &quot;Name&quot;: &quot;Lex Luthor&quot;, &quot;Superpowers&quot;: [&quot;expert engineer&quot;, &quot;genius-level intellect&quot;, &quot;money&quot;] }); // returns 0
+	* base.store(&quot;Supervillians&quot;).push({ Name: &quot;Lex Luthor&quot;, Superpowers: [&quot;expert engineer&quot;, &quot;genius-level intellect&quot;, &quot;money&quot;] }); // returns 0
 
 	*/
 
@@ -1775,15 +1775,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Planets&quot;,
+	*        name: &quot;Planets&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Diameter&quot;, &quot;type&quot;: &quot;int&quot; },
+	*            { name: &quot;Diameter&quot;, type: &quot;int&quot; },
 
-	*            { &quot;name&quot;: &quot;NearestStars&quot;, &quot;type&quot;: &quot;string_v&quot; }
+	*            { name: &quot;NearestStars&quot;, type: &quot;string_v&quot; }
 
 	*        ]
 
@@ -1793,11 +1793,11 @@
 
 	* // add a new planet in the store
 
-	* base.store(&quot;Planets&quot;).push({ &quot;Name&quot;: &quot;Earth&quot;, &quot;Diameter&quot;: 299196522, &quot;NearestStars&quot;: [&quot;Sun&quot;] });
+	* base.store(&quot;Planets&quot;).push({ Name: &quot;Earth&quot;, Diameter: 299196522, NearestStars: [&quot;Sun&quot;] });
 
 	* // create a record of a planet (not added to the Planets store)
 
-	* var planet = base.store(&quot;Planets&quot;).newRecord({ &quot;Name&quot;: &quot;Tatooine&quot;, &quot;Diameter&quot;: 10465, &quot;NearestStars&quot;: [&quot;Tatoo 1&quot;, &quot;Tatoo 2&quot;] });
+	* var planet = base.store(&quot;Planets&quot;).newRecord({ Name: &quot;Tatooine&quot;, Diameter: 10465, NearestStars: [&quot;Tatoo 1&quot;, &quot;Tatoo 2&quot;] });
 
 	*/
 
@@ -1825,13 +1825,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Superheroes&quot;,
+	*        name: &quot;Superheroes&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; }
+	*            { name: &quot;Superpowers&quot;, type: &quot;string_v&quot; }
 
 	*        ]
 
@@ -1841,13 +1841,13 @@
 
 	* // add some new records to the store
 
-	* base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Superman&quot;, &quot;Superpowers&quot;: [&quot;Superhuman strength, speed, hearing&quot;, &quot;Flight&quot;, &quot;Heat vision&quot;] });
+	* base.store(&quot;Superheroes&quot;).push({ Name: &quot;Superman&quot;, Superpowers: [&quot;Superhuman strength, speed, hearing&quot;, &quot;Flight&quot;, &quot;Heat vision&quot;] });
 
-	* base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Batman&quot;, &quot;Superpowers&quot;: [&quot;Genius-level intellect&quot;, &quot;Peak physical and mental conditioning&quot;, &quot;Master detective&quot;] });
+	* base.store(&quot;Superheroes&quot;).push({ Name: &quot;Batman&quot;, Superpowers: [&quot;Genius-level intellect&quot;, &quot;Peak physical and mental conditioning&quot;, &quot;Master detective&quot;] });
 
-	* base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Thor&quot;, &quot;Superpowers&quot;: [&quot;Superhuman strength, endurance and longevity&quot;, &quot;Abilities via Mjolnir&quot;] });
+	* base.store(&quot;Superheroes&quot;).push({ Name: &quot;Thor&quot;, Superpowers: [&quot;Superhuman strength, endurance and longevity&quot;, &quot;Abilities via Mjolnir&quot;] });
 
-	* base.store(&quot;Superheroes&quot;).push({ &quot;Name&quot;: &quot;Wonder Woman&quot;, &quot;Superpowers&quot;: [&quot;Superhuman strength, agility and endurance&quot;, &quot;Flight&quot;, &quot;Highly skilled hand-to-hand combatant&quot;] });
+	* base.store(&quot;Superheroes&quot;).push({ Name: &quot;Wonder Woman&quot;, Superpowers: [&quot;Superhuman strength, agility and endurance&quot;, &quot;Flight&quot;, &quot;Highly skilled hand-to-hand combatant&quot;] });
 
 	* // create a new record set containing only the DC Comic superheroes (those with the record ids 0, 1 and 3)
 
@@ -1881,13 +1881,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;TVSeries&quot;,
+	*        name: &quot;TVSeries&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { name: &quot;Title&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;NumberOfEpisodes&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { name: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -1897,15 +1897,15 @@
 
 	* // add some records in the store
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Archer&quot;, &quot;NumberOfEpisodes&quot;: 75 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Archer&quot;, NumberOfEpisodes: 75 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;The Simpsons&quot;, &quot;NumberOfEpisodes&quot;: 574 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;The Simpsons&quot;, NumberOfEpisodes: 574 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;New Girl&quot;, &quot;NumberOfEpisodes&quot;: 94 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpisodes: 94 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Rick and Morty&quot;, &quot;NumberOfEpisodes&quot;: 11 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Game of Thrones&quot;, &quot;NumberOfEpisodes&quot;: 47 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 
 	* // create a sample record set containing 3 records
 
@@ -1937,15 +1937,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;People&quot;,
+	*        name: &quot;People&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;Gender&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Gender&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Age&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { name: &quot;Age&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -1987,13 +1987,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;TVSeries&quot;,
+	*        name: &quot;TVSeries&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { name: &quot;Title&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;NumberOfEpisodes&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { name: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -2035,15 +2035,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;People&quot;,
+	*        name: &quot;People&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;Gender&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Gender&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Age&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { name: &quot;Age&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -2085,15 +2085,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;BasketballPlayers&quot;,
+	*        name: &quot;BasketballPlayers&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;SeasonScore&quot;, &quot;type&quot;: &quot;int_v&quot; },
+	*            { name: &quot;SeasonScore&quot;, type: &quot;int_v&quot; },
 
-	*            { &quot;name&quot;: &quot;DateOfBirth&quot;, &quot;type&quot;: &quot;datetime&quot; }
+	*            { name: &quot;DateOfBirth&quot;, type: &quot;datetime&quot; }
 
 	*        ]
 
@@ -2135,23 +2135,23 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Countries&quot;,
+	*        name: &quot;Countries&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;Population&quot;, &quot;type&quot;: &quot;int&quot; },
+	*            { name: &quot;Population&quot;, type: &quot;int&quot; },
 
-	*            { &quot;name&quot;: &quot;Continent&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { name: &quot;Continent&quot;, type: &quot;string&quot; }
 
 	*        ],
 
-	*        &quot;keys&quot;: [
+	*        keys: [
 
-	*            { &quot;field&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;text&quot; },
+	*            { field: &quot;Name&quot;, type: &quot;text&quot; },
 
-	*            { &quot;field&quot;: &quot;Continent&quot;, &quot;type&quot;: &quot;value&quot; }
+	*            { field: &quot;Continent&quot;, type: &quot;value&quot; }
 
 	*        ]
 
@@ -2213,15 +2213,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;FootballPlayers&quot;,
+	*        name: &quot;FootballPlayers&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;FootballClubs&quot;, &quot;type&quot;: &quot;string_v&quot; },
+	*            { name: &quot;FootballClubs&quot;, type: &quot;string_v&quot; },
 
-	*            { &quot;name&quot;: &quot;GoalsPerSeason&quot;, &quot;type&quot;: &quot;int_v&quot; },
+	*            { name: &quot;GoalsPerSeason&quot;, type: &quot;int_v&quot; },
 
 	*        ]
 
@@ -2263,13 +2263,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;TVSeries&quot;,
+	*        name: &quot;TVSeries&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { name: &quot;Title&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;NumberOfEpisodes&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { name: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -2279,15 +2279,15 @@
 
 	* // add some records in the store
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Archer&quot;, &quot;NumberOfEpisodes&quot;: 75 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Archer&quot;, NumberOfEpisodes: 75 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;The Simpsons&quot;, &quot;NumberOfEpisodes&quot;: 574 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;The Simpsons&quot;, NumberOfEpisodes: 574 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;New Girl&quot;, &quot;NumberOfEpisodes&quot;: 94 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpisodes: 94 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Rick and Morty&quot;, &quot;NumberOfEpisodes&quot;: 11 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Game of Thrones&quot;, &quot;NumberOfEpisodes&quot;: 47 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 
 	* // deletes the first 2 records (Archer and The Simpsons) in TVSeries
 
@@ -2323,13 +2323,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Companies&quot;,
+	*        name: &quot;Companies&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;Location&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { name: &quot;Location&quot;, type: &quot;string&quot; }
 
 	*        ]
 
@@ -2339,11 +2339,11 @@
 
 	* // add some records to the store
 
-	* base.store(&quot;Companies&quot;).push({ &quot;Name&quot;: &quot;DC Comics&quot;, &quot;Location&quot;: &quot;Burbank, California&quot; });
+	* base.store(&quot;Companies&quot;).push({ Name: &quot;DC Comics&quot;, Location: &quot;Burbank, California&quot; });
 
-	* base.store(&quot;Companies&quot;).push({ &quot;Name&quot;: &quot;DC Shoes&quot;, &quot;Location&quot;: &quot;Huntington Beach, California&quot; });
+	* base.store(&quot;Companies&quot;).push({ Name: &quot;DC Shoes&quot;, Location: &quot;Huntington Beach, California&quot; });
 
-	* base.store(&quot;Companies&quot;).push({ &quot;Name&quot;: &quot;21st Century Fox&quot;, &quot;Location&quot;: &quot;New York City, New York&quot; });
+	* base.store(&quot;Companies&quot;).push({ Name: &quot;21st Century Fox&quot;, Location: &quot;New York City, New York&quot; });
 
 	* // get the vector of company names
 
@@ -2375,13 +2375,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;ArcheryChampionship&quot;,
+	*        name: &quot;ArcheryChampionship&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;ScorePerRound&quot;, &quot;type&quot;: &quot;float_v&quot; }
+	*            { name: &quot;ScorePerRound&quot;, type: &quot;float_v&quot; }
 
 	*        ]
 
@@ -2391,11 +2391,11 @@
 
 	* // set new records in the store
 
-	* base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Robin Hood&quot;, &quot;ScorePerRound&quot;: [50, 48, 48] });
+	* base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Robin Hood&quot;, ScorePerRound: [50, 48, 48] });
 
-	* base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Oliver Queen&quot;, &quot;ScorePerRound&quot;: [44, 46, 44] });
+	* base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Oliver Queen&quot;, ScorePerRound: [44, 46, 44] });
 
-	* base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Legolas&quot;, &quot;ScorePerRound&quot;: [50, 50, 48] });
+	* base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Legolas&quot;, ScorePerRound: [50, 50, 48] });
 
 	* // get the matrix containing the &quot;score per round&quot; values
 
@@ -2439,15 +2439,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Festivals&quot;,
+	*        name: &quot;Festivals&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Type&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Type&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Location&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { name: &quot;Location&quot;, type: &quot;string&quot; }
 
 	*        ]
 
@@ -2457,11 +2457,11 @@
 
 	* // add some records in the store
 
-	* base.store(&quot;Festivals&quot;).push({ &quot;Name&quot;: &quot;Metaldays&quot;, &quot;Type&quot;: &quot;music&quot;, &quot;Location&quot;: &quot;Tolmin, Slovenia&quot; });
+	* base.store(&quot;Festivals&quot;).push({ Name: &quot;Metaldays&quot;, Type: &quot;music&quot;, Location: &quot;Tolmin, Slovenia&quot; });
 
-	* base.store(&quot;Festivals&quot;).push({ &quot;Name&quot;: &quot;Festival de Cannes&quot;, &quot;Type&quot;: &quot;movie&quot;, &quot;Location&quot;: &quot;Cannes, France&quot; });
+	* base.store(&quot;Festivals&quot;).push({ Name: &quot;Festival de Cannes&quot;, Type: &quot;movie&quot;, Location: &quot;Cannes, France&quot; });
 
-	* base.store(&quot;Festivals&quot;).push({ &quot;Name&quot;: &quot;The Festival of Chocolate&quot;, &quot;Type&quot;: &quot;food&quot;, &quot;Location&quot;: &quot;Hillsborough, USA&quot; });
+	* base.store(&quot;Festivals&quot;).push({ Name: &quot;The Festival of Chocolate&quot;, Type: &quot;food&quot;, Location: &quot;Hillsborough, USA&quot; });
 
 	* // get the field value of the second record for field &quot;Type&quot;
 
@@ -2611,15 +2611,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;StarWarsMovies&quot;,
+	*        name: &quot;StarWarsMovies&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Title&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;ReleseDate&quot;, &quot;type&quot;: &quot;datetime&quot; },
+	*            { name: &quot;ReleseDate&quot;, type: &quot;datetime&quot; },
 
-	*            { &quot;name&quot;: &quot;Length&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { name: &quot;Length&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -2629,11 +2629,11 @@
 
 	* // create some records in the new store
 
-	* base.store(&quot;StarWarsMovies&quot;).push({&quot;Title&quot;: &quot;Attack of the Clones&quot;, &quot;ReleseDate&quot;: &quot;2002-05-16T00:00:00&quot;, &quot;Length&quot;: 142 });
+	* base.store(&quot;StarWarsMovies&quot;).push({ Title: &quot;Attack of the Clones&quot;, ReleseDate: &quot;2002-05-16T00:00:00&quot;, Length: 142 });
 
-	* base.store(&quot;StarWarsMovies&quot;).push({&quot;Title&quot;: &quot;The Empire Strikes Back&quot;, &quot;ReleseDate&quot;: &quot;1980-06-20T00:00:00&quot;, &quot;Length&quot;: 124 });
+	* base.store(&quot;StarWarsMovies&quot;).push({ Title: &quot;The Empire Strikes Back&quot;, ReleseDate: &quot;1980-06-20T00:00:00&quot;, Length: 124 });
 
-	* base.store(&quot;StarWarsMovies&quot;).push({&quot;Title&quot;: &quot;Return of the Jedi&quot;, &quot;ReleseDate&quot;: &quot;1983-05-25T00:00:00&quot;, &quot;Length&quot;: 134 });
+	* base.store(&quot;StarWarsMovies&quot;).push({ Title: &quot;Return of the Jedi&quot;, ReleseDate: &quot;1983-05-25T00:00:00&quot;, Length: 134 });
 
 	* // create a clone of the &quot;Attack of the Clones&quot; record
 
@@ -2695,15 +2695,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Musicians&quot;,
+	*        name: &quot;Musicians&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;DateOfBirth&quot;, &quot;type&quot;: &quot;datetime&quot; },
+	*            { name: &quot;DateOfBirth&quot;, type: &quot;datetime&quot; },
 
-	*            { &quot;name&quot;: &quot;GreatestHits&quot;, &quot;type&quot;: &quot;string_v&quot; }
+	*            { name: &quot;GreatestHits&quot;, type: &quot;string_v&quot; }
 
 	*        ]
 
@@ -2713,9 +2713,9 @@
 
 	* // create some records
 
-	* base.store(&quot;Musicians&quot;).push({ &quot;Name&quot;: &quot;Jimmy Page&quot;, &quot;DateOfBirth&quot;:  &quot;1944-01-09T00:00:00&quot;, &quot;GreatestHits&quot;: [&quot;Stairway to Heaven&quot;, &quot;Whole Lotta Love&quot;] });
+	* base.store(&quot;Musicians&quot;).push({ Name: &quot;Jimmy Page&quot;, DateOfBirth:  &quot;1944-01-09T00:00:00&quot;, GreatestHits: [&quot;Stairway to Heaven&quot;, &quot;Whole Lotta Love&quot;] });
 
-	* base.store(&quot;Musicians&quot;).push({ &quot;Name&quot;: &quot;Beyonce&quot;, &quot;DateOfBirth&quot;: &quot;1981-09-04T00:00:00&quot;, &quot;GreatestHits&quot;: [&quot;Single Ladies (Put a Ring on It)&quot;] });
+	* base.store(&quot;Musicians&quot;).push({ Name: &quot;Beyonce&quot;, DateOfBirth: &quot;1981-09-04T00:00:00&quot;, GreatestHits: [&quot;Single Ladies (Put a Ring on It)&quot;] });
 
 	* // get a JSON version of the &quot;Beyonce&quot; record 
 
@@ -2803,13 +2803,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Philosophers&quot;,
+	*        name: &quot;Philosophers&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Era&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { name: &quot;Era&quot;, type: &quot;string&quot; }
 
 	*        ]
 
@@ -2819,15 +2819,15 @@
 
 	* // put some records in the store
 
-	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Plato&quot;, &quot;Era&quot;: &quot;Ancient philosophy&quot; });
+	* base.store(&quot;Philosophers&quot;).push({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; });
 
-	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Immanuel Kant&quot;, &quot;Era&quot;: &quot;18th-century philosophy&quot; });
+	* base.store(&quot;Philosophers&quot;).push({ Name: &quot;Immanuel Kant&quot;, Era: &quot;18th-century philosophy&quot; });
 
-	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Emmanuel Levinas&quot;, &quot;Era&quot;: &quot;20th-century philosophy&quot; });
+	* base.store(&quot;Philosophers&quot;).push({ Name: &quot;Emmanuel Levinas&quot;, Era: &quot;20th-century philosophy&quot; });
 
-	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Rene Descartes&quot;, &quot;Era&quot;: &quot;17th-century philosophy&quot; });
+	* base.store(&quot;Philosophers&quot;).push({ Name: &quot;Rene Descartes&quot;, Era: &quot;17th-century philosophy&quot; });
 
-	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Confucius&quot;, &quot;Era&quot;: &quot;Ancient philosophy&quot; });
+	* base.store(&quot;Philosophers&quot;).push({ Name: &quot;Confucius&quot;, Era: &quot;Ancient philosophy&quot; });
 
 	* // create a record set out of the records in store
 
@@ -2867,19 +2867,19 @@
 
 	*    {
 
-	*        &quot;name&quot;: &quot;Musicians&quot;,
+	*        name: &quot;Musicians&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Instruments&quot;, &quot;type&quot;: &quot;string_v&quot; }
+	*            { name: &quot;Instruments&quot;, type: &quot;string_v&quot; }
 
 	*        ],
 
-	*        &quot;joins&quot;: [
+	*        joins: [
 
-	*            { &quot;name&quot;: &quot;PlaysIn&quot;, &quot;type&quot;: &quot;index&quot;, &quot;store&quot;: &quot;Bands&quot;, &quot;inverse&quot;: &quot;Members&quot; }
+	*            { name: &quot;PlaysIn&quot;, type: &quot;index&quot;, store: &quot;Bands&quot;, inverse: &quot;Members&quot; }
 
 	*        ]
 
@@ -2887,19 +2887,19 @@
 
 	*    {
 
-	*        &quot;name&quot;: &quot;Bands&quot;,
+	*        name: &quot;Bands&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Genre&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { name: &quot;Genre&quot;, type: &quot;string&quot; }
 
 	*        ],
 
-	*        &quot;joins&quot;: [
+	*        joins: [
 
-	*            { &quot;name&quot;: &quot;Members&quot;, &quot;type&quot;: &quot;index&quot;, &quot;store&quot;: &quot;Musicians&quot;, &quot;inverse&quot;: &quot;PlaysIn&quot; }
+	*            { name: &quot;Members&quot;, type: &quot;index&quot;, store: &quot;Musicians&quot;, inverse: &quot;PlaysIn&quot; }
 
 	*        ]
 
@@ -2909,11 +2909,11 @@
 
 	* // add some new records to both stores
 
-	* base.store(&quot;Musicians&quot;).push({ &quot;Name&quot;: &quot;Robert Plant&quot;, &quot;Instruments&quot;: [&quot;Vocals&quot;], &quot;PlaysIn&quot;: [{&quot;Name&quot;: &quot;Led Zeppelin&quot;, &quot;Genre&quot;: &quot;Rock&quot; }] });
+	* base.store(&quot;Musicians&quot;).push({ Name: &quot;Robert Plant&quot;, Instruments: [&quot;Vocals&quot;], PlaysIn: [{Name: &quot;Led Zeppelin&quot;, &quot;Genre&quot;: &quot;Rock&quot; }] });
 
-	* base.store(&quot;Musicians&quot;).push({ &quot;Name&quot;: &quot;Jimmy Page&quot;, &quot;Instruments&quot;: [&quot;Guitar&quot;], &quot;PlaysIn&quot;: [{&quot;Name&quot;: &quot;Led Zeppelin&quot;, &quot;Genre&quot;: &quot;Rock&quot; }] });
+	* base.store(&quot;Musicians&quot;).push({ Name: &quot;Jimmy Page&quot;, Instruments: [&quot;Guitar&quot;], PlaysIn: [{Name: &quot;Led Zeppelin&quot;, &quot;Genre&quot;: &quot;Rock&quot; }] });
 
-	* base.store(&quot;Bands&quot;).push({ &quot;Name&quot;: &quot;The White Stripes&quot;, &quot;Genre&quot;: &quot;Rock&quot; });
+	* base.store(&quot;Bands&quot;).push({ Name: &quot;The White Stripes&quot;, Genre: &quot;Rock&quot; });
 
 	* // create a record set containing the musicians, that are members of some bend
 
@@ -2969,13 +2969,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Philosophers&quot;,
+	*        name: &quot;Philosophers&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Era&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { name: &quot;Era&quot;, type: &quot;string&quot; }
 
 	*        ]
 
@@ -2985,15 +2985,15 @@
 
 	* // put some records in the store
 
-	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Plato&quot;, &quot;Era&quot;: &quot;Ancient philosophy&quot; });
+	* base.store(&quot;Philosophers&quot;).push({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; });
 
-	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Immanuel Kant&quot;, &quot;Era&quot;: &quot;18th-century philosophy&quot; });
+	* base.store(&quot;Philosophers&quot;).push({ Name: &quot;Immanuel Kant&quot;, Era: &quot;18th-century philosophy&quot; });
 
-	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Emmanuel Levinas&quot;, &quot;Era&quot;: &quot;20th-century philosophy&quot; });
+	* base.store(&quot;Philosophers&quot;).push({ Name: &quot;Emmanuel Levinas&quot;, Era: &quot;20th-century philosophy&quot; });
 
-	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Rene Descartes&quot;, &quot;Era&quot;: &quot;17th-century philosophy&quot; });
+	* base.store(&quot;Philosophers&quot;).push({ Name: &quot;Rene Descartes&quot;, Era: &quot;17th-century philosophy&quot; });
 
-	* base.store(&quot;Philosophers&quot;).push({ &quot;Name&quot;: &quot;Confucius&quot;, &quot;Era&quot;: &quot;Ancient philosophy&quot; });
+	* base.store(&quot;Philosophers&quot;).push({ Name: &quot;Confucius&quot;, Era: &quot;Ancient philosophy&quot; });
 
 	* // create two identical record sets of the &quot;Philosophers&quot; store
 
@@ -3035,15 +3035,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Movies&quot;,
+	*        name: &quot;Movies&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Title&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Length&quot;, &quot;type&quot;: &quot;int&quot; },
+	*            { name: &quot;Length&quot;, type: &quot;int&quot; },
 
-	*            { &quot;name&quot;: &quot;Director&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { name: &quot;Director&quot;, type: &quot;string&quot; }
 
 	*        ]
 
@@ -3053,15 +3053,15 @@
 
 	* // put some records in the store
 
-	* base.store(&quot;Movies&quot;).push({ &quot;Title&quot;: &quot;The Nightmare Before Christmas&quot;, &quot;Length&quot;: 76, &quot;Director&quot;: &quot;Henry Selick&quot; });
+	* base.store(&quot;Movies&quot;).push({ Title: &quot;The Nightmare Before Christmas&quot;, Length: 76, Director: &quot;Henry Selick&quot; });
 
-	* base.store(&quot;Movies&quot;).push({ &quot;Title&quot;: &quot;Jurassic Part&quot;, &quot;Length&quot;: 127, &quot;Director&quot;: &quot;Steven Spielberg&quot; });
+	* base.store(&quot;Movies&quot;).push({ Title: &quot;Jurassic Part&quot;, Length: 127, Director: &quot;Steven Spielberg&quot; });
 
-	* base.store(&quot;Movies&quot;).push({ &quot;Title&quot;: &quot;The Avengers&quot;, &quot;Length&quot;: 143, &quot;Director&quot;: &quot;Joss Whedon&quot; });
+	* base.store(&quot;Movies&quot;).push({ Title: &quot;The Avengers&quot;, Length: 143, Director: &quot;Joss Whedon&quot; });
 
-	* base.store(&quot;Movies&quot;).push({ &quot;Title&quot;: &quot;The Clockwork Orange&quot;, &quot;Length&quot;: 136, &quot;Director&quot;: &quot;Stanley Kubrick&quot; });
+	* base.store(&quot;Movies&quot;).push({ Title: &quot;The Clockwork Orange&quot;, Length: 136, Director: &quot;Stanley Kubrick&quot; });
 
-	* base.store(&quot;Movies&quot;).push({ &quot;Title&quot;: &quot;Full Metal Jacket&quot;, &quot;Length&quot;: 116, &quot;Director&quot;: &quot;Stanely Kubrick&quot; });
+	* base.store(&quot;Movies&quot;).push({ Title: &quot;Full Metal Jacket&quot;, Length: 116, Director: &quot;Stanely Kubrick&quot; });
 
 	* // create a sample record set of containing 3 records from the &quot;Movies&quot; store
 
@@ -3093,15 +3093,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;WeatherForcast&quot;,
+	*        name: &quot;WeatherForcast&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Weather&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Weather&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Date&quot;, &quot;type&quot;: &quot;datetime&quot; },
+	*            { name: &quot;Date&quot;, type: &quot;datetime&quot; },
 
-	*            { &quot;name&quot;: &quot;TemperatureDegrees&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { name: &quot;TemperatureDegrees&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -3111,17 +3111,17 @@
 
 	* // put some records in the &quot;WeatherForecast&quot; store
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 19 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Partly Cloudy&quot;, Date: &quot;2015-05-27T11:00:00&quot;, TemperatureDegrees: 19 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 22 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Partly Cloudy&quot;, Date: &quot;2015-05-28T11:00:00&quot;, TemperatureDegrees: 22 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-05-29T11:00:00&quot;, TemperatureDegrees: 25 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-05-30T11:00:00&quot;, TemperatureDegrees: 25 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 24 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Scattered Showers&quot;, Date: &quot;2015-05-31T11:00:00&quot;, TemperatureDegrees: 24 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 27 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-06-01T11:00:00&quot;, TemperatureDegrees: 27 });
 
 	* // get the record set containing the records from the &quot;WeatherForcast&quot; store
 
@@ -3155,15 +3155,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;WeatherForcast&quot;,
+	*        name: &quot;WeatherForcast&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Weather&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Weather&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Date&quot;, &quot;type&quot;: &quot;datetime&quot; },
+	*            { name: &quot;Date&quot;, type: &quot;datetime&quot; },
 
-	*            { &quot;name&quot;: &quot;TemperatureDegrees&quot;, &quot;type&quot;: &quot;int&quot; },
+	*            { name: &quot;TemperatureDegrees&quot;, type: &quot;int&quot; },
 
 	*        ]
 
@@ -3173,17 +3173,17 @@
 
 	* // put some records in the &quot;WeatherForecast&quot; store
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 19 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Partly Cloudy&quot;, Date: &quot;2015-05-27T11:00:00&quot;, TemperatureDegrees: 19 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 22 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Partly Cloudy&quot;, Date: &quot;2015-05-28T11:00:00&quot;, TemperatureDegrees: 22 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-05-29T11:00:00&quot;, TemperatureDegrees: 25 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-05-30T11:00:00&quot;, TemperatureDegrees: 25 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 24 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Scattered Showers&quot;, Date: &quot;2015-05-31T11:00:00&quot;, TemperatureDegrees: 24 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 27 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-06-01T11:00:00&quot;, TemperatureDegrees: 27 });
 
 	* // get the record set containing the records from the &quot;WeatherForcast&quot; store
 
@@ -3219,15 +3219,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Tea&quot;,
+	*        name: &quot;Tea&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Type&quot;, &quot;type&quot;: &quot;string&quot;},
+	*            { name: &quot;Type&quot;, type: &quot;string&quot;},
 
-	*            { &quot;name&quot;: &quot;Origin&quot;, &quot;type&quot;: &quot;string&quot;, &quot;null&quot;: true  }
+	*            { name: &quot;Origin&quot;, type: &quot;string&quot;, &quot;null&quot;: true  }
 
 	*        ]
 
@@ -3237,13 +3237,13 @@
 
 	* // put some records in the &quot;Tea&quot; store
 
-	* base.store(&quot;Tea&quot;).push({ &quot;Name&quot;: &quot;Tanyang Gongfu&quot;, &quot;Type&quot;: &quot;Black&quot;, &quot;Origin&quot;: &quot;Tanyang&quot; });
+	* base.store(&quot;Tea&quot;).push({ Name: &quot;Tanyang Gongfu&quot;, Type: &quot;Black&quot;, Origin: &quot;Tanyang&quot; });
 
-	* base.store(&quot;Tea&quot;).push({ &quot;Name&quot;: &quot;Rou Gui&quot;, &quot;Type&quot;: &quot;White&quot; });
+	* base.store(&quot;Tea&quot;).push({ Name: &quot;Rou Gui&quot;, Type: &quot;White&quot; });
 
-	* base.store(&quot;Tea&quot;).push({ &quot;Name&quot;: &quot;Tieluohan Tea&quot;, &quot;Type&quot;: &quot;Wuyi&quot;, &quot;Origin&quot;: &quot;Northern Fujian&quot; });
+	* base.store(&quot;Tea&quot;).push({ Name: &quot;Tieluohan Tea&quot;, Type: &quot;Wuyi&quot;, Origin: &quot;Northern Fujian&quot; });
 
-	* base.store(&quot;Tea&quot;).push({ &quot;Name&quot;: &quot;Red Robe&quot;, &quot;Type&quot;: &quot;Oolong&quot;, &quot;Origin&quot;: &quot;Wuyi Mountains&quot; });
+	* base.store(&quot;Tea&quot;).push({ Name: &quot;Red Robe&quot;, Type: &quot;Oolong&quot;, Origin: &quot;Wuyi Mountains&quot; });
 
 	* // get the records of the &quot;Tea&quot; store as a record set
 
@@ -3299,13 +3299,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;TVSeries&quot;,
+	*        name: &quot;TVSeries&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { name: &quot;Title&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;NumberOfEpisodes&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { name: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -3315,15 +3315,15 @@
 
 	* // add some records in the store
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Archer&quot;, &quot;NumberOfEpisodes&quot;: 75 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Archer&quot;, NumberOfEpisodes: 75 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;The Simpsons&quot;, &quot;NumberOfEpisodes&quot;: 574 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;The Simpsons&quot;, NumberOfEpisodes: 574 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;New Girl&quot;, &quot;NumberOfEpisodes&quot;: 94 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpisodes: 94 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Rick and Morty&quot;, &quot;NumberOfEpisodes&quot;: 11 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Game of Thrones&quot;, &quot;NumberOfEpisodes&quot;: 47 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 
 	* // get the records of the &quot;TVSeries&quot; store as a record set
 
@@ -3365,13 +3365,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;TVSeries&quot;,
+	*        name: &quot;TVSeries&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { name: &quot;Title&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;NumberOfEpisodes&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { name: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -3381,15 +3381,15 @@
 
 	* // add some records in the store
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Archer&quot;, &quot;NumberOfEpisodes&quot;: 75 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Archer&quot;, NumberOfEpisodes: 75 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;The Simpsons&quot;, &quot;NumberOfEpisodes&quot;: 574 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;The Simpsons&quot;, NumberOfEpisodes: 574 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;New Girl&quot;, &quot;NumberOfEpisodes&quot;: 94 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpisodes: 94 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Rick and Morty&quot;, &quot;NumberOfEpisodes&quot;: 11 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Game of Thrones&quot;, &quot;NumberOfEpisodes&quot;: 47 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 
 	* // get the records of the &quot;TVSeries&quot; store as a record set
 
@@ -3431,13 +3431,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;FrankSinatraGreatestHits&quot;,
+	*        name: &quot;FrankSinatraGreatestHits&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Title&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Length&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { name: &quot;Length&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -3447,19 +3447,19 @@
 
 	* // put some records in the &quot;FrankSinatraGreatesHits&quot; store
 
-	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;Strangers in the Night&quot;, &quot;Length&quot;: 145 });
+	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ Title: &quot;Strangers in the Night&quot;, Length: 145 });
 
-	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;Summer Wind&quot;, &quot;Length&quot;: 173 });
+	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ Title: &quot;Summer Wind&quot;, Length: 173 });
 
-	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;It Was a Very Good Year&quot;, &quot;Length&quot;: 265 });
+	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ Title: &quot;It Was a Very Good Year&quot;, Length: 265 });
 
-	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;Somewhere in Your Heart&quot;, &quot;Length&quot;: 146 });
+	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ Title: &quot;Somewhere in Your Heart&quot;, Length: 146 });
 
-	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;Forget Domani&quot;, &quot;Length&quot;: 156 });
+	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ Title: &quot;Forget Domani&quot;, Length: 156 });
 
-	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;Somethin&#x27; Stupid&quot;, &quot;Length&quot;: 155 });
+	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ Title: &quot;Somethin&#x27; Stupid&quot;, Length: 155 });
 
-	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ &quot;Title&quot;: &quot;This Town&quot;, &quot;Length&quot;: 186 });
+	* base.store(&quot;FrankSinatraGreatestHits&quot;).push({ Title: &quot;This Town&quot;, Length: 186 });
 
 	* // get the records of the store as a record set
 
@@ -3527,15 +3527,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;WeatherForcast&quot;,
+	*        name: &quot;WeatherForcast&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Weather&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Weather&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Date&quot;, &quot;type&quot;: &quot;datetime&quot; },
+	*            { name: &quot;Date&quot;, type: &quot;datetime&quot; },
 
-	*            { &quot;name&quot;: &quot;TemperatureDegrees&quot;, &quot;type&quot;: &quot;int&quot; },
+	*            { name: &quot;TemperatureDegrees&quot;, type: &quot;int&quot; },
 
 	*        ]
 
@@ -3545,17 +3545,17 @@
 
 	* // put some records in the &quot;WeatherForecast&quot; store
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 19 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Partly Cloudy&quot;, Date: &quot;2015-05-27T11:00:00&quot;, TemperatureDegrees: 19 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 22 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Partly Cloudy&quot;, Date: &quot;2015-05-28T11:00:00&quot;, TemperatureDegrees: 22 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-05-29T11:00:00&quot;, TemperatureDegrees: 25 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-05-30T11:00:00&quot;, TemperatureDegrees: 25 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 24 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Scattered Showers&quot;, Date: &quot;2015-05-31T11:00:00&quot;, TemperatureDegrees: 24 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 27 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-06-01T11:00:00&quot;, TemperatureDegrees: 27 });
 
 	* // get the record set containing the records from the &quot;WeatherForcast&quot; store
 
@@ -3591,13 +3591,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;ArcheryChampionship&quot;,
+	*        name: &quot;ArcheryChampionship&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;ScorePerRound&quot;, &quot;type&quot;: &quot;float_v&quot; }
+	*            { name: &quot;ScorePerRound&quot;, type: &quot;float_v&quot; }
 
 	*        ]
 
@@ -3607,11 +3607,11 @@
 
 	* // set new records in the store
 
-	* base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Robin Hood&quot;, &quot;ScorePerRound&quot;: [50, 48, 48] });
+	* base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Robin Hood&quot;, ScorePerRound: [50, 48, 48] });
 
-	* base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Oliver Queen&quot;, &quot;ScorePerRound&quot;: [44, 46, 44] });
+	* base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Oliver Queen&quot;, ScorePerRound: [44, 46, 44] });
 
-	* base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Legolas&quot;, &quot;ScorePerRound&quot;: [50, 50, 48] });
+	* base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Legolas&quot;, ScorePerRound: [50, 50, 48] });
 
 	* // create a record set out of the records of the store
 
@@ -3647,17 +3647,17 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;SocialGames&quot;,
+	*        name: &quot;SocialGames&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Title&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Type&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Type&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;MinPlayers&quot;, &quot;type&quot;: &quot;int&quot; },
+	*            { name: &quot;MinPlayers&quot;, type: &quot;int&quot; },
 
-	*            { &quot;name&quot;: &quot;MaxPlayers&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { name: &quot;MaxPlayers&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -3667,13 +3667,13 @@
 
 	* // set new records in the store
 
-	* base.store(&quot;SocialGames&quot;).push({ &quot;Title&quot;: &quot;DungeonsAndDragons&quot;, &quot;Type&quot;: &quot;Role-Playing&quot;, &quot;MinPlayers&quot;: 5, &quot;MaxPlayers&quot;: 5 });
+	* base.store(&quot;SocialGames&quot;).push({ Title: &quot;DungeonsAndDragons&quot;, Type: &quot;Role-Playing&quot;, MinPlayers: 5, MaxPlayers: 5 });
 
-	* base.store(&quot;SocialGames&quot;).push({ &quot;Title&quot;: &quot;Dobble&quot;, &quot;Type&quot;: &quot;Card&quot;, &quot;MinPlayers&quot;: 2, &quot;MaxPlayers&quot;: 8 });
+	* base.store(&quot;SocialGames&quot;).push({ Title: &quot;Dobble&quot;, Type: &quot;Card&quot;, MinPlayers: 2, MaxPlayers: 8 });
 
-	* base.store(&quot;SocialGames&quot;).push({ &quot;Title&quot;: &quot;Settlers of Catan&quot;, &quot;Type&quot;: &quot;Board&quot;, &quot;MinPlayers&quot;: 3, &quot;MaxPlayers&quot;: 4 });
+	* base.store(&quot;SocialGames&quot;).push({ Title: &quot;Settlers of Catan&quot;, Type: &quot;Board&quot;, MinPlayers: 3, MaxPlayers: 4 });
 
-	* base.store(&quot;SocialGames&quot;).push({ &quot;Title&quot;: &quot;Munchkin&quot;, &quot;Type&quot;: &quot;Card&quot;, &quot;MinPlayers&quot;: 3, &quot;MaxPlayers&quot;: 6 });
+	* base.store(&quot;SocialGames&quot;).push({ Title: &quot;Munchkin&quot;, Type: &quot;Card&quot;, MinPlayers: 3, MaxPlayers: 6 });
 
 	* // create a record set out of the records of the store
 
@@ -3719,15 +3719,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;BookWriters&quot;,
+	*        name: &quot;BookWriters&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Genre&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { name: &quot;Genre&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Books&quot;, &quot;type&quot;: &quot;string_v&quot; }
+	*            { name: &quot;Books&quot;, type: &quot;string_v&quot; }
 
 	*        ]
 
@@ -3737,19 +3737,19 @@
 
 	* // set new records in the store
 
-	* base.store(&quot;BookWriters&quot;).push({ &quot;Name&quot;: &quot;Terry Pratchett&quot;, &quot;Genre&quot;: &quot;Fantasy&quot;, &quot;Books&quot;: [&quot;The Colour of Magic&quot;, &quot;Going Postal&quot;, &quot;Mort&quot;, &quot;Guards! Guards!&quot;] });
+	* base.store(&quot;BookWriters&quot;).push({ Name: &quot;Terry Pratchett&quot;, Genre: &quot;Fantasy&quot;, Books: [&quot;The Colour of Magic&quot;, &quot;Going Postal&quot;, &quot;Mort&quot;, &quot;Guards! Guards!&quot;] });
 
-	* base.store(&quot;BookWriters&quot;).push({ &quot;Name&quot;: &quot;Douglas Adams&quot;, &quot;Genre&quot;: &quot;Sci-fi&quot;, &quot;Books&quot;: [&quot;The Hitchhiker&#x27;s Guide to the Galaxy&quot;, &quot;So Long, and Thanks for All the Fish&quot;] });
+	* base.store(&quot;BookWriters&quot;).push({ Name: &quot;Douglas Adams&quot;, Genre: &quot;Sci-fi&quot;, Books: [&quot;The Hitchhiker&#x27;s Guide to the Galaxy&quot;, &quot;So Long, and Thanks for All the Fish&quot;] });
 
-	* base.store(&quot;BookWriters&quot;).push({ &quot;Name&quot;: &quot;Fyodor Dostoyevsky&quot;, &quot;Genre&quot;: &quot;Drama&quot;, &quot;Books&quot;: [&quot;Crime and Punishment&quot;, &quot;Demons&quot;] });
+	* base.store(&quot;BookWriters&quot;).push({ Name: &quot;Fyodor Dostoyevsky&quot;, Genre: &quot;Drama&quot;, Books: [&quot;Crime and Punishment&quot;, &quot;Demons&quot;] });
 
-	* base.store(&quot;BookWriters&quot;).push({ &quot;Name&quot;: &quot;J.R.R. Tolkien&quot;, &quot;Genre&quot;: &quot;Fantasy&quot;, &quot;Books&quot;: [&quot;The Hobbit&quot;, &quot;The Two Towers&quot;, &quot;The Silmarillion&quot; ] });
+	* base.store(&quot;BookWriters&quot;).push({ Name: &quot;J.R.R. Tolkien&quot;, Genre: &quot;Fantasy&quot;, Books: [&quot;The Hobbit&quot;, &quot;The Two Towers&quot;, &quot;The Silmarillion&quot; ] });
 
-	* base.store(&quot;BookWriters&quot;).push({ &quot;Name&quot;: &quot;George R.R. Martin&quot;, &quot;Genre&quot;: &quot;Fantasy&quot;, &quot;Books&quot;: [&quot;A Game of Thrones&quot;, &quot;A Feast of Crows&quot;] });
+	* base.store(&quot;BookWriters&quot;).push({ Name: &quot;George R.R. Martin&quot;, Genre: &quot;Fantasy&quot;, Books: [&quot;A Game of Thrones&quot;, &quot;A Feast of Crows&quot;] });
 
-	* base.store(&quot;BookWriters&quot;).push({ &quot;Name&quot;: &quot;J. K. Rowling&quot;, &quot;Genre&quot;: &quot;Fantasy&quot;, &quot;Books&quot;: [&quot;Harry Potter and the Philosopher&#x27;s Stone&quot;] });
+	* base.store(&quot;BookWriters&quot;).push({ Name: &quot;J. K. Rowling&quot;, Genre: &quot;Fantasy&quot;, Books: [&quot;Harry Potter and the Philosopher&#x27;s Stone&quot;] });
 
-	* base.store(&quot;BookWriters&quot;).push({ &quot;Name&quot;: &quot;Ivan Cankar&quot;, &quot;Genre&quot;: &quot;Drama&quot;, &quot;Books&quot;: [&quot;On the Hill&quot;, &quot;The King of Betajnova&quot;, &quot;The Serfs&quot;] });
+	* base.store(&quot;BookWriters&quot;).push({ Name: &quot;Ivan Cankar&quot;, Genre: &quot;Drama&quot;, Books: [&quot;On the Hill&quot;, &quot;The King of Betajnova&quot;, &quot;The Serfs&quot;] });
 
 	* // create one record set containing all records of store
 
@@ -3787,15 +3787,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Musicians&quot;,
+	*        name: &quot;Musicians&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;DateOfBirth&quot;, &quot;type&quot;: &quot;datetime&quot; },
+	*            { name: &quot;DateOfBirth&quot;, type: &quot;datetime&quot; },
 
-	*            { &quot;name&quot;: &quot;GreatestHits&quot;, &quot;type&quot;: &quot;string_v&quot; }
+	*            { name: &quot;GreatestHits&quot;, type: &quot;string_v&quot; }
 
 	*        ]
 
@@ -3805,9 +3805,9 @@
 
 	* // create some records
 
-	* base.store(&quot;Musicians&quot;).push({ &quot;Name&quot;: &quot;Jimmy Page&quot;, &quot;DateOfBirth&quot;:  &quot;1944-01-09T00:00:00&quot;, &quot;GreatestHits&quot;: [&quot;Stairway to Heaven&quot;, &quot;Whole Lotta Love&quot;] });
+	* base.store(&quot;Musicians&quot;).push({ Name: &quot;Jimmy Page&quot;, DateOfBirth:  &quot;1944-01-09T00:00:00&quot;, GreatestHits: [&quot;Stairway to Heaven&quot;, &quot;Whole Lotta Love&quot;] });
 
-	* base.store(&quot;Musicians&quot;).push({ &quot;Name&quot;: &quot;Beyonce&quot;, &quot;DateOfBirth&quot;: &quot;1981-09-04T00:00:00&quot;, &quot;GreatestHits&quot;: [&quot;Single Ladies (Put a Ring on It)&quot;] });
+	* base.store(&quot;Musicians&quot;).push({ Name: &quot;Beyonce&quot;, DateOfBirth: &quot;1981-09-04T00:00:00&quot;, GreatestHits: [&quot;Single Ladies (Put a Ring on It)&quot;] });
 
 	* // create a record set out of the records in the &quot;Musicians&quot; store
 
@@ -3847,13 +3847,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;People&quot;,
+	*        type: &quot;People&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { type: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Gender&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { type: &quot;Gender&quot;, type: &quot;string&quot; }
 
 	*        ]
 
@@ -3863,11 +3863,11 @@
 
 	* // put some records in the store
 
-	* base.store(&quot;People&quot;).push({ &quot;Name&quot;: &quot;Eric Sugar&quot;, &quot;Gender&quot;: &quot;Male&quot; });
+	* base.store(&quot;People&quot;).push({ Name: &quot;Eric Sugar&quot;, Gender: &quot;Male&quot; });
 
-	* base.store(&quot;People&quot;).push({ &quot;Name&quot;: &quot;Jane Tokyo&quot;, &quot;Gender&quot;: &quot;Female&quot; });
+	* base.store(&quot;People&quot;).push({ Name: &quot;Jane Tokyo&quot;, Gender: &quot;Female&quot; });
 
-	* base.store(&quot;People&quot;).push({ &quot;Name&quot;: &quot;Mister Tea&quot;, &quot;Gender&quot;: &quot;Male&quot; });
+	* base.store(&quot;People&quot;).push({ Name: &quot;Mister Tea&quot;, Gender: &quot;Male&quot; });
 
 	* // create a record set out of the records of the store
 
@@ -3907,13 +3907,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;People&quot;,
+	*        type: &quot;People&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { type: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Gender&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { type: &quot;Gender&quot;, type: &quot;string&quot; }
 
 	*        ]
 
@@ -3923,11 +3923,11 @@
 
 	* // put some records in the store
 
-	* base.store(&quot;People&quot;).push({ &quot;Name&quot;: &quot;Eric Sugar&quot;, &quot;Gender&quot;: &quot;Male&quot; });
+	* base.store(&quot;People&quot;).push({ Name: &quot;Eric Sugar&quot;, Gender: &quot;Male&quot; });
 
-	* base.store(&quot;People&quot;).push({ &quot;Name&quot;: &quot;Jane Tokyo&quot;, &quot;Gender&quot;: &quot;Female&quot; });
+	* base.store(&quot;People&quot;).push({ Name: &quot;Jane Tokyo&quot;, Gender: &quot;Female&quot; });
 
-	* base.store(&quot;People&quot;).push({ &quot;Name&quot;: &quot;Mister Tea&quot;, &quot;Gender&quot;: &quot;Male&quot; });
+	* base.store(&quot;People&quot;).push({ Name: &quot;Mister Tea&quot;, Gender: &quot;Male&quot; });
 
 	* // create a record set out of the records of the store
 
@@ -3963,15 +3963,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Movies&quot;,
+	*        type: &quot;Movies&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { type: &quot;Title&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Length&quot;, &quot;type&quot;: &quot;int&quot; },
+	*            { type: &quot;Length&quot;, type: &quot;int&quot; },
 
-	*            { &quot;name&quot;: &quot;Director&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { type: &quot;Director&quot;, type: &quot;string&quot; }
 
 	*        ]
 
@@ -3981,15 +3981,15 @@
 
 	* // put some records in the store
 
-	* base.store(&quot;Movies&quot;).push({ &quot;Title&quot;: &quot;The Nightmare Before Christmas&quot;, &quot;Length&quot;: 76, &quot;Director&quot;: &quot;Henry Selick&quot; });
+	* base.store(&quot;Movies&quot;).push({ Title: &quot;The Nightmare Before Christmas&quot;, Length: 76, Director: &quot;Henry Selick&quot; });
 
-	* base.store(&quot;Movies&quot;).push({ &quot;Title&quot;: &quot;Jurassic Part&quot;, &quot;Length&quot;: 127, &quot;Director&quot;: &quot;Steven Spielberg&quot; });
+	* base.store(&quot;Movies&quot;).push({ Title: &quot;Jurassic Part&quot;, Length: 127, Director: &quot;Steven Spielberg&quot; });
 
-	* base.store(&quot;Movies&quot;).push({ &quot;Title&quot;: &quot;The Avengers&quot;, &quot;Length&quot;: 143, &quot;Director&quot;: &quot;Joss Whedon&quot; });
+	* base.store(&quot;Movies&quot;).push({ Title: &quot;The Avengers&quot;, Length: 143, Director: &quot;Joss Whedon&quot; });
 
-	* base.store(&quot;Movies&quot;).push({ &quot;Title&quot;: &quot;The Clockwork Orange&quot;, &quot;Length&quot;: 136, &quot;Director&quot;: &quot;Stanley Kubrick&quot; });
+	* base.store(&quot;Movies&quot;).push({ Title: &quot;The Clockwork Orange&quot;, Length: 136, Director: &quot;Stanley Kubrick&quot; });
 
-	* base.store(&quot;Movies&quot;).push({ &quot;Title&quot;: &quot;Full Metal Jacket&quot;, &quot;Length&quot;: 116, &quot;Director&quot;: &quot;Stanely Kubrick&quot; });
+	* base.store(&quot;Movies&quot;).push({ Title: &quot;Full Metal Jacket&quot;, Length: 116, Director: &quot;Stanely Kubrick&quot; });
 
 	* // create a record set out of the records in store, where length of the movie is greater than 110
 
@@ -4029,13 +4029,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;TVSeries&quot;,
+	*        type: &quot;TVSeries&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { type: &quot;Title&quot;, type: &quot;string&quot;, &quot;primary&quot;: true },
 
-	*            { &quot;name&quot;: &quot;NumberOfEpisodes&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { type: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -4045,15 +4045,15 @@
 
 	* // add some records in the store
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Archer&quot;, &quot;NumberOfEpisodes&quot;: 75 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Archer&quot;, NumberOfEpisodes: 75 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;The Simpsons&quot;, &quot;NumberOfEpisodes&quot;: 574 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;The Simpsons&quot;, NumberOfEpisodes: 574 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;New Girl&quot;, &quot;NumberOfEpisodes&quot;: 94 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpisodes: 94 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Rick and Morty&quot;, &quot;NumberOfEpisodes&quot;: 11 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Game of Thrones&quot;, &quot;NumberOfEpisodes&quot;: 47 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 
 	* // create a record set out of the records in store, where the number of episodes is lesser than 47
 
@@ -4093,15 +4093,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;BookWriters&quot;,
+	*        type: &quot;BookWriters&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { type: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Genre&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { type: &quot;Genre&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Books&quot;, &quot;type&quot;: &quot;string_v&quot; }
+	*            { type: &quot;Books&quot;, type: &quot;string_v&quot; }
 
 	*        ]
 
@@ -4111,19 +4111,19 @@
 
 	* // set new records in the store
 
-	* base.store(&quot;BookWriters&quot;).push({ &quot;Name&quot;: &quot;Terry Pratchett&quot;, &quot;Genre&quot;: &quot;Fantasy&quot;, &quot;Books&quot;: [&quot;The Colour of Magic&quot;, &quot;Going Postal&quot;, &quot;Mort&quot;, &quot;Guards! Guards!&quot;] });
+	* base.store(&quot;BookWriters&quot;).push({ Name: &quot;Terry Pratchett&quot;, Genre: &quot;Fantasy&quot;, Books: [&quot;The Colour of Magic&quot;, &quot;Going Postal&quot;, &quot;Mort&quot;, &quot;Guards! Guards!&quot;] });
 
-	* base.store(&quot;BookWriters&quot;).push({ &quot;Name&quot;: &quot;Douglas Adams&quot;, &quot;Genre&quot;: &quot;Sci-fi&quot;, &quot;Books&quot;: [&quot;The Hitchhiker&#x27;s Guide to the Galaxy&quot;, &quot;So Long, and Thanks for All the Fish&quot;] });
+	* base.store(&quot;BookWriters&quot;).push({ Name: &quot;Douglas Adams&quot;, Genre: &quot;Sci-fi&quot;, Books: [&quot;The Hitchhiker&#x27;s Guide to the Galaxy&quot;, &quot;So Long, and Thanks for All the Fish&quot;] });
 
-	* base.store(&quot;BookWriters&quot;).push({ &quot;Name&quot;: &quot;Fyodor Dostoyevsky&quot;, &quot;Genre&quot;: &quot;Drama&quot;, &quot;Books&quot;: [&quot;Crime and Punishment&quot;, &quot;Demons&quot;] });
+	* base.store(&quot;BookWriters&quot;).push({ Name: &quot;Fyodor Dostoyevsky&quot;, Genre: &quot;Drama&quot;, Books: [&quot;Crime and Punishment&quot;, &quot;Demons&quot;] });
 
-	* base.store(&quot;BookWriters&quot;).push({ &quot;Name&quot;: &quot;J.R.R. Tolkien&quot;, &quot;Genre&quot;: &quot;Fantasy&quot;, &quot;Books&quot;: [&quot;The Hobbit&quot;, &quot;The Two Towers&quot;, &quot;The Silmarillion&quot; ] });
+	* base.store(&quot;BookWriters&quot;).push({ Name: &quot;J.R.R. Tolkien&quot;, Genre: &quot;Fantasy&quot;, Books: [&quot;The Hobbit&quot;, &quot;The Two Towers&quot;, &quot;The Silmarillion&quot; ] });
 
-	* base.store(&quot;BookWriters&quot;).push({ &quot;Name&quot;: &quot;George R.R. Martin&quot;, &quot;Genre&quot;: &quot;Fantasy&quot;, &quot;Books&quot;: [&quot;A Game of Thrones&quot;, &quot;A Feast of Crows&quot;] });
+	* base.store(&quot;BookWriters&quot;).push({ Name: &quot;George R.R. Martin&quot;, Genre: &quot;Fantasy&quot;, Books: [&quot;A Game of Thrones&quot;, &quot;A Feast of Crows&quot;] });
 
-	* base.store(&quot;BookWriters&quot;).push({ &quot;Name&quot;: &quot;J. K. Rowling&quot;, &quot;Genre&quot;: &quot;Fantasy&quot;, &quot;Books&quot;: [&quot;Harry Potter and the Philosopher&#x27;s Stone&quot;] });
+	* base.store(&quot;BookWriters&quot;).push({ Name: &quot;J. K. Rowling&quot;, Genre: &quot;Fantasy&quot;, Books: [&quot;Harry Potter and the Philosopher&#x27;s Stone&quot;] });
 
-	* base.store(&quot;BookWriters&quot;).push({ &quot;Name&quot;: &quot;Ivan Cankar&quot;, &quot;Genre&quot;: &quot;Drama&quot;, &quot;Books&quot;: [&quot;On the Hill&quot;, &quot;The King of Betajnova&quot;, &quot;The Serfs&quot;] });
+	* base.store(&quot;BookWriters&quot;).push({ Name: &quot;Ivan Cankar&quot;, Genre: &quot;Drama&quot;, Books: [&quot;On the Hill&quot;, &quot;The King of Betajnova&quot;, &quot;The Serfs&quot;] });
 
 	* // create one record set containing all records of store
 
@@ -4163,13 +4163,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;TVSeries&quot;,
+	*        type: &quot;TVSeries&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { type: &quot;Title&quot;, type: &quot;string&quot;, &quot;primary&quot;: true },
 
-	*            { &quot;name&quot;: &quot;NumberOfEpisodes&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { type: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -4179,15 +4179,15 @@
 
 	* // add some records in the store
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Archer&quot;, &quot;NumberOfEpisodes&quot;: 75 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Archer&quot;, NumberOfEpisodes: 75 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;The Simpsons&quot;, &quot;NumberOfEpisodes&quot;: 574 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;The Simpsons&quot;, NumberOfEpisodes: 574 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;New Girl&quot;, &quot;NumberOfEpisodes&quot;: 94 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpisodes: 94 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Rick and Morty&quot;, &quot;NumberOfEpisodes&quot;: 11 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
 
-	* base.store(&quot;TVSeries&quot;).push({ &quot;Title&quot;: &quot;Game of Thrones&quot;, &quot;NumberOfEpisodes&quot;: 47 });
+	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 
 	* // create a record set of the records of store
 
@@ -4225,13 +4225,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;ArcheryChampionship&quot;,
+	*        type: &quot;ArcheryChampionship&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { type: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;ScorePerRound&quot;, &quot;type&quot;: &quot;float_v&quot; }
+	*            { type: &quot;ScorePerRound&quot;, type: &quot;float_v&quot; }
 
 	*        ]
 
@@ -4241,11 +4241,11 @@
 
 	* // set new records in the store
 
-	* base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Robin Hood&quot;, &quot;ScorePerRound&quot;: [50, 48, 48] });
+	* base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Robin Hood&quot;, ScorePerRound: [50, 48, 48] });
 
-	* base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Oliver Queen&quot;, &quot;ScorePerRound&quot;: [44, 46, 44] });
+	* base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Oliver Queen&quot;, ScorePerRound: [44, 46, 44] });
 
-	* base.store(&quot;ArcheryChampionship&quot;).push({ &quot;Name&quot;: &quot;Legolas&quot;, &quot;ScorePerRound&quot;: [50, 50, 48] });
+	* base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Legolas&quot;, ScorePerRound: [50, 50, 48] });
 
 	* // create a record set of the records in store
 
@@ -4319,13 +4319,13 @@
 
 * base.createStore({
 
-*     &quot;name&quot;: &quot;People&quot;,
+*     type: &quot;People&quot;,
 
-*     &quot;fields&quot;: [
+*     fields: [
 
-*         { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+*         { type: &quot;Name&quot;, type: &quot;string&quot; },
 
-*         { &quot;name&quot;: &quot;Gendre&quot;, &quot;type&quot;: &quot;string&quot; }
+*         { type: &quot;Gendre&quot;, type: &quot;string&quot; }
 
 *     ]
 
@@ -4333,13 +4333,13 @@
 
 * // add new records to the store
 
-* base.store(&quot;People&quot;).push({ &quot;Name&quot;: &quot;Geronimo&quot;, &quot;Gender&quot;: &quot;Male&quot; });
+* base.store(&quot;People&quot;).push({ Name: &quot;Geronimo&quot;, Gender: &quot;Male&quot; });
 
-* base.store(&quot;People&quot;).push({ &quot;Name&quot;: &quot;Pochahontas&quot;, &quot;Gender&quot;: &quot;Female&quot; });
+* base.store(&quot;People&quot;).push({ Name: &quot;Pochahontas&quot;, Gender: &quot;Female&quot; });
 
-* base.store(&quot;People&quot;).push({ &quot;Name&quot;: &quot;John Rolfe&quot;, &quot;Gender&quot;: &quot;Male&quot; });
+* base.store(&quot;People&quot;).push({ Name: &quot;John Rolfe&quot;, Gender: &quot;Male&quot; });
 
-* base.store(&quot;People&quot;).push({ &quot;Name&quot;: &quot;John Smith&quot;, &quot;Gender&quot;: &quot;Male&quot;});
+* base.store(&quot;People&quot;).push({ Name: &quot;John Smith&quot;, Gender: &quot;Male&quot;});
 
 * // factory based construction with forwardIter
 
@@ -4373,15 +4373,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;TheWitcherSaga&quot;,
+	*        type: &quot;TheWitcherSaga&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { type: &quot;Title&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;YearOfRelese&quot;, &quot;type&quot;: &quot;int&quot; },
+	*            { type: &quot;YearOfRelese&quot;, type: &quot;int&quot; },
 
-	*            { &quot;name&quot;: &quot;EnglishEdition&quot;, &quot;type&quot;: &quot;bool&quot; }
+	*            { type: &quot;EnglishEdition&quot;, type: &quot;bool&quot; }
 
 	*        ]
 
@@ -4391,17 +4391,17 @@
 
 	* // put some records in the store
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Blood of Elves&quot;, &quot;YearOfRelese&quot;: 1994, &quot;EnglishEdition&quot;: true });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Blood of Elves&quot;, YearOfRelease: 1994, EnglishEdition: true });
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Time of Contempt&quot;, &quot;YearOfRelese&quot;: 1995, &quot;EnglishEdition&quot;: true });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Time of Contempt&quot;, YearOfRelease: 1995, EnglishEdition: true });
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Baptism of Fire&quot;, &quot;YearOfRelese&quot;: 1996, &quot;EnglishEdition&quot;: true });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Baptism of Fire&quot;, YearOfRelease: 1996, EnglishEdition: true });
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;The Swallow&#x27;s Tower&quot;, &quot;YearOfRelese&quot;: 1997, &quot;EnglishEdition&quot;: false });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;The Swallow&#x27;s Tower&quot;, YearOfRelease: 1997, EnglishEdition: false });
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Lady of the Lake&quot;, &quot;YearOfRelese&quot;: 1999, &quot;EnglishEdition&quot;: false });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Lady of the Lake&quot;, YearOfRelease: 1999, EnglishEdition: false });
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Season of Storms&quot;, &quot;YearOfRelese&quot;: 2013, &quot;EnglishEdition&quot;: false });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Season of Storms&quot;, YearOfRelease: 2013, EnglishEdition: false });
 
 	* // create an iterator for the store
 
@@ -4547,15 +4547,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;WeatherForcast&quot;,
+	*        type: &quot;WeatherForcast&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Weather&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { type: &quot;Weather&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Date&quot;, &quot;type&quot;: &quot;datetime&quot; },
+	*            { type: &quot;Date&quot;, type: &quot;datetime&quot; },
 
-	*            { &quot;name&quot;: &quot;TemperatureDegrees&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { type: &quot;TemperatureDegrees&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -4565,17 +4565,17 @@
 
 	* // put some records in the &quot;WeatherForecast&quot; store
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 19 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Partly Cloudy&quot;, Date: &quot;2015-05-27T11:00:00&quot;, TemperatureDegrees: 19 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 22 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Partly Cloudy&quot;, Date: &quot;2015-05-28T11:00:00&quot;, TemperatureDegrees: 22 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-05-29T11:00:00&quot;, TemperatureDegrees: 25 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-05-30T11:00:00&quot;, TemperatureDegrees: 25 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 24 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Scattered Showers&quot;, Date: &quot;2015-05-31T11:00:00&quot;, TemperatureDegrees: 24 });
 
-	* base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 27 });
+	* base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-06-01T11:00:00&quot;, TemperatureDegrees: 27 });
 
 	* // create a feature space 
 
@@ -4801,13 +4801,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Class&quot;,
+	*        type: &quot;Class&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { type: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { type: &quot;StudyGroup&quot;, type: &quot;string&quot; }
 
 	*        ]
 
@@ -4817,13 +4817,13 @@
 
 	* // add some records to the store
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Dean&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Dean&quot;, StudyGroup: &quot;A&quot; });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroup&quot;: &quot;D&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Chang&quot;, StudyGroup: &quot;D&quot; });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Magnitude&quot;, &quot;StudyGroup&quot;: &quot;C&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Magnitude&quot;, StudyGroup: &quot;C&quot; });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Leonard&quot;, &quot;StudyGroup&quot;: &quot;B&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Leonard&quot;, StudyGroup: &quot;B&quot; });
 
 	* // create a new feature space
 
@@ -4875,13 +4875,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Class&quot;,
+	*        type: &quot;Class&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { type: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+	*            { type: &quot;StudyGroup&quot;, type: &quot;string&quot; }
 
 	*        ]
 
@@ -4891,13 +4891,13 @@
 
 	* // add some records to the store
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Jeff&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Jeff&quot;, StudyGroup: &quot;A&quot; });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Britta&quot;, &quot;StudyGroup&quot;: &quot;D&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Britta&quot;, StudyGroup: &quot;D&quot; });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Abed&quot;, &quot;StudyGroup&quot;: &quot;C&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Abed&quot;, StudyGroup: &quot;C&quot; });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Annie&quot;, &quot;StudyGroup&quot;: &quot;B&quot; });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Annie&quot;, StudyGroup: &quot;B&quot; });
 
 	* // create a new feature space
 
@@ -4949,15 +4949,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;TheWitcherSaga&quot;,
+	*        type: &quot;TheWitcherSaga&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { type: &quot;Title&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;YearOfRelese&quot;, &quot;type&quot;: &quot;int&quot; },
+	*            { type: &quot;YearOfRelease&quot;, type: &quot;int&quot; },
 
-	*            { &quot;name&quot;: &quot;EnglishEdition&quot;, &quot;type&quot;: &quot;bool&quot; }
+	*            { type: &quot;EnglishEdition&quot;, type: &quot;bool&quot; }
 
 	*        ]
 
@@ -4967,17 +4967,17 @@
 
 	* // put some records in the store
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Blood of Elves&quot;, &quot;YearOfRelese&quot;: 1994, &quot;EnglishEdition&quot;: true });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Blood of Elves&quot;, YearOfRelease: 1994, EnglishEdition: true });
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Time of Contempt&quot;, &quot;YearOfRelese&quot;: 1995, &quot;EnglishEdition&quot;: true });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Time of Contempt&quot;, YearOfRelease: 1995, EnglishEdition: true });
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Baptism of Fire&quot;, &quot;YearOfRelese&quot;: 1996, &quot;EnglishEdition&quot;: true });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Baptism of Fire&quot;, YearOfRelease: 1996, EnglishEdition: true });
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;The Swallow&#x27;s Tower&quot;, &quot;YearOfRelese&quot;: 1997, &quot;EnglishEdition&quot;: false });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;The Swallow&#x27;s Tower&quot;, YearOfRelease: 1997, EnglishEdition: false });
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Lady of the Lake&quot;, &quot;YearOfRelese&quot;: 1999, &quot;EnglishEdition&quot;: false });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Lady of the Lake&quot;, YearOfRelease: 1999, EnglishEdition: false });
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Season of Storms&quot;, &quot;YearOfRelese&quot;: 2013, &quot;EnglishEdition&quot;: false });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Season of Storms&quot;, YearOfRelease: 2013, EnglishEdition: false });
 
 	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
 
@@ -5029,15 +5029,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;TheWitcherSaga&quot;,
+	*        type: &quot;TheWitcherSaga&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { type: &quot;Title&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;YearOfRelese&quot;, &quot;type&quot;: &quot;int&quot; },
+	*            { type: &quot;YearOfRelease&quot;, type: &quot;int&quot; },
 
-	*            { &quot;name&quot;: &quot;EnglishEdition&quot;, &quot;type&quot;: &quot;bool&quot; }
+	*            { type: &quot;EnglishEdition&quot;, type: &quot;bool&quot; }
 
 	*        ]
 
@@ -5047,17 +5047,17 @@
 
 	* // put some records in the store
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Blood of Elves&quot;, &quot;YearOfRelese&quot;: 1994, &quot;EnglishEdition&quot;: true });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Blood of Elves&quot;, YearOfRelease: 1994, EnglishEdition: true });
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Time of Contempt&quot;, &quot;YearOfRelese&quot;: 1995, &quot;EnglishEdition&quot;: true });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Time of Contempt&quot;, YearOfRelease: 1995, EnglishEdition: true });
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Baptism of Fire&quot;, &quot;YearOfRelese&quot;: 1996, &quot;EnglishEdition&quot;: true });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Baptism of Fire&quot;, YearOfRelease: 1996, EnglishEdition: true });
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;The Swallow&#x27;s Tower&quot;, &quot;YearOfRelese&quot;: 1997, &quot;EnglishEdition&quot;: false });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;The Swallow&#x27;s Tower&quot;, YearOfRelease: 1997, EnglishEdition: false });
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Lady of the Lake&quot;, &quot;YearOfRelese&quot;: 1999, &quot;EnglishEdition&quot;: false });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Lady of the Lake&quot;, YearOfRelease: 1999, EnglishEdition: false });
 
-	* base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Season of Storms&quot;, &quot;YearOfRelese&quot;: 2013, &quot;EnglishEdition&quot;: false });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Season of Storms&quot;, YearOfRelease: 2013, EnglishEdition: false });
 
 	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
 
@@ -5101,13 +5101,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Class&quot;,
+	*        type: &quot;Class&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { type: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;StudyGroups&quot;, &quot;type&quot;: &quot;string_v&quot; }
+	*            { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
 
 	*        ]
 
@@ -5117,13 +5117,13 @@
 
 	* // add some records to the store
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Dean&quot;, &quot;StudyGroups&quot;: [&quot;A&quot;, &quot;D&quot;] });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Dean&quot;, StudyGroups: [&quot;A&quot;, &quot;D&quot;] });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroups&quot;: [&quot;B&quot;, &quot;D&quot;] });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Chang&quot;, StudyGroups: [&quot;B&quot;, &quot;D&quot;] });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Magnitude&quot;, &quot;StudyGroups&quot;: [&quot;B&quot;, &quot;C&quot;] });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Magnitude&quot;, StudyGroups: [&quot;B&quot;, &quot;C&quot;] });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Leonard&quot;, &quot;StudyGroups&quot;: [&quot;A&quot;, &quot;B&quot;] });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Leonard&quot;, StudyGroups: [&quot;A&quot;, &quot;B&quot;] });
 
 	* // create a feature space containing the multinomial feature extractor
 
@@ -5163,13 +5163,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Class&quot;,
+	*        type: &quot;Class&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { type: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;StudyGroups&quot;, &quot;type&quot;: &quot;string_v&quot; }
+	*            { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
 
 	*        ]
 
@@ -5179,13 +5179,13 @@
 
 	* // add some records to the store
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Dean&quot;, &quot;StudyGroups&quot;: [&quot;A&quot;, &quot;D&quot;] });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Dean&quot;, StudyGroups: [&quot;A&quot;, &quot;D&quot;] });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroups&quot;: [&quot;B&quot;, &quot;D&quot;] });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Chang&quot;, StudyGroups: [&quot;B&quot;, &quot;D&quot;] });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Magnitude&quot;, &quot;StudyGroups&quot;: [&quot;B&quot;, &quot;C&quot;] });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Magnitude&quot;, StudyGroups: [&quot;B&quot;, &quot;C&quot;] });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Leonard&quot;, &quot;StudyGroups&quot;: [&quot;A&quot;, &quot;B&quot;] });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Leonard&quot;, StudyGroups: [&quot;A&quot;, &quot;B&quot;] });
 
 	* // create a feature space containing the multinomial feature extractor
 
@@ -5231,15 +5231,15 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;People&quot;,
+	*        type: &quot;People&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { type: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Gendre&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { type: &quot;Gendre&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Age&quot;, &quot;type&quot;: &quot;int&quot; }
+	*            { type: &quot;Age&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -5287,13 +5287,13 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Class&quot;,
+	*        type: &quot;Class&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { type: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
 
-	*            { &quot;name&quot;: &quot;StudyGroups&quot;, &quot;type&quot;: &quot;string_v&quot; }
+	*            { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
 
 	*        ]
 
@@ -5303,13 +5303,13 @@
 
 	* // add some records to the store
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Dean&quot;, &quot;StudyGroups&quot;: [&quot;A&quot;, &quot;D&quot;] });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Dean&quot;, StudyGroups: [&quot;A&quot;, &quot;D&quot;] });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroups&quot;: [&quot;B&quot;, &quot;D&quot;] });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Chang&quot;, StudyGroups: [&quot;B&quot;, &quot;D&quot;] });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Magnitude&quot;, &quot;StudyGroups&quot;: [&quot;B&quot;, &quot;C&quot;] });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Magnitude&quot;, StudyGroups: [&quot;B&quot;, &quot;C&quot;] });
 
-	* base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Leonard&quot;, &quot;StudyGroups&quot;: [&quot;A&quot;, &quot;B&quot;] });
+	* base.store(&quot;Class&quot;).push({ Name: &quot;Leonard&quot;, StudyGroups: [&quot;A&quot;, &quot;B&quot;] });
 
 	* // create a feature space containing the multinomial feature extractor
 
@@ -5367,17 +5367,17 @@
 
 	*    schema: [{
 
-	*        &quot;name&quot;: &quot;Academics&quot;,
+	*        type: &quot;Academics&quot;,
 
-	*        &quot;fields&quot;: [
+	*        fields: [
 
-	*            { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { type: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Age&quot;, &quot;type&quot;: &quot;int&quot; },
+	*            { type: &quot;Age&quot;, type: &quot;int&quot; },
 
-	*            { &quot;name&quot;: &quot;Gendre&quot;, &quot;type&quot;: &quot;string&quot; },
+	*            { type: &quot;Gendre&quot;, type: &quot;string&quot; },
 
-	*            { &quot;name&quot;: &quot;Skills&quot;, &quot;type&quot;: &quot;string_v&quot; }
+	*            { type: &quot;Skills&quot;, type: &quot;string_v&quot; }
 
 	*        ]
 
@@ -5449,7 +5449,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on May 29, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on June 2, 2015.
       </p>
     </div>
   </footer>

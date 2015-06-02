@@ -13,6 +13,8 @@ node makedoc.js ../src/nodejs/statistics/stat_nodejs.h "" ../nodedoc/statdoc.js
 
 node makedoc.js "" ../src/nodejs/datasets/datasets.js ../nodedoc/datasetsdoc.js
 
+node makedoc.js ../src/nodejs/qm/qm_nodejs_streamaggr.h "" ../nodedoc/qminer_aggrdoc.js
+
 node appendIntellisense ../nodedoc/fsdoc.js ../src/nodejs/intellisense/fs_intellisense.js "exports = {}; require.modules.qminer_fs = exports;"
 node appendIntellisense ../nodedoc/ladoc.js ../src/nodejs/intellisense/la_intellisense.js "exports = {}; require.modules.qminer_la = exports;"
 node appendIntellisense ../nodedoc/htdoc.js ../src/nodejs/intellisense/ht_intellisense.js "exports = {}; require.modules.qminer_ht = exports;"
@@ -21,4 +23,4 @@ node appendIntellisense ../nodedoc/datasetsdoc.js ../src/nodejs/intellisense/dat
 node appendIntellisense ../nodedoc/analyticsdoc.js ../src/nodejs/intellisense/analytics_intellisense.js "exports = {}; require.modules.qminer_analytics = exports;"
 node appendIntellisense ../nodedoc/qminerdoc.js ../src/nodejs/intellisense/qminer_intellisense.js "// this file mimicks the qminer module index.js file\nexports = {}; require.modules.qminer = exports;\nexports.la = require('qminer_la');\nexports.fs = require('qminer_fs');\nexports.analytics = require('qminer_analytics');\nexports.ht= require('qminer_ht');\nexports.statistics= require('qminer_stat');\nexports.datasets= require('qminer_datasets');"
 
-jsdoc --template ../node_modules/jsdoc-baseline ../nodedoc/htdoc.js ../nodedoc/fsdoc.js ../nodedoc/analyticsdoc.js  ../nodedoc/ladoc.js ../nodedoc/qminerdoc.js ../nodedoc/statdoc.js ../nodedoc/datasetsdoc.js -d ../nodedoc
+jsdoc --template ../node_modules/jsdoc-baseline ../nodedoc/htdoc.js ../nodedoc/fsdoc.js ../nodedoc/analyticsdoc.js  ../nodedoc/ladoc.js ../nodedoc/qminerdoc.js ../nodedoc/statdoc.js ../nodedoc/datasetsdoc.js ../nodedoc/qminer_aggrdoc.js -d ../nodedoc 
