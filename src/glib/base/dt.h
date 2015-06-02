@@ -82,7 +82,7 @@ public:
 };
 
 /////////////////////////////////////////////////
-// Memory chunk - simpe buffer, non-resizable
+// Memory chunk - simple buffer, non-resizable
 class TMemBase {
 protected:
 	int MxBfL, BfL;
