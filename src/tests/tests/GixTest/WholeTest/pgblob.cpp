@@ -558,6 +558,11 @@ namespace glib {
 		return TQm::TStorage::TThinMIn(Data, Len);
 	}
 
+	/// Retrieve BLOB from storage
+	TMemBase TPgBlob::GetMemBase(const TPgBlobPt& Pt) {
+		return Get(Pt).GetMemBase();
+	}
+
 	/// Save part of the data, given time-window
 	void TPgBlob::PartialFlush(int WndInMsec) {
 		TTmStopWatch sw(true);

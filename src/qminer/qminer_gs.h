@@ -272,13 +272,13 @@ private:
 /// Thin Input-Memory. Used to present existing TMem as TSIn. 
 /// It doesn't allocate or release any memory.
 class TThinMIn: public TSIn {
-private:
+protected:
 	uchar* Bf;
 	int BfC, BfL;
-private:
 public:
-	TThinMIn(const TMem& Mem);
+	TThinMIn(const TMemBase& Mem);
 	TThinMIn(const void* _Bf, const int& _BfL);
+	TThinMIn(const TThinMIn& min);
 		
 	bool Eof() { return BfC == BfL; }
 	int Len() const { return BfL-BfC; }
@@ -287,8 +287,11 @@ public:
 	int GetBf(const void* LBf, const TSize& LBfL);
 	void Reset() { Cs = TCs(); BfC = 0; }
 	uchar* GetBfAddr() { return Bf; }
+	char* GetBfAddrChar() { return (char*)Bf; }
+	byte* GetBfAddrByte() { return (byte*)Bf; }
 	void MoveTo(int Offset);
 	bool GetNextLnBf(TChA& LnChA);
+	TMemBase GetMemBase() { return TMemBase(GetBfAddr(), Len(), false); }
 };
 
 /////////////////////////////////////////////////
@@ -373,13 +376,13 @@ private:
 	/// returns field serialization description
 	const TFieldSerialDesc& GetFieldSerialDesc(const int& FieldId) const;
 	/// finds location inside the buffer for fixed-width fields
-	byte* GetLocationFixed(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
+	byte* GetLocationFixed(const TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
 	/// finds location inside the buffer for variable-width fields
-	int GetOffsetVar(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
+	int GetOffsetVar(const TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
 	/// finds location inside the buffer for variable-width fields
-	byte* GetLocationVar(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
+	byte* GetLocationVar(const TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
 	/// calculates length of buffer where given var-length field is stored
-	int GetVarPartBfLen(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc);
+	int GetVarPartBfLen(const TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc);
 
 	/// finds location inside the buffer for fixed-width fields
 	byte* GetLocationFixed(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc) const;
@@ -390,7 +393,16 @@ private:
 	/// calculates length of buffer where given var-length field is stored
 	int GetVarPartBfLen(const char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc);
 
-	
+	/// finds location inside the buffer for fixed-width fields
+	byte* GetLocationFixed(TThinMIn min, const TFieldSerialDesc& FieldSerialDesc) const;
+	/// finds location inside the buffer for variable-width fields
+	int GetOffsetVar(TThinMIn min, const TFieldSerialDesc& FieldSerialDesc) const;
+	/// finds location inside the buffer for variable-width fields
+	byte* GetLocationVar(TThinMIn min, const TFieldSerialDesc& FieldSerialDesc) const;
+	/// calculates length of buffer where given var-length field is stored
+	int GetVarPartBfLen(TThinMIn min, const TFieldSerialDesc& FieldSerialDesc);
+
+
 	/// set content offset for specified variable field
 	void SetLocationVar(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int& VarOffset) const;
 	/// sets or un-sets NULL flag for specified field
@@ -401,23 +413,23 @@ private:
 	void SetFieldNull(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const bool& NullP) const;
 	
 	/// Fixed-length field setter
-	void SetFieldInt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int& Int);
+	void SetFieldInt(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int& Int);
 	/// Fixed-length field setter
-	void SetFieldUInt64(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64);
+	void SetFieldUInt64(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64);
 	/// Fixed-length field setter
 	void SetFieldStr(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TStr& Str);
 	/// Fixed-length field setter
-	void SetFieldBool(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const bool& Bool);
+	void SetFieldBool(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const bool& Bool);
 	/// Fixed-length field setter
-	void SetFieldFlt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const double& Flt);
+	void SetFieldFlt(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const double& Flt);
 	/// Fixed-length field setter
-	void SetFieldFltPr(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr);
+	void SetFieldFltPr(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr);
 	/// Fixed-length field setter
-	void SetFieldTm(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm);
+	void SetFieldTm(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm);
 	/// Fixed-length field setter
-	void SetFieldTmMSecs(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs);
+	void SetFieldTmMSecs(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs);
 	/// Parse fixed-length type field JSon value and serialize it accordingly to it's type
-	void SetFixedJsonVal(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, 
+	void SetFixedJsonVal(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc,
 		const TFieldDesc& FieldDesc, const PJsonVal& JsonVal);
 
 	/// Fixed-length field setter
@@ -456,10 +468,10 @@ private:
 	void SetVarJsonVal(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, 
 		const TFieldDesc& FieldDesc, const PJsonVal& JsonVal);
 	/// copy variable-length field from InRecMem to FixedMem and SOut
-	void CopyFieldVar(const TMem& InRecMem, TMem& FixedMem, TMOut& VarSOut, const TFieldSerialDesc& FieldSerialDesc);
+	void CopyFieldVar(const TMemBase& InRecMem, TMem& FixedMem, TMOut& VarSOut, const TFieldSerialDesc& FieldSerialDesc);
 
 	/// Extract fixed part from record
-	void ExtractFixedMem(const TMem& InRecMem, TMem& FixedMem);
+	void ExtractFixedMem(const TMemBase& InRecMem, TMem& FixedMem);
 	/// Combine fixed and variable buffers into a record
 	void Merge(const TMem& FixedMem, const TMOut& VarSOut, TMem& OutRecMem);
 	
@@ -477,69 +489,75 @@ public:
 	/// Serialize JSon object
 	void Serialize(const PJsonVal& RecVal, TMem& RecMem, const TWPt<TStore>& Store);
 	/// Update existing serialization with updated fields from JSon object
-	void SerializeUpdate(const PJsonVal& RecVal, const TMem& InRecMem, TMem& OutRecMem, 
+	void SerializeUpdate(const PJsonVal& RecVal, const TMemBase& InRecMem, TMem& OutRecMem, 
 		const TWPt<TStore>& Store, TIntSet& ChangedFieldIdSet);
+	/// Update existing serialization with updated fields from JSon object
+	/// Allow only fixed-part fields
+	void SerializeUpdateInPlace(const PJsonVal& RecVal,
+		TThinMIn MIn, const TWPt<TStore>& Store, TIntSet& ChangedFieldIdSet);
 
 	/// Check if field inside this serializator
 	bool IsFieldId(const int& FieldId) const { return FieldIdToSerialDescIdH.IsKey(FieldId); }
-	
-	/// Field getter
-	bool IsFieldNull(const byte* RecMem, const int& FieldId) const;
-	/// Field getter
-	int GetFieldInt(const byte* RecMem, const int& FieldId) const;
-	/// Field getter
-	void GetFieldIntV(const byte* RecMem, const int& FieldId, TIntV& IntV) const;
-	/// Field getter
-	uint64 GetFieldUInt64(const byte* RecMem, const int& FieldId) const;
-	/// Field getter
-	TStr GetFieldStr(const byte* RecMem, const int& FieldId) const;
-	/// Field getter
-	void GetFieldStrV(const byte* RecMem, const int& FieldId, TStrV& StrV) const;
-	/// Field getter
-	bool GetFieldBool(const byte* RecMem, const int& FieldId) const;
-	/// Field getter
-	double GetFieldFlt(const byte* RecMem, const int& FieldId) const;
-	/// Field getter
-	TFltPr GetFieldFltPr(const byte* RecMem, const int& FieldId) const;
-	/// Field getter
-	void GetFieldFltV(const byte* RecMem, const int& FieldId, TFltV& FltV) const;
-	/// Field getter
-	void GetFieldTm(const byte* RecMem, const int& FieldId, TTm& Tm) const;
-	/// Field getter
-	uint64 GetFieldTmMSecs(const byte* RecMem, const int& FieldId) const;
-	/// Field getter
-	void GetFieldNumSpV(const byte* RecMem, const int& FieldId, TIntFltKdV& SpV) const;
-	/// Field getter
-	void GetFieldBowSpV(const byte* RecMem, const int& FieldId, PBowSpV& SpV) const;
+	/// Check if field is in fixed part
+	bool IsInFixedPart(const int& FieldId) const { return GetFieldSerialDesc(FieldId).FixedPartP; }
 
 	/// Field getter
-	bool IsFieldNull(const TMem& RecMem, const int& FieldId) const;
+	bool IsFieldNull(TThinMIn& min, const int& FieldId) const;
 	/// Field getter
-	int GetFieldInt(const TMem& RecMem, const int& FieldId) const;
+	int GetFieldInt(TThinMIn& min, const int& FieldId) const;
 	/// Field getter
-	void GetFieldIntV(const TMem& RecMem, const int& FieldId, TIntV& IntV) const;
+	void GetFieldIntV(TThinMIn& min, const int& FieldId, TIntV& IntV) const;
 	/// Field getter
-	uint64 GetFieldUInt64(const TMem& RecMem, const int& FieldId) const;
+	uint64 GetFieldUInt64(TThinMIn& min, const int& FieldId) const;
 	/// Field getter
-	TStr GetFieldStr(const TMem& RecMem, const int& FieldId) const;
+	TStr GetFieldStr(TThinMIn& min, const int& FieldId) const;
 	/// Field getter
-	void GetFieldStrV(const TMem& RecMem, const int& FieldId, TStrV& StrV) const;
+	void GetFieldStrV(TThinMIn& min, const int& FieldId, TStrV& StrV) const;
 	/// Field getter
-	bool GetFieldBool(const TMem& RecMem, const int& FieldId) const;
+	bool GetFieldBool(TThinMIn& min, const int& FieldId) const;
 	/// Field getter
-	double GetFieldFlt(const TMem& RecMem, const int& FieldId) const;
+	double GetFieldFlt(TThinMIn& min, const int& FieldId) const;
 	/// Field getter
-	TFltPr GetFieldFltPr(const TMem& RecMem, const int& FieldId) const;
+	TFltPr GetFieldFltPr(TThinMIn& min, const int& FieldId) const;
 	/// Field getter
-	void GetFieldFltV(const TMem& RecMem, const int& FieldId, TFltV& FltV) const;
+	void GetFieldFltV(TThinMIn& min, const int& FieldId, TFltV& FltV) const;
 	/// Field getter
-	void GetFieldTm(const TMem& RecMem, const int& FieldId, TTm& Tm) const;
+	void GetFieldTm(TThinMIn& min, const int& FieldId, TTm& Tm) const;
 	/// Field getter
-	uint64 GetFieldTmMSecs(const TMem& RecMem, const int& FieldId) const;
+	uint64 GetFieldTmMSecs(TThinMIn& min, const int& FieldId) const;
 	/// Field getter
-	void GetFieldNumSpV(const TMem& RecMem, const int& FieldId, TIntFltKdV& SpV) const;
+	void GetFieldNumSpV(TThinMIn& min, const int& FieldId, TIntFltKdV& SpV) const;
 	/// Field getter
-	void GetFieldBowSpV(const TMem& RecMem, const int& FieldId, PBowSpV& SpV) const;  
+	void GetFieldBowSpV(TThinMIn& min, const int& FieldId, PBowSpV& SpV) const;
+
+	/// Field getter
+	bool IsFieldNull(const TMemBase& RecMem, const int& FieldId) const;
+	/// Field getter
+	int GetFieldInt(const TMemBase& RecMem, const int& FieldId) const;
+	/// Field getter
+	void GetFieldIntV(const TMemBase& RecMem, const int& FieldId, TIntV& IntV) const;
+	/// Field getter
+	uint64 GetFieldUInt64(const TMemBase& RecMem, const int& FieldId) const;
+	/// Field getter
+	TStr GetFieldStr(const TMemBase& RecMem, const int& FieldId) const;
+	/// Field getter
+	void GetFieldStrV(const TMemBase& RecMem, const int& FieldId, TStrV& StrV) const;
+	/// Field getter
+	bool GetFieldBool(const TMemBase& RecMem, const int& FieldId) const;
+	/// Field getter
+	double GetFieldFlt(const TMemBase& RecMem, const int& FieldId) const;
+	/// Field getter
+	TFltPr GetFieldFltPr(const TMemBase& RecMem, const int& FieldId) const;
+	/// Field getter
+	void GetFieldFltV(const TMemBase& RecMem, const int& FieldId, TFltV& FltV) const;
+	/// Field getter
+	void GetFieldTm(const TMemBase& RecMem, const int& FieldId, TTm& Tm) const;
+	/// Field getter
+	uint64 GetFieldTmMSecs(const TMemBase& RecMem, const int& FieldId) const;
+	/// Field getter
+	void GetFieldNumSpV(const TMemBase& RecMem, const int& FieldId, TIntFltKdV& SpV) const;
+	/// Field getter
+	void GetFieldBowSpV(const TMemBase& RecMem, const int& FieldId, PBowSpV& SpV) const;
 
 	/// Field setter
 	void SetFieldNull(byte* Bf, const int& BfL, const int& FieldId, const bool& NullP);
@@ -640,31 +658,33 @@ private:
 	TIntH FieldIdToKeyN;
 	
 	/// Index a record using the given key
-	void IndexKey(const TFieldIndexKey& Key, const TMem& RecMem, 
+	void IndexKey(const TFieldIndexKey& Key, const TMemBase& RecMem, 
 		const uint64& RecId, TRecSerializator& Serializator);
 	/// Delete existing index of a record based on a given key
-	void DeindexKey(const TFieldIndexKey& Key, const TMem& RecMem, 
+	void DeindexKey(const TFieldIndexKey& Key, const TMemBase& RecMem, 
 		const uint64& RecId, TRecSerializator& Serializator);
 	/// Update value of existing index of a record
-	void UpdateKey(const TFieldIndexKey& Key, const TMem& OldRecMem, 
-		const TMem& NewRecMem, const uint64& RecId, TRecSerializator& Serializator);
+	void UpdateKey(const TFieldIndexKey& Key, const TMemBase& OldRecMem, 
+		const TMemBase& NewRecMem, const uint64& RecId, TRecSerializator& Serializator);
 	/// Check what needs to be done to update index for a given key
-	void ProcessKey(const TFieldIndexKey& Key, const TMem& OldRecMem, 
-		const TMem& NewRecMem, const uint64& RecId, TRecSerializator& Serializator);
+	void ProcessKey(const TFieldIndexKey& Key, const TMemBase& OldRecMem, 
+		const TMemBase& NewRecMem, const uint64& RecId, TRecSerializator& Serializator);
 		
 public:
 	TRecIndexer() { }
 	TRecIndexer(const TWPt<TIndex>& Index, const TWPt<TStore>& Store);
 	
+	/// Check if given field is used for indexing
+	bool IsFieldIndexKey(const int& FieldId) const;
 	/// Index new record
-	void IndexRec(const TMem& RecMem, const uint64& RecId, TRecSerializator& Serializator);
+	void IndexRec(const TMemBase& RecMem, const uint64& RecId, TRecSerializator& Serializator);
 	/// Deindex existing record
-	void DeindexRec(const TMem& RecMem, const uint64& RecId, TRecSerializator& Serializator);
+	void DeindexRec(const TMemBase& RecMem, const uint64& RecId, TRecSerializator& Serializator);
 	/// Update index for existing record
-	void UpdateRec(const TMem& OldRecMem, const TMem& NewRecMem, 
+	void UpdateRec(const TMemBase& OldRecMem, const TMemBase& NewRecMem,
 		const uint64& RecId, const int& ChangedFieldId, TRecSerializator& Serializator);
 	/// Update indexes for existing record
-	void UpdateRec(const TMem& OldRecMem, const TMem& NewRecMem, 
+	void UpdateRec(const TMemBase& OldRecMem, const TMemBase& NewRecMem,
 		const uint64& RecId, TIntSet& ChangedFieldIdSet, TRecSerializator& Serializator);
 };
 
