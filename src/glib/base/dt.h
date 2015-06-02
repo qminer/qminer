@@ -82,30 +82,64 @@ public:
 };
 
 /////////////////////////////////////////////////
-// Memory
-ClassTP(TMem, PMem)//{
+// Memory chunk - simpe buffer, non-resizable
+class TMemBase {
+protected:
+	int MxBfL, BfL;
+	char* Bf;
+	bool Owner;
+public:
+	TMemBase() : MxBfL(0), BfL(0), Bf(NULL), Owner(true) {}
+	TMemBase(const void* _Bf, const int& _BfL, const bool& _Owner = true) :
+		MxBfL(_BfL), BfL(_BfL), Bf(NULL), Owner(_Owner) {
+		IAssert(BfL >= 0);
+		if (BfL > 0) { 
+			if (Owner) {
+				Bf = new char[BfL]; IAssert(Bf != NULL); memcpy(Bf, _Bf, BfL);
+			} else {
+				Bf = (char*)_Bf;
+			}
+		}
+	}
+	virtual ~TMemBase() { if (Owner && Bf != NULL) { delete[] Bf; } }
+	int Len() const { return BfL; }
+	bool Empty() const { return BfL == 0; }
+	char* GetBf() const { return Bf; }	
+};
+
+/////////////////////////////////////////////////
+// Memory chunk - advanced memory buffer
+class TMem;
+typedef TPt<TMem> PMem;
+
+/// Memory chunk - advanced memory buffer
+class TMem : public TMemBase {
 private:
-  int MxBfL, BfL;
-  char* Bf;
+	TCRef CRef;
+public:
+	friend class TPt<TMem>;
+protected:
+  //int MxBfL, BfL;
+  //char* Bf;
   void Resize(const int& _MxBfL);
   bool DoFitLen(const int& LBfL) const {return BfL+LBfL<=MxBfL;}
 public:
-  TMem(const int& _MxBfL=0):
-    MxBfL(_MxBfL), BfL(0), Bf(NULL){ IAssert(BfL>=0);
+  TMem(const int& _MxBfL=0) {
+	  IAssert(BfL >= 0); MxBfL = _MxBfL; BfL = 0; Bf = NULL;
     if (MxBfL>0){Bf=new char[MxBfL]; IAssert(Bf!=NULL);}}
   static PMem New(const int& MxBfL=0){return new TMem(MxBfL);}
-  TMem(const void* _Bf, const int& _BfL):
-    MxBfL(_BfL), BfL(_BfL), Bf(NULL){ IAssert(BfL>=0);
-    if (BfL>0){Bf=new char[BfL]; IAssert(Bf!=NULL); memcpy(Bf, _Bf, BfL);}}
+  TMem(const void* _Bf, const int& _BfL) { 
+	  IAssert(BfL >= 0); MxBfL = _BfL; BfL = _BfL; Bf = NULL;
+	  if (BfL > 0) { Bf = new char[BfL]; IAssert(Bf != NULL); memcpy(Bf, _Bf, BfL); } }
   static PMem New(const void* Bf, const int& BfL){return new TMem(Bf, BfL);}
-  TMem(const TMem& Mem):
-    MxBfL(Mem.MxBfL), BfL(Mem.BfL), Bf(NULL){
+  TMem(const TMem& Mem){
+	  MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL;
     if (MxBfL>0){Bf=new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL);}}
   static PMem New(const TMem& Mem){return new TMem(Mem);}
   static PMem New(const PMem& Mem){return new TMem(*Mem);}
   TMem(const TStr& Str);
   static PMem New(const TStr& Str){return new TMem(Str);}
-  ~TMem(){if (Bf!=NULL){delete[] Bf;}}
+  ~TMem(){if (Owner && Bf!=NULL){delete[] Bf;}}
   explicit TMem(TSIn& SIn) {
 	  SIn.Load(MxBfL); SIn.Load(BfL);
 	  Bf = new char[MxBfL = BfL]; SIn.LoadBf(Bf, BfL); }
@@ -143,8 +177,8 @@ public:
   void Clr(const bool& DoDel=true){
     if (DoDel){if (Bf!=NULL){delete[] Bf;} MxBfL=0; BfL=0; Bf=NULL;}
     else {BfL=0;}}
-  int Len() const {return BfL;}
-  bool Empty() const {return BfL==0;}
+  //int Len() const {return BfL;}
+  //bool Empty() const {return BfL==0;}
   void Trunc(const int& _BfL){
     if ((0<=_BfL)&&(_BfL<=BfL)){BfL=_BfL;}}
   void Push(const char& Ch){operator+=(Ch);}
@@ -153,7 +187,7 @@ public:
   bool DoFitStr(const TStr& Str) const;
   //int AddStr(const TStr& Str);
   void AddBf(const void* Bf, const int& BfL);
-  char* GetBf() const {return Bf;}
+  //char* GetBf() const {return Bf;}
   TStr GetAsStr(const char& NewNullCh='\0') const;
   // returns a hexadecimal representation of the byte array
   TStr GetHexStr() const;

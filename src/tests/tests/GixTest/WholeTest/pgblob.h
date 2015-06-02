@@ -384,6 +384,8 @@ namespace glib {
 		void SetDirty(const TPgBlobPt& Pt);
 		/// Retrieve BLOB from storage
 		TQm::TStorage::TThinMIn Get(const TPgBlobPt& Pt);
+		/// Retrieve BLOB from storage as TMemBase
+		TMemBase GetMemBase(const TPgBlobPt& Pt);
 
 		/// Save part of the data, given time-window
 		void PartialFlush(int WndInMsec = 500);

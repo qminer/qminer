@@ -239,8 +239,8 @@ void TMem::Resize(const int& _MxBfL){
   Bf=NewBf;
 }
 
-TMem::TMem(const TStr& Str):
-  MxBfL(Str.Len()), BfL(MxBfL), Bf(NULL){
+TMem::TMem(const TStr& Str) {
+	MxBfL=Str.Len(); BfL = MxBfL; Bf = NULL;
   if (MxBfL>0){
     Bf=new char[MxBfL];
     if (BfL>0){memcpy(Bf, Str.CStr(), BfL);}

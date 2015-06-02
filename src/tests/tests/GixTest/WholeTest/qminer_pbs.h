@@ -88,7 +88,7 @@ namespace TQm {
 		void InitFieldLocV();
 
 		/// Load page with with given record and return pointer to it
-		const byte* GetPgBf(const uint64& RecId) const;
+		TThinMIn GetPgBf(const uint64& RecId) const;
 		///// Get TMem serialization of record from specified storage
 		//void GetRecMem(const TStoreLoc& RecLoc, const uint64& RecId, TMem& Rec) const;
 		///// Get TMem serialization of record from specified where field is stored

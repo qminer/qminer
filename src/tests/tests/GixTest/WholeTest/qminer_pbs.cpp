@@ -7,18 +7,207 @@ namespace TQm {
 	using namespace glib;
 
 	/// Add new record
-	uint64 TStorePbBlob::AddRec(const PJsonVal& RecVal) {
-		return -1;
+	uint64 TStorePbBlob::AddRec(const PJsonVal& RecVal) {// check if we are given reference to existing record
+		try {
+			// parse out record id, if referred directly
+			{
+				const uint64 RecId = TStore::GetRecId(RecVal);
+				if (IsRecId(RecId)) {
+					// check if we have anything more than record identifier, which would require calling UpdateRec
+					if (RecVal->GetObjKeys() > 1) { UpdateRec(RecId, RecVal); }
+					// return named record
+					return RecId;
+				}
+			}
+			// check if we have a primary field
+			if (IsPrimaryField()) {
+				uint64 PrimaryRecId = TUInt64::Mx;
+				// primary field cannot be nullable, so we must have it
+				const TStr& PrimaryField = GetFieldNm(PrimaryFieldId);
+				QmAssertR(RecVal->IsObjKey(PrimaryField), "Missing primary field in the record: " + PrimaryField);
+				// parse based on the field type
+				if (PrimaryFieldType == oftStr) {
+					TStr FieldVal = RecVal->GetObjStr(PrimaryField);
+					if (PrimaryStrIdH.IsKey(FieldVal)) {
+						PrimaryRecId = PrimaryStrIdH.GetDat(FieldVal);
+					}
+				} else if (PrimaryFieldType == oftInt) {
+					const int FieldVal = RecVal->GetObjInt(PrimaryField);
+					if (PrimaryIntIdH.IsKey(FieldVal)) {
+						PrimaryRecId = PrimaryIntIdH.GetDat(FieldVal);
+					}
+				} else if (PrimaryFieldType == oftUInt64) {
+					const uint64 FieldVal = RecVal->GetObjInt(PrimaryField);
+					if (PrimaryUInt64IdH.IsKey(FieldVal)) {
+						PrimaryRecId = PrimaryUInt64IdH.GetDat(FieldVal);
+					}
+				} else if (PrimaryFieldType == oftFlt) {
+					const double FieldVal = RecVal->GetObjNum(PrimaryField);
+					if (PrimaryFltIdH.IsKey(FieldVal)) {
+						PrimaryRecId = PrimaryFltIdH.GetDat(FieldVal);
+					}
+				} else if (PrimaryFieldType == oftTm) {
+					TStr TmStr = RecVal->GetObjStr(PrimaryField);
+					TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
+					const uint64 FieldVal = TTm::GetMSecsFromTm(Tm);
+					if (PrimaryTmMSecsIdH.IsKey(FieldVal)) {
+						PrimaryRecId = PrimaryTmMSecsIdH.GetDat(FieldVal);
+					}
+				}
+				// check if we found primary field with existing value
+				if (PrimaryRecId != TUInt64::Mx) {
+					// check if we have anything more than primary field, which would require redirect to UpdateRec
+					if (RecVal->GetObjKeys() > 1) { UpdateRec(PrimaryRecId, RecVal); }
+					// return id of named record
+					return PrimaryRecId;
+				}
+			}
+		} catch (const PExcept& Except) {
+			// error parsing, report error and return nothing
+			ErrorLog("[TStoreImpl::AddRec] Error parsing out reference to existing record:");
+			ErrorLog(Except->GetMsgStr());
+			return TUInt64::Mx;
+		}
+
+		// always add system field that means "inserted_at"
+		RecVal->AddToObj(TStoreWndDesc::SysInsertedAtFieldName, TTm::GetCurUniTm().GetStr());
+
+		// for storing record id
+		TPgBlobPt CacheRecId;
+		uint64 MemRecId = RecIdCounter++;
+		// store to disk storage
+		if (DataBlobP) {
+			TMem CacheRecMem; 
+			SerializatorCache.Serialize(RecVal, CacheRecMem, this);
+			TPgBlobPt Pt = DataBlob->Put((byte*)CacheRecMem.GetBf(), CacheRecMem.Len());
+			CacheRecId = Pt;
+			RecIdBlobPtH.AddDat(RecIdCounter) = Pt;
+			// index new record
+			RecIndexer.IndexRec(CacheRecMem, RecIdCounter, SerializatorCache);
+		}
+		// store to in-memory storage
+		if (DataMemP) {
+			TMem MemRecMem; 
+			SerializatorMem.Serialize(RecVal, MemRecMem, this);
+			MemRecId = DataMem.AddVal(MemRecMem);
+			// index new record
+			RecIndexer.IndexRec(MemRecMem, MemRecId, SerializatorMem);
+		}
+		// make sure we are consistent with respect to Ids!
+		if (DataBlobP && DataMemP) {
+			EAssert(MemRecId == RecIdCounter - 1);
+		}
+
+		// remember value-recordId map when primary field available
+		if (IsPrimaryField()) { SetPrimaryField(RecIdCounter); }
+
+		// insert nested join records
+		AddJoinRec(RecIdCounter, RecVal);
+		// call add triggers
+		OnAdd(RecIdCounter);
+
+		// return record Id of the new record
+		return RecIdCounter;
 	}
 
 	/// Update existing record
-	void TStorePbBlob::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {}
-	
+	void TStorePbBlob::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {
+		// figure out which storage fields are affected
+		bool CacheP = false, MemP = false, PrimaryP = false;
+		bool CacheVarP = false, MemVarP = false, KeyP = false;
+		for (int FieldId = 0; FieldId < GetFields(); FieldId++) {
+			// check if field appears in the record JSon
+			TStr FieldNm = GetFieldNm(FieldId);
+			if (RecVal->IsObjKey(FieldNm)) {
+				CacheP = CacheP || (FieldLocV[FieldId] == slDisk);
+				MemP = MemP || (FieldLocV[FieldId] == slMemory);
+				PrimaryP = PrimaryP || (FieldId == PrimaryFieldId);
+				TFieldDesc fd = GetFieldDesc(FieldId);
+				switch (fd.GetFieldType()) {
+				case TFieldType::oftBowSpV:
+				case TFieldType::oftFltV:
+				case TFieldType::oftIntV:
+				case TFieldType::oftNumSpV:				
+				case TFieldType::oftStrV:
+					// variable length
+					CacheVarP = CacheVarP || (FieldLocV[FieldId] == slDisk);
+					MemVarP = MemVarP || (FieldLocV[FieldId] == slMemory);
+					break;
+				case TFieldType::oftStr:
+					// variable length
+					CacheVarP = CacheVarP || 
+						(FieldLocV[FieldId] == slDisk && !SerializatorCache.IsInFixedPart(FieldId));
+					MemVarP = MemVarP || 
+						(FieldLocV[FieldId] == slMemory  && !SerializatorMem.IsInFixedPart(FieldId));
+					break;
+				}
+				KeyP = KeyP || RecIndexer.IsFieldIndexKey(FieldId);
+			}
+		}
+		// remove old primary field
+		if (PrimaryP) { DelPrimaryField(RecId); }
+		// update disk serialization when necessary
+		if (CacheP) {
+			// update serialization
+			TMem Mem; 
+			TPgBlobPt Pt = RecIdBlobPtH.GetDat(RecId);
+			TThinMIn MIn = DataBlob->Get(Pt);
+
+			TIntSet CacheChangedFieldIdSet;
+			if (CacheVarP || KeyP) {
+				// variable fields changed, so we need to serialize whole record
+				TMem CacheNewRecMem;
+				TIntSet CacheChangedFieldIdSet;
+				TMemBase CacheOldRecMem = MIn.GetMemBase();
+
+				SerializatorCache.SerializeUpdate(RecVal, CacheOldRecMem,
+					CacheNewRecMem, this, CacheChangedFieldIdSet);
+
+				// update the stored serializations with new values
+				Pt = DataBlob->Put((byte*)Mem.GetBf(), Mem.Len(), Pt);
+				RecIdBlobPtH(RecId) = Pt;
+				// update indexes pointing to the record
+				RecIndexer.UpdateRec(CacheOldRecMem, CacheNewRecMem, RecId, CacheChangedFieldIdSet, SerializatorCache);
+			} else {
+				// nice, all changes can be done in-place, no index changes
+				SerializatorCache.SerializeUpdateInPlace(RecVal, MIn, this, CacheChangedFieldIdSet);
+				DataBlob->SetDirty(Pt);
+			}
+		}
+		// update in-memory serialization when necessary
+		if (MemP) {
+			// update serialization
+			TMem MemOldRecMem; 
+			DataMem.GetVal(RecId, MemOldRecMem);
+			TIntSet MemChangedFieldIdSet;
+			if (MemVarP || KeyP) {
+				// variable fields changed, so we need to serialize whole record
+				TMem MemNewRecMem;
+				SerializatorMem.SerializeUpdate(RecVal, MemOldRecMem,
+					MemNewRecMem, this, MemChangedFieldIdSet);
+				// update the stored serializations with new values
+				DataMem.SetVal(RecId, MemNewRecMem);
+				// update indexes pointing to the record
+				RecIndexer.UpdateRec(MemOldRecMem, MemNewRecMem, RecId, MemChangedFieldIdSet, SerializatorMem);
+			} else {
+				// nice, all changes can be done in-place
+				TThinMIn MIn(MemOldRecMem.GetBf(), MemOldRecMem.Len());
+				SerializatorCache.SerializeUpdateInPlace(RecVal, MIn, this, MemChangedFieldIdSet);
+			}
+		}
+		// check if primary key changed and update the mapping
+		if (PrimaryP) { SetPrimaryField(RecId); }
+		// call update triggers
+		OnUpdate(RecId);
+	}
+
+	//////////////////////////////////////////////////////////
+
 	/// Load page with with given record and return pointer to it
-	const byte* TStorePbBlob::GetPgBf(const uint64& RecId) const {
+	TThinMIn TStorePbBlob::GetPgBf(const uint64& RecId) const {
 		const TPgBlobPt& PgPt = RecIdBlobPtH.GetDat(RecId);
 		TThinMIn min = DataBlob->Get(PgPt);
-		return (byte*)min.GetBfAddr();
+		return min;
 	}
 
 	/// Check if the value of given field for a given record is NULL
@@ -188,7 +377,12 @@ namespace TQm {
 			SerializatorCache.SetFieldInt(min.GetBfAddr(), min.Len(), FieldId, Int);
 			DataBlob->SetDirty(PgPt);
 		} else {
-			// TODO
+			TMem Rec;
+			DataMem.GetVal(RecId, Rec);
+			TMem OutRecMem;
+			SerializatorMem.SetFieldInt(Rec, OutRecMem, FieldId, Int);
+			RecIndexer.UpdateRec(Rec, OutRecMem, RecId, FieldId, SerializatorMem);
+			DataMem.SetVal(RecId, Rec);
 		}
 	}
 	/// Set field value using field id (default implementation throws exception)
@@ -201,7 +395,12 @@ namespace TQm {
 			SerializatorCache.SetFieldIntV(mem_in, mem_out, FieldId, IntV);
 			RecIdBlobPtH.GetDat(RecId) = DataBlob->Put((byte*)mem_out.GetBf(), mem_out.Len(), PgPt);
 		} else {
-			// TODO
+			TMem Rec;
+			DataMem.GetVal(RecId, Rec);
+			TMem OutRecMem;
+			SerializatorMem.SetFieldIntV(Rec, OutRecMem, FieldId, IntV);
+			RecIndexer.UpdateRec(Rec, OutRecMem, RecId, FieldId, SerializatorMem);
+			DataMem.SetVal(RecId, Rec);
 		}
 	}
 	/// Set field value using field id (default implementation throws exception)
@@ -212,7 +411,12 @@ namespace TQm {
 			SerializatorCache.SetFieldUInt64(min.GetBfAddr(), min.Len(), FieldId, UInt64);
 			DataBlob->SetDirty(PgPt);
 		} else {
-			// TODO
+			TMem Rec;
+			DataMem.GetVal(RecId, Rec);
+			TMem OutRecMem;
+			SerializatorMem.SetFieldUInt64(Rec, OutRecMem, FieldId, UInt64);
+			RecIndexer.UpdateRec(Rec, OutRecMem, RecId, FieldId, SerializatorMem);
+			DataMem.SetVal(RecId, Rec);
 		}
 	}
 	/// Set field value using field id (default implementation throws exception)
@@ -223,7 +427,12 @@ namespace TQm {
 			SerializatorCache.SetFieldStr(min.GetBfAddr(), min.Len(), FieldId, Str);
 			DataBlob->SetDirty(PgPt);
 		} else {
-			// TODO
+			TMem Rec;
+			DataMem.GetVal(RecId, Rec);
+			TMem OutRecMem;
+			SerializatorMem.SetFieldStr(Rec, OutRecMem, FieldId, Str);
+			RecIndexer.UpdateRec(Rec, OutRecMem, RecId, FieldId, SerializatorMem);
+			DataMem.SetVal(RecId, Rec);
 		}
 	}
 	/// Set field value using field id (default implementation throws exception)
@@ -236,7 +445,12 @@ namespace TQm {
 			SerializatorCache.SetFieldStrV(mem_in, mem_out, FieldId, StrV);
 			RecIdBlobPtH.GetDat(RecId) = DataBlob->Put((byte*)mem_out.GetBf(), mem_out.Len(), PgPt);
 		} else {
-			// TODO
+			TMem Rec;
+			DataMem.GetVal(RecId, Rec);
+			TMem OutRecMem;
+			SerializatorMem.SetFieldStrV(Rec, OutRecMem, FieldId, StrV);
+			RecIndexer.UpdateRec(Rec, OutRecMem, RecId, FieldId, SerializatorMem);
+			DataMem.SetVal(RecId, Rec);
 		}
 	}
 	/// Set field value using field id (default implementation throws exception)
@@ -247,7 +461,12 @@ namespace TQm {
 			SerializatorCache.SetFieldBool(min.GetBfAddr(), min.Len(), FieldId, Bool);
 			DataBlob->SetDirty(PgPt);
 		} else {
-			// TODO
+			TMem Rec;
+			DataMem.GetVal(RecId, Rec);
+			TMem OutRecMem;
+			SerializatorMem.SetFieldBool(Rec, OutRecMem, FieldId, Bool);
+			RecIndexer.UpdateRec(Rec, OutRecMem, RecId, FieldId, SerializatorMem);
+			DataMem.SetVal(RecId, Rec);
 		}
 	}
 	/// Set field value using field id (default implementation throws exception)
@@ -258,7 +477,12 @@ namespace TQm {
 			SerializatorCache.SetFieldFlt(min.GetBfAddr(), min.Len(), FieldId, Flt);
 			DataBlob->SetDirty(PgPt);
 		} else {
-			// TODO
+			TMem Rec;
+			DataMem.GetVal(RecId, Rec);
+			TMem OutRecMem;
+			SerializatorMem.SetFieldFlt(Rec, OutRecMem, FieldId, Flt);
+			RecIndexer.UpdateRec(Rec, OutRecMem, RecId, FieldId, SerializatorMem);
+			DataMem.SetVal(RecId, Rec);
 		}
 	}
 	/// Set field value using field id (default implementation throws exception)
@@ -269,7 +493,12 @@ namespace TQm {
 			SerializatorCache.SetFieldFltPr(min.GetBfAddr(), min.Len(), FieldId, FltPr);
 			DataBlob->SetDirty(PgPt);
 		} else {
-			// TODO
+			TMem Rec;
+			DataMem.GetVal(RecId, Rec);
+			TMem OutRecMem;
+			SerializatorMem.SetFieldFltPr(Rec, OutRecMem, FieldId, FltPr);
+			RecIndexer.UpdateRec(Rec, OutRecMem, RecId, FieldId, SerializatorMem);
+			DataMem.SetVal(RecId, Rec);
 		}
 	}
 	/// Set field value using field id (default implementation throws exception)
@@ -282,7 +511,12 @@ namespace TQm {
 			SerializatorCache.SetFieldFltV(mem_in, mem_out, FieldId, FltV);
 			RecIdBlobPtH.GetDat(RecId) = DataBlob->Put((byte*)mem_out.GetBf(), mem_out.Len(), PgPt);
 		} else {
-			// TODO
+			TMem Rec;
+			DataMem.GetVal(RecId, Rec);
+			TMem OutRecMem;
+			SerializatorMem.SetFieldFltV(Rec, OutRecMem, FieldId, FltV);
+			RecIndexer.UpdateRec(Rec, OutRecMem, RecId, FieldId, SerializatorMem);
+			DataMem.SetVal(RecId, Rec);
 		}
 	}
 	/// Set field value using field id (default implementation throws exception)
@@ -293,7 +527,12 @@ namespace TQm {
 			SerializatorCache.SetFieldTm(min.GetBfAddr(), min.Len(), FieldId, Tm);
 			DataBlob->SetDirty(PgPt);
 		} else {
-			// TODO
+			TMem Rec;
+			DataMem.GetVal(RecId, Rec);
+			TMem OutRecMem;
+			SerializatorMem.SetFieldTm(Rec, OutRecMem, FieldId, Tm);
+			RecIndexer.UpdateRec(Rec, OutRecMem, RecId, FieldId, SerializatorMem);
+			DataMem.SetVal(RecId, Rec);
 		}
 	}
 	/// Set field value using field id (default implementation throws exception)
@@ -304,7 +543,12 @@ namespace TQm {
 			SerializatorCache.SetFieldTmMSecs(min.GetBfAddr(), min.Len(), FieldId, TmMSecs);
 			DataBlob->SetDirty(PgPt);
 		} else {
-			// TODO
+			TMem Rec;
+			DataMem.GetVal(RecId, Rec);
+			TMem OutRecMem;
+			SerializatorMem.SetFieldTmMSecs(Rec, OutRecMem, FieldId, TmMSecs);
+			RecIndexer.UpdateRec(Rec, OutRecMem, RecId, FieldId, SerializatorMem);
+			DataMem.SetVal(RecId, Rec);
 		}
 	}
 	/// Set field value using field id (default implementation throws exception)
@@ -317,7 +561,12 @@ namespace TQm {
 			SerializatorCache.SetFieldNumSpV(mem_in, mem_out, FieldId, SpV);
 			RecIdBlobPtH.GetDat(RecId) = DataBlob->Put((byte*)mem_out.GetBf(), mem_out.Len(), PgPt);
 		} else {
-			// TODO
+			TMem Rec;
+			DataMem.GetVal(RecId, Rec);
+			TMem OutRecMem;
+			SerializatorMem.SetFieldNumSpV(Rec, OutRecMem, FieldId, SpV);
+			RecIndexer.UpdateRec(Rec, OutRecMem, RecId, FieldId, SerializatorMem);
+			DataMem.SetVal(RecId, Rec);
 		}
 	}
 	/// Set field value using field id (default implementation throws exception)
@@ -330,10 +579,14 @@ namespace TQm {
 			SerializatorCache.SetFieldBowSpV(mem_in, mem_out, FieldId, SpV);
 			RecIdBlobPtH.GetDat(RecId) = DataBlob->Put((byte*)mem_out.GetBf(), mem_out.Len(), PgPt);
 		} else {
-			// TODO
+			TMem Rec;
+			DataMem.GetVal(RecId, Rec);
+			TMem OutRecMem;
+			SerializatorMem.SetFieldBowSpV(Rec, OutRecMem, FieldId, SpV);
+			RecIndexer.UpdateRec(Rec, OutRecMem, RecId, FieldId, SerializatorMem);
+			DataMem.SetVal(RecId, Rec);
 		}
 	}
-
 
 	////////////////////////////////////////////////////////////////////////
 
@@ -358,6 +611,36 @@ namespace TQm {
 	/// Check if given ID is valid
 	bool TStorePbBlob::IsRecId(const uint64& RecId) const {
 		return RecIdBlobPtH.IsKey(RecId);
+	}
+	
+	/// Set primary field map
+	void TStorePbBlob::SetPrimaryField(const uint64& RecId) {
+		if (PrimaryFieldType == oftStr) {
+			PrimaryStrIdH.AddDat(GetFieldStr(RecId, PrimaryFieldId)) = RecId;
+		} else if (PrimaryFieldType == oftInt) {
+			PrimaryIntIdH.AddDat(GetFieldInt(RecId, PrimaryFieldId)) = RecId;
+		} else if (PrimaryFieldType == oftUInt64) {
+			PrimaryUInt64IdH.AddDat(GetFieldUInt64(RecId, PrimaryFieldId)) = RecId;
+		} else if (PrimaryFieldType == oftFlt) {
+			PrimaryFltIdH.AddDat(GetFieldFlt(RecId, PrimaryFieldId)) = RecId;
+		} else if (PrimaryFieldType == oftTm) {
+			PrimaryTmMSecsIdH.AddDat(GetFieldTmMSecs(RecId, PrimaryFieldId)) = RecId;
+		}
+	}
+
+	/// Delete primary field map
+	void TStorePbBlob::DelPrimaryField(const uint64& RecId) {
+		if (PrimaryFieldType == oftStr) {
+			PrimaryStrIdH.DelIfKey(GetFieldStr(RecId, PrimaryFieldId));
+		} else if (PrimaryFieldType == oftInt) {
+			PrimaryIntIdH.DelIfKey(GetFieldInt(RecId, PrimaryFieldId));
+		} else if (PrimaryFieldType == oftUInt64) {
+			PrimaryUInt64IdH.DelIfKey(GetFieldUInt64(RecId, PrimaryFieldId));
+		} else if (PrimaryFieldType == oftFlt) {
+			PrimaryFltIdH.DelIfKey(GetFieldFlt(RecId, PrimaryFieldId));
+		} else if (PrimaryFieldType == oftTm) {
+			PrimaryTmMSecsIdH.DelIfKey(GetFieldTmMSecs(RecId, PrimaryFieldId));
+		}
 	}
 
 	/// Check if record with given name exists
@@ -423,6 +706,10 @@ namespace TQm {
 
 	/// Purge records that fall out of store window (when it has one)
 	void TStorePbBlob::GarbageCollect() {
+		// if no window, nothing to do here
+		if (WndDesc.WindowType == swtNone) { return; }
+		// if no records, nothing to do here
+		if (Empty()) { return; }
 		// TODO
 	}
 
