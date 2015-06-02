@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span></div><small></small><span class="symbol-name">StreamAggregate</span></h1>
-            <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-19">qminer_aggrdoc.<wbr>js:19</a></p>
+            <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-43">qminer_aggrdoc.<wbr>js:43</a></p>
             <div class="symbol-classdesc">
               <p>Represents the stream aggregate.</p>
             </div>
@@ -35,7 +35,7 @@
           <section id="summary">
           </section>
           <section>
-            <h2 id="StreamAggregate">new&nbsp;<span class="symbol-name">StreamAggregate</span><span class="signature"><span class="signature-params">(base, json, storeName)</span></span></h2>
+            <h2 id="StreamAggregate">new&nbsp;<span class="symbol-name">StreamAggregate</span><span class="signature"><span class="signature-params">(base, json[, storeName])</span></span></h2>
             <p>Stream Aggregate</p>
             <section>
               <h3>
@@ -43,7 +43,31 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);</code></pre>
+var qm = require(&#x27;qminer&#x27;);
+// create a simple base containing one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+       name: &quot;People&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;Gendre&quot;, type: &quot;string&quot; }
+       ]
+   }]
+});
+// create a new stream aggregate for counting the length of the name (with the function object)
+var aggr = new qm.sa(base, new function () {
+   var length = 0;
+   this.name = &#x27;nameLength&#x27;,
+   this.onAdd = function (rec) {
+       length = rec.Name.length;
+   };
+   this.saveJson = function (limit) {
+       return { val: length };
+   }
+});
+// create a new stream aggregate for gendre seperation (with the JSON object)
+var aggr2 = new qm.sa(base, { type: , name: &#x27;gendreSeperator&#x27;, outStore: &#x27;People&#x27;, createStore: false}</code></pre>
               </div>
             </section>
             <section>
@@ -77,13 +101,13 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                       <p>json</p>
                     </td>
                     <td>
-                      <p>Object</p>
+                      <p>(Object or function())</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
                     </td>
                     <td>
-                      <p>The JSON object containing the schema of the stream aggregate.</p>
+                      <p>The JSON object containing the schema of the stream aggregate or the function object defining the operations of the stream aggregate.</p>
                     </td>
                   </tr>
                   <tr>
@@ -94,7 +118,7 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                       <p>(string or Array of string)</p>
                     </td>
                     <td>
-                      <p>&nbsp;</p>
+                      <p>Yes</p>
                     </td>
                     <td>
                       <p>A store name or an array of store names, where the aggregate will be registered.</p>

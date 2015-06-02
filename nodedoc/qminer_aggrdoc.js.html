@@ -53,9 +53,9 @@
 
 * @param {module:qm.Base} base - The base object on which it&#x27;s created.
 
-* @param {Object} json - The JSON object containing the schema of the stream aggregate.
+* @param {(Object | function)} json - The JSON object containing the schema of the stream aggregate or the function object defining the operations of the stream aggregate.
 
-* @param {(string | Array.&amp;lt;string&gt;)} storeName - A store name or an array of store names, where the aggregate will be registered.
+* @param {(string | Array.&amp;lt;string&gt;)} [storeName] - A store name or an array of store names, where the aggregate will be registered.
 
 * @example
 
@@ -63,9 +63,57 @@
 
 * var qm = require(&#x27;qminer&#x27;);
 
+* // create a simple base containing one store
+
+* var base = new qm.Base({
+
+*    mode: &quot;createClean&quot;,
+
+*    schema: [
+
+*        name: &quot;People&quot;,
+
+*        fields: [
+
+*            { name: &quot;Name&quot;, type: &quot;string&quot; },
+
+*            { name: &quot;Gendre&quot;, type: &quot;string&quot; }
+
+*        ]
+
+*    }]
+
+* });
+
+* // create a new stream aggregate for counting the length of the name (with the function object)
+
+* var aggr = new qm.sa(base, new function () {
+
+*    var length = 0;
+
+*    this.name = &#x27;nameLength&#x27;,
+
+*    this.onAdd = function (rec) {
+
+*        length = rec.Name.length;
+
+*    };
+
+*    this.saveJson = function (limit) {
+
+*        return { val: length };
+
+*    }
+
+* });
+
+* // create a new stream aggregate for gendre seperation (with the JSON object)
+
+* var aggr2 = new qm.sa(base, { type: , name: &#x27;gendreSeperator&#x27;, outStore: &#x27;People&#x27;, createStore: false}
+
 */
 
- exports.StreamAggregate = function (base, json) {};
+ exports.StreamAggregate = function (base, json, storeName) {};
 
 </code></pre>
           </article>

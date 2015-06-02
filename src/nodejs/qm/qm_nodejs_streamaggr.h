@@ -54,7 +54,7 @@
 *    }
 * });
 * // create a new stream aggregate for gendre seperation (with the JSON object)
-* var aggr2 = new qm.sa(base, { tyoe: , name: 'gendreSeperator', outStore: 'People', createStore: false}
+* var aggr2 = new qm.sa(base, { type: , name: 'gendreSeperator', outStore: 'People', createStore: false}
 */
 //# exports.StreamAggregate = function (base, json, storeName) {};
 class TNodeJsSA : public node::ObjectWrap {
