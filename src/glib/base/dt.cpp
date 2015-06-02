@@ -240,7 +240,7 @@ void TMem::Resize(const int& _MxBfL){
 }
 
 TMem::TMem(const TStr& Str) {
-	MxBfL=Str.Len(); BfL = MxBfL; Bf = NULL;
+	MxBfL = Str.Len(); BfL = MxBfL; Bf = NULL; Owner = true;
   if (MxBfL>0){
     Bf=new char[MxBfL];
     if (BfL>0){memcpy(Bf, Str.CStr(), BfL);}
