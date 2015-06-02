@@ -99,7 +99,7 @@ namespace TQm {
 		}
 
 		// remember value-recordId map when primary field available
-		if (IsPrimaryField()) { SetPrimaryField(RecIdCounter); }
+		if (IsPrimaryField()) { SetPrimaryField(MemRecId); }
 
 		// insert nested join records
 		AddJoinRec(RecIdCounter, RecVal);
@@ -720,5 +720,291 @@ namespace TQm {
 	void TStorePbBlob::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
 		EAssert(AssertOK);
 		// TODO
+	}
+
+	/// Initialize field location flags
+	void TStorePbBlob::InitDataFlags() {
+		// go over all the fields and remember if we use in-memory or blbb storage
+		DataBlobP = false;
+		DataMemP = false;
+		for (int FieldId = 0; FieldId < GetFields(); FieldId++) {
+			DataBlobP = DataBlobP || (FieldLocV[FieldId] == slDisk);
+			DataMemP = DataMemP || (FieldLocV[FieldId] == slMemory);
+		}
+		// at least one must be true, otherwise we have no fields, which is not good
+		EAssert(DataBlobP || DataMemP);
+	}
+
+	/// Initialize from given store schema
+	void TStorePbBlob::InitFromSchema(const TStoreSchema& StoreSchema) {
+		// at start there is no primary key
+		RecNmFieldP = false;
+		PrimaryFieldId = -1;
+		PrimaryFieldType = oftUndef;
+		// create fields
+		for (int i = 0; i<StoreSchema.FieldH.Len(); i++) {
+			const TFieldDesc& FieldDesc = StoreSchema.FieldH[i];
+			AddFieldDesc(FieldDesc);
+			// check if we found a primary field
+			if (FieldDesc.IsPrimary()) {
+				QmAssertR(PrimaryFieldId == -1, "Store can have only one primary field");
+				// only string fields can serve as record name (TODO: extend)
+				RecNmFieldP = FieldDesc.IsStr();
+				PrimaryFieldId = GetFieldId(FieldDesc.GetFieldNm());
+				PrimaryFieldType = FieldDesc.GetFieldType();
+			}
+		}
+		// create index keys
+		TWPt<TIndexVoc> IndexVoc = GetIndex()->GetIndexVoc();
+		for (int IndexKeyExN = 0; IndexKeyExN < StoreSchema.IndexKeyExV.Len(); IndexKeyExN++) {
+			TIndexKeyEx IndexKeyEx = StoreSchema.IndexKeyExV[IndexKeyExN];
+			// get associated field
+			const int FieldId = GetFieldId(IndexKeyEx.FieldName);
+			// if we are given vocabulary name, check if we have one with such name already
+			const int WordVocId = GetBase()->NewIndexWordVoc(IndexKeyEx.KeyType, IndexKeyEx.WordVocName);
+			// create new index key
+			const int KeyId = GetBase()->NewFieldIndexKey(this, IndexKeyEx.KeyIndexName,
+				FieldId, WordVocId, IndexKeyEx.KeyType, IndexKeyEx.SortType);
+			// assign tokenizer to it if we have one
+			if (IndexKeyEx.IsTokenizer()) { IndexVoc->PutTokenizer(KeyId, IndexKeyEx.Tokenizer); }
+		}
+		// prepare serializators for disk and in-memory store
+		SerializatorCache = TRecSerializator(this, StoreSchema, slDisk);
+		SerializatorMem = TRecSerializator(this, StoreSchema, slMemory);
+		// initialize field to storage location map
+		InitFieldLocV();
+		// initialize record indexer
+		RecIndexer = TRecIndexer(GetIndex(), this);
+		// remember window parameters
+		WndDesc = StoreSchema.WndDesc;
+	}
+
+	/// initialize field storage location map
+	void TStorePbBlob::InitFieldLocV() {
+		for (int FieldId = 0; FieldId < GetFields(); FieldId++) {
+			if (SerializatorCache.IsFieldId(FieldId)) {
+				FieldLocV.Add(slDisk);
+			} else if (SerializatorMem.IsFieldId(FieldId)) {
+				FieldLocV.Add(slMemory);
+			} else {
+				throw TQmExcept::New("Unknown storage location for field " +
+					GetFieldNm(FieldId) + " in store " + GetStoreNm());
+			}
+		}
+	}
+
+	///////////////////////////////////////////////////////////
+
+	TStorePbBlob::TStorePbBlob(const TWPt<TBase>& Base, const uint& StoreId,
+		const TStr& StoreName, const TStoreSchema& StoreSchema, const TStr& _StoreFNm,
+		const int64& _MxCacheSize, const int& BlockSize) :
+		TStore(Base, StoreId, StoreName), StoreFNm(_StoreFNm), FAccess(faCreate),
+		DataMem(_StoreFNm + "MemCache", BlockSize) {
+
+		DataBlob = new TPgBlob(_StoreFNm + ".Cache", TFAccess::faCreate, _MxCacheSize);
+		InitFromSchema(StoreSchema);
+		InitDataFlags();
+	}
+
+	TStorePbBlob::TStorePbBlob(const TWPt<TBase>& Base, const TStr& _StoreFNm,
+		const TFAccess& _FAccess, const int64& _MxCacheSize, const int& BlockSize, 
+		const bool& _Lazy) :
+		TStore(Base, _StoreFNm + ".BaseStore"),
+		StoreFNm(_StoreFNm), FAccess(_FAccess), PrimaryFieldType(oftUndef),
+		DataMem(_StoreFNm + "MemCache", _FAccess, _Lazy) {
+
+		DataBlob = new TPgBlob(_StoreFNm + ".Cache", _FAccess, _MxCacheSize);
+
+		// load members
+		TFIn FIn(StoreFNm + ".GenericStore");
+		RecNmFieldP.Load(FIn);
+		PrimaryFieldId.Load(FIn);
+		// deduce primary field type
+		if (PrimaryFieldId != -1) {
+			PrimaryFieldType = GetFieldDesc(PrimaryFieldId).GetFieldType();
+			if (PrimaryFieldType == oftStr) {
+				PrimaryStrIdH.Load(FIn);
+			} else if (PrimaryFieldType == oftInt) {
+				PrimaryIntIdH.Load(FIn);
+			} else if (PrimaryFieldType == oftUInt64) {
+				PrimaryUInt64IdH.Load(FIn);
+			} else if (PrimaryFieldType == oftFlt) {
+				PrimaryFltIdH.Load(FIn);
+			} else if (PrimaryFieldType == oftTm) {
+				PrimaryTmMSecsIdH.Load(FIn);
+			} else {
+				throw TQmExcept::New("Unsupported primary field type!");
+			}
+		} else {
+			// backwards compatibility
+			PrimaryStrIdH.Load(FIn);
+		}
+		// load time window    
+		WndDesc.Load(FIn);
+		// load data
+		SerializatorCache.Load(FIn);
+		SerializatorMem.Load(FIn);
+
+		// initialize field to storage location map
+		InitFieldLocV();
+		// initialize record indexer
+		RecIndexer = TRecIndexer(GetIndex(), this);
+
+		// initialize data storage flags
+		InitDataFlags();
+	}
+
+	TStorePbBlob::~TStorePbBlob() {
+		// save if necessary
+		if (FAccess != faRdOnly) {
+			TEnv::Logger->OnStatus(TStr::Fmt("Saving store '%s'...", GetStoreNm().CStr()));
+			// save base store
+			TFOut BaseFOut(StoreFNm + ".BaseStore");
+			SaveStore(BaseFOut);
+			// save store parameters
+			TFOut FOut(StoreFNm + ".GenericStore");
+			// save parameters about primary field
+			RecNmFieldP.Save(FOut);
+			PrimaryFieldId.Save(FOut);
+			if (PrimaryFieldType == oftInt) {
+				PrimaryIntIdH.Save(FOut);
+			} else if (PrimaryFieldType == oftUInt64) {
+				PrimaryUInt64IdH.Save(FOut);
+			} else if (PrimaryFieldType == oftFlt) {
+				PrimaryFltIdH.Save(FOut);
+			} else if (PrimaryFieldType == oftTm) {
+				PrimaryTmMSecsIdH.Save(FOut);
+			} else {
+				PrimaryStrIdH.Save(FOut);
+			}
+			// save time window
+			WndDesc.Save(FOut);
+			// save data
+			SerializatorCache.Save(FOut);
+			SerializatorMem.Save(FOut);
+		} else {
+			TEnv::Logger->OnStatus("No saving of generic store " + GetStoreNm() + " neccessary!");
+		}
+	}
+
+
+	///////////////////////////////
+	/// Create new base given a schema definition
+	TWPt<TBase> NewBase2(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
+		const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP, const int& SplitLen) {
+
+		// create empty base
+		InfoLog("Creating new base from schema");
+		TWPt<TBase> Base = TBase::New(FPath, IndexCacheSize, SplitLen);
+		// parse and apply the schema
+		CreateStoresFromSchema2(Base, SchemaVal, DefStoreCacheSize, StoreNmCacheSizeH);
+		// finish base initialization if so required (default is true)
+		if (InitP) { Base->Init(); }
+		// done
+		return Base;
+	}
+
+	///////////////////////////////
+	/// Create new stores in an existing base from a schema definition
+	TVec<TWPt<TStore> > CreateStoresFromSchema2(const TWPt<TBase>& Base, const PJsonVal& SchemaVal,
+		const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH) {
+
+		// parse and validate the schema
+		InfoLog("Parsing schema");
+		TStoreSchemaV SchemaV; TStoreSchema::ParseSchema(SchemaVal, SchemaV);
+		TStoreSchema::ValidateSchema(Base, SchemaV);
+
+		// create stores	
+		TVec<TWPt<TStore> > NewStoreV;
+		for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++) {
+			TStoreSchema& StoreSchema = SchemaV[SchemaN];
+			TStr StoreNm = StoreSchema.StoreName;
+			InfoLog("Creating " + StoreNm);
+			// figure out store id
+			uint StoreId = 0;
+			if (StoreSchema.HasStoreIdP) {
+				StoreId = StoreSchema.StoreId;
+				// check if we already have store with same ID
+				QmAssertR(!Base->IsStoreId(StoreId), "Store id for " + StoreNm + " already in use.");
+			} else {
+				// find lowest unused StoreId
+				while (Base->IsStoreId(StoreId)) {
+					StoreId++;
+					QmAssertR(StoreId < TEnv::GetMxStores(), "Out of store Ids -- to many stores!");
+				}
+			}
+			// get cache size for the store
+			const uint64 StoreCacheSize = StoreNmCacheSizeH.IsKey(StoreNm) ?
+				StoreNmCacheSizeH.GetDat(StoreNm).Val : DefStoreCacheSize;
+			// create new store from the schema
+			PStore Store;
+			if (true || StoreSchema.StoreType == "paged") {
+				Store = new TStorePbBlob(Base, StoreId, StoreNm,
+					StoreSchema, Base->GetFPath() + StoreNm, StoreCacheSize, StoreSchema.BlockSizeMem);
+			} else {
+				Store = new TStoreImpl(Base, StoreId, StoreNm,
+					StoreSchema, Base->GetFPath() + StoreNm, StoreCacheSize, StoreSchema.BlockSizeMem);
+			}
+			// add store to base
+			Base->AddStore(Store);
+			// remember we create the store
+			NewStoreV.Add(Store);
+		}
+
+		// Create joins
+		InfoLog("Creating joins");
+		for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++) {
+			// get store
+			TStoreSchema StoreSchema = SchemaV[SchemaN];
+			TWPt<TStore> Store = Base->GetStoreByStoreNm(StoreSchema.StoreName);
+			// go over all outgoing joins
+			for (int JoinDescExN = 0; JoinDescExN < StoreSchema.JoinDescExV.Len(); JoinDescExN++) {
+				TJoinDescEx& JoinDescEx = StoreSchema.JoinDescExV[JoinDescExN];
+				// get join store
+				TWPt<TStore> JoinStore = Base->GetStoreByStoreNm(JoinDescEx.JoinStoreName);
+				// check join type
+				if (JoinDescEx.JoinType == osjtField) {
+					// field join
+					int JoinRecFieldId = Store->GetFieldId(JoinDescEx.JoinName + "Id");
+					int JoinFqFieldId = Store->GetFieldId(JoinDescEx.JoinName + "Fq");
+					Store->AddJoinDesc(TJoinDesc(JoinDescEx.JoinName,
+						JoinStore->GetStoreId(), JoinRecFieldId, JoinFqFieldId));
+				} else if (JoinDescEx.JoinType == osjtIndex) {
+					// index join
+					Store->AddJoinDesc(TJoinDesc(JoinDescEx.JoinName,
+						JoinStore->GetStoreId(), Store->GetStoreId(),
+						Base->GetIndexVoc(), JoinDescEx.IsSmall));
+				} else {
+					ErrorLog("Unknown join type for join " + JoinDescEx.JoinName);
+				}
+			}
+		}
+
+		// Update inverse joins IDs
+		InfoLog("Updating inverse join maps");
+		for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++) {
+			// get store
+			TStoreSchema StoreSchema = SchemaV[SchemaN];
+			TWPt<TStore> Store = Base->GetStoreByStoreNm(StoreSchema.StoreName);
+			// go over outgoing joins
+			for (int JoinDescExN = 0; JoinDescExN < StoreSchema.JoinDescExV.Len(); JoinDescExN++) {
+				// check if we have inverse join
+				TJoinDescEx& JoinDescEx = StoreSchema.JoinDescExV[JoinDescExN];
+				if (!JoinDescEx.InverseJoinName.Empty()) {
+					// we do, get inverse join id
+					const int JoinId = Store->GetJoinId(JoinDescEx.JoinName);
+					const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
+					TWPt<TStore> JoinStore = Base->GetStoreByStoreId(JoinDesc.GetJoinStoreId());
+					QmAssertR(JoinStore->IsJoinNm(JoinDescEx.InverseJoinName),
+						"Invalid inverse join " + JoinDescEx.InverseJoinName);
+					const int InverseJoinId = JoinStore->GetJoinId(JoinDescEx.InverseJoinName);
+					// mark the map
+					Store->PutInverseJoinId(JoinId, InverseJoinId);
+				}
+			}
+		}
+
+		// done
+		return NewStoreV;
 	}
 }

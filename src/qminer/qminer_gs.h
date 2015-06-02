@@ -154,6 +154,8 @@ private:
 public:
 	/// Store name
 	TStr StoreName;
+	/// Store type
+	TStr StoreType;
 	/// Store ID (not requireD)
 	TUInt StoreId;
 	/// True when specified store ID is valid
