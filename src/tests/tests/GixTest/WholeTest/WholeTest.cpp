@@ -995,39 +995,54 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST(testTStorePbBlob, Test1) {
+void TestPgBlobStoreSimple(const TStr& def_file) {
 	TQm::TEnv::Init();
-
 	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
-	TStr def_file = ".\\pgblob_test1.def";
+	TStr dir = "data\\";
 
 	// init unicode
 	TUnicodeDef::Load(unicode_file);
 
-	// create new base from definition
-	PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
-	TPt<TQm::TBase> Base = TQm::NewBase2("data\\", SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-
-	// load movies data
 	{
-		{
-			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
-			{
-				TStr s1 = "{ \"FieldInt\" : 12, \"FieldBool\" : true}";
-				PJsonVal json1 = TJsonVal::GetValFromStr(s1);
-				store->AddRec(json1);
+		// create new base from definition
+		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
 
-				TStr s2 = "{ \"FieldInt\" : 6345, \"FieldBool\" : false}";
-				PJsonVal json2 = TJsonVal::GetValFromStr(s2);
-				store->AddRec(json2);
+		// load movies data
+		{
+			{
+				TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
+				{
+					TStr s1 = "{ \"FieldInt\" : 12, \"FieldBool\" : true}";
+					PJsonVal json1 = TJsonVal::GetValFromStr(s1);
+					store->AddRec(json1);
+
+					TStr s2 = "{ \"FieldInt\" : 6345, \"FieldBool\" : false}";
+					PJsonVal json2 = TJsonVal::GetValFromStr(s2);
+					store->AddRec(json2);
+				}
 			}
 		}
+		TQm::SaveBase2(Base);
 	}
-	// do some querying
+	{
+		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faRdOnly, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
 
-	/*auto res = Base->Search("{ \"$from\": \"Movies\", \"$or\": [ { \"Genres\": \"Action\" }, { \"Plot\": \"America\" } ] }");
-	printf("Records: %d\n", res->GetRecs());*/
+		auto store = Base->GetStoreByStoreNm("TestStore");
+		auto field_id = store->GetFieldId("FieldInt");
+		auto res = store->GetAllRecs();
+		//printf("Records: %d\n", res->GetRecs());
+		EXPECT_EQ(res->GetRecs(), 2);
+		EXPECT_EQ(res->GetRec(0).GetFieldInt(field_id), 12);
+		EXPECT_EQ(res->GetRec(1).GetFieldInt(field_id), 6345);
 
-	//auto res = Base->Search("{ \"$join\": { \"$name\": \"Actor\", \"$query\" : { \"$from\": \"Movies\", \"Genres\" : \"Horror\", \"$or\" : [{ \"Title\": \"lost\" }, { \"Plot\": \"lost\" }]}}}");
-	//printf("Records: %d\n", res->GetRecs());
+		TQm::SaveBase2(Base);
+	}
+}
+//
+//TEST(testTStorePbBlob, Test1) {
+//	TestPgBlobStoreSimple(".\\pgblob_test1.def");
+//}
+TEST(testTStorePbBlob, Test2) {
+	TestPgBlobStoreSimple(".\\pgblob_test2.def");
 }
