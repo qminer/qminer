@@ -81,15 +81,16 @@ namespace TQm {
 			SerializatorCache.Serialize(RecVal, CacheRecMem, this);
 			TPgBlobPt Pt = DataBlob->Put((byte*)CacheRecMem.GetBf(), CacheRecMem.Len());
 			CacheRecId = Pt;
-			RecIdBlobPtH.AddDat(RecIdCounter) = Pt;
+			RecIdBlobPtH.AddDat(MemRecId) = Pt;
 			// index new record
-			RecIndexer.IndexRec(CacheRecMem, RecIdCounter, SerializatorCache);
+			RecIndexer.IndexRec(CacheRecMem, MemRecId, SerializatorCache);
 		}
 		// store to in-memory storage
 		if (DataMemP) {
 			TMem MemRecMem; 
 			SerializatorMem.Serialize(RecVal, MemRecMem, this);
 			MemRecId = DataMem.AddVal(MemRecMem);
+			RecIdBlobPtH.AddDat(MemRecId) = TPgBlobPt();
 			// index new record
 			RecIndexer.IndexRec(MemRecMem, MemRecId, SerializatorMem);
 		}
@@ -102,12 +103,12 @@ namespace TQm {
 		if (IsPrimaryField()) { SetPrimaryField(MemRecId); }
 
 		// insert nested join records
-		AddJoinRec(RecIdCounter, RecVal);
+		AddJoinRec(MemRecId, RecVal);
 		// call add triggers
-		OnAdd(RecIdCounter);
+		OnAdd(MemRecId);
 
 		// return record Id of the new record
-		return RecIdCounter;
+		return MemRecId;
 	}
 
 	/// Update existing record
@@ -801,22 +802,24 @@ namespace TQm {
 		TStore(Base, StoreId, StoreName), StoreFNm(_StoreFNm), FAccess(faCreate),
 		DataMem(_StoreFNm + "MemCache", BlockSize) {
 
-		DataBlob = new TPgBlob(_StoreFNm + ".Cache", TFAccess::faCreate, _MxCacheSize);
+		SetStoreType("TStorePbBlob");
+		DataBlob = new TPgBlob(_StoreFNm + "PgBlob", TFAccess::faCreate, _MxCacheSize);
 		InitFromSchema(StoreSchema);
 		InitDataFlags();
 	}
 
 	TStorePbBlob::TStorePbBlob(const TWPt<TBase>& Base, const TStr& _StoreFNm,
-		const TFAccess& _FAccess, const int64& _MxCacheSize, const int& BlockSize, 
+		const TFAccess& _FAccess, const int64& _MxCacheSize,
 		const bool& _Lazy) :
 		TStore(Base, _StoreFNm + ".BaseStore"),
 		StoreFNm(_StoreFNm), FAccess(_FAccess), PrimaryFieldType(oftUndef),
 		DataMem(_StoreFNm + "MemCache", _FAccess, _Lazy) {
 
-		DataBlob = new TPgBlob(_StoreFNm + ".Cache", _FAccess, _MxCacheSize);
+		SetStoreType("TStorePbBlob");
+		DataBlob = new TPgBlob(_StoreFNm + "PgBlob", _FAccess, _MxCacheSize);
 
 		// load members
-		TFIn FIn(StoreFNm + ".GenericStore");
+		TFIn FIn(StoreFNm + "PgBlobStore");
 		RecNmFieldP.Load(FIn);
 		PrimaryFieldId.Load(FIn);
 		// deduce primary field type
@@ -844,6 +847,8 @@ namespace TQm {
 		// load data
 		SerializatorCache.Load(FIn);
 		SerializatorMem.Load(FIn);
+		RecIdBlobPtH.Load(FIn);
+		RecIdCounter.Load(FIn);
 
 		// initialize field to storage location map
 		InitFieldLocV();
@@ -862,7 +867,7 @@ namespace TQm {
 			TFOut BaseFOut(StoreFNm + ".BaseStore");
 			SaveStore(BaseFOut);
 			// save store parameters
-			TFOut FOut(StoreFNm + ".GenericStore");
+			TFOut FOut(StoreFNm + "PgBlobStore");
 			// save parameters about primary field
 			RecNmFieldP.Save(FOut);
 			PrimaryFieldId.Save(FOut);
@@ -882,6 +887,10 @@ namespace TQm {
 			// save data
 			SerializatorCache.Save(FOut);
 			SerializatorMem.Save(FOut);
+			
+			RecIdBlobPtH.Save(FOut);
+			RecIdCounter.Save(FOut);
+
 		} else {
 			TEnv::Logger->OnStatus("No saving of generic store " + GetStoreNm() + " neccessary!");
 		}
@@ -898,6 +907,70 @@ namespace TQm {
 		TWPt<TBase> Base = TBase::New(FPath, IndexCacheSize, SplitLen);
 		// parse and apply the schema
 		CreateStoresFromSchema2(Base, SchemaVal, DefStoreCacheSize, StoreNmCacheSizeH);
+		// finish base initialization if so required (default is true)
+		if (InitP) { Base->Init(); }
+		// done
+		return Base;
+	}
+
+	///////////////////////////////
+	/// Save base created from a schema definition
+	void SaveBase2(const TWPt<TBase>& Base) {
+		if (Base->IsRdOnly()) {
+			InfoLog("No saving of generic base necessary!");
+		} else {
+			// Only need to save list of stores so we know what to load next time
+			// Everything else is saved automatically in destructor
+			InfoLog("Saving list of stores ... ");
+			PJsonVal stores = TJsonVal::NewArr();
+			for (int StoreN = 0; StoreN < Base->GetStores(); StoreN++) {
+				PStore store_obj = Base->GetStoreByStoreN(StoreN);
+				PJsonVal store = TJsonVal::NewObj();
+				store->AddToObj("name", store_obj->GetStoreNm());
+				store->AddToObj("type", store_obj->GetStoreType());
+				stores->AddToArr(store);
+			}
+			PJsonVal root = TJsonVal::NewObj();
+			root->AddToObj("stores", stores);
+			
+			TFOut FOut(Base->GetFPath() + "StoreList.json");
+			FOut.PutStr(TJsonVal::GetStrFromVal(root));
+		}
+	}
+
+	///////////////////////////////
+	/// Load base created from a schema definition
+	TWPt<TBase> LoadBase2(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
+		const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP, const int& SplitLen) {
+
+		InfoLog("Loading base created from schema definition");
+		TWPt<TBase> Base = TBase::Load(FPath, FAccess, IndexCacheSize, SplitLen);
+		// load stores
+		InfoLog("Loading stores");
+		// read store names from file
+		TFIn FIn(FPath + "StoreList.json"); 
+		TStr jsons;
+		FIn.GetNextLn(jsons);
+		PJsonVal json = TJsonVal::GetValFromStr(jsons);
+		QmAssert(!json->IsNull() && json->IsObjKey("stores"));
+		PJsonVal json_stores = json->GetObjKey("stores");
+		for (int i = 0; i < json_stores->GetArrVals(); i++) {
+			PJsonVal json_store = json_stores->GetArrVal(i);
+			TStr StoreNm = json_store->GetObjStr("name");
+			TStr StoreType = json_store->GetObjStr("type");
+			InfoLog("  " + StoreNm);
+			// get cache size for the store
+			const uint64 StoreCacheSize = StoreNmCacheSizeH.IsKey(StoreNm) ?
+				StoreNmCacheSizeH.GetDat(StoreNm).Val : DefStoreCacheSize;
+			PStore Store;
+			if (StoreType == "TStorePbBlob") {
+				Store = new TStorePbBlob(Base, FPath + StoreNm, FAccess, StoreCacheSize);
+			} else {
+				Store = new TStoreImpl(Base, FPath + StoreNm, FAccess, StoreCacheSize);
+			}
+			Base->AddStore(Store);
+		}
+		InfoLog("Stores loaded");
 		// finish base initialization if so required (default is true)
 		if (InitP) { Base->Init(); }
 		// done

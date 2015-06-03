@@ -324,7 +324,7 @@ namespace glib {
 		Fsm.Load(SIn);
 		Files.Clr();
 		for (int i = 0; i < children_cnt; i++) {
-			TStr FNmChild = FNm + ".bin" + TStr::GetNrNumFExt(children_cnt);
+			TStr FNmChild = FNm + ".bin" + TStr::GetNrNumFExt(i);
 			Files.Add(TPgBlobFile::New(FNmChild, Access, TInt::Giga));
 		}
 	}

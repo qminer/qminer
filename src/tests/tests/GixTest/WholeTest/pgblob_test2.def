@@ -5,8 +5,8 @@
 			"type": "paged"
 		},
         "fields": [ 
-            { "name": "FieldInt", "type": "int", "primary": true }, 
-            { "name": "FieldBool", "type": "bool" } 
+            { "name": "FieldInt", "type": "int", "primary": true, "store" : "cache" }, 
+            { "name": "FieldBool", "type": "bool", "store" : "cache" } 
         ], 
         "joins": [ ],
         "keys": [ ]

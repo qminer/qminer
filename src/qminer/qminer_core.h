@@ -433,6 +433,8 @@ private:
 	TUInt StoreId;
 	/// Store unique Name
 	TStr StoreNm;
+	/// Store type
+	TStr StoreType;
 	/// Join meta-data description
 	TJoinDescV JoinDescV;
 	/// Map from join name to join ID
@@ -460,9 +462,13 @@ protected:
 	
 	/// Save store to output stream
 	void SaveStore(TSOut& SOut) const;
+	/// Derived classes can set store type
+	void SetStoreType(const TStr& Type) { StoreType = Type; }
 public:    
 	/// Access to base
 	const TWPt<TBase>& GetBase() const { return Base; }
+	/// Access to store type flag
+	const TStr GetStoreType() const { return StoreType; }
 protected:
 	/// Access to index
 	const TWPt<TIndex>& GetIndex() const { return Index; }

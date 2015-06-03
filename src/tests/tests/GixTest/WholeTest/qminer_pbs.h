@@ -128,8 +128,8 @@ namespace TQm {
 			const TStr& StoreName, const TStoreSchema& StoreSchema,
 			const TStr& _StoreFNm, const int64& _MxCacheSize, const int& BlockSize);
 		TStorePbBlob(const TWPt<TBase>& _Base, const TStr& _StoreFNm,
-			const TFAccess& _FAccess, const int64& _MxCacheSize, const int& BlockSize,
-			const bool& _Lazy);
+			const TFAccess& _FAccess, const int64& _MxCacheSize, 
+			const bool& _Lazy = false);
 		// need to override destructor, to clear cache
 		~TStorePbBlob();
 
@@ -237,6 +237,8 @@ namespace TQm {
 	};
 
 
+	///////////////////////////////
+	/// Create new base given a schema definition
 	TWPt<TBase> NewBase2(
 		const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
 		const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP, const int& SplitLen);
@@ -245,6 +247,13 @@ namespace TQm {
 	TVec<TWPt<TStore> > CreateStoresFromSchema2(
 		const TWPt<TBase>& Base, const PJsonVal& SchemaVal,
 		const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH);
+	///////////////////////////////
+	/// Load base created from a schema definition
+	TWPt<TBase> LoadBase2(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
+		const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP, const int& SplitLen);
+	///////////////////////////////
+	/// Save base created from a schema definition
+	void SaveBase2(const TWPt<TBase>& Base);
 }
 
 #endif

@@ -2353,6 +2353,7 @@ TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const uint& StoreId,
 		DataCache(_StoreFNm + ".Cache", _MxCacheSize, 1024), 
 		DataMem(_StoreFNm + "MemCache", BlockSize) {
 
+	SetStoreType("TStoreImpl");
 	InitFromSchema(StoreSchema);
 	// initialize data storage flags
 	InitDataFlags();    
@@ -2365,6 +2366,7 @@ TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const TStr& _StoreFNm,
 		DataCache(_StoreFNm + ".Cache", _FAccess, _MxCacheSize), 
 		DataMem(_StoreFNm + "MemCache", _FAccess, _Lazy) {
 
+	SetStoreType("TStoreImpl");
 	// load members
 	TFIn FIn(StoreFNm + ".GenericStore");
 	RecNmFieldP.Load(FIn);
