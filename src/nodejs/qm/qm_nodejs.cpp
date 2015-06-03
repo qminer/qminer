@@ -26,6 +26,9 @@ void TNodeJsQm::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_METHOD(exports, "open", _open);
 	NODE_SET_METHOD(exports, "verbosity", _verbosity);
 
+    // Add properties
+    exports->SetAccessor(v8::String::NewFromUtf8(Isolate, "debug"), _debug);
+    
     // initialize QMiner environment
 	TQm::TEnv::Init();
     // default to no output
@@ -33,6 +36,7 @@ void TNodeJsQm::Init(v8::Handle<v8::Object> exports) {
 }
 
 void TNodeJsQm::config(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    printf("DEPRECATED: consider using `new qm.Base(...)`!\n");
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	// get schema and conf
@@ -55,12 +59,10 @@ void TNodeJsQm::config(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	ConfigVal->SaveStr().SaveTxt(ConfFNm);
 	// make folders if needed
 	if (!TFile::Exists("db")) { TDir::GenDir("db"); }
-	//if (!TFile::Exists("src")) { TDir::GenDir("src"); }
-	//if (!TFile::Exists("src/lib")) { TDir::GenDir("src/lib"); }
-	//if (!TFile::Exists("sandbox")) { TDir::GenDir("sandbox"); }
 }
 
 void TNodeJsQm::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    printf("DEPRECATED: consider using `new qm.Base(...)`!\n");
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -125,6 +127,7 @@ void TNodeJsQm::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 }
 
 void TNodeJsQm::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    printf("DEPRECATED: consider using `new qm.Base(...)`!\n");
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -167,6 +170,16 @@ void TNodeJsQm::verbosity(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	const int Verbosity = TNodeJsUtil::GetArgInt32(Args, 0, 0);
     // set verbosity level
     TQm::TEnv::InitLogger(Verbosity, "std");
+}
+
+void TNodeJsQm::debug(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+    #ifdef NDEBUG
+        Info.GetReturnValue().Set(v8::Boolean::New(Isolate, false));
+    #else
+        Info.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
+    #endif
 }
 
 ///////////////////////////////
@@ -214,7 +227,7 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 
 TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJsonVal& Schema,
         const bool& Create, const bool& ForceCreate, const bool& RdOnlyP,
-        const TInt& IndexCacheSize, const TInt& StoreCacheSize) {
+        const uint64& IndexCacheSize, const uint64& StoreCacheSize) {
     
     Watcher = TNodeJsBaseWatcher::New();
 
@@ -293,8 +306,6 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJso
 		Lock.Unlock();
 	}
 	if (!Create) { // open mode
-		TStr LockFNm = TDir::GetCurDir() + "./lock";
-
 		// prepare lock
 		TFileLock Lock(LockFNm);
 
@@ -340,8 +351,8 @@ TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>&
 	bool Create = ((Mode == "create") || (Mode == "createClean"));
 	bool ForceCreate = (Mode == "createClean");
 	bool ReadOnly = (Mode == "openReadOnly");
-	TInt IndexCache = Val->GetObjInt("indexCache", 1024);
-	TInt StoreCache = Val->GetObjInt("storeCache", 1024);
+	uint64 IndexCache = (uint64)Val->GetObjInt("indexCache", 1024) * (uint64)TInt::Mega;
+	uint64 StoreCache = (uint64)Val->GetObjInt("storeCache", 1024) * (uint64)TInt::Mega;
 
 	TStr UnicodeFNm = Val->GetObjStr("unicode", TQm::TEnv::QMinerFPath + "./UnicodeDef.Bin");
 	if (!TUnicodeDef::IsDef()) { TUnicodeDef::Load(UnicodeFNm); }
@@ -543,7 +554,7 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// Add all prototype methods, getters and setters here.
-	NODE_SET_PROTOTYPE_METHOD(tpl, "rec", _rec);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "recordByName", _recordByName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "each", _each);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "map", _map);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "push", _push);
@@ -567,7 +578,7 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "name"), _name);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "empty"), _empty);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "recs"), _recs);
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "allRecords"), _allRecords);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "fields"), _fields);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "joins"), _joins);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "keys"), _keys);
@@ -671,7 +682,7 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TWPt<TQm::TStore>& Store, const u
 	return HandleScope.Escape(Field(Rec, FieldId));
 }
 
-void TNodeJsStore::rec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStore::recordByName(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -792,7 +803,7 @@ void TNodeJsStore::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		// check we can write
 		QmAssertR(!Base->IsRdOnly(), "Base opened as read-only");
-
+    
 		PJsonVal RecVal = TNodeJsUtil::GetArgJson(Args, 0);
 		const uint64 RecId = Store->AddRec(RecVal);
 
@@ -1335,7 +1346,7 @@ void TNodeJsStore::length(v8::Local<v8::String> Name, const v8::PropertyCallback
 	Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsStore->Store->GetRecs()));
 }
 
-void TNodeJsStore::recs(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStore::allRecords(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -1755,8 +1766,7 @@ void TNodeJsRec::getField(v8::Local<v8::String> Name, const v8::PropertyCallback
 	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Self);
 	const TQm::TRec& Rec = JsRec->Rec;
 	const TWPt<TQm::TStore>& Store = Rec.GetStore();
-	TStr FieldNm = TNodeJsUtil::GetStr(Name);
-	const int FieldId = Store->GetFieldId(FieldNm);
+	const int FieldId = Store->GetFieldId(TNodeJsUtil::GetStr(Name));
 
 	Info.GetReturnValue().Set(TNodeJsStore::Field(Rec, FieldId));
 }

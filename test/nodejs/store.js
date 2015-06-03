@@ -60,7 +60,7 @@ describe('Empty Store Tests', function () {
 
     describe('Recs Test', function () {
         it('should return a json with no elements', function () {
-            var recs = table.base.store("People").recs;
+            var recs = table.base.store("People").allRecords;
             assert(recs.empty);
             assert.equal(recs.length, 0);
         })
@@ -237,17 +237,17 @@ describe('Store Tests', function () {
 
     describe('Rec Test', function () {
         it('should return the record of Carolina Fortuna', function () {
-            var record = table.base.store("People").rec("Carolina Fortuna");
+            var record = table.base.store("People").recordByName("Carolina Fortuna");
             assert.equal(record.Name, "Carolina Fortuna");
             assert.equal(record.Gender, "Female");
         })
         it('should return the record of Blaz Fortuna', function () {
-            var record = table.base.store("People").rec("Blaz Fortuna");
+            var record = table.base.store("People").recordByName("Blaz Fortuna");
             assert.equal(record.Name, "Blaz Fortuna");
             assert.equal(record.Gender, "Male");
         })
         it('should return null if record not found', function () {
-            var record = table.base.store("People").rec("Bender Bending Rodriguez");
+            var record = table.base.store("People").recordByName("Bender Bending Rodriguez");
             assert(record == null);
         })
     });

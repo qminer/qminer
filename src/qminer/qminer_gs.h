@@ -655,8 +655,28 @@ private:
     bool IsPrimaryField() const { return PrimaryFieldId != -1; }
     /// Set primary field map
     void SetPrimaryField(const uint64& RecId);
+    /// Set primary field map for a given string value
+    void SetPrimaryFieldStr(const uint64& RecId, const TStr& Str);
+    /// Set primary field map for a given integer value
+    void SetPrimaryFieldInt(const uint64& RecId, const int& Int);
+    /// Set primary field map for a given uint64 value
+    void SetPrimaryFieldUInt64(const uint64& RecId, const uint64& UInt64);
+    /// Set primary field map for a given double value
+    void SetPrimaryFieldFlt(const uint64& RecId, const double& Flt);
+    /// Set primary field map for a given TTm value
+    void SetPrimaryFieldMSecs(const uint64& RecId, const uint64& MSecs);
     /// Delete primary field map
     void DelPrimaryField(const uint64& RecId);
+    /// Delete primary field map for a given string value
+    void DelPrimaryFieldStr(const uint64& RecId, const TStr& Str);
+    /// Delete primary field map for a given integer value
+    void DelPrimaryFieldInt(const uint64& RecId, const int& Int);
+    /// Delete primary field map for a given uint64 value
+    void DelPrimaryFieldUInt64(const uint64& RecId, const uint64& UInt64);
+    /// Delete primary field map for a given double value
+    void DelPrimaryFieldFlt(const uint64& RecId, const double& Flt);
+    /// Delete primary field map for a given TTm value
+    void DelPrimaryFieldMSecs(const uint64& RecId, const uint64& MSecs);
     /// Transform Join name to it's corresponding field name
     TStr GetJoinFieldNm(const TStr& JoinNm) const { return JoinNm + "Id"; }
     
