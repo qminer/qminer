@@ -142,7 +142,7 @@ namespace glib {
 	int TPgBlobFile::SavePage(const uint32& Page, const void* Bf) {
 		SetFPos(Page * PAGE_SIZE);
 		EAssertR(
-			fwrite(Bf, 1, PAGE_SIZE, FileId) == PAGE_SIZE,
+			fwrite(Bf,1,  PAGE_SIZE, FileId) == PAGE_SIZE,
 			"Error writing file '" + TStr(FNm) + "'.");
 		return 0;
 	}
@@ -171,8 +171,9 @@ namespace glib {
 			return -1;
 		}
 		// write to the end of file - take what-ever chunk of memory
+		char tc = 0;
 		EAssertR(
-			fwrite(this, 1, PAGE_SIZE, FileId) == PAGE_SIZE,
+			fwrite(&tc, 1, PAGE_SIZE, FileId) == PAGE_SIZE,
 			"Error writing file '" + TStr(FNm) + "'.");
 		return (uint32)(len / PAGE_SIZE);
 	}

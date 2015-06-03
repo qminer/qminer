@@ -540,25 +540,25 @@ public:
 	}
 };
 
-//TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
-//TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
-//TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
-//TEST(testTInMemStorage, LoadAll1) { XTest::TInMemStorage_LoadAll1(); }
-//TEST(testTInMemStorage, LoadAll2) { XTest::TInMemStorage_LoadAll2(); }
-////TEST(testTInMemStorage, PerfTest) { XTest::TInMemStorage_PerfTest(); }
-//
-//
-//TEST(testTPgBlob, Simple) { XTest::TPgBlob_Complex1(); }
-//TEST(testTPgBlob, PageInit) { XTest::TPgBlob_Page_Init(); }
-//TEST(testTPgBlob, PageAddInt) { XTest::TPgBlob_Page_AddInt(); }
-//TEST(testTPgBlob, PageAddIntMany) { XTest::TPgBlob_Page_AddIntMany(); }
-//TEST(testTPgBlob, PageAddDouble) { XTest::TPgBlob_Page_AddDouble(); }
-//TEST(testTPgBlob, PageAddIntSeveral) { XTest::TPgBlob_Page_AddIntSeveral(); }
-//TEST(testTPgBlob, PageAddIntSeveralDelete) { XTest::TPgBlob_Page_AddIntSeveralDelete(); }
-//TEST(testTPgBlob, PageAddIntSeveralDelete2) { XTest::TPgBlob_Page_AddIntSeveralDelete2(); }
-//
-//TEST(testTPgBlob, AddBf1) { XTest::TPgBlob_AddBf1(); }
-//
+TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
+TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
+TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
+TEST(testTInMemStorage, LoadAll1) { XTest::TInMemStorage_LoadAll1(); }
+TEST(testTInMemStorage, LoadAll2) { XTest::TInMemStorage_LoadAll2(); }
+//TEST(testTInMemStorage, PerfTest) { XTest::TInMemStorage_PerfTest(); }
+
+
+TEST(testTPgBlob, Simple) { XTest::TPgBlob_Complex1(); }
+TEST(testTPgBlob, PageInit) { XTest::TPgBlob_Page_Init(); }
+TEST(testTPgBlob, PageAddInt) { XTest::TPgBlob_Page_AddInt(); }
+TEST(testTPgBlob, PageAddIntMany) { XTest::TPgBlob_Page_AddIntMany(); }
+TEST(testTPgBlob, PageAddDouble) { XTest::TPgBlob_Page_AddDouble(); }
+TEST(testTPgBlob, PageAddIntSeveral) { XTest::TPgBlob_Page_AddIntSeveral(); }
+TEST(testTPgBlob, PageAddIntSeveralDelete) { XTest::TPgBlob_Page_AddIntSeveralDelete(); }
+TEST(testTPgBlob, PageAddIntSeveralDelete2) { XTest::TPgBlob_Page_AddIntSeveralDelete2(); }
+
+TEST(testTPgBlob, AddBf1) { XTest::TPgBlob_AddBf1(); }
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1033,16 +1033,18 @@ void TestPgBlobStoreSimple(const TStr& def_file) {
 		auto res = store->GetAllRecs();
 		//printf("Records: %d\n", res->GetRecs());
 		EXPECT_EQ(res->GetRecs(), 2);
+		//printf("Records: %d\n", res->GetRec(0).GetFieldInt(field_id));
 		EXPECT_EQ(res->GetRec(0).GetFieldInt(field_id), 12);
+		//printf("Records: %d\n", res->GetRec(1).GetFieldInt(field_id));
 		EXPECT_EQ(res->GetRec(1).GetFieldInt(field_id), 6345);
 
 		TQm::SaveBase2(Base);
 	}
 }
-//
-//TEST(testTStorePbBlob, Test1) {
-//	TestPgBlobStoreSimple(".\\pgblob_test1.def");
-//}
+
+TEST(testTStorePbBlob, Test1) {
+	TestPgBlobStoreSimple(".\\pgblob_test1.def");
+}
 TEST(testTStorePbBlob, Test2) {
 	TestPgBlobStoreSimple(".\\pgblob_test2.def");
 }
