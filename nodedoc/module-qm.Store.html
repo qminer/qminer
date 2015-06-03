@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">namespace</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Store</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-745">qminerdoc.<wbr>js:745</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-749">qminerdoc.<wbr>js:749</a></p>
             <div class="symbol-description">
               <p>Store (factory pattern result)</p>
             </div>
@@ -38,6 +38,9 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Store.html#allRecords">allRecords</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.Store.html#backwardIter">backwardIter</a></dt>
                     <dd>
                     </dd>
@@ -47,13 +50,13 @@
                     <dt><a href="module-qm.Store.html#empty">empty</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Store.html#fields">fields</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Store.html#fields">fields</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.Store.html#first">first</a></dt>
                     <dd>
                     </dd>
@@ -63,13 +66,13 @@
                     <dt><a href="module-qm.Store.html#joins">joins</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Store.html#keys">keys</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Store.html#keys">keys</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.Store.html#last">last</a></dt>
                     <dd>
                     </dd>
@@ -77,9 +80,6 @@
                     <dd>
                     </dd>
                     <dt><a href="module-qm.Store.html#name">name</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-qm.Store.html#recs">recs</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -141,7 +141,7 @@
                     <dt><a href="module-qm.Store.html#push">push(rec)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Store.html#rec">rec(recName)</a></dt>
+                    <dt><a href="module-qm.Store.html#recordByName">recordByName(recName)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.Store.html#sample">sample(sampleSize)</a></dt>
@@ -158,6 +158,10 @@
           <section>
             <h2>Properties</h2>
             <section>
+              <h3 id="allRecords"><span class="symbol-name">allRecords</span></h3>
+              <p>Creates a record set containing all the records from the store.</p>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="backwardIter"><span class="symbol-name">backwardIter</span></h3>
               <p>Returns an iterator for iterating over the store form end to start.</p>
               <dl class="dl-compact">
@@ -200,10 +204,6 @@
               </dl>
               <h3 id="name"><span class="symbol-name">name</span></h3>
               <p>Gives the name of the store.</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="recs"><span class="symbol-name">recs</span></h3>
-              <p>Creates a record set containing all the records from the store.</p>
               <dl class="dl-compact">
               </dl>
             </section>
@@ -1154,7 +1154,7 @@ base.store(&quot;Supervillians&quot;).push({ &quot;Name&quot;: &quot;Lex Luthor&
                   <p><code>number</code>&nbsp;The ID of the added record.</p>
                 </dd>
               </dl>
-              <h3 id="rec"><span class="symbol-name">rec</span><span class="signature"><span class="signature-params">(recName)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-qm.Record.html">module:qm.Record</a> or null)</span></span></h3>
+              <h3 id="recordByName"><span class="symbol-name">recordByName</span><span class="signature"><span class="signature-params">(recName)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-qm.Record.html">module:qm.Record</a> or null)</span></span></h3>
               <p>Returns a record from the store.</p>
               <section>
                 <h4>
