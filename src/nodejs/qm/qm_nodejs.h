@@ -73,6 +73,12 @@ private:
 	*/
 	//# exports.verbosity = function (level) { }
 	JsDeclareFunction(verbosity);
+    
+   	/**
+	* @property {boolean} debug - True if QMiner was compiled in debug mode, else false.
+	*/
+	//# exports.debug = false;
+	JsDeclareProperty(debug);
 };
 
 ///////////////////////////////
