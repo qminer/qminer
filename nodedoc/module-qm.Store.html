@@ -213,7 +213,9 @@
               <p>Gives the field value of a specific record.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>//import qm module
@@ -291,7 +293,9 @@ var fieldValue = base.store(&quot;Festivals&quot;).cell(1, &quot;Type&quot;); //
               <p>Deletes the records in the store.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -358,7 +362,9 @@ base.store(&quot;TVSeries&quot;).clear();  // returns 0</code></pre>
               <p>Executes a function on each record in store.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -424,7 +430,9 @@ base.store(&quot;Class&quot;).each(function (rec) { rec.StudyGroup = &quot;A&quo
               <p>Gets the details of the selected field.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -486,7 +494,9 @@ var details = base.store(&quot;People&quot;).field(&quot;Name&quot;);</code></pr
               <p>Gives a matrix containing the field values of each record.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -554,7 +564,9 @@ var matrix = base.store(&quot;ArcheryChampionship&quot;).getMatrix(&quot;ScorePe
               <p>Gives a vector containing the field value of each record.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -617,7 +629,9 @@ var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;)
               <p>Checks if the field is of type Date.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -679,7 +693,9 @@ var isFirstPlayedDate = base.store(&quot;BasketballPlayers&quot;).isDate(&quot;D
               <p>Checks if the field is of numeric type.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -740,7 +756,9 @@ var isNumberOfEpisodesNumeric = base.store(&quot;TVSeries&quot;).isNumeric(&quot
               <p>Checks if the field is of string type.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -802,7 +820,9 @@ var isAgeString = base.store(&quot;People&quot;).isString(&quot;Age&quot;); // r
               <p>Returns the details of the selected key as a JSON object.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -868,7 +888,9 @@ var details = base.store(&quot;Countries&quot;).key(&quot;Continent&quot;);</cod
               <p>Creates an array of function outputs created from the store records.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -934,7 +956,9 @@ var arr = base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; })
               <p>Creates a new record of given store. The record is not added to the store.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -996,7 +1020,9 @@ var planet = base.store(&quot;Planets&quot;).newRecord({ &quot;Name&quot;: &quot
               <p>Creates a new record set out of the records in store.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1061,7 +1087,9 @@ var DCHeroes = base.store(&quot;Superheroes&quot;).newRecordSet(intVec);</code><
               <p>Adds a record to the store.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1130,7 +1158,9 @@ base.store(&quot;Supervillians&quot;).push({ &quot;Name&quot;: &quot;Lex Luthor&
               <p>Returns a record from the store.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1194,7 +1224,9 @@ var record = base.store(&quot;Class&quot;).rec(&quot;Magnitude&quot;);</code></p
               <p>Creates a record set containing random records from store.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1259,7 +1291,9 @@ var randomRecordSet = base.store(&quot;TVSeries&quot;).sample(3); // contains 3 
               <p>Returns the store as a JSON.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1298,7 +1332,7 @@ var json = base.store(&quot;FootballPlayers&quot;).toJSON();</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on May 29, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on June 3, 2015.
       </p>
     </div>
   </footer>

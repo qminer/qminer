@@ -116,7 +116,9 @@
             <p>Feature Space</p>
             <section>
               <h3>
+
             Example
+
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import qm module
@@ -209,7 +211,9 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;F
               <p>Adds a new feature extractor to the feature space.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -279,7 +283,9 @@ ftr.addFeatureExtractor({ type: &quot;text&quot;, source: &quot;WeatherForcast&q
               <p>Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -350,7 +356,9 @@ var matrix = ftr.extractMatrix(base.store(&quot;Class&quot;).recs);</code></pre>
               <p>Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -418,7 +426,9 @@ var sparseMatrix = ftr.extractSparseMatrix(base.store(&quot;Class&quot;).recs);<
               <p>Creates a sparse feature vector from the given record.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -492,7 +502,9 @@ var vec = ftr.extractSparseVector(base.store(&quot;Class&quot;)[0]);</code></pre
               <p>Creates a feature vector from the given record.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -566,7 +578,9 @@ var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]);</code></pre>
               <p>Filters the vector to keep only the elements from the feature extractor.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -674,7 +688,9 @@ var spVec3 = ftr.filter(spVec, 1, false); // returns sparse vector [[1, 1]]</cod
               <p>Gives the name of the feature at the given position.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -747,7 +763,9 @@ var feature2 = ftr.getFeature(2); // returns &quot;magnitude&quot;</code></pre>
               <p>Gives the name of feature extractor at given position.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -812,7 +830,9 @@ var extractorName = ftr.getFeatureExtractor(1); // returns &quot;Categorical[Gen
               <p>Calculates the inverse of a single feature using a specific feature extractor.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -899,7 +919,9 @@ var inverse = ftr.invertFeature(0, 0); // returns the value 1994</code></pre>
               <p>Performs the inverse operation of ftrVec. Works only for numeric feature extractors.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1016,7 +1038,9 @@ var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]</code>
                 <br> For dateWindow feature extractor, it can update the start and the end of the window period to form the normalization.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1100,7 +1124,9 @@ ftr.extractVector(Store[2]); // returns the vector [1, 0, 0, 1, 0, 0, 1 / Math.s
                 <br> For dateWindow feature extractor, it can update the start and the end of the window period to form the normalization.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1186,7 +1212,7 @@ ftr.extractVector(Store[3]); // returns the vector [1, 1, 0, 0, 1 / Math.sqrt(2)
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on May 29, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on June 3, 2015.
       </p>
     </div>
   </footer>
