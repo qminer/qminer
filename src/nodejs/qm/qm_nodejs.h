@@ -669,9 +669,13 @@ typedef TPt<TNodeJsBaseWatcher> PNodeJsBaseWatcher;
 
 /**
 * Base
-* @classdesc Represents the database and holds stores.
+* @classdesc Represents the database and holds stores. The base object can be opened in multiple
+* modes: 'create' - create a new database, 'createClean' - force create, and 'openReadOnly' - open in read-onlly mode
 * @class
 * @param {module:qm~BaseConstructorParam} paramObj - The base constructor parameter object.
+* @property {String} paramObj.mode - the mode in which base is opened
+* @property [String] paramObj.dbPath - path to the location of the database
+* @property [Object] paramObj.schema - the database schema
 * @example
 * // import qm module
 * var qm = require('qminer');
@@ -685,7 +689,7 @@ private:
 	static v8::Persistent<v8::Function> Constructor;
 public:
 	static void Init(v8::Handle<v8::Object> Exports);
-	static const TStr ClassId;
+	static const TStr GetClassId() { return "Base"; }
 	// wrapped C++ object
 	TWPt<TQm::TBase> Base;
 	// C++ constructor
@@ -899,7 +903,7 @@ private:
 public:	
 	// Node framework 
 	static void Init(v8::Handle<v8::Object> exports);
-	static const TStr ClassId;
+	static const TStr GetClassId() { return "Store"; }
 	// Wrapped C++ object
 	TWPt<TQm::TStore> Store;
 	// Object that knows if Base is valid
@@ -1617,12 +1621,6 @@ private:
 	*/
 	//# exports.Record.prototype.$clone = function () {};
     JsDeclareFunction(clone);
-    //#- `rec = rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string). Returns self.
-    //#- `rec = rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
-    JsDeclareFunction(addJoin);
-    //#- `rec = rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string). Returns self.
-    //#- `rec = rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`. Return self.
-    JsDeclareFunction(delJoin);
     /**
      * Provide json version of record, useful when calling JSON.stringify
      *
@@ -1658,7 +1656,12 @@ private:
     //!- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
 	/**
 	* Creates a JSON version of the record.
+	*
+    * @param {Boolean} - ???
+    * @param {Boolean} - ???
+    * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
 	* @returns {Object} The JSON version of the record.
+	*
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
@@ -1683,7 +1686,6 @@ private:
 	* var json = base.store("Musicians").rec("Beyonce").toJSON();
 	*/
 	//# exports.Record.prototype.toJSON = function () {};
-    JsDeclareFunction(toJSON);
     JsDeclareFunction(toJSON);
 
 	//!- `recId = rec.$id` -- returns record ID
@@ -1745,7 +1747,7 @@ private:
 public:
 	// Node framework 
 	static void Init(v8::Handle<v8::Object> exports);
-	static const TStr ClassId;
+	static const TStr GetClassId() { return "RecSet"; }
 	// C++ wrapped object
 	TQm::PRecSet RecSet;
 	// Object that knows if Base is valid
@@ -2653,7 +2655,7 @@ private:
 public:
 	// Node framework 
 	static void Init(v8::Handle<v8::Object> exports);
-	static const TStr GetClassId();
+	static const TStr GetClassId() { return "StoreIter"; }
 
 	// C++ wrapped object
 	TWPt<TQm::TStore> Store;
@@ -2783,6 +2785,7 @@ private:
 public:
 	// Node framework
     static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "IndexKey"; }
 	// C++ wrapped object
 	TWPt<TQm::TStore> Store;
 	TQm::TIndexKey IndexKey;

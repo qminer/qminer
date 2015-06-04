@@ -63,8 +63,8 @@ protected:
   	// assigned to the centroid to the centroid
   	TUInt64FltPrV CentroidDistStatV;
 
-  	int NHistBins;			// the number of bins used in a histogram
-  	TFltVV ObsFtrBinStartVV;		// stores where each bin starts
+  	int NHistBins;				// the number of bins used in a histogram
+  	TFltVV ObsFtrBinStartVV;	// stores where each bin starts
   	TFltVV ContrFtrBinStartVV;	// stores where each bin starts for the control matrix
   	THistStat ObsHistStat;		// stores histogram for every feature in every cluster
   	THistStat ControlHistStat;	// stores histogram for every feature in every cluster for the control matrix
@@ -93,7 +93,9 @@ public:
 
 	// assign methods
 	// assign instances to centroids
+	int Assign(const TFltV& Inst) const;
 	int Assign(const TVector& Inst) const;
+
 	// assign instances to centroids, instances should be in the columns of the matrix
 	TVector Assign(const TFltVV& InstMat) const;
 	void Assign(const TFltVV& InstMat, TIntV& AssignV) const;
@@ -105,7 +107,7 @@ public:
 	TFullMatrix GetDistMat(const TFltVV& X) const;
 	// Returns a vector y containing the distance to all the
 	// centroids. The input vector x should be a column vector
-	TVector GetDistVec(const TVector& x) const;
+	void GetCentroidDistV(const TFltV& x, TFltV& DistV) const;
 	// returns the distance from the cluster centroid to the point
 	double GetDist(const int& CentroidId, const TVector& Pt) const;
 

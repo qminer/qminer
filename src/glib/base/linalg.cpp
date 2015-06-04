@@ -242,7 +242,6 @@ void TStructuredCovarianceMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) co
 //// Basic Linear Algebra Operations
 /// Everything moved to linalg.h
 
-
 ///////////////////////////////////////////////////////////////////////
 // Numerical Linear Algebra
 double TNumericalStuff::sqr(double a) {
@@ -605,21 +604,6 @@ void TNumericalStuff::LeastSquares(const TFltVV& A, const TFltV& b, const double
 	} else {
 		TNumericalStuff::DualLeastSquares(A, b, Gamma, x);
 	}
-
-void TNumericalStuff::LUStep(TFltVV& A, TIntV& Perm) {
-	Assert(A.GetRows() == A.GetCols());
-
-	// data used for factorization
-	int NumOfRows_Matrix = A.GetRows();
-	int NumOfCols_Matrix = A.GetCols();
-	int LeadingDimension_Matrix = NumOfCols_Matrix;
-	int Matrix_Layout = LAPACK_ROW_MAJOR;
-
-	Perm.Gen(NumOfRows_Matrix);
-
-	// factorization
-	LAPACKE_dgetrf(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, &A(0, 0).Val, LeadingDimension_Matrix,
-		&Perm[0].Val);
 }
 
 void TNumericalStuff::PrimalLeastSquares(const TFltVV& A, const TFltV& b, const double& Gamma, TFltV& x) {
@@ -647,6 +631,138 @@ void TNumericalStuff::PrimalLeastSquares(const TFltVV& A, const TFltV& b, const 
 	TFltV Ab = TFltV(Feats);
 	TLinAlg::Multiply(A, b, Ab);
 	TNumericalStuff::SolveLinearSystem(B, Ab, x);
+}
+
+void TNumericalStuff::DualLeastSquares(const TFltVV& A, const TFltV& b, const double& Gamma, TFltV& x) {
+	EAssertR(A.GetCols() == b.Len(), "TNumericalStuff::LeastSquares: number of columns (examples) does not match the number of targets (length of b)");
+	if (x.Empty()) { 
+		x.Gen(A.GetRows());
+	} else {
+		EAssertR(x.Len() == A.GetRows(), "TNumericalStuff::DualLeastSquares: solution dimension does not match the number of rows of A (features)");
+	}
+
+	// x = A (A' * A + Gamma^2 * I)^{-1} * b
+	int N = A.GetCols();
+	// B = A' * A
+	TFltVV B = TFltVV(N, N);
+	TLinAlg::MultiplyT(A, A, B);
+	// I
+	TFltVV I = TFltVV(N, N);
+	TFltV Ones = TFltV(N); Ones.PutAll(1.0);
+	TLAMisc::Diag(Ones, I);
+	// B = A' * A + Gamma^2 * I
+	TLinAlg::LinComb(1.0, B, Gamma*Gamma, I, B);
+	// B^{-1}b
+	TFltV InvBb = TFltV(N);
+	TNumericalStuff::SolveLinearSystem(B, b, InvBb);
+	// x = A * InvB
+	TLinAlg::Multiply(A, InvBb, x);	
+}
+
+void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps) {
+#ifdef BLAS
+	EAssertR(A.GetRows() == A.GetCols(), "A should be a square matrix to compute eigenvalues!");
+
+	TFltVV A1 = A;
+
+//    printf("input matrix:\n%s\n", TStrUtil::GetStr(A1, ", ", "%.7f").CStr());
+
+    const int Dim = A1.GetRows();
+
+    // inverse iteration algorithm
+    // first compute (A - Lambda*I)
+	for (int i = 0; i < Dim; i++) {
+		A1(i,i) -= EigenVal;
+	}
+
+    const double UEps = 1e-8 * TLinAlg::FrobNorm(A1);
+    double Dist, Norm;
+    double Sgn;
+
+    TFltVV L, U;
+	TFltV OnesV(Dim), TempV(Dim);
+
+	TVec<TNum<index_t>, index_t> PermV;
+
+    // build an initial estimate of the eigenvector
+    // decompose (A - Lambda*I) into LU
+	LUFactorization(A1, L, U, PermV);
+
+    // extract U, replace any zero diagonal elements by |A|*eps
+    for (int i = 0; i < Dim; i++) {
+        OnesV[i] = 1;
+        if (TFlt::Abs(U(i,i)) < UEps) {
+        	Sgn = U(i,i) >= 0 ? 1 : -1;
+        	U(i,i) = Sgn*UEps;
+        }
+    }
+
+//    printf("U:\n%s\n", TStrUtil::GetStr(U, ", ", "%.7f").CStr());
+//    printf("PermV:\n%s\n", TStrUtil::GetStr(PermV, ", ").CStr());
+
+    // construct A from LU
+    TLinAlg::Multiply(L, U, A1);
+    // swap column i with column PermV[i]
+    for (int i = 0; i < Dim; i++) {
+    	const int pi = PermV[i] - 1;
+    	// swap rows i and pi in A
+    	for (int ColIdx = 0; ColIdx < Dim; ColIdx++) {
+			std::swap(A1(i, ColIdx), A1(pi, ColIdx));
+		}
+    }
+
+    // compute an initial estimate for the eigenvector
+    // I can ignore permutations here since then only swap elements
+    // in the vector of ones: P*A = L*U => A*x = b <=> L*U*x = P*b = P*1 = 1
+    TriangularSolve(U, EigenV, OnesV);	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)
+
+//    printf("initial estimate (unnorm): %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
+
+    Norm = TLinAlg::Normalize(EigenV);
+	EAssertR(Norm != 0, "Cannot normalize, norm is 0!");
+
+//	printf("initial estimate: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
+
+    // iterate (A - Lambda*I)*x_n+1 = x_n until convergence
+    do {
+    	TempV = EigenV;
+
+    	LUSolve(A1, EigenV, TempV);
+
+//        printf("solution vector: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
+
+        // normalize
+//        Norm = TLinAlg::Normalize(EigenV);
+        // FIXME: not a general solution, works only in my case, where the eigen vector only has all positive or all negative elements
+        Norm = TLinAlg::SumVec(EigenV);	// taking the sum because sometimes I get +- on consecutive iterations when using the norm
+        EAssertR(Norm != 0, "Cannot normalize, norm is 0!");
+        TLinAlg::MultiplyScalar(1/Norm, EigenV, EigenV);
+
+//        printf("eigen vector: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
+
+        Dist = TLinAlg::EuclDist(EigenV, TempV);
+    } while (Dist > ConvergEps);
+#else
+    throw TExcept::New("Should include BLAS!!!");
+#endif
+}
+
+#ifdef BLAS
+
+void TNumericalStuff::LUStep(TFltVV& A, TIntV& Perm) {
+	Assert(A.GetRows() == A.GetCols());
+
+	// data used for factorization
+	int NumOfRows_Matrix = A.GetRows();
+	int NumOfCols_Matrix = A.GetCols();
+	int LeadingDimension_Matrix = NumOfCols_Matrix;
+	int Matrix_Layout = LAPACK_ROW_MAJOR;
+
+	Perm.Gen(NumOfRows_Matrix);
+
+	// factorization
+	LAPACKE_dgetrf(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, &A(0, 0).Val, LeadingDimension_Matrix,
+		&Perm[0].Val);
 }
 
 // LUFactorization create the matrices L, U and vector of permutations P such that P*A = L*U.
@@ -689,32 +805,6 @@ void TNumericalStuff::LUFactorization(const TFltVV& A, TFltVV& L, TFltVV& U, TIn
 	}
 }
 
-void TNumericalStuff::DualLeastSquares(const TFltVV& A, const TFltV& b, const double& Gamma, TFltV& x) {
-	EAssertR(A.GetCols() == b.Len(), "TNumericalStuff::LeastSquares: number of columns (examples) does not match the number of targets (length of b)");
-	if (x.Empty()) { 
-		x.Gen(A.GetRows());
-	} else {
-		EAssertR(x.Len() == A.GetRows(), "TNumericalStuff::DualLeastSquares: solution dimension does not match the number of rows of A (features)");
-	}
-
-	// x = A (A' * A + Gamma^2 * I)^{-1} * b
-	int N = A.GetCols();
-	// B = A' * A
-	TFltVV B = TFltVV(N, N);
-	TLinAlg::MultiplyT(A, A, B);
-	// I
-	TFltVV I = TFltVV(N, N);
-	TFltV Ones = TFltV(N); Ones.PutAll(1.0);
-	TLAMisc::Diag(Ones, I);
-	// B = A' * A + Gamma^2 * I
-	TLinAlg::LinComb(1.0, B, Gamma*Gamma, I, B);
-	// B^{-1}b
-	TFltV InvBb = TFltV(N);
-	TNumericalStuff::SolveLinearSystem(B, b, InvBb);
-	// x = A * InvB
-	TLinAlg::Multiply(A, InvBb, x);	
-}
-
 void TNumericalStuff::LUSolve(const TFltVV& A, TFltV& x, const TFltV& b) {
 	Assert(A.GetRows() == b.Len());
 
@@ -737,6 +827,76 @@ void TNumericalStuff::LUSolve(const TFltVV& A, TFltV& x, const TFltV& b) {
 	x = b;
 	LAPACKE_dgetrs(Matrix_Layout, 'N', NumOfCols_Matrix, NumOfCols_Vector, &M(0, 0).Val, LeadingDimension_Matrix,
 		&Perm[0].Val, &x[0].Val, LeadingDimension_Vector);
+}
+
+void TNumericalStuff::SVDFactorization(const TFltVV& A,
+	TFltVV& U, TFltV& Sing, TFltVV& VT) {
+
+	// data used for factorization
+	int NumOfRows_Matrix = A.GetRows();
+	int NumOfCols_Matrix = A.GetCols();
+	int LeadingDimension_Matrix = NumOfCols_Matrix;
+	int Matrix_Layout = LAPACK_ROW_MAJOR;
+
+	// preperation for factorization
+	Sing.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+	TFltV UpDiag, TauQ, TauP;
+	UpDiag.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix) - 1);
+	TauQ.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+	TauP.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+
+	// bidiagonalization of Matrix
+	TFltVV M = A;
+	LAPACKE_dgebrd(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, &M(0, 0).Val, LeadingDimension_Matrix,
+		&Sing[0].Val, &UpDiag[0].Val, &TauQ[0].Val, &TauP[0].Val);
+
+	// matrix U used in the SVD factorization
+	U = M;
+	LAPACKE_dorgbr(Matrix_Layout, 'Q', NumOfRows_Matrix, MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix,
+		&U(0, 0).Val, LeadingDimension_Matrix, &TauQ[0].Val);
+
+	// matrix VT used in the SVD factorization
+	VT = M;
+	LAPACKE_dorgbr(Matrix_Layout, 'P', MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix, NumOfRows_Matrix,
+		&VT(0, 0).Val, LeadingDimension_Matrix, &TauP[0].Val);
+
+	// factorization
+	TFltVV C(U.GetCols(), 1);
+	char UpperLower = NumOfRows_Matrix >= NumOfCols_Matrix ? 'U' : 'L';
+	int LeadingDimension_VT = VT.GetCols();
+	int LeadingDimension_U = U.GetCols();
+	LAPACKE_dbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, &Sing[0].Val, &UpDiag[0].Val,
+		&VT(0, 0).Val, LeadingDimension_VT, &U(0, 0).Val, LeadingDimension_U, &C(0, 0).Val, 1);
+}
+
+void TNumericalStuff::SVDSolve(const TFltVV& A, TFltV& x, const TFltV& b,
+		const double& EpsSing) {
+	Assert(A.GetRows() == b.Len());
+
+	// data used for solution
+	int NumOfRows_Matrix = A.GetRows();
+	int NumOfCols_Matrix = A.GetCols();
+
+	// generating the SVD factorization
+	TFltVV U, VT, M = A;
+	TFltV Sing;
+	SVDFactorization(M, U, Sing, VT);
+
+	// generating temporary solution
+	x.Gen(NumOfCols_Matrix);
+	TLAMisc::FillZero(x);
+	TFltV ui; ui.Gen(U.GetRows());
+	TFltV vi; vi.Gen(VT.GetCols());
+
+	int i = 0;
+	while (i < MIN(NumOfRows_Matrix, NumOfCols_Matrix) &&
+			Sing[i].Val > EpsSing*Sing[0]) {
+		U.GetCol(i, ui);
+		VT.GetRow(i, vi);
+		double Scalar = TLinAlg::DotProduct(ui, b) / Sing[i].Val;
+		TLinAlg::AddVec(Scalar, vi, x);
+		i++;
+	}
 }
 
 void TNumericalStuff::LUSolve(const TFltVV& A, TFltVV& X, const TFltVV& B) {
@@ -785,94 +945,6 @@ void TNumericalStuff::TriangularSolve(TFltVV& A, TFltV& x, TFltV& b,
 }
 
 #endif
-
-void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps) {
-#ifdef BLAS
-	EAssertR(A.GetRows() == A.GetCols(), "A should be a square matrix to compute eigenvalues!");
-
-	TFltVV A1 = A;
-
-//    printf("input matrix:\n%s\n", TStrUtil::GetStr(A1, ", ", "%.7f").CStr());
-
-    const int Dim = A1.GetRows();
-
-    // inverse iteration algorithm
-    // first compute (A - Lambda*I)
-	for (int i = 0; i < Dim; i++) {
-		A1(i,i) -= EigenVal;
-	}
-
-    const double UEps = 1e-8 * TLinAlg::FrobNorm(A1);
-    double Dist, Norm;
-    double Sgn;
-
-    TFltVV L, U;
-	TFltV OnesV(Dim), TempV(Dim);
-
-	TVec<TNum<index_t>, index_t> PermV;
-
-    // build an initial estimate of the eigenvector
-    // decompose (A - Lambda*I) into LU
-	MKLfunctions::LUFactorization(A1, L, U, PermV);
-
-    // extract U, replace any zero diagonal elements by |A|*eps
-    for (int i = 0; i < Dim; i++) {
-        OnesV[i] = 1;
-        if (TFlt::Abs(U(i,i)) < UEps) {
-        	Sgn = U(i,i) >= 0 ? 1 : -1;
-        	U(i,i) = Sgn*UEps;
-        }
-    }
-
-//    printf("U:\n%s\n", TStrUtil::GetStr(U, ", ", "%.7f").CStr());
-//    printf("PermV:\n%s\n", TStrUtil::GetStr(PermV, ", ").CStr());
-
-    // construct A from LU
-    TLinAlg::Multiply(L, U, A1);
-    // swap column i with column PermV[i]
-    for (int i = 0; i < Dim; i++) {
-    	const int pi = PermV[i] - 1;
-    	// swap rows i and pi in A
-    	for (int ColIdx = 0; ColIdx < Dim; ColIdx++) {
-			std::swap(A1(i, ColIdx), A1(pi, ColIdx));
-		}
-    }
-
-    // compute an initial estimate for the eigenvector
-    // I can ignore permutations here since then only swap elements
-    // in the vector of ones: P*A = L*U => A*x = b <=> L*U*x = P*b = P*1 = 1
-	MKLfunctions::TriangularSolve(U, EigenV, OnesV);	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)
-
-//    printf("initial estimate (unnorm): %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
-
-    Norm = TLinAlg::Normalize(EigenV);
-	EAssertR(Norm != 0, "Cannot normalize, norm is 0!");
-
-//	printf("initial estimate: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
-
-    // iterate (A - Lambda*I)*x_n+1 = x_n until convergence
-    do {
-    	TempV = EigenV;
-
-		MKLfunctions::LUSolve(A1, EigenV, TempV);
-
-//        printf("solution vector: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
-
-        // normalize
-//        Norm = TLinAlg::Normalize(EigenV);
-        // FIXME: not a general solution, works only in my case, where the eigen vector only has all positive or all negative elements
-        Norm = TLinAlg::SumVec(EigenV);	// taking the sum because sometimes I get +- on consecutive iterations when using the norm
-        EAssertR(Norm != 0, "Cannot normalize, norm is 0!");
-        TLinAlg::MultiplyScalar(1/Norm, EigenV, EigenV);
-
-//        printf("eigen vector: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
-
-        Dist = TLinAlg::EuclDist(EigenV, TempV);
-    } while (Dist > ConvergEps);
-#else
-    throw TExcept::New("Should include OpenBLAS!!!");
-#endif
-}
 ///////////////////////////////////////////////////////////////////////
 // Sparse-SVD
 void TSparseSVD::MultiplyATA(const TMatrix& Matrix,
@@ -1856,6 +1928,21 @@ int TLAMisc::GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat) {
 		}
 	}
 	return MaxDim;
+}
+
+int TLAMisc::GetMinIdx(const TFltV& Vec) {
+	const int Len = Vec.Len();
+
+	int MinIdx = 0;
+	double MinVal = Vec[MinIdx];
+	for (int i = 1; i < Len; i++) {
+		if (Vec[i] < MinVal) {
+			MinVal = Vec[i];
+			MinIdx = i;
+		}
+	}
+
+	return MinIdx;
 }
  
  void TLAMisc::RangeV(const int& Min, const int& Max, TIntV& Res) {

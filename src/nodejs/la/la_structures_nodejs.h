@@ -69,7 +69,7 @@ private:
 
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	const static TStr ClassId;
+	const static TStr GetClassId() { return "TFltVV"; }
 
 	static TNodeJsFltVV* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
@@ -414,14 +414,13 @@ public:
 
 class TNodeJsSpVec : public node::ObjectWrap {
 public:
-	const static TStr ClassId;
-
 	TNodeJsSpVec() : Dim(-1) { }
 	TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1)
 		: Vec(IntFltKdV), Dim(Dim)
 	{ }
 public:
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "TIntFltKdV"; }
 	static v8::Local<v8::Object> New(const TIntFltKdV& IntFltKdV, const int& Dim = -1);
 public:
 	//! 
@@ -588,13 +587,12 @@ private:
 
 class TNodeJsSpMat : public node::ObjectWrap {
 public:
-	const static TStr ClassId;
-
 	TNodeJsSpMat() : Rows(-1) { }
 	TNodeJsSpMat(const TVec<TIntFltKdV>& _Mat, const int& _Rows = -1)
 		: Mat(_Mat), Rows(_Rows) { }
 public:
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "TVec<TIntFltKdV>"; }
 	static v8::Local<v8::Object> New(const TVec<TIntFltKdV>& Mat, const int& Rows = -1);
 public:
 	//! 

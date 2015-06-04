@@ -436,8 +436,8 @@ public:
 class TNodeJsRidgeReg : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 public:
-	static const TStr ClassId;
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "RidgeReg"; }
 
 private:
 	TFlt Gamma;

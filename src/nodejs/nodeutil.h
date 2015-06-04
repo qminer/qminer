@@ -230,10 +230,6 @@ public:
 	/// This callback should be used when creating objects from C++ functions, by using TNodeJsUtil::NewJsInstance<Obj>
 	template <class TClass>
 	static void _NewCpp(const v8::FunctionCallbackInfo<v8::Value>& Args);
-	
-	template <class TClass>
-	static v8::Local<v8::Object> NewInstance(TClass* Obj,
-			v8::Persistent<v8::Function>& Constructor);
 
 	/// Creates a new instance using TClass::Constructor and wraps it with Obj.
 	/// The Constructor should be linked with a function template that uses TNodeJsUtil::_NewCpp<Obj> as callback
@@ -320,19 +316,14 @@ void TNodeJsUtil::_NewCpp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 }
 
 template <class TClass>
-v8::Local<v8::Object> TNodeJsUtil::NewInstance(TClass* Obj, v8::Persistent<v8::Function>& Constructor) {
+v8::Local<v8::Object> TNodeJsUtil::NewInstance(TClass* Obj) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
-	EAssertR(!Constructor.IsEmpty(), "NewJsInstance<...>::New: constructor is empty. Did you call NewJsInstance<...>::Init(exports); in this module's init function?");
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, Constructor);
+	EAssertR(!TClass::Constructor.IsEmpty(), "NewJsInstance<...>::New: constructor is empty. Did you call NewJsInstance<...>::Init(exports); in this module's init function?");
+	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, TClass::Constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 	Obj->Wrap(Instance);
 	return HandleScope.Escape(Instance);
-}
-
-template <class TClass>
-v8::Local<v8::Object> TNodeJsUtil::NewInstance(TClass* Obj) {
-	return NewInstance(Obj, TClass::Constructor);
 }
 
 template <class TVal>

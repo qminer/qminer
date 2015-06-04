@@ -179,7 +179,7 @@ TNodeJsFltVV* TNodeJsFltVV::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
 			return new TNodeJsFltVV(Mat);
 		} else {
 			if (Args[0]->IsObject()) {
-				if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::ClassId)) {
+				if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId())) {
 					TNodeJsFltVV* FltVV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 					Mat = FltVV->Mat;
 				} else {
@@ -237,7 +237,7 @@ void TNodeJsFltVV::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
 	EAssertR(Args.Length() == 3 && Args[0]->IsInt32() && Args[1]->IsInt32(), "Expected two nonnegative integers as indices");
-	EAssertR(Args[2]->IsNumber() || TNodeJsUtil::IsArgClass(Args, 2, TNodeJsFltVV::ClassId), "Third argument should be a number or a matrix");
+	EAssertR(Args[2]->IsNumber() || TNodeJsUtil::IsArgClass(Args, 2, TNodeJsFltVV::GetClassId()), "Third argument should be a number or a matrix");
 	
 	TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
 	TInt Rows = JsMat->Mat.GetRows();
@@ -828,7 +828,7 @@ void TNodeJsSpVec::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			JsSpVec->Vec.Sort();
 
 		} else if (Args[0]->IsObject()) {
-			EAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpVec::ClassId), "TNodeJsSpVec::New: Arg[0] is an object, but not an instance of a sparse vector!");
+			EAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpVec::GetClassId()), "TNodeJsSpVec::New: Arg[0] is an object, but not an instance of a sparse vector!");
 			TNodeJsSpVec* JsSpVec2 = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
 			JsSpVec->Vec = JsSpVec2->Vec;
 			JsSpVec->Dim = JsSpVec2->Dim;
@@ -1221,7 +1221,7 @@ void TNodeJsSpMat::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		}
 		else {
 			if (Args[0]->IsObject()) {
-				if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::ClassId)) {
+				if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::GetClassId())) {
 					TNodeJsSpMat* JsSpMatArg = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
 					JsSpMat->Mat = JsSpMatArg->Mat;
 					JsSpMat->Rows = JsSpMatArg->Rows;

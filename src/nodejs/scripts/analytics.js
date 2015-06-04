@@ -729,7 +729,7 @@ module.exports = exports = function (pathPrefix) {
     		
     		var dims = ftrSpace.dims;
     		for (var i = 0; i < dims.length; i++) {
-				names.push(ftrSpace.getFtr(i));
+				names.push(ftrSpace.getFeature(i));
 			}
     		
     		return names;
@@ -753,14 +753,14 @@ module.exports = exports = function (pathPrefix) {
 			
 			var coords = mc.fullCoords(stateId);
 			var obsFtrNames = getObsFtrNames();
-			var invObsCoords = obsFtrSpace.invFtrVec(coords);
+			var invObsCoords = obsFtrSpace.invertFeatureVector(coords);
 			for (var i = 0; i < invObsCoords.length; i++) {
 				observations.push({name: obsFtrNames[i], value: invObsCoords.at(i)});
 			}
 			
 			var controlCoords = mc.fullCoords(stateId, false);
 			var contrFtrNames = getControlFtrNames();
-			var invControlCoords = controlFtrSpace.invFtrVec(controlCoords);
+			var invControlCoords = controlFtrSpace.invertFeatureVector(controlCoords);
 			for (var i = 0; i < invControlCoords.length; i++) {
 				controls.push({name: contrFtrNames[i], value: invControlCoords.at(i)});
 			}
@@ -773,9 +773,9 @@ module.exports = exports = function (pathPrefix) {
     	
     	function getFtrCoord(stateId, ftrIdx) {
     		if (ftrIdx < obsFtrSpace.dims.length) {
-    			return obsFtrSpace.invFtrVec(mc.fullCoords(stateId))[ftrIdx];
+    			return obsFtrSpace.invertFeatureVector(mc.fullCoords(stateId))[ftrIdx];
     		} else {
-    			return controlFtrSpace.invFtrVec(mc.fullCoords(stateId, false))[ftrIdx - obsFtrSpace.dims.length];
+    			return controlFtrSpace.invertFeatureVector(mc.fullCoords(stateId, false))[ftrIdx - obsFtrSpace.dims.length];
     		}
     	}
     	
@@ -793,9 +793,9 @@ module.exports = exports = function (pathPrefix) {
     			obsFtrSpace.updateRecords(recSet);
     			controlFtrSpace.updateRecords(recSet);
     			
-    			var obsColMat = obsFtrSpace.ftrColMat(recSet);
-    			var contrColMat = controlFtrSpace.ftrColMat(recSet);
-    			var timeV = recSet.getVec(timeField);
+    			var obsColMat = obsFtrSpace.extractMatrix(recSet);
+    			var contrColMat = controlFtrSpace.extractMatrix(recSet);
+    			var timeV = recSet.getVector(timeField);
     			
     			log.info('Creating model ...');
     			mc.fit({
@@ -815,8 +815,8 @@ module.exports = exports = function (pathPrefix) {
     		update: function (rec) {
     			if (rec == null) return;
     			
-    			var obsFtrVec = obsFtrSpace.ftrVec(rec);
-    			var contFtrVec = controlFtrSpace.ftrVec(rec);
+    			var obsFtrVec = obsFtrSpace.extractVector(rec);
+    			var contFtrVec = controlFtrSpace.extractVector(rec);
     			var timestamp = rec.time.getTime();
     			
     			mc.update(obsFtrVec, contFtrVec, timestamp);
@@ -928,11 +928,11 @@ module.exports = exports = function (pathPrefix) {
     			
     			if (ftrIdx < nObsFtrs) {
 	    			for (var i = 0; i < hist.binStartV.length; i++) {
-	    				hist.binStartV[i] = obsFtrSpace.invFtr(ftrIdx, hist.binStartV[i]);
+	    				hist.binStartV[i] = obsFtrSpace.invertFeature(ftrIdx, hist.binStartV[i]);
 	    			}
     			} else {
     				for (var i = 0; i < hist.binStartV.length; i++) {
-	    				hist.binStartV[i] = controlFtrSpace.invFtr(ftrIdx - nObsFtrs, hist.binStartV[i]);
+	    				hist.binStartV[i] = controlFtrSpace.invertFeature(ftrIdx - nObsFtrs, hist.binStartV[i]);
 	    			}
     			}
     			
@@ -955,11 +955,11 @@ module.exports = exports = function (pathPrefix) {
     		
     		onOutlier: function (callback) {
     			mc.onOutlier(function (ftrV) {
-    				var invFtrV = obsFtrSpace.invFtrVec(ftrV);
+    				var invFtrV = obsFtrSpace.invertFeatureVector(ftrV);
     				
     				var features = [];
     				for (var i = 0; i < invFtrV.length; i++) {
-    					features.push({name: obsFtrSpace.getFtr(i), value: invFtrV.at(i)});
+    					features.push({name: obsFtrSpace.getFeature(i), value: invFtrV.at(i)});
     				}
     				
     				callback(features);

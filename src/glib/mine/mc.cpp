@@ -123,8 +123,13 @@ void TStateIdentifier::InitHistogram(const TFltVV& ObsFtrVV, const TFltVV& Contr
 	InitHist(ControlFtrVV, AssignV, ContrFtrBinStartVV, NClusts, NHistBins, ControlHistStat);
 }
 
+int TStateIdentifier::Assign(const TFltV& x) const {
+	TFltV DistV;	GetCentroidDistV(x, DistV);
+	return TLAMisc::GetMinIdx(DistV);
+}
+
 int TStateIdentifier::Assign(const TVector& x) const {
-	return GetDistVec(x).GetMinIdx();
+	return Assign(x.Vec);
 }
 
 TVector TStateIdentifier::Assign(const TFltVV& X) const {
@@ -151,9 +156,22 @@ TFullMatrix TStateIdentifier::GetDistMat(const TFltVV& X) const {
 	return GetDistMat2(X, NormX2, NormC2, OnesN, OnesK).Sqrt();
 }
 
-TVector TStateIdentifier::GetDistVec(const TVector& x) const {
-	TVector xC = x.IsColVec() ? x.MulT(CentroidMat) : x * CentroidMat;
-	return (CentroidMat.ColNorm2V() - (xC*2) + TVector::Ones(GetClusts(), false) * x.Norm2()).Sqrt();
+void TStateIdentifier::GetCentroidDistV(const TFltV& x, TFltV& DistV) const {
+	// return (CentroidMat.ColNorm2V() - (x*C*2) + TVector::Ones(GetClusts(), false) * NormX2).Sqrt();
+	// 1) squared norm of X
+	const double NormX2 = TLinAlg::Norm2(x);
+
+	// 2) Result <- CentroidMat.ColNorm2V()
+	TLinAlg::GetColNorm2V(CentroidMat.GetMat(), DistV);
+
+	// 3) 2*x*C
+	TFltV xC;	TLinAlg::MultiplyT(CentroidMat.GetMat(), x, xC);
+
+	// 4) <- Result = Result - 2*x*C + ones(clusts, 1)*|x|^2
+	for (int i = 0; i < DistV.Len(); i++) {
+		DistV[i] += NormX2 - 2*xC[i];
+		DistV[i] = sqrt(DistV[i]);
+	}
 }
 
 double TStateIdentifier::GetDist(const int& CentroidIdx, const TVector& Pt) const {
