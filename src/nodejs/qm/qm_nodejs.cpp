@@ -715,7 +715,7 @@ void TNodeJsStore::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());
 	const TWPt<TQm::TStore> Store = JsStore->Store;
-
+	
 	if (!Store->Empty()) {
 		TQm::PStoreIter Iter = Store->ForwardIter();
 
@@ -737,18 +737,17 @@ void TNodeJsStore::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			v8::TryCatch try_catch;
 			Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
 			if (try_catch.HasCaught()) {
-				throw TQm::TQmExcept::New("[exception in callback of store.each]");
+				try_catch.ReThrow();				
+				return;				
 			}
 		} while (Iter->Next());
 	}
-
 }
 
 void TNodeJsStore::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	try {
 		QmAssertR(TNodeJsUtil::IsArgFun(Args, 0), "each: Argument 0 should be a function!");
 
 		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
@@ -780,17 +779,18 @@ void TNodeJsStore::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 					RecObj,
 					v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count))
 				};
+				v8::TryCatch try_catch;
 				v8::Local<v8::Value> ReturnVal = Callback->Call(GlobalContext, Argc, ArgV);
+				if (try_catch.HasCaught()) {
+					try_catch.ReThrow();
+					return;
+				}				
 				ResultV->Set(Count, ReturnVal);
 				Count++;
 			} while (Iter->Next());
 		}
 
 		Args.GetReturnValue().Set(ResultV);
-	}
-	catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
-	}
 }
 
 void TNodeJsStore::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {
