@@ -183,7 +183,7 @@ namespace glib {
 	/// Add given buffer to page, to existing item that has length 0
 	void TPgBlob::ChangeItem(
 		// TODO locks?
-		byte* Pg, uint16 ItemIndex, const byte* Bf, const int BfL) {
+		char* Pg, uint16 ItemIndex, const char* Bf, const int BfL) {
 
 		TPgHeader* Header = (TPgHeader*)Pg;
 		EAssert(BfL + sizeof(TPgBlobPageItem) <= Header->GetFreeMem());
@@ -203,7 +203,7 @@ namespace glib {
 	}
 
 	/// Add given buffer to page, return item-index
-	uint16 TPgBlob::AddItem(byte* Pg, const byte* Bf, const int BfL) {
+	uint16 TPgBlob::AddItem(char* Pg, const char* Bf, const int BfL) {
 		// TODO locks?
 		TPgHeader* Header = (TPgHeader*)Pg;
 		EAssert(Header->CanStoreBf(BfL));
@@ -226,7 +226,7 @@ namespace glib {
 	}
 
 	/// Retrieve buffer from specified page
-	void TPgBlob::GetItem(byte* Pg, uint16 ItemIndex, byte** Bf, int& BfL) {
+	void TPgBlob::GetItem(char* Pg, uint16 ItemIndex, char** Bf, int& BfL) {
 		// TODO locks?
 		TPgBlobPageItem* Item = GetItemRec(Pg, ItemIndex);
 		BfL = Item->Len;
@@ -234,13 +234,13 @@ namespace glib {
 	}
 
 	/// Delete buffer from specified page
-	void TPgBlob::DeleteItem(byte* Pg, uint16 ItemIndex) {
+	void TPgBlob::DeleteItem(char* Pg, uint16 ItemIndex) {
 		// TODO locks?
 
 		TPgBlobPageItem* Item = GetItemRec(Pg, ItemIndex);
 		int PackOffset = Item->Len;
 		TPgHeader* Header = (TPgHeader*)Pg;
-		byte* OldFreeEnd = Pg + Header->OffsetFreeEnd;
+		char* OldFreeEnd = Pg + Header->OffsetFreeEnd;
 		int Len = 0;
 		for (int i = ItemIndex + 1; i < Header->ItemCount; i++) {
 			TPgBlobPageItem* ItemX = GetItemRec(Pg, i);
@@ -259,7 +259,7 @@ namespace glib {
 
 	/// Get pointer to item record - in it are offset and length
 	TPgBlob::TPgBlobPageItem* TPgBlob::GetItemRec(
-		byte* Pg, uint16 ItemIndex) {
+		char* Pg, uint16 ItemIndex) {
 		// TODO locks?
 		return (TPgBlob::TPgBlobPageItem*)(
 			Pg
@@ -290,7 +290,7 @@ namespace glib {
 		}
 
 		// init cache
-		Bf = new byte[CacheSize];
+		Bf = new char[CacheSize];
 		BfL = CacheSize;
 		MxLoadedPages = CacheSize / PAGE_SIZE;
 		LruFirst = LruLast = -1;
@@ -396,7 +396,7 @@ namespace glib {
 	}
 
 	/// Load given page into memory
-	byte* TPgBlob::LoadPage(const TPgBlobPgPt& Pt) {
+	char* TPgBlob::LoadPage(const TPgBlobPgPt& Pt) {
 		int Pg;
 		if (LoadedPagesH.IsKeyGetDat(Pt, Pg)) { // is page in cache
 			MoveToStartLru(Pg);
@@ -421,13 +421,13 @@ namespace glib {
 			int hid = LoadedPagesH.AddKey(Pt);
 			LoadedPagesH[hid] = Pg;
 		}
-		byte* PgPt = GetPageBf(Pg);
+		char* PgPt = GetPageBf(Pg);
 		((TPgHeader*)PgPt)->SetDirty(false);
 		return PgPt;
 	}
 
 	/// Create new page and return pointers to it
-	void TPgBlob::CreateNewPage(TPgBlobPgPt& Pt, byte** Bf) {
+	void TPgBlob::CreateNewPage(TPgBlobPgPt& Pt, char** Bf) {
 		// determine if last file is empty
 		if (Files.Len() > 0) {
 			// try to add to last file
@@ -459,7 +459,7 @@ namespace glib {
 	}
 
 	/// Initialize new page
-	void TPgBlob::InitPageP(byte* Pt) {
+	void TPgBlob::InitPageP(char* Pt) {
 		TPgHeader* Pt2 = (TPgHeader*)Pt;
 		Pt2->Flags = PgHeaderDirtyFlag; // not saved yet
 		Pt2->PageSize = PAGE_SIZE;
@@ -470,12 +470,12 @@ namespace glib {
 	}
 
 	/// Store BLOB to storage
-	TPgBlobPt TPgBlob::Put(const byte* Bf, const int& BfL) {
+	TPgBlobPt TPgBlob::Put(const char* Bf, const int& BfL) {
 		QmAssert(Access != TFAccess::faRdOnly);
 
 		// find page
 		TPgBlobPgPt PgPt;
-		byte* PgBf = NULL;
+		char* PgBf = NULL;
 		TPgHeader* PgH = NULL;
 		bool is_new_page = false;
 
@@ -483,7 +483,7 @@ namespace glib {
 		// use the first one with enough space
 		// TODO is there a faster way? is this slow? it's linear...
 		for (int i = 0; i < LoadedPages.Len(); i++) {
-			byte* PgBfTmp = GetPageBf(i);
+			char* PgBfTmp = GetPageBf(i);
 			PgH = (TPgHeader*)PgBfTmp;
 			if (PgH->CanStoreBf(BfL)) {
 				PgBf = PgBfTmp;
@@ -518,11 +518,11 @@ namespace glib {
 
 	/// Store existing BLOB to storage
 	TPgBlobPt TPgBlob::Put(
-		const byte* Bf, const int& BfL, const TPgBlobPt& Pt) {
+		const char* Bf, const int& BfL, const TPgBlobPt& Pt) {
 		QmAssert(Access != TFAccess::faRdOnly);
 
 		// find page
-		byte* PgBf = NULL;
+		char* PgBf = NULL;
 		TPgHeader* PgH = NULL;
 		TPgBlobPageItem* ItemRec = NULL;
 
@@ -561,9 +561,9 @@ namespace glib {
 
 	/// Retrieve BLOB from storage
 	TQm::TStorage::TThinMIn TPgBlob::Get(const TPgBlobPt& Pt) {
-		byte* Pg = LoadPage(Pt);
+		char* Pg = LoadPage(Pt);
 		TPgBlobPageItem* Item = GetItemRec(Pg, Pt.GetIIx());
-		byte* Data;
+		char* Data;
 		int Len = Item->Len;
 		GetItem(Pg, Pt.GetIIx(), &Data, Len);
 		return TQm::TStorage::TThinMIn(Data, Len);
@@ -592,7 +592,7 @@ namespace glib {
 	/// Marks page as dirty - data inside was written directly
 	void TPgBlob::SetDirty(const TPgBlobPt& Pt) {
 		QmAssert(Access != TFAccess::faRdOnly);
-		byte* Pg = LoadPage(Pt);
+		char* Pg = LoadPage(Pt);
 		((TPgHeader*)Pg)->SetDirty(true);
 	}
 
