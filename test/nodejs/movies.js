@@ -73,7 +73,7 @@ var People = base.store("People");
 assert.equal(People.name, "People", "People.name");
 assert(People.empty, "People.empty");
 assert.equal(People.length, 0, "People.length");
-assert.equal(People.recs.length, 0, "People.recs.length");
+assert.equal(People.allRecords.length, 0, "People.allRecords.length");
 assert.equal(People.fields.length, 2, "People.fields.length");
 assert.equal(People.joins.length, 2, "People.joins.length");
 assert.equal(People.keys.length, 2, "People.keys.length");
@@ -82,7 +82,7 @@ var Movies = base.store("Movies");
 assert.equal(Movies.name, "Movies", "Movies.name");
 assert(Movies.empty, "Movies.empty");
 assert.equal(Movies.length, 0, "Movies.length");
-assert.equal(Movies.recs.length, 0, "Movies.recs.length");
+assert.equal(Movies.allRecords.length, 0, "Movies.allRecords.length");
 assert.equal(Movies.fields.length, 5+2, "Movies.fields.length");
 assert.equal(Movies.joins.length, 2, "Movies.joins.length");
 assert.equal(Movies.keys.length, 4, "Movies.keys.length");
@@ -194,8 +194,8 @@ function testStringify(obj, name) {
 
 testStringify(People[0], "People[0]");
 testStringify(Movies[0], "Movies[0]");
-testStringify(People.recs, "People.recs");
-testStringify(Movies.recs, "Movies.recs");
+testStringify(People.allRecords, "People.allRecords");
+testStringify(Movies.allRecords, "Movies.allRecords");
 
 // sample
 assert.equal(People.sample(0).length, 0, "People.sample(0).length");

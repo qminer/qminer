@@ -73,6 +73,12 @@ private:
 	*/
 	//# exports.verbosity = function (level) { }
 	JsDeclareFunction(verbosity);
+    
+   	/**
+	* @property {boolean} debug - True if QMiner was compiled in debug mode, else false.
+	*/
+	//# exports.debug = false;
+	JsDeclareProperty(debug);
 };
 
 ///////////////////////////////
@@ -694,7 +700,9 @@ public:
 	TWPt<TQm::TBase> Base;
 	// C++ constructor
 	TNodeJsBase(const TWPt<TQm::TBase>& Base_) : Base(Base_) { Watcher = TNodeJsBaseWatcher::New(); }
-	TNodeJsBase(const TStr& DbPath, const TStr& SchemaFNm, const PJsonVal& Schema, const bool& Create, const bool& ForceCreate, const bool& ReadOnly, const TInt& IndexCache, const TInt& StoreCache);
+	TNodeJsBase(const TStr& DbPath, const TStr& SchemaFNm, const PJsonVal& Schema,
+        const bool& Create, const bool& ForceCreate, const bool& ReadOnly,
+        const uint64& IndexCache, const uint64& StoreCache);
 	// Object that knows if Base is valid
 	PNodeJsBaseWatcher Watcher;
 private:		
@@ -918,7 +926,7 @@ private:
 	//! 
 	//! **Functions and properties:**
 	//!
-	//!- `rec = store.rec(recName)` -- get record named `recName`; 
+	//!- `rec = store.recordByName(recName)` -- get record named `recName`;
 	//!     returns `null` when no such record exists
 	/**
 	* Returns a record from the store.
@@ -946,8 +954,8 @@ private:
 	* // get the record with the name "Magnitude"
 	* var record = base.store("Class").rec("Magnitude");
 	*/
-	//# exports.Store.prototype.rec = function (recName) {};
-	JsDeclareFunction(rec);
+	//# exports.Store.prototype.recordByName = function (recName) {};
+	JsDeclareFunction(recordByName);
 
 	//!- `store = store.each(callback)` -- iterates through the store and executes the callback function `callback` on each record. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
 	//!  - `store.each(function (rec) { console.log(JSON.stringify(rec)); })`
@@ -1483,12 +1491,12 @@ private:
 	//# exports.Store.prototype.length = 0;
 	JsDeclareProperty(length);
 
-	//!- `rs = store.recs` -- create a record set containing all the records from the store
+	//!- `rs = store.allRecords` -- create a record set containing all the records from the store
 	/**
 	* Creates a record set containing all the records from the store.
 	*/
-	//# exports.Store.prototype.recs = undefined;
-	JsDeclareProperty(recs);
+	//# exports.Store.prototype.allRecords = undefined;
+	JsDeclareProperty(allRecords);
 
 	//!- `objArr = store.fields` -- array of all the field descriptor JSON objects
 	/**
@@ -1735,8 +1743,8 @@ private:
 * @example
 * // import qm module
 * var qm = require('qminer');
-* // factory based construction using store.recs
-* var rs = store.recs;
+* // factory based construction using store.allRecords
+* var rs = store.allRecords;
 */
 //# exports.RecordSet = function () {}
 class TNodeJsRecSet: public node::ObjectWrap {
@@ -3083,8 +3091,7 @@ public:
 	*     { type: "multinomial", source: "FtrSpace", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
 	* ]);
 	* // update the feature space with the record set 
-	* var rs = Store.recs;
-	* ftr.updateRecords(rs);
+	* ftr.updateRecords(Store.allRecords);
 	* // get the feature vectors of these records
 	* ftr.extractVector(Store[0]); // returns the vector [0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
 	* ftr.extractVector(Store[1]); // returns the vector [1/3, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]

@@ -82,9 +82,9 @@ describe('Record Set Tests', function () {
     beforeEach(function (done) {
     	this.timeout(5000);
         table = new TStore();
-        recSet = table.base.store("Movies").recs;
-        recSet2 = table.base.store("People").recs;
-        recSet3 = table.base.store("Basketball").recs;
+        recSet = table.base.store("Movies").allRecords;
+        recSet2 = table.base.store("People").allRecords;
+        recSet3 = table.base.store("Basketball").allRecords;
         done();
     });
     afterEach(function () {
