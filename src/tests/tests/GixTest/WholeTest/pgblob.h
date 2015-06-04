@@ -215,7 +215,6 @@ namespace glib {
 	////////////////////////////////////////////////////////////
 	/// Multi-file paged-BLOB-storage with cache.
 	/// Has no clue about the meaning of the data in pages. 
-	/// It doesn't even know if data is dirty.
 	class TPgBlob {
 	protected:
 
@@ -339,7 +338,7 @@ namespace glib {
 		bool ShouldSavePageP(byte* Pt) { return ((TPgHeader*)Pt)->IsDirty(); }
 		/// This method should be overridden in derived class to tell 
 		/// if given page can be evicted from cache.
-		bool CanEvictPageP(byte* Pt) { return ((TPgHeader*)Pt)->IsLock(); }
+		bool CanEvictPageP(byte* Pt) { return !((TPgHeader*)Pt)->IsLock(); }
 		/// Load given page into memory
 		byte* LoadPage(const TPgBlobPgPt& Pt);
 		/// Create new page and return pointers to it

@@ -540,24 +540,24 @@ public:
 	}
 };
 
-//TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
-//TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
-//TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
-//TEST(testTInMemStorage, LoadAll1) { XTest::TInMemStorage_LoadAll1(); }
-//TEST(testTInMemStorage, LoadAll2) { XTest::TInMemStorage_LoadAll2(); }
-////TEST(testTInMemStorage, PerfTest) { XTest::TInMemStorage_PerfTest(); }
-//
-//
-//TEST(testTPgBlob, Simple) { XTest::TPgBlob_Complex1(); }
-//TEST(testTPgBlob, PageInit) { XTest::TPgBlob_Page_Init(); }
-//TEST(testTPgBlob, PageAddInt) { XTest::TPgBlob_Page_AddInt(); }
-//TEST(testTPgBlob, PageAddIntMany) { XTest::TPgBlob_Page_AddIntMany(); }
-//TEST(testTPgBlob, PageAddDouble) { XTest::TPgBlob_Page_AddDouble(); }
-//TEST(testTPgBlob, PageAddIntSeveral) { XTest::TPgBlob_Page_AddIntSeveral(); }
-//TEST(testTPgBlob, PageAddIntSeveralDelete) { XTest::TPgBlob_Page_AddIntSeveralDelete(); }
-//TEST(testTPgBlob, PageAddIntSeveralDelete2) { XTest::TPgBlob_Page_AddIntSeveralDelete2(); }
-//
-//TEST(testTPgBlob, AddBf1) { XTest::TPgBlob_AddBf1(); }
+TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
+TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
+TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
+TEST(testTInMemStorage, LoadAll1) { XTest::TInMemStorage_LoadAll1(); }
+TEST(testTInMemStorage, LoadAll2) { XTest::TInMemStorage_LoadAll2(); }
+//TEST(testTInMemStorage, PerfTest) { XTest::TInMemStorage_PerfTest(); }
+
+
+TEST(testTPgBlob, Simple) { XTest::TPgBlob_Complex1(); }
+TEST(testTPgBlob, PageInit) { XTest::TPgBlob_Page_Init(); }
+TEST(testTPgBlob, PageAddInt) { XTest::TPgBlob_Page_AddInt(); }
+TEST(testTPgBlob, PageAddIntMany) { XTest::TPgBlob_Page_AddIntMany(); }
+TEST(testTPgBlob, PageAddDouble) { XTest::TPgBlob_Page_AddDouble(); }
+TEST(testTPgBlob, PageAddIntSeveral) { XTest::TPgBlob_Page_AddIntSeveral(); }
+TEST(testTPgBlob, PageAddIntSeveralDelete) { XTest::TPgBlob_Page_AddIntSeveralDelete(); }
+TEST(testTPgBlob, PageAddIntSeveralDelete2) { XTest::TPgBlob_Page_AddIntSeveralDelete2(); }
+
+TEST(testTPgBlob, AddBf1) { XTest::TPgBlob_AddBf1(); }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -1054,7 +1054,7 @@ TEST(testTStorePbBlob, Test2_Big) {
 
 	// init unicode
 	TUnicodeDef::Load(unicode_file);
-	int rec_count = 1000*1000;
+	int rec_count = 250*1000;
 
 	{
 		// create new base from definition
@@ -1088,6 +1088,8 @@ TEST(testTStorePbBlob, Test2_Big) {
 		EXPECT_EQ(res->GetRecs(), rec_count);
 		//printf("Records: %d\n", res->GetRec(0).GetFieldInt(field_id));
 		for (int i = 0; i < rec_count; i++) {
+			if (i % 1000 == 0)
+				printf("    %d\r", i);
 			TQm::TRec& rec = res->GetRec(i);
 			EXPECT_EQ(rec.GetFieldInt(field_id_int), i);
 			EXPECT_EQ(rec.GetFieldBool(field_id_bool), i % 7 == 3);

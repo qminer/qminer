@@ -421,7 +421,9 @@ namespace glib {
 			int hid = LoadedPagesH.AddKey(Pt);
 			LoadedPagesH[hid] = Pg;
 		}
-		return GetPageBf(Pg);
+		byte* PgPt = GetPageBf(Pg);
+		((TPgHeader*)PgPt)->SetDirty(false);
+		return PgPt;
 	}
 
 	/// Create new page and return pointers to it
