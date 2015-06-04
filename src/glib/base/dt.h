@@ -136,21 +136,24 @@ protected:
   void Resize(const int& _MxBfL);
   bool DoFitLen(const int& LBfL) const {return BfL+LBfL<=MxBfL;}
 public:
-  TMem(const int& _MxBfL=0) {
+  TMem(const int& _MxBfL=0) : TMemBase() {
 	  IAssert(BfL >= 0); MxBfL = _MxBfL; BfL = 0; Bf = NULL; Owner = true;
     if (MxBfL>0){Bf=new char[MxBfL]; IAssert(Bf!=NULL);}}
   static PMem New(const int& MxBfL=0){return new TMem(MxBfL);}
-  TMem(const void* _Bf, const int& _BfL) { 
+  TMem(const void* _Bf, const int& _BfL) : TMemBase() {
 	  IAssert(BfL >= 0); MxBfL = _BfL; BfL = _BfL; Bf = NULL; Owner = true;
 	  if (BfL > 0) { Bf = new char[BfL]; IAssert(Bf != NULL); memcpy(Bf, _Bf, BfL); } }
   static PMem New(const void* Bf, const int& BfL){return new TMem(Bf, BfL);}
-  TMem(const TMem& Mem){
+  TMem(const TMem& Mem) : TMemBase() {
 	  MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL; Owner = true;
     if (MxBfL>0){Bf=new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL);}}
   static PMem New(const TMem& Mem){return new TMem(Mem);}
   static PMem New(const PMem& Mem){return new TMem(*Mem);}
   TMem(const TStr& Str);
-  TMem(TMem&& Src) : TMemBase(Src) {}
+  TMem(TMem&& Src) : TMemBase() {
+	  MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
+	  Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
+  }
   static PMem New(const TStr& Str){return new TMem(Str);}
   ~TMem() { if (Owner && Bf != NULL) { delete[] Bf; }; Owner = false; }
   explicit TMem(TSIn& SIn) {
