@@ -62,7 +62,6 @@
                 'src/third_party/Snap/qlib-core'
             ],
             'defines': [
-                'BLAS',
             ],
             'dependencies': [
                 'glib',
@@ -308,7 +307,6 @@
                 'src/glib/misc/'
             ],
             'defines': [
-                'BLAS'
             ],
             'conditions': [
                 # operating system specific parameters
