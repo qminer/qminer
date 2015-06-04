@@ -265,7 +265,7 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 	// Constructor is used when creating the object from C++
 	Constructor.Reset(Isolate, child->GetFunction());
 	// we need to export the class for calling using "new FIn(...)"
-	exports->Set(v8::String::NewFromUtf8(Isolate, "FIn"),
+	exports->Set(v8::String::NewFromUtf8(Isolate, ClassId.CStr()),
 		tpl->GetFunction());
 
 }
