@@ -748,49 +748,49 @@ void TNodeJsStore::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-		QmAssertR(TNodeJsUtil::IsArgFun(Args, 0), "each: Argument 0 should be a function!");
+	QmAssertR(TNodeJsUtil::IsArgFun(Args, 0), "each: Argument 0 should be a function!");
 
-		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
+	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
 
-		TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());
+	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());
 
-		const TWPt<TQm::TStore> Store = JsStore->Store;
-		const int Recs = (int)Store->GetRecs();
+	const TWPt<TQm::TStore> Store = JsStore->Store;
+	const int Recs = (int)Store->GetRecs();
 
-		v8::Handle<v8::Array> ResultV = v8::Array::New(Isolate, Recs);
+	v8::Handle<v8::Array> ResultV = v8::Array::New(Isolate, Recs);
 
-		if (!Store->Empty()) {
-			v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+	if (!Store->Empty()) {
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 
-			TQm::PStoreIter Iter = Store->ForwardIter();
+		TQm::PStoreIter Iter = Store->ForwardIter();
 
-			QmAssert(Iter->Next());
-			uint32_t Count = 0;
-			uint64 RecId = Iter->GetRecId();
-			const unsigned Argc = 2;
+		QmAssert(Iter->Next());
+		uint32_t Count = 0;
+		uint64 RecId = Iter->GetRecId();
+		const unsigned Argc = 2;
 
-			v8::Local<v8::Object> RecObj = TNodeJsRec::NewInstance(
-                new TNodeJsRec(JsStore->Watcher, Store->GetRec(RecId)));
-			TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(RecObj);
+		v8::Local<v8::Object> RecObj = TNodeJsRec::NewInstance(
+			new TNodeJsRec(JsStore->Watcher, Store->GetRec(RecId)));
+		TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(RecObj);
 
-			do {
-				JsRec->Rec = Store->GetRec(Iter->GetRecId());
-				v8::Local<v8::Value> ArgV[Argc] = {
-					RecObj,
-					v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count))
-				};
-				v8::TryCatch try_catch;
-				v8::Local<v8::Value> ReturnVal = Callback->Call(GlobalContext, Argc, ArgV);
-				if (try_catch.HasCaught()) {
-					try_catch.ReThrow();
-					return;
-				}				
-				ResultV->Set(Count, ReturnVal);
-				Count++;
-			} while (Iter->Next());
-		}
+		do {
+			JsRec->Rec = Store->GetRec(Iter->GetRecId());
+			v8::Local<v8::Value> ArgV[Argc] = {
+				RecObj,
+				v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count))
+			};
+			v8::TryCatch try_catch;
+			v8::Local<v8::Value> ReturnVal = Callback->Call(GlobalContext, Argc, ArgV);
+			if (try_catch.HasCaught()) {
+				try_catch.ReThrow();
+				return;
+			}
+			ResultV->Set(Count, ReturnVal);
+			Count++;
+		} while (Iter->Next());
+	}
 
-		Args.GetReturnValue().Set(ResultV);
+	Args.GetReturnValue().Set(ResultV);
 }
 
 void TNodeJsStore::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {
