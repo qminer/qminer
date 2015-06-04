@@ -101,10 +101,22 @@ public:
 			}
 		}
 	}
+	TMemBase(TMemBase&& Src) {
+		MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
+		Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
+	}
 	virtual ~TMemBase() { if (Owner && Bf != NULL) { delete[] Bf; } }
 	int Len() const { return BfL; }
 	bool Empty() const { return BfL == 0; }
-	char* GetBf() const { return Bf; }	
+	char* GetBf() const { return Bf; }
+	TMemBase& operator=(TMemBase&& Src) {
+		if (this != &Src) {
+			if (Owner && Bf != NULL) { delete[] Bf; }
+			MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
+			Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
+		}
+		return *this;
+	}
 };
 
 /////////////////////////////////////////////////
@@ -138,6 +150,7 @@ public:
   static PMem New(const TMem& Mem){return new TMem(Mem);}
   static PMem New(const PMem& Mem){return new TMem(*Mem);}
   TMem(const TStr& Str);
+  TMem(TMem&& Src) : TMemBase(Src) {}
   static PMem New(const TStr& Str){return new TMem(Str);}
   ~TMem() { if (Owner && Bf != NULL) { delete[] Bf; }; Owner = false; }
   explicit TMem(TSIn& SIn) {
@@ -153,10 +166,18 @@ public:
 
   TMem& operator=(const TMem& Mem){
     if (this!=&Mem){
-      if (Bf!=NULL){delete[] Bf;}
+		if (Owner && Bf != NULL) { delete[] Bf; }
       MxBfL=Mem.MxBfL; BfL=Mem.BfL; Bf=NULL;
       if (MxBfL>0){Bf=new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL);}}
     return *this;}
+  TMem& operator=(TMem&& Src) {
+	  if (this != &Src) {
+		  if (Owner && Bf != NULL) { delete[] Bf; }
+		  MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
+		  Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;		  
+	  }
+	  return *this;
+  }
   char* operator()() const {return Bf;}
   TMem& operator+=(const char& Ch);
   TMem& operator+=(const TMem& Mem);
