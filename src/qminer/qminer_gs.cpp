@@ -1570,7 +1570,7 @@ void TRecSerializator::GetFieldBowSpV(TThinMIn& min, const int& FieldId, PBowSpV
 
 bool TRecSerializator::IsFieldNull(const TMemBase& RecMem, const int& FieldId) const {
 	const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
-	byte* bf = (byte*)RecMem.GetBf() + FieldSerialDesc.NullMapByte;
+	char* bf = RecMem.GetBf() + FieldSerialDesc.NullMapByte;
 	return ((*bf & FieldSerialDesc.NullMapMask) != 0);
 }
 
