@@ -239,7 +239,7 @@ void TMem::Resize(const int& _MxBfL){
   Bf=NewBf;
 }
 
-TMem::TMem(const TStr& Str) {
+TMem::TMem(const TStr& Str) : TMemBase() {
 	MxBfL = Str.Len(); BfL = MxBfL; Bf = NULL; Owner = true;
   if (MxBfL>0){
     Bf=new char[MxBfL];
