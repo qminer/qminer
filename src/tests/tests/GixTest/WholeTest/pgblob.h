@@ -299,14 +299,14 @@ namespace glib {
 		int LruLast;
 
 		/// Memory buffer - cache
-		byte* Bf;
+		char* Bf;
 		/// Buffer length
 		uint64 BfL;
 		/// Maximal number of loaded pages
 		uint64 MxLoadedPages;
 
 		/// Returns starting address of page in Bf
-		byte* GetPageBf(int Pg) { return Bf + Pg * PAGE_SIZE; }
+		char* GetPageBf(int Pg) { return Bf + Pg * PAGE_SIZE; }
 
 		// Method for handling LRU list ///////////////////////////////////
 
@@ -335,30 +335,30 @@ namespace glib {
 		bool CanEvictPage(int Pg) { return CanEvictPageP(GetPageBf(Pg)); }
 		/// This method should be overridden in derived class to tell 
 		/// if given page should be stored to disk.
-		bool ShouldSavePageP(byte* Pt) { return ((TPgHeader*)Pt)->IsDirty(); }
+		bool ShouldSavePageP(char* Pt) { return ((TPgHeader*)Pt)->IsDirty(); }
 		/// This method should be overridden in derived class to tell 
 		/// if given page can be evicted from cache.
-		bool CanEvictPageP(byte* Pt) { return !((TPgHeader*)Pt)->IsLock(); }
+		bool CanEvictPageP(char* Pt) { return !((TPgHeader*)Pt)->IsLock(); }
 		/// Load given page into memory
-		byte* LoadPage(const TPgBlobPgPt& Pt);
+		char* LoadPage(const TPgBlobPgPt& Pt);
 		/// Create new page and return pointers to it
-		void TPgBlob::CreateNewPage(TPgBlobPgPt& Pt, byte** Bf);
+		void TPgBlob::CreateNewPage(TPgBlobPgPt& Pt, char** Bf);
 
 		// Methods for manupulating raw page //////////////////////////////
 
 		/// Initialize new page.
-		static void InitPageP(byte* Pt);
+		static void InitPageP(char* Pt);
 		/// Get pointer to item record - in it are offset and length
-		static TPgBlobPageItem* GetItemRec(byte* Pg, uint16 ItemIndex);
+		static TPgBlobPageItem* GetItemRec(char* Pg, uint16 ItemIndex);
 		/// Add given buffer to page, return item-index
-		static uint16 AddItem(byte* Pg, const byte* Bf, const int BfL);
+		static uint16 AddItem(char* Pg, const char* Bf, const int BfL);
 		/// Retrieve buffer from specified page
-		static void GetItem(byte* Pg, uint16 ItemIndex, byte** Bf, int& BfL);
+		static void GetItem(char* Pg, uint16 ItemIndex, char** Bf, int& BfL);
 		/// Delete buffer from specified page
-		static void DeleteItem(byte* Pg, uint16 ItemIndex);
+		static void DeleteItem(char* Pg, uint16 ItemIndex);
 		/// Add given buffer to page, to existing item that has length 0
 		static void ChangeItem(
-			byte* Pg, uint16 ItemIndex, const byte* Bf, const int BfL);
+			char* Pg, uint16 ItemIndex, const char* Bf, const int BfL);
 
 	public:
 
@@ -376,9 +376,9 @@ namespace glib {
 		static PPgBlob Open(const TStr& FNm, const uint64& CacheSize = 10 * TNum<int>::Mega);
 
 		/// Store new BLOB to storage
-		TPgBlobPt Put(const byte* Bf, const int& BfL);
+		TPgBlobPt Put(const char* Bf, const int& BfL);
 		/// Store existing BLOB to storage
-		TPgBlobPt Put(const byte* Bf, const int& BfL, const TPgBlobPt& Pt);
+		TPgBlobPt Put(const char* Bf, const int& BfL, const TPgBlobPt& Pt);
 		/// Marks page as dirty - data inside was written directly
 		void SetDirty(const TPgBlobPt& Pt);
 		/// Retrieve BLOB from storage

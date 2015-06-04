@@ -257,7 +257,7 @@ public:
 	static void TPgBlob_Complex1() {
 		auto Base = glib::TPgBlob::Create("data\\xyz");
 		glib::TPgBlobPgPt Pt;
-		byte* BfPt;
+		char* BfPt;
 		Base->CreateNewPage(Pt, &BfPt);
 		EXPECT_EQ(Pt.GetFIx(), 0);
 		EXPECT_EQ(Pt.GetPg(), 0);
@@ -267,7 +267,7 @@ public:
 	}
 
 	static void TPgBlob_Page_Init() {
-		byte* bf = new byte[PAGE_SIZE];
+		char* bf = new char[PAGE_SIZE];
 
 		glib::TPgBlob::InitPageP(bf);
 		auto header = (glib::TPgBlob::TPgHeader*)bf;
@@ -283,13 +283,13 @@ public:
 	}
 
 	static void TPgBlob_Page_AddInt() {
-		byte* bf = new byte[PAGE_SIZE];
+		char* bf = new char[PAGE_SIZE];
 		int data = 8765;
 
 		glib::TPgBlob::InitPageP(bf);
 
 		// add value
-		auto res = glib::TPgBlob::AddItem(bf, (byte*)&data, sizeof(int));
+		auto res = glib::TPgBlob::AddItem(bf, (char*)&data, sizeof(int));
 		EXPECT_EQ(res, 0);
 
 		// check internal state
@@ -310,13 +310,13 @@ public:
 	}
 
 	static void TPgBlob_Page_AddDouble() {
-		byte* bf = new byte[PAGE_SIZE];
+		char* bf = new char[PAGE_SIZE];
 		double data = 8765.4321;
 
 		glib::TPgBlob::InitPageP(bf);
 
 		// add value
-		auto res = glib::TPgBlob::AddItem(bf, (byte*)&data, sizeof(double));
+		auto res = glib::TPgBlob::AddItem(bf, (char*)&data, sizeof(double));
 		EXPECT_EQ(res, 0);
 
 		// check internal state
@@ -337,7 +337,7 @@ public:
 	}
 
 	static void TPgBlob_Page_AddIntSeveral() {
-		byte* bf = new byte[PAGE_SIZE];
+		char* bf = new char[PAGE_SIZE];
 		int data1 = 8765;
 		int data2 = 77;
 		int data3 = 91826;
@@ -345,9 +345,9 @@ public:
 		glib::TPgBlob::InitPageP(bf);
 
 		// add value
-		auto res1 = glib::TPgBlob::AddItem(bf, (byte*)&data1, sizeof(int));
-		auto res2 = glib::TPgBlob::AddItem(bf, (byte*)&data2, sizeof(int));
-		auto res3 = glib::TPgBlob::AddItem(bf, (byte*)&data3, sizeof(int));
+		auto res1 = glib::TPgBlob::AddItem(bf, (char*)&data1, sizeof(int));
+		auto res2 = glib::TPgBlob::AddItem(bf, (char*)&data2, sizeof(int));
+		auto res3 = glib::TPgBlob::AddItem(bf, (char*)&data3, sizeof(int));
 		EXPECT_EQ(res1, 0);
 		EXPECT_EQ(res2, 1);
 		EXPECT_EQ(res3, 2);
@@ -376,14 +376,14 @@ public:
 	}
 
 	static void TPgBlob_Page_AddIntMany() {
-		byte* bf = new byte[PAGE_SIZE];
+		char* bf = new char[PAGE_SIZE];
 		int data1 = 5;
 
 		glib::TPgBlob::InitPageP(bf);
 
 		// add values
 		for (int i = 0; i < 1000; i++) {
-			glib::TPgBlob::AddItem(bf, (byte*)&data1, sizeof(int));
+			glib::TPgBlob::AddItem(bf, (char*)&data1, sizeof(int));
 			data1 += 3;
 		}
 
@@ -409,7 +409,7 @@ public:
 	}
 
 	static void TPgBlob_Page_AddIntSeveralDelete() {
-		byte* bf = new byte[PAGE_SIZE];
+		char* bf = new char[PAGE_SIZE];
 		int data1 = 8765;
 		int data2 = 77;
 		int data3 = 91826;
@@ -417,9 +417,9 @@ public:
 		glib::TPgBlob::InitPageP(bf);
 
 		// add value
-		auto res1 = glib::TPgBlob::AddItem(bf, (byte*)&data1, sizeof(int));
-		auto res2 = glib::TPgBlob::AddItem(bf, (byte*)&data2, sizeof(int));
-		auto res3 = glib::TPgBlob::AddItem(bf, (byte*)&data3, sizeof(int));
+		auto res1 = glib::TPgBlob::AddItem(bf, (char*)&data1, sizeof(int));
+		auto res2 = glib::TPgBlob::AddItem(bf, (char*)&data2, sizeof(int));
+		auto res3 = glib::TPgBlob::AddItem(bf, (char*)&data3, sizeof(int));
 
 		glib::TPgBlob::DeleteItem(bf, res2);
 
@@ -444,7 +444,7 @@ public:
 	}
 
 	static void TPgBlob_Page_AddIntSeveralDelete2() {
-		byte* bf = new byte[PAGE_SIZE];
+		char* bf = new char[PAGE_SIZE];
 		int data1 = 8765;
 		int data2 = 77;
 		int data3 = 91826;
@@ -452,9 +452,9 @@ public:
 		glib::TPgBlob::InitPageP(bf);
 
 		// add value
-		auto res1 = glib::TPgBlob::AddItem(bf, (byte*)&data1, sizeof(int));
-		auto res2 = glib::TPgBlob::AddItem(bf, (byte*)&data2, sizeof(int));
-		auto res3 = glib::TPgBlob::AddItem(bf, (byte*)&data3, sizeof(int));
+		auto res1 = glib::TPgBlob::AddItem(bf, (char*)&data1, sizeof(int));
+		auto res2 = glib::TPgBlob::AddItem(bf, (char*)&data2, sizeof(int));
+		auto res3 = glib::TPgBlob::AddItem(bf, (char*)&data3, sizeof(int));
 
 		glib::TPgBlob::DeleteItem(bf, res1);
 
@@ -491,8 +491,8 @@ public:
 		TInt tmp3 = 0;
 
 		auto pb = glib::TPgBlob("data/pb", TFAccess::faCreate, 4194304);
-		auto p1 = pb.Put((byte*)&d1, sizeof(double));
-		auto p2 = pb.Put((byte*)&d2, sizeof(double));
+		auto p1 = pb.Put((char*)&d1, sizeof(double));
+		auto p2 = pb.Put((char*)&d2, sizeof(double));
 
 		EXPECT_EQ(p1.GetFIx(), 0);
 		EXPECT_EQ(p1.GetPg(), 0);
@@ -511,7 +511,7 @@ public:
 		EXPECT_EQ(tmp, d2);
 
 		// now insert int instead of double
-		p1 = pb.Put((byte*)&i1, sizeof(int), p1);
+		p1 = pb.Put((char*)&i1, sizeof(int), p1);
 
 		EXPECT_EQ(p1.GetFIx(), 0);
 		EXPECT_EQ(p1.GetPg(), 0);
@@ -560,438 +560,438 @@ TEST(testTPgBlob, PageAddIntSeveralDelete2) { XTest::TPgBlob_Page_AddIntSeveralD
 TEST(testTPgBlob, AddBf1) { XTest::TPgBlob_AddBf1(); }
 
 ////////////////////////////////////////////////////////////////////////////////
-//
-//
-//TEST(testTPgBlobFsm, Add1) {
-//	glib::TPgBlobFsm fsm;
-//	for (int i = 0; i < 5; i++) {
-//		glib::TPgBlobPgPt pt(0, i);
-//		fsm.FsmAddPage(pt, i);
-//	}
-//
-//	EXPECT_EQ(fsm.Len(), 5);
-//	EXPECT_EQ(fsm[0].GetPg(), 4);
-//	EXPECT_EQ(fsm[1].GetPg(), 3);
-//	EXPECT_EQ(fsm[2].GetPg(), 1);
-//	EXPECT_EQ(fsm[3].GetPg(), 0);
-//	EXPECT_EQ(fsm[4].GetPg(), 2);
-//	EXPECT_EQ(fsm[0].GetIIx(), 4);
-//	EXPECT_EQ(fsm[1].GetIIx(), 3);
-//	EXPECT_EQ(fsm[2].GetIIx(), 1);
-//	EXPECT_EQ(fsm[3].GetIIx(), 0);
-//	EXPECT_EQ(fsm[4].GetIIx(), 2);
-//
-//	bool res1;
-//	glib::TPgBlobPgPt pt1;
-//	res1 = fsm.FsmGetFreePage(2, pt1);
-//	EXPECT_EQ(res1, true);
-//	EXPECT_EQ(pt1.GetPg(), 4);
-//
-//	res1 = fsm.FsmGetFreePage(6, pt1);
-//	EXPECT_EQ(res1, false);
-//}
-//
-//TEST(testTPgBlobFsm, AddUpdateInc) {
-//	glib::TPgBlobFsm fsm;
-//	for (int i = 0; i < 5; i++) {
-//		glib::TPgBlobPgPt pt(0, i);
-//		fsm.FsmAddPage(pt, i);
-//	}
-//
-//	glib::TPgBlobPgPt pt(0, 1);
-//	fsm.FsmUpdatePage(pt, 6); // 1,1 -> 1,6
-//	EXPECT_EQ(fsm.Len(), 5);
-//	EXPECT_EQ(fsm[0].GetPg(), 1);
-//	EXPECT_EQ(fsm[1].GetPg(), 4);
-//	EXPECT_EQ(fsm[2].GetPg(), 2);
-//	EXPECT_EQ(fsm[3].GetPg(), 0);
-//	EXPECT_EQ(fsm[4].GetPg(), 3);
-//	EXPECT_EQ(fsm[0].GetIIx(), 6);
-//	EXPECT_EQ(fsm[1].GetIIx(), 4);
-//	EXPECT_EQ(fsm[2].GetIIx(), 2);
-//	EXPECT_EQ(fsm[3].GetIIx(), 0);
-//	EXPECT_EQ(fsm[4].GetIIx(), 3);
-//}
-//
-//TEST(testTPgBlobFsm, AddUpdateInc2) {
-//	glib::TPgBlobFsm fsm;
-//	for (int i = 0; i < 5; i++) {
-//		glib::TPgBlobPgPt pt(0, i);
-//		fsm.FsmAddPage(pt, i);
-//	}
-//
-//	glib::TPgBlobPgPt pt(0, 1);
-//	fsm.FsmUpdatePage(pt, 4); // 1,1 -> 1,4
-//
-//	EXPECT_EQ(fsm.Len(), 5);
-//	EXPECT_EQ(fsm[0].GetPg(), 4);
-//	EXPECT_EQ(fsm[1].GetPg(), 1);
-//	EXPECT_EQ(fsm[2].GetPg(), 2);
-//	EXPECT_EQ(fsm[3].GetPg(), 0);
-//	EXPECT_EQ(fsm[4].GetPg(), 3);
-//	EXPECT_EQ(fsm[0].GetIIx(), 4);
-//	EXPECT_EQ(fsm[1].GetIIx(), 4);
-//	EXPECT_EQ(fsm[2].GetIIx(), 2);
-//	EXPECT_EQ(fsm[3].GetIIx(), 0);
-//	EXPECT_EQ(fsm[4].GetIIx(), 3);
-//}
-//
-//TEST(testTPgBlobFsm, AddUpdateDec) {
-//	glib::TPgBlobFsm fsm;
-//	for (int i = 0; i < 5; i++) {
-//		glib::TPgBlobPgPt pt(0, i);
-//		fsm.FsmAddPage(pt, i);
-//	}
-//
-//	glib::TPgBlobPgPt pt(0, 1);
-//	fsm.FsmUpdatePage(pt, 0); // 1,1 -> 1,0
-//
-//	EXPECT_EQ(fsm.Len(), 5);
-//	EXPECT_EQ(fsm[0].GetPg(), 4);
-//	EXPECT_EQ(fsm[1].GetPg(), 3);
-//	EXPECT_EQ(fsm[2].GetPg(), 2);
-//	EXPECT_EQ(fsm[3].GetPg(), 0);
-//	EXPECT_EQ(fsm[4].GetPg(), 1);
-//	EXPECT_EQ(fsm[0].GetIIx(), 4);
-//	EXPECT_EQ(fsm[1].GetIIx(), 3);
-//	EXPECT_EQ(fsm[2].GetIIx(), 2);
-//	EXPECT_EQ(fsm[3].GetIIx(), 0);
-//	EXPECT_EQ(fsm[4].GetIIx(), 0);
-//}
-//
-//TEST(testTPgBlobFsm, AddUpdateDec2) {
-//	glib::TPgBlobFsm fsm;
-//	for (int i = 0; i < 5; i++) {
-//		glib::TPgBlobPgPt pt(0, i);
-//		fsm.FsmAddPage(pt, i);
-//	}
-//
-//	glib::TPgBlobPgPt pt(0, 2);
-//	fsm.FsmUpdatePage(pt, 0); // 2,2 -> 2,0
-//
-//	EXPECT_EQ(fsm.Len(), 5);
-//	EXPECT_EQ(fsm[0].GetPg(), 4);
-//	EXPECT_EQ(fsm[1].GetPg(), 3);
-//	EXPECT_EQ(fsm[2].GetPg(), 1);
-//	EXPECT_EQ(fsm[3].GetPg(), 0);
-//	EXPECT_EQ(fsm[4].GetPg(), 2);
-//	EXPECT_EQ(fsm[0].GetIIx(), 4);
-//	EXPECT_EQ(fsm[1].GetIIx(), 3);
-//	EXPECT_EQ(fsm[2].GetIIx(), 1);
-//	EXPECT_EQ(fsm[3].GetIIx(), 0);
-//	EXPECT_EQ(fsm[4].GetIIx(), 0);
-//}
-//
-//TEST(testTPgBlobFsm, AddUpdateDec3) {
-//	glib::TPgBlobFsm fsm;
-//	for (int i = 0; i < 5; i++) {
-//		glib::TPgBlobPgPt pt(0, i);
-//		fsm.FsmAddPage(pt, i);
-//	}
-//
-//	glib::TPgBlobPgPt pt(0, 4);
-//	fsm.FsmUpdatePage(pt, 2); // 4,4 -> 4,2
-//
-//	EXPECT_EQ(fsm.Len(), 5);
-//	EXPECT_EQ(fsm[0].GetPg(), 3);
-//	EXPECT_EQ(fsm[1].GetPg(), 2);
-//	EXPECT_EQ(fsm[2].GetPg(), 1);
-//	EXPECT_EQ(fsm[3].GetPg(), 0);
-//	EXPECT_EQ(fsm[4].GetPg(), 4);
-//	EXPECT_EQ(fsm[0].GetIIx(), 3);
-//	EXPECT_EQ(fsm[1].GetIIx(), 2);
-//	EXPECT_EQ(fsm[2].GetIIx(), 1);
-//	EXPECT_EQ(fsm[3].GetIIx(), 0);
-//	EXPECT_EQ(fsm[4].GetIIx(), 2);
-//}
-//
-////////////////////////////////////////////////////
-//TEST(testTBlobBs, Simple10) {
-//
-//	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
-//	auto p1 = blobbs->PutBlob("0123456789"); // length 10
-//
-//	auto stats = blobbs->GetStats();
-//	EXPECT_EQ(stats.AllocCount, 1);
-//	EXPECT_EQ(stats.AllocSize, 10);
-//	EXPECT_EQ(stats.AllocUnusedSize, 0);
-//	EXPECT_EQ(stats.AllocUsedSize, 10);
-//	EXPECT_EQ(stats.ReleasedCount, 0);
-//	EXPECT_EQ(stats.ReleasedSize, 0);
-//}
-//
-//TEST(testTBlobBs, Simple7) {
-//	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
-//	auto p1 = blobbs->PutBlob("0123456"); // length 7
-//
-//	auto stats = blobbs->GetStats();
-//	EXPECT_EQ(stats.AllocCount, 1);
-//	EXPECT_EQ(stats.AllocSize, 8);
-//	EXPECT_EQ(stats.AllocUnusedSize, 1);
-//	EXPECT_EQ(stats.AllocUsedSize, 7);
-//	EXPECT_EQ(stats.ReleasedCount, 0);
-//	EXPECT_EQ(stats.ReleasedSize, 0);
-//}
-//
-//TEST(testTBlobBs, Medium12) {
-//	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
-//	auto p1 = blobbs->PutBlob("0123456"); // length 7
-//	auto p2 = blobbs->PutBlob("0123456789012"); // length 13
-//
-//	auto stats = blobbs->GetStats();
-//	EXPECT_EQ(stats.AllocCount, 2);
-//	EXPECT_EQ(stats.AllocSize, 24);
-//	EXPECT_EQ(stats.AllocUnusedSize, 4);
-//	EXPECT_EQ(stats.AllocUsedSize, 20);
-//	EXPECT_EQ(stats.ReleasedCount, 0);
-//	EXPECT_EQ(stats.ReleasedSize, 0);
-//}
-//
-//TEST(testTBlobBs, Simple7Del) {
-//	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
-//	auto p1 = blobbs->PutBlob("0123456"); // length 7
-//	blobbs->DelBlob(p1);
-//
-//	auto stats = blobbs->GetStats();
-//	EXPECT_EQ(stats.AllocCount, 0);
-//	EXPECT_EQ(stats.AllocSize, 0);
-//	EXPECT_EQ(stats.AllocUnusedSize, 0);
-//	EXPECT_EQ(stats.AllocUsedSize, 0);
-//	EXPECT_EQ(stats.ReleasedCount, 1);
-//	EXPECT_EQ(stats.ReleasedSize, 8);
-//}
-//
-//TEST(testTBlobBs, Medium12Del) {
-//	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
-//	auto p1 = blobbs->PutBlob("0123456"); // length 7
-//	auto p2 = blobbs->PutBlob("0123456789012"); // length 13
-//	blobbs->DelBlob(p1);
-//	blobbs->DelBlob(p2);
-//
-//	auto stats = blobbs->GetStats();
-//	EXPECT_EQ(stats.AllocCount, 0);
-//	EXPECT_EQ(stats.AllocSize, 0);
-//	EXPECT_EQ(stats.AllocUnusedSize, 0);
-//	EXPECT_EQ(stats.AllocUsedSize, 0);
-//	EXPECT_EQ(stats.ReleasedCount, 2);
-//	EXPECT_EQ(stats.ReleasedSize, 24);
-//}
-//
-//TEST(testTBlobBs, Medium12DelPut) {
-//	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
-//	auto p1 = blobbs->PutBlob("0123456"); // length 7
-//	auto p2 = blobbs->PutBlob("0123456789012"); // length 13
-//	blobbs->DelBlob(p1);
-//	blobbs->DelBlob(p2);
-//	auto p3 = blobbs->PutBlob("0123456"); // length 7
-//
-//	auto stats = blobbs->GetStats();
-//	EXPECT_EQ(stats.AllocCount, 1);
-//	EXPECT_EQ(stats.AllocSize, 8);
-//	EXPECT_EQ(stats.AllocUnusedSize, 1);
-//	EXPECT_EQ(stats.AllocUsedSize, 7);
-//	EXPECT_EQ(stats.ReleasedCount, 1);
-//	EXPECT_EQ(stats.ReleasedSize, 16);
-//}
-//
-//TEST(testTBlobBs, Medium12DelPut2) {
-//	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
-//	auto p1 = blobbs->PutBlob("0123456"); // length 7
-//	auto p2 = blobbs->PutBlob("0123456789012"); // length 13
-//	blobbs->DelBlob(p1);
-//	blobbs->DelBlob(p2);
-//	auto p3 = blobbs->PutBlob("0123456789012345678"); // length 19
-//
-//	auto stats = blobbs->GetStats();
-//	EXPECT_EQ(stats.AllocCount, 1);
-//	EXPECT_EQ(stats.AllocSize, 20);
-//	EXPECT_EQ(stats.AllocUnusedSize, 1);
-//	EXPECT_EQ(stats.AllocUsedSize, 19);
-//	EXPECT_EQ(stats.ReleasedCount, 2);
-//	EXPECT_EQ(stats.ReleasedSize, 24);
-//}
-//
-//
-//TEST(testTBase, MoviesTest1) {
-//	TQm::TEnv::Init();
-//
-//	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
-//	TStr def_dir = "..\\..\\..\\..\\..\\examples\\movies";
-//
-//	//TStr def_file = def_dir + "\\movies.def";
-//	//TStr def_file = def_dir + "\\movies_small.def";
-//	TStr def_file = ".\\movies_small.def";
-//
-//	//TStr data_file = def_dir + "\\sandbox\\movies\\movies.json";
-//	TStr data_file = "..\\..\\..\\..\\..\\test\\nodejs\\sandbox\\movies\\movies_data.txt";
-//
-//	// init unicode
-//	TUnicodeDef::Load(unicode_file);
-//
-//	// create new base from definition
-//	PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
-//	TPt<TQm::TBase> Base = TQm::TStorage::NewBase("data\\", SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-//
-//	// load movies data
-//	{
-//		{
-//			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("Movies");
-//			{
-//				PSIn fin = TFIn::New(data_file);
-//				TStr s;
-//				while (fin->GetNextLn(s)) {
-//					PJsonVal json = TJsonVal::GetValFromStr(s);
-//					store->AddRec(json);
-//				}
-//			}
-//		}
-//	}
-//	// do some querying
-//
-//	/*auto res = Base->Search("{ \"$from\": \"Movies\", \"$or\": [ { \"Genres\": \"Action\" }, { \"Plot\": \"America\" } ] }");
-//	printf("Records: %d\n", res->GetRecs());*/
-//
-//	auto res = Base->Search("{ \"$join\": { \"$name\": \"Actor\", \"$query\" : { \"$from\": \"Movies\", \"Genres\" : \"Horror\", \"$or\" : [{ \"Title\": \"lost\" }, { \"Plot\": \"lost\" }]}}}");
-//	printf("Records: %d\n", res->GetRecs());
-//}
-//
-//
-//TPt<TQm::TBase> CreatePeopleBase(bool big_file = false) {
-//	TQm::TEnv::Init();
-//
-//	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
-//	TStr def_dir = "test";
-//
-//	TStr def_file = def_dir + "\\people.def.json";
-//	TStr data_file = def_dir + (big_file ? "\\people_huge.json" : "\\people_small.json");
-//	TStr data_dir = "data\\";
-//
-//	// init unicode
-//	TUnicodeDef::Load(unicode_file);
-//
-//	// delete existing files
-//	if (TDir::Exists(data_dir)) {
-//		TStrV FNmV;
-//		TStrV FExtV;
-//		TFFile::GetFNmV(data_dir, FExtV, true, FNmV);
-//		bool DirEmpty = FNmV.Len() == 0;
-//
-//		// delete all files
-//		for (int FileN = 0; FileN < FNmV.Len(); FileN++) {
-//			TFile::Del(FNmV[FileN], true);
-//		}
-//	}
-//
-//	// create new base from definition
-//	PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
-//	TPt<TQm::TBase> Base = TQm::TStorage::NewBase(data_dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-//
-//	// load movies data
-//	{
-//		{
-//			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
-//			{
-//				PSIn fin = TFIn::New(data_file);
-//				TStr s;
-//				while (fin->GetNextLn(s)) {
-//					PJsonVal json = TJsonVal::GetValFromStr(s);
-//					store->AddRec(json);
-//				}
-//			}
-//		}
-//	}
-//	Base->ResetGixStats();
-//	return Base;
-//}
-//
-//TWPt<TQm::TBase> OpenPeopleBaseWPt(bool read_only = false) {
-//	TQm::TEnv::Init();
-//
-//	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
-//	TStr def_dir = "test";
-//	TStr data_dir = "data\\";
-//
-//	// init unicode
-//	TUnicodeDef::Load(unicode_file);
-//	return TQm::TStorage::LoadBase(data_dir, (read_only ? TFAccess::faRdOnly : TFAccess::faUpdate), 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), false, 4 * TInt::Kilo);
-//}
-//
-//TPt<TQm::TBase> OpenPeopleBase(bool read_only = false) {
-//	TPt<TQm::TBase> Base = OpenPeopleBaseWPt(read_only);
-//	return Base;
-//}
-//
-//TEST(testTBase, ClearStoreTest1) {
-//	auto Base = CreatePeopleBase();
-//	auto store = Base->GetStoreByStoreNm("People");
-//	store->DeleteFirstNRecs((int)store->GetRecs());
-//	EXPECT_EQ(store->GetRecs(), 0);
-//}
-//TEST(testTBase, ClearStoreTest2) {
-//	auto Base = CreatePeopleBase();
-//	auto store = Base->GetStoreByStoreNm("People");
-//	store->DeleteFirstNRecs(1);
-//	EXPECT_EQ(store->GetRecs(), 1);
-//}
-//TEST(testTBase, ClearStoreTestBig1) {
-//	auto Base = CreatePeopleBase(true);
-//	auto store = Base->GetStoreByStoreNm("People");
-//	store->DeleteFirstNRecs((int)store->GetRecs());
-//	EXPECT_EQ(store->GetRecs(), 0);
-//}
-//TEST(testTBase, ClearStoreTestBig2) {
-//	auto Base = CreatePeopleBase(true);
-//	auto store = Base->GetStoreByStoreNm("People");
-//	store->DeleteFirstNRecs((int)store->GetRecs() - 1);
-//	EXPECT_EQ(store->GetRecs(), 1);
-//}
-//TEST(testTBase, ClearStoreTestBigComplex) {
-//	int recs = -1;
-//	{
-//		auto Base = CreatePeopleBase(true);
-//		Base->PartialFlush(500);
-//		auto store = Base->GetStoreByStoreNm("People");
-//		recs = (int)store->GetRecs();
-//		TQm::TStorage::SaveBase(Base);
-//
-//		printf("%s\n", Base->GetStats()->SaveStr());
-//	}
-//	{
-//		auto Base = OpenPeopleBase();
-//		auto store = Base->GetStoreByStoreNm("People");
-//		EXPECT_EQ(store->GetRecs(), recs);
-//		store->DeleteFirstNRecs((int)store->GetRecs() - 1);
-//		EXPECT_EQ(store->GetRecs(), 1);
-//	}
-//}
-//
-////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//TEST(testTBase, ReadOnlyAfterCrash) {
-//	int recs = -1;
-//	{
-//		// create new database
-//		auto Base = CreatePeopleBase(true);
-//		Base->PartialFlush(500);
-//		auto store = Base->GetStoreByStoreNm("People");
-//		recs = (int)store->GetRecs();
-//		TQm::TStorage::SaveBase(Base);
-//	}
-//	{
-//		// open it in read-only mode
-//		auto Base = OpenPeopleBaseWPt(true);
-//		auto Base2 = Base();
-//		
-//	}
-//	{
-//		auto Base = OpenPeopleBase();
-//		auto store = Base->GetStoreByStoreNm("People");
-//		EXPECT_EQ(store->GetRecs(), recs);
-//		store->DeleteFirstNRecs((int)store->GetRecs() - 1);
-//		EXPECT_EQ(store->GetRecs(), 1);
-//	}
-//}
-//
+
+
+TEST(testTPgBlobFsm, Add1) {
+	glib::TPgBlobFsm fsm;
+	for (int i = 0; i < 5; i++) {
+		glib::TPgBlobPgPt pt(0, i);
+		fsm.FsmAddPage(pt, i);
+	}
+
+	EXPECT_EQ(fsm.Len(), 5);
+	EXPECT_EQ(fsm[0].GetPg(), 4);
+	EXPECT_EQ(fsm[1].GetPg(), 3);
+	EXPECT_EQ(fsm[2].GetPg(), 1);
+	EXPECT_EQ(fsm[3].GetPg(), 0);
+	EXPECT_EQ(fsm[4].GetPg(), 2);
+	EXPECT_EQ(fsm[0].GetIIx(), 4);
+	EXPECT_EQ(fsm[1].GetIIx(), 3);
+	EXPECT_EQ(fsm[2].GetIIx(), 1);
+	EXPECT_EQ(fsm[3].GetIIx(), 0);
+	EXPECT_EQ(fsm[4].GetIIx(), 2);
+
+	bool res1;
+	glib::TPgBlobPgPt pt1;
+	res1 = fsm.FsmGetFreePage(2, pt1);
+	EXPECT_EQ(res1, true);
+	EXPECT_EQ(pt1.GetPg(), 4);
+
+	res1 = fsm.FsmGetFreePage(6, pt1);
+	EXPECT_EQ(res1, false);
+}
+
+TEST(testTPgBlobFsm, AddUpdateInc) {
+	glib::TPgBlobFsm fsm;
+	for (int i = 0; i < 5; i++) {
+		glib::TPgBlobPgPt pt(0, i);
+		fsm.FsmAddPage(pt, i);
+	}
+
+	glib::TPgBlobPgPt pt(0, 1);
+	fsm.FsmUpdatePage(pt, 6); // 1,1 -> 1,6
+	EXPECT_EQ(fsm.Len(), 5);
+	EXPECT_EQ(fsm[0].GetPg(), 1);
+	EXPECT_EQ(fsm[1].GetPg(), 4);
+	EXPECT_EQ(fsm[2].GetPg(), 2);
+	EXPECT_EQ(fsm[3].GetPg(), 0);
+	EXPECT_EQ(fsm[4].GetPg(), 3);
+	EXPECT_EQ(fsm[0].GetIIx(), 6);
+	EXPECT_EQ(fsm[1].GetIIx(), 4);
+	EXPECT_EQ(fsm[2].GetIIx(), 2);
+	EXPECT_EQ(fsm[3].GetIIx(), 0);
+	EXPECT_EQ(fsm[4].GetIIx(), 3);
+}
+
+TEST(testTPgBlobFsm, AddUpdateInc2) {
+	glib::TPgBlobFsm fsm;
+	for (int i = 0; i < 5; i++) {
+		glib::TPgBlobPgPt pt(0, i);
+		fsm.FsmAddPage(pt, i);
+	}
+
+	glib::TPgBlobPgPt pt(0, 1);
+	fsm.FsmUpdatePage(pt, 4); // 1,1 -> 1,4
+
+	EXPECT_EQ(fsm.Len(), 5);
+	EXPECT_EQ(fsm[0].GetPg(), 4);
+	EXPECT_EQ(fsm[1].GetPg(), 1);
+	EXPECT_EQ(fsm[2].GetPg(), 2);
+	EXPECT_EQ(fsm[3].GetPg(), 0);
+	EXPECT_EQ(fsm[4].GetPg(), 3);
+	EXPECT_EQ(fsm[0].GetIIx(), 4);
+	EXPECT_EQ(fsm[1].GetIIx(), 4);
+	EXPECT_EQ(fsm[2].GetIIx(), 2);
+	EXPECT_EQ(fsm[3].GetIIx(), 0);
+	EXPECT_EQ(fsm[4].GetIIx(), 3);
+}
+
+TEST(testTPgBlobFsm, AddUpdateDec) {
+	glib::TPgBlobFsm fsm;
+	for (int i = 0; i < 5; i++) {
+		glib::TPgBlobPgPt pt(0, i);
+		fsm.FsmAddPage(pt, i);
+	}
+
+	glib::TPgBlobPgPt pt(0, 1);
+	fsm.FsmUpdatePage(pt, 0); // 1,1 -> 1,0
+
+	EXPECT_EQ(fsm.Len(), 5);
+	EXPECT_EQ(fsm[0].GetPg(), 4);
+	EXPECT_EQ(fsm[1].GetPg(), 3);
+	EXPECT_EQ(fsm[2].GetPg(), 2);
+	EXPECT_EQ(fsm[3].GetPg(), 0);
+	EXPECT_EQ(fsm[4].GetPg(), 1);
+	EXPECT_EQ(fsm[0].GetIIx(), 4);
+	EXPECT_EQ(fsm[1].GetIIx(), 3);
+	EXPECT_EQ(fsm[2].GetIIx(), 2);
+	EXPECT_EQ(fsm[3].GetIIx(), 0);
+	EXPECT_EQ(fsm[4].GetIIx(), 0);
+}
+
+TEST(testTPgBlobFsm, AddUpdateDec2) {
+	glib::TPgBlobFsm fsm;
+	for (int i = 0; i < 5; i++) {
+		glib::TPgBlobPgPt pt(0, i);
+		fsm.FsmAddPage(pt, i);
+	}
+
+	glib::TPgBlobPgPt pt(0, 2);
+	fsm.FsmUpdatePage(pt, 0); // 2,2 -> 2,0
+
+	EXPECT_EQ(fsm.Len(), 5);
+	EXPECT_EQ(fsm[0].GetPg(), 4);
+	EXPECT_EQ(fsm[1].GetPg(), 3);
+	EXPECT_EQ(fsm[2].GetPg(), 1);
+	EXPECT_EQ(fsm[3].GetPg(), 0);
+	EXPECT_EQ(fsm[4].GetPg(), 2);
+	EXPECT_EQ(fsm[0].GetIIx(), 4);
+	EXPECT_EQ(fsm[1].GetIIx(), 3);
+	EXPECT_EQ(fsm[2].GetIIx(), 1);
+	EXPECT_EQ(fsm[3].GetIIx(), 0);
+	EXPECT_EQ(fsm[4].GetIIx(), 0);
+}
+
+TEST(testTPgBlobFsm, AddUpdateDec3) {
+	glib::TPgBlobFsm fsm;
+	for (int i = 0; i < 5; i++) {
+		glib::TPgBlobPgPt pt(0, i);
+		fsm.FsmAddPage(pt, i);
+	}
+
+	glib::TPgBlobPgPt pt(0, 4);
+	fsm.FsmUpdatePage(pt, 2); // 4,4 -> 4,2
+
+	EXPECT_EQ(fsm.Len(), 5);
+	EXPECT_EQ(fsm[0].GetPg(), 3);
+	EXPECT_EQ(fsm[1].GetPg(), 2);
+	EXPECT_EQ(fsm[2].GetPg(), 1);
+	EXPECT_EQ(fsm[3].GetPg(), 0);
+	EXPECT_EQ(fsm[4].GetPg(), 4);
+	EXPECT_EQ(fsm[0].GetIIx(), 3);
+	EXPECT_EQ(fsm[1].GetIIx(), 2);
+	EXPECT_EQ(fsm[2].GetIIx(), 1);
+	EXPECT_EQ(fsm[3].GetIIx(), 0);
+	EXPECT_EQ(fsm[4].GetIIx(), 2);
+}
+
+//////////////////////////////////////////////////
+TEST(testTBlobBs, Simple10) {
+
+	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+	auto p1 = blobbs->PutBlob("0123456789"); // length 10
+
+	auto stats = blobbs->GetStats();
+	EXPECT_EQ(stats.AllocCount, 1);
+	EXPECT_EQ(stats.AllocSize, 10);
+	EXPECT_EQ(stats.AllocUnusedSize, 0);
+	EXPECT_EQ(stats.AllocUsedSize, 10);
+	EXPECT_EQ(stats.ReleasedCount, 0);
+	EXPECT_EQ(stats.ReleasedSize, 0);
+}
+
+TEST(testTBlobBs, Simple7) {
+	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+	auto p1 = blobbs->PutBlob("0123456"); // length 7
+
+	auto stats = blobbs->GetStats();
+	EXPECT_EQ(stats.AllocCount, 1);
+	EXPECT_EQ(stats.AllocSize, 8);
+	EXPECT_EQ(stats.AllocUnusedSize, 1);
+	EXPECT_EQ(stats.AllocUsedSize, 7);
+	EXPECT_EQ(stats.ReleasedCount, 0);
+	EXPECT_EQ(stats.ReleasedSize, 0);
+}
+
+TEST(testTBlobBs, Medium12) {
+	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+	auto p1 = blobbs->PutBlob("0123456"); // length 7
+	auto p2 = blobbs->PutBlob("0123456789012"); // length 13
+
+	auto stats = blobbs->GetStats();
+	EXPECT_EQ(stats.AllocCount, 2);
+	EXPECT_EQ(stats.AllocSize, 24);
+	EXPECT_EQ(stats.AllocUnusedSize, 4);
+	EXPECT_EQ(stats.AllocUsedSize, 20);
+	EXPECT_EQ(stats.ReleasedCount, 0);
+	EXPECT_EQ(stats.ReleasedSize, 0);
+}
+
+TEST(testTBlobBs, Simple7Del) {
+	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+	auto p1 = blobbs->PutBlob("0123456"); // length 7
+	blobbs->DelBlob(p1);
+
+	auto stats = blobbs->GetStats();
+	EXPECT_EQ(stats.AllocCount, 0);
+	EXPECT_EQ(stats.AllocSize, 0);
+	EXPECT_EQ(stats.AllocUnusedSize, 0);
+	EXPECT_EQ(stats.AllocUsedSize, 0);
+	EXPECT_EQ(stats.ReleasedCount, 1);
+	EXPECT_EQ(stats.ReleasedSize, 8);
+}
+
+TEST(testTBlobBs, Medium12Del) {
+	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+	auto p1 = blobbs->PutBlob("0123456"); // length 7
+	auto p2 = blobbs->PutBlob("0123456789012"); // length 13
+	blobbs->DelBlob(p1);
+	blobbs->DelBlob(p2);
+
+	auto stats = blobbs->GetStats();
+	EXPECT_EQ(stats.AllocCount, 0);
+	EXPECT_EQ(stats.AllocSize, 0);
+	EXPECT_EQ(stats.AllocUnusedSize, 0);
+	EXPECT_EQ(stats.AllocUsedSize, 0);
+	EXPECT_EQ(stats.ReleasedCount, 2);
+	EXPECT_EQ(stats.ReleasedSize, 24);
+}
+
+TEST(testTBlobBs, Medium12DelPut) {
+	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+	auto p1 = blobbs->PutBlob("0123456"); // length 7
+	auto p2 = blobbs->PutBlob("0123456789012"); // length 13
+	blobbs->DelBlob(p1);
+	blobbs->DelBlob(p2);
+	auto p3 = blobbs->PutBlob("0123456"); // length 7
+
+	auto stats = blobbs->GetStats();
+	EXPECT_EQ(stats.AllocCount, 1);
+	EXPECT_EQ(stats.AllocSize, 8);
+	EXPECT_EQ(stats.AllocUnusedSize, 1);
+	EXPECT_EQ(stats.AllocUsedSize, 7);
+	EXPECT_EQ(stats.ReleasedCount, 1);
+	EXPECT_EQ(stats.ReleasedSize, 16);
+}
+
+TEST(testTBlobBs, Medium12DelPut2) {
+	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+	auto p1 = blobbs->PutBlob("0123456"); // length 7
+	auto p2 = blobbs->PutBlob("0123456789012"); // length 13
+	blobbs->DelBlob(p1);
+	blobbs->DelBlob(p2);
+	auto p3 = blobbs->PutBlob("0123456789012345678"); // length 19
+
+	auto stats = blobbs->GetStats();
+	EXPECT_EQ(stats.AllocCount, 1);
+	EXPECT_EQ(stats.AllocSize, 20);
+	EXPECT_EQ(stats.AllocUnusedSize, 1);
+	EXPECT_EQ(stats.AllocUsedSize, 19);
+	EXPECT_EQ(stats.ReleasedCount, 2);
+	EXPECT_EQ(stats.ReleasedSize, 24);
+}
+
+
+TEST(testTBase, MoviesTest1) {
+	TQm::TEnv::Init();
+
+	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
+	TStr def_dir = "..\\..\\..\\..\\..\\examples\\movies";
+
+	//TStr def_file = def_dir + "\\movies.def";
+	//TStr def_file = def_dir + "\\movies_small.def";
+	TStr def_file = ".\\movies_small.def";
+
+	//TStr data_file = def_dir + "\\sandbox\\movies\\movies.json";
+	TStr data_file = "..\\..\\..\\..\\..\\test\\nodejs\\sandbox\\movies\\movies_data.txt";
+
+	// init unicode
+	TUnicodeDef::Load(unicode_file);
+
+	// create new base from definition
+	PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+	TPt<TQm::TBase> Base = TQm::TStorage::NewBase("data\\", SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+
+	// load movies data
+	{
+		{
+			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("Movies");
+			{
+				PSIn fin = TFIn::New(data_file);
+				TStr s;
+				while (fin->GetNextLn(s)) {
+					PJsonVal json = TJsonVal::GetValFromStr(s);
+					store->AddRec(json);
+				}
+			}
+		}
+	}
+	// do some querying
+
+	/*auto res = Base->Search("{ \"$from\": \"Movies\", \"$or\": [ { \"Genres\": \"Action\" }, { \"Plot\": \"America\" } ] }");
+	printf("Records: %d\n", res->GetRecs());*/
+
+	auto res = Base->Search("{ \"$join\": { \"$name\": \"Actor\", \"$query\" : { \"$from\": \"Movies\", \"Genres\" : \"Horror\", \"$or\" : [{ \"Title\": \"lost\" }, { \"Plot\": \"lost\" }]}}}");
+	printf("Records: %d\n", res->GetRecs());
+}
+
+
+TPt<TQm::TBase> CreatePeopleBase(bool big_file = false) {
+	TQm::TEnv::Init();
+
+	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
+	TStr def_dir = "test";
+
+	TStr def_file = def_dir + "\\people.def.json";
+	TStr data_file = def_dir + (big_file ? "\\people_huge.json" : "\\people_small.json");
+	TStr data_dir = "data\\";
+
+	// init unicode
+	TUnicodeDef::Load(unicode_file);
+
+	// delete existing files
+	if (TDir::Exists(data_dir)) {
+		TStrV FNmV;
+		TStrV FExtV;
+		TFFile::GetFNmV(data_dir, FExtV, true, FNmV);
+		bool DirEmpty = FNmV.Len() == 0;
+
+		// delete all files
+		for (int FileN = 0; FileN < FNmV.Len(); FileN++) {
+			TFile::Del(FNmV[FileN], true);
+		}
+	}
+
+	// create new base from definition
+	PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+	TPt<TQm::TBase> Base = TQm::TStorage::NewBase(data_dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+
+	// load movies data
+	{
+		{
+			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
+			{
+				PSIn fin = TFIn::New(data_file);
+				TStr s;
+				while (fin->GetNextLn(s)) {
+					PJsonVal json = TJsonVal::GetValFromStr(s);
+					store->AddRec(json);
+				}
+			}
+		}
+	}
+	Base->ResetGixStats();
+	return Base;
+}
+
+TWPt<TQm::TBase> OpenPeopleBaseWPt(bool read_only = false) {
+	TQm::TEnv::Init();
+
+	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
+	TStr def_dir = "test";
+	TStr data_dir = "data\\";
+
+	// init unicode
+	TUnicodeDef::Load(unicode_file);
+	return TQm::TStorage::LoadBase(data_dir, (read_only ? TFAccess::faRdOnly : TFAccess::faUpdate), 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), false, 4 * TInt::Kilo);
+}
+
+TPt<TQm::TBase> OpenPeopleBase(bool read_only = false) {
+	TPt<TQm::TBase> Base = OpenPeopleBaseWPt(read_only);
+	return Base;
+}
+
+TEST(testTBase, ClearStoreTest1) {
+	auto Base = CreatePeopleBase();
+	auto store = Base->GetStoreByStoreNm("People");
+	store->DeleteFirstNRecs((int)store->GetRecs());
+	EXPECT_EQ(store->GetRecs(), 0);
+}
+TEST(testTBase, ClearStoreTest2) {
+	auto Base = CreatePeopleBase();
+	auto store = Base->GetStoreByStoreNm("People");
+	store->DeleteFirstNRecs(1);
+	EXPECT_EQ(store->GetRecs(), 1);
+}
+TEST(testTBase, ClearStoreTestBig1) {
+	auto Base = CreatePeopleBase(true);
+	auto store = Base->GetStoreByStoreNm("People");
+	store->DeleteFirstNRecs((int)store->GetRecs());
+	EXPECT_EQ(store->GetRecs(), 0);
+}
+TEST(testTBase, ClearStoreTestBig2) {
+	auto Base = CreatePeopleBase(true);
+	auto store = Base->GetStoreByStoreNm("People");
+	store->DeleteFirstNRecs((int)store->GetRecs() - 1);
+	EXPECT_EQ(store->GetRecs(), 1);
+}
+TEST(testTBase, ClearStoreTestBigComplex) {
+	int recs = -1;
+	{
+		auto Base = CreatePeopleBase(true);
+		Base->PartialFlush(500);
+		auto store = Base->GetStoreByStoreNm("People");
+		recs = (int)store->GetRecs();
+		TQm::TStorage::SaveBase(Base);
+
+		printf("%s\n", Base->GetStats()->SaveStr());
+	}
+	{
+		auto Base = OpenPeopleBase();
+		auto store = Base->GetStoreByStoreNm("People");
+		EXPECT_EQ(store->GetRecs(), recs);
+		store->DeleteFirstNRecs((int)store->GetRecs() - 1);
+		EXPECT_EQ(store->GetRecs(), 1);
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST(testTBase, ReadOnlyAfterCrash) {
+	int recs = -1;
+	{
+		// create new database
+		auto Base = CreatePeopleBase(true);
+		Base->PartialFlush(500);
+		auto store = Base->GetStoreByStoreNm("People");
+		recs = (int)store->GetRecs();
+		TQm::TStorage::SaveBase(Base);
+	}
+	{
+		// open it in read-only mode
+		auto Base = OpenPeopleBaseWPt(true);
+		auto Base2 = Base();
+		
+	}
+	{
+		auto Base = OpenPeopleBase();
+		auto store = Base->GetStoreByStoreNm("People");
+		EXPECT_EQ(store->GetRecs(), recs);
+		store->DeleteFirstNRecs((int)store->GetRecs() - 1);
+		EXPECT_EQ(store->GetRecs(), 1);
+	}
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 

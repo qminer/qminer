@@ -290,24 +290,10 @@ public:
 	void Reset() { Cs = TCs(); BfC = 0; }
 	uchar* GetBfAddr() { return Bf; }
 	char* GetBfAddrChar() { return (char*)Bf; }
-	byte* GetBfAddrByte() { return (byte*)Bf; }
 	void MoveTo(int Offset);
 	bool GetNextLnBf(TChA& LnChA);
 	TMemBase GetMemBase() { return TMemBase(GetBfAddr(), Len(), false); }
 };
-
-/////////////////////////////////////////////////
-// Simple read-only buffer
-//class TBufferRO {
-//private:
-//	const byte* Bf;
-//	const int BfL;
-//public:
-//	TBufferRO(const TMem& mem) : Bf(mem.GetBf()), BfL(BfL) {}
-//	TBufferRO(const byte* _Bf, const int& _BfL) : Bf(_Bf), BfL(BfL) {}
-//	int Len() const { return BfL; }
-//	byte* GetBf() const { return Bf; }
-//};
 
 //////////////////////////////////////////////////////////////////////////////
 /// Serialization and de-serialization of records to TMem.
@@ -378,29 +364,29 @@ private:
 	/// returns field serialization description
 	const TFieldSerialDesc& GetFieldSerialDesc(const int& FieldId) const;
 	/// finds location inside the buffer for fixed-width fields
-	byte* GetLocationFixed(const TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
+	char* GetLocationFixed(const TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
 	/// finds location inside the buffer for variable-width fields
 	int GetOffsetVar(const TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
 	/// finds location inside the buffer for variable-width fields
-	byte* GetLocationVar(const TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
+	char* GetLocationVar(const TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
 	/// calculates length of buffer where given var-length field is stored
 	int GetVarPartBfLen(const TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc);
 
 	/// finds location inside the buffer for fixed-width fields
-	byte* GetLocationFixed(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc) const;
+	char* GetLocationFixed(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc) const;
 	/// finds location inside the buffer for variable-width fields
 	int GetOffsetVar(const char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc) const;
 	/// finds location inside the buffer for variable-width fields
-	byte* GetLocationVar(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc) const;
+	char* GetLocationVar(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc) const;
 	/// calculates length of buffer where given var-length field is stored
 	int GetVarPartBfLen(const char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc);
 
 	/// finds location inside the buffer for fixed-width fields
-	byte* GetLocationFixed(TThinMIn min, const TFieldSerialDesc& FieldSerialDesc) const;
+	char* GetLocationFixed(TThinMIn min, const TFieldSerialDesc& FieldSerialDesc) const;
 	/// finds location inside the buffer for variable-width fields
 	int GetOffsetVar(TThinMIn min, const TFieldSerialDesc& FieldSerialDesc) const;
 	/// finds location inside the buffer for variable-width fields
-	byte* GetLocationVar(TThinMIn min, const TFieldSerialDesc& FieldSerialDesc) const;
+	char* GetLocationVar(TThinMIn min, const TFieldSerialDesc& FieldSerialDesc) const;
 	/// calculates length of buffer where given var-length field is stored
 	int GetVarPartBfLen(TThinMIn min, const TFieldSerialDesc& FieldSerialDesc);
 
@@ -562,23 +548,23 @@ public:
 	void GetFieldBowSpV(const TMemBase& RecMem, const int& FieldId, PBowSpV& SpV) const;
 
 	/// Field setter
-	void SetFieldNull(byte* Bf, const int& BfL, const int& FieldId, const bool& NullP);
+	void SetFieldNull(char* Bf, const int& BfL, const int& FieldId, const bool& NullP);
 	/// Fixed-length field setter
-	void SetFieldInt(byte* Bf, const int& BfL, const int& FieldId, const int& Int);
+	void SetFieldInt(char* Bf, const int& BfL, const int& FieldId, const int& Int);
 	/// Fixed-length field setter
-	void SetFieldUInt64(byte* Bf, const int& BfL, const int& FieldId, const uint64& UInt64);
+	void SetFieldUInt64(char* Bf, const int& BfL, const int& FieldId, const uint64& UInt64);
 	/// Fixed-length field setter
-	void SetFieldStr(byte* Bf, const int& BfL, const int& FieldId, const TStr& Str);
+	void SetFieldStr(char* Bf, const int& BfL, const int& FieldId, const TStr& Str);
 	/// Fixed-length field setter
-	void SetFieldBool(byte* Bf, const int& BfL, const int& FieldId, const bool& Bool);
+	void SetFieldBool(char* Bf, const int& BfL, const int& FieldId, const bool& Bool);
 	/// Fixed-length field setter
-	void SetFieldFlt(byte* Bf, const int& BfL, const int& FieldId, const double& Flt);
+	void SetFieldFlt(char* Bf, const int& BfL, const int& FieldId, const double& Flt);
 	/// Fixed-length field setter
-	void SetFieldFltPr(byte* Bf, const int& BfL, const int& FieldId, const TFltPr& FltPr);
+	void SetFieldFltPr(char* Bf, const int& BfL, const int& FieldId, const TFltPr& FltPr);
 	/// Fixed-length field setter
-	void SetFieldTm(byte* Bf, const int& BfL, const int& FieldId, const TTm& Tm);
+	void SetFieldTm(char* Bf, const int& BfL, const int& FieldId, const TTm& Tm);
 	/// Fixed-length field setter
-	void SetFieldTmMSecs(byte* Bf, const int& BfL, const int& FieldId, const uint64& TmMSecs);
+	void SetFieldTmMSecs(char* Bf, const int& BfL, const int& FieldId, const uint64& TmMSecs);
 	
 	/// Field setter
 	void SetFieldNull(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId);
