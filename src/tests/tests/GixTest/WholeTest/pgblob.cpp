@@ -142,7 +142,7 @@ namespace glib {
 	int TPgBlobFile::SavePage(const uint32& Page, const void* Bf) {
 		SetFPos(Page * PAGE_SIZE);
 		EAssertR(
-			fwrite(Bf,1,  PAGE_SIZE, FileId) == PAGE_SIZE,
+			(Access != TFAccess::faRdOnly) && fwrite(Bf, 1, PAGE_SIZE, FileId) == PAGE_SIZE,
 			"Error writing file '" + TStr(FNm) + "'.");
 		return 0;
 	}
@@ -164,7 +164,7 @@ namespace glib {
 	/// Reserve new space in the file. Returns -1 if file is full.
 	uint32 TPgBlobFile::CreateNewPage() {
 		EAssertR(
-			fseek(FileId, 0, SEEK_END) == 0,
+			(Access != TFAccess::faRdOnly) && (fseek(FileId, 0, SEEK_END) == 0),
 			"Error seeking into file '" + TStr(FNm) + "'.");
 		long len = ftell(FileId);
 		if (MxFileLen > 0 && len >= MxFileLen) {
@@ -298,14 +298,16 @@ namespace glib {
 
 	/// Destructor
 	TPgBlob::~TPgBlob() {
-		for (int i = 0; i < LoadedPages.Len(); i++) {
-			if (ShouldSavePage(i)) {
-				LoadedPage& a = LoadedPages[i];
-				Files[a.Pt.GetFIx()]->SavePage(a.Pt.GetPg(), GetPageBf(i));
+		if (Access != TFAccess::faRdOnly) {
+			for (int i = 0; i < LoadedPages.Len(); i++) {
+				if (ShouldSavePage(i)) {
+					LoadedPage& a = LoadedPages[i];
+					Files[a.Pt.GetFIx()]->SavePage(a.Pt.GetPg(), GetPageBf(i));
+				}
 			}
+			SaveMain();
+			Files.Clr();
 		}
-		SaveMain();
-		Files.Clr();
 		delete[] Bf;
 	}
 
@@ -356,6 +358,9 @@ namespace glib {
 			LoadedPages[LruFirst].LruPrev = Pg;
 		}
 		LruFirst = Pg;
+		if (LruLast < 0) {
+			LruLast = Pg;
+		}
 	}
 
 	/// move given page to the start of LRU list
@@ -464,6 +469,8 @@ namespace glib {
 
 	/// Store BLOB to storage
 	TPgBlobPt TPgBlob::Put(const byte* Bf, const int& BfL) {
+		QmAssert(Access != TFAccess::faRdOnly);
+
 		// find page
 		TPgBlobPgPt PgPt;
 		byte* PgBf = NULL;
@@ -510,6 +517,7 @@ namespace glib {
 	/// Store existing BLOB to storage
 	TPgBlobPt TPgBlob::Put(
 		const byte* Bf, const int& BfL, const TPgBlobPt& Pt) {
+		QmAssert(Access != TFAccess::faRdOnly);
 
 		// find page
 		byte* PgBf = NULL;
@@ -566,6 +574,8 @@ namespace glib {
 
 	/// Save part of the data, given time-window
 	void TPgBlob::PartialFlush(int WndInMsec) {
+		if (Access == TFAccess::faRdOnly)
+			return;
 		TTmStopWatch sw(true);
 		for (int i = 0; i < LoadedPages.Len(); i++) {
 			if (ShouldSavePage(i)) {
@@ -579,6 +589,7 @@ namespace glib {
 
 	/// Marks page as dirty - data inside was written directly
 	void TPgBlob::SetDirty(const TPgBlobPt& Pt) {
+		QmAssert(Access != TFAccess::faRdOnly);
 		byte* Pg = LoadPage(Pt);
 		((TPgHeader*)Pg)->SetDirty(true);
 	}

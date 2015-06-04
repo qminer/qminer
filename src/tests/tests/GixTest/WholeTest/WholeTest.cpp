@@ -540,24 +540,24 @@ public:
 	}
 };
 
-TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
-TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
-TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
-TEST(testTInMemStorage, LoadAll1) { XTest::TInMemStorage_LoadAll1(); }
-TEST(testTInMemStorage, LoadAll2) { XTest::TInMemStorage_LoadAll2(); }
-//TEST(testTInMemStorage, PerfTest) { XTest::TInMemStorage_PerfTest(); }
-
-
-TEST(testTPgBlob, Simple) { XTest::TPgBlob_Complex1(); }
-TEST(testTPgBlob, PageInit) { XTest::TPgBlob_Page_Init(); }
-TEST(testTPgBlob, PageAddInt) { XTest::TPgBlob_Page_AddInt(); }
-TEST(testTPgBlob, PageAddIntMany) { XTest::TPgBlob_Page_AddIntMany(); }
-TEST(testTPgBlob, PageAddDouble) { XTest::TPgBlob_Page_AddDouble(); }
-TEST(testTPgBlob, PageAddIntSeveral) { XTest::TPgBlob_Page_AddIntSeveral(); }
-TEST(testTPgBlob, PageAddIntSeveralDelete) { XTest::TPgBlob_Page_AddIntSeveralDelete(); }
-TEST(testTPgBlob, PageAddIntSeveralDelete2) { XTest::TPgBlob_Page_AddIntSeveralDelete2(); }
-
-TEST(testTPgBlob, AddBf1) { XTest::TPgBlob_AddBf1(); }
+//TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
+//TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
+//TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
+//TEST(testTInMemStorage, LoadAll1) { XTest::TInMemStorage_LoadAll1(); }
+//TEST(testTInMemStorage, LoadAll2) { XTest::TInMemStorage_LoadAll2(); }
+////TEST(testTInMemStorage, PerfTest) { XTest::TInMemStorage_PerfTest(); }
+//
+//
+//TEST(testTPgBlob, Simple) { XTest::TPgBlob_Complex1(); }
+//TEST(testTPgBlob, PageInit) { XTest::TPgBlob_Page_Init(); }
+//TEST(testTPgBlob, PageAddInt) { XTest::TPgBlob_Page_AddInt(); }
+//TEST(testTPgBlob, PageAddIntMany) { XTest::TPgBlob_Page_AddIntMany(); }
+//TEST(testTPgBlob, PageAddDouble) { XTest::TPgBlob_Page_AddDouble(); }
+//TEST(testTPgBlob, PageAddIntSeveral) { XTest::TPgBlob_Page_AddIntSeveral(); }
+//TEST(testTPgBlob, PageAddIntSeveralDelete) { XTest::TPgBlob_Page_AddIntSeveralDelete(); }
+//TEST(testTPgBlob, PageAddIntSeveralDelete2) { XTest::TPgBlob_Page_AddIntSeveralDelete2(); }
+//
+//TEST(testTPgBlob, AddBf1) { XTest::TPgBlob_AddBf1(); }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -1007,8 +1007,6 @@ void TestPgBlobStoreSimple(const TStr& def_file) {
 		// create new base from definition
 		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
 		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-
-		// load movies data
 		{
 			{
 				TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
@@ -1047,4 +1045,56 @@ TEST(testTStorePbBlob, Test1) {
 }
 TEST(testTStorePbBlob, Test2) {
 	TestPgBlobStoreSimple(".\\pgblob_test2.def");
+}
+TEST(testTStorePbBlob, Test2_Big) {
+	TStr def_file = ".\\pgblob_test2.def";
+	TQm::TEnv::Init();
+	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
+	TStr dir = "data\\";
+
+	// init unicode
+	TUnicodeDef::Load(unicode_file);
+	int rec_count = 1000*1000;
+
+	{
+		// create new base from definition
+		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+
+		{
+			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
+			TStr s = "{ \"FieldInt\" : 12, \"FieldBool\" : true}";
+			PJsonVal json = TJsonVal::GetValFromStr(s);
+			PJsonVal json_int = json->GetObjKey("FieldInt");
+			PJsonVal json_bool = json->GetObjKey("FieldBool");
+			for (int i = 0; i < rec_count; i++) {
+				if (i % 1000 == 0)
+					printf("    %d\r", i);
+				json_int->PutNum(i);
+				json_bool->PutBool(i % 7 == 3);
+				store->AddRec(json);
+			}
+		}
+		TQm::SaveBase2(Base);
+	}
+	{
+		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faRdOnly, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+
+		auto store = Base->GetStoreByStoreNm("TestStore");
+		auto field_id_int = store->GetFieldId("FieldInt");
+		auto field_id_bool = store->GetFieldId("FieldBool");
+		auto res = store->GetAllRecs();
+		//printf("Records: %d\n", res->GetRecs());
+		EXPECT_EQ(res->GetRecs(), rec_count);
+		//printf("Records: %d\n", res->GetRec(0).GetFieldInt(field_id));
+		for (int i = 0; i < rec_count; i++) {
+			TQm::TRec& rec = res->GetRec(i);
+			EXPECT_EQ(rec.GetFieldInt(field_id_int), i);
+			EXPECT_EQ(rec.GetFieldBool(field_id_bool), i % 7 == 3);
+		}
+		//printf("Records: %d\n", res->GetRec(1).GetFieldInt(field_id));
+		//EXPECT_EQ(res->GetRec(1).GetFieldInt(field_id), 6345);
+
+		TQm::SaveBase2(Base);
+	}
 }
