@@ -471,11 +471,11 @@ TInMemStorage::~TInMemStorage() {
 }
 
 /// Utility method for loading specific record
-void TInMemStorage::LoadRec(int64 i) const {
-	if (DirtyV[i] != isdfNotLoaded) {
+void TInMemStorage::LoadRec(int64 RecN) const {
+	if (DirtyV[RecN] != isdfNotLoaded) {
 		return;
 	}
-	const int64 ii = i / BlockSize;
+	const int64 ii = RecN / BlockSize;
 	TMem mem;
 	TMem::LoadMem(BlobStorage->GetBlob(BlobPtV[ii]), mem);
 	PSIn in = mem.GetSIn();
@@ -491,14 +491,14 @@ void TInMemStorage::LoadRec(int64 i) const {
 }
 
 /// Utility method for storing specific record
-int TInMemStorage::SaveRec(int i) {
+int TInMemStorage::SaveRec(int RecN) {
 	int res = 0;
-	switch (DirtyV[i]) {
+	switch (DirtyV[RecN]) {
 	case isdfNew:
 	case isdfDirty:
 		{
 			res++;
-			const int ii = i / BlockSize;
+			const int ii = RecN / BlockSize;
 			TMOut mem;
 			for (int j = ii*BlockSize; j < DirtyV.Len() && j < (ii + 1)*BlockSize; j++) {
 				ValV[j].Save(mem);
@@ -525,7 +525,9 @@ void TInMemStorage::AssertReadOnly() const {
 }
 
 bool TInMemStorage::IsValId(const uint64& ValId) const {
-	return (ValId >= FirstValOffset.Val) && (ValId < FirstValOffsetMem.Val + ValV.Len());
+	return 
+		(ValId >= FirstValOffsetMem.Val + FirstValOffset) &&
+		(ValId < FirstValOffsetMem.Val + ValV.Len());
 }
 
 void TInMemStorage::GetVal(const uint64& ValId, TMem& Val) const {
@@ -547,8 +549,8 @@ void TInMemStorage::SetVal(const uint64& ValId, const TMem& Val) {
 	AssertReadOnly();
     ValV[ValId - FirstValOffsetMem] = Val;
 	uchar& flag = DirtyV[ValId - FirstValOffsetMem];
-	if (flag == isdfNew) { }   // new remains new
-	else { flag = isdfDirty; } // set as dirty
+	if (flag == isdfNew) { } // new remains new
+    else { flag = isdfDirty; } // set as dirty
 }
 
 void TInMemStorage::DelVals(int Vals) {
@@ -556,7 +558,7 @@ void TInMemStorage::DelVals(int Vals) {
 		for (int i = 0; i < Vals; i++) {
 			ValV[i + FirstValOffset].Clr();
 		}
-		int blocks_to_delete = Vals / BlockSize;
+		int blocks_to_delete = (FirstValOffset + Vals) / BlockSize;
 		int vals_to_delete = blocks_to_delete * BlockSize;
 
 		if (vals_to_delete > 0) {
@@ -579,7 +581,7 @@ uint64 TInMemStorage::Len() const {
 }
 
 uint64 TInMemStorage::GetFirstValId() const {
-	return FirstValOffset + FirstValOffsetMem;
+	return FirstValOffsetMem + FirstValOffset;
 }
 
 uint64 TInMemStorage::GetLastValId() const {

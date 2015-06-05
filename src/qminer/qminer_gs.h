@@ -218,9 +218,13 @@ private:
 	TStr BlobFNm;
 	/// Access type with which the storage is opened
 	TFAccess Access;
-	/// Logical offset of the first non-deleted record
+	/// Physical offset of the first non-deleted record
+	/// If BlobkSize is 100 and 150 records have been deleted,
+	/// this value would be 50.
 	TUInt64 FirstValOffset;
 	/// Logical offset of the first physical record
+	/// If BlobkSize is 100 and 150 records have been deleted,
+	/// this value would be 100.
 	TUInt64 FirstValOffsetMem;
 	/// Storage vector
 	mutable TVec<TMem, int64> ValV;
@@ -234,10 +238,10 @@ private:
 	TInt BlockSize;
 
 	/// Utility method for loading specific record
-	inline void LoadRec(int64 i) const;
+	inline void LoadRec(int64 RecN) const;
 
 	/// Utility method for storing specific record
-	int SaveRec(int i);
+	int SaveRec(int RecN);
 
 public:
 	TInMemStorage(const TStr& _FNm, const int& _BlockSize = 1000);

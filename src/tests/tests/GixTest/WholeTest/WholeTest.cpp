@@ -206,6 +206,119 @@ public:
 		}
 	}
 
+	static void TInMemStorage_Delete1() {
+		TStr Fn = "data\\in_mem_storage";
+		int cnt = 20;
+		int block = 5;
+		TVec<TStr> temp;
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, block);
+			for (int i = 0; i < cnt; i++) {
+				TMem mem;
+				mem.AddBf(&storage, i % 4);
+				TStr x = mem.GetHexStr();
+				temp.Add(x);
+				auto res1 = storage.AddVal(mem);
+			}
+			auto blob_stats = storage.GetBlobStorage()->GetStats();
+			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
+		}
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
+			storage.LoadAll();
+
+			// delete 7 values in one chunk
+			storage.DelVals(7);
+			EXPECT_EQ(15, storage.ValV.Len()); // first block was removed
+			EXPECT_EQ(5, storage.FirstValOffsetMem);
+			EXPECT_EQ(2, storage.FirstValOffset);
+			EXPECT_EQ(7, storage.GetFirstValId());
+			EXPECT_EQ(19, storage.GetLastValId());
+			EXPECT_EQ(13, storage.Len());
+			EXPECT_EQ(false, storage.IsValId(4));
+			EXPECT_EQ(true, storage.IsValId(7));
+			EXPECT_EQ(true, storage.IsValId(19));
+			EXPECT_EQ(false, storage.IsValId(20));
+		}
+	}
+
+	static void TInMemStorage_Delete2() {
+		TStr Fn = "data\\in_mem_storage";
+		int cnt = 20;
+		int block = 5;
+		TVec<TStr> temp;
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, block);
+			for (int i = 0; i < cnt; i++) {
+				TMem mem;
+				mem.AddBf(&storage, i % 4);
+				TStr x = mem.GetHexStr();
+				temp.Add(x);
+				auto res1 = storage.AddVal(mem);
+			}
+			auto blob_stats = storage.GetBlobStorage()->GetStats();
+			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
+		}
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
+			storage.LoadAll();
+
+			// delete 7 values, one by one
+			for (int i = 0; i < 7; i++) {
+				storage.DelVals(1);
+			}
+			EXPECT_EQ(15, storage.ValV.Len()); // first block was removed
+			EXPECT_EQ(5, storage.FirstValOffsetMem);
+			EXPECT_EQ(2, storage.FirstValOffset);
+			EXPECT_EQ(7, storage.GetFirstValId());
+			EXPECT_EQ(19, storage.GetLastValId());
+			EXPECT_EQ(13, storage.Len());
+			EXPECT_EQ(false, storage.IsValId(4));
+			EXPECT_EQ(true, storage.IsValId(7));
+			EXPECT_EQ(true, storage.IsValId(19));
+			EXPECT_EQ(false, storage.IsValId(20));
+		}
+	}
+
+	static void TInMemStorage_SetVal() {
+		TStr Fn = "data\\in_mem_storage";
+		int cnt = 20;
+		int block = 5;
+		int target_id = 9;
+		TVec<TStr> temp;
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, block);
+			for (int i = 0; i < cnt; i++) {
+				TMem mem;
+				mem.AddBf(&storage, i % 4);
+				TStr x = mem.GetHexStr();
+				temp.Add(x);
+				auto res1 = storage.AddVal(mem);
+			}
+
+			EXPECT_EQ(TQm::TStorage::isdfNew, storage.DirtyV[target_id]);
+
+			// update 
+			TMem mem;
+			mem.AddBf(&storage, 6);
+			storage.SetVal(target_id, mem);
+
+			EXPECT_EQ(TQm::TStorage::isdfNew, storage.DirtyV[target_id]);
+		}
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
+			storage.LoadAll();
+
+			EXPECT_EQ(TQm::TStorage::isdfClean, storage.DirtyV[target_id]);
+
+			// update 
+			TMem mem;
+			mem.AddBf(&storage, 8);
+			storage.SetVal(target_id, mem);
+
+			EXPECT_EQ(TQm::TStorage::isdfDirty, storage.DirtyV[target_id]);
+		}
+	}
 
 	static void TInMemStorage_PerfTest_Internal(int BlockSize) {
 		printf("************ BlockSize %d\n", BlockSize);
@@ -253,6 +366,9 @@ public:
 		TInMemStorage_PerfTest_Internal(5);
 		TInMemStorage_PerfTest_Internal(1);
 	}
+
+
+	/////////////////////////////////////
 
 	static void TPgBlob_Complex1() {
 		auto Base = glib::TPgBlob::Create("data\\xyz");
@@ -545,6 +661,9 @@ TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
 TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
 TEST(testTInMemStorage, LoadAll1) { XTest::TInMemStorage_LoadAll1(); }
 TEST(testTInMemStorage, LoadAll2) { XTest::TInMemStorage_LoadAll2(); }
+TEST(testTInMemStorage, Delete1) { XTest::TInMemStorage_Delete1(); }
+TEST(testTInMemStorage, Delete2) { XTest::TInMemStorage_Delete2(); }
+TEST(testTInMemStorage, SetVal) { XTest::TInMemStorage_SetVal(); }
 //TEST(testTInMemStorage, PerfTest) { XTest::TInMemStorage_PerfTest(); }
 
 
@@ -1084,9 +1203,7 @@ TEST(testTStorePbBlob, Test2_Big) {
 		auto field_id_int = store->GetFieldId("FieldInt");
 		auto field_id_bool = store->GetFieldId("FieldBool");
 		auto res = store->GetAllRecs();
-		//printf("Records: %d\n", res->GetRecs());
 		EXPECT_EQ(res->GetRecs(), rec_count);
-		//printf("Records: %d\n", res->GetRec(0).GetFieldInt(field_id));
 		for (int i = 0; i < rec_count; i++) {
 			if (i % 1000 == 0)
 				printf("    %d\r", i);
@@ -1094,8 +1211,6 @@ TEST(testTStorePbBlob, Test2_Big) {
 			EXPECT_EQ(rec.GetFieldInt(field_id_int), i);
 			EXPECT_EQ(rec.GetFieldBool(field_id_bool), i % 7 == 3);
 		}
-		//printf("Records: %d\n", res->GetRec(1).GetFieldInt(field_id));
-		//EXPECT_EQ(res->GetRec(1).GetFieldInt(field_id), 6345);
 
 		TQm::SaveBase2(Base);
 	}
