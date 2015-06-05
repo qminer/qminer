@@ -706,7 +706,7 @@ void TNodeJsStore::recordByName(const v8::FunctionCallbackInfo<v8::Value>& Args)
 void TNodeJsStore::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-
+	v8::TryCatch TryCatch;
 
 	QmAssertR(TNodeJsUtil::IsArgFun(Args, 0), "each: Argument 0 should be a function!");
 	Args.GetReturnValue().Set(Args.Holder());
@@ -734,10 +734,10 @@ void TNodeJsStore::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				RecObj,
 				v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 			};
-			v8::TryCatch try_catch;
+			
 			Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
-			if (try_catch.HasCaught()) {
-				try_catch.ReThrow();				
+			if (TryCatch.HasCaught()) {
+				TryCatch.ReThrow();
 				return;				
 			}
 		} while (Iter->Next());
@@ -747,6 +747,7 @@ void TNodeJsStore::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsStore::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
 
 	QmAssertR(TNodeJsUtil::IsArgFun(Args, 0), "each: Argument 0 should be a function!");
 
@@ -779,10 +780,10 @@ void TNodeJsStore::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				RecObj,
 				v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count))
 			};
-			v8::TryCatch try_catch;
+			
 			v8::Local<v8::Value> ReturnVal = Callback->Call(GlobalContext, Argc, ArgV);
-			if (try_catch.HasCaught()) {
-				try_catch.ReThrow();
+			if (TryCatch.HasCaught()) {
+				TryCatch.ReThrow();
 				return;
 			}
 			ResultV->Set(Count, ReturnVal);
@@ -2353,6 +2354,8 @@ void TNodeJsRecSet::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsRecSet::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
+
 	TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
 	TQm::PRecSet RecSet = JsRecSet->RecSet;
@@ -2378,7 +2381,12 @@ void TNodeJsRecSet::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				RecObj,
 				v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, RecIdN))
 			};
+			
 			Callback->Call(GlobalContext, Argc, ArgV);
+			if (TryCatch.HasCaught()) {
+				TryCatch.ReThrow();
+				return;
+			}
 		}
 	}
 	Args.GetReturnValue().Set(Args.Holder());
@@ -2387,6 +2395,8 @@ void TNodeJsRecSet::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsRecSet::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
+
 	TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
 	TQm::PRecSet RecSet = JsRecSet->RecSet;
@@ -2414,6 +2424,10 @@ void TNodeJsRecSet::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, RecIdN))
 			};
 			v8::Handle<v8::Value> Result = Callback->Call(GlobalContext, Argc, ArgV);
+			if (TryCatch.HasCaught()) {
+				TryCatch.ReThrow();
+				return;
+			}
 			ResultV->Set(RecIdN, Result);
 		}
 	}
@@ -2773,6 +2787,8 @@ void TNodeJsStoreIter::record(v8::Local<v8::String> Name, const v8::PropertyCall
 bool TJsRecFilter::operator()(const TUInt64IntKd& RecIdWgt) const {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
+
 	// prepare record objects - since they are local, they are safe from GC
 	v8::Local<v8::Object> JsRec = TNodeJsRec::NewInstance(
         new TNodeJsRec(TNodeJsBaseWatcher::New(), TQm::TRec(Store, RecIdWgt.Key), RecIdWgt.Dat));
@@ -2782,7 +2798,10 @@ bool TJsRecFilter::operator()(const TUInt64IntKd& RecIdWgt) const {
 	const unsigned Argc = 1;
 	v8::Local<v8::Value> ArgV[Argc] = { JsRec };
 	v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
-
+	if (TryCatch.HasCaught()) {
+		TryCatch.ReThrow();
+		return;
+	}
 	QmAssertR(ReturnVal->IsBoolean(), "Filter callback must return a boolean!");
 	return ReturnVal->BooleanValue();
 }
@@ -2791,6 +2810,8 @@ bool TJsRecFilter::operator()(const TUInt64IntKd& RecIdWgt) const {
 // NodeJs QMiner Record Filter
 bool TJsRecPairFilter::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::TryCatch TryCatch;
+
 	v8::HandleScope HandleScope(Isolate);
 	// prepare record objects - since they are local, they are safe from GC
 	v8::Local<v8::Object> JsRec1 = TNodeJsRec::NewInstance(
@@ -2803,7 +2824,10 @@ bool TJsRecPairFilter::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64In
 	const unsigned Argc = 2;
 	v8::Local<v8::Value> ArgV[Argc] = { JsRec1, JsRec2 };
 	v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
-
+	if (TryCatch.HasCaught()) {
+		TryCatch.ReThrow();
+		return;
+	}
 	QmAssertR(ReturnVal->IsBoolean() || ReturnVal->IsNumber(), "Comparator callback must return a boolean!");
 	return ReturnVal->IsBoolean() ? ReturnVal->BooleanValue() : ReturnVal->NumberValue() < 0;
 }
@@ -2923,11 +2947,14 @@ double TNodeJsFuncFtrExt::ExecuteFunc(const TQm::TRec& FtrRec) const {
 void TNodeJsFuncFtrExt::ExecuteFuncVec(const TQm::TRec& FtrRec, TFltV& Vec) const {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-
+	v8::TryCatch TryCatch;
     v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Fun);
     v8::Handle<v8::Value> Argv[1] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), FtrRec)) };
     v8::Handle<v8::Value> RetVal = Callback->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
-
+	if (TryCatch.HasCaught()) {
+		TryCatch.ReThrow();
+		return;
+	}
     // Cast as FltV and copy result
     v8::Handle<v8::Object> RetValObj = v8::Handle<v8::Object>::Cast(RetVal);
 
