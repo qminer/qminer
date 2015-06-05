@@ -41,7 +41,7 @@ void TNodeJsLinAlg::svd(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             int k = Args[1]->Int32Value();
             if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) {
                 TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
-                TFullMatrix Mat(JsMat->Mat);
+                TFullMatrix Mat(JsMat->Mat, true);	// only wrap the matrix
                 TLinAlg::ComputeThinSVD(Mat, k, U, s, V, Iters, Tol);
             } else if (TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
                 TNodeJsSpMat* JsMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
@@ -95,8 +95,6 @@ const TStr TAuxBoolV::ClassId = "TBoolV";
 // NodeJs-Qminer-FltVV
 v8::Persistent<v8::Function> TNodeJsFltVV::Constructor;
 
-const TStr TNodeJsFltVV::ClassId = "TFltVV";
-
 void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
@@ -105,11 +103,11 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
 	v8::Local<v8::FunctionTemplate> Child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsFltVV>);
 	Child->Inherit(Tpl);
 
-	Child->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
+	Child->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer
 	Child->InstanceTemplate()->SetInternalFieldCount(1);
 
-	Tpl->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
+	Tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer
 	Tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -181,7 +179,7 @@ TNodeJsFltVV* TNodeJsFltVV::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
 			return new TNodeJsFltVV(Mat);
 		} else {
 			if (Args[0]->IsObject()) {
-				if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::ClassId)) {
+				if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId())) {
 					TNodeJsFltVV* FltVV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 					Mat = FltVV->Mat;
 				} else {
@@ -221,8 +219,8 @@ void TNodeJsFltVV::at(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() == 2 && Args[0]->IsInt32() && Args[1]->IsInt32(),
         "Expected two nonnegative integers as indices");
 
-    const int RowIdx = Args[0]->IntegerValue();
-    const int ColIdx = Args[1]->IntegerValue();
+    const int RowIdx = Args[0]->Int32Value();
+	const int ColIdx = Args[1]->Int32Value();
 
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
 
@@ -239,14 +237,14 @@ void TNodeJsFltVV::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
 	EAssertR(Args.Length() == 3 && Args[0]->IsInt32() && Args[1]->IsInt32(), "Expected two nonnegative integers as indices");
-	EAssertR(Args[2]->IsNumber() || TNodeJsUtil::IsArgClass(Args, 2, TNodeJsFltVV::ClassId), "Third argument should be a number or a matrix");
+	EAssertR(Args[2]->IsNumber() || TNodeJsUtil::IsArgClass(Args, 2, TNodeJsFltVV::GetClassId()), "Third argument should be a number or a matrix");
 	
 	TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
 	TInt Rows = JsMat->Mat.GetRows();
 	TInt Cols = JsMat->Mat.GetCols();
 	
-	const int Row = Args[0]->IntegerValue();
-	const int Col = Args[1]->IntegerValue();
+	const int Row = Args[0]->Int32Value();
+	const int Col = Args[1]->Int32Value();
 	if (Args[2]->IsNumber()) {
 		
 		const double Val = Args[2]->NumberValue();
@@ -282,7 +280,7 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Args.GetReturnValue().Set(New(ResMat));
 	}
 	else if (Args[0]->IsObject()) { // IF vector, then u = A *v 
-		if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
+		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
 			TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
 			EAssertR(JsMat->Mat.GetCols() == JsVec->Vec.Len(), "Matrix-vector multiplication: Dimension mismatch");
 			TFltV Result(JsMat->Mat.GetRows());
@@ -290,7 +288,7 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TLinAlg::Multiply(JsMat->Mat, JsVec->Vec, Result);
 			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result));
 		}
-		else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::ClassId)) { // IF matrix, then C = A * B 
+		else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId())) { // IF matrix, then C = A * B
 			TNodeJsFltVV* FltVV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 			TFltVV Result;
 			// computation
@@ -749,8 +747,6 @@ void TNodeJsFltVV::rows(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 // Sparse-Vector
 v8::Persistent<v8::Function> TNodeJsSpVec::constructor;
 
-const TStr TNodeJsSpVec::ClassId = "TIntFltKdV";
-
 void TNodeJsSpVec::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
@@ -832,7 +828,7 @@ void TNodeJsSpVec::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			JsSpVec->Vec.Sort();
 
 		} else if (Args[0]->IsObject()) {
-			EAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpVec::ClassId), "TNodeJsSpVec::New: Arg[0] is an object, but not an instance of a sparse vector!");
+			EAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpVec::GetClassId()), "TNodeJsSpVec::New: Arg[0] is an object, but not an instance of a sparse vector!");
 			TNodeJsSpVec* JsSpVec2 = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
 			JsSpVec->Vec = JsSpVec2->Vec;
 			JsSpVec->Dim = JsSpVec2->Dim;
@@ -1096,8 +1092,6 @@ void TNodeJsSpVec::dim(v8::Local<v8::String> Name, const v8::PropertyCallbackInf
 // NodeJs-QMiner-Sparse-Col-Matrix
 v8::Persistent<v8::Function> TNodeJsSpMat::constructor;
 
-const TStr TNodeJsSpMat::ClassId = "TVec<TIntFltKdV>";
-
 void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
@@ -1227,7 +1221,7 @@ void TNodeJsSpMat::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		}
 		else {
 			if (Args[0]->IsObject()) {
-				if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::ClassId)) {
+				if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::GetClassId())) {
 					TNodeJsSpMat* JsSpMatArg = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
 					JsSpMat->Mat = JsSpMatArg->Mat;
 					JsSpMat->Rows = JsSpMatArg->Rows;

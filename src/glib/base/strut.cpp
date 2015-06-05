@@ -16,6 +16,15 @@ TStr TStrUtil::GetStr(const TIntV& IntV, const TStr& DelimiterStr) {
   }
   return ResChA;
 }
+//Explicit 64 bit indexing
+TStr TStrUtil::GetStr(const TVec<TNum<int64>, int64>& IntV, const TStr& DelimiterStr) {
+	TChA ResChA;
+	for (int64 IntN = 0; IntN < IntV.Len(); IntN++) {
+		if (!ResChA.Empty()) { ResChA += DelimiterStr; }
+		ResChA += IntV[IntN].GetStr();
+	}
+	return ResChA;
+}
 
 TStr TStrUtil::GetStr(const TVec<TIntV>& IntIntV, const TStr& DelimiterStr) {
 	TChA ResChA;

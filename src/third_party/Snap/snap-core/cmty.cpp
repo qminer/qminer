@@ -327,19 +327,18 @@ void CmtyEvolutionBatchGraph(TVec<PUNGraph, int64>& gs, PNGraph& graph, TIntH& t
     if (Graph->GetNodes()>0) {
       TSnap::DelSelfEdges(Graph);
       TCnComV CmtyV;
-      double Q = 0.0;
       TStr CmtyAlgStr;
       if (CmtyAlg == 1) {
         CmtyAlgStr = "Girvan-Newman";
-        Q = TSnap::CommunityGirvanNewman(Graph, CmtyV);
+        TSnap::CommunityGirvanNewman(Graph, CmtyV);
       }
       else if (CmtyAlg == 2) {
         CmtyAlgStr = "Clauset-Newman-Moore";
-        Q = TSnap::CommunityCNM(Graph, CmtyV);
+        TSnap::CommunityCNM(Graph, CmtyV);
       }
       else if (CmtyAlg == 3) {
         CmtyAlgStr = "Infomap";
-        Q = TSnap::Infomap(Graph, CmtyV);
+        TSnap::Infomap(Graph, CmtyV);
       }
       else { Fail; }
 

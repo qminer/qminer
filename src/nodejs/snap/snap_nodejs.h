@@ -212,7 +212,7 @@ void TNodeJsGraph<T>::addNode(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			v8::String::NewFromUtf8(Isolate, "Expected number")));
 	}
 	else {
-		int id = Args[0]->ToNumber()->Value();
+		int id = TNodeJsUtil::GetArgInt32(Args, 0);
 		if (!NodeJsGraph->Graph->IsNode(id))
 			NodeJsGraph->Graph->AddNode(id);
 	}
@@ -231,8 +231,8 @@ void TNodeJsGraph<T>::addEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			v8::String::NewFromUtf8(Isolate, "Expected 2 arguments.")));
 	}
 	else {
-		int SrcId = Args[0]->ToNumber()->Value();
-		int DstId = Args[1]->ToNumber()->Value();
+		int SrcId = TNodeJsUtil::GetArgInt32(Args, 0);
+		int DstId = TNodeJsUtil::GetArgInt32(Args, 1);
 		if (NodeJsGraph->Graph->IsNode(SrcId) && NodeJsGraph->Graph->IsNode(DstId))
 			NodeJsGraph->Graph->AddEdge(SrcId, DstId);
 	}
@@ -258,7 +258,7 @@ void TNodeJsGraph<T>::delNode(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			v8::String::NewFromUtf8(Isolate, "Expected number")));
 	}
 	else {
-		int id = Args[0]->ToNumber()->Value();
+		int id = TNodeJsUtil::GetArgInt32(Args, 0);
 		if (NodeJsGraph->Graph->IsNode(id))
 			NodeJsGraph->Graph->DelNode(id);
 	}
@@ -277,8 +277,8 @@ void TNodeJsGraph<T>::delEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			v8::String::NewFromUtf8(Isolate, "Expected 2 arguments.")));
 	}
 	else {
-		int SrcId = Args[0]->ToNumber()->Value();
-		int DstId = Args[1]->ToNumber()->Value();
+		int SrcId = TNodeJsUtil::GetArgInt32(Args, 0);
+		int DstId = TNodeJsUtil::GetArgInt32(Args, 1);
 		if (NodeJsGraph->Graph->IsEdge(SrcId, DstId))
 			NodeJsGraph->Graph->DelEdge(SrcId, DstId);
 	}
@@ -308,7 +308,7 @@ void TNodeJsGraph<T>::isNode(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, node));
 	}
 	else {
-		int id = Args[0]->ToNumber()->Value();
+		int id = TNodeJsUtil::GetArgInt32(Args, 0);
 		node = NodeJsGraph->Graph->IsNode(id);
 		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, node));
 	}
@@ -330,8 +330,8 @@ void TNodeJsGraph<T>::isEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, edge));
 	}
 	else {
-		int SrcId = Args[0]->ToNumber()->Value();
-		int DstId = Args[1]->ToNumber()->Value();
+		int SrcId = TNodeJsUtil::GetArgInt32(Args, 0);
+		int DstId = TNodeJsUtil::GetArgInt32(Args, 1);
 		edge = NodeJsGraph->Graph->IsEdge(SrcId, DstId);
 		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, edge));
 	}
@@ -363,7 +363,7 @@ template <class T>
 void TNodeJsGraph<T>::node(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	int id = Args[0]->ToNumber()->Value();
+	int id = TNodeJsUtil::GetArgInt32(Args, 0);
 
 	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsGraph* NodeJsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Self);
@@ -570,7 +570,7 @@ void TNodeJsGraph<T>::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	
-	EAssertR(Args.Length() == 1 && Args[0]->IsObject() && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::ClassId),
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject() && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::GetClassId()),
 		"Expected a FIn object as the argument.");
 	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
 
@@ -585,7 +585,7 @@ void TNodeJsGraph<T>::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 1 && Args[0]->IsObject() && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFOut::ClassId),
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject() && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFOut::GetClassId()),
 		"Expected a FOut object as the argument.");
 	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
 
@@ -694,7 +694,7 @@ template <class T>
 void TNodeJsNode<T>::nbrId(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	int N = Args[0]->ToNumber()->Value();
+	int N = TNodeJsUtil::GetArgInt32(Args, 0);
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 	int nbrid = JsNode->Node.GetNbrNId(N);
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, nbrid));

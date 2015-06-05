@@ -51,9 +51,10 @@ public:
   TSwSetType GetSwSetType() const {
     return TSwSetType(int(SwSetType));}
   bool IsIn(const TStr& WordStr, const bool& UcWordStrP=true) const;
+  bool IsStop(const TStr& WordStr){return IsIn(WordStr, true);}
   bool IsEmpty(){ return (SwSetType == swstNone) || (SwStrH.Empty()); }
   void AddWord(const TStr& WordStr);
-  void LoadFromFile(const TStr& FNm);
+ void LoadFromFile(const TStr& FNm, const TBool& ClearStopWords = false);
   // New Load File API
   /// loads a snowball stopword file into the TSwSet Hasmap (StopWordFiles)
   static void LoadSwFile(const TStr& FNm);

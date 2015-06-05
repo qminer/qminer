@@ -50,7 +50,9 @@ public:
 	// stop event loop
 	void StopLoop() { uv_stop(Loop); }
 	// reset loop
-	void ResetLoop() { free(Loop); Loop = uv_loop_new(); }
+	void ResetLoop() { 
+		uv_loop_delete(Loop);
+		Loop = uv_loop_new(); }
 	// increase reference count so it doesn't stop the loop when nothing to od
 	void RefLoop();
 	// decrease reference count, to stop the loop if nothing else to do
@@ -156,7 +158,7 @@ TSockSys::~TSockSys(){
 		uv_close((uv_handle_t*)TimerHnd, NULL);
 	}
 	// delete loop
-	free(Loop);
+	uv_loop_delete(Loop);
 	// mark we are off
 	Active = false;
 }
@@ -179,6 +181,7 @@ void TSockSys::UnrefLoop() {
 	uv_unref((uv_handle_t*)LoopRef); 
 	// kill the timer
 	uv_close((uv_handle_t*)LoopRef, NULL);
+	free(LoopRef);
 	LoopRef = NULL;
 }
 
@@ -353,6 +356,7 @@ void TSockSys::DelIfSockTimer(const uint64& SockId) {
 		uv_timer_t* TimerHnd = SockIdToTimerHndH.GetDat(SockId);
 		// stop the timer
 		uv_timer_stop(TimerHnd);
+		uv_close((uv_handle_t *)TimerHnd, (uv_close_cb)free);
 		// remove shortcuts
 		SockIdToTimerHndH.DelKey(SockId);
 		TimerHndToSockIdH.DelKey((uint64)TimerHnd);
@@ -654,6 +658,7 @@ void TSockSys::OnClose(uv_handle_t* SockHnd) {
 		SockSys.SockHndToEventIdH.DelKey((uint64)SockHnd);
 		// marke note that it's already closed
 		SockSys.ClosedSockIdSet.DelIfKey(SockId);
+		free(SockHnd);
 	}
 }
 

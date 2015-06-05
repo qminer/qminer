@@ -88,8 +88,8 @@ class TGixItemSet {
 private:
 	TCRef CRef;
 	typedef TPt<TGixItemSet<TKey, TItem, TGixMerger> > PGixItemSet;
+    
 private:
-
 	/// This struct contans statistics about child vector
 	struct TGixItemSetChildInfo {
 	public:
@@ -132,7 +132,8 @@ private:
 			Pt.Save(SOut);
 		}
 	};
-
+    
+private:
 	/// The key of this itemset
 	TKey ItemSetKey;
 	/// "Working buffer" of items of this itemset - could be only part of them, others can be stored in child vectors
@@ -141,13 +142,10 @@ private:
 	TVec<int> ItemVDel;
 	/// Combined count - from this itemset and children
 	int TotalCnt;
-
 	// optional data about child vectors - will be populated only for frequent keys
 	mutable TVec<TGixItemSetChildInfo> Children;
-
 	// optional list of child vector contents - will be populated only for frequent keys
 	mutable TVec<TVec<TItem>> ChildrenData;
-
 	// for keeping the items unique and sorted
 	TBool MergedP;
 	// should this itemset be stored to disk?
@@ -156,7 +154,6 @@ private:
 	const TGixMerger *Merger;
 	// pointer to gix - as the storage-layer (serialization of self, loading children, notifying about changes...)
 	const TGix<TKey, TItem, TGixMerger> *Gix;
-
 
 	/// Load single child vector into memory if not present already
 	void LoadChildVector(int i) const {
@@ -214,7 +211,7 @@ private:
 public:
 	/// Standard constructor
 	TGixItemSet(const TKey& _ItemSetKey, const TGixMerger *_Merger, const TGix<TKey, TItem, TGixMerger>* _Gix) :
-		ItemSetKey(_ItemSetKey), MergedP(true), Dirty(true), Merger(_Merger), Gix(_Gix), TotalCnt(0) {}
+		ItemSetKey(_ItemSetKey), TotalCnt(0), MergedP(true), Dirty(true), Merger(_Merger), Gix(_Gix) {}
 	/// Standard factory method
 	static PGixItemSet New(const TKey& ItemSetKey, const TGixMerger* Merger, const TGix<TKey, TItem, TGixMerger>* Gix) {
 		return new TGixItemSet(ItemSetKey, Merger, Gix);
@@ -288,7 +285,7 @@ public:
 	friend class TPt < TGixItemSet > ;
 	friend class TGix < TKey, TItem, TGixMerger > ;
 
-#ifdef GIX_TEST
+#ifdef XTEST
 	friend class XTest;
 	void Print() const;
 #endif
@@ -302,7 +299,7 @@ public:
 	}
 };
 
-#ifdef GIX_TEST
+#ifdef XTEST
 
 template <class TKey, class TItem, class TGixMerger>
 void TGixItemSet<TKey, TItem, TGixMerger>::Print() const {
@@ -638,7 +635,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::Def() {
 		InjectWorkBufferToChildren(); // inject data into child vectors
 
 		int first_dirty_child = FirstDirtyChild();
-		if (first_dirty_child >= 0 || Children.Len() > 0 && ItemV.Len() > 0) {
+		if (first_dirty_child >= 0 || (Children.Len() > 0 && ItemV.Len() > 0)) {
 			int first_child_to_merge = (first_dirty_child >= 0 ? first_dirty_child : Children.Len());
 
 			// collect all data from subsequent child vectors and work-buffer
@@ -707,6 +704,7 @@ public:
 		res.CacheAll = Stat1.CacheAll + Stat2.CacheAll;
 		res.CacheDirty = Stat1.CacheDirty + Stat2.CacheDirty;
 		res.MemUsed = Stat1.MemUsed + Stat2.MemUsed;
+		res.AvgLen = res.CacheAllLoadedPerc = res.CacheDirtyLoadedPerc = 0;
 		if (res.CacheAll > 0) {
 			res.CacheAllLoadedPerc = (Stat1.CacheAll*Stat1.CacheAllLoadedPerc + Stat2.CacheAll * Stat2.CacheAllLoadedPerc) / res.CacheAll;
 			res.AvgLen = (Stat1.CacheAll*Stat1.AvgLen + Stat2.CacheAll * Stat2.AvgLen) / res.CacheAll;
@@ -895,7 +893,7 @@ public:
 
 	friend class TPt < TGix > ;
 	friend class TGixItemSet < TKey, TItem, TGixMerger > ;
-#ifdef GIX_TEST
+#ifdef XTEST
 	friend class XTest;
 
 	void KillHash() { this->KeyIdH.Clr(); }
@@ -1160,9 +1158,13 @@ void TGix<TKey, TItem, TGixMerger>::RefreshStats() {
 			Stats.CacheDirtyLoadedPerc += d;
 		}
 	}
-	Stats.CacheAllLoadedPerc /= Stats.CacheAll;
-	Stats.CacheDirtyLoadedPerc /= Stats.CacheDirty;
-	Stats.AvgLen /= Stats.CacheAll;
+	if (Stats.CacheAll > 0) {
+		Stats.CacheAllLoadedPerc /= Stats.CacheAll;
+		Stats.AvgLen /= Stats.CacheAll;
+		if (Stats.CacheDirty > 0) {
+			Stats.CacheDirtyLoadedPerc /= Stats.CacheDirty;
+		}
+	}
 }
 
 
@@ -1179,7 +1181,7 @@ void TGix<TKey, TItem, TGixMerger>::PrintStats() {
 		blob_stats.Dels, blob_stats.SizeChngs, blob_stats.AvgGetLen, blob_stats.AvgPutLen, blob_stats.AvgPutNewLen);
 	ItemSetBlobBs->ResetStats();
 	printf(".... hash-table stats - memory=%s size=%d\n", TUInt64::GetKiloStr(KeyIdH.GetMemUsed()).CStr(), KeyIdH.Len());
-	printf(".... gix - cnt=%s, memory=%s, hash=%s, cache=%s\n", 
+	printf(".... gix - cnt=%s, memory=%s, hash=%s, cache=%s\n",
         TUInt64::GetMegaStr(KeyIdH.Len()).CStr(),
         TUInt64::GetMegaStr(GetMemUsed()).CStr(), TUInt64::GetMegaStr(KeyIdH.GetMemUsed()).CStr(), TUInt64::GetMegaStr(ItemSetCache.GetMemUsed()).CStr());
 }
@@ -1223,9 +1225,11 @@ void TGix<TKey, TItem, TGixMerger>::GetChildVector(const TBlobPt& KeyId, TVec<TI
 
 template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
+    // only report when cache size bigger then 10GB
+    const int ReportP = CacheResetThreshold > (uint64)(TInt::Giga);
 	// check if we have to drop anything from the cache
 	if (NewCacheSizeInc > CacheResetThreshold) {
-		printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr());
+        if (ReportP) { printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr()); }
 		// pack all the item sets
 		TBlobPt BlobPt;
 		PGixItemSet ItemSet;
@@ -1237,7 +1241,7 @@ void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
 		CacheFullP = ItemSetCache.RefreshMemUsed();
 		NewCacheSizeInc = 0;
 		const uint64 NewSize = ItemSetCache.GetMemUsed();
-		printf("Done [%s]\n", TUInt64::GetMegaStr(NewSize).CStr());
+		if (ReportP) { printf("Done [%s]\n", TUInt64::GetMegaStr(NewSize).CStr()); }
 	}
 }
 
