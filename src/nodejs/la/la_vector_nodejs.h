@@ -989,7 +989,8 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::sparse(const v8::FunctionCallbackInfo<v8
 	TIntFltKdV Res;
 	TLAMisc::ToSpVec(JsVec->Vec, Res);
 
-	Args.GetReturnValue().Set(TNodeJsSpVec::New(Res, JsVec->Vec.Len()));
+	Args.GetReturnValue().Set(
+		TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(Res, JsVec->Vec.Len())));
 }
 
 template<>

@@ -1822,48 +1822,33 @@ TSignalProc::TTFunc TNodeJsNNet::ExtractFuncFromString(const TStr& FuncString) {
 
 ///////////////////////////////
 // QMiner-JavaScript-Tokenizer
-v8::Persistent <v8::Function> TNodeJsTokenizer::constructor;
+
+const TStr TNodeJsTokenizer::ClassId = "Tokenizer";
 
 void TNodeJsTokenizer::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "Tokenizer"));
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsTokenizer>);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTokens", _getTokens);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getSentences", _getSentences);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParagraphs", _getParagraphs);
-
-	constructor.Reset(Isolate, tpl->GetFunction());
+	
 	exports->Set(v8::String::NewFromUtf8(Isolate, "Tokenizer"), tpl->GetFunction());
 }
 
-v8::Local<v8::Object> TNodeJsTokenizer::New(const PTokenizer& Tokenizer) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::EscapableHandleScope EscapableHandleScope(Isolate);
-	EAssertR(!constructor.IsEmpty(), "TNodeJsTokenizer::New: constructor is empty. Did you call TNodeJsTokenizer::Init(exports); in this module's init function?");
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-	v8::Local<v8::Object> Instance = cons->NewInstance();
-
-	TNodeJsTokenizer* JsTokenizer = new TNodeJsTokenizer(Tokenizer);
-	JsTokenizer->Wrap(Instance);
-
-	return EscapableHandleScope.Escape(Instance);
-}
-
-void TNodeJsTokenizer::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
+TNodeJsTokenizer* TNodeJsTokenizer::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	// parse arguments
 	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 	QmAssertR(ParamVal->IsObjKey("type"),
 		"Missing tokenizer type " + ParamVal->SaveStr());
 	const TStr& TypeNm = ParamVal->GetObjStr("type");
 	// create
 	PTokenizer Tokenizer = TTokenizer::New(TypeNm, ParamVal);
-	// set return object
-	Args.GetReturnValue().Set(TNodeJsTokenizer::New(Tokenizer));
+	return new TNodeJsTokenizer(Tokenizer);	
 }
 
 void TNodeJsTokenizer::getTokens(const v8::FunctionCallbackInfo<v8::Value>& Args) {

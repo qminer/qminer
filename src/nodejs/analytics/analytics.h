@@ -759,29 +759,33 @@ public:
  private:
 	TSignalProc::TTFunc ExtractFuncFromString(const TStr& FuncString);
 };
+
 // QMiner-JavaScript-Tokenizer
 //!
 //! ### Tokenizer
 //!
 //! Breaks text into tokens (i.e. words).
 class TNodeJsTokenizer : public node::ObjectWrap {
+	friend class TNodeJsUtil;
 public:
 	/// Tokenizer Model
 	PTokenizer Tokenizer;
-	static v8::Persistent <v8::Function> constructor;
 private:
 	TNodeJsTokenizer(const PTokenizer& _Tokenizer): 
 		Tokenizer(_Tokenizer) { }
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	static v8::Local<v8::Object> New(const PTokenizer& Tokenizer);
+	static const TStr ClassId;
+
+	
 	//!
 	//! **Constructor:**
 	//!
 	//!- `tokenizer = new analytics.Tokenizer({ type: <type>, ...})` -- create new tokenizer
 	//!     of type `<type>`. Syntax same as when defining index keys in stores or `text` feature 
 	//!     extractors.
-	JsDeclareFunction(New);
+	static TNodeJsTokenizer* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
 	//!
 	//! **Functions and properties:**
 	//!

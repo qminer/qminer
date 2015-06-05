@@ -61,7 +61,7 @@ describe('Time series test, old', function() {
 		assert.equal(TimeSeries.name, "TimeSeries", "TimeSeries.name");
 		assert.ok(TimeSeries.empty, "TimeSeries.empty");
 		assert.equal(TimeSeries.length, 0, "TimeSeries.length");
-		assert.equal(TimeSeries.recs.length, 0, "TimeSeries.recs.length");
+		assert.equal(TimeSeries.allRecords.length, 0, "TimeSeries.allRecords.length");
 		assert.equal(TimeSeries.fields.length, 2, "TimeSeries.fields.length");
 		assert.equal(TimeSeries.joins.length, 0, "TimeSeries.joins.length");
 		assert.equal(TimeSeries.keys.length, 0, "TimeSeries.keys.length");
@@ -69,7 +69,7 @@ describe('Time series test, old', function() {
 		assert.equal(Resampled.name, "Resampled", "Resampled.name");
 		assert.ok(Resampled.empty, "Resampled.empty");
 		assert.equal(Resampled.length, 0, "Resampled.length");
-		assert.equal(Resampled.recs.length, 0, "Resampled.recs.length");
+		assert.equal(Resampled.allRecords.length, 0, "Resampled.allRecords.length");
 		assert.equal(Resampled.fields.length, 3, "Resampled.fields.length");
 		assert.equal(Resampled.joins.length, 0, "Resampled.joins.length");
 		assert.equal(Resampled.keys.length, 0, "Resampled.keys.length");

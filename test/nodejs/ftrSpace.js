@@ -236,7 +236,7 @@ describe('Feature Space Tests, old', function() {
 				}
 			}
 		]);
-		ftrSpace1.updateRecords(Store.recs);
+		ftrSpace1.updateRecords(Store.allRecords);
 		console.log(ftrSpace1.dim + " - " + JSON.stringify(ftrSpace1.dims));
 		console.log("Test new feature space");
 		testFtrSpace(ftrSpace1);
@@ -316,7 +316,7 @@ describe('Feature Space Tests, old', function() {
 			},
 		]);
 		var trueAnswer = ['I', 'I LIKE', 'I LIKE NGRAMS', 'LIKE', 'LIKE NGRAMS', 'LIKE NGRAMS AND', 'NGRAMS', 'NGRAMS AND', 'NGRAMS AND TESTS', 'AND', 'AND TESTS', 'TESTS'];
-		ftrSpace1.updateRecords(Store.recs);
+		ftrSpace1.updateRecords(Store.allRecords);
 		ftrSpace1.updateRecord(testRec);
 		var vec = ftrSpace1.extractSparseVector(testRec);
 		var testAnswer = ftrSpace1.getSparseVectorFeatures(vec);
@@ -336,7 +336,7 @@ describe('Feature Space Tests, old', function() {
 			},
 		]);
 		trueAnswer = ['I', 'LIKE', 'NGRAMS', 'AND', 'TESTS'];
-		ftrSpace2.updateRecords(Store.recs);
+		ftrSpace2.updateRecords(Store.allRecords);
 		ftrSpace2.updateRecord(testRec);
 		vec = ftrSpace2.extractSparseVector(testRec);
 		testAnswer = ftrSpace2.getSparseVectorFeatures(vec);
@@ -357,7 +357,7 @@ describe('Feature Space Tests, old', function() {
 			},
 		]);
 		trueAnswer = ['I LIKE', 'I LIKE NGRAMS', 'I LIKE NGRAMS AND', 'LIKE NGRAMS', 'LIKE NGRAMS AND', 'LIKE NGRAMS AND TESTS', 'NGRAMS AND', 'NGRAMS AND TESTS', 'AND TESTS'];
-		ftrSpace3.updateRecords(Store.recs);
+		ftrSpace3.updateRecords(Store.allRecords);
 		ftrSpace3.updateRecord(testRec);
 		vec = ftrSpace3.extractSparseVector(testRec);
 		testAnswer = ftrSpace3.getSparseVectorFeatures(vec);
@@ -382,7 +382,7 @@ describe('Feature Space Tests, old', function() {
 		trueAnswer = trueAnswer.map(function(n) {
 			return n.toString();
 		});
-		ftrSpace4.updateRecords(Store.recs);
+		ftrSpace4.updateRecords(Store.allRecords);
 		ftrSpace4.updateRecord(testRec);
 		vec = ftrSpace4.extractSparseVector(testRec);
 		testAnswer = ftrSpace4.getSparseVectorFeatures(vec);
@@ -406,7 +406,7 @@ describe('Feature Space Tests, old', function() {
 		]);
 		trueAnswer = ["OTHER VOLATILE", "UNIT TO", "DEPTHS OF", "WHEN BARBIE SETTLED", "I LIKE"];
 
-		ftrSpace5.updateRecords(Store.recs);
+		ftrSpace5.updateRecords(Store.allRecords);
 		ftrSpace5.updateRecord(testRec);
 		testAnswer = ftrSpace5.getFeature(239).split(",");
 		assert.ok(arraysIdentical(testAnswer, trueAnswer), "hashing with tables");

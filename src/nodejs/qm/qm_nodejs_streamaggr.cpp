@@ -55,7 +55,6 @@ void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 	constructor.Reset(Isolate, tpl->GetFunction());
 	// So we can add stuff to the prototype in JS
 	exports->Set(v8::String::NewFromUtf8(Isolate, "StreamAggr"), tpl->GetFunction());
-
 }
 
 v8::Local<v8::Object> TNodeJsSA::New(TWPt<TQm::TStreamAggr> _SA) {

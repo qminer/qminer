@@ -178,7 +178,7 @@ function testMerger() {
     }
 
     var store = base.store('joined');
-    var recSet = store.recs;
+    var recSet = store.allRecords;
 
     console.log('Found ' + recSet.length + ' recs...');
 
@@ -281,7 +281,7 @@ function testMerger() {
     }
 
     var store = base.store('joined1');
-    var recSet = store.recs;
+    var recSet = store.allRecords;
 
     console.log('Found ' + recSet.length + ' recs...');
 
@@ -385,7 +385,7 @@ function testMerger() {
     }
 
     var store = base.store('joined11');
-    var recSet = store.recs;
+    var recSet = store.allRecords;
 
     console.log('Found ' + recSet.length + ' recs...');
 
@@ -504,7 +504,7 @@ function testResampler() {
         rawStore.push(insertObj);
     }
 
-    var recSet = resampledStore.recs;
+    var recSet = resampledStore.allRecords;
 
     console.log('Found ' + recSet.length + ' recs...');
 

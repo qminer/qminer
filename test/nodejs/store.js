@@ -60,7 +60,7 @@ describe('Empty Store Tests', function () {
 
     describe('Recs Test', function () {
         it('should return a json with no elements', function () {
-            var recs = table.base.store("People").recs;
+            var recs = table.base.store("People").allRecords;
             assert(recs.empty);
             assert.equal(recs.length, 0);
         })
@@ -216,19 +216,38 @@ describe('Store Tests', function () {
         })
     });
 
+    describe('Base Test', function () {
+        it('should return the base, in which the store is contained', function () {
+            var base = table.base.store("People").base;
+            assert.equal(base.store("People").name, "People");
+        })
+    });
+
+    describe('IndexId Test', function () {
+        it('should return the record at index 0: Carolina Fortuna', function () {
+            assert.equal(table.base.store("People")[0].Name, "Carolina Fortuna");
+        })
+        it('should return null if index is out of bound, lesser than 0', function () {
+            assert.ok(table.base.store("People")[-1] == null);
+        })
+        it('should return null if index is out of bound, greater than number of records', function () {
+            assert.ok(table.base.store("People")[3] == null);
+        })
+    })
+
     describe('Rec Test', function () {
         it('should return the record of Carolina Fortuna', function () {
-            var record = table.base.store("People").rec("Carolina Fortuna");
+            var record = table.base.store("People").recordByName("Carolina Fortuna");
             assert.equal(record.Name, "Carolina Fortuna");
             assert.equal(record.Gender, "Female");
         })
         it('should return the record of Blaz Fortuna', function () {
-            var record = table.base.store("People").rec("Blaz Fortuna");
+            var record = table.base.store("People").recordByName("Blaz Fortuna");
             assert.equal(record.Name, "Blaz Fortuna");
             assert.equal(record.Gender, "Male");
         })
         it('should return null if record not found', function () {
-            var record = table.base.store("People").rec("Bender Bending Rodriguez");
+            var record = table.base.store("People").recordByName("Bender Bending Rodriguez");
             assert(record == null);
         })
     });
@@ -362,7 +381,8 @@ function TStore() {
         "name": "Basketball",
         "fields": [
             { "name": "Player", "type": "string", "primary": true },
-            { "name": "Score", "type": "float_v" }
+            { "name": "Score", "type": "float_v" },
+            { "name": "FirstPlayed", "type": "datetime" }
         ]
     }]);
     // adding two persons
@@ -377,9 +397,9 @@ function TStore() {
         this.base.store("Movies").push(movie);
     }
 
-    this.player1 = { "Player": "Goran Dragi�", "Score": [35, 12, 23] };
-    this.player2 = { "Player": "Michael Jordan", "Score": [90, 100, 95] };
-    this.player3 = { "Player": "Marko Mili�", "Score": [50, 10, 10, 12] };
+    this.player1 = { "Player": "Goran Dragic", "Score": [35, 12, 23], "FirstPlayed": "1984-01-01T00:00:00" };
+    this.player2 = { "Player": "Michael Jordan", "Score": [90, 100, 95], "FirstPlayed": "2003-01-01T00:00:00" };
+    this.player3 = { "Player": "Marko Milic", "Score": [50, 10, 10, 12], "FirstPlayed": "1991-01-01T00:00:00" };
 
     this.addPlayer = function (player) {
         this.base.store("Basketball").push(player);
@@ -480,9 +500,9 @@ describe("Two Store Tests", function () {
             assert.equal(MoviesKeys[2].name, "Plot");
             assert.equal(MoviesKeys[3].name, "Genres");
         })
-        it('should return the details of the key "Title"', function () {
-            var detail = table.base.store("Movies").key("Title");
-            assert.equal(detail.name, "Title");
+        it('should return the details of the key "Plot"', function () {
+            var detail = table.base.store("Movies").key("Plot");
+            assert.equal(detail.name, "Plot");
         })
         it('should return null if the key doesn\'t exist', function () {
             assert(table.base.store("Movies").key("Watched") == null);
@@ -660,6 +680,15 @@ describe("Two Store Tests", function () {
             assert.equal(mat.at(0, 1), 2006);
         })
     });
+
+    describe('isDate Test', function () {
+        it('should return true for FirstPlayed field', function () {
+            assert.ok(table.base.store("Basketball").isDate("FirstPlayed"));
+        })
+        it('should return false for Score field', function () {
+            assert.ok(!table.base.store("Basketball").isDate("Score"));
+        })
+    })
 
     describe('ToJSON Test', function () {
         it('should return the store "People" as a JSON', function () {
