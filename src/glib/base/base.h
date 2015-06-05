@@ -138,10 +138,7 @@ typedef long long index_t;
 
 #include <ctype.h>
 #include <float.h>
-//Andrej adds support for complex
 #include <complex>
-//#define MKL_Complex8 std::complex<float>
-//#define MKL_Complex16 std::complex<double>
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>

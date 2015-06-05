@@ -89,14 +89,14 @@ class TLAMisc {
 public:
 	//Sort double array
 #ifdef SCALAPACK 
-	template<class Size>
-	static void Sort(TVec<TFlt, Size> & Vec, TVec<Size, Size>& index, const TBool& decrease) {
+	template<class TSizeTy>
+	static void Sort(TVec<TFlt, TSizeTy> & Vec, TVec<TSizeTy, TSizeTy>& index, const TBool& decrease) {
 		if (index.Empty()){
 			TLAMisc::FillRange(Vec.Len(), index);
 		}
 		char* id = decrease ? "D" : "I";
-		Size n = Vec.Len();
-		Size info;
+		TSizeTy n = Vec.Len();
+		TSizeTy info;
 		dlasrt2(id, &n, &Vec[0].Val, &index[0], &info);
 		//dlasrt2(id, n, d, key, info)
 	}
@@ -158,8 +158,8 @@ public:
 	static void FillRange(const int& Vals, TFltV& Vec);
 	static void FillRange(const int& Vals, TIntV& Vec);
 
-	template <class TVal, class TSizeTy = int>
-	static void FillRangeS(const TSizeTy& Vals, TVec<TVal, TSizeTy>& Vec) {
+	template <class TVal, class TTSizeTyTy = int>
+	static void FillRangeS(const TTSizeTyTy& Vals, TVec<TVal, TTSizeTyTy>& Vec) {
 		//Added by Andrej
 		if (Vec.Len() != Vals){
 			Vec.Gen(Vals);
@@ -479,35 +479,35 @@ public:
 };
 class TLinAlg {
 public:
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static double DotProduct(const TVec<Type, Size>& x, const TVec<Type, Size>& y);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double DotProduct(const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y);
 	inline static double DotProduct(const TVec<TFltV>& X, int ColId, const TFltV& y);
 	inline static double DotProduct(const TVec<TIntFltKdV>& X, int ColId, const TFltV& y);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static double DotProduct(const TVVec<Type, Size, ColMajor>& X,
-		int ColIdX, const TVVec<Type, Size, ColMajor>& Y, int ColIdY);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static double DotProduct(const TVVec<Type, Size, ColMajor>& X,
-		int ColId, const TVec<Type, Size>& Vec);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X,
+		int ColIdX, const TVVec<TType, TSizeTy, ColMajor>& Y, int ColIdY);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X,
+		int ColId, const TVec<TType, TSizeTy>& Vec);
 	inline static double DotProduct(const TIntFltKdV& x, const TIntFltKdV& y);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static double DotProduct(const TVec<Type, Size>& x, const TVec<TIntFltKd>& y);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double DotProduct(const TVec<TType, TSizeTy>& x, const TVec<TIntFltKd>& y);
 	// <X(:,ColId),y> where only y is sparse
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static double DotProduct(const TVVec<Type, Size, ColMajor>& X, int ColId, const TIntFltKdV& y);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void OuterProduct(const TVec<Type, Size>& x,
-		const TVec<Type, Size>& y, TVVec<Type, Size, ColMajor>& Z);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void LinComb(const double& p, const TVec<Type, Size>& x,
-		const double& q, const TVec<Type, Size>& y, TVec<Type, Size>& z);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X, int ColId, const TIntFltKdV& y);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void OuterProduct(const TVec<TType, TSizeTy>& x,
+		const TVec<TType, TSizeTy>& y, TVVec<TType, TSizeTy, ColMajor>& Z);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void LinComb(const double& p, const TVec<TType, TSizeTy>& x,
+		const double& q, const TVec<TType, TSizeTy>& y, TVec<TType, TSizeTy>& z);
 	//TODO this will work only for glib type TFlt
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void LinCombInPlace(const Type& alpha, const TVec<TNum<Type>, Size>& x,
-		const Type& beta, TVec<TNum<Type>, Size>& y);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void LinComb(const double& p, const TVVec<Type, Size, ColMajor>& X,
-		const double& q, const TVVec<Type, Size, ColMajor>& Y, TVVec<Type, Size, ColMajor>& Z);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void LinCombInPlace(const TType& alpha, const TVec<TNum<TType>, TSizeTy>& x,
+		const TType& beta, TVec<TNum<TType>, TSizeTy>& y);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void LinComb(const double& p, const TVVec<TType, TSizeTy, ColMajor>& X,
+		const double& q, const TVVec<TType, TSizeTy, ColMajor>& Y, TVVec<TType, TSizeTy, ColMajor>& Z);
 	// z = p * x + q * y
 	inline static void LinComb(const double& p, const TIntFltKdV& x, const double& q, const TIntFltKdV& y, TIntFltKdV& z);
 	inline static void LinComb(const double& p, const TFltVV& X, int ColId,
@@ -515,295 +515,295 @@ public:
 	inline static void LinComb(const double& p, const TFltVV& X, int DimId,
 		const double& q, const TFltV& y, TFltV& z, int Dim);
 	inline static void LinComb(const double& p, const TFltVV& X, const double& q, const TFltVV& Y, TFltVV& Z);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void ConvexComb(const double& p, const TVec<Type, Size>& x, const TVec<Type, Size>& y, TVec<Type, Size>& z);
-	//this will fail if Type != TFlt, Specialization should be used
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void ConvexComb(const double& p, const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y, TVec<TType, TSizeTy>& z);
+	//this will fail if TType != TFlt, Specialization should be used
 #ifdef BLAS
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void AddVec(const Type& k, const TVec<TNum<Type>, Size>& x, TVec<TNum<Type>, Size>& y);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void AddVec(const TType& k, const TVec<TNum<TType>, TSizeTy>& x, TVec<TNum<TType>, TSizeTy>& y);
 #endif
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void AddVec(const double& k, const TVec<Type, Size>& x, const TVec<Type, Size>& y, TVec<Type, Size>& z);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void AddVec(const double& k, const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y, TVec<TType, TSizeTy>& z);
 	inline static void AddVec(const double& k, const TVec<TFltV>& X, int ColId, const TFltV& y, TFltV& z);
 	inline static void AddVec(const double& k, const TFltVV& X, int ColId, const TFltV& y, TFltV& z);
 	// z := x + y
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void AddVec(const TVec<Type, Size>& x, const TVec<Type, Size>& y, TVec<Type, Size>& z);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void AddVec(const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y, TVec<TType, TSizeTy>& z);
 	inline static void AddVec(const double& k, const TIntFltKdV& x, const TFltV& y, TFltV& z);
 	// z := k * X[ColId] + y
 	inline static void AddVec(const double& k, const TVec<TIntFltKdV>& X, int ColId, const TFltV& y, TFltV& z);
 	inline static void AddVec(const double& k, const TIntFltKdV& x, TFltV& y);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void AddVec(double k, const TVVec<Type, Size, ColMajor>& X, Size ColIdX, TVVec<Type, Size, ColMajor>& Y, Size ColIdY);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void AddVec(const double& k, const TVec<Type, Size>& x, TVVec<Type, Size, ColMajor>& Y, const Size& ColIdY);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void AddVec(double k, const TVVec<Type, Size, ColMajor>& X, int ColId, TVec<Type, Size>& Result);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void AddVec(double k, const TVVec<TType, TSizeTy, ColMajor>& X, TSizeTy ColIdX, TVVec<TType, TSizeTy, ColMajor>& Y, TSizeTy ColIdY);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void AddVec(const double& k, const TVec<TType, TSizeTy>& x, TVVec<TType, TSizeTy, ColMajor>& Y, const TSizeTy& ColIdY);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void AddVec(double k, const TVVec<TType, TSizeTy, ColMajor>& X, int ColId, TVec<TType, TSizeTy>& Result);
 	// z = x + y
-	template <class Type, class Size = int, bool ColMajor = false>
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void AddVec(const TIntFltKdV& x, const TIntFltKdV& y, TIntFltKdV& z);
-	template <class Type, class Size = int>
-	inline static double SumVec(const TVec<Type, Size>& x);
+	template <class TType, class TSizeTy = int>
+	inline static double SumVec(const TVec<TType, TSizeTy>& x);
 	inline static double SumVec(const TIntFltKdV& x);
-	template <class Type, class Size = int>
-	inline static double SumVec(double k, const TVec<Type, Size>& x, const TVec<Type, Size>& y);
+	template <class TType, class TSizeTy = int>
+	inline static double SumVec(double k, const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y);
 	// Result = ||x-y||^2 (Euclidian);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static double EuclDist2(const TVec<Type, Size>& x, const TVec<Type, Size>& y);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double EuclDist2(const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y);
 	// Result = ||x-y||^2 (Euclidian);
 	inline static double EuclDist2(const TFltPr& x, const TFltPr& y);
-	template <class Type, class Size = int>
-	inline static double EuclDist(const TVec<Type, Size>& x, const TVec<Type, Size>& y);
+	template <class TType, class TSizeTy = int>
+	inline static double EuclDist(const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y);
 	inline static double EuclDist(const TFltPr& x, const TFltPr& y);
 	// Result = ||A||_F (Frobenious);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static Type Frob(const TVVec<TNum<Type>, Size, ColMajor> &A);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static double FrobDist2(const TVVec<Type, Size, ColMajor>& A, const TVVec<Type, Size, ColMajor>& B);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static double FrobDist2(const TVec<Type, Size>& A, const TVec<Type, Size>& B);
-	template <class Type, class Size = int, bool ColMajor = false, class IndexType = TInt>
-	inline static void Sparse(const TVVec<Type, Size, ColMajor>& A, TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& B);
-	template <class Type, class Size = int, bool ColMajor = false, class IndexType = TInt>
-	inline static void Sparse(const TVVec<Type, Size, ColMajor>& A, TVec<TIntFltKdV>& B);
-	template <class Type, class Size = int, bool ColMajor = false, class IndexType = TInt>
-	inline static void Full(const TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& A, TVVec<Type, Size, ColMajor>& B, const int Rows, const int Cols);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static TType Frob(const TVVec<TNum<TType>, TSizeTy, ColMajor> &A);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double FrobDist2(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double FrobDist2(const TVec<TType, TSizeTy>& A, const TVec<TType, TSizeTy>& B);
+	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
+	inline static void Sparse(const TVVec<TType, TSizeTy, ColMajor>& A, TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& B);
+	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
+	inline static void Sparse(const TVVec<TType, TSizeTy, ColMajor>& A, TVec<TIntFltKdV>& B);
+	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
+	inline static void Full(const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& A, TVVec<TType, TSizeTy, ColMajor>& B, const int Rows, const int Cols);
 	// Sparse to dense transform
-	template <class Type, class Size = int, bool ColMajor = false, class IndexType = TInt>
-	inline static void Full(const TVec<TIntFltKdV, Size>& A, TVVec<Type, Size, ColMajor>& B, Size Rows);
-	template <class Type, class Size = int, bool ColMajor = false, class IndexType = TInt>
-	inline static void Transpose(const TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& A,
-		TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& At);
+	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
+	inline static void Full(const TVec<TIntFltKdV, TSizeTy>& A, TVVec<TType, TSizeTy, ColMajor>& B, TSizeTy Rows);
+	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
+	inline static void Transpose(const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& A,
+		TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& At);
 	inline static void Transpose(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& At, int Rows = -1);
 	// Sign
 	inline static void Sign(const TVec<TIntFltKdV>& Mat, TVec<TIntFltKdV>& Mat2);
 	inline static void Convert(const TVec<TPair<TIntV, TFltV>>& A, TTriple<TIntV, TIntV, TFltV>& B);
 	inline static void Convert(const TVec<TIntFltKdV>& A, TTriple<TIntV, TIntV, TFltV>&B);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void Sum(const TVVec<Type, Size, ColMajor>& X, TVec<Type, Size>& y, const int Dimension = 1);
-	template <class Type, class Size = int, bool ColMajor = false, class IndexType = TInt>
-	inline static void Sum(const TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& X, TVec<Type, Size>& y, const int Dimension = 1);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static double Norm2(const TVec<Type, Size>& x);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Sum(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TType, TSizeTy>& y, const int Dimension = 1);
+	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
+	inline static void Sum(const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& X, TVec<TType, TSizeTy>& y, const int Dimension = 1);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double Norm2(const TVec<TType, TSizeTy>& x);
 	// ||x|| (Euclidian);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static double Norm(const TVec<Type, Size>& x);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static double Normalize(TVec<Type, Size>& x);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void NormalizeColumn(TVVec<Type, Size, ColMajor>& X, const Size& ColId);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void NormalizeColumns(TVVec<Type, Size, ColMajor>& X);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void NormalizeRows(TVVec<Type, Size, ColMajor>& X);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double Norm(const TVec<TType, TSizeTy>& x);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double Normalize(TVec<TType, TSizeTy>& x);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void NormalizeColumn(TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& ColId);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void NormalizeColumns(TVVec<TType, TSizeTy, ColMajor>& X);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void NormalizeRows(TVVec<TType, TSizeTy, ColMajor>& X);
 #ifdef INTEL
 	// TEST
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void NormalizeColumns(TVVec<Type, Size, ColMajor>& X, TBool ColumnMajor);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void NormalizeColumns(TVVec<TType, TSizeTy, ColMajor>& X, TBool ColumnMajor);
 #endif
-	template <class Type, class Size = int, bool ColMajor = false, class IndexType = TInt>
-	inline static void NormalizeColumns(TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& X);
+	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
+	inline static void NormalizeColumns(TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& X);
 	// Normalize the columns of X
-	template<class Size = int>
-	inline static void NormalizeColumns(TVec<TIntFltKdV, Size>& X);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static double FrobNorm2(const TVVec<Type, Size, ColMajor>& X);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static double FrobNorm(const TVVec<Type, Size, ColMajor>& X);
+	template<class TSizeTy = int>
+	inline static void NormalizeColumns(TVec<TIntFltKdV, TSizeTy>& X);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double FrobNorm2(const TVVec<TType, TSizeTy, ColMajor>& X);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double FrobNorm(const TVVec<TType, TSizeTy, ColMajor>& X);
 	// ||x||^2 (Euclidian), x is sparse
-	template<class Size = int>
-	inline static double Norm2(const TVec<TIntFltKdV, Size>& x);
+	template<class TSizeTy = int>
+	inline static double Norm2(const TVec<TIntFltKdV, TSizeTy>& x);
 	// ||x|| (Euclidian), x is sparse
-	template<class Size = int>
-	inline static double Norm(const TVec<TIntFltKdV, Size>& x);
+	template<class TSizeTy = int>
+	inline static double Norm(const TVec<TIntFltKdV, TSizeTy>& x);
 	// x := x / ||x||, x is sparse
-	template<class Size = int, Size>
+	template<class TSizeTy = int, TSizeTy>
 	inline static void Normalize(TVec<TIntFltKdV>& x);
 	// ||X(:,ColId)||^2 (Euclidian);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static double Norm2(const TVVec<Type, Size, ColMajor>& X, int ColId);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static double Norm(const TVVec<Type, Size, ColMajor>& X, int ColId);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double Norm2(const TVVec<TType, TSizeTy, ColMajor>& X, int ColId);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double Norm(const TVVec<TType, TSizeTy, ColMajor>& X, int ColId);
 	// L1 norm of x (Sum[|xi|, i = 1..n]);
-	template <class Type, class Size = int>
-	inline static double NormL1(const TVec<Type, Size>& x);
-	template <class Type, class Size = int>
-	inline static double NormL1(double k, const TVec<Type, Size>& x, const TVec<Type, Size>& y);
+	template <class TType, class TSizeTy = int>
+	inline static double NormL1(const TVec<TType, TSizeTy>& x);
+	template <class TType, class TSizeTy = int>
+	inline static double NormL1(double k, const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y);
 	// L1 norm of x (Sum[|xi|, i = 1..n]);
 	inline static double NormL1(const TIntFltKdV& x);
-	template <class Type, class Size = int>
-	inline static void NormalizeL1(TVec<Type, Size>& x);
+	template <class TType, class TSizeTy = int>
+	inline static void NormalizeL1(TVec<TType, TSizeTy>& x);
 	// x := x / ||x||_1
 	inline static void NormalizeL1(TIntFltKdV& x);
-	template <class Type, class Size = int>
-	inline static double NormLinf(const TVec<Type, Size>& x);
+	template <class TType, class TSizeTy = int>
+	inline static double NormLinf(const TVec<TType, TSizeTy>& x);
 	// Linf norm of x (Max{|xi|, i = 1..n});
 	inline static double NormLinf(const TIntFltKdV& x);
-	template <class Type, class Size = int>
-	inline static void NormalizeLinf(TVec<Type, Size>& x);
+	template <class TType, class TSizeTy = int>
+	inline static void NormalizeLinf(TVec<TType, TSizeTy>& x);
 	// x := x / ||x||_inf, , x is sparse
 	inline static void NormalizeLinf(TIntFltKdV& x);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static int GetRowMaxIdx(const TVVec<Type, Size, ColMajor>& X, const Size& RowN);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static int GetColMaxIdx(const TVVec<Type, Size, ColMajor>& X, const int& ColN);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void GetRowMaxIdxV(const TVVec<Type, Size, ColMajor>& X, TVec<TInt, Size>& IdxV);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static int GetRowMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static int GetColMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const int& ColN);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void GetRowMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV);
 	// find the index of maximum elements for each col of X
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void GetColMaxIdxV(const TVVec<Type, Size, ColMajor>& X, TVec<TInt, Size>& IdxV);
-	template <class Type, class Size = int>
-	inline static void MultiplyScalar(const double& k, TVec<Type, Size>& x);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void GetColMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV);
+	template <class TType, class TSizeTy = int>
+	inline static void MultiplyScalar(const double& k, TVec<TType, TSizeTy>& x);
 	// find the index of maximum elements for a given each col of X
 	inline static int GetColMinIdx(const TFltVV& X, const int& ColN);
 	// find the index of maximum elements for each col of X
 	inline static void GetColMinIdxV(const TFltVV& X, TIntV& IdxV);
 	template <class TVal> inline static TVal GetColMin(const TVVec<TVal>& X, const int& ColN);
 	template <class TVal> inline static void GetColMinV(const TVVec<TVal>& X, TVec<TVal>& ValV);
-	template <class Type, class Size = int>
-	inline static void MultiplyScalar(const double& k, const TVec<Type, Size>& x, TVec<Type, Size>& y);
+	template <class TType, class TSizeTy = int>
+	inline static void MultiplyScalar(const double& k, const TVec<TType, TSizeTy>& x, TVec<TType, TSizeTy>& y);
 	// y := k * x
 	inline static void MultiplyScalar(const double& k, const TIntFltKdV& x, TIntFltKdV& y);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void MultiplyScalar(const double& k, const TVVec<Type, Size, ColMajor>& X, TVVec<Type, Size, ColMajor>& Y);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void MultiplyScalar(const double& k, const TVVec<TType, TSizeTy, ColMajor>& X, TVVec<TType, TSizeTy, ColMajor>& Y);
 	// Y := k * X
-	template <class Size = int>
-	inline static void MultiplyScalar(const double& k, const TVec<TIntFltKdV, Size>& X, TVec<TIntFltKdV, Size>& Y);
+	template <class TSizeTy = int>
+	inline static void MultiplyScalar(const double& k, const TVec<TIntFltKdV, TSizeTy>& X, TVec<TIntFltKdV, TSizeTy>& Y);
 	// y := A * x
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void Multiply(const TVVec<Type, Size, ColMajor>& A, const TVec<Type, Size>& x, TVec<Type, Size>& y);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void Multiply(const TVVec<Type, Size, ColMajor>& A, const TVec<Type, Size>& x, TVVec<Type, Size, ColMajor>& C, Size ColId);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void Multiply(const TVVec<Type, Size, ColMajor>& A, const TVVec<Type, Size, ColMajor>& B, int ColId, TVec<Type, Size>& y);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void Multiply(const TVVec<Type, Size, ColMajor>& A, const TVVec<Type, Size, ColMajor>& B, int ColIdB, TVVec<Type, Size, ColMajor>& C, int ColIdC);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TType, TSizeTy>& x, TVec<TType, TSizeTy>& y);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TType, TSizeTy>& x, TVVec<TType, TSizeTy, ColMajor>& C, TSizeTy ColId);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColId, TVec<TType, TSizeTy>& y);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColIdB, TVVec<TType, TSizeTy, ColMajor>& C, int ColIdC);
 	//LAPACKE stuff
 #ifdef LAPACKE
 	// Tested in other function
 	//A is rewritten in place with orthogonal matrix Q
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void QRbasis(TVVec<Type, Size, ColMajor>& A);/* {
-		Size m = A.GetRows(); Size n = A.GetCols(); Size k = A.GetCols();
-		Size lda = ColMajor ? m : n;
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void QRbasis(TVVec<TType, TSizeTy, ColMajor>& A);/* {
+		TSizeTy m = A.GetRows(); TSizeTy n = A.GetCols(); TSizeTy k = A.GetCols();
+		TSizeTy lda = ColMajor ? m : n;
 		int Matrix_Layout = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
-		TVec<Type, Size> tau; tau.Gen(MAX(1, MIN(m, n)));
+		TVec<TType, TSizeTy> tau; tau.Gen(MAX(1, MIN(m, n)));
 		LAPACKE_dgeqrf(Matrix_Layout, m, n, &A(0, 0).Val, lda, &tau[0].Val);
 		LAPACKE_dorgqr(Matrix_Layout, m, n, k, &A(0, 0).Val, lda, &tau[0].Val);
 	}*/
 	// TEST
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void QRbasis(const TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& Q);/* {
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void QRbasis(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& Q);/* {
 		Q = A;
 		TLinAlg::QRbasis(Q);
 	}*/
 	// Tested in other function
 	//A is rewritten in place with orthogonal matrix Q (column pivoting to improve stability);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void QRcolpbasis(TVVec<Type, Size, ColMajor>& A);/* {
-		Size m = A.GetRows(); Size n = A.GetCols(); Size k = A.GetCols();
-		Size lda = ColMajor ? m : n;
-		Size Matrix_Layout = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
-		TVec<Type, Size> tau(MAX(1, MIN(m, n)));
-		TVec<TInt, Size> jvpt(MAX(1, n));
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void QRcolpbasis(TVVec<TType, TSizeTy, ColMajor>& A);/* {
+		TSizeTy m = A.GetRows(); TSizeTy n = A.GetCols(); TSizeTy k = A.GetCols();
+		TSizeTy lda = ColMajor ? m : n;
+		TSizeTy Matrix_Layout = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
+		TVec<TType, TSizeTy> tau(MAX(1, MIN(m, n)));
+		TVec<TInt, TSizeTy> jvpt(MAX(1, n));
 		LAPACKE_dgeqp3(Matrix_Layout, m, n, &A(0, 0).Val, lda, &jvpt[0].Val, &tau[0].Val);
 		LAPACKE_dorgqr(Matrix_Layout, m, n, k, &A(0, 0).Val, lda, &tau[0].Val);
 	}*/
 	// TEST
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void QRcolpbasis(const TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& Q);/* {
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void QRcolpbasis(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& Q);/* {
 		Q = A;
 		TLinAlg::QRcolpbasis(Q);
 	}*/
 	// TEST
 	//S S option ensures that A is not modified
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void thinSVD(const TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& U, TVec<Type, Size>& S, TVVec<Type, Size, ColMajor>& VT);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void thinSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& U, TVec<TType, TSizeTy>& S, TVVec<TType, TSizeTy, ColMajor>& VT);
 	/*{
-		Size m = A.GetRows(); Size n = A.GetCols();
-		Size thin_dim = MIN(m, n);
+		TSizeTy m = A.GetRows(); TSizeTy n = A.GetCols();
+		TSizeTy thin_dim = MIN(m, n);
 		S.Gen(thin_dim); U.Gen(m, thin_dim); VT.Gen(thin_dim, n);
 		int lda = ColMajor ? m : n;
 		int ldu = ColMajor ? m : thin_dim;
 		int ldvt = ColMajor ? thin_dim : n;
-		TVec<Type, Size> superb(MAX(1, MIN(m, n)));
+		TVec<TType, TSizeTy> superb(MAX(1, MIN(m, n)));
 		int opt = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
 		LAPACKE_dgesvd(opt, 'S', 'S', m, n, const_cast<double *>(&A(0, 0).Val), lda, &S[0].Val, &U(0, 0).Val, ldu, &VT(0, 0).Val, ldvt, &superb[0].Val);
 	}*/
 #endif
 	inline static int ComputeThinSVD(const TMatrix& X, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int Iters = 2, const double Tol = 1e-6);
 #ifdef INTEL
-	template <class Type, class Size, bool ColMajor = false>
-	inline static void MultiplySF(const TTriple<TVec<TNum<Size>, Size>, TVec<TNum<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, false>& B,
-		TVVec<Type, Size, ColMajor>& C, const TStr& transa = TStr("N"), const int& format = 0);
-	template <class IndexType = TInt, class Type, class Size = int, bool ColMajor = false>
-	inline static void MultiplyFS(TVVec<Type, Size, ColMajor>& B, const TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& A,
-		TVVec<Type, Size, ColMajor>& C);
+	template <class TType, class TSizeTy, bool ColMajor = false>
+	inline static void MultiplySF(const TTriple<TVec<TNum<TSizeTy>, TSizeTy>, TVec<TNum<TSizeTy>, TSizeTy>, TVec<TType, TSizeTy>>& A, const TVVec<TType, TSizeTy, false>& B,
+		TVVec<TType, TSizeTy, ColMajor>& C, const TStr& transa = TStr("N"), const int& format = 0);
+	template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void MultiplyFS(TVVec<TType, TSizeTy, ColMajor>& B, const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& A,
+		TVVec<TType, TSizeTy, ColMajor>& C);
 #endif
 	// y := A * x
-	template <class IndexType = TInt, class Type, class Size = int, bool ColMajor = false>
-	inline static void Multiply(const TVVec<Type, Size, ColMajor>& A, const TPair<TVec<IndexType, Size>, TVec<Type, Size>>& x, TVec<Type, Size>& y);
+	template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TPair<TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& x, TVec<TType, TSizeTy>& y);
 	//y := x' * A ... row data!!
-	template <class IndexType = TInt, class Type, class Size = int, bool ColMajor = false>
-	inline static void MultiplyT(const TPair<TVec<IndexType, Size>, TVec<Type, Size>>& x, const TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& y);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void MultiplyT(const TVVec<Type, Size, ColMajor>& A, const TVec<Type, Size>& x, TVec<Type, Size>& y);
+	template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void MultiplyT(const TPair<TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& x, const TVVec<TType, TSizeTy, ColMajor>& A, TVec<TType, TSizeTy>& y);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TType, TSizeTy>& x, TVec<TType, TSizeTy>& y);
 #ifdef BLAS
 	typedef enum { NOTRANS = 0, TRANS = 1 } TLinAlgBlasTranspose;
-	template <class Type, class Size = int, bool ColMajor = false>
-		inline static void Multiply(const TVVec<TNum<Type>, Size, ColMajor>& A, const TVVec<TNum<Type>, Size, ColMajor>& B, TVVec<TNum<Type>, Size, ColMajor>& C,
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+		inline static void Multiply(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVVec<TNum<TType>, TSizeTy, ColMajor>& B, TVVec<TNum<TType>, TSizeTy, ColMajor>& C,
 		const int& BlasTransposeFlagA, const int& BlasTransposeFlagB);
 #endif
 #ifdef BLAS
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void Multiply(const TVVec<TNum<Type>, Size, ColMajor>& A, const TVec<TNum<Type>, Size>& x, TVec<TNum<Type>, Size>& y, const int& BlasTransposeFlagA, Type alpha = 1.0, Type beta = 0.0);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Multiply(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVec<TNum<TType>, TSizeTy>& x, TVec<TNum<TType>, TSizeTy>& y, const int& BlasTransposeFlagA, TType alpha = 1.0, TType beta = 0.0);
 #endif
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void Multiply(const TVVec<Type, Size, ColMajor>& A, const TVVec<Type, Size, ColMajor>& B, TVVec<Type, Size, ColMajor>& C);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void MultiplyT(const TVVec<Type, Size, ColMajor>& A, const TVVec<Type, Size, ColMajor>& B, TVVec<Type, Size, ColMajor>& C);
-	template <class IndexType = TInt, class Type, class Size = int, bool ColMajor = false>
-	inline static void Multiply(const TVVec<Type, Size, ColMajor>& A, const TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& B,
-		TVVec<Type, Size, ColMajor>& C);
-	template <class IndexType = TInt, class Type, class Size = int, bool ColMajor = false>
-	inline static void MultiplyT(const TVVec<Type, Size, ColMajor>& A, const TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& B,
-		TVVec<Type, Size, ColMajor>& C);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, TVVec<TType, TSizeTy, ColMajor>& C);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, TVVec<TType, TSizeTy, ColMajor>& C);
+	template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& B,
+		TVVec<TType, TSizeTy, ColMajor>& C);
+	template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& B,
+		TVVec<TType, TSizeTy, ColMajor>& C);
 	//#if !defined(INTEL) || defined(INDEX_64);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void Multiply(const TTriple<TVec<TNum<Size>, Size>, TVec<TNum<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, ColMajor>& B,
-		TVVec<Type, Size, ColMajor>& C);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void MultiplyT(const TTriple<TVec<TNum<Size>, Size>, TVec<TNum<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, ColMajor>& B,
-		TVVec<Type, Size, ColMajor>& C);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Multiply(const TTriple<TVec<TNum<TSizeTy>, TSizeTy>, TVec<TNum<TSizeTy>, TSizeTy>, TVec<TType, TSizeTy>>& A, const TVVec<TType, TSizeTy, ColMajor>& B,
+		TVVec<TType, TSizeTy, ColMajor>& C);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void MultiplyT(const TTriple<TVec<TNum<TSizeTy>, TSizeTy>, TVec<TNum<TSizeTy>, TSizeTy>, TVec<TType, TSizeTy>>& A, const TVVec<TType, TSizeTy, ColMajor>& B,
+		TVVec<TType, TSizeTy, ColMajor>& C);
 	inline static void Multiply(const TFltVV& A, const TVec<TIntFltKdV>& B, TFltVV& C);
 	// C:= A' * B
-	template <class IndexType = TInt, class Type, class Size = int, bool ColMajor = false>
+	template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void MultiplyT(const TFltVV& A, const TVec<TIntFltKdV>& B, TFltVV& C);
 	inline static void Multiply(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C, const int RowsA = -1);
 	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C);
 	inline static void Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C, const int RowsA = -1);
 	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C);
 	typedef enum { GEMM_NO_T = 0, GEMM_A_T = 1, GEMM_B_T = 2, GEMM_C_T = 4 } TLinAlgGemmTranspose;
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void Gemm(const double& Alpha, const TVVec<Type, Size, ColMajor>& A, const TVVec<Type, Size, ColMajor>& B, const double& Beta,
-		const TVVec<Type, Size, ColMajor>& C, TVVec<Type, Size, ColMajor>& D, const int& TransposeFlags);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Gemm(const double& Alpha, const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, const double& Beta,
+		const TVVec<TType, TSizeTy, ColMajor>& C, TVVec<TType, TSizeTy, ColMajor>& D, const int& TransposeFlags);
 	typedef enum { DECOMP_SVD } TLinAlgInverseType;
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void Inverse(const TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor >& B, const TLinAlgInverseType& DecompType);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Inverse(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor >& B, const TLinAlgInverseType& DecompType);
 	// subtypes of finding an inverse (works only for TFltVV, cuz of TSvd);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void InverseSVD(const TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& B, const double& tol);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void InverseSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& B, const double& tol);
 	// subtypes of finding an inverse (works only for TFltVV, cuz of TSvd);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void InverseSVD(const TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& B);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void InverseSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& B);
 	// transpose matrix - B = A'
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void Transpose(const TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& B);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Transpose(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& B);
 	// performes Gram-Schmidt ortogonalization on elements of Q
-	template <class Size = int>
-	inline static void GS(TVec<TVec<TFlt, Size>, Size>& Q);
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void GS(TVVec<Type, Size, ColMajor>& Q);
+	template <class TSizeTy = int>
+	inline static void GS(TVec<TVec<TFlt, TSizeTy>, TSizeTy>& Q);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void GS(TVVec<TType, TSizeTy, ColMajor>& Q);
 	// Modified Gram-Schmidt on columns of matrix Q
 	inline static void MGS(TFltVV& Q);
 	// QR based on Modified Gram-Schmidt decomposition.
@@ -811,11 +811,11 @@ public:
 	// rotates vector (OldX,OldY) for angle Angle (in radians!);
 	inline static void Rotate(const double& OldX, const double& OldY, const double& Angle, double& NewX, double& NewY);
 	// checks if set of vectors is ortogonal
-	template <class Size = int>
-	inline static void AssertOrtogonality(const TVec<TVec<TFlt, Size>, Size>& Vecs, const double& Threshold);
+	template <class TSizeTy = int>
+	inline static void AssertOrtogonality(const TVec<TVec<TFlt, TSizeTy>, TSizeTy>& Vecs, const double& Threshold);
 	//ColMajor oriented data for optimal result
-	template <class Type, class Size = int, bool ColMajor = false>
-	inline static void AssertOrtogonality(const TVVec<Type, Size, ColMajor>& Vecs, const double& Threshold);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void AssertOrtogonality(const TVVec<TType, TSizeTy, ColMajor>& Vecs, const double& Threshold);
 	inline static bool IsOrthonormal(const TFltVV& Vecs, const double& Threshold);
 };
 
@@ -828,11 +828,11 @@ public:
 //public:
 	// <x,y>
 	// TEST
-	template <class Type, class Size, bool ColMajor>
-	double TLinAlg::DotProduct(const TVec<Type, Size>& x, const TVec<Type, Size>& y) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::DotProduct(const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y) {
 		EAssertR(x.Len() == y.Len(), TStr::Fmt("%d != %d", x.Len(), y.Len()));
-		Type result = 0.0; const  Size Len = x.Len();
-		for (Size i = 0; i < Len; i++)
+		TType result = 0.0; const  TSizeTy Len = x.Len();
+		for (TSizeTy i = 0; i < Len; i++)
 			result += x[i] * y[i];
 		return result;
 	}
@@ -848,24 +848,24 @@ public:
 
 	// TEST
 	// <X(:,ColIdX), Y(:,ColIdY)>
-	template <class Type, class Size, bool ColMajor>
-	double TLinAlg::DotProduct(const TVVec<Type, Size, ColMajor>& X,
-		int ColIdX, const TVVec<Type, Size, ColMajor>& Y, int ColIdY) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X,
+		int ColIdX, const TVVec<TType, TSizeTy, ColMajor>& Y, int ColIdY) {
 		EAssert(X.GetRows() == Y.GetRows());
-		Type result = 0.0; const Size len = X.GetRows();
-		for (Size i = 0; i < len; i++)
+		TType result = 0.0; const TSizeTy len = X.GetRows();
+		for (TSizeTy i = 0; i < len; i++)
 			result = result + X(i, ColIdX) * Y(i, ColIdY);
 		return result;
 	}
 	// TEST
 	// <X(:,ColId), Vec>
-	template <class Type, class Size, bool ColMajor>
-	double TLinAlg::DotProduct(const TVVec<Type, Size, ColMajor>& X,
-		int ColId, const TVec<Type, Size>& Vec) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X,
+		int ColId, const TVec<TType, TSizeTy>& Vec) {
 
 		EAssert(X.GetRows() == Vec.Len());
-		Type result = 0.0; const Size len = X.GetRows();
-		for (Size i = 0; i < len; i++)
+		TType result = 0.0; const TSizeTy len = X.GetRows();
+		for (TSizeTy i = 0; i < len; i++)
 			result += X(i, ColId) * Vec[i];
 		return result;
 	}
@@ -886,22 +886,22 @@ public:
 
 	// <x,y> where only y is sparse
 	//TODO TIntFltKdV indexing and is TInt enough?
-	template <class Type, class Size, bool ColMajor>
-	double TLinAlg::DotProduct(const TVec<Type, Size>& x, const TVec<TIntFltKd>& y) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::DotProduct(const TVec<TType, TSizeTy>& x, const TVec<TIntFltKd>& y) {
 		double Res = 0.0; const int xLen = x.Len(), yLen = y.Len();
-		for (Size i = 0; i < yLen; i++) {
-			const Size key = y[i].Key;
+		for (TSizeTy i = 0; i < yLen; i++) {
+			const TSizeTy key = y[i].Key;
 			if (key < xLen) Res += y[i].Dat * x[key];
 		}
 		return Res;
 	}
 
 	// <X(:,ColId),y> where only y is sparse
-	template <class Type, class Size, bool ColMajor>
-	double TLinAlg::DotProduct(const TVVec<Type, Size, ColMajor>& X, int ColId, const TIntFltKdV& y) {
-		Type Res = 0.0; const Size n = X.GetRows(), yLen = y.Len();
-		for (Size i = 0; i < yLen; i++) {
-			const Size key = y[i].Key;
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X, int ColId, const TIntFltKdV& y) {
+		TType Res = 0.0; const TSizeTy n = X.GetRows(), yLen = y.Len();
+		for (TSizeTy i = 0; i < yLen; i++) {
+			const TSizeTy key = y[i].Key;
 			if (key < n) Res += y[i].Dat * X(key, ColId);
 		}
 		return Res;
@@ -909,56 +909,56 @@ public:
 
 	// TEST
 	// z = x * y'    
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::OuterProduct(const TVec<Type, Size>& x,
-		const TVec<Type, Size>& y, TVVec<Type, Size, ColMajor>& Z) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::OuterProduct(const TVec<TType, TSizeTy>& x,
+		const TVec<TType, TSizeTy>& y, TVVec<TType, TSizeTy, ColMajor>& Z) {
 
 		EAssert(Z.GetRows() == x.Len() && Z.GetCols() == y.Len());
-		const Size XLen = x.Len();
-		const Size YLen = y.Len();
-		for (Size i = 0; i < XLen; i++) {
-			for (Size j = 0; j < YLen; j++) {
+		const TSizeTy XLen = x.Len();
+		const TSizeTy YLen = y.Len();
+		for (TSizeTy i = 0; i < XLen; i++) {
+			for (TSizeTy j = 0; j < YLen; j++) {
 				Z(i, j) = x[i] * y[j];
 			}
 		}
 	}
 
 	// z := p * x + q * y
-	//TODO should double be Type?
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::LinComb(const double& p, const TVec<Type, Size>& x,
-		const double& q, const TVec<Type, Size>& y, TVec<Type, Size>& z) {
+	//TODO should double be TType?
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::LinComb(const double& p, const TVec<TType, TSizeTy>& x,
+		const double& q, const TVec<TType, TSizeTy>& y, TVec<TType, TSizeTy>& z) {
 
 		EAssert(x.Len() == y.Len() && y.Len() == z.Len());
-		const Size Len = x.Len();
-		for (Size i = 0; i < Len; i++) {
+		const TSizeTy Len = x.Len();
+		for (TSizeTy i = 0; i < Len; i++) {
 			z[i] = p * x[i] + q * y[i];
 		}
 	}
 
 	//TODO this will work only for glib type TFlt
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::LinCombInPlace(const Type& alpha, const TVec<TNum<Type>, Size>& x,
-		const Type& beta, TVec<TNum<Type>, Size>& y) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::LinCombInPlace(const TType& alpha, const TVec<TNum<TType>, TSizeTy>& x,
+		const TType& beta, TVec<TNum<TType>, TSizeTy>& y) {
 
 #ifdef BLAS
-		if (TypeCheck::is_double<Type>::value == true){
+		if (TypeCheck::is_double<TType>::value == true){
 			typedef double Loc;
 			cblas_daxpby(x.Len(), *((Loc *)&alpha), (Loc *)&x[0].Val, 1, *((Loc *)&beta), (Loc *)&y[0].Val, 1);
 		}
 		else
-		if (TypeCheck::is_float<Type>::value == true){
+		if (TypeCheck::is_float<TType>::value == true){
 			typedef float Loc;
 			cblas_saxpby(x.Len(), *((Loc *)&alpha), (Loc *)&x[0].Val, 1, *((Loc *)&beta), (Loc *)&y[0].Val, 1);
 		}
 		else
-		if (TypeCheck::is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<TType>::value == true){
 			typedef double Loc;
 			//std::complex<double> alpha_(alpha); std::complex<double> beta_(beta);
 			cblas_zaxpby(x.Len(), (const Loc*)&alpha, (const Loc*)&x[0].Val, 1, (const Loc*)&beta, (Loc*)&y[0].Val, 1);
 		}
 		else
-		if (TypeCheck::is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<TType>::value == true){
 			typedef float Loc;
 			//std::complex<float> alpha_((float)alpha); std::complex<float> beta_((float)beta);
 			cblas_caxpby(x.Len(), (const Loc*)&alpha, (const Loc*)&x[0].Val, 1, (const Loc*)&beta, (Loc*)&y[0].Val, 1);
@@ -970,14 +970,14 @@ public:
 	// TEST
 	// Z := p * X + q * Y
 	//TODO double or type?
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::LinComb(const double& p, const TVVec<Type, Size, ColMajor>& X,
-		const double& q, const TVVec<Type, Size, ColMajor>& Y, TVVec<Type, Size, ColMajor>& Z) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::LinComb(const double& p, const TVVec<TType, TSizeTy, ColMajor>& X,
+		const double& q, const TVVec<TType, TSizeTy, ColMajor>& Y, TVVec<TType, TSizeTy, ColMajor>& Z) {
 		EAssert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols() && X.GetRows() == Z.GetRows() && X.GetCols() == Z.GetCols());
-		Size Rows = X.GetRows();
-		Size Cols = X.GetCols();
-		for (Size RowN = 0; RowN < Rows; RowN++) {
-			for (Size ColN = 0; ColN < Cols; ColN++) {
+		TSizeTy Rows = X.GetRows();
+		TSizeTy Cols = X.GetCols();
+		for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
+			for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
 				Z.At(RowN, ColN) = p*X.At(RowN, ColN) + q*Y.At(RowN, ColN);
 			}
 		}
@@ -1035,34 +1035,34 @@ public:
 
 	// TEST
 	// z := p * x + (1 - p) * y
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::ConvexComb(const double& p, const TVec<Type, Size>& x, const TVec<Type, Size>& y, TVec<Type, Size>& z)  {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::ConvexComb(const double& p, const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y, TVec<TType, TSizeTy>& z)  {
 		AssertR(0.0 <= p && p <= 1.0, TFlt::GetStr(p));
 		TLinAlg::LinComb(p, x, 1.0 - p, y, z);
 	}
 
-	//this will fail if Type != TFlt, Specialization should be used
+	//this will fail if TType != TFlt, Specialization should be used
 #ifdef BLAS
 	// TEST
 	//y = k * x + y 
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::AddVec(const Type& k, const TVec<TNum<Type>, Size>& x, TVec<TNum<Type>, Size>& y) {
-		if (TypeCheck::is_double<Type>::value == true){
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::AddVec(const TType& k, const TVec<TNum<TType>, TSizeTy>& x, TVec<TNum<TType>, TSizeTy>& y) {
+		if (TypeCheck::is_double<TType>::value == true){
 			typedef double Loc;
 			cblas_daxpy(x.Len(), *((Loc *)&k), (Loc *)&x[0].Val, 1, (Loc *)&y[0].Val, 1);
 		}
 		else
-		if (TypeCheck::is_float<Type>::value == true){
+		if (TypeCheck::is_float<TType>::value == true){
 			typedef float Loc;
 			cblas_saxpy(x.Len(), *((Loc *)&k), (Loc *)&x[0].Val, 1, (Loc *)&y[0].Val, 1);
 		}
 		else
-		if (TypeCheck::is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<TType>::value == true){
 			typedef double Loc;
 			cblas_zaxpy(x.Len(), (const Loc *)&k, (const Loc*)&x[0].Val, 1, (Loc *)&y[0].Val, 1);
 		}
 		else
-		if (TypeCheck::is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<TType>::value == true){
 			typedef float Loc;
 			cblas_caxpy(x.Len(), (const Loc *)&k, (const Loc *)&x[0].Val, 1, (Loc *)&y[0].Val, 1);
 		}
@@ -1071,18 +1071,18 @@ public:
 #endif
 	// TEST
 	// z := k * x + y 
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::AddVec(const double& k, const TVec<Type, Size>& x, const TVec<Type, Size>& y, TVec<Type, Size>& z)  {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::AddVec(const double& k, const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y, TVec<TType, TSizeTy>& z)  {
 		TLinAlg::LinComb(k, x, 1.0, y, z);
 	}
 	// z := k * X[ColId] + y
-	//Andrej template <class Type, class Size, bool ColMajor>
+	//Andrej template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::AddVec(const double& k, const TVec<TFltV>& X, int ColId, const TFltV& y, TFltV& z) {
 		EAssert(0 <= ColId && ColId < X.Len());
 		AddVec(k, X[ColId], y, z);
 	}
 	// z := k * X(:,ColId) + y
-	//Andrej template <class Type, class Size, bool ColMajor>
+	//Andrej template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::AddVec(const double& k, const TFltVV& X, int ColId, const TFltV& y, TFltV& z) {
 		EAssert(X.GetRows() == y.Len());
 		EAssert(y.Len() == z.Len());
@@ -1092,13 +1092,13 @@ public:
 		}
 	}
 	// z := x + y
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::AddVec(const TVec<Type, Size>& x, const TVec<Type, Size>& y, TVec<Type, Size>& z) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::AddVec(const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y, TVec<TType, TSizeTy>& z) {
 		TLinAlg::LinComb(1.0, x, 1.0, y, z);
 	}
 
 	// z := k * x + y
-	//template <class Type, class Size, bool ColMajor>
+	//template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::AddVec(const double& k, const TIntFltKdV& x, const TFltV& y, TFltV& z) {
 		EAssert(y.Len() == z.Len());
 		z = y; // first we set z to be y
@@ -1117,7 +1117,7 @@ public:
 		AddVec(k, X[ColId], y, z);
 	}
 	// y := k * x + y
-	//template <class Type, class Size, bool ColMajor>
+	//template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::AddVec(const double& k, const TIntFltKdV& x, TFltV& y) {
 		const int xLen = x.Len(), yLen = y.Len();
 		for (int i = 0; i < xLen; i++) {
@@ -1130,48 +1130,48 @@ public:
 
 	// TEST
 	// Y(:,Col) += k * X(:,Col)
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::AddVec(double k, const TVVec<Type, Size, ColMajor>& X, Size ColIdX, TVVec<Type, Size, ColMajor>& Y, Size ColIdY) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::AddVec(double k, const TVVec<TType, TSizeTy, ColMajor>& X, TSizeTy ColIdX, TVVec<TType, TSizeTy, ColMajor>& Y, TSizeTy ColIdY) {
 		EAssert(X.GetRows() == Y.GetRows());
-		const Size len = Y.GetRows();
-		for (Size i = 0; i < len; i++) {
+		const TSizeTy len = Y.GetRows();
+		for (TSizeTy i = 0; i < len; i++) {
 			Y(i, ColIdY) = Y(i, ColIdY) + k * X(i, ColIdX);
 		}
 	}
 
 	// TEST
 	// Y(:,ColIdY) += k * x
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::AddVec(const double& k, const TVec<Type, Size>& x, TVVec<Type, Size, ColMajor>& Y, const Size& ColIdY) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::AddVec(const double& k, const TVec<TType, TSizeTy>& x, TVVec<TType, TSizeTy, ColMajor>& Y, const TSizeTy& ColIdY) {
 		EAssert(x.Len() == Y.GetRows());
 		EAssert(ColIdY >= 0 && ColIdY < x.Len());
-		for (Size RowN = 0; RowN < Y.GetRows(); RowN++) {
+		for (TSizeTy RowN = 0; RowN < Y.GetRows(); RowN++) {
 			Y.At(RowN, ColIdY) += k*x[RowN];
 		}
 	}
 
 	// TEST
 	// Result += k * X(:,Col)
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::AddVec(double k, const TVVec<Type, Size, ColMajor>& X, int ColId, TVec<Type, Size>& Result) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::AddVec(double k, const TVVec<TType, TSizeTy, ColMajor>& X, int ColId, TVec<TType, TSizeTy>& Result) {
 		EAssert(X.GetRows() == Result.Len());
-		const Size len = Result.Len();
-		for (Size i = 0; i < len; i++) {
+		const TSizeTy len = Result.Len();
+		for (TSizeTy i = 0; i < len; i++) {
 			Result[i] = Result[i] + k * X(i, ColId);
 		}
 	}
 
 	// z = x + y
-	template <class Type, class Size, bool ColMajor>
+	template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::AddVec(const TIntFltKdV& x, const TIntFltKdV& y, TIntFltKdV& z) {
 		TSparseOpsIntFlt::SparseMerge(x, y, z);
 	}
 
 	// TEST
 	// Result = SUM(x)
-	template <class Type, class Size>
-	double TLinAlg::SumVec(const TVec<Type, Size>& x) {
-		const Size len = x.Len();
+	template <class TType, class TSizeTy>
+	double TLinAlg::SumVec(const TVec<TType, TSizeTy>& x) {
+		const TSizeTy len = x.Len();
 		double Res = 0.0;
 		for (int i = 0; i < len; i++) {
 			Res += x[i];
@@ -1180,7 +1180,7 @@ public:
 	}
 
 	// Result = SUM(x)
-	//template <class Type, class Size, bool ColMajor>
+	//template <class TType, class TSizeTy, bool ColMajor>
 	double TLinAlg::SumVec(const TIntFltKdV& x) {
 		const int len = x.Len();
 		double Res = 0.0;
@@ -1192,24 +1192,24 @@ public:
 
 	// TEST
 	// Result = SUM(k*x + y)
-	template <class Type, class Size>
-	double TLinAlg::SumVec(double k, const TVec<Type, Size>& x, const TVec<Type, Size>& y) {
+	template <class TType, class TSizeTy>
+	double TLinAlg::SumVec(double k, const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y) {
 		EAssert(x.Len() == y.Len());
-		const Size len = x.Len();
+		const TSizeTy len = x.Len();
 		double Res = 0.0;
-		for (Size i = 0; i < len; i++) {
+		for (TSizeTy i = 0; i < len; i++) {
 			Res += k * x[i] + y[i];
 		}
 		return Res;
 	}
 
 	// Result = ||x-y||^2 (Euclidian)
-	template <class Type, class Size, bool ColMajor>
-	double TLinAlg::EuclDist2(const TVec<Type, Size>& x, const TVec<Type, Size>& y) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::EuclDist2(const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y) {
 		EAssert(x.Len() == y.Len());
-		const Size len = x.Len();
+		const TSizeTy len = x.Len();
 		double Res = 0.0;
-		for (Size i = 0; i < len; i++) {
+		for (TSizeTy i = 0; i < len; i++) {
 			Res += TMath::Sqr(x[i] - y[i]);
 		}
 		return Res;
@@ -1222,20 +1222,20 @@ public:
 
 	// TEST
 	// Result = ||x-y|| (Euclidian)
-	template <class Type, class Size>
-	double TLinAlg::EuclDist(const TVec<Type, Size>& x, const TVec<Type, Size>& y) {
+	template <class TType, class TSizeTy>
+	double TLinAlg::EuclDist(const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y) {
 		return sqrt(TLinAlg::EuclDist2(x, y));
 	}
 
 	// Result = ||x-y|| (Euclidian)
-	//template <class Type, class Size, bool ColMajor>
+	//template <class TType, class TSizeTy, bool ColMajor>
 	double TLinAlg::EuclDist(const TFltPr& x, const TFltPr& y) {
 		return sqrt(TLinAlg::EuclDist2(x, y));
 	}
 	// Result = ||A||_F (Frobenious)
-	template <class Type, class Size, bool ColMajor>
-	Type TLinAlg::Frob(const TVVec<TNum<Type>, Size, ColMajor> &A) {
-		Type frob = 0;
+	template <class TType, class TSizeTy, bool ColMajor>
+	TType TLinAlg::Frob(const TVVec<TNum<TType>, TSizeTy, ColMajor> &A) {
+		TType frob = 0;
 		for (int RowN = 0; RowN < A.GetRows(); RowN++) {
 			for (int ColN = 0; ColN < A.GetCols(); ColN++) {
 				frob += A.At(RowN, ColN)*A.At(RowN, ColN);
@@ -1245,11 +1245,11 @@ public:
 	}
 	// TEST
 	// Result = ||A - B||_F (Frobenious)
-	template <class Type, class Size, bool ColMajor>
-	double TLinAlg::FrobDist2(const TVVec<Type, Size, ColMajor>& A, const TVVec<Type, Size, ColMajor>& B) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::FrobDist2(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B) {
 		double frob = 0;
-		TVec<Type, Size> Apom = (const_cast<TVVec<Type, Size, ColMajor> &>(A)).Get1DVec();
-		TVec<Type, Size> Bpom = (const_cast<TVVec<Type, Size, ColMajor> &>(B)).Get1DVec();
+		TVec<TType, TSizeTy> Apom = (const_cast<TVVec<TType, TSizeTy, ColMajor> &>(A)).Get1DVec();
+		TVec<TType, TSizeTy> Bpom = (const_cast<TVVec<TType, TSizeTy, ColMajor> &>(B)).Get1DVec();
 		frob = TLinAlg::EuclDist2(Apom, Bpom);
 		/*for (int RowN = 0; RowN < A.GetRows(); RowN++) {
 		for (int ColN = 0; ColN < A.GetCols(); ColN++) {
@@ -1261,8 +1261,8 @@ public:
 
 	// TEST
 	// Result = ||A - B||_F (Frobenious)
-	template <class Type, class Size, bool ColMajor>
-	double TLinAlg::FrobDist2(const TVec<Type, Size>& A, const TVec<Type, Size>& B) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::FrobDist2(const TVec<TType, TSizeTy>& A, const TVec<TType, TSizeTy>& B) {
 		double frob = 0;
 		frob = TLinAlg::EuclDist2(A, B);
 		/*for (int RowN = 0; RowN < A.Len(); RowN++) {
@@ -1274,13 +1274,13 @@ public:
 	// Dense to sparse transform
 	// TEST
 	// Dense to sparse transform
-	template <class Type, class Size, bool ColMajor, class IndexType>
-	void TLinAlg::Sparse(const TVVec<Type, Size, ColMajor>& A, TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& B){
+	template <class TType, class TSizeTy, bool ColMajor, class IndexType>
+	void TLinAlg::Sparse(const TVVec<TType, TSizeTy, ColMajor>& A, TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& B){
 		B.Val1.Gen(0);
 		B.Val2.Gen(0);
 		B.Val3.Gen(0);
-		for (Size RowN = 0; RowN < A.GetRows(); RowN++) {
-			for (Size ColN = 0; ColN < A.GetCols(); ColN++) {
+		for (TSizeTy RowN = 0; RowN < A.GetRows(); RowN++) {
+			for (TSizeTy ColN = 0; ColN < A.GetCols(); ColN++) {
 				if (A.At(RowN, ColN) != 0.0) {
 					B.Val1.Add(RowN);
 					B.Val2.Add(ColN);
@@ -1292,14 +1292,14 @@ public:
 
 	// Dense to sparse transform
 	//TODO fix TVec<TIntFltKdV> indexing and type
-	template <class Type, class Size, bool ColMajor, class IndexType>
-	void TLinAlg::Sparse(const TVVec<Type, Size, ColMajor>& A, TVec<TIntFltKdV>& B){
-		Size Cols = A.GetCols();
-		Size Rows = A.GetRows();
+	template <class TType, class TSizeTy, bool ColMajor, class IndexType>
+	void TLinAlg::Sparse(const TVVec<TType, TSizeTy, ColMajor>& A, TVec<TIntFltKdV>& B){
+		TSizeTy Cols = A.GetCols();
+		TSizeTy Rows = A.GetRows();
 		B.Gen(Cols);
-		for (Size ColN = 0; ColN < Cols; ColN++) {
+		for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
 			B[ColN].Gen(0);
-			for (Size RowN = 0; RowN < Rows; RowN++) {
+			for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
 				if (A.At(RowN, ColN) != 0.0) {
 					B[ColN].Add(TIntFltKd(RowN, A.At(RowN, ColN)));
 				}
@@ -1309,25 +1309,25 @@ public:
 
 	// TEST
 	// Sparse to dense transform
-	template <class Type, class Size, bool ColMajor, class IndexType>
-	void TLinAlg::Full(const TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& A, TVVec<Type, Size, ColMajor>& B, const int Rows, const int Cols) {
+	template <class TType, class TSizeTy, bool ColMajor, class IndexType>
+	void TLinAlg::Full(const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& A, TVVec<TType, TSizeTy, ColMajor>& B, const int Rows, const int Cols) {
 		B.Gen(Rows, Cols);
 		B.PutAll(0.0);
-		Size nnz = A.Val1.Len();
-		for (Size ElN = 0; ElN < nnz; ElN++) {
+		TSizeTy nnz = A.Val1.Len();
+		for (TSizeTy ElN = 0; ElN < nnz; ElN++) {
 			B.At(A.Val1[ElN], A.Val2[ElN]) = A.Val3[ElN];
 		}
 	}
 
 	// Sparse to dense transform
-	template <class Type, class Size, bool ColMajor, class IndexType>
-	void TLinAlg::Full(const TVec<TIntFltKdV, Size>& A, TVVec<Type, Size, ColMajor>& B, Size Rows){
-		Size Cols = A.Len();
+	template <class TType, class TSizeTy, bool ColMajor, class IndexType>
+	void TLinAlg::Full(const TVec<TIntFltKdV, TSizeTy>& A, TVVec<TType, TSizeTy, ColMajor>& B, TSizeTy Rows){
+		TSizeTy Cols = A.Len();
 		B.Gen(Rows, Cols);
 		B.PutAll(0.0);
-		for (Size ColN = 0; ColN < Cols; ColN++) {
-			Size Els = A[ColN].Len();
-			for (Size ElN = 0; ElN < Els; ElN++) {
+		for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+			TSizeTy Els = A[ColN].Len();
+			for (TSizeTy ElN = 0; ElN < Els; ElN++) {
 				B.At(A[ColN][ElN].Key, ColN) = A[ColN][ElN].Dat;
 			}
 		}
@@ -1335,16 +1335,16 @@ public:
 
 	// TEST
 	// Transpose
-	template <class Type, class Size, bool ColMajor, class IndexType>
-	void TLinAlg::Transpose(const TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& A,
-		TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& At) {
-		Size nnz = A.Val1.Len();
+	template <class TType, class TSizeTy, bool ColMajor, class IndexType>
+	void TLinAlg::Transpose(const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& A,
+		TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& At) {
+		TSizeTy nnz = A.Val1.Len();
 		At.Val1.Gen(nnz, 0);
 		At.Val2.Gen(nnz, 0);
 		At.Val3.Gen(nnz, 0);
-		TVec<Size, Size> index;
+		TVec<TSizeTy, TSizeTy> index;
 		TIntV::SortGetPerm(A.Val2, At.Val1, index);
-		for (Size ElN = 0; ElN < nnz; ElN++) {
+		for (TSizeTy ElN = 0; ElN < nnz; ElN++) {
 			//At.Val1.Add(A.Val2[ElN]);
 			At.Val2.Add(A.Val1[index[ElN]]);
 			At.Val3.Add(A.Val3[index[ElN]]);
@@ -1431,22 +1431,22 @@ public:
 
 	// TEST
 	// sum columns (Dimension = 1) or rows (Dimension = 2) and store them in vector y
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::Sum(const TVVec<Type, Size, ColMajor>& X, TVec<Type, Size>& y, const int Dimension){
-		Size Cols = X.GetCols();
-		Size Rows = X.GetRows();
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::Sum(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TType, TSizeTy>& y, const int Dimension){
+		TSizeTy Cols = X.GetCols();
+		TSizeTy Rows = X.GetRows();
 		if (Dimension == 1) {
 			y.Gen(Cols);
-			for (Size ColN = 0; ColN < Cols; ColN++) {
-				for (Size RowN = 0; RowN < Rows; RowN++) {
+			for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+				for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
 					y[ColN] += X.At(RowN, ColN);
 				}
 			}
 		}
 		else if (Dimension == 2) {
 			y.Gen(Rows);
-			for (Size ColN = 0; ColN < Cols; ColN++) {
-				for (Size RowN = 0; RowN < Rows; RowN++) {
+			for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+				for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
 					y[RowN] += X.At(RowN, ColN);
 				}
 			}
@@ -1456,23 +1456,23 @@ public:
 
 	// TEST
 	// sum columns (Dimesnion = 2) or rows (Dimension = 1) and store them in vector y
-	template <class Type, class Size, bool ColMajor, class IndexType>
-	void TLinAlg::Sum(const TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& X, TVec<Type, Size>& y, const int Dimension) {
-		Size Cols = X.Val2.GetMxVal() + 1;
-		Size Rows = X.Val1.GetMxVal() + 1;
-		Size Els = X.Val1.Len();
+	template <class TType, class TSizeTy, bool ColMajor, class IndexType>
+	void TLinAlg::Sum(const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& X, TVec<TType, TSizeTy>& y, const int Dimension) {
+		TSizeTy Cols = X.Val2.GetMxVal() + 1;
+		TSizeTy Rows = X.Val1.GetMxVal() + 1;
+		TSizeTy Els = X.Val1.Len();
 		if (Dimension == 1) {
 			y.Gen(Cols);
-			for (Size ElN = 0; ElN < Els; ElN++) {
+			for (TSizeTy ElN = 0; ElN < Els; ElN++) {
 				//int RowN = X.Val1[ElN];
-				Size ColN = X.Val2[ElN];
+				TSizeTy ColN = X.Val2[ElN];
 				y[ColN] += X.Val3[ElN];
 			}
 		}
 		else if (Dimension == 2) {
 			y.Gen(Rows);
-			for (Size ElN = 0; ElN < Els; ElN++) {
-				Size RowN = X.Val1[ElN];
+			for (TSizeTy ElN = 0; ElN < Els; ElN++) {
+				TSizeTy RowN = X.Val1[ElN];
 				//int ColN = X.Val2[ElN];
 				y[RowN] += X.Val3[ElN];
 			}
@@ -1482,22 +1482,22 @@ public:
 
 	// TEST
 	// ||x||^2 (Euclidian)
-	template <class Type, class Size, bool ColMajor>
-	double TLinAlg::Norm2(const TVec<Type, Size>& x) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::Norm2(const TVec<TType, TSizeTy>& x) {
 		return TLinAlg::DotProduct(x, x);
 	}
 
 	// ||x|| (Euclidian)
-	template <class Type, class Size, bool ColMajor>
-	double TLinAlg::Norm(const TVec<Type, Size>& x) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::Norm(const TVec<TType, TSizeTy>& x) {
 		return sqrt(TLinAlg::Norm2(x));
 	}
 
-	//Andrej switch this to TNum<Type>
+	//Andrej switch this to TNum<TType>
 	// TEST
 	// x := x / ||x||
-	template <class Type, class Size, bool ColMajor>
-	double TLinAlg::Normalize(TVec<Type, Size>& x) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::Normalize(TVec<TType, TSizeTy>& x) {
 		const double xNorm = TLinAlg::Norm(x);
 		if (xNorm > 0.0) { TLinAlg::MultiplyScalar(1 / xNorm, x, x); }
 		return xNorm;
@@ -1505,11 +1505,11 @@ public:
 
 	// TEST
 	// Normalize X(:,ColId)
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::NormalizeColumn(TVVec<Type, Size, ColMajor>& X, const Size& ColId) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::NormalizeColumn(TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& ColId) {
 		double nX = TLinAlg::Norm(X, ColId);
 		if (nX > 0.0) {
-			for (Size RowN = 0; RowN < X.GetRows(); RowN++) {
+			for (TSizeTy RowN = 0; RowN < X.GetRows(); RowN++) {
 				X.At(RowN, ColId) /= nX;
 			}
 		}
@@ -1517,16 +1517,16 @@ public:
 
 	// TEST
 	// Normalize the columns of X
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::NormalizeColumns(TVVec<Type, Size, ColMajor>& X) {
-		for (Size ColN = 0; ColN < X.GetCols(); ColN++) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::NormalizeColumns(TVVec<TType, TSizeTy, ColMajor>& X) {
+		for (TSizeTy ColN = 0; ColN < X.GetCols(); ColN++) {
 			TLinAlg::NormalizeColumn(X, ColN);
 		}
 	}
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::NormalizeRows(TVVec<Type, Size, ColMajor>& X) {
-		for (Size RowN = 0; RowN < X.GetRows(); RowN++) {
-			TVec<Type> Row;
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::NormalizeRows(TVVec<TType, TSizeTy, ColMajor>& X) {
+		for (TSizeTy RowN = 0; RowN < X.GetRows(); RowN++) {
+			TVec<TType> Row;
 			X.GetRowPtr(RowN, Row);
 			Normalize(Row);
 		}
@@ -1534,30 +1534,30 @@ public:
 
 #ifdef INTEL
 	// TEST
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::NormalizeColumns(TVVec<Type, Size, ColMajor>& X, TBool ColumnMajor) {
-		const Size m = X.GetXDim();
-		const Size n = X.GetYDim();
-		TVVec<Type, Size, ColMajor> sqrX(m, n);
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::NormalizeColumns(TVVec<TType, TSizeTy, ColMajor>& X, TBool ColumnMajor) {
+		const TSizeTy m = X.GetXDim();
+		const TSizeTy n = X.GetYDim();
+		TVVec<TType, TSizeTy, ColMajor> sqrX(m, n);
 		vdSqr(m*n, &X(0, 0).Val, &sqrX(0, 0).Val);
 		printf("Squaring of elements done!\n");
-		TVec<Type, Size> enke(m); TVec<Type, Size> sumsqr(n);  TVec<Type, Size> norme(n); TLAMisc::Fill(enke, 1.0);
+		TVec<TType, TSizeTy> enke(m); TVec<TType, TSizeTy> sumsqr(n);  TVec<TType, TSizeTy> norme(n); TLAMisc::Fill(enke, 1.0);
 		TLinAlg::MultiplyT(sqrX, enke, sumsqr);
 		printf("Summing elemnents done!\n");
 		vdInvSqrt(n, &sumsqr[0].Val, &norme[0].Val);
 		printf("Summing and inverting elemnents done!\n");
 		// added code
 		if (ColMajor) {
-			TVVec<Type, Size, ColMajor> B; B.Gen(n, m);
+			TVVec<TType, TSizeTy, ColMajor> B; B.Gen(n, m);
 			TLinAlg::Transpose(X, B);
 
-			for (Size i = 0; i < m; i++) {
+			for (TSizeTy i = 0; i < m; i++) {
 				vdMul(n, &norme[0].Val, &B(0, i).Val, &B(0, i).Val);
 			}
 			TLinAlg::Transpose(B, X);
 		}
 		else {
-			for (Size i = 0; i < m; i++){
+			for (TSizeTy i = 0; i < m; i++){
 				vdMul(n, &norme[0].Val, &X(i, 0).Val, &X(i, 0).Val);
 			}
 		}
@@ -1568,65 +1568,65 @@ public:
 	// Normalize the columns of X
 	//TODO what to do when number
 	//MARK	
-	template <class Type, class Size, bool ColMajor, class IndexType>
-	void TLinAlg::NormalizeColumns(TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& X) {
+	template <class TType, class TSizeTy, bool ColMajor, class IndexType>
+	void TLinAlg::NormalizeColumns(TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& X) {
 		if (X.Val2.Len() == 0) return;
 		EAssert(X.Val2.IsSorted(true));
 		//int?
 		int Cols = X.Val2.GetMxVal() + 1;
-		TVec<Type, Size> InvColNorms(Cols); //get the last element colN and set the number of elements	
+		TVec<TType, TSizeTy> InvColNorms(Cols); //get the last element colN and set the number of elements	
 
-		Size Els = X.Val1.Len();
-		for (Size ElN = 0; ElN < Els; ElN++) {
+		TSizeTy Els = X.Val1.Len();
+		for (TSizeTy ElN = 0; ElN < Els; ElN++) {
 			InvColNorms[X.Val2[ElN]] += X.Val3[ElN] * X.Val3[ElN];
 		}
-		for (Size ColN = 0; ColN < Cols; ColN++) {
+		for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
 			if (InvColNorms[ColN] > 0.0) {
 				InvColNorms[ColN] = 1.0 / TMath::Sqrt(InvColNorms[ColN]);
 			}
 		}
-		for (Size ElN = 0; ElN < Els; ElN++) {
+		for (TSizeTy ElN = 0; ElN < Els; ElN++) {
 			X.Val3[ElN] *= InvColNorms[X.Val2[ElN]];
 		}
 	}
 
 	// Normalize the columns of X
-	template<class Size>
-	void TLinAlg::NormalizeColumns(TVec<TIntFltKdV, Size>& X) {
-		Size Cols = X.Len();
-		for (Size ElN = 0; ElN < Cols; ElN++) {
+	template<class TSizeTy>
+	void TLinAlg::NormalizeColumns(TVec<TIntFltKdV, TSizeTy>& X) {
+		TSizeTy Cols = X.Len();
+		for (TSizeTy ElN = 0; ElN < Cols; ElN++) {
 			TLinAlg::Normalize(X[ElN]);
 		}
 	}
 	// Frobenius norm of matrix A
 	// TEST
-	template <class Type, class Size, bool ColMajor>
-	double TLinAlg::FrobNorm2(const TVVec<Type, Size, ColMajor>& X) {
-		return TLinAlg::Norm2((const_cast<TVVec<Type, Size, ColMajor> &>(X)).Get1DVec());
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::FrobNorm2(const TVVec<TType, TSizeTy, ColMajor>& X) {
+		return TLinAlg::Norm2((const_cast<TVVec<TType, TSizeTy, ColMajor> &>(X)).Get1DVec());
 	}
-	template <class Type, class Size, bool ColMajor>
-	double TLinAlg::FrobNorm(const TVVec<Type, Size, ColMajor>& X) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::FrobNorm(const TVVec<TType, TSizeTy, ColMajor>& X) {
 		return sqrt(TLinAlg::FrobNorm2(X));
 	}
 
 	// ||x||^2 (Euclidian), x is sparse
-	template<class Size>
-	double TLinAlg::Norm2(const TVec<TIntFltKdV, Size>& x) {
+	template<class TSizeTy>
+	double TLinAlg::Norm2(const TVec<TIntFltKdV, TSizeTy>& x) {
 		double Result = 0;
-		for (Size i = 0; i < x.Len(); i++) {
+		for (TSizeTy i = 0; i < x.Len(); i++) {
 			Result += TMath::Sqr(x[i].Dat);
 		}
 		return Result;
 	}
 
 	// ||x|| (Euclidian), x is sparse
-	template<class Size>
-	double TLinAlg::Norm(const TVec<TIntFltKdV, Size>& x) {
+	template<class TSizeTy>
+	double TLinAlg::Norm(const TVec<TIntFltKdV, TSizeTy>& x) {
 		return sqrt(Norm2(x));
 	}
 
 	// x := x / ||x||, x is sparse
-	template<class Size, Size>
+	template<class TSizeTy, TSizeTy>
 	void TLinAlg::Normalize(TVec<TIntFltKdV>& x) {
 		double Normx = TLinAlg::Norm(x);
 		if (Normx > 0) {
@@ -1635,34 +1635,34 @@ public:
 	}
 
 	// ||X(:,ColId)||^2 (Euclidian)
-	template <class Type, class Size, bool ColMajor>
-	double TLinAlg::Norm2(const TVVec<Type, Size, ColMajor>& X, int ColId) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::Norm2(const TVVec<TType, TSizeTy, ColMajor>& X, int ColId) {
 		return TLinAlg::DotProduct(X, ColId, X, ColId);
 	}
 
 	// TEST
 	// ||X(:,ColId)|| (Euclidian)
-	template <class Type, class Size, bool ColMajor>
-	double TLinAlg::Norm(const TVVec<Type, Size, ColMajor>& X, int ColId) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::Norm(const TVVec<TType, TSizeTy, ColMajor>& X, int ColId) {
 		return sqrt(TLinAlg::Norm2(X, ColId));
 	}
 
 	// L1 norm of x (Sum[|xi|, i = 1..n])
-	template <class Type, class Size>
-	double TLinAlg::NormL1(const TVec<Type, Size>& x)  {
-		double norm = 0.0; const Size Len = x.Len();
-		for (Size i = 0; i < Len; i++)
+	template <class TType, class TSizeTy>
+	double TLinAlg::NormL1(const TVec<TType, TSizeTy>& x)  {
+		double norm = 0.0; const TSizeTy Len = x.Len();
+		for (TSizeTy i = 0; i < Len; i++)
 			norm += TFlt::Abs(x[i]);
 		return norm;
 	}
 
 	// TEST
 	// L1 norm of k*x+y (Sum[|k*xi+yi|, i = 1..n])
-	template <class Type, class Size>
-	double TLinAlg::NormL1(double k, const TVec<Type, Size>& x, const TVec<Type, Size>& y) {
+	template <class TType, class TSizeTy>
+	double TLinAlg::NormL1(double k, const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y) {
 		EAssert(x.Len() == y.Len());
-		double norm = 0.0; const Size len = x.Len();
-		for (Size i = 0; i < len; i++) {
+		double norm = 0.0; const TSizeTy len = x.Len();
+		for (TSizeTy i = 0; i < len; i++) {
 			norm += TFlt::Abs(k * x[i] + y[i]);
 		}
 		return norm;
@@ -1680,8 +1680,8 @@ public:
 
 	// TEST
 	// x := x / ||x||_1
-	template <class Type, class Size>
-	void TLinAlg::NormalizeL1(TVec<Type, Size>& x) {
+	template <class TType, class TSizeTy>
+	void TLinAlg::NormalizeL1(TVec<TType, TSizeTy>& x) {
 		const double xNorm = TLinAlg::NormL1(x);
 		if (xNorm > 0.0) { TLinAlg::MultiplyScalar(1 / xNorm, x, x); }
 	}
@@ -1694,10 +1694,10 @@ public:
 
 	// TEST
 	// Linf norm of x (Max{|xi|, i = 1..n})
-	template <class Type, class Size>
-	double TLinAlg::NormLinf(const TVec<Type, Size>& x) {
-		double norm = 0.0; const Size Len = x.Len();
-		for (Size i = 0; i < Len; i++)
+	template <class TType, class TSizeTy>
+	double TLinAlg::NormLinf(const TVec<TType, TSizeTy>& x) {
+		double norm = 0.0; const TSizeTy Len = x.Len();
+		for (TSizeTy i = 0; i < Len; i++)
 			norm = TFlt::GetMx(TFlt::Abs(x[i]), norm);
 		return norm;
 	}
@@ -1712,8 +1712,8 @@ public:
 
 	// TEST
 	// x := x / ||x||_inf
-	template <class Type, class Size>
-	void TLinAlg::NormalizeLinf(TVec<Type, Size>& x) {
+	template <class TType, class TSizeTy>
+	void TLinAlg::NormalizeLinf(TVec<TType, TSizeTy>& x) {
 		const double xNormLinf = TLinAlg::NormLinf(x);
 		if (xNormLinf > 0.0) { TLinAlg::MultiplyScalar(1.0 / xNormLinf, x, x); }
 	}
@@ -1727,12 +1727,12 @@ public:
 
 	// TEST
 	// find the index of maximum elements for a given row of X
-	template <class Type, class Size, bool ColMajor>
-	int TLinAlg::GetRowMaxIdx(const TVVec<Type, Size, ColMajor>& X, const Size& RowN) {
-		Size Idx = -1;
-		Size Cols = X.GetCols();
+	template <class TType, class TSizeTy, bool ColMajor>
+	int TLinAlg::GetRowMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN) {
+		TSizeTy Idx = -1;
+		TSizeTy Cols = X.GetCols();
 		double MaxVal = TFlt::Mn;
-		for (Size ColN = 0; ColN < Cols; ColN++) {
+		for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
 			double Val = X.At(RowN, ColN);
 			if (MaxVal < Val) {
 				MaxVal = Val;
@@ -1744,12 +1744,12 @@ public:
 
 	// TEST
 	// find the index of maximum elements for a given each col of X
-	template <class Type, class Size, bool ColMajor>
-	int TLinAlg::GetColMaxIdx(const TVVec<Type, Size, ColMajor>& X, const int& ColN) {
-		Size Idx = -1;
-		Size Rows = X.GetRows();
+	template <class TType, class TSizeTy, bool ColMajor>
+	int TLinAlg::GetColMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const int& ColN) {
+		TSizeTy Idx = -1;
+		TSizeTy Rows = X.GetRows();
 		double MaxVal = TFlt::Mn;
-		for (Size RowN = 0; RowN < Rows; RowN++) {
+		for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
 			double Val = X.At(RowN, ColN);
 			if (MaxVal < Val) {
 				MaxVal = Val;
@@ -1761,31 +1761,31 @@ public:
 
 	// TEST
 	// find the index of maximum elements for each row of X
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::GetRowMaxIdxV(const TVVec<Type, Size, ColMajor>& X, TVec<TInt, Size>& IdxV) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::GetRowMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV) {
 		IdxV.Gen(X.GetRows());
-		Size Rows = X.GetRows();
-		for (Size RowN = 0; RowN < Rows; RowN++) {
+		TSizeTy Rows = X.GetRows();
+		for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
 			IdxV[RowN] = TLinAlg::GetRowMaxIdx(X, RowN);
 		}
 	}
 	// find the index of maximum elements for each col of X
 
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::GetColMaxIdxV(const TVVec<Type, Size, ColMajor>& X, TVec<TInt, Size>& IdxV) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::GetColMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV) {
 		IdxV.Gen(X.GetCols());
-		Size Cols = X.GetCols();
-		for (Size ColN = 0; ColN < Cols; ColN++) {
+		TSizeTy Cols = X.GetCols();
+		for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
 			IdxV[ColN] = TLinAlg::GetColMaxIdx(X, ColN);
 		}
 	}
 	//x := k * x
 	// TEST
 	//x := k * x
-	template <class Type, class Size>
-	void TLinAlg::MultiplyScalar(const double& k, TVec<Type, Size>& x) {
-		Size Len = x.Len();
-		for (Size i = 0; i < Len; i++)
+	template <class TType, class TSizeTy>
+	void TLinAlg::MultiplyScalar(const double& k, TVec<TType, TSizeTy>& x) {
+		TSizeTy Len = x.Len();
+		for (TSizeTy i = 0; i < Len; i++)
 			x[i] = k * x[i];
 	}
 	// find the index of maximum elements for a given each col of X
@@ -1816,11 +1816,11 @@ public:
 	//template <class TVal> void TLinAlg::GetColMinV(const TVVec<TVal>& X, TVec<TVal>& ValV);
 	// TEST
 	// y := k * x
-	template <class Type, class Size>
-	void TLinAlg::MultiplyScalar(const double& k, const TVec<Type, Size>& x, TVec<Type, Size>& y) {
+	template <class TType, class TSizeTy>
+	void TLinAlg::MultiplyScalar(const double& k, const TVec<TType, TSizeTy>& x, TVec<TType, TSizeTy>& y) {
 		EAssert(x.Len() == y.Len());
-		Size Len = x.Len();
-		for (Size i = 0; i < Len; i++)
+		TSizeTy Len = x.Len();
+		for (TSizeTy i = 0; i < Len; i++)
 			y[i] = k * x[i];
 	}
 	// y := k * x
@@ -1834,25 +1834,25 @@ public:
 	}
 	// TEST
 	// Y := k * X
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::MultiplyScalar(const double& k, const TVVec<Type, Size, ColMajor>& X, TVVec<Type, Size, ColMajor>& Y) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::MultiplyScalar(const double& k, const TVVec<TType, TSizeTy, ColMajor>& X, TVVec<TType, TSizeTy, ColMajor>& Y) {
 		EAssert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols());
-		const Size Rows = X.GetRows();
-		const Size Cols = X.GetCols();
-		for (Size i = 0; i < Rows; i++) {
-			for (Size j = 0; j < Cols; j++) {
+		const TSizeTy Rows = X.GetRows();
+		const TSizeTy Cols = X.GetCols();
+		for (TSizeTy i = 0; i < Rows; i++) {
+			for (TSizeTy j = 0; j < Cols; j++) {
 				Y(i, j) = k*X(i, j);
 			}
 		}
 	}
 	// Y := k * X
-	template <class Size>
-	void TLinAlg::MultiplyScalar(const double& k, const TVec<TIntFltKdV, Size>& X, TVec<TIntFltKdV, Size>& Y) {
+	template <class TSizeTy>
+	void TLinAlg::MultiplyScalar(const double& k, const TVec<TIntFltKdV, TSizeTy>& X, TVec<TIntFltKdV, TSizeTy>& Y) {
 		// sparse column matrix
 		Y = X;
-		Size Cols = X.Len();
-		for (Size ColN = 0; ColN < Cols; ColN++) {
-			Size Els = X[ColN].Len();
+		TSizeTy Cols = X.Len();
+		for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+			TSizeTy Els = X[ColN].Len();
 			for (int ElN = 0; ElN < Els; ElN++) {
 				Y[ColN][ElN].Dat = k * X[ColN][ElN].Dat;
 			}
@@ -1860,8 +1860,8 @@ public:
 	}
 
 	// y := A * x
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::Multiply(const TVVec<Type, Size, ColMajor>& A, const TVec<Type, Size>& x, TVec<Type, Size>& y) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TType, TSizeTy>& x, TVec<TType, TSizeTy>& y) {
 #ifdef BLAS
 		TLinAlg::Multiply(A, x, y, TLinAlgBlasTranspose::NOTRANS, 1.0, 0.0);
 #else
@@ -1878,39 +1878,39 @@ public:
 
 	// TEST
 	// C(:, ColId) := A * x
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::Multiply(const TVVec<Type, Size, ColMajor>& A, const TVec<Type, Size>& x, TVVec<Type, Size, ColMajor>& C, Size ColId) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TType, TSizeTy>& x, TVVec<TType, TSizeTy, ColMajor>& C, TSizeTy ColId) {
 		EAssert(A.GetCols() == x.Len() && A.GetRows() == C.GetRows());
-		Size n = A.GetRows(), m = A.GetCols();
-		for (Size i = 0; i < n; i++) {
+		TSizeTy n = A.GetRows(), m = A.GetCols();
+		for (TSizeTy i = 0; i < n; i++) {
 			C(i, ColId) = 0.0;
-			for (Size j = 0; j < m; j++)
+			for (TSizeTy j = 0; j < m; j++)
 				C(i, ColId) += A(i, j) * x[j];
 		}
 	}
 
 	// TEST
 	// y := A * B(:, ColId)
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::Multiply(const TVVec<Type, Size, ColMajor>& A, const TVVec<Type, Size, ColMajor>& B, int ColId, TVec<Type, Size>& y)  {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColId, TVec<TType, TSizeTy>& y)  {
 		EAssert(A.GetCols() == B.GetRows() && A.GetRows() == y.Len());
-		Size n = A.GetRows(), m = A.GetCols();
-		for (Size i = 0; i < n; i++) {
+		TSizeTy n = A.GetRows(), m = A.GetCols();
+		for (TSizeTy i = 0; i < n; i++) {
 			y[i] = 0.0;
-			for (Size j = 0; j < m; j++)
+			for (TSizeTy j = 0; j < m; j++)
 				y[i] += A(i, j) * B(j, ColId);
 		}
 	}
 
 	// TEST
 	// C(:, ColIdC) := A * B(:, ColIdB)
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::Multiply(const TVVec<Type, Size, ColMajor>& A, const TVVec<Type, Size, ColMajor>& B, int ColIdB, TVVec<Type, Size, ColMajor>& C, int ColIdC) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColIdB, TVVec<TType, TSizeTy, ColMajor>& C, int ColIdC) {
 		EAssert(A.GetCols() == B.GetRows() && A.GetRows() == C.GetRows());
-		Size n = A.GetRows(), m = A.GetCols();
-		for (Size i = 0; i < n; i++) {
+		TSizeTy n = A.GetRows(), m = A.GetCols();
+		for (TSizeTy i = 0; i < n; i++) {
 			C(i, ColIdC) = 0.0;
-			for (Size j = 0; j < m; j++)
+			for (TSizeTy j = 0; j < m; j++)
 				C(i, ColIdC) += A(i, j) * B(j, ColIdB);
 		}
 	}
@@ -1920,50 +1920,50 @@ public:
 #ifdef LAPACKE
 	// Tested in other function
 	//A is rewritten in place with orthogonal matrix Q
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::QRbasis(TVVec<Type, Size, ColMajor>& A) {
-		Size m = A.GetRows(); Size n = A.GetCols(); Size k = A.GetCols();
-		Size lda = ColMajor ? m : n;
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::QRbasis(TVVec<TType, TSizeTy, ColMajor>& A) {
+		TSizeTy m = A.GetRows(); TSizeTy n = A.GetCols(); TSizeTy k = A.GetCols();
+		TSizeTy lda = ColMajor ? m : n;
 		int Matrix_Layout = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
-		TVec<Type, Size> tau; tau.Gen(MAX(1, MIN(m, n)));
+		TVec<TType, TSizeTy> tau; tau.Gen(MAX(1, MIN(m, n)));
 		LAPACKE_dgeqrf(Matrix_Layout, m, n, &A(0, 0).Val, lda, &tau[0].Val);
 		LAPACKE_dorgqr(Matrix_Layout, m, n, k, &A(0, 0).Val, lda, &tau[0].Val);
 	}
 
 	// TEST
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::QRbasis(const TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& Q) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::QRbasis(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& Q) {
 		Q = A;
 		TLinAlg::QRbasis(Q);
 	}
 
 	// Tested in other function
 	//A is rewritten in place with orthogonal matrix Q (column pivoting to improve stability)
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::QRcolpbasis(TVVec<Type, Size, ColMajor>& A) {
-		Size m = A.GetRows(); Size n = A.GetCols(); Size k = A.GetCols();
-		Size lda = ColMajor ? m : n;
-		Size Matrix_Layout = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
-		TVec<Type, Size> tau(MAX(1, MIN(m, n)));
-		TVec<TInt, Size> jvpt(MAX(1, n));
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::QRcolpbasis(TVVec<TType, TSizeTy, ColMajor>& A) {
+		TSizeTy m = A.GetRows(); TSizeTy n = A.GetCols(); TSizeTy k = A.GetCols();
+		TSizeTy lda = ColMajor ? m : n;
+		TSizeTy Matrix_Layout = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
+		TVec<TType, TSizeTy> tau(MAX(1, MIN(m, n)));
+		TVec<TInt, TSizeTy> jvpt(MAX(1, n));
 		LAPACKE_dgeqp3(Matrix_Layout, m, n, &A(0, 0).Val, lda, &jvpt[0].Val, &tau[0].Val);
 		LAPACKE_dorgqr(Matrix_Layout, m, n, k, &A(0, 0).Val, lda, &tau[0].Val);
 	}
 
 	// TEST
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::QRcolpbasis(const TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& Q) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::QRcolpbasis(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& Q) {
 		Q = A;
 		TLinAlg::QRcolpbasis(Q);
 	}
 
 	// TEST
 	//S S option ensures that A is not modified
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::thinSVD(const TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& U, TVec<Type, Size>& S, TVVec<Type, Size, ColMajor>& VT) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::thinSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& U, TVec<TType, TSizeTy>& S, TVVec<TType, TSizeTy, ColMajor>& VT) {
 
-		Size m = A.GetRows(); Size n = A.GetCols();
-		Size thin_dim = MIN(m, n);
+		TSizeTy m = A.GetRows(); TSizeTy n = A.GetCols();
+		TSizeTy thin_dim = MIN(m, n);
 
 		S.Gen(thin_dim); U.Gen(m, thin_dim); VT.Gen(thin_dim, n);
 
@@ -1971,7 +1971,7 @@ public:
 		int ldu = ColMajor ? m : thin_dim;
 		int ldvt = ColMajor ? thin_dim : n;
 
-		TVec<Type, Size> superb(MAX(1, MIN(m, n)));
+		TVec<TType, TSizeTy> superb(MAX(1, MIN(m, n)));
 		int opt = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
 
 		/*int lda, ldu, ldvt;
@@ -1989,10 +1989,10 @@ public:
 
 	//Full matrix times sparse vector
 	//No need to reserve anything outside, functions currently take care of memory managment for safety
-	/*template <class Type, class Size, bool ColMajor>
+	/*template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::Multiply(TFltVV& ProjMat, TPair<TIntV, TFltV> &, TFltVV& result) {
 	};
-	template <class Type, class Size, bool ColMajor>
+	template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::Multiply(const TFltVV& ProjMat, const TPair<TIntV, TFltV> &, TFltVV& result) {
 	};*/
 
@@ -2009,11 +2009,11 @@ public:
 #ifdef INTEL
 	// INTEL
 	//Be careful C should be of the proper size! if not populated (works only for rowmajor!)
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::MultiplySF(const TTriple<TVec<TNum<Size>, Size>, TVec<TNum<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, false>& B,
-		TVVec<Type, Size, ColMajor>& C, const TStr& transa, const int& format){
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::MultiplySF(const TTriple<TVec<TNum<TSizeTy>, TSizeTy>, TVec<TNum<TSizeTy>, TSizeTy>, TVec<TType, TSizeTy>>& A, const TVVec<TType, TSizeTy, false>& B,
+		TVVec<TType, TSizeTy, ColMajor>& C, const TStr& transa, const int& format){
 		//B is row_major 
-		Size m, n, k, ldb, ldc;
+		TSizeTy m, n, k, ldb, ldc;
 
 		//ldb = ColMajor ? B.GetRows() : B.GetCols();
 		//ldc = ColMajor ? C.GetRows() : C.GetCols();
@@ -2032,14 +2032,14 @@ public:
 			m = B.GetRows();
 		}
 		double alpha = 1; double beta = 0; char matdescra[6] = { 'G', 'G', 'N', 'C', 'Q', 'Q' };
-		Size nnz = A.Val3.Len();
+		TSizeTy nnz = A.Val3.Len();
 		if (format == 0){
-			MKL_DCOOMM(const_cast<char *>(transa.CStr()), &m, &n, &k, &alpha, matdescra, const_cast<double *>(&A.Val3[0].Val), const_cast<Size *>(&A.Val1[0].Val), const_cast<Size *>(&A.Val2[0].Val), &nnz, const_cast<double *>(&B(0, 0).Val), &ldb, &beta, const_cast<double *>(&C(0, 0).Val), &ldc);
+			MKL_DCOOMM(const_cast<char *>(transa.CStr()), &m, &n, &k, &alpha, matdescra, const_cast<double *>(&A.Val3[0].Val), const_cast<TSizeTy *>(&A.Val1[0].Val), const_cast<TSizeTy *>(&A.Val2[0].Val), &nnz, const_cast<double *>(&B(0, 0).Val), &ldb, &beta, const_cast<double *>(&C(0, 0).Val), &ldc);
 		}
 		else{
 			//call mkl_dcsrmm(transa, m, n, k, alpha, matdescra, val, indx, pntrb, pntre, b, ldb, beta, c, ldc)
 			printf("Max row %d, max column %d\n", A.Val1.Len() - 1, A.Val2.Len());
-			mkl_dcsrmm(const_cast<char *>(transa.CStr()), &m, &n, &k, &alpha, matdescra, const_cast<double *>(&A.Val3[0].Val), const_cast<Size *>(&A.Val2[0].Val), const_cast<Size *>(&A.Val1[0].Val), const_cast<Size *>(&A.Val1[1].Val), const_cast<double *>(&B(0, 0).Val), &ldb, &beta, const_cast<double *>(&C(0, 0).Val), &ldc);
+			mkl_dcsrmm(const_cast<char *>(transa.CStr()), &m, &n, &k, &alpha, matdescra, const_cast<double *>(&A.Val3[0].Val), const_cast<TSizeTy *>(&A.Val2[0].Val), const_cast<TSizeTy *>(&A.Val1[0].Val), const_cast<TSizeTy *>(&A.Val1[1].Val), const_cast<double *>(&B(0, 0).Val), &ldb, &beta, const_cast<double *>(&C(0, 0).Val), &ldc);
 		}
 
 	}
@@ -2047,9 +2047,9 @@ public:
 	// TEST
 	//B will not be needed anymore (works only for rowmajor!)
 	//TODO to much hacking
-	template <class IndexType, class Type, class Size, bool ColMajor>
-	void TLinAlg::MultiplyFS(TVVec<Type, Size, ColMajor>& B, const TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& A,
-		TVVec<Type, Size, ColMajor>& C){
+	template <class IndexType, class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::MultiplyFS(TVVec<TType, TSizeTy, ColMajor>& B, const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& A,
+		TVVec<TType, TSizeTy, ColMajor>& C){
 		C.SwitchDim();
 		TTmStopWatch time;
 		time.Start();
@@ -2068,31 +2068,31 @@ public:
 #endif
 
 	// y := A * x
-	template <class IndexType, class Type, class Size, bool ColMajor>
-	void TLinAlg::Multiply(const TVVec<Type, Size, ColMajor>& A, const TPair<TVec<IndexType, Size>, TVec<Type, Size>>& x, TVec<Type, Size>& y) {
+	template <class IndexType, class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TPair<TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& x, TVec<TType, TSizeTy>& y) {
 		// Assumptions on x        
 		EAssert(x.Val1.Len() == x.Val2.Len());
 		// Dimensions must match
 		EAssert(A.GetRows() >= (x.Val1.Len() == 0 ? 0 : x.Val1[x.Val1.GetMxValN()] + 1) && A.GetCols() == y.Len());
-		for (Size RowN = 0; RowN < A.GetRows(); RowN++) {
+		for (TSizeTy RowN = 0; RowN < A.GetRows(); RowN++) {
 			y[RowN] = 0.0;
-			for (Size ElN = 0; ElN < x.Val1.Len(); ElN++) {
+			for (TSizeTy ElN = 0; ElN < x.Val1.Len(); ElN++) {
 				y[RowN] += A.At(RowN, x.Val1[ElN]) * x.Val2[ElN];
 			}
 		}
 	}
 	//y  := x' * A ... row data!!
-	template <class IndexType, class Type, class Size, bool ColMajor>
-	void TLinAlg::MultiplyT(const TPair<TVec<IndexType, Size>, TVec<Type, Size>>& x, const TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& y) {
+	template <class IndexType, class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::MultiplyT(const TPair<TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& x, const TVVec<TType, TSizeTy, ColMajor>& A, TVec<TType, TSizeTy>& y) {
 		// Assumptions on x        
 		EAssert(x.Val1.Len() == x.Val2.Len());
 		// Dimensions must match
 		EAssert(A.GetCols() >= (x.Val1.Len() == 0 ? 0 : x.Val1[x.Val1.GetMxValN()] + 1) && A.GetRows() == y.Len());
 		TLAMisc::FillZero(y);
 		int nnz = x.Val1.Len();
-		for (Size i = 0; i < nnz; i++) {
-			TVec<Type, Size> row;
-			(const_cast<TVVec<Type, Size, ColMajor> &>(A)).GetRowPtr(x.Val1[i], row);
+		for (TSizeTy i = 0; i < nnz; i++) {
+			TVec<TType, TSizeTy> row;
+			(const_cast<TVVec<TType, TSizeTy, ColMajor> &>(A)).GetRowPtr(x.Val1[i], row);
 			//printf("vrstic %d, stolpcev %d\n", A.GetRows(), A.GetCols());
 			//printf("Row len %d\n", row.Len());
 			//printf("i je %d, vrstica je %d\n", i, x.Val1[i]);
@@ -2109,8 +2109,8 @@ public:
 	}
 	// TEST Move to BLAS
 	// y := A' * x
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::MultiplyT(const TVVec<Type, Size, ColMajor>& A, const TVec<Type, Size>& x, TVec<Type, Size>& y) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TType, TSizeTy>& x, TVec<TType, TSizeTy>& y) {
 		if (y.Empty()) y.Gen(A.GetCols());
 		EAssert(A.GetRows() == x.Len() && A.GetCols() == y.Len());
 		int n = A.GetCols(), m = A.GetRows();
@@ -2126,9 +2126,9 @@ public:
 
 	// TEST
 	// C = op(A) * op(B)
-	template <class Type, class Size, bool ColMajor>
+	template <class TType, class TSizeTy, bool ColMajor>
 	inline
-		void TLinAlg::Multiply(const TVVec<TNum<Type>, Size, ColMajor>& A, const TVVec<TNum<Type>, Size, ColMajor>& B, TVVec<TNum<Type>, Size, ColMajor>& C,
+		void TLinAlg::Multiply(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVVec<TNum<TType>, TSizeTy, ColMajor>& B, TVVec<TNum<TType>, TSizeTy, ColMajor>& C,
 		const int& BlasTransposeFlagA, const int& BlasTransposeFlagB) {
 			//C := alpha*op(A)*op(B) + beta*C,
 			//where:
@@ -2138,7 +2138,7 @@ public:
 			//op(A) is an m-by-k matrix,
 			//op(B) is a k-by-n matrix,
 			//C is an m-by-n matrix.
-			Size m, n, k, lda, ldb, ldc;
+			TSizeTy m, n, k, lda, ldb, ldc;
 			if (BlasTransposeFlagA == TLinAlg::TLinAlgBlasTranspose::TRANS) {
 				m = A.GetCols();
 				k = A.GetRows();
@@ -2168,25 +2168,25 @@ public:
 			CBLAS_TRANSPOSE BlasTransA = (BlasTransposeFlagA == TLinAlgBlasTranspose::TRANS) ? CblasTrans : CblasNoTrans;
 			CBLAS_TRANSPOSE BlasTransB = (BlasTransposeFlagB == TLinAlgBlasTranspose::TRANS) ? CblasTrans : CblasNoTrans;
 			CBLAS_ORDER Matrix_Layout = ColMajor ? CblasColMajor : CblasRowMajor;
-			if (TypeCheck::is_double<Type>::value == true){
+			if (TypeCheck::is_double<TType>::value == true){
 				typedef double Loc;
 				double alpha = 1.0, beta = 0.0;
 				cblas_dgemm(Matrix_Layout, BlasTransA, BlasTransB, m, n, k, alpha, (Loc *)&A(0, 0).Val, lda, (Loc *)&B(0, 0).Val, ldb, beta, (Loc *)&C(0, 0).Val, ldc);
 			}
 			else
-			if (TypeCheck::is_float<Type>::value == true){
+			if (TypeCheck::is_float<TType>::value == true){
 				typedef float Loc;
 				float alpha = 1.0f, beta = 0.0f;
 				cblas_sgemm(Matrix_Layout, BlasTransA, BlasTransB, m, n, k, alpha, (Loc *)&A(0, 0).Val, lda, (Loc *)&B(0, 0).Val, ldb, beta, (Loc *)&C(0, 0).Val, ldc);
 			}
 			else
-			if (TypeCheck::is_complex_double<Type>::value == true){
+			if (TypeCheck::is_complex_double<TType>::value == true){
 				typedef double Loc;
 				std::complex<double> alpha(1.0); std::complex<double> beta(0.0);
 				cblas_zgemm(Matrix_Layout, BlasTransA, BlasTransB, m, n, k, (const Loc *)&alpha, (const Loc *)&A(0, 0).Val, lda, (const Loc *)&B(0, 0).Val, ldb, (const Loc *)&beta, (Loc *)&C(0, 0).Val, ldc);
 			}
 			else
-			if (TypeCheck::is_complex_float<Type>::value == true){
+			if (TypeCheck::is_complex_float<TType>::value == true){
 				typedef float Loc;
 				std::complex<float> alpha(1.0f); std::complex<float> beta(0.0f);
 				cblas_cgemm(Matrix_Layout, BlasTransA, BlasTransB, m, n, k, (const Loc *)&alpha, (const Loc *)&A(0, 0).Val, lda, (const Loc *)&B(0, 0).Val, ldb, (const Loc *)&beta, (Loc *)&C(0, 0).Val, ldc);
@@ -2210,44 +2210,44 @@ public:
 #ifdef BLAS	
 	// TEST
 	// y := alpha*op(A)*x + beta*y, where op(A) = A -- N, op(A) = A' -- T, op(A) = conj(A') -- C (only for complex)
-	//Andrej ToDo In the future replace Type with TNum<type> and change double to type
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::Multiply(const TVVec<TNum<Type>, Size, ColMajor>& A, const TVec<TNum<Type>, Size>& x, TVec<TNum<Type>, Size>& y, const int& BlasTransposeFlagA, Type alpha, Type beta) {
-		Size m = A.GetRows();
-		Size n = A.GetCols();
+	//Andrej ToDo In the future replace TType with TNum<type> and change double to type
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::Multiply(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVec<TNum<TType>, TSizeTy>& x, TVec<TNum<TType>, TSizeTy>& y, const int& BlasTransposeFlagA, TType alpha, TType beta) {
+		TSizeTy m = A.GetRows();
+		TSizeTy n = A.GetCols();
 		//Can we multiply and store in y?
 		if (BlasTransposeFlagA)//A'*x n*m x m -> n
 			EAssert(x.Len() == m && y.Reserved() == n);
 		else{//A*x  m x n * n -> m
 			EAssert(x.Len() == n && y.Reserved() == m);
 		}
-		Size lda = ColMajor ? m : n;
-		Size incx = /*ColMajor ? x.Len() :*/ 1;
-		Size incy = /*ColMajor ? y.Len() :*/ 1;
+		TSizeTy lda = ColMajor ? m : n;
+		TSizeTy incx = /*ColMajor ? x.Len() :*/ 1;
+		TSizeTy incy = /*ColMajor ? y.Len() :*/ 1;
 		CBLAS_ORDER Matrix_Layout = ColMajor ? CblasColMajor : CblasRowMajor;
 
 #ifdef BLAS //Standard CBLAS interface
 		CBLAS_TRANSPOSE BlasTransA = BlasTransposeFlagA ? CblasTrans : CblasNoTrans;
 		/*if (BlasTransposeFlagA){ BlasTransA = CblasTrans; }*/
-		if (TypeCheck::is_double<Type>::value == true){
+		if (TypeCheck::is_double<TType>::value == true){
 			typedef double Loc;
 			double alpha_ = alpha; double beta_ = beta;
 			cblas_dgemv(Matrix_Layout, BlasTransA, m, n, alpha_, (Loc *)&A(0, 0).Val, lda, (Loc *)&x[0].Val, incx, beta_, (Loc *)&y[0].Val, incy);
 		}
 		else
-		if (TypeCheck::is_float<Type>::value == true){
+		if (TypeCheck::is_float<TType>::value == true){
 			typedef float Loc;
 			float alpha_ = (float)alpha; float beta_ = (float)beta;
 			cblas_sgemv(Matrix_Layout, BlasTransA, m, n, alpha_, (Loc *)&A(0, 0).Val, lda, (Loc *)&x[0].Val, incx, beta_, (Loc *)&y[0].Val, incy);
 		}
 		else
-		if (TypeCheck::is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<TType>::value == true){
 			typedef double Loc;
 			std::complex<double>  alpha_(alpha); std::complex<double>  beta_(beta);
 			cblas_zgemv(Matrix_Layout, BlasTransA, m, n, (const Loc *)&alpha_, (const Loc *)&A(0, 0).Val, lda, (const Loc *)&x[0].Val, incx, (const Loc *)&beta_, (Loc *)&y[0].Val, incy);
 		}
 		else
-		if (TypeCheck::is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<TType>::value == true){
 			typedef float Loc;
 			std::complex<float>  alpha_((float)alpha); std::complex<double>  beta_((float)beta);
 			cblas_cgemv(Matrix_Layout, BlasTransA, m, n, (const Loc *)&alpha_, (const Loc *)&A(0, 0).Val, lda, (const Loc *)&x[0].Val, incx, (const Loc *)&beta_, (Loc *)&y[0].Val, incy);
@@ -2267,18 +2267,18 @@ public:
 #endif
 	// TEST
 	// C = A * B
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::Multiply(const TVVec<Type, Size, ColMajor>& A, const TVVec<Type, Size, ColMajor>& B, TVVec<Type, Size, ColMajor>& C) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, TVVec<TType, TSizeTy, ColMajor>& C) {
 		EAssert(A.GetRows() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetCols() == B.GetRows());
 #ifdef BLAS
 		TLinAlg::Multiply(A, B, C, TLinAlgBlasTranspose::NOTRANS, TLinAlgBlasTranspose::NOTRANS);
 #else
 		EAssert(A.GetRows() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetCols() == B.GetRows());
-		Size n = C.GetRows(), m = C.GetCols(), l = A.GetCols();
-		for (Size i = 0; i < n; i++) {
-			for (Size j = 0; j < m; j++) {
+		TSizeTy n = C.GetRows(), m = C.GetCols(), l = A.GetCols();
+		for (TSizeTy i = 0; i < n; i++) {
+			for (TSizeTy j = 0; j < m; j++) {
 				double sum = 0.0;
-				for (Size k = 0; k < l; k++)
+				for (TSizeTy k = 0; k < l; k++)
 					sum += A(i, k)*B(k, j);
 				C(i, j) = sum;
 			}
@@ -2290,17 +2290,17 @@ public:
 
 	// TEST
 	// C = A' * B
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::MultiplyT(const TVVec<Type, Size, ColMajor>& A, const TVVec<Type, Size, ColMajor>& B, TVVec<Type, Size, ColMajor>& C) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, TVVec<TType, TSizeTy, ColMajor>& C) {
 		EAssert(A.GetCols() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetRows() == B.GetRows());
 #ifdef BLAS
 		TLinAlg::Multiply(A, B, C, TLinAlgBlasTranspose::TRANS, TLinAlgBlasTranspose::NOTRANS);
 #else
-		Size n = C.GetRows(), m = C.GetCols(), l = A.GetRows(); double sum;
-		for (Size i = 0; i < n; i++) {
-			for (Size j = 0; j < m; j++) {
+		TSizeTy n = C.GetRows(), m = C.GetCols(), l = A.GetRows(); double sum;
+		for (TSizeTy i = 0; i < n; i++) {
+			for (TSizeTy j = 0; j < m; j++) {
 				sum = 0.0;
-				for (Size k = 0; k < l; k++)
+				for (TSizeTy k = 0; k < l; k++)
 					sum += A(k, i)*B(k, j);
 				C(i, j) = sum;
 			}
@@ -2314,9 +2314,9 @@ public:
 
 	// TEST
 	// C := A * B
-	template <class IndexType, class Type, class Size, bool ColMajor>
-	void TLinAlg::Multiply(const TVVec<Type, Size, ColMajor>& A, const TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& B,
-		TVVec<Type, Size, ColMajor>& C){
+	template <class IndexType, class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& B,
+		TVVec<TType, TSizeTy, ColMajor>& C){
 		// B well defined
 		EAssert(B.Val1.Len() == B.Val2.Len() && B.Val2.Len() == B.Val3.Len());
 		// Dimensions must match
@@ -2325,14 +2325,14 @@ public:
 			return;
 		}
 #ifdef INTELS
-		TLinAlg::MultiplyFS(const_cast<TVVec<Type, Size, ColMajor> &>(A), B, C);
+		TLinAlg::MultiplyFS(const_cast<TVVec<TType, TSizeTy, ColMajor> &>(A), B, C);
 #else
-		Size Nonzeros = B.Val1.Len();
+		TSizeTy Nonzeros = B.Val1.Len();
 		IndexType MaxRowN = B.Val1[B.Val1.GetMxValN()];
 		IndexType MaxColN = B.Val2[B.Val2.GetMxValN()];
 		EAssert(A.GetRows() == C.GetRows() && (MaxColN + 1) <= C.GetCols() && (MaxRowN + 1) <= A.GetCols());
-		for (Size RowN = 0; RowN < A.GetRows(); RowN++) {
-			for (Size ElN = 0; ElN < Nonzeros; ElN++) {
+		for (TSizeTy RowN = 0; RowN < A.GetRows(); RowN++) {
+			for (TSizeTy ElN = 0; ElN < Nonzeros; ElN++) {
 				C.At(RowN, B.Val2[ElN]) += A.At(RowN, B.Val1[ElN]) * B.Val3[ElN];
 			}
 		}
@@ -2341,9 +2341,9 @@ public:
 
 	// TEST
 	// C:= A' * B
-	template <class IndexType, class Type, class Size, bool ColMajor>
-	void TLinAlg::MultiplyT(const TVVec<Type, Size, ColMajor>& A, const TTriple<TVec<IndexType, Size>, TVec<IndexType, Size>, TVec<Type, Size>>& B,
-		TVVec<Type, Size, ColMajor>& C) {
+	template <class IndexType, class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& B,
+		TVVec<TType, TSizeTy, ColMajor>& C) {
 		// B well defined
 		EAssert(B.Val1.Len() == B.Val2.Len() && B.Val2.Len() == B.Val3.Len());
 		// Dimensions must match
@@ -2351,12 +2351,12 @@ public:
 		if (B.Val1.Len() == 0) {
 			return;
 		}
-		Size Nonzeros = B.Val1.Len();
+		TSizeTy Nonzeros = B.Val1.Len();
 		IndexType MaxRowN = B.Val1[B.Val1.GetMxValN()];
 		IndexType MaxColN = B.Val2[B.Val2.GetMxValN()];
 		EAssert(A.GetCols() == C.GetRows() && (MaxColN + 1) <= C.GetCols() && (MaxRowN + 1) <= A.GetRows());
-		for (Size RowN = 0; RowN < A.GetCols(); RowN++) {
-			for (Size ElN = 0; ElN < Nonzeros; ElN++) {
+		for (TSizeTy RowN = 0; RowN < A.GetCols(); RowN++) {
+			for (TSizeTy ElN = 0; ElN < Nonzeros; ElN++) {
 				C.At(RowN, B.Val2[ElN]) += A.At(B.Val1[ElN], RowN) * B.Val3[ElN];
 			}
 		}
@@ -2365,9 +2365,9 @@ public:
 	// C := A * B
 
 	//#if !defined(INTEL) || defined(INDEX_64)
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::Multiply(const TTriple<TVec<TNum<Size>, Size>, TVec<TNum<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, ColMajor>& B,
-		TVVec<Type, Size, ColMajor>& C) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::Multiply(const TTriple<TVec<TNum<TSizeTy>, TSizeTy>, TVec<TNum<TSizeTy>, TSizeTy>, TVec<TType, TSizeTy>>& A, const TVVec<TType, TSizeTy, ColMajor>& B,
+		TVVec<TType, TSizeTy, ColMajor>& C) {
 		// A well defined
 		EAssert(A.Val1.Len() == A.Val2.Len() && A.Val2.Len() == A.Val3.Len());
 		// Dimensions must match
@@ -2376,12 +2376,12 @@ public:
 			return;
 		}
 #if !defined(INTEL) || defined(INDEX_64)
-		Size Nonzeros = A.Val1.Len();
-		Size MaxRowN = A.Val1[A.Val1.GetMxValN()];
-		Size MaxColN = A.Val2[A.Val2.GetMxValN()];
+		TSizeTy Nonzeros = A.Val1.Len();
+		TSizeTy MaxRowN = A.Val1[A.Val1.GetMxValN()];
+		TSizeTy MaxColN = A.Val2[A.Val2.GetMxValN()];
 		EAssert(B.GetCols() == C.GetCols() && (MaxRowN + 1) <= C.GetRows() && (MaxColN + 1) <= B.GetRows());
-		for (Size ColN = 0; ColN < B.GetCols(); ColN++) {
-			for (Size ElN = 0; ElN < Nonzeros; ElN++) {
+		for (TSizeTy ColN = 0; ColN < B.GetCols(); ColN++) {
+			for (TSizeTy ElN = 0; ElN < Nonzeros; ElN++) {
 				C.At(A.Val1[ElN], ColN) += A.Val3[ElN] * B.At(A.Val2[ElN], ColN);
 			}
 		}
@@ -2391,9 +2391,9 @@ public:
 	}
 	// TEST
 	// C:= A' * B
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::MultiplyT(const TTriple<TVec<TNum<Size>, Size>, TVec<TNum<Size>, Size>, TVec<Type, Size>>& A, const TVVec<Type, Size, ColMajor>& B,
-		TVVec<Type, Size, ColMajor>& C) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::MultiplyT(const TTriple<TVec<TNum<TSizeTy>, TSizeTy>, TVec<TNum<TSizeTy>, TSizeTy>, TVec<TType, TSizeTy>>& A, const TVVec<TType, TSizeTy, ColMajor>& B,
+		TVVec<TType, TSizeTy, ColMajor>& C) {
 		// B well defined
 		EAssert(A.Val1.Len() == A.Val2.Len() && A.Val2.Len() == A.Val3.Len());
 		// Dimensions must match
@@ -2402,12 +2402,12 @@ public:
 			return;
 		}
 #if !defined(INTEL) || defined(INDEX_64)
-		Size Nonzeros = A.Val1.Len();
-		Size MaxRowN = A.Val1[A.Val1.GetMxValN()];
-		Size MaxColN = A.Val2[A.Val2.GetMxValN()];
+		TSizeTy Nonzeros = A.Val1.Len();
+		TSizeTy MaxRowN = A.Val1[A.Val1.GetMxValN()];
+		TSizeTy MaxColN = A.Val2[A.Val2.GetMxValN()];
 		EAssert(B.GetCols() == C.GetCols() && (MaxColN + 1) <= C.GetRows() && (MaxRowN + 1) <= B.GetRows());
-		for (Size ColN = 0; ColN < B.GetCols(); ColN++) {
-			for (Size ElN = 0; ElN < Nonzeros; ElN++) {
+		for (TSizeTy ColN = 0; ColN < B.GetCols(); ColN++) {
+			for (TSizeTy ElN = 0; ElN < Nonzeros; ElN++) {
 				C.At(A.Val2[ElN], ColN) += A.Val3[ElN] * B.At(A.Val1[ElN], ColN);
 			}
 		}
@@ -2446,13 +2446,13 @@ public:
 	}
 
 	// C:= A' * B
-	template <class IndexType, class Type, class Size, bool ColMajor>
+	template <class IndexType, class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::MultiplyT(const TFltVV& A, const TVec<TIntFltKdV>& B, TFltVV& C) {
 		// C = A' B = (B' A)'
 #ifdef INTEL
-		TTriple<TVec<IndexType, Size>, TVec<TInt, Size>, TVec<Type, Size>> BB;
+		TTriple<TVec<IndexType, TSizeTy>, TVec<TInt, TSizeTy>, TVec<TType, TSizeTy>> BB;
 		TLinAlg::Convert(B, BB); // convert the matrix to a coordinate form
-		TVVec<Type, Size, ColMajor> CC(B.Len(), A.GetCols());
+		TVVec<TType, TSizeTy, ColMajor> CC(B.Len(), A.GetCols());
 		TLinAlg::MultiplyT(BB, A, CC);
 		if (C.Empty()) {
 			C.Gen(A.GetCols(), B.Len());
@@ -2604,9 +2604,9 @@ public:
 	// TEST
 	// D = alpha * A(') * B(') + beta * C(')
 	typedef enum { GEMM_NO_T = 0, GEMM_A_T = 1, GEMM_B_T = 2, GEMM_C_T = 4 } TLinAlgGemmTranspose;
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::Gemm(const double& Alpha, const TVVec<Type, Size, ColMajor>& A, const TVVec<Type, Size, ColMajor>& B, const double& Beta,
-		const TVVec<Type, Size, ColMajor>& C, TVVec<Type, Size, ColMajor>& D, const int& TransposeFlags) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::Gemm(const double& Alpha, const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, const double& Beta,
+		const TVVec<TType, TSizeTy, ColMajor>& C, TVVec<TType, TSizeTy, ColMajor>& D, const int& TransposeFlags) {
 
 		bool tA = (TransposeFlags & GEMM_A_T) == GEMM_A_T;
 		bool tB = (TransposeFlags & GEMM_B_T) == GEMM_B_T;
@@ -2614,17 +2614,17 @@ public:
 
 
 		// setting dimensions
-		Size a_i = tA ? A.GetRows() : A.GetCols();
-		Size a_j = tA ? A.GetCols() : A.GetRows();
+		TSizeTy a_i = tA ? A.GetRows() : A.GetCols();
+		TSizeTy a_j = tA ? A.GetCols() : A.GetRows();
 
-		Size b_i = tB ? B.GetRows() : B.GetCols();
-		Size b_j = tB ? B.GetCols() : B.GetRows();
+		TSizeTy b_i = tB ? B.GetRows() : B.GetCols();
+		TSizeTy b_j = tB ? B.GetCols() : B.GetRows();
 
-		Size c_i = tC ? C.GetRows() : C.GetCols();
-		Size c_j = tC ? C.GetCols() : C.GetRows();
+		TSizeTy c_i = tC ? C.GetRows() : C.GetCols();
+		TSizeTy c_j = tC ? C.GetCols() : C.GetRows();
 
-		Size d_i = D.GetCols();
-		Size d_j = D.GetRows();
+		TSizeTy d_i = D.GetCols();
+		TSizeTy d_j = D.GetRows();
 
 		// assertions for dimensions
 		EAssert(a_j == c_j && b_i == c_i && a_i == b_j && c_i == d_i && c_j == d_j);
@@ -2632,13 +2632,13 @@ public:
 		double Aij, Bij, Cij;
 
 		// rows of D
-		for (Size j = 0; j < a_j; j++) {
+		for (TSizeTy j = 0; j < a_j; j++) {
 			// cols of D
-			for (Size i = 0; i < b_i; i++) {
+			for (TSizeTy i = 0; i < b_i; i++) {
 				// not optimized for speed - naive algorithm
 				double sum = 0.0;
 				// cols of A
-				for (Size k = 0; k < a_i; k++) {
+				for (TSizeTy k = 0; k < a_i; k++) {
 					Aij = tA ? A.At(k, j) : A.At(j, k);
 					Bij = tB ? B.At(i, k) : B.At(k, i);
 					sum += Alpha * Aij * Bij;
@@ -2654,8 +2654,8 @@ public:
 	// TEST (works only for RowMajor, TSvd uses only TFltVV matrices)
 	// B = A^(-1)
 	typedef enum { DECOMP_SVD } TLinAlgInverseType;
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::Inverse(const TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor >& B, const TLinAlgInverseType& DecompType) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::Inverse(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor >& B, const TLinAlgInverseType& DecompType) {
 		switch (DecompType) {
 		case DECOMP_SVD:
 			TLinAlg::InverseSVD(A, B);
@@ -2663,11 +2663,11 @@ public:
 	}
 
 	// subtypes of finding an inverse (works only for TFltVV, cuz of TSvd)
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::InverseSVD(const TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& B, const double& tol) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::InverseSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& B, const double& tol) {
 		// create temp matrices
-		TVVec<Type, Size, ColMajor> U, V;
-		TVec<Type, Size> E;
+		TVVec<TType, TSizeTy, ColMajor> U, V;
+		TVec<TType, TSizeTy> E;
 		TSvd SVD;
 
 		//U.Gen(M.GetRows(), M.GetRows());
@@ -2679,7 +2679,7 @@ public:
 		SVD.Svd(A, U, E, V);
 
 		// calculate reciprocal values for diagonal matrix = inverse diagonal
-		for (Size i = 0; i < E.Len(); i++) {
+		for (TSizeTy i = 0; i < E.Len(); i++) {
 			if (E[i] > tol) {
 				E[i] = 1 / E[i];
 			}
@@ -2689,10 +2689,10 @@ public:
 		}
 
 		// calculate pseudoinverse: M^(-1) = V * E^(-1) * U'
-		for (Size i = 0; i < U.GetCols(); i++) {
-			for (Size j = 0; j < V.GetRows(); j++) {
+		for (TSizeTy i = 0; i < U.GetCols(); i++) {
+			for (TSizeTy j = 0; j < V.GetRows(); j++) {
 				double sum = 0.0;
-				for (Size k = 0; k < U.GetCols(); k++) {
+				for (TSizeTy k = 0; k < U.GetCols(); k++) {
 					if (E[k] == 0.0) continue;
 					sum += E[k] * V.At(i, k) * U.At(j, k);
 				}
@@ -2702,11 +2702,11 @@ public:
 	}
 
 	// subtypes of finding an inverse (works only for TFltVV, cuz of TSvd)
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::InverseSVD(const TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& B) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::InverseSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& B) {
 		// create temp matrices
-		TVVec<Type, Size, ColMajor> U, V;
-		TVec<Type, Size> E;
+		TVVec<TType, TSizeTy, ColMajor> U, V;
+		TVec<TType, TSizeTy> E;
 		TSvd SVD;
 
 		//U.Gen(M.GetRows(), M.GetRows());
@@ -2722,7 +2722,7 @@ public:
 		// http://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_pseudoinverse#Singular_value_decomposition_.28SVD.29
 		double tol = TFlt::Eps * MAX(A.GetRows(), A.GetCols()) * E[E.GetMxValN()];
 		// calculate reciprocal values for diagonal matrix = inverse diagonal
-		for (Size i = 0; i < E.Len(); i++) {
+		for (TSizeTy i = 0; i < E.Len(); i++) {
 			if (E[i] > tol) {
 				E[i] = 1 / E[i];
 			}
@@ -2732,10 +2732,10 @@ public:
 		}
 
 		// calculate pseudoinverse: M^(-1) = V * E^(-1) * U'
-		for (Size i = 0; i < U.GetCols(); i++) {
-			for (Size j = 0; j < V.GetRows(); j++) {
+		for (TSizeTy i = 0; i < U.GetCols(); i++) {
+			for (TSizeTy j = 0; j < V.GetRows(); j++) {
 				double sum = 0;
-				for (Size k = 0; k < U.GetCols(); k++) {
+				for (TSizeTy k = 0; k < U.GetCols(); k++) {
 					if (E[k] == 0.0) continue;
 					sum += E[k] * V.At(i, k) * U.At(j, k);
 				}
@@ -2745,24 +2745,24 @@ public:
 	}
 
 	// transpose matrix - B = A'
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::Transpose(const TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& B) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::Transpose(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& B) {
 		EAssert(B.GetRows() == A.GetCols() && B.GetCols() == A.GetRows());
-		for (Size i = 0; i < A.GetCols(); i++) {
-			for (Size j = 0; j < A.GetRows(); j++) {
+		for (TSizeTy i = 0; i < A.GetCols(); i++) {
+			for (TSizeTy j = 0; j < A.GetRows(); j++) {
 				B.At(i, j) = A.At(j, i);
 			}
 		}
 	}
 
 	// performes Gram-Schmidt ortogonalization on elements of Q
-	template <class Size>
-	void TLinAlg::GS(TVec<TVec<TFlt, Size>, Size>& Q) {
+	template <class TSizeTy>
+	void TLinAlg::GS(TVec<TVec<TFlt, TSizeTy>, TSizeTy>& Q) {
 		EAssert(Q.Len() > 0);
-		Size m = Q.Len(); // int n = Q[0].Len();
-		for (Size i = 0; i < m; i++) {
+		TSizeTy m = Q.Len(); // int n = Q[0].Len();
+		for (TSizeTy i = 0; i < m; i++) {
 			printf("%d\r", i);
-			for (Size j = 0; j < i; j++) {
+			for (TSizeTy j = 0; j < i; j++) {
 				double r = TLinAlg::DotProduct(Q[i], Q[j]);
 				TLinAlg::AddVec(-r, Q[j], Q[i], Q[i]);
 			}
@@ -2773,17 +2773,17 @@ public:
 
 	// TEST
 	// Gram-Schmidt on columns of matrix Q
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::GS(TVVec<Type, Size, ColMajor>& Q) {
-		Size m = Q.GetCols(), n = Q.GetRows();
-		for (Size i = 0; i < m; i++) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::GS(TVVec<TType, TSizeTy, ColMajor>& Q) {
+		TSizeTy m = Q.GetCols(), n = Q.GetRows();
+		for (TSizeTy i = 0; i < m; i++) {
 			printf("%d\r", i);
-			for (Size j = 0; j < i; j++) {
+			for (TSizeTy j = 0; j < i; j++) {
 				double r = TLinAlg::DotProduct(Q, i, Q, j);
 				TLinAlg::AddVec(-r, Q, j, Q, i);
 			}
 			double nr = TLinAlg::Norm(Q, i);
-			for (Size k = 0; k < n; k++)
+			for (TSizeTy k = 0; k < n; k++)
 				Q(k, i) = Q(k, i) / nr;
 		}
 		printf("\n");
@@ -2848,11 +2848,11 @@ public:
 	}
 
 	// checks if set of vectors is ortogonal
-	template <class Size>
-	void TLinAlg::AssertOrtogonality(const TVec<TVec<TFlt, Size>, Size>& Vecs, const double& Threshold) {
-		Size m = Vecs.Len();
-		for (Size i = 0; i < m; i++) {
-			for (Size j = 0; j < i; j++) {
+	template <class TSizeTy>
+	void TLinAlg::AssertOrtogonality(const TVec<TVec<TFlt, TSizeTy>, TSizeTy>& Vecs, const double& Threshold) {
+		TSizeTy m = Vecs.Len();
+		for (TSizeTy i = 0; i < m; i++) {
+			for (TSizeTy j = 0; j < i; j++) {
 				double res = TLinAlg::DotProduct(Vecs[i], Vecs[j]);
 				if (TFlt::Abs(res) > Threshold)
 					printf("<%d,%d> = %.5f", i, j, res);
@@ -2863,11 +2863,11 @@ public:
 		}
 	}
 	//ColMajor oriented data for optimal result
-	template <class Type, class Size, bool ColMajor>
-	void TLinAlg::AssertOrtogonality(const TVVec<Type, Size, ColMajor>& Vecs, const double& Threshold) {
-		Size m = Vecs.GetCols();
-		for (Size i = 0; i < m; i++) {
-			for (Size j = 0; j < i; j++) {
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::AssertOrtogonality(const TVVec<TType, TSizeTy, ColMajor>& Vecs, const double& Threshold) {
+		TSizeTy m = Vecs.GetCols();
+		for (TSizeTy i = 0; i < m; i++) {
+			for (TSizeTy j = 0; j < i; j++) {
 				double res = TLinAlg::DotProduct(Vecs, i, Vecs, j);
 				if (TFlt::Abs(res) > Threshold)
 					printf("<%d,%d> = %.5f", i, j, res);
