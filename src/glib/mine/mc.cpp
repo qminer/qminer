@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 #include "mc.h"
 
 using namespace TMc;
@@ -37,6 +45,7 @@ TStateIdentifier::TStateIdentifier(TSIn& SIn) {
 	ObsFtrBinStartVV.Load(SIn);
 	ContrFtrBinStartVV.Load(SIn);
 	ObsHistStat.Load(SIn);
+	ControlHistStat.Load(SIn);
 	Sample = TFlt(SIn);
 	Verbose = TBool(SIn);
 	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
@@ -52,6 +61,7 @@ void TStateIdentifier::Save(TSOut& SOut) const {
 	ObsFtrBinStartVV.Save(SOut);
 	ContrFtrBinStartVV.Save(SOut);
 	ObsHistStat.Save(SOut);
+	ControlHistStat.Save(SOut);
 	TFlt(Sample).Save(SOut);
 	TBool(Verbose).Save(SOut);
 }
@@ -99,22 +109,27 @@ void TStateIdentifier::Init(const TFullMatrix& X, const TFltVV& ControlFtrVV) {
 	Notify->OnNotify(TNotifyType::ntInfo, "Done.");
 }
 
-void TStateIdentifier::InitHistogram(const TFltVV& X, const TFltVV& ControlFtrVV) {
+void TStateIdentifier::InitHistogram(const TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV) {
 	Notify->OnNotify(TNotifyType::ntInfo, "Computing histograms ...");
 
 	const int NClusts = GetClusts();
 
-	const TIntV AssignV = Assign(X).GetIntVec();
+	const TIntV AssignV = Assign(ObsFtrVV).GetIntVec();
 
-	InitFtrBinStartVV(X, NHistBins, ObsFtrBinStartVV);
+	InitFtrBinStartVV(ObsFtrVV, NHistBins, ObsFtrBinStartVV);
 	InitFtrBinStartVV(ControlFtrVV, NHistBins, ContrFtrBinStartVV);
 
-	InitHist(X, AssignV, ObsFtrBinStartVV, NClusts, NHistBins, ObsHistStat);
+	InitHist(ObsFtrVV, AssignV, ObsFtrBinStartVV, NClusts, NHistBins, ObsHistStat);
 	InitHist(ControlFtrVV, AssignV, ContrFtrBinStartVV, NClusts, NHistBins, ControlHistStat);
 }
 
+int TStateIdentifier::Assign(const TFltV& x) const {
+	TFltV DistV;	GetCentroidDistV(x, DistV);
+	return TLAMisc::GetMinIdx(DistV);
+}
+
 int TStateIdentifier::Assign(const TVector& x) const {
-	return GetDistVec(x).GetMinIdx();
+	return Assign(x.Vec);
 }
 
 TVector TStateIdentifier::Assign(const TFltVV& X) const {
@@ -141,9 +156,22 @@ TFullMatrix TStateIdentifier::GetDistMat(const TFltVV& X) const {
 	return GetDistMat2(X, NormX2, NormC2, OnesN, OnesK).Sqrt();
 }
 
-TVector TStateIdentifier::GetDistVec(const TVector& x) const {
-	TVector xC = x.IsColVec() ? x.MulT(CentroidMat) : x * CentroidMat;
-	return (CentroidMat.ColNorm2V() - (xC*2) + TVector::Ones(GetClusts(), false) * x.Norm2()).Sqrt();
+void TStateIdentifier::GetCentroidDistV(const TFltV& x, TFltV& DistV) const {
+	// return (CentroidMat.ColNorm2V() - (x*C*2) + TVector::Ones(GetClusts(), false) * NormX2).Sqrt();
+	// 1) squared norm of X
+	const double NormX2 = TLinAlg::Norm2(x);
+
+	// 2) Result <- CentroidMat.ColNorm2V()
+	TLinAlg::GetColNorm2V(CentroidMat.GetMat(), DistV);
+
+	// 3) 2*x*C
+	TFltV xC;	TLinAlg::MultiplyT(CentroidMat.GetMat(), x, xC);
+
+	// 4) <- Result = Result - 2*x*C + ones(clusts, 1)*|x|^2
+	for (int i = 0; i < DistV.Len(); i++) {
+		DistV[i] += NormX2 - 2*xC[i];
+		DistV[i] = sqrt(DistV[i]);
+	}
 }
 
 double TStateIdentifier::GetDist(const int& CentroidIdx, const TVector& Pt) const {
@@ -193,8 +221,8 @@ void TStateIdentifier::GetHistogram(const int FtrId, const TIntV& StateSet, TFlt
 	BinV.Gen(NHistBins+2);
 	BinStartV.Clr();
 
-	const TFltVV& BinStartVV = FtrId < ObsFtrBinStartVV.GetCols() ? ObsFtrBinStartVV : ContrFtrBinStartVV;
-	const THistStat& HistStat = FtrId < ObsFtrBinStartVV.GetCols() ? ObsHistStat : ControlHistStat;
+	const TFltVV& BinStartVV = FtrId < ObsFtrBinStartVV.GetRows() ? ObsFtrBinStartVV : ContrFtrBinStartVV;
+	const THistStat& HistStat = FtrId < ObsFtrBinStartVV.GetRows() ? ObsHistStat : ControlHistStat;
 	const int FtrN = FtrId < ObsFtrBinStartVV.GetRows() ? FtrId : FtrId - ObsFtrBinStartVV.GetRows();
 
 	for (int i = 0; i < BinStartVV.GetCols(); i++) {
@@ -602,7 +630,7 @@ TFullMatrix TEuclMds::Project(const TFullMatrix& X, const int& d) {
 	// so X_d = V_d * diag({|s_i|})
 	TMatVecMatTr Svd = X1.Svd(d);
 
-	const TVector& EigValsSqrt = Svd.Val2.Map([&](const TFlt& Val) { return abs(Val); });
+	const TVector& EigValsSqrt = Svd.Val2.Map([&](const TFlt& Val) { return fabs(Val); });
 	const TFullMatrix& V = Svd.Val3;
 
 	TFullMatrix X_d = V*TFullMatrix::Diag(EigValsSqrt);
@@ -906,6 +934,7 @@ void THierarch::SetTarget(const int& StateId, const double& Height) {
 
 void THierarch::RemoveTarget(const int& StateId, const double& Height) {
 	EAssertR(IsOnHeight(StateId, Height), "State " + TInt(StateId).GetStr() + " is not on height " + TFlt(Height).GetStr());
+	EAssertR(IsTarget(StateId, Height), "State " + TInt(StateId).GetStr() + " is not a target on height " + TFlt(Height).GetStr());
 
 	double StateHeight = GetNearestHeight(Height);
 	TIntFltPr StateIdHeightPr(StateId, StateHeight);

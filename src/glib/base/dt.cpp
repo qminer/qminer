@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 /////////////////////////////////////////////////
@@ -771,7 +760,7 @@ TStr TStr::WrapCStr(char* _CStr) {
 TStr::TStr(const char* _CStr): Inner(nullptr) {
 	if (_CStr == nullptr) { return; }
 
-	const int Len = strlen(_CStr);
+	const int Len = (int)strlen(_CStr);
 	if (Len > 0) {
 		Inner = new char[Len+1];
 		strcpy(Inner, _CStr);
@@ -902,7 +891,7 @@ TStr& TStr::operator=(const TChA& ChA) {
 
 TStr& TStr::operator=(const char* CStr) {
 	Clr();
-	const int StrLen = strlen(CStr);
+	const int StrLen = (int)strlen(CStr);
 	if (StrLen > 0) {
 		Inner = new char[StrLen+1];
 		strcpy(Inner, CStr);
@@ -1238,7 +1227,7 @@ void TStr::SplitOnCh(TStr& LStr, const char& SplitCh, TStr& RStr) const {
 	}
 
 	// split
-	SplitOnChN(LStr, ChPtr - InnerPt, RStr);
+	SplitOnChN(LStr, (int)(ChPtr - InnerPt), RStr);
 }
 
 void TStr::SplitOnStr(TStr& LStr, const TStr& SplitStr, TStr& RStr) const {
@@ -1257,7 +1246,7 @@ void TStr::SplitOnStr(TStr& LStr, const TStr& SplitStr, TStr& RStr) const {
 		return;
 	}
 
-	const int MatchIdx = MatchPt - InnerPt;
+	const int MatchIdx = (int)(MatchPt - InnerPt);
 
 	SplitLeftOfRightOf(LStr, MatchIdx, MatchIdx + SplitStr.Len() - 1, RStr);
 }
@@ -1280,7 +1269,7 @@ void TStr::SplitOnLastCh(TStr& LStr, const char& SplitCh, TStr& RStr) const {
 	}
 
 	// split
-	SplitOnChN(LStr, ChPtr - InnerPt, RStr);
+	SplitOnChN(LStr, (int)(ChPtr - InnerPt), RStr);
 }
 
 void TStr::SplitOnAllCh(const char& SplitCh, TStrV& StrV, const bool& SkipEmpty) const {
@@ -1446,7 +1435,7 @@ int TStr::SearchStr(const TStr& Str, const int& BChN) const {
 }
 
 bool TStr::StartsWith(const char *Str) const {
-	const int OtherLen = strlen(Str);
+	const int OtherLen = (int)strlen(Str);
 	const int ThisLen = Len();
 	if (OtherLen > ThisLen || ThisLen == 0) { return false; }
 
@@ -1455,7 +1444,7 @@ bool TStr::StartsWith(const char *Str) const {
 }
 
 bool TStr::EndsWith(const char *Str) const {
-	const int OtherLen = strlen(Str);
+	const int OtherLen = (int)strlen(Str);
 	const int ThisLen = Len();
 	if (OtherLen > ThisLen) {
 		// too long to be a suffix anyway
@@ -1532,7 +1521,7 @@ int TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) {
 	// find next hit, copy everything between the current position and the hit,
 	// then copy the dest string
 	while ((NextHit = strstr(InnerPt + i, SrcCStr)) != nullptr) {
-		SeqLen = NextHit - (InnerPt + i);
+		SeqLen = (int)(NextHit - (InnerPt + i));
 		// copy the chars in between the hits
 		memcpy(ResStr + j, InnerPt + i, SeqLen);
 
@@ -1594,7 +1583,7 @@ bool TStr::IsBool(bool& Val) const {
 bool TStr::IsInt(const bool& Check, const int& MnVal, const int& MxVal, int& Val) const {
 	int64 _Val;
 	// assign and check for overflow
-	return IsInt64(Check, MnVal, MxVal, _Val) && (Val = _Val) == _Val;
+	return IsInt64(Check, MnVal, MxVal, _Val) && (int64)(Val = (int)_Val) == _Val;
 }
 
 bool TStr::IsUInt(const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val) const {
@@ -2047,7 +2036,7 @@ TStr operator+(const TStr& LStr, const TStr& RStr) {
 bool TStr::IsUInt(TChRet& Ch, const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val) {
 	uint64 _Val;
 	// assign and check for overflow
-	return IsUInt64(Ch, Check, MnVal, MxVal, _Val) && (Val = _Val) == _Val;
+	return IsUInt64(Ch, Check, MnVal, MxVal, _Val) && (uint64)(Val = (uint)_Val) == _Val;
 }
 
 bool TStr::IsUInt64(TChRet& Ch, const bool& Check, const uint64& MnVal, const uint64& MxVal, uint64& Val) {

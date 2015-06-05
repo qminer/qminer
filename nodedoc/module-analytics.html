@@ -1,0 +1,377 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta charset="utf-8">
+  <title>Module: analytics</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">analytics</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-8">analyticsdoc.<wbr>js:8</a></p>
+            <div class="symbol-description">
+              <p>Analytics module.</p>
+            </div>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Child classes</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.HierarchMarkov.html">HierarchMarkov(HierarchMarkovParam)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD([detectorParam])</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.RidgeReg.html">RidgeReg([arg])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.SVC.html">SVC(arg)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.SVR.html">SVR(arg)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Abstract types</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~svcParam">svcParam</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~svrParam">svrParam</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2>Classes</h2>
+            <section id='members-links'>
+              <h3><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></h3>
+              <h3><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD</a></h3>
+              <h3><a href="module-analytics.RidgeReg.html">RidgeReg</a></h3>
+              <h3><a href="module-analytics.SVC.html">SVC</a></h3>
+              <h3><a href="module-analytics.SVR.html">SVR</a></h3>
+            </section>
+            <h2>Abstract types</h2>
+            <section>
+              <h3 id="~svcParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">svcParam</span><small class="property-type">
+
+            &nbsp;Object</small></h3>
+              <p>SVC constructor parameters</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>svcParam.c</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting)</p>
+                        <p>Defaults to <code>1.0</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>svcParam.j</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting c=n is like adding n-1 copies of the positive training examples
+                          to the data set.</p>
+                        <p>Defaults to <code>1.0</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>svcParam.batchSize</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate</p>
+                        <p>Defaults to <code>10000</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>svcParam.maxIterations</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Maximum number of iterations</p>
+                        <p>Defaults to <code>10000</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>svcParam.maxTime</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Maximum runtime in seconds</p>
+                        <p>Defaults to <code>1.0</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>svcParam.minDiff</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Stopping criterion tolerance</p>
+                        <p>Defaults to <code>1e-6</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>svcParam.verbose</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Toggle verbose output in the console</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~svrParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">svrParam</span><small class="property-type">
+
+            &nbsp;Object</small></h3>
+              <p>SVR constructor parameters</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>svrParam.c</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting)</p>
+                        <p>Defaults to <code>1.0</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>svrParam.eps</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Epsilon insensitive loss parameter. Larger values result in fewer support vectors (smaller model complexity).</p>
+                        <p>Defaults to <code>1e-1</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>svrParam.batchSize</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate</p>
+                        <p>Defaults to <code>10000</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>svrParam.maxIterations</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Maximum number of iterations</p>
+                        <p>Defaults to <code>10000</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>svrParam.maxTime</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Maximum runtime in seconds</p>
+                        <p>Defaults to <code>1.0</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>svrParam.minDiff</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Stopping criterion tolerance</p>
+                        <p>Defaults to <code>1e-6</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>svrParam.verbose</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Toggle verbose output in the console</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on June 3, 2015.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

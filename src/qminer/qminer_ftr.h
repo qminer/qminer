@@ -1,23 +1,9 @@
 /**
- * QMiner - Open Source Analytics Platform
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Quintelligence d.o.o.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
- * Contact: 
- *   Blaz Fortuna <blaz@blazfortuna.com>
- *
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #ifndef QMINER_FTR_H
@@ -98,10 +84,6 @@ public:
 	virtual TStr GetFtr(const int& FtrN) const = 0;
    	/// Reset feature extractor to forget all previously seen records
 	virtual void Clr() = 0;
-    /// Get feature distribution. Default is uniform over all dimensions.
-    void GetFtrDist(TFltV& FtrDistV) const;
-    /// Get feature distribution. Default is uniform over all dimensions.
-    virtual void AddFtrDist(TFltV& FtrDistV, int& Offset) const;    
     
 	/// Update the feature extractor using the info from the given record.
     /// Returns true if the update changes the dimensionality.
@@ -205,8 +187,6 @@ public:
 	int GetDim() const;
 	/// String representation of the FtrN-th feature
 	TStr GetFtr(const int& FtrN) const;
-    /// Get feature distribution
-    void GetFtrDist(TFltV& FtrDistV) const;
     /// Number of feature extractors
     int GetFtrExts() const;
     /// Get feature extractor

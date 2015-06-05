@@ -20,7 +20,9 @@ config.log
 
 # NPM
 npm-debug.log
-node_modules
+/node_modules/*
+!/node_modules/qminer.js
+
 
 # project files from Eclipse
 .project
@@ -112,3 +114,16 @@ cha
 .DC_Store
 autom4te.cache
 autom4te.cache
+nodetempdoc
+/x64
+
+/test/nodejs/NN.bin
+/test/nodejs/g.html
+/test/nodejs/svc.bin
+/test/nodejs/svr.bin
+
+db1
+
+db2
+
+binding-1.gyp

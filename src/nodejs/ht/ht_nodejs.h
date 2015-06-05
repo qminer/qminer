@@ -1,9 +1,13 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #ifndef QMINER_HT_NODEJS_H
 #define QMINER_HT_NODEJS_H
 
-//#ifndef BUILDING_NODE_EXTENSION
-//    #define BUILDING_NODE_EXTENSION
-//#endif
 
 #include <node.h>
 #include <node_object_wrap.h>
@@ -13,9 +17,6 @@
 
 ///////////////////////////////
 // NodeJs-Hash-Map
-//# 
-//# ### Hash Map
-//# 
 
 class TAuxStrIntH {
 public:
@@ -155,25 +156,6 @@ public:
     }
 };
 
-//class TNodeJsHashUtil : public node::ObjectWrap {
-//public:
-//    static void Init(v8::Handle<v8::Object> exports);
-//    //#
-//    //# **Functions and properties:**
-//    //#
-//    //#- `map = utilities.newStrIntH()` -- New string-int hashmap
-//    JsDeclareFunction(newStrIntH);
-//    //#- `map = utilities.newStrFltH()` -- New string-flt hashmap
-//    JsDeclareFunction(newStrFltH);
-//    //#- `map = utilities.newStrStrH()` -- New string-string hashmap
-//    JsDeclareFunction(newStrStrH);
-//    //#- `map = utilities.newIntIntH()` -- New int-int hashmap
-//    JsDeclareFunction(newIntIntH);
-//    //#- `map = utilities.newIntFltH()` -- New int-flt hashmap
-//    JsDeclareFunction(newIntFltH);
-//    //#- `map = utilities.newIntStrH()` -- New int-string hashmap
-//    JsDeclareFunction(newIntStrH);
-//};
 
 template <class TKey = TStr, class TDat = TInt, class TAux = TAuxStrIntH>
 class TNodeJsHash : public node::ObjectWrap {
@@ -199,26 +181,113 @@ public:
         JsMap->Map = _Map;
     }
 
-    //# 
-    //# **Functions and properties:**
-    //# 
-    JsDeclareFunction(New);
-    //#- `dat = map.get(key)` -- return data given on key
+	/**
+	* <% title %> 
+	* @classdesc Used for storing key/data pairs, wrapps an efficient C++ implementation.
+	* @class
+	* @example
+	* // create a new hashtable
+	* ht = require('qminer').ht;
+	* var h = new ht.<% className %>();
+	* // Adding two key/dat pairs
+	* h.put(<% key1 %>, <% val1 %>);
+	* h.put(<% key2 %>, <% val2 %>);
+	* // Getting data
+	* h.hasKey(<% key1 %>); // returns true
+	* h.get(<% key2 %>); // returns <% val2 %>
+	* h.key(1); // returns <% key2 %>
+	* h.dat(1); // returns <% val2 %>
+	* h.length; // returns 2	
+	* // Saving and loading:
+	* var fs = require('qminer').fs;
+	* fout = fs.openWrite('map.dat'); // open write stream
+	* h.save(fout).close(); // save and close write stream
+	* var h2 = new ht.<% className %>(); // new empty table
+	* var fin = fs.openRead('map.dat'); // open read stream
+	* h2.load(fin); // load
+	*/
+	//# exports.<% className %> = function() {}
+	JsDeclareFunction(New);	
+	
+	/**
+	* Returns dat given key
+	* @param {<% keyType %>} key - Hashmap key.
+	* @returns {<% datType %>} Hashmap data.
+	*/
+    //# exports.<% className %>.prototype.get = function(key) { return <% defaultVal %>; }
     JsDeclareFunction(get);
-    //#- `map = map.put(key, dat)` -- add/update key-value pair. Returns self
-    JsDeclareFunction(put);
-    //#- `bool = map.hasKey(key)` -- returns true if the map has a given key `key`
+	
+	/**
+	* add/update key-value pair
+	* @param {<% keyType %>} key - Hashmap key.
+	* @param {<% datType %>} data - Hashmap data.
+	* @returns {module:ht.<% className %>} Self.
+	*/
+    //# exports.<% className %>.prototype.put = function(key, data) { return this; }
+    JsDeclareFunction(put);    
+	
+	/**
+	* returns true if the map has a given key 
+	* @param {<% keyType %>} key - Hashmap key.	
+	* @returns {boolean} True if the map contains key.
+	*/
+    //# exports.<% className %>.prototype.hasKey = function(key) { return false; }
     JsDeclareFunction(hasKey);
-    //#- `num = map.length` -- returns the number of keys
-    JsDeclareProperty(length);
-    //#- `key = map.key(idx)` -- returns the `idx`-th key
+	
+	/**
+    * @property {number} length - Number of key/dat pairs
+	*/
+	//# exports.<% className %>.prototype.length = 0;
+	JsDeclareProperty(length);
+    
+	/**
+	* returns n-th key
+	* @param {number} n - Hashmap key number. Should be between 0 and length-1.	
+	* @returns {<% keyType %>} n-th key.
+	*/
+    //# exports.<% className %>.prototype.key = function(n) { return <% defaultKey %>; }	
     JsDeclareFunction(key);
-    //#- `dat = map.dat(idx)` -- returns the `idx`-th dat
+
+	/**
+	* returns n-th dat
+	* @param {number} n - Hashmap dat number. Should be between 0 and length-1
+	* @returns {<% datType %>} n-th data value.
+	*/
+    //# exports.<% className %>.prototype.dat = function(n) { return <% defaultVal %>; }
     JsDeclareFunction(dat);
-    //#- `map = map.load(fin)` -- loads the hashtable from input stream `fin`
+    
+	/**
+	* loads the hashtable from input stream
+	* @param {module:fs.FIn} fin - Input stream.	
+	* @returns {module:ht.<% className %>} Self.
+	*/
+    //# exports.<% className %>.prototype.load = function(fin) { return this; }
     JsDeclareFunction(load);
-    //#- `fout = map.save(fout)` -- saves the hashtable to output stream `fout`
+
+	/**
+	* saves the hashtable to output stream
+	* @param {module:fs.FOut} fout - Output stream.	
+	* @returns {module:fs.FOut} fout.
+	*/
+    //# exports.<% className %>.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
+
+	/**
+	* sorts by keys
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	* @returns {module:ht.<% className %>} Self.
+	*/
+	//# exports.<% className %>.prototype.sortKey = function(asc) { return this; }
+	JsDeclareFunction(sortKey);
+
+	/**
+	* sorts by values
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	* @returns {module:ht.<% className %>} Self.
+	*/
+	//# exports.<% className %>.prototype.sortDat = function(asc) { return this; }
+	JsDeclareFunction(sortDat);
+
 
     static TStr GetClassId() { return TAux::ClassId; }
 private:
@@ -228,12 +297,6 @@ private:
 template<class TKey, class TDat, class TAux>
 v8::Persistent<v8::Function> TNodeJsHash<TKey, TDat, TAux>::constructor;
 
-//template<class TKey, class TDat, class TAux>
-//const TStr TNodeJsHash<TKey, TDat, TAux>::TYPE_STRING = "string";
-//template<class TKey, class TDat, class TAux>
-//const TStr TNodeJsHash<TKey, TDat, TAux>::TYPE_INT = "int";
-//template<class TKey, class TDat, class TAux>
-//const TStr TNodeJsHash<TKey, TDat, TAux>::TYPE_FLOAT = "float";
 
 typedef TNodeJsHash<TStr, TStr, TAuxStrStrH> TNodeJsStrStrH;
 typedef TNodeJsHash<TStr, TInt, TAuxStrIntH> TNodeJsStrIntH;
@@ -284,6 +347,8 @@ void TNodeJsHash<TKey, TDat, TAux>::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "dat", _dat);
     NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sortKey", _sortKey);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sortDat", _sortDat);
 
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
 
@@ -407,6 +472,26 @@ void TNodeJsHash<TKey, TDat, TAux>::save(const v8::FunctionCallbackInfo<v8::Valu
     PSOut SOut = JsFOut->SOut;
     JsMap->Map.Save(*SOut);
     Args.GetReturnValue().Set(Args[0]);
+}
+
+template<class TKey, class TDat, class TAux>
+void TNodeJsHash<TKey, TDat, TAux>::sortKey(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
+	bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
+	JsMap->Map.SortByKey(Asc);
+	Args.GetReturnValue().Set(Args.Holder());
+}
+
+template<class TKey, class TDat, class TAux>
+void TNodeJsHash<TKey, TDat, TAux>::sortDat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
+	bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
+	JsMap->Map.SortByDat(Asc);
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 template<class TKey, class TDat, class TAux>

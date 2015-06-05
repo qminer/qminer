@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #ifndef QMINER_NODEJS_UTILS
 #define QMINER_NODEJS_UTILS
 
@@ -116,7 +123,7 @@ class TNodeJsUtil {
 public:
     /// Convert v8 Json to GLib Json (PJsonVal). Is parameter IgnoreFunc is set to true the method will
 	/// ignore functions otherwise an exception will be thrown when a function is encountered
-    static PJsonVal GetObjJson(const v8::Local<v8::Object>& Obj, const bool IgnoreFunc=false);
+    static PJsonVal GetObjJson(const v8::Local<v8::Value>& Obj, const bool IgnoreFunc=false);
     static PJsonVal GetObjProps(const v8::Local<v8::Object>& Obj) { return GetObjJson(Obj, true); }
     /// Convert GLib Json (PJsonVal) to v8 Json
     static v8::Local<v8::Value> ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal);
@@ -159,7 +166,9 @@ public:
     static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Extract argument ArgN as int, and use DefVal in case when not present
     static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const int& DefVal);
-    /// Extract argument ArgN property as int
+	/// Extract argument ArgN property as int
+	static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property);
+	/// Extract argument ArgN property as int
     static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const int& DefVal);
 
     /// Extract argument ArgN as double
@@ -221,10 +230,6 @@ public:
 	/// This callback should be used when creating objects from C++ functions, by using TNodeJsUtil::NewJsInstance<Obj>
 	template <class TClass>
 	static void _NewCpp(const v8::FunctionCallbackInfo<v8::Value>& Args);
-	
-	template <class TClass>
-	static v8::Local<v8::Object> NewInstance(TClass* Obj,
-			v8::Persistent<v8::Function>& Constructor);
 
 	/// Creates a new instance using TClass::Constructor and wraps it with Obj.
 	/// The Constructor should be linked with a function template that uses TNodeJsUtil::_NewCpp<Obj> as callback
@@ -240,6 +245,15 @@ public:
 
 	/// Convert v8 external array (binary data) to PMem
 	static PMem GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+
+	/// Used for unwrapping objects that depend on TBase being valid
+	template <class TClass>
+	static TClass* UnwrapCheckWatcher(v8::Handle<v8::Object> handle);
+
+
+	template <class TClass>
+	static TClass* Unwrap(v8::Handle<v8::Object> handle) { return node::ObjectWrap::Unwrap<TClass>(handle); }
+	
 };
 
 template <class T>
@@ -302,19 +316,14 @@ void TNodeJsUtil::_NewCpp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 }
 
 template <class TClass>
-v8::Local<v8::Object> TNodeJsUtil::NewInstance(TClass* Obj, v8::Persistent<v8::Function>& Constructor) {
+v8::Local<v8::Object> TNodeJsUtil::NewInstance(TClass* Obj) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
-	EAssertR(!Constructor.IsEmpty(), "NewJsInstance<...>::New: constructor is empty. Did you call NewJsInstance<...>::Init(exports); in this module's init function?");
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, Constructor);
+	EAssertR(!TClass::Constructor.IsEmpty(), "NewJsInstance<...>::New: constructor is empty. Did you call NewJsInstance<...>::Init(exports); in this module's init function?");
+	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, TClass::Constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 	Obj->Wrap(Instance);
 	return HandleScope.Escape(Instance);
-}
-
-template <class TClass>
-v8::Local<v8::Object> TNodeJsUtil::NewInstance(TClass* Obj) {
-	return NewInstance(Obj, TClass::Constructor);
 }
 
 template <class TVal>
@@ -324,6 +333,13 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Loc
 
 	v8::Handle<v8::Value> Argv[1] = { Arg };
 	Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
+}
+
+template <class TClass>
+TClass* TNodeJsUtil::UnwrapCheckWatcher(v8::Handle<v8::Object> handle) {
+	TClass* Obj = node::ObjectWrap::Unwrap<TClass>(handle);
+	Obj->Watcher->AssertOpen();
+	return Obj;
 }
 
 

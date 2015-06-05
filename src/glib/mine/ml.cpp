@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 #include "ml.h"
 
 using namespace TMl;
@@ -109,10 +117,10 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 		}
 
 		// compute delta_w = H(w) \ (g(w))
-#ifdef OPENBLAS
+#ifdef LAPACKE
 		TNumericalStuff::LUSolve(H, DeltaWgtV, GradV);
 #else
-		throw TExcept::New("Should include OpenBLAS!!");
+		throw TExcept::New("Should include LAPACKE!!");
 #endif
 
 		if (TFlt::IsNan(TLinAlg::Norm(DeltaWgtV))) {
@@ -259,10 +267,10 @@ void TPropHazards::Fit(const TFltVV& _X, const TFltV& t, const double& Eps) {
 		}
 
 		// III) compute: delta_w = H \ grad
-#ifdef OPENBLAS
+#ifdef LAPACKE
 		TNumericalStuff::SVDSolve(H, DeltaWgtV, GradV, 1e-10);
 #else
-		throw TExcept::New("Should include OpenBLAS!!");
+		throw TExcept::New("Should include LAPACKE!!");
 #endif
 //		printf("t .* intens - 1: %s\n", TStrUtil::GetStr(TempNInstV, ", ", "%.15f").CStr());
 //		printf("H: %s\n", TStrUtil::GetStr(H, ", ", "%.15f").CStr());

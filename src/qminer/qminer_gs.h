@@ -1,20 +1,9 @@
 /**
- * QMiner - Open Source Analytics Platform
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #ifndef QMINER_GS_H
@@ -75,11 +64,11 @@ public:
 	TIndexKeyEx() {}
 
     /// Is indexed by value
-	bool IsValue() const { return KeyType == oiktValue; }
+	bool IsValue() const { return (KeyType & oiktValue) > 0; }
     /// Is indexed as text (tokenized)
-	bool IsText() const { return KeyType == oiktText; }
+	bool IsText() const { return (KeyType & oiktText) > 0; }
     /// Is indexed as geo-location
-	bool IsLocation() const { return KeyType == oiktLocation; }
+	bool IsLocation() const { return (KeyType & oiktLocation) > 0; }
 	// get index type
 	TStr GetKeyType() const { return IsValue() ? "value" : IsText() ? "text" : "location"; }
 
@@ -106,7 +95,8 @@ public:
 	TStoreJoinType JoinType;
     /// Name of reverse join (empty if none)
 	TStr InverseJoinName;
-    
+    /// Flag if index should use small storage
+	TBool IsSmall;
 public:
 	TJoinDescEx(): JoinType(osjtUndef) { }
 };
@@ -178,6 +168,8 @@ public:
 	TVec<TIndexKeyEx> IndexKeyExV;
     /// Join descriptions
 	TVec<TJoinDescEx> JoinDescExV;
+	/// Size of blocks for memory storage
+	TInt BlockSizeMem;
     
 private:
     /// Parse field description from JSon
@@ -200,6 +192,18 @@ public:
 };
 typedef TVec<TStoreSchema> TStoreSchemaV;
 
+/////////////////////////////////////////////////
+// Dirty flags for TInMemStorage
+
+/// Flag for new unsaved entry
+const uchar isdfNew = 1;
+/// Flag for clean, already saved entry
+const uchar isdfClean = 1 << 1;
+/// Flag for dirty entry that needs to be saved
+const uchar isdfDirty = 1 << 2;
+/// Flag for entry that hasn't been loaded yet
+const uchar isdfNotLoaded = 1 << 3;
+
 ///////////////////////////////
 /// In-memory storage.
 /// Wrapper around TVec of TMems.
@@ -208,16 +212,34 @@ class TInMemStorage {
 private:
     /// Storage filename
 	TStr FNm;
+	/// Storage filename for Blob storage
+	TStr BlobFNm;
     /// Access type with which the storage is opened
 	TFAccess Access;
-    /// Offset of the first record
+    /// Logical offset of the first non-deleted record
 	TUInt64 FirstValOffset;
+	/// Logical offset of the first physical record
+	TUInt64 FirstValOffsetMem;
     /// Storage vector
-    TVec<TMem, int64> ValV;
-    
+    mutable TVec<TMem, int64> ValV;
+	/// Blob-pointers - locations where TMem objects are stored inside Blob storage
+	TVec<TBlobPt, int64> BlobPtV;
+	/// "Dirty flags" - 0 - new and not saved yet, 1 - existing and clean, 2 - existing but dirty, 3 - existing but not loaded
+	mutable TVec<uchar, int64> DirtyV;
+    /// Blob storage
+	PBlobBs BlobStorage;
+	/// How many records are packed together into block;
+	TInt BlockSize;
+
+	/// Utility method for loading specific record
+	inline void LoadRec(int64 i) const;
+
+	/// Utility method for storing specific record
+	int SaveRec(int i);
+
 public:
-	TInMemStorage(const TStr& _FNm);
-	TInMemStorage(const TStr& _FNm, const TFAccess& _Access);
+	TInMemStorage(const TStr& _FNm, const int& _BlockSize = 1000);
+	TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bool& _Lazy = false);
 	~TInMemStorage();
 
 	// asserts if we are allowed to change stuff
@@ -233,18 +255,30 @@ public:
 	uint64 Len() const;
 	uint64 GetFirstValId() const;
 	uint64 GetLastValId() const;
+
+	int PartialFlush(int WndInMsec = 500);
+	inline void LoadAll();
+
+	TBlobBsStats GetBlobBsStats() { return BlobStorage->GetStats(); }
+
+#ifdef XTEST
+private:
+	friend class XTest;
+	PBlobBs GetBlobStorage() { return BlobStorage; }
+#endif
 };
 
 ////////////////////////////////////
 /// Serialization and de-serialization of records to TMem.
 /// This class handles smart serialization of JSON with respect to field 
 /// serialization definitions. It supports NULL flags. It packs fixed-width 
-/// fields together. Variable-width fields are store in two parts - first 
+/// fields together. Variable-width fields are stored in two parts - first 
 /// there's an index array so that for each field we store its offset inside 
 /// the buffer. Then there is the real variable-length part where the content
 /// is stored.
 class TRecSerializator {
 private:
+
     ///////////////////////////////
     /// Field serialization parameters.
     /// This class contains data about field serialization
@@ -489,11 +523,11 @@ private:
                 FieldTypeStr(_FieldTypeStr), KeyId(_KeyId), KeyType(_KeyType), WordVocId(_WordVocId) { }
 
         /// Is indexed by value
-        bool IsValue() const { return KeyType == oiktValue; }
+        bool IsValue() const { return (KeyType & oiktValue) > 0; }
         /// Is indexed as text (tokenized)
-        bool IsText() const { return KeyType == oiktText; }
+		bool IsText() const { return (KeyType & oiktText) > 0; }
         /// Is indexed as geo-location
-        bool IsLocation() const { return KeyType == oiktLocation; }
+		bool IsLocation() const { return (KeyType & oiktLocation) > 0; }
         // get index type
         TStr GetKeyType() const { return IsValue() ? "value" : IsText() ? "text" : "location"; }
     };    
@@ -621,8 +655,28 @@ private:
     bool IsPrimaryField() const { return PrimaryFieldId != -1; }
     /// Set primary field map
     void SetPrimaryField(const uint64& RecId);
+    /// Set primary field map for a given string value
+    void SetPrimaryFieldStr(const uint64& RecId, const TStr& Str);
+    /// Set primary field map for a given integer value
+    void SetPrimaryFieldInt(const uint64& RecId, const int& Int);
+    /// Set primary field map for a given uint64 value
+    void SetPrimaryFieldUInt64(const uint64& RecId, const uint64& UInt64);
+    /// Set primary field map for a given double value
+    void SetPrimaryFieldFlt(const uint64& RecId, const double& Flt);
+    /// Set primary field map for a given TTm value
+    void SetPrimaryFieldMSecs(const uint64& RecId, const uint64& MSecs);
     /// Delete primary field map
     void DelPrimaryField(const uint64& RecId);
+    /// Delete primary field map for a given string value
+    void DelPrimaryFieldStr(const uint64& RecId, const TStr& Str);
+    /// Delete primary field map for a given integer value
+    void DelPrimaryFieldInt(const uint64& RecId, const int& Int);
+    /// Delete primary field map for a given uint64 value
+    void DelPrimaryFieldUInt64(const uint64& RecId, const uint64& UInt64);
+    /// Delete primary field map for a given double value
+    void DelPrimaryFieldFlt(const uint64& RecId, const double& Flt);
+    /// Delete primary field map for a given TTm value
+    void DelPrimaryFieldMSecs(const uint64& RecId, const uint64& MSecs);
     /// Transform Join name to it's corresponding field name
     TStr GetJoinFieldNm(const TStr& JoinNm) const { return JoinNm + "Id"; }
     
@@ -634,9 +688,9 @@ private:
 public:
 	TStoreImpl(const TWPt<TBase>& _Base, const uint& StoreId, 
         const TStr& StoreName, const TStoreSchema& StoreSchema, 
-        const TStr& _StoreFNm, const int64& _MxCacheSize);
+		const TStr& _StoreFNm, const int64& _MxCacheSize, const int& BlockSize);
 	TStoreImpl(const TWPt<TBase>& _Base, const TStr& _StoreFNm,
-		const TFAccess& _FAccess, const int64& _MxCacheSize);
+		const TFAccess& _FAccess, const int64& _MxCacheSize, const bool& _Lazy = false);
 	// need to override destructor, to clear cache
 	~TStoreImpl();
 
@@ -646,6 +700,9 @@ public:
 	TStr GetRecNm(const uint64& RecId) const;
 	uint64 GetRecId(const TStr& RecNm) const;
 	uint64 GetRecs() const;
+	uint64 GetFirstRecId() const { return DataMem.GetFirstValId(); }
+	uint64 GetLastRecId() const { return DataMem.GetLastValId(); }
+
 	PStoreIter GetIter() const;
     
     /// Gets the first record in the store (order defined by store implementation)
@@ -727,6 +784,12 @@ public:
 
     /// Helper function for returning JSon definition of store
     PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
+
+
+	/// Save part of the data, given time-window
+	int PartialFlush(int WndInMsec = 500);
+	/// Retrieve performance statistics for this store
+	PJsonVal GetStats();
 };
 
 ///////////////////////////////
@@ -738,13 +801,13 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
 /// Create new base given a schema definition
 TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
 	const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
-	const bool& InitP = true);
+	const bool& InitP = true, const int& SplitLen = TInt::Giga);
 
 ///////////////////////////////
 /// Load base created from a schema definition
 TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
 	const uint64& StoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
-	const bool& InitP = true);
+	const bool& InitP = true, const int& SplitLen = TInt::Giga);
 
 ///////////////////////////////
 /// Save base created from a schema definition

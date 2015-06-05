@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 namespace TSignalProc {
@@ -397,20 +386,13 @@ void TBufferedInterpolator::Save(TSOut& SOut) const {
 	Buff.Save(SOut);
 }
 
-void TBufferedInterpolator::SetNextInterpTm(const uint64& Time) {
-	// TODO optimize
-	while (Buff.Len() > 1 && Buff.GetOldest(1).Val1 <= Time) {
-		Buff.DelOldest();
-	}
-}
-
 void TBufferedInterpolator::AddPoint(const double& Val, const uint64& Tm) {
 	EAssertR(!TFlt::IsNan(Val), "TBufferedInterpolator::AddPoint: got NaN value!");
 
 	// check if the new point can be added
 	if (!Buff.Empty()) {
 		const TUInt64FltPr& LastRec = Buff.GetNewest();
-		IAssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val), "New point has a timestamp lower then the last point in the buffer!");
+		IAssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val), "New point has a timestamp lower then the last point in the buffer, or same with different values!");
 	}
 
 	// add the new point
@@ -451,6 +433,20 @@ TCurrentPoint::TCurrentPoint():
 TCurrentPoint::TCurrentPoint(TSIn& SIn):
 		TBufferedInterpolator(SIn) {}
 
+void TCurrentPoint::SetNextInterpTm(const uint64& Tm) {
+	// at least one past (or current time) record needs to be in the buffer
+	bool Change = false;
+	while (Buff.Len() >= 2 && Buff.GetOldest(1).Val1 <= Tm) {
+		Buff.DelOldest();
+		Change = true;
+	}
+	if (Change) {
+		EAssertR(CanInterpolate(Tm), "WTF!? Current point interpolator cannot intrpolate after setting new time!");
+	}
+	// when the loop finishes we have at least 1 record in the buffer
+	// with a timestamp <= Tm
+}
+
 double TCurrentPoint::Interpolate(const uint64& Tm) const {
 	IAssertR(CanInterpolate(Tm), "TCurrentPoint::Interpolate: Time not in the desired interval!");
 	return Buff.GetOldest().Val2;
@@ -468,6 +464,12 @@ TLinear::TLinear():
 
 TLinear::TLinear(TSIn& SIn):
 		TBufferedInterpolator(SIn) {}
+
+void TLinear::SetNextInterpTm(const uint64& Time) {
+	while (Buff.Len() > 1 && Buff.GetOldest(1).Val1 <= Time) {
+		Buff.DelOldest();
+	}
+}
 
 double TLinear::Interpolate(const uint64& Tm) const {
 	AssertR(CanInterpolate(Tm), "TLinear::Interpolate: Time not in the desired interval!");
@@ -543,11 +545,11 @@ TFlt TNNet::TNeuron::TransferFcn(TFlt Sum){
         case fastTanh:
            // sigmoid output range [-1.0..1.0]
            // training data should be scaled to what the transfer function can handle
-           return Sum / (1.0 + abs(Sum));
+           return Sum / (1.0 + fabs(Sum));
         case fastSigmoid:
            // sigmoid output range [0.0..1.0]
            // training data should be scaled to what the transfer function can handle
-           return (Sum / 2.0) / (1.0 + abs(Sum)) + 0.5;
+           return (Sum / 2.0) / (1.0 + fabs(Sum)) + 0.5;
         case linear:
             return Sum;         
     };
@@ -567,9 +569,9 @@ TFlt TNNet::TNeuron::TransferFcnDeriv(TFlt Sum){
            return Fun * (1.0 - Fun);
         }
         case fastTanh:
-           return 1.0 / ((1.0 + abs(Sum)) * (1.0 + abs(Sum)));
+           return 1.0 / ((1.0 + fabs(Sum)) * (1.0 + fabs(Sum)));
         case fastSigmoid:
-           return 1.0 / (2.0 * (1.0 + abs(Sum)) * (1.0 + abs(Sum)));
+           return 1.0 / (2.0 * (1.0 + fabs(Sum)) * (1.0 + fabs(Sum)));
         case linear:
             return 1;         
     };

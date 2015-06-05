@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #include "fs_nodejs.h"
 
 ///////////////////////////////
@@ -137,8 +144,7 @@ void TNodeJsFs::del(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         "Expected a file path as the only argument.");
     TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
     EAssertR(TFile::Exists(FNm), TStr("File '" + FNm + "' does not exist").CStr());
-    TFile::Del(FNm, false); // ThrowExceptP = false 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, TFile::Del(FNm, false))); // ThrowExceptP = false 
 }
 
 void TNodeJsFs::rename(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -443,17 +449,4 @@ void TNodeJsFOut::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     Args.GetReturnValue().Set(Args.Holder());
 }
-
-//#ifndef MODULE_INCLUDE_FS
-/////////////////////////////////
-//// Register functions, etc.
-//void init(v8::Handle<v8::Object> exports) {
-//
-//    TNodeJsFs::Init(exports);
-//    TNodeJsFIn::Init(exports);
-//    TNodeJsFOut::Init(exports);
-//}
-//
-//NODE_MODULE(fs, init)
-//#endif
 

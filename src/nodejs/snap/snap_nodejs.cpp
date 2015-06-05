@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #include "snap_nodejs.h"
 
 
@@ -120,7 +127,10 @@ void TNodeJsGraph<TUNGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "adjMat", _adjMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "renumber", _renumber);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
 	// Properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "nodes"), _nodes);
@@ -157,7 +167,10 @@ void TNodeJsGraph<TNGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "adjMat", _adjMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "renumber", _renumber);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
 	// Properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "nodes"), _nodes);
@@ -194,7 +207,10 @@ void TNodeJsGraph<TNEGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "adjMat", _adjMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "renumber", _renumber);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
 	// Properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "nodes"), _nodes);

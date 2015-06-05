@@ -1,0 +1,62 @@
+﻿// JavaScript source code
+
+var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
+var qm = require('qminer');
+
+qm.delLock();
+qm.config('qm.conf', true, 8080, 1024);
+var backward = require('../../src/nodejs/scripts/backward.js');
+backward.addToProcess(process); // adds process.isArg function
+
+base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
+// prepare test set
+base.createStore({
+    "name": "FtrSpaceTest",
+    "fields": [
+      { "name": "Value", "type": "float" },
+      { "name": "Category", "type": "string" },
+      { "name": "Categories", "type": "string_v" },
+      { "name": "Date", "type": "datetime" },
+      { "name": "Text", "type": "string" }
+    ],
+    "joins": [],
+    "keys": []
+});
+Store = base.store("FtrSpaceTest");
+Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Barclays dropped a bombshell on its investment bankers last week." });
+Store.add({ Value: 1.1, Category: "b", Categories: ["b", "w"], Date: "2014-10-11T00:11:22", Text: "Amid a general retreat by banks from bond trading and other volatile business lines, Barclays was particularly aggressive." });
+Store.add({ Value: 1.2, Category: "c", Categories: ["c", "e"], Date: "2014-10-12T00:11:22", Text: "In what CEO Antony Jenkins dubbed a “bold simplification,” Barclays will cut 7,000 jobs in its investment bank by 2016 and will trim the unit to 30% of the group’s risk-weighted assets." });
+Store.add({ Value: 1.3, Category: "a", Categories: ["a", "q"], Date: "2014-10-13T00:11:22", Text: "The bank is relegating £400 billion ($676 billion) in assets to its “non-core” unit, effectively quarantining them from the rest of the business." });
+Store.add({ Value: 1.4, Category: "b", Categories: ["b", "w"], Date: "2014-10-14T00:11:22", Text: "Just about every large lender these days has chucked a chunk of its toxic cast-offs into a so-called “bad bank,” but none with the same zeal as Barclays." });
+Store.add({ Value: 1.5, Category: "c", Categories: ["c", "e"], Date: "2014-10-15T00:11:22", Text: "The last time we drew up the league table for bad banks, UBS was on top." });
+Store.add({ Value: 1.6, Category: "a", Categories: ["a", "q"], Date: "2014-10-16T00:11:22", Text: "But Barclays has now taken the crown, with “non-core” assets accounting for nearly 30% of the bank’s total balance sheet." });
+Store.add({ Value: 1.7, Category: "b", Categories: ["b", "w"], Date: "2014-10-17T00:11:22", Text: "Details about a bad bank are typically relegated deep in the depths of a bank’s financial report, while it prominently trumpets the brilliant “adjusted” results of its unsullied core business." });
+Store.add({ Value: 1.8, Category: "c", Categories: ["c", "e"], Date: "2014-10-18T00:11:22", Text: "These assets still belong to the bank, and factor into its capital ratios and other important measures of financial soundness." });
+Store.add({ Value: 1.9, Category: "a", Categories: ["a", "q"], Date: "2014-10-19T00:11:22", Text: "But because selling everything at once would produce a huge loss, carving out an internal bad bank is the next best option." });
+Store.add({ Value: 2.0, Category: "b", Categories: ["b", "w"], Date: "2014-10-20T00:11:22", Text: "The Barbie doll is an icon that young girls have played with since 1959, when Barbie settled in as an American fixture in the lives of children, first in the United States and in more recent years, worldwide." });
+
+
+var ftr = new qm.FeatureSpace(base, {
+    type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
+    tokenizer: { type: "simple", stopwords: "none", uppercase: false }
+});
+Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
+Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha alphabet" });
+Store.add({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "alpha Alphabeth a a" });
+
+ftr.updateRecord(Store[11]);
+ftr.updateRecord(Store[12]);
+ftr.updateRecord(Store[13]);
+ftr.updateRecord(Store[14]);
+
+assert.equal(ftr.ftrVec(Store[11]).length, 4);
+for (var i = 0; i < 4; i++) {
+    console.log(ftr.getFtr(i));
+}
+assert.eqtol(ftr.ftrVec(Store[11]).at(0), Math.log(4));
+assert.eqtol(ftr.ftrVec(Store[12]).at(1), Math.log(2));
+assert.eqtol(ftr.ftrVec(Store[13]).at(2), Math.log(4));
+assert.eqtol(ftr.ftrVec(Store[14]).at(3), Math.log(4));
+assert.eqtol(ftr.ftrVec(Store[14]).at(4), Math.log(4));
+assert.eqtol(ftr.ftrVec(Store[14]).at(5), 2 * Math.log(4));
