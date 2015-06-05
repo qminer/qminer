@@ -41,7 +41,7 @@ public:
 		this->Name    = Stemmer.Name;
 		return *this;
 	}
-	bool setStemmer(const TStr& Name){ return false; };
+	bool SetStemmer(const TStr& Name){ return false; };
 	TStr Stem(const TStr& word){ return word; };
 	/*Stem in place*/
 	void Stem(TStr& word){};
