@@ -335,13 +335,6 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Loc
 	Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
 }
 
-void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& ArgC,
-		v8::Handle<v8::Value> ArgV[]) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-	Fun->Call(Isolate->GetCurrentContext()->Global(), ArgC, ArgV);
-}
-
 template <class TClass>
 TClass* TNodeJsUtil::UnwrapCheckWatcher(v8::Handle<v8::Object> handle) {
 	TClass* Obj = node::ObjectWrap::Unwrap<TClass>(handle);
