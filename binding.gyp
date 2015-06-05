@@ -128,7 +128,7 @@
                         },
                     }
                 }],
-		['OS == "win"', { 'libraries': [ '-lliblapacke.lib' ]}]
+		['OS == "win"', { 'libraries': []}]
             ]
         },{
             # qminer library
@@ -156,7 +156,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '-llapacke' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
                     "default_configuration": "Release",
                     'xcode_settings': {
@@ -214,7 +214,7 @@
                         },
                     }
                 }],
-		['OS == "win"', { 'libraries': [ '-lliblapacke.lib' ]}]
+		['OS == "win"', { 'libraries': []}]
             ]
         }, {
             # snap external library
@@ -370,7 +370,7 @@
                         },
                     }
                 }],
-		['OS == "win"', { 'libraries': [ '-lliblapacke.lib' ]}]
+		['OS == "win"', { 'libraries': []}]
             ]
         }
     ]
