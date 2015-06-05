@@ -711,16 +711,84 @@ namespace TQm {
 		if (WndDesc.WindowType == swtNone) { return; }
 		// if no records, nothing to do here
 		if (Empty()) { return; }
-		// TODO
+		// TODO find records to delete
 	}
 
 	void TStorePbBlob::DeleteFirstNRecs(int Recs) {
-		// TODO
+		PRecSet RecSet = GetAllRecs();
+		int RecCnt = RecSet->GetRecs();
+		if (RecCnt <= 0) { 
+			return; 
+		}
+		TUInt64V RecIds(RecCnt);
+		for (int i = 0; i < RecCnt; i++) {
+			RecIds.Add(RecSet->GetRecId(i));
+		}
+		RecIds.Sort();
+		if (RecIds.Len()>Recs) {
+			RecIds.Del(Recs, RecIds.Len() - 1);
+		}
+		DeleteRecs(RecIds);
 	}
 
 	void TStorePbBlob::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
-		EAssert(AssertOK);
-		// TODO
+		if (AssertOK) {
+			// assert that DelRecIdV is valid
+			PStoreIter Iter = GetIter();
+			int Counter = 0;
+			QmAssertR((uint64)DelRecIdV.Len() <= GetRecs(), "TStorePbBlob::DeleteRecs incorrect record id sequence. The length is greater than the total number of records.");
+			while (Iter->Next()) {
+				QmAssertR(DelRecIdV[Counter] == Iter->GetRecId(), "TStorePbBlob::DeleteRecs: incorrect record id sequence. The sequence should start at the first store records, should contain only record ids and should not contain gaps");
+				Counter++;
+			}
+		}
+		// delete records
+		for (int DelRecN = 0; DelRecN < DelRecIdV.Len(); DelRecN++) {
+			// report progress
+			if (DelRecN % 100 == 0) { TEnv::Logger->OnStatusFmt("    %d\r", DelRecN); }
+			// what are we deleting now
+			const uint64 DelRecId = DelRecIdV[DelRecN];
+			// executed triggers before deletion
+			OnDelete(DelRecId);
+			// delete record from name-id map
+			if (IsPrimaryField()) { DelPrimaryField(DelRecId); }
+			// delete record from indexes
+			if (DataBlobP) {				
+				TPgBlobPt Pt = RecIdBlobPtH.GetDat(DelRecId);
+				TMemBase CacheRecMem = DataBlob->GetMemBase(Pt);
+				RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorCache);
+				DataBlob->Del(Pt);
+			}
+			if (DataMemP) {
+				TMem MemRecMem; 
+				DataMem.GetVal(DelRecId, MemRecMem);
+				RecIndexer.DeindexRec(MemRecMem, DelRecId, SerializatorMem);
+				// TODO tole ni ok....
+
+				//DataMem.DelVals();
+			}
+			// delete record from joins
+			TRec Rec(this, DelRecId);
+			for (int JoinN = 0; JoinN < GetJoins(); JoinN++) {
+				TJoinDesc JoinDesc = GetJoinDesc(JoinN);
+				// execute the join
+				PRecSet JoinRecSet = Rec.DoJoin(GetBase(), JoinDesc.GetJoinId());
+				for (int JoinRecN = 0; JoinRecN < JoinRecSet->GetRecs(); JoinRecN++) {
+					// remove joins with all matched records, one by one
+					const uint64 JoinRecId = JoinRecSet->GetRecId(JoinRecN);
+					const int JoinFq = JoinRecSet->GetRecFq(JoinRecN);
+					DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId, JoinFq);
+				}
+			}
+		}
+		//// delete records from in-memory store
+		//if (DataMemP) { 
+		//	// TODO to ni ok....
+		//	DataMem.DelVals(DelRecIdV.Len()); 
+		//}
+
+		// report success :-)
+		TEnv::Logger->OnStatusFmt("  %s records at end", TUInt64::GetStr(GetRecs()).CStr());
 	}
 
 	/// Initialize field location flags

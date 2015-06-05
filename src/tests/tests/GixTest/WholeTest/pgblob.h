@@ -383,6 +383,8 @@ namespace glib {
 		void SetDirty(const TPgBlobPt& Pt);
 		/// Retrieve BLOB from storage
 		TQm::TStorage::TThinMIn Get(const TPgBlobPt& Pt);
+		/// Delete BLOB from storage
+		void Del(const TPgBlobPt& Pt);
 		/// Retrieve BLOB from storage as TMemBase
 		TMemBase GetMemBase(const TPgBlobPt& Pt);
 
