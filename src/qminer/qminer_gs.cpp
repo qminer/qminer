@@ -561,17 +561,17 @@ void TInMemStorage::DelVals(int Vals) {
 			}
 			BlobPtV.Del(0, blocks_to_delete - 1);
 		}
-		FirstValOffset += Vals;
+		FirstValOffset += Vals - vals_to_delete;
 		FirstValOffsetMem += vals_to_delete;
 	}
 }
 
 uint64 TInMemStorage::Len() const {
-	return ValV.Len() - (FirstValOffset - FirstValOffsetMem);
+	return ValV.Len() - FirstValOffset;
 }
 
 uint64 TInMemStorage::GetFirstValId() const {
-	return FirstValOffset;
+	return FirstValOffset + FirstValOffsetMem;
 }
 
 uint64 TInMemStorage::GetLastValId() const {

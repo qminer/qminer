@@ -11,11 +11,6 @@
 
 #include <base.h>
 
-typedef enum {
-	cstFast,
-	cstRecursive
-} TCriticalSectionType;
-
 enum TMutexType {
 	mtFast,
 	mtRecursive
@@ -50,7 +45,7 @@ public:
 
 ////////////////////////////////////////////
 // Lock 
-//   Wrapper around criticla section, which automatically enters 
+//   Wrapper around critical section, which automatically enters
 //   on construct, and leaves on scope unwinding (destruct)
 class TLock {
 	friend class TCondVarLock;
@@ -67,11 +62,18 @@ public:
 //   contains a pool of threads which can execute a TRunnable object
 class TThreadExecutor {
 public:
-	ClassTP(TRunnable, PRunnable)// {
+	class TRunnable;
+		typedef TPt<TRunnable> PRunnable;
+	class TRunnable {
+	private:
+		TCRef CRef;
 	public:
-		virtual void Run() = 0;
+		friend class TPt<TRunnable>;
+	public:
+		TRunnable() {}
 		virtual ~TRunnable() {}
 
+		virtual void Run() = 0;
 		bool operator ==(const TRunnable& Other) const { return this == &Other; }
 	};
 private:
@@ -89,8 +91,11 @@ private:
 	};
 
 private:
-	TThreadV<TExecutorThread> ThreadV;
-	TLinkedQueue<PRunnable> TaskQ;
+	typedef TThreadV<TExecutorThread> TExecThreadV;
+	typedef TLinkedQueue<PRunnable> TTaskQueue;
+
+	TExecThreadV ThreadV;
+	TTaskQueue TaskQ;
 
 	TCondVarLock Lock;
 
