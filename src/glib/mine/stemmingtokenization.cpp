@@ -1,4 +1,4 @@
-#include "StemmingTokenization.h"
+#include "stemmingtokenization.h"
 //#include <omp.h>
 
 #ifdef SNOWBALL_STEMMER
