@@ -39,11 +39,11 @@ void TNodeJsLinAlg::svd(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         }
         if (Args[0]->IsObject() && Args[1]->IsInt32()) {
             int k = Args[1]->Int32Value();
-            if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) {
+            if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId())) {
                 TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
                 TFullMatrix Mat(JsMat->Mat, true);	// only wrap the matrix
                 TLinAlg::ComputeThinSVD(Mat, k, U, s, V, Iters, Tol);
-            } else if (TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+            } else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::GetClassId())) {
                 TNodeJsSpMat* JsMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
                 if (JsMat->Rows != -1) {
                     TSparseColMatrix Mat(JsMat->Mat, JsMat->Rows, JsMat->Mat.Len());
@@ -74,7 +74,7 @@ void TNodeJsLinAlg::qr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TFltVV Q;
     TFltVV R;
     double Tol = TNodeJsUtil::GetArgFlt(Args, 1, 1e-6);
-    if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) {
+    if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId())) {
         TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
         TLinAlg::QR(JsMat->Mat, Q, R, Tol);
     }
@@ -308,7 +308,7 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			// create JS result with the Result vector
 			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
 		}
-		else if (TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+		else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::GetClassId())) {
 			TNodeJsSpMat* JsMat2 = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
 			EAssertR(JsMat->Mat.GetCols() >= JsMat2->Rows, "matrix * sparse_col_matrix: dimensions mismatch");
 			// computation				
@@ -352,7 +352,7 @@ void TNodeJsFltVV::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			// create JS result with the Result vector	
 			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result));
 		}
-		else if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) {
+		else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId())) {
 			TNodeJsFltVV* JsMat2 = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 			EAssertR(JsMat->Mat.GetRows() == JsMat2->Mat.GetRows(), "matrix' * matrix: dimensions mismatch");
 			TFltVV Result;
@@ -372,7 +372,7 @@ void TNodeJsFltVV::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			// create JS result with the Result vector	
 			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
 		}
-		else if (TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+		else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::GetClassId())) {
 			TNodeJsSpMat* JsMat2 = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
 			EAssertR(JsMat->Mat.GetRows() >= JsMat2->Rows, "matrix' * sparse_col_matrix: dimensions mismatch");
 			// computation				
@@ -1120,7 +1120,7 @@ v8::Local<v8::Object> TNodeJsSpMat::New(const TVec<TIntFltKdV>& Mat, const int& 
     v8::Local<v8::Object> Instance = cons->NewInstance();
 
     v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TVec<TIntFltKdV>");
+    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TNodeJsSpMat::GetClassId().CStr());
     Instance->SetHiddenValue(Key, Value);
 
     TNodeJsSpMat* JsSpMat = new TNodeJsSpMat(Mat, Rows);
@@ -1141,7 +1141,7 @@ void TNodeJsSpMat::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TNodeJsSpMat* JsSpMat = new TNodeJsSpMat();
 
 	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TVec<TIntFltKdV>");
+	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TNodeJsSpMat::GetClassId().CStr());
 	v8::Local<v8::Object> Instance = Args.This();
 	Instance->SetHiddenValue(Key, Value);
 
@@ -1385,7 +1385,7 @@ void TNodeJsSpMat::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 TLinAlg::Multiply(JsSpMat->Mat, TFltVV(JsVec->Vec, JsVec->Vec.Len(), 1), Result, Rows);
                 // create JS result with the Result vector    
                 Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
-            } else if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) { // Matrix 
+            } else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId())) { // Matrix 
                 TNodeJsFltVV* JsMat =
                     ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
                 TFltVV Result(Rows, 1);
@@ -1403,7 +1403,7 @@ void TNodeJsSpMat::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				}
                 TLinAlg::Multiply(JsSpMat->Mat, TempSpMat, Result, Rows);
                 Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
-            } else if (TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) { // Sparse matrix 
+            } else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::GetClassId())) { // Sparse matrix 
                 TNodeJsSpMat* JsSpMat2 =
                     ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
                 if (JsSpMat2->Rows == -1) {
@@ -1457,7 +1457,7 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 TLinAlg::MultiplyT(JsMat->Mat, TFltVV(JsVec->Vec, JsVec->Vec.Len(), 1), Result);
                 // create JS result with the Result vector    
                 Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
-            } else if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) {            
+            } else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId())) {            
                 TNodeJsFltVV* JsMat2 = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());                
                 EAssertR(JsMat->Rows == -1 || JsMat->Rows == JsMat2->Mat.GetRows(), "sparse_col_matrix' * matrix: dimensions mismatch");
                 if (JsMat->Rows == -1) {
@@ -1492,7 +1492,7 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 TLinAlg::MultiplyT(JsMat->Mat, TempSpMat, Result);
                 // create JS result with the Result vector
                 Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
-            } else if (TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+            } else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::GetClassId())) {
                 TNodeJsSpMat* JsMat2 = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
                 EAssertR(JsMat->Rows == -1 || JsMat2->Rows == -1 || JsMat->Rows == JsMat2->Rows, "sparse_col_matrix' * sparse_matrix: dimensions mismatch");
                 // computation                
@@ -1526,7 +1526,7 @@ void TNodeJsSpMat::plus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
     if (Args.Length() > 0 && Args[0]->IsObject() &&
-        TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+        TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::GetClassId())) {
         TNodeJsSpMat* JsSpMat2 =
             ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
         EAssertR(JsSpMat->Rows == -1 || JsSpMat2->Rows == -1 ||
@@ -1568,7 +1568,7 @@ void TNodeJsSpMat::minus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
     if (Args.Length() > 0 && Args[0]->IsObject() &&
-        TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+        TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::GetClassId())) {
         TNodeJsSpMat* JsSpMat2 =
             ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
         EAssertR(JsSpMat->Rows == -1 || JsSpMat2->Rows == -1 ||
