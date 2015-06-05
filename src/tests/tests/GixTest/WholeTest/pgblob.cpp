@@ -569,6 +569,19 @@ namespace glib {
 		return TQm::TStorage::TThinMIn(Data, Len);
 	}
 
+	/// Delete BLOB from storage
+	void TPgBlob::Del(const TPgBlobPt& Pt) {
+		QmAssert(Access != TFAccess::faRdOnly);
+		
+		// find page
+		TPgBlobPgPt PgPt = Pt;
+		char* PgBf = LoadPage(PgPt);
+		TPgHeader* PgH = (TPgHeader*)PgBf;
+		
+		DeleteItem(PgBf, Pt.GetIIx());
+		Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
+	}
+
 	/// Retrieve BLOB from storage
 	TMemBase TPgBlob::GetMemBase(const TPgBlobPt& Pt) {
 		return Get(Pt).GetMemBase();
