@@ -29,7 +29,7 @@ void TNodeJsStat::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		"Error using stat.std function. First argument should be la.vector or  la.matrix.");
 	
 	// Dim parameter
-	double Dim = TNodeJsUtil::GetArgFlt(Args, 1, 1); // Default dim is 1
+	int Dim = TNodeJsUtil::GetArgInt32(Args, 1, 1); // Default dim is 1
 
 	if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
 		// If input argument is vec
@@ -56,8 +56,8 @@ void TNodeJsStat::std(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	EAssertR(Args[0]->IsObject() && (TNodeJsUtil::IsClass(Args[0]->ToObject(), "TFltV") || TNodeJsUtil::IsClass(Args[0]->ToObject(), "TFltVV")),
 		"Error using stat.std function. First argument should be la.vector or la.matrix.");
 
-	double Flag = TNodeJsUtil::GetArgFlt(Args, 1, 0); // Default flag is 0
-	double Dim = TNodeJsUtil::GetArgFlt(Args, 2, 1); // Default dim is 1
+	int Flag = TNodeJsUtil::GetArgInt32(Args, 1, 0); // Default flag is 0
+	int Dim = TNodeJsUtil::GetArgInt32(Args, 2, 1); // Default dim is 1
 
 	if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
 		// If input argument is vec
@@ -82,8 +82,8 @@ void TNodeJsStat::zscore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	EAssertR(Args.Length() != 0, "Error using stat.zscore function. Not enough input arguments.");
 	EAssertR(Args[0]->IsObject() && TNodeJsUtil::IsClass(Args[0]->ToObject(), "TFltVV"), "Error using stat.zscore function. First argument should be a matrix.");
 
-	double Flag = TNodeJsUtil::GetArgFlt(Args, 1, 0); // Default flag is 0
-	double Dim = TNodeJsUtil::GetArgFlt(Args, 2, 1); // Default dim is 1
+	int Flag = TNodeJsUtil::GetArgInt32(Args, 1, 0); // Default flag is 0
+	int Dim = TNodeJsUtil::GetArgInt32(Args, 2, 1); // Default dim is 1
 
 	TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 	v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result

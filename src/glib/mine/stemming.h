@@ -42,7 +42,7 @@ public:
   void AddSynonym(const TStr& SynonymStr, const TStr& WordStr){
     SynonymStrToWordStr.AddDat(SynonymStr.GetUc(), WordStr.GetUc());}
 
-  TStr GetStem(const TStr& WordStr);
+  TStr GetStem(const TStr& WordStr, const bool& ToUcP = true);
 
   TStemmerType GetStemmerType(){
     return (TStemmerType)(int)StemmerType;}

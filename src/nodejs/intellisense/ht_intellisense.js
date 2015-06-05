@@ -1,3 +1,6 @@
+//intellisense start
+exports = {}; require.modules.qminer_ht = exports;
+//intellisense end
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
@@ -5,14 +8,18 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
-//intellisense start
-exports = {}; require.modules.qminer_ht = exports;
-//intellisense end
 /**
 * Hashtable module.
 * @module ht
 */
 
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 /**
 	* String-string hashmap 
 	* @classdesc Used for storing key/data pairs, wrapps an efficient C++ implementation.
@@ -100,6 +107,13 @@ exports = {}; require.modules.qminer_ht = exports;
  exports.StrStrMap.prototype.sortDat = function(asc) { return this; }
 
 /**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+/**
 	* String-Integer hashmap 
 	* @classdesc Used for storing key/data pairs, wrapps an efficient C++ implementation.
 	* @class
@@ -185,6 +199,13 @@ exports = {}; require.modules.qminer_ht = exports;
 	*/
  exports.StrIntMap.prototype.sortDat = function(asc) { return this; }
 
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 /**
 	* String-Float hashmap 
 	* @classdesc Used for storing key/data pairs, wrapps an efficient C++ implementation.
@@ -272,6 +293,13 @@ exports = {}; require.modules.qminer_ht = exports;
  exports.StrFltMap.prototype.sortDat = function(asc) { return this; }
 
 /**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+/**
 	* Int-string hashmap 
 	* @classdesc Used for storing key/data pairs, wrapps an efficient C++ implementation.
 	* @class
@@ -358,6 +386,13 @@ exports = {}; require.modules.qminer_ht = exports;
  exports.IntStrMap.prototype.sortDat = function(asc) { return this; }
 
 /**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+/**
 	* Integer-Integer hashmap 
 	* @classdesc Used for storing key/data pairs, wrapps an efficient C++ implementation.
 	* @class
@@ -443,6 +478,13 @@ exports = {}; require.modules.qminer_ht = exports;
 	*/
  exports.IntIntMap.prototype.sortDat = function(asc) { return this; }
 
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 /**
 	* Integer-Float hashmap 
 	* @classdesc Used for storing key/data pairs, wrapps an efficient C++ implementation.

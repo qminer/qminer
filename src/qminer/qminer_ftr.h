@@ -84,10 +84,6 @@ public:
 	virtual TStr GetFtr(const int& FtrN) const = 0;
    	/// Reset feature extractor to forget all previously seen records
 	virtual void Clr() = 0;
-    /// Get feature distribution. Default is uniform over all dimensions.
-    void GetFtrDist(TFltV& FtrDistV) const;
-    /// Get feature distribution. Default is uniform over all dimensions.
-    virtual void AddFtrDist(TFltV& FtrDistV, int& Offset) const;    
     
 	/// Update the feature extractor using the info from the given record.
     /// Returns true if the update changes the dimensionality.
@@ -191,8 +187,6 @@ public:
 	int GetDim() const;
 	/// String representation of the FtrN-th feature
 	TStr GetFtr(const int& FtrN) const;
-    /// Get feature distribution
-    void GetFtrDist(TFltV& FtrDistV) const;
     /// Number of feature extractors
     int GetFtrExts() const;
     /// Get feature extractor

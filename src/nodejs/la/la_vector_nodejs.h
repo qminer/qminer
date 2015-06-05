@@ -989,7 +989,8 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::sparse(const v8::FunctionCallbackInfo<v8
 	TIntFltKdV Res;
 	TLAMisc::ToSpVec(JsVec->Vec, Res);
 
-	Args.GetReturnValue().Set(TNodeJsSpVec::New(Res, JsVec->Vec.Len()));
+	Args.GetReturnValue().Set(
+		TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(Res, JsVec->Vec.Len())));
 }
 
 template<>
@@ -1092,7 +1093,7 @@ void TNodeJsVec<TVal, TAux>::at(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
 
 	EAssertR(Args.Length() >= 1 && Args[0]->IsInt32(), "Expected integer.");
-	const int Idx = Args[0]->IntegerValue();
+	const int Idx = Args[0]->Int32Value();
 
 	EAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(), "Index out of bounds.");
 	Args.GetReturnValue().Set(TAux::GetObjVal(JsVec->Vec[Idx]));
@@ -1190,7 +1191,7 @@ void TNodeJsVec<TVal, TAux>::put(const v8::FunctionCallbackInfo<v8::Value>& Args
 	TNodeJsVec<TVal, TAux>* JsVec =
 		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
 
-	const int Idx = Args[0]->IntegerValue();
+	const int Idx = Args[0]->Int32Value();
 
 	EAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(), "Index out of bounds");
 
@@ -1344,11 +1345,11 @@ void TNodeJsVec<TVal, TAux>::trunc(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	v8::HandleScope HandleScope(Isolate);
 
 	EAssertR(Args.Length() >= 1 && Args[0]->IsInt32() &&
-		Args[0]->IntegerValue() >= 0, "Expected a nonnegative integer");
+		Args[0]->Int32Value() >= 0, "Expected a nonnegative integer");
 
 	TNodeJsVec<TVal, TAux>* JsVec =
 		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
-	const int NewLen = Args[0]->IntegerValue();
+	const int NewLen = Args[0]->Int32Value();
 	JsVec->Vec.Trunc(NewLen);
 
 	Args.GetReturnValue().Set(Args.Holder());
