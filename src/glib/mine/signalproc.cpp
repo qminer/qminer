@@ -386,13 +386,6 @@ void TBufferedInterpolator::Save(TSOut& SOut) const {
 	Buff.Save(SOut);
 }
 
-void TBufferedInterpolator::SetNextInterpTm(const uint64& Time) {
-	// TODO optimize
-	while (Buff.Len() > 1 && Buff.GetOldest(1).Val1 <= Time) {
-		Buff.DelOldest();
-	}
-}
-
 void TBufferedInterpolator::AddPoint(const double& Val, const uint64& Tm) {
 	EAssertR(!TFlt::IsNan(Val), "TBufferedInterpolator::AddPoint: got NaN value!");
 
@@ -440,6 +433,20 @@ TCurrentPoint::TCurrentPoint():
 TCurrentPoint::TCurrentPoint(TSIn& SIn):
 		TBufferedInterpolator(SIn) {}
 
+void TCurrentPoint::SetNextInterpTm(const uint64& Tm) {
+	// at least one past (or current time) record needs to be in the buffer
+	bool Change = false;
+	while (Buff.Len() >= 2 && Buff.GetOldest(1).Val1 <= Tm) {
+		Buff.DelOldest();
+		Change = true;
+	}
+	if (Change) {
+		EAssertR(CanInterpolate(Tm), "WTF!? Current point interpolator cannot intrpolate after setting new time!");
+	}
+	// when the loop finishes we have at least 1 record in the buffer
+	// with a timestamp <= Tm
+}
+
 double TCurrentPoint::Interpolate(const uint64& Tm) const {
 	IAssertR(CanInterpolate(Tm), "TCurrentPoint::Interpolate: Time not in the desired interval!");
 	return Buff.GetOldest().Val2;
@@ -457,6 +464,12 @@ TLinear::TLinear():
 
 TLinear::TLinear(TSIn& SIn):
 		TBufferedInterpolator(SIn) {}
+
+void TLinear::SetNextInterpTm(const uint64& Time) {
+	while (Buff.Len() > 1 && Buff.GetOldest(1).Val1 <= Time) {
+		Buff.DelOldest();
+	}
+}
 
 double TLinear::Interpolate(const uint64& Tm) const {
 	AssertR(CanInterpolate(Tm), "TLinear::Interpolate: Time not in the desired interval!");

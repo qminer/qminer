@@ -1995,8 +1995,6 @@ bool TStMerger::CanInterpolate() {
 
 	for (int i = 0; i < NInFlds; i++) {
 		if (!InterpV[i]->CanInterpolate(NextInterpTm)) {
-			if (i == NInFlds - 1)
-				printf("Interplator %d cannot interpolate!\n", i);
 			return false;
 		}
 	}
@@ -2007,6 +2005,9 @@ bool TStMerger::CanInterpolate() {
 void TStMerger::UpdateNextInterpTm() {
 	PrevInterpTm = NextInterpTm;
 	NextInterpTm = Buff.Len() > 1 ? Buff.GetOldest(1) : TUInt64::Mx;
+
+	EAssertR(PrevInterpTm <= NextInterpTm, "The previous interpolation time is greater than the current interpolation time current: " + TUInt64::GetStr(PrevInterpTm) + ", next: " + TUInt64::GetHexStr(NextInterpTm) + "TStMerger::UpdateNextInterpTm()");
+
 	ShiftBuff();
 }
 
@@ -2035,12 +2036,14 @@ void TStMerger::HandleEdgeCases(const uint64& RecTm) {
 	// the buffer was empty before this iteration,
 	// the next interpolation time is not set
 	if (NextInterpTm == TUInt64::Mx) {
+		EAssertR(Buff.Len() == 1, "TStMerger::HandleEdgeCases: The buffer is not empty even though it should be!");
 		NextInterpTm = RecTm;
 		UpdateInterpolators();
 	}
 	// duplicate value when extrapolating future
 	if (!OnlyPast && NextInterpTm == PrevInterpTm) {
 		NextInterpTm = TUInt64::Mx;
+		Buff.DelOldest();
 	}
 }
 
