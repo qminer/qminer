@@ -62,7 +62,6 @@
                 'src/third_party/Snap/qlib-core'
             ],
             'defines': [
-                'BLAS'
             ],
             'dependencies': [
                 'glib',
@@ -71,7 +70,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '-llapacke' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
                     "default_configuration": "Release",
                     'xcode_settings': {
@@ -308,11 +307,10 @@
                 'src/glib/misc/'
             ],
             'defines': [
-                'BLAS'
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '-llapacke' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
                     "default_configuration": "Release",
                     'xcode_settings': {
