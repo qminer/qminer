@@ -69,7 +69,7 @@ private:
 
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	const static TStr ClassId;
+	const static TStr GetClassId() { return "Matrix"; }
 
 	static TNodeJsFltVV* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
@@ -418,7 +418,8 @@ private:
 	static v8::Persistent<v8::Function> Constructor;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	const static TStr ClassId;
+	static const TStr GetClassId() { return "SparseVector"; }
+
 public:
 	// wrapped C++ objects
 	TIntFltKdV Vec;
@@ -587,13 +588,12 @@ public:
 
 class TNodeJsSpMat : public node::ObjectWrap {
 public:
-	const static TStr ClassId;
-
 	TNodeJsSpMat() : Rows(-1) { }
 	TNodeJsSpMat(const TVec<TIntFltKdV>& _Mat, const int& _Rows = -1)
 		: Mat(_Mat), Rows(_Rows) { }
 public:
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "SparseMatrix"; }
 	static v8::Local<v8::Object> New(const TVec<TIntFltKdV>& Mat, const int& Rows = -1);
 public:
 	//! 

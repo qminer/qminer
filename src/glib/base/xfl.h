@@ -87,6 +87,7 @@ public:
   static bool GenDir(const TStr& FPathFNm);
   static bool DelDir(const TStr& FPathFNm);
   static bool Exists(const TStr& FPathFNm);
+  static void ListFiles(const TStr& DirNm, TStrV& FNmV);
 };
 
 /////////////////////////////////////////////////

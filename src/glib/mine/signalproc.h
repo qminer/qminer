@@ -244,6 +244,7 @@ public:
 
 	void Add(const TVal& Val);
 	void DelOldest();
+	void Clr();
 
 	const TVal& GetOldest(const TSizeTy& Idx) const;
 	const TVal& GetOldest() const { return GetOldest(0); };
@@ -289,7 +290,7 @@ void TLinkedBuffer<TVal, TSizeTy>::Save(TSOut& SOut) const {
 
 template <class TVal, class TSizeTy>
 TLinkedBuffer<TVal, TSizeTy>::~TLinkedBuffer() {
-	while (!Empty()) { DelOldest(); }
+	Clr();
 }
 
 template <class TVal, class TSizeTy>
@@ -319,6 +320,11 @@ void TLinkedBuffer<TVal, TSizeTy>::DelOldest() {
 	}
 
 	delete Temp;
+}
+
+template <class TVal, class TSizeTy>
+void TLinkedBuffer<TVal, TSizeTy>::Clr() {
+	while (!Empty()) { DelOldest(); }
 }
 
 template <class TVal, class TSizeTy>
@@ -385,7 +391,7 @@ protected:
 public:
 	virtual void Save(TSOut& SOut) const;
 
-	virtual void SetNextInterpTm(const uint64& Time);
+//	virtual void SetNextInterpTm(const uint64& Time);
 	void AddPoint(const double& Val, const uint64& Tm);
 };
 
@@ -421,6 +427,7 @@ public:
 	static PInterpolator New() { return new TCurrentPoint; }
 	static PInterpolator New(TSIn& SIn) { return new TCurrentPoint(SIn); }
 
+	void SetNextInterpTm(const uint64& Time);
 	double Interpolate(const uint64& Tm) const;
 	bool CanInterpolate(const uint64& Tm) const;
 
@@ -438,6 +445,7 @@ public:
 	static PInterpolator New() { return new TLinear; }
 	static PInterpolator New(TSIn& SIn) { return new TLinear(SIn); }
 
+	void SetNextInterpTm(const uint64& Tm);
 	double Interpolate(const uint64& Tm) const;
 	bool CanInterpolate(const uint64& Tm) const;
 
