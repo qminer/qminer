@@ -88,7 +88,7 @@ void TStateIdentifier::Init(const TFullMatrix& X, const TFltVV& ControlFtrVV) {
 	if (Sample == 1) {
 		Apply(X, MX_ITER);
 	} else {
-		const int NSamples = Sample < 1 ? ceil(NInst*Sample) : TMath::Mn(NInst, int(Sample));
+		const int NSamples = Sample < 1 ? (int)ceil(NInst*Sample) : TMath::Mn(NInst, int(Sample));
 
 		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Sampling %d instances...", NSamples);
 
@@ -186,7 +186,7 @@ TVector TStateIdentifier::GetJoinedCentroid(const TIntV& CentroidIdV) const {
 		const int CentroidIdx = CentroidIdV[i];
 		const uint64 CentroidSize = GetClustSize(CentroidIdx);
 
-		Result += GetCentroid(CentroidIdx)*CentroidSize;
+		Result += GetCentroid(CentroidIdx)*(double)CentroidSize;
 		TotalSize += CentroidSize;
 	}
 
@@ -201,7 +201,7 @@ TVector TStateIdentifier::GetJoinedControlCentroid(const TIntV& CentroidIdV) con
 		const int CentroidIdx = CentroidIdV[i];
 		const uint64 CentroidSize = GetClustSize(CentroidIdx);
 
-		Result += GetControlCentroid(CentroidIdx)*CentroidSize;
+		Result += GetControlCentroid(CentroidIdx)*(double)CentroidSize;
 		TotalSize += CentroidSize;
 	}
 
@@ -237,7 +237,7 @@ void TStateIdentifier::GetHistogram(const int FtrId, const TIntV& StateSet, TFlt
 		const TUInt64V& CountV = FtrHistStat.Val2;
 
 		for (int j = 0; j < CountV.Len(); j++) {
-			BinV[j] += CountV[j];
+			BinV[j] += (double)CountV[j];
 		}
 	}
 
@@ -1326,7 +1326,7 @@ const uint64 TCtMChain::TU_SECOND = 1000;
 const uint64 TCtMChain::TU_MINUTE = TU_SECOND*60;
 const uint64 TCtMChain::TU_HOUR = TU_MINUTE*60;
 const uint64 TCtMChain::TU_DAY = TU_HOUR*24;
-const uint64 TCtMChain::TU_MONTH = 365.25 * TU_DAY / 12;
+const uint64 TCtMChain::TU_MONTH = uint64(365.25 * TU_DAY / 12);
 const double TCtMChain::MIN_STAY_TM = 1e-2;
 const double TCtMChain::HIDDEN_STATE_INTENSITY = 1 / MIN_STAY_TM;
 
@@ -1397,13 +1397,13 @@ void TCtMChain::GetProbVOverTm(const double& Height, const int& StateId,
 	EAssertR(StateIdx >= 0, "Could not find target state!");
 	EAssertR(StartTm <= 0 && EndTm >= 0, "The start and end times should include the current time!");
 
-	const int FutureSteps = ceil(EndTm / DeltaTm);
+	const int FutureSteps = (int)ceil(EndTm / DeltaTm);
 	const TFullMatrix FutProbMat = GetFutureProbMat(StateSetV, StateFtrVV, DeltaTm);
 
 	GetFutureProbVOverTm(FutProbMat, StateIdx, FutureSteps, FutProbVV, Notify);
 
 	if (StartTm < 0) {
-		const int PastSteps = ceil(-StartTm / DeltaTm);
+		const int PastSteps = (int)ceil(-StartTm / DeltaTm);
 		const TFullMatrix PastProbMat = GetPastProbMat(StateSetV, StateFtrVV, DeltaTm);
 		GetFutureProbVOverTm(PastProbMat, StateIdx, PastSteps, PastProbVV, Notify, false);
 	}
@@ -1929,7 +1929,7 @@ double TCtMChain::PredictOccurenceTime(const TFullMatrix& QMat, const int& CurrS
 			TFltV& TmV, TFltV& HitProbV) {
 
 	const int Dim = QMat.GetRows();
-	const int OutputSize = ceil(HorizonTm / DeltaTm) + 1;
+	const int OutputSize = (int)ceil(HorizonTm / DeltaTm) + 1;
 
 	const TFullMatrix PMat = GetProbMat(QMat, DeltaTm);
 
@@ -2066,8 +2066,8 @@ void TStateAssist::Init(const TFullMatrix& X, const PStateIdentifier& Clust, con
 
 		const TIntSet TargetStateSet(StateSetV[StateIdx]);
 
-		TIntV TargetIdxV;	AssignV.Find([&](const TFlt& StateId) { return TargetStateSet.IsKey(TInt(StateId)); }, TargetIdxV);
-		TIntV NonTargetIdxV;	AssignV.Find([&](const TFlt& StateId) { return !TargetStateSet.IsKey(TInt(StateId)); }, NonTargetIdxV);
+		TIntV TargetIdxV;	AssignV.Find([&](const TFlt& StateId) { return TargetStateSet.IsKey(int(StateId)); }, TargetIdxV);
+		TIntV NonTargetIdxV;	AssignV.Find([&](const TFlt& StateId) { return !TargetStateSet.IsKey(int(StateId)); }, NonTargetIdxV);
 
 		if (TargetIdxV.Len() == 0 || NonTargetIdxV.Len() == 0) continue;
 

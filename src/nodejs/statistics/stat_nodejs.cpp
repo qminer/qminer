@@ -25,13 +25,13 @@ void TNodeJsStat::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::HandleScope HandleScope(Isolate);
 	
 	EAssertR(Args.Length() != 0, "Error using stat.mean function. Not enough input arguments.");
-	EAssertR(Args[0]->IsObject() && (TNodeJsUtil::IsClass(Args[0]->ToObject(), "TFltV") || TNodeJsUtil::IsClass(Args[0]->ToObject(), TNodeJsFltVV::GetClassId())), 
+	EAssertR(Args[0]->IsObject() && (TNodeJsUtil::IsClass(Args[0]->ToObject(), TNodeJsFltV::GetClassId().CStr()) || TNodeJsUtil::IsClass(Args[0]->ToObject(), TNodeJsFltVV::GetClassId())), 
 		"Error using stat.std function. First argument should be la.vector or  la.matrix.");
 	
 	// Dim parameter
 	int Dim = TNodeJsUtil::GetArgInt32(Args, 1, 1); // Default dim is 1
 
-	if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
+	if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
 		// If input argument is vec
 		//TNodeJsVec* Test = ObjectWrap::Unwrap<TNodeJsVec>(Args[0]->ToObject()); 
 		TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap< TNodeJsVec< TFlt, TAuxFltV > >(Args[0]->ToObject());
@@ -53,13 +53,13 @@ void TNodeJsStat::std(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::HandleScope HandleScope(Isolate);
 	
 	EAssertR(Args.Length() != 0, "Error using stat.std function. Not enough input arguments.");
-	EAssertR(Args[0]->IsObject() && (TNodeJsUtil::IsClass(Args[0]->ToObject(), "TFltV") || TNodeJsUtil::IsClass(Args[0]->ToObject(), TNodeJsFltVV::GetClassId())),
+	EAssertR(Args[0]->IsObject() && (TNodeJsUtil::IsClass(Args[0]->ToObject(), TNodeJsFltV::GetClassId().CStr()) || TNodeJsUtil::IsClass(Args[0]->ToObject(), TNodeJsFltVV::GetClassId())),
 		"Error using stat.std function. First argument should be la.vector or la.matrix.");
 
 	int Flag = TNodeJsUtil::GetArgInt32(Args, 1, 0); // Default flag is 0
 	int Dim = TNodeJsUtil::GetArgInt32(Args, 2, 1); // Default dim is 1
 
-	if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
+	if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
 		// If input argument is vec
 		// TODO
 		throw TExcept::New("stat.std(vec) not implemented yet. Use stat.std(mat).");

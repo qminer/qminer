@@ -844,7 +844,7 @@ void TNodeJsStore::newRecordSet(const v8::FunctionCallbackInfo<v8::Value>& Args)
 
 	if (Args.Length() > 0) {
 		// argument 0 = TJsIntV of record ids
-		QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, "TIntV"),
+		QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsIntV::GetClassId().CStr()),
 			"Store.getRecSetByIdV: The first argument must be a TIntV (js linalg full int vector)");
 		TNodeJsVec<TInt, TAuxIntV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
 		TQm::PRecSet ResultSet = TQm::TRecSet::New(Store, JsVecArg->Vec);
@@ -2796,7 +2796,7 @@ bool TJsRecFilter::operator()(const TUInt64IntKd& RecIdWgt) const {
 	v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
 	if (TryCatch.HasCaught()) {
 		TryCatch.ReThrow();
-		return;
+		return false;
 	}
 	QmAssertR(ReturnVal->IsBoolean(), "Filter callback must return a boolean!");
 	return ReturnVal->BooleanValue();
@@ -2822,7 +2822,7 @@ bool TJsRecPairFilter::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64In
 	v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
 	if (TryCatch.HasCaught()) {
 		TryCatch.ReThrow();
-		return;
+		return false;
 	}
 	QmAssertR(ReturnVal->IsBoolean() || ReturnVal->IsNumber(), "Comparator callback must return a boolean!");
 	return ReturnVal->IsBoolean() ? ReturnVal->BooleanValue() : ReturnVal->NumberValue() < 0;

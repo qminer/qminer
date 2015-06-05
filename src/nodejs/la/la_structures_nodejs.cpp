@@ -85,10 +85,10 @@ void TNodeJsLinAlg::qr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 ///////////////////////////////
 // NodeJs-Qminer-Vector
-const TStr TAuxFltV::ClassId = "TFltV";
-const TStr TAuxIntV::ClassId = "TIntV";
-const TStr TAuxStrV::ClassId = "TStrV";
-const TStr TAuxBoolV::ClassId = "TBoolV";
+const TStr TAuxFltV::ClassId = "Vector";
+const TStr TAuxIntV::ClassId = "IntVector";
+const TStr TAuxStrV::ClassId = "StrVector";
+const TStr TAuxBoolV::ClassId = "BoolVector";
 
 
 ///////////////////////////////
@@ -343,7 +343,7 @@ void TNodeJsFltVV::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		return;
 	}
 	else if (Args[0]->IsObject()) {
-		if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
+		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
 			TNodeJsFltV* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
 			EAssertR(JsMat->Mat.GetRows() == JsVec->Vec.Len(), "matrix' * vector: dimensions mismatch");
 			// computation				
@@ -909,7 +909,7 @@ void TNodeJsSpVec::inner(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     if (Args[0]->IsObject()) {
         double Result = 0.0;
-        if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
+        if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
 			TNodeJsVec<TFlt, TAuxFltV>* OthVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
 			int Dim = JsSpVec->Dim();
 			if (Dim == -1) {
@@ -1149,9 +1149,9 @@ void TNodeJsSpMat::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	if (Args.Length() > 0) {
 		if (Args.Length() >= 3 && Args.Length() <= 5 &&
-			TNodeJsUtil::IsArgClass(Args, 0, "TIntV") &&
-			TNodeJsUtil::IsArgClass(Args, 1, "TIntV") &&
-			TNodeJsUtil::IsArgClass(Args, 2, "TFltV")) {
+			TNodeJsUtil::IsArgClass(Args, 0, TNodeJsIntV::GetClassId().CStr()) &&
+			TNodeJsUtil::IsArgClass(Args, 1, TNodeJsIntV::GetClassId().CStr()) &&
+			TNodeJsUtil::IsArgClass(Args, 2, TNodeJsFltV::GetClassId().CStr())) {
 
 			TNodeJsVec<TInt, TAuxIntV>* RowIdxV =
 				ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV>>(Args[0]->ToObject());
@@ -1377,7 +1377,7 @@ void TNodeJsSpMat::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         } else if (Args[0]->IsObject()) { // Vector 
             int Rows = JsSpMat->Rows;
             if (JsSpMat->Rows == -1) { Rows = TLAMisc::GetMaxDimIdx(JsSpMat->Mat) + 1; }
-            if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
+            if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
                 TNodeJsVec<TFlt, TAuxFltV>* JsVec =
                     ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
                 TFltVV Result(Rows, 1);
@@ -1441,7 +1441,7 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             Args.GetReturnValue().Set(New(Result));
         }
         if (Args[0]->IsObject()) {
-            if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
+            if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
                 TNodeJsVec<TFlt, TAuxFltV>* JsVec =
                     ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
                 EAssertR(JsMat->Rows == -1 || JsMat->Rows == JsVec->Vec.Len(),

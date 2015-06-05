@@ -1047,8 +1047,8 @@ void TNodeJsStreamStory::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TNodeJsFltV* JsRecTmV = TNodeJsUtil::GetObjFld<TNodeJsFltV>(ArgObj, "times");
 
 	TUInt64V RecTmV(JsRecTmV->Vec.Len(), 0);
-	for (int64 i = 0; i < JsRecTmV->Vec.Len(); i++) {
-		RecTmV.Add(TNodeJsUtil::GetCppTimestamp(JsRecTmV->Vec[i]));
+	for (int i = 0; i < JsRecTmV->Vec.Len(); i++) {
+		RecTmV.Add(TNodeJsUtil::GetCppTimestamp((uint64)JsRecTmV->Vec[i]));
 	}
 
 	if (!TNodeJsUtil::IsFldNull(ArgObj, "batchV")) {
@@ -1079,7 +1079,7 @@ void TNodeJsStreamStory::update(const v8::FunctionCallbackInfo<v8::Value>& Args)
 		RecTm = 0;
 	} else {
 		// Args[1] is a timestamp (UNIX timestamp)
-		RecTm = TTm::GetWinMSecsFromUnixMSecs(TNodeJsUtil::GetArgFlt(Args, 2));
+		RecTm = TTm::GetWinMSecsFromUnixMSecs((uint64)TNodeJsUtil::GetArgFlt(Args, 2));
 	}
 
 	JsMChain->StreamStory->OnAddRec(RecTm, JsObsFtrV->Vec, JsContrFtrV->Vec);
@@ -1477,8 +1477,8 @@ void TNodeJsStreamStory::rebuildHistograms(const v8::FunctionCallbackInfo<v8::Va
 	TNodeJsFltV* JsRecTmV = TNodeJsUtil::GetObjFld<TNodeJsFltV>(ArgObj, "times");
 
 	TUInt64V RecTmV(JsRecTmV->Vec.Len(), 0);
-	for (int64 i = 0; i < JsRecTmV->Vec.Len(); i++) {
-		RecTmV.Add(TNodeJsUtil::GetCppTimestamp(JsRecTmV->Vec[i]));
+	for (int i = 0; i < JsRecTmV->Vec.Len(); i++) {
+		RecTmV.Add(TNodeJsUtil::GetCppTimestamp((uint64)JsRecTmV->Vec[i]));
 	}
 
 	if (TNodeJsUtil::IsObjFld(ArgObj, "batchV")) {
