@@ -438,6 +438,13 @@ double TNodeJsUtil::ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Lo
 	return RetVal->NumberValue();
 }
 
+void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& ArgC,
+		v8::Handle<v8::Value> ArgV[]) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	Fun->Call(Isolate->GetCurrentContext()->Global(), ArgC, ArgV);
+}
+
 v8::Local<v8::Value> TNodeJsUtil::V8JsonToV8Str(const v8::Handle<v8::Value>& Json) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
