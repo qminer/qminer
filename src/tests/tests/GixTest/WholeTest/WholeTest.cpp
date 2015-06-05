@@ -656,31 +656,31 @@ public:
 	}
 };
 
-TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
-TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
-TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
-TEST(testTInMemStorage, LoadAll1) { XTest::TInMemStorage_LoadAll1(); }
-TEST(testTInMemStorage, LoadAll2) { XTest::TInMemStorage_LoadAll2(); }
-TEST(testTInMemStorage, Delete1) { XTest::TInMemStorage_Delete1(); }
-TEST(testTInMemStorage, Delete2) { XTest::TInMemStorage_Delete2(); }
-TEST(testTInMemStorage, SetVal) { XTest::TInMemStorage_SetVal(); }
-//TEST(testTInMemStorage, PerfTest) { XTest::TInMemStorage_PerfTest(); }
-
-
-TEST(testTPgBlob, Simple) { XTest::TPgBlob_Complex1(); }
-TEST(testTPgBlob, PageInit) { XTest::TPgBlob_Page_Init(); }
-TEST(testTPgBlob, PageAddInt) { XTest::TPgBlob_Page_AddInt(); }
-TEST(testTPgBlob, PageAddIntMany) { XTest::TPgBlob_Page_AddIntMany(); }
-TEST(testTPgBlob, PageAddDouble) { XTest::TPgBlob_Page_AddDouble(); }
-TEST(testTPgBlob, PageAddIntSeveral) { XTest::TPgBlob_Page_AddIntSeveral(); }
-TEST(testTPgBlob, PageAddIntSeveralDelete) { XTest::TPgBlob_Page_AddIntSeveralDelete(); }
-TEST(testTPgBlob, PageAddIntSeveralDelete2) { XTest::TPgBlob_Page_AddIntSeveralDelete2(); }
-
-TEST(testTPgBlob, AddBf1) { XTest::TPgBlob_AddBf1(); }
-
-////////////////////////////////////////////////////////////////////////////////
-
-
+//TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
+//TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
+//TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
+//TEST(testTInMemStorage, LoadAll1) { XTest::TInMemStorage_LoadAll1(); }
+//TEST(testTInMemStorage, LoadAll2) { XTest::TInMemStorage_LoadAll2(); }
+//TEST(testTInMemStorage, Delete1) { XTest::TInMemStorage_Delete1(); }
+//TEST(testTInMemStorage, Delete2) { XTest::TInMemStorage_Delete2(); }
+//TEST(testTInMemStorage, SetVal) { XTest::TInMemStorage_SetVal(); }
+////TEST(testTInMemStorage, PerfTest) { XTest::TInMemStorage_PerfTest(); }
+//
+//
+//TEST(testTPgBlob, Simple) { XTest::TPgBlob_Complex1(); }
+//TEST(testTPgBlob, PageInit) { XTest::TPgBlob_Page_Init(); }
+//TEST(testTPgBlob, PageAddInt) { XTest::TPgBlob_Page_AddInt(); }
+//TEST(testTPgBlob, PageAddIntMany) { XTest::TPgBlob_Page_AddIntMany(); }
+//TEST(testTPgBlob, PageAddDouble) { XTest::TPgBlob_Page_AddDouble(); }
+//TEST(testTPgBlob, PageAddIntSeveral) { XTest::TPgBlob_Page_AddIntSeveral(); }
+//TEST(testTPgBlob, PageAddIntSeveralDelete) { XTest::TPgBlob_Page_AddIntSeveralDelete(); }
+//TEST(testTPgBlob, PageAddIntSeveralDelete2) { XTest::TPgBlob_Page_AddIntSeveralDelete2(); }
+//
+//TEST(testTPgBlob, AddBf1) { XTest::TPgBlob_AddBf1(); }
+//
+//////////////////////////////////////////////////////////////////////////////////
+//
+//
 //TEST(testTPgBlobFsm, Add1) {
 //	glib::TPgBlobFsm fsm;
 //	for (int i = 0; i < 5; i++) {
@@ -1111,112 +1111,159 @@ TEST(testTPgBlob, AddBf1) { XTest::TPgBlob_AddBf1(); }
 //		EXPECT_EQ(store->GetRecs(), 1);
 //	}
 //}
+//
+//
+////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//void TestPgBlobStoreSimple(const TStr& def_file) {
+//	TQm::TEnv::Init();
+//	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
+//	TStr dir = "data\\";
+//
+//	// init unicode
+//	TUnicodeDef::Load(unicode_file);
+//
+//	{
+//		// create new base from definition
+//		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+//		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//		{
+//			{
+//				TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
+//				{
+//					TStr s1 = "{ \"FieldInt\" : 12, \"FieldBool\" : true}";
+//					PJsonVal json1 = TJsonVal::GetValFromStr(s1);
+//					store->AddRec(json1);
+//
+//					TStr s2 = "{ \"FieldInt\" : 6345, \"FieldBool\" : false}";
+//					PJsonVal json2 = TJsonVal::GetValFromStr(s2);
+//					store->AddRec(json2);
+//				}
+//			}
+//		}
+//		TQm::SaveBase2(Base);
+//	}
+//	{
+//		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faRdOnly, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//
+//		auto store = Base->GetStoreByStoreNm("TestStore");
+//		auto field_id = store->GetFieldId("FieldInt");
+//		auto res = store->GetAllRecs();
+//		//printf("Records: %d\n", res->GetRecs());
+//		EXPECT_EQ(res->GetRecs(), 2);
+//		//printf("Records: %d\n", res->GetRec(0).GetFieldInt(field_id));
+//		EXPECT_EQ(res->GetRec(0).GetFieldInt(field_id), 12);
+//		//printf("Records: %d\n", res->GetRec(1).GetFieldInt(field_id));
+//		EXPECT_EQ(res->GetRec(1).GetFieldInt(field_id), 6345);
+//
+//		TQm::SaveBase2(Base);
+//	}
+//}
+//
+//TEST(testTStorePbBlob, Test1) {
+//	TestPgBlobStoreSimple(".\\pgblob_test1.def");
+//}
+//TEST(testTStorePbBlob, Test2) {
+//	TestPgBlobStoreSimple(".\\pgblob_test2.def");
+//}
+//TEST(testTStorePbBlob, Test2_Big) {
+//	TStr def_file = ".\\pgblob_test2.def";
+//	TQm::TEnv::Init();
+//	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
+//	TStr dir = "data\\";
+//
+//	// init unicode
+//	TUnicodeDef::Load(unicode_file);
+//	int rec_count = 250*1000;
+//
+//	{
+//		// create new base from definition
+//		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+//		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//
+//		{
+//			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
+//			TStr s = "{ \"FieldInt\" : 12, \"FieldBool\" : true}";
+//			PJsonVal json = TJsonVal::GetValFromStr(s);
+//			PJsonVal json_int = json->GetObjKey("FieldInt");
+//			PJsonVal json_bool = json->GetObjKey("FieldBool");
+//			for (int i = 0; i < rec_count; i++) {
+//				if (i % 1000 == 0)
+//					printf("    %d\r", i);
+//				json_int->PutNum(i);
+//				json_bool->PutBool(i % 7 == 3);
+//				store->AddRec(json);
+//			}
+//		}
+//		TQm::SaveBase2(Base);
+//	}
+//	{
+//		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faRdOnly, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//
+//		auto store = Base->GetStoreByStoreNm("TestStore");
+//		auto field_id_int = store->GetFieldId("FieldInt");
+//		auto field_id_bool = store->GetFieldId("FieldBool");
+//		auto res = store->GetAllRecs();
+//		EXPECT_EQ(res->GetRecs(), rec_count);
+//		for (int i = 0; i < rec_count; i++) {
+//			if (i % 1000 == 0)
+//				printf("    %d\r", i);
+//			TQm::TRec& rec = res->GetRec(i);
+//			EXPECT_EQ(rec.GetFieldInt(field_id_int), i);
+//			EXPECT_EQ(rec.GetFieldBool(field_id_bool), i % 7 == 3);
+//		}
+//
+//		TQm::SaveBase2(Base);
+//	}
+//}
+//TEST(testTStorePbBlob, Test2_String) {
+//	TStr def_file = ".\\pgblob_test_str1.def";
+//	TQm::TEnv::Init();
+//	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
+//	TStr dir = "data\\";
+//
+//	// init unicode
+//	TUnicodeDef::Load(unicode_file);
+//	int rec_count = 1000*1000;
+//
+//	{
+//		// create new base from definition
+//		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+//		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//
+//		{
+//			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
+//			TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
+//			PJsonVal json = TJsonVal::GetValFromStr(s);
+//			PJsonVal json_str = json->GetObjKey("FieldString");
+//			PJsonVal json_bool = json->GetObjKey("FieldBool");
+//			for (int i = 0; i < rec_count; i++) {
+//				json_str->PutStr(TStr::Fmt("Stored value %d", i));
+//				json_bool->PutBool(i % 7 == 3);
+//				store->AddRec(json);
+//			}
+//		}
+//		TQm::SaveBase2(Base);
+//	}
+//	{
+//		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faRdOnly, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//
+//		auto store = Base->GetStoreByStoreNm("TestStore");
+//		auto field_id_str = store->GetFieldId("FieldString");
+//		auto field_id_bool = store->GetFieldId("FieldBool");
+//		auto res = store->GetAllRecs();
+//		EXPECT_EQ(res->GetRecs(), rec_count);
+//		for (int i = 0; i < rec_count; i++) {
+//			TQm::TRec& rec = res->GetRec(i);
+//			EXPECT_EQ(rec.GetFieldStr(field_id_str), TStr::Fmt("Stored value %d", i));
+//			EXPECT_EQ(rec.GetFieldBool(field_id_bool), i % 7 == 3);
+//		}
+//
+//		TQm::SaveBase2(Base);
+//	}
+//}
 
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-void TestPgBlobStoreSimple(const TStr& def_file) {
-	TQm::TEnv::Init();
-	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
-	TStr dir = "data\\";
-
-	// init unicode
-	TUnicodeDef::Load(unicode_file);
-
-	{
-		// create new base from definition
-		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
-		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-		{
-			{
-				TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
-				{
-					TStr s1 = "{ \"FieldInt\" : 12, \"FieldBool\" : true}";
-					PJsonVal json1 = TJsonVal::GetValFromStr(s1);
-					store->AddRec(json1);
-
-					TStr s2 = "{ \"FieldInt\" : 6345, \"FieldBool\" : false}";
-					PJsonVal json2 = TJsonVal::GetValFromStr(s2);
-					store->AddRec(json2);
-				}
-			}
-		}
-		TQm::SaveBase2(Base);
-	}
-	{
-		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faRdOnly, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-
-		auto store = Base->GetStoreByStoreNm("TestStore");
-		auto field_id = store->GetFieldId("FieldInt");
-		auto res = store->GetAllRecs();
-		//printf("Records: %d\n", res->GetRecs());
-		EXPECT_EQ(res->GetRecs(), 2);
-		//printf("Records: %d\n", res->GetRec(0).GetFieldInt(field_id));
-		EXPECT_EQ(res->GetRec(0).GetFieldInt(field_id), 12);
-		//printf("Records: %d\n", res->GetRec(1).GetFieldInt(field_id));
-		EXPECT_EQ(res->GetRec(1).GetFieldInt(field_id), 6345);
-
-		TQm::SaveBase2(Base);
-	}
-}
-
-TEST(testTStorePbBlob, Test1) {
-	TestPgBlobStoreSimple(".\\pgblob_test1.def");
-}
-TEST(testTStorePbBlob, Test2) {
-	TestPgBlobStoreSimple(".\\pgblob_test2.def");
-}
-TEST(testTStorePbBlob, Test2_Big) {
-	TStr def_file = ".\\pgblob_test2.def";
-	TQm::TEnv::Init();
-	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
-	TStr dir = "data\\";
-
-	// init unicode
-	TUnicodeDef::Load(unicode_file);
-	int rec_count = 250*1000;
-
-	{
-		// create new base from definition
-		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
-		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-
-		{
-			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
-			TStr s = "{ \"FieldInt\" : 12, \"FieldBool\" : true}";
-			PJsonVal json = TJsonVal::GetValFromStr(s);
-			PJsonVal json_int = json->GetObjKey("FieldInt");
-			PJsonVal json_bool = json->GetObjKey("FieldBool");
-			for (int i = 0; i < rec_count; i++) {
-				if (i % 1000 == 0)
-					printf("    %d\r", i);
-				json_int->PutNum(i);
-				json_bool->PutBool(i % 7 == 3);
-				store->AddRec(json);
-			}
-		}
-		TQm::SaveBase2(Base);
-	}
-	{
-		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faRdOnly, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-
-		auto store = Base->GetStoreByStoreNm("TestStore");
-		auto field_id_int = store->GetFieldId("FieldInt");
-		auto field_id_bool = store->GetFieldId("FieldBool");
-		auto res = store->GetAllRecs();
-		EXPECT_EQ(res->GetRecs(), rec_count);
-		for (int i = 0; i < rec_count; i++) {
-			if (i % 1000 == 0)
-				printf("    %d\r", i);
-			TQm::TRec& rec = res->GetRec(i);
-			EXPECT_EQ(rec.GetFieldInt(field_id_int), i);
-			EXPECT_EQ(rec.GetFieldBool(field_id_bool), i % 7 == 3);
-		}
-
-		TQm::SaveBase2(Base);
-	}
-}
-TEST(testTStorePbBlob, Test2_String) {
+TEST(testTStorePbBlob, Test2_String_Delete) {
 	TStr def_file = ".\\pgblob_test_str1.def";
 	TQm::TEnv::Init();
 	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
@@ -1224,7 +1271,7 @@ TEST(testTStorePbBlob, Test2_String) {
 
 	// init unicode
 	TUnicodeDef::Load(unicode_file);
-	int rec_count = 1000*1000;
+	int rec_count = 3 * 1000;
 
 	{
 		// create new base from definition
@@ -1248,16 +1295,35 @@ TEST(testTStorePbBlob, Test2_String) {
 	{
 		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faRdOnly, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
 
+		// now delete each record with id, where id % 3 == 2
+
 		auto store = Base->GetStoreByStoreNm("TestStore");
 		auto field_id_str = store->GetFieldId("FieldString");
 		auto field_id_bool = store->GetFieldId("FieldBool");
 		auto res = store->GetAllRecs();
 		EXPECT_EQ(res->GetRecs(), rec_count);
+
+		TUInt64V ids;
 		for (int i = 0; i < rec_count; i++) {
+			if (i % 3 != 2)
+				continue;
 			TQm::TRec& rec = res->GetRec(i);
-			EXPECT_EQ(rec.GetFieldStr(field_id_str), TStr::Fmt("Stored value %d", i));
-			EXPECT_EQ(rec.GetFieldBool(field_id_bool), i % 7 == 3);
+			ids.Add(rec.GetRecId());
 		}
+		store->DeleteRecs(ids);
+
+		TQm::SaveBase2(Base);
+	}
+	{
+		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faRdOnly, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+
+		// load and check
+
+		auto store = Base->GetStoreByStoreNm("TestStore");
+		auto field_id_str = store->GetFieldId("FieldString");
+		auto field_id_bool = store->GetFieldId("FieldBool");
+		auto res = store->GetAllRecs();
+		EXPECT_EQ(res->GetRecs(), 2 * rec_count / 3);
 
 		TQm::SaveBase2(Base);
 	}

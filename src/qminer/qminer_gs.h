@@ -830,7 +830,9 @@ public:
 
 	/// Purge records that fall out of store window (when it has one)
 	void GarbageCollect();
+	/// Delete the first DelRecs records (the records that were inserted first)
 	void DeleteFirstNRecs(int Recs);
+	/// Delete specific record
 	void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true);
 
 	/// Check if the value of given field for a given record is NULL
