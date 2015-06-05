@@ -279,6 +279,7 @@ bool TDir::Exists(const TStr& FPathFNm){
 #endif
 
 void TDir::ListFiles(const TStr& DirNm, TStrV& FNmV) {
+#ifndef GLib_WIN
 	DIR *dp;
 	struct dirent *dirp;
 
@@ -291,6 +292,9 @@ void TDir::ListFiles(const TStr& DirNm, TStrV& FNmV) {
 	}
 
 	closedir(dp);
+#else
+	throw TExcept::New("TDir::ListFiles: Not implemented on Windows, please implement!");
+#endif
 }
 
 //////////////////////////////////////
