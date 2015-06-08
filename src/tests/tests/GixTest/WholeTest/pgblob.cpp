@@ -42,8 +42,8 @@ namespace glib {
 		return abs(int(Page)) + int(FileIndex) * 0x10;
 	}
 
-	TPgBlobPgPt::TPgBlobPgPt(const TPgBlobPt& Src) { 
-		Set(Src.GetFIx(), Src.GetPg()); 
+	TPgBlobPgPt::TPgBlobPgPt(const TPgBlobPt& Src) {
+		Set(Src.GetFIx(), Src.GetPg());
 	}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -290,8 +290,9 @@ namespace glib {
 		}
 
 		// init cache
-		Bf = new char[CacheSize];
-		BfL = CacheSize;
+		//Bf = new char[CacheSize];
+		//BfL = CacheSize;
+		LastExtentCnt = EXTENT_PCOUNT; // this means the "last" extent is full, so use new one
 		MxLoadedPages = CacheSize / PAGE_SIZE;
 		LruFirst = LruLast = -1;
 	}
@@ -308,7 +309,7 @@ namespace glib {
 			SaveMain();
 			Files.Clr();
 		}
-		delete[] Bf;
+		//delete[] Bf;
 	}
 
 	/// Save main file
@@ -413,6 +414,12 @@ namespace glib {
 			LoadedPagesH(Pt) = Pg;
 		} else {
 			// simply load the page
+			LastExtentCnt++;
+			if (LastExtentCnt >= EXTENT_PCOUNT) {
+				Extents.Add();
+				Extents.Last() = std::move(TMemBase(EXTENT_SIZE));
+				LastExtentCnt = 0;
+			}
 			Pg = LoadedPages.Add();
 			LoadedPage& a = LoadedPages[Pg];
 			Files[Pt.GetFIx()]->LoadPage(Pt.GetPg(), GetPageBf(Pg));
@@ -572,12 +579,12 @@ namespace glib {
 	/// Delete BLOB from storage
 	void TPgBlob::Del(const TPgBlobPt& Pt) {
 		QmAssert(Access != TFAccess::faRdOnly);
-		
+
 		// find page
 		TPgBlobPgPt PgPt = Pt;
 		char* PgBf = LoadPage(PgPt);
 		TPgHeader* PgH = (TPgHeader*)PgBf;
-		
+
 		DeleteItem(PgBf, Pt.GetIIx());
 		Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
 	}
@@ -622,7 +629,7 @@ namespace glib {
 		res->AddToObj("page_size", PAGE_SIZE);
 		res->AddToObj("loaded_pages", LoadedPages.Len());
 		res->AddToObj("dirty_pages", dirty);
-		res->AddToObj("cache_size", BfL);
+		res->AddToObj("cache_size", EXTENT_SIZE * Extents.Len());
 		return res;
 	}
 

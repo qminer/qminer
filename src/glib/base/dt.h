@@ -89,7 +89,11 @@ protected:
 	char* Bf;
 	bool Owner;
 public:
-	TMemBase() : MxBfL(0), BfL(0), Bf(NULL), Owner(true) {}
+	TMemBase() : MxBfL(0), BfL(0), Bf(NULL), Owner(false) {}
+	TMemBase(const int& _BfL) : MxBfL(_BfL), BfL(_BfL), Bf(NULL), Owner(true) {
+		IAssert(BfL >= 0);
+		Bf = new char[BfL];
+	}
 	TMemBase(const void* _Bf, const int& _BfL, const bool& _Owner = true) :
 		MxBfL(_BfL), BfL(_BfL), Bf(NULL), Owner(_Owner) {
 		IAssert(BfL >= 0);
@@ -105,7 +109,9 @@ public:
 		MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
 		Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
 	}
-	virtual ~TMemBase() { if (Owner && Bf != NULL) { delete[] Bf; } }
+	virtual ~TMemBase() { 
+		if (Owner && Bf != NULL) { 
+			delete[] Bf; } }
 	int Len() const { return BfL; }
 	bool Empty() const { return BfL == 0; }
 	char* GetBf() const { return Bf; }
@@ -114,6 +120,14 @@ public:
 			if (Owner && Bf != NULL) { delete[] Bf; }
 			MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
 			Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
+		}
+		return *this;
+	}
+	TMemBase& operator=(const TMemBase& Mem) {
+		if (this != &Mem) {
+			if (Owner && Bf != NULL) { delete[] Bf; }
+			MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL; Owner = (MxBfL > 0);
+			if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL); }
 		}
 		return *this;
 	}
@@ -155,7 +169,7 @@ public:
 	  Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
   }
   static PMem New(const TStr& Str){return new TMem(Str);}
-  ~TMem() { if (Owner && Bf != NULL) { delete[] Bf; }; Owner = false; }
+  ~TMem() { if (Owner && Bf != NULL) { delete[] Bf; }; Owner = false; Bf = NULL; }
   explicit TMem(TSIn& SIn) {
 	  SIn.Load(MxBfL); SIn.Load(BfL);
 	  Bf = new char[MxBfL = BfL]; SIn.LoadBf(Bf, BfL); }

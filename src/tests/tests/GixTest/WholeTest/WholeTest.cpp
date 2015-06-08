@@ -655,7 +655,7 @@ public:
 		EXPECT_EQ(pg_item->Offset, 8184);
 	}
 };
-
+//
 //TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
 //TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
 //TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
@@ -665,7 +665,7 @@ public:
 //TEST(testTInMemStorage, Delete2) { XTest::TInMemStorage_Delete2(); }
 //TEST(testTInMemStorage, SetVal) { XTest::TInMemStorage_SetVal(); }
 ////TEST(testTInMemStorage, PerfTest) { XTest::TInMemStorage_PerfTest(); }
-//
+
 //
 //TEST(testTPgBlob, Simple) { XTest::TPgBlob_Complex1(); }
 //TEST(testTPgBlob, PageInit) { XTest::TPgBlob_Page_Init(); }
@@ -1166,102 +1166,102 @@ public:
 //TEST(testTStorePbBlob, Test2) {
 //	TestPgBlobStoreSimple(".\\pgblob_test2.def");
 //}
-//TEST(testTStorePbBlob, Test2_Big) {
-//	TStr def_file = ".\\pgblob_test2.def";
-//	TQm::TEnv::Init();
-//	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
-//	TStr dir = "data\\";
-//
-//	// init unicode
-//	TUnicodeDef::Load(unicode_file);
-//	int rec_count = 250*1000;
-//
-//	{
-//		// create new base from definition
-//		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
-//		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-//
-//		{
-//			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
-//			TStr s = "{ \"FieldInt\" : 12, \"FieldBool\" : true}";
-//			PJsonVal json = TJsonVal::GetValFromStr(s);
-//			PJsonVal json_int = json->GetObjKey("FieldInt");
-//			PJsonVal json_bool = json->GetObjKey("FieldBool");
-//			for (int i = 0; i < rec_count; i++) {
-//				if (i % 1000 == 0)
-//					printf("    %d\r", i);
-//				json_int->PutNum(i);
-//				json_bool->PutBool(i % 7 == 3);
-//				store->AddRec(json);
-//			}
-//		}
-//		TQm::SaveBase2(Base);
-//	}
-//	{
-//		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faRdOnly, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-//
-//		auto store = Base->GetStoreByStoreNm("TestStore");
-//		auto field_id_int = store->GetFieldId("FieldInt");
-//		auto field_id_bool = store->GetFieldId("FieldBool");
-//		auto res = store->GetAllRecs();
-//		EXPECT_EQ(res->GetRecs(), rec_count);
-//		for (int i = 0; i < rec_count; i++) {
-//			if (i % 1000 == 0)
-//				printf("    %d\r", i);
-//			TQm::TRec& rec = res->GetRec(i);
-//			EXPECT_EQ(rec.GetFieldInt(field_id_int), i);
-//			EXPECT_EQ(rec.GetFieldBool(field_id_bool), i % 7 == 3);
-//		}
-//
-//		TQm::SaveBase2(Base);
-//	}
-//}
-//TEST(testTStorePbBlob, Test2_String) {
-//	TStr def_file = ".\\pgblob_test_str1.def";
-//	TQm::TEnv::Init();
-//	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
-//	TStr dir = "data\\";
-//
-//	// init unicode
-//	TUnicodeDef::Load(unicode_file);
-//	int rec_count = 1000*1000;
-//
-//	{
-//		// create new base from definition
-//		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
-//		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-//
-//		{
-//			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
-//			TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
-//			PJsonVal json = TJsonVal::GetValFromStr(s);
-//			PJsonVal json_str = json->GetObjKey("FieldString");
-//			PJsonVal json_bool = json->GetObjKey("FieldBool");
-//			for (int i = 0; i < rec_count; i++) {
-//				json_str->PutStr(TStr::Fmt("Stored value %d", i));
-//				json_bool->PutBool(i % 7 == 3);
-//				store->AddRec(json);
-//			}
-//		}
-//		TQm::SaveBase2(Base);
-//	}
-//	{
-//		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faRdOnly, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-//
-//		auto store = Base->GetStoreByStoreNm("TestStore");
-//		auto field_id_str = store->GetFieldId("FieldString");
-//		auto field_id_bool = store->GetFieldId("FieldBool");
-//		auto res = store->GetAllRecs();
-//		EXPECT_EQ(res->GetRecs(), rec_count);
-//		for (int i = 0; i < rec_count; i++) {
-//			TQm::TRec& rec = res->GetRec(i);
-//			EXPECT_EQ(rec.GetFieldStr(field_id_str), TStr::Fmt("Stored value %d", i));
-//			EXPECT_EQ(rec.GetFieldBool(field_id_bool), i % 7 == 3);
-//		}
-//
-//		TQm::SaveBase2(Base);
-//	}
-//}
+TEST(testTStorePbBlob, Test2_Big) {
+	TStr def_file = ".\\pgblob_test2.def";
+	TQm::TEnv::Init();
+	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
+	TStr dir = "data\\";
+
+	// init unicode
+	TUnicodeDef::Load(unicode_file);
+	int rec_count = 250*1000;
+
+	{
+		// create new base from definition
+		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+
+		{
+			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
+			TStr s = "{ \"FieldInt\" : 12, \"FieldBool\" : true}";
+			PJsonVal json = TJsonVal::GetValFromStr(s);
+			PJsonVal json_int = json->GetObjKey("FieldInt");
+			PJsonVal json_bool = json->GetObjKey("FieldBool");
+			for (int i = 0; i < rec_count; i++) {
+				if (i % 1000 == 0)
+					printf("    %d\r", i);
+				json_int->PutNum(i);
+				json_bool->PutBool(i % 7 == 3);
+				store->AddRec(json);
+			}
+		}
+		TQm::SaveBase2(Base);
+	}
+	{
+		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faRdOnly, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+
+		auto store = Base->GetStoreByStoreNm("TestStore");
+		auto field_id_int = store->GetFieldId("FieldInt");
+		auto field_id_bool = store->GetFieldId("FieldBool");
+		auto res = store->GetAllRecs();
+		EXPECT_EQ(res->GetRecs(), rec_count);
+		for (int i = 0; i < rec_count; i++) {
+			if (i % 1000 == 0)
+				printf("    %d\r", i);
+			TQm::TRec& rec = res->GetRec(i);
+			EXPECT_EQ(rec.GetFieldInt(field_id_int), i);
+			EXPECT_EQ(rec.GetFieldBool(field_id_bool), i % 7 == 3);
+		}
+
+		TQm::SaveBase2(Base);
+	}
+}
+TEST(testTStorePbBlob, Test2_String) {
+	TStr def_file = ".\\pgblob_test_str1.def";
+	TQm::TEnv::Init();
+	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
+	TStr dir = "data\\";
+
+	// init unicode
+	TUnicodeDef::Load(unicode_file);
+	int rec_count = 1000*1000;
+
+	{
+		// create new base from definition
+		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+
+		{
+			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
+			TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
+			PJsonVal json = TJsonVal::GetValFromStr(s);
+			PJsonVal json_str = json->GetObjKey("FieldString");
+			PJsonVal json_bool = json->GetObjKey("FieldBool");
+			for (int i = 0; i < rec_count; i++) {
+				json_str->PutStr(TStr::Fmt("Stored value %d", i));
+				json_bool->PutBool(i % 7 == 3);
+				store->AddRec(json);
+			}
+		}
+		TQm::SaveBase2(Base);
+	}
+	{
+		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faRdOnly, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+
+		auto store = Base->GetStoreByStoreNm("TestStore");
+		auto field_id_str = store->GetFieldId("FieldString");
+		auto field_id_bool = store->GetFieldId("FieldBool");
+		auto res = store->GetAllRecs();
+		EXPECT_EQ(res->GetRecs(), rec_count);
+		for (int i = 0; i < rec_count; i++) {
+			TQm::TRec& rec = res->GetRec(i);
+			EXPECT_EQ(rec.GetFieldStr(field_id_str), TStr::Fmt("Stored value %d", i));
+			EXPECT_EQ(rec.GetFieldBool(field_id_bool), i % 7 == 3);
+		}
+
+		TQm::SaveBase2(Base);
+	}
+}
 
 TEST(testTStorePbBlob, Test2_String_Delete) {
 	TStr def_file = ".\\pgblob_test_str1.def";
