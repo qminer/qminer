@@ -27,7 +27,9 @@ namespace glib {
 	typedef TPt<TPgBlob> PPgBlob;
 
 	// Macros and constants	
-#define PAGE_SIZE (8 * 1024) // Page size is 8kb
+#define PAGE_SIZE (8 * 1024) // Page size is 8k
+#define EXTENT_PCOUNT 8        // Number of pages per extent
+#define EXTENT_SIZE (PAGE_SIZE * EXTENT_PCOUNT) // Extent size - 64k
 #define PgHeaderDirtyFlag (0x01)
 #define PgHeaderSLockFlag (0x02)
 #define PgHeaderXLockFlag (0x04)
@@ -147,15 +149,7 @@ namespace glib {
 	/// Free-space-map (heap)
 
 	class TPgBlobFsm : public TVec < TPgBlobPt > {
-	public:
-		/// Add new page to free-space-map
-		void FsmAddPage(const TPgBlobPgPt& Pt, const uint16& FreeSpace);
-		/// Update existing page inside free-space-map
-		void FsmUpdatePage(const TPgBlobPgPt& Pt, const uint16& FreeSpace);
-		/// Find page with most open space
-		/// Returns false if no such page, true otherwise
-		/// If page exists, pointer to it is stored into sent parameter
-		bool FsmGetFreePage(int RequiredSpace, TPgBlobPgPt& Pg);
+	protected:
 		/// Move item up the heap if needed
 		int FsmSiftUp(int index);
 		/// Move item down the heap if needed
@@ -166,6 +160,15 @@ namespace glib {
 		int FsmRightChild(int index) { return 2 * index + 2; }
 		/// Index of parent
 		int FsmParent(int index) { return (index - 1) / 2; }
+	public:
+		/// Add new page to free-space-map
+		void FsmAddPage(const TPgBlobPgPt& Pt, const uint16& FreeSpace);
+		/// Update existing page inside free-space-map
+		void FsmUpdatePage(const TPgBlobPgPt& Pt, const uint16& FreeSpace);
+		/// Find page with most open space
+		/// Returns false if no such page, true otherwise
+		/// If page exists, pointer to it is stored into sent parameter
+		bool FsmGetFreePage(int RequiredSpace, TPgBlobPgPt& Pg);
 	};
 
 	///////////////////////////////////////////////////////////////////////
@@ -298,15 +301,25 @@ namespace glib {
 		/// Previous item in LRU list - the next candidate for eviction
 		int LruLast;
 
-		/// Memory buffer - cache
-		char* Bf;
-		/// Buffer length
-		uint64 BfL;
+		/// Vector of allocated extents
+		TVec<TMemBase> Extents;
+		/// Number of loaded pages in last extent
+		int LastExtentCnt;
+
+		///// Memory buffer - cache
+		//char* Bf;
+		///// Buffer length
+		//uint64 BfL;
 		/// Maximal number of loaded pages
 		uint64 MxLoadedPages;
 
 		/// Returns starting address of page in Bf
-		char* GetPageBf(int Pg) { return Bf + Pg * PAGE_SIZE; }
+		char* GetPageBf(int Pg) {
+			return 
+				Extents[Pg / EXTENT_PCOUNT].GetBf() +
+				PAGE_SIZE *(Pg % EXTENT_PCOUNT);
+			//return Bf + Pg * PAGE_SIZE; 
+		}
 
 		// Method for handling LRU list ///////////////////////////////////
 
