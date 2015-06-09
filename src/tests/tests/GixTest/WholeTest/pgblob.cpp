@@ -594,6 +594,13 @@ namespace glib {
 		return Get(Pt).GetMemBase();
 	}
 
+	/// Loads all pages into cache - cache must be big enough
+	void TPgBlob::LoadAll() {
+		for (int i = 0; i < Fsm.Len(); i++) {
+			LoadPage(TPgBlobPgPt(Fsm[i]));
+		}
+	}
+
 	/// Save part of the data, given time-window
 	void TPgBlob::PartialFlush(int WndInMsec) {
 		if (Access == TFAccess::faRdOnly)
@@ -629,6 +636,7 @@ namespace glib {
 		res->AddToObj("page_size", PAGE_SIZE);
 		res->AddToObj("loaded_pages", LoadedPages.Len());
 		res->AddToObj("dirty_pages", dirty);
+		res->AddToObj("loaded_extents", Extents.Len());
 		res->AddToObj("cache_size", EXTENT_SIZE * Extents.Len());
 		return res;
 	}

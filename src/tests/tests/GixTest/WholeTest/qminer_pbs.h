@@ -64,10 +64,13 @@ namespace TQm {
 		PPgBlob DataBlob;
 		/// Hash map from record ID to BLOB pointer
 		THash<TUInt64, TPgBlobPt> RecIdBlobPtH;
+		/// Hash map from record ID to BLOB pointer
+		THash<TUInt64, TPgBlobPt> RecIdBlobPtHMem;
 		/// Flag if we are using in-memory store
 		TBool DataMemP;
 		/// Store for parts of records that should be in-memory
-		TInMemStorage DataMem;
+		PPgBlob DataMem;
+		//TInMemStorage DataMem;
 
 		/// Counter for record IDs
 		TUInt64 RecIdCounter;
@@ -88,15 +91,7 @@ namespace TQm {
 		void InitFieldLocV();
 
 		/// Load page with with given record and return pointer to it
-		TThinMIn GetPgBf(const uint64& RecId) const;
-		///// Get TMem serialization of record from specified storage
-		//void GetRecMem(const TStoreLoc& RecLoc, const uint64& RecId, TMem& Rec) const;
-		///// Get TMem serialization of record from specified where field is stored
-		//void GetRecMem(const uint64& RecId, const int& FieldId, TMem& Rec) const;
-		///// Set TMem serialization of record to a specified storage
-		//void PutRecMem(const TStoreLoc& RecLoc, const uint64& RecId, const TMem& Rec);
-		///// Set TMem serialization of record to storage where field is stored
-		//void PutRecMem(const uint64& RecId, const int& FieldId, const TMem& Rec);
+		TThinMIn GetPgBf(const uint64& RecId, const bool& UseMem = false) const;
 		
 
 		/// Get serializator for given location
@@ -144,8 +139,8 @@ namespace TQm {
 		uint64 GetRecId(const TStr& RecNm) const;
 		/// Get number of record
 		uint64 GetRecs() const;
-		uint64 GetFirstRecId() const { return DataMem.GetFirstValId(); }
-		uint64 GetLastRecId() const { return DataMem.GetLastValId(); }
+		uint64 GetFirstRecId() const { EFail; return 0; }
+		uint64 GetLastRecId() const { EFail; return 0; }
 
 		PStoreIter GetIter() const;
 
