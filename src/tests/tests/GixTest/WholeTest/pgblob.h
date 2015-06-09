@@ -104,7 +104,7 @@ namespace glib {
 		TPgBlobPt(int16 _FileIndex, uint32 _Page, uint16 _ItemIndex) {
 			Page = _Page; FileIndex = _FileIndex; ItemIndex = _ItemIndex;
 		}
-
+		
 		/// get index of page within the file
 		uint32 GetPg() const { return Page; }
 		/// get index of file - -1 means NULL pointer
@@ -148,7 +148,7 @@ namespace glib {
 	///////////////////////////////////////////////////////////////////////
 	/// Free-space-map (heap)
 
-	class TPgBlobFsm : public TVec < TPgBlobPt > {
+	class TPgBlobFsm : public TVec<TPgBlobPt> {
 	protected:
 		/// Move item up the heap if needed
 		int FsmSiftUp(int index);
@@ -400,6 +400,8 @@ namespace glib {
 		void Del(const TPgBlobPt& Pt);
 		/// Retrieve BLOB from storage as TMemBase
 		TMemBase GetMemBase(const TPgBlobPt& Pt);
+		/// Loads all pages into cache- cache must be big enough
+		void LoadAll();
 
 		/// Save part of the data, given time-window
 		void PartialFlush(int WndInMsec = 500);
