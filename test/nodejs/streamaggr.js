@@ -147,7 +147,7 @@ describe('Stream Aggregator Tests', function () {
             assert.equal(s.saveJson().updates, 1);
         })
     });
-    describe.only('OnAdd Tests', function () {
+    describe('OnAdd Tests', function () {
         it('should execute the onAdd function and return 4', function () {
             var aggr = new qm.StreamAggr(base, new function () {
                 var length = 0;
@@ -166,6 +166,33 @@ describe('Stream Aggregator Tests', function () {
             //aggr.onAdd({ Name: "John", Gendre: "Male" }); // doesn't digest a JSON record
             assert.equal(aggr.saveJson().val, 4);
 
+        })
+    });
+    describe.only('OnUpdate Tests', function () {
+        it('should execute the onUpdate function and return 1', function () {
+            var aggr = new qm.StreamAggr(base, new function () {
+                var type = null;
+                this.name = 'gendreUpdateLength';
+                this.onAdd = function (rec) {
+                    type = null;
+                }
+                this.onUpdate = function (rec) {
+                    type = rec.Gendre == "Male" ? 0 : 1;
+                }
+                this.saveJson = function (limit) {
+                    return { val: type };
+                }
+            });
+
+            var id1 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            aggr.onAdd(base.store('People')[0]);
+
+            assert.equal(aggr.saveJson().val, null);
+
+            var id2 = base.store('People').push({ Name: "John", Gendre: "Female" });
+            aggr.onUpdate(base.store('People')[0]);
+
+            assert.equal(aggr.saveJson().val, 1);
         })
     })
 })

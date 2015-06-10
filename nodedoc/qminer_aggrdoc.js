@@ -51,6 +51,18 @@
 /**
 	* Executes the function when a new record is put in store.
 	* @param {module:qm.Record} rec - The record given to the stream aggregator.
-	* @returns {module:qm.StreamAggr} Self.
+	* @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.
 	*/
  exports.StreamAggr.prototype.onAdd = function (rec) {};
+/**
+	* Executes the function when a record is the store is updated.
+	* @param {module:qmRecord} rec - The updated record given to the stream aggregator.
+	* @return {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.
+	*/
+ exports.StreamAggr.prototype.onUpdate = function (rec) {};
+/**
+	* When executed it return a JSON object as defined by the user.
+	* @param {number} [limit] - The meaning is specific to each type of stream aggregator. //TODO
+	* @returns {Object} A JSON object as defined by the user.
+	*/
+ exports.StreamAggr.prototype.saveJson = function (limit) {};

@@ -99,17 +99,32 @@ public:
 	/**
 	* Executes the function when a new record is put in store.
 	* @param {module:qm.Record} rec - The record given to the stream aggregator.
-	* @returns {module:qm.StreamAggr} Self.
+	* @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.
 	*/
 	//# exports.StreamAggr.prototype.onAdd = function (rec) {};
 	JsDeclareFunction(onAdd);
 
 	//!- `sa = sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` and returns self
+	/**
+	* Executes the function when a record is the store is updated.
+	* @param {module:qmRecord} rec - The updated record given to the stream aggregator.
+	* @return {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.
+	*/
+	//# exports.StreamAggr.prototype.onUpdate = function (rec) {};
 	JsDeclareFunction(onUpdate);
+
 	//!- `sa = sa.onDelete(rec)` -- executes onDelete function given an input record `rec` and returns self
 	JsDeclareFunction(onDelete);
+	
 	//!- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
+	/**
+	* When executed it return a JSON object as defined by the user.
+	* @param {number} [limit] - The meaning is specific to each type of stream aggregator. //TODO
+	* @returns {Object} A JSON object as defined by the user.
+	*/
+	//# exports.StreamAggr.prototype.saveJson = function (limit) {};
 	JsDeclareFunction(saveJson);
+
 	//!- `fout = sa.save(fout)` -- executes save function given output stream `fout` as input. returns `fout`.
 	JsDeclareFunction(save);
 	//!- `sa = sa.load(fin)` -- executes load function given input stream `fin` as input. returns self.
