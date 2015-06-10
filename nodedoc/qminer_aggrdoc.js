@@ -66,3 +66,35 @@
 	* @returns {Object} A JSON object as defined by the user.
 	*/
  exports.StreamAggr.prototype.saveJson = function (limit) {};
+/**
+	* Gets the length of the value vector.
+	* @returns {number} The length of the value vector.
+	*/
+ exports.StreamAggr.prototype.getFloatLength = function () {};
+/**
+	* Returns the value of the float vector at a specific index.
+	* @param {number} idx - The index.
+	* @returns {number} The value of the float vector at position idx.
+	*/
+ exports.StreamAggr.prototype.getFloatAt = function (idx) {};
+/**
+	* Gets the whole value vector of the buffer.
+	* @returns {module:la.Vector} The vector containing the values of the buffer.
+	*/
+ exports.StreamAggr.prototype.getFloatVector = function () {};
+/**
+	* Gets the length of the timestamp vector.
+	* @returns {number} The length of the timestamp vector.
+	*/
+ exports.StreamAggr.prototype.getTimestampLength = function () {};
+/**
+	* Gets the timestamp on the specific location in the buffer.
+	* @param {number} idx - The index.
+	* @returns {Object} The timestamp located on the idx position in the buffer.
+	*/
+ exports.StreamAggr.prototype.getTimestampAt = function (idx) {};
+/**
+	* Gets the dense vector containing the windows timestamps.
+	* @returns {module:la.Vector} The vector containing the window timestamps.
+	*/
+ exports.StreamAggr.prototype.getTimestampVector = function () {};

@@ -14,7 +14,7 @@ describe('Stream Aggregator Tests', function () {
                   name: 'People',
                   fields: [
                       { name: 'Name', type: 'string', primary: true },
-                      { name: 'Gendre', type: 'string'}
+                      { name: 'Gendre', type: 'string' }
                   ],
               }
             ]
@@ -68,7 +68,7 @@ describe('Stream Aggregator Tests', function () {
                 var data = 0;
                 this.name = 'anomaly';
                 this.onAdd = function (rec) {
-                    console.log('updated stream aggr for: ', rec.Name);
+                    //console.log('updated stream aggr for: ', rec.Name);
                     data = rec.Name.length;
                 };
                 this.saveJson = function (limit) {
@@ -165,10 +165,18 @@ describe('Stream Aggregator Tests', function () {
 
             //aggr.onAdd({ Name: "John", Gendre: "Male" }); // doesn't digest a JSON record
             assert.equal(aggr.saveJson().val, 4);
-
+        })
+        // unexpectively exits node 
+        it.skip('should throw an exception if the onAdd function is not defined', function () {
+            assert.throws(function () {
+                var aggr = new qm.StreamAggr(base, new function () {
+                    var length = 0;
+                    this.name = 'nameLength';
+                });
+            });
         })
     });
-    describe.only('OnUpdate Tests', function () {
+    describe('OnUpdate Tests', function () {
         it('should execute the onUpdate function and return 1', function () {
             var aggr = new qm.StreamAggr(base, new function () {
                 var type = null;
@@ -194,8 +202,346 @@ describe('Stream Aggregator Tests', function () {
 
             assert.equal(aggr.saveJson().val, 1);
         })
+        // unexpectively exits node 
+        it.skip('should throw an exception if the onAdd function is not defined with the onUpdate', function () {
+            assert.throws(function () {
+                var aggr = new qm.StreamAggr(base, new function () {
+                    var type = null;
+                    this.name = 'gendreUpdateLength';
+                    this.onUpdate = function (rec) {
+                        type = rec.Gendre == "Male" ? 0 : 1;
+                    }
+                    this.saveJson = function (limit) {
+                        return { val: type };
+                    }
+                });
+            });
+        })
+    });
+
+    describe('SaveJson Tests', function () {
+        it('should return a JSON object containing the pair val: length', function () {
+            var aggr = new qm.StreamAggr(base, new function () {
+                var length = 0;
+                this.name = 'nameLength';
+                this.onAdd = function (rec) {
+                    length = rec.Name.length;
+                }
+                this.saveJson = function (limit) {
+                    return { val: length };
+                }
+            });
+            var id1 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            aggr.onAdd(base.store('People')[0]);
+
+            assert.equal(aggr.saveJson().val, 4);
+        })
+        it('should return a JSON object containing two pairs, for name and for gendre', function () {
+            var aggr = new qm.StreamAggr(base, new function () {
+                var length = 0;
+                var type = null;
+                this.name = 'PeopleAggr';
+                this.onAdd = function (rec) {
+                    length = rec.Name.length;
+                    type = rec.Gendre == "Male" ? 0 : 1;
+                }
+                this.saveJson = function (limit) {
+                    return { name: length, gendre: type };
+                }
+            });
+            var id1 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            aggr.onAdd(base.store('People')[0]);
+
+            assert.equal(aggr.saveJson().name, 4);
+            assert.equal(aggr.saveJson().gendre, 0);
+        })
+    });
+
+    describe('OnDelete Tests', function () {
+        it('should execute the onDelete function and return 1', function () {
+            var aggr = new qm.StreamAggr(base, new function () {
+                var numberOfDeleted = 0;
+                this.name = 'deleteAggr';
+                this.onAdd = function (rec) {
+                    return;
+                }
+                this.onDelete = function (rec) {
+                    numberOfDeleted++;
+                }
+                this.saveJson = function (limit) {
+                    return { deleted: numberOfDeleted };
+                }
+            });
+            var id1 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            aggr.onDelete(base.store('People')[0]);
+
+            assert.equal(aggr.saveJson().deleted, 1);
+        })
+    });
+});
+
+describe.only('Time Series Window Buffer Tests', function () {
+    var base = undefined;
+    var store = undefined;
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'Function',
+                fields: [
+                    { name: 'Time', type: 'datetime' },
+                    { name: 'Value', type: 'float' }
+                ]
+            }]
+        });
+        store = base.store('Function');
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    describe('Constructor Tests', function () {
+        it('should construct the time series window buffer', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            assert.equal(sa.saveJson().Time, '1601-01-01T00:00:00.0');
+            assert.equal(sa.saveJson().Val, 0);
+        })
+        it.skip('should throw an exception if the keys timestamp and value are missing', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                winsize: 2000
+            };
+            assert.throws(function () {
+                var sa = store.addStreamAggr(aggr);
+            });
+        })
+        it.skip('should throw an exception if the key store is missing', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            assert.throws(function () {
+                var sa = store.addStreamAggr(aggr);
+            })
+        })
+    });
+    describe('Adding Records Tests', function () {
+        it('should update the time and value of the stream aggregate', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            var json = sa.saveJson();
+            assert.equal(json.Time, '2015-06-10T14:13:32.0');
+            assert.equal(json.Val, 1);
+
+            store.push({ Time: '2015-06-10T14:17:45.0', Value: 2 });
+
+            json = sa.saveJson();
+            assert.equal(json.Time, '2015-06-10T14:17:45.0');
+            assert.equal(json.Val, 2);
+        })
+    });
+    describe('GetFloatVector Tests', function () {
+        it('should return the float vector of values in the buffer', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+
+            var vec = sa.getFloatVector();
+            assert.equal(vec[0], 1);
+            assert.equal(vec[1], 2);
+        })
+        it('should return an empty vector', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            var vec = sa.getFloatVector();
+            assert.equal(vec.length, 0);
+        })
+    });
+    describe('GetFloatLength, Tests', function () {
+        it('should return the length of the float vector containing values in the buffer', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+
+            var vec = sa.getFloatVector();
+            assert.equal(sa.getFloatLength(), 2);
+        })
+        it('should return 0 for an empty float vector', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            var vec = sa.getFloatVector();
+            assert.equal(sa.getFloatLength(), 0);
+        })
+    });
+    describe('GetFloatAt Tests', function () {
+        it('should return the value with the index 1', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            assert.equal(sa.getFloatAt(1), 2);
+        })
+        it('should throw an exception if the vector is empty', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            assert.throws(function () {
+                var val = sa.getFloat(0);
+            });
+        })
+    })
+    describe('GetTimestampVector Tests', function () {
+        it('should return a timestamp vector of dates in the buffer', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+
+            var vec = sa.getTimestampVector();
+            assert.equal(vec.length, 2);
+        })
+        it('should return an empty timestamp vector', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            var vec = sa.getTimestampVector();
+            assert.equal(vec.length, 0);
+        })
+    });
+    describe('GetTimestampLength Tests', function () {
+        it('should return the length of the timestamp vector', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            assert.equal(sa.getTimestampLength(), 2);
+        })
+        it('should return 0 for an empty timestamp vector', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            assert.equal(sa.getTimestampLength(), 0);
+        })
+    });
+    describe('GetTimestampAt Tests', function () {
+        it.skip('should return the timestamp with index 1', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            //TODO
+        })
+        it.skip('should throw an exception for an empty vector', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            assert.throws(function () {
+                var date = sa.getTimestampAt(0);
+            });
+        })
     })
 })
-
-
 

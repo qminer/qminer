@@ -138,20 +138,59 @@ public:
 	// ITm
 	//!- `num = sa.getTm()` -- returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)
 	JsDeclareFunction(getTm);
+
 	// IFltVec
 	//!- `num = sa.getFltLen()` -- returns a number (internal vector length) if sa implements the interface IFltVec.
-	JsDeclareFunction(getFltLen);
+	/**
+	* Gets the length of the value vector.
+	* @returns {number} The length of the value vector.
+	*/
+	//# exports.StreamAggr.prototype.getFloatLength = function () {};
+	JsDeclareFunction(getFloatLength);
+
 	//!- `num = sa.getFltAt(idx)` -- returns a number (element at index) if sa implements the interface IFltVec.
-	JsDeclareFunction(getFltAt);
+	/**
+	* Returns the value of the float vector at a specific index.
+	* @param {number} idx - The index.
+	* @returns {number} The value of the float vector at position idx.
+	*/
+	//# exports.StreamAggr.prototype.getFloatAt = function (idx) {};
+	JsDeclareFunction(getFloatAt);
+	
 	//!- `vec = sa.getFltV()` -- returns a dense vector if sa implements the interface IFltVec.
-	JsDeclareFunction(getFltV);
+	/**
+	* Gets the whole value vector of the buffer.
+	* @returns {module:la.Vector} The vector containing the values of the buffer.
+	*/
+	//# exports.StreamAggr.prototype.getFloatVector = function () {};
+	JsDeclareFunction(getFloatVector);
+
 	// ITmVec
 	//!- `num = sa.getTmLen()` -- returns a number (timestamp vector length) if sa implements the interface ITmVec.
-	JsDeclareFunction(getTmLen);
+	/**
+	* Gets the length of the timestamp vector.
+	* @returns {number} The length of the timestamp vector.
+	*/
+	//# exports.StreamAggr.prototype.getTimestampLength = function () {};
+	JsDeclareFunction(getTimestampLength);
+
 	//!- `num = sa.getTmAt(idx)` -- returns a number (windows timestamp at index) if sa implements the interface ITmVec.
-	JsDeclareFunction(getTmAt);
+	/**
+	* Gets the timestamp on the specific location in the buffer.
+	* @param {number} idx - The index.
+	* @returns {Object} The timestamp located on the idx position in the buffer.
+	*/
+	//# exports.StreamAggr.prototype.getTimestampAt = function (idx) {};
+	JsDeclareFunction(getTimestampAt);
+
 	//!- `vec = sa.getTmV()` -- returns a dense vector of windows timestamps if sa implements the interface ITmVec.
-	JsDeclareFunction(getTmV);
+	/**
+	* Gets the dense vector containing the windows timestamps.
+	* @returns {module:la.Vector} The vector containing the window timestamps.
+	*/
+	//# exports.StreamAggr.prototype.getTimestampVector = function () {};
+	JsDeclareFunction(getTimestampVector);
+	
 	// IFltTmIO
 	//!- `num = sa.getInFlt()` -- returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.
 	JsDeclareFunction(getInFlt);
