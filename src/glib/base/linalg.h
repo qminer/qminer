@@ -747,7 +747,7 @@ public:
 	template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void MultiplyT(const TPair<TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& x, const TVVec<TType, TSizeTy, ColMajor>& A, TVec<TType, TSizeTy>& y);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TType, TSizeTy>& x, TVec<TType, TSizeTy>& y);
+	inline static void MultiplyT(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVec<TNum<TType>, TSizeTy>& x, TVec<TNum<TType>, TSizeTy>& y);
 #ifdef BLAS
 	typedef enum { NOTRANS = 0, TRANS = 1 } TLinAlgBlasTranspose;
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
@@ -2110,13 +2110,13 @@ public:
 	// TEST Move to BLAS
 	// y := A' * x
 	template <class TType, class TSizeTy, bool ColMajor>
-	void TLinAlg::MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TType, TSizeTy>& x, TVec<TType, TSizeTy>& y) {
+	void TLinAlg::MultiplyT(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVec<TNum<TType>, TSizeTy>& x, TVec<TNum<TType>, TSizeTy>& y) {
 		if (y.Empty()) y.Gen(A.GetCols());
 		EAssert(A.GetRows() == x.Len() && A.GetCols() == y.Len());
-		int n = A.GetCols(), m = A.GetRows();
-		for (int i = 0; i < n; i++) {
+		TSizeTy n = A.GetCols(), m = A.GetRows();
+		for (TSizeTy i = 0; i < n; i++) {
 			y[i] = 0.0;
-			for (int j = 0; j < m; j++)
+			for (TSizeTy j = 0; j < m; j++)
 				y[i] += A(j, i) * x[j];
 		}
 	}
