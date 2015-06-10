@@ -827,7 +827,7 @@ namespace TQm {
 		if (RecCnt <= 0) {
 			return;
 		}
-		TUInt64V RecIds(RecCnt);
+		TUInt64V RecIds(RecCnt, 0);
 		for (int i = 0; i < RecCnt; i++) {
 			RecIds.Add(RecSet->GetRecId(i));
 		}
@@ -892,7 +892,7 @@ namespace TQm {
 
 	/// Initialize field location flags
 	void TStorePbBlob::InitDataFlags() {
-		// go over all the fields and remember if we use in-memory or blbb storage
+		// go over all the fields and remember if we use in-memory or blob storage
 		DataBlobP = false;
 		DataMemP = false;
 		for (int FieldId = 0; FieldId < GetFields(); FieldId++) {
