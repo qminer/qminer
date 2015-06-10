@@ -815,6 +815,12 @@ namespace TQm {
 		// TODO find records to delete
 	}
 
+	/// Perform defragmentation
+	void TStorePbBlob::Defrag() {
+		// TODO merge pages
+		// TODO remove empty pages
+	}
+
 	void TStorePbBlob::DeleteFirstNRecs(int Recs) {
 		PRecSet RecSet = GetAllRecs();
 		int RecCnt = RecSet->GetRecs();
