@@ -778,7 +778,7 @@ public:
 	inline static void Multiply(const TFltVV& A, const TVec<TIntFltKdV>& B, TFltVV& C);
 	// C:= A' * B
 	template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TKeyDat<TType, TSizeTy>, TSizeTy>& B, TVVec<TType, TSizeTy, ColMajor>& C);
+	inline static void MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TKeyDat<IndexType, TType>, TSizeTy>& B, TVVec<TType, TSizeTy, ColMajor>& C);
 	inline static void Multiply(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C, const int RowsA = -1);
 	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C);
 	inline static void Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C, const int RowsA = -1);
@@ -2447,7 +2447,7 @@ public:
 
 	// C:= A' * B
 	template <class IndexType, class TType, class TSizeTy, bool ColMajor>
-	void TLinAlg::MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TKeyDat<TType, TSizeTy>, TSizeTy>& B, TVVec<TType, TSizeTy, ColMajor>& C) {
+	void TLinAlg::MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TKeyDat<IndexType, TType>, TSizeTy>& B, TVVec<TType, TSizeTy, ColMajor>& C) {
 		// C = A' B = (B' A)'
 #ifdef INTEL
 		TTriple<TVec<IndexType, TSizeTy>, TVec<TInt, TSizeTy>, TVec<TType, TSizeTy>> BB;
