@@ -91,7 +91,21 @@
 
 *            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-*            { name: &quot;Gendre&quot;, type: &quot;string&quot; }
+*            { name: &quot;Gendre&quot;, type: &quot;string&quot; },
+
+*        ]
+
+*    },
+
+*    {
+
+*        name: &quot;Laser&quot;,
+
+*        fields: [
+
+*            { name: &quot;Time&quot;, type: &quot;datetime&quot; },
+
+*            { name: &quot;WaveLength&quot;, type: &quot;float&quot; }
 
 *        ]
 
@@ -121,9 +135,25 @@
 
 * }, &quot;People&quot;);
 
-* // create a new stream aggregator for &quot;People&quot; store: get gendre (with the JSON object)
+* // create a new stream aggregator for &quot;Laser&quot; store: timeseries window buffer (with the JSON object)
 
-* var aggr2 = new qm.StreamAggr(base, { type: , name: &#x27;gendreSeperator&#x27;, outStore: &#x27;People&#x27;, createStore: false}
+* var wavelength = {
+
+*     name: &quot;WaveLengthLaser&quot;,
+
+*     type: &quot;timeSeriesWinBuf&quot;,
+
+*     store: &quot;Laser&quot;,
+
+*     timestamp: &quot;Time&quot;,
+
+*     value: &quot;WaveLength&quot;,
+
+*     winsize: 10000
+
+* }
+
+* var sa = base.store(&quot;Laser&quot;).addStreamAggr(wavelength);
 
 */
 
@@ -268,6 +298,32 @@
 	*/
 
  exports.StreamAggr.prototype.getOutTimestampVector = function () {};
+
+/**
+
+	* Gets the number of records in the buffer.
+
+	* @returns {number} The number of records in the buffer.
+
+	*/
+
+ exports.StreamAggr.prototype.getNumberOfRecords = function () {};
+
+/**
+
+	* Returns the name of the stream aggregate.
+
+	*/
+
+ exports.StreamAggr.prototype.name = undefined;
+
+/**
+
+	* Returns a JSON object of the stream aggregate. Same as the method saveJson.
+
+	*/
+
+ exports.StreamAggr.prototype.val = undefined;
 
 </code></pre>
           </article>

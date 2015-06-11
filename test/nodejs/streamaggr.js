@@ -703,7 +703,7 @@ describe('Time Series Window Buffer Tests', function () {
             assert.equal(vec.length, 0);
         })
     });
-    describe.only('GetNumberOfRecords Tests', function () {
+    describe('GetNumberOfRecords Tests', function () {
         it('should return the number of records in the buffer', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
@@ -733,6 +733,35 @@ describe('Time Series Window Buffer Tests', function () {
             var sa = store.addStreamAggr(aggr);;
             assert.equal(sa.getNumberOfRecords(), 0);
         })
-    })
+    });
+    describe('Name Test', function () {
+        it('should return the name of the aggregate', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            assert.equal(sa.name, 'TimeSeriesWindowAggr');
+        })
+    });
+    describe('Val Test', function () {
+        it('should return the json object of the aggregate (same as saveJson)', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            assert.equal(sa.val.Time, '1601-01-01T00:00:00.0');
+            assert.equal(sa.val.Val, 0);
+        })
+    });
 })
 

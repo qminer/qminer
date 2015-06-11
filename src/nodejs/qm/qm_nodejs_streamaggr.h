@@ -45,7 +45,14 @@
 *        name: "People",
 *        fields: [
 *            { name: "Name", type: "string" },
-*            { name: "Gendre", type: "string" }
+*            { name: "Gendre", type: "string" },
+*        ]
+*    },
+*    {
+*        name: "Laser",
+*        fields: [
+*            { name: "Time", type: "datetime" },
+*            { name: "WaveLength", type: "float" }
 *        ]
 *    }]
 * });
@@ -60,8 +67,16 @@
 *        return { val: length };
 *    }
 * }, "People");
-* // create a new stream aggregator for "People" store: get gendre (with the JSON object)
-* var aggr2 = new qm.StreamAggr(base, { type: , name: 'gendreSeperator', outStore: 'People', createStore: false}
+* // create a new stream aggregator for "Laser" store: timeseries window buffer (with the JSON object)
+* var wavelength = {
+*     name: "WaveLengthLaser",
+*     type: "timeSeriesWinBuf",
+*     store: "Laser",
+*     timestamp: "Time",
+*     value: "WaveLength",
+*     winsize: 10000
+* }
+* var sa = base.store("Laser").addStreamAggr(wavelength);
 */
 //# exports.StreamAggr = function (base, json, storeName) {};
 class TNodeJsSA : public node::ObjectWrap {
@@ -225,11 +240,25 @@ public:
 	JsDeclareFunction(getOutTimestampVector);
 
 	//!- `num = sa.getN()` -- returns a number of records in the input buffer if sa implements the interface IFltTmIO.
+	/**
+	* Gets the number of records in the buffer.
+	* @returns {number} The number of records in the buffer.
+	*/
+	//# exports.StreamAggr.prototype.getNumberOfRecords = function () {};
 	JsDeclareFunction(getNumberOfRecords);
 
 	//!- `str = sa.name` -- returns the name (unique) of the stream aggregate
+	/**
+	* Returns the name of the stream aggregate.
+	*/
+	//# exports.StreamAggr.prototype.name = undefined;
 	JsDeclareProperty(name);
+
 	//!- `objJSON = sa.val` -- same as sa.saveJson(-1)
+	/**
+	* Returns a JSON object of the stream aggregate. Same as the method saveJson.
+	*/
+	//# exports.StreamAggr.prototype.val = undefined;
 	JsDeclareProperty(val);
 };
 

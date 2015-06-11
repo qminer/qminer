@@ -29,7 +29,14 @@
 *        name: "People",
 *        fields: [
 *            { name: "Name", type: "string" },
-*            { name: "Gendre", type: "string" }
+*            { name: "Gendre", type: "string" },
+*        ]
+*    },
+*    {
+*        name: "Laser",
+*        fields: [
+*            { name: "Time", type: "datetime" },
+*            { name: "WaveLength", type: "float" }
 *        ]
 *    }]
 * });
@@ -44,8 +51,16 @@
 *        return { val: length };
 *    }
 * }, "People");
-* // create a new stream aggregator for "People" store: get gendre (with the JSON object)
-* var aggr2 = new qm.StreamAggr(base, { type: , name: 'gendreSeperator', outStore: 'People', createStore: false}
+* // create a new stream aggregator for "Laser" store: timeseries window buffer (with the JSON object)
+* var wavelength = {
+*     name: "WaveLengthLaser",
+*     type: "timeSeriesWinBuf",
+*     store: "Laser",
+*     timestamp: "Time",
+*     value: "WaveLength",
+*     winsize: 10000
+* }
+* var sa = base.store("Laser").addStreamAggr(wavelength);
 */
  exports.StreamAggr = function (base, json, storeName) {};
 /**
@@ -118,3 +133,16 @@
 	* @returns {module:la.Vector} The vector containing the leaving timestamps.
 	*/
  exports.StreamAggr.prototype.getOutTimestampVector = function () {};
+/**
+	* Gets the number of records in the buffer.
+	* @returns {number} The number of records in the buffer.
+	*/
+ exports.StreamAggr.prototype.getNumberOfRecords = function () {};
+/**
+	* Returns the name of the stream aggregate.
+	*/
+ exports.StreamAggr.prototype.name = undefined;
+/**
+	* Returns a JSON object of the stream aggregate. Same as the method saveJson.
+	*/
+ exports.StreamAggr.prototype.val = undefined;
