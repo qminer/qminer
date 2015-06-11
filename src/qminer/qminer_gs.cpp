@@ -558,7 +558,7 @@ void TInMemStorage::DelVals(int Vals) {
 		for (int i = 0; i < Vals; i++) {
 			ValV[i + FirstValOffset].Clr();
 		}
-		int blocks_to_delete = (FirstValOffset + Vals) / BlockSize;
+		int blocks_to_delete = ((int)FirstValOffset + Vals) / BlockSize;
 		int vals_to_delete = blocks_to_delete * BlockSize;
 
 		if (vals_to_delete > 0) {
@@ -2727,7 +2727,7 @@ void TStoreImpl::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
 	// delete records from index
 	for (int DelRecN = 0; DelRecN < DelRecIdV.Len(); DelRecN++) {
 		// report progress
-		if (DelRecN % 100 == 0) { TEnv::Logger->OnStatusFmt("    %d\r", DelRecN); }
+		if (DelRecN % 1000 == 0) { TEnv::Logger->OnStatusFmt("    %d\r", DelRecN); }
 		// what are we deleting now
 		const uint64 DelRecId = DelRecIdV[DelRecN];
 		// executed triggers before deletion

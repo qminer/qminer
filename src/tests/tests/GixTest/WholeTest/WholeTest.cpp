@@ -1495,7 +1495,7 @@ TEST(testTStorePbBlob, PerfCompare_StrAddDelete) {
 		PJsonVal json_str = json->GetObjKey("FieldString");
 		PJsonVal json_bool = json->GetObjKey("FieldBool");
 		for (int i = 0; i < rec_count; i++) {
-			if (i % 1000 == 0) printf("    %d\r", i);
+			//if (i % 1000 == 0) printf("    %d\r", i);
 			json_str->PutStr(TStr::Fmt("Stored value %d", i));
 			json_bool->PutBool(i % 7 == 3);
 			store->AddRec(json);
@@ -1524,7 +1524,7 @@ TEST(testTStorePbBlob, PerfCompare_StrAddDelete) {
 		PJsonVal json_bool = json->GetObjKey("FieldBool");
 		TVec<uint64> rec_ids;
 		for (int i = 0; i < rec_count; i++) {
-			if (i % 1000 == 0) printf("    %d\r", i);
+			//if (i % 1000 == 0) printf("    %d\r", i);
 			json_str->PutStr(TStr::Fmt("Stored value %d", i));
 			json_bool->PutBool(i % 7 == 3);
 			rec_ids.Add(store->AddRec(json));
