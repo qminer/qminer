@@ -771,5 +771,100 @@ describe('Time Series Window Buffer Tests', function () {
     });
 });
 
+describe.only('MovingWindowBufferCount Tests', function () {
+    var base = undefined;
+    var store = undefined;
+    var sa = undefined;
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'Function',
+                fields: [
+                    { name: 'Time', type: 'datetime' },
+                    { name: 'Value', type: 'float' }
+                ]
+            }]
+        });
+        store = base.store('Function');
 
+        var aggr = {
+            name: 'TimeSeriesWindowAggr',
+            type: 'timeSeriesWinBuf',
+            store: 'Function',
+            timestamp: 'Time',
+            value: 'Value',
+            winsize: 2000
+        }
+        sa = store.addStreamAggr(aggr);
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    describe('Constructor Tests', function () {
+        it('should construct a count window buffer stream aggregator', function () {
+            var aggr = {
+                name: 'CountAggr',
+                type: 'winBufCount',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            }
+            var count = store.addStreamAggr(aggr);
+            assert.equal(count.saveJson().Val, 0);
+            assert.equal(count.saveJson().Time, '1601-01-01T00:00:00.0');
+        })
+        // unexpected node crash
+        it.skip('should throw an exception if some key is missing in the definition', function () {
+            var aggr = {
+                name: 'CountAggr',
+                type: 'winBufCount',
+                store: 'Function',
+            }
+            assert.throws(function () {
+                var count = store.addStreamAggr(aggr);
+            })
+        })
+    });
+    describe('GetFloat Tests', function () {
+        it('should return the float value of the aggregate', function () {
+            var aggr = {
+                name: 'CountAggr',
+                type: 'winBufCount',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            }
+            var count = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            assert.equal(count.getFloat(), 3);
+        })
+        it('should return 0 if the buffer is empty', function () {
+            var aggr = {
+                name: 'CountAggr',
+                type: 'winBufCount',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            }
+            var count = store.addStreamAggr(aggr);
+            assert.equal(count.getFloat(), 0);
+        })
+    });
+    describe('GetTimestamp Tests', function () {
+        it('should return the timestamp of the aggregate', function () {
+            var aggr = {
+                name: 'CountAggr',
+                type: 'winBufCount',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            }
+            var count = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            assert.equal(count.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:33.2').getTime());
+        })
+    })
+})
 

@@ -32,9 +32,9 @@ void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "saveJson", _saveJson);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getInt", _getInt);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getFlt", _getFlt);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getTm", _getTm);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getInteger", _getInteger);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getFloat", _getFloat);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getTimestamp", _getTimestamp);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getFloatLength", _getFloatLength);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getFloatAt", _getFloatAt);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getFloatVector", _getFloatVector);
@@ -298,7 +298,7 @@ void TNodeJsSA::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(Args.Holder());
 }
 
-void TNodeJsSA::getInt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getInteger(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -312,7 +312,7 @@ void TNodeJsSA::getInt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetInt()));
 }
 
-void TNodeJsSA::getFlt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getFloat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -327,7 +327,7 @@ void TNodeJsSA::getFlt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetFlt()));
 }
 
-void TNodeJsSA::getTm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getTimestamp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 

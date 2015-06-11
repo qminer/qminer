@@ -152,13 +152,13 @@ public:
 	JsDeclareFunction(load);
 	// IInt
 	//!- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
-	JsDeclareFunction(getInt);
+	JsDeclareFunction(getInteger);
 	// IFlt
 	//!- `num = sa.getFlt()` -- returns a number if sa implements the interface IFlt
-	JsDeclareFunction(getFlt);
+	JsDeclareFunction(getFloat);
 	// ITm
 	//!- `num = sa.getTm()` -- returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)
-	JsDeclareFunction(getTm);
+	JsDeclareFunction(getTimestamp);
 
 	// IFltVec
 	//!- `num = sa.getFltLen()` -- returns a number (internal vector length) if sa implements the interface IFltVec.
