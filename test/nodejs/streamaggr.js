@@ -652,6 +652,56 @@ describe('Time Series Window Buffer Tests', function () {
             var vec = sa.getOutFloatVector();
             assert.equal(vec.length, 0);
         })
+    });
+    describe.only('GetOutTimestampVector Tests', function () {
+        it('should return the vector containing the leaving timestamps of the buffer', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            var vec = sa.getOutTimestampVector();
+            assert.equal(vec.length, 3);
+        })
+        it('should return an empty vector if the buffer is empty', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            var vec = sa.getOutTimestampVector();
+            assert.equal(vec.length, 0);
+        })
+        it('should return an empty vector if all records are all in the window', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
+            var vec = sa.getOutTimestampVector();
+            assert.equal(vec.length, 0);
+        })
     })
 })
 
