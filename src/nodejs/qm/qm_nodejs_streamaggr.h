@@ -121,14 +121,20 @@ public:
 
 	//!- `sa = sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` and returns self
 	/**
-	* Executes the function when a record is the store is updated.
+	* Executes the function when a record in the store is updated.
 	* @param {module:qmRecord} rec - The updated record given to the stream aggregator.
-	* @return {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.
+	* @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.
 	*/
 	//# exports.StreamAggr.prototype.onUpdate = function (rec) {};
 	JsDeclareFunction(onUpdate);
 
 	//!- `sa = sa.onDelete(rec)` -- executes onDelete function given an input record `rec` and returns self
+	/**
+	* Executes the function when a record in the store is deleted.
+	* @param {module:qm.Record} rec - The deleted record given to the stream aggregator.
+	* @returns {module:qm.StreamAggr} Self. The values in the stream aggregator are changed as defined in the inner onDelete function.
+	*/
+	//# exports.StreamAggr.prototype.onDelete = function (rec) {};
 	JsDeclareFunction(onDelete);
 	
 	//!- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate

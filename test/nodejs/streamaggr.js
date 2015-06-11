@@ -314,6 +314,7 @@ describe('Time Series Window Buffer Tests', function () {
             assert.equal(sa.saveJson().Time, '1601-01-01T00:00:00.0');
             assert.equal(sa.saveJson().Val, 0);
         })
+        // unexpected node exit
         it.skip('should throw an exception if the keys timestamp and value are missing', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
@@ -325,6 +326,7 @@ describe('Time Series Window Buffer Tests', function () {
                 var sa = store.addStreamAggr(aggr);
             });
         })
+        // unexpected node exit
         it.skip('should throw an exception if the key store is missing', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
@@ -470,6 +472,9 @@ describe('Time Series Window Buffer Tests', function () {
 
             var vec = sa.getTimestampVector();
             assert.equal(vec.length, 2);
+            assert.equal(vec[0] - 11644473600000, new Date('2015-06-10T14:13:32.0').getTime());
+            assert.equal(vec[1] - 11644473600000, new Date('2015-06-10T14:13:33.0').getTime());
+
         })
         it('should return an empty timestamp vector', function () {
             var aggr = {
@@ -514,7 +519,7 @@ describe('Time Series Window Buffer Tests', function () {
         })
     });
     describe('GetTimestampAt Tests', function () {
-        it.skip('should return the timestamp with index 1', function () {
+        it('should return the timestamp with index 1', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -526,7 +531,8 @@ describe('Time Series Window Buffer Tests', function () {
             var sa = store.addStreamAggr(aggr);
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
-            //TODO
+            assert.equal(sa.getTimestampAt(0) - 11644473600000, new Date('2015-06-10T14:13:32.0').getTime());
+            assert.equal(sa.getTimestampAt(1) - 11644473600000, new Date('2015-06-10T14:13:33.0').getTime());
         })
         // throws a C++ exception
         it.skip('should throw an exception for an empty vector', function () {
@@ -573,7 +579,7 @@ describe('Time Series Window Buffer Tests', function () {
         })
     });
     describe('GetInTimestamp Tests', function () {
-        it.skip('should return the newest timestamp in the buffer', function () {
+        it('should return the newest timestamp in the buffer', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -585,7 +591,7 @@ describe('Time Series Window Buffer Tests', function () {
             var sa = store.addStreamAggr(aggr);
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
-            assert.equal(sa.getInTimestamp(), '2015-06-10T14:13:33.0'); //TODO
+            assert.equal(sa.getInTimestamp() - 11644473600000, new Date('2015-06-10T14:13:33.0').getTime());
         })
         it('should throw an exception for an empty buffer', function () {
             var aggr = {
@@ -763,5 +769,7 @@ describe('Time Series Window Buffer Tests', function () {
             assert.equal(sa.val.Val, 0);
         })
     });
-})
+});
+
+
 
