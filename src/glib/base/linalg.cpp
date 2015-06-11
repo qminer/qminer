@@ -6,8 +6,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 #include "bd.h"
-#include "base.h"
-
+//#include "base.h"
+#ifdef LAPACKE
+#include "MKLfunctions.h"
+#endif
 
 #ifdef EIGEN
 #include <Eigen/Dense>
@@ -660,7 +662,7 @@ void TNumericalStuff::DualLeastSquares(const TFltVV& A, const TFltV& b, const do
 }
 
 void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps) {
-#ifdef BLAS
+#if defined(BLAS) && defined(LAPACKE)
 	EAssertR(A.GetRows() == A.GetCols(), "A should be a square matrix to compute eigenvalues!");
 
 	TFltVV A1 = A;
