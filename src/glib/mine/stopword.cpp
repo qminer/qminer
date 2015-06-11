@@ -539,10 +539,16 @@ void TSwSet::AddWord(const TStr& WordStr){
   }
 }
 
-void TSwSet::LoadFromFile(const TStr& FNm) {
+void TSwSet::LoadFromFile(const TStr& FNm, const TBool& ClearStopWords) {
+	if (!TFile::Exists(FNm)){
+		printf("Stop Word File %s Does not Exist", FNm.CStr());
+	}
+	if (ClearStopWords.Val){
+		SwStrH.Clr(); 
+	}
     TStr FileStr = TStr::LoadTxt(FNm);
-    FileStr.DelChAll('\r');
-    TStrV WordV; FileStr.SplitOnAllCh('\n', WordV);
+	//Stop words are seperated by newline or tab
+    TStrV WordV; FileStr.SplitOnAllAnyCh("\n\r\t", WordV);
     for (int WordN = 0; WordN < WordV.Len(); WordN++) {
         const TStr& WordStr = WordV[WordN];
         if (!IsIn(WordStr)) { AddWord(WordStr); }

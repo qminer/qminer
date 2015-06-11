@@ -2254,7 +2254,7 @@ namespace THoeffding {
       }
       if (JsonParams->IsObjKey("maxNodes") &&
          JsonParams->GetObjKey("maxNodes")->IsNum()) {
-         MxNodes = JsonParams->GetObjNum("maxNodes");
+         MxNodes = (int)JsonParams->GetObjNum("maxNodes");
          // printf("MxNodes = %d\n", MxNodes);
       }
       if (JsonParams->IsObjKey("conceptDriftP") &&
@@ -2344,7 +2344,7 @@ namespace THoeffding {
       // InitN, the number of examples for mean value to "stabilize" 
       if (JsonParams->IsObjKey("phInit") &&
          JsonParams->GetObjKey("phInit")->IsNum()) {
-         PhInitN = JsonParams->GetObjNum("phInit");
+         PhInitN = (int)JsonParams->GetObjNum("phInit");
          EAssertR(PhInitN >= 0,
             "JSON config error: phInit must be nonnegative");
       }

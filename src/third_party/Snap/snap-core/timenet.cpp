@@ -391,7 +391,7 @@ PTimeNet TTimeNet::LoadArxiv(const TStr& PaperFNm, const TStr& CiteFNm) {
   int N = 0, DuplicateNode = 0;
   while (! feof(PprF)) {
     Line[0] = 0;
-    fgets(Line, 1024, PprF);
+	EAssert(fgets(Line, 1024, PprF) != NULL);
     if (strlen(Line) == 0 || Line[0] == '#') continue;
     Line[strlen(Line)-1] = 0; // delete trailing '\n'
     TStr(Line).SplitOnWs(StrV);  IAssert(StrV.Len() == 2);
@@ -417,7 +417,7 @@ PTimeNet TTimeNet::LoadArxiv(const TStr& PaperFNm, const TStr& CiteFNm) {
   THash<TInt, TSecTm> NIdToTimeH;
   while (! feof(CiteF)) {
     Line[0] = 0;
-    fgets(Line, 1024, CiteF);
+	EAssert(fgets(Line, 1024, CiteF) != NULL);
     if (strlen(Line) == 0 || Line[0] == '#') continue;
     Line[strlen(Line)-1] = 0; // delete trailing '\n'
     TStr(Line).SplitOnWs(StrV);  IAssert(StrV.Len() == 2);
@@ -488,10 +488,10 @@ PTimeNet TTimeNet::LoadPatents(const TStr& PatentFNm, const TStr& CiteFNm) {
   TStrV ColV;
   char Line [1024];
   FILE *PatF = fopen(PatentFNm.CStr(), "rt");
-  fgets(Line, 1024, PatF); // skip 1st line
+  EAssert(fgets(Line, 1024, PatF) != NULL); // skip 1st line
   while (! feof(PatF)) {
     Line[0] = 0;
-    fgets(Line, 1024, PatF);
+	EAssert(fgets(Line, 1024, PatF) != NULL);
     if (strlen(Line) == 0) break;
     TStr(Line).SplitOnAllCh(',', ColV, false);
     IAssert(ColV.Len() == 23);
@@ -509,10 +509,10 @@ PTimeNet TTimeNet::LoadPatents(const TStr& PatentFNm, const TStr& CiteFNm) {
   N = 0;  ExeTm.Tick();
   TStr SrcId, DstId;
   FILE *CiteF = fopen(CiteFNm.CStr(), "rt");
-  fgets(Line, 1024, CiteF); // skip 1st line
+  EAssert(fgets(Line, 1024, CiteF) != NULL); // skip 1st line
   while (! feof(CiteF)) {
     Line[0] = 0;
-    fgets(Line, 1024, CiteF);
+	EAssert(fgets(Line, 1024, CiteF) != NULL);
     if (strlen(Line) == 0) break;
     Line[strlen(Line)-1] = 0; // delete trailing '\n'
     TStr(Line).SplitOnCh(SrcId, ',', DstId);
@@ -569,7 +569,7 @@ PTimeNet TTimeNet::LoadAmazon(const TStr& StlFNm) {
   FILE *F = fopen(StlFNm.CStr(), "rt");
   while (! feof(F)) {
     memset(line, 0, 2024);
-    fgets(line, 2024, F);
+	EAssert(fgets(line, 2024, F) != NULL);
     if (strlen(line) == 0) break;
     TStr(line).SplitOnAllCh(',', ColV);
     const int SrcNId = ColV[0].GetInt();

@@ -1167,6 +1167,14 @@ TTm TTm::GetTmFromWebLogTimeStr(const TStr& TimeStr,
   while (ChN<TimeStrLen){
     ChA+=TimeStr[ChN]; ChN++;}
   TStr MSecStr=ChA;
+  ////// TODO: normalize to 3 digits (not a backward compatible change!)
+  //if (MSecStr.Len() > 3) {
+	 // MSecStr = MSecStr.GetSubStr(0, 2); 
+  //} else if (MSecStr.Len() == 1) {
+	 // MSecStr += "00"; 
+  //} else if (MSecStr.Len() == 2) {
+	 // MSecStr += "0";
+  //}
   // transform to numbers
   int HourN=HourStr.GetInt(0);
   int MinN=MinStr.GetInt(0);
@@ -1217,6 +1225,15 @@ TTm TTm::GetTmFromWebLogDateTimeStr(const TStr& DateTimeStr,
   while (ChN<DateTimeStrLen){
     ChA+=DateTimeStr[ChN]; ChN++;}
   TStr MSecStr=ChA;
+  ////// TODO: normalize to 3 digits (not a backward compatible change!)
+  //if (MSecStr.Len() > 3) {
+	 // MSecStr = MSecStr.GetSubStr(0, 2); 
+  //} else if (MSecStr.Len() == 1) {
+	 // MSecStr += "00"; 
+  //} else if (MSecStr.Len() == 2) {
+	 // MSecStr += "0";
+  //}
+
   // transform to numbers
   int YearN=YearStr.GetInt(-1);
   int MonthN=MonthStr.GetInt(-1);

@@ -9,13 +9,10 @@
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js');     //adds assert.run function
 var qm = require('qminer');
-qm.delLock();
-
-qm.config('qm.conf', true, 8080, 1024);
 
 // the database/store, from which we get the record set
 function TStore() {
-    this.base = qm.create('qm.conf', "", true);
+    this.base = new qm.Base({ mode: 'createClean' });
     this.base.createStore([{
         "name": "People",
         "fields": [
@@ -59,16 +56,16 @@ function TStore() {
         ]
     }]);
     // adding two persons
-    this.base.store("People").add({ "Name": "Carolina Fortuna", "Gender": "Female", $fq: 5 });
-    this.base.store("People").add({ "Name": "Blaz Fortuna", "Gender": "Male", $fq: 3 });
+    this.base.store("People").push({ "Name": "Carolina Fortuna", "Gender": "Female", $fq: 5 });
+    this.base.store("People").push({ "Name": "Blaz Fortuna", "Gender": "Male", $fq: 3 });
 
     // adding two movies
-    this.base.store("Movies").add({ "Title": "Every Day", "Plot": "This day really isn't all that different than every other day. Except today, Ned's gay son Jonah wants to go to a college party, his wife is bringing home their elderly father to live with them, and his outrageous boss seems to have become even more crazy and demanding than would even seem possible. As his wife tries to take care of her father reconnect with him, Ned tries to reconnect with Jonah, and then without trying, he seems to have formed a connection with his co-worker. If he can get through days like these, he should be able to get through anything else life throws at him. Ned and Jeannie: married 19 years. Ned has trouble with Garrett, his boss at the cable show he writes, and he's ill-at-ease with his older son Jonah's coming out and wanting to go to a high-school gay student society prom. Jeannie puts work on hold while she attends to Ernie, her sour and mean-spirited father whose ill health forces him to move in with them. While Jeannie taxis the boys, goes to one son's recital, sees to her father's needs, and fixes meals, Garrett assigns Ned to rewrite a script with Robin, an uninhibited, unattached colleague who offers no-strings fun. Can this family hold together while a chicken hawk circles Jonah, Robin inveigles Ned, and death hunts Ernie?", "Year": 2010, "Rating": 5.6, "Genres": ["Comedy", "Drama"], "Director": { "Name": "Levine Richard (III)", "Gender": "Unknown" }, "Actor": [{ "Name": "Beetem Chris", "Gender": "Male" }, { "Name": "Carp Stan", "Gender": "Male" }, { "Name": "Chan Albert M.", "Gender": "Male" }, { "Name": "Dennehy Brian", "Gender": "Male" }, { "Name": "Durell Jesse", "Gender": "Male" }, { "Name": "Farcher Daniel", "Gender": "Male" }, { "Name": "Fortgang Skyler", "Gender": "Male" }, { "Name": "Harbour David (I)", "Gender": "Male" }, { "Name": "Ingram Michael H.", "Gender": "Male" }, { "Name": "Izzard Eddie", "Gender": "Male" }, { "Name": "James Kahan", "Gender": "Male" }, { "Name": "Jones Tilky", "Gender": "Male" }, { "Name": "Kempner Matt", "Gender": "Male" }, { "Name": "Miller Ezra", "Gender": "Male" }, { "Name": "Orchestra Black Diamond", "Gender": "Male" }, { "Name": "Riddle George", "Gender": "Male" }, { "Name": "Routman Steve", "Gender": "Male" }, { "Name": "Schreiber Liev", "Gender": "Male" }, { "Name": "Yelsky Daniel", "Gender": "Male" }, { "Name": "Gard Cassidy", "Gender": "Female" }, { "Name": "Giancoli Bianca", "Gender": "Female" }, { "Name": "Gugino Carla", "Gender": "Female" }, { "Name": "Hahn Sabrina", "Gender": "Female" }, { "Name": "Hunt Helen (I)", "Gender": "Female" }, { "Name": "Miller June (I)", "Gender": "Female" }, { "Name": "Robledo Benita", "Gender": "Female" }] });
-    this.base.store("Movies").add({ "Title": "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on", "Plot": "no plot available", "Year": 2006, "Rating": 5.8, "Genres": ["Action", "Comedy", "Family", "Fantasy"], "Director": { "Name": "Reyes Tony Y.", "Gender": "Unknown" }, "Actor": [{ "Name": "Aquitania Antonio", "Gender": "Male" }, { "Name": "Ballesteros Paolo", "Gender": "Male" }, { "Name": "Bayola Wally", "Gender": "Male" }, { "Name": "Casimiro Jr. Bayani", "Gender": "Male" }, { "Name": "de Leon Joey", "Gender": "Male" }, { "Name": "Forbes BJ", "Gender": "Male" }, { "Name": "Ignacio Levi", "Gender": "Male" }, { "Name": "K. Allan", "Gender": "Male" }, { "Name": "Lapid Jr. Jess", "Gender": "Male" }, { "Name": "Manalo Jose", "Gender": "Male" }, { "Name": "Salas Paul", "Gender": "Male" }, { "Name": "Santos Jimmy (I)", "Gender": "Male" }, { "Name": "Sotto Gian", "Gender": "Male" }, { "Name": "Sotto Oyo Boy", "Gender": "Male" }, { "Name": "Sotto Tito", "Gender": "Male" }, { "Name": "Sotto Vic", "Gender": "Male" }, { "Name": "V. Michael (I)", "Gender": "Male" }, { "Name": "Zamora Ramon", "Gender": "Male" }, { "Name": "Alano Alyssa", "Gender": "Female" }, { "Name": "Guanio Pia", "Gender": "Female" }, { "Name": "Hermosa Kristine", "Gender": "Female" }, { "Name": "Jones Angelica", "Gender": "Female" }, { "Name": "Loyzaga Bing", "Gender": "Female" }, { "Name": "Madrigal Ehra", "Gender": "Female" }, { "Name": "Parker J.C.", "Gender": "Female" }, { "Name": "Ponti Cassandra", "Gender": "Female" }, { "Name": "Ramirez Mikylla", "Gender": "Female" }, { "Name": "Rodriguez Ruby (I)", "Gender": "Female" }, { "Name": "Seguerra Aiza", "Gender": "Female" }, { "Name": "Sotto Ciara", "Gender": "Female" }, { "Name": "Toengi Giselle", "Gender": "Female" }, { "Name": "V. Ella", "Gender": "Female" }] });
+    this.base.store("Movies").push({ "Title": "Every Day", "Plot": "This day really isn't all that different than every other day. Except today, Ned's gay son Jonah wants to go to a college party, his wife is bringing home their elderly father to live with them, and his outrageous boss seems to have become even more crazy and demanding than would even seem possible. As his wife tries to take care of her father reconnect with him, Ned tries to reconnect with Jonah, and then without trying, he seems to have formed a connection with his co-worker. If he can get through days like these, he should be able to get through anything else life throws at him. Ned and Jeannie: married 19 years. Ned has trouble with Garrett, his boss at the cable show he writes, and he's ill-at-ease with his older son Jonah's coming out and wanting to go to a high-school gay student society prom. Jeannie puts work on hold while she attends to Ernie, her sour and mean-spirited father whose ill health forces him to move in with them. While Jeannie taxis the boys, goes to one son's recital, sees to her father's needs, and fixes meals, Garrett assigns Ned to rewrite a script with Robin, an uninhibited, unattached colleague who offers no-strings fun. Can this family hold together while a chicken hawk circles Jonah, Robin inveigles Ned, and death hunts Ernie?", "Year": 2010, "Rating": 5.6, "Genres": ["Comedy", "Drama"], "Director": { "Name": "Levine Richard (III)", "Gender": "Unknown" }, "Actor": [{ "Name": "Beetem Chris", "Gender": "Male" }, { "Name": "Carp Stan", "Gender": "Male" }, { "Name": "Chan Albert M.", "Gender": "Male" }, { "Name": "Dennehy Brian", "Gender": "Male" }, { "Name": "Durell Jesse", "Gender": "Male" }, { "Name": "Farcher Daniel", "Gender": "Male" }, { "Name": "Fortgang Skyler", "Gender": "Male" }, { "Name": "Harbour David (I)", "Gender": "Male" }, { "Name": "Ingram Michael H.", "Gender": "Male" }, { "Name": "Izzard Eddie", "Gender": "Male" }, { "Name": "James Kahan", "Gender": "Male" }, { "Name": "Jones Tilky", "Gender": "Male" }, { "Name": "Kempner Matt", "Gender": "Male" }, { "Name": "Miller Ezra", "Gender": "Male" }, { "Name": "Orchestra Black Diamond", "Gender": "Male" }, { "Name": "Riddle George", "Gender": "Male" }, { "Name": "Routman Steve", "Gender": "Male" }, { "Name": "Schreiber Liev", "Gender": "Male" }, { "Name": "Yelsky Daniel", "Gender": "Male" }, { "Name": "Gard Cassidy", "Gender": "Female" }, { "Name": "Giancoli Bianca", "Gender": "Female" }, { "Name": "Gugino Carla", "Gender": "Female" }, { "Name": "Hahn Sabrina", "Gender": "Female" }, { "Name": "Hunt Helen (I)", "Gender": "Female" }, { "Name": "Miller June (I)", "Gender": "Female" }, { "Name": "Robledo Benita", "Gender": "Female" }] });
+    this.base.store("Movies").push({ "Title": "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on", "Plot": "no plot available", "Year": 2006, "Rating": 5.8, "Genres": ["Action", "Comedy", "Family", "Fantasy"], "Director": { "Name": "Reyes Tony Y.", "Gender": "Unknown" }, "Actor": [{ "Name": "Aquitania Antonio", "Gender": "Male" }, { "Name": "Ballesteros Paolo", "Gender": "Male" }, { "Name": "Bayola Wally", "Gender": "Male" }, { "Name": "Casimiro Jr. Bayani", "Gender": "Male" }, { "Name": "de Leon Joey", "Gender": "Male" }, { "Name": "Forbes BJ", "Gender": "Male" }, { "Name": "Ignacio Levi", "Gender": "Male" }, { "Name": "K. Allan", "Gender": "Male" }, { "Name": "Lapid Jr. Jess", "Gender": "Male" }, { "Name": "Manalo Jose", "Gender": "Male" }, { "Name": "Salas Paul", "Gender": "Male" }, { "Name": "Santos Jimmy (I)", "Gender": "Male" }, { "Name": "Sotto Gian", "Gender": "Male" }, { "Name": "Sotto Oyo Boy", "Gender": "Male" }, { "Name": "Sotto Tito", "Gender": "Male" }, { "Name": "Sotto Vic", "Gender": "Male" }, { "Name": "V. Michael (I)", "Gender": "Male" }, { "Name": "Zamora Ramon", "Gender": "Male" }, { "Name": "Alano Alyssa", "Gender": "Female" }, { "Name": "Guanio Pia", "Gender": "Female" }, { "Name": "Hermosa Kristine", "Gender": "Female" }, { "Name": "Jones Angelica", "Gender": "Female" }, { "Name": "Loyzaga Bing", "Gender": "Female" }, { "Name": "Madrigal Ehra", "Gender": "Female" }, { "Name": "Parker J.C.", "Gender": "Female" }, { "Name": "Ponti Cassandra", "Gender": "Female" }, { "Name": "Ramirez Mikylla", "Gender": "Female" }, { "Name": "Rodriguez Ruby (I)", "Gender": "Female" }, { "Name": "Seguerra Aiza", "Gender": "Female" }, { "Name": "Sotto Ciara", "Gender": "Female" }, { "Name": "Toengi Giselle", "Gender": "Female" }, { "Name": "V. Ella", "Gender": "Female" }] });
 
-    this.base.store("Basketball").add({ "Player": "Goran Dragiæ", "Score": [35, 12, 23] });
-    this.base.store("Basketball").add({ "Player": "Michael Jordan", "Score": [90, 100, 95] });
-    this.base.store("Basketball").add({ "Player": "Marko Miliæ", "Score": [50, 10, 10, 12] });
+    this.base.store("Basketball").push({ "Player": "Goran Dragiæ", "Score": [35, 12, 23] });
+    this.base.store("Basketball").push({ "Player": "Michael Jordan", "Score": [90, 100, 95] });
+    this.base.store("Basketball").push({ "Player": "Marko Miliæ", "Score": [50, 10, 10, 12] });
 
     this.close = function () {
         this.base.close();
@@ -82,14 +79,18 @@ describe('Record Set Tests', function () {
 
     var table;
     var recSet, recSet2, recSet3;
-    beforeEach(function () {
+    beforeEach(function (done) {
+    	this.timeout(5000);
         table = new TStore();
-        recSet = table.base.store("Movies").recs;
-        recSet2 = table.base.store("People").recs;
-        recSet3 = table.base.store("Basketball").recs;
+        recSet = table.base.store("Movies").allRecords;
+        recSet2 = table.base.store("People").allRecords;
+        recSet3 = table.base.store("Basketball").allRecords;
+        done();
     });
-    afterEach(function () {
+    afterEach(function (done) {
         table.close();
+        this.timeout(5000);
+        done();
     });
 
     describe('Length Test', function () {
@@ -435,24 +436,24 @@ describe('Record Set Tests', function () {
         })
     });
 
-    describe('DeleteRecs Tests', function () {
+    describe('DeleteRecords Tests', function () {
         it('should delete the records in recSet2, that are also in rs', function () {
             var rs = recSet2.clone();
             rs.filterById(2, 61);
 
-            recSet2.deleteRecs(rs);
+            recSet2.deleteRecords(rs);
             assert.equal(recSet2.length, 2);
             assert.equal(recSet2[0].Name, "Carolina Fortuna");
             assert.equal(recSet2[1].Name, "Blaz Fortuna");
         })
         it('should delete all the records in recSet2', function () {
             var rs = recSet2.clone();
-            recSet2.deleteRecs(rs);
+            recSet2.deleteRecords(rs);
             assert.equal(recSet2.length, 0);
         })
         it('should throw an exception, if parameter is not given', function () {
             assert.throws(function () {
-                recSet2.deleteRecs();
+                recSet2.deleteRecords();
             })
         })
     });
@@ -512,7 +513,7 @@ describe('Record Set Tests', function () {
         it('should return the intersection of two record sets', function () {
             var rs = recSet2.clone();
             rs.filterById(0, 1);
-            var rs2 = recSet2.setintersect(rs);
+            var rs2 = recSet2.setIntersect(rs);
 
             assert.equal(rs2.length, 2);
             assert.equal(rs2.store.name, "People");
@@ -522,7 +523,7 @@ describe('Record Set Tests', function () {
         it('should return an empty record set if parameter is empty', function () {
             var rs = recSet2.clone();
             rs.trunc(0);    // make the record set empty 
-            var rs2 = recSet2.setintersect(rs);
+            var rs2 = recSet2.setIntersect(rs);
 
             assert.equal(rs2.length, 0);
             assert.equal(rs2.store.name, "People");
@@ -530,14 +531,14 @@ describe('Record Set Tests', function () {
         it('should return an empty record set if the first record set is empty', function () {
             var rs = recSet2.clone();
             rs.trunc(0);    // make the record set empty
-            var rs2 = rs.setintersect(recSet2);
+            var rs2 = rs.setIntersect(recSet2);
 
             assert.equal(rs2.length, 0);
             assert.equal(rs2.store.name, "People");
         })
         it('should throw an exception if no parameter is given', function () {
             assert.throws(function () {
-                var rs = recSet2.setintersect();
+                var rs = recSet2.setIntersect();
             })
         })
     });
@@ -549,7 +550,7 @@ describe('Record Set Tests', function () {
             rs.filterById(0, 0);
             rs2.filterById(1, 1);
 
-            var rs3 = rs.setunion(rs2);
+            var rs3 = rs.setUnion(rs2);
             assert.equal(rs3.length, 2);
             assert.equal(rs3.store.name, "People");
             assert.equal(rs3[0].Name, "Carolina Fortuna");
@@ -558,7 +559,7 @@ describe('Record Set Tests', function () {
         it('should return the same record set if parameter is empty', function () {
             var rs = recSet2.clone();
             rs.trunc(0);
-            var rs2 = recSet2.setunion(rs);
+            var rs2 = recSet2.setUnion(rs);
 
             assert.equal(rs2.length, 62);
             assert.equal(rs2.store.name, "People");
@@ -566,14 +567,14 @@ describe('Record Set Tests', function () {
         it('should return the same record set in parameter, if first record set is empty', function () {
             var rs = recSet2.clone();
             rs.trunc(0);
-            var rs2 = rs.setunion(recSet2);
+            var rs2 = rs.setUnion(recSet2);
 
             assert.equal(rs2.length, 62);
             assert.equal(rs2.store.name, "People");
         })
         it('should throw an exception, if no parameter is given', function () {
             assert.throws(function () {
-                var rs = recSet2.setunion();
+                var rs = recSet2.setUnion();
             })
         })
     });
@@ -582,7 +583,7 @@ describe('Record Set Tests', function () {
         it('should return the difference of two record sets', function () {
             var rs = recSet2.clone();
             rs.filterById(2, 62);
-            var rs2 = recSet2.setdiff(rs);
+            var rs2 = recSet2.setDiff(rs);
 
             assert.equal(rs2.length, 2);
             assert.equal(rs2.store.name, "People");
@@ -596,7 +597,7 @@ describe('Record Set Tests', function () {
             rs.filterById(0, 1);
             rs2.filterById(2, 62);
 
-            var rs3 = rs.setdiff(rs2);
+            var rs3 = rs.setDiff(rs2);
 
             assert.equal(rs3.length, 2);
             assert.equal(rs3.store.name, "People");
@@ -605,50 +606,50 @@ describe('Record Set Tests', function () {
         })
         it('should throw an exception', function () {
             assert.throws(function () {
-                var rs = recSet2.setdiff();
+                var rs = recSet2.setDiff();
             })
         })
     });
 
-    describe('GetVec Tests', function () {
+    describe('GetVector Tests', function () {
         it('should return the vector containing the names of people', function () {
-            var arr = recSet2.getVec("Name");
+            var arr = recSet2.getVector("Name");
             assert.equal(arr.length, 62);
             assert.equal(arr[0], "Carolina Fortuna");
             assert.equal(arr[1], "Blaz Fortuna");
         })
         it('should return the vector containing the years of movies', function () {
-            var arr = recSet.getVec("Year");
+            var arr = recSet.getVector("Year");
             assert.equal(arr.length, 2);
             assert.equal(arr[0], 2010);
             assert.equal(arr[1], 2006);
         })
         it('should throw an exception, if parameter is not a legit field', function () {
             assert.throws(function () {
-                var arr = recSet2.getVec("DateOfBirth");
+                var arr = recSet2.getVector("DateOfBirth");
             })
         })
         it('should throw an exception, if the parameter field is of vector type', function () {
             assert.throws(function () {
-                var arr = recSet3.getVec("Score");
+                var arr = recSet3.getVector("Score");
             })
         })
     });
 
     describe('GetMat Tests', function () {
         it('should return the matrix containing the scores of basketball players', function () {
-            var mat = recSet3.trunc(2).getMat("Score");
+            var mat = recSet3.trunc(2).getMatrix("Score");
             assert.equal(mat.rows, 3);
             assert.equal(mat.cols, 2);
             assert.equal(mat.at(1, 1), 100);
         })
         it('should throw an exception if the field type is not numeric', function () {
             assert.throws(function () {
-                var mat = recSet3.getMat("Player");
+                var mat = recSet3.getMatrix("Player");
             })
         })
         it('returns a matrix with 1 row and 2 columns for recSet and field "Year"', function () {
-            var mat = recSet.getMat("Year");
+            var mat = recSet.getMatrix("Year");
             assert.equal(mat.rows, 1);
             assert.equal(mat.cols, 2);
             assert.equal(mat.at(0, 0), 2010);
@@ -656,12 +657,12 @@ describe('Record Set Tests', function () {
         })
         it('should throw an exception, if the field values are of different length', function () {
             assert.throws(function () {
-                var mat = recSet3.getMat("Score");
+                var mat = recSet3.getMatrix("Score");
             })
         })
         it('should throw an exception, if the parameter is a non-existing field', function () {
             assert.throws(function () {
-                var mat = recSet3.getMat("Game");
+                var mat = recSet3.getMatrix("Game");
             })
         })
     })

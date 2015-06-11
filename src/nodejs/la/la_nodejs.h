@@ -12,4 +12,3 @@
 #include "la_vector_nodejs.h"
 
 #endif
-

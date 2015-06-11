@@ -10,14 +10,7 @@ console.log(__filename)
 var assert = require('assert');
 var qm = require('qminer');
 
-
-//describe('Record test, old', function () {
-//	it('should survive', function () {
-		
-qm.delLock();
-
-qm.config('qm.conf', true, 8080, 1024);
-var base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
+var base = new qm.Base({ mode: 'createClean' });
 
 console.log("Record", "Testing record serialization/deserilization/by value");
 
@@ -58,7 +51,7 @@ var rec = {
     Flt: 1.23
 };
 // check addition
-assert.equal(RecordTest.add(rec), 0, "RecordTest.add");
+assert.equal(RecordTest.push(rec), 0, "RecordTest.add");
 // check getters
 var recByRef = RecordTest[0];
 assert(recByRef != null, "RecordTest[0]");
@@ -83,7 +76,7 @@ recByRef.Flt = 1.24;
 assert.equal(recByRef.Flt, 1.24, "recByRef.Flt");
 
 // check by value 
-var recByVal = RecordTest.newRec(rec);
+var recByVal = RecordTest.newRecord(rec);
 assert(recByVal != null, "RecordTest.newRec(rec)");
 assert.equal(recByVal.Int, 123, "recByVal.Int");
 assert.equal(recByVal.UInt64, 123, "recByVal.UInt64");

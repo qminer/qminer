@@ -3,10 +3,45 @@ var qm = require('../../indexRelease.js');
 var analytics = qm.analytics;
 var fs = require('../../indexRelease.js').fs;
 
-qm.delLock();
-qm.config('qm.conf', true, 8080, 1024);
-
-var base = qm.create('qm.conf', 'movies.def', true); // 2nd arg: schema, 3rd arg: clear db folder = true
+var base = new qm.Base({ 
+	mode: "createClean",
+	schema: [
+	    { 
+	        "name": "People", 
+	        "fields": [ 
+	            { "name": "Name", "type": "string", "primary": true }, 
+	            { "name": "Gender", "type": "string", "shortstring": true } 
+	        ], 
+	        "joins": [
+	            { "name": "ActedIn", "type": "index", "store": "Movies", "inverse" : "Actor" },
+	            { "name": "Directed", "type": "index", "store": "Movies", "inverse" : "Director" }
+	        ],
+	        "keys": [
+	            { "field": "Gender", "type": "value" } 
+	        ]
+	    }, 
+	    { 
+	        "name": "Movies", 
+	        "fields": [ 
+	            { "name": "Title", "type": "string" }, 
+	            { "name": "Plot", "type": "string", "store" : "cache" }, 
+	            { "name": "Year", "type": "int" }, 
+	            { "name": "Rating", "type": "float" }, 
+	            { "name": "Genres", "type": "string_v", "codebook" : true }
+	        ], 
+	        "joins": [ 
+	            { "name": "Actor", "type": "index", "store": "People", "inverse" : "ActedIn" }, 
+	            { "name": "Director", "type": "field", "store": "People", "inverse" : "Directed" } 
+	        ], 
+	        "keys": [ 
+	            { "field": "Title", "type": "value" }, 
+	            { "field": "Title", "name": "TitleTxt", "type": "text", "vocabulary" : "voc_01" }, 
+	            { "field": "Plot", "type": "text", "vocabulary" : "voc_01" },
+	            { "field": "Genres", "type": "value" }
+	        ] 
+	    }
+	]
+});
 
 // Prepare shortcuts to people and movies store
 var People = base.store("People");
@@ -59,7 +94,7 @@ var ratingModel = analytics.loadBatchModel(base, fs.openRead("./sandbox/movies/r
 
 
 // Test de-serialized models on two new movies
-var newHorrorMovie = Movies.newRec({
+var newHorrorMovie = Movies.newRecord({
     "Title":"Unnatural Selection",
     "Plot":"When corpses are found with internal organs missing, Liz Shaw and P.R.O.B.E. " +
            "investigate a defunct government project from the 1970s that aimed to predict " +
@@ -90,7 +125,7 @@ var newHorrorMovie = Movies.newRec({
 });
 console.log(JSON.stringify(genreModel.predict(newHorrorMovie)));
 console.log(JSON.stringify(ratingModel.predict(newHorrorMovie)) + " vs. " + newHorrorMovie.Rating);
-var newComedyMovie = Movies.newRec({
+var newComedyMovie = Movies.newRecord({
     "Title":"Die Feuerzangenbowle", 
     "Plot":"Hans Pfeiffer and some of his friends are drinking \"Feuerzangenbowle\". Talking " +
            "about their school-time they discover that Hans never was at a regular school and " +
