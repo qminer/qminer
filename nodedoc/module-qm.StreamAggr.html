@@ -50,14 +50,17 @@
                     <dt><a href="module-qm.StreamAggr.html#getInFloat">getInFloat()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.StreamAggr.html#getInTimestamp">getInTimestamp()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.StreamAggr.html#getInTimestamp">getInTimestamp()</a></dt>
+                    <dt><a href="module-qm.StreamAggr.html#getOutFloatVector">getOutFloatVector()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.StreamAggr.html#getOutFloatVector">getOutFloatVector()</a></dt>
+                    <dt><a href="module-qm.StreamAggr.html#getOutTimestampVector">getOutTimestampVector()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#getTimestampAt">getTimestampAt(idx)</a></dt>
@@ -66,13 +69,13 @@
                     <dt><a href="module-qm.StreamAggr.html#getTimestampLength">getTimestampLength()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.StreamAggr.html#getTimestampVector">getTimestampVector()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.StreamAggr.html#getTimestampVector">getTimestampVector()</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.StreamAggr.html#onAdd">onAdd(rec)</a></dt>
                     <dd>
                     </dd>
@@ -261,6 +264,14 @@ var aggr2 = new qm.StreamAggr(base, { type: , name: &#x27;gendreSeperator&#x27;,
                 <dt>Returns</dt>
                 <dd>
                   <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the values that are leaving the buffer.</p>
+                </dd>
+              </dl>
+              <h3 id="getOutTimestampVector"><span class="symbol-name">getOutTimestampVector</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <p>Gets a vector containing the timestamps that are leaving the buffer.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the leaving timestamps.</p>
                 </dd>
               </dl>
               <h3 id="getTimestampAt"><span class="symbol-name">getTimestampAt</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>

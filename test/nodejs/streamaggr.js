@@ -653,7 +653,7 @@ describe('Time Series Window Buffer Tests', function () {
             assert.equal(vec.length, 0);
         })
     });
-    describe.only('GetOutTimestampVector Tests', function () {
+    describe('GetOutTimestampVector Tests', function () {
         it('should return the vector containing the leaving timestamps of the buffer', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
@@ -701,6 +701,37 @@ describe('Time Series Window Buffer Tests', function () {
             store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
             var vec = sa.getOutTimestampVector();
             assert.equal(vec.length, 0);
+        })
+    });
+    describe.only('GetNumberOfRecords Tests', function () {
+        it('should return the number of records in the buffer', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            assert.equal(sa.getNumberOfRecords(), 2);
+        })
+        it('should return 0 if the buffer contains no records', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);;
+            assert.equal(sa.getNumberOfRecords(), 0);
         })
     })
 })

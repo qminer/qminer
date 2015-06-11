@@ -217,7 +217,13 @@ public:
 	JsDeclareFunction(getOutFloatVector);
 
 	//!- `vec = sa.getOutTmV()` -- returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.
+	/**
+	* Gets a vector containing the timestamps that are leaving the buffer.
+	* @returns {module:la.Vector} The vector containing the leaving timestamps.
+	*/
+	//# exports.StreamAggr.prototype.getOutTimestampVector = function () {};
 	JsDeclareFunction(getOutTimestampVector);
+
 	//!- `num = sa.getN()` -- returns a number of records in the input buffer if sa implements the interface IFltTmIO.
 	JsDeclareFunction(getNumberOfRecords);
 

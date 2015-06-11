@@ -113,3 +113,8 @@
 	* @returns {module:la.Vector} The vector containing the values that are leaving the buffer.
 	*/
  exports.StreamAggr.prototype.getOutFloatVector = function () {};
+/**
+	* Gets a vector containing the timestamps that are leaving the buffer.
+	* @returns {module:la.Vector} The vector containing the leaving timestamps.
+	*/
+ exports.StreamAggr.prototype.getOutTimestampVector = function () {};
