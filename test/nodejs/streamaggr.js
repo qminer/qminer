@@ -771,7 +771,7 @@ describe('Time Series Window Buffer Tests', function () {
     });
 });
 
-describe.only('MovingWindowBufferCount Tests', function () {
+describe('MovingWindowBufferCount Tests', function () {
     var base = undefined;
     var store = undefined;
     var sa = undefined;
@@ -876,6 +876,184 @@ describe.only('MovingWindowBufferCount Tests', function () {
             var count = store.addStreamAggr(aggr);
             assert.equal(count.getTimestamp(), 0);
         })
+    });
+    describe('Property Tests', function () {
+        it('should return the name of the count aggregate', function () {
+            var aggr = {
+                name: 'CountAggr',
+                type: 'winBufCount',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            }
+            var count = store.addStreamAggr(aggr);
+            assert.equal(count.name, 'CountAggr');
+        })
+        it('should return the JSON object of the count aggregate', function () {
+            var aggr = {
+                name: 'CountAggr',
+                type: 'winBufCount',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            }
+            var count = store.addStreamAggr(aggr);
+            assert.equal(count.val.Time, '1601-01-01T00:00:00.0');
+            assert.equal(count.val.Val, 0);
+        })
+    })
+});
+
+describe('MovingWindowBufferSum Tests', function () {
+    var base = undefined;
+    var store = undefined;
+    var sa = undefined;
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'Function',
+                fields: [
+                    { name: 'Time', type: 'datetime' },
+                    { name: 'Value', type: 'float' }
+                ]
+            }]
+        });
+        store = base.store('Function');
+
+        var aggr = {
+            name: 'TimeSeriesWindowAggr',
+            type: 'timeSeriesWinBuf',
+            store: 'Function',
+            timestamp: 'Time',
+            value: 'Value',
+            winsize: 2000
+        }
+        sa = store.addStreamAggr(aggr);
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    describe('Constructor Tests', function () {
+        it('should construct a suma window buffer', function () {
+            var aggr = {
+                name: 'SumaAggr',
+                type: 'winBufSum',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var suma = store.addStreamAggr(aggr);
+            assert.equal(suma.saveJson().Time, '1601-01-01T00:00:00.0');
+            assert.equal(suma.saveJson().Val, 0);
+        })
+    });
+    describe('GetFloat Tests', function () {
+        it('should return the float of the only record in buffer', function () {
+            var aggr = {
+                name: 'SumaAggr',
+                type: 'winBufSum',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var suma = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            assert.equal(suma.getFloat(), 1);
+        })
+        it('should return 0 if the buffer is empty', function () {
+            var aggr = {
+                name: 'SumaAggr',
+                type: 'winBufSum',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var suma = store.addStreamAggr(aggr);
+            assert.equal(suma.getFloat(), 0);
+        })
+        it('should sum up all values in the window', function () {
+            var aggr = {
+                name: 'SumaAggr',
+                type: 'winBufSum',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var suma = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            assert.equal(suma.getFloat(), 6);
+        })
+        it('should sum up all the values except those, that are out of the window', function () {
+            var aggr = {
+                name: 'SumaAggr',
+                type: 'winBufSum',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var suma = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            assert.equal(suma.getFloat(), 9);
+        })
+    });
+    describe('GetTimestamp Tests', function () {
+        it('should return the only timestamp in buffer', function () {
+            var aggr = {
+                name: 'SumaAggr',
+                type: 'winBufSum',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var suma = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            assert.equal(suma.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:32.0').getTime());
+        })
+        it('should return the newest timestamp in buffer', function () {
+            var aggr = {
+                name: 'SumaAggr',
+                type: 'winBufSum',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var suma = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            assert.equal(suma.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:34.0').getTime());
+        })
+        it('should reutrn 0 if the buffer is empty', function () {
+            var aggr = {
+                name: 'SumaAggr',
+                type: 'winBufSum',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var suma = store.addStreamAggr(aggr);
+            assert.equal(suma.getTimestamp(), 0);
+        })
+    });
+    describe('Property Tests', function () {
+        it('should return the name of the suma aggregate', function () {
+            var aggr = {
+                name: 'SumaAggr',
+                type: 'winBufSum',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var suma = store.addStreamAggr(aggr);
+            assert.equal(suma.name, 'SumaAggr');
+        })
+        it('should return the JSON object of the suma aggregate', function () {
+            var aggr = {
+                name: 'SumaAggr',
+                type: 'winBufSum',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var suma = store.addStreamAggr(aggr);
+            assert.equal(suma.val.Time, '1601-01-01T00:00:00.0');
+            assert.equal(suma.val.Val, 0);
+        })
     })
 })
-
