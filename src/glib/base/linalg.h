@@ -683,53 +683,18 @@ public:
 	// Tested in other function
 	//A is rewritten in place with orthogonal matrix Q
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void QRbasis(TVVec<TType, TSizeTy, ColMajor>& A);/* {
-		TSizeTy m = A.GetRows(); TSizeTy n = A.GetCols(); TSizeTy k = A.GetCols();
-		TSizeTy lda = ColMajor ? m : n;
-		int Matrix_Layout = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
-		TVec<TType, TSizeTy> tau; tau.Gen(MAX(1, MIN(m, n)));
-		LAPACKE_dgeqrf(Matrix_Layout, m, n, &A(0, 0).Val, lda, &tau[0].Val);
-		LAPACKE_dorgqr(Matrix_Layout, m, n, k, &A(0, 0).Val, lda, &tau[0].Val);
-	}*/
-	// TEST
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void QRbasis(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& Q);/* {
-		Q = A;
-		TLinAlg::QRbasis(Q);
-	}*/
+	inline static void QRbasis(TVVec<TType, TSizeTy, ColMajor>& A);
 	// Tested in other function
 	//A is rewritten in place with orthogonal matrix Q (column pivoting to improve stability);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void QRcolpbasis(TVVec<TType, TSizeTy, ColMajor>& A);/* {
-		TSizeTy m = A.GetRows(); TSizeTy n = A.GetCols(); TSizeTy k = A.GetCols();
-		TSizeTy lda = ColMajor ? m : n;
-		TSizeTy Matrix_Layout = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
-		TVec<TType, TSizeTy> tau(MAX(1, MIN(m, n)));
-		TVec<TInt, TSizeTy> jvpt(MAX(1, n));
-		LAPACKE_dgeqp3(Matrix_Layout, m, n, &A(0, 0).Val, lda, &jvpt[0].Val, &tau[0].Val);
-		LAPACKE_dorgqr(Matrix_Layout, m, n, k, &A(0, 0).Val, lda, &tau[0].Val);
-	}*/
+	inline static void QRcolpbasis(TVVec<TType, TSizeTy, ColMajor>& A);
 	// TEST
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void QRcolpbasis(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& Q);/* {
-		Q = A;
-		TLinAlg::QRcolpbasis(Q);
-	}*/
+	inline static void QRcolpbasis(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& Q);
 	// TEST
 	//S S option ensures that A is not modified
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void thinSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& U, TVec<TType, TSizeTy>& S, TVVec<TType, TSizeTy, ColMajor>& VT);
-	/*{
-		TSizeTy m = A.GetRows(); TSizeTy n = A.GetCols();
-		TSizeTy thin_dim = MIN(m, n);
-		S.Gen(thin_dim); U.Gen(m, thin_dim); VT.Gen(thin_dim, n);
-		int lda = ColMajor ? m : n;
-		int ldu = ColMajor ? m : thin_dim;
-		int ldvt = ColMajor ? thin_dim : n;
-		TVec<TType, TSizeTy> superb(MAX(1, MIN(m, n)));
-		int opt = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
-		LAPACKE_dgesvd(opt, 'S', 'S', m, n, const_cast<double *>(&A(0, 0).Val), lda, &S[0].Val, &U(0, 0).Val, ldu, &VT(0, 0).Val, ldvt, &superb[0].Val);
-	}*/
 #endif
 	inline static int ComputeThinSVD(const TMatrix& X, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int Iters = 2, const double Tol = 1e-6);
 #ifdef INTEL
