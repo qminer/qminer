@@ -18,8 +18,11 @@
 // text processing
 #include "stopword.h"
 #include "stemming.h"
+#include "stemmingtokenization.h"
 #include "phrase.h"
 #include "tokenizer.h"
+
+#include "unicodebow.h"
 
 // Bag-Of-Words
 #include "bowbs.h"
@@ -49,7 +52,12 @@
 // clustering
 #include "kmpp.h"
 #include "hac.h"
+
+// Markov Chains
 #include "mc.h"
+
+// cross-lingual
+#include "crosslingual.h"
 
 // Signal-Processing
 #include "signalproc.h"

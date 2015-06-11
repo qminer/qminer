@@ -1,4 +1,11 @@
 /**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+/**
 * Analytics module.
 * @module analytics
 * @example
@@ -436,7 +443,7 @@
         }
 
         this.predict = function (record) {
-            var vec = this.featureSpace.ftrSpVec(record);
+            var vec = this.featureSpace.extractSparseVector(record);
             var result = {};
             for (var cat in this.models) {
                 result[cat] = this.models[cat].model.predict(vec);
@@ -475,7 +482,8 @@
 
     //!- `batchModel = analytics.newBatchModel(rs, features, target)` -- learns a new batch model
     //!     using record set `rs` as training data and `features`; `target` is
-    //!     a field descriptor JSON object for the records which we are trying to predict (obtained by calling store.field("Rating");
+    //!     a field descriptor JSON object for the records which we are trying to predict 
+	//!     (obtained by calling store.field("Rating");
     //!     if target field string or string vector, the result is a SVM classification model,
     //!     and if target field is a float, the result is a SVM regression model; resulting 
     //!     model has the following functions:
@@ -497,7 +505,7 @@
         console.log("newBatchModel", "  number of dimensions = " + featureSpace.dim);
         // prepare spare vectors
         console.log("newBatchModel", "  preparing feature vectors");
-        var sparseVecs = featureSpace.ftrSpColMat(records);
+        var sparseVecs = featureSpace.extractSparseMatrix(records);
         // prepare target vectors
         var targets = {};
         // figure out if new category name, or update count
@@ -597,6 +605,175 @@
     };
 
 
+    //#- `cs = new analytics.classificaitonScore(cats)` -- for evaluating 
+    //#     provided categories. Returns an object, which can track classification
+    //#     statistics (precision, recall, F1).
+    exports.classifcationScore = function (cats) {
+        this.target = {};
+
+        this.targetList = [];
+        for (var i = 0; i < cats.length; i++) {
+            this.target[cats[i]] = {
+                id: i, count: 0, predictionCount: 0,
+                TP: 0, TN: 0, FP: 0, FN: 0,
+                all: function () { return this.TP + this.FP + this.TN + this.FN; },
+                precision: function () { return (this.FP == 0) ? 1 : this.TP / (this.TP + this.FP); },
+                recall: function () { return this.TP / (this.TP + this.FN); },
+                f1: function () { return 2 * this.precision() * this.recall() / (this.precision() + this.recall()); },
+                accuracy: function () { return (this.TP + this.TN) / this.all(); }
+            };
+            this.targetList.push(cats[i]);
+        }
+
+        //#    - `cs.count(correct, predicted)` -- adds prediction to the current
+        //#         statistics. `correct` corresponds to the correct label(s), `predicted`
+        //#         correspond to predicted lable(s). Labels can be either string
+        //#         or string array (when there are zero or more then one lables).
+        this.count = function (correct, predicted) {
+            // wrapt classes in arrays if not already
+            if (qm_util.isString(correct)) { this.count([correct], predicted); return; }
+            if (qm_util.isString(predicted)) { this.count(correct, [predicted]); return; }
+            // go over all possible categories and counts
+            for (var cat in this.target) {
+                var catCorrect = qm_util.isInArray(correct, cat);
+                var catPredicted = qm_util.isInArray(predicted, cat);
+                // update counts for correct categories
+                if (catCorrect) { this.target[cat].count++; }
+                // update counts for how many times category was predicted
+                if (catPredicted) { this.target[cat].predictionCount++; }
+                // update true/false positive/negative count
+                if (catCorrect && catPredicted) {
+                    // both predicted and correct say true
+                    this.target[cat].TP++;
+                } else if (catCorrect) {
+                    // this was only correct but not predicted
+                    this.target[cat].FN++;
+                } else if (catPredicted) {
+                    // this was only predicted but not correct
+                    this.target[cat].FP++;
+                } else {
+                    // both predicted and correct say false
+                    this.target[cat].TN++;
+                }
+                // update confusion matrix
+            }
+        };
+
+        //#    - `cs.report()` -- prints current statisitcs for each category
+        this.report = function () {
+            for (var cat in this.target) {
+                console.log(cat +
+                    ": Count " + this.target[cat].count +
+                    ", All " + this.target[cat].all() +
+                    ", Precission " + this.target[cat].precision().toFixed(2) +
+                    ", Recall " + this.target[cat].recall().toFixed(2) +
+                    ", F1 " + this.target[cat].f1().toFixed(2) +
+                    ", Accuracy " + this.target[cat].accuracy().toFixed(2));
+            }
+        };
+
+        //#    - `cs.reportAvg()` -- prints current statisitcs averaged over all cagtegories
+        this.reportAvg = function () {
+            var count = 0, precision = 0, recall = 0, f1 = 0, accuracy = 0;
+            for (var cat in this.target) {
+                count++;
+                precision = precision + this.target[cat].precision();
+                recall = recall + this.target[cat].recall();
+                f1 = f1 + this.target[cat].f1();
+                accuracy = accuracy + this.target[cat].accuracy();
+            }
+            console.log("Categories " + count +
+                ", Precission " + (precision / count).toFixed(2) +
+                ", Recall " + (recall / count).toFixed(2) +
+                ", F1 " + (f1 / count).toFixed(2) +
+                ", Accuracy " + (accuracy / count).toFixed(2));
+        }
+
+        //#    - `cs.reportCSV(fout)` -- current statisitcs for each category to fout as CSV 
+        this.reportCSV = function (fout) {
+            // precison recall
+            fout.writeLine("category,count,precision,recall,f1,accuracy");
+            for (var cat in this.target) {
+                fout.writeLine(cat +
+                    "," + this.target[cat].count +
+                    "," + this.target[cat].precision().toFixed(2) +
+                    "," + this.target[cat].recall().toFixed(2) +
+                    "," + this.target[cat].f1().toFixed(2) +
+                    "," + this.target[cat].accuracy().toFixed(2));
+            }
+            return fout;
+        };
+
+        //#    - `res = cs.results()` -- get current statistics; `res` is an array
+        //#         of object with members `precision`, `recall`, `f1` and `accuracy`
+        this.results = function () {
+            var res = {};
+            for (var cat in this.target) {
+                res[cat] = {
+                    precision: this.target[cat].precision(),
+                    recall: this.target[cat].recall(),
+                    f1: this.target[cat].f1(),
+                    accuracy: this.target[cat].accuracy(),
+                };
+            }
+        };
+    }
+
+    //#- `result = analytics.crossValidation(rs, features, target, folds)` -- creates a batch
+    //#     model for records from record set `rs` using `features; `target` is the
+    //#     target field and is assumed discrete; the result is a results object
+    //#     with the following API:
+    //#     - `result.target` -- an object with categories as keys and the following
+    //#       counts as members of these keys: `count`, `TP`, `TN`, `FP`, `FN`,
+    //#       `all()`, `precision()`, `recall()`, `accuracy()`.
+    //#     - `result.confusion` -- confusion matrix between categories
+    //#     - `result.report()` -- prints basic report on to the console
+    //#     - `result.reportCSV(fout)` -- prints CSV output to the `fout` output stream
+    exports.crossValidation = function (records, features, target, folds, limitCategories) {
+        // create empty folds
+        var fold = [];
+        for (var i = 0; i < folds; i++) {
+            fold.push(new la.IntVector());
+        }
+        // split records into folds
+        records.shuffle(1);
+        var fold_i = 0;
+        for (var i = 0; i < records.length; i++) {
+            fold[fold_i].push(records[i].$id);
+            fold_i++; if (fold_i >= folds) { fold_i = 0; }
+        }
+        // do cross validation
+        var cfyRes = null;
+        for (var fold_i = 0; fold_i < folds; fold_i++) {
+            // prepare train and test record sets
+            var train = new la.IntVector();
+            var test = new la.IntVector();
+            for (var i = 0; i < folds; i++) {
+                if (i == fold_i) {
+                    test.pushV(fold[i]);
+                } else {
+                    train.pushV(fold[i]);
+                }
+            }
+            var trainRecs = records.store.newRecSet(train);
+            var testRecs = records.store.newRecSet(test);
+            console.log("Fold " + fold_i + ": " + trainRecs.length + " training and " + testRecs.length + " testing");
+            // create model for the fold
+            var model = exports.newBatchModel(trainRecs, features, target, limitCategories);
+            // prepare test counts for each target
+            if (!cfyRes) { cfyRes = new exports.classifcationScore(model.target); }
+            // evaluate predictions
+            for (var i = 0; i < testRecs.length; i++) {
+                var correct = testRecs[i][target.name];
+                var predicted = model.predictLabels(testRecs[i]);
+                cfyRes.count(correct, predicted);
+            }
+            // report
+            cfyRes.report();
+        }
+        return cfyRes;
+    };
+
 
 
     //!- `alModel = analytics.newActiveLearner(query, qRecSet, fRecSet, ftrSpace, settings)` -- initializes the
@@ -648,8 +825,8 @@
 
         if (settings.extractFeatures) {
             var temp = {}; temp[settings.textField] = query;
-            var queryRec = qRecSet.store.newRec(temp); // record
-            querySpVec = ftrSpace.ftrSpVec(queryRec);
+            var queryRec = qRecSet.store.newRecord(temp); // record
+            querySpVec = ftrSpace.extractSparseVector(queryRec);
             // use sampling? 
             var sq = qRecSet;
             if (settings.querySampleSize >= 0 && qRecSet != undefined) {
@@ -662,7 +839,7 @@
             // take a union or just qset or just fset if some are undefined
             uRecSet = (sq != undefined) ? ((sf != undefined) ? sq.setunion(sf) : sq) : sf;
             if (uRecSet == undefined) { throw 'undefined record set for active learning!';}
-            uMat = ftrSpace.ftrSpColMat(uRecSet);
+            uMat = ftrSpace.extractSparseMatrix(uRecSet);
 
         } else {
             querySpVec = stts.querySpVec;
@@ -804,13 +981,13 @@
             if (ALanswer === "y") {
                 posIdxV.push(recSetIdx);
                 posRecIdV.push(uRecSet[recSetIdx].$id);
-                //X.push(ftrSpace.ftrSpVec(uRecSet[recSetIdx]));
+                //X.push(ftrSpace.extractSparseVector(uRecSet[recSetIdx]));
                 X.push(uMat.getCol(recSetIdx));
                 y.push(1.0);
             } else {
                 negIdxV.push(recSetIdx);
                 negRecIdV.push(uRecSet[recSetIdx].$id);
-                //X.push(ftrSpace.ftrSpVec(uRecSet[recSetIdx]));
+                //X.push(ftrSpace.extractSparseVector(uRecSet[recSetIdx]));
                 X.push(uMat.getCol(recSetIdx));
                 y.push(-1.0);
             }
@@ -952,8 +1129,8 @@
     			log.info('Updating feature space ...');
     			ftrSpace.updateRecords(recSet);
     			
-    			var colMat = ftrSpace.ftrColMat(recSet);
-    			var timeV = recSet.getVec(timeField);
+    			var colMat = ftrSpace.extractMatrix(recSet);
+    			var timeV = recSet.getVector(timeField);
     			
     			log.info('Creating model ...');
     			mc.fit(colMat, timeV, batchEndV);
@@ -966,7 +1143,7 @@
     		 * Adds a new record. Doesn't update the models statistics.
     		 */
     		update: function (rec) {
-    			var ftrVec = ftrSpace.ftrVec(rec);
+    			var ftrVec = ftrSpace.extractVector(rec);
     			var recTm = rec.time;
     			var timestamp = recTm.getTime();
     			
@@ -1033,7 +1210,7 @@
     			
     			var dims = ftrSpace.dims;
     			for (var i = 0; i < dims.length; i++) {
-    				names.push(ftrSpace.getFtr(i));
+    				names.push(ftrSpace.getFeature(i));
     			}
     			
     			return names;
@@ -1099,7 +1276,7 @@
     				
     				var features = [];
     				for (var i = 0; i < invFtrV.length; i++) {
-    					features.push({name: ftrSpace.getFtr(i), value: invFtrV.at(i)});
+    					features.push({name: ftrSpace.getFeature(i), value: invFtrV.at(i)});
     				}
     				
     				callback(features);

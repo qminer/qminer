@@ -69,7 +69,7 @@ private:
 
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	const static TStr ClassId;
+	const static TStr GetClassId() { return "Matrix"; }
 
 	static TNodeJsFltVV* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
@@ -413,24 +413,29 @@ public:
 //# exports.SparseVector = function(arg, dim) {}	
 
 class TNodeJsSpVec : public node::ObjectWrap {
-public:
-	const static TStr ClassId;
-
-	TNodeJsSpVec() : Dim(-1) { }
-	TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1)
-		: Vec(IntFltKdV), Dim(Dim)
-	{ }
+	friend class TNodeJsUtil;
+private:
+	static v8::Persistent<v8::Function> Constructor;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	static v8::Local<v8::Object> New(const TIntFltKdV& IntFltKdV, const int& Dim = -1);
+	static const TStr GetClassId() { return "SparseVector"; }
+
+public:
+	// wrapped C++ objects
+	TIntFltKdV Vec;
+	TInt Dim;
+	// C++ constructor
+	TNodeJsSpVec() : Dim(-1) { }
+	TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1) : Vec(IntFltKdV), Dim(Dim) {		
+		EAssertR((Dim == -1) || TLAMisc::GetMaxDimIdx(IntFltKdV) < Dim,		    
+		    "TNodeJsSpVec::New inconsistent dim parameter (maximal index >= dim!)");}
 public:
 	//! 
 	//! **Functions and properties:**
 	//! 
 	//!- `spVec = la.newSpVec(dim)` -- creates an empty sparse vector `spVec`, where `dim` is an optional (-1 by default) integer parameter that sets the dimension
 	//!- `spVec = la.newSpVec(nestedArr, dim)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `dim` is optional and sets the dimension
-	JsDeclareFunction(New);
-
+	static TNodeJsSpVec* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 	//!- `num = spVec.at(idx)` -- Gets the element of a sparse vector `spVec`. Input: index `idx` (integer). Output: value `num` (number). Uses 0-based indexing
 	/**
@@ -548,11 +553,6 @@ public:
 	*/
 	//# exports.SparseVector.prototype.toString = function () {}
 	JsDeclareFunction(toString);
-public:
-	TIntFltKdV Vec;
-	TInt Dim;
-private:
-	static v8::Persistent<v8::Function> constructor;
 };
 
 ///////////////////////////////
@@ -588,13 +588,12 @@ private:
 
 class TNodeJsSpMat : public node::ObjectWrap {
 public:
-	const static TStr ClassId;
-
 	TNodeJsSpMat() : Rows(-1) { }
 	TNodeJsSpMat(const TVec<TIntFltKdV>& _Mat, const int& _Rows = -1)
 		: Mat(_Mat), Rows(_Rows) { }
 public:
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "SparseMatrix"; }
 	static v8::Local<v8::Object> New(const TVec<TIntFltKdV>& Mat, const int& Rows = -1);
 public:
 	//! 

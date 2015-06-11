@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html">qminerdoc.<wbr>js</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-8">qminerdoc.<wbr>js:8</a></p>
             <div class="symbol-description">
               <p>Qminer module.</p>
             </div>
@@ -69,7 +69,7 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.RecSet.html">RecSet</a></dt>
+                    <dt><a href="module-qm.RecordSet.html">RecordSet</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.Store.html">Store</a></dt>
@@ -86,6 +86,9 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.html#.debug">debug</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.html#~baseModes">baseModes</a></dt>
                     <dd>
                     </dd>
@@ -99,38 +102,42 @@
                     <dt><a href="module-qm.html#~FeatureStream">FeatureStream</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.html#~FeatureTokenizerStemmer">FeatureTokenizerStemmer</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureTokenizerStopwords">FeatureTokenizerStopwords</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.html#~FeatureTokenizerType">FeatureTokenizerType</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureWeight">FeatureWeight</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.html#~fieldTypes">fieldTypes</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
-                <div class="summary-column">
-                </div>
               </div>
             </div>
             <div class="summary-callout">
-              <h2 class="summary-callout-heading">Methods</h2>
+              <h2 class="summary-callout-heading">Method</h2>
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.html#.config">config([configPath][, overwrite][, portN][, cacheSize])</a></dt>
+                    <dt><a href="module-qm.html#.verbosity">verbosity([level])</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.html#.create">create([configPath][, schemaPath][, clear])</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
                 </div>
                 <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.html#.open">open([configPath][, readOnly])</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
                 </div>
               </div>
             </div>
@@ -157,13 +164,13 @@
                     <dt><a href="module-qm.html#~FeatureExtractorJsfunc">FeatureExtractorJsfunc</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractorMultinomial">FeatureExtractorMultinomial</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.html#~FeatureExtractorMultinomial">FeatureExtractorMultinomial</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.html#~FeatureExtractorNumeric">FeatureExtractorNumeric</a></dt>
                     <dd>
                     </dd>
@@ -179,13 +186,16 @@
                     <dt><a href="module-qm.html#~FeatureExtractorText">FeatureExtractorText</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.html#~FeatureSource">FeatureSource</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureTokenizer">FeatureTokenizer</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.html#~FeatureSource">FeatureSource</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.html#~SchemaDefinition">SchemaDefinition</a></dt>
                     <dd>
                     </dd>
@@ -216,13 +226,46 @@
             <section id='members-links'>
               <h3><a href="module-qm.Iterator.html">Iterator</a></h3>
               <h3><a href="module-qm.Record.html">Record</a></h3>
-              <h3><a href="module-qm.RecSet.html">RecSet</a></h3>
+              <h3><a href="module-qm.RecordSet.html">RecordSet</a></h3>
               <h3><a href="module-qm.Store.html">Store</a></h3>
             </section>
             <h2>Properties</h2>
             <section>
+              <h3 id=".debug"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">debug</span></h3>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>debug</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>True if QMiner was compiled in debug mode, else false.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="~baseModes"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">baseModes</span><small class="property-type">
-                &nbsp;string</small></h3>
+
+            &nbsp;string</small></h3>
               <p>Base access modes.</p>
               <section>
                 <h4>Properties</h4>
@@ -248,7 +291,6 @@
                       </td>
                       <td>
                         <p>sets up the db folder</p>
-                        <p>Defaults to <code>create</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -263,7 +305,6 @@
                       </td>
                       <td>
                         <p>cleans the db folder and calls create</p>
-                        <p>Defaults to <code>createClean</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -278,7 +319,6 @@
                       </td>
                       <td>
                         <p>opens with write permissions</p>
-                        <p>Defaults to <code>open</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -293,7 +333,6 @@
                       </td>
                       <td>
                         <p>opens in read-only mode</p>
-                        <p>Defaults to <code>openReadOnly</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -302,8 +341,9 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~FeatureMode"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureMode</span><small class="property-type">
-                &nbsp;string</small></h3>
-              <p>How are multi-record cases combined into a single vector.</p>
+
+            &nbsp;string</small></h3>
+              <p>How are multi-record cases combined into a single vector. //TODO not implemented for join record cases (works only if the start store and the feature store are the same)</p>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -327,8 +367,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>//TODO</p>
-                        <p>Defaults to <code>concatenate</code>.</p>
+                        <p>Multi-record cases are merged into one document.</p>
                       </td>
                     </tr>
                     <tr>
@@ -342,8 +381,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>//TODO</p>
-                        <p>Defaults to <code>centroid</code>.</p>
+                        <p>Treat each case as a separate document.</p>
                       </td>
                     </tr>
                     <tr>
@@ -357,8 +395,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>//TODO</p>
-                        <p>Defaults to <code>tokenized</code>.</p>
+                        <p>//TODO (Use the tokenizer option)</p>
                       </td>
                     </tr>
                   </tbody>
@@ -367,7 +404,8 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~FeatureStream"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureStream</span><small class="property-type">
-                &nbsp;string</small></h3>
+
+            &nbsp;string</small></h3>
               <p>Details on forgetting old IDFs when running on stream.</p>
               <section>
                 <h4>Properties</h4>
@@ -393,7 +431,6 @@
                       </td>
                       <td>
                         <p>(optional) Field name which is providing timestamp, if missing system time is used.</p>
-                        <p>Defaults to <code>field</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -408,7 +445,6 @@
                       </td>
                       <td>
                         <p>Forgetting factor, by which the old IDFs are multiplied after each iteration.</p>
-                        <p>Defaults to <code>factor</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -423,7 +459,314 @@
                       </td>
                       <td>
                         <p>The time between iterations when the factor is applied, standard JSon time format is used to specify the interval duration.</p>
-                        <p>Defaults to <code>interval</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTokenizerStemmer"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureTokenizerStemmer</span><small class="property-type">
+
+            &nbsp;Object</small></h3>
+              <p>The steemer used for extraction.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>For using the porter stemmer.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>porter</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>For using the porter stemmer.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>none</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>For using no stemmer.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTokenizerStopwords"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureTokenizerStopwords</span><small class="property-type">
+
+            &nbsp;Object</small></h3>
+              <p>THe stopwords used for extraction.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>none</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pre-defined stopword list (none).</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>en</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pre-defined stopword list (english).</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>si</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pre-defined stopword list (slovene).</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>es</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pre-defined stopword list (spanish).</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>de</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pre-defined stopword list (german).</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>array</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>An array of stopwords. The array must be given as a parameter instead of 'array'!</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTokenizerType"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureTokenizerType</span><small class="property-type">
+
+            &nbsp;string</small></h3>
+              <p>The type of the encoding text.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>simple</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The simple encoding.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>html</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The html encoding.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>unicode</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The unicode encoding.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureWeight"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureWeight</span><small class="property-type">
+
+            &nbsp;string</small></h3>
+              <p>Type of weighting used for scoring terms.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>none</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Sets 1 if term occurs, 0 otherwise.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>tf</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Sets the term frequency in the document.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>idf</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Sets the inverse document frequency in the document.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>tfidf</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Sets the product of the tf and idf score.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -432,7 +775,8 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~fieldTypes"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">fieldTypes</span><small class="property-type">
-                &nbsp;string</small></h3>
+
+            &nbsp;string</small></h3>
               <p>Field types.</p>
               <section>
                 <h4>Properties</h4>
@@ -458,7 +802,6 @@
                       </td>
                       <td>
                         <p>signed 32-bit integer</p>
-                        <p>Defaults to <code>int</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -473,7 +816,6 @@
                       </td>
                       <td>
                         <p>vector of signed 32-bit integers</p>
-                        <p>Defaults to <code>int_v</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -488,7 +830,6 @@
                       </td>
                       <td>
                         <p>string</p>
-                        <p>Defaults to <code>string</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -503,7 +844,6 @@
                       </td>
                       <td>
                         <p>vector of strings</p>
-                        <p>Defaults to <code>string_v</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -518,7 +858,6 @@
                       </td>
                       <td>
                         <p>boolean</p>
-                        <p>Defaults to <code>bool</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -533,7 +872,6 @@
                       </td>
                       <td>
                         <p>double precision floating point number</p>
-                        <p>Defaults to <code>float</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -548,7 +886,6 @@
                       </td>
                       <td>
                         <p>a pair of floats, useful for storing geo coordinates</p>
-                        <p>Defaults to <code>float_pair</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -563,7 +900,6 @@
                       </td>
                       <td>
                         <p>vector of floats</p>
-                        <p>Defaults to <code>float_v</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -578,7 +914,6 @@
                       </td>
                       <td>
                         <p>date and time format, stored in a form of milliseconds since 1600</p>
-                        <p>Defaults to <code>datetime</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -593,7 +928,6 @@
                       </td>
                       <td>
                         <p>sparse vector(same format as used by QMiner JavaScript linear algebra library)</p>
-                        <p>Defaults to <code>num_sp_v</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -602,12 +936,12 @@
               <dl class="dl-compact">
               </dl>
             </section>
-            <h2>Methods</h2>
+            <h2>Method</h2>
             <section>
-              <h3 id=".config"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">config</span><span class="signature"><span class="signature-params">([configPath][, overwrite][, portN][, cacheSize])</span></span></h3>
-              <p>Creates a directory structure.</p>
+              <h3 id=".verbosity"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">verbosity</span><span class="signature"><span class="signature-params">([level])</span></span></h3>
+              <p>Set verbosity of QMiner internals.</p>
               <section>
-                <h4>Parameters</h4>
+                <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -620,37 +954,7 @@
                   <tbody>
                     <tr>
                       <td>
-                        <p>configPath</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>The path to configuration file.</p>
-                        <p>Defaults to <code>'qm.conf'</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>overwrite</p>
-                      </td>
-                      <td>
-                        <p>boolean</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>If you want to overwrite the configuration file.</p>
-                        <p>Defaults to <code></code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>portN</p>
+                        <p>level</p>
                       </td>
                       <td>
                         <p>number</p>
@@ -659,156 +963,21 @@
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>The number of the port. Currently not used.</p>
-                        <p>Defaults to <code>8080</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>cacheSize</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Sets available memory for indexing (in MB).</p>
-                        <p>Defaults to <code>1024</code>.</p>
+                        <p>verbosity level: 0 = no output, 1 = log output, 2 = log and debug output.</p>
+                        <p>Defaults to <code>0</code>.</p>
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </section>
               <dl class="dl-compact">
-              </dl>
-              <h3 id=".create"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">create</span><span class="signature"><span class="signature-params">([configPath][, schemaPath][, clear])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Base.html">module:qm.Base</a></span></span></h3>
-              <p>Creates an empty base.</p>
-              <section>
-                <h4>Parameters</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>configPath</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Configuration file path.</p>
-                        <p>Defaults to <code>'qm.conf'</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>schemaPath</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Schema file path.</p>
-                        <p>Defaults to <code>''</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>clear</p>
-                      </td>
-                      <td>
-                        <p>boolean</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Clear the existing db folder.</p>
-                        <p>Defaults to <code></code>.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-qm.Base.html">module:qm.Base</a></code>&nbsp;</p>
-                </dd>
-              </dl>
-              <h3 id=".open"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">open</span><span class="signature"><span class="signature-params">([configPath][, readOnly])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Base.html">module:qm.Base</a></span></span></h3>
-              <p>Opens a base.</p>
-              <section>
-                <h4>Parameters</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>configPath</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>The configuration file path.</p>
-                        <p>Defaults to <code>'qm.conf'</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>readOnly</p>
-                      </td>
-                      <td>
-                        <p>boolean</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Open in read only mode?</p>
-                        <p>Defaults to <code></code>.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-qm.Base.html">module:qm.Base</a></code>&nbsp;</p>
-                </dd>
               </dl>
             </section>
             <h2>Abstract types</h2>
             <section>
               <h3 id="~BaseConstructorParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">BaseConstructorParam</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>Base constructor parameter object</p>
               <section>
                 <h4>Properties</h4>
@@ -922,8 +1091,34 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~FeatureExtractorCategorical"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorCategorical</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>Feature type: categorical</p>
+              <section>
+                <h4>
+
+            Example
+
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the student name and it&#x27;s study group
+// here we know the student is part of only one study group
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      &quot;name&quot;: &quot;Class&quot;,
+      &quot;fields&quot;: [
+         { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+         { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+      ]
+   }]
+});
+// create a feature space containing the categorical extractor, where the it&#x27;s values
+// are taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot; and &quot;D&quot;
+var ftr = qm.FeatureSpace(base, { type: &quot;categorical&quot;, source: &quot;Class&quot;, field: &quot;StudyGroup&quot;, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;] });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1012,8 +1207,29 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~FeatureExtractorConstant"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorConstant</span><small class="property-type">
-                &nbsp;Object</small></h3>
-              <p>Feature type: contant</p>
+
+            &nbsp;Object</small></h3>
+              <p>Feature type: constant</p>
+              <section>
+                <h4>
+
+            Example
+
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains only a persons name
+var base = new qm.Base({
+  mode: &#x27;createClean&#x27;,
+  schema: [{
+     &quot;name&quot;: &quot;Person&quot;,
+     &quot;fields&quot;: [{ &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; }]
+  }]
+});
+// create a feature space containing the constant extractor, where the constant is equal 5
+var ftr = qm.FeatureSpace(base, { type: &quot;constant&quot;, source: &quot;Person&quot;, const: 5 });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1075,7 +1291,8 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~FeatureExtractorDateWindow"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorDateWindow</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>Feature type: dateWindow</p>
               <section>
                 <h4>Properties</h4>
@@ -1196,7 +1413,8 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~FeatureExtractorJoin"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorJoin</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>Feature type: join</p>
               <section>
                 <h4>Properties</h4>
@@ -1259,8 +1477,38 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~FeatureExtractorJsfunc"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorJsfunc</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>Feature type: jsfunc</p>
+              <section>
+                <h4>
+
+            Example
+
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the name of the student and his study groups
+// each student is part of multiple study groups
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      &quot;name&quot;: &quot;Class&quot;,
+      &quot;fields&quot;: [
+         { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+         { &quot;name&quot;: &quot;StudyGroups&quot;, &quot;type&quot;: &quot;string_v&quot; }
+      ]
+   }]
+});
+// create a feature space containing the jsfunc extractor, where the function counts the number 
+// of study groups each student is part of. The functions name is &quot;NumberOFGroups&quot;, it&#x27;s dimension
+// is 1 (returns only one value, not an array)
+var ftr = qm.FeatureSpace(base, {
+             type: &quot;jsfunc&quot;, source: &quot;Class&quot;, name: &quot;NumberOfGroups&quot;, dim: 1,
+             fun: function (rec) { returns rec.StudyGroups.length; }
+          });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1350,8 +1598,36 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~FeatureExtractorMultinomial"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorMultinomial</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>Feature type: multinomial</p>
+              <section>
+                <h4>
+
+            Example
+
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the student name and an array of study groups
+// here we know a student can be part of multiple study groups
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      &quot;name&quot;: &quot;Class&quot;,
+      &quot;fields&quot;: [
+         { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+         { &quot;name&quot;: &quot;StudyGroups&quot;, &quot;type&quot;: &quot;string_v&quot; }
+      ]
+   }]
+});
+// create a feature space containing the multinomial extractor, where the values are normalized,
+// and taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;
+var ftr = qm.FeatureSpace(base, { 
+             type: &quot;multinomial&quot;, source: &quot;CLass&quot;, field: &quot;StudyGroups&quot;, normalize: true, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;]
+          });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1434,7 +1710,7 @@
                       <td>
                         <p>Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
                           <br> This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.</p>
-                        <p>Defaults to <code></code>.</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -1471,8 +1747,33 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~FeatureExtractorNumeric"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorNumeric</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>Feature type: numeric</p>
+              <section>
+                <h4>
+
+            Example
+
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the student name and it&#x27;s grade
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      &quot;name&quot;: &quot;Class&quot;,
+      &quot;fields&quot;: [
+         { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
+         { &quot;name&quot;: &quot;Grade&quot;, &quot;type&quot;: &quot;number&quot; }
+      ]
+   }]
+});
+// create a feature space containing the numeric extractor, where the values are 
+// normalized, the values are taken from the field &quot;Grade&quot;
+var ftr = qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class&quot;, normalize: true, field: &quot;Grade&quot; });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1576,7 +1877,8 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~FeatureExtractorPair"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorPair</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>Feature type: pair</p>
               <section>
                 <h4>Properties</h4>
@@ -1652,8 +1954,29 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~FeatureExtractorRandom"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorRandom</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>Feature type: random</p>
+              <section>
+                <h4>
+
+            Example
+
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains only a persons name
+var base = new qm.Base({
+  mode: &#x27;createClean&#x27;,
+  schema: [{
+     &quot;name&quot;: &quot;Person&quot;,
+     &quot;fields&quot;: [{ &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; }]
+  }]
+});
+// create a feature space containing the random extractor
+var ftr = qm.FeatureSpace(base, { type: &quot;random&quot;, source: &quot;Person&quot; });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1692,7 +2015,7 @@
                       </td>
                       <td>
                         <p>A random seed number.</p>
-                        <p>Defaults to <code></code>.</p>
+                        <p>Defaults to <code>0</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -1715,7 +2038,8 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~FeatureExtractors"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractors</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>Feature extractor types.</p>
               <section>
                 <h4>Properties</h4>
@@ -1875,8 +2199,36 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~FeatureExtractorText"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorText</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>Feature type: text</p>
+              <section>
+                <h4>
+
+            Example
+
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the title of the article and it&#x27;s content
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      &quot;name&quot;: &quot;Articles&quot;,
+      &quot;fields&quot;: [
+         { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+         { &quot;name&quot;: &quot;Text&quot;, &quot;type&quot;: &quot;string&quot; }
+      ]
+   }]
+});
+// create a feature spave containing the text (bag of words) extractor, where the values are normalized,
+// weighted with &#x27;tfidf&#x27; and the tokenizer is of &#x27;simple&#x27; type, it uses english stopwords.
+var ftr = qm.FeatureSpace(base, { 
+             type: &quot;text&quot;, source: &quot;Articles&quot;, field: &quot;Text&quot;, normalize: true, weight: &quot;tfidf&quot;,
+             tokenizer: { type: &quot;simple&quot;, stopwords: &quot;en&quot;}
+          });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1923,13 +2275,14 @@
                         <p>weight</p>
                       </td>
                       <td>
-                        <p>module:qm~FeatureWight</p>
+                        <p><a href="module-qm.html#~FeatureWeight">module:qm~FeatureWeight</a></p>
                       </td>
                       <td>
-                        <p>&nbsp;</p>
+                        <p>Yes</p>
                       </td>
                       <td>
                         <p>Type of weighting used for scoring terms.</p>
+                        <p>Defaults to <code>'tfidf'</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -1965,12 +2318,13 @@
                         <p>tokenizer</p>
                       </td>
                       <td>
-                        <p>module:qm~FeatureTokenizer</p>
+                        <p><a href="module-qm.html#~FeatureTokenizer">module:qm~FeatureTokenizer</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
+                        <p>The settings for extraction of text.</p>
                       </td>
                     </tr>
                     <tr>
@@ -2021,7 +2375,8 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~FeatureSource"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureSource</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>From where are the input records taken.</p>
               <section>
                 <h4>Property</h4>
@@ -2054,12 +2409,96 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="~FeatureTokenizer"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureTokenizer</span><small class="property-type">
+
+            &nbsp;Object</small></h3>
+              <p>The settings for extraction of text.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureTokenizerType">module:qm~FeatureTokenizerType</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The type of the encoding text.</p>
+                        <p>Defaults to <code>'simple'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>stopwords</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureTokenizerStopwords">module:qm~FeatureTokenizerStopwords</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The stopwords used for extraction.</p>
+                        <p>Defaults to <code>'en'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>stemmer</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureTokenizerStemmer">module:qm~FeatureTokenizerStemmer</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The stemmer used for extraction.</p>
+                        <p>Defaults to <code>'none'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>uppercase</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Changing all words to uppercase.</p>
+                        <p>Defaults to <code>'true'</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="~SchemaDefinition"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SchemaDefinition</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>Store schema definition object</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
@@ -2163,11 +2602,14 @@ var base = new qm.Base({
               <dl class="dl-compact">
               </dl>
               <h3 id="~SchemaFieldDefinition"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SchemaFieldDefinition</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>Store schema field definition object</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
@@ -2190,7 +2632,7 @@ var base = new qm.Base({
 // - we set the string vector Tokens with an array of strings
 // - we set the numeric sparse vector Vector with an array of two element arrays
 //   (index, value), see the sparse vector constructor {@link module:la.SparseVector}
-base.store(&#x27;NewsArticles&#x27;).add({
+base.store(&#x27;NewsArticles&#x27;).push({
   ID: &#x27;t12344&#x27;, 
   Source: &#x27;s1234&#x27;, 
   DateTime: &#x27;2015-01-01T00:05:00&#x27;, 
@@ -2252,7 +2694,7 @@ base.store(&#x27;NewsArticles&#x27;).add({
                       <td>
                         <p>Field which can be used to identify record. There can be only one primary field in a store. There can be at most one record for each value of the primary field. Currently following fields can be marked as primary: int, uin64, string,
                           float, datetime. Primary fields of type string are also used for record names.</p>
-                        <p>Defaults to <code></code>.</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -2267,7 +2709,7 @@ base.store(&#x27;NewsArticles&#x27;).add({
                       </td>
                       <td>
                         <p>When set to true, null is a possible value for a field (allow missing values).</p>
-                        <p>Defaults to <code></code>.</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -2313,7 +2755,7 @@ base.store(&#x27;NewsArticles&#x27;).add({
                       <td>
                         <p>Useful when many records have only few different values of this field. If set to true, then a separate table of all values is kept, and records only point to this table (replacing variable string field in record serialisation with
                           fixed-length integer). Useful to decrease memory footprint, and faster to update. (STRING FIELD TYPE SPECIFIC).</p>
-                        <p>Defaults to <code></code>.</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -2328,7 +2770,7 @@ base.store(&#x27;NewsArticles&#x27;).add({
                       </td>
                       <td>
                         <p>Useful for string shorter then 127 characters (STRING FIELD TYPE SPECIFIC).</p>
-                        <p>Defaults to <code></code>.</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -2337,11 +2779,14 @@ base.store(&#x27;NewsArticles&#x27;).add({
               <dl class="dl-compact">
               </dl>
               <h3 id="~SchemaJoinDefinition"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SchemaJoinDefinition</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>Store schema join definition object</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
@@ -2365,12 +2810,12 @@ var base = new qm.Base({
 });
 // Adds a movie, automatically adds &#x27;Jim Jarmusch&#x27; to People, sets the &#x27;director&#x27; join (field join)
 // and automatically updates the index join &#x27;directed&#x27;, since it&#x27;s an inverse join of &#x27;director&#x27;
-base.store(&#x27;Movies&#x27;).add({ title: &#x27;Broken Flowers&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });
+base.store(&#x27;Movies&#x27;).push({ title: &#x27;Broken Flowers&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });
 // Adds a movie, sets the &#x27;director&#x27; join, updates the index join of &#x27;Jim Jarmusch&#x27;
-base.store(&#x27;Movies&#x27;).add({ title: &#x27;Coffee and Cigarettes&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });
+base.store(&#x27;Movies&#x27;).push({ title: &#x27;Coffee and Cigarettes&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });
 // Adds movie, automatically adds &#x27;Lars von Trier&#x27; to People, sets the &#x27;director&#x27; join
 // and &#x27;directed&#x27; inverse join (automatically)
-base.store(&#x27;Movies&#x27;).add({ title: &#x27;Dogville&#x27;, director: { name: &#x27;Lars von Trier&#x27; } });
+base.store(&#x27;Movies&#x27;).push({ title: &#x27;Dogville&#x27;, director: { name: &#x27;Lars von Trier&#x27; } });
 
 var movie = base.store(&#x27;Movies&#x27;)[0]; // get the first movie (Broken Flowers)
 // Each movie has a property corresponding to the join name: &#x27;director&#x27;. 
@@ -2448,11 +2893,14 @@ movies.each(function (movie) { console.log(movie.title); });
               <dl class="dl-compact">
               </dl>
               <h3 id="~SchemaKeyDefinition"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SchemaKeyDefinition</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>Store schema key definition object</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
@@ -2470,8 +2918,8 @@ var base = new qm.Base({
     ]
 });
 
-base.store(&#x27;People&#x27;).add({name : &#x27;John Smith&#x27;});
-base.store(&#x27;People&#x27;).add({name : &#x27;Mary Smith&#x27;});
+base.store(&#x27;People&#x27;).push({name : &#x27;John Smith&#x27;});
+base.store(&#x27;People&#x27;).push({name : &#x27;Mary Smith&#x27;});
 // search based on indexed values
 base.search({$from : &#x27;People&#x27;, name: &#x27;John Smith&#x27;}); // Return the record set containing &#x27;John Smith&#x27;
 // search based on indexed values
@@ -2571,12 +3019,15 @@ base.search({$from : &#x27;People&#x27;, nameText: &#x27;Smith&#x27;}); // Retur
               <dl class="dl-compact">
               </dl>
               <h3 id="~SchemaTimeWindowDefinition"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SchemaTimeWindowDefinition</span><small class="property-type">
-                &nbsp;Object</small></h3>
+
+            &nbsp;Object</small></h3>
               <p>Stores can have a window, which is used by garbage collector to delete records once they fall out of the time window. Window can be defined by number of records or by time. Window defined by parameter window, its value being the number of
                 records to be kept.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
@@ -2660,7 +3111,7 @@ var base = new qm.Base([{
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 24, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on June 3, 2015.
       </p>
     </div>
   </footer>

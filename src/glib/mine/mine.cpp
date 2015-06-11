@@ -14,8 +14,10 @@
 // text processing
 #include "stopword.cpp"
 #include "stemming.cpp"
+#include "stemmingtokenization.cpp"
 #include "phrase.cpp"
 #include "tokenizer.cpp"
+#include "unicodebow.cpp"
 
 // Bag-Of-Words
 #include "bowbs.cpp"
@@ -44,6 +46,9 @@
 
 // clustering
 #include "mc.cpp"
+
+// cross-lingual
+#include "crosslingual.cpp"
 
 // Signal-Processing
 #include "signalproc.cpp"

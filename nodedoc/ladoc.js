@@ -1,4 +1,11 @@
 /**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+/**
 * Linear algebra module.
 * @module la
 * @example
@@ -906,6 +913,13 @@ exports.pdist2 = function (mat, mat2) {
     
 
 /**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+/**
 * Vector - array of doubles
 * @classdesc Wraps a C++ array.
 * @class
@@ -1203,6 +1217,13 @@ exports.pdist2 = function (mat, mat2) {
 	*/
  exports.Vector.prototype.loadascii = function (fin) { return this; }
 
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 /**
 * Vector - array of strings
 * @classdesc Wraps a C++ array.
@@ -1502,6 +1523,13 @@ exports.pdist2 = function (mat, mat2) {
  exports.StrVector.prototype.loadascii = function (fin) { return this; }
 
 /**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+/**
 * Vector - array of integers
 * @classdesc Wraps a C++ array.
 * @class
@@ -1799,6 +1827,13 @@ exports.pdist2 = function (mat, mat2) {
 	*/
  exports.IntVector.prototype.loadascii = function (fin) { return this; }
 
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 /**
 * Vector - array of boolean
 * @classdesc Wraps a C++ array.
