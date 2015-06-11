@@ -47,23 +47,32 @@
                     <dt><a href="module-qm.StreamAggr.html#getFloatVector">getFloatVector()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.StreamAggr.html#getInFloat">getInFloat()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.StreamAggr.html#getInTimestamp">getInTimestamp()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.StreamAggr.html#getOutFloatVector">getOutFloatVector()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.StreamAggr.html#getTimestampAt">getTimestampAt(idx)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#getTimestampLength">getTimestampLength()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.StreamAggr.html#getTimestampVector">getTimestampVector()</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.StreamAggr.html#getTimestampVector">getTimestampVector()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.StreamAggr.html#onAdd">onAdd(rec)</a></dt>
                     <dd>
                     </dd>
@@ -230,7 +239,31 @@ var aggr2 = new qm.StreamAggr(base, { type: , name: &#x27;gendreSeperator&#x27;,
                   <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the values of the buffer.</p>
                 </dd>
               </dl>
-              <h3 id="getTimestampAt"><span class="symbol-name">getTimestampAt</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <h3 id="getInFloat"><span class="symbol-name">getInFloat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Gets the value of the newest record added to the buffer.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;The value of the newest record in the buffer.</p>
+                </dd>
+              </dl>
+              <h3 id="getInTimestamp"><span class="symbol-name">getInTimestamp</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Gets the timestamp of the newest record added to the buffer.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;The timestamp given as the number of miliseconds since 01.01.1601, time: 00:00:00.0.</p>
+                </dd>
+              </dl>
+              <h3 id="getOutFloatVector"><span class="symbol-name">getOutFloatVector</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <p>Gets a vector containing the values that are leaving the buffer.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the values that are leaving the buffer.</p>
+                </dd>
+              </dl>
+              <h3 id="getTimestampAt"><span class="symbol-name">getTimestampAt</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Gets the timestamp on the specific location in the buffer.</p>
               <section>
                 <h4>Parameter</h4>
@@ -264,7 +297,7 @@ var aggr2 = new qm.StreamAggr(base, { type: , name: &#x27;gendreSeperator&#x27;,
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;The timestamp located on the idx position in the buffer.</p>
+                  <p><code>number</code>&nbsp;The timestamp located on the idx position in the buffer.</p>
                 </dd>
               </dl>
               <h3 id="getTimestampLength"><span class="symbol-name">getTimestampLength</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
@@ -404,7 +437,7 @@ var aggr2 = new qm.StreamAggr(base, { type: , name: &#x27;gendreSeperator&#x27;,
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on June 10, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on June 11, 2015.
       </p>
     </div>
   </footer>

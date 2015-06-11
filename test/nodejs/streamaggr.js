@@ -280,7 +280,7 @@ describe('Stream Aggregator Tests', function () {
     });
 });
 
-describe.only('Time Series Window Buffer Tests', function () {
+describe('Time Series Window Buffer Tests', function () {
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -528,6 +528,7 @@ describe.only('Time Series Window Buffer Tests', function () {
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
             //TODO
         })
+        // throws a C++ exception
         it.skip('should throw an exception for an empty vector', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
@@ -541,6 +542,115 @@ describe.only('Time Series Window Buffer Tests', function () {
             assert.throws(function () {
                 var date = sa.getTimestampAt(0);
             });
+        })
+    })
+    describe('GetInFloat Tests', function () {
+        it('should return the newest float in the buffer', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            assert.equal(sa.getInFloat(), 2);
+        })
+        it('should return 0 for an empty buffer', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            assert.equal(sa.getInFloat(), 0);
+        })
+    });
+    describe('GetInTimestamp Tests', function () {
+        it.skip('should return the newest timestamp in the buffer', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            assert.equal(sa.getInTimestamp(), '2015-06-10T14:13:33.0'); //TODO
+        })
+        it('should throw an exception for an empty buffer', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            assert.equal(sa.getInTimestamp(), 0);
+        })
+    });
+    describe('GetOutFloatVector Tests', function () {
+        it('should return the vector of the leaving values in buffer', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            var vec = sa.getOutFloatVector();
+            assert.equal(vec.length, 3);
+            assert.equal(vec[0], 1);
+            assert.equal(vec[1], 2);
+            assert.equal(vec[2], 3);
+        })
+        it('should return an empty vector for an empty buffer', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            var vec = sa.getOutFloatVector();
+            assert.equal(vec.length, 0);
+        })
+        it('should return an empty vector if all values are still in the window', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
+            var vec = sa.getOutFloatVector();
+            assert.equal(vec.length, 0);
         })
     })
 })

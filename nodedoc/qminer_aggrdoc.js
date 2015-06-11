@@ -90,7 +90,7 @@
 /**
 	* Gets the timestamp on the specific location in the buffer.
 	* @param {number} idx - The index.
-	* @returns {Object} The timestamp located on the idx position in the buffer.
+	* @returns {number} The timestamp located on the idx position in the buffer.
 	*/
  exports.StreamAggr.prototype.getTimestampAt = function (idx) {};
 /**
@@ -98,3 +98,18 @@
 	* @returns {module:la.Vector} The vector containing the window timestamps.
 	*/
  exports.StreamAggr.prototype.getTimestampVector = function () {};
+/**
+	* Gets the value of the newest record added to the buffer.
+	* @returns {number} The value of the newest record in the buffer.
+	*/
+ exports.StreamAggr.prototype.getInFloat = function () {};
+/**
+	* Gets the timestamp of the newest record added to the buffer.
+	* @returns {number} The timestamp given as the number of miliseconds since 01.01.1601, time: 00:00:00.0.
+	*/
+ exports.StreamAggr.prototype.getInTimestamp = function () {};
+/**
+	* Gets a vector containing the values that are leaving the buffer.
+	* @returns {module:la.Vector} The vector containing the values that are leaving the buffer.
+	*/
+ exports.StreamAggr.prototype.getOutFloatVector = function () {};
