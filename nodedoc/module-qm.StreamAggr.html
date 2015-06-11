@@ -59,6 +59,9 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.StreamAggr.html#getFloat">getFloat()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.StreamAggr.html#getFloatAt">getFloatAt(idx)</a></dt>
                     <dd>
                     </dd>
@@ -87,6 +90,9 @@
                     <dt><a href="module-qm.StreamAggr.html#getOutTimestampVector">getOutTimestampVector()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.StreamAggr.html#getTimestamp">getTimestamp()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.StreamAggr.html#getTimestampAt">getTimestampAt(idx)</a></dt>
                     <dd>
                     </dd>
@@ -101,6 +107,9 @@
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#onAdd">onAdd(rec)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.StreamAggr.html#onDelete">onDelete(rec)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#onUpdate">onUpdate(rec)</a></dt>
@@ -239,6 +248,14 @@ var sa = base.store(&quot;Laser&quot;).addStreamAggr(wavelength);</code></pre>
             </section>
             <h2>Methods</h2>
             <section>
+              <h3 id="getFloat"><span class="symbol-name">getFloat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Returns the float value of the newest record in buffer.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;The value of the newest record.</p>
+                </dd>
+              </dl>
               <h3 id="getFloatAt"><span class="symbol-name">getFloatAt</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Returns the value of the float vector at a specific index.</p>
               <section>
@@ -332,6 +349,14 @@ var sa = base.store(&quot;Laser&quot;).addStreamAggr(wavelength);</code></pre>
                   <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the leaving timestamps.</p>
                 </dd>
               </dl>
+              <h3 id="getTimestamp"><span class="symbol-name">getTimestamp</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Returns the timestamp value of the newest record in buffer.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;The timestamp of the newest record. It represents the number of miliseconds between the records time and 1601-01-01T00:00:00.0.</p>
+                </dd>
+              </dl>
               <h3 id="getTimestampAt"><span class="symbol-name">getTimestampAt</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Gets the timestamp on the specific location in the buffer.</p>
               <section>
@@ -422,8 +447,45 @@ var sa = base.store(&quot;Laser&quot;).addStreamAggr(wavelength);</code></pre>
                   <p><code><a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></code>&nbsp;Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.</p>
                 </dd>
               </dl>
+              <h3 id="onDelete"><span class="symbol-name">onDelete</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
+              <p>Executes the function when a record in the store is deleted.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>rec</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.Record.html">module:qm.Record</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The deleted record given to the stream aggregator.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></code>&nbsp;Self. The values in the stream aggregator are changed as defined in the inner onDelete function.</p>
+                </dd>
+              </dl>
               <h3 id="onUpdate"><span class="symbol-name">onUpdate</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
-              <p>Executes the function when a record is the store is updated.</p>
+              <p>Executes the function when a record in the store is updated.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">

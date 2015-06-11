@@ -153,13 +153,25 @@ public:
 	// IInt
 	//!- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
 	JsDeclareFunction(getInteger);
+
 	// IFlt
 	//!- `num = sa.getFlt()` -- returns a number if sa implements the interface IFlt
+	/**
+	* Returns the float value of the newest record in buffer.
+	* @returns {number} The value of the newest record.
+	*/
+	//# exports.StreamAggr.prototype.getFloat = function () {};
 	JsDeclareFunction(getFloat);
+
 	// ITm
 	//!- `num = sa.getTm()` -- returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)
+	/**
+	* Returns the timestamp value of the newest record in buffer.
+	* @returns {number} The timestamp of the newest record. It represents the number of miliseconds between the records time and 1601-01-01T00:00:00.0.
+	*/
+	//# exports.StreamAggr.prototype.getTimestamp = function () {};
 	JsDeclareFunction(getTimestamp);
-
+	
 	// IFltVec
 	//!- `num = sa.getFltLen()` -- returns a number (internal vector length) if sa implements the interface IFltVec.
 	/**

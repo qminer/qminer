@@ -70,17 +70,33 @@
 	*/
  exports.StreamAggr.prototype.onAdd = function (rec) {};
 /**
-	* Executes the function when a record is the store is updated.
+	* Executes the function when a record in the store is updated.
 	* @param {module:qmRecord} rec - The updated record given to the stream aggregator.
-	* @return {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.
+	* @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.
 	*/
  exports.StreamAggr.prototype.onUpdate = function (rec) {};
+/**
+	* Executes the function when a record in the store is deleted.
+	* @param {module:qm.Record} rec - The deleted record given to the stream aggregator.
+	* @returns {module:qm.StreamAggr} Self. The values in the stream aggregator are changed as defined in the inner onDelete function.
+	*/
+ exports.StreamAggr.prototype.onDelete = function (rec) {};
 /**
 	* When executed it return a JSON object as defined by the user.
 	* @param {number} [limit] - The meaning is specific to each type of stream aggregator. //TODO
 	* @returns {Object} A JSON object as defined by the user.
 	*/
  exports.StreamAggr.prototype.saveJson = function (limit) {};
+/**
+	* Returns the float value of the newest record in buffer.
+	* @returns {number} The value of the newest record.
+	*/
+ exports.StreamAggr.prototype.getFloat = function () {};
+/**
+	* Returns the timestamp value of the newest record in buffer.
+	* @returns {number} The timestamp of the newest record. It represents the number of miliseconds between the records time and 1601-01-01T00:00:00.0.
+	*/
+ exports.StreamAggr.prototype.getTimestamp = function () {};
 /**
 	* Gets the length of the value vector.
 	* @returns {number} The length of the value vector.
