@@ -1217,6 +1217,15 @@ TTm TTm::GetTmFromWebLogDateTimeStr(const TStr& DateTimeStr,
   while (ChN<DateTimeStrLen){
     ChA+=DateTimeStr[ChN]; ChN++;}
   TStr MSecStr=ChA;
+  // normalize to 3 digits
+  if (MSecStr.Len() > 3) {
+	  MSecStr = MSecStr.GetSubStr(0, 2); 
+  } else if (MSecStr.Len() == 1) {
+	  MSecStr += "00"; 
+  } else if (MSecStr.Len() == 2) {
+	  MSecStr += "0";
+  }
+
   // transform to numbers
   int YearN=YearStr.GetInt(-1);
   int MonthN=MonthStr.GetInt(-1);
