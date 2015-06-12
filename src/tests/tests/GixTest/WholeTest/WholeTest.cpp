@@ -1546,3 +1546,85 @@ TEST(testTStorePbBlob, PerfCompare_StrAddDelete) {
 	sw.Stop();
 	printf("++++ loop: %d\n\n", sw.GetMSecInt());
 }
+
+
+TEST(testTStorePbBlob, PerfCompare_ReadAll) {
+	TStr def_file = ".\\pgblob_test_str1.def";
+	TQm::TEnv::Init();
+	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
+	TStr dir = "data\\";
+
+	// init unicode
+	TTmStopWatch sw(false);
+	TUnicodeDef::Load(unicode_file);
+	int loops = 100;
+	int rec_count = 3 * 1000 * 1000;
+	int del_per_loop = rec_count / loops;
+
+	printf("Starting performance comparison - insert and delete\n");
+	{
+		printf("Starting - old implementation - insert and delete\n");
+		// create new base from definition
+		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+		TPt<TQm::TBase> Base = TQm::TStorage::NewBase(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+		TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
+		auto field_id_str = store->GetFieldId("FieldString");
+
+		TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
+		PJsonVal json = TJsonVal::GetValFromStr(s);
+		PJsonVal json_str = json->GetObjKey("FieldString");
+		PJsonVal json_bool = json->GetObjKey("FieldBool");
+		for (int i = 0; i < rec_count; i++) {
+			if (i % 1000 == 0) printf("    %d\r", i);
+			json_str->PutStr(TStr::Fmt("Stored value %d", i));
+			json_bool->PutBool(i % 7 == 3);
+			store->AddRec(json);
+		}
+
+		sw.Reset(true);
+		auto rs = store->GetAllRecs();
+		int max_len = -1;
+		for (int j = 0; j < rs->GetRecs(); j++) {
+			auto rec = rs->GetRec(j);
+			max_len = MAX(max_len, rec.GetFieldStr(field_id_str).Len());
+		}
+		printf("\n++++ loop intermediate: %d\n", sw.GetMSecInt());
+		printf("%d\n", max_len);
+		TQm::TStorage::SaveBase(Base);
+	}
+	sw.Stop();
+	printf("++++ loop: %d\n\n", sw.GetMSecInt());
+
+	{
+		printf("Starting - new implementation - insert and delete\n");
+		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+		auto store = Base->GetStoreByStoreNm("TestStore");
+		auto field_id_str = store->GetFieldId("FieldString");
+		auto field_id_bool = store->GetFieldId("FieldBool");
+		TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
+		PJsonVal json = TJsonVal::GetValFromStr(s);
+		PJsonVal json_str = json->GetObjKey("FieldString");
+		PJsonVal json_bool = json->GetObjKey("FieldBool");
+		TVec<uint64> rec_ids;
+		for (int i = 0; i < rec_count; i++) {
+			if (i % 1000 == 0) printf("    %d\r", i);
+			json_str->PutStr(TStr::Fmt("Stored value %d", i));
+			json_bool->PutBool(i % 7 == 3);
+			rec_ids.Add(store->AddRec(json));
+		}
+
+		sw.Reset(true);
+		auto rs = store->GetAllRecs();
+		int max_len = -1;
+		for (int j = 0; j < rs->GetRecs(); j++) {
+			auto rec = rs->GetRec(j);
+			max_len = MAX(max_len, rec.GetFieldStr(field_id_str).Len());
+		}
+		printf("\n++++ loop intermediate: %d\n", sw.GetMSecInt());
+		printf("%d\n", max_len);
+		TQm::SaveBase2(Base);
+	}
+	sw.Stop();
+	printf("++++ loop: %d\n\n", sw.GetMSecInt());
+}
