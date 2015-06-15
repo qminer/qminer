@@ -2330,7 +2330,7 @@ void TStreamStory::OnAddRec(const uint64& RecTm, const TFltV& ObsFtrV, const TFl
 		MChain->OnAddRec(NewStateId, RecTm, false);
 
 		if (NewStateId != OldStateId && Callback != nullptr) {
-			PredictTargets(StateFtrVV, NewStateId);	// TODO should I use StateFtrVV???
+			PredictTargets(RecTm, StateFtrVV, NewStateId);	// TODO should I use StateFtrVV???
 			Hierarch->UpdateHistory(NewStateId);
 
 			TIntFltPrV CurrStateV;	GetCurrStateAncestry(CurrStateV);
@@ -2603,7 +2603,8 @@ void TStreamStory::DetectAnomalies(const int& NewStateId, const int& OldStateId,
 	}
 }
 
-void TStreamStory::PredictTargets(const TStateFtrVV& StateFtrVV, const int& CurrLeafId) const {
+void TStreamStory::PredictTargets(const uint64& RecTm, const TStateFtrVV& StateFtrVV,
+		const int& CurrLeafId) const {
 	const TIntFltPrSet& TargetIdHeightSet = Hierarch->GetTargetStateIdSet();
 
 	double Prob;
@@ -2633,7 +2634,7 @@ void TStreamStory::PredictTargets(const TStateFtrVV& StateFtrVV, const int& Curr
 				CurrStateId, TrgStateId, Prob, ProbV, TmV);
 
 		if (WillOccur) {
-			Callback->OnPrediction(CurrStateId, TrgStateId, Prob, ProbV, TmV);
+			Callback->OnPrediction(RecTm, CurrStateId, TrgStateId, Prob, ProbV, TmV);
 		}
 	}
 }

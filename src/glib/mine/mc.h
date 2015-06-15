@@ -845,7 +845,7 @@ private:
     void DetectAnomalies(const int& NewStateId, const int& OldStateId, const TFltV& ObsFtrV,
     		const TFltV& FtrV) const;
 
-    void PredictTargets(const TStateFtrVV& StateFtrVV, const int& CurrStateId) const;
+    void PredictTargets(const uint64& RecTm, const TStateFtrVV& StateFtrVV, const int& CurrStateId) const;
 
     void CheckBatches(const TUInt64V& TmV, const TBoolV& BatchEndV) const;
 
@@ -858,8 +858,9 @@ public:
     	virtual void OnStateChanged(const TIntFltPrV& StateIdHeightV) = 0;
     	virtual void OnAnomaly(const TStr& AnomalyDesc) = 0;
     	virtual void OnOutlier(const TFltV& FtrV) = 0;
-    	virtual void OnPrediction(const int& CurrStateId, const int& TargetStateId,
-    			const double& Prob, const TFltV& ProbV, const TFltV& TmV) = 0;
+    	virtual void OnPrediction(const uint64& RecTm, const int& CurrStateId,
+    			const int& TargetStateId, const double& Prob, const TFltV& ProbV,
+				const TFltV& TmV) = 0;
     };
 };
 

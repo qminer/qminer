@@ -1678,15 +1678,11 @@ void TNodeJsStreamStory::OnOutlier(const TFltV& FtrV) {
 	}
 }
 
-void TNodeJsStreamStory::OnPrediction(const int& CurrStateId, const int& TargetStateId,
+void TNodeJsStreamStory::OnPrediction(const uint64& RecTm, const int& CurrStateId, const int& TargetStateId,
 		const double& Prob, const TFltV& ProbV, const TFltV& TmV) {
 	if (!PredictionCallback.IsEmpty()) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
-
-		const int ArgC = 5;
-
-		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, PredictionCallback);
 
 		v8::Local<v8::Array> JsProbV = v8::Array::New(Isolate, ProbV.Len());
 		v8::Local<v8::Array> JsTmV = v8::Array::New(Isolate, TmV.Len());
@@ -1698,7 +1694,10 @@ void TNodeJsStreamStory::OnPrediction(const int& CurrStateId, const int& TargetS
 			JsTmV->Set(i, v8::Number::New(Isolate, TmV[i]));
 		}
 
+		const int ArgC = 6;
+
 		v8::Handle<v8::Value> ArgV[ArgC] = {
+			v8::Date::New(Isolate, TTm::GetUnixMSecsFromWinMSecs(RecTm)),
 			v8::Integer::New(Isolate, CurrStateId),
 			v8::Integer::New(Isolate, TargetStateId),
 			v8::Number::New(Isolate, Prob),
@@ -1706,6 +1705,7 @@ void TNodeJsStreamStory::OnPrediction(const int& CurrStateId, const int& TargetS
 			JsTmV
 		};
 
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, PredictionCallback);
 		TNodeJsUtil::ExecuteVoid(Callback, ArgC, ArgV);
 	}
 }
