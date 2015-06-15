@@ -181,18 +181,19 @@ class TNodeJsFIn : public node::ObjectWrap {
 //    -make sure Init is called from somewhere (in this case from init function, registered with NODE_MODULE(...))
 // creating object from C++ (using TNodeJsUtil::NewJsInstance(TClass* Obj))
 //    -define Constructor member
-//    -define ClassId member
+//    -define GetClassId method
 //    -set Constructor callback to TNodeJsUtil::_NewCpp (doesn't create a new pointer to the wrapper) and inherit from template
 // creating from JS using 'new' 
 //	  -implement NewFromArgs (parses arguments and returns pointer to wrapper)
-//	  -define ClassId member
+//	  -define GetClassId method
 //    -set template callback to TNodeJsUtil::_NewJs (this creates a new pointer to the wrapper)
 //    -attach template function to exports in Init function
 private:
 	static v8::Persistent<v8::Function> Constructor;
 public:
 	static void Init(v8::Handle<v8::Object> Exports);
-	static const TStr ClassId;
+	static const TStr GetClassId() { return "FIn"; }
+
 	// wrapped C++ object
 	PSIn SIn;
 	// C++ constructor
@@ -269,7 +270,8 @@ private:
     TNodeJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
 public:
     static void Init(v8::Handle<v8::Object> exports);
-	static TStr ClassId;
+    static const TStr GetClassId() { return "FOut"; }
+
     static v8::Local<v8::Object> New(const TStr& FilePath, const bool& AppendP = false);
 
 	/**

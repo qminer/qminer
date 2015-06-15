@@ -69,9 +69,9 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
 	TNodeJsSVR::Init(NsObj);
 	TNodeJsRecLinReg::Init(NsObj);
 	TNodeJsLogReg::Init(NsObj);
-	TNodeJsExpReg::Init(NsObj);
+	TNodeJsPropHaz::Init(NsObj);
 	TNodeJsRidgeReg::Init(NsObj);
-	TNodeJsHMChain::Init(NsObj);
+	TNodeJsStreamStory::Init(NsObj);
 	TNodeJsNNet::Init(NsObj);
 	TNodeJsTokenizer::Init(NsObj);
 
@@ -124,7 +124,7 @@ void InitQm(Handle<Object> Exports) {
 	TNodeJsFtrSpace::Init(Exports);
 }
 
-void Init(Handle<Object> Exports, Handle<Object> module) {
+void Init(Handle<Object> Exports) {
 	InitFs(Exports, "fs");
 	InitLa(Exports, "la");
 	InitHt(Exports, "ht");

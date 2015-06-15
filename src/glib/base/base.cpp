@@ -83,6 +83,7 @@ int _daylight = 0;
 #include "ss.cpp"
 #include "xml.cpp"
 #include "linalg.cpp"
+#include "opt.cpp"
 #include "json.cpp"
 
 #include "zipfl.cpp"

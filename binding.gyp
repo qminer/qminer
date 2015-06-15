@@ -72,13 +72,36 @@
                 # operating system specific parameters
                 ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
+                    "default_configuration": "Release",
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
                         'GCC_ENABLE_CPP_RTTI': 'YES',
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
-                    }
+                    },
+                    "configurations": {
+                        "Debug": {
+                            "defines": [
+                                "DEBUG"
+                            ],
+                            "xcode_settings": {
+                                "GCC_OPTIMIZATION_LEVEL": "0",
+                                "GCC_GENERATE_DEBUGGING_SYMBOLS": "YES"
+                            }
+                        },
+                        "Release": {
+                            "defines": [
+                                "NDEBUG"
+                            ],
+                            "xcode_settings": {
+                                "GCC_OPTIMIZATION_LEVEL": "3",
+                                "GCC_GENERATE_DEBUGGING_SYMBOLS": "NO",
+                                "DEAD_CODE_STRIPPING": "YES",
+                                "GCC_INLINES_ARE_PRIVATE_EXTERN": "YES"
+                            }
+                        }
+                    }                    
                 }],
                 ['OS == "win"', {
                     'configurations': {
@@ -134,13 +157,36 @@
                 # operating system specific parameters
                 ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
+                    "default_configuration": "Release",
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
                         'GCC_ENABLE_CPP_RTTI': 'YES',
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
-                    }
+                    },
+                    "configurations": {
+                        "Debug": {
+                            "defines": [
+                                "DEBUG"
+                            ],
+                            "xcode_settings": {
+                                "GCC_OPTIMIZATION_LEVEL": "0",
+                                "GCC_GENERATE_DEBUGGING_SYMBOLS": "YES"
+                            }
+                        },
+                        "Release": {
+                            "defines": [
+                                "NDEBUG"
+                            ],
+                            "xcode_settings": {
+                                "GCC_OPTIMIZATION_LEVEL": "3",
+                                "GCC_GENERATE_DEBUGGING_SYMBOLS": "NO",
+                                "DEAD_CODE_STRIPPING": "YES",
+                                "GCC_INLINES_ARE_PRIVATE_EXTERN": "YES"
+                            }
+                        }
+                    }                    
                 }],
                 ['OS == "win"', {
                     'configurations': {
@@ -188,13 +234,36 @@
                 # operating system specific parameters
                 ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
+                    "default_configuration": "Release",
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
                         'GCC_ENABLE_CPP_RTTI': 'YES',
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
-                    }
+                    },
+                    "configurations": {
+                        "Debug": {
+                            "defines": [
+                                "DEBUG"
+                            ],
+                            "xcode_settings": {
+                                "GCC_OPTIMIZATION_LEVEL": "0",
+                                "GCC_GENERATE_DEBUGGING_SYMBOLS": "YES"
+                            }
+                        },
+                        "Release": {
+                            "defines": [
+                                "NDEBUG"
+                            ],
+                            "xcode_settings": {
+                                "GCC_OPTIMIZATION_LEVEL": "3",
+                                "GCC_GENERATE_DEBUGGING_SYMBOLS": "NO",
+                                "DEAD_CODE_STRIPPING": "YES",
+                                "GCC_INLINES_ARE_PRIVATE_EXTERN": "YES"
+                            }
+                        }
+                    }                    
                 }],
                 ['OS == "win"', {
                     'configurations': {
@@ -243,13 +312,36 @@
                 # operating system specific parameters
                 ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
+                    "default_configuration": "Release",
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
                         'GCC_ENABLE_CPP_RTTI': 'YES',
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
                         'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
                         'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
-                    }
+                    },
+                    "configurations": {
+                        "Debug": {
+                            "defines": [
+                                "DEBUG"
+                            ],
+                            "xcode_settings": {
+                                "GCC_OPTIMIZATION_LEVEL": "0",
+                                "GCC_GENERATE_DEBUGGING_SYMBOLS": "YES"
+                            }
+                        },
+                        "Release": {
+                            "defines": [
+                                "NDEBUG"
+                            ],
+                            "xcode_settings": {
+                                "GCC_OPTIMIZATION_LEVEL": "3",
+                                "GCC_GENERATE_DEBUGGING_SYMBOLS": "NO",
+                                "DEAD_CODE_STRIPPING": "YES",
+                                "GCC_INLINES_ARE_PRIVATE_EXTERN": "YES"
+                            }
+                        }
+                    }                    
                 }],
                 ['OS == "win"', {
                     'configurations': {

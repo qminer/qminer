@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">namespace</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Record</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-814">qminerdoc.<wbr>js:814</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1285">qminerdoc.<wbr>js:1285</a></p>
             <div class="symbol-description">
               <p>Record (factory pattern).</p>
             </div>
@@ -38,9 +38,6 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.Record.html#$fq">$fq</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.Record.html#$id">$id</a></dt>
                     <dd>
                     </dd>
@@ -51,12 +48,14 @@
                     <dt><a href="module-qm.Record.html#$name">$name</a></dt>
                     <dd>
                     </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
                     <dt><a href="module-qm.Record.html#store">store</a></dt>
                     <dd>
                     </dd>
                   </dl>
-                </div>
-                <div class="summary-column">
                 </div>
               </div>
             </div>
@@ -68,10 +67,16 @@
                     <dt><a href="module-qm.Record.html#$clone">$clone()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.Record.html#addJoin">addJoin(joinName, joinRecord[, joinFrequency])</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Record.html#delJoin">delJoin(joinName, joinRecord[, joinFrequency])</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.Record.html#toJSON">toJSON()</a></dt>
                     <dd>
                     </dd>
@@ -85,10 +90,6 @@
           <section>
             <h2>Properties</h2>
             <section>
-              <h3 id="$fq"><span class="symbol-name">$fq</span></h3>
-              <p>Returns the frequency of the record.</p>
-              <dl class="dl-compact">
-              </dl>
               <h3 id="$id"><span class="symbol-name">$id</span></h3>
               <p>Returns the id of the record.</p>
               <dl class="dl-compact">
@@ -106,14 +107,197 @@
             <section>
               <h3 id="$clone"><span class="symbol-name">$clone</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Record.html">module:qm.Record</a></span></span></h3>
               <p>Clones the record.</p>
+              <section>
+                <h4>
+
+            Example
+
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base containing one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;StarWarsMovies&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
+           { &quot;name&quot;: &quot;ReleseDate&quot;, &quot;type&quot;: &quot;datetime&quot; },
+           { &quot;name&quot;: &quot;Length&quot;, &quot;type&quot;: &quot;int&quot; }
+       ]
+   }]
+});
+// create some records in the new store
+base.store(&quot;StarWarsMovies&quot;).push({&quot;Title&quot;: &quot;Attack of the Clones&quot;, &quot;ReleseDate&quot;: &quot;2002-05-16T00:00:00&quot;, &quot;Length&quot;: 142 });
+base.store(&quot;StarWarsMovies&quot;).push({&quot;Title&quot;: &quot;The Empire Strikes Back&quot;, &quot;ReleseDate&quot;: &quot;1980-06-20T00:00:00&quot;, &quot;Length&quot;: 124 });
+base.store(&quot;StarWarsMovies&quot;).push({&quot;Title&quot;: &quot;Return of the Jedi&quot;, &quot;ReleseDate&quot;: &quot;1983-05-25T00:00:00&quot;, &quot;Length&quot;: 134 });
+// create a clone of the &quot;Attack of the Clones&quot; record
+var clone = base.store(&quot;StarWarsMovies&quot;)[0].$clone();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
                   <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>&nbsp;The clone of the record.</p>
                 </dd>
               </dl>
+              <h3 id="addJoin"><span class="symbol-name">addJoin</span><span class="signature"><span class="signature-params">(joinName, joinRecord[, joinFrequency])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Record.html">module:qm.Record</a></span></span></h3>
+              <p>addJoin // TODO</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>joinName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>joinRecord</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-qm.Record.html">module:qm.Record</a> or number)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>joinFrequency</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>&nbsp;Record.</p>
+                </dd>
+              </dl>
+              <h3 id="delJoin"><span class="symbol-name">delJoin</span><span class="signature"><span class="signature-params">(joinName, joinRecord[, joinFrequency])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Record.html">module:qm.Record</a></span></span></h3>
+              <p>delJoin // TODO</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>joinName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>joinRecord</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-qm.Record.html">module:qm.Record</a> or number)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>joinFrequency</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>&nbsp;Record.</p>
+                </dd>
+              </dl>
               <h3 id="toJSON"><span class="symbol-name">toJSON</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Creates a JSON version of the record.</p>
+              <section>
+                <h4>
+
+            Example
+
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base containing one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       &quot;name&quot;: &quot;Musicians&quot;,
+       &quot;fields&quot;: [
+           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
+           { &quot;name&quot;: &quot;DateOfBirth&quot;, &quot;type&quot;: &quot;datetime&quot; },
+           { &quot;name&quot;: &quot;GreatestHits&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       ]
+   }]
+});
+// create some records
+base.store(&quot;Musicians&quot;).push({ &quot;Name&quot;: &quot;Jimmy Page&quot;, &quot;DateOfBirth&quot;:  &quot;1944-01-09T00:00:00&quot;, &quot;GreatestHits&quot;: [&quot;Stairway to Heaven&quot;, &quot;Whole Lotta Love&quot;] });
+base.store(&quot;Musicians&quot;).push({ &quot;Name&quot;: &quot;Beyonce&quot;, &quot;DateOfBirth&quot;: &quot;1981-09-04T00:00:00&quot;, &quot;GreatestHits&quot;: [&quot;Single Ladies (Put a Ring on It)&quot;] });
+// get a JSON version of the &quot;Beyonce&quot; record 
+// The JSON object for this example si:
+// { &#x27;$id&#x27;: 1, Name: &#x27;Beyonce&#x27;, ActiveSince: &#x27;1981-09-04T00:00:00&#x27;, GreatestHits: [&#x27;Single Ladies (Put a Ring on It)&#x27;] }
+var json = base.store(&quot;Musicians&quot;).rec(&quot;Beyonce&quot;).toJSON();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -130,7 +314,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on April 29, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on June 3, 2015.
       </p>
     </div>
   </footer>

@@ -37,17 +37,36 @@ describe('Stream Aggregator Tests', function () {
                 this.saveJson = function (limit) {
                     return { val: data };
                 };
+                
+                this.getInt = function () {
+                    return data;
+                };
+                this.getFlt = function () {
+                    throw 'error';
+                };
+                this.getTm = function () {
+                    
+                };
+                
             });
 
 
-            var id1 = base.store('People').add({ name: "John" });
+            var id1 = base.store('People').push({ name: "John" });
             assert(s.saveJson().val == 4);
 
-            var id2 = base.store('People').add({ name: "Mary" });
+            var id2 = base.store('People').push({ name: "Mary" });
             assert(s.saveJson().val == 4);
 
-            var id3 = base.store('People').add({ name: "Jim" });
+            var id3 = base.store('People').push({ name: "Jim" });
             assert(s.saveJson().val == 3);
+            assert.throws(
+            	function() {
+            		s.getFlt() == 3
+            });
+		    assert.throws(
+            	function() {
+            		s.getTm() == 3
+            });
         })
     })
 })

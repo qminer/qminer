@@ -386,18 +386,13 @@ void TBufferedInterpolator::Save(TSOut& SOut) const {
 	Buff.Save(SOut);
 }
 
-void TBufferedInterpolator::SetNextInterpTm(const uint64& Time) {
-	// TODO optimize
-	while (Buff.Len() > 1 && Buff.GetOldest(1).Val1 <= Time) {
-		Buff.DelOldest();
-	}
-}
-
 void TBufferedInterpolator::AddPoint(const double& Val, const uint64& Tm) {
+	EAssertR(!TFlt::IsNan(Val), "TBufferedInterpolator::AddPoint: got NaN value!");
+
 	// check if the new point can be added
 	if (!Buff.Empty()) {
 		const TUInt64FltPr& LastRec = Buff.GetNewest();
-		IAssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val), "New point has a timestamp lower then the last point in the buffer!");
+		IAssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val), "New point has a timestamp lower then the last point in the buffer, or same with different values!");
 	}
 
 	// add the new point
@@ -438,6 +433,20 @@ TCurrentPoint::TCurrentPoint():
 TCurrentPoint::TCurrentPoint(TSIn& SIn):
 		TBufferedInterpolator(SIn) {}
 
+void TCurrentPoint::SetNextInterpTm(const uint64& Tm) {
+	// at least one past (or current time) record needs to be in the buffer
+	bool Change = false;
+	while (Buff.Len() >= 2 && Buff.GetOldest(1).Val1 <= Tm) {
+		Buff.DelOldest();
+		Change = true;
+	}
+	if (Change) {
+		EAssertR(CanInterpolate(Tm), "WTF!? Current point interpolator cannot intrpolate after setting new time!");
+	}
+	// when the loop finishes we have at least 1 record in the buffer
+	// with a timestamp <= Tm
+}
+
 double TCurrentPoint::Interpolate(const uint64& Tm) const {
 	IAssertR(CanInterpolate(Tm), "TCurrentPoint::Interpolate: Time not in the desired interval!");
 	return Buff.GetOldest().Val2;
@@ -456,20 +465,29 @@ TLinear::TLinear():
 TLinear::TLinear(TSIn& SIn):
 		TBufferedInterpolator(SIn) {}
 
+void TLinear::SetNextInterpTm(const uint64& Time) {
+	while (Buff.Len() > 1 && Buff.GetOldest(1).Val1 <= Time) {
+		Buff.DelOldest();
+	}
+}
+
 double TLinear::Interpolate(const uint64& Tm) const {
 	AssertR(CanInterpolate(Tm), "TLinear::Interpolate: Time not in the desired interval!");
 
-	if (Tm == Buff.GetOldest().Val1) { return Buff.GetOldest().Val2; }
-
 	const TUInt64FltPr& PrevRec = Buff.GetOldest();
+	if (Tm == PrevRec.Val1) { return PrevRec.Val2; }
 	const TUInt64FltPr& NextRec = Buff.GetOldest(1);
 
-	return PrevRec.Val2+((double)(Tm-PrevRec.Val1)/(NextRec.Val1-PrevRec.Val1))*(NextRec.Val2-PrevRec.Val2);
+	// don't need to check if the times of the previous rec and next rec are equal since if
+	// that is true Tm will be equal to PrevRec.Tm and the correct result will be returned
+	const double Result = PrevRec.Val2 + ((double) (Tm - PrevRec.Val1) / (NextRec.Val1 - PrevRec.Val1)) * (NextRec.Val2 - PrevRec.Val2);
+	EAssertR(!TFlt::IsNan(Result), "TLinear: result of interpolation is NaN!");
+	return Result;
 }
 
 bool TLinear::CanInterpolate(const uint64& Tm) const {
 	return (!Buff.Empty() && Buff.GetOldest().Val1 == Tm) ||
-			(Buff.Len() >= 2 && Buff.GetOldest().Val1 <= Tm && Buff.GetOldest(1).Val1 >= Tm);
+			(Buff.Len() >= 2 && Buff.GetOldest().Val1 <= Tm && Tm <= Buff.GetOldest(1).Val1);
 }
 
 ///////////////////////////////////////////////////////////////////

@@ -25,8 +25,8 @@ var base1 = new qm.Base({
 });
 
 var store1 = base1.store("People");
-store1.add({ name: "Jan" });
-store1.add({ name: null });
+store1.push({ name: "Jan" });
+store1.push({ name: null });
 assert(store1.length == 2);
 base1.close();
 })});

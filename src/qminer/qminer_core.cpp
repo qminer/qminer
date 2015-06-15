@@ -50,7 +50,7 @@ void TEnv::Init() {
 };
 
 void TEnv::InitLogger(const int& _Verbosity,
-	const TStr& FPath, const bool& TimestampP) {
+        const TStr& FPath, const bool& TimestampP) {
 
 	// direct logger to appropriate output
 	if (FPath == "null") {
@@ -679,7 +679,7 @@ int TStore::GetFieldNmInt(const uint64& RecId, const TStr& FieldNm) const {
 }
 
 void TStore::GetFieldNmIntV(const uint64& RecId, const TStr& FieldNm, TIntV& IntV) const {
-	return GetFieldIntV(RecId, GetFieldId(FieldNm), IntV);
+	GetFieldIntV(RecId, GetFieldId(FieldNm), IntV);
 }
 
 uint64 TStore::GetFieldNmUInt64(const uint64& RecId, const TStr& FieldNm) const {
@@ -691,7 +691,7 @@ TStr TStore::GetFieldNmStr(const uint64& RecId, const TStr& FieldNm) const {
 }
 
 void TStore::GetFieldNmStrV(const uint64& RecId, const TStr& FieldNm, TStrV& StrV) const {
-	return GetFieldStrV(RecId, GetFieldId(FieldNm), StrV);
+	GetFieldStrV(RecId, GetFieldId(FieldNm), StrV);
 }
 
 bool TStore::GetFieldNmBool(const uint64& RecId, const TStr& FieldNm) const {
@@ -707,11 +707,11 @@ TFltPr TStore::GetFieldNmFltPr(const uint64& RecId, const TStr& FieldNm) const {
 }
 
 void TStore::GetFieldNmFltV(const uint64& RecId, const TStr& FieldNm, TFltV& FltV) const {
-	return GetFieldFltV(RecId, GetFieldId(FieldNm), FltV);
+	GetFieldFltV(RecId, GetFieldId(FieldNm), FltV);
 }
 
 void TStore::GetFieldNmTm(const uint64& RecId, const TStr& FieldNm, TTm& Tm) const {
-	return GetFieldTm(RecId, GetFieldId(FieldNm), Tm);
+	GetFieldTm(RecId, GetFieldId(FieldNm), Tm);
 }
 
 uint64 TStore::GetFieldNmTmMSecs(const uint64& RecId, const TStr& FieldNm) const {
@@ -719,11 +719,11 @@ uint64 TStore::GetFieldNmTmMSecs(const uint64& RecId, const TStr& FieldNm) const
 }
 
 void TStore::GetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, TIntFltKdV& SpV) const {
-	return GetFieldNumSpV(RecId, GetFieldId(FieldNm), SpV);
+	GetFieldNumSpV(RecId, GetFieldId(FieldNm), SpV);
 }
 
 void TStore::GetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, PBowSpV& SpV) const {
-	return GetFieldBowSpV(RecId, GetFieldId(FieldNm), SpV);
+	GetFieldBowSpV(RecId, GetFieldId(FieldNm), SpV);
 }
 
 void TStore::SetFieldNull(const uint64& RecId, const int& FieldId) {
