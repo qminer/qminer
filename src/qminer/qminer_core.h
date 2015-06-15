@@ -607,6 +607,8 @@ public:
 	
 	/// Signal to purge any old stuff, e.g. records that fall out of time window when store has one
 	virtual void GarbageCollect() { }
+	/// Deletes all records
+	virtual void DeleteAllRecs() = 0;
 	/// Delete the first DelRecs records (the records that were inserted first)
 	virtual void DeleteFirstNRecs(int DelRecs) {};
 	/// Delete specific records

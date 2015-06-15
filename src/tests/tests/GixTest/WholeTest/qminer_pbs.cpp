@@ -821,6 +821,68 @@ namespace TQm {
 		// TODO remove empty pages
 	}
 
+
+	/// Deletes all records
+	void TStorePbBlob::DeleteAllRecs() {
+		// if no records, nothing to do here
+		if (Empty()) { return; }
+		TEnv::Logger->OnStatusFmt("Deleting all (%d) records in %s", GetRecs(), GetStoreNm().CStr());
+
+		// delete records from index
+		//for (uint64 DelRecId = GetFirstRecId(); DelRecId <= GetLastRecId(); DelRecId++) {
+		THash<TUInt64, TPgBlobPt>* Target = (DataMemP ? &RecIdBlobPtHMem : &RecIdBlobPtH);
+		for (auto it = Target->begin(); it != Target->end(); ++it) {
+			uint64 DelRecId = it.GetKey();
+			// executed triggers before deletion
+			OnDelete(DelRecId);
+			// delete record from name-id map
+			if (IsPrimaryField()) { DelPrimaryField(DelRecId); }
+			// delete record from indexes
+			if (DataBlobP) {
+				TPgBlobPt Pt = RecIdBlobPtH.GetDat(DelRecId);
+				TMemBase CacheRecMem = DataBlob->GetMemBase(Pt);
+				RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorCache);
+				//DataBlob->Del(Pt);
+				RecIdBlobPtH.DelKey(DelRecId);
+			}
+			if (DataMemP) {
+				TPgBlobPt Pt = RecIdBlobPtHMem.GetDat(DelRecId);
+				TMemBase RecMem = DataMem->GetMemBase(Pt);
+				RecIndexer.DeindexRec(RecMem, DelRecId, SerializatorMem);
+				//DataMem->Del(Pt);
+				RecIdBlobPtHMem.DelKey(DelRecId);
+			}
+			// delete record from joins
+			TRec Rec(this, DelRecId);
+			for (int JoinN = 0; JoinN < GetJoins(); JoinN++) {
+				TJoinDesc JoinDesc = GetJoinDesc(JoinN);
+				// execute the join
+				PRecSet JoinRecSet = Rec.DoJoin(GetBase(), JoinDesc.GetJoinId());
+				for (int JoinRecN = 0; JoinRecN < JoinRecSet->GetRecs(); JoinRecN++) {
+					// remove joins with all matched records, one by one
+					const uint64 JoinRecId = JoinRecSet->GetRecId(JoinRecN);
+					const int JoinFq = JoinRecSet->GetRecFq(JoinRecN);
+					DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId, JoinFq);
+				}
+			}
+		}
+		// delete records from disk
+		TEnv::Logger->OnStatus("Internal structures 1");
+		PrimaryStrIdH.Clr();
+		PrimaryIntIdH.Clr();
+		PrimaryUInt64IdH.Clr();
+		PrimaryFltIdH.Clr();
+		PrimaryTmMSecsIdH.Clr();
+
+		TEnv::Logger->OnStatus("Internal structures 2");
+		RecIdBlobPtH.Clr();
+		RecIdBlobPtHMem.Clr();
+		DataBlob->Clr();
+		DataMem->Clr();
+		PartialFlush(TInt::Mx);
+	}
+
+
 	void TStorePbBlob::DeleteFirstNRecs(int Recs) {
 		PRecSet RecSet = GetAllRecs();
 		int RecCnt = RecSet->GetRecs();

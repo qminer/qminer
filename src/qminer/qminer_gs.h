@@ -810,8 +810,12 @@ public:
 	TStr GetRecNm(const uint64& RecId) const;
 	uint64 GetRecId(const TStr& RecNm) const;
 	uint64 GetRecs() const;
-	uint64 GetFirstRecId() const { return DataMem.GetFirstValId(); }
-	uint64 GetLastRecId() const { return DataMem.GetLastValId(); }
+	uint64 GetFirstRecId() const { 
+		return (DataMemP ? DataMem.GetFirstValId(): DataCache.GetFirstValId()); 
+	}
+	uint64 GetLastRecId() const { 
+		return (DataMemP ? DataMem.GetLastValId() : DataCache.GetLastValId());
+	}
 
 	PStoreIter GetIter() const;
 	
@@ -831,6 +835,8 @@ public:
 
 	/// Purge records that fall out of store window (when it has one)
 	void GarbageCollect();
+	/// Deletes all records
+	void DeleteAllRecs();
 	/// Delete the first DelRecs records (the records that were inserted first)
 	void DeleteFirstNRecs(int Recs);
 	/// Delete specific record

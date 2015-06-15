@@ -290,8 +290,6 @@ namespace glib {
 		}
 
 		// init cache
-		//Bf = new char[CacheSize];
-		//BfL = CacheSize;
 		LastExtentCnt = EXTENT_PCOUNT; // this means the "last" extent is full, so use new one
 		MxLoadedPages = CacheSize / PAGE_SIZE;
 		LruFirst = LruLast = -1;
@@ -397,7 +395,7 @@ namespace glib {
 	}
 
 	/// Load given page into memory
-	char* TPgBlob::LoadPage(const TPgBlobPgPt& Pt) {
+	char* TPgBlob::LoadPage(const TPgBlobPgPt& Pt, const bool& LoadData) {
 		int Pg;
 		if (LoadedPagesH.IsKeyGetDat(Pt, Pg)) { // is page in cache
 			MoveToStartLru(Pg);
@@ -407,7 +405,9 @@ namespace glib {
 			// evict last page + load new page
 			Pg = Evict();
 			LoadedPage& a = LoadedPages[Pg];
-			Files[Pt.GetFIx()]->LoadPage(Pt.GetPg(), GetPageBf(Pg));
+			if (LoadData) {
+				Files[Pt.GetFIx()]->LoadPage(Pt.GetPg(), GetPageBf(Pg));
+			}
 			a.Pt = Pt;
 			EnlistToStartLru(Pg);
 			int hid = LoadedPagesH.AddKey(Pt);
@@ -422,7 +422,9 @@ namespace glib {
 			}
 			Pg = LoadedPages.Add();
 			LoadedPage& a = LoadedPages[Pg];
-			Files[Pt.GetFIx()]->LoadPage(Pt.GetPg(), GetPageBf(Pg));
+			if (LoadData) {
+				Files[Pt.GetFIx()]->LoadPage(Pt.GetPg(), GetPageBf(Pg));
+			}
 			a.Pt = Pt;
 			EnlistToStartLru(Pg);
 			int hid = LoadedPagesH.AddKey(Pt);
@@ -441,7 +443,7 @@ namespace glib {
 			uint32 Pg = Files.Last()->CreateNewPage();
 			if (Pg >= 0) {
 				Pt.Set(Files.Len() - 1, Pg);
-				*Bf = LoadPage(Pt);
+				*Bf = LoadPage(Pt, false);
 				InitPageP(*Bf);
 				return;
 			}
@@ -451,7 +453,7 @@ namespace glib {
 		uint32 Pg = Files.Last()->CreateNewPage();
 		EAssert(Pg >= 0);
 		Pt.Set(Files.Len() - 1, Pg);
-		*Bf = LoadPage(Pt);
+		*Bf = LoadPage(Pt, false);
 		InitPageP(*Bf);
 	}
 
@@ -599,6 +601,19 @@ namespace glib {
 		for (int i = 0; i < Fsm.Len(); i++) {
 			LoadPage(TPgBlobPgPt(Fsm[i]));
 		}
+	}
+
+	/// Loads all pages into cache - cache must be big enough
+	void TPgBlob::Clr() {
+		Extents.Clr();
+		LoadedPagesH.Clr();
+		LoadedPages.Clr();
+		Fsm.Clr();
+		Files.Clr();
+		TFile::DelWc(FNm + ".bin*"); // delete all child files
+		LastExtentCnt = EXTENT_PCOUNT;
+		LruFirst = LruLast = -1;
+		SaveMain();
 	}
 
 	/// Save part of the data, given time-window
