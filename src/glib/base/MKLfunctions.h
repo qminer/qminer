@@ -952,7 +952,7 @@ static void LQSolve(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>&
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// SVD factorization and solution
+	// SVD factorization and solution -- currently works only for double and float
 
 	// Makes the SVD factorization of matrix Matrix, such that A = U * Sing * VT.
 	// Sing is the vector containing singular values, U is the matrix with left singular vectors,
@@ -969,6 +969,7 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 
 		// preperation for factorization
 		Sing.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+		//Fix this part, results are only double or float due to bidiagonalization
 		TVec<Type, Size> UpDiag, TauQ, TauP;
 		UpDiag.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix) - 1);
 		TauQ.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
@@ -985,22 +986,25 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_sgebrd(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
-				(Loc *)&Sing[0].Val, &UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
+				(Loc *)&Sing[0].Val, (Loc *)&UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
 		}
 		else
 		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
+			typedef double LocSing;
 			LAPACKE_zgebrd(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
-				(Loc *)&Sing[0].Val, &UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
+				(LocSing *)&Sing[0].Val, (LocSing *)&UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
 		}
 		else
 		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
+			typedef float LocSing;
 			LAPACKE_cgebrd(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
-				(Loc *)&Sing[0].Val, (Loc *)&UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
+				(LocSing *)&Sing[0].Val, (LocSing *)&UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
 		}
 
 		// matrix U used in the SVD factorization
+		//Andrej: Fix this for complex matrices
 		U = M;
 		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
@@ -1013,7 +1017,7 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 			LAPACKE_sorgbr(Matrix_Layout, 'Q', NumOfRows_Matrix, MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix,
 				(Loc *)&U(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&TauQ[0].Val);
 		}
-		else
+		/*else
 		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_zorgbr(Matrix_Layout, 'Q', NumOfRows_Matrix, MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix,
@@ -1024,9 +1028,10 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 			typedef std::complex<float> Loc;
 			LAPACKE_corgbr(Matrix_Layout, 'Q', NumOfRows_Matrix, MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix,
 				(Loc *)&U(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&TauQ[0].Val);
-		}
+		}*/
 
 		// matrix VT used in the SVD factorization
+		//Andrej: Add support for complex matrices
 		VT = M;
 		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
@@ -1039,7 +1044,7 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 			LAPACKE_sorgbr(Matrix_Layout, 'P', MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix, NumOfRows_Matrix,
 				(Loc *)&VT(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&TauP[0].Val);
 		}
-		else
+		/*else
 		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_zorgbr(Matrix_Layout, 'P', MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix, NumOfRows_Matrix,
@@ -1050,7 +1055,7 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 			typedef std::complex<float> Loc;
 			LAPACKE_corgbr(Matrix_Layout, 'P', MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix, NumOfRows_Matrix,
 				(Loc *)&VT(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&TauP[0].Val);
-		}
+		}*/
 
 		// factorization
 		TVVec<Type, Size, ColMajor> C;
@@ -1072,13 +1077,15 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 		else
 		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
-			LAPACKE_zbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (Loc *)&Sing[0].Val, (Loc *)&UpDiag[0].Val,
+			typedef double LocSing;
+			LAPACKE_zbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (LocSing *)&Sing[0].Val, (LocSing *)&UpDiag[0].Val,
 				(Loc *)&VT(0, 0).Val, LeadingDimension_VT, (Loc *)&U(0, 0).Val, LeadingDimension_U, (Loc *)&C(0, 0).Val, 1);
 		}
 		else
 		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
-			LAPACKE_cbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (Loc *)&Sing[0].Val, (Loc *)&UpDiag[0].Val,
+			typedef float LocSing;
+			LAPACKE_cbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (LocSing *)&Sing[0].Val, (LocSing *)&UpDiag[0].Val,
 				(Loc *)&VT(0, 0).Val, LeadingDimension_VT, (Loc *)&U(0, 0).Val, LeadingDimension_U, (Loc *)&C(0, 0).Val, 1);
 		}
 	}
@@ -1107,7 +1114,8 @@ static void SVDSolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, TVec<T
 			U.GetCol(i, ui);
 			VT.GetRow(i, vi);
 			Type Scalar = TLinAlg::DotProduct(ui, b) / Sing[i].Val;
-			TLinAlg::AddVec(Scalar, vi, x);
+			//Correct Type->TNum<Type>! in the whole file
+			TLinAlg::AddVec(Scalar.Val, vi, x);
 		}
 	}
 

@@ -684,6 +684,8 @@ public:
 	//A is rewritten in place with orthogonal matrix Q
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void QRbasis(TVVec<TType, TSizeTy, ColMajor>& A);
+	template <class TType, class TSizeTy, bool ColMajor>
+	inline static void QRbasis(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& Q);
 	// Tested in other function
 	//A is rewritten in place with orthogonal matrix Q (column pivoting to improve stability);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
