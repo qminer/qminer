@@ -139,10 +139,11 @@ namespace glib {
 	}
 
 	/// Save buffer to page within the file 
-	int TPgBlobFile::SavePage(const uint32& Page, const void* Bf) {
+	int TPgBlobFile::SavePage(const uint32& Page, const void* Bf, int Len) {
 		SetFPos(Page * PAGE_SIZE);
+		Len = (Len <= 0 ? PAGE_SIZE : Len);
 		EAssertR(
-			(Access != TFAccess::faRdOnly) && fwrite(Bf, 1, PAGE_SIZE, FileId) == PAGE_SIZE,
+			(Access != TFAccess::faRdOnly) && fwrite(Bf, 1, Len, FileId) == Len,
 			"Error writing file '" + TStr(FNm) + "'.");
 		return 0;
 	}
@@ -362,6 +363,20 @@ namespace glib {
 		}
 	}
 
+	/// insert given (new) page to the end of LRU list
+	void TPgBlob::EnlistToEndLru(int Pg) {
+		LoadedPage& a = LoadedPages[Pg];
+		a.LruPrev = LruLast;
+		a.LruNext = -1;
+		if (LruLast >= 0) {
+			LoadedPages[LruLast].LruNext = Pg;
+		}
+		LruLast = Pg;
+		if (LruFirst < 0) {
+			LruFirst = Pg;
+		}
+	}
+
 	/// move given page to the start of LRU list
 	void TPgBlob::MoveToStartLru(int Pg) {
 		LoadedPage& a = LoadedPages[Pg];
@@ -370,6 +385,20 @@ namespace glib {
 			LruFirst = LruLast = Pg;
 		} else if (LruFirst == Pg) {
 			// it's ok, already at start LRU
+		} else {
+			UnlistFromLru(Pg);
+			EnlistToEndLru(Pg);
+		}
+	}
+
+	/// move given page to the end of LRU list - so that it is evicted first
+	void TPgBlob::MoveToEndLru(int Pg) {
+		LoadedPage& a = LoadedPages[Pg];
+		if (LruLast < 0) { // empty LRU list
+			a.LruNext = a.LruPrev = -1;
+			LruFirst = LruLast = Pg;
+		} else if (LruLast == Pg) {
+			// it's ok, already at end LRU
 		} else {
 			UnlistFromLru(Pg);
 			EnlistToStartLru(Pg);
@@ -386,10 +415,17 @@ namespace glib {
 			Pg = LoadedPages[Pg].LruPrev;
 		}
 		LoadedPage& a = LoadedPages[Pg];
+		//printf("# evicting %d, %d ", a.Pt.GetFIx(), a.Pt.GetPg());
 		UnlistFromLru(Pg);
 		LoadedPagesH.DelKey(a.Pt);
-		if (ShouldSavePage(Pg)) {
-			Files[a.Pt.GetFIx()]->SavePage(a.Pt.GetPg(), GetPageBf(Pg));
+		char* PgPt = GetPageBf(Pg);
+		if (ShouldSavePageP(PgPt)) {
+			int Len = (((TPgHeader*)PgPt)->ItemCount > 0 ? -1 : sizeof(TPgHeader));
+			//printf("len=%d\n", Len);
+			Files[a.Pt.GetFIx()]->SavePage(a.Pt.GetPg(), PgPt, Len);
+		}
+		else {
+			//printf("NO delete\n");
 		}
 		return Pg;
 	}
@@ -582,12 +618,16 @@ namespace glib {
 	void TPgBlob::Del(const TPgBlobPt& Pt) {
 		QmAssert(Access != TFAccess::faRdOnly);
 
+		//printf("--- deleting %d %d %d \n", Pt.GetFIx(), Pt.GetPg(), Pt.GetIIx());
 		// find page
 		TPgBlobPgPt PgPt = Pt;
 		char* PgBf = LoadPage(PgPt);
 		TPgHeader* PgH = (TPgHeader*)PgBf;
 
 		DeleteItem(PgBf, Pt.GetIIx());
+		if (PgH->ItemCount == 0) {
+			MoveToEndLru(Pt.GetPg());
+		}
 		Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
 	}
 

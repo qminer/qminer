@@ -210,7 +210,7 @@ namespace glib {
 		/// Load page with given index from the file into buffer
 		int LoadPage(const uint32& Page, void* Bf);
 		/// Save buffer to page within the file 
-		int SavePage(const uint32& Page, const void* Bf);
+		int SavePage(const uint32& Page, const void* Bf, int Len = -1);
 		/// Reserve new space in the file. Returns -1 if file is full.
 		uint32 CreateNewPage();
 	};
@@ -323,8 +323,12 @@ namespace glib {
 		void UnlistFromLru(int Pg);
 		/// move given page to the start of LRU list
 		void MoveToStartLru(int Pg);
+		/// move given page to the end of LRU list - so that it is evicted first
+		void MoveToEndLru(int Pg);
 		/// insert given (new) page to the start of LRU list
 		void EnlistToStartLru(int Pg);
+		/// insert given (new) page to the end of LRU list
+		void EnlistToEndLru(int Pg);
 
 		/// Evicts last possible page from cache.
 		int Evict();
