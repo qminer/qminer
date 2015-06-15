@@ -307,9 +307,6 @@ namespace glib {
 		int LastExtentCnt;
 
 		///// Memory buffer - cache
-		//char* Bf;
-		///// Buffer length
-		//uint64 BfL;
 		/// Maximal number of loaded pages
 		uint64 MxLoadedPages;
 
@@ -318,7 +315,6 @@ namespace glib {
 			return 
 				Extents[Pg / EXTENT_PCOUNT].GetBf() +
 				PAGE_SIZE *(Pg % EXTENT_PCOUNT);
-			//return Bf + Pg * PAGE_SIZE; 
 		}
 
 		// Method for handling LRU list ///////////////////////////////////
@@ -340,7 +336,7 @@ namespace glib {
 		/// Find which child files exist
 		void DetectSegments();
 
-		// Method for handling page cache //////////////////////////////////
+		// Methods for handling page cache //////////////////////////////////
 
 		/// This method tells if given page should be stored to disk.
 		bool ShouldSavePage(int Pg) { return ShouldSavePageP(GetPageBf(Pg)); }
@@ -353,7 +349,7 @@ namespace glib {
 		/// if given page can be evicted from cache.
 		bool CanEvictPageP(char* Pt) { return !((TPgHeader*)Pt)->IsLock(); }
 		/// Load given page into memory
-		char* LoadPage(const TPgBlobPgPt& Pt);
+		char* LoadPage(const TPgBlobPgPt& Pt, const bool& LoadData = true);
 		/// Create new page and return pointers to it
 		void TPgBlob::CreateNewPage(TPgBlobPgPt& Pt, char** Bf);
 
@@ -402,6 +398,8 @@ namespace glib {
 		TMemBase GetMemBase(const TPgBlobPt& Pt);
 		/// Loads all pages into cache- cache must be big enough
 		void LoadAll();
+		/// Clear all contents
+		void Clr();
 
 		/// Save part of the data, given time-window
 		void PartialFlush(int WndInMsec = 500);

@@ -555,10 +555,11 @@ void TInMemStorage::SetVal(const uint64& ValId, const TMem& Val) {
 
 void TInMemStorage::DelVals(int Vals) {
 	if (Vals > 0) {
-		for (int i = 0; i < Vals; i++) {
-			ValV[i + FirstValOffset].Clr();
+		int ValsTrue = 0;
+		for (ValsTrue = 0; ValsTrue < Vals && ValsTrue<ValV.Len(); ValsTrue++) {
+			ValV[ValsTrue + FirstValOffset].Clr();
 		}
-		int blocks_to_delete = ((int)FirstValOffset + Vals) / BlockSize;
+		int blocks_to_delete = ((int)FirstValOffset + ValsTrue) / BlockSize;
 		int vals_to_delete = blocks_to_delete * BlockSize;
 
 		if (vals_to_delete > 0) {
@@ -571,7 +572,7 @@ void TInMemStorage::DelVals(int Vals) {
 			}
 			BlobPtV.Del(0, blocks_to_delete - 1);
 		}
-		FirstValOffset += Vals - vals_to_delete;
+		FirstValOffset += ValsTrue - vals_to_delete;
 		FirstValOffsetMem += vals_to_delete;
 	}
 }
@@ -2691,6 +2692,54 @@ void TStoreImpl::GarbageCollect() {
 	}
 	TEnv::Logger->OnStatusFmt("  purging %d records", DelRecIdV.Len());
 	TStoreImpl::DeleteRecs(DelRecIdV, false);    
+}
+
+/// Deletes all records
+void TStoreImpl::DeleteAllRecs() {
+	// if no records, nothing to do here
+	if (Empty()) { return; }
+	TEnv::Logger->OnStatusFmt("Deleting all (%d) records in %s", GetRecs(), GetStoreNm().CStr());
+	
+	// delete records from index
+	for (uint64 DelRecId = GetFirstRecId(); DelRecId <= GetLastRecId(); DelRecId++) {
+		// executed triggers before deletion
+		OnDelete(DelRecId);
+		// delete record from name-id map
+		if (IsPrimaryField()) { DelPrimaryField(DelRecId); }
+		// delete record from indexes
+		if (DataCacheP) {
+			TMem CacheRecMem; 
+			DataCache.GetVal(DelRecId, CacheRecMem);
+			RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorCache);
+		}
+		if (DataMemP) {
+			TMem MemRecMem; 
+			DataMem.GetVal(DelRecId, MemRecMem);
+			RecIndexer.DeindexRec(MemRecMem, DelRecId, SerializatorMem);
+		}
+		// delete record from joins
+		TRec Rec(this, DelRecId);
+		for (int JoinN = 0; JoinN < GetJoins(); JoinN++) {
+			TJoinDesc JoinDesc = GetJoinDesc(JoinN);
+			// execute the join
+			PRecSet JoinRecSet = Rec.DoJoin(GetBase(), JoinDesc.GetJoinId());
+			for (int JoinRecN = 0; JoinRecN < JoinRecSet->GetRecs(); JoinRecN++) {
+				// remove joins with all matched records, one by one
+				const uint64 JoinRecId = JoinRecSet->GetRecId(JoinRecN);
+				const int JoinFq = JoinRecSet->GetRecFq(JoinRecN);
+				DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId, JoinFq);
+			}
+		}
+	}
+	// delete records from disk
+	PrimaryStrIdH.Clr();
+	PrimaryIntIdH.Clr();
+	PrimaryUInt64IdH.Clr();
+	PrimaryFltIdH.Clr();
+	PrimaryTmMSecsIdH.Clr();
+	DataCache.DelVals(TInt::Mx);
+	DataMem.DelVals(TInt::Mx);
+	PartialFlush(TInt::Mx);
 }
 
 void TStoreImpl::DeleteFirstNRecs(int DelRecs)  {

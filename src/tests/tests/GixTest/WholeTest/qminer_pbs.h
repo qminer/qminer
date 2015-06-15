@@ -162,6 +162,8 @@ namespace TQm {
 		void GarbageCollect();
 		/// Perform defragmentation
 		void Defrag();
+		/// Deletes all records
+		void DeleteAllRecs();
 		void DeleteFirstNRecs(int Recs);
 		void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true);
 
