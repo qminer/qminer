@@ -1342,7 +1342,7 @@ TCtMChain::TCtMChain(TSIn& SIn):
 		TMChain(SIn),
 		IntensModelMat(SIn),
 		HiddenStateJumpCountV(SIn),
-		DeltaTm(TFlt(SIn)),	// TODO remove
+		DeltaTm(TFlt(SIn)),
 		TimeUnit(TUInt64(SIn)),
 		PrevJumpTm(TUInt64(SIn)) {
 }
@@ -1967,6 +1967,8 @@ double TCtMChain::PredictOccurenceTime(const TFullMatrix& QMat, const int& CurrS
 		std::swap(CurrProbMat, TempCurrProbMat);
 
 		ReturnProb = CurrProbMat(TargetStateIdx, TargetStateIdx);
+		EAssertR(!TFlt::IsNan(ReturnProb), "The return probability is nan!");
+
 		Prob = CurrProbMat(CurrStateIdx, TargetStateIdx);
 		ReturnProbV[n] = ReturnProb;
 
@@ -1975,7 +1977,10 @@ double TCtMChain::PredictOccurenceTime(const TFullMatrix& QMat, const int& CurrS
 			CumReturnProb += HitProbV[TmN]*ReturnProbV[n - TmN];
 		}
 
+		EAssertR(!TFlt::IsNan(Prob), "The probability of reachig the target state is nan!");
+
 		HitProb = Prob - CumReturnProb*DeltaTm;
+		EAssertR(!TFlt::IsNan(HitProb), "The HitProb is nan!");
 
 		CumHitProb += HitProb;
 		HitProbV[n] = HitProb;
@@ -2480,7 +2485,7 @@ void TStreamStory::GetStateIdVAtHeight(const double& Height, TStateIdV& StateIdV
 }
 
 void TStreamStory::SetTargetState(const int& StateId, const double& Height, const bool& IsTrg) {
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Setting target state %d on height %.3f, isTarget: %b", StateId, Height, IsTrg);
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Setting target state %d on height %.3f, isTarget: %s", StateId, Height, TBool::GetStr(IsTrg).CStr());
 
 	if (IsTrg) {
 		Hierarch->SetTarget(StateId, Height);

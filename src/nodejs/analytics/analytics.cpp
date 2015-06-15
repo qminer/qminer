@@ -896,7 +896,7 @@ void TNodeJsRidgeReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model
-const double TNodeJsStreamStory::DEFAULT_DELTA_TM = 1e-3;
+const double TNodeJsStreamStory::DEFAULT_DELTA_TM = 1e-4;
 
 void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
