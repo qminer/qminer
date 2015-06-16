@@ -1419,6 +1419,7 @@ int GetMemUsed() const {return sizeof(TNum);}
 /////////////////////////////////////////////////
 // Unsigned-Integer
 typedef TNum<uint> TUInt;
+typedef TNum<uint16> TUInt16;
 template<>
 class TNum<uint>{
 public:

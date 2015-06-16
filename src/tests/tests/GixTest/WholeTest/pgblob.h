@@ -104,7 +104,7 @@ namespace glib {
 		TPgBlobPt(int16 _FileIndex, uint32 _Page, uint16 _ItemIndex) {
 			Page = _Page; FileIndex = _FileIndex; ItemIndex = _ItemIndex;
 		}
-		
+
 		/// get index of page within the file
 		uint32 GetPg() const { return Page; }
 		/// get index of file - -1 means NULL pointer
@@ -146,20 +146,71 @@ namespace glib {
 	};
 
 	///////////////////////////////////////////////////////////////////////
+	/// Binary tree of max values
+	//template <class TVal>
+	class TBinTreeMaxVals {
+	protected:
+		TVec<TVec<TUInt>> Layers;
+		TVec<TPgBlobPgPt> Pts;
+	public:
+		/// Simple constructor
+		TBinTreeMaxVals() { Layers.Add(); }
+		/// Add new record to the structure
+		int Add(const uint16& Val, const TPgBlobPgPt& Pt);
+		/// Number of stored elements
+		int Len() const { return Layers[0].Len(); }
+		/// Change value at given position
+		void Change(const int& RecN, const uint16& Val);
+		/// Get index of item with max value
+		int GetIndexOfMax() const;
+		/// Get max value
+		int GetVal(const int& RecN) const { return Layers[0][RecN]; }
+		/// Get BLOB pointer for item with max value
+		const TPgBlobPgPt& GetPtOf(const int& RecN) const { return Pts[RecN]; }
+		/// Clears content
+		void Clr() { Layers.Clr(); }
+		
+		/// Save to output stream
+		void Save(TSOut& SOut) const { Layers.Save(SOut); Pts.Save(SOut); }
+		/// Load from input stream
+		void Load(TSIn& SIn) { Layers.Load(SIn); Pts.Load(SIn); }
+
+#ifdef XTEST
+		friend class XTest;
+		/// For debugging purposes
+		void Print();
+#endif
+	};
+
+
+	///////////////////////////////////////////////////////////////////////
 	/// Free-space-map (heap)
 
-	class TPgBlobFsm : public TVec<TPgBlobPt> {
+	class TPgBlobFsm {
 	protected:
-		/// Move item up the heap if needed
-		int FsmSiftUp(int index);
-		/// Move item down the heap if needed
-		int FsmPushDown(int index);
-		/// Return index of left child
-		int FsmLeftChild(int index) { return 2 * index + 1; }
-		/// Return index of right child
-		int FsmRightChild(int index) { return 2 * index + 2; }
-		/// Index of parent
-		int FsmParent(int index) { return (index - 1) / 2; }
+
+		THash<TPgBlobPgPt, TInt> PtH;
+
+		TBinTreeMaxVals MaxFSpace;
+
+		///// Internal data
+		//TVec<TPgBlobPt> Data;
+		///// Move item up the heap if needed
+		//int FsmSiftUp(int index);
+		///// Move item down the heap if needed
+		//int FsmPushDown(int index);
+		///// Return index of left child
+		//int FsmLeftChild(int index) { return 2 * index + 1; }
+		///// Return index of right child
+		//int FsmRightChild(int index) { return 2 * index + 2; }
+		///// Index of parent
+		//int FsmParent(int index) { return (index - 1) / 2; }
+		///// Remove last element
+		//void DelLast() { Data.DelLast(); }
+		///// Get last element
+		//TPgBlobPt& Last() { return Data.Last(); }
+		///// Get last element as const
+		//const TPgBlobPt& Last() const { return Data.Last(); }
 	public:
 		/// Add new page to free-space-map
 		void FsmAddPage(const TPgBlobPgPt& Pt, const uint16& FreeSpace);
@@ -169,6 +220,18 @@ namespace glib {
 		/// Returns false if no such page, true otherwise
 		/// If page exists, pointer to it is stored into sent parameter
 		bool FsmGetFreePage(int RequiredSpace, TPgBlobPgPt& Pg);
+		/// Get number of stored elements
+		int Len() const { return MaxFSpace.Len(); }
+		/// Clears internal data
+		void Clr() { PtH.Clr(); MaxFSpace.Clr(); }
+		/// Save to output stream
+		void Save(TSOut& SOut) const { 
+			PtH.Save(SOut); MaxFSpace.Save(SOut); }
+		/// Load from input stream
+		void Load(TSIn& SIn) { 
+			PtH.Load(SIn); MaxFSpace.Load(SIn); }
+		/// Get element at given position
+		const TPgBlobPgPt& GetVal(int RecN) const { return MaxFSpace.GetPtOf(RecN); }
 	};
 
 	///////////////////////////////////////////////////////////////////////
@@ -280,7 +343,7 @@ namespace glib {
 			/// Get amount of free space in this page
 			int GetFreeMem() { return OffsetFreeEnd - OffsetFreeStart; }
 			/// Test if given buffer could be stored to page
-			bool CanStoreBf(int Len) { return GetFreeMem() > Len + sizeof(TPgBlobPageItem); }
+			bool CanStoreBf(int Len) { return GetFreeMem() >= Len + sizeof(TPgBlobPageItem); }
 		};
 
 		/// File name
@@ -312,7 +375,7 @@ namespace glib {
 
 		/// Returns starting address of page in Bf
 		char* GetPageBf(int Pg) {
-			return 
+			return
 				Extents[Pg / EXTENT_PCOUNT].GetBf() +
 				PAGE_SIZE *(Pg % EXTENT_PCOUNT);
 		}

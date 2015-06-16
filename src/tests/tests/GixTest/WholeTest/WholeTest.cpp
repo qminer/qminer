@@ -654,6 +654,32 @@ public:
 		EXPECT_EQ(pg_item->Len, 8);
 		EXPECT_EQ(pg_item->Offset, 8184);
 	}
+
+	//////////////
+
+	static void TBinTreeMaxVals_Add1() {
+		glib::TBinTreeMaxVals Vals;
+		glib::TPgBlobPgPt Pt(0, 0);
+		Vals.Add(4, Pt);
+		Vals.Add(3, Pt);
+		EXPECT_EQ(Vals.GetIndexOfMax(), 0);
+		Vals.Add(1, Pt);
+		Vals.Add(6, Pt);
+		EXPECT_EQ(Vals.GetIndexOfMax(), 3);
+		Vals.Add(1, Pt);
+		Vals.Add(5, Pt);
+		EXPECT_EQ(Vals.GetIndexOfMax(), 3);
+		Vals.Add(8, Pt);
+		Vals.Add(5, Pt);
+		Vals.Print();
+		EXPECT_EQ(Vals.GetIndexOfMax(), 6);
+		Vals.Change(6, 2);
+		Vals.Print(); 
+		EXPECT_EQ(Vals.GetIndexOfMax(), 3);
+		Vals.Change(3, 3);
+		Vals.Print();
+		EXPECT_EQ(Vals.GetIndexOfMax(), 5);
+	}
 };
 //
 //TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
@@ -678,8 +704,10 @@ public:
 //
 //TEST(testTPgBlob, AddBf1) { XTest::TPgBlob_AddBf1(); }
 //
+
+//TEST(TBinTreeMaxVals, Add1) { XTest::TBinTreeMaxVals_Add1(); }
 //////////////////////////////////////////////////////////////////////////////////
-//
+
 //
 //TEST(testTPgBlobFsm, Add1) {
 //	glib::TPgBlobFsm fsm;
@@ -689,16 +717,16 @@ public:
 //	}
 //
 //	EXPECT_EQ(fsm.Len(), 5);
-//	EXPECT_EQ(fsm[0].GetPg(), 4);
-//	EXPECT_EQ(fsm[1].GetPg(), 3);
-//	EXPECT_EQ(fsm[2].GetPg(), 1);
-//	EXPECT_EQ(fsm[3].GetPg(), 0);
-//	EXPECT_EQ(fsm[4].GetPg(), 2);
-//	EXPECT_EQ(fsm[0].GetIIx(), 4);
-//	EXPECT_EQ(fsm[1].GetIIx(), 3);
-//	EXPECT_EQ(fsm[2].GetIIx(), 1);
-//	EXPECT_EQ(fsm[3].GetIIx(), 0);
-//	EXPECT_EQ(fsm[4].GetIIx(), 2);
+//	EXPECT_EQ(fsm.GetVal(0).GetPg(), 4);
+//	EXPECT_EQ(fsm.GetVal(1).GetPg(), 3);
+//	EXPECT_EQ(fsm.GetVal(2).GetPg(), 1);
+//	EXPECT_EQ(fsm.GetVal(3).GetPg(), 0);
+//	EXPECT_EQ(fsm.GetVal(4).GetPg(), 2);
+//	EXPECT_EQ(fsm.GetVal(0).GetIIx(), 4);
+//	EXPECT_EQ(fsm.GetVal(1).GetIIx(), 3);
+//	EXPECT_EQ(fsm.GetVal(2).GetIIx(), 1);
+//	EXPECT_EQ(fsm.GetVal(3).GetIIx(), 0);
+//	EXPECT_EQ(fsm.GetVal(4).GetIIx(), 2);
 //
 //	bool res1;
 //	glib::TPgBlobPgPt pt1;
@@ -720,16 +748,26 @@ public:
 //	glib::TPgBlobPgPt pt(0, 1);
 //	fsm.FsmUpdatePage(pt, 6); // 1,1 -> 1,6
 //	EXPECT_EQ(fsm.Len(), 5);
-//	EXPECT_EQ(fsm[0].GetPg(), 1);
-//	EXPECT_EQ(fsm[1].GetPg(), 4);
-//	EXPECT_EQ(fsm[2].GetPg(), 2);
-//	EXPECT_EQ(fsm[3].GetPg(), 0);
-//	EXPECT_EQ(fsm[4].GetPg(), 3);
-//	EXPECT_EQ(fsm[0].GetIIx(), 6);
-//	EXPECT_EQ(fsm[1].GetIIx(), 4);
-//	EXPECT_EQ(fsm[2].GetIIx(), 2);
-//	EXPECT_EQ(fsm[3].GetIIx(), 0);
-//	EXPECT_EQ(fsm[4].GetIIx(), 3);
+//	//EXPECT_EQ(fsm[0].GetPg(), 1);
+//	//EXPECT_EQ(fsm[1].GetPg(), 4);
+//	//EXPECT_EQ(fsm[2].GetPg(), 2);
+//	//EXPECT_EQ(fsm[3].GetPg(), 0);
+//	//EXPECT_EQ(fsm[4].GetPg(), 3);
+//	//EXPECT_EQ(fsm[0].GetIIx(), 6);
+//	//EXPECT_EQ(fsm[1].GetIIx(), 4);
+//	//EXPECT_EQ(fsm[2].GetIIx(), 2);
+//	//EXPECT_EQ(fsm[3].GetIIx(), 0);
+//	//EXPECT_EQ(fsm[4].GetIIx(), 3);
+//	EXPECT_EQ(fsm.GetVal(0).GetPg(), 1);
+//	EXPECT_EQ(fsm.GetVal(1).GetPg(), 4);
+//	EXPECT_EQ(fsm.GetVal(2).GetPg(), 2);
+//	EXPECT_EQ(fsm.GetVal(3).GetPg(), 0);
+//	EXPECT_EQ(fsm.GetVal(4).GetPg(), 3);
+//	EXPECT_EQ(fsm.GetVal(0).GetIIx(), 6);
+//	EXPECT_EQ(fsm.GetVal(1).GetIIx(), 4);
+//	EXPECT_EQ(fsm.GetVal(2).GetIIx(), 2);
+//	EXPECT_EQ(fsm.GetVal(3).GetIIx(), 0);
+//	EXPECT_EQ(fsm.GetVal(4).GetIIx(), 3);
 //}
 //
 //TEST(testTPgBlobFsm, AddUpdateInc2) {
@@ -743,16 +781,26 @@ public:
 //	fsm.FsmUpdatePage(pt, 4); // 1,1 -> 1,4
 //
 //	EXPECT_EQ(fsm.Len(), 5);
-//	EXPECT_EQ(fsm[0].GetPg(), 4);
-//	EXPECT_EQ(fsm[1].GetPg(), 1);
-//	EXPECT_EQ(fsm[2].GetPg(), 2);
-//	EXPECT_EQ(fsm[3].GetPg(), 0);
-//	EXPECT_EQ(fsm[4].GetPg(), 3);
-//	EXPECT_EQ(fsm[0].GetIIx(), 4);
-//	EXPECT_EQ(fsm[1].GetIIx(), 4);
-//	EXPECT_EQ(fsm[2].GetIIx(), 2);
-//	EXPECT_EQ(fsm[3].GetIIx(), 0);
-//	EXPECT_EQ(fsm[4].GetIIx(), 3);
+//	//EXPECT_EQ(fsm[0].GetPg(), 4);
+//	//EXPECT_EQ(fsm[1].GetPg(), 1);
+//	//EXPECT_EQ(fsm[2].GetPg(), 2);
+//	//EXPECT_EQ(fsm[3].GetPg(), 0);
+//	//EXPECT_EQ(fsm[4].GetPg(), 3);
+//	//EXPECT_EQ(fsm[0].GetIIx(), 4);
+//	//EXPECT_EQ(fsm[1].GetIIx(), 4);
+//	//EXPECT_EQ(fsm[2].GetIIx(), 2);
+//	//EXPECT_EQ(fsm[3].GetIIx(), 0);
+//	//EXPECT_EQ(fsm[4].GetIIx(), 3);
+//	EXPECT_EQ(fsm.GetVal(0).GetPg(), 4);
+//	EXPECT_EQ(fsm.GetVal(1).GetPg(), 1);
+//	EXPECT_EQ(fsm.GetVal(2).GetPg(), 2);
+//	EXPECT_EQ(fsm.GetVal(3).GetPg(), 0);
+//	EXPECT_EQ(fsm.GetVal(4).GetPg(), 3);
+//	EXPECT_EQ(fsm.GetVal(0).GetIIx(), 4);
+//	EXPECT_EQ(fsm.GetVal(1).GetIIx(), 4);
+//	EXPECT_EQ(fsm.GetVal(2).GetIIx(), 2);
+//	EXPECT_EQ(fsm.GetVal(3).GetIIx(), 0);
+//	EXPECT_EQ(fsm.GetVal(4).GetIIx(), 3);
 //}
 //
 //TEST(testTPgBlobFsm, AddUpdateDec) {
@@ -766,16 +814,26 @@ public:
 //	fsm.FsmUpdatePage(pt, 0); // 1,1 -> 1,0
 //
 //	EXPECT_EQ(fsm.Len(), 5);
-//	EXPECT_EQ(fsm[0].GetPg(), 4);
-//	EXPECT_EQ(fsm[1].GetPg(), 3);
-//	EXPECT_EQ(fsm[2].GetPg(), 2);
-//	EXPECT_EQ(fsm[3].GetPg(), 0);
-//	EXPECT_EQ(fsm[4].GetPg(), 1);
-//	EXPECT_EQ(fsm[0].GetIIx(), 4);
-//	EXPECT_EQ(fsm[1].GetIIx(), 3);
-//	EXPECT_EQ(fsm[2].GetIIx(), 2);
-//	EXPECT_EQ(fsm[3].GetIIx(), 0);
-//	EXPECT_EQ(fsm[4].GetIIx(), 0);
+//	//EXPECT_EQ(fsm[0].GetPg(), 4);
+//	//EXPECT_EQ(fsm[1].GetPg(), 3);
+//	//EXPECT_EQ(fsm[2].GetPg(), 2);
+//	//EXPECT_EQ(fsm[3].GetPg(), 0);
+//	//EXPECT_EQ(fsm[4].GetPg(), 1);
+//	//EXPECT_EQ(fsm[0].GetIIx(), 4);
+//	//EXPECT_EQ(fsm[1].GetIIx(), 3);
+//	//EXPECT_EQ(fsm[2].GetIIx(), 2);
+//	//EXPECT_EQ(fsm[3].GetIIx(), 0);
+//	//EXPECT_EQ(fsm[4].GetIIx(), 0);
+//	EXPECT_EQ(fsm.GetVal(0).GetPg(), 4);
+//	EXPECT_EQ(fsm.GetVal(1).GetPg(), 3);
+//	EXPECT_EQ(fsm.GetVal(2).GetPg(), 2);
+//	EXPECT_EQ(fsm.GetVal(3).GetPg(), 0);
+//	EXPECT_EQ(fsm.GetVal(4).GetPg(), 1);
+//	EXPECT_EQ(fsm.GetVal(0).GetIIx(), 4);
+//	EXPECT_EQ(fsm.GetVal(1).GetIIx(), 3);
+//	EXPECT_EQ(fsm.GetVal(2).GetIIx(), 2);
+//	EXPECT_EQ(fsm.GetVal(3).GetIIx(), 0);
+//	EXPECT_EQ(fsm.GetVal(4).GetIIx(), 0);
 //}
 //
 //TEST(testTPgBlobFsm, AddUpdateDec2) {
@@ -789,16 +847,26 @@ public:
 //	fsm.FsmUpdatePage(pt, 0); // 2,2 -> 2,0
 //
 //	EXPECT_EQ(fsm.Len(), 5);
-//	EXPECT_EQ(fsm[0].GetPg(), 4);
-//	EXPECT_EQ(fsm[1].GetPg(), 3);
-//	EXPECT_EQ(fsm[2].GetPg(), 1);
-//	EXPECT_EQ(fsm[3].GetPg(), 0);
-//	EXPECT_EQ(fsm[4].GetPg(), 2);
-//	EXPECT_EQ(fsm[0].GetIIx(), 4);
-//	EXPECT_EQ(fsm[1].GetIIx(), 3);
-//	EXPECT_EQ(fsm[2].GetIIx(), 1);
-//	EXPECT_EQ(fsm[3].GetIIx(), 0);
-//	EXPECT_EQ(fsm[4].GetIIx(), 0);
+//	//EXPECT_EQ(fsm[0].GetPg(), 4);
+//	//EXPECT_EQ(fsm[1].GetPg(), 3);
+//	//EXPECT_EQ(fsm[2].GetPg(), 1);
+//	//EXPECT_EQ(fsm[3].GetPg(), 0);
+//	//EXPECT_EQ(fsm[4].GetPg(), 2);
+//	//EXPECT_EQ(fsm[0].GetIIx(), 4);
+//	//EXPECT_EQ(fsm[1].GetIIx(), 3);
+//	//EXPECT_EQ(fsm[2].GetIIx(), 1);
+//	//EXPECT_EQ(fsm[3].GetIIx(), 0);
+//	//EXPECT_EQ(fsm[4].GetIIx(), 0);
+//	EXPECT_EQ(fsm.GetVal(0).GetPg(), 4);
+//	EXPECT_EQ(fsm.GetVal(1).GetPg(), 3);
+//	EXPECT_EQ(fsm.GetVal(2).GetPg(), 1);
+//	EXPECT_EQ(fsm.GetVal(3).GetPg(), 0);
+//	EXPECT_EQ(fsm.GetVal(4).GetPg(), 2);
+//	EXPECT_EQ(fsm.GetVal(0).GetIIx(), 4);
+//	EXPECT_EQ(fsm.GetVal(1).GetIIx(), 3);
+//	EXPECT_EQ(fsm.GetVal(2).GetIIx(), 1);
+//	EXPECT_EQ(fsm.GetVal(3).GetIIx(), 0);
+//	EXPECT_EQ(fsm.GetVal(4).GetIIx(), 0);
 //}
 //
 //TEST(testTPgBlobFsm, AddUpdateDec3) {
@@ -812,18 +880,28 @@ public:
 //	fsm.FsmUpdatePage(pt, 2); // 4,4 -> 4,2
 //
 //	EXPECT_EQ(fsm.Len(), 5);
-//	EXPECT_EQ(fsm[0].GetPg(), 3);
-//	EXPECT_EQ(fsm[1].GetPg(), 2);
-//	EXPECT_EQ(fsm[2].GetPg(), 1);
-//	EXPECT_EQ(fsm[3].GetPg(), 0);
-//	EXPECT_EQ(fsm[4].GetPg(), 4);
-//	EXPECT_EQ(fsm[0].GetIIx(), 3);
-//	EXPECT_EQ(fsm[1].GetIIx(), 2);
-//	EXPECT_EQ(fsm[2].GetIIx(), 1);
-//	EXPECT_EQ(fsm[3].GetIIx(), 0);
-//	EXPECT_EQ(fsm[4].GetIIx(), 2);
+//	//EXPECT_EQ(fsm[0].GetPg(), 3);
+//	//EXPECT_EQ(fsm[1].GetPg(), 2);
+//	//EXPECT_EQ(fsm[2].GetPg(), 1);
+//	//EXPECT_EQ(fsm[3].GetPg(), 0);
+//	//EXPECT_EQ(fsm[4].GetPg(), 4);
+//	//EXPECT_EQ(fsm[0].GetIIx(), 3);
+//	//EXPECT_EQ(fsm[1].GetIIx(), 2);
+//	//EXPECT_EQ(fsm[2].GetIIx(), 1);
+//	//EXPECT_EQ(fsm[3].GetIIx(), 0);
+//	//EXPECT_EQ(fsm[4].GetIIx(), 2);
+//	EXPECT_EQ(fsm.GetVal(0).GetPg(), 3);
+//	EXPECT_EQ(fsm.GetVal(1).GetPg(), 2);
+//	EXPECT_EQ(fsm.GetVal(2).GetPg(), 1);
+//	EXPECT_EQ(fsm.GetVal(3).GetPg(), 0);
+//	EXPECT_EQ(fsm.GetVal(4).GetPg(), 4);
+//	EXPECT_EQ(fsm.GetVal(0).GetIIx(), 3);
+//	EXPECT_EQ(fsm.GetVal(1).GetIIx(), 2);
+//	EXPECT_EQ(fsm.GetVal(2).GetIIx(), 1);
+//	EXPECT_EQ(fsm.GetVal(3).GetIIx(), 0);
+//	EXPECT_EQ(fsm.GetVal(4).GetIIx(), 2);
 //}
-//
+
 ////////////////////////////////////////////////////
 //
 //TEST(testTBlobBs, Simple10) {
@@ -1629,9 +1707,171 @@ public:
 //	printf("++++ loop: %d\n\n", sw.GetMSecInt());
 //}
 //
+//
+//TEST(testTStorePbBlob, PerfCompare_DelAll) {
+//	TStr def_file = ".\\pgblob_test_str1.def";
+//	TQm::TEnv::Init();
+//	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
+//	TStr dir = "data\\";
+//
+//	// init unicode
+//	TTmStopWatch sw(false);
+//	TUnicodeDef::Load(unicode_file);
+//	int loops = 100;
+//	int rec_count = 6 * 1000 * 1000;
+//	int del_per_loop = rec_count / loops;
+//
+//	printf("Starting performance comparison - insert and delete\n");
+//	{
+//		printf("Starting - old implementation - insert and delete\n");
+//		// create new base from definition
+//		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+//		TPt<TQm::TBase> Base = TQm::TStorage::NewBase(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//		TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
+//		auto field_id_str = store->GetFieldId("FieldString");
+//
+//		TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
+//		PJsonVal json = TJsonVal::GetValFromStr(s);
+//		PJsonVal json_str = json->GetObjKey("FieldString");
+//		PJsonVal json_bool = json->GetObjKey("FieldBool");
+//		for (int i = 0; i < rec_count; i++) {
+//			if (i % 1000 == 0) printf("    %d\r", i);
+//			json_str->PutStr(TStr::Fmt("Stored value %d", i));
+//			json_bool->PutBool(i % 7 == 3);
+//			store->AddRec(json);
+//		}
+//		TQm::TStorage::SaveBase(Base);
+//	}
+//	{
+//		TPt<TQm::TBase> Base = TQm::TStorage::LoadBase(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//		TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
+//		sw.Reset(true);
+//		store->DeleteAllRecs();
+//		printf("\n++++ loop intermediate: %d\n", sw.GetMSecInt());
+//		TQm::TStorage::SaveBase(Base);
+//	}
+//	sw.Stop();
+//	printf("++++ loop: %d\n\n", sw.GetMSecInt());
+//
+//	printf("Starting performance comparison - insert and delete\n");
+//	{
+//		printf("Starting - old implementation - insert and delete\n");
+//		// create new base from definition
+//		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+//		TPt<TQm::TBase> Base = TQm::TStorage::NewBase(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//		TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
+//		auto field_id_str = store->GetFieldId("FieldString");
+//
+//		TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
+//		PJsonVal json = TJsonVal::GetValFromStr(s);
+//		PJsonVal json_str = json->GetObjKey("FieldString");
+//		PJsonVal json_bool = json->GetObjKey("FieldBool");
+//		for (int i = 0; i < rec_count; i++) {
+//			if (i % 1000 == 0) printf("    %d\r", i);
+//			json_str->PutStr(TStr::Fmt("Stored value %d", i));
+//			json_bool->PutBool(i % 7 == 3);
+//			store->AddRec(json);
+//		}
+//		TQm::TStorage::SaveBase(Base);
+//	}
+//	{
+//		TPt<TQm::TBase> Base = TQm::TStorage::LoadBase(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//		TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
+//		auto field_id_str = store->GetFieldId("FieldString");
+//		auto rs = store->GetAllRecs();
+//		int max_len = -1;
+//		for (int j = 0; j < rs->GetRecs(); j++) {
+//			auto rec = rs->GetRec(j);
+//			max_len = MAX(max_len, rec.GetFieldStr(field_id_str).Len());
+//		}
+//
+//		sw.Reset(true);
+//		store->DeleteAllRecs();
+//		printf("\n++++ loop intermediate: %d\n", sw.GetMSecInt());
+//		TQm::TStorage::SaveBase(Base);
+//	}
+//	sw.Stop();
+//	printf("++++ loop: %d\n\n", sw.GetMSecInt());
+//
+//	/////////////////
+//
+//
+//	{
+//		printf("Starting - new implementation - insert and delete\n");
+//		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+//		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//		auto store = Base->GetStoreByStoreNm("TestStore");
+//		auto field_id_str = store->GetFieldId("FieldString");
+//		auto field_id_bool = store->GetFieldId("FieldBool");
+//		TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
+//		PJsonVal json = TJsonVal::GetValFromStr(s);
+//		PJsonVal json_str = json->GetObjKey("FieldString");
+//		PJsonVal json_bool = json->GetObjKey("FieldBool");
+//		TVec<uint64> rec_ids;
+//		for (int i = 0; i < rec_count; i++) {
+//			//if (i % 1000 == 0) printf("    %d\r", i);
+//			json_str->PutStr(TStr::Fmt("Stored value %d", i));
+//			json_bool->PutBool(i % 7 == 3);
+//			rec_ids.Add(store->AddRec(json));
+//		}
+//		TQm::SaveBase2(Base);
+//	}
+//	{
+//		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//		auto store = Base->GetStoreByStoreNm("TestStore");
+//		sw.Reset(true);
+//		store->DeleteAllRecs();
+//		printf("\n++++ loop intermediate: %d\n", sw.GetMSecInt());
+//		TQm::SaveBase2(Base);
+//	}
+//	sw.Stop();
+//	printf("++++ loop: %d\n\n", sw.GetMSecInt());
+//
+//	{
+//		printf("Starting - new implementation - insert and delete\n");
+//		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+//		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//		auto store = Base->GetStoreByStoreNm("TestStore");
+//		auto field_id_str = store->GetFieldId("FieldString");
+//		auto field_id_bool = store->GetFieldId("FieldBool");
+//		TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
+//		PJsonVal json = TJsonVal::GetValFromStr(s);
+//		PJsonVal json_str = json->GetObjKey("FieldString");
+//		PJsonVal json_bool = json->GetObjKey("FieldBool");
+//		TVec<uint64> rec_ids;
+//		for (int i = 0; i < rec_count; i++) {
+//			//if (i % 1000 == 0) printf("    %d\r", i);
+//			json_str->PutStr(TStr::Fmt("Stored value %d", i));
+//			json_bool->PutBool(i % 7 == 3);
+//			rec_ids.Add(store->AddRec(json));
+//		}
+//		TQm::SaveBase2(Base);
+//	}
+//	{
+//		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//		auto store = Base->GetStoreByStoreNm("TestStore");
+//		auto field_id_str = store->GetFieldId("FieldString");
+//
+//		printf("Loading all records...\n", sw.GetMSecInt());
+//		auto rs = store->GetAllRecs();
+//		int max_len = -1;
+//		for (int j = 0; j < rs->GetRecs(); j++) {
+//			auto rec = rs->GetRec(j);
+//			max_len = MAX(max_len, rec.GetFieldStr(field_id_str).Len());
+//		}
+//		printf("Starting delete...\n", sw.GetMSecInt());
+//		sw.Reset(true);
+//		store->DeleteAllRecs();
+//		printf("\n++++ loop intermediate: %d\n", sw.GetMSecInt());
+//		TQm::SaveBase2(Base);
+//	}
+//	sw.Stop();
+//	printf("++++ loop: %d\n\n", sw.GetMSecInt());
+//}
 
-TEST(testTStorePbBlob, PerfCompare_DelAll) {
-	TStr def_file = ".\\pgblob_test_str1.def";
+
+TEST(testTStorePbBlob, PerfCompare_StrAddDelete2) {
+	TStr def_file = ".\\pgblob_test_str2.def";
 	TQm::TEnv::Init();
 	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
 	TStr dir = "data\\";
@@ -1640,150 +1880,90 @@ TEST(testTStorePbBlob, PerfCompare_DelAll) {
 	TTmStopWatch sw(false);
 	TUnicodeDef::Load(unicode_file);
 	int loops = 100;
-	int rec_count = 6 * 1000 * 1000;
+	int rec_count = 3 * 1000 * 1000;
 	int del_per_loop = rec_count / loops;
+	TStr definition = TStr::LoadTxt(def_file);
+	PJsonVal SchemaVal = TJsonVal::GetValFromStr(definition);
+	TStr s = "{ \"FieldString1\" : \"xxx\", \"FieldString2\" : \"xxx\", \"FieldString3\" : \"xxx\", \"FieldString4\" : \"xxx\", \"FieldString5\" : \"xxx\", \"FieldBool\" : true}";
+	PJsonVal json = TJsonVal::GetValFromStr(s);
+	PJsonVal json_str1 = json->GetObjKey("FieldString1");
+	PJsonVal json_str2 = json->GetObjKey("FieldString2");
+	PJsonVal json_str3 = json->GetObjKey("FieldString3");
+	PJsonVal json_str4 = json->GetObjKey("FieldString4");
+	PJsonVal json_str5 = json->GetObjKey("FieldString5");
+	PJsonVal json_bool = json->GetObjKey("FieldBool");
 
 	printf("Starting performance comparison - insert and delete\n");
 	{
 		printf("Starting - old implementation - insert and delete\n");
-		// create new base from definition
-		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
-		TPt<TQm::TBase> Base = TQm::TStorage::NewBase(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-		TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
-		auto field_id_str = store->GetFieldId("FieldString");
 
-		TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
-		PJsonVal json = TJsonVal::GetValFromStr(s);
-		PJsonVal json_str = json->GetObjKey("FieldString");
-		PJsonVal json_bool = json->GetObjKey("FieldBool");
+		TPt<TQm::TBase> Base = TQm::TStorage::NewBase(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+		TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore2");
 		for (int i = 0; i < rec_count; i++) {
-			if (i % 1000 == 0) printf("    %d\r", i);
-			json_str->PutStr(TStr::Fmt("Stored value %d", i));
+			if (i % 10000 == 0) printf("    %d\r", i);
+			json_str1->PutStr(TStr::Fmt("Stored value %d", i));
+			json_str2->PutStr(definition.GetSubStr(i % 8, 20 + i % 10));
+			json_str3->PutStr(definition.GetSubStr(i % 8, 20 + i % 10));
+			json_str4->PutStr(TStr::Fmt("c%d", i % 7));
+			json_str5->PutStr(TStr::Fmt("d%d", i % 4));
 			json_bool->PutBool(i % 7 == 3);
 			store->AddRec(json);
 		}
-		TQm::TStorage::SaveBase(Base);
-	}
-	{
-		TPt<TQm::TBase> Base = TQm::TStorage::LoadBase(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-		TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
-		sw.Reset(true);
-		store->DeleteAllRecs();
-		printf("\n++++ loop intermediate: %d\n", sw.GetMSecInt());
-		TQm::TStorage::SaveBase(Base);
-	}
-	sw.Stop();
-	printf("++++ loop: %d\n\n", sw.GetMSecInt());
-
-	printf("Starting performance comparison - insert and delete\n");
-	{
-		printf("Starting - old implementation - insert and delete\n");
-		// create new base from definition
-		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
-		TPt<TQm::TBase> Base = TQm::TStorage::NewBase(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-		TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
-		auto field_id_str = store->GetFieldId("FieldString");
-
-		TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
-		PJsonVal json = TJsonVal::GetValFromStr(s);
-		PJsonVal json_str = json->GetObjKey("FieldString");
-		PJsonVal json_bool = json->GetObjKey("FieldBool");
-		for (int i = 0; i < rec_count; i++) {
-			if (i % 1000 == 0) printf("    %d\r", i);
-			json_str->PutStr(TStr::Fmt("Stored value %d", i));
-			json_bool->PutBool(i % 7 == 3);
-			store->AddRec(json);
-		}
-		TQm::TStorage::SaveBase(Base);
-	}
-	{
-		TPt<TQm::TBase> Base = TQm::TStorage::LoadBase(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-		TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
-		auto field_id_str = store->GetFieldId("FieldString");
-		auto rs = store->GetAllRecs();
-		int max_len = -1;
-		for (int j = 0; j < rs->GetRecs(); j++) {
-			auto rec = rs->GetRec(j);
-			max_len = MAX(max_len, rec.GetFieldStr(field_id_str).Len());
-		}
 
 		sw.Reset(true);
-		store->DeleteAllRecs();
+		for (int j = 0; j < loops; j++) {
+			store->DeleteFirstNRecs(del_per_loop);
+		}
 		printf("\n++++ loop intermediate: %d\n", sw.GetMSecInt());
 		TQm::TStorage::SaveBase(Base);
-	}
-	sw.Stop();
-	printf("++++ loop: %d\n\n", sw.GetMSecInt());
-
-	/////////////////
-
-
-	{
-		printf("Starting - new implementation - insert and delete\n");
-		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
-		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-		auto store = Base->GetStoreByStoreNm("TestStore");
-		auto field_id_str = store->GetFieldId("FieldString");
-		auto field_id_bool = store->GetFieldId("FieldBool");
-		TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
-		PJsonVal json = TJsonVal::GetValFromStr(s);
-		PJsonVal json_str = json->GetObjKey("FieldString");
-		PJsonVal json_bool = json->GetObjKey("FieldBool");
-		TVec<uint64> rec_ids;
-		for (int i = 0; i < rec_count; i++) {
-			//if (i % 1000 == 0) printf("    %d\r", i);
-			json_str->PutStr(TStr::Fmt("Stored value %d", i));
-			json_bool->PutBool(i % 7 == 3);
-			rec_ids.Add(store->AddRec(json));
-		}
-		TQm::SaveBase2(Base);
-	}
-	{
-		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-		auto store = Base->GetStoreByStoreNm("TestStore");
-		sw.Reset(true);
-		store->DeleteAllRecs();
-		printf("\n++++ loop intermediate: %d\n", sw.GetMSecInt());
-		TQm::SaveBase2(Base);
 	}
 	sw.Stop();
 	printf("++++ loop: %d\n\n", sw.GetMSecInt());
 
 	{
 		printf("Starting - new implementation - insert and delete\n");
-		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
 		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-		auto store = Base->GetStoreByStoreNm("TestStore");
-		auto field_id_str = store->GetFieldId("FieldString");
-		auto field_id_bool = store->GetFieldId("FieldBool");
-		TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
-		PJsonVal json = TJsonVal::GetValFromStr(s);
-		PJsonVal json_str = json->GetObjKey("FieldString");
-		PJsonVal json_bool = json->GetObjKey("FieldBool");
-		TVec<uint64> rec_ids;
+		auto store = Base->GetStoreByStoreNm("TestStore2");
+		//auto field_id_str = store->GetFieldId("FieldString");
+		//auto field_id_bool = store->GetFieldId("FieldBool");
+		//TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
+		//PJsonVal json = TJsonVal::GetValFromStr(s);
+		//PJsonVal json_str = json->GetObjKey("FieldString");
+		//PJsonVal json_bool = json->GetObjKey("FieldBool");
+		//TVec<uint64> rec_ids;
 		for (int i = 0; i < rec_count; i++) {
-			//if (i % 1000 == 0) printf("    %d\r", i);
-			json_str->PutStr(TStr::Fmt("Stored value %d", i));
+			if (i % 10000 == 0) printf("    %d\r", i);
+			json_str1->PutStr(TStr::Fmt("Stored value %d", i));
+			json_str2->PutStr(definition.GetSubStr(i % 8, 20 + i % 10));
+			json_str3->PutStr(definition.GetSubStr(i % 8, 20 + i % 10));
+			json_str4->PutStr(TStr::Fmt("c%d", i % 7));
+			json_str5->PutStr(TStr::Fmt("d%d", i % 4));
 			json_bool->PutBool(i % 7 == 3);
-			rec_ids.Add(store->AddRec(json));
+			store->AddRec(json);
 		}
+		TQm::SaveBase2(Base);
+	}
+	TUInt64V rec_ids;
+	{
+		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+		auto store = Base->GetStoreByStoreNm("TestStore2");
+		auto rs = store->GetAllRecs();
+		rs->GetRecIdV(rec_ids);
 		TQm::SaveBase2(Base);
 	}
 	{
 		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-		auto store = Base->GetStoreByStoreNm("TestStore");
-		auto field_id_str = store->GetFieldId("FieldString");
-
-		printf("Loading all records...\n", sw.GetMSecInt());
-		auto rs = store->GetAllRecs();
-		int max_len = -1;
-		for (int j = 0; j < rs->GetRecs(); j++) {
-			auto rec = rs->GetRec(j);
-			max_len = MAX(max_len, rec.GetFieldStr(field_id_str).Len());
-		}
-		printf("Starting delete...\n", sw.GetMSecInt());
+		auto store = Base->GetStoreByStoreNm("TestStore2");
 		sw.Reset(true);
-		store->DeleteAllRecs();
+		for (int i = 0; i < loops; i++) {
+			TUInt64V rec_ids_to_delete;
+			for (int j = 0; j < del_per_loop; j++) {
+				rec_ids_to_delete.Add(rec_ids[i * del_per_loop + j]);
+			}
+			printf("delete in this loop: %d\n", rec_ids_to_delete.Len());
+			store->DeleteRecs(rec_ids_to_delete);
+		}
+
 		printf("\n++++ loop intermediate: %d\n", sw.GetMSecInt());
 		TQm::SaveBase2(Base);
 	}

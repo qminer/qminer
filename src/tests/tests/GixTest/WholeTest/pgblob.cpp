@@ -256,6 +256,18 @@ namespace glib {
 
 		Item->Len = 0;
 		Header->SetDirty(true);
+
+		// optimization - if all items are deleted, mark as empty page
+		bool all_deleted = true;
+		for (int i = 0; i < Header->ItemCount; i++) {
+			if (GetItemRec(Pg, i)->Len == 0) {
+				all_deleted = false;
+				break;
+			}
+		}
+		if (all_deleted) {
+			Header->ItemCount = 0;
+		}
 	}
 
 	/// Get pointer to item record - in it are offset and length
@@ -423,8 +435,7 @@ namespace glib {
 			int Len = (((TPgHeader*)PgPt)->ItemCount > 0 ? -1 : sizeof(TPgHeader));
 			//printf("len=%d\n", Len);
 			Files[a.Pt.GetFIx()]->SavePage(a.Pt.GetPg(), PgPt, Len);
-		}
-		else {
+		} else {
 			//printf("NO delete\n");
 		}
 		return Pg;
@@ -524,18 +535,31 @@ namespace glib {
 		TPgHeader* PgH = NULL;
 		bool is_new_page = false;
 
-		// first scan those that are in memory
-		// use the first one with enough space
-		// TODO is there a faster way? is this slow? it's linear...
-		for (int i = 0; i < LoadedPages.Len(); i++) {
-			char* PgBfTmp = GetPageBf(i);
+		// scan last 5 used pages if there is some space
+		int LoadedPage = LruFirst;
+		for (int i = 0; i < 5 && LoadedPage != -1; i++) {
+			char* PgBfTmp = GetPageBf(LoadedPage);
 			PgH = (TPgHeader*)PgBfTmp;
 			if (PgH->CanStoreBf(BfL)) {
 				PgBf = PgBfTmp;
-				PgPt = LoadedPages[i].Pt;
+				PgPt = LoadedPages[LoadedPage].Pt;
 				break;
 			}
+			LoadedPage = LoadedPages[LoadedPage].LruNext;
 		}
+		//// first scan those that are in memory
+		//// use the first one with enough space
+		//// TODO is there a faster way? is this slow? it's linear..
+		//for (int i = 0; i < LoadedPages.Len(); i++) {
+		//	if (i >= 10) break;
+		//	char* PgBfTmp = GetPageBf(i);
+		//	PgH = (TPgHeader*)PgBfTmp;
+		//	if (PgH->CanStoreBf(BfL)) {
+		//		PgBf = PgBfTmp;
+		//		PgPt = LoadedPages[i].Pt;
+		//		break;
+		//	}
+		//}
 
 		// if no page found in memory, use FSM
 		if (PgBf == NULL) {
@@ -626,6 +650,7 @@ namespace glib {
 
 		DeleteItem(PgBf, Pt.GetIIx());
 		if (PgH->ItemCount == 0) {
+			// optimization - empty pages are to be flushed as fast a s possible
 			MoveToEndLru(Pt.GetPg());
 		}
 		Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
@@ -639,7 +664,7 @@ namespace glib {
 	/// Loads all pages into cache - cache must be big enough
 	void TPgBlob::LoadAll() {
 		for (int i = 0; i < Fsm.Len(); i++) {
-			LoadPage(TPgBlobPgPt(Fsm[i]));
+			LoadPage(Fsm.GetVal(i));
 		}
 	}
 
@@ -700,96 +725,187 @@ namespace glib {
 
 	/// Add new page to free-space-map
 	void TPgBlobFsm::FsmAddPage(const TPgBlobPgPt& Pt, const uint16& FreeSpace) {
-		int index = Len();
-		Add(TPgBlobPt(Pt.GetFIx(), Pt.GetPg(), FreeSpace));
-		FsmSiftUp(index);
+		//int index = Len();
+		//Data.Add(TPgBlobPt(Pt.GetFIx(), Pt.GetPg(), FreeSpace));
+		//FsmSiftUp(index);
+		int index = MaxFSpace.Add(FreeSpace, Pt);
+		PtH.AddDat(Pt, index);
 	}
 
 	/// Update existing page inside free-space-map
 	void TPgBlobFsm::FsmUpdatePage(const TPgBlobPgPt& Pt, const uint16& FreeSpace) {
-		// find record
-		int rec = -1;
-		for (int i = 0; i < Len(); i++) {
-			if (GetVal(i).GetPg() == Pt.GetPg() &&
-				GetVal(i).GetFIx() == Pt.GetFIx()) {
-				rec = i;
-				break;
-			}
-		}
-		EAssert(rec >= 0);
-		if (rec < Len() - 1) {
-			GetVal(rec) = Last();
-			DelLast();
-			FsmPushDown(rec);
-			FsmAddPage(Pt, FreeSpace);
-		} else {
-			Last().SetIIx(FreeSpace);
-			FsmSiftUp(rec);
-		}
+		MaxFSpace.Change(PtH.GetDat(Pt), FreeSpace);
+		//// find record
+		//int rec = -1;
+		//for (int i = 0; i < Len(); i++) {
+		//	if (GetVal(i).GetPg() == Pt.GetPg() &&
+		//		GetVal(i).GetFIx() == Pt.GetFIx()) {
+		//		rec = i;
+		//		break;
+		//	}
+		//}
+		//EAssert(rec >= 0);
+		//if (rec < Len() - 1) {
+		//	Data.GetVal(rec) = Last();
+		//	DelLast();
+		//	FsmPushDown(rec);
+		//	FsmAddPage(Pt, FreeSpace);
+		//} else {
+		//	Last().SetIIx(FreeSpace);
+		//	FsmSiftUp(rec);
+		//}
 	}
 
 	/// Find page with most open space.
 	/// Returns false if no such page, true otherwise
 	/// If page exists, pointer to it is stored into sent parameter
 	bool TPgBlobFsm::FsmGetFreePage(int RequiredSpace, TPgBlobPgPt& PgPt) {
-		if (Len() == 0) {
+		int index_max = MaxFSpace.GetIndexOfMax();
+		if (index_max < 0 || MaxFSpace.GetVal(index_max) < RequiredSpace)
 			return false;
-		}
-		TPgBlobPt& Pt = GetVal(0);
-		PgPt.Set(Pt.GetFIx(), Pt.GetPg());
-		return (Pt.GetIIx() >= RequiredSpace);
+		PgPt = MaxFSpace.GetPtOf(index_max);
+		return true;
+		//if (Len() == 0) {
+		//	return false;
+		//}
+		//const TPgBlobPt& Pt = GetVal(0);
+		//PgPt.Set(Pt.GetFIx(), Pt.GetPg());
+		//return (Pt.GetIIx() >= RequiredSpace);
 	}
 
-	/// Move item up the heap if needed
-	int TPgBlobFsm::FsmSiftUp(int index) {
-		EAssert(index < Len());
-		EAssert(index >= 0);
-		if (index == 0)
-			return index;
-		int parent_index = FsmParent(index);
-		if (GetVal(parent_index).GetIIx() < GetVal(index).GetIIx()) {
-			Swap(parent_index, index);
-			return FsmSiftUp(parent_index);
-		} else {
-			return index;
-		}
-	}
+	///// Move item up the heap if needed
+	//int TPgBlobFsm::FsmSiftUp(int index) {
+	//	EAssert(index < Len());
+	//	EAssert(index >= 0);
+	//	if (index == 0)
+	//		return index;
+	//	int parent_index = FsmParent(index);
+	//	if (GetVal(parent_index).GetIIx() < GetVal(index).GetIIx()) {
+	//		Data.Swap(parent_index, index);
+	//		return FsmSiftUp(parent_index);
+	//	} else {
+	//		return index;
+	//	}
+	//}
 
-	/// Move item down the heap if needed
-	int TPgBlobFsm::FsmPushDown(int index) {
-		EAssert(index < Len());
-		EAssert(index >= 0);
-		int child1 = FsmLeftChild(index);
-		int child2 = FsmRightChild(index);
-		if (child1 >= Len())
-			child1 = -1;
-		if (child2 >= Len())
-			child2 = -1;
+	///// Move item down the heap if needed
+	//int TPgBlobFsm::FsmPushDown(int index) {
+	//	EAssert(index < Len());
+	//	EAssert(index >= 0);
+	//	int child1 = FsmLeftChild(index);
+	//	int child2 = FsmRightChild(index);
+	//	if (child1 >= Len())
+	//		child1 = -1;
+	//	if (child2 >= Len())
+	//		child2 = -1;
 
-		if (child1 < 0)
-			return index; // no children
-		if (child2 < 0) {
-			// compare to child1
-			if (GetVal(index).GetIIx() < GetVal(child1).GetIIx()) {
-				Swap(child1, index);
-				return FsmPushDown(child1);
+	//	if (child1 < 0)
+	//		return index; // no children
+	//	if (child2 < 0) {
+	//		// compare to child1
+	//		if (GetVal(index).GetIIx() < GetVal(child1).GetIIx()) {
+	//			Data.Swap(child1, index);
+	//			return FsmPushDown(child1);
+	//		}
+	//	} else {
+	//		uint16 v1 = GetVal(child1).GetIIx();
+	//		uint16 v2 = GetVal(child2).GetIIx();
+	//		bool v2_is_bigger = (v2 > v1);
+	//		if (v2_is_bigger) {
+	//			if (GetVal(index).GetIIx() < v2) {
+	//				Data.Swap(child2, index);
+	//				return FsmPushDown(child2);
+	//			}
+	//		} else {
+	//			if (GetVal(index).GetIIx() < v1) {
+	//				Data.Swap(child1, index);
+	//				return FsmPushDown(child1);
+	//			}
+	//		}
+	//	}
+	//	return index;
+	//}
+
+	//////////////////////////////////////////////////////
+
+	/// Add new record to the structure
+	//template <class TVal>
+	//int TBinTreeMaxVals<TVal>::Add(const TVal& Val) {
+	int TBinTreeMaxVals::Add(const uint16& Val, const TPgBlobPgPt& Pt) {
+		int res = Layers[0].Add(Val);
+		Pts.Add(Pt);
+		if (res == 0) return res;
+
+		int index = res;
+		int layer = 0;
+		while (true) {
+			layer++;
+			if (layer >= Layers.Len()) {
+				if (index == 1) {
+					Layers.Add();
+					Layers.Last().Add(MAX(Layers[layer - 1][0], Layers[layer - 1][1]));
+				}
+				break;
 			}
-		} else {
-			uint16 v1 = GetVal(child1).GetIIx();
-			uint16 v2 = GetVal(child2).GetIIx();
-			bool v2_is_bigger = (v2 > v1);
-			if (v2_is_bigger) {
-				if (GetVal(index).GetIIx() < v2) {
-					Swap(child2, index);
-					return FsmPushDown(child2);
-				}
+			int index2 = index / 2;
+			if (Layers[layer].Len() <= index2) {
+				Layers[layer].Add(Val);
+			} else if (Layers[layer][index2] < Val) {
+				Layers[layer][index2] = Val;
 			} else {
-				if (GetVal(index).GetIIx() < v1) {
-					Swap(child1, index);
-					return FsmPushDown(child1);
-				}
+				break;
+			}
+			index = index2;
+		}
+
+		return res;
+	}
+
+	/// Get index of item with max value
+	//template <class TVal>
+	//int TBinTreeMaxVals<TVal>::GetIndexOfMax()const {
+	int TBinTreeMaxVals::GetIndexOfMax()const {
+		if (Layers[0].Len() == 0) { // no data yet
+			return -1;
+		}
+		int layer = Layers.Len() - 1;
+		int index = 0;
+		int target = Layers[layer][index];
+		while (layer > 0) {
+			layer--;
+			index *= 2;
+			if (Layers[layer][index] != target) {
+				index++;
 			}
 		}
 		return index;
+	}
+
+	/// Change value at given position
+	void TBinTreeMaxVals::Change(const int& RecN, const uint16& Val) {
+		Layers[0][RecN] = Val;
+		int layer = 1;
+		int index = RecN;
+		while (layer < Layers.Len()) {
+			int index2 = index / 2;
+			if (Layers[layer - 1].Len() > 2 * index2 + 1) {
+				Layers[layer][index2] = MAX(Layers[layer - 1][2 * index2], Layers[layer - 1][2 * index2 + 1]);
+			} else {
+				Layers[layer][index2] = Layers[layer - 1][index];
+			}
+			index = index2;
+			layer++;
+		}
+	}
+
+	/// For debugging purposes
+	void TBinTreeMaxVals::Print() {
+		printf("------------------------\n");
+		for (int i = 0; i < Layers.Len(); i++) {
+			for (int j = 0; j < Layers[i].Len(); j++) {
+				printf("%d ", Layers[i][j]);
+			}
+			printf("\n");
+		}
 	}
 }
