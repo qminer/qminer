@@ -124,7 +124,12 @@ public:
 		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 		const unsigned Argc = 2;
 		v8::Local<v8::Value> ArgV[Argc] = { Arg1, Arg2 };
+		v8::TryCatch TryCatch;
 		v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();
+			return false;
+		}
 
 		EAssertR(ReturnVal->IsBoolean() || ReturnVal->IsNumber(), "Comparator callback must return a boolean or a number!");
 		return ReturnVal->IsBoolean() ? ReturnVal->BooleanValue() : ReturnVal->NumberValue() < 0;

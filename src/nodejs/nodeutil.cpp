@@ -431,8 +431,12 @@ double TNodeJsUtil::ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Lo
 	v8::HandleScope HandleScope(Isolate);
 
 	v8::Handle<v8::Value> Argv[1] = { Arg };
+	v8::TryCatch TryCatch;
 	v8::Handle<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
-
+	if (TryCatch.HasCaught()) {
+		TryCatch.ReThrow();
+		return 0;
+	}
 	EAssertR(RetVal->IsNumber(), "Return type expected to be number");
 
 	return RetVal->NumberValue();
@@ -442,7 +446,12 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& Ar
 		v8::Handle<v8::Value> ArgV[]) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
 	Fun->Call(Isolate->GetCurrentContext()->Global(), ArgC, ArgV);
+	if (TryCatch.HasCaught()) {
+		TryCatch.ReThrow();
+		return;
+	}
 }
 
 v8::Local<v8::Value> TNodeJsUtil::V8JsonToV8Str(const v8::Handle<v8::Value>& Json) {

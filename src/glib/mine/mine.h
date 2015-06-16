@@ -18,7 +18,7 @@
 // text processing
 #include "stopword.h"
 #include "stemming.h"
-#include "StemmingTokenization.h"
+#include "stemmingtokenization.h"
 #include "phrase.h"
 #include "tokenizer.h"
 
