@@ -914,7 +914,7 @@ namespace TQm {
 			if (DelRecN % 1000 == 0) { TEnv::Logger->OnStatusFmt("    %d\r", DelRecN); }
 			// what are we deleting now
 			const uint64 DelRecId = DelRecIdV[DelRecN];
-			// executed triggers before deletion
+			// execute triggers before deletion
 			OnDelete(DelRecId);
 			// delete record from name-id map
 			if (IsPrimaryField()) { DelPrimaryField(DelRecId); }
