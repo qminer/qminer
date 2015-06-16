@@ -797,6 +797,7 @@ public:
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void AssertOrtogonality(const TVVec<TType, TSizeTy, ColMajor>& Vecs, const double& Threshold);
 	inline static bool IsOrthonormal(const TFltVV& Vecs, const double& Threshold);
+	inline static bool IsZero(const TFltV& Vec);
 };
 
 
@@ -2882,6 +2883,14 @@ public:
 		TLinAlg::MultiplyT(Vecs, Vecs, R);
 		for (int i = 0; i < m; i++) { R(i, i) -= 1; }
 		return TLinAlg::Frob(R) < Threshold;
+	}
+
+	bool TLinAlg::IsZero(const TFltV& Vec) {
+		int Len = Vec.Len();
+		for (int i = 0; i < Len; i++) {
+			if (Vec[i] != 0.0) { return false; }
+		}
+		return true;
 	}
 //};
 

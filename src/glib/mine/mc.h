@@ -504,9 +504,9 @@ public:
 	// returns true is the jump from OldStateId to NewStateId is considered anomalous
 	virtual bool IsAnomalousJump(const TFltV& FtrV, const int& NewStateId, const int& OldStateId) const = 0;
 
-	virtual void CreateFtrV(const TFltV& ObsFtrV, const TFltV& PrevObsFtrV,
-    		const TFltV& ContrFtrV, const TFltV& PrevContrFtrV, const uint64& RecTm,
-			const uint64& PrevRecTm, TFltV& FtrV) const = 0;
+//	virtual void CreateFtrV(const TFltV& ObsFtrV, const TFltV& PrevObsFtrV,
+//    		const TFltV& ContrFtrV, const TFltV& PrevContrFtrV, const uint64& RecTm,
+//			const uint64& PrevRecTm, TFltV& FtrV) const = 0;
 
 	// set params
 	double GetTimeHorizon() const { return TmHorizon; }
@@ -546,18 +546,39 @@ protected:
 	virtual const TStr GetType() const = 0;
 };
 
+class TBernoulliIntens {
+private:
+	TLogReg LogReg;
+	double DeltaTm;
+public:
+	TBernoulliIntens():
+		LogReg(0, true, false),
+		DeltaTm(0) {}
+	TBernoulliIntens(const double& _DeltaTm, const double& Lambda=0, const bool Verbose=false):
+		LogReg(Lambda, true, Verbose),
+		DeltaTm(_DeltaTm) {}
+	TBernoulliIntens(TSIn& SIn): LogReg(SIn), DeltaTm(TFlt(SIn)) {}
+
+	void Save(TSOut& SOut) const { LogReg.Save(SOut); TFlt(DeltaTm).Save(SOut); }
+	void Fit(const TFltVV& X, const TFltV& y, const double& Eps=1e-3) { LogReg.Fit(X, y, Eps); }
+	double Predict(const TFltV& x) const {
+		return LogReg.Predict(x) / DeltaTm;
+	}
+};
+
 /////////////////////////////////////////////////////////////////
 // Continous time Markov Chain
 class TCtMChain: public TMChain {
-	typedef TFltV TJumpTmV;
-	typedef TVec<TFltV> TJumpFtrVV;
+	typedef TFltV TLabelV;
+	typedef TVec<TFltV> TFtrVV;
 	typedef TFltVV TJumpFtrMat;
 
-	typedef TVec<TVec<TJumpTmV>> TJumpTmVMat;
-	typedef TVVec<TJumpFtrVV> TJumpFtrVVMat;
+	typedef TVec<TVec<TLabelV>> TLabelVMat;
+	typedef TVVec<TFtrVV> TJumpFtrVVMat;
 	typedef TVVec<TJumpFtrMat> TJumpFtrMatMat;
 
-	typedef TPropHazards TIntensModel;
+//	typedef TPropHazards TIntensModel;
+	typedef TBernoulliIntens TIntensModel;
 	typedef TVVec<TIntensModel> TIntensModelMat;
 public:
 	const static uint64 TU_SECOND;
@@ -624,9 +645,9 @@ public:
 
 	int GetStates() const { return NStates; }
 
-	void CreateFtrV(const TFltV& ObsFtrV, const TFltV& PrevObsFtrV,
-    		const TFltV& ContrFtrV, const TFltV& PrevContrFtrV, const uint64& RecTm,
-			const uint64& PrevRecTm, TFltV& FtrV) const;
+//	void CreateFtrV(const TFltV& ObsFtrV, const TFltV& PrevObsFtrV,
+//    		const TFltV& ContrFtrV, const TFltV& PrevContrFtrV, const uint64& RecTm,
+//			const uint64& PrevRecTm, TFltV& FtrV) const;
 
 protected:
 //	void InitStats(const int& NStates);
