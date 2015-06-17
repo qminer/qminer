@@ -20,10 +20,14 @@ namespace TMc {
 
 using namespace TMl;
 
-typedef TIntV TStateIdV;
-typedef TIntSet TStateIdSet;
-typedef TVec<TIntV> TStateSetV;
-typedef TVec<TFltV> TStateFtrVV;
+namespace {
+
+	typedef TIntV TStateIdV;
+	typedef TIntSet TStateIdSet;
+	typedef TVec<TIntV> TStateSetV;
+	typedef TVec<TFltV> TStateFtrVV;
+
+}
 
 //////////////////////////////////////////////////////
 // Distance measures - eucledian distance
