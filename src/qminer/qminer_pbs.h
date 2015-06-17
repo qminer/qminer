@@ -9,15 +9,13 @@
 #include <base.h>
 #include <mine.h>
 
-#include <qminer_core.h>
-#include <qminer_gs.h>
-
-#include "pgblob.h"
+#include "qminer_core.h"
+#include "qminer_gs.h"
+#include <pgblob.h>
 
 namespace TQm {
 
 	using namespace TQm::TStorage;
-	using namespace glib;
 
 	///////////////////////////////
 	/// Implementation of store which can be initialized from a schema.

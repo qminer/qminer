@@ -1,5 +1,5 @@
 
-#include "pgblob.h"
+#include "qminer_pgblob.h"
 
 namespace glib {
 
@@ -527,7 +527,7 @@ namespace glib {
 
 	/// Store BLOB to storage
 	TPgBlobPt TPgBlob::Put(const char* Bf, const int& BfL) {
-		QmAssert(Access != TFAccess::faRdOnly);
+		IAssert(Access != TFAccess::faRdOnly);
 
 		// find page
 		TPgBlobPgPt PgPt;
@@ -588,7 +588,7 @@ namespace glib {
 	/// Store existing BLOB to storage
 	TPgBlobPt TPgBlob::Put(
 		const char* Bf, const int& BfL, const TPgBlobPt& Pt) {
-		QmAssert(Access != TFAccess::faRdOnly);
+		IAssert(Access != TFAccess::faRdOnly);
 
 		// find page
 		char* PgBf = NULL;
@@ -629,18 +629,18 @@ namespace glib {
 	}
 
 	/// Retrieve BLOB from storage
-	TQm::TStorage::TThinMIn TPgBlob::Get(const TPgBlobPt& Pt) {
+	TThinMIn TPgBlob::Get(const TPgBlobPt& Pt) {
 		char* Pg = LoadPage(Pt);
 		TPgBlobPageItem* Item = GetItemRec(Pg, Pt.GetIIx());
 		char* Data;
 		int Len = Item->Len;
 		GetItem(Pg, Pt.GetIIx(), &Data, Len);
-		return TQm::TStorage::TThinMIn(Data, Len);
+		return TThinMIn(Data, Len);
 	}
 
 	/// Delete BLOB from storage
 	void TPgBlob::Del(const TPgBlobPt& Pt) {
-		QmAssert(Access != TFAccess::faRdOnly);
+		IAssert(Access != TFAccess::faRdOnly);
 
 		//printf("--- deleting %d %d %d \n", Pt.GetFIx(), Pt.GetPg(), Pt.GetIIx());
 		// find page
@@ -698,7 +698,7 @@ namespace glib {
 
 	/// Marks page as dirty - data inside was written directly
 	void TPgBlob::SetDirty(const TPgBlobPt& Pt) {
-		QmAssert(Access != TFAccess::faRdOnly);
+		IAssert(Access != TFAccess::faRdOnly);
 		char* Pg = LoadPage(Pt);
 		((TPgHeader*)Pg)->SetDirty(true);
 	}

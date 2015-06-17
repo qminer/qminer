@@ -133,6 +133,33 @@ public:
 	}
 };
 
+
+
+/////////////////////////////////////////////////
+/// Thin Input-Memory. Used to present existing TMem as TSIn. 
+/// It doesn't allocate or release any memory.
+class TThinMIn : public TSIn {
+protected:
+	uchar* Bf;
+	int BfC, BfL;
+public:
+	TThinMIn(const TMemBase& Mem);
+	TThinMIn(const void* _Bf, const int& _BfL);
+	TThinMIn(const TThinMIn& min);
+
+	bool Eof() { return BfC == BfL; }
+	int Len() const { return BfL - BfC; }
+	char GetCh();
+	char PeekCh();
+	int GetBf(const void* LBf, const TSize& LBfL);
+	void Reset() { Cs = TCs(); BfC = 0; }
+	uchar* GetBfAddr() { return Bf; }
+	char* GetBfAddrChar() { return (char*)Bf; }
+	void MoveTo(int Offset);
+	bool GetNextLnBf(TChA& LnChA);
+	TMemBase GetMemBase() { return TMemBase(GetBfAddr(), Len(), false); }
+};
+
 /////////////////////////////////////////////////
 // Memory chunk - advanced memory buffer
 class TMem;

@@ -159,16 +159,14 @@
     <ClCompile Include="..\..\..\..\qminer\qminer_ftr.cpp" />
     <ClCompile Include="..\..\..\..\qminer\qminer_gs.cpp" />
     <ClCompile Include="..\..\..\..\qminer\qminer_op.cpp" />
+    <ClCompile Include="..\..\..\..\qminer\qminer_pbs.cpp" />
     <ClCompile Include="..\..\..\..\qminer\qminer_snap.cpp" />
     <ClCompile Include="..\..\..\..\qminer\qminer_srv.cpp" />
-    <ClCompile Include="pgblob.cpp" />
-    <ClCompile Include="qminer_pbs.cpp" />
     <ClCompile Include="WholeTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\glib\base\gix.h" />
-    <ClInclude Include="pgblob.h" />
-    <ClInclude Include="qminer_pbs.h" />
+    <ClInclude Include="..\..\..\..\qminer\qminer_pbs.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GTest\GTest.vcxproj">
