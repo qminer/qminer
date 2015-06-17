@@ -1413,7 +1413,7 @@ public:
 //		TQm::SaveBase2(Base);
 //	}
 //}
-
+//
 //TEST(testTStorePbBlob, PerfCompare_StrAddCache) {
 //	TStr def_file = ".\\pgblob_test_str1.def";
 //	TQm::TEnv::Init();
@@ -1423,7 +1423,7 @@ public:
 //	// init unicode
 //	TTmStopWatch sw(false);
 //	TUnicodeDef::Load(unicode_file);
-//	int rec_count = 10 * 1000 * 1000;
+//	int rec_count = 15 * 1000 * 1000;
 //
 //	printf("Starting performance comparison - insert\n");
 //	{
@@ -1449,8 +1449,8 @@ public:
 //		printf("\n++++ insert intermediate: %d\n", sw.GetMSecInt());
 //		TQm::TStorage::SaveBase(Base);
 //	}
-//		sw.Stop();
-//		printf("++++ insert: %d\n\n", sw.GetMSecInt());
+//	sw.Stop();
+//	printf("++++ insert: %d\n\n", sw.GetMSecInt());
 //	{
 //		printf("Starting - old implementation - update seq bool\n");
 //		sw.Reset(true);
@@ -1465,9 +1465,8 @@ public:
 //		}
 //		printf("\n++++ update intermediate: %d\n", sw.GetMSecInt());
 //		TQm::TStorage::SaveBase(Base);
-//	}
-//		sw.Stop();
-//		printf("++++ update: %d\n\n", sw.GetMSecInt());
+//	sw.Stop();
+//	printf("++++ update: %d\n\n", sw.GetMSecInt());
 //	{
 //		printf("Starting - old implementation - update seq str\n");
 //		sw.Reset(true);
@@ -1483,8 +1482,8 @@ public:
 //		printf("\n++++ update intermediate: %d\n", sw.GetMSecInt());
 //		TQm::TStorage::SaveBase(Base);
 //	}
-//		sw.Stop();
-//		printf("++++ update: %d\n\n", sw.GetMSecInt());
+//	sw.Stop();
+//	printf("++++ update: %d\n\n", sw.GetMSecInt());
 //	{
 //		printf("Starting - new implementation\n");
 //		sw.Reset(true);
@@ -1508,8 +1507,8 @@ public:
 //		printf("\n++++ insert intermediate: %d\n", sw.GetMSecInt());
 //		TQm::SaveBase2(Base);
 //	}
-//		sw.Stop();
-//		printf("++++ %d\n\n", sw.GetMSecInt());
+//	sw.Stop();
+//	printf("++++ %d\n\n", sw.GetMSecInt());
 //	{
 //		printf("Starting - new implementation - update seq bool\n");
 //		sw.Reset(true);
@@ -1525,8 +1524,8 @@ public:
 //		printf("\n++++ update intermediate: %d\n", sw.GetMSecInt());
 //		TQm::SaveBase2(Base);
 //	}
-//		sw.Stop();
-//		printf("++++ update: %d\n\n", sw.GetMSecInt());
+//	sw.Stop();
+//	printf("++++ update: %d\n\n", sw.GetMSecInt());
 //	{
 //		printf("Starting - new implementation - update seq str\n");
 //		sw.Reset(true);
@@ -1542,8 +1541,8 @@ public:
 //		printf("\n++++ update intermediate: %d\n", sw.GetMSecInt());
 //		TQm::SaveBase2(Base);
 //	}
-//		sw.Stop();
-//		printf("++++ update: %d\n\n", sw.GetMSecInt());
+//	sw.Stop();
+//	printf("++++ update: %d\n\n", sw.GetMSecInt());
 //}
 //
 //
