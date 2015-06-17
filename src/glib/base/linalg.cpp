@@ -6,8 +6,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 #include "bd.h"
-#include "base.h"
-
+//#include "base.h"
+#ifdef LAPACKE
+#include "MKLfunctions.h"
+#endif
 
 #ifdef EIGEN
 #include <Eigen/Dense>
@@ -241,7 +243,6 @@ void TStructuredCovarianceMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) co
 ////////////////////////////////////////////////////////////////////////
 //// Basic Linear Algebra Operations
 /// Everything moved to linalg.h
-
 
 ///////////////////////////////////////////////////////////////////////
 // Numerical Linear Algebra
@@ -605,7 +606,6 @@ void TNumericalStuff::LeastSquares(const TFltVV& A, const TFltV& b, const double
 	} else {
 		TNumericalStuff::DualLeastSquares(A, b, Gamma, x);
 	}
-
 }
 
 void TNumericalStuff::PrimalLeastSquares(const TFltVV& A, const TFltV& b, const double& Gamma, TFltV& x) {
@@ -662,12 +662,12 @@ void TNumericalStuff::DualLeastSquares(const TFltVV& A, const TFltV& b, const do
 }
 
 void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps) {
-#ifdef BLAS
+#if defined(BLAS) && defined(LAPACKE)
 	EAssertR(A.GetRows() == A.GetCols(), "A should be a square matrix to compute eigenvalues!");
 
 	TFltVV A1 = A;
 
-    printf("input matrix:\n%s\n", TStrUtil::GetStr(A1, ", ", "%.7f").CStr());
+//    printf("input matrix:\n%s\n", TStrUtil::GetStr(A1, ", ", "%.7f").CStr());
 
     const int Dim = A1.GetRows();
 
@@ -688,7 +688,7 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
 
     // build an initial estimate of the eigenvector
     // decompose (A - Lambda*I) into LU
-	MKLfunctions::LUFactorization(A1, L, U, PermV);
+	LUFactorization(A1, L, U, PermV);
 
     // extract U, replace any zero diagonal elements by |A|*eps
     for (int i = 0; i < Dim; i++) {
@@ -699,8 +699,8 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
         }
     }
 
-    printf("U:\n%s\n", TStrUtil::GetStr(U, ", ", "%.7f").CStr());
-    printf("PermV:\n%s\n", TStrUtil::GetStr(PermV, ", ").CStr());
+//    printf("U:\n%s\n", TStrUtil::GetStr(U, ", ", "%.7f").CStr());
+//    printf("PermV:\n%s\n", TStrUtil::GetStr(PermV, ", ").CStr());
 
     // construct A from LU
     TLinAlg::Multiply(L, U, A1);
@@ -716,22 +716,22 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
     // compute an initial estimate for the eigenvector
     // I can ignore permutations here since then only swap elements
     // in the vector of ones: P*A = L*U => A*x = b <=> L*U*x = P*b = P*1 = 1
-	MKLfunctions::TriangularSolve(U, EigenV, OnesV);	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)
+    TriangularSolve(U, EigenV, OnesV);	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)
 
-    printf("initial estimate (unnorm): %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
+//    printf("initial estimate (unnorm): %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
 
     Norm = TLinAlg::Normalize(EigenV);
 	EAssertR(Norm != 0, "Cannot normalize, norm is 0!");
 
-	printf("initial estimate: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
+//	printf("initial estimate: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
 
     // iterate (A - Lambda*I)*x_n+1 = x_n until convergence
     do {
     	TempV = EigenV;
 
-		MKLfunctions::LUSolve(A1, EigenV, TempV);
+    	LUSolve(A1, EigenV, TempV);
 
-        printf("solution vector: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
+//        printf("solution vector: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
 
         // normalize
 //        Norm = TLinAlg::Normalize(EigenV);
@@ -740,14 +740,213 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
         EAssertR(Norm != 0, "Cannot normalize, norm is 0!");
         TLinAlg::MultiplyScalar(1/Norm, EigenV, EigenV);
 
-        printf("eigen vector: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
+//        printf("eigen vector: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
 
         Dist = TLinAlg::EuclDist(EigenV, TempV);
     } while (Dist > ConvergEps);
 #else
-    throw TExcept::New("Should include OpenBLAS!!!");
+    throw TExcept::New("Should include BLAS!!!");
 #endif
 }
+
+#ifdef BLAS
+
+void TNumericalStuff::LUStep(TFltVV& A, TIntV& Perm) {
+	Assert(A.GetRows() == A.GetCols());
+
+	// data used for factorization
+	int NumOfRows_Matrix = A.GetRows();
+	int NumOfCols_Matrix = A.GetCols();
+	int LeadingDimension_Matrix = NumOfCols_Matrix;
+	int Matrix_Layout = LAPACK_ROW_MAJOR;
+
+	Perm.Gen(NumOfRows_Matrix);
+
+	// factorization
+	LAPACKE_dgetrf(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, &A(0, 0).Val, LeadingDimension_Matrix,
+		&Perm[0].Val);
+}
+
+// LUFactorization create the matrices L, U and vector of permutations P such that P*A = L*U.
+// The L is unit lower triangular matrix and U is an upper triangular matrix.
+// Vector P tell's us: column i is swapped with column P[i].
+void TNumericalStuff::LUFactorization(const TFltVV& A, TFltVV& L, TFltVV& U, TIntV& P) {
+	Assert(A.GetRows() == A.GetCols());
+
+	int NumOfRows_Matrix = A.GetRows();
+	int NumOfCols_Matrix = A.GetCols();
+
+	// copy of the matrix
+	TFltVV M = A;
+
+	// LUStep
+	LUStep(M, P);
+
+	// construction of L matrix
+	L.Gen(NumOfRows_Matrix, NumOfCols_Matrix);
+	for (int i = 0; i < NumOfRows_Matrix; i++) {
+		for (int j = 0; j < NumOfCols_Matrix; j++) {
+
+			if (j < i) { L(i, j) = M(i, j); }
+
+			else if (j == i) { L(i, j) = 1; }
+
+			else { L(i, j) = 0; }
+		}
+	}
+
+	// construction of U matrix
+	U.Gen(NumOfRows_Matrix, NumOfCols_Matrix);
+	for (int i = 0; i < NumOfRows_Matrix; i++) {
+		for (int j = 0; j < NumOfCols_Matrix; j++) {
+
+			if (i <= j) { U(i, j) = M(i, j); }
+
+			else { U(i, j) = 0; }
+		}
+	}
+}
+
+void TNumericalStuff::LUSolve(const TFltVV& A, TFltV& x, const TFltV& b) {
+	Assert(A.GetRows() == b.Len());
+
+	// for matrix
+	int NumOfRows_Matrix = A.GetRows();
+	int NumOfCols_Matrix = A.GetCols();
+	int LeadingDimension_Matrix = NumOfCols_Matrix;
+	int Matrix_Layout = LAPACK_ROW_MAJOR;
+
+	// for vector
+	int LeadingDimension_Vector = 1;
+	int NumOfCols_Vector = 1;
+
+	// LU factorization
+	TFltVV M = A;
+	TIntV Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+	LUStep(M, Perm);
+
+	// solution
+	x = b;
+	LAPACKE_dgetrs(Matrix_Layout, 'N', NumOfCols_Matrix, NumOfCols_Vector, &M(0, 0).Val, LeadingDimension_Matrix,
+		&Perm[0].Val, &x[0].Val, LeadingDimension_Vector);
+}
+
+void TNumericalStuff::SVDFactorization(const TFltVV& A,
+	TFltVV& U, TFltV& Sing, TFltVV& VT) {
+
+	// data used for factorization
+	int NumOfRows_Matrix = A.GetRows();
+	int NumOfCols_Matrix = A.GetCols();
+	int LeadingDimension_Matrix = NumOfCols_Matrix;
+	int Matrix_Layout = LAPACK_ROW_MAJOR;
+
+	// preperation for factorization
+	Sing.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+	TFltV UpDiag, TauQ, TauP;
+	UpDiag.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix) - 1);
+	TauQ.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+	TauP.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+
+	// bidiagonalization of Matrix
+	TFltVV M = A;
+	LAPACKE_dgebrd(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, &M(0, 0).Val, LeadingDimension_Matrix,
+		&Sing[0].Val, &UpDiag[0].Val, &TauQ[0].Val, &TauP[0].Val);
+
+	// matrix U used in the SVD factorization
+	U = M;
+	LAPACKE_dorgbr(Matrix_Layout, 'Q', NumOfRows_Matrix, MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix,
+		&U(0, 0).Val, LeadingDimension_Matrix, &TauQ[0].Val);
+
+	// matrix VT used in the SVD factorization
+	VT = M;
+	LAPACKE_dorgbr(Matrix_Layout, 'P', MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix, NumOfRows_Matrix,
+		&VT(0, 0).Val, LeadingDimension_Matrix, &TauP[0].Val);
+
+	// factorization
+	TFltVV C(U.GetCols(), 1);
+	char UpperLower = NumOfRows_Matrix >= NumOfCols_Matrix ? 'U' : 'L';
+	int LeadingDimension_VT = VT.GetCols();
+	int LeadingDimension_U = U.GetCols();
+	LAPACKE_dbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, &Sing[0].Val, &UpDiag[0].Val,
+		&VT(0, 0).Val, LeadingDimension_VT, &U(0, 0).Val, LeadingDimension_U, &C(0, 0).Val, 1);
+}
+
+void TNumericalStuff::SVDSolve(const TFltVV& A, TFltV& x, const TFltV& b,
+		const double& EpsSing) {
+	Assert(A.GetRows() == b.Len());
+
+	// data used for solution
+	int NumOfRows_Matrix = A.GetRows();
+	int NumOfCols_Matrix = A.GetCols();
+
+	// generating the SVD factorization
+	TFltVV U, VT, M = A;
+	TFltV Sing;
+	SVDFactorization(M, U, Sing, VT);
+
+	// generating temporary solution
+	x.Gen(NumOfCols_Matrix);
+	TLAMisc::FillZero(x);
+	TFltV ui; ui.Gen(U.GetRows());
+	TFltV vi; vi.Gen(VT.GetCols());
+
+	int i = 0;
+	while (i < MIN(NumOfRows_Matrix, NumOfCols_Matrix) &&
+			Sing[i].Val > EpsSing*Sing[0]) {
+		U.GetCol(i, ui);
+		VT.GetRow(i, vi);
+		double Scalar = TLinAlg::DotProduct(ui, b) / Sing[i].Val;
+		TLinAlg::AddVec(Scalar, vi, x);
+		i++;
+	}
+}
+
+void TNumericalStuff::LUSolve(const TFltVV& A, TFltVV& X, const TFltVV& B) {
+	Assert(A.GetRows() == B.GetRows());
+
+	// for matrix
+	int NumOfRows_Matrix = A.GetRows();
+	int NumOfCols_Matrix = A.GetCols();
+	int LeadingDimension_Matrix = NumOfCols_Matrix;
+	int Matrix_Layout = LAPACK_ROW_MAJOR;
+
+	// for vector
+	int LeadingDimension_B = B.GetCols();
+	int NumOfCols_B = B.GetCols();
+
+	// LU factorization
+	TFltVV M = A;
+	TIntV Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+	LUStep(M, Perm);
+
+	// solution
+	X = B;
+	LAPACKE_dgetrs(Matrix_Layout, 'N', NumOfRows_Matrix, NumOfCols_B, &M(0, 0).Val, LeadingDimension_Matrix,
+		&Perm[0].Val, &X(0, 0).Val, LeadingDimension_B);
+}
+
+void TNumericalStuff::TriangularSolve(TFltVV& A, TFltV& x, TFltV& b,
+		bool UpperTriangFlag, bool DiagonalUnitFlag) {
+	Assert(A.GetRows() == b.Len());
+
+	// data used for solution
+	int NumOfRows_Matrix = A.GetRows();
+	int NumOfCols_Matrix = A.GetCols();
+	char uplo = UpperTriangFlag ? 'U' : 'L';
+	char diag = DiagonalUnitFlag ? 'U' : 'N';
+	char trans = 'N';							// matrix is not transposed
+	int NumOfCols_Vector = 1;
+	int LeadingDimension_Matrix = NumOfCols_Matrix;
+	int LeadingDimension_Vector = 1;
+	int Matrix_Layout = LAPACK_ROW_MAJOR;
+
+	// solution
+	x = b;
+	LAPACKE_dtrtrs(Matrix_Layout, uplo, trans, diag, NumOfRows_Matrix, NumOfCols_Vector, &A(0, 0).Val,
+		LeadingDimension_Matrix, &x[0].Val, LeadingDimension_Vector);
+}
+
+#endif
 ///////////////////////////////////////////////////////////////////////
 // Sparse-SVD
 void TSparseSVD::MultiplyATA(const TMatrix& Matrix,
@@ -932,7 +1131,7 @@ void TSparseSVD::Lanczos(const TMatrix& Matrix, int NumEig,
     } else {
         EAssert(Matrix.GetRows() == Matrix.GetCols());
     }
-  EAssertR(NumEig <= Iters, TStr::Fmt("%d <= %d", NumEig, Iters));
+ 	EAssertR(NumEig <= Iters, TStr::Fmt("%d <= %d", NumEig, Iters));
 
     //if (ReOrtoType == ssotFull) printf("Full reortogonalization\n");
     int i, N = Matrix.GetCols(), K = 0; // K - current dimension of T
@@ -1732,6 +1931,21 @@ int TLAMisc::GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat) {
 	}
 	return MaxDim;
 }
+
+int TLAMisc::GetMinIdx(const TFltV& Vec) {
+	const int Len = Vec.Len();
+
+	int MinIdx = 0;
+	double MinVal = Vec[MinIdx];
+	for (int i = 1; i < Len; i++) {
+		if (Vec[i] < MinVal) {
+			MinVal = Vec[i];
+			MinIdx = i;
+		}
+	}
+
+	return MinIdx;
+}
  
  void TLAMisc::RangeV(const int& Min, const int& Max, TIntV& Res) {
 	 Res.Gen(Max - Min + 1, 0);
@@ -2064,7 +2278,7 @@ TIntV TVector::GetIntVec() const {
 	 TIntV Res(Dim);
 
 	 for (int i = 0; i < Dim; i++) {
-		 Res[i] = (int)Vec[i];
+		 Res[i] = (int) Vec[i];
 	 }
 
 	 return Res;
@@ -2361,13 +2575,15 @@ TFullMatrix TFullMatrix::operator *(const TSparseColMatrix& B) const {
 	return Result;
 }
 
-
 TFullMatrix TFullMatrix::MulT(const TFullMatrix& B) const {
+	return MulT(B.GetMat());
+}
+
+TFullMatrix TFullMatrix::MulT(const TFltVV& B) const {
 	EAssert(GetRows() == B.GetRows());
 
 	TFullMatrix Result(GetCols(), B.GetCols());
-	MultiplyT(*B.Mat, *Result.Mat);
-
+	MultiplyT(B, *Result.Mat);
 	return Result;
 }
 
@@ -2622,6 +2838,21 @@ TTriple<TFullMatrix, TVector, TFullMatrix> TFullMatrix::Svd(const int& k) const 
 TFullMatrix TFullMatrix::GetInverse() const {
 	EAssertR(GetRows() == GetCols(), "Can only invert square matrices!");
 	throw TExcept::New("TFullMatrix::GetInverse: Not implemented!");
+}
+
+bool TFullMatrix::HasNan() const {
+	const int Cols = GetCols();
+	const int Rows = GetRows();
+
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			if (TFlt::IsNan(At(RowN, ColN))) {
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void TFullMatrix::Save(TSOut& SOut) const {

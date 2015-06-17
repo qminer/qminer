@@ -723,7 +723,12 @@ void TNodeJsStreamAggr::OnAddRec(const TQm::TRec& Rec) {
 		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 		const unsigned Argc = 1;
 		v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
+		v8::TryCatch TryCatch;
 		Callback->Call(GlobalContext, Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();
+			return;
+		}
 	}
 }
 
@@ -736,7 +741,12 @@ void TNodeJsStreamAggr::OnUpdateRec(const TQm::TRec& Rec) {
 		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 		const unsigned Argc = 1;
 		v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
+		v8::TryCatch TryCatch;
 		Callback->Call(GlobalContext, Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();
+			return;
+		}
 	}
 }
 
@@ -749,7 +759,12 @@ void TNodeJsStreamAggr::OnDeleteRec(const TQm::TRec& Rec) {
 		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 		const unsigned Argc = 1;
 		v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
+		v8::TryCatch TryCatch;
 		Callback->Call(GlobalContext, Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();
+			return;
+		}
 	}
 }
 
@@ -762,7 +777,12 @@ PJsonVal TNodeJsStreamAggr::SaveJson(const int& Limit) const {
 		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 		const unsigned Argc = 1;
 		v8::Local<v8::Value> ArgV[Argc] = { v8::Number::New(Isolate, Limit) };
+		v8::TryCatch TryCatch;
 		v8::Local<v8::Value> ReturnVal = Callback->Call(GlobalContext, Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();	
+			return TJsonVal::NewObj();
+		}
 		QmAssertR(ReturnVal->IsObject(), "Stream aggr JS callback: saveJson didn't return an object.");
 		PJsonVal Res = TNodeJsUtil::GetObjJson(ReturnVal->ToObject());
 
@@ -797,10 +817,10 @@ int TNodeJsStreamAggr::GetInt() const {
 
 		v8::TryCatch TryCatch;
 		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
-		if (RetVal.IsEmpty()) {
-			v8::Local<v8::Value> Exception = TryCatch.Exception();
-			Isolate->ThrowException(Exception);
-		}
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();
+			return 0;
+		}		
 		QmAssertR(RetVal->IsInt32(), "TNodeJsStreamAggr, name: " + GetAggrNm() + ", getInt(): Return type expected to be int32");
 		return RetVal->Int32Value();
 	}
@@ -819,9 +839,9 @@ double TNodeJsStreamAggr::GetFlt() const {
 
 		v8::TryCatch TryCatch;
 		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
-		if (RetVal.IsEmpty()) {
-			v8::Local<v8::Value> Exception = TryCatch.Exception();
-			Isolate->ThrowException(Exception);
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();
+			return 0.0;			
 		}
 		QmAssertR(RetVal->IsNumber(), "TNodeJsStreamAggr, name: " + GetAggrNm() + ", getFlt(): Return type expected to be int32");
 		return RetVal->NumberValue();
@@ -841,9 +861,9 @@ uint64 TNodeJsStreamAggr::GetTmMSecs() const {
 
 		v8::TryCatch TryCatch;
 		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
-		if (RetVal.IsEmpty()) {
-			v8::Local<v8::Value> Exception = TryCatch.Exception();
-			Isolate->ThrowException(Exception);
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();
+			return 0;
 		}
 		QmAssertR(RetVal->IsNumber(), "TNodeJsStreamAggr, name: " + GetAggrNm() + ", getTm(): Return type expected to be number");
 		return (uint64)RetVal->NumberValue();

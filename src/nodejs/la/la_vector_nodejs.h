@@ -21,7 +21,7 @@ class TNodeJsFltVV;
 
 class TAuxFltV {
 public:
-	static const TStr ClassId; //ClassId is set to "TFltV"
+	static const TStr ClassId; //ClassId is set to TNodeJsFltV::GetClassId().CStr()
 	static v8::Handle<v8::Value> GetObjVal(const double& Val) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::EscapableHandleScope HandleScope(Isolate);
@@ -43,7 +43,7 @@ public:
 
 class TAuxIntV {
 public:
-	static const TStr ClassId; //ClassId is set to "TIntV"
+	static const TStr ClassId; //ClassId is set to TNodeJsIntV::GetClassId().CStr()
 	static v8::Handle<v8::Value> GetObjVal(const int& Val) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::EscapableHandleScope HandleScope(Isolate);
@@ -65,7 +65,7 @@ public:
 
 class TAuxStrV {
 public:
-	static const TStr ClassId; //ClassId is set to "TStrV"
+	static const TStr ClassId; //ClassId is set to TNodeJsStrV::GetClassId().CStr()
 	static v8::Handle<v8::Value> GetObjVal(const TStr& Val) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::EscapableHandleScope HandleScope(Isolate);
@@ -85,7 +85,7 @@ public:
 
 class TAuxBoolV {
 public:
-	static const TStr ClassId; //ClassId is set to "TBoolV"
+	static const TStr ClassId; //ClassId is set to TNodeJsBoolV::GetClassId().CStr()
 	static v8::Handle<v8::Value> GetObjVal(const TBool& Val) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::EscapableHandleScope HandleScope(Isolate);
@@ -124,7 +124,12 @@ public:
 		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 		const unsigned Argc = 2;
 		v8::Local<v8::Value> ArgV[Argc] = { Arg1, Arg2 };
+		v8::TryCatch TryCatch;
 		v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();
+			return false;
+		}
 
 		EAssertR(ReturnVal->IsBoolean() || ReturnVal->IsNumber(), "Comparator callback must return a boolean or a number!");
 		return ReturnVal->IsBoolean() ? ReturnVal->BooleanValue() : ReturnVal->NumberValue() < 0;
@@ -550,7 +555,7 @@ inline v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TFltV& FltV) 
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
 	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltV");
+	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxFltV::ClassId.CStr());
 	Instance->SetHiddenValue(Key, Value);
 
 	TNodeJsVec<TFlt, TAuxFltV>* JsVec = new TNodeJsVec<TFlt, TAuxFltV>(FltV);
@@ -568,7 +573,7 @@ inline v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TIntV& IntV) 
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
 	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltV");
+	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxFltV::ClassId.CStr());
 	Instance->SetHiddenValue(Key, Value);
 
 	int Len = IntV.Len();
@@ -591,7 +596,7 @@ inline v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TFltV& FltV) 
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
 	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TIntV");
+	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxIntV::ClassId.CStr());
 	Instance->SetHiddenValue(Key, Value);
 
 	int Len = FltV.Len();
@@ -616,7 +621,7 @@ inline v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TIntV& IntV) 
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
 	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TIntV");
+	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxIntV::ClassId.CStr());
 	Instance->SetHiddenValue(Key, Value);
 
 	TNodeJsVec<TInt, TAuxIntV>* JsVec = new TNodeJsVec<TInt, TAuxIntV>(IntV);
@@ -636,7 +641,7 @@ inline v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TStrV& StrV) 
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
 	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TStrV");
+	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxStrV::ClassId.CStr());
 	Instance->SetHiddenValue(Key, Value);
 
 	TNodeJsVec<TStr, TAuxStrV>* JsVec = new TNodeJsVec<TStr, TAuxStrV>(StrV);
@@ -707,10 +712,7 @@ template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
-	TStr Name = "Vector";
-	if (TAux::ClassId == TNodeJsIntV::GetClassId()) Name = "IntVector";
-	if (TAux::ClassId == TNodeJsStrV::GetClassId()) Name = "StrVector";
-	if (TAux::ClassId == TNodeJsBoolV::GetClassId()) Name = "BoolVector";
+	TStr Name = TAux::ClassId;	
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
 	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, Name.CStr()));
@@ -1120,7 +1122,7 @@ void TNodeJsVec<TVal, TAux>::subVec(const v8::FunctionCallbackInfo<v8::Value>& A
 			Args.GetReturnValue().Set(TNodeJsVec<TVal, TAux>::New(ResultVec));
 			return;
 		}
-		else if (Args[0]->IsObject() && TNodeJsUtil::IsArgClass(Args, 0, "TIntV")) {
+		else if (Args[0]->IsObject() && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsIntV::GetClassId().CStr())) {
 			TNodeJsVec<TInt, TAuxIntV>* IdxV = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
 			const int Len = IdxV->Vec.Len();
 			TVec<TVal> ResultVec(Len);
