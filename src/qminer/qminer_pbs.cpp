@@ -1,9 +1,16 @@
+/**
+* Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+* All rights reserved.
+*
+* This source code is licensed under the FreeBSD license found in the
+* LICENSE file in the root directory of this source tree.
+*/
 
 #include "qminer_pbs.h"
 
 namespace TQm {
 
-	using namespace TQm::TStorage;
+namespace TStorage {
 
 	/// Add new record
 	uint64 TStorePbBlob::AddRec(const PJsonVal& RecVal) {// check if we are given reference to existing record
@@ -1130,91 +1137,194 @@ namespace TQm {
 			TEnv::Logger->OnStatus("No saving of generic store " + GetStoreNm() + " neccessary!");
 		}
 	}
+	//
+	/////////////////////////////////
+	///// Create new stores in an existing base from a schema definition
+	//TVec<TWPt<TStore> > CreateStoresFromSchema2(const TWPt<TBase>& Base, const PJsonVal& SchemaVal,
+	//	const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH) {
 
+	//	// parse and validate the schema
+	//	InfoLog("Parsing schema");
+	//	TStoreSchemaV SchemaV; TStoreSchema::ParseSchema(SchemaVal, SchemaV);
+	//	TStoreSchema::ValidateSchema(Base, SchemaV);
 
-	///////////////////////////////
-	/// Create new base given a schema definition
-	TWPt<TBase> NewBase2(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
-		const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP, const int& SplitLen) {
+	//	// create stores	
+	//	TVec<TWPt<TStore> > NewStoreV;
+	//	for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++) {
+	//		TStoreSchema& StoreSchema = SchemaV[SchemaN];
+	//		TStr StoreNm = StoreSchema.StoreName;
+	//		InfoLog("Creating " + StoreNm);
+	//		// figure out store id
+	//		uint StoreId = 0;
+	//		if (StoreSchema.HasStoreIdP) {
+	//			StoreId = StoreSchema.StoreId;
+	//			// check if we already have store with same ID
+	//			QmAssertR(!Base->IsStoreId(StoreId), "Store id for " + StoreNm + " already in use.");
+	//		} else {
+	//			// find lowest unused StoreId
+	//			while (Base->IsStoreId(StoreId)) {
+	//				StoreId++;
+	//				QmAssertR(StoreId < TEnv::GetMxStores(), "Out of store Ids -- to many stores!");
+	//			}
+	//		}
+	//		// get cache size for the store
+	//		const uint64 StoreCacheSize = StoreNmCacheSizeH.IsKey(StoreNm) ?
+	//			StoreNmCacheSizeH.GetDat(StoreNm).Val : DefStoreCacheSize;
+	//		// create new store from the schema
+	//		PStore Store;
+	//		if (true || StoreSchema.StoreType == "paged") {
+	//			Store = new TStorePbBlob(Base, StoreId, StoreNm,
+	//				StoreSchema, Base->GetFPath() + StoreNm, StoreCacheSize, StoreSchema.BlockSizeMem);
+	//		} else {
+	//			Store = new TStoreImpl(Base, StoreId, StoreNm,
+	//				StoreSchema, Base->GetFPath() + StoreNm, StoreCacheSize, StoreSchema.BlockSizeMem);
+	//		}
+	//		// add store to base
+	//		Base->AddStore(Store);
+	//		// remember we create the store
+	//		NewStoreV.Add(Store);
+	//	}
 
-		// create empty base
-		InfoLog("Creating new base from schema");
-		TWPt<TBase> Base = TBase::New(FPath, IndexCacheSize, SplitLen);
-		// parse and apply the schema
-		CreateStoresFromSchema2(Base, SchemaVal, DefStoreCacheSize, StoreNmCacheSizeH);
-		// finish base initialization if so required (default is true)
-		if (InitP) { Base->Init(); }
-		// done
-		return Base;
-	}
+	//	// Create joins
+	//	InfoLog("Creating joins");
+	//	for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++) {
+	//		// get store
+	//		TStoreSchema StoreSchema = SchemaV[SchemaN];
+	//		TWPt<TStore> Store = Base->GetStoreByStoreNm(StoreSchema.StoreName);
+	//		// go over all outgoing joins
+	//		for (int JoinDescExN = 0; JoinDescExN < StoreSchema.JoinDescExV.Len(); JoinDescExN++) {
+	//			TJoinDescEx& JoinDescEx = StoreSchema.JoinDescExV[JoinDescExN];
+	//			// get join store
+	//			TWPt<TStore> JoinStore = Base->GetStoreByStoreNm(JoinDescEx.JoinStoreName);
+	//			// check join type
+	//			if (JoinDescEx.JoinType == osjtField) {
+	//				// field join
+	//				int JoinRecFieldId = Store->GetFieldId(JoinDescEx.JoinName + "Id");
+	//				int JoinFqFieldId = Store->GetFieldId(JoinDescEx.JoinName + "Fq");
+	//				Store->AddJoinDesc(TJoinDesc(JoinDescEx.JoinName,
+	//					JoinStore->GetStoreId(), JoinRecFieldId, JoinFqFieldId));
+	//			} else if (JoinDescEx.JoinType == osjtIndex) {
+	//				// index join
+	//				Store->AddJoinDesc(TJoinDesc(JoinDescEx.JoinName,
+	//					JoinStore->GetStoreId(), Store->GetStoreId(),
+	//					Base->GetIndexVoc(), JoinDescEx.IsSmall));
+	//			} else {
+	//				ErrorLog("Unknown join type for join " + JoinDescEx.JoinName);
+	//			}
+	//		}
+	//	}
 
-	///////////////////////////////
-	/// Save base created from a schema definition
-	void SaveBase2(const TWPt<TBase>& Base) {
-		if (Base->IsRdOnly()) {
-			InfoLog("No saving of generic base necessary!");
-		} else {
-			// Only need to save list of stores so we know what to load next time
-			// Everything else is saved automatically in destructor
-			InfoLog("Saving list of stores ... ");
-			PJsonVal stores = TJsonVal::NewArr();
-			for (int StoreN = 0; StoreN < Base->GetStores(); StoreN++) {
-				PStore store_obj = Base->GetStoreByStoreN(StoreN);
-				PJsonVal store = TJsonVal::NewObj();
-				store->AddToObj("name", store_obj->GetStoreNm());
-				store->AddToObj("type", store_obj->GetStoreType());
-				stores->AddToArr(store);
-			}
-			PJsonVal root = TJsonVal::NewObj();
-			root->AddToObj("stores", stores);
+	//	// Update inverse joins IDs
+	//	InfoLog("Updating inverse join maps");
+	//	for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++) {
+	//		// get store
+	//		TStoreSchema StoreSchema = SchemaV[SchemaN];
+	//		TWPt<TStore> Store = Base->GetStoreByStoreNm(StoreSchema.StoreName);
+	//		// go over outgoing joins
+	//		for (int JoinDescExN = 0; JoinDescExN < StoreSchema.JoinDescExV.Len(); JoinDescExN++) {
+	//			// check if we have inverse join
+	//			TJoinDescEx& JoinDescEx = StoreSchema.JoinDescExV[JoinDescExN];
+	//			if (!JoinDescEx.InverseJoinName.Empty()) {
+	//				// we do, get inverse join id
+	//				const int JoinId = Store->GetJoinId(JoinDescEx.JoinName);
+	//				const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
+	//				TWPt<TStore> JoinStore = Base->GetStoreByStoreId(JoinDesc.GetJoinStoreId());
+	//				QmAssertR(JoinStore->IsJoinNm(JoinDescEx.InverseJoinName),
+	//					"Invalid inverse join " + JoinDescEx.InverseJoinName);
+	//				const int InverseJoinId = JoinStore->GetJoinId(JoinDescEx.InverseJoinName);
+	//				// mark the map
+	//				Store->PutInverseJoinId(JoinId, InverseJoinId);
+	//			}
+	//		}
+	//	}
 
-			TFOut FOut(Base->GetFPath() + "StoreList.json");
-			FOut.PutStr(TJsonVal::GetStrFromVal(root));
-		}
-	}
+	//	// done
+	//	return NewStoreV;
+	//}
 
-	///////////////////////////////
-	/// Load base created from a schema definition
-	TWPt<TBase> LoadBase2(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
-		const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP, const int& SplitLen) {
+	/////////////////////////////////
+	///// Create new base given a schema definition
+	//TWPt<TBase> NewBase2(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
+	//	const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP, const int& SplitLen) {
 
-		InfoLog("Loading base created from schema definition");
-		TWPt<TBase> Base = TBase::Load(FPath, FAccess, IndexCacheSize, SplitLen);
-		// load stores
-		InfoLog("Loading stores");
-		// read store names from file
-		TFIn FIn(FPath + "StoreList.json");
-		TStr jsons;
-		FIn.GetNextLn(jsons);
-		PJsonVal json = TJsonVal::GetValFromStr(jsons);
-		QmAssert(!json->IsNull() && json->IsObjKey("stores"));
-		PJsonVal json_stores = json->GetObjKey("stores");
-		for (int i = 0; i < json_stores->GetArrVals(); i++) {
-			PJsonVal json_store = json_stores->GetArrVal(i);
-			TStr StoreNm = json_store->GetObjStr("name");
-			TStr StoreType = json_store->GetObjStr("type");
-			InfoLog("  " + StoreNm);
-			// get cache size for the store
-			const uint64 StoreCacheSize = StoreNmCacheSizeH.IsKey(StoreNm) ?
-				StoreNmCacheSizeH.GetDat(StoreNm).Val : DefStoreCacheSize;
-			PStore Store;
-			if (StoreType == "TStorePbBlob") {
-				Store = new TStorePbBlob(Base, FPath + StoreNm, FAccess, StoreCacheSize);
-			} else {
-				Store = new TStoreImpl(Base, FPath + StoreNm, FAccess, StoreCacheSize);
-			}
-			Base->AddStore(Store);
-		}
-		InfoLog("Stores loaded");
-		// finish base initialization if so required (default is true)
-		if (InitP) { Base->Init(); }
-		// done
-		return Base;
-	}
+	//	// create empty base
+	//	InfoLog("Creating new base from schema");
+	//	TWPt<TBase> Base = TBase::New(FPath, IndexCacheSize, SplitLen);
+	//	// parse and apply the schema
+	//	CreateStoresFromSchema2(Base, SchemaVal, DefStoreCacheSize, StoreNmCacheSizeH);
+	//	// finish base initialization if so required (default is true)
+	//	if (InitP) { Base->Init(); }
+	//	// done
+	//	return Base;
+	//}
+
+	/////////////////////////////////
+	///// Load base created from a schema definition
+	//TWPt<TBase> LoadBase2(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
+	//	const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP, const int& SplitLen) {
+
+	//	InfoLog("Loading base created from schema definition");
+	//	TWPt<TBase> Base = TBase::Load(FPath, FAccess, IndexCacheSize, SplitLen);
+	//	// load stores
+	//	InfoLog("Loading stores");
+	//	// read store names from file
+	//	TFIn FIn(FPath + "StoreList.json");
+	//	TStr jsons;
+	//	FIn.GetNextLn(jsons);
+	//	PJsonVal json = TJsonVal::GetValFromStr(jsons);
+	//	QmAssert(!json->IsNull() && json->IsObjKey("stores"));
+	//	PJsonVal json_stores = json->GetObjKey("stores");
+	//	for (int i = 0; i < json_stores->GetArrVals(); i++) {
+	//		PJsonVal json_store = json_stores->GetArrVal(i);
+	//		TStr StoreNm = json_store->GetObjStr("name");
+	//		TStr StoreType = json_store->GetObjStr("type");
+	//		InfoLog("  " + StoreNm);
+	//		// get cache size for the store
+	//		const uint64 StoreCacheSize = StoreNmCacheSizeH.IsKey(StoreNm) ?
+	//			StoreNmCacheSizeH.GetDat(StoreNm).Val : DefStoreCacheSize;
+	//		PStore Store;
+	//		if (StoreType == "TStorePbBlob") {
+	//			Store = new TStorePbBlob(Base, FPath + StoreNm, FAccess, StoreCacheSize);
+	//		} else {
+	//			Store = new TStoreImpl(Base, FPath + StoreNm, FAccess, StoreCacheSize);
+	//		}
+	//		Base->AddStore(Store);
+	//	}
+	//	InfoLog("Stores loaded");
+	//	// finish base initialization if so required (default is true)
+	//	if (InitP) { Base->Init(); }
+	//	// done
+	//	return Base;
+	//}
+
+	/////////////////////////////////
+	///// Save base created from a schema definition
+	//void SaveBase2(const TWPt<TBase>& Base) {
+	//	if (Base->IsRdOnly()) {
+	//		InfoLog("No saving of generic base necessary!");
+	//	} else {
+	//		// Only need to save list of stores so we know what to load next time
+	//		// Everything else is saved automatically in destructor
+	//		InfoLog("Saving list of stores ... ");
+	//		PJsonVal stores = TJsonVal::NewArr();
+	//		for (int StoreN = 0; StoreN < Base->GetStores(); StoreN++) {
+	//			PStore store_obj = Base->GetStoreByStoreN(StoreN);
+	//			PJsonVal store = TJsonVal::NewObj();
+	//			store->AddToObj("name", store_obj->GetStoreNm());
+	//			store->AddToObj("type", store_obj->GetStoreType());
+	//			stores->AddToArr(store);
+	//		}
+	//		PJsonVal root = TJsonVal::NewObj();
+	//		root->AddToObj("stores", stores);
+
+	//		TFOut FOut(Base->GetFPath() + "StoreList.json");
+	//		FOut.PutStr(TJsonVal::GetStrFromVal(root));
+	//	}
+	//}
 
 	///////////////////////////////
 	/// Create new stores in an existing base from a schema definition
-	TVec<TWPt<TStore> > CreateStoresFromSchema2(const TWPt<TBase>& Base, const PJsonVal& SchemaVal,
+	TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal,
 		const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH) {
 
 		// parse and validate the schema
@@ -1246,12 +1356,13 @@ namespace TQm {
 				StoreNmCacheSizeH.GetDat(StoreNm).Val : DefStoreCacheSize;
 			// create new store from the schema
 			PStore Store;
-			if (true || StoreSchema.StoreType == "paged") {
+			if (StoreSchema.StoreType == "paged") {
 				Store = new TStorePbBlob(Base, StoreId, StoreNm,
 					StoreSchema, Base->GetFPath() + StoreNm, StoreCacheSize, StoreSchema.BlockSizeMem);
 			} else {
 				Store = new TStoreImpl(Base, StoreId, StoreNm,
-					StoreSchema, Base->GetFPath() + StoreNm, StoreCacheSize, StoreSchema.BlockSizeMem);
+					StoreSchema, Base->GetFPath() + StoreNm, StoreCacheSize,
+					StoreSchema.BlockSizeMem);
 			}
 			// add store to base
 			Base->AddStore(Store);
@@ -1315,4 +1426,88 @@ namespace TQm {
 		// done
 		return NewStoreV;
 	}
+
+	///////////////////////////////
+	/// Create new base given a schema definition
+	TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
+		const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP, const int& SplitLen) {
+
+		// create empty base
+		InfoLog("Creating new base from schema");
+		TWPt<TBase> Base = TBase::New(FPath, IndexCacheSize, SplitLen);
+		// parse and apply the schema
+		CreateStoresFromSchema(Base, SchemaVal, DefStoreCacheSize, StoreNmCacheSizeH);
+		// finish base initialization if so required (default is true)
+		if (InitP) { Base->Init(); }
+		// done
+		return Base;
+	}
+
+
+	///////////////////////////////
+	/// Load base created from a schema definition
+	TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
+		const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP, const int& SplitLen) {
+
+		InfoLog("Loading base created from schema definition");
+		TWPt<TBase> Base = TBase::Load(FPath, FAccess, IndexCacheSize, SplitLen);
+		// load stores
+		InfoLog("Loading stores");
+		// read store names from file
+		TFIn FIn(FPath + "StoreList.json");
+		TStr jsons;
+		FIn.GetNextLn(jsons);
+		PJsonVal json = TJsonVal::GetValFromStr(jsons);
+		QmAssert(!json->IsNull() && json->IsObjKey("stores"));
+		PJsonVal json_stores = json->GetObjKey("stores");
+		for (int i = 0; i < json_stores->GetArrVals(); i++) {
+			PJsonVal json_store = json_stores->GetArrVal(i);
+			TStr StoreNm = json_store->GetObjStr("name");
+			TStr StoreType = json_store->GetObjStr("type");
+			InfoLog("  " + StoreNm);
+			// get cache size for the store
+			const uint64 StoreCacheSize = StoreNmCacheSizeH.IsKey(StoreNm) ?
+				StoreNmCacheSizeH.GetDat(StoreNm).Val : DefStoreCacheSize;
+			PStore Store;
+			if (StoreType == "TStorePbBlob") {
+				Store = new TStorePbBlob(Base, FPath + StoreNm, FAccess, StoreCacheSize);
+			} else {
+				Store = new TStoreImpl(Base, FPath + StoreNm, FAccess, StoreCacheSize);
+			}
+			Base->AddStore(Store);
+		}
+		InfoLog("Stores loaded");
+		// finish base initialization if so required (default is true)
+		if (InitP) { Base->Init(); }
+		// done
+		return Base;
+	}
+
+	///////////////////////////////
+	/// Save base created from a schema definition
+	void SaveBase(const TWPt<TBase>& Base) {
+		if (Base->IsRdOnly()) {
+			InfoLog("No saving of generic base necessary!");
+		} else {
+			// Only need to save list of stores so we know what to load next time
+			// Everything else is saved automatically in destructor
+			InfoLog("Saving list of stores ... ");
+			PJsonVal stores = TJsonVal::NewArr();
+			for (int StoreN = 0; StoreN < Base->GetStores(); StoreN++) {
+				PStore store_obj = Base->GetStoreByStoreN(StoreN);
+				PJsonVal store = TJsonVal::NewObj();
+				store->AddToObj("name", store_obj->GetStoreNm());
+				store->AddToObj("type", store_obj->GetStoreType());
+				stores->AddToArr(store);
+			}
+			PJsonVal root = TJsonVal::NewObj();
+			root->AddToObj("stores", stores);
+
+			TFOut FOut(Base->GetFPath() + "StoreList.json");
+			FOut.PutStr(TJsonVal::GetStrFromVal(root));
+		}
+	}
+
+}
+
 }

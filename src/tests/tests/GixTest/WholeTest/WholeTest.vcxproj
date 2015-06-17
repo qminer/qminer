@@ -166,7 +166,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\glib\base\gix.h" />
+    <ClInclude Include="..\..\..\..\glib\base\pgblob.h" />
+    <ClInclude Include="..\..\..\..\qminer\qminer.h" />
+    <ClInclude Include="..\..\..\..\qminer\qminer_aggr.h" />
+    <ClInclude Include="..\..\..\..\qminer\qminer_core.h" />
+    <ClInclude Include="..\..\..\..\qminer\qminer_ftr.h" />
+    <ClInclude Include="..\..\..\..\qminer\qminer_gs.h" />
+    <ClInclude Include="..\..\..\..\qminer\qminer_op.h" />
     <ClInclude Include="..\..\..\..\qminer\qminer_pbs.h" />
+    <ClInclude Include="..\..\..\..\qminer\qminer_snap.h" />
+    <ClInclude Include="..\..\..\..\qminer\qminer_srv.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GTest\GTest.vcxproj">
