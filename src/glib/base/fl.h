@@ -459,6 +459,8 @@ public:
   bool IsEolnLn() const;
   TStr GetEolnLn(const bool& DoAddEoln, const bool& DoCutBf);
   void MkEolnLn();
+  void Seek(const int& ChN) {
+	  IAssert((0 <= ChN) && (ChN < BfL)); BfL = ChN; };
 };
 
 /////////////////////////////////////////////////

@@ -661,43 +661,21 @@ const TRecSerializator::TFieldSerialDesc& TRecSerializator::GetFieldSerialDesc(c
 char* TRecSerializator::GetLocationFixed(const TMemBase& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc) const {
 	return GetLocationFixed(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc);
-	//byte* bf = (byte*)RecMem.GetBf() + FixedPartOffset + FieldSerialDesc.Offset;
-	//AssertR(bf < ((byte*)RecMem.GetBf() + RecMem.Len()), GetErrorMsg(RecMem, FieldSerialDesc));
-	//return bf;
 }
 
 int TRecSerializator::GetOffsetVar(const TMemBase& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc) const {
 	return GetOffsetVar(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc);
-	//byte* bf = (byte*)RecMem.GetBf();
-	//int Offset = *((int*)(bf + VarIndexPartOffset + FieldSerialDesc.Offset));
-	//AssertR(VarContentPartOffset + Offset < RecMem.Len(), GetErrorMsg(RecMem, FieldSerialDesc));
-	//return VarContentPartOffset + Offset;
 }
 
 char* TRecSerializator::GetLocationVar(const TMemBase& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc) const {
 	return GetLocationVar(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc);
-	//byte* bf = (byte*)RecMem.GetBf();
-	//int Offset = *((int*)(bf + VarIndexPartOffset + FieldSerialDesc.Offset));
-	//byte* bf2 = (bf + VarContentPartOffset) + Offset;
-	//AssertR(bf2 < ((byte*)RecMem.GetBf() + RecMem.Len()), GetErrorMsg(RecMem, FieldSerialDesc));
-	//return bf2;
 }
 
 int TRecSerializator::GetVarPartBfLen(const TMemBase& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc) {
 	return GetVarPartBfLen(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc);
-	//byte* bf = (byte*)RecMem.GetBf();
-	//int Offset1 = *((int*)(bf + VarIndexPartOffset + FieldSerialDesc.Offset));
-	//int Offset2 = -1;
-	//if (VarIndexPartOffset + FieldSerialDesc.Offset + (int)sizeof(int) < VarContentPartOffset) {
-	//	Offset2 = *((int*)(bf + VarIndexPartOffset + FieldSerialDesc.Offset + sizeof(int)));
-	//} else {
-	//	Offset2 = RecMem.Len() - VarContentPartOffset;
-	//}
-	//AssertR(Offset2 - Offset1 >= 0, GetErrorMsg(RecMem, FieldSerialDesc));
-	//return Offset2 - Offset1;
 }
 
 //////////////////////////
@@ -765,20 +743,11 @@ int TRecSerializator::GetVarPartBfLen(const char* Bf, const int& BfL,
 void TRecSerializator::SetLocationVar(TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const int& VarOffset) const {
 	SetLocationVar(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, VarOffset);
-	//AssertR(VarIndexPartOffset + FieldSerialDesc.Offset <= (RecMem.Len() - 4), GetErrorMsg(RecMem, FieldSerialDesc));
-	//*((int*)(RecMem.GetBf() + VarIndexPartOffset + FieldSerialDesc.Offset)) = VarOffset;
 }
 
 void TRecSerializator::SetFieldNull(TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const bool& NullP) const {
 	SetFieldNull(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, NullP);
-	//byte* bf = (byte*)RecMem.GetBf() + FieldSerialDesc.NullMapByte;
-	//AssertR(bf < ((byte*)RecMem.GetBf() + RecMem.Len()), GetErrorMsg(RecMem, FieldSerialDesc));
-	//if (NullP) {
-	//	*bf |= FieldSerialDesc.NullMapMask;
-	//} else {
-	//	*bf &= ~FieldSerialDesc.NullMapMask;
-	//}
 }
 
 /// set content offset for specified variable field
@@ -801,112 +770,47 @@ void TRecSerializator::SetFieldNull(char* Bf, const int& BfL, const TFieldSerial
 void TRecSerializator::SetFieldInt(TMemBase& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const int& Int) {
 	SetFieldInt(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Int);
-	//byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-	//*((int*)bf) = Int;
 }
 
 void TRecSerializator::SetFieldUInt64(TMemBase& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64) {
 	SetFieldUInt64(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, UInt64);
-	//byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-	//*((uint64*)bf) = UInt64;
 }
 
 void TRecSerializator::SetFieldStr(TMem& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const TStr& Str) {
 	SetFieldStr(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Str);
-	//byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-	//const int StrId = CodebookH.AddKey(Str);
-	//*((int*)bf) = StrId;
 }
 
 void TRecSerializator::SetFieldBool(TMemBase& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const bool& Bool) {
 	SetFieldBool(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Bool);
-	//byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-	//*((bool*)bf) = Bool;
 }
 
 void TRecSerializator::SetFieldFlt(TMemBase& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const double& Flt) {
 	SetFieldFlt(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Flt);
-	//byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-	//*((double*)bf) = Flt;
 }
 
 void TRecSerializator::SetFieldFltPr(TMemBase& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr) {
 	SetFieldFltPr(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, FltPr);
-	//byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-	//*((double*)bf) = FltPr.Val1.Val;
-	//*(((double*)bf) + 1) = FltPr.Val2.Val;
 }
 
 void TRecSerializator::SetFieldTm(TMemBase& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm) {
 	SetFieldTm(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Tm);
-	//byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-	//uint64 TmMSecs = TTm::GetMSecsFromTm(Tm);
-	//*((uint64*)bf) = TmMSecs;
 }
 
 void TRecSerializator::SetFieldTmMSecs(TMemBase& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs) {
 	SetFieldTmMSecs(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, TmMSecs);
-	//byte* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-	//*((uint64*)bf) = TmMSecs;
 }
 
 void TRecSerializator::SetFixedJsonVal(TMemBase& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const TFieldDesc& FieldDesc,
 		const PJsonVal& JsonVal) {
 	SetFixedJsonVal(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, FieldDesc, JsonVal);
-	//// call type-appropriate setter
-	//switch (FieldDesc.GetFieldType()) {
-	//	case oftInt:
-	//		QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
-	//		SetFieldInt(RecMem, FieldSerialDesc, JsonVal->GetInt());
-	//		break;
-	//	case oftUInt64:
-	//		QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
-	//		SetFieldUInt64(RecMem, FieldSerialDesc, (uint64)JsonVal->GetInt());
-	//		break;
-	//	case oftStr:
-	//		// this string should be encoded using a codebook
-	//		QmAssertR(JsonVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not string.");
-	//		SetFieldStr(RecMem, FieldSerialDesc, JsonVal->GetStr());
-	//		break;
-	//	case oftBool:
-	//		QmAssertR(JsonVal->IsBool(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not boolean.");
-	//		SetFieldBool(RecMem, FieldSerialDesc, JsonVal->GetBool());
-	//		break;
-	//	case oftFlt:
-	//		QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
-	//		SetFieldFlt(RecMem, FieldSerialDesc, JsonVal->GetNum());
-	//		break;
-	//	case oftFltPr: {
-	//		// make sure it's array of length two
-	//		QmAssertR(JsonVal->IsArr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array.");
-	//		QmAssertR(JsonVal->GetArrVals() == 2, "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array - expected 2 fields.");
-	//		PJsonVal JsonVal1 = JsonVal->GetArrVal(0);
-	//		PJsonVal JsonVal2 = JsonVal->GetArrVal(1);
-	//		// make sure both elements are numeric
-	//		QmAssertR(JsonVal1->IsNum(), "The first element in the JSon array in data field " + FieldDesc.GetFieldNm() + " is not numeric.");
-	//		QmAssertR(JsonVal2->IsNum(), "The second element in the JSon array in data field " + FieldDesc.GetFieldNm() + " is not numeric.");
-	//		// update
-	//		SetFieldFltPr(RecMem, FieldSerialDesc, TFltPr(JsonVal1->GetNum(), JsonVal2->GetNum()));
-	//		break;
-	//	}
-	//	case oftTm: {
-	//		QmAssertR(JsonVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not string that represents DateTime.");
-	//		TStr TmStr = JsonVal->GetStr();
-	//		TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
-	//		SetFieldTm(RecMem, FieldSerialDesc, Tm);
-	//		break;
-	//	}
-	//	default:
-	//		throw TQmExcept::New("Unsupported JSon data type for DB storage (fixed part): " + FieldDesc.GetFieldTypeStr());
-	//}
 }
 
 void TRecSerializator::SetFieldNull(char* Bf, const int& BfL, const int& FieldId, const bool& NullP) {
@@ -1062,6 +966,22 @@ void TRecSerializator::SetFieldTmMSecs(char* Bf, const int& BfL, const int& Fiel
 
 /////////////////////
 
+/// Check this temporary buffer if it must be TOAST-ed
+void TRecSerializator::CheckToast(TMOut& SOut, const int& Offset) {
+	if (!UseToast) return;
+	if (SOut.Len() <= MxToastLen) return;
+
+	// ok, perform TOAST-ing	
+	// Store serialized data into store
+	TMemBase mb(SOut.GetBfAddr() + Offset, SOut.Len() - Offset, false);
+	TPgBlobPt Pt = Store->ToastVal(mb);
+	// rewind SOut back to Offset
+	SOut.Seek(Offset);
+	SOut.PutCh(ToastYes);
+	// Serialize
+	SOut.AppendBf(&Pt, sizeof(TPgBlobPt));
+}
+
 void TRecSerializator::SetFieldIntV(TMem& RecMem, TMOut& SOut,
 		const TFieldSerialDesc& FieldSerialDesc, const TIntV& IntV) {
 
@@ -1070,7 +990,10 @@ void TRecSerializator::SetFieldIntV(TMem& RecMem, TMOut& SOut,
 	// update it's location in the variable-index
 	SetLocationVar(RecMem, FieldSerialDesc, VarContentOffset);
 	// update value
+	if (UseToast) { SOut.PutCh(ToastNo); }
 	IntV.Save(SOut);
+	// Perform TOAST-ing if needed
+	CheckToast(SOut, VarContentOffset);
 }
 
 void TRecSerializator::SetFieldStr(TMem& RecMem, TMOut& SOut,
@@ -1081,7 +1004,10 @@ void TRecSerializator::SetFieldStr(TMem& RecMem, TMOut& SOut,
 	// update it's location in the variable-index
 	SetLocationVar(RecMem, FieldSerialDesc, VarContentOffset);
 	// update value
+	if (UseToast) { SOut.PutCh(ToastNo); }
 	Str.Save(SOut, FieldSerialDesc.SmallStringP);
+	// Perform TOAST-ing if needed
+	CheckToast(SOut, VarContentOffset);
 }
 
 void TRecSerializator::SetFieldStrV(TMem& RecMem, TMOut& SOut,
@@ -1092,7 +1018,10 @@ void TRecSerializator::SetFieldStrV(TMem& RecMem, TMOut& SOut,
 	// update it's location in the variable-index
 	SetLocationVar(RecMem, FieldSerialDesc, VarContentOffset);
 	// update value
+	if (UseToast) { SOut.PutCh(ToastNo); }
 	StrV.Save(SOut);
+	// Perform TOAST-ing if needed
+	CheckToast(SOut, VarContentOffset);
 }
 
 void TRecSerializator::SetFieldFltV(TMem& RecMem, TMOut& SOut,
@@ -1103,7 +1032,10 @@ void TRecSerializator::SetFieldFltV(TMem& RecMem, TMOut& SOut,
 	// update it's location in the variable-index
 	SetLocationVar(RecMem, FieldSerialDesc, VarContentOffset);
 	// update value
+	if (UseToast) { SOut.PutCh(ToastNo); }
 	FltV.Save(SOut);
+	// Perform TOAST-ing if needed
+	CheckToast(SOut, VarContentOffset);
 }
 
 void TRecSerializator::SetFieldNumSpV(TMem& RecMem, TMOut& SOut,
@@ -1114,7 +1046,10 @@ void TRecSerializator::SetFieldNumSpV(TMem& RecMem, TMOut& SOut,
 	// update it's location in the variable-index
 	SetLocationVar(RecMem, FieldSerialDesc, VarContentOffset);
 	// update value
+	if (UseToast) { SOut.PutCh(ToastNo); }
 	SpV.Save(SOut);
+	// Perform TOAST-ing if needed
+	CheckToast(SOut, VarContentOffset);
 }
 
 void TRecSerializator::SetFieldBowSpV(TMem& RecMem, TMOut& SOut,
@@ -1125,7 +1060,10 @@ void TRecSerializator::SetFieldBowSpV(TMem& RecMem, TMOut& SOut,
 	// update it's location in the variable-index
 	SetLocationVar(RecMem, FieldSerialDesc, VarContentOffset);
 	// update value
+	if (UseToast) { SOut.PutCh(ToastNo); }
 	SpV->Save(SOut);
+	// Perform TOAST-ing if needed
+	CheckToast(SOut, VarContentOffset);
 }
 
 void TRecSerializator::SetVarJsonVal(TMem& RecMem, TMOut& SOut,
@@ -1203,11 +1141,15 @@ void TRecSerializator::Merge(const TMem& FixedMem, const TMOut& VarSOut, TMem& O
 	OutRecMem.AddBf(VarSOut.GetBfAddr(), VarSOut.Len());
 }
 
-TRecSerializator::TRecSerializator(const TWPt<TStore>& Store,
+TRecSerializator::TRecSerializator(const TWPt<TStore>& _Store,
 		const TStoreSchema& StoreSchema, const TStoreLoc& _TargetStorage):
 			TargetStorage(_TargetStorage) {
 	
+	Store = _Store;
 	UseToast = Store->CanToast();
+	if (UseToast) {
+		MxToastLen = Store->GetMaxToastLen();
+	}
 	const int Fields = Store->GetFields();
 
 	// fixed part starts after null-flags
@@ -1285,6 +1227,7 @@ void TRecSerializator::Load(TSIn& SIn) {
 	FieldIdToSerialDescIdH.Load(SIn);
 	CodebookH.Load(SIn);
 	UseToast.Load(SIn);
+	MxToastLen.Load(SIn);
 }
 
 void TRecSerializator::Save(TSOut& SOut) {
@@ -1296,6 +1239,7 @@ void TRecSerializator::Save(TSOut& SOut) {
 	FieldIdToSerialDescIdH.Save(SOut);
 	CodebookH.Save(SOut);
 	UseToast.Save(SOut);
+	MxToastLen.Save(SOut);
 }
 
 void TRecSerializator::Serialize(const PJsonVal& RecVal, TMem& RecMem, const TWPt<TStore>& Store) {
@@ -1454,7 +1398,15 @@ int TRecSerializator::GetFieldInt(TThinMIn& min, const int& FieldId) const {
 /// Field getter
 void TRecSerializator::GetFieldIntV(TThinMIn& min, const int& FieldId, TIntV& IntV) const {
 	min.MoveTo(GetOffsetVar(min, GetFieldSerialDesc(FieldId)));
-	IntV.Load(min);
+	if (UseToast && min.GetCh() == ToastYes) {
+		TPgBlobPt Pt;
+		min.GetBf(&Pt, sizeof(TPgBlobPt));
+		TMemBase mb = std::move(Store->UnToastVal(Pt));
+		TThinMIn min2(mb);
+		IntV.Load(min2);
+	} else {
+		IntV.Load(min);
+	}
 }
 /// Field getter
 uint64 TRecSerializator::GetFieldUInt64(TThinMIn& min, const int& FieldId) const {
@@ -1473,15 +1425,37 @@ TStr TRecSerializator::GetFieldStr(TThinMIn& min, const int& FieldId) const {
 		return CodebookH.GetKey(StrId);
 	} else {
 		min.MoveTo(GetOffsetVar(min, GetFieldSerialDesc(FieldId)));
-		TStr Str; 
-		Str.Load(min, FieldSerialDesc.SmallStringP);
-		return Str;
+		if (UseToast && min.GetCh() == ToastYes) {
+			TPgBlobPt Pt;
+			min.GetBf(&Pt, sizeof(TPgBlobPt));
+			TMemBase mb = std::move(Store->UnToastVal(Pt));
+			TThinMIn min2(mb);
+			TStr Str;
+			Str.Load(min2, FieldSerialDesc.SmallStringP);
+			return Str;
+		} else {
+			TStr Str;
+			Str.Load(min, FieldSerialDesc.SmallStringP);
+			return Str;
+		}
+		//TStr Str; 
+		//Str.Load(min, FieldSerialDesc.SmallStringP);
+		//return Str;
 	}
 }
 /// Field getter
 void TRecSerializator::GetFieldStrV(TThinMIn& min, const int& FieldId, TStrV& StrV) const {
 	min.MoveTo(GetOffsetVar(min, GetFieldSerialDesc(FieldId)));
-	StrV.Load(min);
+	if (UseToast && min.GetCh() == ToastYes) {
+		TPgBlobPt Pt;
+		min.GetBf(&Pt, sizeof(TPgBlobPt));
+		TMemBase mb = std::move(Store->UnToastVal(Pt));
+		TThinMIn min2(mb);
+		StrV.Load(min2);
+	} else {
+		StrV.Load(min);
+	}
+	//StrV.Load(min);
 }
 /// Field getter
 bool TRecSerializator::GetFieldBool(TThinMIn& min, const int& FieldId) const {
@@ -1501,7 +1475,16 @@ TFltPr TRecSerializator::GetFieldFltPr(TThinMIn& min, const int& FieldId) const 
 /// Field getter
 void TRecSerializator::GetFieldFltV(TThinMIn& min, const int& FieldId, TFltV& FltV) const {
 	min.MoveTo(GetOffsetVar(min, GetFieldSerialDesc(FieldId)));
-	FltV.Load(min);
+	if (UseToast && min.GetCh() == ToastYes) {
+		TPgBlobPt Pt;
+		min.GetBf(&Pt, sizeof(TPgBlobPt));
+		TMemBase mb = std::move(Store->UnToastVal(Pt));
+		TThinMIn min2(mb);
+		FltV.Load(min2);
+	} else {
+		FltV.Load(min);
+	}
+	//FltV.Load(min);
 }
 /// Field getter
 void TRecSerializator::GetFieldTm(TThinMIn& min, const int& FieldId, TTm& Tm) const {
@@ -1515,128 +1498,160 @@ uint64 TRecSerializator::GetFieldTmMSecs(TThinMIn& min, const int& FieldId) cons
 /// Field getter
 void TRecSerializator::GetFieldNumSpV(TThinMIn& min, const int& FieldId, TIntFltKdV& SpV) const {
 	min.MoveTo(GetOffsetVar(min, GetFieldSerialDesc(FieldId)));
-	SpV.Load(min);
+	if (UseToast && min.GetCh() == ToastYes) {
+		TPgBlobPt Pt;
+		min.GetBf(&Pt, sizeof(TPgBlobPt));
+		TMemBase mb = std::move(Store->UnToastVal(Pt));
+		TThinMIn min2(mb);
+		SpV.Load(min2);
+	} else {
+		SpV.Load(min);
+	}
+	//SpV.Load(min);
 }
 /// Field getter
 void TRecSerializator::GetFieldBowSpV(TThinMIn& min, const int& FieldId, PBowSpV& SpV) const {
 	min.MoveTo(GetOffsetVar(min, GetFieldSerialDesc(FieldId)));
-	SpV = TBowSpV::Load(min);
+	if (UseToast && min.GetCh() == ToastYes) {
+		TPgBlobPt Pt;
+		min.GetBf(&Pt, sizeof(TPgBlobPt));
+		TMemBase mb = std::move(Store->UnToastVal(Pt));
+		TThinMIn min2(mb);
+		TBowSpV::Load(min2);
+	} else {
+		TBowSpV::Load(min);
+	}
+	//SpV = TBowSpV::Load(min);
 }
 ///////////////////////////
 
 bool TRecSerializator::IsFieldNull(const TMemBase& RecMem, const int& FieldId) const {
-	const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
-	char* bf = RecMem.GetBf() + FieldSerialDesc.NullMapByte;
-	return ((*bf & FieldSerialDesc.NullMapMask) != 0);
+	//const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
+	//char* bf = RecMem.GetBf() + FieldSerialDesc.NullMapByte;
+	//return ((*bf & FieldSerialDesc.NullMapMask) != 0);
+	return IsFieldNull(TThinMIn(RecMem), FieldId);
 }
 
 int TRecSerializator::GetFieldInt(const TMemBase& RecMem, const int& FieldId) const {
-	// get pointer to location
-	char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
-	// cast to return value
-	return *((int*)bf);
+	//// get pointer to location
+	//char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+	//// cast to return value
+	//return *((int*)bf);
+	return GetFieldInt(TThinMIn(RecMem), FieldId);
 }
 
 void TRecSerializator::GetFieldIntV(const TMemBase& RecMem, const int& FieldId, TIntV& IntV) const {
-	// prepare input stream and move to the variable location
-	TThinMIn MIn(RecMem);
-	MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
-	// load return value from stream
-	IntV.Load(MIn);
+	//// prepare input stream and move to the variable location
+	//TThinMIn MIn(RecMem);
+	//MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
+	//// load return value from stream
+	//IntV.Load(MIn);
+	GetFieldIntV(TThinMIn(RecMem), FieldId, IntV);
 }
 
 uint64 TRecSerializator::GetFieldUInt64(const TMemBase& RecMem, const int& FieldId) const {
-	// get pointer to location
-	char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
-	// cast to return value
-	return *((uint64*)bf);
+	//// get pointer to location
+	//char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+	//// cast to return value
+	//return *((uint64*)bf);
+	return GetFieldUInt64(TThinMIn(RecMem), FieldId);
 }
 
 TStr TRecSerializator::GetFieldStr(const TMemBase& RecMem, const int& FieldId) const {
-	const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
-	if (FieldSerialDesc.FixedPartP) {
-		// get pointer to location
-		char* bf = GetLocationFixed(RecMem, FieldSerialDesc);
-		// cast to codebook id value
-		int StrId = *((int*)bf);
-		// return string from codebook
-		return CodebookH.GetKey(StrId);
-	} else {
-		// prepare input stream and move to the variable location
-		TThinMIn MIn(RecMem);
-		MIn.MoveTo(GetOffsetVar(RecMem, FieldSerialDesc));
-		// load return value from stream
-		TStr Str; Str.Load(MIn, FieldSerialDesc.SmallStringP);
-		return Str;
-	}
+	//const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
+	//if (FieldSerialDesc.FixedPartP) {
+	//	// get pointer to location
+	//	char* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+	//	// cast to codebook id value
+	//	int StrId = *((int*)bf);
+	//	// return string from codebook
+	//	return CodebookH.GetKey(StrId);
+	//} else {
+	//	// prepare input stream and move to the variable location
+	//	TThinMIn MIn(RecMem);
+	//	MIn.MoveTo(GetOffsetVar(RecMem, FieldSerialDesc));
+	//	// load return value from stream
+	//	TStr Str; Str.Load(MIn, FieldSerialDesc.SmallStringP);
+	//	return Str;
+	//}
+	return GetFieldStr(TThinMIn(RecMem), FieldId);
 }
 
 void TRecSerializator::GetFieldStrV(const TMemBase& RecMem, const int& FieldId, TStrV& StrV) const {
-	// prepare input stream and move to the variable location
-	TThinMIn MIn(RecMem);
-	MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
-	// load return value from stream
-	StrV.Load(MIn);
+	//// prepare input stream and move to the variable location
+	//TThinMIn MIn(RecMem);
+	//MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
+	//// load return value from stream
+	//StrV.Load(MIn);
+	GetFieldStrV(TThinMIn(RecMem), FieldId, StrV);
 }
 
 bool TRecSerializator::GetFieldBool(const TMemBase& RecMem, const int& FieldId) const {
-	// get pointer to location
-	char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
-	// cast to return value
-	return *((bool*)bf);
+	//// get pointer to location
+	//char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+	//// cast to return value
+	//return *((bool*)bf);
+	return GetFieldBool(TThinMIn(RecMem), FieldId);
 }
 
 double TRecSerializator::GetFieldFlt(const TMemBase& RecMem, const int& FieldId) const {
-	// get pointer to location
-	char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
-	// cast to return value
-	return *((double*)bf);
+	//// get pointer to location
+	//char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+	//// cast to return value
+	//return *((double*)bf);
+	return GetFieldFlt(TThinMIn(RecMem), FieldId);
 }
 
 TFltPr TRecSerializator::GetFieldFltPr(const TMemBase& RecMem, const int& FieldId) const {
-	// get pointer to location
-	char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
-	// cast to return value
-	return TFltPr(*((double*)bf), *(((double*)bf) + 1));
+	//// get pointer to location
+	//char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+	//// cast to return value
+	//return TFltPr(*((double*)bf), *(((double*)bf) + 1));
+	return GetFieldFltPr(TThinMIn(RecMem), FieldId);
 }
 
 void TRecSerializator::GetFieldFltV(const TMemBase& RecMem, const int& FieldId, TFltV& FltV) const {
-	// prepare input stream and move to the variable location
-	TThinMIn MIn(RecMem);
-	MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
-	// load return value from stream
-	FltV.Load(MIn);
+	//// prepare input stream and move to the variable location
+	//TThinMIn MIn(RecMem);
+	//MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
+	//// load return value from stream
+	//FltV.Load(MIn);
+	GetFieldFltV(TThinMIn(RecMem), FieldId, FltV);
 }
 
 void TRecSerializator::GetFieldTm(const TMemBase& RecMem, const int& FieldId, TTm& Tm) const {
-	// get pointer to location
-	char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
-	// cast to return value
-	uint64 val = *((uint64*)bf);
-	Tm = TTm::GetTmFromMSecs(val);
+	//// get pointer to location
+	//char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+	//// cast to return value
+	//uint64 val = *((uint64*)bf);
+	//Tm = TTm::GetTmFromMSecs(val);
+	GetFieldTm(TThinMIn(RecMem), FieldId, Tm);
 }
 
 uint64 TRecSerializator::GetFieldTmMSecs(const TMemBase& RecMem, const int& FieldId) const {
-	// get pointer to location
-	char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
-	// cast to return value
-	return *((uint64*)bf);
+	//// get pointer to location
+	//char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+	//// cast to return value
+	//return *((uint64*)bf);
+	return GetFieldTmMSecs(TThinMIn(RecMem), FieldId);
 }
 
 void TRecSerializator::GetFieldNumSpV(const TMemBase& RecMem, const int& FieldId, TIntFltKdV& SpV) const {
-	// prepare input stream and move to the variable location
-	TThinMIn MIn(RecMem);
-	MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
-	// load return value from stream
-	SpV.Load(MIn);
+	//// prepare input stream and move to the variable location
+	//TThinMIn MIn(RecMem);
+	//MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
+	//// load return value from stream
+	//SpV.Load(MIn);
+	GetFieldNumSpV(TThinMIn(RecMem), FieldId, SpV);
 }
 
 void TRecSerializator::GetFieldBowSpV(const TMemBase& RecMem, const int& FieldId, PBowSpV& SpV) const {
-	// prepare input stream and move to the variable location
-	TThinMIn MIn(RecMem);
-	MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
-	// load return value from stream
-	SpV = TBowSpV::Load(MIn);
+	//// prepare input stream and move to the variable location
+	//TThinMIn MIn(RecMem);
+	//MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
+	//// load return value from stream
+	//SpV = TBowSpV::Load(MIn);
+	GetFieldBowSpV(TThinMIn(RecMem), FieldId, SpV);
 }
 
 void TRecSerializator::SetFieldNull(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId) {
@@ -2112,9 +2127,9 @@ bool TRecIndexer::IsFieldIndexKey(const int& FieldId) const {
 /// Implementation of store which can be initialized from a schema.
 void TStoreImpl::InitFieldLocV() {
 	for (int FieldId = 0; FieldId < GetFields(); FieldId++) {
-		if (SerializatorCache.IsFieldId(FieldId)) {
+		if (SerializatorCache->IsFieldId(FieldId)) {
 			FieldLocV.Add(slDisk);
-		} else if (SerializatorMem.IsFieldId(FieldId)) {
+		} else if (SerializatorMem->IsFieldId(FieldId)) {
 			FieldLocV.Add(slMemory);
 		} else {
 			throw TQmExcept::New("Unknown storage location for field " +
@@ -2152,26 +2167,26 @@ void TStoreImpl::PutRecMem(const uint64& RecId, const int& FieldId, const TMem& 
 }
 
 bool TStoreImpl::IsFieldDisk(const int &FieldId) const {
-	return SerializatorCache.IsFieldId(FieldId);
+	return SerializatorCache->IsFieldId(FieldId);
 }
 
 bool TStoreImpl::IsFieldInMemory(const int &FieldId) const {
-	return SerializatorMem.IsFieldId(FieldId);
+	return SerializatorMem->IsFieldId(FieldId);
 }
 
-TRecSerializator& TStoreImpl::GetSerializator(const TStoreLoc& StoreLoc) {
+TRecSerializator* TStoreImpl::GetSerializator(const TStoreLoc& StoreLoc) {
 	return (StoreLoc == slMemory) ? SerializatorMem : SerializatorCache;
 }
 
-const TRecSerializator& TStoreImpl::GetSerializator(const TStoreLoc& StoreLoc) const {
+const TRecSerializator* TStoreImpl::GetSerializator(const TStoreLoc& StoreLoc) const {
 	return (StoreLoc == slMemory) ? SerializatorMem : SerializatorCache;
 }
 
-TRecSerializator& TStoreImpl::GetFieldSerializator(const int &FieldId) {
+TRecSerializator* TStoreImpl::GetFieldSerializator(const int &FieldId) {
 	return GetSerializator(FieldLocV[FieldId]);
 }
 
-const TRecSerializator& TStoreImpl::GetFieldSerializator(const int &FieldId) const {
+const TRecSerializator* TStoreImpl::GetFieldSerializator(const int &FieldId) const {
 	return GetSerializator(FieldLocV[FieldId]);
 }
 
@@ -2281,8 +2296,8 @@ void TStoreImpl::InitFromSchema(const TStoreSchema& StoreSchema) {
 		if (IndexKeyEx.IsTokenizer()) { IndexVoc->PutTokenizer(KeyId, IndexKeyEx.Tokenizer); }
 	}
 	// prepare serializators for disk and in-memory store
-	SerializatorCache = TRecSerializator(this, StoreSchema, slDisk);
-	SerializatorMem = TRecSerializator(this, StoreSchema, slMemory);
+	SerializatorCache = new TRecSerializator(this, StoreSchema, slDisk);
+	SerializatorMem = new TRecSerializator(this, StoreSchema, slMemory);
 	// initialize field to storage location map
 	InitFieldLocV();
 	// initialize record indexer
@@ -2351,8 +2366,10 @@ TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const TStr& _StoreFNm,
 	// load time window    
 	WndDesc.Load(FIn);
 	// load data
-	SerializatorCache.Load(FIn);
-	SerializatorMem.Load(FIn);
+	SerializatorCache = new TRecSerializator(this);
+	SerializatorMem = new TRecSerializator(this);
+	SerializatorCache->Load(FIn);
+	SerializatorMem->Load(FIn);
 	
 	// initialize field to storage location map
 	InitFieldLocV();
@@ -2389,11 +2406,13 @@ TStoreImpl::~TStoreImpl() {
 		// save time window
 		WndDesc.Save(FOut);
 		// save data
-		SerializatorCache.Save(FOut);
-		SerializatorMem.Save(FOut);
+		SerializatorCache->Save(FOut);
+		SerializatorMem->Save(FOut);
 	} else {
 		TEnv::Logger->OnStatus("No saving of generic store " + GetStoreNm() + " neccessary!");
 	}
+	delete SerializatorCache;
+	delete SerializatorMem;
 }
 
 bool TStoreImpl::IsRecId(const uint64& RecId) const { 
@@ -2515,19 +2534,19 @@ uint64 TStoreImpl::AddRec(const PJsonVal& RecVal) {
 	uint64 MemRecId = TUInt64::Mx;        
 	// store to disk storage
 	if (DataCacheP) {
-		TMem CacheRecMem; SerializatorCache.Serialize(RecVal, CacheRecMem, this);
+		TMem CacheRecMem; SerializatorCache->Serialize(RecVal, CacheRecMem, this);
 		CacheRecId = DataCache.AddVal(CacheRecMem);
 		RecId = CacheRecId;
 		// index new record
-		RecIndexer.IndexRec(CacheRecMem, RecId, SerializatorCache);      
+		RecIndexer.IndexRec(CacheRecMem, RecId, *SerializatorCache);
 	}
 	// store to in-memory storage
 	if (DataMemP) {
-		TMem MemRecMem; SerializatorMem.Serialize(RecVal, MemRecMem, this);
+		TMem MemRecMem; SerializatorMem->Serialize(RecVal, MemRecMem, this);
 		MemRecId = DataMem.AddVal(MemRecMem);
 		RecId = MemRecId;
 		// index new record
-		RecIndexer.IndexRec(MemRecMem, RecId, SerializatorMem);
+		RecIndexer.IndexRec(MemRecMem, RecId, *SerializatorMem);
 	}
 	// make sure we are consistent with respect to Ids!
 	if (DataCacheP && DataMemP) {
@@ -2565,24 +2584,24 @@ void TStoreImpl::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {
 		// update serialization
 		TMem CacheOldRecMem; DataCache.GetVal(RecId, CacheOldRecMem);
 		TMem CacheNewRecMem; TIntSet CacheChangedFieldIdSet;
-		SerializatorCache.SerializeUpdate(RecVal, CacheOldRecMem,
+		SerializatorCache->SerializeUpdate(RecVal, CacheOldRecMem,
 			CacheNewRecMem, this, CacheChangedFieldIdSet);
 		// update the stored serializations with new values
 		DataCache.SetVal(RecId, CacheNewRecMem);
 		// update indexes pointing to the record
-		RecIndexer.UpdateRec(CacheOldRecMem, CacheNewRecMem, RecId, CacheChangedFieldIdSet, SerializatorCache);
+		RecIndexer.UpdateRec(CacheOldRecMem, CacheNewRecMem, RecId, CacheChangedFieldIdSet, *SerializatorCache);
 	}
 	// update in-memory serialization when necessary
 	if (MemP) {
 		// update serialization
 		TMem MemOldRecMem; DataMem.GetVal(RecId, MemOldRecMem);
 		TMem MemNewRecMem; TIntSet MemChangedFieldIdSet;
-		SerializatorMem.SerializeUpdate(RecVal, MemOldRecMem,
+		SerializatorMem->SerializeUpdate(RecVal, MemOldRecMem,
 			MemNewRecMem, this, MemChangedFieldIdSet);
 		// update the stored serializations with new values
 		DataMem.SetVal(RecId, MemNewRecMem);
 		// update indexes pointing to the record
-		RecIndexer.UpdateRec(MemOldRecMem, MemNewRecMem, RecId, MemChangedFieldIdSet, SerializatorMem);
+		RecIndexer.UpdateRec(MemOldRecMem, MemNewRecMem, RecId, MemChangedFieldIdSet, *SerializatorMem);
 	}
 	// check if primary key changed and update the mapping
 	if (PrimaryP) { SetPrimaryField(RecId); }
@@ -2663,12 +2682,12 @@ void TStoreImpl::DeleteAllRecs() {
 		if (DataCacheP) {
 			TMem CacheRecMem; 
 			DataCache.GetVal(DelRecId, CacheRecMem);
-			RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorCache);
+			RecIndexer.DeindexRec(CacheRecMem, DelRecId, *SerializatorCache);
 		}
 		if (DataMemP) {
 			TMem MemRecMem; 
 			DataMem.GetVal(DelRecId, MemRecMem);
-			RecIndexer.DeindexRec(MemRecMem, DelRecId, SerializatorMem);
+			RecIndexer.DeindexRec(MemRecMem, DelRecId, *SerializatorMem);
 		}
 		// delete record from joins
 		TRec Rec(this, DelRecId);
@@ -2739,11 +2758,11 @@ void TStoreImpl::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
 		// delete record from indexes
 		if (DataCacheP) {
 			TMem CacheRecMem; DataCache.GetVal(DelRecId, CacheRecMem);
-			RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorCache);
+			RecIndexer.DeindexRec(CacheRecMem, DelRecId, *SerializatorCache);
 		}
 		if (DataMemP) {
 			TMem MemRecMem; DataMem.GetVal(DelRecId, MemRecMem);
-			RecIndexer.DeindexRec(MemRecMem, DelRecId, SerializatorMem);
+			RecIndexer.DeindexRec(MemRecMem, DelRecId, *SerializatorMem);
 		}
 		// delete record from joins
 		TRec Rec(this, DelRecId);
@@ -2770,198 +2789,216 @@ void TStoreImpl::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
 
 bool TStoreImpl::IsFieldNull(const uint64& RecId, const int& FieldId) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
-	return GetFieldSerializator(FieldId).IsFieldNull(RecMem, FieldId);
+	return GetFieldSerializator(FieldId)->IsFieldNull(RecMem, FieldId);
 }
 
 int TStoreImpl::GetFieldInt(const uint64& RecId, const int& FieldId) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
-	return GetFieldSerializator(FieldId).GetFieldInt(RecMem, FieldId);
+	return GetFieldSerializator(FieldId)->GetFieldInt(RecMem, FieldId);
 }
 
 TStr TStoreImpl::GetFieldStr(const uint64& RecId, const int& FieldId) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
-	return GetFieldSerializator(FieldId).GetFieldStr(RecMem, FieldId);
+	return GetFieldSerializator(FieldId)->GetFieldStr(RecMem, FieldId);
 }
 
 bool TStoreImpl::GetFieldBool(const uint64& RecId, const int& FieldId) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
-	return GetFieldSerializator(FieldId).GetFieldBool(RecMem, FieldId);
+	return GetFieldSerializator(FieldId)->GetFieldBool(RecMem, FieldId);
 }
 
 double TStoreImpl::GetFieldFlt(const uint64& RecId, const int& FieldId) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
-	return GetFieldSerializator(FieldId).GetFieldFlt(RecMem, FieldId);
+	return GetFieldSerializator(FieldId)->GetFieldFlt(RecMem, FieldId);
 }
 
 TFltPr TStoreImpl::GetFieldFltPr(const uint64& RecId, const int& FieldId) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
-	return GetFieldSerializator(FieldId).GetFieldFltPr(RecMem, FieldId);
+	return GetFieldSerializator(FieldId)->GetFieldFltPr(RecMem, FieldId);
 }
 
 uint64 TStoreImpl::GetFieldUInt64(const uint64& RecId, const int& FieldId) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
-	return GetFieldSerializator(FieldId).GetFieldUInt64(RecMem, FieldId);
+	return GetFieldSerializator(FieldId)->GetFieldUInt64(RecMem, FieldId);
 }
 
 void TStoreImpl::GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
-	GetFieldSerializator(FieldId).GetFieldStrV(RecMem, FieldId, StrV);
+	GetFieldSerializator(FieldId)->GetFieldStrV(RecMem, FieldId, StrV);
 }
 
 void TStoreImpl::GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
-	GetFieldSerializator(FieldId).GetFieldIntV(RecMem, FieldId, IntV);
+	GetFieldSerializator(FieldId)->GetFieldIntV(RecMem, FieldId, IntV);
 }
 
 void TStoreImpl::GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
-	GetFieldSerializator(FieldId).GetFieldFltV(RecMem, FieldId, FltV);
+	GetFieldSerializator(FieldId)->GetFieldFltV(RecMem, FieldId, FltV);
 }
 
 void TStoreImpl::GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
-	GetFieldSerializator(FieldId).GetFieldTm(RecMem, FieldId, Tm);
+	GetFieldSerializator(FieldId)->GetFieldTm(RecMem, FieldId, Tm);
 }
 
 uint64 TStoreImpl::GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
-	return GetFieldSerializator(FieldId).GetFieldTmMSecs(RecMem, FieldId);
+	return GetFieldSerializator(FieldId)->GetFieldTmMSecs(RecMem, FieldId);
 }
 
 void TStoreImpl::GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
-	GetFieldSerializator(FieldId).GetFieldNumSpV(RecMem, FieldId, SpV);
+	GetFieldSerializator(FieldId)->GetFieldNumSpV(RecMem, FieldId, SpV);
 }
 
 void TStoreImpl::GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
-	GetFieldSerializator(FieldId).GetFieldBowSpV(RecMem, FieldId, SpV);
+	GetFieldSerializator(FieldId)->GetFieldBowSpV(RecMem, FieldId, SpV);
 }
 
 void TStoreImpl::SetFieldNull(const uint64& RecId, const int& FieldId) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-	TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
-	TMem OutRecMem; FieldSerializator.SetFieldNull(InRecMem, OutRecMem, FieldId);
-	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
+	TMem OutRecMem; FieldSerializator->SetFieldNull(InRecMem, OutRecMem, FieldId);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-	TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
     if (FieldId == PrimaryFieldId) {
-        DelPrimaryFieldInt(RecId, FieldSerializator.GetFieldInt(InRecMem, FieldId)); }
-	TMem OutRecMem; FieldSerializator.SetFieldInt(InRecMem, OutRecMem, FieldId, Int);
-	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
+		DelPrimaryFieldInt(RecId, FieldSerializator->GetFieldInt(InRecMem, FieldId));
+	}
+	TMem OutRecMem; 
+	FieldSerializator->SetFieldInt(InRecMem, OutRecMem, FieldId, Int);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
     if (FieldId == PrimaryFieldId) { SetPrimaryFieldInt(RecId, Int); }
 }
 
 void TStoreImpl::SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-	TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
-	TMem OutRecMem; FieldSerializator.SetFieldIntV(InRecMem, OutRecMem, FieldId, IntV);
-	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
+	TMem OutRecMem;
+	FieldSerializator->SetFieldIntV(InRecMem, OutRecMem, FieldId, IntV);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-	TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
     if (FieldId == PrimaryFieldId) {
-        DelPrimaryFieldUInt64(RecId, FieldSerializator.GetFieldUInt64(InRecMem, FieldId)); }
-	TMem OutRecMem; FieldSerializator.SetFieldUInt64(InRecMem, OutRecMem, FieldId, UInt64);
-	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
+		DelPrimaryFieldUInt64(RecId, FieldSerializator->GetFieldUInt64(InRecMem, FieldId));
+	}
+	TMem OutRecMem;
+	FieldSerializator->SetFieldUInt64(InRecMem, OutRecMem, FieldId, UInt64);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
     if (FieldId == PrimaryFieldId) { SetPrimaryFieldUInt64(RecId, UInt64); }
 }
 
 void TStoreImpl::SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-	TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
     if (FieldId == PrimaryFieldId) {
-        DelPrimaryFieldStr(RecId, FieldSerializator.GetFieldStr(InRecMem, FieldId)); }
-	TMem OutRecMem; FieldSerializator.SetFieldStr(InRecMem, OutRecMem, FieldId, Str);
-	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
+		DelPrimaryFieldStr(RecId, FieldSerializator->GetFieldStr(InRecMem, FieldId));
+	}
+	TMem OutRecMem;
+	FieldSerializator->SetFieldStr(InRecMem, OutRecMem, FieldId, Str);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
     if (FieldId == PrimaryFieldId) { SetPrimaryFieldStr(RecId, Str); }
 }
 
 void TStoreImpl::SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-	TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
-	TMem OutRecMem; FieldSerializator.SetFieldStrV(InRecMem, OutRecMem, FieldId, StrV);
-	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
+	TMem OutRecMem; 
+	FieldSerializator->SetFieldStrV(InRecMem, OutRecMem, FieldId, StrV);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-	TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
-	TMem OutRecMem; FieldSerializator.SetFieldBool(InRecMem, OutRecMem, FieldId, Bool);
-	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
+	TMem OutRecMem; 
+	FieldSerializator->SetFieldBool(InRecMem, OutRecMem, FieldId, Bool);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-	TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
     if (FieldId == PrimaryFieldId) {
-        DelPrimaryFieldFlt(RecId, FieldSerializator.GetFieldFlt(InRecMem, FieldId)); }
-	TMem OutRecMem; FieldSerializator.SetFieldFlt(InRecMem, OutRecMem, FieldId, Flt);
-	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
+		DelPrimaryFieldFlt(RecId, FieldSerializator->GetFieldFlt(InRecMem, FieldId));
+	}
+	TMem OutRecMem;
+	FieldSerializator->SetFieldFlt(InRecMem, OutRecMem, FieldId, Flt);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
     if (FieldId == PrimaryFieldId) { SetPrimaryFieldFlt(RecId, Flt); }
 }
 
 void TStoreImpl::SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-	TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
-	TMem OutRecMem; FieldSerializator.SetFieldFltPr(InRecMem, OutRecMem, FieldId, FltPr);
-	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
+	TMem OutRecMem;
+	FieldSerializator->SetFieldFltPr(InRecMem, OutRecMem, FieldId, FltPr);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-	TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
-	TMem OutRecMem; FieldSerializator.SetFieldFltV(InRecMem, OutRecMem, FieldId, FltV);
-	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
+	TMem OutRecMem;
+	FieldSerializator->SetFieldFltV(InRecMem, OutRecMem, FieldId, FltV);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-	TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
-	TMem OutRecMem; FieldSerializator.SetFieldTm(InRecMem, OutRecMem, FieldId, Tm);
-	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
+	TMem OutRecMem;
+	FieldSerializator->SetFieldTm(InRecMem, OutRecMem, FieldId, Tm);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-	TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
     if (FieldId == PrimaryFieldId) {
-        DelPrimaryFieldMSecs(RecId, FieldSerializator.GetFieldTmMSecs(InRecMem, FieldId)); }
-	TMem OutRecMem; FieldSerializator.SetFieldTmMSecs(InRecMem, OutRecMem, FieldId, TmMSecs);
-	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
+		DelPrimaryFieldMSecs(RecId, FieldSerializator->GetFieldTmMSecs(InRecMem, FieldId));
+	}
+	TMem OutRecMem;
+	FieldSerializator->SetFieldTmMSecs(InRecMem, OutRecMem, FieldId, TmMSecs);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
     if (FieldId == PrimaryFieldId) { SetPrimaryFieldMSecs(RecId, TmMSecs); }
 }
 
 void TStoreImpl::SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-	TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
-	TMem OutRecMem; FieldSerializator.SetFieldNumSpV(InRecMem, OutRecMem, FieldId, SpV);
-	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
+	TMem OutRecMem; 
+	FieldSerializator->SetFieldNumSpV(InRecMem, OutRecMem, FieldId, SpV);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-	TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
-	TMem OutRecMem; FieldSerializator.SetFieldBowSpV(InRecMem, OutRecMem, FieldId, SpV);
-	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
+	TMem OutRecMem; 
+	FieldSerializator->SetFieldBowSpV(InRecMem, OutRecMem, FieldId, SpV);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
