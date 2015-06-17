@@ -12,8 +12,8 @@
 #include <windows.h>
 
 #include "gtest/gtest.h"
-#include "pgblob.h"
-#include "qminer_pbs.h"
+#include <qminer_pgblob.h>
+#include <qminer_pbs.h>
 
 ////////////////////////////////////////////////////////////////////////
 // typedefs
@@ -1893,7 +1893,7 @@ TEST(testTStorePbBlob, PerfCompare_StrAddDelete2) {
 	PJsonVal json_str5 = json->GetObjKey("FieldString5");
 	PJsonVal json_bool = json->GetObjKey("FieldBool");
 
-	printf("Starting performance comparison - insert and delete\n");
+	/*printf("Starting performance comparison - insert and delete\n");
 	{
 		printf("Starting - old implementation - insert and delete\n");
 
@@ -1918,7 +1918,7 @@ TEST(testTStorePbBlob, PerfCompare_StrAddDelete2) {
 		TQm::TStorage::SaveBase(Base);
 	}
 	sw.Stop();
-	printf("++++ loop: %d\n\n", sw.GetMSecInt());
+	printf("++++ loop: %d\n\n", sw.GetMSecInt());*/
 
 	{
 		printf("Starting - new implementation - insert and delete\n");
@@ -1932,7 +1932,8 @@ TEST(testTStorePbBlob, PerfCompare_StrAddDelete2) {
 		//PJsonVal json_bool = json->GetObjKey("FieldBool");
 		//TVec<uint64> rec_ids;
 		for (int i = 0; i < rec_count; i++) {
-			if (i % 10000 == 0) printf("    %d\r", i);
+			if (i % 1000 == 0) 
+				printf("    %d\r", i);
 			json_str1->PutStr(TStr::Fmt("Stored value %d", i));
 			json_str2->PutStr(definition.GetSubStr(i % 8, 20 + i % 10));
 			json_str3->PutStr(definition.GetSubStr(i % 8, 20 + i % 10));

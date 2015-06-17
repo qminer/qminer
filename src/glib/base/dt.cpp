@@ -229,6 +229,57 @@ void TRnd::SaveTxt(TOLx& Lx) const {
 }
 
 /////////////////////////////////////////////////
+/// Thin Input-Memory
+TThinMIn::TThinMIn(const TMemBase& Mem) :
+TSBase("Thin input memory"), TSIn("Thin input memory"), Bf(NULL), BfC(0), BfL(0) {
+
+	Bf = (uchar*)Mem.GetBf();
+	BfL = Mem.Len();
+}
+
+TThinMIn::TThinMIn(const void* _Bf, const int& _BfL) :
+TSBase("Thin input memory"), TSIn("Thin input memory"),
+Bf(NULL), BfC(0), BfL(_BfL) {
+
+	Bf = (uchar*)_Bf;
+}
+
+TThinMIn::TThinMIn(const TThinMIn& min) :
+TSBase("Thin input memory"), TSIn("Thin input memory") {
+	Bf = min.Bf;
+	BfL = min.BfL;
+	BfC = min.BfC;
+}
+
+char TThinMIn::GetCh() {
+	IAssertR(BfC<BfL, "Reading beyond the end of stream.");
+	return Bf[BfC++];
+}
+
+char TThinMIn::PeekCh() {
+	IAssertR(BfC<BfL, "Reading beyond the end of stream.");
+	return Bf[BfC];
+}
+
+int TThinMIn::GetBf(const void* LBf, const TSize& LBfL) {
+	IAssert(TSize(BfC + LBfL) <= TSize(BfL));
+	int LBfS = 0;
+	for (TSize LBfC = 0; LBfC<LBfL; LBfC++) {
+		LBfS += (((char*)LBf)[LBfC] = Bf[BfC++]);
+	}
+	return LBfS;
+}
+
+void TThinMIn::MoveTo(int Offset) {
+	IAssertR(Offset<BfL, "Reading beyond the end of stream.");
+	BfC = Offset;
+}
+
+bool TThinMIn::GetNextLnBf(TChA& LnChA) {
+	FailR("TMIn::GetNextLnBf: not implemented"); return false;
+}
+
+/////////////////////////////////////////////////
 // Memory
 void TMem::Resize(const int& _MxBfL){
   if (_MxBfL<=MxBfL){return;}

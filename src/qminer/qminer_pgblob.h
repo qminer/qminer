@@ -9,8 +9,8 @@
 #include <base.h>
 #include <mine.h>
 
-#include <qminer_core.h>
-#include <qminer_gs.h>
+//#include "qminer_core.h"
+//#include "qminer_gs.h"
 
 namespace glib {
 
@@ -418,7 +418,7 @@ namespace glib {
 		/// Load given page into memory
 		char* LoadPage(const TPgBlobPgPt& Pt, const bool& LoadData = true);
 		/// Create new page and return pointers to it
-		void TPgBlob::CreateNewPage(TPgBlobPgPt& Pt, char** Bf);
+		void CreateNewPage(TPgBlobPgPt& Pt, char** Bf);
 
 		// Methods for manupulating raw page //////////////////////////////
 
@@ -458,7 +458,7 @@ namespace glib {
 		/// Marks page as dirty - data inside was written directly
 		void SetDirty(const TPgBlobPt& Pt);
 		/// Retrieve BLOB from storage
-		TQm::TStorage::TThinMIn Get(const TPgBlobPt& Pt);
+		TThinMIn Get(const TPgBlobPt& Pt);
 		/// Delete BLOB from storage
 		void Del(const TPgBlobPt& Pt);
 		/// Retrieve BLOB from storage as TMemBase

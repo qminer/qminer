@@ -4,7 +4,6 @@
 namespace TQm {
 
 	using namespace TQm::TStorage;
-	using namespace glib;
 
 	/// Add new record
 	uint64 TStorePbBlob::AddRec(const PJsonVal& RecVal) {// check if we are given reference to existing record

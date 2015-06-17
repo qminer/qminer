@@ -206,6 +206,7 @@ typedef long long index_t;
 #include "opt.h"
 #include "json.h"
 #include "zipfl.h"
+#include "pgblob.h"
 
 void BaseTralala();
 
