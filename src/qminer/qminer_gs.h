@@ -9,7 +9,7 @@
 #ifndef QMINER_GS_H
 #define QMINER_GS_H
 
-#include "qminer.h"
+#include "qminer_core.h"
 
 namespace TQm {
 

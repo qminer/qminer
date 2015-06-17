@@ -167,7 +167,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\glib\base\gix.h" />
     <ClInclude Include="..\..\..\..\glib\base\pgblob.h" />
-    <ClInclude Include="..\..\..\..\qminer\qminer.h" />
     <ClInclude Include="..\..\..\..\qminer\qminer_aggr.h" />
     <ClInclude Include="..\..\..\..\qminer\qminer_core.h" />
     <ClInclude Include="..\..\..\..\qminer\qminer_ftr.h" />
