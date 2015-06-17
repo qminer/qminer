@@ -770,14 +770,14 @@ int TBinTreeMaxVals::GetIndexOfMax()const {
 	if (Layers[0].Len() == 0) { // no data yet
 		return -1;
 	}
-	int layer = Layers.Len() - 1;
+	int layer = Layers.Len() - 1; // search from top layer
 	int index = 0;
-	int target = Layers[layer][index];
+	uint target = Layers[layer][index];
 	while (layer > 0) {
 		layer--;
-		index *= 2;
+		index *= 2; // go to first child
 		if (Layers[layer][index] != target) {
-			index++;
+			index++; // ok, it must the second child
 		}
 	}
 	return index;

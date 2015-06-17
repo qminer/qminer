@@ -291,7 +291,7 @@ private:
 	public:
 		/// Id of this field inside TStore
 		TInt FieldId;
-		/// Where will this field be stored- true means 
+		/// Where will this field be stored
 		TStoreLoc StoreLoc;
 		/// Offset of byte that contains NULL bit indicator for this field
 		TUCh NullMapByte;
@@ -333,6 +333,8 @@ private:
 	THash<TInt, TInt> FieldIdToSerialDescIdH;	
 	/// Codebook for encoding strings
 	TStrHash<TInt, TBigStrPool> CodebookH;
+	/// Flag if TOAST should be used
+	TBool UseToast;
 
 	/// Dump report used on failed asserts
 	TStr GetErrorMsg(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;

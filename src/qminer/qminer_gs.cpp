@@ -1206,7 +1206,8 @@ void TRecSerializator::Merge(const TMem& FixedMem, const TMOut& VarSOut, TMem& O
 TRecSerializator::TRecSerializator(const TWPt<TStore>& Store,
 		const TStoreSchema& StoreSchema, const TStoreLoc& _TargetStorage):
 			TargetStorage(_TargetStorage) {
-
+	
+	UseToast = Store->CanToast();
 	const int Fields = Store->GetFields();
 
 	// fixed part starts after null-flags
@@ -1283,6 +1284,7 @@ void TRecSerializator::Load(TSIn& SIn) {
 	FieldSerialDescV.Load(SIn);
 	FieldIdToSerialDescIdH.Load(SIn);
 	CodebookH.Load(SIn);
+	UseToast.Load(SIn);
 }
 
 void TRecSerializator::Save(TSOut& SOut) {
@@ -1293,6 +1295,7 @@ void TRecSerializator::Save(TSOut& SOut) {
 	FieldSerialDescV.Save(SOut);
 	FieldIdToSerialDescIdH.Save(SOut);
 	CodebookH.Save(SOut);
+	UseToast.Save(SOut);
 }
 
 void TRecSerializator::Serialize(const PJsonVal& RecVal, TMem& RecMem, const TWPt<TStore>& Store) {
