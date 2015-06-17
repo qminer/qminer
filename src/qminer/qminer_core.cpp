@@ -10,6 +10,7 @@
 #include "qminer_ftr.h"
 #include "qminer_aggr.h"
 #include "qminer_op.h"
+#include "qminer_snap.h"
 
 // external dependecies
 #include <sphere.h>
