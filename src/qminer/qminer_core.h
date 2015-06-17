@@ -778,10 +778,12 @@ public:
 
 	/// Check if store supports TOAST
 	virtual bool CanToast() { return false; }
+	/// Return max size of non-TOAST-ed record
+	virtual int GetMaxToastLen() { return -1; }
 	/// Store value into internal storage using TOAST method
-	virtual TPgBlobPgPt ToastVal(const TMemBase& Mem) { Fail; return TPgBlobPgPt(); }
+	virtual TPgBlobPt ToastVal(const TMemBase& Mem) { Fail; return TPgBlobPt(); }
 	/// Retrieve value that is saved using TOAST method from storage 
-	virtual TMemBase UnToastVal(const TPgBlobPgPt& Pt) { Fail; return TMemBase(); }
+	virtual TMemBase UnToastVal(const TPgBlobPt& Pt) { Fail; return TMemBase(); }
 };
 
 ///////////////////////////////

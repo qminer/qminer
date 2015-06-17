@@ -74,9 +74,9 @@ namespace TQm {
 		TUInt64 RecIdCounter;
 
 		/// Serializator to disk
-		TRecSerializator SerializatorCache;
+		TRecSerializator *SerializatorCache;
 		/// Serializator to memory
-		TRecSerializator SerializatorMem;
+		TRecSerializator *SerializatorMem;
 		/// Map from fields to storage location
 		TVec<TStoreLoc> FieldLocV;
 		

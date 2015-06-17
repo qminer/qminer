@@ -316,7 +316,11 @@ private:
 		void Save(TSOut& SOut) const;
 		void Load(TSIn& SIn);
 	};
-	
+
+	/// Flag if field is not TOAST-ed
+	const char ToastNo = 0;
+	/// Flag if field is TOAST-ed
+	const char ToastYes = 1;
 private: 
 	/// Only store fields with this storage flag
 	TStoreLoc TargetStorage;
@@ -335,6 +339,10 @@ private:
 	TStrHash<TInt, TBigStrPool> CodebookH;
 	/// Flag if TOAST should be used
 	TBool UseToast;
+	/// Max length of non-TOAST-ed record
+	TInt MxToastLen;
+	/// Store to be used for TOAST-ing
+	TWPt<TStore> Store;
 
 	/// Dump report used on failed asserts
 	TStr GetErrorMsg(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
@@ -442,9 +450,11 @@ private:
 	void ExtractFixedMem(const TMemBase& InRecMem, TMem& FixedMem);
 	/// Combine fixed and variable buffers into a record
 	void Merge(const TMem& FixedMem, const TMOut& VarSOut, TMem& OutRecMem);
-	
+
+	/// Check this temporary buffer if it must be TOAST-ed
+	void CheckToast(TMOut& SOut, const int& Offset);
 public:
-	TRecSerializator() { }
+	TRecSerializator(const TWPt<TStore>& _Store) { Store = _Store; }
 	/// Initialize object from store schema
 	TRecSerializator(const TWPt<TStore>& Store, 
 			const TStoreSchema& StoreSchema, const TStoreLoc& _TargetStorage);
@@ -700,9 +710,9 @@ private:
 	/// Store for parts of records that should be in-memory
 	TInMemStorage DataMem;
 	/// Serializator to disk
-	TRecSerializator SerializatorCache;
+	TRecSerializator *SerializatorCache;
 	/// Serializator to memory
-	TRecSerializator SerializatorMem;
+	TRecSerializator *SerializatorMem;
 	/// Map from fields to storage location
 	TVec<TStoreLoc> FieldLocV;
 	
@@ -727,13 +737,13 @@ private:
 	/// True when field is stored in-memory
 	bool IsFieldInMemory(const int &FieldId) const;
 	/// Get serializator for given location
-	TRecSerializator& GetSerializator(const TStoreLoc& StoreLoc);
+	TRecSerializator* GetSerializator(const TStoreLoc& StoreLoc);
 	/// Get serializator for given location
-	const TRecSerializator& GetSerializator(const TStoreLoc& StoreLoc) const;
+	const TRecSerializator* GetSerializator(const TStoreLoc& StoreLoc) const;
 	/// Get serializator for given field
-	TRecSerializator& GetFieldSerializator(const int &FieldId);
+	TRecSerializator* GetFieldSerializator(const int &FieldId);
 	/// Get serializator for given field
-	const TRecSerializator& GetFieldSerializator(const int &FieldId) const;
+	const TRecSerializator* GetFieldSerializator(const int &FieldId) const;
 	/// Remove record from name-id map
 	inline void DelRecNm(const uint64& RecId);    
     /// Do we have a primary field
