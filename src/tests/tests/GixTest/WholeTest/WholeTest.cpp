@@ -1413,138 +1413,138 @@ public:
 //		TQm::SaveBase2(Base);
 //	}
 //}
-
-TEST(testTStorePbBlob, PerfCompare_StrAddCache) {
-	TStr def_file = ".\\pgblob_test_str1.def";
-	TQm::TEnv::Init();
-	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
-	TStr dir = "data\\";
-
-	// init unicode
-	TTmStopWatch sw(false);
-	TUnicodeDef::Load(unicode_file);
-	int rec_count = 5 * 1000 * 1000;
-
-	printf("Starting performance comparison - insert\n");
-	{
-		printf("Starting - old implementation\n");
-		sw.Reset(true);
-		// create new base from definition
-		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
-		TPt<TQm::TBase> Base = TQm::TStorage::NewBase(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-
-		{
-			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
-			TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
-			PJsonVal json = TJsonVal::GetValFromStr(s);
-			PJsonVal json_str = json->GetObjKey("FieldString");
-			PJsonVal json_bool = json->GetObjKey("FieldBool");
-			for (int i = 0; i < rec_count; i++) {
-				//if (i % 1000 == 0) printf("    %d\r", i);
-				json_str->PutStr(TStr::Fmt("Stored value %d", i));
-				json_bool->PutBool(i % 7 == 3);
-				store->AddRec(json);
-			}
-		}
-		printf("\n++++ insert intermediate: %d\n", sw.GetMSecInt());
-		TQm::TStorage::SaveBase(Base);
-	}
-	sw.Stop();
-	printf("++++ insert: %d\n\n", sw.GetMSecInt());
-	{
-		printf("Starting - old implementation - update seq bool\n");
-		sw.Reset(true);
-		TPt<TQm::TBase> Base = TQm::TStorage::LoadBase(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-		auto store = Base->GetStoreByStoreNm("TestStore");
-		auto field_id_str = store->GetFieldId("FieldString");
-		auto field_id_bool = store->GetFieldId("FieldBool");
-		auto res = store->GetAllRecs();
-		for (int i = 0; i < rec_count; i++) {
-			TQm::TRec& rec = res->GetRec(i);
-			rec.SetFieldBool(field_id_bool, i % 7 == 3);
-		}
-		printf("\n++++ update intermediate: %d\n", sw.GetMSecInt());
-		TQm::TStorage::SaveBase(Base);
-	}
-	sw.Stop();
-	printf("++++ update: %d\n\n", sw.GetMSecInt());
-	{
-		printf("Starting - old implementation - update seq str\n");
-		sw.Reset(true);
-		TPt<TQm::TBase> Base = TQm::TStorage::LoadBase(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-		auto store = Base->GetStoreByStoreNm("TestStore");
-		auto field_id_str = store->GetFieldId("FieldString");
-		auto field_id_bool = store->GetFieldId("FieldBool");
-		auto res = store->GetAllRecs();
-		for (int i = 0; i < rec_count; i++) {
-			TQm::TRec& rec = res->GetRec(i);
-			rec.SetFieldStr(field_id_str, TStr::Fmt("Stored value %s %d", (i % 4 == 3 ? "" : "extension"), i));
-		}
-		printf("\n++++ update intermediate: %d\n", sw.GetMSecInt());
-		TQm::TStorage::SaveBase(Base);
-	}
-	sw.Stop();
-	printf("++++ update: %d\n\n", sw.GetMSecInt());
-	{
-		printf("Starting - new implementation\n");
-		sw.Reset(true);
-		// create new base from definition
-		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
-		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-
-		{
-			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
-			TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
-			PJsonVal json = TJsonVal::GetValFromStr(s);
-			PJsonVal json_str = json->GetObjKey("FieldString");
-			PJsonVal json_bool = json->GetObjKey("FieldBool");
-			for (int i = 0; i < rec_count; i++) {
-				//if (i % 1000 == 0) printf("    %d\r", i);
-				json_str->PutStr(TStr::Fmt("Stored value %d", i));
-				json_bool->PutBool(i % 7 == 3);
-				store->AddRec(json);
-			}
-		}
-		printf("\n++++ insert intermediate: %d\n", sw.GetMSecInt());
-		TQm::SaveBase2(Base);
-	}
-	sw.Stop();
-	printf("++++ %d\n\n", sw.GetMSecInt());
-	{
-		printf("Starting - new implementation - update seq bool\n");
-		sw.Reset(true);
-		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-		auto store = Base->GetStoreByStoreNm("TestStore");
-		auto field_id_str = store->GetFieldId("FieldString");
-		auto field_id_bool = store->GetFieldId("FieldBool");
-		auto res = store->GetAllRecs();
-		for (int i = 0; i < rec_count; i++) {
-			TQm::TRec& rec = res->GetRec(i);
-			rec.SetFieldBool(field_id_bool, i % 7 == 3);
-		}
-		printf("\n++++ update intermediate: %d\n", sw.GetMSecInt());
-		TQm::SaveBase2(Base);
-	}
-	sw.Stop();
-	printf("++++ update: %d\n\n", sw.GetMSecInt());
-	{
-		printf("Starting - new implementation - update seq str\n");
-		sw.Reset(true);
-		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
-		auto store = Base->GetStoreByStoreNm("TestStore");
-		auto field_id_str = store->GetFieldId("FieldString");
-		auto field_id_bool = store->GetFieldId("FieldBool");
-		auto res = store->GetAllRecs();
-		for (int i = 0; i < rec_count; i++) {
-			TQm::TRec& rec = res->GetRec(i);
-			rec.SetFieldStr(field_id_str, TStr::Fmt("Stored value %s %d", (i % 4 == 3 ? "" : "extension"), i));
-		}
-		printf("\n++++ update intermediate: %d\n", sw.GetMSecInt());
-		TQm::SaveBase2(Base);
-	}
-	sw.Stop();
-	printf("++++ update: %d\n\n", sw.GetMSecInt());
-}
+//
+//TEST(testTStorePbBlob, PerfCompare_StrAddCache) {
+//	TStr def_file = ".\\pgblob_test_str1.def";
+//	TQm::TEnv::Init();
+//	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
+//	TStr dir = "data\\";
+//
+//	// init unicode
+//	TTmStopWatch sw(false);
+//	TUnicodeDef::Load(unicode_file);
+//	int rec_count = 15 * 1000 * 1000;
+//
+//	printf("Starting performance comparison - insert\n");
+//	{
+//		printf("Starting - old implementation\n");
+//		sw.Reset(true);
+//		// create new base from definition
+//		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+//		TPt<TQm::TBase> Base = TQm::TStorage::NewBase(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//
+//		{
+//			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
+//			TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
+//			PJsonVal json = TJsonVal::GetValFromStr(s);
+//			PJsonVal json_str = json->GetObjKey("FieldString");
+//			PJsonVal json_bool = json->GetObjKey("FieldBool");
+//			for (int i = 0; i < rec_count; i++) {
+//				//if (i % 1000 == 0) printf("    %d\r", i);
+//				json_str->PutStr(TStr::Fmt("Stored value %d", i));
+//				json_bool->PutBool(i % 7 == 3);
+//				store->AddRec(json);
+//			}
+//		}
+//		printf("\n++++ insert intermediate: %d\n", sw.GetMSecInt());
+//		TQm::TStorage::SaveBase(Base);
+//	}
+//	sw.Stop();
+//	printf("++++ insert: %d\n\n", sw.GetMSecInt());
+//	{
+//		printf("Starting - old implementation - update seq bool\n");
+//		sw.Reset(true);
+//		TPt<TQm::TBase> Base = TQm::TStorage::LoadBase(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//		auto store = Base->GetStoreByStoreNm("TestStore");
+//		auto field_id_str = store->GetFieldId("FieldString");
+//		auto field_id_bool = store->GetFieldId("FieldBool");
+//		auto res = store->GetAllRecs();
+//		for (int i = 0; i < rec_count; i++) {
+//			TQm::TRec& rec = res->GetRec(i);
+//			rec.SetFieldBool(field_id_bool, i % 7 == 3);
+//		}
+//		printf("\n++++ update intermediate: %d\n", sw.GetMSecInt());
+//		TQm::TStorage::SaveBase(Base);
+//	}
+//	sw.Stop();
+//	printf("++++ update: %d\n\n", sw.GetMSecInt());
+//	{
+//		printf("Starting - old implementation - update seq str\n");
+//		sw.Reset(true);
+//		TPt<TQm::TBase> Base = TQm::TStorage::LoadBase(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//		auto store = Base->GetStoreByStoreNm("TestStore");
+//		auto field_id_str = store->GetFieldId("FieldString");
+//		auto field_id_bool = store->GetFieldId("FieldBool");
+//		auto res = store->GetAllRecs();
+//		for (int i = 0; i < rec_count; i++) {
+//			TQm::TRec& rec = res->GetRec(i);
+//			rec.SetFieldStr(field_id_str, TStr::Fmt("Stored value %s %d", (i % 4 == 3 ? "" : "extension"), i));
+//		}
+//		printf("\n++++ update intermediate: %d\n", sw.GetMSecInt());
+//		TQm::TStorage::SaveBase(Base);
+//	}
+//	sw.Stop();
+//	printf("++++ update: %d\n\n", sw.GetMSecInt());
+//	{
+//		printf("Starting - new implementation\n");
+//		sw.Reset(true);
+//		// create new base from definition
+//		PJsonVal SchemaVal = TJsonVal::GetValFromStr(TStr::LoadTxt(def_file));
+//		TPt<TQm::TBase> Base = TQm::NewBase2(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//
+//		{
+//			TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore");
+//			TStr s = "{ \"FieldString\" : \"xxx\", \"FieldBool\" : true}";
+//			PJsonVal json = TJsonVal::GetValFromStr(s);
+//			PJsonVal json_str = json->GetObjKey("FieldString");
+//			PJsonVal json_bool = json->GetObjKey("FieldBool");
+//			for (int i = 0; i < rec_count; i++) {
+//				//if (i % 1000 == 0) printf("    %d\r", i);
+//				json_str->PutStr(TStr::Fmt("Stored value %d", i));
+//				json_bool->PutBool(i % 7 == 3);
+//				store->AddRec(json);
+//			}
+//		}
+//		printf("\n++++ insert intermediate: %d\n", sw.GetMSecInt());
+//		TQm::SaveBase2(Base);
+//	}
+//	sw.Stop();
+//	printf("++++ %d\n\n", sw.GetMSecInt());
+//	{
+//		printf("Starting - new implementation - update seq bool\n");
+//		sw.Reset(true);
+//		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//		auto store = Base->GetStoreByStoreNm("TestStore");
+//		auto field_id_str = store->GetFieldId("FieldString");
+//		auto field_id_bool = store->GetFieldId("FieldBool");
+//		auto res = store->GetAllRecs();
+//		for (int i = 0; i < rec_count; i++) {
+//			TQm::TRec& rec = res->GetRec(i);
+//			rec.SetFieldBool(field_id_bool, i % 7 == 3);
+//		}
+//		printf("\n++++ update intermediate: %d\n", sw.GetMSecInt());
+//		TQm::SaveBase2(Base);
+//	}
+//	sw.Stop();
+//	printf("++++ update: %d\n\n", sw.GetMSecInt());
+//	{
+//		printf("Starting - new implementation - update seq str\n");
+//		sw.Reset(true);
+//		TPt<TQm::TBase> Base = TQm::LoadBase2(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+//		auto store = Base->GetStoreByStoreNm("TestStore");
+//		auto field_id_str = store->GetFieldId("FieldString");
+//		auto field_id_bool = store->GetFieldId("FieldBool");
+//		auto res = store->GetAllRecs();
+//		for (int i = 0; i < rec_count; i++) {
+//			TQm::TRec& rec = res->GetRec(i);
+//			rec.SetFieldStr(field_id_str, TStr::Fmt("Stored value %s %d", (i % 4 == 3 ? "" : "extension"), i));
+//		}
+//		printf("\n++++ update intermediate: %d\n", sw.GetMSecInt());
+//		TQm::SaveBase2(Base);
+//	}
+//	sw.Stop();
+//	printf("++++ update: %d\n\n", sw.GetMSecInt());
+//}
 //
 //
 //
