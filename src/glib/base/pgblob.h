@@ -128,7 +128,7 @@ public:
 	bool Empty() const { return (FileIndex < 0); }
 
 	/// Clear this pointer - make it NULL
-	bool Clr() { FileIndex = -1; Page = ItemIndex = 0; }
+	void Clr() { FileIndex = -1; Page = ItemIndex = 0; }
 
 	/// Assignment operator
 	TPgBlobPt& operator=(const TPgBlobPt& Pt);
@@ -265,7 +265,7 @@ public:
 	/// Save buffer to page within the file 
 	int SavePage(const uint32& Page, const void* Bf, int Len = -1);
 	/// Reserve new space in the file. Returns -1 if file is full.
-	uint32 CreateNewPage();
+	long CreateNewPage();
 };
 
 ////////////////////////////////////////////////////////////
@@ -333,7 +333,7 @@ protected:
 		/// Get amount of free space in this page
 		int GetFreeMem() { return OffsetFreeEnd - OffsetFreeStart; }
 		/// Test if given buffer could be stored to page
-		bool CanStoreBf(int Len) { return GetFreeMem() >= Len + sizeof(TPgBlobPageItem); }
+		bool CanStoreBf(int Len) { return GetFreeMem() >= Len + (int)sizeof(TPgBlobPageItem); }
 	};
 
 	/// File name

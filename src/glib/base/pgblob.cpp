@@ -148,7 +148,7 @@ int TPgBlobFile::SavePage(const uint32& Page, const void* Bf, int Len) {
 	SetFPos(Page * PAGE_SIZE);
 	Len = (Len <= 0 ? PAGE_SIZE : Len);
 	EAssertR(
-		(Access != TFAccess::faRdOnly) && fwrite(Bf, 1, Len, FileId) == Len,
+		(Access != TFAccess::faRdOnly) && (int)fwrite(Bf, 1, Len, FileId) == Len,
 		"Error writing file '" + TStr(FNm) + "'.");
 	return 0;
 }
@@ -168,7 +168,7 @@ void TPgBlobFile::SetFPos(const int& FPos) {
 }
 
 /// Reserve new space in the file. Returns -1 if file is full.
-uint32 TPgBlobFile::CreateNewPage() {
+long TPgBlobFile::CreateNewPage() {
 	EAssertR(
 		(Access != TFAccess::faRdOnly) && (fseek(FileId, 0, SEEK_END) == 0),
 		"Error seeking into file '" + TStr(FNm) + "'.");
@@ -181,20 +181,20 @@ uint32 TPgBlobFile::CreateNewPage() {
 	EAssertR(
 		fwrite(&tc, 1, PAGE_SIZE, FileId) == PAGE_SIZE,
 		"Error writing file '" + TStr(FNm) + "'.");
-	return (uint32)(len / PAGE_SIZE);
+	return len / PAGE_SIZE;
 }
 
 ///////////////////////////////////////////////////////////////////////////
 
 /// Add given buffer to page, to existing item that has length 0
 void TPgBlob::ChangeItem(
-	// TODO locks?
 	char* Pg, uint16 ItemIndex, const char* Bf, const int BfL) {
 
-	TPgHeader* Header = (TPgHeader*)Pg;
-	EAssert(BfL + sizeof(TPgBlobPageItem) <= Header->GetFreeMem());
+	// TODO locks?
 
-	uint16 res = Header->ItemCount;
+	TPgHeader* Header = (TPgHeader*)Pg;
+	EAssert(BfL + (int)sizeof(TPgBlobPageItem) <= Header->GetFreeMem());
+
 	TPgBlobPageItem* NewItem = GetItemRec(Pg, ItemIndex);
 	EAssert(NewItem->Len == 0);
 	NewItem->Len = BfL;
@@ -449,7 +449,7 @@ char* TPgBlob::LoadPage(const TPgBlobPgPt& Pt, const bool& LoadData) {
 		MoveToStartLru(Pg);
 		return GetPageBf(Pg);
 	}
-	if (LoadedPages.Len() == MxLoadedPages) {
+	if ((uint64)LoadedPages.Len() == MxLoadedPages) {
 		// evict last page + load new page
 		Pg = Evict();
 		LoadedPage& a = LoadedPages[Pg];
@@ -458,8 +458,7 @@ char* TPgBlob::LoadPage(const TPgBlobPgPt& Pt, const bool& LoadData) {
 		}
 		a.Pt = Pt;
 		EnlistToStartLru(Pg);
-		int hid = LoadedPagesH.AddKey(Pt);
-		LoadedPagesH(Pt) = Pg;
+		LoadedPagesH.AddDat(Pt, Pg);
 	} else {
 		// simply load the page
 		LastExtentCnt++;
@@ -475,8 +474,7 @@ char* TPgBlob::LoadPage(const TPgBlobPgPt& Pt, const bool& LoadData) {
 		}
 		a.Pt = Pt;
 		EnlistToStartLru(Pg);
-		int hid = LoadedPagesH.AddKey(Pt);
-		LoadedPagesH[hid] = Pg;
+		LoadedPagesH.AddDat(Pt, Pg);
 	}
 	char* PgPt = GetPageBf(Pg);
 	((TPgHeader*)PgPt)->SetDirty(false);
@@ -488,9 +486,9 @@ void TPgBlob::CreateNewPage(TPgBlobPgPt& Pt, char** Bf) {
 	// determine if last file is empty
 	if (Files.Len() > 0) {
 		// try to add to last file
-		uint32 Pg = Files.Last()->CreateNewPage();
+		long Pg = Files.Last()->CreateNewPage();
 		if (Pg >= 0) {
-			Pt.Set(Files.Len() - 1, Pg);
+			Pt.Set(Files.Len() - 1, (uint32)Pg);
 			*Bf = LoadPage(Pt, false);
 			InitPageP(*Bf);
 			return;
@@ -498,9 +496,9 @@ void TPgBlob::CreateNewPage(TPgBlobPgPt& Pt, char** Bf) {
 	}
 	TStr NewFNm = FNm + ".bin" + TStr::GetNrNumFExt(Files.Len());
 	Files.Add(TPgBlobFile::New(NewFNm, TFAccess::faCreate, TInt::Giga));
-	uint32 Pg = Files.Last()->CreateNewPage();
+	long Pg = Files.Last()->CreateNewPage();
 	EAssert(Pg >= 0);
-	Pt.Set(Files.Len() - 1, Pg);
+	Pt.Set(Files.Len() - 1, (uint32)Pg);
 	*Bf = LoadPage(Pt, false);
 	InitPageP(*Bf);
 }
@@ -802,6 +800,7 @@ void TBinTreeMaxVals::Change(const int& RecN, const uint16& Val) {
 	}
 }
 
+#ifdef XTEST
 /// For debugging purposes
 void TBinTreeMaxVals::Print() {
 	printf("------------------------\n");
@@ -812,3 +811,4 @@ void TBinTreeMaxVals::Print() {
 		printf("\n");
 	}
 }
+#endif
