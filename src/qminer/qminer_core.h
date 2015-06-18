@@ -777,7 +777,7 @@ public:
 	/// Store value into internal storage using TOAST method
 	virtual TPgBlobPt ToastVal(const TMemBase& Mem) { Fail; return TPgBlobPt(); }
 	/// Retrieve value that is saved using TOAST method from storage 
-	virtual TMemBase UnToastVal(const TPgBlobPt& Pt) { Fail; return TMemBase(); }
+	virtual void UnToastVal(const TPgBlobPt& Pt, TMem& Mem) { Fail; }
 };
 
 ///////////////////////////////
