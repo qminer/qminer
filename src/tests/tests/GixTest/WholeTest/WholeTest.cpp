@@ -2090,8 +2090,8 @@ TEST(testTStorePbBlob, PerfCompare_StrAddUpdateToast2) {
 		TPt<TQm::TBase> Base = TQm::TStorage::NewBase(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
 		auto store = Base->GetStoreByStoreNm("TestStore2");
 		for (int i = 0; i < rec_count; i++) {
-			if (i % 1000 == 0) 
-				printf("    %d\r", i);
+			if (i % 1000 == 0 || i > 524000) 
+				printf("    %d\n", i);
 			json_str1->PutStr(TStr::Fmt("Stored value %d", i));
 			json_str2->PutStr(Str2);
 			json_str3->PutStr(Str3);
