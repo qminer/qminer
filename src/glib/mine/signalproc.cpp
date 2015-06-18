@@ -87,9 +87,9 @@ void TMin::Update(const double& InVal, const uint64& InTmMSecs,
 
 	if (!OutTmMSecsV.Empty()) {
 		// find maximum timestamp of outgoing measurements
-		uint64 MaxOutTm = OutTmMSecsV[0];
+		uint64 MaxOutTm = OutTmMSecsV.Last();
 
-		while (AllValV[0].Val2 < MaxOutTm) {
+		while (AllValV[0].Val2 <= MaxOutTm) {
 			// pop front
 			AllValV.Del(0);
 		}

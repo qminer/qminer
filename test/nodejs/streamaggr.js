@@ -1151,7 +1151,7 @@ describe.only('MovingWindowBufferMin Tests', function () {
             var min = store.addStreamAggr(aggr);
             assert.notEqual(min.getFloat(), 0);
         })
-        it.skip('should return the minimal value in the buffer, that are still in the window', function () {
+        it('should return the minimal value in the buffer, that are still in the window', function () {
             var aggr = {
                 name: 'MinAggr',
                 type: 'winBufMin',
@@ -1165,10 +1165,6 @@ describe.only('MovingWindowBufferMin Tests', function () {
             store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
             store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
 
-            // the getFloat doesn't detect that some records have been outputed
-            // I think that the problem is in the Update function of TSignalProc::TMin
-            // in the signalproc.h or rather in the definition of the function in 
-            // signalproc.cpp
             assert.equal(min.getFloat(), 4);
         })
     });
@@ -1221,5 +1217,17 @@ describe.only('MovingWindowBufferMin Tests', function () {
             var min = store.addStreamAggr(aggr);
             assert.equal(min.name, 'MinAggr');
         })
-    })
-})
+        it('should return the JSON object of the aggregator', function () {
+            var aggr = {
+                name: 'MinAggr',
+                type: 'winBufMin',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var min = store.addStreamAggr(aggr);
+            assert.equal(min.val.Time, '1601-01-01T00:00:00.0');
+            assert.notEqual(min.val.Val, 0);
+        })
+    });
+});
+
