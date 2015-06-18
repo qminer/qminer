@@ -1966,7 +1966,7 @@ TEST(testTStorePbBlob, ToastTest1) {
 	TStr dir = "data\\";
 
 	TUnicodeDef::Load(unicode_file);
-	int rec_count = 1;
+	int rec_count = 10000;
 
 	TStr definition = TStr::LoadTxt(def_file);
 	PJsonVal SchemaVal = TJsonVal::GetValFromStr(definition);
@@ -2021,4 +2021,103 @@ TEST(testTStorePbBlob, ToastTest1) {
 	}
 }
 
+TEST(testTStorePbBlob, PerfCompare_StrAddUpdateToast2) {
+	TStr def_file = ".\\pgblob_test_str2.def";
+	TQm::TEnv::Init();
+	TStr unicode_file = "..\\..\\..\\..\\..\\src\\glib\\bin\\UnicodeDef.Bin";
+	TStr dir = "data\\";
 
+	// init unicode
+	TTmStopWatch sw(false);
+	TUnicodeDef::Load(unicode_file);
+	int loops = 100;
+	int rec_count = 3 * 1000 * 1000;
+	int del_per_loop = rec_count / loops;
+	TStr definition = TStr::LoadTxt(def_file);
+	PJsonVal SchemaVal = TJsonVal::GetValFromStr(definition);
+	TStr s = "{ \"FieldString1\" : \"xxx\", \"FieldString2\" : \"xxx\", \"FieldString3\" : \"xxx\", \"FieldString4\" : \"xxx\", \"FieldString5\" : \"xxx\", \"FieldBool\" : true}";
+	PJsonVal json = TJsonVal::GetValFromStr(s);
+	PJsonVal json_str1 = json->GetObjKey("FieldString1");
+	PJsonVal json_str2 = json->GetObjKey("FieldString2");
+	PJsonVal json_str3 = json->GetObjKey("FieldString3");
+	PJsonVal json_str4 = json->GetObjKey("FieldString4");
+	PJsonVal json_str5 = json->GetObjKey("FieldString5");
+	PJsonVal json_bool = json->GetObjKey("FieldBool");
+
+	TStr Str1 = definition + " " + definition + " " + definition;
+	TStr Str2 = Str1 + " ####$#";
+	TStr Str3 = Str1 + "****" + Str2;
+
+	/*printf("Starting performance comparison - insert and update\n");
+	{
+		printf("Starting - old implementation - insert and update\n");
+
+		TPt<TQm::TBase> Base = TQm::TStorage::NewBase(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo, false);
+		TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore2");
+		for (int i = 0; i < rec_count; i++) {
+			if (i % 10000 == 0) printf("    %d\r", i);
+			json_str1->PutStr(TStr::Fmt("Stored value %d", i));
+			json_str2->PutStr(Str2);
+			json_str3->PutStr(Str3);
+			json_str4->PutStr(TStr::Fmt("c%d", i % 7));
+			json_str5->PutStr(TStr::Fmt("d%d", i % 4));
+			json_bool->PutBool(i % 7 == 3);
+			store->AddRec(json);
+		}
+
+		TQm::TStorage::SaveBase(Base);
+	}
+	{
+		TPt<TQm::TBase> Base = TQm::TStorage::LoadBase(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+		TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore2");
+		
+		sw.Reset(true);
+		
+		auto field_id_str3 = store->GetFieldId("FieldString3");
+		auto rs = store->GetAllRecs();
+		for (int i = 0; i < rs->GetRecs(); i++) {
+			if (i % 10000 == 0) printf("    %d\r", i);
+			EXPECT_EQ(rs->GetRec(i).GetFieldStr(field_id_str3), Str3);
+			rs->GetRec(i).SetFieldStr(field_id_str3, Str3 + "--");
+		}
+		sw.Stop();
+		printf("++++ update long (toast): %d\n\n", sw.GetMSecInt());
+		TQm::TStorage::SaveBase(Base);
+	}*/
+
+	{
+		printf("Starting - new implementation - insert and update\n");
+		TPt<TQm::TBase> Base = TQm::TStorage::NewBase(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+		auto store = Base->GetStoreByStoreNm("TestStore2");
+		for (int i = 0; i < rec_count; i++) {
+			if (i % 1000 == 0) 
+				printf("    %d\r", i);
+			json_str1->PutStr(TStr::Fmt("Stored value %d", i));
+			json_str2->PutStr(Str2);
+			json_str3->PutStr(Str3);
+			json_str4->PutStr(TStr::Fmt("c%d", i % 7));
+			json_str5->PutStr(TStr::Fmt("d%d", i % 4));
+			json_bool->PutBool(i % 7 == 3);
+			store->AddRec(json);
+		}
+		printf("Starting save...\n");
+		TQm::TStorage::SaveBase(Base);
+	}
+	{
+		printf("Starting update...\n");
+		TPt<TQm::TBase> Base = TQm::TStorage::LoadBase(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+		auto store = Base->GetStoreByStoreNm("TestStore2");
+		auto field_id_str3 = store->GetFieldId("FieldString3");
+		auto rs = store->GetAllRecs();
+		sw.Reset(true);
+
+		for (int i = 0; i < rs->GetRecs(); i++) {
+			if (i % 10000 == 0) printf("    %d\r", i);
+			EXPECT_EQ(rs->GetRec(i).GetFieldStr(field_id_str3), Str3);
+			rs->GetRec(i).SetFieldStr(field_id_str3, Str3 + "--");
+		}
+		sw.Stop();
+		printf("++++ update long (toast): %d\n\n", sw.GetMSecInt());
+		TQm::TStorage::SaveBase(Base);
+	}	
+}

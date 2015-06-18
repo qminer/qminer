@@ -318,9 +318,9 @@ private:
 	};
 
 	/// Flag if field is not TOAST-ed
-	const char ToastNo = 'n';
+	static const char ToastNo = 'n';
 	/// Flag if field is TOAST-ed
-	const char ToastYes = 'y';
+	static const char ToastYes = 'y';
 private: 
 	/// Only store fields with this storage flag
 	TStoreLoc TargetStorage;
@@ -453,6 +453,8 @@ private:
 
 	/// Check this temporary buffer if it must be TOAST-ed
 	void CheckToast(TMOut& SOut, const int& Offset);
+	/// Check if given field value is currently TOAST-ed and delete it
+	void CheckToastDel(const TMemBase& InRecMem, const TFieldSerialDesc& FieldSerialDesc);
 public:
 	TRecSerializator(const TWPt<TStore>& _Store) { Store = _Store; }
 	/// Initialize object from store schema
@@ -557,33 +559,33 @@ public:
 	void SetFieldTmMSecs(char* Bf, const int& BfL, const int& FieldId, const uint64& TmMSecs);
 	
 	/// Field setter
-	void SetFieldNull(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId);
+	void SetFieldNull(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId);
 	/// Field setter
-	void SetFieldInt(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const int& Int);
+	void SetFieldInt(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const int& Int);
 	/// Field setter
-	void SetFieldIntV(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const TIntV& IntV);
+	void SetFieldIntV(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const TIntV& IntV);
 	/// Field setter
-	void SetFieldUInt64(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const uint64& UInt64);
+	void SetFieldUInt64(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const uint64& UInt64);
 	/// Field setter
 	void SetFieldStr(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const TStr& Str);
 	/// Field setter
-	void SetFieldStrV(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const TStrV& StrV);
+	void SetFieldStrV(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const TStrV& StrV);
 	/// Field setter
-	void SetFieldBool(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const bool& Bool);
+	void SetFieldBool(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const bool& Bool);
 	/// Field setter
-	void SetFieldFlt(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const double& Flt);
+	void SetFieldFlt(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const double& Flt);
 	/// Field setter
-	void SetFieldFltPr(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const TFltPr& FltPr);
+	void SetFieldFltPr(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const TFltPr& FltPr);
 	/// Field setter
-	void SetFieldFltV(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const TFltV& FltV);
+	void SetFieldFltV(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const TFltV& FltV);
 	/// Field setter
-	void SetFieldTm(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const TTm& Tm);
+	void SetFieldTm(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const TTm& Tm);
 	/// Field setter
-	void SetFieldTmMSecs(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const uint64& TmMSecs);
+	void SetFieldTmMSecs(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const uint64& TmMSecs);
 	/// Field setter
-	void SetFieldNumSpV(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const TIntFltKdV& SpV);
+	void SetFieldNumSpV(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const TIntFltKdV& SpV);
 	/// Field setter
-	void SetFieldBowSpV(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const PBowSpV& SpV);    
+	void SetFieldBowSpV(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const PBowSpV& SpV);
 };
 
 ///////////////////////////////
