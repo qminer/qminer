@@ -777,7 +777,7 @@ void TRecSerializator::SetFieldUInt64(TMemBase& RecMem,
 	SetFieldUInt64(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, UInt64);
 }
 
-void TRecSerializator::SetFieldStr(TMem& RecMem,
+void TRecSerializator::SetFieldStr(TMemBase& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const TStr& Str) {
 	SetFieldStr(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Str);
 }
@@ -1355,6 +1355,19 @@ void TRecSerializator::SerializeUpdate(const PJsonVal& RecVal, const TMemBase& I
 			}
 		} else {
 			// new value, must update
+			//if (UseToast && !FieldSerialDesc.FixedPartP) {
+			//	if (!IsFieldNull(InRecMem, FieldSerialDesc.FieldId)) {
+			//		// remove toast
+			//		char* Bf = GetLocationVar(InRecMem, FieldSerialDesc);
+			//		char c = *Bf;
+			//		if (c == ToastYes) {
+			//			Bf++;
+			//			TPgBlobPt Pt;
+			//			Pt = *((TPgBlobPt*)Bf);
+			//			Store->DelToastVal(Pt);
+			//		}
+			//	}
+			//}
 			PJsonVal JsonVal = RecVal->GetObjKey(FieldName);
 			if (JsonVal->IsNull()) {
 				// we are setting field explicitly to null
@@ -1734,14 +1747,14 @@ void TRecSerializator::SetFieldUInt64(const TMem& InRecMem,
 	SetFieldUInt64(OutRecMem, FieldSerialDesc, UInt64);
 }
 
-void TRecSerializator::SetFieldStr(const TMem& InRecMem,
+void TRecSerializator::SetFieldStr(const TMemBase& InRecMem,
 		TMem& OutRecMem, const int& FieldId, const TStr& Str) {
 
 	// different handling for codebook strings and normal strings
 	const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
 	if (FieldSerialDesc.FixedPartP) {
 		// copy existing serialization
-		OutRecMem = InRecMem;
+		OutRecMem.Copy(InRecMem);
 		// remove null flag, just in case
 		SetFieldNull(OutRecMem, FieldSerialDesc, false);
 		// update value
@@ -1753,6 +1766,19 @@ void TRecSerializator::SetFieldStr(const TMem& InRecMem,
 		for (int FieldSerialDescId = 0; FieldSerialDescId < FieldSerialDescV.Len(); FieldSerialDescId++) {
 			const TFieldSerialDesc& FieldSerialDesc = FieldSerialDescV[FieldSerialDescId];
 			if (FieldSerialDesc.FieldId == FieldId) {
+				if (UseToast && !FieldSerialDesc.FixedPartP) {
+					if (!IsFieldNull(InRecMem, FieldSerialDesc.FieldId)) {
+						// remove toast
+						char* Bf = GetLocationVar(InRecMem, FieldSerialDesc);
+						char c = *Bf;
+						if (c == ToastYes) {
+							Bf++;
+							TPgBlobPt Pt;
+							Pt = *((TPgBlobPt*)Bf);
+							Store->DelToastVal(Pt);
+						}
+					}
+				}
 				// remove null flag, just in case
 				SetFieldNull(FixedMem, FieldSerialDesc, false);
 				// serialize to record buffer

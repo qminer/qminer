@@ -318,9 +318,9 @@ private:
 	};
 
 	/// Flag if field is not TOAST-ed
-	const char ToastNo = 0;
+	const char ToastNo = 'n';
 	/// Flag if field is TOAST-ed
-	const char ToastYes = 1;
+	const char ToastYes = 'y';
 private: 
 	/// Only store fields with this storage flag
 	TStoreLoc TargetStorage;
@@ -393,7 +393,7 @@ private:
 	/// Fixed-length field setter
 	void SetFieldUInt64(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64);
 	/// Fixed-length field setter
-	void SetFieldStr(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TStr& Str);
+	void SetFieldStr(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TStr& Str);
 	/// Fixed-length field setter
 	void SetFieldBool(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const bool& Bool);
 	/// Fixed-length field setter
@@ -565,7 +565,7 @@ public:
 	/// Field setter
 	void SetFieldUInt64(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const uint64& UInt64);
 	/// Field setter
-	void SetFieldStr(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const TStr& Str);
+	void SetFieldStr(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const TStr& Str);
 	/// Field setter
 	void SetFieldStrV(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const TStrV& StrV);
 	/// Field setter

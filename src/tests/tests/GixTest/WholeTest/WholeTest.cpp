@@ -1966,7 +1966,7 @@ TEST(testTStorePbBlob, ToastTest1) {
 	TStr dir = "data\\";
 
 	TUnicodeDef::Load(unicode_file);
-	int rec_count = 100;
+	int rec_count = 1;
 
 	TStr definition = TStr::LoadTxt(def_file);
 	PJsonVal SchemaVal = TJsonVal::GetValFromStr(definition);
@@ -1980,14 +1980,17 @@ TEST(testTStorePbBlob, ToastTest1) {
 	PJsonVal json_str5 = json->GetObjKey("FieldString5");
 	PJsonVal json_bool = json->GetObjKey("FieldBool");
 
+	TStr Str1 = definition + " " + definition + " " + definition;
+	TStr Str2 = Str1 + " ####$#";
+	TStr Str3 = Str1 + "****" + Str2;
 	{
 		printf("Starting - new implementation - insert and delete\n");
 		TPt<TQm::TBase> Base = TQm::TStorage::NewBase(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
 		auto store = Base->GetStoreByStoreNm("TestStore2");
 		for (int i = 0; i < rec_count; i++) {
 			json_str1->PutStr(TStr::Fmt("Stored value %d", i));
-			json_str2->PutStr(definition + " " + definition);
-			json_str3->PutStr(definition + " " + definition + " " + definition);
+			json_str2->PutStr(Str2);
+			json_str3->PutStr(Str3);
 			json_str4->PutStr(TStr::Fmt("c%d", definition.Len() - 1));
 			json_str5->PutStr(TStr::Fmt("d%d", definition.Len() - 1));
 			json_bool->PutBool(i % 7 == 3);
@@ -1995,14 +1998,24 @@ TEST(testTStorePbBlob, ToastTest1) {
 		}
 		TQm::TStorage::SaveBase(Base);
 	}
-	TUInt64V rec_ids;
 	{
 		TPt<TQm::TBase> Base = TQm::TStorage::LoadBase(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
 		auto store = Base->GetStoreByStoreNm("TestStore2");
 		auto field_id_str3 = store->GetFieldId("FieldString3");
 		auto rs = store->GetAllRecs();
 		for (int i = 0; i < rs->GetRecs(); i++) {
-			EXPECT_EQ(rs->GetRec(i).GetFieldStr(field_id_str3), definition + " " + definition + " " + definition);
+			EXPECT_EQ(rs->GetRec(i).GetFieldStr(field_id_str3), Str3);
+			rs->GetRec(i).SetFieldStr(field_id_str3, Str3 + "--");
+		}
+		TQm::TStorage::SaveBase(Base);
+	}
+	{
+		TPt<TQm::TBase> Base = TQm::TStorage::LoadBase(dir, TFAccess::faUpdate, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
+		auto store = Base->GetStoreByStoreNm("TestStore2");
+		auto field_id_str3 = store->GetFieldId("FieldString3");
+		auto rs = store->GetAllRecs();
+		for (int i = 0; i < rs->GetRecs(); i++) {
+			EXPECT_EQ(rs->GetRec(i).GetFieldStr(field_id_str3), Str3 + "--");
 		}
 		TQm::TStorage::SaveBase(Base);
 	}
