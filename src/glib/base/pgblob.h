@@ -463,6 +463,9 @@ public:
 	/// Retrieve statistics for this object
 	PJsonVal GetStats();
 
+	/// Returns maximal BLOB length that can be stored in single page
+	int GetMxBlobLen() const { return PAGE_SIZE - sizeof(TPgHeader) - sizeof(TPgBlobPageItem); }
+
 #ifdef XTEST
 	friend class XTest;
 #endif

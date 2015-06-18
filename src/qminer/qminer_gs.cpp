@@ -973,7 +973,7 @@ void TRecSerializator::CheckToast(TMOut& SOut, const int& Offset) {
 
 	// ok, perform TOAST-ing	
 	// Store serialized data into store
-	TMemBase mb(SOut.GetBfAddr() + Offset, SOut.Len() - Offset, false);
+	TMemBase mb(SOut.GetBfAddr() + Offset + 1, SOut.Len() - Offset - 1, false);
 	TPgBlobPt Pt = Store->ToastVal(mb);
 	// rewind SOut back to Offset
 	SOut.Seek(Offset);
@@ -1401,8 +1401,9 @@ void TRecSerializator::GetFieldIntV(TThinMIn& min, const int& FieldId, TIntV& In
 	if (UseToast && min.GetCh() == ToastYes) {
 		TPgBlobPt Pt;
 		min.GetBf(&Pt, sizeof(TPgBlobPt));
-		TMemBase mb = std::move(Store->UnToastVal(Pt));
-		TThinMIn min2(mb);
+		TMem Mem;
+		Store->UnToastVal(Pt, Mem);
+		TThinMIn min2(Mem);
 		IntV.Load(min2);
 	} else {
 		IntV.Load(min);
@@ -1428,8 +1429,9 @@ TStr TRecSerializator::GetFieldStr(TThinMIn& min, const int& FieldId) const {
 		if (UseToast && min.GetCh() == ToastYes) {
 			TPgBlobPt Pt;
 			min.GetBf(&Pt, sizeof(TPgBlobPt));
-			TMemBase mb = std::move(Store->UnToastVal(Pt));
-			TThinMIn min2(mb);
+			TMem Mem;
+			Store->UnToastVal(Pt, Mem);
+			TThinMIn min2(Mem);
 			TStr Str;
 			Str.Load(min2, FieldSerialDesc.SmallStringP);
 			return Str;
@@ -1449,8 +1451,9 @@ void TRecSerializator::GetFieldStrV(TThinMIn& min, const int& FieldId, TStrV& St
 	if (UseToast && min.GetCh() == ToastYes) {
 		TPgBlobPt Pt;
 		min.GetBf(&Pt, sizeof(TPgBlobPt));
-		TMemBase mb = std::move(Store->UnToastVal(Pt));
-		TThinMIn min2(mb);
+		TMem Mem;
+		Store->UnToastVal(Pt, Mem);
+		TThinMIn min2(Mem);
 		StrV.Load(min2);
 	} else {
 		StrV.Load(min);
@@ -1478,8 +1481,9 @@ void TRecSerializator::GetFieldFltV(TThinMIn& min, const int& FieldId, TFltV& Fl
 	if (UseToast && min.GetCh() == ToastYes) {
 		TPgBlobPt Pt;
 		min.GetBf(&Pt, sizeof(TPgBlobPt));
-		TMemBase mb = std::move(Store->UnToastVal(Pt));
-		TThinMIn min2(mb);
+		TMem Mem;
+		Store->UnToastVal(Pt, Mem);
+		TThinMIn min2(Mem);
 		FltV.Load(min2);
 	} else {
 		FltV.Load(min);
@@ -1501,8 +1505,9 @@ void TRecSerializator::GetFieldNumSpV(TThinMIn& min, const int& FieldId, TIntFlt
 	if (UseToast && min.GetCh() == ToastYes) {
 		TPgBlobPt Pt;
 		min.GetBf(&Pt, sizeof(TPgBlobPt));
-		TMemBase mb = std::move(Store->UnToastVal(Pt));
-		TThinMIn min2(mb);
+		TMem Mem;
+		Store->UnToastVal(Pt, Mem);
+		TThinMIn min2(Mem);
 		SpV.Load(min2);
 	} else {
 		SpV.Load(min);
@@ -1515,8 +1520,9 @@ void TRecSerializator::GetFieldBowSpV(TThinMIn& min, const int& FieldId, PBowSpV
 	if (UseToast && min.GetCh() == ToastYes) {
 		TPgBlobPt Pt;
 		min.GetBf(&Pt, sizeof(TPgBlobPt));
-		TMemBase mb = std::move(Store->UnToastVal(Pt));
-		TThinMIn min2(mb);
+		TMem Mem;
+		Store->UnToastVal(Pt, Mem);
+		TThinMIn min2(Mem);
 		TBowSpV::Load(min2);
 	} else {
 		TBowSpV::Load(min);

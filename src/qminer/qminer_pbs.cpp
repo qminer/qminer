@@ -1138,6 +1138,33 @@ namespace TStorage {
 		}
 	}
 
+	/// Store value into internal storage using TOAST method
+	TPgBlobPt TStorePbBlob::ToastVal(const TMemBase& Mem) { 
+		TVec<TPgBlobPt> Pts;
+		int BlockLen = DataBlob->GetMxBlobLen();
+		int curr_index = 0;		
+		while (curr_index < Mem.Len()) {
+			int curr_len = MIN(BlockLen, Mem.Len() - curr_index);
+			TPgBlobPt PtTmp = DataBlob->Put(Mem.GetBf() + curr_index, curr_len);
+			Pts.Add(PtTmp);
+			curr_index += curr_len;
+		}
+		TMOut SOut;
+		Pts.Save(SOut);
+		return DataBlob->Put(SOut.GetBfAddr(), SOut.Len());
+	}
+
+	/// Retrieve value that is saved using TOAST method from storage 
+	void TStorePbBlob::UnToastVal(const TPgBlobPt& Pt, TMem& Mem) {
+		TVec<TPgBlobPt> Pts;
+		Pts.Load(DataBlob->Get(Pt));
+		Mem.Clr();
+		for (int i = 0; i < Pts.Len(); i++) {
+			TMemBase MemTmp = DataBlob->GetMemBase(Pts[i]);
+			Mem.AddBf(MemTmp.GetBf(), MemTmp.Len());
+		}
+	}
+
 	///////////////////////////////
 	/// Create new stores in an existing base from a schema definition
 	TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal,

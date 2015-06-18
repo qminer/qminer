@@ -171,8 +171,6 @@ namespace TStorage {
 		void DeleteFirstNRecs(int Recs);
 		void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true);
 
-		// TODO support for TOAST
-
 		/// Check if the value of given field for a given record is NULL
 		bool IsFieldNull(const uint64& RecId, const int& FieldId) const;
 		/// Get field value using field id (default implementation throws exception)
@@ -233,12 +231,20 @@ namespace TStorage {
 
 		/// Helper function for returning JSon definition of store
 		PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
-
-
+		
 		/// Save part of the data, given time-window
 		int PartialFlush(int WndInMsec = 500);
 		/// Retrieve performance statistics for this store
 		PJsonVal GetStats();
+
+		/// Check if store supports TOAST
+		virtual bool CanToast() { return true; }
+		/// Return max size of non-TOAST-ed record
+		virtual int GetMaxToastLen() { return PAGE_SIZE / 4; }
+		/// Store value into internal storage using TOAST method
+		virtual TPgBlobPt ToastVal(const TMemBase& Mem);
+		/// Retrieve value that is saved using TOAST method from storage 
+		virtual void UnToastVal(const TPgBlobPt& Pt, TMem& Mem);
 	};
 
 	///////////////////////////////
