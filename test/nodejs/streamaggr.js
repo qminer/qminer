@@ -1399,3 +1399,111 @@ describe('MovingWindowBufferMax Tests', function () {
         })
     });
 });
+
+describe.only('MovingAverage Tests', function () {
+    var base = undefined;
+    var store = undefined;
+    var sa = undefined;
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'Function',
+                fields: [
+                    { name: 'Time', type: 'datetime' },
+                    { name: 'Value', type: 'float' }
+                ]
+            }]
+        });
+        store = base.store('Function');
+
+        var aggr = {
+            name: 'TimeSeriesWindowAggr',
+            type: 'timeSeriesWinBuf',
+            store: 'Function',
+            timestamp: 'Time',
+            value: 'Value',
+            winsize: 2000
+        }
+        sa = store.addStreamAggr(aggr);
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    describe('Constructor Tests', function () {
+        it('should construct the moving average aggregator', function () {
+            var aggr = {
+                name: 'AverageAggr',
+                type: 'ma',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var ma = store.addStreamAggr(aggr);
+            assert.equal(ma.saveJson().Val, 0);
+            assert.equal(ma.saveJson().Time, '1601-01-01T00:00:00.0');
+        })
+        // unexpected node crash
+        it.skip('should throw an exception if some key values are missing', function () {
+            var aggr = {
+                name: 'AverageAggr',
+                type: 'ma',
+                store: 'Function',
+            };
+            assert.throws(function () {
+                var ma = store.addStreamAggr(aggr);
+            })
+        })
+    });
+    describe('GetFloat Tests', function () {
+        it('should get the average of the only record in buffer (which is the same as the value)', function () {
+            var aggr = {
+                name: 'AverageAggr',
+                type: 'ma',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var ma = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            assert.equal(ma.getFloat(), 1);
+        })
+        it('should get the average of the record values in the buffer', function () {
+            var aggr = {
+                name: 'AverageAggr',
+                type: 'ma',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var ma = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            assert.equal(ma.getFloat(), 2);
+        })
+        it('should get the average of the record values, that are still in the window buffer', function () {
+            var aggr = {
+                name: 'AverageAggr',
+                type: 'ma',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var ma = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            assert.equal(ma.getFloat(), 4.5);
+        })
+        it('should return 0 if there are no records in the buffer', function () {
+            var aggr = {
+                name: 'AverageAggr',
+                type: 'ma',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var ma = store.addStreamAggr(aggr);
+            assert.equal(ma.getFloat(), 0);
+        })
+    });
+})
