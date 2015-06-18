@@ -274,7 +274,7 @@ public:
 
 	//!- `objJSON = sa.val` -- same as sa.saveJson(-1)
 	/**
-	* Returns a JSON object of the stream aggregate. Same as the method saveJson.
+	* Returns the JSON object of the stream aggregate. Same as the method saveJson.
 	*/
 	//# exports.StreamAggr.prototype.val = undefined;
 	JsDeclareProperty(val);
