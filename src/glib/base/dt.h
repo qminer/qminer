@@ -115,6 +115,13 @@ public:
 	int Len() const { return BfL; }
 	bool Empty() const { return BfL == 0; }
 	char* GetBf() const { return Bf; }
+	void Copy(const TMemBase& Mem) {
+		if (this != &Mem) {
+			if (Owner && Bf != NULL) { delete[] Bf; }
+			MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL; Owner = (MxBfL > 0);
+			if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL); }
+		}
+	}
 	TMemBase& operator=(TMemBase&& Src) {
 		if (this != &Src) {
 			if (Owner && Bf != NULL) { delete[] Bf; }
@@ -124,12 +131,7 @@ public:
 		return *this;
 	}
 	TMemBase& operator=(const TMemBase& Mem) {
-		if (this != &Mem) {
-			if (Owner && Bf != NULL) { delete[] Bf; }
-			MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL; Owner = (MxBfL > 0);
-			if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL); }
-		}
-		return *this;
+		Copy(Mem); return *this;
 	}
 };
 

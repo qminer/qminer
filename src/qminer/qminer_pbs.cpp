@@ -481,13 +481,19 @@ namespace TStorage {
 	void TStorePbBlob::SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str) {
 		if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
 			TPgBlobPt& PgPt = RecIdBlobPtH.GetDat(RecId);
-			TThinMIn min = DataBlob->Get(PgPt);
-			SerializatorCache->SetFieldStr(min.GetBfAddrChar(), min.Len(), FieldId, Str);
+			//TThinMIn min = DataBlob->Get(PgPt);
+			TMemBase mem_in = DataBlob->GetMemBase(PgPt);
+			//TMem mem_in(min);
+			TMem mem_out;
+			SerializatorCache->SetFieldStr(mem_in, mem_out, FieldId, Str);
 			DataBlob->SetDirty(PgPt);
 		} else {
 			TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
+			//TThinMIn min = DataMem->Get(PgPt);
 			TThinMIn min = DataMem->Get(PgPt);
-			SerializatorMem->SetFieldStr(min.GetBfAddrChar(), min.Len(), FieldId, Str);
+			TMem mem_in(min);
+			TMem mem_out;
+			SerializatorMem->SetFieldStr(mem_in, mem_out, FieldId, Str);
 			DataMem->SetDirty(PgPt);
 			//TMem Rec;
 			//DataMem.GetVal(RecId, Rec);
@@ -1163,6 +1169,16 @@ namespace TStorage {
 			TMemBase MemTmp = DataBlob->GetMemBase(Pts[i]);
 			Mem.AddBf(MemTmp.GetBf(), MemTmp.Len());
 		}
+	}
+
+	/// Delete TOAST-ed value from storage 
+	void TStorePbBlob::DelToastVal(const TPgBlobPt& Pt) {
+		TVec<TPgBlobPt> Pts;
+		Pts.Load(DataBlob->Get(Pt));
+		for (int i = 0; i < Pts.Len(); i++) {
+			DataBlob->Del(Pts[i]);
+		}
+		DataBlob->Del(Pt);
 	}
 
 	///////////////////////////////

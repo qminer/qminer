@@ -778,6 +778,8 @@ public:
 	virtual TPgBlobPt ToastVal(const TMemBase& Mem) { Fail; return TPgBlobPt(); }
 	/// Retrieve value that is saved using TOAST method from storage 
 	virtual void UnToastVal(const TPgBlobPt& Pt, TMem& Mem) { Fail; }
+	/// Delete TOAST-ed value from storage 
+	virtual void DelToastVal(const TPgBlobPt& Pt) { Fail; }
 };
 
 ///////////////////////////////
