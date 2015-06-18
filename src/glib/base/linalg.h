@@ -11,28 +11,28 @@
 ///////////////////////////////////////////////////////////////////////
 // Blas Support
 #ifdef BLAS
-#ifdef AMD
-#include "acml.h"
-#elif INTEL 
-#define MKL_Complex8 std::complex<float>
-#define MKL_Complex16 std::complex<double>
-#undef small
-#include "mkl.h"
-//#include "mkl_scalapack.h"
-#else
-#define LAPACK_COMPLEX_CPP
-#include "cblas.h"
-#ifdef LAPACKE
-#include "lapacke.h"
+	#define MKL_Complex8 std::complex<float>
+	#define MKL_Complex16 std::complex<double>
+	#ifdef AMD
+		#include "acml.h"
+	#elif INTEL 
+		#undef small
+		#include "mkl.h"
+	//#include "mkl_scalapack.h"
+	#else
+		#define LAPACK_COMPLEX_CPP
+		#include "cblas.h"
+		#ifdef LAPACKE
+			#include "lapacke.h"
+		#endif
+	#endif
 #endif
-#endif
-#endif
-
+#include "base.h"
 //==========================================================
 // TODO remove
-#ifdef BLAS
-#include "lapacke.h"
-#endif
+//#ifdef BLAS
+//#include "lapacke.h"
+//#endif
 //==========================================================
 
 namespace TypeCheck{

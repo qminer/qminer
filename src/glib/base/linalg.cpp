@@ -688,7 +688,7 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
 
     // build an initial estimate of the eigenvector
     // decompose (A - Lambda*I) into LU
-	LUFactorization(A1, L, U, PermV);
+	MKLfunctions::LUFactorization(A1, L, U, PermV);
 
     // extract U, replace any zero diagonal elements by |A|*eps
     for (int i = 0; i < Dim; i++) {
@@ -716,7 +716,7 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
     // compute an initial estimate for the eigenvector
     // I can ignore permutations here since then only swap elements
     // in the vector of ones: P*A = L*U => A*x = b <=> L*U*x = P*b = P*1 = 1
-    TriangularSolve(U, EigenV, OnesV);	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)
+	MKLfunctions::TriangularSolve(U, EigenV, OnesV);	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)
 
 //    printf("initial estimate (unnorm): %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
 
@@ -729,7 +729,7 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
     do {
     	TempV = EigenV;
 
-    	LUSolve(A1, EigenV, TempV);
+		MKLfunctions::LUSolve(A1, EigenV, TempV);
 
 //        printf("solution vector: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
 
