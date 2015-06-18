@@ -1058,7 +1058,7 @@ describe('MovingWindowBufferSum Tests', function () {
     });
 });
 
-describe.only('MovingWindowBufferMin Tests', function () {
+describe('MovingWindowBufferMin Tests', function () {
     var base = undefined;
     var store = undefined;
     var sa = undefined;
@@ -1231,3 +1231,171 @@ describe.only('MovingWindowBufferMin Tests', function () {
     });
 });
 
+describe('MovingWindowBufferMax Tests', function () {
+    var base = undefined;
+    var store = undefined;
+    var sa = undefined;
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'Function',
+                fields: [
+                    { name: 'Time', type: 'datetime' },
+                    { name: 'Value', type: 'float' }
+                ]
+            }]
+        });
+        store = base.store('Function');
+
+        var aggr = {
+            name: 'TimeSeriesWindowAggr',
+            type: 'timeSeriesWinBuf',
+            store: 'Function',
+            timestamp: 'Time',
+            value: 'Value',
+            winsize: 2000
+        }
+        sa = store.addStreamAggr(aggr);
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    describe('Constructor Tests', function () {
+        it('should construct a max stream aggregator', function () {
+            var aggr = {
+                name: 'MaxAggr',
+                type: 'winBufMax',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var max = store.addStreamAggr(aggr);
+            assert.equal(max.saveJson().Time, '1601-01-01T00:00:00.0');
+            assert.notEqual(max.saveJson().Val, 0); // the value is very small -10+308
+        })
+        // unexpexted node crash
+        it.skip('should throw an exception if some key values are missing', function () {
+            var aggr = {
+                name: 'MaxAggr',
+                type: 'winBufMax',
+                store: 'Function',
+            };
+            assert.throws(function () {
+                store.addStreamAggr(aggr);
+            })
+        })
+    });
+    describe('GetFloat Tests', function () {
+        it('should return the value of the only record in buffer', function () {
+            var aggr = {
+                name: 'MaxAggr',
+                type: 'winBufMax',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var max = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            assert.equal(max.getFloat(), 1);
+        })
+        it('should return the max value of the records in buffer', function () {
+            var aggr = {
+                name: 'MaxAggr',
+                type: 'winBufMax',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var max = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            assert.equal(max.getFloat(), 3);
+        })
+        it('should return the max value of the records, that are still in the window buffer', function () {
+            var aggr = {
+                name: 'MaxAggr',
+                type: 'winBufMax',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var max = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 1 });
+
+            assert.equal(max.getFloat(), 2);
+        })
+        it('should return the default value if there are no records in buffer', function () {
+            var aggr = {
+                name: 'MaxAggr',
+                type: 'winBufMax',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var max = store.addStreamAggr(aggr);
+            assert.notEqual(max.getFloat(), 0);
+        })
+    });
+    describe('GetTimestamp Tests', function () {
+        it('should return the only timestamp on the window', function () {
+            var aggr = {
+                name: 'MaxAggr',
+                type: 'winBufMax',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var max = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            assert.equal(max.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:32.0').getTime());
+        })
+        it('should return the newest timestamp in the buffer', function () {
+            var aggr = {
+                name: 'MaxAggr',
+                type: 'winBufMax',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var max = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            assert.equal(max.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:34.0').getTime());
+        })
+        it('should return the default timestamp if no record is in the buffer', function () {
+            var aggr = {
+                name: 'MaxAggr',
+                type: 'winBufMax',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var max = store.addStreamAggr(aggr);
+            assert.equal(max.getTimestamp(), 0);
+        })
+    });
+
+    describe('Properties Tests', function () {
+        it('should return the name of the stream aggregator', function () {
+            var aggr = {
+                name: 'MaxAggr',
+                type: 'winBufMax',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var max = store.addStreamAggr(aggr);
+            assert.equal(max.name, 'MaxAggr');
+        })
+        it('should return the JSON object of the aggregator', function () {
+            var aggr = {
+                name: 'MaxAggr',
+                type: 'winBufMax',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var max = store.addStreamAggr(aggr);
+            assert.equal(max.val.Time, '1601-01-01T00:00:00.0');
+            assert.notEqual(max.val.Val, 0);
+        })
+    });
+});
