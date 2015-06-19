@@ -104,7 +104,7 @@ TPgBlobFile::TPgBlobFile(
 
 	Access = _Access;
 	FNm = _FNm;
-	MxFileLen = _MxSegLen*PAGE_SIZE;
+	MxFileLen = _MxSegLen;
 
 	switch (Access) {
 	case faCreate:

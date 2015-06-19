@@ -317,6 +317,18 @@ private:
 		void Load(TSIn& SIn);
 	};
 
+	/// Utility class for delaying deletes of deleted TOASTs
+	class TToastWatcher {
+	private:
+		/// Parent serializator that needs to call store to delete the TOASTS
+		TRecSerializator* Parent;
+	public:
+		/// Simple constructor
+		TToastWatcher(TRecSerializator* Src) { Parent = Src; }
+		/// Destructor that calls parent
+		~TToastWatcher();
+	};
+
 	/// Flag if field is not TOAST-ed
 	static const char ToastNo = 'n';
 	/// Flag if field is TOAST-ed
@@ -343,6 +355,8 @@ private:
 	TInt MxToastLen;
 	/// Store to be used for TOAST-ing
 	TWPt<TStore> Store;
+	/// TOAST objects to delete
+	TVec<TPgBlobPt> ToastPtToDel;	
 
 	/// Dump report used on failed asserts
 	TStr GetErrorMsg(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
