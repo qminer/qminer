@@ -1596,15 +1596,16 @@ describe.only('EMA Tests', function () {
     afterEach(function () {
         base.close();
     });
+    // unexpected node crash
     describe('Constructor Tests', function () {
         it('should construct the ema aggregator', function () {
             var aggr = {
                 name: 'EmaAggr',
                 type: 'ema',
-                store: 'Function',
                 inAggr: 'TimeSeriesWindowAggr',
-                emaType: 'linear',
-                interval: 3000
+                emaType: 'previous',
+                interval: 3000,
+                initWindow: 1000
             };
             var ema = store.addStreamAggr(aggr);
             assert.equal(ema.saveJson().Time, '1601-01-01T00:00:00.0');
