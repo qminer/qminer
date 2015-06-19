@@ -171,7 +171,7 @@ void TPgBlobFile::SetFPos(const int& FPos) {
 long TPgBlobFile::CreateNewPage() {
 	EAssertR(
 		(Access != TFAccess::faRdOnly) && (fseek(FileId, 0, SEEK_END) == 0),
-		"Error seeking into file '" + TStr(FNm) + "'.");
+		"Error seeking into file '" + TStr(FNm) + "' - " + TStr::Fmt("%d", errno));
 	long len = ftell(FileId);
 	if (MxFileLen > 0 && len >= MxFileLen) {
 		return -1;
