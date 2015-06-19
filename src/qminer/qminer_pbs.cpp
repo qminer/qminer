@@ -443,8 +443,7 @@ namespace TStorage {
 			RecIdBlobPtH.GetDat(RecId) = DataBlob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
 		} else {
 			TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
-			TThinMIn min = DataMem->Get(PgPt);
-			TMem mem_in(min);
+			TMemBase mem_in = DataMem->GetMemBase(PgPt);
 			TMem mem_out;
 			SerializatorMem->SetFieldIntV(mem_in, mem_out, FieldId, IntV);
 			RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
@@ -486,8 +485,7 @@ namespace TStorage {
 			RecIdBlobPtH.GetDat(RecId) = DataBlob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
 		} else {
 			TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
-			TThinMIn min = DataMem->Get(PgPt);
-			TMem mem_in(min);
+			TMemBase mem_in = DataMem->GetMemBase(PgPt);
 			TMem mem_out;
 			SerializatorMem->SetFieldStr(mem_in, mem_out, FieldId, Str);
 			RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
@@ -510,8 +508,7 @@ namespace TStorage {
 			RecIdBlobPtH.GetDat(RecId) = DataBlob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
 		} else {
 			TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
-			TThinMIn min = DataMem->Get(PgPt);
-			TMem mem_in(min);
+			TMemBase mem_in = DataMem->GetMemBase(PgPt);
 			TMem mem_out;
 			SerializatorMem->SetFieldStrV(mem_in, mem_out, FieldId, StrV);
 			RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
@@ -594,8 +591,7 @@ namespace TStorage {
 			RecIdBlobPtH.GetDat(RecId) = DataBlob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
 		} else {
 			TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
-			TThinMIn min = DataMem->Get(PgPt);
-			TMem mem_in(min);
+			TMemBase mem_in = DataMem->GetMemBase(PgPt);
 			TMem mem_out;
 			SerializatorMem->SetFieldFltV(mem_in, mem_out, FieldId, FltV);
 			RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
@@ -658,8 +654,7 @@ namespace TStorage {
 			RecIdBlobPtH.GetDat(RecId) = DataBlob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
 		} else {
 			TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
-			TThinMIn min = DataMem->Get(PgPt);
-			TMem mem_in(min);
+			TMemBase mem_in = DataMem->GetMemBase(PgPt);
 			TMem mem_out;
 			SerializatorMem->SetFieldNumSpV(mem_in, mem_out, FieldId, SpV);
 			RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
@@ -682,8 +677,7 @@ namespace TStorage {
 			RecIdBlobPtH.GetDat(RecId) = DataBlob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
 		} else {
 			TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
-			TThinMIn min = DataMem->Get(PgPt);
-			TMem mem_in(min);
+			TMemBase mem_in = DataMem->GetMemBase(PgPt);
 			TMem mem_out;
 			SerializatorMem->SetFieldBowSpV(mem_in, mem_out, FieldId, SpV);
 			RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);

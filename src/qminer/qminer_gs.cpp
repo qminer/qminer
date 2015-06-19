@@ -964,6 +964,14 @@ void TRecSerializator::SetFieldTmMSecs(char* Bf, const int& BfL, const int& Fiel
 }
 
 
+/// Destructor that calls parent
+TRecSerializator::TToastWatcher::~TToastWatcher() {
+	for (int i = 0; i < Parent->ToastPtToDel.Len(); i++) {
+		Parent->Store->DelToastVal(Parent->ToastPtToDel[i]);
+	}
+	Parent->ToastPtToDel.Clr();
+}
+
 /////////////////////
 
 /// Check this temporary buffer if it must be TOAST-ed
@@ -992,7 +1000,8 @@ void TRecSerializator::CheckToastDel(const TMemBase& InRecMem, const TFieldSeria
 				Bf++;
 				TPgBlobPt Pt;
 				Pt = *((TPgBlobPt*)Bf);
-				Store->DelToastVal(Pt);
+				ToastPtToDel.Add(Pt);
+				//Store->DelToastVal(Pt);
 			}
 		}
 	}
@@ -1371,19 +1380,6 @@ void TRecSerializator::SerializeUpdate(const PJsonVal& RecVal, const TMemBase& I
 			}
 		} else {
 			// new value, must update
-			//if (UseToast && !FieldSerialDesc.FixedPartP) {
-			//	if (!IsFieldNull(InRecMem, FieldSerialDesc.FieldId)) {
-			//		// remove toast
-			//		char* Bf = GetLocationVar(InRecMem, FieldSerialDesc);
-			//		char c = *Bf;
-			//		if (c == ToastYes) {
-			//			Bf++;
-			//			TPgBlobPt Pt;
-			//			Pt = *((TPgBlobPt*)Bf);
-			//			Store->DelToastVal(Pt);
-			//		}
-			//	}
-			//}
 			PJsonVal JsonVal = RecVal->GetObjKey(FieldName);
 			if (JsonVal->IsNull()) {
 				// we are setting field explicitly to null
@@ -1734,6 +1730,7 @@ void TRecSerializator::SetFieldInt(const TMemBase& InRecMem,
 }
 
 void TRecSerializator::SetFieldIntV(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const TIntV& IntV) {
+	TToastWatcher Watcher(this); // to delay deletion of old TOASTS
 	// split to fixed and variable parts
 	TMem FixedMem; TMOut VarSOut; ExtractFixedMem(InRecMem, FixedMem);
 	// iterate over fields and serialize them
@@ -1780,6 +1777,7 @@ void TRecSerializator::SetFieldStr(const TMemBase& InRecMem,
 		// update value
 		SetFieldStr(OutRecMem, FieldSerialDesc, Str);
 	} else {
+		TToastWatcher Watcher(this); // to delay deletion of old TOASTS
 		// split to fixed and variable parts
 		TMem FixedMem; TMOut VarSOut; ExtractFixedMem(InRecMem, FixedMem);
 		// iterate over fields and serialize them
@@ -1805,6 +1803,7 @@ void TRecSerializator::SetFieldStr(const TMemBase& InRecMem,
 void TRecSerializator::SetFieldStrV(const TMemBase& InRecMem,
 		TMem& OutRecMem, const int& FieldId, const TStrV& StrV) {
 
+	TToastWatcher Watcher(this); // to delay deletion of old TOASTS
 	// split to fixed and variable parts
 	TMem FixedMem; TMOut VarSOut; ExtractFixedMem(InRecMem, FixedMem);
 	// iterate over fields and serialize them
@@ -1865,6 +1864,7 @@ void TRecSerializator::SetFieldFltPr(const TMemBase& InRecMem,
 void TRecSerializator::SetFieldFltV(const TMemBase& InRecMem,
 		TMem& OutRecMem, const int& FieldId, const TFltV& FltV) {
 
+	TToastWatcher Watcher(this); // to delay deletion of old TOASTS
 	// split to fixed and variable parts
 	TMem FixedMem; TMOut VarSOut; ExtractFixedMem(InRecMem, FixedMem);
 	// iterate over fields and serialize them
@@ -1913,6 +1913,7 @@ void TRecSerializator::SetFieldTmMSecs(const TMemBase& InRecMem,
 void TRecSerializator::SetFieldNumSpV(const TMemBase& InRecMem,
 		TMem& OutRecMem, const int& FieldId, const TIntFltKdV& SpV) {
 
+	TToastWatcher Watcher(this); // to delay deletion of old TOASTS
 	// split to fixed and variable parts
 	TMem FixedMem; TMOut VarSOut; ExtractFixedMem(InRecMem, FixedMem);
 	// iterate over fields and serialize them
@@ -1937,6 +1938,7 @@ void TRecSerializator::SetFieldNumSpV(const TMemBase& InRecMem,
 void TRecSerializator::SetFieldBowSpV(const TMemBase& InRecMem,
 		TMem& OutRecMem, const int& FieldId, const PBowSpV& SpV) {
 
+	TToastWatcher Watcher(this); // to delay deletion of old TOASTS
 	// split to fixed and variable parts
 	TMem FixedMem; TMOut VarSOut; ExtractFixedMem(InRecMem, FixedMem);
 	// iterate over fields and serialize them
