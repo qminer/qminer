@@ -1,0 +1,18 @@
+[
+    { 
+        "name": "TestStore2", 
+		"options": {
+			"type": "paged"
+		},
+        "fields": [ 
+            { "name": "FieldString1", "type": "string", "primary": true, "store" : "cache" }, 
+            { "name": "FieldString2", "type": "string", "store" : "cache" }, 
+            { "name": "FieldString3", "type": "string", "store" : "cache" }, 
+            { "name": "FieldString4", "type": "string", "store" : "cache" }, 
+            { "name": "FieldString5", "type": "string", "store" : "cache" }, 
+            { "name": "FieldBool", "type": "bool", "store" : "cache" } 
+        ], 
+        "joins": [ ],
+        "keys": [ ]
+    }
+]
