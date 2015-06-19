@@ -1400,7 +1400,7 @@ describe('MovingWindowBufferMax Tests', function () {
     });
 });
 
-describe.only('MovingAverage Tests', function () {
+describe('MovingAverage Tests', function () {
     var base = undefined;
     var store = undefined;
     var sa = undefined;
@@ -1430,7 +1430,6 @@ describe.only('MovingAverage Tests', function () {
     afterEach(function () {
         base.close();
     });
-
     describe('Constructor Tests', function () {
         it('should construct the moving average aggregator', function () {
             var aggr = {
@@ -1504,6 +1503,122 @@ describe.only('MovingAverage Tests', function () {
             };
             var ma = store.addStreamAggr(aggr);
             assert.equal(ma.getFloat(), 0);
+        })
+    });
+    describe('GetTimestamp Tests', function () {
+        it('should return the only timestamp on the window', function () {
+            var aggr = {
+                name: 'AverageAggr',
+                type: 'ma',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var ma = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            assert.equal(ma.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:32.0').getTime());
+        })
+        it('should return the newest timestamp in the buffer', function () {
+            var aggr = {
+                name: 'AverageAggr',
+                type: 'ma',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var ma = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            assert.equal(ma.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:34.0').getTime());
+        })
+        it('should return the default timestamp if no record is in the buffer', function () {
+            var aggr = {
+                name: 'AverageAggr',
+                type: 'ma',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var ma = store.addStreamAggr(aggr);
+            assert.equal(ma.getTimestamp(), 0);
+        })
+    });
+    describe('Property Tests', function () {
+        it('should return the name of the aggregator', function () {
+            var aggr = {
+                name: 'AverageAggr',
+                type: 'ma',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var ma = store.addStreamAggr(aggr);
+            assert.equal(ma.name, 'AverageAggr');
+        })
+        it('should return the JSON object of the aggregator', function () {
+            var aggr = {
+                name: 'AverageAggr',
+                type: 'ma',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var ma = store.addStreamAggr(aggr);
+            assert.equal(ma.val.Time, '1601-01-01T00:00:00.0');
+            assert.equal(ma.val.Val, 0);
+        })
+    });
+});
+
+describe.only('EMA Tests', function () {
+    var base = undefined;
+    var store = undefined;
+    var sa = undefined;
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'Function',
+                fields: [
+                    { name: 'Time', type: 'datetime' },
+                    { name: 'Value', type: 'float' }
+                ]
+            }]
+        });
+        store = base.store('Function');
+
+        var aggr = {
+            name: 'TimeSeriesWindowAggr',
+            type: 'timeSeriesWinBuf',
+            store: 'Function',
+            timestamp: 'Time',
+            value: 'Value',
+            winsize: 6000
+        }
+        sa = store.addStreamAggr(aggr);
+    });
+    afterEach(function () {
+        base.close();
+    });
+    describe('Constructor Tests', function () {
+        it('should construct the ema aggregator', function () {
+            var aggr = {
+                name: 'EmaAggr',
+                type: 'ema',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr',
+                emaType: 'linear',
+                interval: 3000
+            };
+            var ema = store.addStreamAggr(aggr);
+            assert.equal(ema.saveJson().Time, '1601-01-01T00:00:00.0');
+            assert.equal(ema.saveJson().Val, 0);
+        })
+        it.skip('should throw an exception if some key values are missing', function () {
+            var aggr = {
+                name: 'EmaAggr',
+                type: 'ema',
+                store: 'Function'
+            };
+            assert.throws(function () {
+                var ema = store.addStreamAggr(aggr);
+            });
         })
     });
 })
