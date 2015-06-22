@@ -1560,7 +1560,8 @@ bool TRecSerializator::IsFieldNull(const TMemBase& RecMem, const int& FieldId) c
 	//const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
 	//char* bf = RecMem.GetBf() + FieldSerialDesc.NullMapByte;
 	//return ((*bf & FieldSerialDesc.NullMapMask) != 0);
-	return IsFieldNull(TThinMIn(RecMem), FieldId);
+	TThinMIn ThinMIn(RecMem);
+	return IsFieldNull(ThinMIn, FieldId);
 }
 
 int TRecSerializator::GetFieldInt(const TMemBase& RecMem, const int& FieldId) const {
@@ -1568,7 +1569,8 @@ int TRecSerializator::GetFieldInt(const TMemBase& RecMem, const int& FieldId) co
 	//char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
 	//// cast to return value
 	//return *((int*)bf);
-	return GetFieldInt(TThinMIn(RecMem), FieldId);
+	TThinMIn ThinMIn(RecMem);
+	return GetFieldInt(ThinMIn, FieldId);
 }
 
 void TRecSerializator::GetFieldIntV(const TMemBase& RecMem, const int& FieldId, TIntV& IntV) const {
@@ -1577,7 +1579,8 @@ void TRecSerializator::GetFieldIntV(const TMemBase& RecMem, const int& FieldId, 
 	//MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
 	//// load return value from stream
 	//IntV.Load(MIn);
-	GetFieldIntV(TThinMIn(RecMem), FieldId, IntV);
+	TThinMIn ThinMIn(RecMem);
+	GetFieldIntV(ThinMIn, FieldId, IntV);
 }
 
 uint64 TRecSerializator::GetFieldUInt64(const TMemBase& RecMem, const int& FieldId) const {
@@ -1585,7 +1588,8 @@ uint64 TRecSerializator::GetFieldUInt64(const TMemBase& RecMem, const int& Field
 	//char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
 	//// cast to return value
 	//return *((uint64*)bf);
-	return GetFieldUInt64(TThinMIn(RecMem), FieldId);
+	TThinMIn ThinMIn(RecMem);
+	return GetFieldUInt64(ThinMIn, FieldId);
 }
 
 TStr TRecSerializator::GetFieldStr(const TMemBase& RecMem, const int& FieldId) const {
@@ -1605,7 +1609,8 @@ TStr TRecSerializator::GetFieldStr(const TMemBase& RecMem, const int& FieldId) c
 	//	TStr Str; Str.Load(MIn, FieldSerialDesc.SmallStringP);
 	//	return Str;
 	//}
-	return GetFieldStr(TThinMIn(RecMem), FieldId);
+	TThinMIn ThinMIn(RecMem);
+	return GetFieldStr(ThinMIn FieldId);
 }
 
 void TRecSerializator::GetFieldStrV(const TMemBase& RecMem, const int& FieldId, TStrV& StrV) const {
