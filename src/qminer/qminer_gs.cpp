@@ -1614,7 +1614,8 @@ void TRecSerializator::GetFieldStrV(const TMemBase& RecMem, const int& FieldId, 
 	//MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
 	//// load return value from stream
 	//StrV.Load(MIn);
-	GetFieldStrV(TThinMIn(RecMem), FieldId, StrV);
+	TThinMIn ThinMIn(RecMem);
+	GetFieldStrV(ThinMIn, FieldId, StrV);
 }
 
 bool TRecSerializator::GetFieldBool(const TMemBase& RecMem, const int& FieldId) const {
@@ -1622,7 +1623,8 @@ bool TRecSerializator::GetFieldBool(const TMemBase& RecMem, const int& FieldId) 
 	//char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
 	//// cast to return value
 	//return *((bool*)bf);
-	return GetFieldBool(TThinMIn(RecMem), FieldId);
+	TThinMIn ThinMIn(RecMem);
+	return GetFieldBool(ThinMIn, FieldId);
 }
 
 double TRecSerializator::GetFieldFlt(const TMemBase& RecMem, const int& FieldId) const {
@@ -1630,7 +1632,8 @@ double TRecSerializator::GetFieldFlt(const TMemBase& RecMem, const int& FieldId)
 	//char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
 	//// cast to return value
 	//return *((double*)bf);
-	return GetFieldFlt(TThinMIn(RecMem), FieldId);
+	TThinMIn ThinMIn(RecMem);
+	return GetFieldFlt(ThinMIn, FieldId);
 }
 
 TFltPr TRecSerializator::GetFieldFltPr(const TMemBase& RecMem, const int& FieldId) const {
@@ -1638,7 +1641,8 @@ TFltPr TRecSerializator::GetFieldFltPr(const TMemBase& RecMem, const int& FieldI
 	//char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
 	//// cast to return value
 	//return TFltPr(*((double*)bf), *(((double*)bf) + 1));
-	return GetFieldFltPr(TThinMIn(RecMem), FieldId);
+	TThinMIn ThinMIn(RecMem);
+	return GetFieldFltPr(ThinMIn, FieldId);
 }
 
 void TRecSerializator::GetFieldFltV(const TMemBase& RecMem, const int& FieldId, TFltV& FltV) const {
@@ -1647,7 +1651,8 @@ void TRecSerializator::GetFieldFltV(const TMemBase& RecMem, const int& FieldId, 
 	//MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
 	//// load return value from stream
 	//FltV.Load(MIn);
-	GetFieldFltV(TThinMIn(RecMem), FieldId, FltV);
+	TThinMIn ThinMIn(RecMem);
+	GetFieldFltV(ThinMIn, FieldId, FltV);
 }
 
 void TRecSerializator::GetFieldTm(const TMemBase& RecMem, const int& FieldId, TTm& Tm) const {
@@ -1656,7 +1661,8 @@ void TRecSerializator::GetFieldTm(const TMemBase& RecMem, const int& FieldId, TT
 	//// cast to return value
 	//uint64 val = *((uint64*)bf);
 	//Tm = TTm::GetTmFromMSecs(val);
-	GetFieldTm(TThinMIn(RecMem), FieldId, Tm);
+	TThinMIn ThinMIn(RecMem);
+	GetFieldTm(ThinMIn, FieldId, Tm);
 }
 
 uint64 TRecSerializator::GetFieldTmMSecs(const TMemBase& RecMem, const int& FieldId) const {
@@ -1664,7 +1670,8 @@ uint64 TRecSerializator::GetFieldTmMSecs(const TMemBase& RecMem, const int& Fiel
 	//char* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
 	//// cast to return value
 	//return *((uint64*)bf);
-	return GetFieldTmMSecs(TThinMIn(RecMem), FieldId);
+	TThinMIn ThinMIn(RecMem);
+	return GetFieldTmMSecs(ThinMIn, FieldId);
 }
 
 void TRecSerializator::GetFieldNumSpV(const TMemBase& RecMem, const int& FieldId, TIntFltKdV& SpV) const {
@@ -1673,7 +1680,8 @@ void TRecSerializator::GetFieldNumSpV(const TMemBase& RecMem, const int& FieldId
 	//MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
 	//// load return value from stream
 	//SpV.Load(MIn);
-	GetFieldNumSpV(TThinMIn(RecMem), FieldId, SpV);
+	TThinMIn ThinMIn(RecMem);
+	GetFieldNumSpV(ThinMIn, FieldId, SpV);
 }
 
 void TRecSerializator::GetFieldBowSpV(const TMemBase& RecMem, const int& FieldId, PBowSpV& SpV) const {
@@ -1682,7 +1690,8 @@ void TRecSerializator::GetFieldBowSpV(const TMemBase& RecMem, const int& FieldId
 	//MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
 	//// load return value from stream
 	//SpV = TBowSpV::Load(MIn);
-	GetFieldBowSpV(TThinMIn(RecMem), FieldId, SpV);
+	TThinMIn ThinMIn(RecMem);
+	GetFieldBowSpV(ThinMIn, FieldId, SpV);
 }
 
 void TRecSerializator::SetFieldNull(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId) {
