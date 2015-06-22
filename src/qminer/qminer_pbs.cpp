@@ -148,6 +148,8 @@ namespace TStorage {
 					MemVarP = MemVarP ||
 						(FieldLocV[FieldId] == slMemory  && !SerializatorMem->IsInFixedPart(FieldId));
 					break;
+				default:
+					break;
 				}
 				KeyP = KeyP || RecIndexer.IsFieldIndexKey(FieldId);
 			}
@@ -1181,7 +1183,8 @@ namespace TStorage {
 	/// Retrieve value that is saved using TOAST method from storage 
 	void TStorePbBlob::UnToastVal(const TPgBlobPt& Pt, TMem& Mem) {
 		TVec<TPgBlobPt> Pts;
-		Pts.Load(DataBlob->Get(Pt));
+		TThinMIn MIn = DataBlob->Get(Pt);
+		Pts.Load(MIn);
 		Mem.Clr();
 		for (int i = 0; i < Pts.Len(); i++) {
 			TMemBase MemTmp = DataBlob->GetMemBase(Pts[i]);
@@ -1192,7 +1195,8 @@ namespace TStorage {
 	/// Delete TOAST-ed value from storage 
 	void TStorePbBlob::DelToastVal(const TPgBlobPt& Pt) {
 		TVec<TPgBlobPt> Pts;
-		Pts.Load(DataBlob->Get(Pt));
+		TThinMIn MIn = DataBlob->Get(Pt);
+		Pts.Load(MIn);
 		for (int i = 0; i < Pts.Len(); i++) {
 			DataBlob->Del(Pts[i]);
 		}
