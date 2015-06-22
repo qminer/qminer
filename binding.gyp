@@ -145,7 +145,9 @@
                 'src/qminer/qminer_snap.h',
                 'src/qminer/qminer_snap.cpp',
                 'src/qminer/qminer_op.h',
-                'src/qminer/qminer_op.cpp'
+                'src/qminer/qminer_op.cpp',
+                'src/qminer/qminer_pbs.h',
+                'src/qminer/qminer_pbs.cpp'
             ],        
             'include_dirs': [
                 'src/qminer',
