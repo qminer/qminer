@@ -1,6 +1,6 @@
 {
     'variables': { 'LIN_ALG_BLAS%': 'NBLAS',
-		   'LIN_ALG_LAPCKE%'; 'NLAPACKE',	
+		   'LIN_ALG_LAPACKE%'; 'NLAPACKE',	
    		   'LIN_ALG_INCLUDE%': 'src/glib/base/',
 		   #full path to lapack or openblas libraries
 		   'LIN_ALG_LIB%': ''
