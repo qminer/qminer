@@ -1610,7 +1610,7 @@ TStr TRecSerializator::GetFieldStr(const TMemBase& RecMem, const int& FieldId) c
 	//	return Str;
 	//}
 	TThinMIn ThinMIn(RecMem);
-	return GetFieldStr(ThinMIn FieldId);
+	return GetFieldStr(ThinMIn, FieldId);
 }
 
 void TRecSerializator::GetFieldStrV(const TMemBase& RecMem, const int& FieldId, TStrV& StrV) const {
