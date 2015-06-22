@@ -162,8 +162,9 @@ public:
 	TMemBase GetMemBase() { return TMemBase(GetBfAddr(), Len(), false); }
 };
 
-/////////////////////////////////////////////////
-// Memory chunk - advanced memory buffer
+/////////////////////////////////////////////////////////////////////
+// Memory chunk - advanced memory buffer, supports resizing etc.
+// There ar eno additional data members.
 class TMem;
 typedef TPt<TMem> PMem;
 
@@ -174,8 +175,6 @@ private:
 public:
 	friend class TPt<TMem>;
 protected:
-  //int MxBfL, BfL;
-  //char* Bf;
   void Resize(const int& _MxBfL);
   bool DoFitLen(const int& LBfL) const {return BfL+LBfL<=MxBfL;}
 public:
@@ -201,10 +200,10 @@ public:
   ~TMem() { if (Owner && Bf != NULL) { delete[] Bf; }; Owner = false; Bf = NULL; }
   explicit TMem(TSIn& SIn) {
 	  SIn.Load(MxBfL); SIn.Load(BfL);
-	  Bf = new char[MxBfL = BfL]; SIn.LoadBf(Bf, BfL); }
+	  Bf = new char[MxBfL = BfL]; SIn.LoadBf(Bf, BfL); Owner = true; }
   void Load(PSIn& SIn) {
 	  Clr(); SIn->Load(MxBfL); SIn->Load(BfL);
-	  Bf = new char[MxBfL = BfL]; SIn->LoadBf(Bf, BfL); }
+	  Bf = new char[MxBfL = BfL]; SIn->LoadBf(Bf, BfL); Owner = true; }
   void Save(TSOut& SOut) const {
     SOut.Save(MxBfL); SOut.Save(BfL); SOut.SaveBf(Bf, BfL);}
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
@@ -242,10 +241,8 @@ public:
     if (DoClr){ Clr(); } Resize(_MxBfL);}
   void Del(const int& BChN, const int& EChN);
   void Clr(const bool& DoDel=true){
-    if (DoDel){if (Bf!=NULL){delete[] Bf;} MxBfL=0; BfL=0; Bf=NULL;}
+    if (DoDel){if (Bf!=NULL && Owner){delete[] Bf;} MxBfL=0; BfL=0; Bf=NULL;}
     else {BfL=0;}}
-  //int Len() const {return BfL;}
-  //bool Empty() const {return BfL==0;}
   void Trunc(const int& _BfL){
     if ((0<=_BfL)&&(_BfL<=BfL)){BfL=_BfL;}}
   void Push(const char& Ch){operator+=(Ch);}
@@ -254,7 +251,6 @@ public:
   bool DoFitStr(const TStr& Str) const;
   //int AddStr(const TStr& Str);
   void AddBf(const void* Bf, const int& BfL);
-  //char* GetBf() const {return Bf;}
   TStr GetAsStr(const char& NewNullCh='\0') const;
   // returns a hexadecimal representation of the byte array
   TStr GetHexStr() const;
