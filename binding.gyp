@@ -1,4 +1,5 @@
 {
+    'variables': { 'LIN_ALGEBRA%': 'NOBLAS' },
     'target_defaults': {
         # GCC flags
         'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
@@ -61,7 +62,7 @@
                 'src/third_party/Snap/snap-exp',
                 'src/third_party/Snap/qlib-core'
             ],
-            'defines': [
+            'defines': ['<(LIN_ALGEBRA)'
             ],
             'dependencies': [
                 'glib',
@@ -83,7 +84,7 @@
                     "configurations": {
                         "Debug": {
                             "defines": [
-                                "DEBUG"
+                                "DEBUG",
                             ],
                             "xcode_settings": {
                                 "GCC_OPTIMIZATION_LEVEL": "0",
@@ -306,7 +307,7 @@
                 'src/glib/mine/',
                 'src/glib/misc/'
             ],
-            'defines': [
+            'defines': ['<(LIN_ALGEBRA)'
             ],
             'conditions': [
                 # operating system specific parameters
