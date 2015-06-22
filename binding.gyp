@@ -1,6 +1,10 @@
 {
-    'variables': { 'LIN_ALGEBRA%': 'NOBLAS',
-   		   'LIN_ALGEBRA_INCLUDE%': 'src/glib/base/'
+    'variables': { 'LIN_ALG_BLAS%': 'NBLAS',
+		   'LIN_ALG_LAPCKE%'; 'NLAPACKE',	
+   		   'LIN_ALG_INCLUDE%': 'src/glib/base/',
+		   #full path to lapack or openblas libraries
+		   'LIN_ALG_LIB%': ''
+ 
     },
     'target_defaults': {
         # GCC flags
@@ -63,9 +67,10 @@
                 'src/third_party/Snap/snap-adv',
                 'src/third_party/Snap/snap-exp',
                 'src/third_party/Snap/qlib-core',
-		'<(LIN_ALGEBRA_INCLUDE)'
+		'<(LIN_ALG_INCLUDE)'
             ],
-            'defines': ['<(LIN_ALGEBRA)'
+            'defines': ['<(LIN_ALG_BLAS)',
+			'<(LIN_ALG_LAPACKE)'
             ],
             'dependencies': [
                 'glib',
@@ -74,7 +79,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ]}],
                 ['OS == "mac"', {
                     "default_configuration": "Release",
                     'xcode_settings': {
@@ -156,11 +161,11 @@
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
-	        '<(LIN_ALGEBRA_INCLUDE)'
+	        '<(LIN_ALG_INCLUDE)'
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ]}],
                 ['OS == "mac"', {
                     "default_configuration": "Release",
                     'xcode_settings': {
@@ -234,11 +239,11 @@
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
-		'<(LIN_ALGEBRA_INCLUDE)'
+		'<(LIN_ALG_INCLUDE)'
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ]}],
                 ['OS == "mac"', {
                     "default_configuration": "Release",
                     'xcode_settings': {
@@ -311,13 +316,14 @@
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
-		'<(LIN_ALGEBRA_INCLUDE)'
+		'<(LIN_ALG_INCLUDE)'
             ],
-            'defines': ['<(LIN_ALGEBRA)'
+            'defines': ['<(LIN_ALG_BLAS)',
+			'<(LIN_ALG_LAPACKE)'
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ]}],
                 ['OS == "mac"', {
                     "default_configuration": "Release",
                     'xcode_settings': {
