@@ -496,6 +496,9 @@ public:
 	bool IsInFixedPart(const int& FieldId) const { return GetFieldSerialDesc(FieldId).FixedPartP; }
 
 	/// Field getter
+	bool IsFieldNull(const uint64& RecId, const int& FieldId) const;
+
+	/// Field getter
 	bool IsFieldNull(TThinMIn& min, const int& FieldId) const;
 	/// Field getter
 	int GetFieldInt(TThinMIn& min, const int& FieldId) const;

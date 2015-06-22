@@ -237,158 +237,186 @@ namespace TStorage {
 
 	/// Check if the value of given field for a given record is NULL
 	bool TStorePbBlob::IsFieldNull(const uint64& RecId, const int& FieldId) const {
-		if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-			return SerializatorCache->IsFieldNull(GetPgBf(RecId), FieldId);
-		} else {
-			return SerializatorMem->IsFieldNull(GetPgBf(RecId, true), FieldId);
-			//return SerializatorMem.IsFieldNull(GetPgBf(RecId), FieldId);
-			//TMem Rec;
-			//DataMem.GetVal(RecId, Rec);
-			//return SerializatorMem.IsFieldNull(Rec, FieldId);
-		}
+		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+		return SerializatorMem->IsFieldNull(MIn, FieldId);
+		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		//	return SerializatorCache->IsFieldNull(GetPgBf(RecId), FieldId);
+		//} else {
+		//	return SerializatorMem->IsFieldNull(GetPgBf(RecId, true), FieldId);
+		//	//return SerializatorMem.IsFieldNull(GetPgBf(RecId), FieldId);
+		//	//TMem Rec;
+		//	//DataMem.GetVal(RecId, Rec);
+		//	//return SerializatorMem.IsFieldNull(Rec, FieldId);
+		//}
 	}
 	/// Get field value using field id (default implementation throws exception)
 	int TStorePbBlob::GetFieldInt(const uint64& RecId, const int& FieldId) const {
-		if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-			return SerializatorCache->GetFieldInt(GetPgBf(RecId), FieldId);
-		} else {
-			return SerializatorMem->GetFieldInt(GetPgBf(RecId, true), FieldId);
-			//TMem Rec;
-			//DataMem.GetVal(RecId, Rec);
-			//return SerializatorMem.GetFieldInt(Rec, FieldId);
-		}
+		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+		return SerializatorMem->GetFieldInt(MIn, FieldId);
+		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		//	return SerializatorCache->GetFieldInt(GetPgBf(RecId), FieldId);
+		//} else {
+		//	return SerializatorMem->GetFieldInt(GetPgBf(RecId, true), FieldId);
+		//	//TMem Rec;
+		//	//DataMem.GetVal(RecId, Rec);
+		//	//return SerializatorMem.GetFieldInt(Rec, FieldId);
+		//}
 	}
 	/// Get field value using field id (default implementation throws exception)
 	void TStorePbBlob::GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const {
-		if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-			SerializatorCache->GetFieldIntV(GetPgBf(RecId), FieldId, IntV);
-		} else {
-			SerializatorMem->GetFieldIntV(GetPgBf(RecId, true), FieldId, IntV);
-			//TMem Rec;
-			//DataMem.GetVal(RecId, Rec);
-			//SerializatorMem.GetFieldIntV(Rec, FieldId, IntV);
-		}
+		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+		SerializatorMem->GetFieldIntV(MIn, FieldId, IntV);
+		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		//	SerializatorCache->GetFieldIntV(GetPgBf(RecId), FieldId, IntV);
+		//} else {
+		//	SerializatorMem->GetFieldIntV(GetPgBf(RecId, true), FieldId, IntV);
+		//	//TMem Rec;
+		//	//DataMem.GetVal(RecId, Rec);
+		//	//SerializatorMem.GetFieldIntV(Rec, FieldId, IntV);
+		//}
 	}
 	/// Get field value using field id (default implementation throws exception)
 	uint64 TStorePbBlob::GetFieldUInt64(const uint64& RecId, const int& FieldId) const {
-		if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-			return SerializatorCache->GetFieldUInt64(GetPgBf(RecId), FieldId);
-		} else {
-			return SerializatorMem->GetFieldUInt64(GetPgBf(RecId, true), FieldId);
-			//TMem Rec;
-			//DataMem.GetVal(RecId, Rec);
-			//return SerializatorMem.GetFieldUInt64(Rec, FieldId);
-		}
+		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+		return SerializatorMem->GetFieldUInt64(MIn, FieldId);
+		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		//	return SerializatorCache->GetFieldUInt64(GetPgBf(RecId), FieldId);
+		//} else {
+		//	return SerializatorMem->GetFieldUInt64(GetPgBf(RecId, true), FieldId);
+		//	//TMem Rec;
+		//	//DataMem.GetVal(RecId, Rec);
+		//	//return SerializatorMem.GetFieldUInt64(Rec, FieldId);
+		//}
 	}
 	/// Get field value using field id (default implementation throws exception)
 	TStr TStorePbBlob::GetFieldStr(const uint64& RecId, const int& FieldId) const {
-		if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-			return SerializatorCache->GetFieldStr(GetPgBf(RecId), FieldId);
-		} else {
-			return SerializatorMem->GetFieldStr(GetPgBf(RecId, true), FieldId);
-			//TMem Rec;
-			//DataMem.GetVal(RecId, Rec);
-			//return SerializatorMem.GetFieldStr(Rec, FieldId);
-		}
+		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+		return SerializatorMem->GetFieldStr(MIn, FieldId);
+		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		//	return SerializatorCache->GetFieldStr(GetPgBf(RecId), FieldId);
+		//} else {
+		//	return SerializatorMem->GetFieldStr(GetPgBf(RecId, true), FieldId);
+		//	//TMem Rec;
+		//	//DataMem.GetVal(RecId, Rec);
+		//	//return SerializatorMem.GetFieldStr(Rec, FieldId);
+		//}
 	}
 	/// Get field value using field id (default implementation throws exception)
 	void TStorePbBlob::GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const {
-		if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-			SerializatorCache->GetFieldStrV(GetPgBf(RecId), FieldId, StrV);
-		} else {
-			SerializatorMem->GetFieldStrV(GetPgBf(RecId, true), FieldId, StrV);
-			//TMem Rec;
-			//DataMem.GetVal(RecId, Rec);
-			//SerializatorMem.GetFieldStrV(Rec, FieldId, StrV);
-		}
+		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+		SerializatorMem->GetFieldStrV(MIn, FieldId, StrV);
+		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		//	SerializatorCache->GetFieldStrV(GetPgBf(RecId), FieldId, StrV);
+		//} else {
+		//	SerializatorMem->GetFieldStrV(GetPgBf(RecId, true), FieldId, StrV);
+		//	//TMem Rec;
+		//	//DataMem.GetVal(RecId, Rec);
+		//	//SerializatorMem.GetFieldStrV(Rec, FieldId, StrV);
+		//}
 	}
 	/// Get field value using field id (default implementation throws exception)
 	bool TStorePbBlob::GetFieldBool(const uint64& RecId, const int& FieldId) const {
-		if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-			return SerializatorCache->GetFieldBool(GetPgBf(RecId), FieldId);
-		} else {
-			return SerializatorMem->GetFieldBool(GetPgBf(RecId, true), FieldId);
-			//TMem Rec;
-			//DataMem.GetVal(RecId, Rec);
-			//return SerializatorMem.GetFieldBool(Rec, FieldId);
-		}
+		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+		return SerializatorMem->GetFieldBool(MIn, FieldId);
+		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		//	return SerializatorCache->GetFieldBool(GetPgBf(RecId), FieldId);
+		//} else {
+		//	return SerializatorMem->GetFieldBool(GetPgBf(RecId, true), FieldId);
+		//	//TMem Rec;
+		//	//DataMem.GetVal(RecId, Rec);
+		//	//return SerializatorMem.GetFieldBool(Rec, FieldId);
+		//}
 	}
 	/// Get field value using field id (default implementation throws exception)
 	double TStorePbBlob::GetFieldFlt(const uint64& RecId, const int& FieldId) const {
-		if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-			return SerializatorCache->GetFieldFlt(GetPgBf(RecId), FieldId);
-		} else {
-			return SerializatorMem->GetFieldFlt(GetPgBf(RecId, true), FieldId);
-			//TMem Rec;
-			//DataMem.GetVal(RecId, Rec);
-			//return SerializatorMem.GetFieldFlt(Rec, FieldId);
-		}
+		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+		return SerializatorMem->GetFieldFlt(MIn, FieldId);
+		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		//	return SerializatorCache->GetFieldFlt(GetPgBf(RecId), FieldId);
+		//} else {
+		//	return SerializatorMem->GetFieldFlt(GetPgBf(RecId, true), FieldId);
+		//	//TMem Rec;
+		//	//DataMem.GetVal(RecId, Rec);
+		//	//return SerializatorMem.GetFieldFlt(Rec, FieldId);
+		//}
 	}
 	/// Get field value using field id (default implementation throws exception)
 	TFltPr TStorePbBlob::GetFieldFltPr(const uint64& RecId, const int& FieldId) const {
-		if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-			return SerializatorCache->GetFieldFltPr(GetPgBf(RecId), FieldId);
-		} else {
-			return SerializatorMem->GetFieldFltPr(GetPgBf(RecId, true), FieldId);
-			//TMem Rec;
-			//DataMem.GetVal(RecId, Rec);
-			//return SerializatorMem.GetFieldFltPr(Rec, FieldId);
-		}
+		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+		return SerializatorMem->GetFieldFltPr(MIn, FieldId);
+		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		//	return SerializatorCache->GetFieldFltPr(GetPgBf(RecId), FieldId);
+		//} else {
+		//	return SerializatorMem->GetFieldFltPr(GetPgBf(RecId, true), FieldId);
+		//	//TMem Rec;
+		//	//DataMem.GetVal(RecId, Rec);
+		//	//return SerializatorMem.GetFieldFltPr(Rec, FieldId);
+		//}
 	}
 	/// Get field value using field id (default implementation throws exception)
 	void TStorePbBlob::GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const {
-		if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-			SerializatorCache->GetFieldFltV(GetPgBf(RecId), FieldId, FltV);
-		} else {
-			SerializatorMem->GetFieldFltV(GetPgBf(RecId, true), FieldId, FltV);
-			//TMem Rec;
-			//DataMem.GetVal(RecId, Rec);
-			//SerializatorMem.GetFieldFltV(Rec, FieldId, FltV);
-		}
+		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+		SerializatorMem->GetFieldFltV(MIn, FieldId, FltV);
+		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		//	SerializatorCache->GetFieldFltV(GetPgBf(RecId), FieldId, FltV);
+		//} else {
+		//	SerializatorMem->GetFieldFltV(GetPgBf(RecId, true), FieldId, FltV);
+		//	//TMem Rec;
+		//	//DataMem.GetVal(RecId, Rec);
+		//	//SerializatorMem.GetFieldFltV(Rec, FieldId, FltV);
+		//}
 	}
 	/// Get field value using field id (default implementation throws exception)
 	void TStorePbBlob::GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const {
-		if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-			SerializatorCache->GetFieldTm(GetPgBf(RecId), FieldId, Tm);
-		} else {
-			SerializatorMem->GetFieldTm(GetPgBf(RecId, true), FieldId, Tm);
-			//TMem Rec;
-			//DataMem.GetVal(RecId, Rec);
-			//SerializatorMem.GetFieldTm(Rec, FieldId, Tm);
-		}
+		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+		SerializatorMem->GetFieldTm(MIn, FieldId, Tm);
+		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		//	SerializatorCache->GetFieldTm(GetPgBf(RecId), FieldId, Tm);
+		//} else {
+		//	SerializatorMem->GetFieldTm(GetPgBf(RecId, true), FieldId, Tm);
+		//	//TMem Rec;
+		//	//DataMem.GetVal(RecId, Rec);
+		//	//SerializatorMem.GetFieldTm(Rec, FieldId, Tm);
+		//}
 	}
 	/// Get field value using field id (default implementation throws exception)
 	uint64 TStorePbBlob::GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const {
-		if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-			return SerializatorCache->GetFieldTmMSecs(GetPgBf(RecId), FieldId);
-		} else {
-			return SerializatorMem->GetFieldTmMSecs(GetPgBf(RecId, true), FieldId);
-			//TMem Rec;
-			//DataMem.GetVal(RecId, Rec);
-			//return SerializatorMem.GetFieldTmMSecs(Rec, FieldId);
-		}
+		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+		return SerializatorMem->GetFieldTmMSecs(MIn, FieldId);
+		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		//	return SerializatorCache->GetFieldTmMSecs(GetPgBf(RecId), FieldId);
+		//} else {
+		//	return SerializatorMem->GetFieldTmMSecs(GetPgBf(RecId, true), FieldId);
+		//	//TMem Rec;
+		//	//DataMem.GetVal(RecId, Rec);
+		//	//return SerializatorMem.GetFieldTmMSecs(Rec, FieldId);
+		//}
 	}
 	/// Get field value using field id (default implementation throws exception)
 	void TStorePbBlob::GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const {
-		if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-			SerializatorCache->GetFieldNumSpV(GetPgBf(RecId), FieldId, SpV);
-		} else {
-			SerializatorMem->GetFieldNumSpV(GetPgBf(RecId, true), FieldId, SpV);
-			//TMem Rec;
-			//DataMem.GetVal(RecId, Rec);
-			//SerializatorMem.GetFieldNumSpV(Rec, FieldId, SpV);
-		}
+		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+		SerializatorMem->GetFieldNumSpV(MIn, FieldId, SpV);
+		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		//	SerializatorCache->GetFieldNumSpV(GetPgBf(RecId), FieldId, SpV);
+		//} else {
+		//	SerializatorMem->GetFieldNumSpV(GetPgBf(RecId, true), FieldId, SpV);
+		//	//TMem Rec;
+		//	//DataMem.GetVal(RecId, Rec);
+		//	//SerializatorMem.GetFieldNumSpV(Rec, FieldId, SpV);
+		//}
 	}
 	/// Get field value using field id (default implementation throws exception)
 	void TStorePbBlob::GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const {
-		if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-			SerializatorCache->GetFieldBowSpV(GetPgBf(RecId), FieldId, SpV);
-		} else {
-			SerializatorMem->GetFieldBowSpV(GetPgBf(RecId, true), FieldId, SpV);
-			//TMem Rec;
-			//DataMem.GetVal(RecId, Rec);
-			//SerializatorMem.GetFieldBowSpV(Rec, FieldId, SpV);
-		}
+		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+		SerializatorMem->GetFieldBowSpV(MIn, FieldId, SpV);
+		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		//	SerializatorCache->GetFieldBowSpV(GetPgBf(RecId), FieldId, SpV);
+		//} else {
+		//	SerializatorMem->GetFieldBowSpV(GetPgBf(RecId, true), FieldId, SpV);
+		//	//TMem Rec;
+		//	//DataMem.GetVal(RecId, Rec);
+		//	//SerializatorMem.GetFieldBowSpV(Rec, FieldId, SpV);
+		//}
 	}
 
 	//////////////////////
