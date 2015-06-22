@@ -164,7 +164,7 @@ public:
 
 /////////////////////////////////////////////////////////////////////
 // Memory chunk - advanced memory buffer, supports resizing etc.
-// There ar eno additional data members.
+// There are no additional data members.
 class TMem;
 typedef TPt<TMem> PMem;
 
@@ -212,7 +212,7 @@ public:
   TMem& operator=(const TMem& Mem){
     if (this!=&Mem){
 		if (Owner && Bf != NULL) { delete[] Bf; }
-      MxBfL=Mem.MxBfL; BfL=Mem.BfL; Bf=NULL;
+		MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL; Owner = true;
       if (MxBfL>0){Bf=new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL);}}
     return *this;}
   TMem& operator=(TMem&& Src) {
