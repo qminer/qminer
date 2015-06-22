@@ -1,5 +1,7 @@
 {
-    'variables': { 'LIN_ALGEBRA%': 'NOBLAS' },
+    'variables': { 'LIN_ALGEBRA%': 'NOBLAS',
+   		   'LIN_ALGEBRA_INCLUDE%': 'src/glib/base/'
+    },
     'target_defaults': {
         # GCC flags
         'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
@@ -60,7 +62,8 @@
                 'src/third_party/Snap/snap-core',
                 'src/third_party/Snap/snap-adv',
                 'src/third_party/Snap/snap-exp',
-                'src/third_party/Snap/qlib-core'
+                'src/third_party/Snap/qlib-core',
+		'<(LIN_ALGEBRA_INCLUDE)'
             ],
             'defines': ['<(LIN_ALGEBRA)'
             ],
@@ -152,7 +155,8 @@
                 'src/qminer',
                 'src/glib/base/',
                 'src/glib/mine/',
-                'src/glib/misc/'
+                'src/glib/misc/',
+	        '<(LIN_ALGEBRA_INCLUDE)'
             ],
             'conditions': [
                 # operating system specific parameters
@@ -229,7 +233,8 @@
                 'src/third_party/Snap/qlib-core',
                 'src/glib/base/',
                 'src/glib/mine/',
-                'src/glib/misc/'
+                'src/glib/misc/',
+		'<(LIN_ALGEBRA_INCLUDE)'
             ],
             'conditions': [
                 # operating system specific parameters
@@ -305,7 +310,8 @@
             'include_dirs': [
                 'src/glib/base/',
                 'src/glib/mine/',
-                'src/glib/misc/'
+                'src/glib/misc/',
+		'<(LIN_ALGEBRA_INCLUDE)'
             ],
             'defines': ['<(LIN_ALGEBRA)'
             ],
