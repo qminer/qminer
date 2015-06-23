@@ -799,10 +799,10 @@ private:
 public:
 	TGix(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& _Access = faRdOnly, const int64& CacheSize = 100000000,
-		int _SplitLen = 1000);
+		int _SplitLen = 1024);
 	static PGix New(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& Access = faRdOnly, const int64& CacheSize = 100000000,
-		int _SplitLen = 1000) {
+		int _SplitLen = 1024) {
 		return new TGix(Nm, FPath, Access, CacheSize, _SplitLen);
 	}
 
