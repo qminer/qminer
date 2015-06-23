@@ -609,7 +609,7 @@ public:
   int GetDocWId(const int& DId, const int& DocWIdN) const {
     return DocSpVV[DId]->GetWId(DocWIdN);}
   void PutDocWFq(const int& DId, const int& DocWIdN, double& WordFq){
-    DocSpVV[DId]->GetWgt(DocWIdN)=sdouble(WordFq);}
+    DocSpVV[DId]->AddWIdWgt(DocWIdN, WordFq);}
   double GetDocWFq(const int& DId, const int& DocWIdN) const {
     return DocSpVV[DId]->GetWgt(DocWIdN);}
   bool IsDocWordStr(const int& DId, const TStr& WordStr) const;
