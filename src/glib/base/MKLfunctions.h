@@ -22,6 +22,7 @@ typedef int glib_index;
 	#define LAPACK_COMPLEX_CPP
 	#include "cblas.h"
 	#include "lapacke.h"
+	typedef CBLAS_ORDER CBLAS_LAYOUT;
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -646,10 +647,6 @@ static void QRSolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, TVec<Ty
 
 
 		// calulates the solution Temp with CBLAS function
-		//OpenBLAS fix
-#ifndef INTEL
-		typedef CBLAS_ORDER CBLAS_LAYOUT;
-#endif
 		const CBLAS_LAYOUT		CBLASLayout = ColMajor ? CBLAS_LAYOUT::CblasColMajor : CBLAS_LAYOUT::CblasRowMajor;		// if matrix M is colmajor or rowmajor
 		const CBLAS_SIDE		CBLASSide = CBLAS_SIDE::CblasLeft;														// the matrix is multiplied from the left
 		const CBLAS_UPLO		CBLASUplo = CBLAS_UPLO::CblasUpper;														// the matrix R is saved in the upper triangular
