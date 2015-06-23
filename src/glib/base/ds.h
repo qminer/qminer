@@ -1156,7 +1156,8 @@ TSizeTy TVec<TVal, TSizeTy>::AddUnique(const TVal& Val){
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::GetSubValV(const TSizeTy& _BValN, const TSizeTy& _EValN, TVec<TVal, TSizeTy>& SubValV) const {
-  if (Len() == 0 || _BValN >= Len() || _BValN >= _EValN)
+  SubValV.Clr();
+  if (Len() == 0 || _BValN >= Len() || _BValN > _EValN)
     return;
   const TSizeTy BValN=TInt::GetInRng(_BValN, 0, Len()-1);
   const TSizeTy EValN=TInt::GetInRng(_EValN, 0, Len()-1);
@@ -1168,6 +1169,9 @@ void TVec<TVal, TSizeTy>::GetSubValV(const TSizeTy& _BValN, const TSizeTy& _EVal
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::GetSubValVMemCpy(const TSizeTy& _BValN, const TSizeTy& _EValN, TVec<TVal, TSizeTy>& SubValV) const {
+    SubValV.Clr();
+	if (Len() == 0 || _BValN >= Len() || _BValN > _EValN)
+		return;
 	const TSizeTy BValN = TInt::GetInRng(_BValN, 0, Len() - 1);
 	const TSizeTy EValN = TInt::GetInRng(_EValN, 0, Len() - 1);
 	const TSizeTy SubVals = TInt::GetMx(0, EValN - BValN + 1);
@@ -2970,9 +2974,9 @@ TLstNd<TVal>* TLst<TVal>::AddFrontSorted(const TVal& Val, const bool& Asc){
   if (Nd==NULL){
     return Ins(Nd, Val);
   } else {
-    while ((Nd!=NULL)&&((Asc&&(Val>Nd()))||(!Asc&&(Val<Nd())))){
+    while ((Nd!=NULL)&&((Asc&&(Val>Nd->Val))||(!Asc&&(Val<Nd->Val)))){
       Nd=Nd->Next();}
-    if (Nd==NULL){return Ins(Nd->Last(), Val);}
+    if (Nd==NULL){return Ins(Last(), Val);}
     else {return Ins(Nd->Prev(), Val);}
   }
 }
@@ -3019,8 +3023,8 @@ TLstNd<TVal>* TLst<TVal>::Ins(const PLstNd& Nd, const TVal& Val){
   else if (Nd->NextNd==NULL){return AddBack(Val);}
   else {
     PLstNd NewNd=new TLstNd<TVal>(Nd, Nd->NextNd, Val);
-    Nd->NextNd=NewNd; NewNd->NextNd->PrevNd=Nd;
-    Nds++; return Nd;
+    Nd->NextNd=NewNd; NewNd->NextNd->PrevNd=NewNd;
+    Nds++; return NewNd;
   }
 }
 
