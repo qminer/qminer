@@ -510,7 +510,7 @@ static void TriangularSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type
 	template<class Type, class Size, bool ColMajor = false>
 static void TriangularSolve(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& X, 
 		TVVec<Type, Size, ColMajor>& B, bool UpperTriangFlag = true, bool DiagonalUnitFlag = false) {
-		Assert(Matrix.GetRows() == B.GetRows());
+		Assert(A.GetRows() == B.GetRows());
 
 		// data used for solution
 		Size NumOfRows_Matrix = A.GetRows();
@@ -639,13 +639,17 @@ static void QRSolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, TVec<Ty
 		}
 		else
 		if (TypeCheck::is_float<Type>::value == true){
-			typedef float Loc;
+			typedef float Loc; 
 			LAPACKE_sormqr(Matrix_Layout, 'L', 'T', NumOfRows_Vector, NumOfCols_Vector, NumOfElementaryReflectors,
 				(const Loc *)&M(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&Tau[0].Val, (Loc *)&Temp[0].Val, LeadingDimension_Vector);
 		}
 
 
 		// calulates the solution Temp with CBLAS function
+		//OpenBLAS fix
+#ifndef INTEL
+		typedef CBLAS_ORDER CBLAS_LAYOUT;
+#endif
 		const CBLAS_LAYOUT		CBLASLayout = ColMajor ? CBLAS_LAYOUT::CblasColMajor : CBLAS_LAYOUT::CblasRowMajor;		// if matrix M is colmajor or rowmajor
 		const CBLAS_SIDE		CBLASSide = CBLAS_SIDE::CblasLeft;														// the matrix is multiplied from the left
 		const CBLAS_UPLO		CBLASUplo = CBLAS_UPLO::CblasUpper;														// the matrix R is saved in the upper triangular
