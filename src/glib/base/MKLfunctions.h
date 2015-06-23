@@ -17,6 +17,8 @@ typedef int index;
 	//#include "mkl_scalapack.h"
 #else
 	//OpenBlas fix
+	#define lapack_complex_float std::complex<float>
+	#define lapack_complex_double std::complex<double>
 	#define LAPACK_COMPLEX_CPP
 	#include "cblas.h"
 	#include "lapacke.h"

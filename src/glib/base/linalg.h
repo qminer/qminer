@@ -13,6 +13,9 @@
 #ifdef BLAS
 	#define MKL_Complex8 std::complex<float>
 	#define MKL_Complex16 std::complex<double>
+	#define lapack_complex_float std::complex<float>
+	#define lapack_complex_double std::complex<double>
+	#define LAPACK_COMPLEX_CPP
 	#ifdef AMD
 		#include "acml.h"
 	#elif INTEL 
@@ -20,7 +23,6 @@
 		#include "mkl.h"
 	//#include "mkl_scalapack.h"
 	#else
-		#define LAPACK_COMPLEX_CPP
 		#include "cblas.h"
 		#ifdef LAPACKE
 			#include "lapacke.h"
