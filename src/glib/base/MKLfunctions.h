@@ -2,9 +2,9 @@
 #define MKLFUNCTIONS_H
 
 #ifdef INDEX_64
-typedef int64 index;
+typedef int64 glib_index;
 #else
-typedef int index;
+typedef int glib_index;
 #endif
 
 
@@ -37,7 +37,7 @@ private:
 	// LU midstep used for LUFactorization and LUSolve 
 	// (Warning: the matrix is overwritten in the process)
 	template<class Type, class Size, bool ColMajor = false>
-static void LUStep(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<index>, index>& Perm) {//TVec<TNum<Size>, Size>& Perm)
+static void LUStep(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<glib_index>, glib_index>& Perm) {//TVec<TNum<Size>, Size>& Perm)
 		Assert(A.GetRows() == A.GetCols());
 
 		// data used for factorization
@@ -111,7 +111,7 @@ static void CholeskyStep(TVVec<Type, Size, ColMajor>& A) {
 	// QR midstep used for LUFactorization and QRSolve. 
 	// (Warning: the matrix is overwritten in the process)
 	template<class Type, class Size, bool ColMajor = false>
-static void QRStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<index>, index>& Tau) {
+static void QRStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<glib_index>, glib_index>& Tau) {
 		Assert(A.GetRows() >= A.GetCols());
 
 		// data used for factorization
@@ -145,7 +145,7 @@ static void QRStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<index>, index>& Tau
 	// LQ midstep used for LQFactorization and LQSolve.
 	// (Warning: the matrix is overwritten in the process)
 	template<class Type, class Size, bool ColMajor = false>
-static void LQStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<index>, index>& Tau) {
+static void LQStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<glib_index>, glib_index>& Tau) {
 		Assert(A.GetRows() <= A.GetCols());
 
 		Size NumOfRows = A.GetRows();
@@ -185,7 +185,7 @@ public:
 	// Vector P tell's us: column i is swapped with column P[i].
 	template<class Type, class Size, bool ColMajor = false>
 static void LUFactorization(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& L, 
-		TVVec<Type, Size, ColMajor>& U, TVec<TNum<index>, index>& P) {
+		TVVec<Type, Size, ColMajor>& U, TVec<TNum<glib_index>, glib_index>& P) {
 		Assert(A.GetRows() == A.GetCols());
 
 		Size NumOfRows_Matrix = A.GetRows();
@@ -242,7 +242,7 @@ static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type>, Size>
 		// LU factorization
 		TVVec<TNum<Type>, Size, ColMajor> M = A;
 		//TODO TInt is enough?
-		TVec<TNum<index>, index> Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+		TVec<TNum<glib_index>, glib_index> Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
 		MKLfunctions::LUStep(M, Perm);
 
 		// solution
@@ -292,7 +292,7 @@ static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVVec<TNum<Type>, Size
 		// LU factorization
 		TVVec<TNum<Type>, Size, ColMajor> M = A;
 		//TODO TInt is enough?
-		TVec<TNum<index>, index> Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+		TVec<TNum<glib_index>, glib_index> Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
 		MKLfunctions::LUStep(M, Perm);
 
 		// solution
