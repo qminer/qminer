@@ -435,8 +435,16 @@ void TReplaySrv::StopLogging()
 
 bool TReplaySrv::RemoveLogData(const TStr& LogFNm)
 {
-	if (TFile::Exists(LogFNm))
-		return TFile::Del(LogFNm, false);
+	try {
+		if (TFile::Exists(LogFNm))
+			return TFile::Del(LogFNm, false);
+	}
+	catch (PExcept Except) {
+		TNotify::StdNotify->OnNotifyFmt(ntErr, "TReplaySrv::RemoveLogData. Error while removing file: %s\n%s.", LogFNm.CStr(), Except->GetLocStr().CStr());
+	}
+	catch (...) {
+		TNotify::StdNotify->OnNotifyFmt(ntErr, "TReplaySrv::RemoveLogData. Error while removing file: %s.", LogFNm.CStr());
+	}
 	return false;
 }
 
