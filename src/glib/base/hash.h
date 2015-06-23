@@ -856,6 +856,11 @@ public:
   void GetDatKeyPrV(TVec<TPair<TDat, TStr> >& DatKeyPrV) const;
 
   void Pack(){KeyDatV.Pack();}
+  int GetMemUsed() const {
+      return PortV.GetMemUsed() + KeyDatV.GetMemUsedDeep() +
+          AutoSizeP.GetMemUsed() + FFreeKeyId.GetMemUsed() +
+          FreeKeys.GetMemUsed() + Pool->GetMemUsed();
+  }
 };
 
 template <class TDat, class TStringPool, class THashFunc>
