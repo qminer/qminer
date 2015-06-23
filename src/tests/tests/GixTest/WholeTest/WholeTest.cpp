@@ -2067,7 +2067,7 @@ TEST(testTStorePbBlob, PerfCompare_StrAddUpdateToast2) {
 			store->AddRec(json);
 		}
 		sw.Stop();
-		printf("++++ update long: %d\n\n", sw.GetMSecInt());
+		printf("++++ insert: %d\n\n", sw.GetMSecInt());
 
 		TQm::TStorage::SaveBase(Base);
 	}
@@ -2109,6 +2109,7 @@ TEST(testTStorePbBlob, PerfCompare_StrAddUpdateToast2) {
 			printf("Starting - new implementation - insert and update\n");
 			TPt<TQm::TBase> Base = TQm::TStorage::NewBase(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
 			auto store = Base->GetStoreByStoreNm("TestStore2");
+			sw.Reset(true);
 			for (int i = 0; i < rec_count; i++) {
 				if (i % 10000 == 0)
 					printf("    %d\n", i);
@@ -2120,6 +2121,8 @@ TEST(testTStorePbBlob, PerfCompare_StrAddUpdateToast2) {
 				json_bool->PutBool(i % 7 == 3);
 				store->AddRec(json);
 			}
+			sw.Stop();
+			printf("++++ insert: %d\n\n", sw.GetMSecInt());
 			printf("Starting save...\n");
 			TQm::TStorage::SaveBase(Base);
 		}

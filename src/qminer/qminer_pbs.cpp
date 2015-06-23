@@ -237,10 +237,15 @@ namespace TStorage {
 		}
 	}
 
+	/// Get serializator for given location
+	TRecSerializator* TStorePbBlob::GetSerializator(const TStoreLoc& StoreLoc) const {
+		return (StoreLoc == TStoreLoc::slDisk ? SerializatorCache : SerializatorMem);
+	}
+
 	/// Check if the value of given field for a given record is NULL
 	bool TStorePbBlob::IsFieldNull(const uint64& RecId, const int& FieldId) const {
-		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
-		return SerializatorMem->IsFieldNull(MIn, FieldId);
+		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);		
+		return GetSerializator(FieldLocV[FieldId])->IsFieldNull(MIn, FieldId);
 		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
 		//	return SerializatorCache->IsFieldNull(GetPgBf(RecId), FieldId);
 		//} else {
@@ -254,7 +259,7 @@ namespace TStorage {
 	/// Get field value using field id (default implementation throws exception)
 	int TStorePbBlob::GetFieldInt(const uint64& RecId, const int& FieldId) const {
 		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
-		return SerializatorMem->GetFieldInt(MIn, FieldId);
+		return GetSerializator(FieldLocV[FieldId])->GetFieldInt(MIn, FieldId);
 		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
 		//	return SerializatorCache->GetFieldInt(GetPgBf(RecId), FieldId);
 		//} else {
@@ -267,7 +272,7 @@ namespace TStorage {
 	/// Get field value using field id (default implementation throws exception)
 	void TStorePbBlob::GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const {
 		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
-		SerializatorMem->GetFieldIntV(MIn, FieldId, IntV);
+		GetSerializator(FieldLocV[FieldId])->GetFieldIntV(MIn, FieldId, IntV);
 		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
 		//	SerializatorCache->GetFieldIntV(GetPgBf(RecId), FieldId, IntV);
 		//} else {
@@ -280,7 +285,7 @@ namespace TStorage {
 	/// Get field value using field id (default implementation throws exception)
 	uint64 TStorePbBlob::GetFieldUInt64(const uint64& RecId, const int& FieldId) const {
 		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
-		return SerializatorMem->GetFieldUInt64(MIn, FieldId);
+		return GetSerializator(FieldLocV[FieldId])->GetFieldUInt64(MIn, FieldId);
 		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
 		//	return SerializatorCache->GetFieldUInt64(GetPgBf(RecId), FieldId);
 		//} else {
@@ -293,7 +298,7 @@ namespace TStorage {
 	/// Get field value using field id (default implementation throws exception)
 	TStr TStorePbBlob::GetFieldStr(const uint64& RecId, const int& FieldId) const {
 		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
-		return SerializatorMem->GetFieldStr(MIn, FieldId);
+		return GetSerializator(FieldLocV[FieldId])->GetFieldStr(MIn, FieldId);
 		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
 		//	return SerializatorCache->GetFieldStr(GetPgBf(RecId), FieldId);
 		//} else {
@@ -306,7 +311,7 @@ namespace TStorage {
 	/// Get field value using field id (default implementation throws exception)
 	void TStorePbBlob::GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const {
 		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
-		SerializatorMem->GetFieldStrV(MIn, FieldId, StrV);
+		GetSerializator(FieldLocV[FieldId])->GetFieldStrV(MIn, FieldId, StrV);
 		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
 		//	SerializatorCache->GetFieldStrV(GetPgBf(RecId), FieldId, StrV);
 		//} else {
@@ -319,7 +324,7 @@ namespace TStorage {
 	/// Get field value using field id (default implementation throws exception)
 	bool TStorePbBlob::GetFieldBool(const uint64& RecId, const int& FieldId) const {
 		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
-		return SerializatorMem->GetFieldBool(MIn, FieldId);
+		return GetSerializator(FieldLocV[FieldId])->GetFieldBool(MIn, FieldId);
 		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
 		//	return SerializatorCache->GetFieldBool(GetPgBf(RecId), FieldId);
 		//} else {
@@ -332,7 +337,7 @@ namespace TStorage {
 	/// Get field value using field id (default implementation throws exception)
 	double TStorePbBlob::GetFieldFlt(const uint64& RecId, const int& FieldId) const {
 		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
-		return SerializatorMem->GetFieldFlt(MIn, FieldId);
+		return GetSerializator(FieldLocV[FieldId])->GetFieldFlt(MIn, FieldId);
 		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
 		//	return SerializatorCache->GetFieldFlt(GetPgBf(RecId), FieldId);
 		//} else {
@@ -345,7 +350,7 @@ namespace TStorage {
 	/// Get field value using field id (default implementation throws exception)
 	TFltPr TStorePbBlob::GetFieldFltPr(const uint64& RecId, const int& FieldId) const {
 		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
-		return SerializatorMem->GetFieldFltPr(MIn, FieldId);
+		return GetSerializator(FieldLocV[FieldId])->GetFieldFltPr(MIn, FieldId);
 		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
 		//	return SerializatorCache->GetFieldFltPr(GetPgBf(RecId), FieldId);
 		//} else {
@@ -358,7 +363,7 @@ namespace TStorage {
 	/// Get field value using field id (default implementation throws exception)
 	void TStorePbBlob::GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const {
 		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
-		SerializatorMem->GetFieldFltV(MIn, FieldId, FltV);
+		GetSerializator(FieldLocV[FieldId])->GetFieldFltV(MIn, FieldId, FltV);
 		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
 		//	SerializatorCache->GetFieldFltV(GetPgBf(RecId), FieldId, FltV);
 		//} else {
@@ -371,7 +376,7 @@ namespace TStorage {
 	/// Get field value using field id (default implementation throws exception)
 	void TStorePbBlob::GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const {
 		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
-		SerializatorMem->GetFieldTm(MIn, FieldId, Tm);
+		GetSerializator(FieldLocV[FieldId])->GetFieldTm(MIn, FieldId, Tm);
 		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
 		//	SerializatorCache->GetFieldTm(GetPgBf(RecId), FieldId, Tm);
 		//} else {
@@ -384,7 +389,7 @@ namespace TStorage {
 	/// Get field value using field id (default implementation throws exception)
 	uint64 TStorePbBlob::GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const {
 		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
-		return SerializatorMem->GetFieldTmMSecs(MIn, FieldId);
+		return GetSerializator(FieldLocV[FieldId])->GetFieldTmMSecs(MIn, FieldId);
 		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
 		//	return SerializatorCache->GetFieldTmMSecs(GetPgBf(RecId), FieldId);
 		//} else {
@@ -397,7 +402,7 @@ namespace TStorage {
 	/// Get field value using field id (default implementation throws exception)
 	void TStorePbBlob::GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const {
 		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
-		SerializatorMem->GetFieldNumSpV(MIn, FieldId, SpV);
+		GetSerializator(FieldLocV[FieldId])->GetFieldNumSpV(MIn, FieldId, SpV);
 		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
 		//	SerializatorCache->GetFieldNumSpV(GetPgBf(RecId), FieldId, SpV);
 		//} else {
@@ -410,7 +415,7 @@ namespace TStorage {
 	/// Get field value using field id (default implementation throws exception)
 	void TStorePbBlob::GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const {
 		TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
-		SerializatorMem->GetFieldBowSpV(MIn, FieldId, SpV);
+		GetSerializator(FieldLocV[FieldId])->GetFieldBowSpV(MIn, FieldId, SpV);
 		//if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
 		//	SerializatorCache->GetFieldBowSpV(GetPgBf(RecId), FieldId, SpV);
 		//} else {
