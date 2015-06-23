@@ -1200,6 +1200,35 @@ void TStore::PrintTypes(const TWPt<TBase>& Base, const  TStr& FNm) const {
 	TFOut FOut(FNm); PrintTypes(Base, FOut);
 }
 
+void TStore::PrintRecSetAsJson(const TWPt<TBase>& Base, const PRecSet& RecSet, TSOut& SOut)
+{
+	for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
+		const uint64 RecId = RecSet->GetRecId(RecN);
+		PJsonVal Json = GetRec(RecId).GetJson(Base, true, false);
+		SOut.PutStrLn(Json->SaveStr());
+	}
+}
+
+void TStore::PrintRecSetAsJson(const TWPt<TBase>& Base, const PRecSet& RecSet, const TStr& FNm)
+{
+	TFOut FOut(FNm); PrintRecSetAsJson(Base, RecSet, FOut);
+}
+
+void TStore::PrintAllAsJson(const TWPt<TBase>& Base, TSOut& SOut)
+{
+	PStoreIter Iter = GetIter();
+	while (Iter->Next()) {
+		const uint64 RecId = Iter->GetRecId();
+		PJsonVal Json = GetRec(RecId).GetJson(Base, true, false);
+		SOut.PutStrLn(Json->SaveStr());
+	}
+}
+
+void TStore::PrintAllAsJson(const TWPt<TBase>& Base, const TStr& FNm)
+{
+	TFOut FOut(FNm); PrintAllAsJson(Base, FOut);
+}
+
 ///////////////////////////////
 // QMiner-Record
 PExcept TRec::FieldError(const int& FieldId, const TStr& TypeStr) const {
@@ -2987,31 +3016,30 @@ TQueryItem::TQueryItem(const PRecSet& _RecSet) :
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
-	const uint64& WordId, const TQueryCmpType& _CmpType, const bool& IsSmall) : Type(IsSmall ? oqitLeafGixSmall : oqitLeafGix),
-	KeyId(_KeyId), CmpType(_CmpType) {
+	const uint64& WordId, const TQueryCmpType& _CmpType) : KeyId(_KeyId), CmpType(_CmpType) {
+	Type = Base->GetIndexVoc()->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix;
 	WordIdV.Add(WordId);
 	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
-	const TStr& WordStr, const TQueryCmpType& _CmpType, const bool& IsSmall) : Type(IsSmall ? oqitLeafGixSmall : oqitLeafGix) {
+	const TStr& WordStr, const TQueryCmpType& _CmpType) : KeyId(_KeyId), CmpType(_CmpType) {
 
 	// read the Key
-	KeyId = _KeyId;
 	QmAssertR(Base->GetIndexVoc()->IsKeyId(KeyId), "Unknown Key ID: " + KeyId.GetStr());
-	// read the sort type
-	CmpType = _CmpType;
+	Type = Base->GetIndexVoc()->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix;
 	// parse the word string
 	ParseWordStr(WordStr, Base->GetIndexVoc());
 	SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm,
-	const TStr& WordStr, const TQueryCmpType& _CmpType, const bool& IsSmall) : Type(IsSmall ? oqitLeafGixSmall : oqitLeafGix) {
+	const TStr& WordStr, const TQueryCmpType& _CmpType) {
 
 	// get the key
 	QmAssertR(Base->GetIndexVoc()->IsKeyNm(StoreId, KeyNm), "Unknown Key Name: " + KeyNm);
 	KeyId = Base->GetIndexVoc()->GetKeyId(StoreId, KeyNm);
+	Type = Base->GetIndexVoc()->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix;
 	// read sort type
 	CmpType = _CmpType;
 	// parse the word string
@@ -3020,12 +3048,13 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr&
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm,
-	const TStr& WordStr, const TQueryCmpType& _CmpType, const bool& IsSmall) : Type(IsSmall ? oqitLeafGixSmall : oqitLeafGix) {
+	const TStr& WordStr, const TQueryCmpType& _CmpType) {
 
 	// get the key
 	const uint StoreId = Base->GetStoreByStoreNm(StoreNm)->GetStoreId();
 	QmAssertR(Base->GetIndexVoc()->IsKeyNm(StoreId, KeyNm), "Unknown Key Name: " + KeyNm);
 	KeyId = Base->GetIndexVoc()->GetKeyId(StoreId, KeyNm);
+	Type = Base->GetIndexVoc()->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix;
 	// read sort type
 	CmpType = _CmpType;
 	// parse the word string

@@ -775,6 +775,14 @@ public:
     void PrintTypes(const TWPt<TBase>& Base, TSOut& SOut) const;
     /// Prints registered fields and joins, useful for debugging
     void PrintTypes(const TWPt<TBase>& Base, const TStr& FNm) const;
+    /// Prints record set with all the field values, useful for debugging
+    void PrintRecSetAsJson(const TWPt<TBase>& Base, const PRecSet& RecSet, TSOut& SOut);
+    /// Prints record set with all the field values, useful for debugging
+    void PrintRecSetAsJson(const TWPt<TBase>& Base, const PRecSet& RecSet, const TStr& FNm);
+    /// Prints all records with all the field values, useful for debugging
+    void PrintAllAsJson(const TWPt<TBase>& Base, TSOut& SOut);
+    /// Prints all records with all the field values, useful for debugging
+    void PrintAllAsJson(const TWPt<TBase>& Base, const TStr& FNm);
 };
 //typedef THash<TUCh, PStore> TUChStoreH;
 
@@ -1900,16 +1908,16 @@ public:
 	TQueryItem(const PRecSet& _RecSet);
 	/// Create new inverted index leaf query
     TQueryItem(const TWPt<TBase>& Base, const int& _KeyId, const uint64& WordId, 
-		const TQueryCmpType& _CmpType = oqctEqual, const bool& IsSmall = false);
+		const TQueryCmpType& _CmpType = oqctEqual);
 	/// Create new inverted index leaf query
     TQueryItem(const TWPt<TBase>& Base, const int& _KeyId, const TStr& WordStr, 
-		const TQueryCmpType& _CmpType = oqctEqual, const bool& IsSmall = false);
+		const TQueryCmpType& _CmpType = oqctEqual);
 	/// Create new inverted index leaf query
     TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm, 
-		const TStr& WordStr, const TQueryCmpType& _CmpType = oqctEqual, const bool& IsSmall = false);
+		const TStr& WordStr, const TQueryCmpType& _CmpType = oqctEqual);
 	/// Create new inverted index leaf query
     TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm, 
-		const TStr& WordStr, const TQueryCmpType& _CmpType = oqctEqual, const bool& IsSmall = false);
+		const TStr& WordStr, const TQueryCmpType& _CmpType = oqctEqual);
 	/// New leaf location query (limit always required, range used when positive)
 	TQueryItem(const TWPt<TBase>& Base, const int& _KeyId, 
 		const TFltPr& _Loc, const int& _LocLimit = 100, 
