@@ -156,13 +156,13 @@ public:
 // Online M2(X,Y) (covariance)
 class TCov {
 private:	
-    TFlt MaX, MaY; // current computed MA value        
+    TFlt MaX, MaY; // current computed MA value 
     TFlt Cov;
 	TUInt64 TmMSecs; // timestamp of current WMA	
     TFlt pNo;
 public:
 	TCov() {  };	
-    TCov(const PJsonVal& ParamVal) { TCov(); };
+    TCov(const PJsonVal& ParamVal) { TCov(); ParamVal->IsObjKey( };
 
 	void Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV, const int& N);	
