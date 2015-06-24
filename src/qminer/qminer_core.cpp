@@ -552,8 +552,14 @@ void TStore::AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRe
 	if (JoinDesc.IsIndexJoin()) {
 		Index->IndexJoin(this, JoinId, RecId, JoinRecId, JoinFq);
 	} else if (JoinDesc.IsFieldJoin()) {
-		// TODO: check if we already have an existing join here
-		// and figure out if it needs deleting first (probably yes)
+        const uint64 ExistingJoinRecId = GetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId());
+        // if we have an existing join and the target record is different 
+        // then we first have to remove the existing join
+        if (ExistingJoinRecId != TUInt64::Mx && ExistingJoinRecId != JoinRecId) {
+            const int Fq = GetFieldInt(RecId, JoinDesc.GetJoinFqFieldId());
+            DelJoin(JoinDesc.GetJoinRecFieldId(), RecId, JoinRecId, Fq);
+        }
+            
 		SetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId(), JoinRecId);
 		SetFieldInt(RecId, JoinDesc.GetJoinFqFieldId(), JoinFq);
 	}
