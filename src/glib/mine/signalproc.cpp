@@ -343,7 +343,7 @@ void TCov::Update(const double& InValX, const double& InValY, const uint64& InTm
 	// save the value that was just added to Cov
 	if(pLen > 0) {
 		Prod[idx] = (InValX - MaX) * (InValY - MaY); 
-		idx = idx++ % pLen;
+		idx = ++idx % pLen;
 	}
 }
 
