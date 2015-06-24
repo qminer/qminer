@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 // win32 impl here
@@ -44,12 +33,13 @@ public:
 
 ////////////////////////////////////////////
 // Critical Section
+// allows only 1 thread to enter, but the same thread can enter multiple times
 class TCriticalSection {
 private:
 	CRITICAL_SECTION Cs;
 
 public:
-	TCriticalSection(const TCriticalSectionType& _Type = TCriticalSectionType::cstFast);
+	TCriticalSection();
 	~TCriticalSection();
 
 	// start of critical section
@@ -109,6 +99,9 @@ public:
 
 	// get number of cores in the system
 	static int GetCoreCount();
+
+	bool IsAlive() { throw TExcept::New("Not implemented!"); }
+	void Cancel() { throw TExcept::New("Not implemented!"); }
 };
 
 // waits until the given thread finishes the execution

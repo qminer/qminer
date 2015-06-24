@@ -1,5 +1,4 @@
-#define GIX_DEBUG
-#define GIX_TEST
+//#define XTEST
 
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -10,6 +9,8 @@
 
 #include <iostream>
 #include <windows.h>
+
+#include "gtest/gtest.h"
 
 ////////////////////////////////////////////////////////////////////////
 // typedefs
@@ -32,25 +33,24 @@ typedef  TPt < TMyItemSet > PMyItemSet;
 typedef TGix<TMyKey, TMyItem, TMyGixDefMerger> TMyGix;
 typedef TPt<TGix<TMyKey, TMyItem, TMyGixDefMerger> > PMyGix;
 
-
-///////////////////////////////////////////////////////////////////////
-// for nice outputs
-
-HANDLE  hConsole;
-
-void WarnNotifyI(TStr& const s) {
-	SetConsoleTextAttribute(hConsole, 11);
-	WarnNotify(s);
-	SetConsoleTextAttribute(hConsole, 15);
-}
-void WarnNotifyW(TStr& const s) {
-	SetConsoleTextAttribute(hConsole, 14);
-	WarnNotify(s);
-	SetConsoleTextAttribute(hConsole, 15);
-}
-
-#define TAssert(Cond, MsgCStr) \
-  ((Cond) ? static_cast<void>(0) : WarnNotifyW( TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) +": "+ MsgCStr))
+/////////////////////////////////////////////////////////////////////////
+//// for nice outputs
+//
+//HANDLE  hConsole;
+//
+//void WarnNotifyI(TStr& const s) {
+//	SetConsoleTextAttribute(hConsole, 11);
+//	WarnNotify(s);
+//	SetConsoleTextAttribute(hConsole, 15);
+//}
+//void WarnNotifyW(TStr& const s) {
+//	SetConsoleTextAttribute(hConsole, 14);
+//	WarnNotify(s);
+//	SetConsoleTextAttribute(hConsole, 15);
+//}
+//
+//#define ASSERT_TRUE(Cond, MsgCStr) \
+//  ((Cond) ? static_cast<void>(0) : WarnNotifyW( TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) +": "+ MsgCStr))
 
 
 /////////////////////////////////////////////////////////////////////////
@@ -119,17 +119,8 @@ void TMyGixDefMerger::Minus(const TVec<TMyItem>& MainV, const TVec<TMyItem>& Joi
 }
 
 void TMyGixDefMerger::Merge(TVec<TMyItem>& ItemV, bool IsLocal) const {
-	//printf("============================================\n");
-	//for (int i = 0; i < ItemV.Len(); i++) {
-	//	printf("   (%d) %d %d\n", i, ItemV[i].Key, (int)ItemV[i].Dat);
-	//}
 	if (ItemV.Empty()) { return; } // nothing to do in this case
 	if (!ItemV.IsSorted()) { ItemV.Sort(); } // sort if not yet sorted
-
-	//printf("============================================\n");
-	//for (int i = 0; i < ItemV.Len(); i++) {
-	//	printf("   (%d) %d %d\n", i, ItemV[i].Key, (int)ItemV[i].Dat);
-	//}
 
 	// merge counts
 	int LastItemN = 0; bool ZeroP = false;
@@ -157,10 +148,6 @@ void TMyGixDefMerger::Merge(TVec<TMyItem>& ItemV, bool IsLocal) const {
 		}
 		ItemV.Reserve(ItemV.Reserved(), LastItemN);
 	}
-	//printf("============================================\n");
-	//for (int i = 0; i < ItemV.Len(); i++) {
-	//	printf("   (%d) %d %d\n", i, ItemV[i].Key, (int)ItemV[i].Dat);
-	//}
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -168,24 +155,24 @@ void TMyGixDefMerger::Merge(TVec<TMyItem>& ItemV, bool IsLocal) const {
 class XTest {
 public:
 
-	void Test_Simple_1() {
+	static void Test_Simple_1() {
 		TMyGix gix("Test1", "data", faCreate, 10000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		gix.AddItem(x, TMyItem(7234, 1));
 
-		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
-		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
-		//TAssert(gix.GetCacheSize() == 0, "Cache should contain 0 items");
+		EXPECT_TRUE(!gix.IsCacheFull());
+		ASSERT_TRUE(gix.KeyIdH.Len() == 1);
+		//ASSERT_TRUE(gix.GetCacheSize() == 0);
 
 		auto itemset = gix.GetItemSet(x);
-		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(!itemset->IsFull(), "Itemset should be full");
-		TAssert(itemset->MergedP, "Itemset should remain merged");
-		TAssert(itemset->TotalCnt == 1, "Invalid itemset TotalCnt");
+		EXPECT_TRUE(itemset->GetKey() == x);
+		EXPECT_TRUE(!itemset->IsFull());
+		EXPECT_TRUE(itemset->MergedP);
+		EXPECT_TRUE(itemset->TotalCnt == 1);
 	}
 
-	void Test_Simple_220() {
+	static void Test_Simple_220() {
 		TMyGix gix("Test1", "data", faCreate, 10000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
@@ -193,26 +180,26 @@ public:
 			gix.AddItem(x, TMyItem(i, 1));
 		}
 
-		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
-		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
-		//TAssert(gix.GetCacheSize() == 1, "Cache should contain 1 item");
+		EXPECT_TRUE(!gix.IsCacheFull());
+		EXPECT_TRUE(gix.KeyIdH.Len() == 1);
+		//ASSERT_TRUE(gix.GetCacheSize() == 1);
 		auto itemset = gix.GetItemSet(x);
-		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(!itemset->IsFull(), "Work-buffer should be full");
-		TAssert(itemset->MergedP, "Itemset should remain merged");
-		TAssert(itemset->TotalCnt == 220, "Invalid itemset TotalCnt");
-		TAssert(itemset->Children.Len() == 2, "Itemset should have 2 children");
-		TAssert(itemset->ItemV.Len() == 20, "Itemset content - invalid ItemV length");
-		TAssert(itemset->Children[0].Len == 100, "Itemset content - invalid first child length");
-		TAssert(itemset->Children[1].Len == 100, "Itemset content - invalid second child length");
-		TAssert(itemset->ChildrenData[0].Len() == 0, "Itemset child content - invalid first child length");
-		TAssert(itemset->ChildrenData[1].Len() == 0, "Itemset child content - invalid second child length");
+		EXPECT_TRUE(itemset->GetKey() == x);
+		EXPECT_TRUE(!itemset->IsFull());
+		EXPECT_TRUE(itemset->MergedP);
+		EXPECT_TRUE(itemset->TotalCnt == 220);
+		EXPECT_TRUE(itemset->Children.Len() == 2);
+		EXPECT_TRUE(itemset->ItemV.Len() == 20);
+		EXPECT_TRUE(itemset->Children[0].Len == 100);
+		EXPECT_TRUE(itemset->Children[1].Len == 100);
+		EXPECT_TRUE(itemset->ChildrenData[0].Len() == 0);
+		EXPECT_TRUE(itemset->ChildrenData[1].Len() == 0);
 
 		gix.ItemSetCache.FlushAndClr();
-		//TAssert(gix.GetCacheSize() == 0, "Cache should contain 0 items");
+		//ASSERT_TRUE(gix.GetCacheSize() == 0, "Cache should contain 0 items");
 	}
 
-	void Test_Simple_220_Unsorted() {
+	static void Test_Simple_220_Unsorted() {
 		TMyGix gix("Test1", "data", faCreate, 10000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
@@ -221,34 +208,34 @@ public:
 			gix.AddItem(x, TMyItem(item, 1)); // pseudo-random numbers
 		}
 
-		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
-		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
-		//TAssert(gix.GetCacheSize() == 1, "Cache should contain 1 item");
+		EXPECT_TRUE(!gix.IsCacheFull());
+		EXPECT_TRUE(gix.KeyIdH.Len() == 1);
+		//ASSERT_TRUE(gix.GetCacheSize() == 1);
 		auto itemset = gix.GetItemSet(x);
-		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(!itemset->IsFull(), "Itemset should be full");
-		TAssert(!itemset->MergedP, "Itemset should not be merged");
-		TAssert(itemset->TotalCnt == 220, "Invalid itemset TotalCnt");
-		TAssert(itemset->Children.Len() == 2, "Itemset should have 2 children");
-		TAssert(itemset->ItemV.Len() == 20, "Itemset content - invalid ItemV length");
-		TAssert(itemset->Children[0].Len == 100, "Itemset content - invalid first child length");
-		TAssert(itemset->Children[1].Len == 100, "Itemset content - invalid second child length");
-		TAssert(itemset->ChildrenData[0].Len() == 100, "Itemset content - invalid first child length");
-		TAssert(itemset->ChildrenData[1].Len() == 0, "Itemset content - invalid second child length");
+		EXPECT_TRUE(itemset->GetKey() == x);
+		EXPECT_TRUE(!itemset->IsFull());
+		EXPECT_TRUE(!itemset->MergedP);
+		EXPECT_TRUE(itemset->TotalCnt == 220);
+		EXPECT_TRUE(itemset->Children.Len() == 2);
+		EXPECT_TRUE(itemset->ItemV.Len() == 20);
+		EXPECT_TRUE(itemset->Children[0].Len == 100);
+		EXPECT_TRUE(itemset->Children[1].Len == 100);
+		EXPECT_TRUE(itemset->ChildrenData[0].Len() == 100);
+		EXPECT_TRUE(itemset->ChildrenData[1].Len() == 0);
 
 		itemset->Def();
 
-		TAssert(itemset->MergedP, "Itemset should be merged");
-		TAssert(itemset->Children.Len() == 2, "Itemset should have 2 children");
-		TAssert(itemset->ItemV.Len() == 20, "Itemset content - invalid ItemV length");
-		TAssert(itemset->Children[0].Len == 100, "Itemset content - invalid first child length");
-		TAssert(itemset->Children[1].Len == 100, "Itemset content - invalid second child length");
-		TAssert(itemset->ChildrenData[0].Len() == 100, "Itemset content - invalid first child length");
-		TAssert(itemset->ChildrenData[1].Len() == 100, "Itemset content - invalid second child length");
+		EXPECT_TRUE(itemset->MergedP);
+		EXPECT_TRUE(itemset->Children.Len() == 2);
+		EXPECT_TRUE(itemset->ItemV.Len() == 20);
+		EXPECT_TRUE(itemset->Children[0].Len == 100);
+		EXPECT_TRUE(itemset->Children[1].Len == 100);
+		EXPECT_TRUE(itemset->ChildrenData[0].Len() == 100);
+		EXPECT_TRUE(itemset->ChildrenData[1].Len() == 100);
 
 	}
 
-	void Test_Merge_220_Into_50() {
+	static void Test_Merge_220_Into_50() {
 		TMyGix gix("Test1", "data", faCreate, 100000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
@@ -256,27 +243,27 @@ public:
 			gix.AddItem(x, TMyItem(i % 50, 1));
 		}
 
-		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
-		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
-		//TAssert(gix.GetCacheSize() == 1, "Cache should contain 1 item");
+		EXPECT_TRUE(!gix.IsCacheFull());
+		EXPECT_TRUE(gix.KeyIdH.Len() == 1);
+		//ASSERT_TRUE(gix.GetCacheSize() == 1);
 		auto itemset = gix.GetItemSet(x);
-		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(!itemset->IsFull(), "Itemset should not be full");
-		TAssert(!itemset->MergedP, "Itemset should remain merged");
-		TAssert(itemset->Children.Len() == 0, "Itemset should have 0 children");
+		ASSERT_TRUE(itemset->GetKey() == x);
+		ASSERT_TRUE(!itemset->IsFull());
+		ASSERT_TRUE(!itemset->MergedP);
+		ASSERT_TRUE(itemset->Children.Len() == 0);
 		// 50 merged + 20 unmerged
-		TAssert(itemset->ItemV.Len() == 70, TStr::Fmt("Itemset content - invalid ItemV length - %d", itemset->ItemV.Len()));
+		ASSERT_TRUE(itemset->ItemV.Len() == 70);
 
 		itemset->Def();
 
-		TAssert(!itemset->IsFull(), "Itemset should NOT be full");
-		TAssert(itemset->MergedP, "Itemset should be merged");
-		TAssert(itemset->Children.Len() == 0, "Itemset should have 0 children");
-		TAssert(itemset->ItemV.Len() == 50, "Itemset content - invalid ItemV length");
+		ASSERT_TRUE(!itemset->IsFull());
+		ASSERT_TRUE(itemset->MergedP);
+		ASSERT_TRUE(itemset->Children.Len() == 0);
+		ASSERT_TRUE(itemset->ItemV.Len() == 50);
 
 	}
 
-	void Test_Merge_220_Into_120() {
+	static void Test_Merge_220_Into_120() {
 		TMyGix gix("Test1", "data", faCreate, 100000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
@@ -284,31 +271,31 @@ public:
 			gix.AddItem(x, TMyItem(i % 120, 1));
 		}
 
-		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
-		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
-		//TAssert(gix.GetCacheSize() == 1, "Cache should contain 1 item");
+		ASSERT_TRUE(!gix.IsCacheFull());
+		ASSERT_TRUE(gix.KeyIdH.Len() == 1);
+		//ASSERT_TRUE(gix.GetCacheSize() == 1);
 		auto itemset = gix.GetItemSet(x);
-		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(!itemset->IsFull(), "Itemset should NOT be full");
-		TAssert(!itemset->MergedP, "Itemset should not be merged");
-		TAssert(itemset->Children.Len() == 1, "Itemset should have 1 children");
+		ASSERT_TRUE(itemset->GetKey() == x);
+		ASSERT_TRUE(!itemset->IsFull());
+		ASSERT_TRUE(!itemset->MergedP);
+		ASSERT_TRUE(itemset->Children.Len() == 1);
 		// 20 merged + 20 unmerged
-		TAssert(itemset->ItemV.Len() == 40, "Itemset content - invalid ItemV length");
-		TAssert(itemset->Children[0].Len == 100, "Itemset content - invalid first child length");
-		TAssert(itemset->ChildrenData[0].Len() == 100, "Itemset content - invalid first child length");
+		ASSERT_TRUE(itemset->ItemV.Len() == 40);
+		ASSERT_TRUE(itemset->Children[0].Len == 100);
+		ASSERT_TRUE(itemset->ChildrenData[0].Len() == 100);
 
 		itemset->Def();
 
-		TAssert(!itemset->IsFull(), "Itemset should not be full");
-		TAssert(itemset->MergedP, "Itemset should be merged");
-		TAssert(itemset->Children.Len() == 1, "Itemset should have 1 child");
-		TAssert(itemset->ItemV.Len() == 20, "Itemset content - invalid ItemV length");
-		TAssert(itemset->Children[0].Len == 100, "Itemset content - invalid first child length");
-		TAssert(itemset->ChildrenData[0].Len() == 100, "Itemset content - invalid first child length");
+		ASSERT_TRUE(!itemset->IsFull());
+		ASSERT_TRUE(itemset->MergedP);
+		ASSERT_TRUE(itemset->Children.Len() == 1);
+		ASSERT_TRUE(itemset->ItemV.Len() == 20);
+		ASSERT_TRUE(itemset->Children[0].Len == 100);
+		ASSERT_TRUE(itemset->ChildrenData[0].Len() == 100);
 
 	}
 
-	void Test_Merge_22000_Into_50() {
+	static void Test_Merge_22000_Into_50() {
 		TMyGix gix("Test1", "data", faCreate, 10000000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
@@ -316,44 +303,45 @@ public:
 			gix.AddItem(x, TMyItem(i % 50, 1));
 		}
 
-		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
-		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+		ASSERT_TRUE(!gix.IsCacheFull());
+		ASSERT_TRUE(gix.KeyIdH.Len() == 1);
 		auto itemset = gix.GetItemSet(x);
-		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(itemset->IsFull(), "Itemset should be full");
-		TAssert(!itemset->MergedP, "Itemset should not be merged");
-		TAssert(itemset->TotalCnt == 100, "Invalid itemset TotalCnt");
-		TAssert(itemset->Children.Len() == 0, "Itemset should have 1 child");
-		TAssert(itemset->ItemV.Len() == 100, "Itemset content - invalid ItemV length");
+		ASSERT_TRUE(itemset->GetKey() == x);
+		ASSERT_TRUE(itemset->IsFull());
+		ASSERT_TRUE(!itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == 100);
+		ASSERT_TRUE(itemset->Children.Len() == 0);
+		ASSERT_TRUE(itemset->ItemV.Len() == 100);
 
 		itemset->Def();
 
-		TAssert(!itemset->IsFull(), "Itemset should NOT be full");
-		TAssert(itemset->MergedP, "Itemset should be merged");
-		TAssert(itemset->TotalCnt == 50, "Invalid itemset TotalCnt");
-		TAssert(itemset->Children.Len() == 0, "Itemset should have 0 children");
-		TAssert(itemset->ItemV.Len() == 50, "Itemset content - invalid ItemV length");
+		ASSERT_TRUE(!itemset->IsFull());
+		ASSERT_TRUE(itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == 50);
+		ASSERT_TRUE(itemset->Children.Len() == 0);
+		ASSERT_TRUE(itemset->ItemV.Len() == 50);
 
 	}
 
-	void AddToCounter(THash<TInt, TInt>& counter, TInt i) {
+	static void AddToCounter(THash<TInt, TInt>& counter, TInt i) {
 		if (!counter.IsKey(i)) {
 			counter.AddKey(i);
 		}
 		counter.GetDat(i)++;
 	}
 
-	void CheckCounts(THash<TInt, TInt>& counts, TMyGix& gix) {
+	static void CheckCounts(THash<TInt, TInt>& counts, TMyGix& gix) {
 		printf("Checking counts...\n");
 		for (auto &key : counts) {
 			auto itemset = gix.GetItemSet(TIntUInt64Pr(key.Key, (int)key.Key));
 			auto cnt = key.Dat;
-			TAssert(itemset->MergedP, "Itemset should be merged");
-			TAssert(itemset->TotalCnt == cnt, TStr::Fmt("Invalid itemset TotalCnt: key=%d, expected=%d, actual=%d", key.Key, cnt, itemset->TotalCnt));
+			ASSERT_TRUE(itemset->MergedP);
+			ASSERT_TRUE(itemset->TotalCnt == cnt);
 		}
 		printf("Checking counts done.\n");
 	}
-	void OverwriteCounts(THash<TInt, TInt>& counts, TMyGix& gix) {
+
+	static void OverwriteCounts(THash<TInt, TInt>& counts, TMyGix& gix) {
 		printf("Overwritting counts...\n");
 		for (auto &key : counts) {
 			auto itemset = gix.GetItemSet(TIntUInt64Pr(key.Key, (int)key.Key));
@@ -362,7 +350,7 @@ public:
 		printf("Overwritting counts done.\n");
 	}
 
-	void Test_Feed(int cache_size = 50 * 1024 * 1024, int split_len = 100) {
+	static void Test_Feed(int cache_size = 50 * 1024 * 1024, int split_len = 100) {
 		TStr Nm("Test_Feed");
 		TStr FName("data");
 		int total = 30000;
@@ -397,9 +385,9 @@ public:
 			}
 
 			auto itemset = gix.GetItemSet(TIntUInt64Pr(1, 1));
-			TAssert(itemset->IsFull(), "Itemset should be full");
-			TAssert(itemset->MergedP, "Itemset should remain merged");
-			TAssert(itemset->TotalCnt == total, "Invalid itemset TotalCnt");
+			ASSERT_TRUE(itemset->IsFull());
+			ASSERT_TRUE(itemset->MergedP);
+			ASSERT_TRUE(itemset->TotalCnt == total);
 
 			CheckCounts(counts, gix);
 
@@ -410,9 +398,9 @@ public:
 
 			keys = gix.GetKeys();
 			itemset = gix.GetItemSet(TIntUInt64Pr(1, 1));
-			TAssert(itemset->IsFull(), "Itemset should be full");
-			TAssert(itemset->MergedP, "Itemset should remain merged");
-			TAssert(itemset->TotalCnt == total, TStr::Fmt("Invalid itemset TotalCnt, expected=%d, actual=%d", total, itemset->TotalCnt));
+			ASSERT_TRUE(itemset->IsFull());
+			ASSERT_TRUE(itemset->MergedP);
+			ASSERT_TRUE(itemset->TotalCnt == total);
 
 			OverwriteCounts(counts, gix); // itemsets could be merged
 		}
@@ -420,13 +408,13 @@ public:
 			// reload data - in read-only mode
 			TMyGix gix(Nm, FName, faRdOnly, 50 * 1024 * 1024);
 
-			TAssert(gix.GetKeys() == keys, "Invalid key count");
+			ASSERT_TRUE(gix.GetKeys() == keys);
 
 			CheckCounts(counts, gix);
 		}
 	}
 
-	void Test_RandomGenerateRead(int cache_size = 10 * 1024 * 1024, int split_len = 100) {
+	static void Test_RandomGenerateRead(int cache_size = 10 * 1024 * 1024, int split_len = 100) {
 		TStr Nm("Test_Feed");
 		TStr FName("data");
 		int loops = 1000 * 1000;
@@ -482,15 +470,15 @@ public:
 		}
 	}
 
-	void Test_SizeTest(int cache_size = 1 * 1024 * 1024, int split_len = 1000) {
+	static void Test_SizeTest(int cache_size = 1 * 1024 * 1024, int split_len = 1000) {
 		TStr Nm("Test_Feed");
 		TStr FName("data");
-		int loops = 200*1000;
+		int loops = 200 * 1000;
 		int total_words = 20000;
 		int article_max_len = 20;
 		int keys = 0;
 		cache_size *= 10;
-        printf("***** size=%d\n", sizeof(TMyItem));
+		printf("***** size=%d\n", sizeof(TMyItem));
 		{
 			TMyGix gix(Nm, FName, faCreate, cache_size, split_len);
 			gix.PrintStats();
@@ -502,7 +490,7 @@ public:
 				//for (int j = 1; j <= article_max_len; j++) {
 				//	gix.AddItem(TIntUInt64Pr(j, j), TMyItem(doc_counter, 1));
 				//}
-				
+
 				// pick random words
 				int r = rnd.GetUniDevInt(article_max_len);
 				for (int j = 1; j <= r; j++) {
@@ -527,7 +515,7 @@ public:
 			getchar();
 
 			gix.KillHash();
-            gix.PrintStats();
+			gix.PrintStats();
 
 			std::cout << "------- ";
 			std::cout << "Before disposing cache - press key to continue: ";
@@ -544,31 +532,31 @@ public:
 		}
 	}
 
-	void Test_Delete_1() {
+	static void Test_Delete_1() {
 		TMyGix gix("Test1", "data", faCreate, 10000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		gix.AddItem(x, TMyItem(7234, 1));
 		gix.DelItem(x, TMyItem(7234, 1));
 
-		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
-		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+		ASSERT_TRUE(!gix.IsCacheFull());
+		ASSERT_TRUE(gix.KeyIdH.Len() == 1);
 
 		auto itemset = gix.GetItemSet(x);
-		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(!itemset->IsFull(), "Itemset should be full");
-		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
-		TAssert(itemset->TotalCnt == 2, "Invalid itemset TotalCnt");
-		TAssert(itemset->ItemVDel.Len() == 1, "Invalid list of deletes");
-		TAssert(itemset->ItemVDel[0] == 1, "Invalid list of deletes - invalid index");
+		ASSERT_TRUE(itemset->GetKey() == x);
+		ASSERT_TRUE(!itemset->IsFull());
+		ASSERT_TRUE(!itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == 2);
+		ASSERT_TRUE(itemset->ItemVDel.Len() == 1);
+		ASSERT_TRUE(itemset->ItemVDel[0] == 1);
 
 		itemset->Def();
 
-		TAssert(itemset->MergedP, "Itemset should be merged");
-		TAssert(itemset->TotalCnt == 0, "Invalid itemset TotalCnt");
+		ASSERT_TRUE(itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == 0);
 	}
 
-	void Test_Delete_20() {
+	static void Test_Delete_20() {
 		TMyGix gix("Test1", "data", faCreate, 100000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
@@ -578,24 +566,24 @@ public:
 		}
 		gix.DelItem(x, TMyItem(7234, 1));
 
-		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
-		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+		ASSERT_TRUE(!gix.IsCacheFull());
+		ASSERT_TRUE(gix.KeyIdH.Len() == 1);
 
 		auto itemset = gix.GetItemSet(x);
-		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(!itemset->IsFull(), "Itemset should be full");
-		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
-		TAssert(itemset->TotalCnt == 41, "Invalid itemset TotalCnt");
-		TAssert(itemset->ItemVDel.Len() == 1, "Invalid list of deletes");
-		TAssert(itemset->ItemVDel[0] == 40, "Invalid list of deletes - invalid index");
+		ASSERT_TRUE(itemset->GetKey() == x);
+		ASSERT_TRUE(!itemset->IsFull());
+		ASSERT_TRUE(!itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == 41);
+		ASSERT_TRUE(itemset->ItemVDel.Len() == 1);
+		ASSERT_TRUE(itemset->ItemVDel[0] == 40);
 
 		itemset->Def();
 
-		TAssert(itemset->MergedP, "Itemset should be merged");
-		TAssert(itemset->TotalCnt == 1, "Invalid itemset TotalCnt");
+		ASSERT_TRUE(itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == 1);
 	}
 
-	void Test_Delete_20And1() {
+	static void Test_Delete_20And1() {
 		TMyGix gix("Test1", "data", faCreate, 100000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
@@ -606,24 +594,24 @@ public:
 		gix.DelItem(x, TMyItem(7234, 1));
 		gix.AddItem(x, TMyItem(7234, 1));
 
-		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
-		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+		ASSERT_TRUE(!gix.IsCacheFull());
+		ASSERT_TRUE(gix.KeyIdH.Len() == 1);
 
 		auto itemset = gix.GetItemSet(x);
-		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(!itemset->IsFull(), "Itemset should be full");
-		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
-		TAssert(itemset->TotalCnt == 42, "Invalid itemset TotalCnt");
-		TAssert(itemset->ItemVDel.Len() == 1, "Invalid list of deletes");
-		TAssert(itemset->ItemVDel[0] == 40, "Invalid list of deletes - invalid index");
+		ASSERT_TRUE(itemset->GetKey() == x);
+		ASSERT_TRUE(!itemset->IsFull());
+		ASSERT_TRUE(!itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == 42);
+		ASSERT_TRUE(itemset->ItemVDel.Len() == 1);
+		ASSERT_TRUE(itemset->ItemVDel[0] == 40);
 
 		itemset->Def();
 
-		TAssert(itemset->MergedP, "Itemset should be merged");
-		TAssert(itemset->TotalCnt == 2, "Invalid itemset TotalCnt");
+		ASSERT_TRUE(itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == 2);
 	}
 
-	void Test_Delete_120() {
+	static void Test_Delete_120() {
 		TMyGix gix("Test1", "data", faCreate, 100000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
@@ -633,24 +621,24 @@ public:
 		}
 		gix.DelItem(x, TMyItem(7234, 120));
 
-		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
-		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+		ASSERT_TRUE(!gix.IsCacheFull());
+		ASSERT_TRUE(gix.KeyIdH.Len() == 1);
 
 		auto itemset = gix.GetItemSet(x);
-		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(!itemset->IsFull(), "Itemset should be full");
-		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
-		TAssert(itemset->TotalCnt == 143, "Invalid itemset TotalCnt");
-		TAssert(itemset->ItemVDel.Len() == 1, "Invalid list of deletes");
-		TAssert(itemset->ItemVDel[0] == 42, "Invalid list of deletes - invalid index");
+		ASSERT_TRUE(itemset->GetKey() == x);
+		ASSERT_TRUE(!itemset->IsFull());
+		ASSERT_TRUE(!itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == 143);
+		ASSERT_TRUE(itemset->ItemVDel.Len() == 1);
+		ASSERT_TRUE(itemset->ItemVDel[0] == 42);
 
 		itemset->Def();
 
-		TAssert(itemset->MergedP, "Itemset should be merged");
-		TAssert(itemset->TotalCnt == 120, "Invalid itemset TotalCnt");
+		ASSERT_TRUE(itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == 120);
 	}
 
-	void Test_Delete_120And1() {
+	static void Test_Delete_120And1() {
 		TMyGix gix("Test1", "data", faCreate, 10000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
@@ -661,24 +649,24 @@ public:
 		gix.DelItem(x, TMyItem(7234, 1));
 		gix.AddItem(x, TMyItem(7234, 1));
 
-		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
-		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+		ASSERT_TRUE(!gix.IsCacheFull());
+		ASSERT_TRUE(gix.KeyIdH.Len() == 1);
 
 		auto itemset = gix.GetItemSet(x);
-		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(!itemset->IsFull(), "Itemset should be full");
-		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
-		TAssert(itemset->TotalCnt == 144, "Invalid itemset TotalCnt");
-		TAssert(itemset->ItemVDel.Len() == 1, "Invalid list of deletes");
-		TAssert(itemset->ItemVDel[0] == 42, "Invalid list of deletes - invalid index");
+		ASSERT_TRUE(itemset->GetKey() == x);
+		ASSERT_TRUE(!itemset->IsFull());
+		ASSERT_TRUE(!itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == 144);
+		ASSERT_TRUE(itemset->ItemVDel.Len() == 1);
+		ASSERT_TRUE(itemset->ItemVDel[0] == 42);
 
 		itemset->Def();
 
-		TAssert(itemset->MergedP, "Itemset should be merged");
-		TAssert(itemset->TotalCnt == 121, "Invalid itemset TotalCnt");
+		ASSERT_TRUE(itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == 121);
 	}
 
-	void Test_Delete_120And110() {
+	static void Test_Delete_120And110() {
 		TMyGix gix("Test1", "data", faCreate, 10000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
@@ -689,24 +677,24 @@ public:
 			gix.DelItem(x, TMyItem(i, 1));
 		}
 
-		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
-		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+		ASSERT_TRUE(!gix.IsCacheFull());
+		ASSERT_TRUE(gix.KeyIdH.Len() == 1);
 
 		auto itemset = gix.GetItemSet(x);
-		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(!itemset->IsFull(), "Itemset should be full");
-		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
-		TAssert(itemset->TotalCnt == 20 + 20 + 30, "Invalid itemset TotalCnt");
-		TAssert(itemset->ItemVDel.Len() == 30, "Invalid list of deletes");
-		TAssert(itemset->ItemVDel[0] == 20 + 20, "Invalid list of deletes - invalid index");
+		ASSERT_TRUE(itemset->GetKey() == x);
+		ASSERT_TRUE(!itemset->IsFull());
+		ASSERT_TRUE(!itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == 20 + 20 + 30);
+		ASSERT_TRUE(itemset->ItemVDel.Len() == 30);
+		ASSERT_TRUE(itemset->ItemVDel[0] == 20 + 20);
 
 		itemset->Def();
 
-		TAssert(itemset->MergedP, "Itemset should be merged");
-		TAssert(itemset->TotalCnt == 10, "Invalid itemset TotalCnt");
+		ASSERT_TRUE(itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == 10);
 	}
 
-	void Test_Delete_22000And1000() {
+	static void Test_Delete_22000And1000() {
 		TMyGix gix("Test1", "data", faCreate, 1000000, 100);
 		int xx = 122;
 		int all = 22000;
@@ -721,27 +709,27 @@ public:
 			gix.DelItem(x, TMyItem(i, 1));
 		}
 
-		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
-		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+		ASSERT_TRUE(!gix.IsCacheFull());
+		ASSERT_TRUE(gix.KeyIdH.Len() == 1);
 
 		auto itemset = gix.GetItemSet(x);
-		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(!itemset->IsFull(), "Itemset should NOT be full");
-		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
-		TAssert(itemset->TotalCnt == all - to_delete + 80 + 80, "Invalid itemset TotalCnt");
-		TAssert(itemset->ItemVDel.Len() == to_delete % 100, "Invalid list of deletes");
-		TAssert(itemset->ItemVDel[0] == 0, "Invalid list of deletes - invalid index");
+		ASSERT_TRUE(itemset->GetKey() == x);
+		ASSERT_TRUE(!itemset->IsFull());
+		ASSERT_TRUE(!itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == all - to_delete + 80 + 80);
+		ASSERT_TRUE(itemset->ItemVDel.Len() == to_delete % 100);
+		ASSERT_TRUE(itemset->ItemVDel[0] == 0);
 
 		itemset->Def();
 
-		TAssert(itemset->MergedP, "Itemset should be merged");
-		TAssert(itemset->TotalCnt == all - to_delete, "Invalid itemset TotalCnt");
+		ASSERT_TRUE(itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == all - to_delete);
 		for (int i = to_delete; i < all; i++) {
-			TAssert(itemset->GetItem(i - to_delete).Key == i, "Invalid item at specific index");
+			ASSERT_TRUE(itemset->GetItem(i - to_delete).Key == i);
 		}
 	}
 
-	void Test_QuasiDelete_120And1And2() {
+	static void Test_QuasiDelete_120And1And2() {
 		TMyGix gix("Test1", "data", faCreate, 1000000, 100);
 		int xx = 126;
 		int all = 120;
@@ -759,34 +747,34 @@ public:
 		gix.AddItem(x, TMyItem(to_delete, -1));
 		gix.AddItem(x, TMyItem(to_delete, -1));
 
-		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
-		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+		ASSERT_TRUE(!gix.IsCacheFull());
+		ASSERT_TRUE(gix.KeyIdH.Len() == 1);
 
 		auto itemset = gix.GetItemSet(x);
-		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(!itemset->IsFull(), "Itemset should NOT be full");
-		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
-		TAssert(itemset->TotalCnt == all + 3, "Invalid itemset TotalCnt");
-		TAssert(itemset->ItemVDel.Len() == 0, "Invalid list of deletes");
+		ASSERT_TRUE(itemset->GetKey() == x);
+		ASSERT_TRUE(!itemset->IsFull());
+		ASSERT_TRUE(!itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == all + 3);
+		ASSERT_TRUE(itemset->ItemVDel.Len() == 0);
 
 		itemset->Def();
 
-		TAssert(itemset->MergedP, "Itemset should be merged");
-		TAssert(itemset->TotalCnt == all - 1, "Invalid itemset TotalCnt");
-		TAssert(itemset->ItemV.Len() == all - 100, "Invalid work-buffer length");
-		TAssert(itemset->Children[0].Len == 99, "Invalid first-child length");
+		ASSERT_TRUE(itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == all - 1);
+		ASSERT_TRUE(itemset->ItemV.Len() == all - 100);
+		ASSERT_TRUE(itemset->Children[0].Len == 99);
 		for (int i = 0; i < all; i++) {
 			if (i == to_delete) {
 				continue;
 			} else if (i < to_delete) {
-				TAssert(itemset->GetItem(i).Key == i, "Invalid item at specific index");
+				ASSERT_TRUE(itemset->GetItem(i).Key == i);
 			} else if (i > to_delete) {
-				TAssert(itemset->GetItem(i - 1).Key == i, "Invalid item at specific index");
+				ASSERT_TRUE(itemset->GetItem(i - 1).Key == i);
 			}
 		}
 	}
 
-	void Test_QuasiDelete_120And20() {
+	static void Test_QuasiDelete_120And20() {
 		TMyGix gix("Test1", "data", faCreate, 1000000, 100);
 		int xx = 122;
 		int all = 120;
@@ -801,26 +789,26 @@ public:
 			gix.AddItem(x, TMyItem(i, -1));
 		}
 
-		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
-		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+		ASSERT_TRUE(!gix.IsCacheFull());
+		ASSERT_TRUE(gix.KeyIdH.Len() == 1);
 
 		auto itemset = gix.GetItemSet(x);
-		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(!itemset->IsFull(), "Itemset should NOT be full");
-		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
-		TAssert(itemset->TotalCnt == all + to_delete, "Invalid itemset TotalCnt");
-		TAssert(itemset->ItemVDel.Len() == 0, "Invalid list of deletes");
+		ASSERT_TRUE(itemset->GetKey() == x);
+		ASSERT_TRUE(!itemset->IsFull());
+		ASSERT_TRUE(!itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == all + to_delete);
+		ASSERT_TRUE(itemset->ItemVDel.Len() == 0);
 
 		itemset->Def();
 
-		TAssert(itemset->MergedP, "Itemset should be merged");
-		TAssert(itemset->TotalCnt == all - to_delete, "Invalid itemset TotalCnt");
+		ASSERT_TRUE(itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == all - to_delete);
 		for (int i = to_delete; i < all; i++) {
-			TAssert(itemset->GetItem(i - to_delete).Key == i, "Invalid item at specific index");
+			ASSERT_TRUE(itemset->GetItem(i - to_delete).Key == i);
 		}
 	}
 
-	void Test_QuasiDelete_22000And1000() {
+	static void Test_QuasiDelete_22000And1000() {
 		TMyGix gix("Test1", "data", faCreate, 100000000, 100);
 		int xx = 122;
 		int all = 22000;
@@ -835,26 +823,26 @@ public:
 			gix.AddItem(x, TMyItem(i, -1));
 		}
 
-		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
-		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+		ASSERT_TRUE(!gix.IsCacheFull());
+		ASSERT_TRUE(gix.KeyIdH.Len() == 1);
 
 		auto itemset = gix.GetItemSet(x);
-		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(!itemset->IsFull(), "Itemset should NOT be full");
-		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
-		TAssert(itemset->TotalCnt == all - to_delete + 2 * (to_delete % 100), "Invalid itemset TotalCnt");
-		TAssert(itemset->ItemVDel.Len() == 0, "Invalid list of deletes");
+		ASSERT_TRUE(itemset->GetKey() == x);
+		ASSERT_TRUE(!itemset->IsFull());
+		ASSERT_TRUE(!itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == all - to_delete + 2 * (to_delete % 100));
+		ASSERT_TRUE(itemset->ItemVDel.Len() == 0);
 
 		itemset->Def();
 
-		TAssert(itemset->MergedP, "Itemset should be merged");
-		TAssert(itemset->TotalCnt == all - to_delete, "Invalid itemset TotalCnt");
+		ASSERT_TRUE(itemset->MergedP);
+		ASSERT_TRUE(itemset->TotalCnt == all - to_delete);
 		for (int i = to_delete; i < all; i++) {
-			TAssert(itemset->GetItem(i - to_delete).Key == i, "Invalid item at specific index");
+			ASSERT_TRUE(itemset->GetItem(i - to_delete).Key == i);
 		}
 	}
 
-	void Test_BigInserts(int cache_size = 500 * 1024 * 1024, int split_len = 1000) {
+	static void Test_BigInserts(int cache_size = 500 * 1024 * 1024, int split_len = 1000) {
 		TStr Nm("Test_Feed_Big");
 		TStr FName("data");
 		int total = 200 * 1000;
@@ -904,9 +892,9 @@ public:
 			}
 
 			auto itemset = gix->GetItemSet(TIntUInt64Pr(1, 1));
-			TAssert(itemset->IsFull(), "Itemset should be full");
-			TAssert(itemset->MergedP, "Itemset should remain merged");
-			TAssert(itemset->TotalCnt == total, "Invalid itemset TotalCnt");
+			ASSERT_TRUE(itemset->IsFull());
+			ASSERT_TRUE(itemset->MergedP);
+			ASSERT_TRUE(itemset->TotalCnt == total);
 
 			CheckCounts(counts, *gix);
 
@@ -917,7 +905,7 @@ public:
 		{
 			// reload data - in read-only mode
 			auto gix = TMyGix::New(Nm, FName, faRdOnly, cache_size, split_len);
-			TAssert(gix->GetKeys() == keys, "Invalid key count");
+			ASSERT_TRUE(gix->GetKeys() == keys);
 			printf("== %d %d\n", gix->GetKeys(), keys);
 			CheckCounts(counts, *gix);
 
@@ -931,60 +919,77 @@ public:
 				TVec<TMyItem> v;
 				itemset->GetItemV(v);
 				//printf("//// %d %d \n", i, v.Len());
-				TAssert(itemset->GetItems() == v.Len(), "Invalid itemset len");
+				ASSERT_TRUE(itemset->GetItems() == v.Len());
 			}
 		}
 	}
 
-	void PerformTests() {
+	void PerformBigTests() {
 
-		/*Test_Simple_1();
-		Test_Simple_220();
-		Test_Simple_220_Unsorted();
-		Test_Merge_220_Into_50();
-		Test_Merge_220_Into_120();
-		Test_Merge_22000_Into_50();*/
-
-		//Test_BigInserts();
-		//Test_RandomGenerateRead();
+		Test_BigInserts();
+		Test_RandomGenerateRead();
 		Test_SizeTest();
 
-		//Test_Delete_1();
-		//Test_Delete_20();
-		//Test_Delete_20And1();
-		//Test_Delete_120();
-		//Test_Delete_120And1();
-		//Test_Delete_120And110();
-		//Test_Delete_22000And1000();
+		// this will split only big itemsets
+		Test_Feed(50 * 1024 * 1025, 1000);
 
-		//Test_QuasiDelete_120And1And2();
-		//Test_QuasiDelete_120And20();
-		//Test_QuasiDelete_22000And1000();
-
-		//// this will split only big itemsets
-		//WarnNotifyI(TStr("Split only big itemsets\n"));
-		//Test_Feed(50 * 1024 * 1025, 1000);
+		// this will split probably all itemsets
+		Test_Feed(50 * 1024 * 1025, 100);
 
 		//// this will split probably all itemsets
-		//WarnNotifyI(TStr("Split all itemsets\n"));
-		//Test_Feed(50 * 1024 * 1025, 100);
+		//// it will also limit cache to less than 10% of the itemsets
+		//WarnNotifyI(TStr("Split all itemsets, small cache\n"));
+		//Test_Feed(5 * 1024 * 1025, 1000);
+	}
 
-		////// this will split probably all itemsets
-		////// it will also limit cache to less than 10% of the itemsets
-		////WarnNotifyI(TStr("Split all itemsets, small cache\n"));
-		////Test_Feed(5 * 1024 * 1025, 1000);
+	static void Test_ReadOnlyAfterCrash() {
+		TStr Nm = "Test1";
+		TStr Path = "data";
+		{
+			// create index and add single item
+			TMyGix gix(Nm, Path, faCreate, 10000, 100);
+			for (int i = 0; i < 100; i++) {
+				auto key = TIntUInt64Pr(i, i);
+				gix.AddItem(key, TMyItem(7234, 1));
+				// now close it when it goes out of scoope
+			}
+		}
+		{
+			// now open in read-only mode as pointer
+			auto gix = new TMyGix(Nm, Path, faRdOnly, 10000, 100);
+			auto key = TIntUInt64Pr(12, 12);
+			auto itemset = gix->GetItemSet(key);
+			// don't delete, this simulates the crash
+		}
+		{
+			// now open again in read-only mode
+			// this simulates situation when it was opened read-only  
+			// and the system crashed
+			TMyGix gix2(Nm, Path, faRdOnly, 10000, 100);
+			auto key2 = TIntUInt64Pr(12, 12);
+			auto itemset2 = gix2.GetItemSet(key2);
+		}
 	}
 };
 
-////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Unit tests to be executed
+//////////////////////////////////////////////////////////////////////////
 
-int main(int argc, char* argv[]) {
-	
-	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	
-	XTest test;
-	test.PerformTests();
-
-	return 0;
-}
-
+TEST(testTBlobBs, Simple10) { XTest::Test_Simple_1(); }
+TEST(testTBlobBs, Simple200) { XTest::Test_Simple_220(); }
+TEST(testTBlobBs, Simple220Unsorted) { XTest::Test_Simple_220_Unsorted(); }
+TEST(testTBlobBs, Merge220Into50) { XTest::Test_Merge_220_Into_50(); }
+TEST(testTBlobBs, Merge220Into120) { XTest::Test_Merge_220_Into_120(); }
+TEST(testTBlobBs, Merge22000Into50) { XTest::Test_Merge_22000_Into_50(); }
+TEST(testTBlobBs, Delete1) { XTest::Test_Delete_1(); }
+TEST(testTBlobBs, Delete20) { XTest::Test_Delete_20(); }
+TEST(testTBlobBs, Delete20And1) { XTest::Test_Delete_20And1(); }
+TEST(testTBlobBs, Delete120) { XTest::Test_Delete_120(); }
+TEST(testTBlobBs, Delete120And1) { XTest::Test_Delete_120And1(); }
+TEST(testTBlobBs, Delete120And110) { XTest::Test_Delete_120And110(); }
+TEST(testTBlobBs, Delete22000And1000) { XTest::Test_Delete_22000And1000(); }
+TEST(testTBlobBs, QuasiDelete120And1And2) { XTest::Test_QuasiDelete_120And1And2(); }
+TEST(testTBlobBs, QuasiDelete120And20) { XTest::Test_QuasiDelete_120And20(); }
+TEST(testTBlobBs, QuasiDelete22000And1000) { XTest::Test_QuasiDelete_22000And1000(); }
+TEST(testTBlobBs, ReadOnlyAfterCrash) { XTest::Test_ReadOnlyAfterCrash(); }

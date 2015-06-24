@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #include "bd.h"
@@ -1071,16 +1060,9 @@ int64 TCache<TKey, TDat, THashFunc>::GetMemUsed() const {
 	int cnt = 0;
     int KeyId = KeyDatH.FFirstKeyId();
     while (KeyDatH.FNextKeyId(KeyId)) {
-		//const TKey& Key = KeyDatH.GetKey(KeyId);
 		const TKeyLNDatPr& KeyLNDatPr = KeyDatH[KeyId];
 		TDat Dat = KeyLNDatPr.Val2;
-		MemUsed += int64(
-			//Key.GetMemUsed() +
-			Dat->GetMemUsed() 
-            //+
-			//sizeof(TKeyLN) +
-			//sizeof(TLstNd<TKey>)
-            );
+		MemUsed += int64(Dat->GetMemUsed());
 		cnt++;
 	}   
 	EAssert(cnt == KeyDatH.Len());
@@ -1311,13 +1293,13 @@ public:
   inline static int GetPrimHashCd(const char *p) {
     const char *r = p;  while (*r) { r++; }
     //const void * key = (const void*)&p;
-    const int len = r - p;
+    const int len = (int)(r - p);
     return (int) MurmurHash3(p, len) & 0x7fffffff; // convert to int but > 0
   }
   inline static int GetSecHashCd(const char *p) {
     const char *r = p;  while (*r) { r++; }
     //const void *key = (cont void*)&p;
-    const int len = r - p;
+    const int len = (int)(r - p);
     return (int) MurmurHash3(p, len) & 0x7fffffff;
   }
   inline static int GetPrimHashCd(const TStr& s) { return GetPrimHashCd(s.CStr()); }

@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 ////////////////////////////////////////////////
@@ -26,6 +15,15 @@ TStr TStrUtil::GetStr(const TIntV& IntV, const TStr& DelimiterStr) {
     ResChA+=IntV[IntN].GetStr();
   }
   return ResChA;
+}
+//Explicit 64 bit indexing
+TStr TStrUtil::GetStr(const TVec<TNum<int64>, int64>& IntV, const TStr& DelimiterStr) {
+	TChA ResChA;
+	for (int64 IntN = 0; IntN < IntV.Len(); IntN++) {
+		if (!ResChA.Empty()) { ResChA += DelimiterStr; }
+		ResChA += IntV[IntN].GetStr();
+	}
+	return ResChA;
 }
 
 TStr TStrUtil::GetStr(const TVec<TIntV>& IntIntV, const TStr& DelimiterStr) {

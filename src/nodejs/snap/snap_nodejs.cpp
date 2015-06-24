@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #include "snap_nodejs.h"
 
 
@@ -220,6 +227,7 @@ template <>
 inline void TNodeJsNode<TNEGraph>::eachEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 
 	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
@@ -233,6 +241,10 @@ inline void TNodeJsNode<TNEGraph>::eachEdge(const v8::FunctionCallbackInfo<v8::V
 			v8::Integer::New(Isolate, NbrEId), v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 		};
 		Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();
+			return;
+		}
 		Count++;
 	}
 
@@ -243,6 +255,7 @@ template <>
 inline void TNodeJsNode<TNEGraph>::eachInEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 
 	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
@@ -256,6 +269,10 @@ inline void TNodeJsNode<TNEGraph>::eachInEdge(const v8::FunctionCallbackInfo<v8:
 			v8::Integer::New(Isolate, NbrEId), v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 		};
 		Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();
+			return;
+		}
 		Count++;
 	}
 
@@ -266,6 +283,7 @@ template <>
 inline void TNodeJsNode<TNEGraph>::eachOutEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 
 	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
@@ -279,6 +297,10 @@ inline void TNodeJsNode<TNEGraph>::eachOutEdge(const v8::FunctionCallbackInfo<v8
 			v8::Integer::New(Isolate, NbrEId), v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 		};
 		Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();
+			return;
+		}
 		Count++;
 	}
 

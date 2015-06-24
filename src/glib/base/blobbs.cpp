@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 /////////////////////////////////////////////////
@@ -312,6 +301,11 @@ TBlobPt TGBlobBs::PutBlob(const PSIn& SIn){
       FBlobBs->PutCh(TCh::NullCh, MxBfL-BfL);
       FBlobBs->PutCs(Cs);
       PutBlobTag(FBlobBs, btEnd);
+
+	  Stats.AllocCount++;
+	  Stats.AllocSize += MxBfL;
+	  Stats.AllocUnusedSize += (MxBfL - BfL);
+	  Stats.AllocUsedSize += BfL;
     }
   } else {
 	// ok, reuse existing BLOB pointer of the BLOB of the same size that was freed earlier
@@ -329,6 +323,13 @@ TBlobPt TGBlobBs::PutBlob(const PSIn& SIn){
     FBlobBs->PutCh(TCh::NullCh, MxBfL-BfL);
     FBlobBs->PutCs(Cs);
     AssertBlobTag(FBlobBs, btEnd);
+
+	Stats.AllocCount++;
+	Stats.AllocSize += MxBfL;
+	Stats.AllocUnusedSize += (MxBfL - BfL);
+	Stats.AllocUsedSize += BfL;
+	Stats.ReleasedCount--;
+	Stats.ReleasedSize -= MxBfL;
   }
   FBlobBs->Flush();
   Stats.PutsNew++;
@@ -349,6 +350,10 @@ TBlobPt TGBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn){
     DelBlob(BlobPt);
     return PutBlob(SIn);
   } else {
+	int FPos = FBlobBs->GetFPos();
+	int OldBfL = FBlobBs->GetInt();
+	FBlobBs->SetFPos(FPos);
+
     TCs Cs;
     FBlobBs->PutInt(BfL);
     FBlobBs->PutSIn(SIn, Cs);
@@ -356,9 +361,12 @@ TBlobPt TGBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn){
     FBlobBs->PutCs(Cs);
     PutBlobTag(FBlobBs, btEnd);
     FBlobBs->Flush();
-    Stats.Puts++;
+	// update stats
+	Stats.Puts++;
     Stats.AvgPutLen += (BfL - Stats.AvgPutLen) / Stats.Puts;
-    return BlobPt;
+	Stats.AllocUnusedSize -= BfL - OldBfL;
+	Stats.AllocUsedSize += BfL - OldBfL;
+	return BlobPt;
   }
 }
 
@@ -386,7 +394,7 @@ void TGBlobBs::DelBlob(const TBlobPt& BlobPt){
   int MxBfL=FBlobBs->GetInt();                                         // read buffer length
   int FPos=FBlobBs->GetFPos();                                         // remember position of status flag
   AssertBlobState(FBlobBs, bsActive);                                  // make sure BLOB is active
-  /*int BfL=*/FBlobBs->GetInt();
+  int BfL=FBlobBs->GetInt();
   FBlobBs->SetFPos(FPos);
   PutBlobState(FBlobBs, bsFree);                                       // mark BLOB as free
   int _MxBfL; int FFreeBlobPtN;
@@ -397,7 +405,15 @@ void TGBlobBs::DelBlob(const TBlobPt& BlobPt){
   FBlobBs->PutCh(TCh::NullCh, MxBfL+sizeof(TCs));                      // erase existing content
   AssertBlobTag(FBlobBs, btEnd);
   FBlobBs->Flush();                                                    // write to disk
+  
+  // update stats
   Stats.Dels++;
+  Stats.AllocCount--;
+  Stats.AllocSize -= MxBfL;
+  Stats.AllocUnusedSize -= (MxBfL - BfL);
+  Stats.AllocUsedSize -= BfL;
+  Stats.ReleasedCount++;
+  Stats.ReleasedSize += MxBfL;
 }
 
 TBlobPt TGBlobBs::FFirstBlobPt(){

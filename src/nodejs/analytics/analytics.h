@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #ifndef ANALYTICS_H_
 #define ANALYTICS_H_
 
@@ -8,33 +15,6 @@
 #include "la_nodejs.h"
 #include "qminer_ftr.h"
 #include "mc.h"
-
-
-/**
-* Analytics module.
-* @module analytics
-* @example
-* // import module
-* var analytics = require('qminer').analytics;
-* // REGRESSION WITH SVR
-* // Set up fake train and test data.
-* // Four training examples with, number of features = 2
-* var featureMatrix = new la.Matrix({rows:2, cols:4});
-* // Regression targets for four examples
-* var targets = new la.Vector({vals:4});
-* // Set up the regression model
-* var SVR = new analytics.SVR({verbose:true});
-* // Train regression
-* SVR.fit(featureMatrix, targets);
-* // Save the model to disk
-* SVR.save('svr.bin');*
-* // Set up a fake test vector
-* var test = new la.Vector({vals:2});
-* // Predict the target value
-* var prediction = SVR.predict(test);
-*/
-
-
 
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Machine-Model
@@ -271,7 +251,7 @@ private:
 	TNodeJsRecLinReg(const TSignalProc::PRecLinReg& Model);
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	static const TStr ClassId;
+	static const TStr GetClassId() { return "RecLinReg"; }
 private:
 	//!
 	//! **Constructor:**
@@ -317,8 +297,8 @@ private:
 class TNodeJsLogReg : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 public:
-	static const TStr ClassId;	// set to LogReg
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "LogReg"; }
 
 private:
 	TMl::TLogReg LogReg;
@@ -359,8 +339,6 @@ public:
 	 * @param {FOut} sout - the output stream
 	 */
 	JsDeclareFunction(save);
-
-	JsDeclareFunction(newMatrix);	// TODO remove this, it is just for debugging purposes
 };
 
 /////////////////////////////////////////////
@@ -373,21 +351,20 @@ public:
  *
  * @constructor
  * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
- * @property {Number} [opts.lambda = 1] - the regularization parameter
- * @property {Boolean} [opts.intercept = false] - if true, the intercept will automatically be included
+ * @property {Number} [opts.lambda = 0] - the regularization parameter
  */
-class TNodeJsExpReg : public node::ObjectWrap {
+class TNodeJsPropHaz : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 public:
-	static const TStr ClassId;
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "PropHazards"; }
 
 private:
-	TMl::TExpReg ExpReg;
+	TMl::TPropHazards Model;
 
-	TNodeJsExpReg(const TMl::TExpReg& _ExpReg): ExpReg(_ExpReg) {}
+	TNodeJsPropHaz(const TMl::TPropHazards& _Model): Model(_Model) {}
 
-	static TNodeJsExpReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+	static TNodeJsPropHaz* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
 	/**
@@ -433,15 +410,16 @@ public:
 * @class
 * @param {(number|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model by setting gamma=arg. Empty constructor sets gamma to zero.
 * @example
-* qm = require('qminer');
+* la = require('qminer').la;
+* analytics = require('qminer').analytics;
 * // create a new model with gamma = 1.0
-* regmod = new qm.analytics.RidgeReg(1.0);
+* regmod = new analytics.RidgeReg(1.0);
 * // generate a random feature matrix
-* A = qm.la.randn(10,100);
+* A = la.randn(10,100);
 * // generate a random model
-* w = qm.la.randn(10);
+* w = la.randn(10);
 * // generate noise
-* n = qm.la.randn(100).multiply(0.01);
+* n = la.randn(100).multiply(0.01);
 * // generate responses (model'*data + noise)
 * b = A.transpose().multiply(w).plus(n);
 * // fit model
@@ -452,14 +430,14 @@ public:
 * console.log('trained model:'); 
 * regmod.weights.print();
 * // cosine between the true and the estimated model should be close to 1 if the fit succeeded
-* console.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w))
+* console.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w));
 */
 //# exports.RidgeReg = function(arg) {};
 class TNodeJsRidgeReg : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 public:
-	static const TStr ClassId;
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "RidgeReg"; }
 
 private:
 	TFlt Gamma;
@@ -506,32 +484,33 @@ public:
 
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model
-//!
-//! **Constructor:**
-//!
-//!- `hmc = new analytics.HMC(params)` -- Creates a new model using `params` JSON. TODO param description.
-//!- `hmc = new analytics.HMC(fin)` -- Loads the model from input stream `fin`.
-class TNodeJsHMChain : public node::ObjectWrap, public TMc::TMcCallback {
+//#
+//# **Constructor:**
+//#
+//#- `hmc = new analytics.HMC(params)` -- Creates a new model using `params` JSON. TODO param description.
+//#- `hmc = new analytics.HMC(fin)` -- Loads the model from input stream `fin`.
+class TNodeJsStreamStory : public node::ObjectWrap, public TMc::TStreamStory::TCallback {
 	friend class TNodeJsUtil;
 public:
-	static const TStr ClassId;
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "HMC"; }
 
 private:
 	const static double DEFAULT_DELTA_TM;
 
-	TMc::PHierarchCtmc McModel;
+	TMc::PStreamStory StreamStory;
 
 	v8::Persistent<v8::Function> StateChangedCallback;
 	v8::Persistent<v8::Function> AnomalyCallback;
 	v8::Persistent<v8::Function> OutlierCallback;
+	v8::Persistent<v8::Function> PredictionCallback;
 
-	TNodeJsHMChain(const TMc::PHierarchCtmc& McModel);
-	TNodeJsHMChain(PSIn& SIn);
+	TNodeJsStreamStory(const TMc::PStreamStory& McModel);
+	TNodeJsStreamStory(PSIn& SIn);
 
-	~TNodeJsHMChain();
+	~TNodeJsStreamStory();
 
-	static TNodeJsHMChain* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+	static TNodeJsStreamStory* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
 	/**
@@ -612,9 +591,10 @@ public:
 	JsDeclareFunction(currState);
 
 	/**
-	 * Returns the centroid of the specified state.
+	 * Returns the centroid of the specified state containing only the observation parameters.
 	 *
 	 * @param {Number} stateId - the ID of the state
+	 * @param {Boolean} [observations=true] - indicates wether to output observation or control coordinates
 	 * @returns {Array} - the coordinates of the state
 	 */
 	JsDeclareFunction(fullCoords);
@@ -669,6 +649,18 @@ public:
 	JsDeclareFunction(onOutlier);
 
 	/**
+	 * Sets a callback function which is fired when a prediction is made. 4 paramters are passed
+	 * to the callback:
+	 * - Id of the target state
+	 * - probability of occurring
+	 * - vector of probabilities
+	 * - vector of times corresponding to those probabilities
+	 *
+	 * @param {function} callback - the funciton which is called
+	 */
+	JsDeclareFunction(onPrediction);
+
+	/**
 	 * Rebuilds its hierarchy.
 	 */
 	JsDeclareFunction(rebuildHierarchy);
@@ -676,7 +668,8 @@ public:
 	/**
 	 * Rebuilds the histograms using the instances stored in the columns of X.
 	 *
-	 * @param {Matrix} X - the column matrix containing data instances
+	 * @param {Matrix} obsMat - the column matrix containing observation data instances
+	 * @param {Matrix} controlMat - the column matrix containing control data instances
 	 */
 	JsDeclareFunction(rebuildHistograms);
 
@@ -696,10 +689,38 @@ public:
 	 */
 	JsDeclareFunction(setStateName);
 
+	/**
+	 * Returns true if the state is a target on the specified height.
+	 *
+	 * @param {Number} stateId - Id of the state
+	 * @param {Number} height - the height
+	 * @returns {Boolean}
+	 */
+	JsDeclareFunction(isTarget);
+
+	/**
+	 * Sets whether the specified state is a target state or not.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 * @param {Number} height - the height on which the state is a target
+	 * @param {Boolean} isTarget - set target on/off
+	 */
+	JsDeclareFunction(setTarget);
+
+	/**
+	 * Sets the factor of the specified control:
+	 *
+	 * @param {Number} ftrIdx - the index of the control feature
+	 * @param {Number} factor
+	 */
+	JsDeclareFunction(setControlFactor);
+
 	// parameters
 	//!- `hmc = hmc.getParams(params)` -- sets one or more parameters given
 	//!- in the input argument `params` returns this
 	JsDeclareFunction(setParams);
+
+	JsDeclareFunction(getParam);
 
 	/**
 	 * Saves the model to the output stream.
@@ -712,6 +733,8 @@ public:
 	void OnStateChanged(const TIntFltPrV& StateIdHeightV);
 	void OnAnomaly(const TStr& AnomalyDesc);
 	void OnOutlier(const TFltV& FtrV);
+	void OnPrediction(const int& CurrStateId, const int& TargetStateId,
+			const double& Prob, const TFltV& ProbV, const TFltV& TmV);
 
 private:
 	void SetParams(const PJsonVal& ParamVal);
@@ -734,8 +757,8 @@ private:
 	static TNodeJsNNet* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
-	static const TStr ClassId;
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "NNet"; }
 
     //!- `NNet = NNet.fit(vec,vec)` -- fits the NNet model in online mode
     //!- `NNet = NNet.fit(mat,mat)` -- fits the NNet model in batch mode
@@ -750,29 +773,33 @@ public:
  private:
 	TSignalProc::TTFunc ExtractFuncFromString(const TStr& FuncString);
 };
+
 // QMiner-JavaScript-Tokenizer
 //!
 //! ### Tokenizer
 //!
 //! Breaks text into tokens (i.e. words).
 class TNodeJsTokenizer : public node::ObjectWrap {
+	friend class TNodeJsUtil;
 public:
 	/// Tokenizer Model
 	PTokenizer Tokenizer;
-	static v8::Persistent <v8::Function> constructor;
 private:
 	TNodeJsTokenizer(const PTokenizer& _Tokenizer): 
 		Tokenizer(_Tokenizer) { }
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	static v8::Local<v8::Object> New(const PTokenizer& Tokenizer);
+	static const TStr GetClassId() { return "Tokenizer"; }
+
+	
 	//!
 	//! **Constructor:**
 	//!
 	//!- `tokenizer = new analytics.Tokenizer({ type: <type>, ...})` -- create new tokenizer
 	//!     of type `<type>`. Syntax same as when defining index keys in stores or `text` feature 
 	//!     extractors.
-	JsDeclareFunction(New);
+	static TNodeJsTokenizer* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
 	//!
 	//! **Functions and properties:**
 	//!

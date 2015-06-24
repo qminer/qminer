@@ -1,6 +1,18 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+ 
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); // additional JS implementations
-var qm = require('../../');
+var qm = require('qminer');
+
+//describe('Primary field, old', function () {
+//	it('should survive', function () {
+
 qm.delLock();
 
 var backward = require('../../src/nodejs/scripts/backward.js');
@@ -23,8 +35,7 @@ var tmVals = ["2013-01-02T12:23:34", "2013-01-04T12:23:34", "2013-01-09T12:23:34
               "2013-03-02T12:23:34", "2013-03-03T12:23:34", "2013-03-09T12:23:34",
               "2013-05-02T12:23:34", "2013-05-06T12:23:34", "2013-05-07T12:23:34" ];
 
-qm.config('qm.conf', true, 8080, 1024);
-var base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
+var base = new qm.Base({ mode: 'createClean' });
 
 // create stores
 base.createStore([
@@ -94,11 +105,11 @@ for (var i = 0; i < 10000; i++) {
         Flt : fltVals[random(fltVals.length)],
         Tm : tmVals[random(tmVals.length)]
     };
-    base.store("primary_string").add(rec);
-    base.store("primary_int").add(rec);
-    base.store("primary_uint64").add(rec);
-    base.store("primary_float").add(rec);
-    base.store("primary_tm").add(rec);
+    base.store("primary_string").push(rec);
+    base.store("primary_int").push(rec);
+    base.store("primary_uint64").push(rec);
+    base.store("primary_float").push(rec);
+    base.store("primary_tm").push(rec);
 }
 
 assert.equal(base.store("primary_string").length, strVals.length, "string");
@@ -108,3 +119,4 @@ assert.equal(base.store("primary_float").length, fltVals.length, "float");
 assert.equal(base.store("primary_tm").length, tmVals.length, "tm");
 
 base.close();
+//})});

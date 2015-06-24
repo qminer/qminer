@@ -1,23 +1,9 @@
 /**
- * QMiner - Open Source Analytics Platform
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Quintelligence d.o.o.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
- * Contact: 
- *   Blaz Fortuna <blaz@blazfortuna.com>
- *
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #ifndef QMINER_AGGR_H
@@ -1128,7 +1114,7 @@ private:
 		// and sum is the sum of distances to the centroid
 		TVec<TUInt64FltPr> StateStatV;
 
-		TMl::PFullClust Clust;
+		TMc::PStateIdentifier Clust;
 
 		TUInt64V RecIdV;
 
@@ -1252,7 +1238,7 @@ protected:
 	int GetMaxDepth() const;
 
 	// clustering
-	TMl::PFullClust GetClust() const;
+	TMc::PStateIdentifier GetClust() const;
 
 	// records
 	PRecSet GetRecSet(const TUInt64V& RecIdV) const;

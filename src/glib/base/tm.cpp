@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 /////////////////////////////////////////////////
@@ -1178,6 +1167,14 @@ TTm TTm::GetTmFromWebLogTimeStr(const TStr& TimeStr,
   while (ChN<TimeStrLen){
     ChA+=TimeStr[ChN]; ChN++;}
   TStr MSecStr=ChA;
+  ////// TODO: normalize to 3 digits (not a backward compatible change!)
+  //if (MSecStr.Len() > 3) {
+	 // MSecStr = MSecStr.GetSubStr(0, 2); 
+  //} else if (MSecStr.Len() == 1) {
+	 // MSecStr += "00"; 
+  //} else if (MSecStr.Len() == 2) {
+	 // MSecStr += "0";
+  //}
   // transform to numbers
   int HourN=HourStr.GetInt(0);
   int MinN=MinStr.GetInt(0);
@@ -1228,6 +1225,15 @@ TTm TTm::GetTmFromWebLogDateTimeStr(const TStr& DateTimeStr,
   while (ChN<DateTimeStrLen && ChA.Len() < 3){
     ChA+=DateTimeStr[ChN]; ChN++;}
   TStr MSecStr=ChA;
+  ////// TODO: normalize to 3 digits (not a backward compatible change!)
+  //if (MSecStr.Len() > 3) {
+	 // MSecStr = MSecStr.GetSubStr(0, 2); 
+  //} else if (MSecStr.Len() == 1) {
+	 // MSecStr += "00"; 
+  //} else if (MSecStr.Len() == 2) {
+	 // MSecStr += "0";
+  //}
+
   // transform to numbers
   int YearN=YearStr.GetInt(-1);
   int MonthN=MonthStr.GetInt(-1);

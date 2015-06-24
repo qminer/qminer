@@ -1,23 +1,9 @@
 /**
- * QMiner - Open Source Analytics Platform
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Quintelligence d.o.o.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
- * Contact: 
- *   Blaz Fortuna <blaz@blazfortuna.com>
- *
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #ifndef QMINER_CORE_H
@@ -783,6 +769,11 @@ public:
     void PrintAllAsJson(const TWPt<TBase>& Base, TSOut& SOut);
     /// Prints all records with all the field values, useful for debugging
     void PrintAllAsJson(const TWPt<TBase>& Base, const TStr& FNm);
+
+	/// Save part of the data, given time-window
+	virtual int PartialFlush(int WndInMsec = 500) { throw TQmExcept::New("Not implemented"); }
+	/// Retrieve performance statistics for this store
+	virtual PJsonVal GetStats() = 0;
 };
 //typedef THash<TUCh, PStore> TUChStoreH;
 
@@ -1815,7 +1806,7 @@ typedef enum {
 	oqitRecSet       = 6, ///< Pass on a records set
 	oqitRec          = 7, ///< Pass on a record
 	oqitStore        = 9  ///< Incude all records from a store
-} TQueryItemType;
+} TQueryItemType; 
 
 ///////////////////////////////
 /// Index Query Comparison Operators.
@@ -2280,12 +2271,14 @@ private:
 
 	/// Constructor
     TIndex(const TStr& _IndexFPath, const TFAccess& _Access, 
-		const PIndexVoc& IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall);
+		const PIndexVoc& IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall,
+		const int& SplitLen);
 public:
 	/// Create (Access==faCreate) or open existing index
     static PIndex New(const TStr& IndexFPath, const TFAccess& Access, 
-		const PIndexVoc& IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall) {
-		return new TIndex(IndexFPath, Access, IndexVoc, CacheSize, CacheSizeSmall);
+		const PIndexVoc& IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall,
+		const int& SplitLen) {
+		return new TIndex(IndexFPath, Access, IndexVoc, CacheSize, CacheSizeSmall, SplitLen);
 	}
 	/// Checks if there is an existing index at the given path
 	static bool Exists(const TStr& IndexFPath) {
@@ -2409,7 +2402,7 @@ public:
 	void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm);
 
 	/// get blob stats
-	const TBlobBsStats& GetBlobStats() { 
+	const TBlobBsStats GetBlobStats() {
 		return TBlobBsStats::Add(Gix->GetBlobStats(), GixSmall->GetBlobStats());
 	}
 	/// get gix stats
@@ -2417,6 +2410,8 @@ public:
 		return TGixStats::Add(Gix->GetGixStats(do_refresh), GixSmall->GetGixStats(do_refresh));
 	}
 
+	/// Get split length of inner Gix
+	int GetSplitLen() const { return Gix->GetSplitLen(); }
 	/// reset blob stats
 	void ResetStats() { Gix->ResetStats(); GixSmall->ResetStats(); }
 
@@ -2790,8 +2785,8 @@ private:
 	PTempIndex TempIndex;
 
 private:
-    TBase(const TStr& _FPath, const int64& IndexCacheSize);
-    TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize);
+    TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen);
+	TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize, const int& SplitLen);
 public:
 	~TBase();
 private:
@@ -2804,11 +2799,11 @@ private:
 	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall, const TQueryGixUsedType& ParentGixFlag);
 
 public:
-	static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize) {
-		return new TBase(FPath, IndexCacheSize);
+	static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const int& SplitLen = TInt::Giga) {
+		return new TBase(FPath, IndexCacheSize, SplitLen);
 	}
-	static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize) {
-		return new TBase(FPath, FAccess, IndexCacheSize);
+	static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize, const int& SplitLen = TInt::Giga) {
+		return new TBase(FPath, FAccess, IndexCacheSize, SplitLen);
 	}
 
 	// check if base already exists
@@ -2930,15 +2925,26 @@ public:
 	void PrintIndex(const TStr& FNm, const bool& SortP);
 		
 	/// get gix-blob stats
-	const TBlobBsStats& GetGixBlobStats() { return Index->GetBlobStats(); }
+	const TBlobBsStats GetGixBlobStats() { return Index->GetBlobStats(); }
 	/// get gix stats
-	const TGixStats& GetGixStats(bool do_refresh = true) { return Index->GetGixStats(do_refresh); }
+	const TGixStats GetGixStats(bool do_refresh = true) { return Index->GetGixStats(do_refresh); }
 	/// reset gix-blob stats
 	void ResetGixStats() { Index->ResetStats(); }
+	/// get performance statistics in JSON form
+	PJsonVal GetStats();
 
 	// perform partial flush of data
-	int PartialFlush(int WndInMsec = 500) { return Index->PartialFlush(WndInMsec); }
+	int PartialFlush(int WndInMsec = 500);
 };
+
+////////////////////////////////////////////////////////////////////////////
+// Some utility functions
+
+/// Export TBlobBsStats object to JSON
+PJsonVal BlobBsStatsToJson(const TBlobBsStats& stats);
+
+/// Export TGixStats object to JSON
+PJsonVal GixStatsToJson(const TGixStats& stats);
 
 } // namespace
 

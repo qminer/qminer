@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 namespace TFtrGen {
@@ -46,7 +35,13 @@ bool TNumeric::Update(const double& Val) {
 
 double TNumeric::GetFtr(const double& Val) const {
 	if ((Type != ntNone) && (MnVal < MxVal)) {
-        return (Val - MnVal) / (MxVal - MnVal);
+		if (Val > MxVal) { 
+			return 1; 
+		} else if (Val < MnVal) { 
+			return 0; 
+		} else {
+			return (Val - MnVal) / (MxVal - MnVal);
+		}
 	}
     return Val;        
 }
@@ -286,23 +281,21 @@ void TBagOfWords::GetFtr(const TStr& Str, TStrV& TokenStrV) const {
     }*/
 }
 
-void TBagOfWords::GenerateNgrams(const TStrV& TokenStrV, TStrV &NgramStrV) const {
-    if((NStart == 1) && (NEnd == 1)) { 
+void TBagOfWords::GenerateNgrams(const TStrV& TokenStrV, TStrV &NgramStrV) const {    
+	if((NStart == 1) && (NEnd == 1)) { 
         NgramStrV = TokenStrV;
-    }
-    
-    const TSize TotalStrLen = TokenStrV.Len();
-    for(TSize TokenStrN = 0; TokenStrN < TotalStrLen; TokenStrN++) { // for each token position, generate ngrams starting at that position
+		return;
+    }    
+    const int TotalStrLen = TokenStrV.Len();
+    for(int TokenStrN = 0; TokenStrN < TotalStrLen; TokenStrN++) { // for each token position, generate ngrams starting at that position
     	// Start with Token Position
     	// End with Token Position + NEnd - 1 because ngram parameters are 1-based indexes and vectors are 0-based indexes
-       const TSize NgramEnd = MIN(TotalStrLen - 1, TokenStrN + NEnd - 1) + 1;
-        for (TSize NgramPos = TokenStrN + (NStart - 1); NgramPos < NgramEnd; NgramPos++) {
+       const int NgramEnd = MIN(TotalStrLen - 1, TokenStrN + NEnd - 1) + 1;
+        for (int NgramPos = TokenStrN + (NStart - 1); NgramPos < NgramEnd; NgramPos++) {
             TChA NgramChA = TokenStrV[TokenStrN];
-            for (TSize NgramTokenN = TokenStrN + 1; NgramTokenN <= NgramPos; NgramTokenN++) {
+            for (int NgramTokenN = TokenStrN + 1; NgramTokenN <= NgramPos; NgramTokenN++) {
                 NgramChA += " "; NgramChA += TokenStrV[NgramTokenN];
             }
-//            TokenStrV.GetSubValV(TokenStrN, NgramPos, Slice);
-//            Ngram = TStr::GetStr(Slice, " ");
             NgramStrV.Add(NgramChA);
         }
     }
@@ -379,7 +372,7 @@ void TBagOfWords::AddFtr(const TStrV& TokenStrV, TIntFltKdV& SpV) const {
     // aggregate token counts
     TIntH TermFqH;
 	TStrV NgramStrV;
-    GenerateNgrams(TokenStrV, NgramStrV);
+    GenerateNgrams(TokenStrV, NgramStrV);	
     for (int TokenStrN = 0; TokenStrN < NgramStrV.Len(); TokenStrN++) {
         const TStr& TokenStr = NgramStrV[TokenStrN];
         // get token ID

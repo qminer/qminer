@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #ifndef CACHE_H
@@ -213,9 +202,12 @@ private:
 			return MemUsed;
 		}
         // store only on delete-from cache (in case new values added)
-        void OnDelFromCache(const TInt& BlockId, void* BlockCache) {
+        bool OnDelFromCache(const TInt& BlockId, void* BlockCache) {
 			if (ChangedP && !((TBlockCache*)BlockCache)->IsReadOnly()) {
-				((TBlockCache*)BlockCache)->StoreBlock(BlockId); }
+				((TBlockCache*)BlockCache)->StoreBlock(BlockId); 
+				return true;
+			}
+			return false;
 		}
 	};
 
@@ -515,6 +507,10 @@ private:
 		// retrieve value
 		bool IsValId(const int& ValId) const { return (ValId >= 0) && (ValId < ValV.Len()); }
 		const TVal& GetVal(const int& ValId) const { return ValV[ValId]; }
+		// dirty flag
+		bool IsChanged() const { return ChangedP; }
+		void SetChanged() { ChangedP = true; }
+		void SetNotChanged() { ChangedP = false; }
 
 		// need to report size, for keeping up used-up space in cache
 		int64 GetMemUsed() const {
@@ -523,10 +519,14 @@ private:
 				MemUsed += (int64)ValV[ValN].GetMemUsed(); }
 			return MemUsed;
 		}
-		// store only on delete-from cache (in case new values added)
-		void OnDelFromCache(const TInt& BlockId, void* WndBlockCache) {
+		// store this data - on delete-from cache or on demand
+		bool OnDelFromCache(const TInt& BlockId, void* WndBlockCache) {
 			if (ChangedP && !((TWndBlockCache*)WndBlockCache)->IsReadOnly()) {
-				((TWndBlockCache*)WndBlockCache)->StoreBlock(BlockId); }
+				((TWndBlockCache*)WndBlockCache)->StoreBlock(BlockId);
+				SetNotChanged();
+				return true;
+			}
+			return false;
 		}
 	};
 
@@ -606,6 +606,29 @@ public:
 	bool DelVal();
 	// delete first N values
 	int DelVals(const int& _Vals);
+	/// Save part of the data, given time-window
+	int PartialFlush(int WndInMsec = 500) { 
+		TTmStopWatch sw(true);
+		int res = 0;
+		TLstNd<TInt>* current = BlockCache.Last();
+		while (current != NULL) {
+			if (sw.GetMSecInt() > WndInMsec) {
+				break; // time is up
+			}
+			TInt Key = current->GetVal();
+			PBlockDat Dat;
+			BlockCache.Get(Key, Dat);
+			if (Dat->IsChanged()) {
+				StoreBlock(Key);
+				Dat->SetNotChanged();
+				res++;
+			}
+			current = current->Prev();
+		}
+		return res;
+	}
+	/// Get statistics about BLOB storage
+	TBlobBsStats GetBlobBsStats() { return BlockBlobBs->GetStats(); }
 };
 
 template <class TVal>

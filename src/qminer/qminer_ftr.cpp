@@ -1,23 +1,9 @@
 /**
- * QMiner - Open Source Analytics Platform
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Quintelligence d.o.o.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
- * Contact: 
- *   Blaz Fortuna <blaz@blazfortuna.com>
- *
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #include "qminer_ftr.h"
@@ -33,6 +19,7 @@ void TFtrExt::Init() {
     Register<TFtrExts::TRandom>();
 	Register<TFtrExts::TConstant>();
     Register<TFtrExts::TNumeric>();
+    Register<TFtrExts::TNumSpV>();
     Register<TFtrExts::TCategorical>();
     Register<TFtrExts::TMultinomial>();
     Register<TFtrExts::TBagOfWords>();
@@ -117,25 +104,6 @@ PFtrExt TFtrExt::Load(const TWPt<TBase>& Base, TSIn& SIn) {
 void TFtrExt::Save(TSOut& SOut) const { 
     JoinSeqH.Save(SOut); 
     FtrStore->SaveId(SOut);
-}
-
-void TFtrExt::GetFtrDist(TFltV& FtrDistV) const {
-    // reserve space for all features
-    FtrDistV.Gen(GetDim()); FtrDistV.PutAll(0.0);
-    // write in the vector feature distribution
-    int Offset = 0; AddFtrDist(FtrDistV, Offset);
-}
-
-void TFtrExt::AddFtrDist(TFltV& FtrDistV, int& Offset) const {
-    // get uniform value
-    const int Vals = GetDim();
-    if (Vals > 0) {
-        const double UniVal = 1.0 / (double)Vals;
-        for (int ValN = 0; ValN < Vals; ValN++) {
-            FtrDistV[Offset + ValN] = UniVal;
-        }
-        Offset += Vals;
-    }
 }
 
 void TFtrExt::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
@@ -370,15 +338,6 @@ TStr TFtrSpace::GetFtr(const int& FtrN) const {
 	}
 	throw TQmExcept::New("Feature number out of bounds!");
 	return TStr();
-}
-
-void TFtrSpace::GetFtrDist(TFltV& FtrDistV) const {
-    // create empty full vector
-    FtrDistV.Gen(GetDim()); FtrDistV.PutAll(0.0);
-	int Offset = 0;
-	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
-		FtrExtV[FtrExtN]->AddFtrDist(FtrDistV, Offset);
-	}
 }
 
 int TFtrSpace::GetFtrExts() const {
@@ -644,6 +603,128 @@ void TNumeric::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
 
 void TNumeric::ExtractFltV(const TRec& Rec, TFltV& FltV) const {
 	FltV.Add(FtrGen.GetFtr(GetVal(Rec)));   
+}
+
+///////////////////////////////////////////////
+// Sparse Vector Feature Extractor
+void TNumSpV::_GetVal(const TRec& FtrRec, TIntFltKdV& NumSpV) const {
+    // assert store
+    Assert(FtrRec.GetStoreId() == GetFtrStore()->GetStoreId());
+    // extract feature value
+    if (FtrRec.IsFieldNull(FieldId)) {
+        NumSpV.Clr();
+    } else if (FieldDesc.IsNumSpV()) {
+        FtrRec.GetFieldNumSpV(FieldId, NumSpV);
+    }
+    throw TQmExcept::New("Field type " + FieldDesc.GetFieldTypeStr() + 
+        " not supported by Numeric Feature Extractor!");
+}
+
+void TNumSpV::GetVal(const TRec& FtrRec, TIntFltKdV& NumSpV) const {
+	Assert(IsStartStore(FtrRec.GetStoreId()));
+	if (IsJoin(FtrRec.GetStoreId())) {
+        // do the join
+        TRec JoinRec = FtrRec.DoSingleJoin(GetBase(), GetJoinIdV(FtrRec.GetStoreId()));
+        // get feature value
+		//return _GetVal(JoinRec);
+    } else {
+        // get feature value
+        //return _GetVal(FtrRec);
+	}
+}
+
+TNumSpV::TNumSpV(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& _FieldId,
+    const int& _Dim, const bool& _NormalizeP): TFtrExt(Base, JoinSeqV),
+        Dim(_Dim), NormalizeP(_NormalizeP), FieldId(_FieldId),
+        FieldDesc(GetFtrStore()->GetFieldDesc(FieldId)) { }
+
+TNumSpV::TNumSpV(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFtrExt(Base, ParamVal) {       
+    // parse out parameters and initialize feature generator
+    const bool Dim = ParamVal->GetObjBool("dimension", false);
+    const bool NormalizeP = ParamVal->GetObjBool("normalize", false);
+    // parse out input parameters
+    TStr FieldNm = ParamVal->GetObjStr("field");
+    QmAssertR(GetFtrStore()->IsFieldNm(FieldNm), "Unknown field '" + 
+        FieldNm + "' in store '" + GetFtrStore()->GetStoreNm() + "'");
+    FieldId = GetFtrStore()->GetFieldId(FieldNm);
+    FieldDesc = GetFtrStore()->GetFieldDesc(FieldId);
+}
+
+TNumSpV::TNumSpV(const TWPt<TBase>& Base, TSIn& SIn):
+    TFtrExt(Base, SIn), Dim(SIn), NormalizeP(SIn), FieldId(SIn), FieldDesc(SIn) { }
+
+PFtrExt TNumSpV::New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
+        const int& FieldId, const int& Dim, const bool& NormalizeP) {
+
+    return new TNumSpV(Base, TJoinSeqV::GetV(TJoinSeq(Store)), FieldId, Dim, NormalizeP);
+}
+
+PFtrExt TNumSpV::New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, 
+        const int& FieldId, const int& Dim, const bool& NormalizeP) {
+    
+    return new TNumSpV(Base, TJoinSeqV::GetV(JoinSeq), FieldId, Dim, NormalizeP);
+}
+
+PFtrExt TNumSpV::New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
+        const int& FieldId, const int& Dim, const bool& NormalizeP) {
+    
+    return new TNumSpV(Base, JoinSeqV, FieldId, Dim, NormalizeP);
+}
+
+PFtrExt TNumSpV::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { 
+    return new TNumSpV(Base, ParamVal);
+}
+
+PFtrExt TNumSpV::Load(const TWPt<TBase>& Base, TSIn& SIn) {
+    return new TNumSpV(Base, SIn);
+}
+
+void TNumSpV::Save(TSOut& SOut) const {
+    GetType().Save(SOut);
+    TFtrExt::Save(SOut);
+    
+    Dim.Save(SOut);
+    NormalizeP.Save(SOut);
+    FieldId.Save(SOut);
+    FieldDesc.Save(SOut);
+}
+
+TStr TNumSpV::GetNm() const {
+    return "SpVec[" + GetFtrStore()->GetFieldNm(FieldId) + "]";
+};
+
+TStr TNumSpV::GetFtr(const int& FtrN) const {
+    return TStr::Fmt("SpVec[%s:%d/%d]", GetFtrStore()->GetFieldNm(FieldId).CStr(), FtrN, Dim.Val);
+}
+    
+bool TNumSpV::Update(const TRec& Rec) {
+    // we only need to update dimensionality, if new record makes it out-of-bounds
+    TIntFltKdV NumSpV; GetVal(Rec, NumSpV);
+    const int NewDim = TLAMisc::GetMaxDimIdx(NumSpV);
+    if (NewDim > Dim) { Dim = NewDim; return true; }
+    return false;
+}
+
+void TNumSpV::AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const {
+    TIntFltKdV NumSpV; GetVal(Rec, NumSpV);
+    for (int NumSpN = 0; NumSpN < NumSpV.Len(); NumSpN++) {
+        const TIntFltKd& NumSp = NumSpV[NumSpN];
+        SpV.Add(TIntFltKd(Offset + NumSp.Key, NumSp.Dat));
+    }
+    Offset += GetDim();
+}
+
+void TNumSpV::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
+    TIntFltKdV NumSpV; GetVal(Rec, NumSpV);
+    for (int NumSpN = 0; NumSpN < NumSpV.Len(); NumSpN++) {
+        const TIntFltKd& NumSp = NumSpV[NumSpN];
+        FullV[Offset + NumSp.Key] = NumSp.Dat;
+    }
+    Offset += GetDim();
+}
+
+void TNumSpV::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
+	throw TExcept::New("Not implemented yet!!", "TCategorical::InvFullV");
 }
 
 ///////////////////////////////////////////////

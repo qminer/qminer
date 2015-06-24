@@ -1,31 +1,15 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #ifndef THREAD_H
 #define THREAD_H
 
 #include <base.h>
-
-typedef enum {
-	cstFast,
-	cstRecursive
-} TCriticalSectionType;
 
 enum TMutexType {
 	mtFast,
@@ -61,7 +45,7 @@ public:
 
 ////////////////////////////////////////////
 // Lock 
-//   Wrapper around criticla section, which automatically enters 
+//   Wrapper around critical section, which automatically enters
 //   on construct, and leaves on scope unwinding (destruct)
 class TLock {
 	friend class TCondVarLock;
@@ -78,11 +62,18 @@ public:
 //   contains a pool of threads which can execute a TRunnable object
 class TThreadExecutor {
 public:
-	ClassTP(TRunnable, PRunnable)// {
+	class TRunnable;
+		typedef TPt<TRunnable> PRunnable;
+	class TRunnable {
+	private:
+		TCRef CRef;
 	public:
-		virtual void Run() = 0;
+		friend class TPt<TRunnable>;
+	public:
+		TRunnable() {}
 		virtual ~TRunnable() {}
 
+		virtual void Run() = 0;
 		bool operator ==(const TRunnable& Other) const { return this == &Other; }
 	};
 private:
@@ -100,8 +91,11 @@ private:
 	};
 
 private:
-	TThreadV<TExecutorThread> ThreadV;
-	TLinkedQueue<PRunnable> TaskQ;
+	typedef TThreadV<TExecutorThread> TExecThreadV;
+	typedef TLinkedQueue<PRunnable> TTaskQueue;
+
+	TExecThreadV ThreadV;
+	TTaskQueue TaskQ;
 
 	TCondVarLock Lock;
 

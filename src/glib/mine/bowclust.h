@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 /////////////////////////////////////////////////
@@ -232,6 +221,13 @@ public:
     TFOut SOut(FNm); Save(SOut);}
 };
 
+enum class TBowClustInitScheme {
+	tbcRnd, // select initial centroids randomly
+	tbcDiam, // select the points which form the diameter
+	tbcMean, // select the mean point
+	tbcKMeansPP // select initial centroids with the KMeans++ approach
+};
+
 /////////////////////////////////////////////////
 // BagOfWords-Clustering
 class TBowClust{
@@ -262,6 +258,20 @@ public:
    const int& Clusts, const int& ClustTrials,
    const double& ConvergEps, const int& MnDocsPerClust,
    const TIntFltPrV& DocIdWgtPrV=TIntFltPrV());
+  static PBowDocPart GetDPMeansPartForDocWgtBs(
+     const PNotify& Notify,
+     const PBowDocWgtBs& BowDocWgtBs,
+     const PBowDocBs& BowDocBs,
+     const PBowSim& BowSim,
+     TRnd& Rnd,
+     const double& Lambda,
+     const int& MinDocsPerClust, const int& MaxClusts,
+     const double& ConvergEps,
+     const TInt& MaxIter = 10000,
+     const TBowClustInitScheme& InitType = TBowClustInitScheme::tbcDiam,
+     const int& InitParam = -1,
+     const TIntFltPrV& DocIdWgtPrV=TIntFltPrV()
+    );
   static PBowDocPart GetHPartForDocWgtBs(
    const PNotify& Notify,
    const PBowDocWgtBs& BowDocWgtBs,
@@ -301,5 +311,16 @@ public:
    const PBowDocBs& BowDocBs, const PBowDocPart& Part, const PBowSim& BowSim,
    const TBowWordWgtType& WordWgtType,
    const TIntV& TrainDIdV, const TIntV& TestDIdV);
+
+private:
+	static void GetInitialClustIdV(
+		const PNotify& Notify,
+		const PBowDocWgtBs& BowDocWgtBs,
+		const PBowSim& BowSim,
+		TRnd& Rnd,
+		TVec<TIntV>& DIdVV,
+		const TBowClustInitScheme& InitType = TBowClustInitScheme::tbcKMeansPP,
+		const int& InitParam = 2
+	);
 };
 

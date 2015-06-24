@@ -1,23 +1,9 @@
 /**
- * QMiner - Open Source Analytics Platform
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Quintelligence d.o.o.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
- * Contact: 
- *   Blaz Fortuna <blaz@blazfortuna.com>
- *
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #ifndef QMINER_FTR_H
@@ -98,10 +84,6 @@ public:
 	virtual TStr GetFtr(const int& FtrN) const = 0;
    	/// Reset feature extractor to forget all previously seen records
 	virtual void Clr() = 0;
-    /// Get feature distribution. Default is uniform over all dimensions.
-    void GetFtrDist(TFltV& FtrDistV) const;
-    /// Get feature distribution. Default is uniform over all dimensions.
-    virtual void AddFtrDist(TFltV& FtrDistV, int& Offset) const;    
     
 	/// Update the feature extractor using the info from the given record.
     /// Returns true if the update changes the dimensionality.
@@ -205,8 +187,6 @@ public:
 	int GetDim() const;
 	/// String representation of the FtrN-th feature
 	TStr GetFtr(const int& FtrN) const;
-    /// Get feature distribution
-    void GetFtrDist(TFltV& FtrDistV) const;
     /// Number of feature extractors
     int GetFtrExts() const;
     /// Get feature extractor
@@ -351,6 +331,57 @@ public:
     // feature extractor type name 
     static TStr GetType() { return "numeric"; }   
 };
+
+///////////////////////////////////////////////
+/// Sparse Vector Feature Extractor
+class TNumSpV : public TFtrExt {
+private:
+    /// Dimensionality
+    TInt Dim;
+    /// Normalize input vector
+    TBool NormalizeP;
+	/// Field Id
+	TInt FieldId;
+    /// Field description
+    TFieldDesc FieldDesc;
+
+    /// Get value from a given record
+	void _GetVal(const TRec& Rec, TIntFltKdV& NumSpV) const;
+    /// Check if there is join, and forward to _GetVal
+	void GetVal(const TRec& Rec, TIntFltKdV& NumSpV) const;
+
+	TNumSpV(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV,
+        const int& _FieldId, const int& _Dim, const bool& _NormalizeP);
+    TNumSpV(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    TNumSpV(const TWPt<TBase>& Base, TSIn& SIn);
+public:
+	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
+        const int& FieldId, const int& Dim = 0, const bool& NormalizeP = true);
+	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, 
+        const int& FieldId, const int& Dim = 0, const bool& NormalizeP = true);
+	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
+        const int& FieldId, const int& Dim = 0, const bool& NormalizeP = true);
+	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+    static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
+    void Save(TSOut& SOut) const;   
+    
+	TStr GetNm() const;
+	int GetDim() const { return Dim; }
+	TStr GetFtr(const int& FtrN) const;
+
+	void Clr() { Dim = 0; }
+	// sparse vector extraction
+	bool Update(const TRec& Rec);
+	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
+	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+
+    // feature extractor type name 
+    static TStr GetType() { return "num_sp_v"; }   
+};
+
 
 ///////////////////////////////////////////////
 /// Categorical Feature Extractor.

@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 namespace TSignalProc {
@@ -255,6 +244,7 @@ public:
 
 	void Add(const TVal& Val);
 	void DelOldest();
+	void Clr();
 
 	const TVal& GetOldest(const TSizeTy& Idx) const;
 	const TVal& GetOldest() const { return GetOldest(0); };
@@ -300,7 +290,7 @@ void TLinkedBuffer<TVal, TSizeTy>::Save(TSOut& SOut) const {
 
 template <class TVal, class TSizeTy>
 TLinkedBuffer<TVal, TSizeTy>::~TLinkedBuffer() {
-	while (!Empty()) { DelOldest(); }
+	Clr();
 }
 
 template <class TVal, class TSizeTy>
@@ -330,6 +320,11 @@ void TLinkedBuffer<TVal, TSizeTy>::DelOldest() {
 	}
 
 	delete Temp;
+}
+
+template <class TVal, class TSizeTy>
+void TLinkedBuffer<TVal, TSizeTy>::Clr() {
+	while (!Empty()) { DelOldest(); }
 }
 
 template <class TVal, class TSizeTy>
@@ -396,7 +391,7 @@ protected:
 public:
 	virtual void Save(TSOut& SOut) const;
 
-	virtual void SetNextInterpTm(const uint64& Time);
+//	virtual void SetNextInterpTm(const uint64& Time);
 	void AddPoint(const double& Val, const uint64& Tm);
 };
 
@@ -432,6 +427,7 @@ public:
 	static PInterpolator New() { return new TCurrentPoint; }
 	static PInterpolator New(TSIn& SIn) { return new TCurrentPoint(SIn); }
 
+	void SetNextInterpTm(const uint64& Time);
 	double Interpolate(const uint64& Tm) const;
 	bool CanInterpolate(const uint64& Tm) const;
 
@@ -449,6 +445,7 @@ public:
 	static PInterpolator New() { return new TLinear; }
 	static PInterpolator New(TSIn& SIn) { return new TLinear(SIn); }
 
+	void SetNextInterpTm(const uint64& Tm);
 	double Interpolate(const uint64& Tm) const;
 	bool CanInterpolate(const uint64& Tm) const;
 

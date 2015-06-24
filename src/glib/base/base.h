@@ -1,26 +1,19 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #ifndef base_h
 #define base_h
 
-#pragma warning(disable: 4100)		// unreferenced formal parameter
+#ifndef INDEX_64
+typedef int index_t;
+#else
+typedef long long index_t;
+#endif#pragma warning(disable: 4100)		// unreferenced formal parameter
 #pragma warning(disable: 4127)		// conditional expression is constant
 #pragma warning(disable: 4315)		// 'THashKeyDat<TKey,TDat>' : 'this' pointer for member 'THashKeyDat<TKey,TDat>::Dat' may not be aligned 8 as expected by the constructor
 #pragma warning(disable: 4512)		// assignment operator could not be generated
@@ -45,7 +38,6 @@
 #elif defined(__sun__)
   #define GLib_UNIX
   #define GLib_SOLARIS __sun__
-  // !bn: defined in ctype_iso.h but apears as a parameter in GLib
   #undef _C
 #elif defined(__FreeBSD__)
   #define GLib_UNIX
@@ -68,7 +60,6 @@
 #endif
 #if defined (__GNUC__)
   #define GLib_GCC __GNUC__
-// !bn: to bo not samo dokler ne ugotovim kje so primerjave problematicne
   #ifdef FLTWARN
     #undef _CMPWARN
     #define _CMPWARN __attribute__ ((deprecated))
@@ -149,13 +140,14 @@
 #endif
 
 #if defined(GLib_MACOSX)
-  // On OS X Maverics there is not default support for OpenMP
+  // On OS X Maverics there is no default support for OpenMP
 #else
   #define GLib_OPENMP
 #endif
 
 #include <ctype.h>
 #include <float.h>
+#include <complex>
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
@@ -222,6 +214,7 @@
 #include "ss.h"
 #include "linalg.h"
 #include "tensor.h"
+#include "opt.h"
 #include "json.h"
 #include "zipfl.h"
 

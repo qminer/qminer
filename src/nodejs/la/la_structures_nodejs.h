@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 #ifndef QMINER_LA_STRUCTURES_NODEJS_H
 #define QMINER_LA_STRUCTURES_NODEJS_H
 
@@ -10,14 +17,6 @@
 
 ///////////////////////////////
 // NodeJs-Qminer-LinAlg
-//! 
-//! ## Linear Algebra
-//! 
-//! A global object `la` is used to construct vectors (sparse, dense) and matrices and 
-//! it is available in any script. The object includes
-//! several functions from linear algebra.
-//! 
-
 /**
 * Linear algebra module.
 * @module la
@@ -29,67 +28,15 @@
 class TNodeJsLinAlg : public node::ObjectWrap {
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	//! 
-	//! **Functions and properties:**
-	//! 
-	////!- `vec = la.newVec()` -- generate an empty float vector
-	////!- `vec = la.newVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
-	////!- `vec = la.newVec(arr)` -- copy a javascript number array `arr` 
-	////!- `vec = la.newVec(vec2)` -- clone a float vector `vec2`
-	//JsDeclareFunction(newVec);
-	////!- `intVec = la.newIntVec()` -- generate an empty integer vector
-	////!- `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
-	////!- `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
-	////!- `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
-	//JsDeclareFunction(newIntVec);
-	////!- `strVec = la.newStrVec()` -- generate an empty integer vector
-	////!- `strVec = la.newStrVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
-	////!- `strVec = la.newStrVec(arr)` -- copy a javascript int array `arr` 
-	////!- `strVec = la.newStrVec(strVec2)` -- clone an str vector `strVec2`
-	//JsDeclareFunction(newStrVec);
-	////!- `mat = la.newMat()` -- generates a 0x0 matrix
-	////!- `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
-	////!- `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
-	////!- `mat = la.newMat(mat2)` -- clones a dense matrix `mat2`
-	//JsDeclareFunction(newMat);
-	////!- `spVec = la.newSpVec(len)` -- creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
-	////!- `spVec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
-	//JsDeclareFunction(newSpVec);
-	////!- `spMat = la.newSpMat()` -- creates an empty sparse matrix `spMat`
-	////!- `spMat = la.newSpMat(rowIdxVec, colIdxVec, valVec)` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`
-	////!- `spMat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
-	////!- `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
-	//JsDeclareFunction(newSpMat);
 	////!- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
 	////!- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
 	JsDeclareFunction(svd);
 	//!- `qrRes = la.qr(mat, tol)` -- Computes a qr decomposition: mat = Q R.  `mat` is a dense matrix, optional parameter `tol` (the tolerance number, default 1e-6). The outpus are stored as two dense matrices: `qrRes.Q`, `qrRes.R`.
 	JsDeclareFunction(qr);
-	//!- `intVec = la.loadIntVeC(fin)` -- load integer vector from input stream `fin`.
-	// (TODO) JsDeclareFunction(loadIntVec);
-	//!JSIMPLEMENT:src/qminer/linalg.js
 };
 
 ///////////////////////////////
 // NodeJs-Linalg-FltVV
-//! 
-//! ### Matrix (dense matrix)
-//! 
-//! Matrix is a double 2D array implemented in glib/base/ds.h. 
-//! Using the global `la` object, dense matrices are generated in several ways:
-//! 
-//! ```JavaScript
-//! var fltv = la.newVec(); //empty matrix
-//! // refer to la.newMat function for alternative ways to generate dense matrices
-//! ```
-//! 
-
-
-////!- `mat = la.newMat()` -- generates a 0x0 matrix
-////!- `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
-////!- `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
-////!- `mat = la.newMat(mat2)` -- clones a dense matrix `mat2`
-
 
 /**
 * Matrix constructor parameter object
@@ -101,7 +48,7 @@ public:
 
 /**
 * Matrix
-* @classdesc Represents a dense matrix (2d array).
+* @classdesc Represents a dense matrix (2d array), wraps a C++ object implemented in glib/base/ds.h.
 * @class
 * @param {(module:la~matrixArg | Array<Array<number>> | module:la.Matrix)} [arg] - Constructor arguments. There are three ways of constructing:
 * <br>1. Parameter object {@link module:la~matrixArg}.
@@ -122,7 +69,7 @@ private:
 
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	const static TStr ClassId;
+	const static TStr GetClassId() { return "Matrix"; }
 
 	static TNodeJsFltVV* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
@@ -135,30 +82,33 @@ public:
 	JsDeclareFunction(New);
 
 private:
-	//! 
-	//! **Functions and properties:**
-	//! 
-	//!- `num = mat.at(rowIdx,colIdx)` -- Gets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
-
-
 	/**
 	* Returns an element of matrix.
 	* @param {number} rowIdx - Row index (zero based).
 	* @param {number} colIdx - Column index (zero based).
 	* @returns {number} Matrix element.
 	*/
-	//# exports.Matrix.prototype.at = function(rowIdx, colIdx) {}
+	//# exports.Matrix.prototype.at = function(rowIdx, colIdx) { return 0.0; }
 	JsDeclareFunction(at);
 
 	//!- `mat = mat.put(rowIdx, colIdx, num)` -- Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.
 	/**
-	* Sets an element of matrix.
-	* @param {number} rowIdx - Row index (zero based).
+	* Sets an element or a block of matrix.
+	* @param {number} rowIdx - Row index (zero based). 
 	* @param {number} colIdx - Column index (zero based).
-	* @param {number} num - Input value.
+	* @param {(number | module:la.Matrix)} arg - A number or a matrix. If the arg is a matrix, then it gets copied, where the argument's upper left corner, arg.at(0,0), gets copied to (rowIdx, colIdx)
 	* @returns {module:la.Matrix} Self.
+	* @example
+	* // create a new matrix
+	* var mat = new la.Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
+	* var arg = new la.Matrix([[10, 11], [12, 13]]);
+	* mat.put(0, 1, arg);
+	* // updates the matrix to
+    * // 1  10 11
+    * // 4  12 13
+    * // 7  8  9   
 	*/
-	//# exports.Matrix.prototype.put = function(rowIdx, colIdx, num) {}
+	//# exports.Matrix.prototype.put = function(rowIdx, colIdx, arg) {}
 	JsDeclareFunction(put);
 
 	//!- `mat2 = mat.multiply(num)` -- Matrix multiplication: `num` is a number, `mat2` is a matrix
@@ -262,7 +212,7 @@ private:
 	* Returns a vector of column norms.
 	* @returns {module:la.Vector} Vector, where the value at i-th index is the norm of the i-th column of matrix.
 	*/
-	//# exports.Matrix.prototype.colNorms = function () {}
+	//# exports.Matrix.prototype.colNorms = function () { return Object.create(require('qminer').la.IntVector.prototype) }
 	JsDeclareFunction(colNorms);
 
 	//!- `mat = mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation). Returns self.
@@ -463,24 +413,29 @@ public:
 //# exports.SparseVector = function(arg, dim) {}	
 
 class TNodeJsSpVec : public node::ObjectWrap {
-public:
-	const static TStr ClassId;
-
-	TNodeJsSpVec() : Dim(-1) { }
-	TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1)
-		: Vec(IntFltKdV), Dim(Dim)
-	{ }
+	friend class TNodeJsUtil;
+private:
+	static v8::Persistent<v8::Function> Constructor;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	static v8::Local<v8::Object> New(const TIntFltKdV& IntFltKdV, const int& Dim = -1);
+	static const TStr GetClassId() { return "SparseVector"; }
+
+public:
+	// wrapped C++ objects
+	TIntFltKdV Vec;
+	TInt Dim;
+	// C++ constructor
+	TNodeJsSpVec() : Dim(-1) { }
+	TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1) : Vec(IntFltKdV), Dim(Dim) {		
+		EAssertR((Dim == -1) || TLAMisc::GetMaxDimIdx(IntFltKdV) < Dim,		    
+		    "TNodeJsSpVec::New inconsistent dim parameter (maximal index >= dim!)");}
 public:
 	//! 
 	//! **Functions and properties:**
 	//! 
 	//!- `spVec = la.newSpVec(dim)` -- creates an empty sparse vector `spVec`, where `dim` is an optional (-1 by default) integer parameter that sets the dimension
 	//!- `spVec = la.newSpVec(nestedArr, dim)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `dim` is optional and sets the dimension
-	JsDeclareFunction(New);
-
+	static TNodeJsSpVec* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 	//!- `num = spVec.at(idx)` -- Gets the element of a sparse vector `spVec`. Input: index `idx` (integer). Output: value `num` (number). Uses 0-based indexing
 	/**
@@ -588,23 +543,16 @@ public:
 	*/
 	//# exports.SparseVector.prototype.idxVec = function () {}
 	JsDeclareFunction(idxVec);
-
-	//! //!- `spVec = spVec.print()` -- returns the vector as string. 
-	//! /**
-	//! * Prints sparse vector on-screen.
-	//! * @example
-	//! * // create new sparse vector
-	//! * var spVec = new la.SparseVector([[0, 1], [2, 3]]);
-	//! * // print sparse vector
-	//! * spVec.print(); // shows on-screen [(0, 1), (2, 3)]
-	//! */
-	//! //# exports.SparseVector.prototype.print = function () {}
+		
+	/**
+	* Returns the string representation.
+	* @example
+	* // create new sparse vector
+	* var spVec = new la.SparseVector([[0, 1], [2, 3]]);	
+	* spVec.toString(); // returns the string '[(0, 1), (2, 3)]'
+	*/
+	//# exports.SparseVector.prototype.toString = function () {}
 	JsDeclareFunction(toString);
-public:
-	TIntFltKdV Vec;
-	TInt Dim;
-private:
-	static v8::Persistent<v8::Function> constructor;
 };
 
 ///////////////////////////////
@@ -640,13 +588,12 @@ private:
 
 class TNodeJsSpMat : public node::ObjectWrap {
 public:
-	const static TStr ClassId;
-
 	TNodeJsSpMat() : Rows(-1) { }
 	TNodeJsSpMat(const TVec<TIntFltKdV>& _Mat, const int& _Rows = -1)
 		: Mat(_Mat), Rows(_Rows) { }
 public:
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "SparseMatrix"; }
 	static v8::Local<v8::Object> New(const TVec<TIntFltKdV>& Mat, const int& Rows = -1);
 public:
 	//! 

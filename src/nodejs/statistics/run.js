@@ -1,13 +1,20 @@
-var la = require('../../../build/Debug/la.node');
-var stat = require('../../../build/Debug/stat.node');
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+var la = require('qminer').la;
+var stat = require('qminer').statistics;
 
 /////////////////////////
 // Return a new vector or a new matrix 
-la.newVector = function(args) { return new la.vector(args); }
-la.newIntVector = function(args) { return new la.vector(args); }
-la.newMatrix = function(args) { return new la.matrix(args); }
-la.newSparseVector = function(args) { return new la.sparseVector(args); }
-la.newSparseMatrix = function(args) { return new la.sparseMatrix(agrs); }
+la.newVector = function(args) { return new la.Vector(args); }
+la.newIntVector = function(args) { return new la.Vector(args); }
+la.newMatrix = function(args) { return new la.Matrix(args); }
+la.newSparseVector = function(args) { return new la.SparseVector(args); }
+la.newSparseMatrix = function(args) { return new la.SparseMatrix(agrs); }
 
 
 ///////////////////////////

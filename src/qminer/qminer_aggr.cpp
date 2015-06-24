@@ -1,26 +1,14 @@
 /**
- * QMiner - Open Source Analytics Platform
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Quintelligence d.o.o.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
- * Contact: 
- *   Blaz Fortuna <blaz@blazfortuna.com>
- *
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #include "qminer_aggr.h"
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 #ifdef OG_AGGR_DOC_ATLAS
 #include <gkswf.h>
@@ -2017,6 +2005,9 @@ bool TStMerger::CanInterpolate() {
 void TStMerger::UpdateNextInterpTm() {
 	PrevInterpTm = NextInterpTm;
 	NextInterpTm = Buff.Len() > 1 ? Buff.GetOldest(1) : TUInt64::Mx;
+
+	QmAssertR(PrevInterpTm <= NextInterpTm, "The previous interpolation time is greater than the current interpolation time current: " + TUInt64::GetStr(PrevInterpTm) + ", next: " + TUInt64::GetHexStr(NextInterpTm) + "TStMerger::UpdateNextInterpTm()");
+
 	ShiftBuff();
 }
 
@@ -2045,12 +2036,14 @@ void TStMerger::HandleEdgeCases(const uint64& RecTm) {
 	// the buffer was empty before this iteration,
 	// the next interpolation time is not set
 	if (NextInterpTm == TUInt64::Mx) {
+		EAssertR(Buff.Len() == 1, "TStMerger::HandleEdgeCases: The buffer is not empty even though it should be!");
 		NextInterpTm = RecTm;
 		UpdateInterpolators();
 	}
 	// duplicate value when extrapolating future
 	if (!OnlyPast && NextInterpTm == PrevInterpTm) {
 		NextInterpTm = TUInt64::Mx;
+		Buff.DelOldest();
 	}
 }
 
@@ -2094,6 +2087,7 @@ void TResampler::OnAddRec(const TRec& Rec) {
 		// update fields
 		for (int FieldN = 0; FieldN < InFieldIdV.Len(); FieldN++) {
 			const double FieldVal = InterpolatorV[FieldN]->Interpolate(InterpPointMSecs);
+			EAssertR(!TFlt::IsNan(FieldVal), "TResampler: interpolated to a NaN value!");
 			JsonVal->AddToObj(InStore->GetFieldNm(InFieldIdV[FieldN]), FieldVal);
 		}
 
@@ -2362,7 +2356,7 @@ PJsonVal THierchCtmc::TNode::SaveJson() const {
 		StateJson->AddToObj("time", SizeV[i]);
 		StateJson->AddToObj("centroid", CentroidJsonV);
 
-		printf("node id: %llu, size: %.2f, mean centroid dist: %.3f\n",
+		printf("node id: %" PRIu64 ", size: %.2f, mean centroid dist: %.3f\n",
             NodeId.Val, SizeV[i].Val, GetMeanPtCentroidDist(i));
 
 		StateJsonV->AddToArr(StateJson);
@@ -2467,7 +2461,7 @@ void THierchCtmc::TNode::InitStateStats() {
 
 		StateStatV.Add(TUInt64FltPr(ClustSize, ClustSize * MeanPtCentDist));
 
-		printf("Node: %llu: state %d, points %llu, mean centroid dist %.3f\n",
+		printf("Node: %" PRIu64 ": state %d, points %" PRIu64 ", mean centroid dist %.3f\n",
             NodeId.Val, StateIdx, GetStateSize(StateIdx), GetMeanPtCentroidDist(StateIdx));
 	}
 }
@@ -2566,7 +2560,7 @@ void THierchCtmc::TNode::ExpandState(const int& StateIdx) {
 	TFullMatrix InstanceMat = Model->GetFtrVV(RecIdV);
 	TVector AssignV = Clust->Assign(InstanceMat);
 
-	TVector StateAssignIdxV = AssignV.Find([&] (const int Val) { return Val == StateIdx; });
+	TVector StateAssignIdxV = AssignV.Find([&] (const double Val) { return Val == StateIdx; });
 
 	// if the state doesn't have enough points => ignore
 	if (StateAssignIdxV.Len() < 15) {		// TODO hardcoded remove this part
@@ -2577,7 +2571,7 @@ void THierchCtmc::TNode::ExpandState(const int& StateIdx) {
 	// get the record ids
 	TUInt64V StateRecIdV(StateAssignIdxV.Len(), 0);
 	for (int i = 0; i < StateAssignIdxV.Len(); i++) {
-		StateRecIdV.Add(RecIdV[StateAssignIdxV[i]]);
+		StateRecIdV.Add(RecIdV[(int)StateAssignIdxV[i]]);
 	}
 
 	// get the instance matrix
@@ -2612,15 +2606,15 @@ void THierchCtmc::TNode::InitChildV() {
 	StateIdV.Gen(NStates, 0);
 	for (int i = 0; i < NStates; i++) {
 		ChildV.Add(NULL);
-		StateIdV.Add(Model->GenNodeId());
+		StateIdV.Add((int)Model->GenNodeId());
 	}
 }
 
 void THierchCtmc::TNode::InitClusts(const PRecSet& RecSet, TIntV& AssignIdxV) {
 	TFullMatrix X = Model->GetFtrVV(RecSet);
 	// run the algorithm
-	Clust->Init(X);
-	Clust->Assign(X, AssignIdxV);
+	Clust->Init(X, TFltVV());
+	Clust->Assign(X.GetMat(), AssignIdxV);
 	CentroidMat = Clust->GetCentroidMat();
 //	CentroidMat = Clust->Apply(X, AssignIdxV);
 
@@ -2706,7 +2700,7 @@ PStreamAggr THierchCtmc::New(const TWPt<TBase>& Base, const TStr& AggrNm, const 
 PStreamAggr THierchCtmc::New(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal) {
 	const TStr InStoreNm = ParamVal->GetObjStr("source");
 	const TStr AggrNm = ParamVal->GetObjStr("name");
-	const TInt MinRecs = ParamVal->GetObjNum("minRecs");
+	const TInt MinRecs = (int)ParamVal->GetObjNum("minRecs");
 	const PJsonVal ClustParams = ParamVal->GetObjKey("clustering");
 	const TStr TimeFldNm = ParamVal->GetObjStr("timestamp");
 	const TFlt ExpandThreshold = ParamVal->GetObjNum("expandThreshold");
@@ -2770,17 +2764,17 @@ int THierchCtmc::GetMaxDepth() const {
 	return MaxDepth;
 }
 
-TMl::PFullClust THierchCtmc::GetClust() const {
+TMc::PStateIdentifier THierchCtmc::GetClust() const {
 	const TStr ClustType = ClustParams->GetObjStr("type");
 
 	if (ClustType == "dpmeans") {
 		const double Lambda = ClustParams->GetObjNum("lambda");
 		const int MinClusts = ClustParams->GetObjInt("minclusts");
 		const int MaxClusts = ClustParams->GetObjInt("maxclusts");
-		return new TMl::TDpMeans(20, 1, Lambda, MinClusts, MaxClusts, Rnd);
+		return new TMc::TDpMeans(20, 1, Lambda, MinClusts, MaxClusts, Rnd);
 	} else if (ClustType == "kmeans") {
 		const int K = ClustParams->GetObjInt("k");
-		return new TMl::TFullKMeans(20, 1, K, Rnd);
+		return new TMc::TFullKMeans(20, 1, K, Rnd);
 	} else {
 		throw TExcept::New("Invalid clustering type: " + ClustType, "THierchCtmc::GetClust");
 	}
@@ -2809,7 +2803,7 @@ void THierchCtmc::InitRoot() {
 	FtrSpace = TFtrSpace::New(Base, FtrExtV);
 	FtrSpace->Update(AllRecSet);
 
-	RootNode = new TNode(this, AllRecSet, GenNodeId(), 1);
+	RootNode = new TNode(this, AllRecSet, (int)GenNodeId(), 1);
 }
 
 

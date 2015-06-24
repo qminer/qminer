@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 /*
@@ -36,10 +25,10 @@ TMutex::TMutex(const TMutexType& _Type, const bool& LockOnStartP):
 	pthread_mutexattr_setpshared(&Attributes, PTHREAD_PROCESS_SHARED);
 
 	switch (Type) {
-	case TCriticalSectionType::cstFast:
+	case mtFast:
 		pthread_mutexattr_settype(&Attributes, PTHREAD_MUTEX_NORMAL);
 		break;
-	case TCriticalSectionType::cstRecursive:
+	case mtRecursive:
 		pthread_mutexattr_settype(&Attributes, PTHREAD_MUTEX_RECURSIVE);
 		break;
 	default:
@@ -74,20 +63,11 @@ void TMutex::GetLock() {
 	pthread_mutex_lock(&MutexHandle);
 }
 
-TCriticalSection::TCriticalSection(const TCriticalSectionType& _Type):
-		Type(_Type) {
+TCriticalSection::TCriticalSection() {
 	pthread_mutexattr_init(&CsAttr);
 
-	switch (Type) {
-	case TCriticalSectionType::cstFast:
-		pthread_mutexattr_settype(&CsAttr, PTHREAD_MUTEX_NORMAL);
-		break;
-	case TCriticalSectionType::cstRecursive:
-		pthread_mutexattr_settype(&CsAttr, PTHREAD_MUTEX_RECURSIVE);
-		break;
-	default:
-		throw TExcept::New("Invalid critical section type!", "TCriticalSection::Init()");
-	}
+	// allow the thread to enter thecritical section multiple times
+	pthread_mutexattr_settype(&CsAttr, PTHREAD_MUTEX_RECURSIVE);
 
 	pthread_mutex_init(&Cs, &CsAttr);
 }
@@ -178,7 +158,7 @@ void * TThread::EntryPoint(void * pArg) {
     try {
     	pThis->Run();
     } catch (...) {
-    	printf("Unknown exception while running thread: %llu!\n", pThis->GetThreadId());
+    	printf("Unknown exception while running thread: %ul!\n", pThis->GetThreadId());
     }
 
     // pop and execute the cleanup routine
@@ -195,7 +175,7 @@ void TThread::SetFinished(void *pArg) {
 
 TThread::TThread():
 		ThreadHandle(),
-		CriticalSection(cstRecursive),
+		CriticalSection(),
 		Status(STATUS_CREATED) { }
 
 TThread::~TThread() {
