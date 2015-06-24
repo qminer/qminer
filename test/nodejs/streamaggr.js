@@ -2263,7 +2263,7 @@ describe.only('Covariance Tests', function () {
             store.push({ Time: '2015-06-10T14:13:35.4', Value: 5, Value2: 6 });
             assert.eqtol(cov.getFloat(), -1/8);
         })
-        it.skip('should have a similar return value', function () {
+        it('should have a similar return value', function () {
             var aggr = {
                 name: 'CovAggr',
                 type: 'covariance',
@@ -2290,6 +2290,100 @@ describe.only('Covariance Tests', function () {
                 var val = Math.sin(2 * Math.PI * date.getTime() / 1000);
                 var val2 = Math.cos(2 * Math.PI * date.getTime() / 1000);
                 store.push({ Time: date.toISOString(), Value: val, Value2: val2 });
+            }
+            assert.equal(cov.getFloat(), cov2.getFloat());
+        })
+        it('should have a similar return value: sin and cos (covWinSize)', function () {
+            var aggr = {
+                name: 'CovAggr',
+                type: 'covariance',
+                store: 'Function',
+                inAggrX: 'TimeSeries1',
+                inAggrY: 'TimeSeries2',
+                covWinSize: 500
+            };
+            var cov = store.addStreamAggr(aggr);
+            var cov2;
+
+            var t = new Date().getTime();
+            for (var i = 0; i < 1000; i++) {
+                if (i == 500) {
+                    aggr = {
+                        name: 'CovAggr2',
+                        type: 'covariance',
+                        store: 'Function',
+                        inAggrX: 'TimeSeries1',
+                        inAggrY: 'TimeSeries2',
+                        covWinSize: 500
+                    };
+                    cov2 = store.addStreamAggr(aggr);
+                }
+                var date = new Date(t + i * 4);
+                var val = Math.sin(2 * Math.PI * date.getTime() / 1000);
+                var val2 = Math.cos(2 * Math.PI * date.getTime() / 1000);
+                store.push({ Time: date.toISOString(), Value: val, Value2: val2 });
+            }
+            assert.equal(cov.getFloat(), cov2.getFloat());
+        })
+        it('should return a similar return value: randn', function () {
+            var vec = qm.la.randn(2, 1000);
+
+            var aggr = {
+                name: 'CovAggr',
+                type: 'covariance',
+                store: 'Function',
+                inAggrX: 'TimeSeries1',
+                inAggrY: 'TimeSeries2',
+            };
+            var cov = store.addStreamAggr(aggr);
+            var cov2;
+
+            var t = new Date().getTime();
+            for (var i = 0; i < 1000; i++) {
+                if (i == 500) {
+                    aggr = {
+                        name: 'CovAggr2',
+                        type: 'covariance',
+                        store: 'Function',
+                        inAggrX: 'TimeSeries1',
+                        inAggrY: 'TimeSeries2',
+                    };
+                    cov2 = store.addStreamAggr(aggr);
+                }
+                var date = new Date(t + i * 4);
+                store.push({ Time: date.toISOString(), Value: vec.at(0, i), Value2: vec.at(1, i) });
+            }
+            assert.equal(cov.getFloat(), cov2.getFloat());
+        })
+        it('should return a similar return value: randn (covWinSize)', function () {
+            var vec = qm.la.randn(2, 1000);
+
+            var aggr = {
+                name: 'CovAggr',
+                type: 'covariance',
+                store: 'Function',
+                inAggrX: 'TimeSeries1',
+                inAggrY: 'TimeSeries2',
+                covWinSize: 500
+            };
+            var cov = store.addStreamAggr(aggr);
+            var cov2;
+
+            var t = new Date().getTime();
+            for (var i = 0; i < 1000; i++) {
+                if (i == 500) {
+                    aggr = {
+                        name: 'CovAggr2',
+                        type: 'covariance',
+                        store: 'Function',
+                        inAggrX: 'TimeSeries1',
+                        inAggrY: 'TimeSeries2',
+                        covWinSize: 500
+                    };
+                    cov2 = store.addStreamAggr(aggr);
+                }
+                var date = new Date(t + i * 4);
+                store.push({ Time: date.toISOString(), Value: vec.at(0, i), Value2: vec.at(1, i) });
             }
             assert.equal(cov.getFloat(), cov2.getFloat());
         })

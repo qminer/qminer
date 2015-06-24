@@ -160,9 +160,20 @@ private:
     TFlt Cov;
 	TUInt64 TmMSecs; // timestamp of current WMA	
     TFlt pNo;
+	// used for saving and removing the "exact" values of the covariance
+	// it uses more RAM, but is more exact
+	TFltV Prod; TInt pLen; TInt idx;
 public:
 	TCov() {  };	
-    TCov(const PJsonVal& ParamVal) { TCov(); };
+    TCov(const PJsonVal& ParamVal) { TCov(); 
+	// if the key value is given, use the "exact" removal. The covWinSize
+	// must be equal to the estimated number of records in the window buffer
+	// eg. if it's estimated that there will be 500 records in the buffer,
+	// covWinSize must be 500
+	pLen = ParamVal->GetObjInt("covWinSize", -1);
+	EAssertR(pLen > -2, "THe covWinSize must be a positive number!");
+	if (pLen > 0) { Prod = TFltV(pLen); }
+	};
 
 	void Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV, const int& N);	
