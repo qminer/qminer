@@ -493,7 +493,7 @@ static void TriangularSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type
 		}
 		else
 		if (TypeCheck::is_complex_double<Type>::value == true){
-			typedef std::complex<double> Loc;
+			//typedef std::complex<double> Loc;
 			LAPACKE_ztrtrs(Matrix_Layout, uplo, trans, diag, NumOfRows_Matrix, NumOfCols_Vector, reinterpret_cast<const MKL_Complex16 *>(&A(0, 0).Val),
 				LeadingDimension_Matrix, reinterpret_cast<MKL_Complex16 *>(&x[0].Val), LeadingDimension_Vector);
 		}

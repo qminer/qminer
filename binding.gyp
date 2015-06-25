@@ -5,7 +5,8 @@
 		   #full path to lapack or openblas libraries
 		   'LIN_ALG_LIB%': '',
 		   #64 bit indexing for BLAS
-		   'INDEX_64%': 'NINDEX_64'
+		   'INDEX_64%': 'NINDEX_64',
+		   'INTEL%': 'NINTEL'
  
     },
     'target_defaults': {
@@ -73,7 +74,8 @@
             ],
             'defines': ['<(LIN_ALG_BLAS)',
 			'<(LIN_ALG_LAPACKE)',
-			'<(INDEX_64)'
+			'<(INDEX_64)',
+			'<(INTEL)'
             ],
             'dependencies': [
                 'glib',
@@ -216,7 +218,8 @@
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
-      				    'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+				    'AdditionalOptions': ['<(LIN_ALG_LIB)']					
                                 },
                             },
                         },
@@ -228,7 +231,8 @@
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
-      				    'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+				    'AdditionalOptions': ['<(LIN_ALG_LIB)']
                                 },
                             },
                             'defines' : ['NDEBUG']
@@ -298,7 +302,8 @@
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
-      				    'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+				    'AdditionalOptions' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                         },
@@ -310,7 +315,8 @@
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
-      				    'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+				    'AdditionalOptions' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                             'defines' : ['NDEBUG']
@@ -336,7 +342,8 @@
             ],
             'defines': ['<(LIN_ALG_BLAS)',
 			'<(LIN_ALG_LAPACKE)',
-			'<(INDEX_64)'
+			'<(INDEX_64)',
+			'<(INTEL)'
             ],
             'conditions': [
                 # operating system specific parameters
@@ -383,7 +390,8 @@
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
-      				    'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+				    'AdditionalOptions' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                         },
@@ -395,7 +403,8 @@
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
-      				    'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+			            'AdditionalOptions' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                             'defines' : ['NDEBUG']
