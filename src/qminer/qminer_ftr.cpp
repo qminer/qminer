@@ -615,9 +615,10 @@ void TNumSpV::_GetVal(const TRec& FtrRec, TIntFltKdV& NumSpV) const {
         NumSpV.Clr();
     } else if (FieldDesc.IsNumSpV()) {
         FtrRec.GetFieldNumSpV(FieldId, NumSpV);
+    } else {
+        throw TQmExcept::New("Field type " + FieldDesc.GetFieldTypeStr() +
+            " not supported by Sparse Vector Feature Extractor!");
     }
-    throw TQmExcept::New("Field type " + FieldDesc.GetFieldTypeStr() + 
-        " not supported by Numeric Feature Extractor!");
 }
 
 void TNumSpV::GetVal(const TRec& FtrRec, TIntFltKdV& NumSpV) const {
@@ -700,8 +701,10 @@ TStr TNumSpV::GetFtr(const int& FtrN) const {
 bool TNumSpV::Update(const TRec& Rec) {
     // we only need to update dimensionality, if new record makes it out-of-bounds
     TIntFltKdV NumSpV; GetVal(Rec, NumSpV);
-    const int NewDim = TLAMisc::GetMaxDimIdx(NumSpV);
-    if (NewDim > Dim) { Dim = NewDim; return true; }
+    if (!NumSpV.Empty()) {
+        const int NewDim = NumSpV.Last().Key + 1;
+        if (NewDim > Dim) { Dim = NewDim; return true; }
+    }
     return false;
 }
 
