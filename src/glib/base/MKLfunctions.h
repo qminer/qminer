@@ -3,6 +3,7 @@
 
 #ifdef INDEX_64
 typedef int64 glib_index;
+#define lapack_int long long
 #else
 typedef int glib_index;
 #endif

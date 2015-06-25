@@ -3,7 +3,9 @@
 		   'LIN_ALG_LAPACKE%': 'NLAPACKE',	
    		   'LIN_ALG_INCLUDE%': 'src/glib/base/',
 		   #full path to lapack or openblas libraries
-		   'LIN_ALG_LIB%': ''
+		   'LIN_ALG_LIB%': '',
+		   #64 bit indexing for BLAS
+		   'INDEX_64%': 'NINDEX_64'
  
     },
     'target_defaults': {
@@ -70,7 +72,8 @@
 		'<(LIN_ALG_INCLUDE)'
             ],
             'defines': ['<(LIN_ALG_BLAS)',
-			'<(LIN_ALG_LAPACKE)'
+			'<(LIN_ALG_LAPACKE)',
+			'<(INDEX_64)'
             ],
             'dependencies': [
                 'glib',
@@ -118,19 +121,24 @@
                             'msvs_settings': {
                                 'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
+				    'OpenMP': 'true'	
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
+      				    'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                         },
                         'Release': {
                             'msvs_settings': {
                                 'VCCLCompilerTool': {
+				    #'AdditionalIncludeDirectories': '<(LIN_ALG_INCLUDE)',	
                                     'RuntimeTypeInfo': 'true',      # /GR
+				    'OpenMP': 'true'	
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
+				    'AdditionalDependencies': ['<(LIN_ALG_LIB)']	
                                 },
                             },
                             'defines' : ['NDEBUG']
@@ -204,19 +212,23 @@
                             'msvs_settings': {
                                 'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
+				    'OpenMP': 'true'	
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
+      				    'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                         },
                         'Release': {
                             'msvs_settings': {
-                                'VCCLCompilerTool': {
+                               'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
+				    'OpenMP': 'true'	
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
+      				    'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                             'defines' : ['NDEBUG']
@@ -280,21 +292,25 @@
                     'configurations': {
                         'Debug': {
                             'msvs_settings': {
-                                'VCCLCompilerTool': {
+                               'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
+				    'OpenMP': 'true'	
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
+      				    'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                         },
                         'Release': {
                             'msvs_settings': {
-                                'VCCLCompilerTool': {
+                               'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
+				    'OpenMP': 'true'	
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
+      				    'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                             'defines' : ['NDEBUG']
@@ -319,7 +335,8 @@
 		'<(LIN_ALG_INCLUDE)'
             ],
             'defines': ['<(LIN_ALG_BLAS)',
-			'<(LIN_ALG_LAPACKE)'
+			'<(LIN_ALG_LAPACKE)',
+			'<(INDEX_64)'
             ],
             'conditions': [
                 # operating system specific parameters
@@ -360,21 +377,25 @@
                     'configurations': {
                         'Debug': {
                             'msvs_settings': {
-                                'VCCLCompilerTool': {
+                               'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
+				    'OpenMP': 'true'	
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
+      				    'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                         },
                         'Release': {
                             'msvs_settings': {
-                                'VCCLCompilerTool': {
+                               'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
+				    'OpenMP': 'true'	
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
+      				    'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                             'defines' : ['NDEBUG']
