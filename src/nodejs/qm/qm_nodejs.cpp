@@ -3280,7 +3280,6 @@ void TNodeJsFtrSpace::extractSparseVector(const v8::FunctionCallbackInfo<v8::Val
 	v8::HandleScope HandleScope(Isolate);
 
 	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
-
 	
 	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
 	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
@@ -3292,7 +3291,6 @@ void TNodeJsFtrSpace::extractSparseVector(const v8::FunctionCallbackInfo<v8::Val
 	Args.GetReturnValue().Set(
 		TNodeJsUtil::NewInstance<TNodeJsSpVec>(
 		new TNodeJsSpVec(SpV, JsFtrSpace->FtrSpace->GetDim())));
-
 }
 
 void TNodeJsFtrSpace::extractVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
