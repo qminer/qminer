@@ -286,7 +286,8 @@ void TMem::Resize(const int& _MxBfL){
   else {if (MxBfL*2<_MxBfL){MxBfL=_MxBfL;} else {MxBfL*=2;}}
   char* NewBf=new char[MxBfL]; IAssert(NewBf!=NULL);
   if (BfL>0){memcpy(NewBf, Bf, BfL);}
-  if (Bf!=NULL){delete[] Bf;}
+  if (Bf!=NULL && Owner){delete[] Bf;}
+  Owner = true;
   Bf=NewBf;
 }
 

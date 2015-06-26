@@ -99,9 +99,9 @@ namespace TStorage {
 
 
 		/// Get serializator for given location
-		TRecSerializator& GetSerializator(const TStoreLoc& StoreLoc);
+		TRecSerializator* GetSerializator(const TStoreLoc& StoreLoc);
 		/// Get serializator for given location
-		const TRecSerializator& GetSerializator(const TStoreLoc& StoreLoc) const;
+		TRecSerializator* GetSerializator(const TStoreLoc& StoreLoc) const;
 		/// Get serializator for given field
 		TRecSerializator& GetFieldSerializator(const int &FieldId);
 		/// Get serializator for given field

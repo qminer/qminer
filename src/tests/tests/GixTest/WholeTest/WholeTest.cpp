@@ -2031,7 +2031,7 @@ TEST(testTStorePbBlob, PerfCompare_StrAddUpdateToast2) {
 	TTmStopWatch sw(false);
 	TUnicodeDef::Load(unicode_file);
 	int loops = 100;
-	int rec_count = 100 * 1000;
+	int rec_count = 300 * 1000;
 	int del_per_loop = rec_count / loops;
 	TStr definition = TStr::LoadTxt(def_file);
 	PJsonVal SchemaVal = TJsonVal::GetValFromStr(definition);
@@ -2054,6 +2054,8 @@ TEST(testTStorePbBlob, PerfCompare_StrAddUpdateToast2) {
 
 		TPt<TQm::TBase> Base = TQm::TStorage::NewBase(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo, false);
 		TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("TestStore2");
+
+		sw.Reset(true);
 		for (int i = 0; i < rec_count; i++) {
 			if (i % 10000 == 0) printf("    %d\r", i);
 			json_str1->PutStr(TStr::Fmt("Stored value %d", i));
@@ -2064,6 +2066,8 @@ TEST(testTStorePbBlob, PerfCompare_StrAddUpdateToast2) {
 			json_bool->PutBool(i % 7 == 3);
 			store->AddRec(json);
 		}
+		sw.Stop();
+		printf("++++ insert: %d\n\n", sw.GetMSecInt());
 
 		TQm::TStorage::SaveBase(Base);
 	}
@@ -2105,6 +2109,7 @@ TEST(testTStorePbBlob, PerfCompare_StrAddUpdateToast2) {
 			printf("Starting - new implementation - insert and update\n");
 			TPt<TQm::TBase> Base = TQm::TStorage::NewBase(dir, SchemaVal, 2 * 1024 * 1024, 2 * 1024 * 1024, TStrUInt64H(), true, 4 * TInt::Kilo);
 			auto store = Base->GetStoreByStoreNm("TestStore2");
+			sw.Reset(true);
 			for (int i = 0; i < rec_count; i++) {
 				if (i % 10000 == 0)
 					printf("    %d\n", i);
@@ -2116,6 +2121,8 @@ TEST(testTStorePbBlob, PerfCompare_StrAddUpdateToast2) {
 				json_bool->PutBool(i % 7 == 3);
 				store->AddRec(json);
 			}
+			sw.Stop();
+			printf("++++ insert: %d\n\n", sw.GetMSecInt());
 			printf("Starting save...\n");
 			TQm::TStorage::SaveBase(Base);
 		}
