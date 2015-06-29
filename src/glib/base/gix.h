@@ -274,6 +274,8 @@ public:
 	void Def();
 	/// Pack/merge this itemset - just working buffer
 	void DefLocal();
+	/// Check if this itemset is empty
+	bool Empty() const { return GetItems() == 0; }
 
 	/// Flag if itemset is merged
 	bool IsMerged() const { return MergedP; }
@@ -819,8 +821,10 @@ public:
 	PGixItemSet GetItemSet(const TBlobPt& Pt) const;
 	/// for storing item sets from cache to blob
 	TBlobPt StoreItemSet(const TBlobPt& KeyId);
-	/// for deleting item sets from cache and blob
-	void DeleteItemSet(const TBlobPt& KeyId) const;
+	///// for deleting item sets from cache and blob
+	//void DeleteItemSet(const TBlobPt& KeyId) const;
+	/// for deleting itemset from cache and blob
+	void DeleteItemSet(const TKey& Key);
 	/// For enlisting new itemsets into blob
 	TBlobPt EnlistItemSet(const PGixItemSet& ItemSet) const;
 
@@ -1042,6 +1046,18 @@ TBlobPt TGix<TKey, TItem, TGixMerger>::StoreItemSet(const TBlobPt& KeyId) {
 	}
 }
 
+/// for deleting itemset from cache and blob
+template <class TKey, class TItem, class TGixMerger>
+void TGix<TKey, TItem, TGixMerger>::DeleteItemSet(const TKey& Key) {
+	AssertReadOnly(); // check if we are allowed to write
+	if (IsKey(Key)) {
+		TBlobPt Pt = KeyIdH.GetDat(Key);
+		ItemSetCache.Del(Pt, false);
+		ItemSetBlobBs->DelBlob(Pt);
+		KeyIdH.DelKey(Key);
+	}
+}
+
 template <class TKey, class TItem, class TGixMerger>
 TBlobPt TGix<TKey, TItem, TGixMerger>::EnlistItemSet(const PGixItemSet& ItemSet) const {
 	AssertReadOnly(); // check if we are allowed to write
@@ -1100,12 +1116,9 @@ void TGix<TKey, TItem, TGixMerger>::DelItem(const TKey& Key, const TItem& Item) 
 		PGixItemSet ItemSet = GetItemSet(Key);
 		// clear the items from the ItemSet
 		ItemSet->DelItem(Item);
-		//if (ItemSet->Empty()) { // remove this itemset
-		//	const TBlobPt BlobPt = KeyIdH(Key);
-		//	ItemSetCache.Del(BlobPt, false);
-		//	ItemSetBlobBs->DelBlob(BlobPt);
-		//	KeyIdH.DelKey(Key);
-		//}
+		if (ItemSet->Empty()) {
+			DeleteItemSet(Key);
+		}
 	}
 }
 
