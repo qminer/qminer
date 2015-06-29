@@ -9,16 +9,6 @@
 #ifndef QMINER_PBS_H
 #define QMINER_PBS_H
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include <bd.h>
-#include <base.h>
-#include <mine.h>
-#include <pgblob.h>
-
-#include "qminer_core.h"
 #include "qminer_gs.h"
 
 namespace TQm {

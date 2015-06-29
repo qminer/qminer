@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -88,7 +88,7 @@ class TGixItemSet {
 private:
 	TCRef CRef;
 	typedef TPt<TGixItemSet<TKey, TItem, TGixMerger> > PGixItemSet;
-	
+
 private:
 	/// This struct contans statistics about child vector
 	struct TGixItemSetChildInfo {
@@ -132,7 +132,7 @@ private:
 			Pt.Save(SOut);
 		}
 	};
-	
+
 private:
 	/// The key of this itemset
 	TKey ItemSetKey;
@@ -245,7 +245,7 @@ public:
 		res += Children.GetMemUsed();
 		res += ChildrenData.GetMemUsedDeep();
 		return res;
-		
+
 		/*return ItemSetKey.GetMemUsed() + ItemV.GetMemUsed() + ItemVDel.GetMemUsed()
 			+ Children.GetMemUsed() + ChildrenData.GetMemUsed() + GetChildMemUsed()
 			+ 2 * sizeof(TBool) + sizeof(int) + sizeof(TCRef)
@@ -274,15 +274,13 @@ public:
 	void Def();
 	/// Pack/merge this itemset - just working buffer
 	void DefLocal();
-	/// Check if this itemset is empty
-	bool Empty() const { return GetItems() == 0; }
 
 	/// Flag if itemset is merged
 	bool IsMerged() const { return MergedP; }
 	/// Tests if current itemset is full and subsequent item should be pushed to children
-	bool IsFull() const {
-		return (ItemV.Len() >= Gix->GetSplitLen());
-	}
+	bool IsFull() const { return (ItemV.Len() >= Gix->GetSplitLen()); }
+	/// Flag if itemset is empty
+	bool Empty() { return TotalCnt == 0; }
 
 	friend class TPt < TGixItemSet > ;
 	friend class TGix < TKey, TItem, TGixMerger > ;
@@ -915,19 +913,29 @@ int TGix<TKey, TItem, TGixMerger>::PartialFlush(int WndInMsec) {
 	int cnt = 0;
 	int cnt_all = 0;
 	TBlobPt b;
+	TVec<TBlobPt> to_delete;
 	while (current != NULL) {
 		if (sw.GetMSecInt() > WndInMsec) break;
 		b = current->Val;
 		if (ItemSetCache.Get(current->Val, curr)) {
 			if (curr->Dirty) {
 				TBlobPt b_new = StoreItemSet(current->Val);
-				ItemSetCache.ChangeKey(b, b_new); // blob pointer might have changed, update cache
+				if (b_new.Empty()) { // if itemset is empty, we get NULL pointer
+					to_delete.Add(b); // store it to list for deletion
+				} else {
+					ItemSetCache.ChangeKey(b, b_new); // blob pointer might have changed, update cache
+				}
 				cnt++;
 			}
 		}
 		cnt_all++;
 		current = current->PrevNd;
 	}
+	// now delete from cache those that have already been deleted from BLOB and hash
+	for (int i = 0; i < to_delete.Len(); i++) {
+		ItemSetCache.Del(to_delete[i], false);
+	}
+
 	printf("Partial flush - %d itemsets saved to disk, scanned %d - %f.\n", cnt, cnt_all, ((double)cnt / cnt_all));
 	return cnt;
 }
@@ -1019,13 +1027,21 @@ TBlobPt TGix<TKey, TItem, TGixMerger>::StoreItemSet(const TBlobPt& KeyId) {
 	// get the pointer to the item set
 	PGixItemSet ItemSet;
 	EAssert(ItemSetCache.Get(KeyId, ItemSet));
-	// store the current version to the blob
-	TMOut MOut;
-	ItemSet->Save(MOut);
-	TBlobPt NewKeyId = ItemSetBlobBs->PutBlob(KeyId, MOut.GetSIn());
-	// and update the KeyId in the hash table
-	KeyIdH.GetDat(ItemSet->GetKey()) = NewKeyId;
-	return NewKeyId;
+	ItemSet->Def();
+	if (ItemSet->Empty()) {
+		// itemset is empty after all deletes were processes => remove it
+		ItemSetBlobBs->DelBlob(KeyId);
+		KeyIdH.DelKey(ItemSet->GetKey());
+		return TBlobPt(); // return NULL pointer
+	} else {
+		// store the current version to the blob
+		TMOut MOut;
+		ItemSet->Save(MOut);
+		TBlobPt NewKeyId = ItemSetBlobBs->PutBlob(KeyId, MOut.GetSIn());
+		// and update the KeyId in the hash table
+		KeyIdH.GetDat(ItemSet->GetKey()) = NewKeyId;
+		return NewKeyId;
+	}
 }
 
 /// for deleting itemset from cache and blob
@@ -1098,9 +1114,13 @@ void TGix<TKey, TItem, TGixMerger>::DelItem(const TKey& Key, const TItem& Item) 
 		PGixItemSet ItemSet = GetItemSet(Key);
 		// clear the items from the ItemSet
 		ItemSet->DelItem(Item);
-		if (ItemSet->Empty()) {
-			DeleteItemSet(Key);
-		}
+		//if (ItemSet->Empty()) { // remove this itemset
+		//	const TBlobPt BlobPt = KeyIdH(Key);
+		//	ItemSetCache.Del(BlobPt, false);
+		//	ItemSetBlobBs->DelBlob(BlobPt);
+		//	KeyIdH.DelKey(Key);
+		//}
+		//}
 	}
 }
 
@@ -1244,11 +1264,11 @@ void TGix<TKey, TItem, TGixMerger>::GetChildVector(const TBlobPt& KeyId, TVec<TI
 
 template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
-    // only report when cache size bigger then 10GB
-    const int ReportP = CacheResetThreshold > (uint64)(TInt::Giga);
+	// only report when cache size bigger then 10GB
+	const int ReportP = CacheResetThreshold > (uint64)(TInt::Giga);
 	// check if we have to drop anything from the cache
 	if (NewCacheSizeInc > CacheResetThreshold) {
-        if (ReportP) { printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr()); }
+		if (ReportP) { printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr()); }
 		// pack all the item sets
 		TBlobPt BlobPt;
 		PGixItemSet ItemSet;
