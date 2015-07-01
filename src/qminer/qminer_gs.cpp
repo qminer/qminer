@@ -632,6 +632,10 @@ void TRecSerializator::TFieldSerialDesc::Load(TSIn& SIn) {
 	DefaultVal = PJsonVal(SIn);
 }
 
+/// Flag if field is not TOAST-ed
+const char TRecSerializator::ToastNo = 'n';
+/// Flag if field is TOAST-ed
+const char TRecSerializator::ToastYes = 'y';
 
 ///////////////////////////////
 // Serialization and de-serialization of records to TMem
