@@ -330,9 +330,9 @@ private:
 	};
 
 	/// Flag if field is not TOAST-ed
-	static const char ToastNo = 'n';
+	static const char ToastNo;
 	/// Flag if field is TOAST-ed
-	static const char ToastYes = 'y';
+	static const char ToastYes;
 private: 
 	/// Only store fields with this storage flag
 	TStoreLoc TargetStorage;
