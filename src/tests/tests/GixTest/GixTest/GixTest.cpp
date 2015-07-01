@@ -1018,3 +1018,61 @@ TEST(testTGix, AddRemove) {
 	gix.PartialFlush(1000*1000);
 	ASSERT_EQ(gix.GetKeys(), 0);
 }
+
+//////////////////////////////////////////////////////////////////////////
+
+TEST(testTGix, AddRemoveBatch) {
+	TStr Nm = "Test1";
+	TStr Path = "data";
+	int loops = 100;
+	int items = 19;
+
+	// create index and add items
+	{
+		TMyGix gix(Nm, Path, faCreate, 10000, 100);
+
+		for (int i = 0; i < loops; i++) {
+			auto key = TIntUInt64Pr(i, 1);
+			for (int j = 0; j < items; j++) {
+				TMyItem item(j, 1);
+				gix.AddItem(key, item);
+			}
+		}
+		ASSERT_EQ(gix.GetKeys(), loops);
+	}
+	{
+		TMyGix gix(Nm, Path, faUpdate, 10000, 100);
+
+		int deleted_itemsets = gix.GetKeys();
+
+		for (int i = 0; i < loops; i++) {
+			auto key = TIntUInt64Pr(i, 1);
+			for (int j = 0; j < items; j++) {
+				TMyItem item(j, 1);
+				// here stale itemsets are removed from cache and already get deleted!
+				gix.DelItem(key, item);
+			}
+		}
+
+		// detect how many itemsets were deleted already due to cache eviction
+		deleted_itemsets -= gix.GetKeys();
+
+		for (int i = 0; i < loops; i++) {
+			auto key = TIntUInt64Pr(i, 1);
+			auto itemset = gix.GetItemSet(key);
+			if (itemset.Empty()) {
+				deleted_itemsets--;
+			} else {
+				itemset->Def();
+				ASSERT_EQ(itemset->Empty(), true);
+			}
+		}
+
+		// missing-keys count must match deleted-keys count
+		ASSERT_EQ(deleted_itemsets, 0);
+
+		gix.PartialFlush(1000 * 1000);
+
+		ASSERT_EQ(gix.GetKeys(), 0);
+	}
+}
