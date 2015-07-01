@@ -1,4 +1,14 @@
 {
+    'variables': { 'LIN_ALG_BLAS%': 'NBLAS',
+		   'LIN_ALG_LAPACKE%': 'NLAPACKE',	
+   		   'LIN_ALG_INCLUDE%': 'src/glib/base/',
+		   #full path to lapack or openblas libraries
+		   'LIN_ALG_LIB%': '',
+		   #64 bit indexing for BLAS
+		   'INDEX_64%': 'NINDEX_64',
+		   'INTEL%': 'NINTEL'
+ 
+    },
     'target_defaults': {
         # GCC flags
         'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
@@ -59,9 +69,13 @@
                 'src/third_party/Snap/snap-core',
                 'src/third_party/Snap/snap-adv',
                 'src/third_party/Snap/snap-exp',
-                'src/third_party/Snap/qlib-core'
+                'src/third_party/Snap/qlib-core',
+		'<(LIN_ALG_INCLUDE)'
             ],
-            'defines': [
+            'defines': ['<(LIN_ALG_BLAS)',
+			'<(LIN_ALG_LAPACKE)',
+			'<(INDEX_64)',
+			'<(INTEL)'
             ],
             'dependencies': [
                 'glib',
@@ -70,7 +84,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ]}],
                 ['OS == "mac"', {
                     "default_configuration": "Release",
                     'xcode_settings': {
@@ -83,7 +97,7 @@
                     "configurations": {
                         "Debug": {
                             "defines": [
-                                "DEBUG"
+                                "DEBUG",
                             ],
                             "xcode_settings": {
                                 "GCC_OPTIMIZATION_LEVEL": "0",
@@ -109,19 +123,24 @@
                             'msvs_settings': {
                                 'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
+				    'OpenMP': 'true'	
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
+      				    'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                         },
                         'Release': {
                             'msvs_settings': {
                                 'VCCLCompilerTool': {
+				    #'AdditionalIncludeDirectories': '<(LIN_ALG_INCLUDE)',	
                                     'RuntimeTypeInfo': 'true',      # /GR
+				    'OpenMP': 'true'	
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
+				    'AdditionalDependencies': ['<(LIN_ALG_LIB)']	
                                 },
                             },
                             'defines' : ['NDEBUG']
@@ -153,11 +172,12 @@
                 'src/qminer',
                 'src/glib/base/',
                 'src/glib/mine/',
-                'src/glib/misc/'
+                'src/glib/misc/',
+	        '<(LIN_ALG_INCLUDE)'
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ]}],
                 ['OS == "mac"', {
                     "default_configuration": "Release",
                     'xcode_settings': {
@@ -196,19 +216,25 @@
                             'msvs_settings': {
                                 'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
+				    'OpenMP': 'true'	
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
+      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+				    'AdditionalOptions': ['<(LIN_ALG_LIB)']					
                                 },
                             },
                         },
                         'Release': {
                             'msvs_settings': {
-                                'VCCLCompilerTool': {
+                               'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
+				    'OpenMP': 'true'	
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
+      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+				    'AdditionalOptions': ['<(LIN_ALG_LIB)']
                                 },
                             },
                             'defines' : ['NDEBUG']
@@ -230,11 +256,12 @@
                 'src/third_party/Snap/qlib-core',
                 'src/glib/base/',
                 'src/glib/mine/',
-                'src/glib/misc/'
+                'src/glib/misc/',
+		'<(LIN_ALG_INCLUDE)'
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ]}],
                 ['OS == "mac"', {
                     "default_configuration": "Release",
                     'xcode_settings': {
@@ -271,21 +298,27 @@
                     'configurations': {
                         'Debug': {
                             'msvs_settings': {
-                                'VCCLCompilerTool': {
+                               'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
+				    'OpenMP': 'true'	
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
+      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+				    'AdditionalOptions' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                         },
                         'Release': {
                             'msvs_settings': {
-                                'VCCLCompilerTool': {
+                               'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
+				    'OpenMP': 'true'	
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
+      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+				    'AdditionalOptions' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                             'defines' : ['NDEBUG']
@@ -306,13 +339,17 @@
             'include_dirs': [
                 'src/glib/base/',
                 'src/glib/mine/',
-                'src/glib/misc/'
+                'src/glib/misc/',
+		'<(LIN_ALG_INCLUDE)'
             ],
-            'defines': [
+            'defines': ['<(LIN_ALG_BLAS)',
+			'<(LIN_ALG_LAPACKE)',
+			'<(INDEX_64)',
+			'<(INTEL)'
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ]}],
                 ['OS == "mac"', {
                     "default_configuration": "Release",
                     'xcode_settings': {
@@ -349,21 +386,27 @@
                     'configurations': {
                         'Debug': {
                             'msvs_settings': {
-                                'VCCLCompilerTool': {
+                               'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
+				    'OpenMP': 'true'	
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
+      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+				    'AdditionalOptions' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                         },
                         'Release': {
                             'msvs_settings': {
-                                'VCCLCompilerTool': {
+                               'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
+				    'OpenMP': 'true'	
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
+      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+			            'AdditionalOptions' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                             'defines' : ['NDEBUG']
