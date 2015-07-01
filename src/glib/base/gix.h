@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -88,7 +88,7 @@ class TGixItemSet {
 private:
 	TCRef CRef;
 	typedef TPt<TGixItemSet<TKey, TItem, TGixMerger> > PGixItemSet;
-	
+
 private:
 	/// This struct contans statistics about child vector
 	struct TGixItemSetChildInfo {
@@ -132,7 +132,7 @@ private:
 			Pt.Save(SOut);
 		}
 	};
-	
+
 private:
 	/// The key of this itemset
 	TKey ItemSetKey;
@@ -245,7 +245,7 @@ public:
 		res += Children.GetMemUsed();
 		res += ChildrenData.GetMemUsedDeep();
 		return res;
-		
+
 		/*return ItemSetKey.GetMemUsed() + ItemV.GetMemUsed() + ItemVDel.GetMemUsed()
 			+ Children.GetMemUsed() + ChildrenData.GetMemUsed() + GetChildMemUsed()
 			+ 2 * sizeof(TBool) + sizeof(int) + sizeof(TCRef)
@@ -819,8 +819,10 @@ public:
 	PGixItemSet GetItemSet(const TBlobPt& Pt) const;
 	/// for storing item sets from cache to blob
 	TBlobPt StoreItemSet(const TBlobPt& KeyId);
-	/// for deleting item sets from cache and blob
-	void DeleteItemSet(const TBlobPt& KeyId) const;
+	///// for deleting item sets from cache and blob
+	//void DeleteItemSet(const TBlobPt& KeyId) const;
+	/// for deleting itemset from cache and blob
+	void DeleteItemSet(const TKey& Key);
 	/// For enlisting new itemsets into blob
 	TBlobPt EnlistItemSet(const PGixItemSet& ItemSet) const;
 
@@ -919,7 +921,7 @@ int TGix<TKey, TItem, TGixMerger>::PartialFlush(int WndInMsec) {
 			if (curr->Dirty) {
 				TBlobPt b_new = StoreItemSet(current->Val);
 				if (b_new.Empty()) { // if itemset is empty, we get NULL pointer
-					to_delete.Add(b_new); // store it to list for deletion
+					to_delete.Add(b); // store it to list for deletion
 				} else {
 					ItemSetCache.ChangeKey(b, b_new); // blob pointer might have changed, update cache
 				}
@@ -1042,6 +1044,18 @@ TBlobPt TGix<TKey, TItem, TGixMerger>::StoreItemSet(const TBlobPt& KeyId) {
 	}
 }
 
+/// for deleting itemset from cache and blob
+template <class TKey, class TItem, class TGixMerger>
+void TGix<TKey, TItem, TGixMerger>::DeleteItemSet(const TKey& Key) {
+	AssertReadOnly(); // check if we are allowed to write
+	if (IsKey(Key)) {
+		TBlobPt Pt = KeyIdH.GetDat(Key);
+		ItemSetCache.Del(Pt, false);
+		ItemSetBlobBs->DelBlob(Pt);
+		KeyIdH.DelKey(Key);
+	}
+}
+
 template <class TKey, class TItem, class TGixMerger>
 TBlobPt TGix<TKey, TItem, TGixMerger>::EnlistItemSet(const PGixItemSet& ItemSet) const {
 	AssertReadOnly(); // check if we are allowed to write
@@ -1105,6 +1119,7 @@ void TGix<TKey, TItem, TGixMerger>::DelItem(const TKey& Key, const TItem& Item) 
 		//	ItemSetCache.Del(BlobPt, false);
 		//	ItemSetBlobBs->DelBlob(BlobPt);
 		//	KeyIdH.DelKey(Key);
+		//}
 		//}
 	}
 }
@@ -1249,11 +1264,11 @@ void TGix<TKey, TItem, TGixMerger>::GetChildVector(const TBlobPt& KeyId, TVec<TI
 
 template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
-    // only report when cache size bigger then 10GB
-    const int ReportP = CacheResetThreshold > (uint64)(TInt::Giga);
+	// only report when cache size bigger then 10GB
+	const int ReportP = CacheResetThreshold > (uint64)(TInt::Giga);
 	// check if we have to drop anything from the cache
 	if (NewCacheSizeInc > CacheResetThreshold) {
-        if (ReportP) { printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr()); }
+		if (ReportP) { printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr()); }
 		// pack all the item sets
 		TBlobPt BlobPt;
 		PGixItemSet ItemSet;
