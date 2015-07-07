@@ -165,19 +165,14 @@ private:
 	TFltV Prod; TInt pLen; TInt idx;
 public:
 	TCov() {  };	
-    TCov(const PJsonVal& ParamVal) { TCov(); 
-	// if the key value is given, use the "exact" removal. The covWinSize
-	// must be equal to the estimated number of records in the window buffer
-	// eg. if it's estimated that there will be 500 records in the buffer,
-	// covWinSize must be 500
-	pLen = ParamVal->GetObjInt("covWinSize", -1);
-	EAssertR(pLen > -2, "THe covWinSize must be a positive number!");
-	if (pLen > 0) { Prod = TFltV(pLen); }
-	};
+    TCov(const PJsonVal& ParamVal) { TCov(); };
 
 	void Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV, const int& N);	
-	double GetCov() const { return Cov/pNo; }
+	double GetCov() const { 
+		if (pNo > 1) { return Cov / (pNo - 1); } 
+		else { return 0; }
+	}
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 

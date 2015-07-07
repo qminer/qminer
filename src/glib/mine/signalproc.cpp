@@ -328,10 +328,9 @@ void TCov::Update(const double& InValX, const double& InValY, const uint64& InTm
         tempN--;       
         deltaX = OutValVX[ValN] - MaX;
         deltaY = OutValVY[ValN] - MaY;
-        MaX = MaX - deltaX/tempN;  
+        MaX = MaX - deltaX/tempN; 
         MaY = MaY - deltaY/tempN;
-		if (pLen > 0) { Cov = Cov - Prod[idx]; } 
-		else { Cov = Cov - (OutValVX[ValN] - MaX) * (OutValVY[ValN] - MaY); }
+		Cov = Cov - (OutValVX[ValN] - MaX) * (OutValVY[ValN] - MaY);
     }
     //add the new value to the resulting mean    
     deltaX = InValX - MaX;
@@ -340,11 +339,6 @@ void TCov::Update(const double& InValX, const double& InValY, const uint64& InTm
     MaY = MaY + deltaY/N;
     Cov = Cov + (InValX - MaX) * (InValY - MaY);
     TmMSecs = InTmMSecs;
-	// save the value that was just added to Cov
-	if(pLen > 0) {
-		Prod[idx] = (InValX - MaX) * (InValY - MaY); 
-		idx = ++idx % pLen;
-	}
 }
 
 /////////////////////////////////////////
