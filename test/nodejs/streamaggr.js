@@ -774,7 +774,6 @@ describe('Time Series Window Buffer Tests', function () {
 describe('MovingWindowBufferCount Tests', function () {
     var base = undefined;
     var store = undefined;
-    var sa = undefined;
     beforeEach(function () {
         base = new qm.Base({
             mode: 'createClean',
@@ -795,8 +794,7 @@ describe('MovingWindowBufferCount Tests', function () {
             timestamp: 'Time',
             value: 'Value',
             winsize: 2000
-        }
-        sa = store.addStreamAggr(aggr);
+        }; store.addStreamAggr(aggr);
     });
     afterEach(function () {
         base.close();
@@ -905,7 +903,6 @@ describe('MovingWindowBufferCount Tests', function () {
 describe('MovingWindowBufferSum Tests', function () {
     var base = undefined;
     var store = undefined;
-    var sa = undefined;
     beforeEach(function () {
         base = new qm.Base({
             mode: 'createClean',
@@ -926,8 +923,7 @@ describe('MovingWindowBufferSum Tests', function () {
             timestamp: 'Time',
             value: 'Value',
             winsize: 2000
-        }
-        sa = store.addStreamAggr(aggr);
+        }; store.addStreamAggr(aggr);
     });
     afterEach(function () {
         base.close();
@@ -1061,7 +1057,6 @@ describe('MovingWindowBufferSum Tests', function () {
 describe('MovingWindowBufferMin Tests', function () {
     var base = undefined;
     var store = undefined;
-    var sa = undefined;
     beforeEach(function () {
         base = new qm.Base({
             mode: 'createClean',
@@ -1082,8 +1077,7 @@ describe('MovingWindowBufferMin Tests', function () {
             timestamp: 'Time',
             value: 'Value',
             winsize: 2000
-        }
-        sa = store.addStreamAggr(aggr);
+        }; store.addStreamAggr(aggr);
     });
     afterEach(function () {
         base.close();
@@ -1234,7 +1228,6 @@ describe('MovingWindowBufferMin Tests', function () {
 describe('MovingWindowBufferMax Tests', function () {
     var base = undefined;
     var store = undefined;
-    var sa = undefined;
     beforeEach(function () {
         base = new qm.Base({
             mode: 'createClean',
@@ -1255,8 +1248,7 @@ describe('MovingWindowBufferMax Tests', function () {
             timestamp: 'Time',
             value: 'Value',
             winsize: 2000
-        }
-        sa = store.addStreamAggr(aggr);
+        }; store.addStreamAggr(aggr);
     });
     afterEach(function () {
         base.close();
@@ -1403,7 +1395,6 @@ describe('MovingWindowBufferMax Tests', function () {
 describe('MovingAverage Tests', function () {
     var base = undefined;
     var store = undefined;
-    var sa = undefined;
     beforeEach(function () {
         base = new qm.Base({
             mode: 'createClean',
@@ -1424,8 +1415,7 @@ describe('MovingAverage Tests', function () {
             timestamp: 'Time',
             value: 'Value',
             winsize: 2000
-        }
-        sa = store.addStreamAggr(aggr);
+        }; store.addStreamAggr(aggr);
     });
     afterEach(function () {
         base.close();
@@ -1750,7 +1740,6 @@ describe('TimeSeriesTick Tests', function () {
 describe('EMA Tests', function () {
     var base = undefined;
     var store = undefined;
-    var sa = undefined;
     beforeEach(function () {
         base = new qm.Base({
             mode: 'createClean',
@@ -1771,8 +1760,7 @@ describe('EMA Tests', function () {
             timestamp: 'Time',
             value: 'Value',
             winsize: 6000
-        }
-        sa = store.addStreamAggr(aggr);
+        }; store.addStreamAggr(aggr);
     });
     afterEach(function () {
         base.close();
@@ -1974,7 +1962,6 @@ describe('EMA Tests', function () {
 describe('MovingVariance Tests', function () {
     var base = undefined;
     var store = undefined;
-    var sa = undefined;
     beforeEach(function () {
         base = new qm.Base({
             mode: 'createClean',
@@ -1995,8 +1982,7 @@ describe('MovingVariance Tests', function () {
             timestamp: 'Time',
             value: 'Value',
             winsize: 2000
-        }
-        sa = store.addStreamAggr(aggr);
+        }; store.addStreamAggr(aggr);
     });
     afterEach(function () {
         base.close();
@@ -2047,7 +2033,7 @@ describe('MovingVariance Tests', function () {
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
             store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
-            assert.equal(variance.getFloat(), 2 / 3);
+            assert.equal(variance.getFloat(), 1);
         })
         it('should get the variance of all the records in the buffer, that are still in the window', function () {
             var aggr = {
@@ -2062,7 +2048,7 @@ describe('MovingVariance Tests', function () {
             store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
             store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
             store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
-            assert.equal(variance.getFloat(), 1 / 4);
+            assert.equal(variance.getFloat(), 1 / 2);
         })
         it('should return 0 if no records are in the buffer', function () {
             var aggr = {
@@ -2151,11 +2137,9 @@ describe('MovingVariance Tests', function () {
     });
 });
 
-describe.only('Covariance Tests', function () {
+describe('Covariance Tests', function () {
     var base = undefined;
     var store = undefined;
-    var sa = undefined;
-    var sa2 = undefined;
     beforeEach(function () {
         base = new qm.Base({
             mode: 'createClean',
@@ -2176,9 +2160,8 @@ describe.only('Covariance Tests', function () {
             store: 'Function',
             timestamp: 'Time',
             value: 'Value',
-            winsize: 10000
-        }
-        sa = store.addStreamAggr(aggr);
+            winsize: 3000
+        }; store.addStreamAggr(aggr);
 
         aggr = {
             name: 'TimeSeries2',
@@ -2186,9 +2169,8 @@ describe.only('Covariance Tests', function () {
             store: 'Function',
             timestamp: 'Time',
             value: 'Value2',
-            winsize: 10000
-        };
-        sa2 = store.addStreamAggr(aggr);
+            winsize: 3000
+        }; store.addStreamAggr(aggr);
 
     });
     afterEach(function () {
@@ -2244,8 +2226,8 @@ describe.only('Covariance Tests', function () {
             var cov = store.addStreamAggr(aggr);
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
-            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3, Value2: 3 });
-            assert.eqtol(cov.getFloat(), 11 / 24);
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3, Value2: 3 });
+            assert.eqtol(cov.getFloat(), 0.458333333333333); // precision gained with a Matlab function
         })
         it('should return the covariance of the records that are still in the window buffer', function () {
             var aggr = {
@@ -2258,35 +2240,10 @@ describe.only('Covariance Tests', function () {
             var cov = store.addStreamAggr(aggr);
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
-            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3, Value2: 3 });
-            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4, Value2: 2 });
-            store.push({ Time: '2015-06-10T14:13:43.4', Value: 5, Value2: 6 });
-            assert.eqtol(cov.getFloat(), -1 / 4);
-        })
-        it('should return somewhere about 0.3', function () {
-            var vec = qm.la.randn(10000, 2);
-            var mat = new qm.la.Matrix([[1, 0.3], [0, 0.953939201416946]]);
-            var vec2 = vec.multiply(mat);
-
-            var aggr = {
-                name: 'CovAggr',
-                type: 'covariance',
-                store: 'Function',
-                inAggrX: 'TimeSeries1',
-                inAggrY: 'TimeSeries2',
-            };
-            var cov = store.addStreamAggr(aggr);
-            var cov2;
-
-            var t = new Date('2015-06-24T14:59:00.0').getTime();
-            for (var i = 0; i < 10000; i++) {
-                var date = new Date(t + i * 4);
-                store.push({ Time: date.toISOString(), Value: vec2.at(i, 0), Value2: vec2.at(i, 1) });
-            }
-            var val = store.getVector("Value");
-            var val2 = store.getVector("Value2");
-
-            assert.eqtol(cov.getFloat(), 0.3, 3e-2);
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3, Value2: 3 });
+            store.push({ Time: '2015-06-10T14:13:35.0', Value: 4, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:36.0', Value: 5, Value2: 6 });
+            assert.eqtol(cov.getFloat(), 2.72222222222222); // precision gained with a Matlab function
         })
     });
     describe('GetTimestamp Tests', function () {
@@ -2369,4 +2326,157 @@ describe.only('Covariance Tests', function () {
             assert.equal(cov.val.Val, 0);
         })
     });
+});
+
+describe.only('Correlation Tests', function () {
+    var base = undefined;
+    var store = undefined;
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'Function',
+                fields: [
+                    { name: 'Time', type: 'datetime' },
+                    { name: 'Value', type: 'float' },
+                    { name: 'Value2', type: 'float' }
+                ]
+            }]
+        });
+        store = base.store('Function');
+
+        var aggr = {
+            name: 'TimeSeries1',
+            type: 'timeSeriesWinBuf',
+            store: 'Function',
+            timestamp: 'Time',
+            value: 'Value',
+            winsize: 3000
+        };  store.addStreamAggr(aggr);
+
+        aggr = {
+            name: 'TimeSeries2',
+            type: 'timeSeriesWinBuf',
+            store: 'Function',
+            timestamp: 'Time',
+            value: 'Value2',
+            winsize: 3000
+        }; store.addStreamAggr(aggr);
+
+        aggr = {
+            name: 'CovAggr',
+            type: 'covariance',
+            store: 'Function',
+            inAggrX: 'TimeSeries1',
+            inAggrY: 'TimeSeries2'
+        }; store.addStreamAggr(aggr);
+
+        aggr = {
+            name: 'VarAggrX',
+            type: 'variance',
+            store: 'Function',
+            inAggr: 'TimeSeries1'
+        }; store.addStreamAggr(aggr);
+
+        aggr = {
+            name: 'VarAggrY',
+            type: 'variance',
+            store: 'Function',
+            inAggr: 'TimeSeries2'
+        }; store.addStreamAggr(aggr);
+
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    describe('Constructor Tests', function () {
+        it('should construct a new correlation stream aggregator', function () {
+            var aggr = {
+                name: 'CorrAggr',
+                type: 'correlation',
+                store: 'Function',
+                inAggrCov: 'CovAggr',
+                inAggrVarX: 'VarAggrX',
+                inAggrVarY: 'VarAggrY'
+            };
+            var corr = store.addStreamAggr(aggr);
+            assert.equal(corr.saveJson().Time, '1601-01-01T00:00:00.0');
+        })
+        // unexpected node crash
+        it.skip('should throw an exception if a key-value is missing', function () {
+            var aggr = {
+                name: 'CorrAggr',
+                type: 'correlation',
+                store: 'Function',
+                inAggrCov: 'CovAggr',
+                inAggrVarY: 'VarAggrY'
+            };
+            assert.throws(function () {
+                var corr = store.addStreamAggr(aggr);
+            });
+        })
+    });
+    describe('GetFloat Tests', function () {
+        it('should return 1 for a correlation buffer with one record', function () {
+            var aggr = {
+                name: 'CorrAggr',
+                type: 'correlation',
+                store: 'Function',
+                inAggrCov: 'CovAggr',
+                inAggrVarX: 'VarAggrX',
+                inAggrVarY: 'VarAggrY'
+            };
+            var corr = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
+            assert.equal(corr.getFloat(), 1);
+        })
+        it('should return -1 for the two records in the buffer', function () {
+            var aggr = {
+                name: 'CorrAggr',
+                type: 'correlation',
+                store: 'Function',
+                inAggrCov: 'CovAggr',
+                inAggrVarX: 'VarAggrX',
+                inAggrVarY: 'VarAggrY'
+            };
+            var corr = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
+            assert.eqtol(corr.getFloat(), -1);
+        })
+        it.skip('should return the correlation of the two vectors in the buffer', function () {
+            var aggr = {
+                name: 'CorrAggr',
+                type: 'correlation',
+                store: 'Function',
+                inAggrCov: 'CovAggr',
+                inAggrVarX: 'VarAggrX',
+                inAggrVarY: 'VarAggrY'
+            };
+            var corr = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3, Value2: 3 });
+            store.push({ Time: '2015-06-10T14:13:35.0', Value: 4, Value2: 2 });
+            assert.eqtol(corr.getFloat(), 2 / (3 * Math.sqrt(5)), 4e-2);
+        })
+        it.skip('should return the correlation of the values, that are still in the window', function () {
+            var aggr = {
+                name: 'CorrAggr',
+                type: 'correlation',
+                store: 'Function',
+                inAggrCov: 'CovAggr',
+                inAggrVarX: 'VarAggrX',
+                inAggrVarY: 'VarAggrY'
+            };
+            var corr = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3, Value2: 3 });
+            store.push({ Time: '2015-06-10T14:13:35.0', Value: 4, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:36.0', Value: 5, Value2: 6 });
+            assert.eqtol(corr.getFloat(), 2 / Math.sqrt(5), 4e-2);
+        })
+    })
 })

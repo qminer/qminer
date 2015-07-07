@@ -1537,6 +1537,7 @@ void TCorr::OnAddRec(const TRec& Rec) {
         Corr = Cov / ( sqrt(Var1) * sqrt(Var2) );
     }
     TmMSecs = InAggrValCov->GetTmMSecs();
+	printf("Cov: %f, Var1: %f, Var2: %f, Corr: %f\n", Cov, Var1, Var2, Corr);
 }
 
 TCorr::TCorr(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TStreamAggrBase> SABase,
