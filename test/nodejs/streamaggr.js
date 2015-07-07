@@ -2344,4 +2344,29 @@ describe.only('Covariance Tests', function () {
             assert.equal(cov.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:43.004').getTime());
         })
     });
+    describe('Property Tests', function () {
+        it('should return the name of the aggregator', function () {
+            var aggr = {
+                name: 'CovAggr',
+                type: 'covariance',
+                store: 'Function',
+                inAggrX: 'TimeSeries1',
+                inAggrY: 'TimeSeries2'
+            };
+            var cov = store.addStreamAggr(aggr);
+            assert.equal(cov.name, 'CovAggr');
+        })
+        it('should return the JSON object of the aggregator', function () {
+            var aggr = {
+                name: 'CovAggr',
+                type: 'covariance',
+                store: 'Function',
+                inAggrX: 'TimeSeries1',
+                inAggrY: 'TimeSeries2'
+            };
+            var cov = store.addStreamAggr(aggr);
+            assert.equal(cov.val.Time, '1601-01-01T00:00:00.0');
+            assert.equal(cov.val.Val, 0);
+        })
+    });
 })
