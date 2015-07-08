@@ -1060,7 +1060,7 @@ TEST(testTGix, AddRemoveBatch) {
 		for (int i = 0; i < loops; i++) {
 			auto key = TIntUInt64Pr(i, 1);
 			auto itemset = gix.GetItemSet(key);
-			if (itemset.Empty()) {
+			if (itemset.Empty() || itemset->Empty()) {
 				deleted_itemsets--;
 			} else {
 				itemset->Def();
