@@ -2328,7 +2328,7 @@ describe('Covariance Tests', function () {
     });
 });
 
-describe.only('Correlation Tests', function () {
+describe('Correlation Tests', function () {
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -2443,9 +2443,9 @@ describe.only('Correlation Tests', function () {
             var corr = store.addStreamAggr(aggr);
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
-            assert.eqtol(corr.getFloat(), -1);
+            assert.eqtol(corr.getFloat(), -0.5);
         })
-        it.skip('should return the correlation of the two vectors in the buffer', function () {
+        it('should return the correlation of the two vectors in the buffer', function () {
             var aggr = {
                 name: 'CorrAggr',
                 type: 'correlation',
@@ -2459,9 +2459,9 @@ describe.only('Correlation Tests', function () {
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
             store.push({ Time: '2015-06-10T14:13:34.0', Value: 3, Value2: 3 });
             store.push({ Time: '2015-06-10T14:13:35.0', Value: 4, Value2: 2 });
-            assert.eqtol(corr.getFloat(), 2 / (3 * Math.sqrt(5)), 4e-2);
+            assert.eqtol(corr.getFloat(), 0.248451997499977);
         })
-        it.skip('should return the correlation of the values, that are still in the window', function () {
+        it('should return the correlation of the values, that are still in the window', function () {
             var aggr = {
                 name: 'CorrAggr',
                 type: 'correlation',
@@ -2476,7 +2476,94 @@ describe.only('Correlation Tests', function () {
             store.push({ Time: '2015-06-10T14:13:34.0', Value: 3, Value2: 3 });
             store.push({ Time: '2015-06-10T14:13:35.0', Value: 4, Value2: 2 });
             store.push({ Time: '2015-06-10T14:13:36.0', Value: 5, Value2: 6 });
-            assert.eqtol(corr.getFloat(), 2 / Math.sqrt(5), 4e-2);
+            assert.eqtol(corr.getFloat(), 0.730448872649931);
         })
-    })
+    });
+    describe('GetTimestamp Tests', function () {
+        it('should return 0 it there is only one record in the buffer', function () {
+            var aggr = {
+                name: 'CorrAggr',
+                type: 'correlation',
+                store: 'Function',
+                inAggrCov: 'CovAggr',
+                inAggrVarX: 'VarAggrX',
+                inAggrVarY: 'VarAggrY'
+            };
+            var corr = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
+            assert.equal(corr.getTimestamp(), 0);
+        })
+        it('should return 0 if the buffer is empty', function () {
+            var aggr = {
+                name: 'CorrAggr',
+                type: 'correlation',
+                store: 'Function',
+                inAggrCov: 'CovAggr',
+                inAggrVarX: 'VarAggrX',
+                inAggrVarY: 'VarAggrY'
+            };
+            var corr = store.addStreamAggr(aggr);
+            assert.equal(corr.getTimestamp(), 0);
+        })
+        it('should return 0 if there are more records in the buffer', function () {
+            var aggr = {
+                name: 'CorrAggr',
+                type: 'correlation',
+                store: 'Function',
+                inAggrCov: 'CovAggr',
+                inAggrVarX: 'VarAggrX',
+                inAggrVarY: 'VarAggrY'
+            };
+            var corr = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3, Value2: 3 });
+            store.push({ Time: '2015-06-10T14:13:35.0', Value: 4, Value2: 2 });
+            assert.equal(corr.getTimestamp(), 0);
+        })
+        it('should return 0 if there are also records outside the window', function () {
+            var aggr = {
+                name: 'CorrAggr',
+                type: 'correlation',
+                store: 'Function',
+                inAggrCov: 'CovAggr',
+                inAggrVarX: 'VarAggrX',
+                inAggrVarY: 'VarAggrY'
+            };
+            var corr = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3, Value2: 3 });
+            store.push({ Time: '2015-06-10T14:13:35.0', Value: 4, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:36.0', Value: 5, Value2: 6 });
+            assert.equal(corr.getTimestamp(), 0);
+        })
+    });
+    describe('Property Tests', function () {
+        it('should return the name of the aggregator', function () {
+            var aggr = {
+                name: 'CorrAggr',
+                type: 'correlation',
+                store: 'Function',
+                inAggrCov: 'CovAggr',
+                inAggrVarX: 'VarAggrX',
+                inAggrVarY: 'VarAggrY'
+            };
+            var corr = store.addStreamAggr(aggr);
+            assert.equal(corr.name, 'CorrAggr');
+        })
+        it('should return the value of the aggregator (same as saveJson())', function () {
+            var aggr = {
+                name: 'CorrAggr',
+                type: 'correlation',
+                store: 'Function',
+                inAggrCov: 'CovAggr',
+                inAggrVarX: 'VarAggrX',
+                inAggrVarY: 'VarAggrY'
+            };
+            var corr = store.addStreamAggr(aggr);
+            assert.equal(corr.val.Time, '1601-01-01T00:00:00.0');
+            assert.equal(corr.val.Val, 0);
+        })
+    });
 })

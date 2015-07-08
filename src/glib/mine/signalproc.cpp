@@ -355,7 +355,7 @@ void TCov::Update(const double& InValX, const double& InValY, const uint64& InTm
 	delta = (InValX - MaX / N)*(InValY - MaY / N);
 	Cov = Cov + delta;
 
-	printf("Cov: %1.16f\n", Cov / (N - 1));
+	TmMSecs = InTmMSecs;
 }
 
 /////////////////////////////////////////

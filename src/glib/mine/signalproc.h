@@ -163,9 +163,6 @@ private:
     TFlt Cov;
 	TUInt64 TmMSecs; // timestamp of current WMA	
     TFlt pNo;
-	// used for saving and removing the "exact" values of the covariance
-	// it uses more RAM, but is more exact
-	TFltV Prod; TInt pLen; TInt idx;
 public:
 	TCov() {  };	
     TCov(const PJsonVal& ParamVal) { TCov(); };
