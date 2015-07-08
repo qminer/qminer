@@ -429,6 +429,9 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
 			TWPt<TStore> JoinStore = Base->GetStoreByStoreId(JoinDesc.GetJoinStoreId());
 			// different handling for field and index joins
 			if (JoinDesc.IsFieldJoin()) {
+                // first make an empty join
+                SetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId(), TUInt64::Mx);
+                SetFieldInt(RecId, JoinDesc.GetJoinFqFieldId(), 0);
 				// get join record JSon object
 				PJsonVal JoinRecVal = RecVal->GetObjKey(JoinDesc.GetJoinNm());
 				// insert join record
