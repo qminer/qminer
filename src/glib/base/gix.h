@@ -1011,7 +1011,10 @@ TPt<TGixItemSet<TKey, TItem, TGixMerger> > TGix<TKey, TItem, TGixMerger>::GetIte
 }
 template <class TKey, class TItem, class TGixMerger>
 TPt<TGixItemSet<TKey, TItem, TGixMerger> > TGix<TKey, TItem, TGixMerger>::GetItemSet(const TBlobPt& KeyId) const {
-	if (KeyId.Empty()) { return NULL; }
+	if (KeyId.Empty()) { 
+		// return empty itemset
+		return TGixItemSet<TKey, TItem, TGixMerger>::New(TKey(), &Merger, this);
+	} 
 	PGixItemSet ItemSet;
 	if (!ItemSetCache.Get(KeyId, ItemSet)) {
 		// have to load it from the hard drive...
