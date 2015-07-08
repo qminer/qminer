@@ -2352,7 +2352,7 @@ describe('Correlation Tests', function () {
             timestamp: 'Time',
             value: 'Value',
             winsize: 3000
-        };  store.addStreamAggr(aggr);
+        }; store.addStreamAggr(aggr);
 
         aggr = {
             name: 'TimeSeries2',
@@ -2566,4 +2566,132 @@ describe('Correlation Tests', function () {
             assert.equal(corr.val.Val, 0);
         })
     });
+});
+
+describe.only('Resampler Tests', function () {
+    var base = undefined;
+    var store = undefined;
+    var out = undefined;
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'Function',
+                fields: [
+                    { name: 'Time', type: 'datetime' },
+                    { name: 'Value', type: 'float' }
+                ]
+            },
+            {
+                name: 'outStore',
+                fields: [
+                    { name: 'Value', type: 'float' },
+                    { name: 'Time', type: 'datetime' }
+                ]
+            }]
+        });
+        store = base.store('Function');
+        out = base.store('outStore');
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    describe('Constructor Tests', function () {
+        it('should create a new resampler aggregator', function () {
+            var aggr = {
+                name: 'ResAggr',
+                store: 'Function',
+                type: 'resampler',
+                outStore: 'outStore',
+                timestamp: 'Time',
+                fields: [{
+                    name: 'Value',
+                    interpolator: 'previous'
+                }],
+                createStore: false,
+                interval: 10 * 1000
+            };
+            var res = store.addStreamAggr(aggr);
+            assert.equal(res.name, 'ResAggr');
+        })
+        // unexpected node crash
+        it.skip('should throw an exception if a key-value is missing in the json', function () {
+            var aggr = {
+                name: 'ResAggr',
+                store: 'Function',
+                type: 'resampler',
+                outStore: 'outStore',
+                fields: [{
+                    name: 'Value',
+                    interpolator: 'previous'
+                }],
+                createStore: false,
+                interval: 10 * 1000
+            };
+            assert.throws(function () {
+                var res = store.addStreamAggr(aggr);
+            })
+        })
+    });
+    describe('Interpolator Tests', function () {
+        it('should interpolate with the previous value', function () {
+            var aggr = {
+                name: 'ResAggr',
+                store: 'Function',
+                type: 'resampler',
+                outStore: 'outStore',
+                timestamp: 'Time',
+                fields: [{
+                    name: 'Value',
+                    interpolator: 'previous'
+                }],
+                createStore: false,
+                interval: 10 * 1000
+            };
+            var res = store.addStreamAggr(aggr);
+            store.push({ Value: 10, Time: '2015-07-08T14:30:00.0' });
+            assert.equal(out[0].Value, 10);
+            assert.equal(out[0].Time.getTime(), new Date('2015-07-08T14:30:00.0').getTime());
+
+            store.push({ Value: 15, Time: '2015-07-08T14:30:10.1' });
+            assert.equal(out[1].Value, 10);
+            assert.equal(out[1].Time.getTime(), new Date('2015-07-08T14:30:10.0').getTime());
+
+            store.push({ Value: 20, Time: '2015-07-08T14:30:20.1' });
+            assert.equal(out[2].Value, 15);
+            assert.equal(out[2].Time.getTime(), new Date('2015-07-08T14:30:20.0').getTime());
+
+            store.push({ Value: 20, Time: '2015-07-08T14:30:30.1' });
+            assert.equal(out[3].Value, 20);
+            assert.equal(out[3].Time.getTime(), new Date('2015-07-08T14:30:30.0').getTime());
+        })
+        it('should interpolate with the current value', function () {
+            var aggr = {
+                name: 'ResAggr',
+                store: 'Function',
+                type: 'resampler',
+                outStore: 'outStore',
+                timestamp: 'Time',
+                fields: [{
+                    name: 'Value',
+                    interpolator: 'current'
+                }],
+                createStore: false,
+                interval: 10 * 1000
+            };
+            var res = store.addStreamAggr(aggr);
+            store.push({ Value: 10, Time: '2015-07-08T14:30:00.0' });
+            assert.equal(out[0].Value, 10);
+            assert.equal(out[0].Time.getTime(), new Date('2015-07-08T14:30:00.0').getTime());
+
+            store.push({ Value: 15, Time: '2015-07-08T14:30:10.1' });
+            assert.equal(out[1].Value, 10);
+            assert.equal(out[1].Time.getTime(), new Date('2015-07-08T14:30:10.0').getTime());
+
+            store.push({ Value: 20, Time: '2015-07-08T14:30:20.1' });
+            assert.equal(out[2].Value, 15);
+            assert.equal(out[2].Time.getTime(), new Date('2015-07-08T14:30:20.0').getTime());
+        })
+    })
 })
