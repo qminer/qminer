@@ -159,6 +159,6 @@
 	*/
  exports.StreamAggr.prototype.name = undefined;
 /**
-	* Returns a JSON object of the stream aggregate. Same as the method saveJson.
+	* Returns the JSON object of the stream aggregate. Same as the method saveJson.
 	*/
  exports.StreamAggr.prototype.val = undefined;
