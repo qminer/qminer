@@ -1379,7 +1379,7 @@
 
 	*/
 
- exports.Base.prototype.search = function (query) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype);}
+ exports.Base.prototype.search = function (query) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); }
 
 /**
 
@@ -1571,7 +1571,7 @@
 
 	*/
 
- exports.Store.prototype.rec = function (recName) {};
+ exports.Store.prototype.rec = function (recName) { return Object.create(require(&#x27;qminer&#x27;).Record.prototype); };
 
 /**
 
@@ -1751,7 +1751,7 @@
 
 	*/
 
- exports.Store.prototype.push = function (rec) {}
+ exports.Store.prototype.push = function (rec) { return 0; }
 
 /**
 
@@ -1801,7 +1801,7 @@
 
 	*/
 
- exports.Store.prototype.newRecord = function (json) {};
+ exports.Store.prototype.newRecord = function (json) { return Object.create(require(&#x27;qminer&#x27;).Record.prototype)};
 
 /**
 
@@ -1857,7 +1857,7 @@
 
 	*/
 
- exports.Store.prototype.newRecordSet = function (idVec) {};
+ exports.Store.prototype.newRecordSet = function (idVec) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 
 /**
 
@@ -1913,7 +1913,7 @@
 
 	*/
 
- exports.Store.prototype.sample = function (sampleSize) {};
+ exports.Store.prototype.sample = function (sampleSize) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 
 /**
 
@@ -1963,7 +1963,7 @@
 
 	*/
 
- exports.Store.prototype.field = function (fieldName) {}; 
+ exports.Store.prototype.field = function (fieldName) { return [{ id: 0, name:&#x27;&#x27;, type:&#x27;&#x27;, primary:&#x27;&#x27; }]; }; 
 
 /**
 
@@ -2011,7 +2011,7 @@
 
 	*/
 
- exports.Store.prototype.isNumeric = function (fieldName) {};
+ exports.Store.prototype.isNumeric = function (fieldName) { return true; };
 
 /**
 
@@ -2061,7 +2061,7 @@
 
 	*/
 
- exports.Store.prototype.isString = function (fieldName) {}; 
+ exports.Store.prototype.isString = function (fieldName) { return true; }; 
 
 /**
 
@@ -2111,7 +2111,7 @@
 
 	*/
 
- exports.Store.prototype.isDate = function (fieldName) {}
+ exports.Store.prototype.isDate = function (fieldName) { return true; }
 
 /**
 
@@ -2169,7 +2169,7 @@
 
 	*/
 
- exports.Store.prototype.key = function (keyName) {};
+ exports.Store.prototype.key = function (keyName) { return [{ fq: {}, vocabulary: {}, name:&#x27;&#x27;, store: {} }]; };
 
 /**
 
@@ -2239,7 +2239,7 @@
 
 	*/
 
- exports.Store.prototype.toJSON = function () {};
+ exports.Store.prototype.toJSON = function () { return { storeId:0, storeName:&#x27;&#x27;, storeRecords:&#x27;&#x27;, fields:[], keys:[], joins:[] }; };
 
 /**
 
@@ -2299,7 +2299,7 @@
 
 	*/
 
- exports.Store.prototype.clear = function (num) {};
+ exports.Store.prototype.clear = function (num) { return 0; };
 
 /**
 
@@ -2351,7 +2351,7 @@
 
 	*/
 
- exports.Store.prototype.getVector = function (fieldName) {};
+ exports.Store.prototype.getVector = function (fieldName) { return Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype); };
 
 /**
 
@@ -2413,7 +2413,7 @@
 
 	*/
 
- exports.Store.prototype.getMatrix = function (fieldName) {};
+ exports.Store.prototype.getMatrix = function (fieldName) { return Object.create(require(&#x27;qminer&#x27;).la.Matrix.prototype); };
 
 /**
 
@@ -2641,7 +2641,7 @@
 
 	*/
 
- exports.Record.prototype.$clone = function () {};
+ exports.Record.prototype.$clone = function () { return Object.create(require(&#x27;qminer&#x27;).Record.prototype); };
 
 /**
 
@@ -2657,7 +2657,7 @@
 
 	*/
 
- exports.Record.prototype.addJoin = function (joinName, joinRecord, joinFrequency) {}
+ exports.Record.prototype.addJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require(&#x27;qminer&#x27;).Record.prototype); }
 
 /**
 
@@ -2673,7 +2673,7 @@
 
 	*/
 
- exports.Record.prototype.delJoin = function (joinName, joinRecord, joinFrequency) {}
+ exports.Record.prototype.delJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require(&#x27;qminer&#x27;).Record.prototype); }
 
 /**
 
@@ -2839,7 +2839,7 @@
 
 	*/
 
- exports.RecordSet.prototype.clone = function () {};
+ exports.RecordSet.prototype.clone = function () { return Object.create(require(qminer).RecordSet.prototype); };
 
 /**
 
@@ -2929,7 +2929,7 @@
 
 	*/
 
- exports.RecordSet.prototype.join = function (joinName, sampleSize) {};
+ exports.RecordSet.prototype.join = function (joinName, sampleSize) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 
 /**
 
@@ -3011,7 +3011,7 @@
 
 	*/
 
- exports.RecordSet.prototype.trunc = function (limit_num, offset_num) {};
+ exports.RecordSet.prototype.trunc = function (limit_num, offset_num) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 
 /**
 
@@ -3069,7 +3069,7 @@
 
 	*/
 
- exports.RecordSet.prototype.sample = function (num) {};
+ exports.RecordSet.prototype.sample = function (num) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 
 /**
 
@@ -3133,7 +3133,7 @@
 
 	*/
 
- exports.RecordSet.prototype.shuffle = function (seed) {};
+ exports.RecordSet.prototype.shuffle = function (seed) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 
 /**
 
@@ -3195,7 +3195,7 @@
 
 	*/
 
- exports.RecordSet.prototype.reverse = function () {};
+ exports.RecordSet.prototype.reverse = function () { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 
 /**
 
@@ -3259,7 +3259,7 @@
 
 	*/
 
- exports.RecordSet.prototype.sortById = function (asc) {}; 
+ exports.RecordSet.prototype.sortById = function (asc) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); }; 
 
 /**
 
@@ -3273,7 +3273,7 @@
 
 	*/
 
- exports.RecordSet.prototype.sortByFq = function (asc) {}; 
+ exports.RecordSet.prototype.sortByFq = function (asc) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); }; 
 
 /**
 
@@ -3335,7 +3335,7 @@
 
 	*/
 
- exports.RecordSet.prototype.sortByField = function (fieldName, asc) {};
+ exports.RecordSet.prototype.sortByField = function (fieldName, asc) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 
 /**
 
@@ -3401,7 +3401,7 @@
 
 	*/
 
- exports.RecordSet.prototype.sort = function (callback) {};
+ exports.RecordSet.prototype.sort = function (callback) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 
 /**
 
@@ -3471,7 +3471,7 @@
 
 	*/
 
- exports.RecordSet.prototype.filterById = function (minId, maxId) {};
+ exports.RecordSet.prototype.filterById = function (minId, maxId) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 
 /**
 
@@ -3491,7 +3491,7 @@
 
 	*/
 
- exports.RecordSet.prototype.filterByFq = function (minFq, maxFq) {};
+ exports.RecordSet.prototype.filterByFq = function (minFq, maxFq) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 
 /**
 
@@ -3567,7 +3567,7 @@
 
 	*/
 
- exports.RecordSet.prototype.filterByField = function (fieldName, minVal, maxVal) {};
+ exports.RecordSet.prototype.filterByField = function (fieldName, minVal, maxVal) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 
 /**
 
@@ -3623,7 +3623,7 @@
 
 	*/
 
- exports.RecordSet.prototype.filter = function (callback) {}; 
+ exports.RecordSet.prototype.filter = function (callback) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); }; 
 
 /**
 
@@ -3695,7 +3695,7 @@
 
 	*/
 
- exports.RecordSet.prototype.split = function (callback) {};
+ exports.RecordSet.prototype.split = function (callback) {return [Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype)]; };
 
 /**
 
@@ -3765,7 +3765,7 @@
 
 	*/
 
- exports.RecordSet.prototype.deleteRecords = function (rs) {}; 
+ exports.RecordSet.prototype.deleteRecords = function (rs) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); }; 
 
 /**
 
@@ -3879,7 +3879,7 @@
 
 	*/
 
- exports.RecordSet.prototype.each = function (callback) {}
+ exports.RecordSet.prototype.each = function (callback) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); }
 
 /**
 
@@ -4005,7 +4005,7 @@
 
 	*/
 
- exports.RecordSet.prototype.setIntersect = function (rs) {};
+ exports.RecordSet.prototype.setIntersect = function (rs) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 
 /**
 
@@ -4069,7 +4069,7 @@
 
 	*/
 
- exports.RecordSet.prototype.setUnion = function (rs) {};
+ exports.RecordSet.prototype.setUnion = function (rs) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 
 /**
 
@@ -4139,7 +4139,7 @@
 
 	*/
 
- exports.RecordSet.prototype.setDiff = function (rs) {}; 
+ exports.RecordSet.prototype.setDiff = function (rs) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); }; 
 
 /**
 
@@ -4201,7 +4201,7 @@
 
 	*/
 
- exports.RecordSet.prototype.getVector = function (fieldName) {}; 
+ exports.RecordSet.prototype.getVector = function (fieldName) { return Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype); }; 
 
 /**
 
@@ -4413,7 +4413,7 @@
 
 	*/
 
- exports.Iterator.prototype.next = function () {};
+ exports.Iterator.prototype.next = function () { return true; };
 
 /**
 
@@ -4523,7 +4523,7 @@
 
 	*/
 
- exports.FeatureSpace.prototype.save = function (fout) {};
+ exports.FeatureSpace.prototype.save = function (fout) { return Object.create(require(&#x27;qminer&#x27;).fs.FOut.prototype); };
 
 /**
 
@@ -4589,7 +4589,7 @@
 
 	*/
 
- exports.FeatureSpace.prototype.addFeatureExtractor = function (obj) {};
+ exports.FeatureSpace.prototype.addFeatureExtractor = function (obj) { return Object.create(require(&#x27;qminer&#x27;).FeatureSpace.prototype); };
 
 /**
 
@@ -4683,7 +4683,7 @@
 
 	*/
 
- exports.FeatureSpace.prototype.updateRecord = function (rec) {};
+ exports.FeatureSpace.prototype.updateRecord = function (rec) { return Object.create(require(&#x27;qminer&#x27;).FeatureSpace.prototype); };
 
 /**
 
@@ -4777,7 +4777,7 @@
 
 	*/
 
- exports.FeatureSpace.prototype.updateRecords = function (rs) {};
+ exports.FeatureSpace.prototype.updateRecords = function (rs) { return Object.create(require(&#x27;qminer&#x27;).FeatureSpace.prototype); };
 
 /**
 
@@ -4851,7 +4851,7 @@
 
 	*/
 
- exports.FeatureSpace.prototype.extractSparseVector = function (rec) {}
+ exports.FeatureSpace.prototype.extractSparseVector = function (rec) { return Object.create(require(&#x27;qminer&#x27;).la.SparseVector.prototype); }
 
 /**
 
@@ -4925,15 +4925,15 @@
 
 	*/
 
- exports.FeatureSpace.prototype.extractVector = function (rec) {};
+ exports.FeatureSpace.prototype.extractVector = function (rec) { return Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype); };
 
 /**
 
 	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
 
-	* @param {(module:qm.Vector | Array.&amp;lt;Object&gt;)} ftr - The feature vector or an array with feature values.
+	* @param {(module:la.Vector | Array.&amp;lt;Object&gt;)} ftr - The feature vector or an array with feature values.
 
-	* @returns {module:qm.Vector} The inverse of ftr as vector.
+	* @returns {module:la.Vector} The inverse of ftr as vector.
 
 	* @example
 
@@ -5003,7 +5003,7 @@
 
 	*/
 
- exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) {};
+ exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) { return Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype); };
 
 /**
 
@@ -5139,7 +5139,7 @@
 
 	*/
 
- exports.FeatureSpace.prototype.extractSparseMatrix = function (rs) {};
+ exports.FeatureSpace.prototype.extractSparseMatrix = function (rs) { return Object.create(require(&#x27;qminer&#x27;).la.SparseMatrix.prototype); };
 
 /**
 
@@ -5207,7 +5207,7 @@
 
 	*/
 
- exports.FeatureSpace.prototype.extractMatrix = function (rs) {};
+ exports.FeatureSpace.prototype.extractMatrix = function (rs) { return Object.create(require(&#x27;qminer&#x27;).la.Matrix.prototype); };
 
 /**
 
@@ -5263,7 +5263,7 @@
 
 	*/
 
- exports.FeatureSpace.prototype.getFeatureExtractor = function (idx) {};
+ exports.FeatureSpace.prototype.getFeatureExtractor = function (idx) { return &#x27;&#x27;; };
 
 /**
 
@@ -5335,7 +5335,7 @@
 
 	*/
 
- exports.FeatureSpace.prototype.getFeature = function (idx) {};
+ exports.FeatureSpace.prototype.getFeature = function (idx) { return &#x27;&#x27;; };
 
 /**
 
@@ -5431,13 +5431,13 @@
 
 	* @param {module:qm.Record} rec
 
-	* @returns {Arra.&amp;lt;string&gt;} An array containing the strings gained by the extractor.
+	* @returns {Array.&amp;lt;string&gt;} An array containing the strings gained by the extractor.
 
 	* @ignore
 
 	*/
 
- exports.FeatureSpace.prototype.extractStrings = function (rec) {}; 
+ exports.FeatureSpace.prototype.extractStrings = function (rec) {return [&#x27;&#x27;]; }; 
 
 </code></pre>
           </article>

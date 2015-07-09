@@ -673,7 +673,7 @@
 	* @param {module:qm~QueryObject} query - query language JSON object	
 	* @returns {module:qm.RecordSet} - Returns the record set that matches the search criterion
 	*/
- exports.Base.prototype.search = function (query) { return Object.create(require('qminer').RecordSet.prototype);}
+ exports.Base.prototype.search = function (query) { return Object.create(require('qminer').RecordSet.prototype); }
 /**
 	* Calls qminer garbage collector to remove records outside time windows.
 	*/
@@ -769,7 +769,7 @@
 	* // get the record with the name "Magnitude"
 	* var record = base.store("Class").rec("Magnitude");
 	*/
- exports.Store.prototype.rec = function (recName) {};
+ exports.Store.prototype.rec = function (recName) { return Object.create(require('qminer').Record.prototype); };
 /**
 	* Executes a function on each record in store.
 	* @param {function} callback - Function to be executed. It takes two parameters:
@@ -859,7 +859,7 @@
 	* // add a new supervillian to the Supervillians store
 	* base.store("Supervillians").push({ Name: "Lex Luthor", Superpowers: ["expert engineer", "genius-level intellect", "money"] }); // returns 0
 	*/
- exports.Store.prototype.push = function (rec) {}
+ exports.Store.prototype.push = function (rec) { return 0; }
 /**
 	* Creates a new record of given store. The record is not added to the store.
 	* @param {Object} json - A JSON value of the record.
@@ -884,7 +884,7 @@
 	* // create a record of a planet (not added to the Planets store)
 	* var planet = base.store("Planets").newRecord({ Name: "Tatooine", Diameter: 10465, NearestStars: ["Tatoo 1", "Tatoo 2"] });
 	*/
- exports.Store.prototype.newRecord = function (json) {};
+ exports.Store.prototype.newRecord = function (json) { return Object.create(require('qminer').Record.prototype)};
 /**
 	* Creates a new record set out of the records in store.
 	* @param {module:la.IntVector} idVec - The integer vector containing the ids of selected records.
@@ -912,7 +912,7 @@
 	* var intVec = new qm.la.IntVector([0, 1, 3]);
 	* var DCHeroes = base.store("Superheroes").newRecordSet(intVec);
 	*/
- exports.Store.prototype.newRecordSet = function (idVec) {};
+ exports.Store.prototype.newRecordSet = function (idVec) { return Object.create(require('qminer').RecordSet.prototype); };
 /**
 	* Creates a record set containing random records from store.
 	* @param {number} sampleSize - The size of the record set.
@@ -940,7 +940,7 @@
 	* // create a sample record set containing 3 records
 	* var randomRecordSet = base.store("TVSeries").sample(3); // contains 3 random records from the TVSeries store
 	*/
- exports.Store.prototype.sample = function (sampleSize) {};
+ exports.Store.prototype.sample = function (sampleSize) { return Object.create(require('qminer').RecordSet.prototype); };
 /**
 	* Gets the details of the selected field.
 	* @param {string} fieldName - The name of the field.
@@ -965,7 +965,7 @@
 	* // { id: 0, name: "Name", type: "string", primary: true }
 	* var details = base.store("People").field("Name");
 	*/
- exports.Store.prototype.field = function (fieldName) {}; 
+ exports.Store.prototype.field = function (fieldName) { return [{ id: 0, name:'', type:'', primary:'' }]; }; 
 /**
 	* Checks if the field is of numeric type.
 	* @param {string} fieldName - The checked field.
@@ -989,7 +989,7 @@
 	* // check if the field "NumberOfEpisodes" is of numeric type
 	* var isNumberOfEpisodesNumeric = base.store("TVSeries").isNumeric("NumberOfEpisodes"); // returns true
 	*/
- exports.Store.prototype.isNumeric = function (fieldName) {};
+ exports.Store.prototype.isNumeric = function (fieldName) { return true; };
 /**
 	* Checks if the field is of string type.
 	* @param {string} fieldName - The checked field.
@@ -1014,7 +1014,7 @@
 	* // check if the field "Age" is of string type
 	* var isAgeString = base.store("People").isString("Age"); // returns false
 	*/
- exports.Store.prototype.isString = function (fieldName) {}; 
+ exports.Store.prototype.isString = function (fieldName) { return true; }; 
 /**
 	* Checks if the field is of type Date.
 	* @param {string} fieldName - The checked field.
@@ -1039,7 +1039,7 @@
 	* // check if the FirstPlayed field is of type Date
 	* var isFirstPlayedDate = base.store("BasketballPlayers").isDate("DateOfBirth"); // returns true
 	*/
- exports.Store.prototype.isDate = function (fieldName) {}
+ exports.Store.prototype.isDate = function (fieldName) { return true; }
 /**
 	* Returns the details of the selected key as a JSON object.
 	* @param {string} keyName - The selected key as a JSON object.
@@ -1068,7 +1068,7 @@
 	* // { fq: { length: 0 }, vocabulary: { length: 0 }, name: 'Continent', store: { name: 'Countries', ... }}
 	* var details = base.store("Countries").key("Continent");
 	*/
- exports.Store.prototype.key = function (keyName) {};
+ exports.Store.prototype.key = function (keyName) { return [{ fq: {}, vocabulary: {}, name:'', store: {} }]; };
 /**
 	* //TODO
 	* @param {string} saName - The name of the stream aggregate.
@@ -1103,7 +1103,7 @@
 	* // { storeId: 0, storeName: 'FootballPlayers', storeRecords: 0, fields: [...], keys: [], joins: [] }
 	* var json = base.store("FootballPlayers").toJSON();
 	*/
- exports.Store.prototype.toJSON = function () {};
+ exports.Store.prototype.toJSON = function () { return { storeId:0, storeName:'', storeRecords:'', fields:[], keys:[], joins:[] }; };
 /**
 	* Deletes the records in the store.
 	* @param {number} [num] - The number of deleted records. If the number is given, the first num records will be deleted.
@@ -1133,7 +1133,7 @@
 	* // delete all remaining records in TVStore
 	* base.store("TVSeries").clear();  // returns 0
 	*/
- exports.Store.prototype.clear = function (num) {};
+ exports.Store.prototype.clear = function (num) { return 0; };
 /**
 	* Gives a vector containing the field value of each record.
 	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string...
@@ -1159,7 +1159,7 @@
 	* // get the vector of company names
 	* var companyNames = base.store("Companies").getVector("Name");	// returns a vector ["DC Comics", "DC Shoes", "21st Century Fox"]
 	*/
- exports.Store.prototype.getVector = function (fieldName) {};
+ exports.Store.prototype.getVector = function (fieldName) { return Object.create(require('qminer').la.Vector.prototype); };
 /**
 	* Gives a matrix containing the field values of each record.
 	* @param {string} fieldName - The field name. Field mustn't be of type string.
@@ -1190,7 +1190,7 @@
 	* // 48  44  48
 	* var matrix = base.store("ArcheryChampionship").getMatrix("ScorePerRound");
 	*/
- exports.Store.prototype.getMatrix = function (fieldName) {};
+ exports.Store.prototype.getMatrix = function (fieldName) { return Object.create(require('qminer').la.Matrix.prototype); };
 /**
 	* Gives the field value of a specific record.
 	* @param {number} recId - The record id.
@@ -1304,7 +1304,7 @@
 	* // create a clone of the "Attack of the Clones" record
 	* var clone = base.store("StarWarsMovies")[0].$clone();
 	*/
- exports.Record.prototype.$clone = function () {};
+ exports.Record.prototype.$clone = function () { return Object.create(require('qminer').Record.prototype); };
 /**
 	* addJoin // TODO
 	* @param {string} joinName
@@ -1312,7 +1312,7 @@
 	* @param {number} [joinFrequency]
 	* @returns {module:qm.Record} Record.
 	*/
- exports.Record.prototype.addJoin = function (joinName, joinRecord, joinFrequency) {}
+ exports.Record.prototype.addJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
 /**
 	* delJoin // TODO
 	* @param {string} joinName
@@ -1320,7 +1320,7 @@
 	* @param {number} [joinFrequency]
 	* @returns {module:qm.Record} Record.
 	*/
- exports.Record.prototype.delJoin = function (joinName, joinRecord, joinFrequency) {}
+ exports.Record.prototype.delJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
 /**
 	* Creates a JSON version of the record.
 	* @returns {Object} The JSON version of the record.
@@ -1403,7 +1403,7 @@
 	* // clone the record set of the "Philosophers" store
 	* var philosophers = recordSet.clone();
 	*/
- exports.RecordSet.prototype.clone = function () {};
+ exports.RecordSet.prototype.clone = function () { return Object.create(require(qminer).RecordSet.prototype); };
 /**
 	* Creates a new record set out of the join attribute of records.
 	* @param {string} joinName - The name of the join attribute.
@@ -1448,7 +1448,7 @@
 	* // returns a record set containing only one record, which is "Robert Plant" or "Jimmy Page"
 	* var ledMember = base.store("Bands").recs.join("Members", 1);
 	*/
- exports.RecordSet.prototype.join = function (joinName, sampleSize) {};
+ exports.RecordSet.prototype.join = function (joinName, sampleSize) { return Object.create(require('qminer').RecordSet.prototype); };
 /**
 	* Aggr // TODO
 	* @param {Object} [aggrQueryJSON] 
@@ -1489,7 +1489,7 @@
 	* // truncate the first 2 records in recordSet2, starting with "Emmanuel Levinas"
 	* recordSet2.trunc(2, 2); // returns self, containing only the 2 records ("Emmanuel Levinas", "Rene Descartes")
 	*/
- exports.RecordSet.prototype.trunc = function (limit_num, offset_num) {};
+ exports.RecordSet.prototype.trunc = function (limit_num, offset_num) { return Object.create(require('qminer').RecordSet.prototype); };
 /**
 	* Creates a random sample of records of the record set.
 	* @param {number} num - The number of records in the sample.
@@ -1518,7 +1518,7 @@
 	* // create a sample record set of containing 3 records from the "Movies" store
 	* var sample = base.store("Movies").recs.sample(3);
 	*/
- exports.RecordSet.prototype.sample = function (num) {};
+ exports.RecordSet.prototype.sample = function (num) { return Object.create(require('qminer').RecordSet.prototype); };
 /**
 	* Shuffles the order of records in the record set.
 	* @param {number} [seed] - Integer.
@@ -1550,7 +1550,7 @@
 	* // shuffle the records in the newly created record set. Use the number 100 as the seed for the shuffle
 	* recordSet.shuffle(100); // returns self, the records in the record set are shuffled
 	*/
- exports.RecordSet.prototype.shuffle = function (seed) {};
+ exports.RecordSet.prototype.shuffle = function (seed) { return Object.create(require('qminer').RecordSet.prototype); };
 /**
 	* It reverses the record order.
 	* @returns {module:qm.RecordSet} Self. Records are in reversed order.
@@ -1581,7 +1581,7 @@
 	* // reverse the record order in the record set
 	* recordSet.reverse(); // returns self, the records in the record set are in the reverse order
 	*/
- exports.RecordSet.prototype.reverse = function () {};
+ exports.RecordSet.prototype.reverse = function () { return Object.create(require('qminer').RecordSet.prototype); };
 /**
 	* Sorts the records according to record id.
 	* @param {number} [asc=-1] - If asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.  
@@ -1613,14 +1613,14 @@
 	* // sort the records in the record set by their id in ascending order
 	* recordSet.sortById(1); // returns self, the records are sorted in ascending order
 	*/
- exports.RecordSet.prototype.sortById = function (asc) {}; 
+ exports.RecordSet.prototype.sortById = function (asc) { return Object.create(require('qminer').RecordSet.prototype); }; 
 /**
 	* Sorts the records according to their weight.
 	* @param {number} [asc=1] - If asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.
 	* @returns {module:qm.RecordSet} Self. Records are sorted according to record weight and asc.
 	* @ignore
 	*/
- exports.RecordSet.prototype.sortByFq = function (asc) {}; 
+ exports.RecordSet.prototype.sortByFq = function (asc) { return Object.create(require('qminer').RecordSet.prototype); }; 
 /**
 	* Sorts the records according to a specific record field.
 	* @param {string} fieldName - The field by which the sort will work.
@@ -1651,7 +1651,7 @@
 	* // sort the records by their "Title" field in ascending order 
 	* recordSet.sortByField("Title", true); // returns self, record are sorted by their "Title"
 	*/
- exports.RecordSet.prototype.sortByField = function (fieldName, asc) {};
+ exports.RecordSet.prototype.sortByField = function (fieldName, asc) { return Object.create(require('qminer').RecordSet.prototype); };
 /**
 	* Sorts the records according to the given callback function.
 	* @param {function} callback - The function used to sort the records. It takes two parameters:
@@ -1684,7 +1684,7 @@
 	* // sort the records by their number of episodes
 	* recordSet.sort(function (rec, rec2) { return rec.NumberOfEpisodes < rec2.NumberOfEpisodes; }); // returns self, records are sorted by the number of episodes
 	*/
- exports.RecordSet.prototype.sort = function (callback) {};
+ exports.RecordSet.prototype.sort = function (callback) { return Object.create(require('qminer').RecordSet.prototype); };
 /**
 	* Keeps only records with ids between or equal two values.
 	* @param {number} [minId] - The minimum id.
@@ -1719,7 +1719,7 @@
 	* // from the record set keep the records with indeces between or equal 2 and 5
 	* recordSet.filterById(2, 5);
 	*/
- exports.RecordSet.prototype.filterById = function (minId, maxId) {};
+ exports.RecordSet.prototype.filterById = function (minId, maxId) { return Object.create(require('qminer').RecordSet.prototype); };
 /**
 	* Keeps only the records with weight between two values.
 	* @param {number} [minFq] - The minimum value.
@@ -1729,7 +1729,7 @@
 	* <br>2. Contains all the records of the original, if no parameter is given.
 	* @ignore
 	*/
- exports.RecordSet.prototype.filterByFq = function (minFq, maxFq) {};
+ exports.RecordSet.prototype.filterByFq = function (minFq, maxFq) { return Object.create(require('qminer').RecordSet.prototype); };
 /**
 	* Keeps only the records with a specific value of some field.
 	* @param {string} fieldName - The field by which the records will be filtered.
@@ -1767,7 +1767,7 @@
 	* // filter only the records, where the weather is Mostly Cloudy
 	* recordSet.filterByField("Weather", "Mostly Cloudy"); // returns self, containing only the records, where the weather is "Mostly Cloudy"
 	*/
- exports.RecordSet.prototype.filterByField = function (fieldName, minVal, maxVal) {};
+ exports.RecordSet.prototype.filterByField = function (fieldName, minVal, maxVal) { return Object.create(require('qminer').RecordSet.prototype); };
 /**
 	* Keeps only the records that pass the callback function.
 	* @param {function} callback - The filter function. It takes one parameter and return a boolean object.
@@ -1795,7 +1795,7 @@
 	* // filter the records: which archers have scored 48 points in the third round
 	* recordSet.filter(function (rec) { return rec.ScorePerRound[2] == 48; }); // keeps only the records, where the score of the third round is equal 48
 	*/
- exports.RecordSet.prototype.filter = function (callback) {}; 
+ exports.RecordSet.prototype.filter = function (callback) { return Object.create(require('qminer').RecordSet.prototype); }; 
 /**
 	* Splits the record set into smaller record sets.
 	* @param {function} callback - The splitter function. It takes two parameters (records) and returns a boolean object.
@@ -1831,7 +1831,7 @@
 	* // "Dobble" record
 	* var arr = recordSet.split(function (rec, rec2) { return rec.MinPlayers < rec2.MinPlayers; });
 	*/
- exports.RecordSet.prototype.split = function (callback) {};
+ exports.RecordSet.prototype.split = function (callback) {return [Object.create(require('qminer').RecordSet.prototype)]; };
 /**
 	* Deletes the records, that are also in the other record set.
 	* @param {module:qm.RecordSet} rs - The other record set.
@@ -1866,7 +1866,7 @@
 	* // delete the records in recordSet, that are also in fantasy
 	* recordSet.deleteRecords(fantasy); // returns self, containing only three records: "Douglas Adams", "Fyodor Dostoyevsky" and "Ivan Cankar"
 	*/
- exports.RecordSet.prototype.deleteRecords = function (rs) {}; 
+ exports.RecordSet.prototype.deleteRecords = function (rs) { return Object.create(require('qminer').RecordSet.prototype); }; 
 /**
 	* Returns the record set as a JSON.
 	* @returns {Object} The record set as a JSON.
@@ -1923,7 +1923,7 @@
 	* // change the Name of all records into "Anonymous"
 	* recordSet.each(function (rec) { rec.Name = "Anonymous"; }); // returns self, all record's Name are "Anonymous"
 	*/
- exports.RecordSet.prototype.each = function (callback) {}
+ exports.RecordSet.prototype.each = function (callback) { return Object.create(require('qminer').RecordSet.prototype); }
 /**
 	* Creates an array of function outputs created from the records in record set.
 	* @param {function} callback - Function that generates the array. It takes two parameters:
@@ -1986,7 +1986,7 @@
 	* // get the intersection of greaterSet and lesserSet
 	* var intersection = greaterSet.setIntersect(lesserSet); // returns a record set, containing the movies with lengths between 110 and 130
 	*/
- exports.RecordSet.prototype.setIntersect = function (rs) {};
+ exports.RecordSet.prototype.setIntersect = function (rs) { return Object.create(require('qminer').RecordSet.prototype); };
 /**
 	* Creates the set union of two record sets.
 	* @param {module:qm.RecordSet} rs - The other record set.
@@ -2018,7 +2018,7 @@
 	* // get the union of lesserSet and greaterSet
 	* var union = lesserSet.setUnion(greaterSet); // returns a record set, which is the union of the two record sets
 	*/
- exports.RecordSet.prototype.setUnion = function (rs) {};
+ exports.RecordSet.prototype.setUnion = function (rs) { return Object.create(require('qminer').RecordSet.prototype); };
 /**
 	* Creates the set difference between two record sets.
 	* @param {module:qm.RecordSet} rs - The other record set.
@@ -2053,7 +2053,7 @@
 	* // create a new record set containing the difference of recordSet and fantasy
 	* var difference = recordSet.setDiff(fantasy); // returns a record set, containing the records of Douglas Adams, Fyodor Dostoyevsky and Ivan Cankar
 	*/
- exports.RecordSet.prototype.setDiff = function (rs) {}; 
+ exports.RecordSet.prototype.setDiff = function (rs) { return Object.create(require('qminer').RecordSet.prototype); }; 
 /**
 	* Creates a vector containing the field values of records.
 	* @param {string} fieldName - The field from which to take the values. It's type must be one-dimensional, e.g. float, int, string,...
@@ -2084,7 +2084,7 @@
 	* // the vector will look like [75, 574, 94, 11, 47]
 	* var vector = recordSet.getVector("NumberOfEpisodes");
 	*/
- exports.RecordSet.prototype.getVector = function (fieldName) {}; 
+ exports.RecordSet.prototype.getVector = function (fieldName) { return Object.create(require('qminer').la.Vector.prototype); }; 
 /**
 	* Creates a vector containing the field values of records.
 	* @param {string} fieldName - The field from which to take the values. It's type must be numeric, e.g. float, int, float_v, num_sp_v,...
@@ -2190,7 +2190,7 @@
 	* // go to the first record in the store
 	* iter.next(); // returns true
 	*/
- exports.Iterator.prototype.next = function () {};
+ exports.Iterator.prototype.next = function () { return true; };
 /**
 	* Gives the store of the iterator.
 	*/
@@ -2245,7 +2245,7 @@
 	* @param {module:fs.FOut} fout - The output stream.
 	* @returns {module:fs.FOut} The output stream.
 	*/
- exports.FeatureSpace.prototype.save = function (fout) {};
+ exports.FeatureSpace.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); };
 /**
 	* Adds a new feature extractor to the feature space.
 	* @param {Object} obj - The added feature extractor. It must be given as a JSON object.
@@ -2278,7 +2278,7 @@
 	* // it adds the new feature extractor to the pre-existing feature extractors in the feature space
 	* ftr.addFeatureExtractor({ type: "text", source: "WeatherForcast", field: "Weather", normalize: true, weight: "tfidf" });      
 	*/
- exports.FeatureSpace.prototype.addFeatureExtractor = function (obj) {};
+ exports.FeatureSpace.prototype.addFeatureExtractor = function (obj) { return Object.create(require('qminer').FeatureSpace.prototype); };
 /**
 	* Updates the feature space definitions and extractors by adding one record.
 	* <br> For text feature extractors, it can update it's vocabulary by taking into account the new text.
@@ -2325,7 +2325,7 @@
 	* ftr.extractVector(Store[1]); // returns the vector [1/2, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
 	* ftr.extractVector(Store[2]); // returns the vector [1, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
 	*/
- exports.FeatureSpace.prototype.updateRecord = function (rec) {};
+ exports.FeatureSpace.prototype.updateRecord = function (rec) { return Object.create(require('qminer').FeatureSpace.prototype); };
 /**
 	* Updates the feature space definitions and extractors by adding all the records of a record set.
 	* <br> For text feature extractors, it can update it's vocabulary by taking into account the new text.
@@ -2372,7 +2372,7 @@
 	* ftr.extractVector(Store[2]); // returns the vector [2/3, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
 	* ftr.extractVector(Store[3]); // returns the vector [1, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
 	*/
- exports.FeatureSpace.prototype.updateRecords = function (rs) {};
+ exports.FeatureSpace.prototype.updateRecords = function (rs) { return Object.create(require('qminer').FeatureSpace.prototype); };
 /**
 	* Creates a sparse feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
@@ -2409,7 +2409,7 @@
 	* // features in the text feature extractor.
 	* var vec = ftr.extractSparseVector(base.store("Class")[0]);
 	*/
- exports.FeatureSpace.prototype.extractSparseVector = function (rec) {}
+ exports.FeatureSpace.prototype.extractSparseVector = function (rec) { return Object.create(require('qminer').la.SparseVector.prototype); }
 /**
 	* Creates a feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
@@ -2446,11 +2446,11 @@
 	* // features in the text feature extractor.
 	* var vec = ftr.extractVector(base.store("Class")[0]);
 	*/
- exports.FeatureSpace.prototype.extractVector = function (rec) {};
+ exports.FeatureSpace.prototype.extractVector = function (rec) { return Object.create(require('qminer').la.Vector.prototype); };
 /**
 	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
-	* @param {(module:qm.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
-	* @returns {module:qm.Vector} The inverse of ftr as vector.
+	* @param {(module:la.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
+	* @returns {module:la.Vector} The inverse of ftr as vector.
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
@@ -2485,7 +2485,7 @@
 	* // the function returns the values to their first value, i.e. 0.105263 returns to 1995
 	* var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]
 	*/
- exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) {};
+ exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) { return Object.create(require('qminer').la.Vector.prototype); };
 /**
 	* Calculates the inverse of a single feature using a specific feature extractor.
 	* @param {number} idx - The index of the specific feature extractor.
@@ -2553,7 +2553,7 @@
 	* // [[(0, 1), (3, 1)], [(1, 1), (3, 1)], [(1, 1), (2, 1)], [(0, 1), (1, 1)]]
 	* var sparseMatrix = ftr.extractSparseMatrix(base.store("Class").recs);
 	*/
- exports.FeatureSpace.prototype.extractSparseMatrix = function (rs) {};
+ exports.FeatureSpace.prototype.extractSparseMatrix = function (rs) { return Object.create(require('qminer').la.SparseMatrix.prototype); };
 /**
 	* Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.
 	* @param {module:qm.RecordSet} rs - The given record set.
@@ -2587,7 +2587,7 @@
 	* // 1  1  0  0
 	* var matrix = ftr.extractMatrix(base.store("Class").recs);
 	*/
- exports.FeatureSpace.prototype.extractMatrix = function (rs) {};
+ exports.FeatureSpace.prototype.extractMatrix = function (rs) { return Object.create(require('qminer').la.Matrix.prototype); };
 /**
 	* Gives the name of feature extractor at given position.
 	* @param {number} idx - The index of the feature extractor in feature space (zero based).
@@ -2615,7 +2615,7 @@
 	* // get the name of the feature extractor with index 1
 	* var extractorName = ftr.getFeatureExtractor(1); // returns "Categorical[Gendre]"
 	*/
- exports.FeatureSpace.prototype.getFeatureExtractor = function (idx) {};
+ exports.FeatureSpace.prototype.getFeatureExtractor = function (idx) { return ''; };
 /**
 	* Gives the name of the feature at the given position.
 	* @param {number} idx - The index of the feature in feature space (zero based).
@@ -2651,7 +2651,7 @@
 	* // get the feature at position 2
 	* var feature2 = ftr.getFeature(2); // returns "magnitude"
 	*/
- exports.FeatureSpace.prototype.getFeature = function (idx) {};
+ exports.FeatureSpace.prototype.getFeature = function (idx) { return ''; };
 /**
 	* Filters the vector to keep only the elements from the feature extractor.
 	* @param {(module:la.Vector | module:la.SparseVector)} vec - The vector from where the function filters the elements.
@@ -2699,7 +2699,7 @@
 /**
 	* Extracts string features from the record.
 	* @param {module:qm.Record} rec
-	* @returns {Arra.<string>} An array containing the strings gained by the extractor.
+	* @returns {Array.<string>} An array containing the strings gained by the extractor.
 	* @ignore
 	*/
- exports.FeatureSpace.prototype.extractStrings = function (rec) {}; 
+ exports.FeatureSpace.prototype.extractStrings = function (rec) {return ['']; }; 

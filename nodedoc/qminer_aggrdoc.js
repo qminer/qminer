@@ -68,19 +68,19 @@
 	* @param {module:qm.Record} rec - The record given to the stream aggregator.
 	* @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.
 	*/
- exports.StreamAggr.prototype.onAdd = function (rec) {};
+ exports.StreamAggr.prototype.onAdd = function (rec) { return Object.create(require('qminer').StreamAggr.prototype); };
 /**
 	* Executes the function when a record in the store is updated.
 	* @param {module:qmRecord} rec - The updated record given to the stream aggregator.
 	* @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.
 	*/
- exports.StreamAggr.prototype.onUpdate = function (rec) {};
+ exports.StreamAggr.prototype.onUpdate = function (rec) { return Object.create(require('qminer').StreamAggr.prototype); };
 /**
 	* Executes the function when a record in the store is deleted.
 	* @param {module:qm.Record} rec - The deleted record given to the stream aggregator.
 	* @returns {module:qm.StreamAggr} Self. The values in the stream aggregator are changed as defined in the inner onDelete function.
 	*/
- exports.StreamAggr.prototype.onDelete = function (rec) {};
+ exports.StreamAggr.prototype.onDelete = function (rec) { return Object.create(require('qminer').StreamAggr.prototype); };
 /**
 	* When executed it return a JSON object as defined by the user.
 	* @param {number} [limit] - The meaning is specific to each type of stream aggregator. //TODO
@@ -91,69 +91,69 @@
 	* Returns the float value of the newest record in buffer.
 	* @returns {number} The value of the newest record.
 	*/
- exports.StreamAggr.prototype.getFloat = function () {};
+ exports.StreamAggr.prototype.getFloat = function () { return 0; };
 /**
 	* Returns the timestamp value of the newest record in buffer.
 	* @returns {number} The timestamp of the newest record. It represents the number of miliseconds between the records time and 1601-01-01T00:00:00.0.
 	*/
- exports.StreamAggr.prototype.getTimestamp = function () {};
+ exports.StreamAggr.prototype.getTimestamp = function () { return 0; };
 /**
 	* Gets the length of the value vector.
 	* @returns {number} The length of the value vector.
 	*/
- exports.StreamAggr.prototype.getFloatLength = function () {};
+ exports.StreamAggr.prototype.getFloatLength = function () { return 0; };
 /**
 	* Returns the value of the float vector at a specific index.
 	* @param {number} idx - The index.
 	* @returns {number} The value of the float vector at position idx.
 	*/
- exports.StreamAggr.prototype.getFloatAt = function (idx) {};
+ exports.StreamAggr.prototype.getFloatAt = function (idx) { return 0; };
 /**
 	* Gets the whole value vector of the buffer.
 	* @returns {module:la.Vector} The vector containing the values of the buffer.
 	*/
- exports.StreamAggr.prototype.getFloatVector = function () {};
+ exports.StreamAggr.prototype.getFloatVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 /**
 	* Gets the length of the timestamp vector.
 	* @returns {number} The length of the timestamp vector.
 	*/
- exports.StreamAggr.prototype.getTimestampLength = function () {};
+ exports.StreamAggr.prototype.getTimestampLength = function () { return 0; };
 /**
 	* Gets the timestamp on the specific location in the buffer.
 	* @param {number} idx - The index.
 	* @returns {number} The timestamp located on the idx position in the buffer.
 	*/
- exports.StreamAggr.prototype.getTimestampAt = function (idx) {};
+ exports.StreamAggr.prototype.getTimestampAt = function (idx) { return 0; };
 /**
 	* Gets the dense vector containing the windows timestamps.
 	* @returns {module:la.Vector} The vector containing the window timestamps.
 	*/
- exports.StreamAggr.prototype.getTimestampVector = function () {};
+ exports.StreamAggr.prototype.getTimestampVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 /**
 	* Gets the value of the newest record added to the buffer.
 	* @returns {number} The value of the newest record in the buffer.
 	*/
- exports.StreamAggr.prototype.getInFloat = function () {};
+ exports.StreamAggr.prototype.getInFloat = function () { return 0; };
 /**
 	* Gets the timestamp of the newest record added to the buffer.
 	* @returns {number} The timestamp given as the number of miliseconds since 01.01.1601, time: 00:00:00.0.
 	*/
- exports.StreamAggr.prototype.getInTimestamp = function () {};
+ exports.StreamAggr.prototype.getInTimestamp = function () { return 0; };
 /**
 	* Gets a vector containing the values that are leaving the buffer.
 	* @returns {module:la.Vector} The vector containing the values that are leaving the buffer.
 	*/
- exports.StreamAggr.prototype.getOutFloatVector = function () {};
+ exports.StreamAggr.prototype.getOutFloatVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 /**
 	* Gets a vector containing the timestamps that are leaving the buffer.
 	* @returns {module:la.Vector} The vector containing the leaving timestamps.
 	*/
- exports.StreamAggr.prototype.getOutTimestampVector = function () {};
+ exports.StreamAggr.prototype.getOutTimestampVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 /**
 	* Gets the number of records in the buffer.
 	* @returns {number} The number of records in the buffer.
 	*/
- exports.StreamAggr.prototype.getNumberOfRecords = function () {};
+ exports.StreamAggr.prototype.getNumberOfRecords = function () { return 0; };
 /**
 	* Returns the name of the stream aggregate.
 	*/
