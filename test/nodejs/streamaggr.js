@@ -2661,10 +2661,6 @@ describe.only('Resampler Tests', function () {
             store.push({ Value: 20, Time: '2015-07-08T14:30:20.1' });
             assert.equal(out[2].Value, 15);
             assert.equal(out[2].Time.getTime(), new Date('2015-07-08T14:30:20.0').getTime());
-
-            store.push({ Value: 20, Time: '2015-07-08T14:30:30.1' });
-            assert.equal(out[3].Value, 20);
-            assert.equal(out[3].Time.getTime(), new Date('2015-07-08T14:30:30.0').getTime());
         })
         it('should interpolate with the current value', function () {
             var aggr = {
@@ -2692,6 +2688,52 @@ describe.only('Resampler Tests', function () {
             store.push({ Value: 20, Time: '2015-07-08T14:30:20.1' });
             assert.equal(out[2].Value, 15);
             assert.equal(out[2].Time.getTime(), new Date('2015-07-08T14:30:20.0').getTime());
+        })
+        it('should interpolate with the linear interpolation', function () {
+            var aggr = {
+                name: 'ResAggr',
+                store: 'Function',
+                type: 'resampler',
+                outStore: 'outStore',
+                timestamp: 'Time',
+                fields: [{
+                    name: 'Value',
+                    interpolator: 'linear'
+                }],
+                createStore: false,
+                interval: 10 * 1000
+            };
+            var res = store.addStreamAggr(aggr);
+            store.push({ Value: 10, Time: '2015-07-08T14:30:00.0' });
+            assert.eqtol(out[0].Value, 10);
+            assert.equal(out[0].Time.getTime(), new Date('2015-07-08T14:30:00.0').getTime());
+
+            store.push({ Value: 15, Time: '2015-07-08T14:30:15.0' });
+            assert.eqtol(out[1].Value, 40 / 3);
+            assert.equal(out[1].Time.getTime(), new Date('2015-07-08T14:30:10.0').getTime());
+
+            store.push({ Value: 20, Time: '2015-07-08T14:30:25.0' });
+            assert.eqtol(out[2].Value, 17.5);
+            assert.equal(out[2].Time.getTime(), new Date('2015-07-08T14:30:20.0').getTime());
+        })
+    });
+    describe('Property Tests', function () {
+        it('should return the name of the resampler aggregator', function () {
+            var aggr = {
+                name: 'ResAggr',
+                store: 'Function',
+                type: 'resampler',
+                outStore: 'outStore',
+                timestamp: 'Time',
+                fields: [{
+                    name: 'Value',
+                    interpolator: 'linear'
+                }],
+                createStore: false,
+                interval: 10 * 1000
+            };
+            var res = store.addStreamAggr(aggr);
+            assert.equal(res.name, 'ResAggr');
         })
     })
 })
