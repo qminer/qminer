@@ -333,6 +333,57 @@ public:
 };
 
 ///////////////////////////////////////////////
+/// Sparse Vector Feature Extractor
+class TNumSpV : public TFtrExt {
+private:
+    /// Dimensionality
+    TInt Dim;
+    /// Normalize input vector
+    TBool NormalizeP;
+	/// Field Id
+	TInt FieldId;
+    /// Field description
+    TFieldDesc FieldDesc;
+
+    /// Get value from a given record
+	void _GetVal(const TRec& Rec, TIntFltKdV& NumSpV) const;
+    /// Check if there is join, and forward to _GetVal
+	void GetVal(const TRec& Rec, TIntFltKdV& NumSpV) const;
+
+	TNumSpV(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV,
+        const int& _FieldId, const int& _Dim, const bool& _NormalizeP);
+    TNumSpV(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    TNumSpV(const TWPt<TBase>& Base, TSIn& SIn);
+public:
+	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
+        const int& FieldId, const int& Dim = 0, const bool& NormalizeP = true);
+	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, 
+        const int& FieldId, const int& Dim = 0, const bool& NormalizeP = true);
+	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
+        const int& FieldId, const int& Dim = 0, const bool& NormalizeP = true);
+	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+    static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
+    void Save(TSOut& SOut) const;   
+    
+	TStr GetNm() const;
+	int GetDim() const { return Dim; }
+	TStr GetFtr(const int& FtrN) const;
+
+	void Clr() { Dim = 0; }
+	// sparse vector extraction
+	bool Update(const TRec& Rec);
+	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
+	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+
+    // feature extractor type name 
+    static TStr GetType() { return "num_sp_v"; }   
+};
+
+
+///////////////////////////////////////////////
 /// Categorical Feature Extractor.
 /// Categorical distribution (also called a "generalized Bernoulli distribution")
 /// is a probability distribution that describes the result of a random event that 
