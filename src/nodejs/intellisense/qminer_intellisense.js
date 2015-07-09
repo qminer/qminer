@@ -1331,21 +1331,21 @@ exports.datasets= require('qminer_datasets');
      * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
      */
 /**
-	* addJoin // TODO
+	* $addJoin // TODO
 	* @param {string} joinName
 	* @param {(module:qm.Record | number)} joinRecord
 	* @param {number} [joinFrequency]
 	* @returns {module:qm.Record} Record.
 	*/
- exports.Record.prototype.addJoin = function (joinName, joinRecord, joinFrequency) {}
+ exports.Record.prototype.$addJoin = function (joinName, joinRecord, joinFrequency) {}
 /**
-	* delJoin // TODO
+	* $delJoin // TODO
 	* @param {string} joinName
 	* @param {(module:qm.Record | number)} joinRecord
 	* @param {number} [joinFrequency]
 	* @returns {module:qm.Record} Record.
 	*/
- exports.Record.prototype.delJoin = function (joinName, joinRecord, joinFrequency) {}
+ exports.Record.prototype.$delJoin = function (joinName, joinRecord, joinFrequency) {}
 /**
 	* Creates a JSON version of the record.
 	*
@@ -1394,7 +1394,7 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Returns the store the record belongs to.
 	*/
- exports.Record.prototype.store = undefined;
+ exports.Record.prototype.$store = undefined;
 /**
 * Record Set (factory pattern)
 * @namespace

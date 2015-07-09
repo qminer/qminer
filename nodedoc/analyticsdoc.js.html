@@ -1483,27 +1483,477 @@
 
     }
 
+	
+
+	//!- &#x60;result = new exports.rocScore(sample)&#x60; -- used for computing ROC curve and 
+
+	//!     other related measures such as AUC; the result is a results object
+
+	//!     with the following API:
+
+	exports.rocScore = function () {
+
+		// count of all the positive and negative examples
+
+		this.allPositives = 0;
+
+		this.allNegatives = 0;
+
+		// store of predictions and ground truths
+
+		this.grounds = new la.Vector();
+
+		this.predictions = new la.Vector();
+
+	
+
+		//!     - &#x60;result.push(ground, predict)&#x60; -- add new measurement with ground score (1 or -1) and predicted value
+
+		this.push = function (ground, predict) {
+
+			// remember the scores
+
+			this.grounds.push(ground)
+
+			this.predictions.push(predict);
+
+			// update counts
+
+			if (ground &gt; 0) { 
+
+				this.allPositives++; 
+
+			} else {
+
+				this.allNegatives++;
+
+			}
+
+		}
+
+	
+
+		//!     - &#x60;roc_arr = result.curve(sample)&#x60; -- get ROC parametrization as array of sample points
+
+		this.curve = function (sample) {
+
+			// default sample size is 10
+
+			sample = sample || 10;
+
+			// sort according to predictions
+
+			var perm = this.predictions.sortPerm(false);
+
+			// maintaining the results as we go along
+
+			var TP = 0, FP = 0, ROC = [[0, 0]];
+
+			// for figuring out when to dump a new ROC sample
+
+			var next = Math.floor(perm.perm.length / sample);
+
+			// go over the sorted results
+
+			for (var i = 0; i &amp;lt; perm.perm.length; i++) {
+
+				// get the ground
+
+				var ground = this.grounds[perm.perm[i]];
+
+				// update TP/FP counts according to the ground
+
+				if (ground &gt; 0) { TP++ } else { FP++; }
+
+				// see if time to do next save
+
+				next = next - 1;		
+
+				if (next &amp;lt;= 0) {
+
+					// add new datapoint to the curve 
+
+					ROC.push([FP/this.allNegatives, TP/this.allPositives]);
+
+					// setup next timer 
+
+					next = Math.floor(perm.perm.length / sample);
+
+				}
+
+			}
+
+			// add the last point
+
+			ROC.push([1,1]);
+
+			// return ROC
+
+			return ROC;
+
+		}
+
+    
+
+		//!     - &#x60;num = result.auc(sample)&#x60; -- get AUC of the current curve
+
+		this.auc = function (sample) {
+
+			// default sample size is 10
+
+			sample = sample || 10;
+
+	        // get the curve
+
+	        var curve = this.curve(sample);
+
+	        // compute the area
+
+	        var result = 0;
+
+	        for (var i = 1; i &amp;lt; curve.length; i++) {
+
+	            // get edge points
+
+	            var left = curve[i-1];
+
+	            var right = curve[i];
+
+	            // first the rectangle bellow
+
+	            result = result + (right[0] - left[0]) * left[1];
+
+	            // an then the triangle above 
+
+	            result = result + (right[0] - left[0]) * (right[1] - left[1]) / 2;
+
+	        }
+
+	        return result;
+
+	    }
+
+    
+
+	    //!     - &#x60;num = result.breakEvenPoint()&#x60; -- get break-even point, which is number where precision and recall intersect
+
+	    this.breakEvenPoint = function () {
+
+			// sort according to predictions
+
+			var perm = this.predictions.sortPerm(false);
+
+			// maintaining the results as we go along
+
+			var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
+
+	        var minDiff = 1.0, bep = -1.0;
+
+			// go over the sorted results
+
+			for (var i = 0; i &amp;lt; perm.perm.length; i++) {
+
+				// get the ground
+
+				var ground = this.grounds[perm.perm[i]];
+
+				// update TP/FP counts according to the ground
+
+				if (ground &gt; 0) { TP++; FN--; } else { FP++; TN--; }
+
+	            // do the update
+
+	            if ((TP + FP) &gt; 0 &amp;amp;&amp;amp; (TP + FN) &gt; 0 &amp;amp;&amp;amp; TP &gt; 0) {
+
+	                // compute current precision and recall
+
+	                var precision = TP / (TP + FP);
+
+	                var recall = TP / (TP + FN);
+
+	                // see if we need to update current bep
+
+	                var diff = Math.abs(precision - recall);
+
+	                if (diff &amp;lt; minDiff) { minDiff = diff; bep = (precision + recall) / 2; }
+
+	            }
+
+	        }        
+
+	        return bep;
+
+	    }
+
+    
+
+	    //!     - &#x60;num = result.bestF1()&#x60; -- gets threshold for prediction score, which results in the highest F1
+
+	    this.bestF1 = function () {
+
+			// sort according to predictions
+
+			var perm = this.predictions.sortPerm(false);
+
+			// maintaining the results as we go along
+
+			var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
+
+	        var maxF1 = 0.0, prediction = -1.0;
+
+			// go over the sorted results
+
+			for (var i = 0; i &amp;lt; perm.perm.length; i++) {
+
+				// get the ground
+
+				var ground = this.grounds[perm.perm[i]];
+
+				// update TP/FP counts according to the ground
+
+				if (ground &gt; 0) { TP++; FN--; } else { FP++; TN--; }
+
+	            // do the update
+
+	            if ((TP + FP) &gt; 0 &amp;amp;&amp;amp; (TP + FN) &gt; 0 &amp;amp;&amp;amp; TP &gt; 0) {
+
+	                // compute current precision, recall and F1
+
+	                var precision = TP / (TP + FP);
+
+	                var recall = TP / (TP + FN);
+
+	                var f1 = 2 * precision * recall / (precision + recall);
+
+	                // see if we need to update max F1
+
+	                if (f1 &gt; maxF1) { maxF1 = f1; prediction = perm.vec[i]; }
+
+	            }
+
+	        }        
+
+	        return prediction;
+
+	    }
+
+	    
+
+		//!     - &#x60;result.report(sample)&#x60; -- output to screen
+
+		this.report = function (sample) {
+
+			// default sample size is 10
+
+			sample = sample || 10;
+
+			// get the curve
+
+			var curve = this.curve(sample);
+
+			// print to console
+
+	        console.log(&quot;FPR TPR&quot;);
+
+			for (var i = 0; i &amp;lt; curve.length; i++) {
+
+			 	console.log(curve[i][0] + &quot; &quot; + curve[i][1]);
+
+	        }        
+
+		}
+
+	}
 
 
-    //#- &#x60;result = analytics.crossValidation(rs, features, target, folds)&#x60; -- creates a batch
 
-    //#     model for records from record set &#x60;rs&#x60; using &#x60;features; &#x60;target&#x60; is the
+	//!- &#x60;cf = new analytics.confusionMatrix(cats)&#x60; -- for tracking confusion between label classification
 
-    //#     target field and is assumed discrete; the result is a results object
+	exports.confusionMatrix = function (cats) {
 
-    //#     with the following API:
+	    //!     - &#x60;cf.cats&#x60; -- categories we are tracking
 
-    //#     - &#x60;result.target&#x60; -- an object with categories as keys and the following
+	    this.cats = cats;
 
-    //#       counts as members of these keys: &#x60;count&#x60;, &#x60;TP&#x60;, &#x60;TN&#x60;, &#x60;FP&#x60;, &#x60;FN&#x60;,
+	    //!     - &#x60;cf.matrix&#x60; -- confusion matrix
 
-    //#       &#x60;all()&#x60;, &#x60;precision()&#x60;, &#x60;recall()&#x60;, &#x60;accuracy()&#x60;.
+	    this.matrix = new la.Matrix({rows: cats.length, cols: cats.length});
 
-    //#     - &#x60;result.confusion&#x60; -- confusion matrix between categories
+    
 
-    //#     - &#x60;result.report()&#x60; -- prints basic report on to the console
+	    // get category name to id
 
-    //#     - &#x60;result.reportCSV(fout)&#x60; -- prints CSV output to the &#x60;fout&#x60; output stream
+	    this.getCatId = function (cat) {
+
+	        for (var i = 0; i &amp;lt; cats.length; i++) {
+
+	            if (cats[i] === cat) {
+
+	                return i;
+
+	            }
+
+	        }
+
+	        return -1;
+
+	    }
+
+    
+
+	    //!     - &#x60;cf.count(correct, predicted)&#x60; -- update matrix with new prediction
+
+	    this.count = function(correct, predicted) {
+
+	        var row = this.getCatId(correct);
+
+	        if (row == -1) { console.log(&quot;Unknown category &#x27;&quot; + correct + &quot;&#x27;&quot;); }
+
+	        var col = this.getCatId(predicted);
+
+	        if (col == -1) { console.log(&quot;Unknown category &#x27;&quot; + predicted + &quot;&#x27;&quot;); }
+
+	        this.matrix.put(row, col, this.matrix.at(row, col) + 1);
+
+	    }    
+
+    
+
+	    //!     - &#x60;cf.report()&#x60; -- report on the current status
+
+	    this.report = function() {
+
+	        // get column width
+
+	        var max = 0;
+
+	        // first label name
+
+	        for (var i = 0; i &amp;lt; this.cats.length; i++) {
+
+	            if (cats[i].length &gt; max) { max = cats[i].length; }
+
+	        }
+
+	        // then max number
+
+	        for (var i = 0; i &amp;lt; this.cats.length; i++) {
+
+	            for (var j = 0; j &amp;lt; this.cats.length; j++) {
+
+	                var digits = Math.ceil(Math.log(this.matrix.at(i, j)) / Math.LN10) + 2;
+
+	                if (digits &gt; max) { max = digits; }
+
+	            }
+
+	        }
+
+	        // for prittyfying strings
+
+	        function addSpace(str, len) { 
+
+	            while (str.length &amp;lt; len) { 
+
+	                str = &quot; &quot; + str; 
+
+	            }
+
+	            return str;
+
+	        }
+
+	        // print header
+
+	        var header = addSpace(&quot;&quot;, max);
+
+	        for (var i = 0; i &amp;lt; this.cats.length; i++) {
+
+	            header = header + addSpace(this.cats[i], digits);
+
+	        }
+
+	        console.log(header);
+
+	        // print elements
+
+	        for (var i = 0; i &amp;lt; this.cats.length; i++) {
+
+	            var line = addSpace(this.cats[i], max);
+
+	            for (var j = 0; j &amp;lt; this.cats.length; j++) {
+
+	                line = line + addSpace(&quot;&quot; + Math.round(this.matrix.at(i, j)), max);
+
+	            }
+
+	            console.log(line);
+
+	        }
+
+	    }
+
+    
+
+	    //!     - &#x60;cf.reportCSV(fout)&#x60; -- report on the current status
+
+	    this.reportCSV = function(fout) {
+
+	        // print header
+
+	        var header = &quot;&quot;;
+
+	        for (var i = 0; i &amp;lt; this.cats.length; i++) {
+
+	            header = header + &quot;,&quot; + this.cats[i];
+
+	        }
+
+	        fout.writeLine(header);
+
+	        // print elements
+
+	        for (var i = 0; i &amp;lt; this.cats.length; i++) {
+
+	            var line = this.cats[i];
+
+	            for (var j = 0; j &amp;lt; this.cats.length; j++) {
+
+	                line = line + &quot;,&quot; + Math.round(this.matrix.at(i, j));
+
+	            }
+
+	            fout.writeLine(line);
+
+	        }
+
+	    }    
+
+	}
+
+	
+
+
+
+    //!- &#x60;result = analytics.crossValidation(rs, features, target, folds)&#x60; -- creates a batch
+
+    //!     model for records from record set &#x60;rs&#x60; using &#x60;features; &#x60;target&#x60; is the
+
+    //!     target field and is assumed discrete; the result is a results object
+
+    //!     with the following API:
+
+    //!     - &#x60;result.target&#x60; -- an object with categories as keys and the following
+
+    //!       counts as members of these keys: &#x60;count&#x60;, &#x60;TP&#x60;, &#x60;TN&#x60;, &#x60;FP&#x60;, &#x60;FN&#x60;,
+
+    //!       &#x60;all()&#x60;, &#x60;precision()&#x60;, &#x60;recall()&#x60;, &#x60;accuracy()&#x60;.
+
+    //!     - &#x60;result.confusion&#x60; -- confusion matrix between categories
+
+    //!     - &#x60;result.report()&#x60; -- prints basic report on to the console
+
+    //!     - &#x60;result.reportCSV(fout)&#x60; -- prints CSV output to the &#x60;fout&#x60; output stream
 
     exports.crossValidation = function (records, features, target, folds, limitCategories) {
 
@@ -1592,10 +2042,6 @@
         return cfyRes;
 
     };
-
-
-
-
 
 
 
