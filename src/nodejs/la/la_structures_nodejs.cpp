@@ -1207,7 +1207,7 @@ void TNodeJsSpMat::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				else {
 					const int Cols = TNodeJsUtil::GetArgInt32(Args, 0, "cols");
 					const int Rows = TNodeJsUtil::GetArgInt32(Args, 0, "rows", -1);
-					EAssert(Cols > 0 && Rows > 0);
+                    EAssert(Cols >= 0 && (Rows == -1 || Rows > 0));
 					JsSpMat->Mat.Gen(Cols);
 					JsSpMat->Rows = Rows;
 				}
