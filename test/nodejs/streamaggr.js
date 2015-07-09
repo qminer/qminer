@@ -2568,7 +2568,7 @@ describe('Correlation Tests', function () {
     });
 });
 
-describe.only('Resampler Tests', function () {
+describe('Resampler Tests', function () {
     var base = undefined;
     var store = undefined;
     var out = undefined;
