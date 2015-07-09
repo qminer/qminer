@@ -1637,28 +1637,28 @@ private:
      * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
      */
 	
-    //!- `rec = rec.addJoin(joinName, (joinRecord | joinRecordId))` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string). Returns self.
-    //!- `rec = rec.addJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
+    //!- `rec = rec.$addJoin(joinName, (joinRecord | joinRecordId))` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string). Returns self.
+    //!- `rec = rec.$addJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
 	/**
-	* addJoin // TODO
+	* $addJoin // TODO
 	* @param {string} joinName
 	* @param {(module:qm.Record | number)} joinRecord
 	* @param {number} [joinFrequency]
 	* @returns {module:qm.Record} Record.
 	*/
-	//# exports.Record.prototype.addJoin = function (joinName, joinRecord, joinFrequency) {}
+	//# exports.Record.prototype.$addJoin = function (joinName, joinRecord, joinFrequency) {}
 	JsDeclareFunction(addJoin);
 
-    //!- `rec = rec.delJoin(joinName, (joinRecord | joinRecordId))` -- deletes join record `joinRecord` (or given id, joinRecordId) from join `joinName` (string). Returns self.
-    //!- `rec = rec.delJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- deletes join record `joinRecord` (or given id, joinRecordId) from join `joinName` (string) with join frequency `joinFrequency`. Return self.
+    //!- `rec = rec.$delJoin(joinName, (joinRecord | joinRecordId))` -- deletes join record `joinRecord` (or given id, joinRecordId) from join `joinName` (string). Returns self.
+    //!- `rec = rec.$delJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- deletes join record `joinRecord` (or given id, joinRecordId) from join `joinName` (string) with join frequency `joinFrequency`. Return self.
 	/**
-	* delJoin // TODO
+	* $delJoin // TODO
 	* @param {string} joinName
 	* @param {(module:qm.Record | number)} joinRecord
 	* @param {number} [joinFrequency]
 	* @returns {module:qm.Record} Record.
 	*/
-	//# exports.Record.prototype.delJoin = function (joinName, joinRecord, joinFrequency) {}
+	//# exports.Record.prototype.$delJoin = function (joinName, joinRecord, joinFrequency) {}
 	JsDeclareFunction(delJoin);
 
     //!- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
@@ -1722,7 +1722,7 @@ private:
 	/**
 	* Returns the store the record belongs to.
 	*/
-	//# exports.Record.prototype.store = undefined;
+	//# exports.Record.prototype.$store = undefined;
 	JsDeclareProperty(store);
 
 	//!- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
