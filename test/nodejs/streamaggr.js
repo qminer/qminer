@@ -825,6 +825,17 @@ describe('MovingWindowBufferCount Tests', function () {
         })
     });
     describe('GetFloat Tests', function () {
+        it('should return 1 when there is only one record in the aggregate', function () {
+            var aggr = {
+                name: 'CountAggr',
+                type: 'winBufCount',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            }
+            var count = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            assert.equal(count.getFloat(), 1);
+        })
         it('should return the float value of the aggregate', function () {
             var aggr = {
                 name: 'CountAggr',
@@ -847,6 +858,20 @@ describe('MovingWindowBufferCount Tests', function () {
             }
             var count = store.addStreamAggr(aggr);
             assert.equal(count.getFloat(), 0);
+        })
+        it('should return 3 (the number of records in the timeseries buffer)', function () {
+            var aggr = {
+                name: 'CountAggr',
+                type: 'winBufCount',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            }
+            var count = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:35.0', Value: 4 });
+            assert.equal(count.getFloat(), 3);
         })
     });
     describe('GetTimestamp Tests', function () {

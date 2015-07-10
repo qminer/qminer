@@ -14,7 +14,7 @@
 */
 /**
 * Stream Aggregate
-* @classdesc Represents the stream aggregate.
+* @classdesc Represents the stream aggregate. The class can construct these {@link module:qm~StreamAggregators}.
 * @class
 * @param {module:qm.Base} base - The base object on which it's created.
 * @param {(Object | function)} json - The JSON object containing the schema of the stream aggregate or the function object defining the operations of the stream aggregate.
@@ -77,6 +77,173 @@
 * @property {module:qm~StreamAggr_MovingCovariance} cov - The moving covariance type.
 * @property {module:qm~StreamAggr_MovingCorrelation} cor - The moving correlation type.
 * @property {module:qm~StreamAggr_Resampler} res - The resampler type.
+*/
+/**
+* @typedef {module:qm.StreamAggr} StreamAggr_TimeSeries
+* This stream aggregator represents the time series window buffer. It implements all functions of the {@link module:qm.StreamAggr}.
+* @property {string} name - The given name of the stream aggregator.
+* @property {string} type - The type of the stream aggregator. It must be equal to 'timeSeriesWinBuf'.
+* @property {string} store - The name of the store from which to takes the data.
+* @property {string} timestamp - The field of the store, where it takes the time/date.
+* @property {string} value - The field of the store, where it takes the values.
+* @property {number} winsize - The size of the window, in miliseconds.
+* @example 
+* // import the qm module
+* var qm = require('qminer');
+* // create a base with a simple store
+* var base = new qm.Base({
+*    mode: "createClean",
+*    schema: [
+*    {
+*        name: "Heat",
+*        fields: [
+*            { name: "Celcius", type: "float" },
+*            { name: "Time", type: "datetime" }
+*    }
+* });
+* // create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
+* // and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+* var aggr = {
+*    name: 'TimeSeriesAggr',
+*    type: 'timeSeriesWinBuf',
+*    store: 'Heat',
+*    timestamp: 'Time',
+*    value: 'Celcius',
+*    winsize: 2 * 1000
+* };
+* base.store("Heat").addStreamAggr(aggr); 
+*/
+/**
+* @typedef {module:qm.StreamAggr} StreamAggr_Count
+* This stream aggregator represents the count moving window buffer. It implements the functions:
+* <br>{@link module:qm.StreamAggr#getFloat} returns the number of records in the time series buffer window. 
+* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in the time series buffer window.
+* @property {string} name - The given name of the stream aggregator.
+* @property {string} type - The type of the stream aggregator. It must be equal to 'winBufCount'.
+* @property {string} store - The name of the store from which it takes the data.
+* @property {string} inAggr - The name of the time series aggregator to which it connects and gets the data.
+* @example
+* // import the qm module
+* var qm = require('qminer');
+* // create a base with a simple store
+* var base = new qm.Base({
+*    mode: "createClean",
+*    schema: [
+*    {
+*        name: "Heat",
+*        fields: [
+*            { name: "Celcius", type: "float" },
+*            { name: "Time", type: "datetime" }
+*        ]
+*    }
+* });
+* // create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
+* // and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+* var timeser = {
+*    name: 'TimeSeriesAggr',
+*    type: 'timeSeriesWinBuf',
+*    store: 'Heat',
+*    timestamp: 'Time',
+*    value: 'Celcius',
+*    winsize: 2 * 1000
+* };
+* var timeSeries = base.store("Heat").addStreamAggr(timeser);
+* // add a count aggregator, that is connected with the TimeSeriesAggr
+* var co = {
+*    name: 'CountAggr',
+*    type: 'winBufCount',
+*    store: 'Heat',
+*    inAggr: 'TimeSeriesAggr'
+* };
+* var count = base.store("Heat").addStreamAggr(co);
+*/
+/**
+* @typedef {module:qm.StreamAggr} StreamAggr_Sum
+* This stream aggregator represents the sum moving window buffer. It implements the functions:
+* <br>{@link module:qm.StreamAggr#getFloat} returns the sum of the values of the records in the time series buffer window.
+* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in the time series buffer window.
+* @property {string} name - The given name of the stream aggregator.
+* @property {string} type - The type of the stream aggregator. It must be equal to 'winBufSum'.
+* @property {string} store - The name of the store form which it takes the data.
+* @property {string} inAggr - The name of the time series aggregator to which it connects and gets data.
+* @example
+* // import the qm module
+* var qm = require('qminer');
+* // create a base with a simple store
+* var base = new qm.Base({
+*    mode: "createClean",
+*    schema: [
+*    {
+*        name: "Heat",
+*        fields: [
+*            { name: "Celcius", type: "float" },
+*            { name: "Time", type: "datetime" }
+*        ]
+*    }
+* });
+* // create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
+* // and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+* var timeser = {
+*    name: 'TimeSeriesAggr',
+*    type: 'timeSeriesWinBuf',
+*    store: 'Heat',
+*    timestamp: 'Time',
+*    value: 'Celcius',
+*    winsize: 2 * 1000
+* };
+* var timeSeries = base.store("Heat").addStreamAggr(timeser);
+* // add a sum aggregator, that is connected with the TimeSeriesAggr
+* var sum = {
+*    name: 'SumAggr',
+*    type: 'winBufSum',
+*    store: 'Heat',
+*    inAggr: 'TimeSeriesAggr'
+* };
+* var sumAggr = base.store("Heat").addStreamAggr(sum);
+*/
+/**
+* @typedef {module:qm.StreamAggr} StreamAggr_Min
+* This stream aggregator represents the minimal moving window buffer. It implements the functions:
+* <br>{@link module:qm.StreamAggr#getFloat} returns the minimal value of the records in the time series buffer window.
+* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in the time series buffer window.
+* @property {string} name - The given name of the stream aggregator.
+* @property {string} type - The type of the stream aggregator. It must be equal to 'winBufMin'.
+* @property {string} store - The name of the store from which it tiakes the data.
+* @property {string} inAggr - The name of the time series aggregator to which it connects and gets data.
+* @example
+* // import the qm module
+* var qm = require('qminer');
+* // create a base with a simple store
+* var base = new qm.Base({
+*    mode: "createClean",
+*    schema: [
+*    {
+*        name: "Heat",
+*        fields: [
+*            { name: "Celcius", type: "float" },
+*            { name: "Time", type: "datetime" }
+*        ]
+*    }
+* });
+* // create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
+* // and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+* var timeser = {
+*    name: 'TimeSeriesAggr',
+*    type: 'timeSeriesWinBuf',
+*    store: 'Heat',
+*    timestamp: 'Time',
+*    value: 'Celcius',
+*    winsize: 2 * 1000
+* };
+* var timeSeries = base.store("Heat").addStreamAggr(timeser);
+* // add a min aggregator, that is connected with the TimeSeriesAggr
+* var min = {
+*    name: 'MinAggr',
+*    type: 'winBufMin',
+*    store: 'Heat',
+*    inAggr: 'TimeSeriesAggr'
+* };
+* var minimal = base.store("Heat").addStreamAggr(min);
 */
 /**
 	* Executes the function when a new record is put in store.
