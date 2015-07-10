@@ -79,6 +79,23 @@
 * var sa = base.store("Laser").addStreamAggr(wavelength);
 */
 //# exports.StreamAggr = function (base, json, storeName) {};
+
+/**
+* @typedef {module:qm.StreamAggr} StreamAggregators
+* Stream aggregator types.
+* @property {module:qm~StreamAggr_TimeSeries} timeSeries - The time series type.
+* @property {module:qm~StreamAggr_Count} count - The count type.
+* @property {module:qm~StreamAggr_Sum} sum - The sum type.
+* @property {module:qm~StreamAggr_Min} min - The minimal type.
+* @property {module:qm~StreamAggr_Max} max - The maximal type.
+* @property {module:qm~StreamAggr_MovingAverage} ma - The moving average type.
+* @property {module:qm~StreamAggr_EMA} ema - The exponental moving average type.
+* @property {module:qm~StreamAggr_MovingVariance} var - The moving variance type.
+* @property {module:qm~StreamAggr_MovingCovariance} cov - The moving covariance type.
+* @property {module:qm~StreamAggr_MovingCorrelation} cor - The moving correlation type.
+* @property {module:qm~StreamAggr_Resampler} res - The resampler type.
+*/
+
 class TNodeJsSA : public node::ObjectWrap {
 private:
 	// Node framework

@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>
-            <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-8">qminer_aggrdoc.<wbr>js:8</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-8">qminerdoc.<wbr>js:8</a></p>
             <div class="symbol-description">
               <p>Qminer module.</p>
             </div>
@@ -151,41 +151,41 @@
                     <dt><a href="module-qm.html#~BaseConstructorParam">BaseConstructorParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.html#~FeatureExtractorCategorical">FeatureExtractorCategorical</a></dt>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Categorical">FeatureExtractor_Categorical</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.html#~FeatureExtractorConstant">FeatureExtractorConstant</a></dt>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Constant">FeatureExtractor_Constant</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.html#~FeatureExtractorDateWindow">FeatureExtractorDateWindow</a></dt>
+                    <dt><a href="module-qm.html#~FeatureExtractor_DateWindow">FeatureExtractor_DateWindow</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.html#~FeatureExtractorJoin">FeatureExtractorJoin</a></dt>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Join">FeatureExtractor_Join</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.html#~FeatureExtractorJsfunc">FeatureExtractorJsfunc</a></dt>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Jsfunc">FeatureExtractor_Jsfunc</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.html#~FeatureExtractorMultinomial">FeatureExtractorMultinomial</a></dt>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Multinomial">FeatureExtractor_Multinomial</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.html#~FeatureExtractorNumeric">FeatureExtractorNumeric</a></dt>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Numeric">FeatureExtractor_Numeric</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.html#~FeatureExtractorPair">FeatureExtractorPair</a></dt>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Pair">FeatureExtractor_Pair</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.html#~FeatureExtractorRandom">FeatureExtractorRandom</a></dt>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Random">FeatureExtractor_Random</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Text">FeatureExtractor_Text</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.html#~FeatureExtractors">FeatureExtractors</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-qm.html#~FeatureExtractorText">FeatureExtractorText</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.html#~FeatureSource">FeatureSource</a></dt>
@@ -211,6 +211,9 @@
                     <dd>
                     </dd>
                     <dt><a href="module-qm.html#~SchemaTimeWindowDefinition">SchemaTimeWindowDefinition</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~StreamAggregators">StreamAggregators</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -1088,7 +1091,7 @@
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~FeatureExtractorCategorical"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorCategorical</span><small class="property-type">
+              <h3 id="~FeatureExtractor_Categorical"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Categorical</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: categorical</p>
               <section>
@@ -1201,7 +1204,7 @@ var ftr = qm.FeatureSpace(base, { type: &quot;categorical&quot;, source: &quot;C
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~FeatureExtractorConstant"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorConstant</span><small class="property-type">
+              <h3 id="~FeatureExtractor_Constant"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Constant</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: constant</p>
               <section>
@@ -1282,7 +1285,7 @@ var ftr = qm.FeatureSpace(base, { type: &quot;constant&quot;, source: &quot;Pers
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~FeatureExtractorDateWindow"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorDateWindow</span><small class="property-type">
+              <h3 id="~FeatureExtractor_DateWindow"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_DateWindow</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: dateWindow</p>
               <section>
@@ -1403,7 +1406,7 @@ var ftr = qm.FeatureSpace(base, { type: &quot;constant&quot;, source: &quot;Pers
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~FeatureExtractorJoin"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorJoin</span><small class="property-type">
+              <h3 id="~FeatureExtractor_Join"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Join</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: join</p>
               <section>
@@ -1466,7 +1469,7 @@ var ftr = qm.FeatureSpace(base, { type: &quot;constant&quot;, source: &quot;Pers
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~FeatureExtractorJsfunc"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorJsfunc</span><small class="property-type">
+              <h3 id="~FeatureExtractor_Jsfunc"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Jsfunc</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: jsfunc</p>
               <section>
@@ -1584,7 +1587,7 @@ var ftr = qm.FeatureSpace(base, {
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~FeatureExtractorMultinomial"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorMultinomial</span><small class="property-type">
+              <h3 id="~FeatureExtractor_Multinomial"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Multinomial</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: multinomial</p>
               <section>
@@ -1730,7 +1733,7 @@ var ftr = qm.FeatureSpace(base, {
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~FeatureExtractorNumeric"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorNumeric</span><small class="property-type">
+              <h3 id="~FeatureExtractor_Numeric"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Numeric</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: numeric</p>
               <section>
@@ -1857,7 +1860,7 @@ var ftr = qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~FeatureExtractorPair"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorPair</span><small class="property-type">
+              <h3 id="~FeatureExtractor_Pair"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Pair</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: pair</p>
               <section>
@@ -1933,7 +1936,7 @@ var ftr = qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~FeatureExtractorRandom"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorRandom</span><small class="property-type">
+              <h3 id="~FeatureExtractor_Random"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Random</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: random</p>
               <section>
@@ -2014,167 +2017,7 @@ var ftr = qm.FeatureSpace(base, { type: &quot;random&quot;, source: &quot;Person
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~FeatureExtractors"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractors</span><small class="property-type">
-                &nbsp;Object</small></h3>
-              <p>Feature extractor types.</p>
-              <section>
-                <h4>Properties</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>constant</p>
-                      </td>
-                      <td>
-                        <p><a href="module-qm.html#~FeatureExtractorConstant">module:qm~FeatureExtractorConstant</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The constant type.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>random</p>
-                      </td>
-                      <td>
-                        <p><a href="module-qm.html#~FeatureExtractorRandom">module:qm~FeatureExtractorRandom</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The random type.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>numeric</p>
-                      </td>
-                      <td>
-                        <p><a href="module-qm.html#~FeatureExtractorNumeric">module:qm~FeatureExtractorNumeric</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The numeric type.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>categorical</p>
-                      </td>
-                      <td>
-                        <p><a href="module-qm.html#~FeatureExtractorCategorical">module:qm~FeatureExtractorCategorical</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The categorical type.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>multinomial</p>
-                      </td>
-                      <td>
-                        <p><a href="module-qm.html#~FeatureExtractorMultinomial">module:qm~FeatureExtractorMultinomial</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The multinomial type.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>text</p>
-                      </td>
-                      <td>
-                        <p><a href="module-qm.html#~FeatureExtractorText">module:qm~FeatureExtractorText</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The text type.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>join</p>
-                      </td>
-                      <td>
-                        <p><a href="module-qm.html#~FeatureExtractorJoin">module:qm~FeatureExtractorJoin</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The join type.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>pair</p>
-                      </td>
-                      <td>
-                        <p><a href="module-qm.html#~FeatureExtractorPair">module:qm~FeatureExtractorPair</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The pair type.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>jsfunc</p>
-                      </td>
-                      <td>
-                        <p><a href="module-qm.html#~FeatureExtractorJsfunc">module:qm~FeatureExtractorJsfunc</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The jsfunc type.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>dateWindow</p>
-                      </td>
-                      <td>
-                        <p><a href="module-qm.html#~FeatureExtractorDateWindow">module:qm~FeatureExtractorDateWindow</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The dateWindow type.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="~FeatureExtractorText"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorText</span><small class="property-type">
+              <h3 id="~FeatureExtractor_Text"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Text</span><small class="property-type">
                 &nbsp;Object</small></h3>
               <p>Feature type: text</p>
               <section>
@@ -2340,6 +2183,166 @@ var ftr = qm.FeatureSpace(base, {
                       </td>
                       <td>
                         <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractors"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractors</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature extractor types.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>constant</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Constant">module:qm~FeatureExtractor_Constant</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The constant type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>random</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Random">module:qm~FeatureExtractor_Random</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The random type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>numeric</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Numeric">module:qm~FeatureExtractor_Numeric</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The numeric type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>categorical</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Categorical">module:qm~FeatureExtractor_Categorical</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The categorical type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>multinomial</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Multinomial">module:qm~FeatureExtractor_Multinomial</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The multinomial type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>text</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Text">module:qm~FeatureExtractor_Text</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The text type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>join</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Join">module:qm~FeatureExtractor_Join</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The join type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>pair</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Pair">module:qm~FeatureExtractor_Pair</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pair type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>jsfunc</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Jsfunc">module:qm~FeatureExtractor_Jsfunc</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The jsfunc type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>dateWindow</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_DateWindow">module:qm~FeatureExtractor_DateWindow</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The dateWindow type.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -3057,6 +3060,180 @@ var base = new qm.Base([{
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="~StreamAggregators"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregators</span><small class="property-type">
+                &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+              <p>Stream aggregator types.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>timeSeries</p>
+                      </td>
+                      <td>
+                        <p>module:qm~StreamAggr_TimeSeries</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The time series type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>count</p>
+                      </td>
+                      <td>
+                        <p>module:qm~StreamAggr_Count</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The count type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>sum</p>
+                      </td>
+                      <td>
+                        <p>module:qm~StreamAggr_Sum</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The sum type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>min</p>
+                      </td>
+                      <td>
+                        <p>module:qm~StreamAggr_Min</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The minimal type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>max</p>
+                      </td>
+                      <td>
+                        <p>module:qm~StreamAggr_Max</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The maximal type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>ma</p>
+                      </td>
+                      <td>
+                        <p>module:qm~StreamAggr_MovingAverage</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The moving average type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>ema</p>
+                      </td>
+                      <td>
+                        <p>module:qm~StreamAggr_EMA</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The exponental moving average type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>var</p>
+                      </td>
+                      <td>
+                        <p>module:qm~StreamAggr_MovingVariance</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The moving variance type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>cov</p>
+                      </td>
+                      <td>
+                        <p>module:qm~StreamAggr_MovingCovariance</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The moving covariance type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>cor</p>
+                      </td>
+                      <td>
+                        <p>module:qm~StreamAggr_MovingCorrelation</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The moving correlation type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>res</p>
+                      </td>
+                      <td>
+                        <p>module:qm~StreamAggr_Resampler</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The resampler type.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
             </section>
           </section>
         </div>
@@ -3067,7 +3244,7 @@ var base = new qm.Base([{
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 9, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 10, 2015.
       </p>
     </div>
   </footer>
