@@ -289,7 +289,7 @@ uint64 TZipIn::GetFLen(const TStr& ZipFNm) {
   #endif
   BfL = (int) BytesRead;  IAssert((BfC!=0)||(BfL!=0));
   BfC = 0; Bf[BfL] = 0;
-  // find file lenght
+  // find file length
   TStr Str(Bf);  delete [] Bf;
   TStrV StrV; Str.SplitOnWs(StrV);
   int n = StrV.Len()-1;
