@@ -398,6 +398,7 @@ void TNodeJsGraph<T>::edges(v8::Local<v8::String> Name, const v8::PropertyCallba
 template <class T>
 void TNodeJsGraph<T>::eachNode(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::TryCatch TryCatch;
 	v8::HandleScope HandleScope(Isolate);
 	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
 
@@ -411,6 +412,10 @@ void TNodeJsGraph<T>::eachNode(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 			NodeObj, v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 		};
 		Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();
+			return;
+		}
 		Count++;
 	}
 
@@ -421,6 +426,7 @@ template <class T>
 void TNodeJsGraph<T>::eachEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
 	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
 
 	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
@@ -433,6 +439,10 @@ void TNodeJsGraph<T>::eachEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 			EdgeObj, v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 		};
 		Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();
+			return;
+		}
 		Count++;
 	}
 
@@ -724,6 +734,7 @@ template <class T>
 void TNodeJsNode<T>::eachNbr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 
 	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
@@ -736,6 +747,10 @@ void TNodeJsNode<T>::eachNbr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			v8::Integer::New(Isolate, NbrId), v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 		};
 		Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();
+			return;
+		}
 		Count++;
 	}
 
@@ -746,6 +761,7 @@ template <class T>
 void TNodeJsNode<T>::eachInNbr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 
 	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
@@ -758,6 +774,10 @@ void TNodeJsNode<T>::eachInNbr(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 			v8::Integer::New(Isolate, NbrId), v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 		};
 		Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();
+			return;
+		}
 		Count++;
 	}
 
@@ -768,6 +788,7 @@ template <class T>
 void TNodeJsNode<T>::eachOutNbr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 
 	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
@@ -780,6 +801,10 @@ void TNodeJsNode<T>::eachOutNbr(const v8::FunctionCallbackInfo<v8::Value>& Args)
 			v8::Integer::New(Isolate, NbrId), v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 		};
 		Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			TryCatch.ReThrow();
+			return;
+		}
 		Count++;
 	}
 

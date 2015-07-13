@@ -117,10 +117,10 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 		}
 
 		// compute delta_w = H(w) \ (g(w))
-#ifdef BLAS
+#ifdef LAPACKE
 		TNumericalStuff::LUSolve(H, DeltaWgtV, GradV);
 #else
-		throw TExcept::New("Should include BLAS!!");
+		throw TExcept::New("Should include LAPACKE!!");
 #endif
 
 		if (TFlt::IsNan(TLinAlg::Norm(DeltaWgtV))) {
@@ -262,10 +262,10 @@ void TPropHazards::Fit(const TFltVV& _X, const TFltV& t, const double& Eps) {
 		}
 
 		// III) compute: delta_w = H \ grad
-#ifdef BLAS
+#ifdef LAPACKE
 		TNumericalStuff::SVDSolve(H, DeltaWgtV, GradV, 1e-10);
 #else
-		throw TExcept::New("Should include BLAS!!");
+		throw TExcept::New("Should include LAPACKE!!");
 #endif
 
 		// IV) w <= w - delta_w

@@ -730,11 +730,11 @@ public:
 	JsDeclareFunction(save);
 
 	// TMcCallback - callbacks
-	void OnStateChanged(const TIntFltPrV& StateIdHeightV);
-	void OnAnomaly(const TStr& AnomalyDesc);
-	void OnOutlier(const TFltV& FtrV);
+	void OnStateChanged(const TIntFltPrV& StateIdHeightV) override;
+	void OnAnomaly(const TStr& AnomalyDesc) override;
+	void OnOutlier(const TFltV& FtrV) override;
 	void OnPrediction(const uint64& RecTm, const int& CurrStateId, const int& TargetStateId,
-			const double& Prob, const TFltV& ProbV, const TFltV& TmV);
+			const double& Prob, const TFltV& ProbV, const TFltV& TmV) override;
 
 private:
 	void SetParams(const PJsonVal& ParamVal);

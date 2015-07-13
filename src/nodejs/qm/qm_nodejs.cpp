@@ -247,11 +247,11 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJso
 			TStrV FNmV;
 			TStrV FExtV;
 			TFFile::GetFNmV(DbFPath, FExtV, true, FNmV);
-			bool DirEmpty = FNmV.Len() == 0;
-			if (!DirEmpty) {
+			if (!FNmV.Empty()) {
 				// delete all files
 				for (int FileN = 0; FileN < FNmV.Len(); FileN++) {
-					TFile::Del(FNmV[FileN], true);
+					const TStr& FNm = FNmV[FileN];
+					TFile::Del(FNm, true);
 				}
 			}
 		}
@@ -261,8 +261,7 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJso
 			TStrV FNmV;
 			TStrV FExtV;
 			TFFile::GetFNmV(DbFPath, FExtV, true, FNmV);
-			bool DirEmpty = FNmV.Len() == 0;
-			if (!DirEmpty) {
+			if (!FNmV.Empty()) {
 				// if not empty and create was called
 				throw TQm::TQmExcept::New("new base(...): database folder not empty "
                     "and mode=create. Clear db folder or use mode=createClean!");

@@ -1447,18 +1447,19 @@ bool TCtMChain::PredictOccurenceTime(const TStateFtrVV& StateFtrVV, const TState
 	return true;
 }
 
-TVector TCtMChain::GetStatDist(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const {
-	TVector StaticDist = GetStatDist(GetQMatrix(StateSetV, StateFtrVV), Notify);
+void TCtMChain::GetStatDist(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+		TFltV& StatDist) const {
+	GetStatDist(GetQMatrix(StateSetV, StateFtrVV), StatDist, Notify);
 	if (HasHiddenState) {
-		StaticDist.DelLast();
-		StaticDist /= StaticDist.Sum();
+		StatDist.DelLast();
+		TLinAlg::MultiplyScalar(1 / TLinAlg::SumVec(StatDist), StatDist);
 	}
-	return StaticDist;
 }
 
-TVector TCtMChain::GetStateSizeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const {
+void TCtMChain::GetStateSizeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltV& StateSizeV) const {
 //	return GetHoldingTimeV(GetQMatrix(JoinedStateVV));
-	return GetStatDist(StateSetV, StateFtrVV);
+
+	GetStatDist(StateSetV, StateFtrVV, StateSizeV);
 }
 
 TFullMatrix TCtMChain::GetTransitionMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const {
@@ -1477,12 +1478,11 @@ TFullMatrix TCtMChain::GetJumpMatrix(const TStateSetV& StateSetV, const TStateFt
 	}
 }
 
-TVector TCtMChain::GetHoldingTimeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const {
-	TVector HoldingTmV = GetHoldingTimeV(GetQMatrix(StateSetV, StateFtrVV));
+void TCtMChain::GetHoldingTimeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltV& HoldingTmV) const {
+	GetHoldingTimeV(GetQMatrix(StateSetV, StateFtrVV), HoldingTmV);
 	if (HasHiddenState) {
 		HoldingTmV.DelLast();
 	}
-	return HoldingTmV;
 }
 
 bool TCtMChain::IsAnomalousJump(const TFltV& FtrV, const int& NewStateId, const int& OldStateId) const {
@@ -1722,7 +1722,7 @@ TFullMatrix TCtMChain::GetQMatrix(const TStateSetV& InStateSetV, const TStateFtr
 	TFullMatrix JoinedQMat(NStates, NStates);
 
 	const TFullMatrix QMat = GetQMatrix(StateFtrVV);
-	const TVector StatDist = GetStatDist(QMat, Notify);
+	TFltV StatDist;	GetStatDist(QMat, StatDist, Notify);
 
 	for (int JoinState1Idx = 0; JoinState1Idx < NStates; JoinState1Idx++) {
 		const TIntV& JoinState1 = StateSetV[JoinState1Idx];
@@ -1764,7 +1764,7 @@ TFullMatrix TCtMChain::GetQMatrix(const TStateSetV& InStateSetV, const TStateFtr
 TFullMatrix TCtMChain::GetRevQMatrix(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const {
 	const int n = StateSetV.Len();
 	const TFullMatrix QMat = GetQMatrix(StateSetV, StateFtrVV);
-	const TVector StatDist = GetStatDist(QMat, Notify);
+	TFltV StatDist;	GetStatDist(QMat, StatDist, Notify);
 
 	TFullMatrix QRev(n,n);
 
@@ -1777,15 +1777,13 @@ TFullMatrix TCtMChain::GetRevQMatrix(const TStateSetV& StateSetV, const TStateFt
 	return QRev;
 }
 
-TVector TCtMChain::GetHoldingTimeV(const TFullMatrix& QMat) const {
+void TCtMChain::GetHoldingTimeV(const TFullMatrix& QMat, TFltV& HoldingTmV) const {
 	const int Rows = QMat.GetRows();
 
-	TVector HoldTmV(Rows);
+	HoldingTmV.Gen(Rows, Rows);
 	for (int i = 0; i < Rows; i++) {
-		HoldTmV[i] = -1 / QMat(i,i);
+		HoldingTmV[i] = -1 / QMat(i,i);
 	}
-
-	return HoldTmV;
 }
 
 void TCtMChain::GetNextStateProbV(const TFullMatrix& QMat, const TStateIdV& StateIdV,
@@ -1826,27 +1824,35 @@ void TCtMChain::GetNextStateProbV(const TFullMatrix& QMat, const TStateIdV& Stat
 	}
 }
 
-TVector TCtMChain::GetStatDist(const TFullMatrix& QMat, const PNotify& Notify) {
+void TCtMChain::GetStatDist(const TFullMatrix& QMat, TFltV& ProbV, const PNotify& Notify) {
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Computing static distribution of %d states ...", QMat.GetRows());
-
+	const int Dim = QMat.GetRows();
 	// returns the stationary distribution
 	// pi*Q = 0
-	TVector EigenVec(QMat.GetRows(), false);
-	TNumericalStuff::GetEigenVec(QMat.GetT().GetMat(), 0.0, EigenVec.Vec);
+//	TVector EigenVec(QMat.GetRows(), false);
 
-	const double EigSum = EigenVec.Sum();
+	TNumericalStuff::GetEigenVec(QMat.GetT().GetMat(), 0.0, ProbV);
 
-	EAssertR(EigSum != 0, "Eigenvector should not be 0, norm is " + TFlt::GetStr(EigenVec.Norm()) + "!");
+	const double EigSum = TLinAlg::SumVec(ProbV);
+//	const double EigSum = EigenVec.Sum();
+
+	EAssertR(EigSum != 0, "Eigenvector should not be 0, norm is " + TFlt::GetStr(TLinAlg::Norm(ProbV)) + "!");
 	EAssertR(!TFlt::IsNan(EigSum), "NaNs in eigenvector!");
 
 	//===========================================================
 	// TODO remove this assertion after you know this works
-	const double PiQNorm = (EigenVec * QMat).Norm();
+	// check if the result is correct
+	TFltV PiTimesQ;
+	TLinAlg::MultiplyT(QMat.GetMat(), ProbV, PiTimesQ);
+	const double PiQNorm = TLinAlg::Norm(PiTimesQ);
 	EAssertR(PiQNorm < 1e-3, "This is not an eigenvector with eigenvalue 0");
 	//===========================================================
 
 	// normalize to get a distribution
-	return EigenVec /= EigSum;
+	for (int i = 0; i < Dim; i++) {
+		ProbV[i] /= EigSum;
+	}
+//	return EigenVec /= EigSum;
 }
 
 TFullMatrix TCtMChain::GetProbMat(const TFullMatrix& QMat, const double& Dt) {
@@ -2170,8 +2176,9 @@ PJsonVal TStreamStory::GetJson() const {
 		// iterate over all the parent states and get the joint staying times of their
 		// chindren
 		TFullMatrix TransitionMat = MChain->GetTransitionMat(StateSetV, StateFtrVV);
-		TVector StateSizeV = MChain->GetStateSizeV(StateSetV, StateFtrVV).Map([&](const TFlt& Val) { return Val*(CurrHeight + .1); });
-		TVector HoldingTimeV = MChain->GetHoldingTimeV(StateSetV, StateFtrVV);
+		TFltV HoldingTimeV;	MChain->GetHoldingTimeV(StateSetV, StateFtrVV, HoldingTimeV);
+		TFltV StateSizeV;	MChain->GetStateSizeV(StateSetV, StateFtrVV, StateSizeV);
+		TLinAlg::MultiplyScalar((CurrHeight + .1), StateSizeV);
 
 		// construct state JSON
 		PJsonVal StateJsonV = TJsonVal::NewArr();

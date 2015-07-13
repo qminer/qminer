@@ -76,8 +76,6 @@ public:
 	*/
 	//# exports.zscoreResult = function (mat, flag, dim) { return {sigma:'', mu:'', Z:''}; }
 	JsDeclareFunction(zscore);
-private:
-   // 
 };
 
 #endif
