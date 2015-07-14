@@ -38,56 +38,55 @@ module.exports = exports = function (pathPrefix) {
         }
     };
 
-    exports.OneVsAll = function (model, cats) {
+    exports.OneVsAll = function (model, modelParam, cats) {
         // remember parameters
         this.model = model;
+        this.modelParam = modelParam;
         this.cats = cats;
+        // trained models
+        this.models = [ ];
 
-        function OneVsAllModel(models, cats) {
-            this.models = models;
-            this.cats = cats;
-
-            // apply all models to the given vector and return distance to the class boundary
-            this.decision_function = function(x) {
-                // evaluate all models
-                var scores = [ ];
-                for (var cat = 0; cat < this.cats; cat++) {
-                    scores.push(this.models[cat].decision_function(x));
-                }
-                return scores;
+        // apply all models to the given vector and return distance to the class boundary
+        this.decision_function = function(x) {
+            // evaluate all models
+            var scores = [ ];
+            for (var cat = 0; cat < this.cats; cat++) {
+                scores.push(this.models[cat].decision_function(x));
             }
+            return scores;
+        }
 
-            // return the most likely category
-            this.predict = function(x) {
-                // evaluate all models
-                var scores = this.decision_function(x)
-                // select maximal one
-                var maxScore = scores[0], maxCat = 0;
-                for (var cat = 1; cat < this.cats; cat++) {
-                    if (scores[cat] > maxScore) {
-                        maxScore = scores[cat];
-                        maxCat = cat;
-                    }
+        // return the most likely category
+        this.predict = function(x) {
+            // evaluate all models
+            var scores = this.decision_function(x)
+            // select maximal one
+            var maxScore = scores[0], maxCat = 0;
+            for (var cat = 1; cat < this.cats; cat++) {
+                if (scores[cat] > maxScore) {
+                    maxScore = scores[cat];
+                    maxCat = cat;
                 }
-                // done!
-                return maxCat;
             }
+            // done!
+            return maxCat;
         }
 
         // X = feature matrix
         // y = target label from 0..cats
         this.fit = function(X, y) {
-            var models = [ ];
-            // make model for each cat!=0
+            this.models = [ ];
+            // make model for each category
             for (var cat = 0; cat < this.cats; cat++) {
                 console.log("Fitting label", (cat + 1), "/", this.cats);
                 // prepare targert vector for current category
                 var target = exports.preprocessing.binerize(y, cat);
                 // get the model
-                models.push(this.model.fit(X, target));
+                var catModel = new this.model(this.modelParam);
+                this.models.push(catModel.fit(X, target));
             }
             console.log("Done!");
-            return new OneVsAllModel(models, this.cats);
+            return this;
         }
     };
 
