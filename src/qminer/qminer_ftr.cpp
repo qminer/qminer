@@ -19,6 +19,7 @@ void TFtrExt::Init() {
     Register<TFtrExts::TRandom>();
 	Register<TFtrExts::TConstant>();
     Register<TFtrExts::TNumeric>();
+    Register<TFtrExts::TNumSpV>();
     Register<TFtrExts::TCategorical>();
     Register<TFtrExts::TMultinomial>();
     Register<TFtrExts::TBagOfWords>();
@@ -602,6 +603,133 @@ void TNumeric::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
 
 void TNumeric::ExtractFltV(const TRec& Rec, TFltV& FltV) const {
 	FltV.Add(FtrGen.GetFtr(GetVal(Rec)));   
+}
+
+///////////////////////////////////////////////
+// Sparse Vector Feature Extractor
+void TNumSpV::_GetVal(const TRec& FtrRec, TIntFltKdV& NumSpV) const {
+    // assert store
+    Assert(FtrRec.GetStoreId() == GetFtrStore()->GetStoreId());
+    // extract feature value
+    if (FtrRec.IsFieldNull(FieldId)) {
+        NumSpV.Clr();
+    } else if (FieldDesc.IsNumSpV()) {
+        FtrRec.GetFieldNumSpV(FieldId, NumSpV);
+    } else {
+        throw TQmExcept::New("Field type " + FieldDesc.GetFieldTypeStr() +
+            " not supported by Sparse Vector Feature Extractor!");
+    }
+}
+
+void TNumSpV::GetVal(const TRec& FtrRec, TIntFltKdV& NumSpV) const {
+	Assert(IsStartStore(FtrRec.GetStoreId()));
+	if (IsJoin(FtrRec.GetStoreId())) {
+        // do the join
+        TRec JoinRec = FtrRec.DoSingleJoin(GetBase(), GetJoinIdV(FtrRec.GetStoreId()));
+        // get feature value
+		return _GetVal(JoinRec, NumSpV);
+    } else {
+        // get feature value
+        return _GetVal(FtrRec, NumSpV);
+	}
+}
+
+TNumSpV::TNumSpV(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& _FieldId,
+    const int& _Dim, const bool& _NormalizeP): TFtrExt(Base, JoinSeqV),
+        Dim(_Dim), NormalizeP(_NormalizeP), FieldId(_FieldId),
+        FieldDesc(GetFtrStore()->GetFieldDesc(FieldId)) { }
+
+TNumSpV::TNumSpV(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFtrExt(Base, ParamVal) {       
+    // parse out parameters and initialize feature generator
+    Dim = ParamVal->GetObjInt("dimension", 0);
+    NormalizeP = ParamVal->GetObjBool("normalize", false);
+    // parse out input parameters
+    TStr FieldNm = ParamVal->GetObjStr("field");
+    QmAssertR(GetFtrStore()->IsFieldNm(FieldNm), "Unknown field '" + 
+        FieldNm + "' in store '" + GetFtrStore()->GetStoreNm() + "'");
+    FieldId = GetFtrStore()->GetFieldId(FieldNm);
+    FieldDesc = GetFtrStore()->GetFieldDesc(FieldId);
+}
+
+TNumSpV::TNumSpV(const TWPt<TBase>& Base, TSIn& SIn):
+    TFtrExt(Base, SIn), Dim(SIn), NormalizeP(SIn), FieldId(SIn), FieldDesc(SIn) { }
+
+PFtrExt TNumSpV::New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
+        const int& FieldId, const int& Dim, const bool& NormalizeP) {
+
+    return new TNumSpV(Base, TJoinSeqV::GetV(TJoinSeq(Store)), FieldId, Dim, NormalizeP);
+}
+
+PFtrExt TNumSpV::New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, 
+        const int& FieldId, const int& Dim, const bool& NormalizeP) {
+    
+    return new TNumSpV(Base, TJoinSeqV::GetV(JoinSeq), FieldId, Dim, NormalizeP);
+}
+
+PFtrExt TNumSpV::New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
+        const int& FieldId, const int& Dim, const bool& NormalizeP) {
+    
+    return new TNumSpV(Base, JoinSeqV, FieldId, Dim, NormalizeP);
+}
+
+PFtrExt TNumSpV::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { 
+    return new TNumSpV(Base, ParamVal);
+}
+
+PFtrExt TNumSpV::Load(const TWPt<TBase>& Base, TSIn& SIn) {
+    return new TNumSpV(Base, SIn);
+}
+
+void TNumSpV::Save(TSOut& SOut) const {
+    GetType().Save(SOut);
+    TFtrExt::Save(SOut);
+    
+    Dim.Save(SOut);
+    NormalizeP.Save(SOut);
+    FieldId.Save(SOut);
+    FieldDesc.Save(SOut);
+}
+
+TStr TNumSpV::GetNm() const {
+    return "SpVec[" + GetFtrStore()->GetFieldNm(FieldId) + "]";
+};
+
+TStr TNumSpV::GetFtr(const int& FtrN) const {
+    return TStr::Fmt("SpVec[%s:%d/%d]", GetFtrStore()->GetFieldNm(FieldId).CStr(), FtrN, Dim.Val);
+}
+    
+bool TNumSpV::Update(const TRec& Rec) {
+    // we only need to update dimensionality, if new record makes it out-of-bounds
+    TIntFltKdV NumSpV; GetVal(Rec, NumSpV);
+    if (!NumSpV.Empty()) {
+        const int NewDim = NumSpV.Last().Key + 1;
+        if (NewDim > Dim) { Dim = NewDim; return true; }
+    }
+    return false;
+}
+
+void TNumSpV::AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const {
+    TIntFltKdV NumSpV; GetVal(Rec, NumSpV);
+    if (NormalizeP) { TLinAlg::Normalize(NumSpV); }
+    for (int NumSpN = 0; NumSpN < NumSpV.Len(); NumSpN++) {
+        const TIntFltKd& NumSp = NumSpV[NumSpN];
+        SpV.Add(TIntFltKd(Offset + NumSp.Key, NumSp.Dat));
+    }
+    Offset += GetDim();
+}
+
+void TNumSpV::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
+    TIntFltKdV NumSpV; GetVal(Rec, NumSpV);
+    if (NormalizeP) { TLinAlg::Normalize(NumSpV); }
+    for (int NumSpN = 0; NumSpN < NumSpV.Len(); NumSpN++) {
+        const TIntFltKd& NumSp = NumSpV[NumSpN];
+        FullV[Offset + NumSp.Key] = NumSp.Dat;
+    }
+    Offset += GetDim();
+}
+
+void TNumSpV::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
+	throw TExcept::New("Not implemented yet!!", "TCategorical::InvFullV");
 }
 
 ///////////////////////////////////////////////

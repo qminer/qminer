@@ -73,6 +73,12 @@ private:
 	*/
 	//# exports.verbosity = function (level) { }
 	JsDeclareFunction(verbosity);
+    
+   	/**
+	* @property {boolean} debug - True if QMiner was compiled in debug mode, else false.
+	*/
+	//# exports.debug = false;
+	JsDeclareProperty(debug);
 };
 
 ///////////////////////////////
@@ -669,9 +675,13 @@ typedef TPt<TNodeJsBaseWatcher> PNodeJsBaseWatcher;
 
 /**
 * Base
-* @classdesc Represents the database and holds stores.
+* @classdesc Represents the database and holds stores. The base object can be opened in multiple
+* modes: 'create' - create a new database, 'createClean' - force create, and 'openReadOnly' - open in read-onlly mode
 * @class
 * @param {module:qm~BaseConstructorParam} paramObj - The base constructor parameter object.
+* @property {String} paramObj.mode - the mode in which base is opened
+* @property [String] paramObj.dbPath - path to the location of the database
+* @property [Object] paramObj.schema - the database schema
 * @example
 * // import qm module
 * var qm = require('qminer');
@@ -685,12 +695,14 @@ private:
 	static v8::Persistent<v8::Function> Constructor;
 public:
 	static void Init(v8::Handle<v8::Object> Exports);
-	static const TStr ClassId;
+	static const TStr GetClassId() { return "Base"; }
 	// wrapped C++ object
 	TWPt<TQm::TBase> Base;
 	// C++ constructor
 	TNodeJsBase(const TWPt<TQm::TBase>& Base_) : Base(Base_) { Watcher = TNodeJsBaseWatcher::New(); }
-	TNodeJsBase(const TStr& DbPath, const TStr& SchemaFNm, const PJsonVal& Schema, const bool& Create, const bool& ForceCreate, const bool& ReadOnly, const TInt& IndexCache, const TInt& StoreCache);
+	TNodeJsBase(const TStr& DbPath, const TStr& SchemaFNm, const PJsonVal& Schema,
+        const bool& Create, const bool& ForceCreate, const bool& ReadOnly,
+        const uint64& IndexCache, const uint64& StoreCache);
 	// Object that knows if Base is valid
 	PNodeJsBaseWatcher Watcher;
 private:		
@@ -899,7 +911,7 @@ private:
 public:	
 	// Node framework 
 	static void Init(v8::Handle<v8::Object> exports);
-	static const TStr ClassId;
+	static const TStr GetClassId() { return "Store"; }
 	// Wrapped C++ object
 	TWPt<TQm::TStore> Store;
 	// Object that knows if Base is valid
@@ -914,7 +926,7 @@ private:
 	//! 
 	//! **Functions and properties:**
 	//!
-	//!- `rec = store.rec(recName)` -- get record named `recName`; 
+	//!- `rec = store.recordByName(recName)` -- get record named `recName`;
 	//!     returns `null` when no such record exists
 	/**
 	* Returns a record from the store.
@@ -942,8 +954,8 @@ private:
 	* // get the record with the name "Magnitude"
 	* var record = base.store("Class").rec("Magnitude");
 	*/
-	//# exports.Store.prototype.rec = function (recName) { return Object.create(require('qminer').Record.prototype); };
-	JsDeclareFunction(rec);
+	//# exports.Store.prototype.recordByName = function (recName) { return Object.create(require('qminer').Record.prototype); };
+	JsDeclareFunction(recordByName);
 
 	//!- `store = store.each(callback)` -- iterates through the store and executes the callback function `callback` on each record. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
 	//!  - `store.each(function (rec) { console.log(JSON.stringify(rec)); })`
@@ -1479,12 +1491,12 @@ private:
 	//# exports.Store.prototype.length = 0;
 	JsDeclareProperty(length);
 
-	//!- `rs = store.recs` -- create a record set containing all the records from the store
+	//!- `rs = store.allRecords` -- create a record set containing all the records from the store
 	/**
 	* Creates a record set containing all the records from the store.
 	*/
-	//# exports.Store.prototype.recs = undefined;
-	JsDeclareProperty(recs);
+	//# exports.Store.prototype.allRecords = undefined;
+	JsDeclareProperty(allRecords);
 
 	//!- `objArr = store.fields` -- array of all the field descriptor JSON objects
 	/**
@@ -1571,8 +1583,7 @@ private:
 public:
 	// Node framework 
 	static void Init(const TWPt<TQm::TStore>& Store);
-	static const TStr ClassId;
-
+	static const TStr GetClassId() { return "TRec"; }
 	// when reseting a db we have to clear the old record templates
 	static void Clear(const int& BaseId);
 	// Object that knows if Base is valid
@@ -1618,7 +1629,14 @@ private:
 	*/
 	//# exports.Record.prototype.$clone = function () { return Object.create(require('qminer').Record.prototype); };
     JsDeclareFunction(clone);
-
+    /**
+     * Provide json version of record, useful when calling JSON.stringify
+     *
+     * @param {Boolean} - ???
+     * @param {Boolean} - ???
+     * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
+     */
+	
     //!- `rec = rec.addJoin(joinName, (joinRecord | joinRecordId))` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string). Returns self.
     //!- `rec = rec.addJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
 	/**
@@ -1646,7 +1664,12 @@ private:
     //!- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
 	/**
 	* Creates a JSON version of the record.
+	*
+    * @param {Boolean} - ???
+    * @param {Boolean} - ???
+    * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
 	* @returns {Object} The JSON version of the record.
+	*
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
@@ -1720,8 +1743,8 @@ private:
 * @example
 * // import qm module
 * var qm = require('qminer');
-* // factory based construction using store.recs
-* var rs = store.recs;
+* // factory based construction using store.allRecords
+* var rs = store.allRecords;
 */
 //# exports.RecordSet = function () {}
 class TNodeJsRecSet: public node::ObjectWrap {
@@ -1732,7 +1755,7 @@ private:
 public:
 	// Node framework 
 	static void Init(v8::Handle<v8::Object> exports);
-	static const TStr ClassId;
+	static const TStr GetClassId() { return "RecSet"; }
 	// C++ wrapped object
 	TQm::PRecSet RecSet;
 	// Object that knows if Base is valid
@@ -2640,7 +2663,7 @@ private:
 public:
 	// Node framework 
 	static void Init(v8::Handle<v8::Object> exports);
-	static const TStr ClassId;
+	static const TStr GetClassId() { return "StoreIter"; }
 
 	// C++ wrapped object
 	TWPt<TQm::TStore> Store;
@@ -2770,7 +2793,7 @@ private:
 public:
 	// Node framework
     static void Init(v8::Handle<v8::Object> exports);
-	static const TStr ClassId;
+    static const TStr GetClassId() { return "IndexKey"; }
 	// C++ wrapped object
 	TWPt<TQm::TStore> Store;
 	TQm::TIndexKey IndexKey;
@@ -2886,32 +2909,23 @@ public:
 
 class TNodeJsFtrSpace : public node::ObjectWrap {
 	friend class TNodeJsUtil;
-private:
-	// Node framework
-	static v8::Persistent<v8::Function> constructor;
-
-	TQm::PFtrSpace FtrSpace;
-
-	TNodeJsFtrSpace(const TQm::PFtrSpace& FtrSpace);
-	TNodeJsFtrSpace(const TWPt<TQm::TBase> Base, TSIn& SIn);
-
-	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const TQm::PFtrSpace& FtrSpace);
-	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const TWPt<TQm::TBase> Base, TSIn& SIn);
-
 public:
-	static v8::Local<v8::Object> New(const TQm::PFtrSpace& FtrSpace);
-	static v8::Local<v8::Object> New(const TWPt<TQm::TBase> Base, TSIn& SIn);
-
 	// Node framework
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "FeatureSpace"; }
 
+	TQm::PFtrSpace FtrSpace;
+	TNodeJsFtrSpace(const TQm::PFtrSpace& FtrSpace);
+	TNodeJsFtrSpace(const TWPt<TQm::TBase> Base, TSIn& SIn);
+	
 	TQm::PFtrSpace GetFtrSpace() { return FtrSpace; }
+public:
 	//!
 	//! **Constructor:**
 	//!
 	//!- `fsp = new qm.FeatureSpace(base, fin)` -- construct a new feature space by providing the base and input stream object
 	//!- `fsp = new qm.FeatureSpace(base, params)` -- construct a new feature space by providing the base and parameter JSON object
-	JsDeclareFunction(New);
+	static TNodeJsFtrSpace* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 	//!
 	//! **Functions and properties:**
 	//!
@@ -3068,8 +3082,7 @@ public:
 	*     { type: "multinomial", source: "FtrSpace", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
 	* ]);
 	* // update the feature space with the record set 
-	* var rs = Store.recs;
-	* ftr.updateRecords(rs);
+	* ftr.updateRecords(Store.allRecords);
 	* // get the feature vectors of these records
 	* ftr.extractVector(Store[0]); // returns the vector [0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
 	* ftr.extractVector(Store[1]); // returns the vector [1/3, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
@@ -3078,6 +3091,16 @@ public:
 	*/
 	//# exports.FeatureSpace.prototype.updateRecords = function (rs) { return Object.create(require('qminer').FeatureSpace.prototype); };
 	JsDeclareFunction(updateRecords);
+	//#- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
+    JsDeclareFunction(ftrSpVec);
+    //#- `vec = fsp.ftrVec(rec)` -- extracts feature vector `vec` from record  `rec`
+    JsDeclareFunction(ftrVec);
+    //#- `vec = fsp.invFtrVec(ftrVec)` -- performs the inverse operation of ftrVec, returns the results in
+    //#- 	an array
+	JsDeclareFunction(invFtrVec);
+	//#- `val = fsp.invFtrVec(ftrIdx, val)` -- inverts a single feature using the feature
+	//#- 	extractor on index `ftrIdx`
+	JsDeclareFunction(invFtr);
 
 	//!- `spVec = fsp.extractSparseVector(rec)` -- extracts sparse feature vector `spVec` from record `rec`
 	/**

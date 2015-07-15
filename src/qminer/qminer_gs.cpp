@@ -538,8 +538,8 @@ uint64 TInMemStorage::AddVal(const TMem& Val) {
 void TInMemStorage::SetVal(const uint64& ValId, const TMem& Val) {
 	AssertReadOnly();
     ValV[ValId - FirstValOffsetMem] = Val;
-	uchar flag = DirtyV[ValId - FirstValOffsetMem];
-	if (flag == isdfNew) { } // new remains new
+	uchar& flag = DirtyV[ValId - FirstValOffsetMem];
+	if (flag == isdfNew) { }   // new remains new
 	else { flag = isdfDirty; } // set as dirty
 }
 
@@ -561,17 +561,17 @@ void TInMemStorage::DelVals(int Vals) {
 			}
 			BlobPtV.Del(0, blocks_to_delete - 1);
 		}
-		FirstValOffset += Vals;
+		FirstValOffset += Vals - vals_to_delete;
 		FirstValOffsetMem += vals_to_delete;
 	}
 }
 
 uint64 TInMemStorage::Len() const {
-	return ValV.Len() - (FirstValOffset - FirstValOffsetMem);
+	return ValV.Len() - FirstValOffset;
 }
 
 uint64 TInMemStorage::GetFirstValId() const {
-	return FirstValOffset;
+	return FirstValOffset + FirstValOffsetMem;
 }
 
 uint64 TInMemStorage::GetLastValId() const {
@@ -1852,6 +1852,26 @@ void TStoreImpl::SetPrimaryField(const uint64& RecId) {
     }
 }
 
+void TStoreImpl::SetPrimaryFieldStr(const uint64& RecId, const TStr& Str) {
+    PrimaryStrIdH.AddDat(Str) = RecId;
+}
+
+void TStoreImpl::SetPrimaryFieldInt(const uint64& RecId, const int& Int) {
+    PrimaryIntIdH.AddDat(Int) = RecId;
+}
+
+void TStoreImpl::SetPrimaryFieldUInt64(const uint64& RecId, const uint64& UInt64) {
+    PrimaryUInt64IdH.AddDat(UInt64) = RecId;
+}
+
+void TStoreImpl::SetPrimaryFieldFlt(const uint64& RecId, const double& Flt) {
+    PrimaryFltIdH.AddDat(Flt) = RecId;
+}
+
+void TStoreImpl::SetPrimaryFieldMSecs(const uint64& RecId, const uint64& MSecs) {
+    PrimaryTmMSecsIdH.AddDat(MSecs) = RecId;
+}
+
 void TStoreImpl::DelPrimaryField(const uint64& RecId) {
     if (PrimaryFieldType == oftStr) {
         PrimaryStrIdH.DelIfKey(GetFieldStr(RecId, PrimaryFieldId));
@@ -1864,6 +1884,31 @@ void TStoreImpl::DelPrimaryField(const uint64& RecId) {
     } else if (PrimaryFieldType == oftTm) {
         PrimaryTmMSecsIdH.DelIfKey(GetFieldTmMSecs(RecId, PrimaryFieldId));
     }    
+}
+
+void TStoreImpl::DelPrimaryFieldStr(const uint64& RecId, const TStr& Str) {
+    Assert(PrimaryStrIdH.GetDat(Str) == RecId);
+    PrimaryStrIdH.DelIfKey(Str);
+}
+
+void TStoreImpl::DelPrimaryFieldInt(const uint64& RecId, const int& Int) {
+    Assert(PrimaryIntIdH.GetDat(Int) == RecId);
+    PrimaryIntIdH.DelIfKey(Int);
+}
+
+void TStoreImpl::DelPrimaryFieldUInt64(const uint64& RecId, const uint64& UInt64) {
+    Assert(PrimaryUInt64IdH.GetDat(UInt64) == RecId);
+    PrimaryUInt64IdH.DelIfKey(UInt64);
+}
+
+void TStoreImpl::DelPrimaryFieldFlt(const uint64& RecId, const double& Flt) {
+    Assert(PrimaryFltIdH.GetDat(Flt) == RecId);
+    PrimaryFltIdH.DelIfKey(Flt);
+}
+
+void TStoreImpl::DelPrimaryFieldMSecs(const uint64& RecId, const uint64& MSecs) {
+    Assert(PrimaryTmMSecsIdH.GetDat(MSecs) == RecId);
+    PrimaryTmMSecsIdH.DelIfKey(MSecs);
 }
 
 void TStoreImpl::InitFromSchema(const TStoreSchema& StoreSchema) {
@@ -2417,9 +2462,12 @@ void TStoreImpl::SetFieldNull(const uint64& RecId, const int& FieldId) {
 void TStoreImpl::SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
     TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    if (FieldId == PrimaryFieldId) {
+        DelPrimaryFieldInt(RecId, FieldSerializator.GetFieldInt(InRecMem, FieldId)); }
     TMem OutRecMem; FieldSerializator.SetFieldInt(InRecMem, OutRecMem, FieldId, Int);
     RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
+    if (FieldId == PrimaryFieldId) { SetPrimaryFieldInt(RecId, Int); }
 }
 
 void TStoreImpl::SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV) {
@@ -2433,17 +2481,23 @@ void TStoreImpl::SetFieldIntV(const uint64& RecId, const int& FieldId, const TIn
 void TStoreImpl::SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
     TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    if (FieldId == PrimaryFieldId) {
+        DelPrimaryFieldUInt64(RecId, FieldSerializator.GetFieldUInt64(InRecMem, FieldId)); }
     TMem OutRecMem; FieldSerializator.SetFieldUInt64(InRecMem, OutRecMem, FieldId, UInt64);
     RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
+    if (FieldId == PrimaryFieldId) { SetPrimaryFieldUInt64(RecId, UInt64); }
 }
 
 void TStoreImpl::SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
     TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    if (FieldId == PrimaryFieldId) {
+        DelPrimaryFieldStr(RecId, FieldSerializator.GetFieldStr(InRecMem, FieldId)); }
     TMem OutRecMem; FieldSerializator.SetFieldStr(InRecMem, OutRecMem, FieldId, Str);
     RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
+    if (FieldId == PrimaryFieldId) { SetPrimaryFieldStr(RecId, Str); }
 }
 
 void TStoreImpl::SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV) {
@@ -2465,9 +2519,12 @@ void TStoreImpl::SetFieldBool(const uint64& RecId, const int& FieldId, const boo
 void TStoreImpl::SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
     TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    if (FieldId == PrimaryFieldId) {
+        DelPrimaryFieldFlt(RecId, FieldSerializator.GetFieldFlt(InRecMem, FieldId)); }
     TMem OutRecMem; FieldSerializator.SetFieldFlt(InRecMem, OutRecMem, FieldId, Flt);
     RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
+    if (FieldId == PrimaryFieldId) { SetPrimaryFieldFlt(RecId, Flt); }
 }
 
 void TStoreImpl::SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr) {
@@ -2497,9 +2554,12 @@ void TStoreImpl::SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& 
 void TStoreImpl::SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
     TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    if (FieldId == PrimaryFieldId) {
+        DelPrimaryFieldMSecs(RecId, FieldSerializator.GetFieldTmMSecs(InRecMem, FieldId)); }
     TMem OutRecMem; FieldSerializator.SetFieldTmMSecs(InRecMem, OutRecMem, FieldId, TmMSecs);
     RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
+    if (FieldId == PrimaryFieldId) { SetPrimaryFieldMSecs(RecId, TmMSecs); }
 }
 
 void TStoreImpl::SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV) {

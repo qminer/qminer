@@ -2005,6 +2005,9 @@ bool TStMerger::CanInterpolate() {
 void TStMerger::UpdateNextInterpTm() {
 	PrevInterpTm = NextInterpTm;
 	NextInterpTm = Buff.Len() > 1 ? Buff.GetOldest(1) : TUInt64::Mx;
+
+	QmAssertR(PrevInterpTm <= NextInterpTm, "The previous interpolation time is greater than the current interpolation time current: " + TUInt64::GetStr(PrevInterpTm) + ", next: " + TUInt64::GetHexStr(NextInterpTm) + "TStMerger::UpdateNextInterpTm()");
+
 	ShiftBuff();
 }
 
@@ -2033,12 +2036,14 @@ void TStMerger::HandleEdgeCases(const uint64& RecTm) {
 	// the buffer was empty before this iteration,
 	// the next interpolation time is not set
 	if (NextInterpTm == TUInt64::Mx) {
+		EAssertR(Buff.Len() == 1, "TStMerger::HandleEdgeCases: The buffer is not empty even though it should be!");
 		NextInterpTm = RecTm;
 		UpdateInterpolators();
 	}
 	// duplicate value when extrapolating future
 	if (!OnlyPast && NextInterpTm == PrevInterpTm) {
 		NextInterpTm = TUInt64::Mx;
+		Buff.DelOldest();
 	}
 }
 
@@ -2082,6 +2087,7 @@ void TResampler::OnAddRec(const TRec& Rec) {
 		// update fields
 		for (int FieldN = 0; FieldN < InFieldIdV.Len(); FieldN++) {
 			const double FieldVal = InterpolatorV[FieldN]->Interpolate(InterpPointMSecs);
+			EAssertR(!TFlt::IsNan(FieldVal), "TResampler: interpolated to a NaN value!");
 			JsonVal->AddToObj(InStore->GetFieldNm(InFieldIdV[FieldN]), FieldVal);
 		}
 
@@ -2607,8 +2613,8 @@ void THierchCtmc::TNode::InitChildV() {
 void THierchCtmc::TNode::InitClusts(const PRecSet& RecSet, TIntV& AssignIdxV) {
 	TFullMatrix X = Model->GetFtrVV(RecSet);
 	// run the algorithm
-	Clust->Init(X);
-	Clust->Assign(X, AssignIdxV);
+	Clust->Init(X, TFltVV());
+	Clust->Assign(X.GetMat(), AssignIdxV);
 	CentroidMat = Clust->GetCentroidMat();
 //	CentroidMat = Clust->Apply(X, AssignIdxV);
 
@@ -2758,17 +2764,17 @@ int THierchCtmc::GetMaxDepth() const {
 	return MaxDepth;
 }
 
-TMl::PFullClust THierchCtmc::GetClust() const {
+TMc::PStateIdentifier THierchCtmc::GetClust() const {
 	const TStr ClustType = ClustParams->GetObjStr("type");
 
 	if (ClustType == "dpmeans") {
 		const double Lambda = ClustParams->GetObjNum("lambda");
 		const int MinClusts = ClustParams->GetObjInt("minclusts");
 		const int MaxClusts = ClustParams->GetObjInt("maxclusts");
-		return new TMl::TDpMeans(20, 1, Lambda, MinClusts, MaxClusts, Rnd);
+		return new TMc::TDpMeans(20, 1, Lambda, MinClusts, MaxClusts, Rnd);
 	} else if (ClustType == "kmeans") {
 		const int K = ClustParams->GetObjInt("k");
-		return new TMl::TFullKMeans(20, 1, K, Rnd);
+		return new TMc::TFullKMeans(20, 1, K, Rnd);
 	} else {
 		throw TExcept::New("Invalid clustering type: " + ClustType, "THierchCtmc::GetClust");
 	}

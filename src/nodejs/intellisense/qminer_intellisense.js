@@ -28,6 +28,10 @@ exports.datasets= require('qminer_datasets');
 	*/
  exports.verbosity = function (level) { }
 /**
+	* @property {boolean} debug - True if QMiner was compiled in debug mode, else false.
+	*/
+ exports.debug = false;
+/**
 * Base access modes.
 * @readonly
 * @enum {string}
@@ -779,7 +783,7 @@ exports.datasets= require('qminer_datasets');
 	* // get the record with the name "Magnitude"
 	* var record = base.store("Class").rec("Magnitude");
 	*/
- exports.Store.prototype.rec = function (recName) { return Object.create(require('qminer').Record.prototype); };
+ exports.Store.prototype.recordByName = function (recName) { return Object.create(require('qminer').Record.prototype); };
 /**
 	* Executes a function on each record in store.
 	* @param {function} callback - Function to be executed. It takes two parameters:
@@ -1244,7 +1248,7 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Creates a record set containing all the records from the store.
 	*/
- exports.Store.prototype.recs = undefined;
+ exports.Store.prototype.allRecords = undefined;
 /**
 	* Gives an array of all field descriptor JSON objects.
 	*/
@@ -1381,8 +1385,8 @@ exports.datasets= require('qminer_datasets');
 * @example
 * // import qm module
 * var qm = require('qminer');
-* // factory based construction using store.recs
-* var rs = store.recs;
+* // factory based construction using store.allRecords
+* var rs = store.allRecords;
 */
  exports.RecordSet = function () {}
 /**
@@ -2374,8 +2378,7 @@ exports.datasets= require('qminer_datasets');
 	*     { type: "multinomial", source: "FtrSpace", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
 	* ]);
 	* // update the feature space with the record set 
-	* var rs = Store.recs;
-	* ftr.updateRecords(rs);
+	* ftr.updateRecords(Store.allRecords);
 	* // get the feature vectors of these records
 	* ftr.extractVector(Store[0]); // returns the vector [0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
 	* ftr.extractVector(Store[1]); // returns the vector [1/3, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]

@@ -87,7 +87,7 @@ public:
 	// project a sparse document	
 	void Project(const TPair<TIntV, TFltV>& Doc, const TStr& DocLangId, const TStr& Lang2Id, TFltV& Projected, const TBool& DmozSpecial = true) const {}
 	// project a sparse matrix (columns = documents)
-	void Project(const TTriple<TIntV, TIntV, TFltV>& DocMatrix, const TStr& DocLangId, const TStr& Lang2Id, TFltVV& Projected, const TBool& DmozSpecial = true) const {}
+	void Project(const TTriple<TIntV, TIntV, TFltV>& DocMatrix, const TStr& DocLangId, const TStr& Lang2Id, TFltVV& Projected, const TBool& Tfidf = true, const TBool& DmozSpecial = true) const {}
 	bool GetProxyMatrix(const TStr& DocLangId, const TStr& Lang2Id, const TFltVV*& Proxy, bool& transpose_flag, const TStr& Friend) const { return false; }
 };
 
@@ -107,7 +107,7 @@ public:
 	// project a sparse document	
 	void Project(const TPair<TIntV, TFltV>& Doc, const TStr& DocLangId, const TStr& Lang2Id, TFltV& Projected, const TBool& DmozSpecial = true) const {}
 	// project a sparse matrix (columns = documents)
-	void Project(const TTriple<TIntV, TIntV, TFltV>& DocMatrix, const TStr& DocLangId, const TStr& Lang2Id, TFltVV& Projected, const TBool& DmozSpecial = true) const {}
+	void Project(const TTriple<TIntV, TIntV, TFltV>& DocMatrix, const TStr& DocLangId, const TStr& Lang2Id, TFltVV& Projected, const TBool& Tfidf = true, const TBool& DmozSpecial = true) const {}
 	bool GetProxyMatrix(const TStr& DocLangId, const TStr& Lang2Id, const TFltVV*& Proxy, bool& transpose_flag, const TStr& Friend) const { return false; }
 };
 

@@ -74,6 +74,17 @@ describe('Stream Aggregator Tests', function () {
                 this.saveJson = function (limit) {
                     return { val: data };
                 };
+                
+                this.getInt = function () {
+                    return data;
+                };
+                this.getFlt = function () {
+                    throw 'error';
+                };
+                this.getTm = function () {
+                    
+                };
+                
             });
 
 
@@ -85,6 +96,14 @@ describe('Stream Aggregator Tests', function () {
 
             var id3 = base.store('People').push({ Name: "Jim", Gendre: "Male" });
             assert(s.saveJson().val == 3);
+            assert.throws(
+            	function() {
+            		s.getFlt() == 3
+            });
+		    assert.throws(
+            	function() {
+            		s.getTm() == 3
+            });
         })
         it('should register a Js extractor, which counts the number of records in store', function () {
 

@@ -429,6 +429,9 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
 			TWPt<TStore> JoinStore = Base->GetStoreByStoreId(JoinDesc.GetJoinStoreId());
 			// different handling for field and index joins
 			if (JoinDesc.IsFieldJoin()) {
+                // first make an empty join
+                SetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId(), TUInt64::Mx);
+                SetFieldInt(RecId, JoinDesc.GetJoinFqFieldId(), 0);
 				// get join record JSon object
 				PJsonVal JoinRecVal = RecVal->GetObjKey(JoinDesc.GetJoinNm());
 				// insert join record
@@ -552,8 +555,13 @@ void TStore::AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRe
 	if (JoinDesc.IsIndexJoin()) {
 		Index->IndexJoin(this, JoinId, RecId, JoinRecId, JoinFq);
 	} else if (JoinDesc.IsFieldJoin()) {
-		// TODO: check if we already have an existing join here
-		// and figure out if it needs deleting first (probably yes)
+		const uint64 ExistingJoinRecId = GetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId());
+		// if we have an existing join and the target record is different
+		// then we first have to remove the existing join
+		if (ExistingJoinRecId != TUInt64::Mx && ExistingJoinRecId != JoinRecId) {
+			const int Fq = GetFieldInt(RecId, JoinDesc.GetJoinFqFieldId());
+			DelJoin(JoinDesc.GetJoinId(), RecId, ExistingJoinRecId, Fq);
+		}
 		SetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId(), JoinRecId);
 		SetFieldInt(RecId, JoinDesc.GetJoinFqFieldId(), JoinFq);
 	}
@@ -567,6 +575,15 @@ void TStore::AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRe
 		if (InverseJoinDesc.IsIndexJoin()) {
 			Index->IndexJoin(JoinStore, InverseJoinId, JoinRecId, RecId, JoinFq);
 		} else if (InverseJoinDesc.IsFieldJoin()) {
+			// does the JoinRecId already have a join? If yes, we need to remove it first
+			// start by finding to which item does JoinRecId currently point to
+			const uint64 ExistingJoinRecId = JoinStore->GetFieldUInt64(JoinRecId, InverseJoinDesc.GetJoinRecFieldId());
+			// if ExistingJoinRecId is a valid record and is different than RecId
+			// then we have to delete the join first, before setting new values
+			if (ExistingJoinRecId != TUInt64::Mx && ExistingJoinRecId != RecId) {
+			    const int Fq = JoinStore->GetFieldInt(JoinRecId, InverseJoinDesc.GetJoinFqFieldId());
+				JoinStore->DelJoin(InverseJoinDesc.GetJoinId(), JoinRecId, ExistingJoinRecId, Fq);
+			}
 			JoinStore->SetFieldUInt64(JoinRecId, InverseJoinDesc.GetJoinRecFieldId(), RecId);
 			JoinStore->SetFieldInt(JoinRecId, InverseJoinDesc.GetJoinFqFieldId(), JoinFq);
 		}
@@ -679,7 +696,7 @@ int TStore::GetFieldNmInt(const uint64& RecId, const TStr& FieldNm) const {
 }
 
 void TStore::GetFieldNmIntV(const uint64& RecId, const TStr& FieldNm, TIntV& IntV) const {
-	return GetFieldIntV(RecId, GetFieldId(FieldNm), IntV);
+	GetFieldIntV(RecId, GetFieldId(FieldNm), IntV);
 }
 
 uint64 TStore::GetFieldNmUInt64(const uint64& RecId, const TStr& FieldNm) const {
@@ -691,7 +708,7 @@ TStr TStore::GetFieldNmStr(const uint64& RecId, const TStr& FieldNm) const {
 }
 
 void TStore::GetFieldNmStrV(const uint64& RecId, const TStr& FieldNm, TStrV& StrV) const {
-	return GetFieldStrV(RecId, GetFieldId(FieldNm), StrV);
+	GetFieldStrV(RecId, GetFieldId(FieldNm), StrV);
 }
 
 bool TStore::GetFieldNmBool(const uint64& RecId, const TStr& FieldNm) const {
@@ -707,11 +724,11 @@ TFltPr TStore::GetFieldNmFltPr(const uint64& RecId, const TStr& FieldNm) const {
 }
 
 void TStore::GetFieldNmFltV(const uint64& RecId, const TStr& FieldNm, TFltV& FltV) const {
-	return GetFieldFltV(RecId, GetFieldId(FieldNm), FltV);
+	GetFieldFltV(RecId, GetFieldId(FieldNm), FltV);
 }
 
 void TStore::GetFieldNmTm(const uint64& RecId, const TStr& FieldNm, TTm& Tm) const {
-	return GetFieldTm(RecId, GetFieldId(FieldNm), Tm);
+	GetFieldTm(RecId, GetFieldId(FieldNm), Tm);
 }
 
 uint64 TStore::GetFieldNmTmMSecs(const uint64& RecId, const TStr& FieldNm) const {
@@ -719,11 +736,11 @@ uint64 TStore::GetFieldNmTmMSecs(const uint64& RecId, const TStr& FieldNm) const
 }
 
 void TStore::GetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, TIntFltKdV& SpV) const {
-	return GetFieldNumSpV(RecId, GetFieldId(FieldNm), SpV);
+	GetFieldNumSpV(RecId, GetFieldId(FieldNm), SpV);
 }
 
 void TStore::GetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, PBowSpV& SpV) const {
-	return GetFieldBowSpV(RecId, GetFieldId(FieldNm), SpV);
+	GetFieldBowSpV(RecId, GetFieldId(FieldNm), SpV);
 }
 
 void TStore::SetFieldNull(const uint64& RecId, const int& FieldId) {

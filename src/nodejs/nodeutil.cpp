@@ -10,61 +10,79 @@
 /////////////////////////////////////////
 // Node - Utilities
 
-PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj, const bool IgnoreFunc) {
-    if (!IgnoreFunc) {
-    	EAssertR(!Obj->IsFunction(), "TNodeJsUtil::GetObjJson: Cannot parse functions!");
-    }
+PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool IgnoreFunc) {
+	AssertR(!Val->IsExternal(), "TNodeJsUtil::GetObjJson: Cannot parse v8::External!");
 
-    if (Obj->IsUndefined() || Obj->IsFunction()) {
-        return TJsonVal::New();
-    }
-    else if (Obj->IsNull()) {
-        return TJsonVal::NewNull();
-    }
-    else if (Obj->IsBooleanObject()) {
-		v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(Obj);
-		return TJsonVal::NewBool(BoolObj->ValueOf());
-    }
-    else if (Obj->IsNumberObject()) {
-        return TJsonVal::NewNum(Obj->NumberValue());
-    }
-    else if (Obj->IsStringObject() || Obj->IsRegExp() || Obj->IsDate()) {
-        return TJsonVal::NewStr(TStr(*v8::String::Utf8Value(Obj->ToString())));
-    }
-    else if (Obj->IsArray()) {
-        PJsonVal JsonArr = TJsonVal::NewArr();
+	if (Val->IsObject()) {
+		// if we aren't ignoring functions and the object is a function
+		// then throw an exception
+		EAssertR(IgnoreFunc || !Val->IsFunction(), "TNodeJsUtil::GetObjJson: Cannot parse functions!");
 
-        v8::Array* Arr = v8::Array::Cast(*Obj);
-        for (uint i = 0; i < Arr->Length(); i++) {
-        	if (!IgnoreFunc || !Arr->Get(i)->IsFunction()) {
-        		JsonArr->AddToArr(GetObjJson(Arr->Get(i)->ToObject()));
-        	}
-        }
+		// parse the object
+		if (Val->IsFunction()) {
+			return TJsonVal::New();
+		}
+		else if (Val->IsBooleanObject()) {
+			v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(Val);
+			return TJsonVal::NewBool(BoolObj->ValueOf());
+		}
+		else if (Val->IsNumberObject()) {
+			return TJsonVal::NewNum(Val->NumberValue());
+		}
+		else if (Val->IsStringObject() || Val->IsRegExp() || Val->IsDate()) {
+			return TJsonVal::NewStr(TStr(*v8::String::Utf8Value(Val->ToString())));
+		}
+		else if (Val->IsArray()) {
+			PJsonVal JsonArr = TJsonVal::NewArr();
 
-        return JsonArr;
-    }
-    else { // object
-        PJsonVal JsonVal = TJsonVal::NewObj();
-
-        v8::Local<v8::Array> FldNmV = Obj->GetOwnPropertyNames();
-        for (uint i = 0; i < FldNmV->Length(); i++) {
-            const TStr FldNm(*v8::String::Utf8Value(FldNmV->Get(i)->ToString()));
-
-			v8::Local<v8::Value> Val = Obj->Get(FldNmV->Get(i));
-			bool ValIsNull = Val->IsNull();
-			if (ValIsNull) {
-				JsonVal->AddToObj(FldNm, TJsonVal::NewNull());
-				continue;
+			v8::Array* Arr = v8::Array::Cast(*Val);
+			for (uint i = 0; i < Arr->Length(); i++) {
+				if (!IgnoreFunc || !Arr->Get(i)->IsFunction()) {
+					JsonArr->AddToArr(GetObjJson(Arr->Get(i), IgnoreFunc));
+				}
 			}
-			if (!IgnoreFunc || !Val->IsFunction()) {
-				// supported cases. Alternatively, we could set the object to null
-				EAssertR(Val->IsObject() || Val->IsBoolean() || Val->IsNumber() || Val->IsString() || Val->IsArray() || Val->IsNull() || Val->IsRegExp() || Val->IsDate(), "TNodeJsUtil::GetObjJson: Cannot parse!");
-				JsonVal->AddToObj(FldNm, GetObjJson(Val->ToObject()));
-            }
-        }
 
-        return JsonVal;
-    }
+			return JsonArr;
+		}
+		else {	// general object with fields
+			PJsonVal JsonVal = TJsonVal::NewObj();
+			v8::Local<v8::Object> Obj = Val->ToObject();
+
+			v8::Local<v8::Array> FldNmV = Obj->GetOwnPropertyNames();
+			for (uint i = 0; i < FldNmV->Length(); i++) {
+				const TStr FldNm(*v8::String::Utf8Value(FldNmV->Get(i)->ToString()));
+
+				v8::Local<v8::Value> FldVal = Obj->Get(FldNmV->Get(i));
+
+				if (!IgnoreFunc || !FldVal->IsFunction()) {
+					JsonVal->AddToObj(FldNm, GetObjJson(FldVal, IgnoreFunc));
+				}
+			}
+
+			return JsonVal;
+		}
+	}
+	else {	// primitive
+		if (Val->IsUndefined()) {
+			return TJsonVal::New();
+		}
+		else if (Val->IsNull()) {
+			return TJsonVal::NewNull();
+		}
+		else if (Val->IsBoolean()) {
+			return TJsonVal::NewBool(Val->BooleanValue());
+		}
+		else if (Val->IsNumber()) {
+			return TJsonVal::NewNum(Val->NumberValue());
+		}
+		else if (Val->IsString()) {
+			return TJsonVal::NewStr(TStr(*v8::String::Utf8Value(Val->ToString())));
+		}
+		else {
+			// TODO check for v8::Symbol
+			throw TExcept::New("TNodeJsUtil::GetObjJson: Unknown v8::Primitive type!");
+		}
+	}
 }
 
 v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal) {
@@ -377,16 +395,63 @@ PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args
 	return GetObjJson(Args[ArgN]->ToObject());
 }
 
+bool TNodeJsUtil::IsObjFld(v8::Local<v8::Object> Obj, const TStr& FldNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	return Obj->Has(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+}
+
+bool TNodeJsUtil::IsFldNull(v8::Local<v8::Object> Obj, const TStr& FldNm) {
+	if (!IsObjFld(Obj, FldNm)) { return true; }
+
+	// the field exists, check if it is null
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+	return FldVal->IsNull() || FldVal->IsUndefined();
+}
+
+bool TNodeJsUtil::IsFldClass(v8::Local<v8::Object> Obj, const TStr& FldNm, const TStr& ClassId) {
+	if (!IsObjFld(Obj, FldNm)) { return false; }
+
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+	v8::Handle<v8::Object> FldObj = v8::Handle<v8::Object>::Cast(FldVal);
+
+	TStr ClassStr = GetClass(FldObj);
+	return ClassStr.EqI(ClassId);
+}
+
 double TNodeJsUtil::ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	v8::Handle<v8::Value> Argv[1] = { Arg };
+	v8::TryCatch TryCatch;
 	v8::Handle<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
-
+	if (TryCatch.HasCaught()) {
+		TryCatch.ReThrow();
+		return 0;
+	}
 	EAssertR(RetVal->IsNumber(), "Return type expected to be number");
 
 	return RetVal->NumberValue();
+}
+
+void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& ArgC,
+		v8::Handle<v8::Value> ArgV[]) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
+	Fun->Call(Isolate->GetCurrentContext()->Global(), ArgC, ArgV);
+	if (TryCatch.HasCaught()) {
+		TryCatch.ReThrow();
+		return;
+	}
 }
 
 v8::Local<v8::Value> TNodeJsUtil::V8JsonToV8Str(const v8::Handle<v8::Value>& Json) {

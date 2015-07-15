@@ -130,6 +130,8 @@ typedef long long index_t;
 
 #if defined(GLib_MACOSX)
   // On OS X Maverics there is no default support for OpenMP
+#elif defined(__clang__)
+  // Default clang on Linux also does not support OpenMP
 #else
   #define GLib_OPENMP
 #endif
@@ -203,6 +205,7 @@ typedef long long index_t;
 #include "ss.h"
 #include "linalg.h"
 #include "tensor.h"
+#include "opt.h"
 #include "json.h"
 #include "zipfl.h"
 
