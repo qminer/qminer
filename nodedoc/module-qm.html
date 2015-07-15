@@ -1,0 +1,4977 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta charset="utf-8">
+  <title>Module: qm</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>
+            <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-8">qminer_aggrdoc.<wbr>js:8</a></p>
+            <div class="symbol-description">
+              <p>Qminer module.</p>
+            </div>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Child classes</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Base.html">Base(paramObj)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.FeatureSpace.html">FeatureSpace(base, extractors)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.StreamAggr.html">StreamAggr(base, json[, storeName])</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Factory classes</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Iterator.html">Iterator</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Record.html">Record</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.RecordSet.html">RecordSet</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html">Store</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Properties</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.html#.debug">debug</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~baseModes">baseModes</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureMode">FeatureMode</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.html#~FeatureStream">FeatureStream</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureTokenizerStemmer">FeatureTokenizerStemmer</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureTokenizerStopwords">FeatureTokenizerStopwords</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.html#~FeatureTokenizerType">FeatureTokenizerType</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureWeight">FeatureWeight</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~fieldTypes">fieldTypes</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Method</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.html#.verbosity">verbosity([level])</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Abstract types</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.html#~BaseConstructorParam">BaseConstructorParam</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Categorical">FeatureExtractor_Categorical</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Constant">FeatureExtractor_Constant</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractor_DateWindow">FeatureExtractor_DateWindow</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Join">FeatureExtractor_Join</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Jsfunc">FeatureExtractor_Jsfunc</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Multinomial">FeatureExtractor_Multinomial</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Numeric">FeatureExtractor_Numeric</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Pair">FeatureExtractor_Pair</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Random">FeatureExtractor_Random</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureExtractor_Text">FeatureExtractor_Text</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.html#~FeatureExtractors">FeatureExtractors</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureSource">FeatureSource</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~FeatureTokenizer">FeatureTokenizer</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~SchemaDefinition">SchemaDefinition</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~SchemaFieldDefinition">SchemaFieldDefinition</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~SchemaJoinDefinition">SchemaJoinDefinition</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~SchemaKeyDefinition">SchemaKeyDefinition</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~SchemaTimeWindowDefinition">SchemaTimeWindowDefinition</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~StreamAggr_Count">StreamAggr_Count</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~StreamAggr_EMA">StreamAggr_EMA</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~StreamAggr_Max">StreamAggr_Max</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.html#~StreamAggr_Min">StreamAggr_Min</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~StreamAggr_MovingAverage">StreamAggr_MovingAverage</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~StreamAggr_MovingCorrelation">StreamAggr_MovingCorrelation</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~StreamAggr_MovingCovariance">StreamAggr_MovingCovariance</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~StreamAggr_MovingVariance">StreamAggr_MovingVariance</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~StreamAggr_Resampler">StreamAggr_Resampler</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~StreamAggr_Sum">StreamAggr_Sum</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~StreamAggr_TimeSeries">StreamAggr_TimeSeries</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~StreamAggr_TimeSeriesTick">StreamAggr_TimeSeriesTick</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.html#~StreamAggregators">StreamAggregators</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2>Classes</h2>
+            <section id='members-links'>
+              <h3><a href="module-qm.Base.html">Base</a></h3>
+              <h3><a href="module-qm.FeatureSpace.html">FeatureSpace</a></h3>
+              <h3><a href="module-qm.StreamAggr.html">StreamAggr</a></h3>
+            </section>
+            <h2>Factory classs</h2>
+            <section id='members-links'>
+              <h3><a href="module-qm.Iterator.html">Iterator</a></h3>
+              <h3><a href="module-qm.Record.html">Record</a></h3>
+              <h3><a href="module-qm.RecordSet.html">RecordSet</a></h3>
+              <h3><a href="module-qm.Store.html">Store</a></h3>
+            </section>
+            <h2>Properties</h2>
+            <section>
+              <h3 id=".debug"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">debug</span></h3>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>debug</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>True if QMiner was compiled in debug mode, else false.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~baseModes"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">baseModes</span><small class="property-type">
+                &nbsp;string</small></h3>
+              <p>Base access modes.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>create</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>sets up the db folder</p>
+                        <p>Defaults to <code>create</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>createClean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>cleans the db folder and calls create</p>
+                        <p>Defaults to <code>createClean</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>open</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>opens with write permissions</p>
+                        <p>Defaults to <code>open</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>openReadOnly</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>opens in read-only mode</p>
+                        <p>Defaults to <code>openReadOnly</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureMode"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureMode</span><small class="property-type">
+                &nbsp;string</small></h3>
+              <p>How are multi-record cases combined into a single vector. //TODO not implemented for join record cases (works only if the start store and the feature store are the same)</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>concatenate</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Multi-record cases are merged into one document.</p>
+                        <p>Defaults to <code>concatenate</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>centroid</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Treat each case as a separate document.</p>
+                        <p>Defaults to <code>centroid</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>tokenized</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>//TODO (Use the tokenizer option)</p>
+                        <p>Defaults to <code>tokenized</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureStream"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureStream</span><small class="property-type">
+                &nbsp;string</small></h3>
+              <p>Details on forgetting old IDFs when running on stream.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>field</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>(optional) Field name which is providing timestamp, if missing system time is used.</p>
+                        <p>Defaults to <code>field</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>factor</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Forgetting factor, by which the old IDFs are multiplied after each iteration.</p>
+                        <p>Defaults to <code>factor</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>interval</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The time between iterations when the factor is applied, standard JSon time format is used to specify the interval duration.</p>
+                        <p>Defaults to <code>interval</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTokenizerStemmer"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureTokenizerStemmer</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>The steemer used for extraction.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>For using the porter stemmer.</p>
+                        <p>Defaults to <code>true</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>porter</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>For using the porter stemmer.</p>
+                        <p>Defaults to <code>porter</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>none</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>For using no stemmer.</p>
+                        <p>Defaults to <code>none</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTokenizerStopwords"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureTokenizerStopwords</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>THe stopwords used for extraction.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>none</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pre-defined stopword list (none).</p>
+                        <p>Defaults to <code>none</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>en</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pre-defined stopword list (english).</p>
+                        <p>Defaults to <code>en</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>si</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pre-defined stopword list (slovene).</p>
+                        <p>Defaults to <code>si</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>es</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pre-defined stopword list (spanish).</p>
+                        <p>Defaults to <code>es</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>de</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pre-defined stopword list (german).</p>
+                        <p>Defaults to <code>de</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>array</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>An array of stopwords. The array must be given as a parameter instead of 'array'!</p>
+                        <p>Defaults to <code>array</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTokenizerType"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureTokenizerType</span><small class="property-type">
+                &nbsp;string</small></h3>
+              <p>The type of the encoding text.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>simple</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The simple encoding.</p>
+                        <p>Defaults to <code>simple</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>html</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The html encoding.</p>
+                        <p>Defaults to <code>html</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>unicode</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The unicode encoding.</p>
+                        <p>Defaults to <code>unicode</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureWeight"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureWeight</span><small class="property-type">
+                &nbsp;string</small></h3>
+              <p>Type of weighting used for scoring terms.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>none</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Sets 1 if term occurs, 0 otherwise.</p>
+                        <p>Defaults to <code>none</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>tf</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Sets the term frequency in the document.</p>
+                        <p>Defaults to <code>tf</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>idf</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Sets the inverse document frequency in the document.</p>
+                        <p>Defaults to <code>idf</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>tfidf</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Sets the product of the tf and idf score.</p>
+                        <p>Defaults to <code>tfidf</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~fieldTypes"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">fieldTypes</span><small class="property-type">
+                &nbsp;string</small></h3>
+              <p>Field types.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>int</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>signed 32-bit integer</p>
+                        <p>Defaults to <code>int</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>int_v</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>vector of signed 32-bit integers</p>
+                        <p>Defaults to <code>int_v</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                        <p>Defaults to <code>string</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>string_v</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>vector of strings</p>
+                        <p>Defaults to <code>string_v</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>bool</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                        <p>Defaults to <code>bool</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>float</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>double precision floating point number</p>
+                        <p>Defaults to <code>float</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>float_pair</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>a pair of floats, useful for storing geo coordinates</p>
+                        <p>Defaults to <code>float_pair</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>float_v</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>vector of floats</p>
+                        <p>Defaults to <code>float_v</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>datetime</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>date and time format, stored in a form of milliseconds since 1600</p>
+                        <p>Defaults to <code>datetime</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>num_sp_v</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>sparse vector(same format as used by QMiner JavaScript linear algebra library)</p>
+                        <p>Defaults to <code>num_sp_v</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+            </section>
+            <h2>Method</h2>
+            <section>
+              <h3 id=".verbosity"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">verbosity</span><span class="signature"><span class="signature-params">([level])</span></span></h3>
+              <p>Set verbosity of QMiner internals.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>level</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>verbosity level: 0 = no output, 1 = log output, 2 = log and debug output.</p>
+                        <p>Defaults to <code></code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+            </section>
+            <h2>Abstract types</h2>
+            <section>
+              <h3 id="~BaseConstructorParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">BaseConstructorParam</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Base constructor parameter object</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>BaseConstructorParam.mode</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~baseModes">module:qm~baseModes</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Base access mode:
+                          <br> create (sets up the db folder),
+                          <br> createClean (cleans db folder and then sets it up),
+                          <br> open (opens the db with read/write permissions),
+                          <br> openReadOnly (opens the db in read only mode).</p>
+                        <p>Defaults to <code>'openReadOnly'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>BaseConstructorParam.indexCache</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The ammount of memory reserved for indexing (in MB).</p>
+                        <p>Defaults to <code>1024</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>BaseConstructorParam.storeCache</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The ammount of memory reserved for store cache (in MB).</p>
+                        <p>Defaults to <code>1024</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>BaseConstructorParam.schemaPath</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The path to schema definition file.</p>
+                        <p>Defaults to <code>''</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>BaseConstructorParam.schema</p>
+                      </td>
+                      <td>
+                        <p>Array of <a href="module-qm.html#~SchemaDefinition">module:qm~SchemaDefinition</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Schema definition object array.</p>
+                        <p>Defaults to <code>[]</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>BaseConstructorParam.dbPath</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The path to db directory.</p>
+                        <p>Defaults to <code>'./db/'</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractor_Categorical"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Categorical</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: categorical</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the student name and it&#x27;s study group
+// here we know the student is part of only one study group
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      type: &quot;Class&quot;,
+      type: [
+         { type: &quot;Name&quot;, type: &quot;string&quot; },
+         { type: &quot;StudyGroup&quot;, type: &quot;string&quot; }
+      ]
+   }]
+});
+// create a feature space containing the categorical extractor, where the it&#x27;s values
+// are taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot; and &quot;D&quot;
+var ftr = qm.FeatureSpace(base, { type: &quot;categorical&quot;, source: &quot;Class&quot;, field: &quot;StudyGroup&quot;, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;] });</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'categorical'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>values</p>
+                      </td>
+                      <td>
+                        <p>Array of Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A fixed set of values, which form a fixed feature set. No dimensionalizy changes if new values are seen in the upgrades.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>hashDimension</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hasDimension to get the corresponding dimension.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>field</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the field form which to take the values.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractor_Constant"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Constant</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: constant</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains only a persons name
+var base = new qm.Base({
+  mode: &#x27;createClean&#x27;,
+  schema: [{
+     type: &quot;Person&quot;,
+     type: [{ type: &quot;Name&quot;, type: &quot;string&quot; }]
+  }]
+});
+// create a feature space containing the constant extractor, where the constant is equal 5
+var ftr = qm.FeatureSpace(base, { type: &quot;constant&quot;, source: &quot;Person&quot;, const: 5 });</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'constant'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>const</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A constant number.</p>
+                        <p>Defaults to <code>1.0</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractor_DateWindow"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_DateWindow</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: dateWindow</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'dateWindow'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>unit</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>How granular is the time window. Options: day, week, month, year, 12hours, 6hours, 4hours, 2hours, hour, 30minutes, 15minutes, 10minutes, minute, second.</p>
+                        <p>Defaults to <code>'day'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>window</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The size of the window.</p>
+                        <p>Defaults to <code>1</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>normalize</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO</p>
+                        <p>Defaults to <code>'false'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>start</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>//TODO</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>end</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>//TODO</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractor_Join"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Join</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: join</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'join'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>bucketSize</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The size of the bucket in which we group consecutive records.</p>
+                        <p>Defaults to <code>1</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractor_Jsfunc"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Jsfunc</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: jsfunc</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the name of the student and his study groups
+// each student is part of multiple study groups
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      type: &quot;Class&quot;,
+      type: [
+         { type: &quot;Name&quot;, type: &quot;string&quot; },
+         { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
+      ]
+   }]
+});
+// create a feature space containing the jsfunc extractor, where the function counts the number 
+// of study groups each student is part of. The functions name is &quot;NumberOFGroups&quot;, it&#x27;s dimension
+// is 1 (returns only one value, not an array)
+var ftr = qm.FeatureSpace(base, {
+             type: &quot;jsfunc&quot;, source: &quot;Class&quot;, name: &quot;NumberOfGroups&quot;, dim: 1,
+             fun: function (rec) { returns rec.StudyGroups.length; }
+          });</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'jsfunc'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The feature's name.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>fun</p>
+                      </td>
+                      <td>
+                        <p>function()</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The javascript function callback. It should take a record as input and return a number or a dense vector.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>dim</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The dimension of the feature extractor.</p>
+                        <p>Defaults to <code>1</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractor_Multinomial"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Multinomial</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: multinomial</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the student name and an array of study groups
+// here we know a student can be part of multiple study groups
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      type: &quot;Class&quot;,
+      type: [
+         { type: &quot;Name&quot;, type: &quot;string&quot; },
+         { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
+      ]
+   }]
+});
+// create a feature space containing the multinomial extractor, where the values are normalized,
+// and taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;
+var ftr = qm.FeatureSpace(base, { 
+             type: &quot;multinomial&quot;, source: &quot;CLass&quot;, field: &quot;StudyGroups&quot;, normalize: true, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;]
+          });</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'multinomial'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>normalize</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Normalize the resulting vector of the extractor to have L2 norm 1.0.</p>
+                        <p>Defaults to <code>'false'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>values</p>
+                      </td>
+                      <td>
+                        <p>Array of Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>hashDimension</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>datetime</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
+                          <br> This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.</p>
+                        <p>Defaults to <code></code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>field</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the field from which to take the value.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractor_Numeric"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Numeric</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: numeric</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the student name and it&#x27;s grade
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      type: &quot;Class&quot;,
+      type: [
+         { type: &quot;Name&quot;, type: &quot;string&quot; },
+         { type: &quot;Grade&quot;, type: &quot;number&quot; }
+      ]
+   }]
+});
+// create a feature space containing the numeric extractor, where the values are 
+// normalized, the values are taken from the field &quot;Grade&quot;
+var ftr = qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class&quot;, normalize: true, field: &quot;Grade&quot; });</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'numeric'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>normalize</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Normalize values between 0.0 and 1.0.</p>
+                        <p>Defaults to <code>'false'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>min</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The minimal value used to form the normalization.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>max</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The maximal value used to form the normalization.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>field</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the field from which to take the value.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractor_Pair"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Pair</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: pair</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'pair'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>first</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractors">module:qm~FeatureExtractors</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The first feature extractor.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>second</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractors">module:qm~FeatureExtractors</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The second feature extractor.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractor_Random"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Random</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: random</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains only a persons name
+var base = new qm.Base({
+  mode: &#x27;createClean&#x27;,
+  schema: [{
+     type: &quot;Person&quot;,
+     type: [{ type: &quot;Name&quot;, type: &quot;string&quot; }]
+  }]
+});
+// create a feature space containing the random extractor
+var ftr = qm.FeatureSpace(base, { type: &quot;random&quot;, source: &quot;Person&quot; });</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'random'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>seed</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A random seed number.</p>
+                        <p>Defaults to <code></code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractor_Text"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractor_Text</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature type: text</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple base, where each record contains the title of the article and it&#x27;s content
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+      type: &quot;Articles&quot;,
+      type: [
+         { type: &quot;Title&quot;, type: &quot;string&quot; },
+         { type: &quot;Text&quot;, type: &quot;string&quot; }
+      ]
+   }]
+});
+// create a feature spave containing the text (bag of words) extractor, where the values are normalized,
+// weighted with &#x27;tfidf&#x27; and the tokenizer is of &#x27;simple&#x27; type, it uses english stopwords.
+var ftr = qm.FeatureSpace(base, { 
+             type: &quot;text&quot;, source: &quot;Articles&quot;, field: &quot;Text&quot;, normalize: true, weight: &quot;tfidf&quot;,
+             tokenizer: { type: &quot;simple&quot;, stopwords: &quot;en&quot;}
+          });</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the extractor. It must be equal 'text'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>normalize</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Normalize the resulting vector of the extractor to have L2 norm 1.0.</p>
+                        <p>Defaults to <code>'true'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>weight</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureWeight">module:qm~FeatureWeight</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Type of weighting used for scoring terms.</p>
+                        <p>Defaults to <code>'tfidf'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>hashDimension</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>field</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the field from which to take the value.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>tokenizer</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureTokenizer">module:qm~FeatureTokenizer</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The settings for extraction of text.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>mode</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureMode">module:qm~FeatureMode</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>How are multi-record cases combined into single vector.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>stream</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureStream">module:qm~FeatureStream</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Details on forgetting old IDFs when running on stream.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The source of the extractor.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureExtractors"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractors</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Feature extractor types.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>constant</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Constant">module:qm~FeatureExtractor_Constant</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The constant type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>random</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Random">module:qm~FeatureExtractor_Random</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The random type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>numeric</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Numeric">module:qm~FeatureExtractor_Numeric</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The numeric type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>categorical</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Categorical">module:qm~FeatureExtractor_Categorical</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The categorical type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>multinomial</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Multinomial">module:qm~FeatureExtractor_Multinomial</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The multinomial type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>text</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Text">module:qm~FeatureExtractor_Text</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The text type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>join</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Join">module:qm~FeatureExtractor_Join</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The join type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>pair</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Pair">module:qm~FeatureExtractor_Pair</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The pair type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>jsfunc</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_Jsfunc">module:qm~FeatureExtractor_Jsfunc</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The jsfunc type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>dateWindow</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureExtractor_DateWindow">module:qm~FeatureExtractor_DateWindow</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The dateWindow type.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureSource"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureSource</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>From where are the input records taken.</p>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The store name.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~FeatureTokenizer"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureTokenizer</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>The settings for extraction of text.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureTokenizerType">module:qm~FeatureTokenizerType</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The type of the encoding text.</p>
+                        <p>Defaults to <code>'simple'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>stopwords</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureTokenizerStopwords">module:qm~FeatureTokenizerStopwords</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The stopwords used for extraction.</p>
+                        <p>Defaults to <code>'en'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>stemmer</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~FeatureTokenizerStemmer">module:qm~FeatureTokenizerStemmer</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The stemmer used for extraction.</p>
+                        <p>Defaults to <code>'none'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>uppercase</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Changing all words to uppercase.</p>
+                        <p>Defaults to <code>'true'</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~SchemaDefinition"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SchemaDefinition</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Store schema definition object</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a simple movies store, where each record contains only the movie title.
+var base = new qm.Base({
+    mode: &#x27;createClean&#x27;,
+    schema: [{
+      type: &quot;Movies&quot;,
+      type: [{ name: &quot;title&quot;, type: &quot;string&quot; }]
+    }]
+});</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store. Store name can be composed by from English letters, numbers, _ or $ characters. It can only begin with a character.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>fields</p>
+                      </td>
+                      <td>
+                        <p>Array of <a href="module-qm.html#~SchemaFieldDefinition">module:qm~SchemaFieldDefinition</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The array of field descriptors.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>joins</p>
+                      </td>
+                      <td>
+                        <p>Array of <a href="module-qm.html#~SchemaJoinDefinition">module:qm~SchemaJoinDefinition</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The array of join descriptors, used for linking records from different stores.</p>
+                        <p>Defaults to <code>[]</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>keys</p>
+                      </td>
+                      <td>
+                        <p>Array of <a href="module-qm.html#~SchemaKeyDefinition">module:qm~SchemaKeyDefinition</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The array of key descriptors. Keys define how records are indexed, which is needed for search using the query language.</p>
+                        <p>Defaults to <code>[]</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>timeWindow</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~SchemaTimeWindowDefinition">module:qm~SchemaTimeWindowDefinition</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Time window description. Stores can have a window, which is used by garbage collector to delete records once they fall out of the time window. Window can be defined by number of records or by time.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~SchemaFieldDefinition"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SchemaFieldDefinition</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Store schema field definition object</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+ var base = new qm.Base({
+     mode: &#x27;createClean&#x27;,
+     schema: [
+       { name: &#x27;NewsArticles&#x27;,
+         fields: [
+           { name: &quot;ID&quot;, primary: true, type: &quot;string&quot;, shortstring: true },
+           { name: &quot;Source&quot;, type: &quot;string&quot;, codebook: true },
+           { name: &quot;DateTime&quot;, type: &quot;datetime&quot; },
+           { name: &quot;Title&quot;, type: &quot;string&quot;, store: &quot;cache&quot; },
+           { name: &quot;Tokens&quot;, type: &quot;string_v&quot;, store: &quot;cache&quot;, null: true },
+           { name: &quot;Vector&quot;, type: &quot;num_sp_v&quot;, store: &quot;cache&quot;, null: true }]
+       }
+    ]
+ });
+// add a record:
+// - we set the date using the ISO string representation
+// - we set the string vector Tokens with an array of strings
+// - we set the numeric sparse vector Vector with an array of two element arrays
+//   (index, value), see the sparse vector constructor {@link module:la.SparseVector}
+base.store(&#x27;NewsArticles&#x27;).push({
+  ID: &#x27;t12344&#x27;, 
+  Source: &#x27;s1234&#x27;, 
+  DateTime: &#x27;2015-01-01T00:05:00&#x27;, 
+  Title: &#x27;the title&#x27;, 
+  Tokens: [&#x27;token1&#x27;, &#x27;token2&#x27;], 
+  Vector: [[0,1], [1,1]]})</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the field.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~fieldTypes">module:qm~fieldTypes</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the field.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>primary</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Field which can be used to identify record. There can be only one primary field in a store. There can be at most one record for each value of the primary field. Currently following fields can be marked as primary: int, uin64, string,
+                          float, datetime. Primary fields of type string are also used for record names.</p>
+                        <p>Defaults to <code></code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>null</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>When set to true, null is a possible value for a field (allow missing values).</p>
+                        <p>Defaults to <code></code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Defines where to store the field, options are: <b>'cache'</b> or <b>'memory'</b>. The default option is <b>'memory'</b>, which stores the values in RAM. Option <b>'cache'</b> stores the values on disk, with a layer of FIFO cache
+                          in RAM, storing the most recently used values.</p>
+                        <p>Defaults to <code>'memory'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>default</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Default value for field when not given for a new record.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>codebook</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Useful when many records have only few different values of this field. If set to true, then a separate table of all values is kept, and records only point to this table (replacing variable string field in record serialisation with
+                          fixed-length integer). Useful to decrease memory footprint, and faster to update. (STRING FIELD TYPE SPECIFIC).</p>
+                        <p>Defaults to <code></code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>shortstring</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Useful for string shorter then 127 characters (STRING FIELD TYPE SPECIFIC).</p>
+                        <p>Defaults to <code></code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~SchemaJoinDefinition"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SchemaJoinDefinition</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Store schema join definition object</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// Create two stores: People which stores only names of persons and Movies, which stores only titles.
+// Each person can direct zero or more movies, so we use an index join named &#x27;directed&#x27; and
+// each movie has a single director, so we use a field join &#x27;director&#x27;. The joins are 
+// inverses of each other. The inverse join simplifies the linking, since only one join needs
+// to be specified, and the other direction can be linked automatically (in the example 
+// below we specify only the &#x27;director&#x27; link and the &#x27;directed&#x27; join is updated automatically).
+//
+var base = new qm.Base({
+    mode: &#x27;createClean&#x27;,
+    schema: [
+      { name: &#x27;People&#x27;, 
+        fields: [{ name: &#x27;name&#x27;, type: &#x27;string&#x27;, primary: true }], 
+        joins: [{ name: &#x27;directed&#x27;, &#x27;type&#x27;: &#x27;index&#x27;, &#x27;store&#x27;: &#x27;Movies&#x27;, &#x27;inverse&#x27;: &#x27;director&#x27; }] },
+      { name: &#x27;Movies&#x27;, 
+        fields: [{ name: &#x27;title&#x27;, type: &#x27;string&#x27;, primary: true }], 
+        joins: [{ name: &#x27;director&#x27;, &#x27;type&#x27;: &#x27;field&#x27;, &#x27;store&#x27;: &#x27;People&#x27;, &#x27;inverse&#x27;: &#x27;directed&#x27; }] }
+    ]
+});
+// Adds a movie, automatically adds &#x27;Jim Jarmusch&#x27; to People, sets the &#x27;director&#x27; join (field join)
+// and automatically updates the index join &#x27;directed&#x27;, since it&#x27;s an inverse join of &#x27;director&#x27;
+base.store(&#x27;Movies&#x27;).push({ title: &#x27;Broken Flowers&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });
+// Adds a movie, sets the &#x27;director&#x27; join, updates the index join of &#x27;Jim Jarmusch&#x27;
+base.store(&#x27;Movies&#x27;).push({ title: &#x27;Coffee and Cigarettes&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });
+// Adds movie, automatically adds &#x27;Lars von Trier&#x27; to People, sets the &#x27;director&#x27; join
+// and &#x27;directed&#x27; inverse join (automatically)
+base.store(&#x27;Movies&#x27;).push({ title: &#x27;Dogville&#x27;, director: { name: &#x27;Lars von Trier&#x27; } });
+
+var movie = base.store(&#x27;Movies&#x27;)[0]; // get the first movie (Broken Flowers)
+// Each movie has a property corresponding to the join name: &#x27;director&#x27;. 
+// Accessing the property returns a {@link module:qm.Record} from the store People.
+var person = movie.director; // get the director
+console.log(person.name); // prints &#x27;Jim Jarmusch&#x27;
+// Each person has a property corresponding to the join name: &#x27;directed&#x27;. 
+// Accessing the property returns a {@link module:qm.RecSet} from the store People.
+var movies = person.directed; // get all the movies the person directed.
+movies.each(function (movie) { console.log(movie.title); }); 
+// prints: 
+//   &#x27;Broken Flowers&#x27;
+//   &#x27;Coffee and Cigarettes&#x27;</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the join.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The supported types are: <b>'field'</b> and <b>'index'</b>.
+                          <br> A join with type=<b>'field'</b> can point to zero or one record and is implemented as an additional hidden field of type uint64, which can hold the ID of the record it links to. Accessing the record's join returns a record.
+                          <br> A join with type=<b>'index'</b> can point to any number of records and is implemented using the inverted index, where for each record a list (vector) of linked records is kept. Accessing the record's join returns a record set.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The store name from which the linked records are.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~SchemaKeyDefinition"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SchemaKeyDefinition</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Store schema key definition object</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// Create a store People which stores only names of persons.
+var base = new qm.Base({
+    mode: &#x27;createClean&#x27;,
+    schema: [
+        { name: &#x27;People&#x27;,
+          fields: [{ name: &#x27;name&#x27;, type: &#x27;string&#x27;, primary: true }],
+          keys: [
+            { field: &#x27;name&#x27;, type: &#x27;value&#x27;}, 
+            { field: &#x27;name&#x27;, name: &#x27;nameText&#x27;, type: &#x27;text&#x27;}
+         ]
+       }
+    ]
+});
+
+base.store(&#x27;People&#x27;).push({name : &#x27;John Smith&#x27;});
+base.store(&#x27;People&#x27;).push({name : &#x27;Mary Smith&#x27;});
+// search based on indexed values
+base.search({$from : &#x27;People&#x27;, name: &#x27;John Smith&#x27;}); // Return the record set containing &#x27;John Smith&#x27;
+// search based on indexed values
+base.search({$from : &#x27;People&#x27;, name: &#x27;Smith&#x27;}); // Returns the empty record set.
+// search based on text indexing
+base.search({$from : &#x27;People&#x27;, nameText: &#x27;Smith&#x27;}); // Returns both records.</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>field</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the field that will be indexed.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The supported types are: <b>'value'</b>, <b>'text'</b> and <b>'location'</b>.
+                          <br> A key with type=<b>'value'</b> indexes records using an inverted index using full value of the field (no processing). The key type supports 'string', 'string_v' and 'datetime' fields types.
+                          <br> A key with type=<b>'text'</b> indexes string fields by using a tokenizer and text processing. Supported by string fields.
+                          <br> A key with type=<b>'location'</b> indexes records as points on a sphere and enables nearest-neighbour queries. Supported by float_pair type fields.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Allows using a different name for the key in search queries. This allows for multiple keys to be put against the same field. Default value is the name of the field.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>vocabulary</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>defines the name of the vocabulary used to store the tokens or values. This can be used indicate to several keys to use the same vocabulary, to save on memory. Supported by 'value' and 'text' keys.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>tokenize</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>defines the tokenizer that is used for tokenizing the values stored in indexed fields. Tokenizer uses same parameters as in bag-of-words feature extractor. Default is english stopword list and no stemmer. Supported by 'text' keys.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~SchemaTimeWindowDefinition"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SchemaTimeWindowDefinition</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Stores can have a window, which is used by garbage collector to delete records once they fall out of the time window. Window can be defined by number of records or by time. Window defined by parameter window, its value being the number of
+                records to be kept.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// Create a store
+var base = new qm.Base([{
+// ...
+  timeWindow : { 
+    duration : 12,
+    unit : &quot;hour&quot;,
+    field : &quot;DateTime&quot;
+  }
+}]);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>duration</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>the size of the time window (in number of units).</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>unit</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>defines in which units the window size is specified. Possible values are <b>second</b>, <b>minute</b>, <b>hour</b>, <b>day</b>, <b>week</b> or <b>month</b>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>field</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>name of the datetime filed, which defines the time of the record. In case it is not given, the insert time is used in its place.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~StreamAggr_Count"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_Count</span><small class="property-type">
+                &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+              <p>This stream aggregator represents the count moving window buffer. It implements the functions:
+                <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the number of records in the it's buffer window.
+                <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in the it's buffer window.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Heat&quot;,
+       fields: [
+           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+// create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
+// and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+var timeser = {
+   name: &#x27;TimeSeriesAggr&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;Heat&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Celcius&#x27;,
+   winsize: 2 * 1000
+};
+var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
+// add a count aggregator, that is connected with the TimeSeriesAggr
+var co = {
+   name: &#x27;CountAggr&#x27;,
+   type: &#x27;winBufCount&#x27;,
+   store: &#x27;Heat&#x27;,
+   inAggr: &#x27;TimeSeriesAggr&#x27;
+};
+var count = base.store(&quot;Heat&quot;).addStreamAggr(co);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The given name of the stream aggregator.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the stream aggregator. It must be equal to 'winBufCount'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store from which it takes the data.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>inAggr</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the stream aggregator to which it connects and gets the data.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~StreamAggr_EMA"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_EMA</span><small class="property-type">
+                &nbsp;module:qmStreamAggr</small></h3>
+              <p>This stream aggregator represents the exponential moving average window buffer. It implements the functions:
+                <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the exponentional average of the values in it's buffer window.
+                <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Heat&quot;,
+       fields: [
+           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+// create a new time series tick stream aggregator for the Heat store, that takes the values from the Celcius field
+// and the timestamp from the Time field. The size of the window is 5 seconds (5000ms)
+var timeser = {
+   name: &#x27;TimeSeriesAggr&#x27;,
+   type: &#x27;timeSeriesTick&#x27;,
+   store: &#x27;Heat&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Celcius&#x27;,
+   winsize: 5 * 1000
+};
+var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
+// add an exponentional moving average aggregator, that is connected with the TimeSeriesAggr
+var ema = {
+   name: &#x27;emaAggr&#x27;,
+   type: &#x27;ema&#x27;,
+   store: &#x27;Heat&#x27;,
+   inAggr: &#x27;TimeSeriesAggr&#x27;,
+   emaType: &#x27;previous&#x27;,
+   interval: 3000,
+   initWindow: 2000
+};
+var expoMovingAverage = base.store(&quot;Heat&quot;).addStreamAggr(ema);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The given name for the stream aggregator.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the stream aggregator. It must be equal to 'ema'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store from which it takes the data.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>inAggr</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the stream aggregator to which it connects and gets data.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>emaType</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of interpolation. The choices are: 'previous', 'linear' and 'next'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>interval</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The time interval defining the decay. It must be greater than initWindow.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>initWindow</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>-</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~StreamAggr_Max"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_Max</span><small class="property-type">
+                &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+              <p>This stream aggregator represents the maximal moving window buffer. It implements the functions:
+                <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the maximal value of the records in the it's buffer window.
+                <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Heat&quot;,
+       fields: [
+           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+// create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
+// and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+var timeser = {
+   name: &#x27;TimeSeriesAggr&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;Heat&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Celcius&#x27;,
+   winsize: 2 * 1000
+};
+var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
+// add a max aggregator, that is connected with the TimeSeriesAggr
+var max = {
+   name: &#x27;MaxAggr&#x27;,
+   type: &#x27;winBufMax&#x27;,
+   store: &#x27;Heat&#x27;,
+   inAggr: &#x27;TimeSeriesAggr&#x27;
+};
+var maximal = base.store(&quot;Heat&quot;).addStreamAggr(max);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The given name of the stream aggregator.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type for the stream aggregator. It must be equal to 'winBufMax'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store from which it takes the data.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>inAggr</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the stream aggregator to which it connects and gets data.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~StreamAggr_Min"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_Min</span><small class="property-type">
+                &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+              <p>This stream aggregator represents the minimal moving window buffer. It implements the functions:
+                <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the minimal value of the records in it's buffer window.
+                <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Heat&quot;,
+       fields: [
+           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+// create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
+// and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+var timeser = {
+   name: &#x27;TimeSeriesAggr&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;Heat&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Celcius&#x27;,
+   winsize: 2 * 1000
+};
+var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
+// add a min aggregator, that is connected with the TimeSeriesAggr
+var min = {
+   name: &#x27;MinAggr&#x27;,
+   type: &#x27;winBufMin&#x27;,
+   store: &#x27;Heat&#x27;,
+   inAggr: &#x27;TimeSeriesAggr&#x27;
+};
+var minimal = base.store(&quot;Heat&quot;).addStreamAggr(min);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The given name of the stream aggregator.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the stream aggregator. It must be equal to 'winBufMin'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store from which it takes the data.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>inAggr</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the stream aggregator to which it connects and gets data.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~StreamAggr_MovingAverage"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_MovingAverage</span><small class="property-type">
+                &nbsp;module:qmStreamAggr</small></h3>
+              <p>This stream aggregator represents the moving average window buffer. It implements the functions:
+                <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the average of the values in it's buffer window.
+                <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Heat&quot;,
+       fields: [
+           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+// create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
+// and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+var timeser = {
+   name: &#x27;TimeSeriesAggr&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;Heat&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Celcius&#x27;,
+   winsize: 2 * 1000
+};
+var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
+// add a moving average aggregator, that is connected with the TimeSeriesAggr
+var ma = {
+   name: &#x27;movingAverageAggr&#x27;,
+   type: &#x27;ma&#x27;,
+   store: &#x27;Heat&#x27;,
+   inAggr: &#x27;TimeSeriesAggr&#x27;
+};
+var movingAverage = base.store(&quot;Heat&quot;).addStreamAggr(ma);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The given name of the stream aggregator.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the stream aggregator. It must be equal to 'ma'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store from which it takes the data.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>inAggr</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the stream aggregator to which it connects and gets data.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~StreamAggr_MovingCorrelation"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_MovingCorrelation</span><small class="property-type">
+                &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+              <p>This stream aggregator represents the moving covariance window buffer. It implements the functions:
+                <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the correlation of the values in it's buffer window.
+                <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Heat&quot;,
+       fields: [
+           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+           { name: &quot;WaterConsumption&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+// create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
+// and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+var celcius = {
+   name: &#x27;CelciusAggr&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;Heat&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Celcius&#x27;,
+   winsize: 2 * 1000
+}; base.store(&quot;Heat&quot;).addStreamAggr(celcius);
+// create a new time series stream aggregator for the Heat store, that takes the values from the WaterConsumption field
+// and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+var water = {
+   name: &#x27;WaterAggr&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;Heat&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;WaterConsumption&#x27;,
+   winsize: 2 * 1000
+}; base.store(&quot;Heat&quot;).addStreamAggr(water);
+// add a covariance aggregator, that is connected with the celciusAggr and waterAggr
+var covariance = {
+   name: &#x27;covarianceAggr&#x27;,
+   type: &#x27;covariance&#x27;,
+   store: &#x27;Heat&#x27;,
+   inAggrX: &#x27;CelciusAggr&#x27;,
+   inAggrY: &#x27;WaterAggr&#x27;
+}; base.store(&quot;Heat&quot;).addStreamAggr(covariance);
+// add the two variance aggregators, that take from the Celcius and WaterConsumption, respectively.
+var celVar = {
+   name: &#x27;celciusVarAggr&#x27;,
+   type: &#x27;variance&#x27;,
+   store: &#x27;Heat&#x27;,
+   inAggr: &#x27;CelciusAggr&#x27;
+}; base.store(&quot;Heat&quot;).addStreamAggr(celVar);
+
+var waterVar = {
+   name: &#x27;waterVarAggr&#x27;,
+   type: &#x27;variance&#x27;,
+   store: &#x27;Heat&#x27;,
+   inAggr: &#x27;WaterAggr&#x27;
+}; base.store(&quot;Heat&quot;).addStreamAggr(waterVar);
+// add a correlation aggregator, that is connected to covarianceAggr, celciusVarAggr and waterValAggr
+var corr = {
+   name: &#x27;corrAggr&#x27;,
+   type: &#x27;correlation&#x27;,
+   store: &#x27;Heat&#x27;,
+   inAggrCov: &#x27;covarianceAggr&#x27;,
+   inAggrVarX: &#x27;celciusVarAggr&#x27;,
+   inAggrVarY: &#x27;waterVarAggr&#x27;
+};
+var correlation = base.store(&quot;Heat&quot;).addStreamAggr(corr);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The given name for the stream aggregator.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the stream aggregator. It must be equal to 'correlation'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store from which it takes the data.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>inAggrCov</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the covariance stream aggregator.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>inAggrVarX</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the first variance stream aggregator.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>inAggrVarY</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the second variance stream aggregator.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~StreamAggr_MovingCovariance"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_MovingCovariance</span><small class="property-type">
+                &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+              <p>This stream aggregator represents the moving covariance window buffer. It implements the functions:
+                <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the covariance of the values in it's buffer window.
+                <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Heat&quot;,
+       fields: [
+           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+           { name: &quot;WaterConsumption&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+// create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
+// and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+var celcius = {
+   name: &#x27;CelciusAggr&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;Heat&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Celcius&#x27;,
+   winsize: 2 * 1000
+}; base.store(&quot;Heat&quot;).addStreamAggr(celcius);
+// create a new time series stream aggregator for the Heat store, that takes the values from the WaterConsumption field
+// and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+var water = {
+   name: &#x27;WaterAggr&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;Heat&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;WaterConsumption&#x27;,
+   winsize: 2 * 1000
+}; base.store(&quot;Heat&quot;).addStreamAggr(water);
+// add a covariance aggregator, that is connected with the celciusAggr and waterAggr
+var covariance = {
+   name: &#x27;covAggr&#x27;,
+   type: &#x27;covariance&#x27;,
+   store: &#x27;Heat&#x27;,
+   inAggrX: &#x27;CelciusAggr&#x27;,
+   inAggrY: &#x27;WaterAggr&#x27;
+};
+var covarianceAggr = base.store(&quot;Heat&quot;).addStreamAggr(covariance);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The given name for the stream aggregator.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the stream aggregator. It must be equal to 'covariance'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store from which it takes the data.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>inAggrX</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the first stream aggregator to which it connects and gets data.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>inAggrY</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the recond stream aggregator to which it connects and gets data.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~StreamAggr_MovingVariance"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_MovingVariance</span><small class="property-type">
+                &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+              <p>This stream aggregator represents the moving variance window buffer. It implements the functions:
+                <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the variance of the values in it's buffer window.
+                <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Heat&quot;,
+       fields: [
+           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+// create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
+// and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+var timeser = {
+   name: &#x27;TimeSeriesAggr&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;Heat&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Celcius&#x27;,
+   winsize: 2 * 1000
+};
+var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
+// add a variance aggregator, that is connected with the TimeSeriesAggr
+var variance = {
+   name: &#x27;varAggr&#x27;,
+   type: &#x27;variance&#x27;,
+   store: &#x27;Heat&#x27;,
+   inAggr: &#x27;TimeSeriesAggr&#x27;
+};
+var varianceAggr = base.store(&quot;Heat&quot;).addStreamAggr(variance);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The given name for the stream aggregator.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the stream aggregator. It must be equal to 'variance'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store from which it takes the data.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>inAggr</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the stream aggregator to which it connects and gets data.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~StreamAggr_Resampler"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_Resampler</span><small class="property-type">
+                &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+              <p>This stream aggregator represents the resampler window buffer. It doesn't implement any functions.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Heat&quot;,
+       fields: [
+           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   },
+   {
+       name: &quot;interpolatedValues&quot;,
+       fields: [
+           { name: &quot;Value&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+// create a new resampler stream aggregator for the Heat store, that takes the values from the Celcius field
+// and the timestamp from the Time field. The interpolated values are stored in the &#x27;interpolatedValues&#x27; store 
+// the interpolation should be linear
+var res = {
+   name: &#x27;resamplerAggr&#x27;,
+   type: &#x27;resampler&#x27;,
+   store: &#x27;Heat&#x27;,
+   outStore: &#x27;interpolatedValues&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   fields: [{
+       name: &#x27;Celcius&#x27;,
+       interpolator: &#x27;linear&#x27;
+   }],
+   createStore: false,
+   interval: 2 * 1000
+};
+var resampler = base.store(&quot;Heat&quot;).addStreamAggr(res);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The given name for the stream aggregator.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the stream aggregator. It must be equal to 'resampler'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store from which it takes the data.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>outStore</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The store in which the samples are stored.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>timestamp</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The store field from which it takes the timestamps.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>fields</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The json, which contains:
+                          <br> name (string) - the store field from which it takes the values.
+                          <br> interpolator (string) - the type of the interpolation. The options are: 'previous', 'next' and 'linear'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>createStore</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>If the outStore must be created.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>interval</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The size/frequency the interpolated values should be given.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~StreamAggr_Sum"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_Sum</span><small class="property-type">
+                &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+              <p>This stream aggregator represents the sum moving window buffer. It implements the functions:
+                <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the sum of the values of the records in the it's buffer window.
+                <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in the it's buffer window.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Heat&quot;,
+       fields: [
+           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+// create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
+// and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+var timeser = {
+   name: &#x27;TimeSeriesAggr&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;Heat&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Celcius&#x27;,
+   winsize: 2 * 1000
+};
+var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
+// add a sum aggregator, that is connected with the TimeSeriesAggr
+var sum = {
+   name: &#x27;SumAggr&#x27;,
+   type: &#x27;winBufSum&#x27;,
+   store: &#x27;Heat&#x27;,
+   inAggr: &#x27;TimeSeriesAggr&#x27;
+};
+var sumAggr = base.store(&quot;Heat&quot;).addStreamAggr(sum);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The given name of the stream aggregator.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the stream aggregator. It must be equal to 'winBufSum'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store form which it takes the data.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>inAggr</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the stream aggregator to which it connects and gets data.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~StreamAggr_TimeSeries"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_TimeSeries</span><small class="property-type">
+                &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+              <p>This stream aggregator represents the time series window buffer. It implements all functions of the <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a>.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Heat&quot;,
+       fields: [
+           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+// create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
+// and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+var aggr = {
+   name: &#x27;TimeSeriesAggr&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;Heat&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Celcius&#x27;,
+   winsize: 2 * 1000
+};
+base.store(&quot;Heat&quot;).addStreamAggr(aggr); </code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The given name of the stream aggregator.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the stream aggregator. It must be equal to 'timeSeriesWinBuf'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store from which to takes the data.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>timestamp</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The field of the store, where it takes the time/date.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>value</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The field of the store, where it takes the values.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>winsize</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The size of the window, in miliseconds.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~StreamAggr_TimeSeriesTick"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_TimeSeriesTick</span><small class="property-type">
+                &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+              <p>This stream aggregator represents the time series tick window buffer. It implements the functions:
+                <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the last value added in the it's window buffer.
+                <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Heat&quot;,
+       fields: [
+           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+// create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
+// and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+var tick = {
+   name: &#x27;TimeSeriesTickAggr&#x27;,
+   type: &#x27;timeSeriesTick&#x27;,
+   store: &#x27;Heat&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Celcius&#x27;,
+};
+var timeSeriesTick = base.store(&quot;Heat&quot;).addStreamAggr(tick);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The given name for the stream aggregator.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the stream aggregator. It must be equal to 'timeSeriesTick'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store from which it takes the data.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>value</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store field, from which it takes the values.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>timestamp</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store field, from which it takes the timestamp.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~StreamAggregators"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregators</span><small class="property-type">
+                &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+              <p>Stream aggregator types.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>timeSeries</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~StreamAggr_TimeSeries">module:qm~StreamAggr_TimeSeries</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The time series type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>count</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~StreamAggr_Count">module:qm~StreamAggr_Count</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The count type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>sum</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~StreamAggr_Sum">module:qm~StreamAggr_Sum</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The sum type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>min</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~StreamAggr_Min">module:qm~StreamAggr_Min</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The minimal type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>max</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~StreamAggr_Max">module:qm~StreamAggr_Max</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The maximal type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>tick</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~StreamAggr_TimeSeriesTick">module:qm~StreamAggr_TimeSeriesTick</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The time series tick type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>ma</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~StreamAggr_MovingAverage">module:qm~StreamAggr_MovingAverage</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The moving average type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>ema</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~StreamAggr_EMA">module:qm~StreamAggr_EMA</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The exponental moving average type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>var</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~StreamAggr_MovingVariance">module:qm~StreamAggr_MovingVariance</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The moving variance type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>cov</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~StreamAggr_MovingCovariance">module:qm~StreamAggr_MovingCovariance</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The moving covariance type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>cor</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~StreamAggr_MovingCorrelation">module:qm~StreamAggr_MovingCorrelation</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The moving correlation type.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>res</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~StreamAggr_Resampler">module:qm~StreamAggr_Resampler</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The resampler type.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 15, 2015.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

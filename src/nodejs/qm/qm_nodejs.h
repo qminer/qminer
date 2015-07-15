@@ -3091,15 +3091,15 @@ public:
 	*/
 	//# exports.FeatureSpace.prototype.updateRecords = function (rs) { return Object.create(require('qminer').FeatureSpace.prototype); };
 	JsDeclareFunction(updateRecords);
-	//#- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
+	//!- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
     JsDeclareFunction(ftrSpVec);
-    //#- `vec = fsp.ftrVec(rec)` -- extracts feature vector `vec` from record  `rec`
+    //!- `vec = fsp.ftrVec(rec)` -- extracts feature vector `vec` from record  `rec`
     JsDeclareFunction(ftrVec);
-    //#- `vec = fsp.invFtrVec(ftrVec)` -- performs the inverse operation of ftrVec, returns the results in
-    //#- 	an array
+    //!- `vec = fsp.invFtrVec(ftrVec)` -- performs the inverse operation of ftrVec, returns the results in
+    //!- 	an array
 	JsDeclareFunction(invFtrVec);
-	//#- `val = fsp.invFtrVec(ftrIdx, val)` -- inverts a single feature using the feature
-	//#- 	extractor on index `ftrIdx`
+	//!- `val = fsp.invFtrVec(ftrIdx, val)` -- inverts a single feature using the feature
+	//!- 	extractor on index `ftrIdx`
 	JsDeclareFunction(invFtr);
 
 	//!- `spVec = fsp.extractSparseVector(rec)` -- extracts sparse feature vector `spVec` from record `rec`

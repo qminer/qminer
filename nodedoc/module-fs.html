@@ -1,0 +1,740 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta charset="utf-8">
+  <title>Module: fs</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">fs</span></h1>
+            <p class="source-link">Source: <a href="fsdoc.js.html#source-line-8">fsdoc.<wbr>js:8</a></p>
+            <div class="symbol-description">
+              <p>File-system module.</p>
+            </div>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Child classes</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-fs.FIn.html">FIn(fileName)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-fs.FOut.html">FOut(fileName[, append])</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-fs.html#.copy">copy(source, dest)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-fs.html#.del">del(fileName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-fs.html#.exists">exists(fileName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-fs.html#.fileInfo">fileInfo(fileName)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-fs.html#.listFile">listFile(dirName[, fileExtension][, recursive])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-fs.html#.mkdir">mkdir(dirName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-fs.html#.move">move(source, dest)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-fs.html#.openAppend">openAppend(fileName)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-fs.html#.openRead">openRead(fileName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-fs.html#.openWrite">openWrite(fileName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-fs.html#.rename">rename(source, dest)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-fs.html#.rmdir">rmdir(dirName)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Abstract type</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-fs.html#~FileInfo">FileInfo</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2>Classes</h2>
+            <section id='members-links'>
+              <h3><a href="module-fs.FIn.html">FIn</a></h3>
+              <h3><a href="module-fs.FOut.html">FOut</a></h3>
+            </section>
+            <h2>Methods</h2>
+            <section>
+              <h3 id=".copy"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">copy</span><span class="signature"><span class="signature-params">(source, dest)</span></span></h3>
+              <p>copies a file</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Source file name.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>dest</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Destination file name.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id=".del"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">del</span><span class="signature"><span class="signature-params">(fileName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
+              <p>deletes a file</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fileName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>File name.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>boolean</code>&nbsp;True if delete succeeded.</p>
+                </dd>
+              </dl>
+              <h3 id=".exists"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">exists</span><span class="signature"><span class="signature-params">(fileName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
+              <p>checks if the file exists</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fileName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>File name.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>boolean</code>&nbsp;True if file exists.</p>
+                </dd>
+              </dl>
+              <h3 id=".fileInfo"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">fileInfo</span><span class="signature"><span class="signature-params">(fileName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.html#~FileInfo">module:fs~FileInfo</a></span></span></h3>
+              <p>returns the file info</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fileName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>File name.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.html#~FileInfo">module:fs~FileInfo</a></code>&nbsp;File info object.</p>
+                </dd>
+              </dl>
+              <h3 id=".listFile"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">listFile</span><span class="signature"><span class="signature-params">(dirName[, fileExtension][, recursive])</span>&nbsp;&rarr; <span class="signature-returns"> Array of string</span></span></h3>
+              <p>Returns a list fo files in the folder</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>dirName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Folder name.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>fileExtension</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Results are filtered by file extension.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>recursive</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Recursively searches for file names if true.</p>
+                        <p>Defaults to <code></code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Array of string</code>&nbsp;Array of file names.</p>
+                </dd>
+              </dl>
+              <h3 id=".mkdir"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">mkdir</span><span class="signature"><span class="signature-params">(dirName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
+              <p>Creates a folder</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>dirName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Folder name.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>boolean</code>&nbsp;True if succeeded.</p>
+                </dd>
+              </dl>
+              <h3 id=".move"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">move</span><span class="signature"><span class="signature-params">(source, dest)</span></span></h3>
+              <p>moves a file</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Source file name.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>dest</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Destination file name.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id=".openAppend"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">openAppend</span><span class="signature"><span class="signature-params">(fileName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>open file in append mode and return file output stream</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fileName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>File name.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Output stream.</p>
+                </dd>
+              </dl>
+              <h3 id=".openRead"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">openRead</span><span class="signature"><span class="signature-params">(fileName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FIn.html">module:fs.FIn</a></span></span></h3>
+              <p>open file in read mode and return file input stream</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fileName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>File name.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FIn.html">module:fs.FIn</a></code>&nbsp;Input stream.</p>
+                </dd>
+              </dl>
+              <h3 id=".openWrite"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">openWrite</span><span class="signature"><span class="signature-params">(fileName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>open file in write mode and return file output stream</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fileName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>File name.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Output stream.</p>
+                </dd>
+              </dl>
+              <h3 id=".rename"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">rename</span><span class="signature"><span class="signature-params">(source, dest)</span></span></h3>
+              <p>renames a file</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>source</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Source file name.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>dest</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Destination file name.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id=".rmdir"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">rmdir</span><span class="signature"><span class="signature-params">(dirName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
+              <p>Removes a folder</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>dirName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Folder name.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>boolean</code>&nbsp;True if succeeded.</p>
+                </dd>
+              </dl>
+            </section>
+            <h2>Abstract type</h2>
+            <section>
+              <h3 id="~FileInfo"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FileInfo</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Information about the file</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>FileInfo.createTime</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Create time.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>FileInfo.lastAccessTime</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Last access time.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>FileInfo.lastWriteTime</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Last write time.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>FileInfo.size</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>File size in bytes.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 15, 2015.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

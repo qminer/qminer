@@ -1,6 +1,3 @@
-//intellisense start
-exports = {}; require.modules.qminer_analytics = exports;
-//intellisense end
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
