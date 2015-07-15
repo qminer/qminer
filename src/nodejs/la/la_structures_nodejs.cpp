@@ -63,6 +63,7 @@ void TNodeJsLinAlg::svd(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             Args.GetReturnValue().Set(v8::Undefined(Isolate));
         }
     } else {
+		EFailR("SVD expects a matrix and the parameter k");
         Args.GetReturnValue().Set(v8::Undefined(Isolate));
     }
 }
