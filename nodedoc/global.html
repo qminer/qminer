@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.3.0-beta2">
   <meta charset="utf-8">
-  <title>Module: analytics</title>
+  <title>Globals</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -23,45 +23,21 @@
     <div id="jsdoc-content">
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
-          <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">analytics</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-8">analyticsdoc.<wbr>js:8</a></p>
-            <div class="symbol-description">
-              <p>Analytics module.</p>
-            </div>
-            <dl class="dl-compact">
-            </dl>
-          </header>
+          <h1>Globals</h1>
           <section id="summary">
             <div class="summary-callout">
-              <h2 class="summary-callout-heading">Child classes</h2>
+              <h2 class="summary-callout-heading">Method</h2>
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.HierarchMarkov.html">HierarchMarkov(HierarchMarkovParam)</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD([detectorParam])</a></dt>
+                    <dt><a href="global.html#defarg">defarg(fout)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.RidgeReg.html">RidgeReg([arg])</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-analytics.SVC.html">SVC(arg)</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
                 </div>
                 <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.SVR.html">SVR(arg)</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
                 </div>
               </div>
             </div>
@@ -70,14 +46,14 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.html#~svcParam">svcParam</a></dt>
+                    <dt><a href="global.html#svcParam">svcParam</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.html#~svrParam">svrParam</a></dt>
+                    <dt><a href="global.html#svrParam">svrParam</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -88,18 +64,47 @@
             </div>
           </section>
           <section>
-            <h2>Classes</h2>
-            <section id='members-links'>
-              <h3><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></h3>
-              <h3><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD</a></h3>
-              <h3><a href="module-analytics.RidgeReg.html">RidgeReg</a></h3>
-              <h3><a href="module-analytics.SVC.html">SVC</a></h3>
-              <h3><a href="module-analytics.SVR.html">SVR</a></h3>
+            <h2>Method</h2>
+            <section>
+              <h3 id="defarg"><span class="symbol-name">defarg</span><span class="signature"><span class="signature-params">(fout)</span></span></h3>
+              <p>Saves the model to the output stream.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fout</p>
+                      </td>
+                      <td>
+                        <p>FOut</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>the output stream</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
             </section>
             <h2>Abstract types</h2>
             <section>
-              <h3 id="~svcParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">svcParam</span><small class="property-type">
-                &nbsp;Object</small></h3>
+              <h3 id="svcParam"><span class="symbol-name">svcParam</span><small class="property-type">
+
+            &nbsp;Object</small></h3>
               <p>SVC constructor parameters</p>
               <section>
                 <h4>Properties</h4>
@@ -216,7 +221,7 @@
                       </td>
                       <td>
                         <p>Toggle verbose output in the console</p>
-                        <p>Defaults to <code></code>.</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -224,8 +229,9 @@
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~svrParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">svrParam</span><small class="property-type">
-                &nbsp;Object</small></h3>
+              <h3 id="svrParam"><span class="symbol-name">svrParam</span><small class="property-type">
+
+            &nbsp;Object</small></h3>
               <p>SVR constructor parameters</p>
               <section>
                 <h4>Properties</h4>
@@ -341,7 +347,7 @@
                       </td>
                       <td>
                         <p>Toggle verbose output in the console</p>
-                        <p>Defaults to <code></code>.</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -359,7 +365,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 8, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 9, 2015.
       </p>
     </div>
   </footer>

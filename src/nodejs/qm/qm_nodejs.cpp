@@ -540,7 +540,7 @@ void TNodeJsBase::getStreamAggrNames(const v8::FunctionCallbackInfo<v8::Value>& 
 
 
 ///////////////////////////////
-// NodeJs QMiner Record
+// NodeJs QMiner Store
 v8::Persistent<v8::Function> TNodeJsStore::Constructor;
 
 void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
