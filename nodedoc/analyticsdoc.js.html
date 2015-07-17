@@ -3437,6 +3437,138 @@
 
 
 
+
+
+    /** 
+
+    * @classdesc Principal components analysis
+
+    * @class    
+
+    */
+
+    exports.PCA = function () {        
+
+        /** 
+
+        * Computes .
+
+        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples.
+
+        */
+
+        this.fit = function (A, k, iter) {
+
+            var rows = A.rows;
+
+            var cols = A.cols;
+
+
+
+            k = k == undefined ? rows : k;
+
+            //iter = iter == undefined ? -1 : iter;
+
+
+
+            var mu = stat.mean(A, 2);            
+
+            // cov(A) = 1/(n-1) A A&#x27; - mu mu&#x27;
+
+
+
+            // center data (same as matlab)
+
+            var cA = A.minus(mu.outer(la.ones(cols)));            
+
+            var C = cA.multiply(cA.transpose()).multiply(1 / (cols - 1));
+
+            // alternative computation: 
+
+            //var C = (A.multiply(A.transpose()).multiply(1 / (cols - 1))).minus(mu.outer(mu));
+
+            var res = la.svd(C, k, { iter: iter });
+
+            
+
+            this.P = res.U;
+
+            this.lambda = res.s;
+
+            this.mu = mu;
+
+        }
+
+
+
+        /** 
+
+        * Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P.
+
+        * Recovering the data in the original space: (this.P).multiply(p), where p&#x27;s rows are the coefficients
+
+        * in the eigenvector basis.
+
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
+
+        * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
+
+        */
+
+        this.predict = function (x) {
+
+            if (x.constructor.name == &#x27;Matrix&#x27;) {
+
+                // P * (x - mu*ones(1, size(x,2))
+
+                return this.P.multiplyT(x.minus(this.mu.outer(la.ones(x.cols))));
+
+
+
+            } else if (x.constructor.name == &#x27;Vector&#x27;) {
+
+                // P * (x - mu)
+
+                return this.P.multiplyT(x.minus(this.mu));
+
+            }
+
+        }
+
+
+
+        /** 
+
+        * Reconstructs the vector in the original space, reverses centering
+
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
+
+        * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
+
+        */
+
+        this.reconstruct = function (x) {
+
+            if (x.constructor.name == &#x27;Matrix&#x27;) {
+
+                // P x + mu*ones(1, size(x,2)
+
+                return (this.P.multiply(x)).plus(this.mu.outer(la.ones(x.cols)));
+
+            } else if (x.constructor.name == &#x27;Vector&#x27;) {
+
+                // P x + mu
+
+                return (this.P.multiply(x)).plus(this.mu);
+
+            }
+
+        }
+
+    }
+
+
+
     
 
 </code></pre>
