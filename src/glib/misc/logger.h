@@ -61,4 +61,12 @@ public:
 	void NotifyErr(const char *Str, const PExcept& Except);
 	void Notify(const TNotifyType& Type, const char *FmtStr, va_list argptr);
 	void Notify(const TNotifyType& Type, const char *FmtStr);
+
+	static void PrintInfo(const TStr& Str);
+	static void PrintWarning(const TStr& Str);
+	static void PrintError(const TStr& Str);
+
+	static void PrintInfo(const char *FmtStr, ...);
+	static void PrintWarning(const char *FmtStr, ...);
+	static void PrintError(const char *FmtStr, ...);
 };

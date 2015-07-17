@@ -79,3 +79,41 @@ void TLogger::Notify(const TNotifyType& Type, const char *Str)
 		TNotify::StdNotify->OnNotify(ntErr, "Notify error.");
 	}
 }
+void TLogger::PrintInfo(const TStr& Str)
+{
+	PrintInfo(Str.CStr());
+}
+
+void TLogger::PrintWarning(const TStr& Str)
+{
+	PrintWarning(Str.CStr());
+}
+
+void TLogger::PrintError(const TStr& Str)
+{
+	PrintError(Str.CStr());
+}
+
+void TLogger::PrintInfo(const char *FmtStr, ...)
+{
+	va_list valist; va_start(valist, FmtStr);
+	printf("*** Info: ");
+	printf(FmtStr, valist);
+	printf("\n");
+}
+
+void TLogger::PrintWarning(const char *FmtStr, ...)
+{
+	va_list valist; va_start(valist, FmtStr);
+	printf("*** Warning: ");
+	printf(FmtStr, valist);
+	printf("\n");
+}
+
+void TLogger::PrintError(const char *FmtStr, ...)
+{
+	va_list valist; va_start(valist, FmtStr);
+	printf("*** Error: ");
+	printf(FmtStr, valist);
+	printf("\n");
+}
