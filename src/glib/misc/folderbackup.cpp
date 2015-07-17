@@ -263,8 +263,10 @@ TBackupLogInfo TFolderBackup::CreateBackup(const TStr& ProfileName)
 		TBackupLogInfo Info = Profile.CreateBackup();
 		return Info;
 	}
-	else
-		return TBackupLogInfo("", 0, "Unable to find profile with the specified name");
+	else {
+		TNotify::StdNotify->OnStatusFmt("Unable to find profile with name %s", ProfileName.CStr());
+		return TBackupLogInfo("", 0, TStr::Fmt("Unable to find profile with the name %s", ProfileName.CStr()));
+	}
 }
 
 // backup all profiles
