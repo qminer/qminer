@@ -3357,7 +3357,7 @@ public:
 	* // create a feature matrix out of the records of the store by using the feature space
 	* // returns a sparse matrix equal to
 	* // 1  0  0  1
-	* // 0  1  1  1
+	* // 0  1  0  1
 	* // 0  0  1  0
 	* // 1  1  0  0
 	* var matrix = ftr.extractMatrix(base.store("Class").recs);
