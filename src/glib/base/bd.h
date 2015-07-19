@@ -565,7 +565,7 @@ public:
 
   bool Empty() const {return Addr==NULL;}
   void Clr(){Addr=NULL;}
-  void Del(){delete Addr;}
+  void Del(){delete Addr; Addr=NULL;}
 
   int GetPrimHashCd() const {return Addr->GetPrimHashCd();}
   int GetSecHashCd() const { return Addr->GetSecHashCd(); }
