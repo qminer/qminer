@@ -30,7 +30,7 @@ public:
     
     /// Get bias
     double GetBias() const { return Bias; }
-    
+
     /// Classify full vector
     double Predict(const TFltV& Vec) const { 
         return TLinAlg::DotProduct(WgtV, Vec) + Bias; 
@@ -39,6 +39,11 @@ public:
     /// Classify sparse vector
     double Predict(const TIntFltKdV& SpVec) const { 
         return TLinAlg::DotProduct(WgtV, SpVec) + Bias;
+    }
+
+    /// Classify matrix column vector
+    double Predict(const TFltVV& Mat, const int& ColN) const {
+        return TLinAlg::DotProduct(Mat, ColN, WgtV) + Bias;
     }
 };
 
