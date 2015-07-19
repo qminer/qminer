@@ -103,7 +103,7 @@ private:
 * // Train classifier
 * SVC.fit(featureMatrix, targets);
 * // Save the model to disk
-* SVC.save('svc.bin');*
+* SVC.save('svc.bin');
 * // Set up a fake test vector
 * var test = new la.Vector([1.1, -0.5]);
 * // Predict the target value
@@ -196,7 +196,7 @@ public:
 * // Train regression
 * SVR.fit(featureMatrix, targets);
 * // Save the model to disk
-* SVR.save('svr.bin');*
+* SVR.save('svr.bin');
 * // Set up a fake test vector
 * var test = new la.Vector([1.1, -0.8]);
 * // Predict the target value

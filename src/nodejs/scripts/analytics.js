@@ -29,6 +29,22 @@ module.exports = exports = function (pathPrefix) {
             return target;
         };
 
+        this.inverse_binerize = function (y) {
+            var labels = [];
+            for (var cat = 0; cat < y.length; cat++) {
+                if (y[cat] > 0.0) { labels.push(cat); }
+            }
+            return labels;
+        };
+
+        this.indicator = function (cat, cats) {
+            var indicator = new la.Vector();
+            for (var i = 0; i < cats; i++) {
+                indicator.push(cat == i ? 1 : 0);
+            }
+            return indicator;
+        }
+
         this.applyModel = function (model, X) {
             var target = new la.Vector();
             for (var i = 0; i < X.cols; i++) {
@@ -47,29 +63,46 @@ module.exports = exports = function (pathPrefix) {
         this.models = [ ];
 
         // apply all models to the given vector and return distance to the class boundary
-        this.decision_function = function(x) {
-            // evaluate all models
-            var scores = [ ];
-            for (var cat = 0; cat < this.cats; cat++) {
-                scores.push(this.models[cat].decision_function(x));
+        this.decision_function = function(x, cat) {
+            // check what is our input
+            if (x instanceof la.Vector || x instanceof la.SparseVector) {
+                // evaluate all models
+                var scores = new la.Vector();
+                for (var cat = 0; cat < this.cats; cat++) {
+                    scores.push(this.models[cat].decision_function(x));
+                }
+                return scores;
+            } else if (x instanceof la.Matrix || x instanceof la.SparseMatrix) {
+                // create matrix where cols are instances and rows are scores for categories
+                var scores = new la.Matrix({rows: this.cats, cols: x.cols});
+                for (var i = 0; i < x.cols; i++) {
+                    var x_i = x.getCol(i);
+                    for (var cat = 0; cat < this.cats; cat++) {
+                        scores.put(cat, i, this.models[cat].decision_function(x_i));
+                    }
+                }
+                return scores;
+            } else {
+                throw "analytics.OneVsAll.decision_function: Input data of unsupported type!";
             }
-            return scores;
         }
 
         // return the most likely category
         this.predict = function(x) {
             // evaluate all models
-            var scores = this.decision_function(x)
+            var scores = this.decision_function(x);
             // select maximal one
-            var maxScore = scores[0], maxCat = 0;
-            for (var cat = 1; cat < this.cats; cat++) {
-                if (scores[cat] > maxScore) {
-                    maxScore = scores[cat];
-                    maxCat = cat;
+            if (scores instanceof la.Vector) {
+                return scores.getMaxIdx();
+            } else if (scores instanceof la.Matrix) {
+                var predictions = new la.IntVector();
+                for (var i = 0; i < scores.length; i++) {
+                    predictions.push(scores.getCol(i).getMaxIdx());
                 }
+                return predictions;
+            } else {
+                throw "analytics.OneVsAll.predict: decision_function returns unsupported type!";
             }
-            // done!
-            return maxCat;
         }
 
         // X = feature matrix
@@ -89,6 +122,70 @@ module.exports = exports = function (pathPrefix) {
             return this;
         }
     };
+
+    exports.ThresholdModel = function(params) {
+        // what do we optimize
+        this.target = params.target;
+        if (this.target === "recall" || this.target === "precision") {
+            this.level = params.level;
+        }
+        // threshold model
+        this.model = null;
+
+        // apply all models to the given vector and return distance to the class boundary
+        // x = dense vector with prediction score for each class
+        // result = traslated predictions based on thresholds
+        this.decision_function = function(x) {
+            if (x instanceof Number) {
+                // just transate based on the model's threshold
+                return x - this.model;
+            } else if (x instanceof la.Vector) {
+                // each element is a new instance
+                var scores = new la.Vector();
+                for (var i = 0; i < x.length; i++) {
+                    scores.push(x[i] - this.model);
+                }
+                return scores;
+            } else {
+                throw "analytics.ThresholdModel.decision_function: Input data of unsupported type!";
+            }
+        }
+
+        // return the most likely category
+        // x = dense vector with prediction score for each class
+        // result = array of positive label ids
+        this.predict = function(x) {
+            // evaluate all models
+            var scores = this.decision_function(x)
+            // check what we get
+            if (scores instanceof la.Vector) {
+                return res = new la.Vector();
+                for (var i = 0; i < scores.length; i++) {
+                    res.push(scores[i] > 0 ? 1 : -1);
+                }
+                return res;
+            } else {
+                return scores > 0 ? 1 : -1;
+            }
+        }
+
+        // X = vector of predictions for each instance (output of decision_funcition)
+        // y = target labels (1 or -1)
+        this.fit = function(X, y) {
+            if (this.target === "f1") {
+                // find threshold that maximizes F1 measure
+                this.model = exports.metrics.bestF1Threshold(y, X);
+            } else if (this.target === "recall") {
+                // find threshold that results in desired recall
+                this.model = exports.metrics.desiredRecallThreshold(y, X, this.level);
+            } else if (this.target === "precision") {
+                // find threshold that results in desired precision
+                this.model = exports.metrics.desiredPrecisionThreshold(y, X, this.level);
+            } else {
+                throw "Unknown threshold model target: " + this.target;
+            }
+        }
+    }
 
     exports.metrics = new function() {
         // For evaluating provided categories (precision, recall, F1).
@@ -155,6 +252,8 @@ module.exports = exports = function (pathPrefix) {
 
         // used for computing ROC curve and other related measures such as AUC;
         this.PredictionCurve = function (yTrue, yPred) {
+            // count of all examples
+            this.length = 0;
             // count of all the positive and negative examples
     		this.allPositives = 0;
     		this.allNegatives = 0;
@@ -168,6 +267,7 @@ module.exports = exports = function (pathPrefix) {
                 this.grounds.push(ground)
                 this.predictions.push(predict);
                 // update counts
+                this.length++;
                 if (ground > 0) {
                     this.allPositives++;
                 } else {
@@ -233,53 +333,11 @@ module.exports = exports = function (pathPrefix) {
     	        return result;
     	    }
 
-            // get precision recall curve sampled on `sample' points
-            this.precisionRecallCurve = function (sample) {
-                // default sample size is 10
-                sample = sample || 10;
-                // sort according to predictions
-                var perm = this.predictions.sortPerm(false);
-                // maintaining the results as we go along
-                var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives
-                var curve = [[0, 1]];
-                // for figuring out when to dump a new ROC sample
-                var next = Math.floor(perm.perm.length / sample);
-                // go over the sorted results
-                for (var i = 0; i < perm.perm.length; i++) {
-                    // get the ground
-                    var ground = this.grounds[perm.perm[i]];
-                    // update TP/FP counts according to the ground
-                    if (ground > 0) { TP++; FN--; } else { FP++; TN--; }
-                    // see if time to do next save
-                    next = next - 1;
-                    if (next <= 0) {
-                        // do the update
-                        if ((TP + FP) > 0 && (TP + FN) > 0) {
-                            // compute current precision and recall
-                            var recall = TP / (TP + FN);
-                            var precision = TP / (TP + FP);
-                            // add to the curve
-                            curve.push([recall, precision]);
-                        }
-                        // setup next timer
-                        next = Math.floor(perm.perm.length / sample);
-                    }
-                }
-                // add the last point
-                var recall = TP / (TP + FN);
-                var precision = TP / (TP + FP);
-                curve.push([recall, precision]);
-                // return ROC
-                return curve;
-            };
-
-            // get break-even point, which is number where precision and recall intersect
-            this.breakEvenPoint = function () {
+            this.evalPrecisionRecall = function (callback) {
                 // sort according to predictions
                 var perm = this.predictions.sortPerm(false);
                 // maintaining the results as we go along
                 var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
-                var minDiff = 1.0, bep = -1.0;
                 // go over the sorted results
                 for (var i = 0; i < perm.perm.length; i++) {
                     // get the ground
@@ -292,12 +350,102 @@ module.exports = exports = function (pathPrefix) {
                         var precision = TP / (TP + FP);
                         var recall = TP / (TP + FN);
                         // see if we need to update current bep
+                        callback.update(ground, perm.vec[i], precision, recall);
+                    }
+                }
+                return callback.finish();
+            }
+
+            // get precision recall curve sampled on `sample' points
+            this.precisionRecallCurve = function (sample) {
+                return this.evalPrecisionRecall(new function (sample, length) {
+                    // default sample size is 10
+                    this.sample = sample || 10;
+                    // curve
+                    this.curve = [[0, 1]];
+                    // for figuring out when to dump a new ROC sample
+                    this.next = Math.floor(length / (this.sample));
+                    this.counter = this.next;
+                    console.log(length, this.sample, this.next);
+                    // keep last value
+                    this.precision = 0; this.recall = 0;
+                    // handlers
+                    this.update = function (yTrue, yPred, precision, recall) {
+                        this.counter = this.counter - 1;
+                        if (this.counter <= 0) {
+                            // add to the curve
+                            this.curve.push([recall, precision]);
+                            // setup next timer
+                            this.counter = this.next;
+                        }
+                        // always remember last value
+                        this.precision = precision; this.recall = recall;
+                    }
+                    this.finish = function () {
+                        // add the last point
+                        this.curve.push([this.recall, this.precision]);
+                        return this.curve;
+                    }
+                }(sample, this.length));
+            };
+
+            // get break-even point, the value where precision and recall intersect
+            this.breakEvenPoint = function () {
+                return this.evalPrecisionRecall(new function () {
+                    this.minDiff = 1.0; this.bep = -1.0;
+                    this.update = function (yTrue, yPred, precision, recall) {
                         var diff = Math.abs(precision - recall);
                         if (diff < minDiff) { minDiff = diff; bep = (precision + recall) / 2; }
                     }
-                }
-                return bep;
+                    this.finish = function () { return this.bep; }
+                }());
             }
+
+            // gets threshold for prediction score, which results in the highest F1
+            this.bestF1 = function () {
+                return this.evalPrecisionRecall(new function () {
+                    this.maxF1 = 0.0; this.threshold = 0.0;
+                    this.update = function (yTrue, yPred, precision, recall) {
+                        var f1 = 2 * precision * recall / (precision + recall);
+                        if (f1 > this.maxF1) {
+                            this.maxF1 = f1;
+                            this.threshold = yPred;
+                        }
+                    }
+                    this.finish = function () { return this.threshold; }
+                }());
+            }
+
+            // gets threshold for prediction score, nearest to specified recall
+            this.desiredRecall = function (desiredRecall) {
+                return this.evalPrecisionRecall(new function () {
+                    this.recallDiff = 1.0; this.threshold = 0.0;
+                    this.update = function (yTrue, yPred, precision, recall) {
+                        var diff = Math.abs(desiredRecall - recall);
+                        if (diff < this.recallDiff) {
+                            this.recallDiff = diff;
+                            this.threshold = yPred;
+                        }
+                    }
+                    this.finish = function () { return this.threshold; }
+                }());
+            }
+
+            // gets threshold for prediction score, nearest to specified recall
+            this.desiredPrecision = function (desiredPrecision) {
+                return this.evalPrecisionRecall(new function () {
+                    this.precisionDiff = 1.0; this.threshold = 0.0;
+                    this.update = function (yTrue, yPred, precision, recall) {
+                        var diff = Math.abs(desiredPrecision - precision);
+                        if (diff < this.precisionDiff) {
+                            this.precisionDiff = diff;
+                            this.threshold = yPred;
+                        }
+                    }
+                    this.finish = function () { return this.threshold; }
+                }());
+            }
+
         };
 
         this.rocCurve = function (yTrue, yPred, sample) {
@@ -314,6 +462,18 @@ module.exports = exports = function (pathPrefix) {
 
         this.breakEventPointScore = function (yTrue, yPred) {
             return new this.PredictionCurve(yTrue, yPred).breakEvenPoint();
+        };
+
+        this.bestF1Threshold = function (yTrue, yPred) {
+            return new this.PredictionCurve(yTrue, yPred).bestF1();
+        };
+
+        this.desiredRecallThreshold = function (yTrue, yPred, desiredRecall) {
+            return new this.PredictionCurve(yTrue, yPred).desiredRecall(desiredRecall);
+        };
+
+        this.desiredPrecisionThreshold = function (yTrue, yPred, desiredPrecision) {
+            return new this.PredictionCurve(yTrue, yPred).desiredPrecision(desiredPrecision);
         };
     };
 

@@ -192,6 +192,22 @@ void TNodeJsSvmModel::decision_function(const v8::FunctionCallbackInfo<v8::Value
             const double Res = Model->Model->Predict(SpVec->Vec);
             Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
         }
+        else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId())) {
+            const TFltVV& Mat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject())->Mat;
+            TFltV ResV(Mat.GetCols(), 0);
+            for (int ColN = 0; ColN < Mat.GetCols(); ColN++) {
+                ResV.Add(Model->Model->Predict(Mat, ColN));
+            }
+            Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
+        }
+        else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::GetClassId())) {
+            const TVec<TIntFltKdV>& Mat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
+            TFltV ResV(Mat.Len(), 0);
+            for (int ColN = 0; ColN < Mat.Len(); ColN++) {
+                ResV.Add(Model->Model->Predict(Mat[ColN]));
+            }
+            Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
+        }
         else {
             throw TQm::TQmExcept::New("svm.decision_function: unsupported type of the first argument");
         }
@@ -222,6 +238,22 @@ void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             const double Res = (Model->Model->Predict(SpVec->Vec) > 0.0) ? 1.0 : -1.0;
 			Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
 		}
+        else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId())) {
+            const TFltVV& Mat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject())->Mat;
+            TFltV ResV(Mat.GetCols(), 0);
+            for (int ColN = 0; ColN < Mat.GetCols(); ColN++) {
+                ResV.Add(Model->Model->Predict(Mat, ColN) > 0.0 ? 1.0 : -1.0);
+            }
+            Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
+        }
+        else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::GetClassId())) {
+            const TVec<TIntFltKdV>& Mat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
+            TFltV ResV(Mat.Len(), 0);
+            for (int ColN = 0; ColN < Mat.Len(); ColN++) {
+                ResV.Add(Model->Model->Predict(Mat[ColN]) > 0.0 ? 1.0 : -1.0);
+            }
+            Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
+        }
 		else {
 			throw TQm::TQmExcept::New("svm.predict: unsupported type of the first argument");
 		}
