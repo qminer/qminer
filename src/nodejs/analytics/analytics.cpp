@@ -250,7 +250,7 @@ void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             const TVec<TIntFltKdV>& Mat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
             TFltV ResV(Mat.Len(), 0);
             for (int ColN = 0; ColN < Mat.Len(); ColN++) {
-                ResV.Add(Model->Model->Predict(Mat[ColN]) > 0.0 ? 1.0 : -1.0);
+                ResV.Add(Model->Model->Predict(Mat[ColN])  > 0.0 ? 1.0 : -1.0);
             }
             Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
         }
@@ -475,6 +475,230 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "SVR.fit");
 	}
+}
+
+/////////////////////////////////////////////
+// Ridge Regression
+void TNodeJsRidgeReg::Init(v8::Handle<v8::Object> exports) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsRidgeReg>);
+    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    // ObjectWrap uses the first internal field to store the wrapped pointer.
+    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+    
+    // Add all methods, getters and setters here.
+    NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "decision_function", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+    
+    // properties
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
+                 tpl->GetFunction());
+}
+
+TNodeJsRidgeReg* TNodeJsRidgeReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    if (Args.Length() > 0 && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::GetClassId())) {
+        // load the model from the input stream
+        TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+        TFlt _Gamma(*JsFIn->SIn); TFltV _Weights(*JsFIn->SIn);
+        
+        return new TNodeJsRidgeReg(_Gamma, _Weights);
+    }
+    else {
+        TFlt _Gamma = TNodeJsUtil::GetArgFlt(Args, 0, 0);
+        TFltV _Weights = TFltV();
+        return new TNodeJsRidgeReg(_Gamma, _Weights);
+    }
+}
+
+void TNodeJsRidgeReg::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    EAssertR(Args.Length() >= 2, "RidgeReg.fit: expects at least 2 arguments!");
+    
+    TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
+    
+    // get the arguments
+    TNodeJsFltVV* InstanceMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
+    TNodeJsFltV* ResponseJsV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
+    
+    TNumericalStuff::LeastSquares(InstanceMat->Mat, ResponseJsV->Vec, JsModel->Gamma, JsModel->Weights);
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsRidgeReg::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    EAssertR(Args.Length() == 1, "RidgeReg.predict: expects 1 argument!");
+    
+    TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
+    
+    // get the arguments
+    TNodeJsFltV* JsFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
+    EAssertR(JsFtrV->Vec.Len() == JsModel->Weights.Len(), "RidgeReg.predict: model and data dimension mismatch");
+    const double Result = TLinAlg::DotProduct(JsFtrV->Vec, JsModel->Weights);
+    
+    Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+}
+
+void TNodeJsRidgeReg::weights(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Info.Holder());
+    
+    Info.GetReturnValue().Set(TNodeJsFltV::New(JsModel->Weights));
+}
+
+void TNodeJsRidgeReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    EAssertR(Args.Length() == 1 && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFOut::GetClassId()), "RidgeReg.save: expects 1 argument of type qminer.fs.FOut!");
+    
+    TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    
+    JsModel->Gamma.Save(*JsFOut->SOut);
+    JsModel->Weights.Save(*JsFOut->SOut);
+    
+    Args.GetReturnValue().Set(Args[0]);
+}
+
+
+/////////////////////////////////////////////
+// Sigmoid
+void TNodeJsSigmoid::Init(v8::Handle<v8::Object> exports) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsSigmoid>);
+    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    // ObjectWrap uses the first internal field to store the wrapped pointer.
+    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+    
+    // Add all methods, getters and setters here.
+    NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "decision_function", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+    
+    // properties
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsSigmoid* TNodeJsSigmoid::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    if (Args.Length() > 0 && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::GetClassId())) {
+        // load the model from the input stream
+        TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+        return new TNodeJsSigmoid(*JsFIn->SIn);
+    }
+    else {
+        return new TNodeJsSigmoid();
+    }
+}
+
+void TNodeJsSigmoid::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    EAssertR(Args.Length() >= 2, "Sigmoid.fit: expects at least 2 arguments!");
+    
+    TNodeJsSigmoid* JsModel = ObjectWrap::Unwrap<TNodeJsSigmoid>(Args.Holder());
+    
+    if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
+        EAssertR(TNodeJsUtil::IsArgClass(Args, 1, TNodeJsFltV::GetClassId()),
+            "Sigmoid.fit: Both parameters need to be of same type (e.g., vector).");
+        // get the arguments
+        const TFltV& PredV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject())->Vec;
+        const TFltV& TrueV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject())->Vec;
+        EAssertR(PredV.Len() == TrueV.Len(), "Sigmoid.fit: true and predicted labels have different length.");
+        // load into input for sigmoid
+        TFltIntKdV PredTrueV(PredV.Len(), 0);
+        for (int EltN = 0; EltN < PredV.Len(); EltN++) {
+            PredTrueV.Add(TFltIntKd(PredV[EltN], TFlt::Round(TrueV[EltN])));
+        }
+        // fit!
+        JsModel->Sigmoid = TSigmoid(PredTrueV);
+        // debug
+        double A = 0.0, B = 0.0;
+        JsModel->Sigmoid.GetSigmoidAB(A, B);
+        printf("A=%.4f B=%.4f\n", A, B);
+        for (int EltN = 0; EltN < 100; EltN++) {
+            const double Pred = PredTrueV[EltN].Key;
+            const int True = PredTrueV[EltN].Dat;
+            const double Prob = JsModel->Sigmoid.GetVal(Pred);
+            printf("%d. %.4f %d %.4f\n", EltN, Pred, True, Prob);
+        }
+    }
+    // return self
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsSigmoid::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    EAssertR(Args.Length() == 1, "RidgeReg.predict: expects 1 argument!");
+    
+    TNodeJsSigmoid* JsModel = ObjectWrap::Unwrap<TNodeJsSigmoid>(Args.Holder());
+    const TSigmoid& Sigmoid = JsModel->Sigmoid;
+    
+    // get the arguments
+    if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
+        const TFltV& PredV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject())->Vec;
+        TFltV ResV(PredV.Len(), 0);
+        for (int EltN = 0; EltN < PredV.Len(); EltN++) {
+            ResV.Add(Sigmoid.GetVal(PredV[EltN]));
+        }
+        Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
+    } else if (TNodeJsUtil::IsArgFlt(Args, 0)) {
+        const double PredVal = TNodeJsUtil::GetArgFlt(Args, 0);
+        const double Result = Sigmoid.GetVal(PredVal);
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+    } else {
+        throw TExcept::New("Sigmoid.predict: invalid argument type");
+    }
+}
+
+void TNodeJsSigmoid::weights(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    // read Sigmoid parameters
+    TNodeJsSigmoid* JsModel = ObjectWrap::Unwrap<TNodeJsSigmoid>(Info.Holder());
+    double A = 0.0, B = 0.0; JsModel->Sigmoid.GetSigmoidAB(A, B);
+    
+    // return as vector
+    Info.GetReturnValue().Set(TNodeJsFltV::New(TFltV::GetV(A, B)));
+}
+
+void TNodeJsSigmoid::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    EAssertR(Args.Length() == 1 && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFOut::GetClassId()),
+        "RidgeReg.save: expects 1 argument of type qminer.fs.FOut!");
+    
+    TNodeJsSigmoid* JsModel = ObjectWrap::Unwrap<TNodeJsSigmoid>(Args.Holder());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    
+    JsModel->Sigmoid.Save(*JsFOut->SOut);
+    
+    Args.GetReturnValue().Set(Args[0]);
 }
 
 ////////////////////////////////////////////////
@@ -862,101 +1086,6 @@ void TNodeJsPropHaz::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
-void TNodeJsRidgeReg::Init(v8::Handle<v8::Object> exports) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsRidgeReg>);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
-	// ObjectWrap uses the first internal field to store the wrapped pointer.
-	tpl->InstanceTemplate()->SetInternalFieldCount(1);
-
-	// Add all methods, getters and setters here.
-	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
-
-	// properties
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
-	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
-		tpl->GetFunction());
-}
-
-TNodeJsRidgeReg* TNodeJsRidgeReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	if (Args.Length() > 0 && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::GetClassId())) {
-		// load the model from the input stream
-		TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
-		TFlt _Gamma(*JsFIn->SIn); TFltV _Weights(*JsFIn->SIn);
-
-		return new TNodeJsRidgeReg(_Gamma, _Weights);
-	}
-	else {
-		TFlt _Gamma = TNodeJsUtil::GetArgFlt(Args, 0, 0);
-		TFltV _Weights = TFltV();
-		return new TNodeJsRidgeReg(_Gamma, _Weights);
-	}
-
-
-}
-
-void TNodeJsRidgeReg::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	EAssertR(Args.Length() >= 2, "RidgeReg.fit: expects at least 2 arguments!");
-
-	TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
-
-	// get the arguments
-	TNodeJsFltVV* InstanceMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
-	TNodeJsFltV* ResponseJsV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
-
-	TNumericalStuff::LeastSquares(InstanceMat->Mat, ResponseJsV->Vec, JsModel->Gamma, JsModel->Weights);
-	Args.GetReturnValue().Set(Args.Holder());
-}
-
-void TNodeJsRidgeReg::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	EAssertR(Args.Length() == 1, "RidgeReg.predict: expects 1 argument!");
-
-	TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
-
-	// get the arguments
-	TNodeJsFltV* JsFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
-	EAssertR(JsFtrV->Vec.Len() == JsModel->Weights.Len(), "RidgeReg.predict: model and data dimension mismatch");
-	const double Result = TLinAlg::DotProduct(JsFtrV->Vec, JsModel->Weights);
-
-	Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
-}
-
-void TNodeJsRidgeReg::weights(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Info.Holder());
-
-	Info.GetReturnValue().Set(TNodeJsFltV::New(JsModel->Weights));
-}
-
-void TNodeJsRidgeReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	EAssertR(Args.Length() == 1 && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFOut::GetClassId()), "RidgeReg.save: expects 1 argument of type qminer.fs.FOut!");
-
-	TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
-	TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-
-	JsModel->Gamma.Save(*JsFOut->SOut);
-	JsModel->Weights.Save(*JsFOut->SOut);
-
-	Args.GetReturnValue().Set(Args[0]);
-}
 
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model

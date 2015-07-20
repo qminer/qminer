@@ -255,6 +255,174 @@ public:
 	JsDeclareFunction(fit);	
 };
 
+/////////////////////////////////////////////
+// Ridge Regression
+/**
+ * Ridge regression. Minimizes: ||A' x - b||^2 + ||gamma x||^2
+ *
+ * Uses Tikhonov regularization: http://en.wikipedia.org/wiki/Tikhonov_regularization
+ *
+ * @class
+ * @param {(number|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model by setting gamma=arg. Empty constructor sets gamma to zero.
+ * @example
+ * la = require('qminer').la;
+ * analytics = require('qminer').analytics;
+ * // create a new model with gamma = 1.0
+ * var regmod = new analytics.RidgeReg(1.0);
+ * // generate a random feature matrix
+ * var A = la.randn(10,100);
+ * // generate a random model
+ * var w = la.randn(10);
+ * // generate noise
+ * var n = la.randn(100).multiply(0.01);
+ * // generate responses (model'*data + noise)
+ * var b = A.transpose().multiply(w).plus(n);
+ * // fit model
+ * regmod.fit(A, b);
+ * // compare
+ * console.log('true model:');
+ * w.print();
+ * console.log('trained model:');
+ * regmod.weights.print();
+ * // cosine between the true and the estimated model should be close to 1 if the fit succeeded
+ * console.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w));
+ */
+//# exports.RidgeReg = function(arg) {};
+class TNodeJsRidgeReg : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "RidgeReg"; }
+    
+private:
+    TFlt Gamma;
+    TFltV Weights;
+    
+    TNodeJsRidgeReg(const TFlt& _Gamma, const TFltV& _Weights) : Gamma(_Gamma), Weights(_Weights) {}
+    
+    static TNodeJsRidgeReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+    
+public:
+    /**
+     * Fits a column matrix of feature vectors X onto the response variable y.
+     *
+     * @param {module:la.Matrix} X - Column matrix which stores the feature vectors.
+     * @param {module:la.Vector} y - Response variable.
+     * @returns {module:analytics.RidgeReg} Self
+     */
+    //# exports.RidgeReg.prototype.fit = function(X,y) {}
+    JsDeclareFunction(fit);
+
+    /**
+     * Returns the expected response for the provided feature vector.
+     *
+     * @param {module:la.Vector} x - Feature vector
+     * @returns {number} Predicted response
+     */
+    //# exports.RidgeReg.prototype.decision_function = function(x) {}
+    /**
+     * Returns the expected response for the provided feature vector.
+     *
+     * @param {module:la.Vector} x - Feature vector
+     * @returns {number} Predicted response
+     */
+    //# exports.RidgeReg.prototype.predict = function(x) {}
+    JsDeclareFunction(predict);
+    
+    /**
+     * @property {module:la.Vector} weights - Vector of coefficients for linear regression
+     */
+    //# exports.RidgeReg.prototype.weights = undefined;
+    JsDeclareProperty(weights);
+    
+    /**
+     * Saves the model into the output stream.
+     *
+     * @param {module:fs.FOut} fout - Output stream
+     */
+    //# exports.RidgeReg.prototype.save = function(fout) {};
+    JsDeclareFunction(save);
+};
+
+/////////////////////////////////////////////
+// Sigomid
+/**
+ * Sigmoid funnction (y = 1/[1 + exp[-Ax+B]]) fited on decision function to mimic
+ *
+ * @class
+ * @param {(|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model.
+ * @example
+ * la = require('qminer').la;
+ * analytics = require('qminer').analytics;
+ * // create a new model
+ * var sigmoid = new analytics.Sigmoid();
+ * // generate a random predictions
+ * var x = new la.Vector([0.5, 2.3, -0.1, 0.5, -7.3, 1.2]);
+ * // generate a random labels
+ * var y = new la.Vector([1, 1, -1, 1, -1, -1]);
+ * // fit model
+ * sigmoid.fit(x, y);
+ * // get predictions
+ * var pred1 = sigmoid.predict(1.2);
+ * var pred2 = sigmoid.predict(-1.2);
+ */
+//# exports.Sigmoid = function(arg) {};
+class TNodeJsSigmoid : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "Sigmoid"; }
+    
+private:
+    TSigmoid Sigmoid;
+    
+    TNodeJsSigmoid() {}
+    TNodeJsSigmoid(TSIn& SIn): Sigmoid(SIn) {}
+    
+    static TNodeJsSigmoid* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+    
+public:
+    /**
+     * Fits a column matrix of feature vectors X onto the response variable y.
+     *
+     * @param {module:la.Vector} x - Predicted values (e.g., using analytics.SVR)
+     * @param {module:la.Vector} y - Actual binary labels: 1 or -1.
+     * @returns {module:analytics.Sigmoid} Self
+     */
+    //# exports.Sigmoid.prototype.fit = function(X,y) {}
+    JsDeclareFunction(fit);
+    
+    /**
+     * Returns the expected response for the provided feature vector.
+     *
+     * @param {(|module:la.Vector)} x - Prediction score (or vector of them).
+     * @returns {(|module:la.Vector)} Normalized prediction score (or vector of them).
+     */
+    //# exports.Sigmoid.prototype.decision_function = function(x) {}
+    /**
+     * Returns the expected response for the provided feature vector.
+     *
+     * @param {(|module:la.Vector)} x - Prediction score (or vector of them).
+     * @returns {(|module:la.Vector)} Normalized prediction score (or vector of them).
+     */
+    //# exports.Sigmoid.prototype.predict = function(x) {}
+    JsDeclareFunction(predict);
+    
+    /**
+     * @property {module:la.Vector} weights - Vector with elements A and B that define the sigmoid function.
+     */
+    //# exports.Sigmoid.prototype.weights = undefined;
+    JsDeclareProperty(weights);
+    
+    /**
+     * Saves the model into the output stream.
+     *
+     * @param {module:fs.FOut} fout - Output stream
+     */
+    //# exports.Sigmoid.prototype.save = function(fout) {};
+    JsDeclareFunction(save);
+};
+
 ///////////////////////////////
 // QMiner-JavaScript-Recursive-Linear-Regression
 //!
@@ -417,87 +585,6 @@ public:
 	JsDeclareFunction(save);
 };
 
-/////////////////////////////////////////////
-// Ridge Regression
-/**
-* Ridge regression. Minimizes: ||A' x - b||^2 + ||gamma x||^2
-*
-* Uses Tikhonov regularization: http://en.wikipedia.org/wiki/Tikhonov_regularization
-*
-* @class
-* @param {(number|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model by setting gamma=arg. Empty constructor sets gamma to zero.
-* @example
-* la = require('qminer').la;
-* analytics = require('qminer').analytics;
-* // create a new model with gamma = 1.0
-* regmod = new analytics.RidgeReg(1.0);
-* // generate a random feature matrix
-* A = la.randn(10,100);
-* // generate a random model
-* w = la.randn(10);
-* // generate noise
-* n = la.randn(100).multiply(0.01);
-* // generate responses (model'*data + noise)
-* b = A.transpose().multiply(w).plus(n);
-* // fit model
-* regmod.fit(A, b);
-* // compare
-* console.log('true model:');
-* w.print();
-* console.log('trained model:'); 
-* regmod.weights.print();
-* // cosine between the true and the estimated model should be close to 1 if the fit succeeded
-* console.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w));
-*/
-//# exports.RidgeReg = function(arg) {};
-class TNodeJsRidgeReg : public node::ObjectWrap {
-	friend class TNodeJsUtil;
-public:
-	static void Init(v8::Handle<v8::Object> exports);
-	static const TStr GetClassId() { return "RidgeReg"; }
-
-private:
-	TFlt Gamma;
-	TFltV Weights;
-
-	TNodeJsRidgeReg(const TFlt& _Gamma, const TFltV& _Weights) : Gamma(_Gamma), Weights(_Weights) {}
-
-	static TNodeJsRidgeReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
-
-public:
-	/**
-	* Fits a column matrix of feature vectors X onto the response variable y.
-	*
-	* @param {module:la.Matrix} X - Column matrix which stores the feature vectors.
-	* @param {module:la.Vector} y - Response variable.	
-	* @returns {module:analytics.RidgeReg} Self
-	*/
-	//# exports.RidgeReg.prototype.fit = function(X,y) {}
-	JsDeclareFunction(fit);
-
-	/**
-	* Returns the expected response for the provided feature vector.
-	*
-	* @param {module:la.Vector} x - Feature vector
-	* @returns {number} Predicted response
-	*/
-	//# exports.RidgeReg.prototype.predict = function(x) {}
-	JsDeclareFunction(predict);
-
-	/**
-	* @property {module:la.Vector} weights - Vector of coefficients for linear regression
-	*/
-	//# exports.RidgeReg.prototype.weights = undefined;
-	JsDeclareProperty(weights);
-
-	/**
-	* Saves the model into the output stream.
-	*
-	* @param {module:fs.FOut} fout - Output stream
-	*/
-	//# exports.RidgeReg.prototype.save = function(fout) {};
-	JsDeclareFunction(save);
-};
 
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model

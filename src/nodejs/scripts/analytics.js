@@ -445,7 +445,6 @@ module.exports = exports = function (pathPrefix) {
                     this.finish = function () { return this.threshold; }
                 }());
             }
-
         };
 
         this.rocCurve = function (yTrue, yPred, sample) {
