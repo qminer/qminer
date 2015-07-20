@@ -249,11 +249,22 @@ var sa = base.store(&quot;Laser&quot;).addStreamAggr(wavelength);</code></pre>
             <h2>Methods</h2>
             <section>
               <h3 id="getFloat"><span class="symbol-name">getFloat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Returns the float value of the newest record in buffer.</p>
+              <p>Returns the specific value of the chosen stream aggregator.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a simple base containing one store
+var base;</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The value of the newest record.</p>
+                  <p><code>number</code>&nbsp;The value of the stream aggregator.</p>
                 </dd>
               </dl>
               <h3 id="getFloatAt"><span class="symbol-name">getFloatAt</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>

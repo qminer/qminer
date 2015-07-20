@@ -740,8 +740,13 @@
 	*/
  exports.StreamAggr.prototype.saveJson = function (limit) {};
 /**
-	* Returns the float value of the newest record in buffer.
-	* @returns {number} The value of the newest record.
+	* Returns the specific value of the chosen stream aggregator.
+	* @returns {number} The value of the stream aggregator.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a simple base containing one store
+	* var base;
 	*/
  exports.StreamAggr.prototype.getFloat = function () { return 0; };
 /**

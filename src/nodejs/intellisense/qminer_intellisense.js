@@ -2231,7 +2231,7 @@ exports.datasets= require('qminer_datasets');
  exports.Iterator.prototype.record = undefined;
 /**
 * Feature Space
-* @classdesc Represents the feature space.
+* @classdesc Represents the feature space. It contains any of the {@link module:qm~FeatureExtractors}.
 * @class
 * @param {module:qm.Base} base - The base where the features are extracted from.
 * @param {Array.<Object>} extractors - The extractors.
