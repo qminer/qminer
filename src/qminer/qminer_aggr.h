@@ -578,6 +578,7 @@ public:
 typedef TWinBuffer<TSignalProc::TSum> TWinBufSum;
 typedef TWinBuffer<TSignalProc::TMin> TWinBufMin;
 typedef TWinBuffer<TSignalProc::TMax> TWinBufMax;
+typedef TWinBuffer<TSignalProc::TMa> TMa;
 
 /////////////////////////////////
 //// Moving Window Buffer Summa.
@@ -716,53 +717,53 @@ typedef TWinBuffer<TSignalProc::TMax> TWinBufMax;
 //	static TStr GetType() { return "winBufMax"; }
 //	TStr Type() const { return GetType(); }
 //};
-
-///////////////////////////////
-// Moving Average.
-class TMa : public TStreamAggr, public TStreamAggrOut::IFltTm {
-private:
-	// input
-	TWPt<TStreamAggr> InAggr;
-	TWPt<TStreamAggrOut::IFltTmIO> InAggrVal;	
-	// indicator
-	TSignalProc::TMa Ma;
-
-protected:
-	void OnAddRec(const TRec& Rec);
-    
-	TMa(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize, 
-			const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
-	TMa(const TWPt<TBase>& Base, const PJsonVal& ParamVal);    
-	TMa(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
-public:    
-    static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,         
-        const uint64& TmWinSize, const TStr& InStoreNm, const TStr& InAggrNm);
-    static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
-        const uint64& TmWinSize, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
-    //json constructor
-    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);   
-	// serialization
-	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
-	/// Load stream aggregate state from stream
-	void _Load(TSIn& SIn);
-	/// Save stream aggregate to stream
-	void Save(TSOut& SOut) const;
-	/// Save state of stream aggregate to stream
-	void _Save(TSOut& SOut) const;
-
-	// did we finish initialization
-	bool IsInit() const { return true; }
-	// current values
-	double GetFlt() const { return Ma.GetValue(); }
-	uint64 GetTmMSecs() const { return Ma.GetTmMSecs(); }
-	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
-	// serialization to JSon
-	PJsonVal SaveJson(const int& Limit) const;
-    
-    // stream aggregator type name 
-    static TStr GetType() { return "ma"; }  
-	TStr Type() const { return GetType(); }
-};
+//
+/////////////////////////////////
+//// Moving Average.
+//class TMa : public TStreamAggr, public TStreamAggrOut::IFltTm {
+//private:
+//	// input
+//	TWPt<TStreamAggr> InAggr;
+//	TWPt<TStreamAggrOut::IFltTmIO> InAggrVal;	
+//	// indicator
+//	TSignalProc::TMa Ma;
+//
+//protected:
+//	void OnAddRec(const TRec& Rec);
+//    
+//	TMa(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize, 
+//			const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
+//	TMa(const TWPt<TBase>& Base, const PJsonVal& ParamVal);    
+//	TMa(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+//public:    
+//    static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,         
+//        const uint64& TmWinSize, const TStr& InStoreNm, const TStr& InAggrNm);
+//    static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
+//        const uint64& TmWinSize, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
+//    //json constructor
+//    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);   
+//	// serialization
+//	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+//	/// Load stream aggregate state from stream
+//	void _Load(TSIn& SIn);
+//	/// Save stream aggregate to stream
+//	void Save(TSOut& SOut) const;
+//	/// Save state of stream aggregate to stream
+//	void _Save(TSOut& SOut) const;
+//
+//	// did we finish initialization
+//	bool IsInit() const { return true; }
+//	// current values
+//	double GetFlt() const { return Ma.GetValue(); }
+//	uint64 GetTmMSecs() const { return Ma.GetTmMSecs(); }
+//	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
+//	// serialization to JSon
+//	PJsonVal SaveJson(const int& Limit) const;
+//    
+//    // stream aggregator type name 
+//    static TStr GetType() { return "ma"; }  
+//	TStr Type() const { return GetType(); }
+//};
 
 ///////////////////////////////
 // Exponential Moving Average.
@@ -1386,9 +1387,34 @@ public:
 //////////////////////////////////////////////
 // TWinBuffer getType functions
 
+/////////////////////////////
+// Moving Window Buffer Sum
+
 TStr TWinBuffer<TSignalProc::TSum>::GetType() { return "winBufSum"; }
+
+/////////////////////////////
+// Moving Window Buffer Min
+
 TStr TWinBuffer<TSignalProc::TMin>::GetType() { return "winBufMin"; }
+
+/////////////////////////////
+// Moving Window Buffer Max
+
 TStr TWinBuffer<TSignalProc::TMax>::GetType() { return "winBufMax"; }
+
+/////////////////////////////
+// Moving Average
+
+void TWinBuffer<TSignalProc::TMa>::OnAddRec(const TRec& Rec) {
+	TFltV ValV; InAggrVal->GetOutFltV(ValV);
+	TUInt64V TmMSecsV; InAggrVal->GetOutTmMSecsV(TmMSecsV);
+	if (InAggr->IsInit()) {
+		Signal.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(),
+			ValV, TmMSecsV, InAggrVal->GetN());
+	}
+}
+
+TStr TWinBuffer<TSignalProc::TMa>::GetType() { return "ma"; }
 
 } // TStreamAggrs namespace
 
