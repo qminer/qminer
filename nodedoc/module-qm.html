@@ -225,6 +225,9 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.html#~StreamAggr_Merger">StreamAggr_Merger</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.html#~StreamAggr_Min">StreamAggr_Min</a></dt>
                     <dd>
                     </dd>
@@ -3133,7 +3136,7 @@ var base = new qm.Base([{
               </dl>
               <h3 id="~StreamAggr_Count"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_Count</span><small class="property-type">
                 &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-              <p>This stream aggregator represents the count moving window buffer. It implements the functions:
+              <p>This stream aggregator represents the count moving window buffer. It implements the following methods:
                 <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the number of records in the it's buffer window.
                 <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in the it's buffer window.</p>
               <section>
@@ -3251,7 +3254,7 @@ var count = base.store(&quot;Heat&quot;).addStreamAggr(co);</code></pre>
               </dl>
               <h3 id="~StreamAggr_EMA"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_EMA</span><small class="property-type">
                 &nbsp;module:qmStreamAggr</small></h3>
-              <p>This stream aggregator represents the exponential moving average window buffer. It implements the functions:
+              <p>This stream aggregator represents the exponential moving average window buffer. It implements the following methods:
                 <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the exponentional average of the values in it's buffer window.
                 <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
               <section>
@@ -3414,7 +3417,7 @@ var expoMovingAverage = base.store(&quot;Heat&quot;).addStreamAggr(ema);</code><
               </dl>
               <h3 id="~StreamAggr_Max"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_Max</span><small class="property-type">
                 &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-              <p>This stream aggregator represents the maximal moving window buffer. It implements the functions:
+              <p>This stream aggregator represents the maximal moving window buffer. It implements the following methods:
                 <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the maximal value of the records in the it's buffer window.
                 <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
               <section>
@@ -3530,9 +3533,168 @@ var maximal = base.store(&quot;Heat&quot;).addStreamAggr(max);</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="~StreamAggr_Merger"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_Merger</span><small class="property-type">
+                &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+              <p>This stream aggregator represents the merger aggregator. It merges records from two or more stores into a new store depending on the timestamp. No methods are implemented for this aggregator.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Cars&quot;,
+       fields: [
+           { name: &quot;NumberOfCars&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   },
+   {
+       name: &quot;Temperature&quot;,
+       fields: [
+           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   },
+   {
+       name: &quot;Merged&quot;,
+       fields: [
+           { name: &quot;NumberOfCars&quot;, type: &quot;float&quot; },
+           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+// create a new merger stream aggregator that mergers the records of the &quot;Cars&quot; and &quot;Temperature&quot; stores.
+// The records are interpolated linearly and stored in the &quot;Merged&quot; store.
+var mer = {
+   name: &#x27;MergerAggr&#x27;,
+   type: &#x27;stmerger&#x27;,
+   outStore: &#x27;Merged&#x27;,
+   createStore: false,
+   timestamp: &#x27;Time&#x27;,
+   fields: [
+       { source: &#x27;Cars&#x27;, inField: &#x27;NumberOfCars&#x27;, outField: &#x27;NumberOfCars&#x27;, interpolation: &#x27;linear&#x27;, timestamp: &#x27;Time&#x27; },
+       { source: &#x27;Temperature&#x27;, inField: &#x27;Celcius&#x27;, outField: &#x27;Celcius&#x27;, interpolation: &#x27;linear&#x27;, timestamp: &#x27;Time&#x27; }
+   ]
+};
+var merger = new qm.StreamAggr(base, mer);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The given name for the stream aggregator.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the stream aggregator. It must be equal to 'stmerger'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>outStore</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store where it saves the merged records.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>createStore</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>If the outStore must be created.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>timestamp</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The store field of outStore, where the timestamp is saved.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>fields</p>
+                      </td>
+                      <td>
+                        <p>Array of Object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>An array of json objects. The json objects contain:
+                          <br> source (string) - The name of the store, from which it takes the values.
+                          <br> inField (string) - The field name of source, from which it takes the values.
+                          <br> outField (string) - The field name of outStore, into which it saves the values.
+                          <br> interpolation (string) - The type of the interpolation. The options are: 'previous', 'next' and 'linear'.
+                          <br> timestamp (string) - The field name of source, where the timestamp is saved.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="~StreamAggr_Min"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_Min</span><small class="property-type">
                 &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-              <p>This stream aggregator represents the minimal moving window buffer. It implements the functions:
+              <p>This stream aggregator represents the minimal moving window buffer. It implements the following methods:
                 <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the minimal value of the records in it's buffer window.
                 <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
               <section>
@@ -3650,7 +3812,7 @@ var minimal = base.store(&quot;Heat&quot;).addStreamAggr(min);</code></pre>
               </dl>
               <h3 id="~StreamAggr_MovingAverage"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_MovingAverage</span><small class="property-type">
                 &nbsp;module:qmStreamAggr</small></h3>
-              <p>This stream aggregator represents the moving average window buffer. It implements the functions:
+              <p>This stream aggregator represents the moving average window buffer. It implements the following methods:
                 <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the average of the values in it's buffer window.
                 <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
               <section>
@@ -3768,7 +3930,7 @@ var movingAverage = base.store(&quot;Heat&quot;).addStreamAggr(ma);</code></pre>
               </dl>
               <h3 id="~StreamAggr_MovingCorrelation"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_MovingCorrelation</span><small class="property-type">
                 &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-              <p>This stream aggregator represents the moving covariance window buffer. It implements the functions:
+              <p>This stream aggregator represents the moving covariance window buffer. It implements the following methods:
                 <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the correlation of the values in it's buffer window.
                 <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
               <section>
@@ -3948,7 +4110,7 @@ var correlation = base.store(&quot;Heat&quot;).addStreamAggr(corr);</code></pre>
               </dl>
               <h3 id="~StreamAggr_MovingCovariance"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_MovingCovariance</span><small class="property-type">
                 &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-              <p>This stream aggregator represents the moving covariance window buffer. It implements the functions:
+              <p>This stream aggregator represents the moving covariance window buffer. It implements the following methods:
                 <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the covariance of the values in it's buffer window.
                 <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
               <section>
@@ -4091,7 +4253,7 @@ var covarianceAggr = base.store(&quot;Heat&quot;).addStreamAggr(covariance);</co
               </dl>
               <h3 id="~StreamAggr_MovingVariance"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_MovingVariance</span><small class="property-type">
                 &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-              <p>This stream aggregator represents the moving variance window buffer. It implements the functions:
+              <p>This stream aggregator represents the moving variance window buffer. It implements the following methods:
                 <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the variance of the values in it's buffer window.
                 <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
               <section>
@@ -4209,7 +4371,7 @@ var varianceAggr = base.store(&quot;Heat&quot;).addStreamAggr(variance);</code><
               </dl>
               <h3 id="~StreamAggr_Resampler"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_Resampler</span><small class="property-type">
                 &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-              <p>This stream aggregator represents the resampler window buffer. It doesn't implement any functions.</p>
+              <p>This stream aggregator represents the resampler window buffer. No methods are implemented for this aggregator.</p>
               <section>
                 <h4>
             Example
@@ -4388,7 +4550,7 @@ var resampler = base.store(&quot;Heat&quot;).addStreamAggr(res);</code></pre>
               </dl>
               <h3 id="~StreamAggr_Sum"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_Sum</span><small class="property-type">
                 &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-              <p>This stream aggregator represents the sum moving window buffer. It implements the functions:
+              <p>This stream aggregator represents the sum moving window buffer. It implements the following methods:
                 <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the sum of the values of the records in the it's buffer window.
                 <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in the it's buffer window.</p>
               <section>
@@ -4642,7 +4804,7 @@ base.store(&quot;Heat&quot;).addStreamAggr(aggr); </code></pre>
               </dl>
               <h3 id="~StreamAggr_TimeSeriesTick"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_TimeSeriesTick</span><small class="property-type">
                 &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-              <p>This stream aggregator represents the time series tick window buffer. It implements the functions:
+              <p>This stream aggregator represents the time series tick window buffer. It implements the following methods:
                 <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the last value added in the it's window buffer.
                 <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
               <section>
@@ -4946,6 +5108,20 @@ var timeSeriesTick = base.store(&quot;Heat&quot;).addStreamAggr(tick);</code></p
                         <p>The resampler type.</p>
                       </td>
                     </tr>
+                    <tr>
+                      <td>
+                        <p>mer</p>
+                      </td>
+                      <td>
+                        <p><a href="module-qm.html#~StreamAggr_Merger">module:qm~StreamAggr_Merger</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The merger type.</p>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </section>
@@ -4961,7 +5137,7 @@ var timeSeriesTick = base.store(&quot;Heat&quot;).addStreamAggr(tick);</code></p
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 15, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 20, 2015.
       </p>
     </div>
   </footer>

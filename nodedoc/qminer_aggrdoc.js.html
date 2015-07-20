@@ -189,6 +189,8 @@
 
 * @property {module:qm~StreamAggr_Resampler} res - The resampler type.
 
+* @property {module:qm~StreamAggr_Merger} mer - The merger type.
+
 */
 
 /**
@@ -267,7 +269,7 @@
 
 * @typedef {module:qm.StreamAggr} StreamAggr_Count
 
-* This stream aggregator represents the count moving window buffer. It implements the functions:
+* This stream aggregator represents the count moving window buffer. It implements the following methods:
 
 * &amp;lt;br&gt;{@link module:qm.StreamAggr#getFloat} returns the number of records in the it&#x27;s buffer window. 
 
@@ -355,7 +357,7 @@
 
 * @typedef {module:qm.StreamAggr} StreamAggr_Sum
 
-* This stream aggregator represents the sum moving window buffer. It implements the functions:
+* This stream aggregator represents the sum moving window buffer. It implements the following methods:
 
 * &amp;lt;br&gt;{@link module:qm.StreamAggr#getFloat} returns the sum of the values of the records in the it&#x27;s buffer window.
 
@@ -443,7 +445,7 @@
 
 * @typedef {module:qm.StreamAggr} StreamAggr_Min
 
-* This stream aggregator represents the minimal moving window buffer. It implements the functions:
+* This stream aggregator represents the minimal moving window buffer. It implements the following methods:
 
 * &amp;lt;br&gt;{@link module:qm.StreamAggr#getFloat} returns the minimal value of the records in it&#x27;s buffer window.
 
@@ -531,7 +533,7 @@
 
 * @typedef {module:qm.StreamAggr} StreamAggr_Max
 
-* This stream aggregator represents the maximal moving window buffer. It implements the functions:
+* This stream aggregator represents the maximal moving window buffer. It implements the following methods:
 
 * &amp;lt;br&gt;{@link module:qm.StreamAggr#getFloat} returns the maximal value of the records in the it&#x27;s buffer window.
 
@@ -619,7 +621,7 @@
 
 * @typedef {module:qm.StreamAggr} StreamAggr_TimeSeriesTick
 
-* This stream aggregator represents the time series tick window buffer. It implements the functions:
+* This stream aggregator represents the time series tick window buffer. It implements the following methods:
 
 * &amp;lt;br&gt;{@link module:qm.StreamAggr#getFloat} returns the last value added in the it&#x27;s window buffer.
 
@@ -691,7 +693,7 @@
 
 * @typedef {module:qmStreamAggr} StreamAggr_MovingAverage
 
-* This stream aggregator represents the moving average window buffer. It implements the functions:
+* This stream aggregator represents the moving average window buffer. It implements the following methods:
 
 * &amp;lt;br&gt;{@link module:qm.StreamAggr#getFloat} returns the average of the values in it&#x27;s buffer window.
 
@@ -779,7 +781,7 @@
 
 * @typedef {module:qmStreamAggr} StreamAggr_EMA
 
-* This stream aggregator represents the exponential moving average window buffer. It implements the functions:
+* This stream aggregator represents the exponential moving average window buffer. It implements the following methods:
 
 * &amp;lt;br&gt;{@link module:qm.StreamAggr#getFloat} returns the exponentional average of the values in it&#x27;s buffer window.
 
@@ -879,7 +881,7 @@
 
 * @typedef {module:qm.StreamAggr} StreamAggr_MovingVariance
 
-* This stream aggregator represents the moving variance window buffer. It implements the functions:
+* This stream aggregator represents the moving variance window buffer. It implements the following methods:
 
 * &amp;lt;br&gt;{@link module:qm.StreamAggr#getFloat} returns the variance of the values in it&#x27;s buffer window.
 
@@ -967,7 +969,7 @@
 
 * @typedef {module:qm.StreamAggr} StreamAggr_MovingCovariance
 
-* This stream aggregator represents the moving covariance window buffer. It implements the functions:
+* This stream aggregator represents the moving covariance window buffer. It implements the following methods:
 
 * &amp;lt;br&gt;{@link module:qm.StreamAggr#getFloat} returns the covariance of the values in it&#x27;s buffer window.
 
@@ -1079,7 +1081,7 @@
 
 * @typedef {module:qm.StreamAggr} StreamAggr_MovingCorrelation
 
-* This stream aggregator represents the moving covariance window buffer. It implements the functions:
+* This stream aggregator represents the moving covariance window buffer. It implements the following methods:
 
 * &amp;lt;br&gt;{@link module:qm.StreamAggr#getFloat} returns the correlation of the values in it&#x27;s buffer window.
 
@@ -1239,7 +1241,7 @@
 
 * @typedef {module:qm.StreamAggr} StreamAggr_Resampler
 
-* This stream aggregator represents the resampler window buffer. It doesn&#x27;t implement any functions. 
+* This stream aggregator represents the resampler window buffer. No methods are implemented for this aggregator.
 
 * @property {string} name - The given name for the stream aggregator.
 
@@ -1338,6 +1340,126 @@
 * };
 
 * var resampler = base.store(&quot;Heat&quot;).addStreamAggr(res);
+
+*/
+
+/**
+
+* @typedef {module:qm.StreamAggr} StreamAggr_Merger
+
+* This stream aggregator represents the merger aggregator. It merges records from two or more stores into a new store
+
+* depending on the timestamp. No methods are implemented for this aggregator.
+
+* @property {string} name - The given name for the stream aggregator.
+
+* @property {string} type - The type of the stream aggregator. It must be equal to &#x27;stmerger&#x27;.
+
+* @property {string} outStore - The name of the store where it saves the merged records.
+
+* @property {boolean} createStore - If the outStore must be created.
+
+* @property {string} timestamp - The store field of outStore, where the timestamp is saved.
+
+* @property {Array.&amp;lt;Object&gt;} fields - An array of json objects. The json objects contain:
+
+* &amp;lt;br&gt; source (string) - The name of the store, from which it takes the values.
+
+* &amp;lt;br&gt; inField (string) - The field name of source, from which it takes the values.
+
+* &amp;lt;br&gt; outField (string) - The field name of outStore, into which it saves the values.
+
+* &amp;lt;br&gt; interpolation (string) - The type of the interpolation. The options are: &#x27;previous&#x27;, &#x27;next&#x27; and &#x27;linear&#x27;.
+
+* &amp;lt;br&gt; timestamp (string) - The field name of source, where the timestamp is saved. 
+
+* @example
+
+* // import the qm module
+
+* var qm = require(&#x27;qminer&#x27;);
+
+* // create a base with a simple store
+
+* var base = new qm.Base({
+
+*    mode: &quot;createClean&quot;,
+
+*    schema: [
+
+*    {
+
+*        name: &quot;Cars&quot;,
+
+*        fields: [
+
+*            { name: &quot;NumberOfCars&quot;, type: &quot;float&quot; },
+
+*            { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+
+*        ]
+
+*    },
+
+*    {
+
+*        name: &quot;Temperature&quot;,
+
+*        fields: [
+
+*            { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+
+*            { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+
+*        ]
+
+*    },
+
+*    {
+
+*        name: &quot;Merged&quot;,
+
+*        fields: [
+
+*            { name: &quot;NumberOfCars&quot;, type: &quot;float&quot; },
+
+*            { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+
+*            { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+
+*        ]
+
+*    }]
+
+* });
+
+* // create a new merger stream aggregator that mergers the records of the &quot;Cars&quot; and &quot;Temperature&quot; stores.
+
+* // The records are interpolated linearly and stored in the &quot;Merged&quot; store.
+
+* var mer = {
+
+*    name: &#x27;MergerAggr&#x27;,
+
+*    type: &#x27;stmerger&#x27;,
+
+*    outStore: &#x27;Merged&#x27;,
+
+*    createStore: false,
+
+*    timestamp: &#x27;Time&#x27;,
+
+*    fields: [
+
+*        { source: &#x27;Cars&#x27;, inField: &#x27;NumberOfCars&#x27;, outField: &#x27;NumberOfCars&#x27;, interpolation: &#x27;linear&#x27;, timestamp: &#x27;Time&#x27; },
+
+*        { source: &#x27;Temperature&#x27;, inField: &#x27;Celcius&#x27;, outField: &#x27;Celcius&#x27;, interpolation: &#x27;linear&#x27;, timestamp: &#x27;Time&#x27; }
+
+*    ]
+
+* };
+
+* var merger = new qm.StreamAggr(base, mer);
 
 */
 
@@ -1549,7 +1671,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 15, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 20, 2015.
       </p>
     </div>
   </footer>

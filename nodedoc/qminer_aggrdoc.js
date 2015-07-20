@@ -78,6 +78,7 @@
 * @property {module:qm~StreamAggr_MovingCovariance} cov - The moving covariance type.
 * @property {module:qm~StreamAggr_MovingCorrelation} cor - The moving correlation type.
 * @property {module:qm~StreamAggr_Resampler} res - The resampler type.
+* @property {module:qm~StreamAggr_Merger} mer - The merger type.
 */
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_TimeSeries
@@ -117,7 +118,7 @@
 */
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_Count
-* This stream aggregator represents the count moving window buffer. It implements the functions:
+* This stream aggregator represents the count moving window buffer. It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the number of records in the it's buffer window. 
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in the it's buffer window.
 * @property {string} name - The given name of the stream aggregator.
@@ -161,7 +162,7 @@
 */
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_Sum
-* This stream aggregator represents the sum moving window buffer. It implements the functions:
+* This stream aggregator represents the sum moving window buffer. It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the sum of the values of the records in the it's buffer window.
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in the it's buffer window.
 * @property {string} name - The given name of the stream aggregator.
@@ -205,7 +206,7 @@
 */
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_Min
-* This stream aggregator represents the minimal moving window buffer. It implements the functions:
+* This stream aggregator represents the minimal moving window buffer. It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the minimal value of the records in it's buffer window.
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name of the stream aggregator.
@@ -249,7 +250,7 @@
 */
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_Max
-* This stream aggregator represents the maximal moving window buffer. It implements the functions:
+* This stream aggregator represents the maximal moving window buffer. It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the maximal value of the records in the it's buffer window.
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name of the stream aggregator.
@@ -293,7 +294,7 @@
 */
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_TimeSeriesTick
-* This stream aggregator represents the time series tick window buffer. It implements the functions:
+* This stream aggregator represents the time series tick window buffer. It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the last value added in the it's window buffer.
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name for the stream aggregator.
@@ -329,7 +330,7 @@
 */
 /**
 * @typedef {module:qmStreamAggr} StreamAggr_MovingAverage
-* This stream aggregator represents the moving average window buffer. It implements the functions:
+* This stream aggregator represents the moving average window buffer. It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the average of the values in it's buffer window.
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name of the stream aggregator.
@@ -373,7 +374,7 @@
 */
 /**
 * @typedef {module:qmStreamAggr} StreamAggr_EMA
-* This stream aggregator represents the exponential moving average window buffer. It implements the functions:
+* This stream aggregator represents the exponential moving average window buffer. It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the exponentional average of the values in it's buffer window.
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name for the stream aggregator.
@@ -423,7 +424,7 @@
 */
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_MovingVariance
-* This stream aggregator represents the moving variance window buffer. It implements the functions:
+* This stream aggregator represents the moving variance window buffer. It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the variance of the values in it's buffer window.
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name for the stream aggregator.
@@ -467,7 +468,7 @@
 */
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_MovingCovariance
-* This stream aggregator represents the moving covariance window buffer. It implements the functions:
+* This stream aggregator represents the moving covariance window buffer. It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the covariance of the values in it's buffer window.
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name for the stream aggregator.
@@ -523,7 +524,7 @@
 */
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_MovingCorrelation
-* This stream aggregator represents the moving covariance window buffer. It implements the functions:
+* This stream aggregator represents the moving covariance window buffer. It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the correlation of the values in it's buffer window.
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name for the stream aggregator.
@@ -603,7 +604,7 @@
 */
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_Resampler
-* This stream aggregator represents the resampler window buffer. It doesn't implement any functions. 
+* This stream aggregator represents the resampler window buffer. No methods are implemented for this aggregator.
 * @property {string} name - The given name for the stream aggregator.
 * @property {string} type - The type of the stream aggregator. It must be equal to 'resampler'.
 * @property {string} store - The name of the store from which it takes the data.
@@ -653,6 +654,66 @@
 *    interval: 2 * 1000
 * };
 * var resampler = base.store("Heat").addStreamAggr(res);
+*/
+/**
+* @typedef {module:qm.StreamAggr} StreamAggr_Merger
+* This stream aggregator represents the merger aggregator. It merges records from two or more stores into a new store
+* depending on the timestamp. No methods are implemented for this aggregator.
+* @property {string} name - The given name for the stream aggregator.
+* @property {string} type - The type of the stream aggregator. It must be equal to 'stmerger'.
+* @property {string} outStore - The name of the store where it saves the merged records.
+* @property {boolean} createStore - If the outStore must be created.
+* @property {string} timestamp - The store field of outStore, where the timestamp is saved.
+* @property {Array.<Object>} fields - An array of json objects. The json objects contain:
+* <br> source (string) - The name of the store, from which it takes the values.
+* <br> inField (string) - The field name of source, from which it takes the values.
+* <br> outField (string) - The field name of outStore, into which it saves the values.
+* <br> interpolation (string) - The type of the interpolation. The options are: 'previous', 'next' and 'linear'.
+* <br> timestamp (string) - The field name of source, where the timestamp is saved. 
+* @example
+* // import the qm module
+* var qm = require('qminer');
+* // create a base with a simple store
+* var base = new qm.Base({
+*    mode: "createClean",
+*    schema: [
+*    {
+*        name: "Cars",
+*        fields: [
+*            { name: "NumberOfCars", type: "float" },
+*            { name: "Time", type: "datetime" }
+*        ]
+*    },
+*    {
+*        name: "Temperature",
+*        fields: [
+*            { name: "Celcius", type: "float" },
+*            { name: "Time", type: "datetime" }
+*        ]
+*    },
+*    {
+*        name: "Merged",
+*        fields: [
+*            { name: "NumberOfCars", type: "float" },
+*            { name: "Celcius", type: "float" },
+*            { name: "Time", type: "datetime" }
+*        ]
+*    }]
+* });
+* // create a new merger stream aggregator that mergers the records of the "Cars" and "Temperature" stores.
+* // The records are interpolated linearly and stored in the "Merged" store.
+* var mer = {
+*    name: 'MergerAggr',
+*    type: 'stmerger',
+*    outStore: 'Merged',
+*    createStore: false,
+*    timestamp: 'Time',
+*    fields: [
+*        { source: 'Cars', inField: 'NumberOfCars', outField: 'NumberOfCars', interpolation: 'linear', timestamp: 'Time' },
+*        { source: 'Temperature', inField: 'Celcius', outField: 'Celcius', interpolation: 'linear', timestamp: 'Time' }
+*    ]
+* };
+* var merger = new qm.StreamAggr(base, mer);
 */
 /**
 	* Executes the function when a new record is put in store.

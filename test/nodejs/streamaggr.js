@@ -2779,5 +2779,229 @@ describe('Resampler Tests', function () {
             var res = store.addStreamAggr(aggr);
             assert.equal(res.name, 'ResAggr');
         })
+    });
+});
+
+describe.only('Merger Tests', function () {
+    var base = undefined;
+    var strore = undefined;
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'Cars',
+                fields: [
+                    { name: 'NumberOfCars', type: 'float' },
+                    { name: 'Time', type: 'datetime' }
+                ]
+            },
+            {
+                name: 'Temperature',
+                fields: [
+                    { name: 'Celcius', type: 'float' },
+                    { name: 'Time', type: 'datetime' }
+                ]
+            },
+            {
+                name: 'Merged',
+                fields: [
+                    { name: 'NumberOfCars', type: 'float' },
+                    { name: 'Celcius', type: 'float' },
+                    { name: 'Time', type: 'datetime' }
+                ]
+            }]
+        }); store = base.store('Merged');
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    describe('Constructor Tests', function () {
+        it('should create a new merger aggregator', function () {
+            var aggr = {
+                name: 'MergerAggr',
+                type: 'stmerger',
+                outStore: 'Merged',
+                createStore: false,
+                timestamp: 'Time',
+                fields: [
+                    { source: 'Cars', inField: 'NumberOfCars', outField: 'NumberOfCars', interpolation: 'linear', timestamp: 'Time' },
+                    { source: 'Temperature', inField: 'Celcius', outField: 'Celcius', interpolation: 'linear', timestamp: 'Time' }
+                ]
+            };
+            var merger = new qm.StreamAggr(base, aggr);
+            assert.equal(merger.name, 'MergerAggr');
+        })
+        // unexpected node crash
+        it.skip('should throw an exception if a key-value is not given', function () {
+            var aggr = {
+                name: 'MergerAggr',
+                type: 'stmerger',
+                outStore: 'Merged',
+                createStore: false,
+                fields: [
+                    { source: 'Cars', inField: 'NumberOfCars', outField: 'NumberOfCars', interpolation: 'linear', timestamp: 'Time' },
+                    { source: 'Temperature', inField: 'Celcius', outField: 'Celcius', interpolation: 'linear', timestamp: 'Time' }
+                ]
+            };
+            assert.throws(function () {
+                var merger = new qm.StreamAggr(base, aggr);
+            })
+        })
+    });
+    describe('Merging Tests', function () {
+        it('should be an empty "Merged" store at the construction', function () {
+            var aggr = {
+                name: 'MergerAggr',
+                type: 'stmerger',
+                outStore: 'Merged',
+                createStore: false,
+                timestamp: 'Time',
+                fields: [
+                    { source: 'Cars', inField: 'NumberOfCars', outField: 'NumberOfCars', interpolation: 'linear', timestamp: 'Time' },
+                    { source: 'Temperature', inField: 'Celcius', outField: 'Celcius', interpolation: 'linear', timestamp: 'Time' }
+                ]
+            };
+            var merger = new qm.StreamAggr(base, aggr);
+            assert.equal(store.length, 0);
+        })
+
+        it('should return empty "Merged" store for the first added record in Merged store', function () {
+            var aggr = {
+                name: 'MergerAggr',
+                type: 'stmerger',
+                outStore: 'Merged',
+                createStore: false,
+                timestamp: 'Time',
+                fields: [
+                    { source: 'Cars', inField: 'NumberOfCars', outField: 'NumberOfCars', interpolation: 'linear', timestamp: 'Time' },
+                    { source: 'Temperature', inField: 'Celcius', outField: 'Celcius', interpolation: 'linear', timestamp: 'Time' }
+                ]
+            };
+            var merger = new qm.StreamAggr(base, aggr);
+            base.store("Cars").push({ NumberOfCars: 5, Time: '1601-01-01T00:00:00.0' });
+            
+            assert.equal(store.length, 0);
+        })
+        it('should still return an empty "Merged" store if there is only one record in each of the stores', function () {
+            var aggr = {
+                name: 'MergerAggr',
+                type: 'stmerger',
+                outStore: 'Merged',
+                createStore: false,
+                timestamp: 'Time',
+                fields: [
+                    { source: 'Cars', inField: 'NumberOfCars', outField: 'NumberOfCars', interpolation: 'linear', timestamp: 'Time' },
+                    { source: 'Temperature', inField: 'Celcius', outField: 'Celcius', interpolation: 'linear', timestamp: 'Time' }
+                ]
+            };
+            var merger = new qm.StreamAggr(base, aggr);
+            base.store("Cars").push({ NumberOfCars: 5, Time: '1601-01-01T00:00:00.0' });
+            base.store("Temperature").push({ Celcius: 28.3, Time: '1601-01-01T00:00:01.0' });
+
+            assert.equal(store.length, 0);
+        })
+        it('should put one record in the "Merged" store', function () {
+            var aggr = {
+                name: 'MergerAggr',
+                type: 'stmerger',
+                outStore: 'Merged',
+                createStore: false,
+                timestamp: 'Time',
+                fields: [
+                    { source: 'Cars', inField: 'NumberOfCars', outField: 'NumberOfCars', interpolation: 'linear', timestamp: 'Time' },
+                    { source: 'Temperature', inField: 'Celcius', outField: 'Celcius', interpolation: 'linear', timestamp: 'Time' }
+                ]
+            };
+            var merger = new qm.StreamAggr(base, aggr);
+            base.store("Cars").push({ NumberOfCars: 5, Time: '1601-01-01T00:00:00.0' });
+            base.store("Temperature").push({ Celcius: 28.3, Time: '1601-01-01T00:00:01.0' });
+            base.store("Cars").push({ NumberOfCars: 15, Time: '1601-01-01T00:00:02.0' });
+
+            assert.equal(store.length, 1);
+            assert.equal(store.first.NumberOfCars, 10);
+            assert.equal(store.first.Celcius, 28.3);
+            //assert.equal(store.first.Time, new Date('1601-01-01T00:00:02.0').getTime());
+        })
+        it('should put two records in the "Merged" store', function () {
+            var aggr = {
+                name: 'MergerAggr',
+                type: 'stmerger',
+                outStore: 'Merged',
+                createStore: false,
+                timestamp: 'Time',
+                fields: [
+                    { source: 'Cars', inField: 'NumberOfCars', outField: 'NumberOfCars', interpolation: 'linear', timestamp: 'Time' },
+                    { source: 'Temperature', inField: 'Celcius', outField: 'Celcius', interpolation: 'linear', timestamp: 'Time' }
+                ]
+            };
+            var merger = new qm.StreamAggr(base, aggr);
+            base.store("Cars").push({ NumberOfCars: 5, Time: '1601-01-01T00:00:00.000' });
+            base.store("Temperature").push({ Celcius: 28.3, Time: '1601-01-01T00:00:01.000' });
+            base.store("Cars").push({ NumberOfCars: 15, Time: '1601-01-01T00:00:02.000' });
+            base.store("Temperature").push({ Celcius: 30.3, Time: '1601-01-01T00:00:03.000' });
+
+            //console.log(store[0].toJSON());
+
+            assert.equal(store.length, 2);
+            assert.equal(store[0].NumberOfCars, 10);
+            assert.equal(store[0].Celcius, 28.3);
+            //assert.equal(store[0].Time.getTime(), 1000);
+
+            assert.equal(store[1].NumberOfCars, 15);
+            assert.equal(store[1].Celcius, 29.3);
+            //assert.equal(store[1].Time.getTime(), 2000);
+        })
+        it('should put three records in the "Merged" store', function () {
+            var aggr = {
+                name: 'MergerAggr',
+                type: 'stmerger',
+                outStore: 'Merged',
+                createStore: false,
+                timestamp: 'Time',
+                fields: [
+                    { source: 'Cars', inField: 'NumberOfCars', outField: 'NumberOfCars', interpolation: 'linear', timestamp: 'Time' },
+                    { source: 'Temperature', inField: 'Celcius', outField: 'Celcius', interpolation: 'linear', timestamp: 'Time' }
+                ]
+            };
+            var merger = new qm.StreamAggr(base, aggr);
+            base.store("Cars").push({ NumberOfCars: 5, Time: '1601-01-01T00:00:00.000' });
+            base.store("Temperature").push({ Celcius: 28.3, Time: '1601-01-01T00:00:01.000' });
+            base.store("Temperature").push({ Celcius: 29.7, Time: '1601-01-01T00:00:02.000' });
+            base.store("Cars").push({ NumberOfCars: 15, Time: '1601-01-01T00:00:03.000' });
+            base.store("Temperature").push({ Celcius: 30.3, Time: '1601-01-01T00:00:04.000' });
+
+            assert.equal(store.length, 3);
+            assert.eqtol(store[0].NumberOfCars, 5 + 10/3);
+            assert.equal(store[0].Celcius, 28.3);
+            //assert.equal(store[0].Time.getTime(), 1000);
+
+            assert.eqtol(store[1].NumberOfCars, 5 + 2*10/3);
+            assert.equal(store[1].Celcius, 29.7);
+            //assert.equal(store[1].Time.getTime(), 2000);
+
+            assert.equal(store[2].NumberOfCars, 15);
+            assert.eqtol(store[2].Celcius, 30);
+            //assert.equal(store[1].Time.getTime(), 3000);
+        })
+        it('should throw an exception if try to merge past events', function () {
+            var aggr = {
+                name: 'MergerAggr',
+                type: 'stmerger',
+                outStore: 'Merged',
+                createStore: false,
+                timestamp: 'Time',
+                fields: [
+                    { source: 'Cars', inField: 'NumberOfCars', outField: 'NumberOfCars', interpolation: 'linear', timestamp: 'Time' },
+                    { source: 'Temperature', inField: 'Celcius', outField: 'Celcius', interpolation: 'linear', timestamp: 'Time' }
+                ]
+            };
+            var merger = new qm.StreamAggr(base, aggr);
+            base.store("Cars").push({ NumberOfCars: 5, Time: '1601-01-01T00:00:00.000' });
+            base.store("Cars").push({ NumberOfCars: 15, Time: '1601-01-01T00:00:02.000' });
+            assert.throws(function () { 
+                base.store("Temperature").push({ Celcius: 28.3, Time: '1601-01-01T00:00:01.000' });
+            })
+        })
     })
 })
