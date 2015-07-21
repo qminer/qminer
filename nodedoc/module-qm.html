@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-8">qminerdoc.<wbr>js:8</a></p>
+            <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-8">qminer_aggrdoc.<wbr>js:8</a></p>
             <div class="symbol-description">
               <p>Qminer module.</p>
             </div>
@@ -51,11 +51,16 @@
                   </dl>
                 </div>
                 <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.StreamAggr.html">StreamAggr(base, json[, storeName])</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
                 </div>
               </div>
             </div>
             <div class="summary-callout">
-              <h2 class="summary-callout-heading">Namespaces</h2>
+              <h2 class="summary-callout-heading">Factory classes</h2>
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
@@ -221,8 +226,9 @@
             <section id='members-links'>
               <h3><a href="module-qm.Base.html">Base</a></h3>
               <h3><a href="module-qm.FeatureSpace.html">FeatureSpace</a></h3>
+              <h3><a href="module-qm.StreamAggr.html">StreamAggr</a></h3>
             </section>
-            <h2>Namespaces</h2>
+            <h2>Factory classs</h2>
             <section id='members-links'>
               <h3><a href="module-qm.Iterator.html">Iterator</a></h3>
               <h3><a href="module-qm.Record.html">Record</a></h3>
@@ -1107,10 +1113,10 @@
 var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
-      &quot;name&quot;: &quot;Class&quot;,
-      &quot;fields&quot;: [
-         { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-         { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+      type: &quot;Class&quot;,
+      type: [
+         { type: &quot;Name&quot;, type: &quot;string&quot; },
+         { type: &quot;StudyGroup&quot;, type: &quot;string&quot; }
       ]
    }]
 });
@@ -1222,8 +1228,8 @@ var ftr = qm.FeatureSpace(base, { type: &quot;categorical&quot;, source: &quot;C
 var base = new qm.Base({
   mode: &#x27;createClean&#x27;,
   schema: [{
-     &quot;name&quot;: &quot;Person&quot;,
-     &quot;fields&quot;: [{ &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; }]
+     type: &quot;Person&quot;,
+     type: [{ type: &quot;Name&quot;, type: &quot;string&quot; }]
   }]
 });
 // create a feature space containing the constant extractor, where the constant is equal 5
@@ -1493,10 +1499,10 @@ var ftr = qm.FeatureSpace(base, { type: &quot;constant&quot;, source: &quot;Pers
 var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
-      &quot;name&quot;: &quot;Class&quot;,
-      &quot;fields&quot;: [
-         { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-         { &quot;name&quot;: &quot;StudyGroups&quot;, &quot;type&quot;: &quot;string_v&quot; }
+      type: &quot;Class&quot;,
+      type: [
+         { type: &quot;Name&quot;, type: &quot;string&quot; },
+         { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
       ]
    }]
 });
@@ -1614,10 +1620,10 @@ var ftr = qm.FeatureSpace(base, {
 var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
-      &quot;name&quot;: &quot;Class&quot;,
-      &quot;fields&quot;: [
-         { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-         { &quot;name&quot;: &quot;StudyGroups&quot;, &quot;type&quot;: &quot;string_v&quot; }
+      type: &quot;Class&quot;,
+      type: [
+         { type: &quot;Name&quot;, type: &quot;string&quot; },
+         { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
       ]
    }]
 });
@@ -1762,10 +1768,10 @@ var ftr = qm.FeatureSpace(base, {
 var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
-      &quot;name&quot;: &quot;Class&quot;,
-      &quot;fields&quot;: [
-         { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-         { &quot;name&quot;: &quot;Grade&quot;, &quot;type&quot;: &quot;number&quot; }
+      type: &quot;Class&quot;,
+      type: [
+         { type: &quot;Name&quot;, type: &quot;string&quot; },
+         { type: &quot;Grade&quot;, type: &quot;number&quot; }
       ]
    }]
 });
@@ -1969,8 +1975,8 @@ var ftr = qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class
 var base = new qm.Base({
   mode: &#x27;createClean&#x27;,
   schema: [{
-     &quot;name&quot;: &quot;Person&quot;,
-     &quot;fields&quot;: [{ &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; }]
+     type: &quot;Person&quot;,
+     type: [{ type: &quot;Name&quot;, type: &quot;string&quot; }]
   }]
 });
 // create a feature space containing the random extractor
@@ -2214,10 +2220,10 @@ var ftr = qm.FeatureSpace(base, { type: &quot;random&quot;, source: &quot;Person
 var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
-      &quot;name&quot;: &quot;Articles&quot;,
-      &quot;fields&quot;: [
-         { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
-         { &quot;name&quot;: &quot;Text&quot;, &quot;type&quot;: &quot;string&quot; }
+      type: &quot;Articles&quot;,
+      type: [
+         { type: &quot;Title&quot;, type: &quot;string&quot; },
+         { type: &quot;Text&quot;, type: &quot;string&quot; }
       ]
    }]
 });
@@ -2506,8 +2512,8 @@ var ftr = qm.FeatureSpace(base, {
 var base = new qm.Base({
     mode: &#x27;createClean&#x27;,
     schema: [{
-      &quot;name&quot;: &quot;Movies&quot;,
-      &quot;fields&quot;: [{ name: &quot;title&quot;, type: &quot;string&quot; }]
+      type: &quot;Movies&quot;,
+      type: [{ name: &quot;title&quot;, type: &quot;string&quot; }]
     }]
 });</code></pre>
                 </div>
@@ -3111,7 +3117,7 @@ var base = new qm.Base([{
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on June 3, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 9, 2015.
       </p>
     </div>
   </footer>

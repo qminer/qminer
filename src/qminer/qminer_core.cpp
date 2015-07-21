@@ -430,6 +430,9 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
 			TWPt<TStore> JoinStore = Base->GetStoreByStoreId(JoinDesc.GetJoinStoreId());
 			// different handling for field and index joins
 			if (JoinDesc.IsFieldJoin()) {
+                // first make an empty join
+                SetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId(), TUInt64::Mx);
+                SetFieldInt(RecId, JoinDesc.GetJoinFqFieldId(), 0);
 				// get join record JSon object
 				PJsonVal JoinRecVal = RecVal->GetObjKey(JoinDesc.GetJoinNm());
 				// insert join record
@@ -558,7 +561,7 @@ void TStore::AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRe
 		// then we first have to remove the existing join
 		if (ExistingJoinRecId != TUInt64::Mx && ExistingJoinRecId != JoinRecId) {
 			const int Fq = GetFieldInt(RecId, JoinDesc.GetJoinFqFieldId());
-			DelJoin(JoinDesc.GetJoinId(), RecId, ExistingJoinRecId, Fq);			
+			DelJoin(JoinDesc.GetJoinId(), RecId, ExistingJoinRecId, Fq);
 		}
 		SetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId(), JoinRecId);
 		SetFieldInt(RecId, JoinDesc.GetJoinFqFieldId(), JoinFq);

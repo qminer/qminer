@@ -148,7 +148,10 @@ public:
 	void Update(const double& InVal, const uint64& InTmMSecs, 
         const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N);
 	// current status	
-	double GetM2() const { return M2 / pNo; }
+	double GetM2() const {
+		if (pNo > 1) { return M2 / (pNo - 1); }
+		else { return 0; }
+	}
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
@@ -166,7 +169,10 @@ public:
 
 	void Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV, const int& N);	
-	double GetCov() const { return Cov/pNo; }
+	double GetCov() const { 
+		if (pNo > 1) { return Cov / (pNo - 1); } 
+		else { return 0; }
+	}
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 

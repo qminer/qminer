@@ -6,29 +6,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 /**
-* Analytics module.
-* @module analytics
-* @example
-* // import module
-* var analytics = require('qminer').analytics;
-* // REGRESSION WITH SVR
-* // Set up fake train and test data.
-* // Four training examples with, number of features = 2
-* var featureMatrix = new la.Matrix({rows:2, cols:4});
-* // Regression targets for four examples
-* var targets = new la.Vector({vals:4});
-* // Set up the regression model
-* var SVR = new analytics.SVR({verbose:true});
-* // Train regression
-* SVR.fit(featureMatrix, targets);
-* // Save the model to disk
-* SVR.save('svr.bin');*
-* // Set up a fake test vector
-* var test = new la.Vector({vals:2});
-* // Predict the target value
-* var prediction = SVR.predict(test);
-*/
-/**
 * SVC constructor parameters
 * @typedef {Object} svcParam
 * @property  {number} [svcParam.c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting) 
@@ -206,8 +183,7 @@
  *
  * @constructor
  * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
- * @property {Number} [opts.lambda = 1] - the regularization parameter
- * @property {Boolean} [opts.intercept = false] - if true, the intercept will automatically be included
+ * @property {Number} [opts.lambda = 0] - the regularization parameter
  */
 /**
 	 * Fits a column matrix of feature vectors X onto the response variable y.
@@ -349,9 +325,10 @@
 	 * @returns {Array|Number} - if the level is specified it returns info about the current state on that level, otherwise it return info about the current state on each level on the hierarchy
 	 */
 /**
-	 * Returns the centroid of the specified state.
+	 * Returns the centroid of the specified state containing only the observation parameters.
 	 *
 	 * @param {Number} stateId - the ID of the state
+	 * @param {Boolean} [observations=true] - indicates wether to output observation or control coordinates
 	 * @returns {Array} - the coordinates of the state
 	 */
 /**
@@ -392,12 +369,23 @@
 	 * @param {function} callback - the funciton which is called
 	 */
 /**
+	 * Sets a callback function which is fired when a prediction is made. 4 paramters are passed
+	 * to the callback:
+	 * - Id of the target state
+	 * - probability of occurring
+	 * - vector of probabilities
+	 * - vector of times corresponding to those probabilities
+	 *
+	 * @param {function} callback - the funciton which is called
+	 */
+/**
 	 * Rebuilds its hierarchy.
 	 */
 /**
 	 * Rebuilds the histograms using the instances stored in the columns of X.
 	 *
-	 * @param {Matrix} X - the column matrix containing data instances
+	 * @param {Matrix} obsMat - the column matrix containing observation data instances
+	 * @param {Matrix} controlMat - the column matrix containing control data instances
 	 */
 /**
 	 * Returns the name of a state.
@@ -412,11 +400,30 @@
 	 * @param {String} name - name of the state
 	 */
 /**
+	 * Returns true if the state is a target on the specified height.
+	 *
+	 * @param {Number} stateId - Id of the state
+	 * @param {Number} height - the height
+	 * @returns {Boolean}
+	 */
+/**
+	 * Sets whether the specified state is a target state or not.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 * @param {Number} height - the height on which the state is a target
+	 * @param {Boolean} isTarget - set target on/off
+	 */
+/**
+	 * Sets the factor of the specified control:
+	 *
+	 * @param {Number} ftrIdx - the index of the control feature
+	 * @param {Number} factor
+	 */
+/**
 	 * Saves the model to the output stream.
 	 *
 	 * @param {FOut} fout - the output stream
 	 */
- exports.HMC.prototype.save = function(arg) { return arg; }	
 
 
     function defarg(arg, defaultval) {
@@ -718,17 +725,242 @@
             }
         };
     }
+	
+	//!- `result = new exports.rocScore(sample)` -- used for computing ROC curve and 
+	//!     other related measures such as AUC; the result is a results object
+	//!     with the following API:
+	exports.rocScore = function () {
+		// count of all the positive and negative examples
+		this.allPositives = 0;
+		this.allNegatives = 0;
+		// store of predictions and ground truths
+		this.grounds = new la.Vector();
+		this.predictions = new la.Vector();
+	
+		//!     - `result.push(ground, predict)` -- add new measurement with ground score (1 or -1) and predicted value
+		this.push = function (ground, predict) {
+			// remember the scores
+			this.grounds.push(ground)
+			this.predictions.push(predict);
+			// update counts
+			if (ground > 0) { 
+				this.allPositives++; 
+			} else {
+				this.allNegatives++;
+			}
+		}
+	
+		//!     - `roc_arr = result.curve(sample)` -- get ROC parametrization as array of sample points
+		this.curve = function (sample) {
+			// default sample size is 10
+			sample = sample || 10;
+			// sort according to predictions
+			var perm = this.predictions.sortPerm(false);
+			// maintaining the results as we go along
+			var TP = 0, FP = 0, ROC = [[0, 0]];
+			// for figuring out when to dump a new ROC sample
+			var next = Math.floor(perm.perm.length / sample);
+			// go over the sorted results
+			for (var i = 0; i < perm.perm.length; i++) {
+				// get the ground
+				var ground = this.grounds[perm.perm[i]];
+				// update TP/FP counts according to the ground
+				if (ground > 0) { TP++ } else { FP++; }
+				// see if time to do next save
+				next = next - 1;		
+				if (next <= 0) {
+					// add new datapoint to the curve 
+					ROC.push([FP/this.allNegatives, TP/this.allPositives]);
+					// setup next timer 
+					next = Math.floor(perm.perm.length / sample);
+				}
+			}
+			// add the last point
+			ROC.push([1,1]);
+			// return ROC
+			return ROC;
+		}
+    
+		//!     - `num = result.auc(sample)` -- get AUC of the current curve
+		this.auc = function (sample) {
+			// default sample size is 10
+			sample = sample || 10;
+	        // get the curve
+	        var curve = this.curve(sample);
+	        // compute the area
+	        var result = 0;
+	        for (var i = 1; i < curve.length; i++) {
+	            // get edge points
+	            var left = curve[i-1];
+	            var right = curve[i];
+	            // first the rectangle bellow
+	            result = result + (right[0] - left[0]) * left[1];
+	            // an then the triangle above 
+	            result = result + (right[0] - left[0]) * (right[1] - left[1]) / 2;
+	        }
+	        return result;
+	    }
+    
+	    //!     - `num = result.breakEvenPoint()` -- get break-even point, which is number where precision and recall intersect
+	    this.breakEvenPoint = function () {
+			// sort according to predictions
+			var perm = this.predictions.sortPerm(false);
+			// maintaining the results as we go along
+			var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
+	        var minDiff = 1.0, bep = -1.0;
+			// go over the sorted results
+			for (var i = 0; i < perm.perm.length; i++) {
+				// get the ground
+				var ground = this.grounds[perm.perm[i]];
+				// update TP/FP counts according to the ground
+				if (ground > 0) { TP++; FN--; } else { FP++; TN--; }
+	            // do the update
+	            if ((TP + FP) > 0 && (TP + FN) > 0 && TP > 0) {
+	                // compute current precision and recall
+	                var precision = TP / (TP + FP);
+	                var recall = TP / (TP + FN);
+	                // see if we need to update current bep
+	                var diff = Math.abs(precision - recall);
+	                if (diff < minDiff) { minDiff = diff; bep = (precision + recall) / 2; }
+	            }
+	        }        
+	        return bep;
+	    }
+    
+	    //!     - `num = result.bestF1()` -- gets threshold for prediction score, which results in the highest F1
+	    this.bestF1 = function () {
+			// sort according to predictions
+			var perm = this.predictions.sortPerm(false);
+			// maintaining the results as we go along
+			var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
+	        var maxF1 = 0.0, prediction = -1.0;
+			// go over the sorted results
+			for (var i = 0; i < perm.perm.length; i++) {
+				// get the ground
+				var ground = this.grounds[perm.perm[i]];
+				// update TP/FP counts according to the ground
+				if (ground > 0) { TP++; FN--; } else { FP++; TN--; }
+	            // do the update
+	            if ((TP + FP) > 0 && (TP + FN) > 0 && TP > 0) {
+	                // compute current precision, recall and F1
+	                var precision = TP / (TP + FP);
+	                var recall = TP / (TP + FN);
+	                var f1 = 2 * precision * recall / (precision + recall);
+	                // see if we need to update max F1
+	                if (f1 > maxF1) { maxF1 = f1; prediction = perm.vec[i]; }
+	            }
+	        }        
+	        return prediction;
+	    }
+	    
+		//!     - `result.report(sample)` -- output to screen
+		this.report = function (sample) {
+			// default sample size is 10
+			sample = sample || 10;
+			// get the curve
+			var curve = this.curve(sample);
+			// print to console
+	        console.log("FPR TPR");
+			for (var i = 0; i < curve.length; i++) {
+			 	console.log(curve[i][0] + " " + curve[i][1]);
+	        }        
+		}
+	}
 
-    //#- `result = analytics.crossValidation(rs, features, target, folds)` -- creates a batch
-    //#     model for records from record set `rs` using `features; `target` is the
-    //#     target field and is assumed discrete; the result is a results object
-    //#     with the following API:
-    //#     - `result.target` -- an object with categories as keys and the following
-    //#       counts as members of these keys: `count`, `TP`, `TN`, `FP`, `FN`,
-    //#       `all()`, `precision()`, `recall()`, `accuracy()`.
-    //#     - `result.confusion` -- confusion matrix between categories
-    //#     - `result.report()` -- prints basic report on to the console
-    //#     - `result.reportCSV(fout)` -- prints CSV output to the `fout` output stream
+	//!- `cf = new analytics.confusionMatrix(cats)` -- for tracking confusion between label classification
+	exports.confusionMatrix = function (cats) {
+	    //!     - `cf.cats` -- categories we are tracking
+	    this.cats = cats;
+	    //!     - `cf.matrix` -- confusion matrix
+	    this.matrix = new la.Matrix({rows: cats.length, cols: cats.length});
+    
+	    // get category name to id
+	    this.getCatId = function (cat) {
+	        for (var i = 0; i < cats.length; i++) {
+	            if (cats[i] === cat) {
+	                return i;
+	            }
+	        }
+	        return -1;
+	    }
+    
+	    //!     - `cf.count(correct, predicted)` -- update matrix with new prediction
+	    this.count = function(correct, predicted) {
+	        var row = this.getCatId(correct);
+	        if (row == -1) { console.log("Unknown category '" + correct + "'"); }
+	        var col = this.getCatId(predicted);
+	        if (col == -1) { console.log("Unknown category '" + predicted + "'"); }
+	        this.matrix.put(row, col, this.matrix.at(row, col) + 1);
+	    }    
+    
+	    //!     - `cf.report()` -- report on the current status
+	    this.report = function() {
+	        // get column width
+	        var max = 0;
+	        // first label name
+	        for (var i = 0; i < this.cats.length; i++) {
+	            if (cats[i].length > max) { max = cats[i].length; }
+	        }
+	        // then max number
+	        for (var i = 0; i < this.cats.length; i++) {
+	            for (var j = 0; j < this.cats.length; j++) {
+	                var digits = Math.ceil(Math.log(this.matrix.at(i, j)) / Math.LN10) + 2;
+	                if (digits > max) { max = digits; }
+	            }
+	        }
+	        // for prittyfying strings
+	        function addSpace(str, len) { 
+	            while (str.length < len) { 
+	                str = " " + str; 
+	            }
+	            return str;
+	        }
+	        // print header
+	        var header = addSpace("", max);
+	        for (var i = 0; i < this.cats.length; i++) {
+	            header = header + addSpace(this.cats[i], digits);
+	        }
+	        console.log(header);
+	        // print elements
+	        for (var i = 0; i < this.cats.length; i++) {
+	            var line = addSpace(this.cats[i], max);
+	            for (var j = 0; j < this.cats.length; j++) {
+	                line = line + addSpace("" + Math.round(this.matrix.at(i, j)), max);
+	            }
+	            console.log(line);
+	        }
+	    }
+    
+	    //!     - `cf.reportCSV(fout)` -- report on the current status
+	    this.reportCSV = function(fout) {
+	        // print header
+	        var header = "";
+	        for (var i = 0; i < this.cats.length; i++) {
+	            header = header + "," + this.cats[i];
+	        }
+	        fout.writeLine(header);
+	        // print elements
+	        for (var i = 0; i < this.cats.length; i++) {
+	            var line = this.cats[i];
+	            for (var j = 0; j < this.cats.length; j++) {
+	                line = line + "," + Math.round(this.matrix.at(i, j));
+	            }
+	            fout.writeLine(line);
+	        }
+	    }    
+	}
+	
+
+    //!- `result = analytics.crossValidation(rs, features, target, folds)` -- creates a batch
+    //!     model for records from record set `rs` using `features; `target` is the
+    //!     target field and is assumed discrete; the result is a results object
+    //!     with the following API:
+    //!     - `result.target` -- an object with categories as keys and the following
+    //!       counts as members of these keys: `count`, `TP`, `TN`, `FP`, `FN`,
+    //!       `all()`, `precision()`, `recall()`, `accuracy()`.
+    //!     - `result.confusion` -- confusion matrix between categories
+    //!     - `result.report()` -- prints basic report on to the console
+    //!     - `result.reportCSV(fout)` -- prints CSV output to the `fout` output stream
     exports.crossValidation = function (records, features, target, folds, limitCategories) {
         // create empty folds
         var fold = [];
@@ -773,8 +1005,6 @@
         }
         return cfyRes;
     };
-
-
 
     //!- `alModel = analytics.newActiveLearner(query, qRecSet, fRecSet, ftrSpace, settings)` -- initializes the
     //!    active learning. The algorihm is run by calling `model.startLoop()`. The algorithm has two stages: query mode, where the algorithm suggests potential
@@ -1091,7 +1321,7 @@
 	    
     
     /**
-     * Hierarchical Markov model. TODO description      
+     * StreamStory.  
      * @class
      * @param {opts} HierarchMarkovParam - parameters. TODO typedef and describe
      */
@@ -1102,21 +1332,83 @@
     	
     	// create model and feature space
     	var mc;
-    	var ftrSpace;
+    	var obsFtrSpace;
+    	var controlFtrSpace;
     	
-    	if (opts.hmcConfig != null && opts.ftrSpaceConfig != null && opts.base != null) {
+    	if (opts.hmcConfig != null && opts.obsFields != null && 
+    			opts.contrFields != null && opts.base != null) {
+    		
     		mc = opts.sequenceEndV != null ? new exports.HMC(opts.hmcConfig, opts.sequenceEndV) : new exports.HMC(opts.hmcConfig);
-    		ftrSpace = new qm.FeatureSpace(opts.base, opts.ftrSpaceConfig);
+    		
+    		obsFtrSpace = new qm.FeatureSpace(opts.base, opts.obsFields);
+    		controlFtrSpace = new qm.FeatureSpace(opts.base, opts.contrFields);
     	} 
-    	else if (opts.hmcFile != null && opts.ftrSpaceFile != null) {
-    		mc = new exports.HMC(opts.hmcFile);
-    		ftrSpace = new qm.FeatureSpace(opts.base, opts.ftrSpaceFile);
+    	else if (opts.hmcFile != null) {
+    		var fin = new fs.FIn(opts.hmcFile);
+    		mc = new exports.HMC(fin);
+    		obsFtrSpace = new qm.FeatureSpace(opts.base, fin);
+    		controlFtrSpace = new qm.FeatureSpace(opts.base, fin);
+    	}
+    	else {
+    		throw 'Parameters missing: ' + JSON.stringify(opts);
     	}
     	
-        // public methods
-        /**
-        * @lends module:analytics.HierarchMarkov.prototype
-        */
+    	function getFtrNames(ftrSpace) {
+    		var names = [];
+    		
+    		var dims = ftrSpace.dims;
+    		for (var i = 0; i < dims.length; i++) {
+				names.push(ftrSpace.getFeature(i));
+			}
+    		
+    		return names;
+    	}
+    	
+    	function getObsFtrCount() {
+			return obsFtrSpace.dims.length;
+		}
+    	
+    	function getObsFtrNames() {
+    		return getFtrNames(obsFtrSpace);
+    	}
+    	
+    	function getControlFtrNames() {
+    		return getFtrNames(controlFtrSpace);
+    	}
+    	
+    	function getFtrDescriptions(stateId) {
+    		var observations = [];
+    		var controls = [];
+			
+			var coords = mc.fullCoords(stateId);
+			var obsFtrNames = getObsFtrNames();
+			var invObsCoords = obsFtrSpace.invertFeatureVector(coords);
+			for (var i = 0; i < invObsCoords.length; i++) {
+				observations.push({name: obsFtrNames[i], value: invObsCoords.at(i)});
+			}
+			
+			var controlCoords = mc.fullCoords(stateId, false);
+			var contrFtrNames = getControlFtrNames();
+			var invControlCoords = controlFtrSpace.invertFeatureVector(controlCoords);
+			for (var i = 0; i < invControlCoords.length; i++) {
+				controls.push({name: contrFtrNames[i], value: invControlCoords.at(i)});
+			}
+			
+			return {
+				observations: observations,
+				controls: controls
+			};
+    	}
+    	
+    	function getFtrCoord(stateId, ftrIdx) {
+    		if (ftrIdx < obsFtrSpace.dims.length) {
+    			return obsFtrSpace.invertFeatureVector(mc.fullCoords(stateId))[ftrIdx];
+    		} else {
+    			return controlFtrSpace.invertFeatureVector(mc.fullCoords(stateId, false))[ftrIdx - obsFtrSpace.dims.length];
+    		}
+    	}
+    	
+    	// public methods
     	var that = {
     		/**
     		 * Creates a new model out of the record set.
@@ -1127,13 +1419,20 @@
     			var timeField = opts.timeField;
     			
     			log.info('Updating feature space ...');
-    			ftrSpace.updateRecords(recSet);
+    			obsFtrSpace.updateRecords(recSet);
+    			controlFtrSpace.updateRecords(recSet);
     			
-    			var colMat = ftrSpace.extractMatrix(recSet);
+    			var obsColMat = obsFtrSpace.extractMatrix(recSet);
+    			var contrColMat = controlFtrSpace.extractMatrix(recSet);
     			var timeV = recSet.getVector(timeField);
     			
     			log.info('Creating model ...');
-    			mc.fit(colMat, timeV, batchEndV);
+    			mc.fit({
+    				observations: obsColMat,
+    				controls: contrColMat,
+    				times: timeV,
+    				batchV: batchEndV
+    			});
     			log.info('Done!');
     			
     			return that;
@@ -1143,22 +1442,35 @@
     		 * Adds a new record. Doesn't update the models statistics.
     		 */
     		update: function (rec) {
-    			var ftrVec = ftrSpace.extractVector(rec);
-    			var recTm = rec.time;
-    			var timestamp = recTm.getTime();
+    			if (rec == null) return;
     			
-    			mc.update(ftrVec, timestamp);
+    			var obsFtrVec = obsFtrSpace.extractVector(rec);
+    			var contFtrVec = controlFtrSpace.extractVector(rec);
+    			var timestamp = rec.time.getTime();
+    			
+    			mc.update(obsFtrVec, contFtrVec, timestamp);
     		},
     		
     		/**
     		 * Saves the feature space and model into the specified files.
     		 */
-    		save: function (mcFName, ftrFname) {
-    			log.info('Saving Markov chain ...');
-    			mc.save(mcFName);
-    			log.info('Saving feature space ...');
-    			ftrSpace.save(ftrFname);
-    			log.info('Done!');
+    		save: function (mcFName) {
+    			try {
+    				console.log('Saving Markov chain ...');
+    				
+    				var fout = new fs.FOut(mcFName);
+	    			
+	    			mc.save(fout);
+	    			obsFtrSpace.save(fout);
+	    			controlFtrSpace.save(fout);
+	    			
+	    			fout.flush();
+	    			fout.close();
+	    			
+	    			console.log('Done!');
+    			} catch (e) {
+    				console.log('Failed to save the model!!' + e.message);
+    			}
     		},
     		
     		/**
@@ -1180,7 +1492,7 @@
     		 * Returns the feature space.
     		 */
     		getFtrSpace: function () {
-    			return ftrSpace;
+    			return { observations: obsFtrSpace, controls: controlFtrSpace };
     		},
     		
     		/**
@@ -1206,36 +1518,28 @@
     		},
     		
     		getFtrNames: function () {
-    			var names = [];
-    			
-    			var dims = ftrSpace.dims;
-    			for (var i = 0; i < dims.length; i++) {
-    				names.push(ftrSpace.getFeature(i));
+    			return {
+    				observation: getObsFtrNames(),
+    				control: getControlFtrNames()
     			}
-    			
-    			return names;
     		},
     		
     		/**
     		 * Returns state details as a Javascript object.
     		 */
-    		stateDetails: function (stateId, level) {
-    			var coords = mc.fullCoords(stateId);
-    			var invCoords = ftrSpace.invFtrVec(coords);
-    			var futureStates = mc.futureStates(level, stateId);
-    			var pastStates = mc.pastStates(level, stateId);
+    		stateDetails: function (stateId, height) {    			
+    			var futureStates = mc.futureStates(height, stateId);
+    			var pastStates = mc.pastStates(height, stateId);
+    			var isTarget = mc.isTarget(stateId, height);
     			var stateNm = mc.getStateName(stateId);
     			var wgts = mc.getStateWgtV(stateId);
-    			
-    			var ftrNames = that.getFtrNames();
-    			var features = [];
-    			for (var i = 0; i < invCoords.length; i++) {
-    				features.push({name: ftrNames[i], value: invCoords.at(i)});
-    			}
+    		
+    			var features = getFtrDescriptions(stateId);
     			
     			return {
     				id: stateId,
     				name: stateNm.length > 0 ? stateNm : null,
+    				isTarget: isTarget,
     				features: features,
     				futureStates: futureStates,
     				pastStates: pastStates,
@@ -1249,8 +1553,16 @@
     		histogram: function (stateId, ftrIdx) {
     			var hist = mc.histogram(stateId, ftrIdx);
     			
-    			for (var i = 0; i < hist.binStartV.length; i++) {
-    				hist.binStartV[i] = ftrSpace.invFtr(ftrIdx, hist.binStartV[i]);
+    			var nObsFtrs = getObsFtrCount();
+    			
+    			if (ftrIdx < nObsFtrs) {
+	    			for (var i = 0; i < hist.binStartV.length; i++) {
+	    				hist.binStartV[i] = obsFtrSpace.invertFeature(ftrIdx, hist.binStartV[i]);
+	    			}
+    			} else {
+    				for (var i = 0; i < hist.binStartV.length; i++) {
+	    				hist.binStartV[i] = controlFtrSpace.invertFeature(ftrIdx - nObsFtrs, hist.binStartV[i]);
+	    			}
     			}
     			
     			return hist;
@@ -1272,15 +1584,19 @@
     		
     		onOutlier: function (callback) {
     			mc.onOutlier(function (ftrV) {
-    				var invFtrV = ftrSpace.invFtrVec(ftrV);
+    				var invFtrV = obsFtrSpace.invertFeatureVector(ftrV);
     				
     				var features = [];
     				for (var i = 0; i < invFtrV.length; i++) {
-    					features.push({name: ftrSpace.getFeature(i), value: invFtrV.at(i)});
+    					features.push({name: obsFtrSpace.getFeature(i), value: invFtrV.at(i)});
     				}
     				
     				callback(features);
     			});
+    		},
+    		
+    		onPrediction: function (callback) {
+    			mc.onPrediction(callback);
     		},
     		
     		/**
@@ -1293,12 +1609,16 @@
     			var result = [];
     			for (var i = 0; i < stateIds.length; i++) {
     				var stateId = stateIds[i];
-    				var coords = ftrSpace.invFtrVec(mc.fullCoords(stateId));
-    				
-    				result.push({ state: stateId, value: coords[ftrIdx] });
+    				var coord = getFtrCoord(stateId, ftrIdx);
+    				result.push({ state: stateId, value: coord });
     			}
     			
     			return result;
+    		},
+    		
+    		setControl: function (ftrIdx, factor) {
+    			var controlFtrIdx = ftrIdx - obsFtrSpace.dims.length;
+    			mc.setControlFactor(controlFtrIdx, factor);
     		}
     	};
     	
@@ -1381,5 +1701,71 @@
         }
     }
 
+
+
+    /** 
+    * @classdesc Principal components analysis
+    * @class    
+    */
+    exports.PCA = function () {        
+        /** 
+        * Computes .
+        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples.
+        */
+        this.fit = function (A, k, iter) {
+            var rows = A.rows;
+            var cols = A.cols;
+
+            k = k == undefined ? rows : k;
+            //iter = iter == undefined ? -1 : iter;
+
+            var mu = stat.mean(A, 2);            
+            // cov(A) = 1/(n-1) A A' - mu mu'
+
+            // center data (same as matlab)
+            var cA = A.minus(mu.outer(la.ones(cols)));            
+            var C = cA.multiply(cA.transpose()).multiply(1 / (cols - 1));
+            // alternative computation: 
+            //var C = (A.multiply(A.transpose()).multiply(1 / (cols - 1))).minus(mu.outer(mu));
+            var res = la.svd(C, k, { iter: iter });
+            
+            this.P = res.U;
+            this.lambda = res.s;
+            this.mu = mu;
+        }
+
+        /** 
+        * Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P.
+        * Recovering the data in the original space: (this.P).multiply(p), where p's rows are the coefficients
+        * in the eigenvector basis.
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
+        * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
+        */
+        this.predict = function (x) {
+            if (x.constructor.name == 'Matrix') {
+                // P * (x - mu*ones(1, size(x,2))
+                return this.P.multiplyT(x.minus(this.mu.outer(la.ones(x.cols))));
+
+            } else if (x.constructor.name == 'Vector') {
+                // P * (x - mu)
+                return this.P.multiplyT(x.minus(this.mu));
+            }
+        }
+
+        /** 
+        * Reconstructs the vector in the original space, reverses centering
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
+        * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
+        */
+        this.reconstruct = function (x) {
+            if (x.constructor.name == 'Matrix') {
+                // P x + mu*ones(1, size(x,2)
+                return (this.P.multiply(x)).plus(this.mu.outer(la.ones(x.cols)));
+            } else if (x.constructor.name == 'Vector') {
+                // P x + mu
+                return (this.P.multiply(x)).plus(this.mu);
+            }
+        }
+    }
 
     
