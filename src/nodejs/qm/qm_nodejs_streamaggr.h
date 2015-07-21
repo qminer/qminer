@@ -965,22 +965,81 @@ public:
 
 	//!- `num = sa.getFltAt(idx)` -- returns a number (element at index) if sa implements the interface IFltVec.
 	/**
-	* Returns the value of the vector (containing the values of the time series stream aggregator) at a specific index.
+	* Returns the value of the vector (containing the values of the time series stream aggregator window buffer) at a specific index.
 	* @param {number} idx - The index.
 	* @returns {number} The value of the float vector at position idx.
 	* @example 
 	* // import qm module
 	* var qm = require('qminer');
 	* // create a simple base containing one store
-	* var base;
+	* var base = new qm.Base({
+	*    mode: 'createClean',
+	*    schema: [{
+	*        name: 'MusicSale',
+	*        fields: [
+	*            { name: 'NumberOfAlbums', type: 'float' },
+	*            { name: 'Time', type: 'datetime' }
+	*        ]
+	*    }]
+	* });
+	* // create a time series containing the 'NumberOfAlbums' values and getting the timestamp from the 'Time' field.
+	* // The window size should be one week.
+	* var ts = {
+	*    name: 'Sales',
+	*    type: 'timeSeriesWinBuf',
+	*    store: 'MusicSale',
+	*    timestamp: 'Time',
+	*    value: 'NumberOfAlbums',
+	*    winsize: 7 * 24 * 60 * 60 * 1000
+	* };
+	* var weekSales = base.store('MusicSale').addStreamAggr(ts);
+	* // add some records in the store
+	* base.store('MusicSale').push({ NumberOfAlbums: 10, Time: '2015-03-15T00:00:00.0' });
+	* base.store('MusicSale').push({ NumberOfAlbums: 15, Time: '2015-03-18T00:00:00.0' });
+	* base.store('MusicSale').push({ NumberOfAlbums: 30, Time: '2015-03-19T00:00:00.0' });
+	* base.store('MusicSale').push({ NumberOfAlbums: 45, Time: '2015-03-20T00:00:00.0' });
+	* // get the second value of the value vector 
+	* var albums = weekSales.getFloatAt(1); // returns 15
 	*/
 	//# exports.StreamAggr.prototype.getFloatAt = function (idx) { return 0; };
 	JsDeclareFunction(getFloatAt);
 	
 	//!- `vec = sa.getFltV()` -- returns a dense vector if sa implements the interface IFltVec.
 	/**
-	* Gets the whole value vector of the buffer.
+	* Gets the whole vector of values contained in the time series stream aggregator window buffer.
 	* @returns {module:la.Vector} The vector containing the values of the buffer.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a simple base containing one store
+	* var base = new qm.Base({
+	*    mode: 'createClean',
+	*    schema: [{
+	*        name: 'Hospital',
+	*        fields: [
+	*            { name: 'NumberOfPatients', type: 'float' },
+	*            { name: 'Date', type: 'datetime' }
+	*        ]
+	*    }]
+	* });
+	* // create a new time series stream aggregator that takes the values from the 'NumberOfPatients' field
+	* // and the timestamp from the 'Date' field. The window size should be 1 week.
+	* var ts = {
+	*    name: 'WeekPatients',
+	*    type: 'timeSeriesWinBuf',
+	*    store: 'Hospital',
+	*    timestamp: 'Date',
+	*    value: 'NumberOfPatients',
+	*    winsize: 7 * 24 * 60 * 60 * 1000
+	* };
+	* var weekPatients = base.store('Hospital').addStreamAggr(ts);
+	* // add some records in the store
+	* base.store('Hospital').push({ NumberOfPatients: 50, Date: '2015-05-20T00:00:00.0' });
+	* base.store('Hospital').push({ NumberOfPatients: 56, Date: '2015-05-21T00:00:00.0' });
+	* base.store('Hospital').push({ NumberOfPatients: 120, Date: '2015-05-22T00:00:00.0' });
+	* base.store('Hospital').push({ NumberOfPatients: 40, Date: '2015-05-23T00:00:00.0' });
+	* // get the values that are in the time series window buffer as a vector
+	* var values = weekPatients.getFloatVector(); // returns the vector [50, 56, 120, 40]
 	*/
 	//# exports.StreamAggr.prototype.getFloatVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getFloatVector);
@@ -988,25 +1047,124 @@ public:
 	// ITmVec
 	//!- `num = sa.getTmLen()` -- returns a number (timestamp vector length) if sa implements the interface ITmVec.
 	/**
-	* Gets the length of the timestamp vector.
+	* Gets the length of the timestamp vector of the time series stream aggregator.
 	* @returns {number} The length of the timestamp vector.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a simple base containing one store
+	* var base = new qm.Base({
+	*    mode: 'createClean',
+	*    schema: [{
+	*        name: 'Medicine',
+	*        fields: [
+	*            { name: 'NumberOfPills', type: 'float' },
+	*            { name: 'Time', type: 'datetime' }
+    *        ]
+	*    }]
+	* });
+	* // create a time series stream aggregator that takes the values from the 'NumberOfPills' field
+	* // and the timestamp from the 'Time' field. The window size should be 1 week.
+	* var ts = {
+	*    name: 'WeekPills',
+	*    type: 'timeSeriesWinBuf',
+	*    store: 'Medicine',
+	*    timestamp: 'Time',
+	*    value: 'NumberOfPills',
+	*    winsize: 7 * 24 * 60 * 60 * 1000
+	* };
+	* var weekly = base.store('Medicine').addStreamAggr(ts);
+	* // add some records in the store
+	* base.store('Medicine').push({ NumberOfPills: 4, Time: '2015-07-21T09:00:00.0' });
+	* base.store('Medicine').push({ NumberOfPills: 5, Time: '2015-07-21T19:00:00.0' });
+	* base.store('Medicine').push({ NumberOfPills: 4, Time: '2015-07-22T09:00:00.0' });
+	* base.store('Medicine').push({ NumberOfPills: 5, Time: '2015-07-22T19:00:00.0' });
+	* base.store('Medicine').push({ NumberOfPills: 4, Time: '2015-07-23T09:00:00.0' });
+	* base.store('Medicine').push({ NumberOfPills: 6, Time: '2015-07-23T19:00:00.0' });
+	* base.store('Medicine').push({ NumberOfPills: 4, Time: '2015-07-24T09:00:00.0' });
+	* // get the length of the timestamp vector
+	* var length = weekly.getTimestampLength(); // returns 7
 	*/
 	//# exports.StreamAggr.prototype.getTimestampLength = function () { return 0; };
 	JsDeclareFunction(getTimestampLength);
 
 	//!- `num = sa.getTmAt(idx)` -- returns a number (windows timestamp at index) if sa implements the interface ITmVec.
 	/**
-	* Gets the timestamp on the specific location in the buffer.
+	* Gets the timestamp from the timestamp vector of the time series stream buffer at the specific index.
 	* @param {number} idx - The index.
-	* @returns {number} The timestamp located on the idx position in the buffer.
+	* @returns {number} The timestamp of the timestamp vector at position idx.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a simple base containing one store
+	* var base = new qm.Base({
+	*    mode: 'createClean',
+	*    schema: [{
+	*        name: 'Route66',
+	*        fields: [
+	*            { name: 'NumberOfCars', type: 'float' },
+	*            { name: 'Time', type: 'datetime' }
+	*        ]
+	*    }]
+	* });
+	* // create a time series stream aggregator that takes the values from the 'NumberOfCars' field
+	* // and the timestamps from the 'Time' field. The window size should be 1 day.
+	* var ts = {
+	*    name: 'Traffic',
+	*    type: 'timeSeriesWinBuf',
+	*    store: 'Route66',
+	*    timestamp: 'Time',
+	*    value: 'NumberOfCars',
+	*    winsize: 24 * 60 * 60 * 1000
+	* };
+	* var traffic = base.store('Route66').addStreamAggr(ts);
+	* // add some records in the store
+	* base.store('Route66').push({ NumberOfCars: 100, Time: '2015-06-15T06:00:00.0' });
+	* base.store('Route66').push({ NumberOfCars: 88, Time: '2015-06-15T:10:00.0' });
+	* base.store('Route66').push({ NumberOfCars: 60, Time: '2015-06-15T13:00:00.0' });
+	* base.store('Route66').push({ NumberOfCars: 90, Time: '2015-06-15T18:00:00.0' });
+	* base.store('Route66').push({ NumberOfCars: 110, Time: '2015-06-16T00:00:00.0' });
+	* // get the third timestamp in the buffer
+	* var time = traffic.getTimestampAt(2); // returns 13078864800000
 	*/
 	//# exports.StreamAggr.prototype.getTimestampAt = function (idx) { return 0; };
 	JsDeclareFunction(getTimestampAt);
 
 	//!- `vec = sa.getTmV()` -- returns a dense vector of windows timestamps if sa implements the interface ITmVec.
 	/**
-	* Gets the dense vector containing the windows timestamps.
-	* @returns {module:la.Vector} The vector containing the window timestamps.
+	* Gets the vector containing the timestamps of the time series window buffer.
+	* @returns {module:la.Vector} The vector containing the timestamps.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a simple base containing one store
+	* var base = new qm.Base({
+	*    mode: 'createClean',
+	*    schema: [{
+	*        name: 'Signals',
+	*        fields: [
+	*            { name: 'BeepLoudness', type: 'float' },
+	*            { name: 'Time', type: 'datetime' }
+	*        ]
+	*    }]
+	* });
+	* // create a time series stream aggregator that gets the values from the 'BeepLoudness' field and
+	* // the timestamp from the 'Time' field. The window size should be 10 seconds.
+	* var ts = {
+	*    name: 'SignalBeep',
+	*    type: 'timeSeriesWinBuf',
+	*    store: 'Signals',
+	*    timestamp: 'Time',
+	*    value: 'BeepLoudness',
+	*    winsize: 10 * 1000
+	* };
+	* var signalBeep = base.store('Signals').addStreamAggr(ts);
+	* // add some records to the store
+	* base.store('Signals').push({ BeepLoudness: 10, Time: '2015-07-21T12:30:30.0' });
+	* base.store('Signals').push({ BeepLoudness: 25, Time: '2015-07-21T12:30:31.0' });
+	* base.store('Signals').push({ BeepLoudness: 20, Time: '2015-07-21T12:30:32.0' });
+	* // get the timestamp vector of signalBeep
+	* var vec = signalBeep.getTimestampVector(); // returns vector [13081955430000, 13081955431000, 13081955432000]
 	*/
 	//# exports.StreamAggr.prototype.getTimestampVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getTimestampVector);
@@ -1014,8 +1172,13 @@ public:
 	// IFltTmIO
 	//!- `num = sa.getInFlt()` -- returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.
 	/**
-	* Gets the value of the newest record added to the buffer.
+	* Gets the value of the newest record added to the time series window buffer.
 	* @returns {number} The value of the newest record in the buffer.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a simple base containing one store
+	* var base;
 	*/
 	//# exports.StreamAggr.prototype.getInFloat = function () { return 0; };
 	JsDeclareFunction(getInFloat);
