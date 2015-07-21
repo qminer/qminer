@@ -25,9 +25,9 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">StreamAggr</span></h1>
-            <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-65">qminer_aggrdoc.<wbr>js:65</a></p>
+            <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-66">qminer_aggrdoc.<wbr>js:66</a></p>
             <div class="symbol-classdesc">
-              <p>Represents the stream aggregate. The class can construct these <a href="module-qm.html#~StreamAggregators">module:qm~StreamAggregators</a>.</p>
+              <p>Represents the stream aggregate. The class can construct these <a href="module-qm.html#~StreamAggregators">module:qm~StreamAggregators</a>. Also turn to these stream aggregators to see which methods are implemented for them.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -249,7 +249,7 @@ var sa = base.store(&quot;Laser&quot;).addStreamAggr(wavelength);</code></pre>
             <h2>Methods</h2>
             <section>
               <h3 id="getFloat"><span class="symbol-name">getFloat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Returns the specific value of the chosen stream aggregator.</p>
+              <p>Returns the value of the specific stream aggregator. For return values see <a href="module-qm.html#~StreamAggregators">module:qm~StreamAggregators</a>.</p>
               <section>
                 <h4>
             Example
@@ -258,7 +258,43 @@ var sa = base.store(&quot;Laser&quot;).addStreamAggr(wavelength);</code></pre>
                   <pre class="prettyprint"><code>// import qm module
 var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base;</code></pre>
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+       name: &#x27;Grades&#x27;,
+       fields: [
+           { name: &#x27;Grade&#x27;, type: &#x27;int&#x27; },
+           { name: &#x27;Procents&#x27;, type: &#x27;float&#x27; },
+           { name: &#x27;Time&#x27;, type: &#x27;datetime&#x27; }
+       ]
+   }]
+});
+// create a new time series stream aggregator which stores the &#x27;Procents&#x27; value of the 
+// &#x27;Grades&#x27; store. The size of the window is 1 year (365 * 24 * 60 * 60 * 1000 ms)
+var ts = {
+   name: &#x27;GradesAggr&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;Grades&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Procents&#x27;,
+   winsize: 365 * 24 * 60 * 60 * 1000 
+};
+var timeSeries = base.store(&#x27;Grades&#x27;).addStreamAggr(ts);
+// create a new moving average stream aggregator that takes the values from the 
+// &#x27;GradesAggr&#x27; stream aggregator
+var ma = {
+   name: &#x27;AverageGrade&#x27;,
+   type: &#x27;ma&#x27;,
+   store: &#x27;Grades&#x27;,
+   inAggr: &#x27;GradesAggr&#x27;
+}
+var averageGrade = base.store(&#x27;Grades&#x27;).addStreamAggr(ma);
+// add some grades in the &#x27;Grades&#x27; store
+base.store(&quot;Grades&quot;).push({ Grade: 7, Procents: 65, Time: &#x27;2014-11-23T10:00:00.0&#x27; });
+base.store(&quot;Grades&quot;).push({ Grade: 9, Procents: 88, Time: &#x27;2014-12-20T12:00:00.0&#x27; });
+base.store(&quot;Grades&quot;).push({ Grade: 8, Procents: 70, Time: &#x27;2015-02-03T10:00:00.0&#x27; });
+// get the average grade procents by using the getFloat method
+var average = averageGrade.getFloat(); // returns 74 + 1/3</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -305,11 +341,49 @@ var base;</code></pre>
                 </dd>
               </dl>
               <h3 id="getFloatLength"><span class="symbol-name">getFloatLength</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Gets the length of the value vector.</p>
+              <p>Gets the length of the vector containing the values still in the window buffer of the time series stream aggregator.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a simple base containing one store
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+       name: &#x27;IceCreams&#x27;,
+       fields: [
+           { name: &#x27;Type&#x27;, type: &#x27;string&#x27; },
+           { name: &#x27;Price&#x27;, type: &#x27;float&#x27; },
+           { name: &#x27;TimeOfConsumption&#x27;, type: &#x27;datetime&#x27; }
+       ]
+   }]
+});
+// create a time series stream aggregator, that takes values from the &#x27;Price&#x27; field and the timestamp
+//  from the &#x27;TimeOfConsumation&#x27; field of &#x27;IceCream&#x27; store. The window size should be one day.
+var ts = {
+   name: &#x27;IcePrice&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;IceCreams&#x27;,
+   timestamp: &#x27;TimeOfConsumption&#x27;,
+   value: &#x27;Price&#x27;,
+   winsize: 24 * 60 * 60 * 1000
+};
+var icePrice = base.store(&#x27;IceCreams&#x27;).addStreamAggr(ts);
+// add some ice creams in the store
+base.store(&#x27;IceCreams&#x27;).push({ Type: &#x27;Chocholate&#x27;, Price: 5, TimeOfConsumption: &#x27;2015-07-21T09:00:00.0&#x27; });
+base.store(&#x27;IceCreams&#x27;).push({ Type: &#x27;Blue Sky&#x27;, Price: 3, TimeOfConsumption: &#x27;2015-07-21T14:13:00.0&#x27; });
+base.store(&#x27;IceCreams&#x27;).push({ Type: &#x27;Stracciatella&#x27;, Price: 5, TimeOfConsumption: &#x27;2015-07-21T21:05:00.0&#x27; });
+// get the number of ice creams consumed by using getFloatLength method
+var numberOfIceCreamsEaten = icePrice.getFloatLength(); // returns 3</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The length of the value vector.</p>
+                  <p><code>number</code>&nbsp;The length of the vector.</p>
                 </dd>
               </dl>
               <h3 id="getFloatVector"><span class="symbol-name">getFloatVector</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
@@ -362,10 +436,55 @@ var base;</code></pre>
               </dl>
               <h3 id="getTimestamp"><span class="symbol-name">getTimestamp</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Returns the timestamp value of the newest record in buffer.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a simple base containing one store
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+       name: &#x27;GameCollection&#x27;,
+       fields: [
+           { name: &#x27;GameName&#x27;, type: &#x27;string&#x27; },
+           { name: &#x27;Price&#x27;, type: &#x27;float&#x27; },
+           { name: &#x27;ReleaseDate&#x27;, type: &#x27;datetime&#x27; }
+       ]
+   }]
+});
+// create a new time series stream aggregator for the &#x27;SteamSales&#x27; store for one month.
+var ts = {
+   name: &#x27;GameSeries&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;GameCollection&#x27;,
+   timestamp: &#x27;ReleaseDate&#x27;,
+   value: &#x27;Price&#x27;,
+   winsize: 31 * 60 * 60 * 1000
+};
+var timeSeries = base.store(&#x27;GameCollection&#x27;).addStreamAggr(ts);
+// create a new sum stream aggregator for calculating the sum of the prices
+var sum = {
+   name: &#x27;SumPrice&#x27;,
+   type: &#x27;winBufSum&#x27;,
+   store: &#x27;GameCollection&#x27;,
+   inAggr: &#x27;GameSeries&#x27;
+};
+var priceSum = base.store(&#x27;GameCollection&#x27;).addStreamAggr(sum);
+// put some records in the store
+base.store(&#x27;GameCollection&#x27;).push({ GameName: &#x27;Tetris&#x27;, Price: 0, ReleaseDate: &#x27;1984-06-06T00:00:00.0&#x27; });
+base.store(&#x27;GameCollection&#x27;).push({ GameName: &#x27;Super Mario Bros.&#x27;, Price: 100, ReleaseDate: &#x27;1985-09-13T00:00:00.0&#x27; });
+base.store(&#x27;GameCollection&#x27;).push({ GameName: &#x27;The Legend of Zelda&#x27;, Price: 90, ReleaseDate: &#x27;1986-02-21T00:00:00.0 &#x27;});
+// get the timestamp of the last bought game by using getTimestamp
+var date = priceSum.getTimestamp(); // returns 12153801600000 (the miliseconds since midnight 01.01.1601)</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The timestamp of the newest record. It represents the number of miliseconds between the records time and 1601-01-01T00:00:00.0.</p>
+                  <p><code>number</code>&nbsp;The timestamp of the newest record. It represents the number of miliseconds between the record time and 1601-01-01T00:00:00.0.</p>
                 </dd>
               </dl>
               <h3 id="getTimestampAt"><span class="symbol-name">getTimestampAt</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
@@ -579,7 +698,7 @@ var base;</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 20, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 21, 2015.
       </p>
     </div>
   </footer>

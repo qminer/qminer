@@ -413,6 +413,27 @@ describe('Time Series Window Buffer Tests', function () {
             var vec = sa.getFloatVector();
             assert.equal(vec.length, 0);
         })
+        it('should return the float vector of values that are still in the window', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:35.0', Value: 4 });
+
+
+            var vec = sa.getFloatVector();
+            assert.equal(vec[0], 2);
+            assert.equal(vec[1], 3);
+            assert.equal(vec[2], 4);
+        })
     });
     describe('GetFloatLength, Tests', function () {
         it('should return the length of the float vector containing values in the buffer', function () {
@@ -2782,7 +2803,7 @@ describe('Resampler Tests', function () {
     });
 });
 
-describe.only('Merger Tests', function () {
+describe('Merger Tests', function () {
     var base = undefined;
     var strore = undefined;
     beforeEach(function () {

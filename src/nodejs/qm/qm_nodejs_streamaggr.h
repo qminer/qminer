@@ -30,7 +30,8 @@
 
 /**
 * Stream Aggregate
-* @classdesc Represents the stream aggregate. The class can construct these {@link module:qm~StreamAggregators}.
+* @classdesc Represents the stream aggregate. The class can construct these {@link module:qm~StreamAggregators}. Also turn to these stream aggregators to see 
+* which methods are implemented for them.
 * @class
 * @param {module:qm.Base} base - The base object on which it's created.
 * @param {(Object | function)} json - The JSON object containing the schema of the stream aggregate or the function object defining the operations of the stream aggregate.
@@ -100,7 +101,8 @@
 
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_TimeSeries
-* This stream aggregator represents the time series window buffer. It implements all functions of the {@link module:qm.StreamAggr}.
+* This stream aggregator represents the time series window buffer. It implements all the methods
+* <b>except</b> {@link module:qm.StreamAggr#getFloat}, {@link module:qm.StreamAggr#getTimestamp}.
 * @property {string} name - The given name of the stream aggregator.
 * @property {string} type - The type of the stream aggregator. It must be equal to 'timeSeriesWinBuf'.
 * @property {string} store - The name of the store from which to takes the data.
@@ -824,13 +826,49 @@ public:
 	// IFlt
 	//!- `num = sa.getFlt()` -- returns a number if sa implements the interface IFlt
 	/**
-	* Returns the specific value of the chosen stream aggregator.
+	* Returns the value of the specific stream aggregator. For return values see {@link module:qm~StreamAggregators}.
 	* @returns {number} The value of the stream aggregator.
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
 	* // create a simple base containing one store
-	* var base;
+	* var base = new qm.Base({
+	*    mode: 'createClean',
+	*    schema: [{
+	*        name: 'Grades',
+	*        fields: [
+	*            { name: 'Grade', type: 'int' },
+	*            { name: 'Procents', type: 'float' },
+	*            { name: 'Time', type: 'datetime' }
+	*        ]
+	*    }]
+	* });
+	* // create a new time series stream aggregator which stores the 'Procents' value of the 
+	* // 'Grades' store. The size of the window is 1 year (365 * 24 * 60 * 60 * 1000 ms)
+	* var ts = {
+	*    name: 'GradesAggr',
+	*    type: 'timeSeriesWinBuf',
+	*    store: 'Grades',
+	*    timestamp: 'Time',
+	*    value: 'Procents',
+	*    winsize: 365 * 24 * 60 * 60 * 1000 
+	* };
+	* var timeSeries = base.store('Grades').addStreamAggr(ts);
+	* // create a new moving average stream aggregator that takes the values from the 
+	* // 'GradesAggr' stream aggregator
+	* var ma = {
+	*    name: 'AverageGrade',
+	*    type: 'ma',
+	*    store: 'Grades',
+	*    inAggr: 'GradesAggr'
+	* }
+	* var averageGrade = base.store('Grades').addStreamAggr(ma);
+	* // add some grades in the 'Grades' store
+	* base.store("Grades").push({ Grade: 7, Procents: 65, Time: '2014-11-23T10:00:00.0' });
+	* base.store("Grades").push({ Grade: 9, Procents: 88, Time: '2014-12-20T12:00:00.0' });
+	* base.store("Grades").push({ Grade: 8, Procents: 70, Time: '2015-02-03T10:00:00.0' });
+	* // get the average grade procents by using the getFloat method
+	* var average = averageGrade.getFloat(); // returns 74 + 1/3
 	*/
 	//# exports.StreamAggr.prototype.getFloat = function () { return 0; };
 	JsDeclareFunction(getFloat);
@@ -839,7 +877,46 @@ public:
 	//!- `num = sa.getTm()` -- returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)
 	/**
 	* Returns the timestamp value of the newest record in buffer.
-	* @returns {number} The timestamp of the newest record. It represents the number of miliseconds between the records time and 1601-01-01T00:00:00.0.
+	* @returns {number} The timestamp of the newest record. It represents the number of miliseconds between the record time and 1601-01-01T00:00:00.0.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a simple base containing one store
+	* var base = new qm.Base({
+	*    mode: 'createClean',
+	*    schema: [{
+	*        name: 'GameCollection',
+	*        fields: [
+	*            { name: 'GameName', type: 'string' },
+	*            { name: 'Price', type: 'float' },
+	*            { name: 'ReleaseDate', type: 'datetime' }
+	*        ]
+	*    }]
+	* });
+	* // create a new time series stream aggregator for the 'SteamSales' store for one month.
+	* var ts = {
+	*    name: 'GameSeries',
+	*    type: 'timeSeriesWinBuf',
+	*    store: 'GameCollection',
+	*    timestamp: 'ReleaseDate',
+	*    value: 'Price',
+	*    winsize: 31 * 60 * 60 * 1000
+	* };
+	* var timeSeries = base.store('GameCollection').addStreamAggr(ts);
+	* // create a new sum stream aggregator for calculating the sum of the prices
+	* var sum = {
+	*    name: 'SumPrice',
+	*    type: 'winBufSum',
+	*    store: 'GameCollection',
+	*    inAggr: 'GameSeries'
+	* };
+	* var priceSum = base.store('GameCollection').addStreamAggr(sum);
+	* // put some records in the store
+	* base.store('GameCollection').push({ GameName: 'Tetris', Price: 0, ReleaseDate: '1984-06-06T00:00:00.0' });
+	* base.store('GameCollection').push({ GameName: 'Super Mario Bros.', Price: 100, ReleaseDate: '1985-09-13T00:00:00.0' });
+	* base.store('GameCollection').push({ GameName: 'The Legend of Zelda', Price: 90, ReleaseDate: '1986-02-21T00:00:00.0 '});
+	* // get the timestamp of the last bought game by using getTimestamp
+	* var date = priceSum.getTimestamp(); // returns 12153801600000 (the miliseconds since midnight 01.01.1601)
 	*/
 	//# exports.StreamAggr.prototype.getTimestamp = function () { return 0; };
 	JsDeclareFunction(getTimestamp);
@@ -847,17 +924,55 @@ public:
 	// IFltVec
 	//!- `num = sa.getFltLen()` -- returns a number (internal vector length) if sa implements the interface IFltVec.
 	/**
-	* Gets the length of the value vector.
-	* @returns {number} The length of the value vector.
+	* Gets the length of the vector containing the values still in the window buffer of the time series stream aggregator.
+	* @returns {number} The length of the vector.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a simple base containing one store
+	* var base = new qm.Base({
+	*    mode: 'createClean',
+	*    schema: [{
+	*        name: 'IceCreams',
+	*        fields: [
+	*            { name: 'Type', type: 'string' },
+	*            { name: 'Price', type: 'float' },
+	*            { name: 'TimeOfConsumption', type: 'datetime' }
+	*        ]
+	*    }]
+	* });
+	* // create a time series stream aggregator, that takes values from the 'Price' field and the timestamp
+	* //  from the 'TimeOfConsumation' field of 'IceCream' store. The window size should be one day.
+	* var ts = {
+	*    name: 'IcePrice',
+	*    type: 'timeSeriesWinBuf',
+	*    store: 'IceCreams',
+	*    timestamp: 'TimeOfConsumption',
+	*    value: 'Price',
+	*    winsize: 24 * 60 * 60 * 1000
+	* };
+	* var icePrice = base.store('IceCreams').addStreamAggr(ts);
+	* // add some ice creams in the store
+	* base.store('IceCreams').push({ Type: 'Chocholate', Price: 5, TimeOfConsumption: '2015-07-21T09:00:00.0' });
+	* base.store('IceCreams').push({ Type: 'Blue Sky', Price: 3, TimeOfConsumption: '2015-07-21T14:13:00.0' });
+	* base.store('IceCreams').push({ Type: 'Stracciatella', Price: 5, TimeOfConsumption: '2015-07-21T21:05:00.0' });
+	* // get the number of ice creams consumed by using getFloatLength method
+	* var numberOfIceCreamsEaten = icePrice.getFloatLength(); // returns 3
+	* 
 	*/
 	//# exports.StreamAggr.prototype.getFloatLength = function () { return 0; };
 	JsDeclareFunction(getFloatLength);
 
 	//!- `num = sa.getFltAt(idx)` -- returns a number (element at index) if sa implements the interface IFltVec.
 	/**
-	* Returns the value of the float vector at a specific index.
+	* Returns the value of the vector (containing the values of the time series stream aggregator) at a specific index.
 	* @param {number} idx - The index.
 	* @returns {number} The value of the float vector at position idx.
+	* @example 
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a simple base containing one store
+	* var base;
 	*/
 	//# exports.StreamAggr.prototype.getFloatAt = function (idx) { return 0; };
 	JsDeclareFunction(getFloatAt);
