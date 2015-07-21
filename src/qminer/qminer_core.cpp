@@ -582,8 +582,7 @@ void TStore::AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRe
 			// if ExistingJoinRecId is a valid record and is different than RecId
 			// then we have to delete the join first, before setting new values
 			if (ExistingJoinRecId != TUInt64::Mx && ExistingJoinRecId != RecId) {
-				const int Fq = JoinStore->GetFieldInt(JoinRecId, InverseJoinDesc.GetJoinFqFieldId());
-				JoinStore->DelJoin(InverseJoinDesc.GetJoinId(), JoinRecId, ExistingJoinRecId, Fq);
+				const int Fq = JoinStore->GetFieldInt(JoinRecId, InverseJoinDesc.GetJoinFqFieldId());				JoinStore->DelJoin(InverseJoinDesc.GetJoinId(), JoinRecId, ExistingJoinRecId, Fq);
 			}
 			JoinStore->SetFieldUInt64(JoinRecId, InverseJoinDesc.GetJoinRecFieldId(), RecId);
 			JoinStore->SetFieldInt(JoinRecId, InverseJoinDesc.GetJoinFqFieldId(), JoinFq);
