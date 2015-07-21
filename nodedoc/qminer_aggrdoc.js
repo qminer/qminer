@@ -67,7 +67,7 @@
 /**
 * @typedef {module:qm.StreamAggr} StreamAggregators
 * Stream aggregator types.
-* @property {module:qm~StreamAggr_TimeSeries} timeSeries - The time series type.
+* @property {module:qm~StreamAggr_TimeSeriesWindow} timeSeries - The time series type.
 * @property {module:qm~StreamAggr_Count} count - The count type.
 * @property {module:qm~StreamAggr_Sum} sum - The sum type.
 * @property {module:qm~StreamAggr_Min} min - The minimal type.
@@ -82,7 +82,7 @@
 * @property {module:qm~StreamAggr_Merger} mer - The merger type.
 */
 /**
-* @typedef {module:qm.StreamAggr} StreamAggr_TimeSeries
+* @typedef {module:qm.StreamAggr} StreamAggr_TimeSeriesWindow
 * This stream aggregator represents the time series window buffer. It implements all the methods
 * <b>except</b> {@link module:qm.StreamAggr#getFloat}, {@link module:qm.StreamAggr#getTimestamp}.
 * @property {string} name - The given name of the stream aggregator.

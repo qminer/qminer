@@ -249,10 +249,10 @@
                     <dt><a href="module-qm.html#~StreamAggr_Sum">StreamAggr_Sum</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.html#~StreamAggr_TimeSeries">StreamAggr_TimeSeries</a></dt>
+                    <dt><a href="module-qm.html#~StreamAggr_TimeSeriesTick">StreamAggr_TimeSeriesTick</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.html#~StreamAggr_TimeSeriesTick">StreamAggr_TimeSeriesTick</a></dt>
+                    <dt><a href="module-qm.html#~StreamAggr_TimeSeriesWindow">StreamAggr_TimeSeriesWindow</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.html#~StreamAggregators">StreamAggregators</a></dt>
@@ -4666,7 +4666,130 @@ var sumAggr = base.store(&quot;Heat&quot;).addStreamAggr(sum);</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~StreamAggr_TimeSeries"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_TimeSeries</span><small class="property-type">
+              <h3 id="~StreamAggr_TimeSeriesTick"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_TimeSeriesTick</span><small class="property-type">
+                &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+              <p>This stream aggregator represents the time series tick window buffer. It implements the following methods:
+                <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the last value added in the it's window buffer.
+                <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Heat&quot;,
+       fields: [
+           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+// create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
+// and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+var tick = {
+   name: &#x27;TimeSeriesTickAggr&#x27;,
+   type: &#x27;timeSeriesTick&#x27;,
+   store: &#x27;Heat&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Celcius&#x27;,
+};
+var timeSeriesTick = base.store(&quot;Heat&quot;).addStreamAggr(tick);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The given name for the stream aggregator.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the stream aggregator. It must be equal to 'timeSeriesTick'.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>store</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store from which it takes the data.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>value</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store field, from which it takes the values.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>timestamp</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the store field, from which it takes the timestamp.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~StreamAggr_TimeSeriesWindow"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_TimeSeriesWindow</span><small class="property-type">
                 &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
               <p>This stream aggregator represents the time series window buffer. It implements all the methods
                 <b>except</b> <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a>, <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a>.</p>
@@ -4803,129 +4926,6 @@ base.store(&quot;Heat&quot;).addStreamAggr(aggr); </code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~StreamAggr_TimeSeriesTick"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggr_TimeSeriesTick</span><small class="property-type">
-                &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-              <p>This stream aggregator represents the time series tick window buffer. It implements the following methods:
-                <br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the last value added in the it's window buffer.
-                <br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
-              <section>
-                <h4>
-            Example
-        </h4>
-                <div>
-                  <pre class="prettyprint"><code>// import the qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a base with a simple store
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [
-   {
-       name: &quot;Heat&quot;,
-       fields: [
-           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   }]
-});
-// create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
-// and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
-var tick = {
-   name: &#x27;TimeSeriesTickAggr&#x27;,
-   type: &#x27;timeSeriesTick&#x27;,
-   store: &#x27;Heat&#x27;,
-   timestamp: &#x27;Time&#x27;,
-   value: &#x27;Celcius&#x27;,
-};
-var timeSeriesTick = base.store(&quot;Heat&quot;).addStreamAggr(tick);</code></pre>
-                </div>
-              </section>
-              <section>
-                <h4>Properties</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>name</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The given name for the stream aggregator.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>type</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The type of the stream aggregator. It must be equal to 'timeSeriesTick'.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>store</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The name of the store from which it takes the data.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>value</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The name of the store field, from which it takes the values.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>timestamp</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The name of the store field, from which it takes the timestamp.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
               <h3 id="~StreamAggregators"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregators</span><small class="property-type">
                 &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
               <p>Stream aggregator types.</p>
@@ -4946,7 +4946,7 @@ var timeSeriesTick = base.store(&quot;Heat&quot;).addStreamAggr(tick);</code></p
                         <p>timeSeries</p>
                       </td>
                       <td>
-                        <p><a href="module-qm.html#~StreamAggr_TimeSeries">module:qm~StreamAggr_TimeSeries</a></p>
+                        <p><a href="module-qm.html#~StreamAggr_TimeSeriesWindow">module:qm~StreamAggr_TimeSeriesWindow</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
