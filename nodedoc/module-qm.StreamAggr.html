@@ -471,7 +471,45 @@ var values = weekPatients.getFloatVector(); // returns the vector [50, 56, 120, 
                 </dd>
               </dl>
               <h3 id="getInFloat"><span class="symbol-name">getInFloat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Gets the value of the newest record added to the buffer.</p>
+              <p>Gets the value of the newest record added to the time series window buffer.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a simple base containing one store
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+       name: &#x27;Marathon&#x27;,
+       fields: [
+           { name: &#x27;Runner&#x27;, type: &#x27;string&#x27; },
+           { name: &#x27;Speed&#x27;, type: &#x27;float&#x27; },
+           { name: &#x27;Time&#x27;, type: &#x27;datetime&#x27; }
+       ]
+   }]
+});
+// create a time series stream aggregator that gets the values from the &#x27;Speed&#x27; field
+// and the timestamp from the &#x27;Time&#x27; field. The window size should be 10 minutes.
+var ts = {
+   name: &#x27;Sensor&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;Marathon&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Speed&#x27;,
+   winsize: 10 * 60 * 1000
+};
+var sensor = base.store(&#x27;Marathon&#x27;).addStreamAggr(ts);
+// add some records to the store
+base.store(&#x27;Marathon&#x27;).push({ Runner: &#x27;Marko Primozic&#x27;, Speed: 13.4, Time: &#x27;2015-07-21T20:23:13.0&#x27; });
+base.store(&#x27;Marathon&#x27;).push({ Runner: &#x27;Leonard Cohen&#x27;, Speed: 14.1, Time: &#x27;2015-07-21T20:24:01.0&#x27; });
+base.store(&#x27;Marathon&#x27;).push({ Runner: &#x27;Coco Chanelle&#x27;, Speed: 13.7, Time: &#x27;2015-07-21T20:24:27.0&#x27; });
+// get the last value that got in the buffer
+var last = sensor.getInFloat(); // returns 13.7</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -479,7 +517,45 @@ var values = weekPatients.getFloatVector(); // returns the vector [50, 56, 120, 
                 </dd>
               </dl>
               <h3 id="getInTimestamp"><span class="symbol-name">getInTimestamp</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Gets the timestamp of the newest record added to the buffer.</p>
+              <p>Gets the timestamp of the newest record added to the time series window buffer.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a simple base containing one store
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+       name: &#x27;F1&#x27;,
+       fields: [
+           { name: &#x27;Driver&#x27;, type: &#x27;string&#x27; },
+           { name: &#x27;Speed&#x27;, type: &#x27;float&#x27; },
+           { name: &#x27;Time&#x27;, type: &#x27;datetime&#x27; }
+       ]
+   }]
+});
+// create a time series stream aggregator that gets the values from the &#x27;Speed&#x27; field
+// and the timestamp from the &#x27;Time&#x27; field. The window size should be 5 minutes.
+var ts = {
+   name: &#x27;Sensor&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;F1&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Speed&#x27;,
+   winsize: 5 * 60 * 1000
+};
+var sensor = base.store(&#x27;F1&#x27;).addStreamAggr(ts);
+// add some records to the store
+base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Sebastian Vettel&#x27;, Speed: 203.4, Time: &#x27;2015-07-19T09:32:01.0&#x27; });
+base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Thomas &quot;Tommy&quot; Angelo&#x27;, Speed: 152.8, Time: &#x27;2015-07-19T09:35:23.0&#x27; });
+base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Mark Ham&#x27;, Speed: 189.5, Time: &#x27;2015-07-19T09:38:43.0&#x27; });
+// get the last timestamp that was added in the window buffer
+var time = sensor.getInTimestamp(); // returns 13081772323000</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -487,7 +563,45 @@ var values = weekPatients.getFloatVector(); // returns the vector [50, 56, 120, 
                 </dd>
               </dl>
               <h3 id="getNumberOfRecords"><span class="symbol-name">getNumberOfRecords</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Gets the number of records in the buffer.</p>
+              <p>Gets the number of records in the time series window buffer.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a simple base containing one store
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+       name: &#x27;MusicSale&#x27;,
+       fields: [
+           { name: &#x27;NumberOfAlbums&#x27;, type: &#x27;float&#x27; },
+           { name: &#x27;Time&#x27;, type: &#x27;datetime&#x27; }
+       ]
+   }]
+});
+// create a time series containing the values from the &#x27;NumberOfAlbums&#x27; field and 
+// the timestamp from the &#x27;Time&#x27; field. The window size should be one week.
+var ts = {
+   name: &#x27;Sales&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;MusicSale&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;NumberOfAlbums&#x27;,
+   winsize: 7 * 24 * 60 * 60 * 1000
+};
+var weekSales = base.store(&#x27;MusicSale&#x27;).addStreamAggr(ts);
+// add some records in the store
+base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 10, Time: &#x27;2015-03-15T00:00:00.0&#x27; });
+base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 15, Time: &#x27;2015-03-18T00:00:00.0&#x27; });
+base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 30, Time: &#x27;2015-03-19T00:00:00.0&#x27; });
+base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 45, Time: &#x27;2015-03-20T00:00:00.0&#x27; });
+// get the number of records in the window buffer
+var num = weekSales.getNumberOfRecords(); // returns 4</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -495,7 +609,47 @@ var values = weekPatients.getFloatVector(); // returns the vector [50, 56, 120, 
                 </dd>
               </dl>
               <h3 id="getOutFloatVector"><span class="symbol-name">getOutFloatVector</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
-              <p>Gets a vector containing the values that are leaving the buffer.</p>
+              <p>Gets a vector containing the values that are leaving the time series window buffer.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a simple base containing one store
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+       name: &#x27;F1&#x27;,
+       fields: [
+           { name: &#x27;Driver&#x27;, type: &#x27;string&#x27; },
+           { name: &#x27;Speed&#x27;, type: &#x27;float&#x27; },
+           { name: &#x27;Time&#x27;, type: &#x27;datetime&#x27; }
+       ]
+   }]
+});
+// create a time series stream aggregator that gets the values from the &#x27;Speed&#x27; field
+// and the timestamp from the &#x27;Time&#x27; field. The window size should be 5 minutes.
+var ts = {
+   name: &#x27;Sensor&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;F1&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Speed&#x27;,
+   winsize: 5 * 60 * 1000
+};
+var sensor = base.store(&#x27;F1&#x27;).addStreamAggr(ts);
+// add some records to the store
+base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Sebastian Vettel&#x27;, Speed: 203.4, Time: &#x27;2015-07-19T09:32:01.0&#x27; });
+base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Thomas &quot;Tommy&quot; Angelo&#x27;, Speed: 152.8, Time: &#x27;2015-07-19T09:35:23.0&#x27; });
+base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Mark Ham&#x27;, Speed: 189.5, Time: &#x27;2015-07-19T09:38:43.0&#x27; });
+base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Speedy Gonzales&#x27;, Speed: 171.4, Time: &#x27;2015-07-19T09:40:32.0&#x27; });
+// get the values, that have got out of the window buffer.
+// because the window size is 5 seconds, the last value that have left the buffer is 152.8
+var left = sensor.getOutFloatVector(); // returns [152.8]</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -503,7 +657,48 @@ var values = weekPatients.getFloatVector(); // returns the vector [50, 56, 120, 
                 </dd>
               </dl>
               <h3 id="getOutTimestampVector"><span class="symbol-name">getOutTimestampVector</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
-              <p>Gets a vector containing the timestamps that are leaving the buffer.</p>
+              <p>Gets a vector containing the timestamps that are leaving the time series window buffer.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a simple base containing one store
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+       name: &#x27;Noise&#x27;,
+       fields: [
+           { name: &#x27;Decibels&#x27;, type: &#x27;float&#x27; },
+           { name: &#x27;Time&#x27;, type: &#x27;datetime&#x27; }
+       ]
+   }]
+});
+// create a time series stream aggregator that takes the values from the &#x27;Decibels&#x27; field
+// and timestamps from the &#x27;Time&#x27; fields. The window size should be 1 second.
+var ts = {
+   name: &#x27;Music&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;Noise&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Decibels&#x27;,
+   winsize: 1000
+};
+var music = base.store(&#x27;Noise&#x27;).addStreamAggr(ts);
+// add some records in the store
+base.store(&#x27;Noise&#x27;).push({ Decibels: 54, Time: &#x27;2015-07-21T14:43:00.0&#x27; });
+base.store(&#x27;Noise&#x27;).push({ Decibels: 55, Time: &#x27;2015-07-21T14:43:00.200&#x27; });
+base.store(&#x27;Noise&#x27;).push({ Decibels: 54, Time: &#x27;2015-07-21T14:43:00.400&#x27; });
+base.store(&#x27;Noise&#x27;).push({ Decibels: 53, Time: &#x27;2015-07-21T14:43:00.600&#x27; });
+base.store(&#x27;Noise&#x27;).push({ Decibels: 53, Time: &#x27;2015-07-21T14:43:00.800&#x27; });
+base.store(&#x27;Noise&#x27;).push({ Decibels: 54, Time: &#x27;2015-07-21T14:43:01.0&#x27; });
+base.store(&#x27;Noise&#x27;).push({ Decibels: 53, Time: &#x27;2015-07-21T14:43:01.2&#x27; });
+// get the timestamps that just left the window buffer by adding the last record
+var last = music.getOutTimestampVector(); // returns [13081963380000]</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -560,7 +755,7 @@ var date = priceSum.getTimestamp(); // returns 12153801600000 (the miliseconds s
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The timestamp of the newest record. It represents the number of miliseconds between the record time and 1601-01-01T00:00:00.0.</p>
+                  <p><code>number</code>&nbsp;The timestamp of the newest record. It represents the number of miliseconds between the record time and 01.01.1601 time: 00:00:00.0.</p>
                 </dd>
               </dl>
               <h3 id="getTimestampAt"><span class="symbol-name">getTimestampAt</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>

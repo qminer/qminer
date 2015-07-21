@@ -877,7 +877,7 @@ public:
 	//!- `num = sa.getTm()` -- returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)
 	/**
 	* Returns the timestamp value of the newest record in buffer.
-	* @returns {number} The timestamp of the newest record. It represents the number of miliseconds between the record time and 1601-01-01T00:00:00.0.
+	* @returns {number} The timestamp of the newest record. It represents the number of miliseconds between the record time and 01.01.1601 time: 00:00:00.0.
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
@@ -1178,39 +1178,199 @@ public:
 	* // import qm module
 	* var qm = require('qminer');
 	* // create a simple base containing one store
-	* var base;
+	* var base = new qm.Base({
+	*    mode: 'createClean',
+	*    schema: [{
+	*        name: 'Marathon',
+	*        fields: [
+	*            { name: 'Runner', type: 'string' },
+	*            { name: 'Speed', type: 'float' },
+	*            { name: 'Time', type: 'datetime' }
+	*        ]
+	*    }]
+	* });
+	* // create a time series stream aggregator that gets the values from the 'Speed' field
+	* // and the timestamp from the 'Time' field. The window size should be 10 minutes.
+	* var ts = {
+	*    name: 'Sensor',
+	*    type: 'timeSeriesWinBuf',
+	*    store: 'Marathon',
+	*    timestamp: 'Time',
+	*    value: 'Speed',
+	*    winsize: 10 * 60 * 1000
+	* };
+	* var sensor = base.store('Marathon').addStreamAggr(ts);
+	* // add some records to the store
+	* base.store('Marathon').push({ Runner: 'Marko Primozic', Speed: 13.4, Time: '2015-07-21T20:23:13.0' });
+	* base.store('Marathon').push({ Runner: 'Leonard Cohen', Speed: 14.1, Time: '2015-07-21T20:24:01.0' });
+	* base.store('Marathon').push({ Runner: 'Coco Chanelle', Speed: 13.7, Time: '2015-07-21T20:24:27.0' });
+	* // get the last value that got in the buffer
+	* var last = sensor.getInFloat(); // returns 13.7
 	*/
 	//# exports.StreamAggr.prototype.getInFloat = function () { return 0; };
 	JsDeclareFunction(getInFloat);
 
 	//!- `num = sa.getInTm()` -- returns a number (windows timestamp arriving in the buffer) if sa implements the interface IFltTmIO.
 	/**
-	* Gets the timestamp of the newest record added to the buffer.
+	* Gets the timestamp of the newest record added to the time series window buffer.
 	* @returns {number} The timestamp given as the number of miliseconds since 01.01.1601, time: 00:00:00.0.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a simple base containing one store
+	* var base = new qm.Base({
+	*    mode: 'createClean',
+	*    schema: [{
+	*        name: 'F1',
+	*        fields: [
+	*            { name: 'Driver', type: 'string' },
+	*            { name: 'Speed', type: 'float' },
+	*            { name: 'Time', type: 'datetime' }
+	*        ]
+	*    }]
+	* });
+	* // create a time series stream aggregator that gets the values from the 'Speed' field
+	* // and the timestamp from the 'Time' field. The window size should be 5 minutes.
+	* var ts = {
+	*    name: 'Sensor',
+	*    type: 'timeSeriesWinBuf',
+	*    store: 'F1',
+	*    timestamp: 'Time',
+	*    value: 'Speed',
+	*    winsize: 5 * 60 * 1000
+	* };
+	* var sensor = base.store('F1').addStreamAggr(ts);
+	* // add some records to the store
+	* base.store('F1').push({ Driver: 'Sebastian Vettel', Speed: 203.4, Time: '2015-07-19T09:32:01.0' });
+	* base.store('F1').push({ Driver: 'Thomas "Tommy" Angelo', Speed: 152.8, Time: '2015-07-19T09:35:23.0' });
+	* base.store('F1').push({ Driver: 'Mark Ham', Speed: 189.5, Time: '2015-07-19T09:38:43.0' });
+	* // get the last timestamp that was added in the window buffer
+	* var time = sensor.getInTimestamp(); // returns 13081772323000
 	*/
 	//# exports.StreamAggr.prototype.getInTimestamp = function () { return 0; };
 	JsDeclareFunction(getInTimestamp);
 	
 	//!- `vec = sa.getOutFltV()` -- returns a dense vector (values leaving the buffer) if sa implements the interface IFltTmIO.
 	/**
-	* Gets a vector containing the values that are leaving the buffer.
+	* Gets a vector containing the values that are leaving the time series window buffer.
 	* @returns {module:la.Vector} The vector containing the values that are leaving the buffer.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a simple base containing one store
+	* var base = new qm.Base({
+	*    mode: 'createClean',
+	*    schema: [{
+	*        name: 'F1',
+	*        fields: [
+	*            { name: 'Driver', type: 'string' },
+	*            { name: 'Speed', type: 'float' },
+	*            { name: 'Time', type: 'datetime' }
+	*        ]
+	*    }]
+	* });
+	* // create a time series stream aggregator that gets the values from the 'Speed' field
+	* // and the timestamp from the 'Time' field. The window size should be 5 minutes.
+	* var ts = {
+	*    name: 'Sensor',
+	*    type: 'timeSeriesWinBuf',
+	*    store: 'F1',
+	*    timestamp: 'Time',
+	*    value: 'Speed',
+	*    winsize: 5 * 60 * 1000
+	* };
+	* var sensor = base.store('F1').addStreamAggr(ts);
+	* // add some records to the store
+	* base.store('F1').push({ Driver: 'Sebastian Vettel', Speed: 203.4, Time: '2015-07-19T09:32:01.0' });
+	* base.store('F1').push({ Driver: 'Thomas "Tommy" Angelo', Speed: 152.8, Time: '2015-07-19T09:35:23.0' });
+	* base.store('F1').push({ Driver: 'Mark Ham', Speed: 189.5, Time: '2015-07-19T09:38:43.0' });
+	* base.store('F1').push({ Driver: 'Speedy Gonzales', Speed: 171.4, Time: '2015-07-19T09:40:32.0' });
+	* // get the values, that have got out of the window buffer.
+	* // because the window size is 5 seconds, the last value that have left the buffer is 152.8
+	* var left = sensor.getOutFloatVector(); // returns [152.8]
 	*/
 	//# exports.StreamAggr.prototype.getOutFloatVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getOutFloatVector);
 
 	//!- `vec = sa.getOutTmV()` -- returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.
 	/**
-	* Gets a vector containing the timestamps that are leaving the buffer.
+	* Gets a vector containing the timestamps that are leaving the time series window buffer.
 	* @returns {module:la.Vector} The vector containing the leaving timestamps.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a simple base containing one store
+	* var base = new qm.Base({
+	*    mode: 'createClean',
+	*    schema: [{
+	*        name: 'Noise',
+	*        fields: [
+	*            { name: 'Decibels', type: 'float' },
+	*            { name: 'Time', type: 'datetime' }
+	*        ]
+	*    }]
+	* });
+	* // create a time series stream aggregator that takes the values from the 'Decibels' field
+	* // and timestamps from the 'Time' fields. The window size should be 1 second.
+	* var ts = {
+	*    name: 'Music',
+	*    type: 'timeSeriesWinBuf',
+	*    store: 'Noise',
+	*    timestamp: 'Time',
+	*    value: 'Decibels',
+	*    winsize: 1000
+	* };
+	* var music = base.store('Noise').addStreamAggr(ts);
+	* // add some records in the store
+	* base.store('Noise').push({ Decibels: 54, Time: '2015-07-21T14:43:00.0' });
+	* base.store('Noise').push({ Decibels: 55, Time: '2015-07-21T14:43:00.200' });
+	* base.store('Noise').push({ Decibels: 54, Time: '2015-07-21T14:43:00.400' });
+	* base.store('Noise').push({ Decibels: 53, Time: '2015-07-21T14:43:00.600' });
+	* base.store('Noise').push({ Decibels: 53, Time: '2015-07-21T14:43:00.800' });
+	* base.store('Noise').push({ Decibels: 54, Time: '2015-07-21T14:43:01.0' });
+	* base.store('Noise').push({ Decibels: 53, Time: '2015-07-21T14:43:01.2' });
+	* // get the timestamps that just left the window buffer by adding the last record
+	* var last = music.getOutTimestampVector(); // returns [13081963380000]
 	*/
 	//# exports.StreamAggr.prototype.getOutTimestampVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getOutTimestampVector);
 
 	//!- `num = sa.getN()` -- returns a number of records in the input buffer if sa implements the interface IFltTmIO.
 	/**
-	* Gets the number of records in the buffer.
+	* Gets the number of records in the time series window buffer.
 	* @returns {number} The number of records in the buffer.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a simple base containing one store
+	* var base = new qm.Base({
+	*    mode: 'createClean',
+	*    schema: [{
+	*        name: 'MusicSale',
+	*        fields: [
+	*            { name: 'NumberOfAlbums', type: 'float' },
+	*            { name: 'Time', type: 'datetime' }
+	*        ]
+	*    }]
+	* });
+	* // create a time series containing the values from the 'NumberOfAlbums' field and 
+	* // the timestamp from the 'Time' field. The window size should be one week.
+	* var ts = {
+	*    name: 'Sales',
+	*    type: 'timeSeriesWinBuf',
+	*    store: 'MusicSale',
+	*    timestamp: 'Time',
+	*    value: 'NumberOfAlbums',
+	*    winsize: 7 * 24 * 60 * 60 * 1000
+	* };
+	* var weekSales = base.store('MusicSale').addStreamAggr(ts);
+	* // add some records in the store
+	* base.store('MusicSale').push({ NumberOfAlbums: 10, Time: '2015-03-15T00:00:00.0' });
+	* base.store('MusicSale').push({ NumberOfAlbums: 15, Time: '2015-03-18T00:00:00.0' });
+	* base.store('MusicSale').push({ NumberOfAlbums: 30, Time: '2015-03-19T00:00:00.0' });
+	* base.store('MusicSale').push({ NumberOfAlbums: 45, Time: '2015-03-20T00:00:00.0' });
+	* // get the number of records in the window buffer
+	* var num = weekSales.getNumberOfRecords(); // returns 4
 	*/
 	//# exports.StreamAggr.prototype.getNumberOfRecords = function () { return 0; };
 	JsDeclareFunction(getNumberOfRecords);
