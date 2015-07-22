@@ -57,7 +57,8 @@
 *        ]
 *    }]
 * });
-* // create a new stream aggregator for "People" store: get the length of the record name (with the function object)
+*
+* // create a new stream aggregator for 'People' store, get the length of the record name (with the function object)
 * var aggr = new qm.StreamAggr(base, new function () {
 *    var length = 0;
 *    this.name = 'nameLength',
@@ -68,7 +69,8 @@
 *        return { val: length };
 *    }
 * }, "People");
-* // create a new stream aggregator for "Laser" store: timeseries window buffer (with the JSON object)
+*
+* // create a new time series window buffer stream aggregator for 'Laser' store (with the JSON object)
 * var wavelength = {
 *     name: "WaveLengthLaser",
 *     type: "timeSeriesWinBuf",
@@ -101,12 +103,12 @@
 
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_TimeSeriesWindow
-* This stream aggregator represents the time series window buffer. It implements all the methods
-* <b>except</b> {@link module:qm.StreamAggr#getFloat}, {@link module:qm.StreamAggr#getTimestamp}.
+* This stream aggregator represents the time series window buffer. It stores the values inside a moving window. 
+* It implements all the methods of <b>except</b> {@link module:qm.StreamAggr#getFloat}, {@link module:qm.StreamAggr#getTimestamp}.
 * @property {string} name - The given name of the stream aggregator.
-* @property {string} type - The type of the stream aggregator. It must be equal to 'timeSeriesWinBuf'.
+* @property {string} type - The type of the stream aggregator. It must be equal to <b>'timeSeriesWinBuf'</b>.
 * @property {string} store - The name of the store from which to takes the data.
-* @property {string} timestamp - The field of the store, where it takes the time/date.
+* @property {string} timestamp - The field of the store, where it takes the timestamp.
 * @property {string} value - The field of the store, where it takes the values.
 * @property {number} winsize - The size of the window, in miliseconds.
 * @example 
@@ -124,8 +126,9 @@
 *        ]
 *    }]
 * });
-* // create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
-* // and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+*
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // and the timestamp from the 'Time' field. The size of the window is 2 seconds (2000ms).
 * var aggr = {
 *    name: 'TimeSeriesAggr',
 *    type: 'timeSeriesWinBuf',
@@ -139,11 +142,12 @@
 
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_Count
-* This stream aggregator represents the count moving window buffer. It implements the following methods:
+* This stream aggregator represents the count moving window buffer. It counts the number of records in the
+* stream aggregator, that it connects to. It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the number of records in the it's buffer window. 
-* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in the it's buffer window.
+* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name of the stream aggregator.
-* @property {string} type - The type of the stream aggregator. It must be equal to 'winBufCount'.
+* @property {string} type - The type of the stream aggregator. It must be equal to <b>'winBufCount'</b>.
 * @property {string} store - The name of the store from which it takes the data.
 * @property {string} inAggr - The name of the stream aggregator to which it connects and gets the data.
 * @example
@@ -154,29 +158,31 @@
 *    mode: "createClean",
 *    schema: [
 *    {
-*        name: "Heat",
+*        name: "Students",
 *        fields: [
-*            { name: "Celcius", type: "float" },
-*            { name: "Time", type: "datetime" }
+*            { name: "Id", type: "float" },
+*            { name: "TimeOfGraduation", type: "datetime" }
 *        ]
 *    }]
 * });
-* // create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
-* // and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+*
+* // create a new time series stream aggregator for the 'Students' store, that takes the values from the 'Id' field
+* // and the timestamp from the 'TimeOfGraduation' field. The size of the window should be 1 month.
 * var timeser = {
 *    name: 'TimeSeriesAggr',
 *    type: 'timeSeriesWinBuf',
-*    store: 'Heat',
-*    timestamp: 'Time',
-*    value: 'Celcius',
-*    winsize: 2 * 1000
+*    store: 'Students',
+*    timestamp: 'TimeOfGraduation',
+*    value: 'Id',
+*    winsize: 31 * 24 * 60 * 60 * 1000
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
-* // add a count aggregator, that is connected with the TimeSeriesAggr
+*
+* // add a count aggregator, that is connected with the 'TimeSeriesAggr' aggregator
 * var co = {
 *    name: 'CountAggr',
 *    type: 'winBufCount',
-*    store: 'Heat',
+*    store: 'Students',
 *    inAggr: 'TimeSeriesAggr'
 * };
 * var count = base.store("Heat").addStreamAggr(co);
@@ -184,12 +190,13 @@
 
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_Sum
-* This stream aggregator represents the sum moving window buffer. It implements the following methods:
+* This stream aggregator represents the sum moving window buffer. It sums all the values, that are in the connected stream aggregator.
+* It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the sum of the values of the records in the it's buffer window.
-* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in the it's buffer window.
+* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name of the stream aggregator.
-* @property {string} type - The type of the stream aggregator. It must be equal to 'winBufSum'.
-* @property {string} store - The name of the store form which it takes the data.
+* @property {string} type - The type of the stream aggregator. It must be equal to <b>'winBufSum'</b>.
+* @property {string} store - The name of the store from which it takes the data.
 * @property {string} inAggr - The name of the stream aggregator to which it connects and gets data.
 * @example
 * // import the qm module
@@ -199,25 +206,27 @@
 *    mode: "createClean",
 *    schema: [
 *    {
-*        name: "Heat",
+*        name: "Income",
 *        fields: [
-*            { name: "Celcius", type: "float" },
+*            { name: "Amount", type: "float" },
 *            { name: "Time", type: "datetime" }
 *        ]
 *    }]
 * });
-* // create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
-* // and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+*
+* // create a new time series stream aggregator for the 'Income' store, that takes the values from the 'Amount' field
+* // and the timestamp from the 'Time' field. The size of the window should 1 week.
 * var timeser = {
 *    name: 'TimeSeriesAggr',
 *    type: 'timeSeriesWinBuf',
-*    store: 'Heat',
+*    store: 'Income',
 *    timestamp: 'Time',
-*    value: 'Celcius',
-*    winsize: 2 * 1000
+*    value: 'Amount',
+*    winsize: 7 * 24 * 60 * 60 * 1000
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
-* // add a sum aggregator, that is connected with the TimeSeriesAggr
+*
+* // add a sum aggregator, that is connected with the 'TimeSeriesAggr' aggregator
 * var sum = {
 *    name: 'SumAggr',
 *    type: 'winBufSum',
@@ -229,11 +238,12 @@
 
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_Min
-* This stream aggregator represents the minimal moving window buffer. It implements the following methods:
+* This stream aggregator represents the minimum moving window buffer. It monitors the minimal value in the connected stream aggregator.
+* It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the minimal value of the records in it's buffer window.
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name of the stream aggregator.
-* @property {string} type - The type of the stream aggregator. It must be equal to 'winBufMin'.
+* @property {string} type - The type of the stream aggregator. It must be equal to <b>'winBufMin'</b>.
 * @property {string} store - The name of the store from which it takes the data.
 * @property {string} inAggr - The name of the stream aggregator to which it connects and gets data.
 * @example
@@ -251,18 +261,20 @@
 *        ]
 *    }]
 * });
-* // create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
-* // and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+*
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // and the timestamp from the 'Time' field. The size of the window is 1 day.
 * var timeser = {
 *    name: 'TimeSeriesAggr',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 2 * 1000
+*    winsize: 24 * 60 * 60 * 1000
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
-* // add a min aggregator, that is connected with the TimeSeriesAggr
+*
+* // add a min aggregator, that is connected with the 'TimeSeriesAggr' aggregator
 * var min = {
 *    name: 'MinAggr',
 *    type: 'winBufMin',
@@ -274,11 +286,12 @@
 
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_Max
-* This stream aggregator represents the maximal moving window buffer. It implements the following methods:
+* This stream aggregator represents the maximum moving window buffer. It monitors the maximal value in the connected stream aggregator. 
+* It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the maximal value of the records in the it's buffer window.
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name of the stream aggregator.
-* @property {string} type - The type for the stream aggregator. It must be equal to 'winBufMax'.
+* @property {string} type - The type for the stream aggregator. It must be equal to <b>'winBufMax'</b>.
 * @property {string} store - The name of the store from which it takes the data.
 * @property {string} inAggr - The name of the stream aggregator to which it connects and gets data.
 * @example
@@ -296,18 +309,20 @@
 *        ]
 *    }]
 * });
-* // create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
-* // and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+*
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // and the timestamp from the 'Time' field. The size of the window is 1 day.
 * var timeser = {
 *    name: 'TimeSeriesAggr',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 2 * 1000
+*    winsize: 24 * 60 * 60 * 1000
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
-* // add a max aggregator, that is connected with the TimeSeriesAggr
+*
+* // add a max aggregator, that is connected with the 'TimeSeriesAggr' aggregator
 * var max = {
 *    name: 'MaxAggr',
 *    type: 'winBufMax',
@@ -319,11 +334,12 @@
 
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_TimeSeriesTick
-* This stream aggregator represents the time series tick window buffer. It implements the following methods:
-* <br>{@link module:qm.StreamAggr#getFloat} returns the last value added in the it's window buffer.
-* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
+* This stream aggregator represents the time series tick window buffer. It exposes the data to other stream aggregators 
+* (similar to {@link module:qm~StreamAggr_TimeSeriesWindow}). It implements the following methods:
+* <br>{@link module:qm.StreamAggr#getFloat} returns the last value added in it's buffer.
+* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer.
 * @property {string} name - The given name for the stream aggregator.
-* @property {string} type - The type of the stream aggregator. It must be equal to 'timeSeriesTick'.
+* @property {string} type - The type of the stream aggregator. It must be equal to <b>'timeSeriesTick'</b>.
 * @property {string} store - The name of the store from which it takes the data.
 * @property {string} value - The name of the store field, from which it takes the values.
 * @property {string} timestamp - The name of the store field, from which it takes the timestamp.
@@ -335,32 +351,34 @@
 *    mode: "createClean",
 *    schema: [
 *    {
-*        name: "Heat",
+*        name: "Students",
 *        fields: [
-*            { name: "Celcius", type: "float" },
-*            { name: "Time", type: "datetime" }
+*            { name: "Id", type: "float" },
+*            { name: "TimeOfGraduation", type: "datetime" }
 *        ]
 *    }]
 * });
-* // create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
-* // and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+*
+* // create a new time series tick stream aggregator for the 'Students' store, that takes the values from the 'Id' field
+* // and the timestamp from the 'TimeOfGraduation' field.
 * var tick = {
 *    name: 'TimeSeriesTickAggr',
 *    type: 'timeSeriesTick',
-*    store: 'Heat',
-*    timestamp: 'Time',
-*    value: 'Celcius',
+*    store: 'Students',
+*    timestamp: 'TimeOfGraduation',
+*    value: 'Id',
 * };
 * var timeSeriesTick = base.store("Heat").addStreamAggr(tick);
 */
 
 /**
 * @typedef {module:qmStreamAggr} StreamAggr_MovingAverage
-* This stream aggregator represents the moving average window buffer. It implements the following methods:
+* This stream aggregator represents the moving average window buffer. It calculates the moving average value of the connected stream aggregator values.
+* It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the average of the values in it's buffer window.
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name of the stream aggregator.
-* @property {string} type - The type of the stream aggregator. It must be equal to 'ma'.
+* @property {string} type - The type of the stream aggregator. It must be equal to <b>'ma'</b>.
 * @property {string} store - The name of the store from which it takes the data.
 * @property {string} inAggr - The name of the stream aggregator to which it connects and gets data.
 * @example
@@ -378,18 +396,20 @@
 *        ]
 *    }]
 * });
-* // create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
-* // and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+*
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // and the timestamp from the 'Time' field. The size of the window should be 1 day.
 * var timeser = {
 *    name: 'TimeSeriesAggr',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 2 * 1000
+*    winsize: 24 * 60 * 60 * 1000
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
-* // add a moving average aggregator, that is connected with the TimeSeriesAggr
+*
+* // add a moving average aggregator, that is connected with the 'TimeSeriesAggr' aggregator
 * var ma = {
 *    name: 'movingAverageAggr',
 *    type: 'ma',
@@ -401,16 +421,21 @@
 
 /**
 * @typedef {module:qmStreamAggr} StreamAggr_EMA
-* This stream aggregator represents the exponential moving average window buffer. It implements the following methods:
+* This stream aggregator represents the exponential moving average window buffer. It calculates the weighted moving average 
+* of the values in the connected stream aggregator, where the weights are exponentially decreasing.  It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the exponentional average of the values in it's buffer window.
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name for the stream aggregator.
-* @property {string} type - The type of the stream aggregator. It must be equal to 'ema'.
+* @property {string} type - The type of the stream aggregator. It must be equal to <b>'ema'</b>.
 * @property {string} store - The name of the store from which it takes the data.
-* @property {string} inAggr - The name of the stream aggregator to which it connects and gets data.
-* @property {string} emaType - The type of interpolation. The choices are: 'previous', 'linear' and 'next'.
+* @property {string} inAggr - The name of the stream aggregator to which it connects and gets data. 
+* It <b>cannot</b> connect to the {@link module:qm~StreamAggr_TimeSeriesWindow}.
+* @property {string} emaType - The type of interpolation. The choices are 'previous', 'linear' and 'next'.
+* <br> Type 'previous' interpolates with the previous value. 
+* <br> Type 'next' interpolates with the next value.
+* <br> Type 'linear' makes a linear interpolation.
 * @property {number} interval - The time interval defining the decay. It must be greater than initWindow.
-* @property {number} initWindow -
+* @property {number} initWindow - The time window of required values for initialization.
 * @example
 * // import the qm module
 * var qm = require('qminer');
@@ -426,18 +451,21 @@
 *        ]
 *    }]
 * });
-* // create a new time series tick stream aggregator for the Heat store, that takes the values from the Celcius field
-* // and the timestamp from the Time field. The size of the window is 5 seconds (5000ms)
+*
+* // create a new time series tick stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // and the timestamp from the 'Time' field. The size of the window should be 1 hour.
 * var timeser = {
 *    name: 'TimeSeriesAggr',
 *    type: 'timeSeriesTick',
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 5 * 1000
+*    winsize: 60 * 60 * 1000
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
-* // add an exponentional moving average aggregator, that is connected with the TimeSeriesAggr
+*
+* // add an exponentional moving average aggregator, that is connected with the 'TimeSeriesAggr' aggregator.
+* // It should interpolate with the previous value, the decay should be 3 seconds and the initWindow should be 2 seconds.
 * var ema = {
 *    name: 'emaAggr',
 *    type: 'ema',
@@ -452,11 +480,12 @@
 
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_MovingVariance
-* This stream aggregator represents the moving variance window buffer. It implements the following methods:
+* This stream aggregator represents the moving variance window buffer. It calculates the moving variance of the stream aggregator, that it's connected to. 
+* It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the variance of the values in it's buffer window.
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name for the stream aggregator.
-* @property {string} type - The type of the stream aggregator. It must be equal to 'variance'.
+* @property {string} type - The type of the stream aggregator. It must be equal to <b>'variance'</b>.
 * @property {string} store - The name of the store from which it takes the data.
 * @property {string} inAggr - The name of the stream aggregator to which it connects and gets data.
 * @example
@@ -474,18 +503,20 @@
 *        ]
 *    }]
 * });
-* // create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
-* // and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+*
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // and the timestamp from the 'Time' field. The size of the window is 1 day.
 * var timeser = {
 *    name: 'TimeSeriesAggr',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 2 * 1000
+*    winsize: 24 * 60 * 60 * 1000
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
-* // add a variance aggregator, that is connected with the TimeSeriesAggr
+*
+* // add a variance aggregator, that is connected with the 'TimeSeriesAggr' aggregator
 * var variance = {
 *    name: 'varAggr',
 *    type: 'variance',
@@ -497,11 +528,12 @@
 
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_MovingCovariance
-* This stream aggregator represents the moving covariance window buffer. It implements the following methods:
+* This stream aggregator represents the moving covariance window buffer. It calculates the moving covariance of the two stream aggregators, that it's connected to.
+* It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the covariance of the values in it's buffer window.
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name for the stream aggregator.
-* @property {string} type - The type of the stream aggregator. It must be equal to 'covariance'.
+* @property {string} type - The type of the stream aggregator. It must be equal to <b>'covariance'</b>.
 * @property {string} store - The name of the store from which it takes the data.
 * @property {string} inAggrX - The name of the first stream aggregator to which it connects and gets data.
 * @property {string} inAggrY - The name of the recond stream aggregator to which it connects and gets data.
@@ -521,27 +553,30 @@
 *        ]
 *    }]
 * });
-* // create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
-* // and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+*
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // and the timestamp from the 'Time' field. The size of the window is 1 day.
 * var celcius = {
 *    name: 'CelciusAggr',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 2 * 1000
+*    winsize: 24 * 60 * 60 * 1000
 * }; base.store("Heat").addStreamAggr(celcius);
-* // create a new time series stream aggregator for the Heat store, that takes the values from the WaterConsumption field
-* // and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+*
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'WaterConsumption' field
+* // and the timestamp from the 'Time' field. The size of the window is 1 day.
 * var water = {
 *    name: 'WaterAggr',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'WaterConsumption',
-*    winsize: 2 * 1000
+*    winsize: 24 * 60 * 60 * 1000
 * }; base.store("Heat").addStreamAggr(water);
-* // add a covariance aggregator, that is connected with the celciusAggr and waterAggr
+*
+* // add a covariance aggregator, that is connected with the 'CelciusAggr' and 'WaterAggr' stream aggregators
 * var covariance = {
 *    name: 'covAggr',
 *    type: 'covariance',
@@ -554,11 +589,12 @@
 
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_MovingCorrelation
-* This stream aggregator represents the moving covariance window buffer. It implements the following methods:
+* This stream aggregator represents the moving covariance window buffer. It calculates the moving correlation of the three stream aggregators,
+* that it's connected to. It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the correlation of the values in it's buffer window.
 * <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
 * @property {string} name - The given name for the stream aggregator.
-* @property {string} type - The type of the stream aggregator. It must be equal to 'correlation'.
+* @property {string} type - The type of the stream aggregator. It must be equal to <b>'correlation'</b>.
 * @property {string} store - The name of the store from which it takes the data.
 * @property {string} inAggrCov - The name of the covariance stream aggregator.
 * @property {string} inAggrVarX - The name of the first variance stream aggregator.
@@ -579,27 +615,30 @@
 *        ]
 *    }]
 * });
-* // create a new time series stream aggregator for the Heat store, that takes the values from the Celcius field
-* // and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+*
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // and the timestamp from the 'Time' field. The size of the window is 1 day.
 * var celcius = {
 *    name: 'CelciusAggr',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 2 * 1000
+*    winsize: 24 * 60 * 60 * 1000
 * }; base.store("Heat").addStreamAggr(celcius);
-* // create a new time series stream aggregator for the Heat store, that takes the values from the WaterConsumption field
-* // and the timestamp from the Time field. The size of the window is 2 seconds (2000ms)
+*
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'WaterConsumption' field
+* // and the timestamp from the 'Time' field. The size of the window is 1 day.
 * var water = {
 *    name: 'WaterAggr',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'WaterConsumption',
-*    winsize: 2 * 1000
+*    winsize: 24 * 60 * 60 * 1000
 * }; base.store("Heat").addStreamAggr(water);
-* // add a covariance aggregator, that is connected with the celciusAggr and waterAggr
+*
+* // add a covariance aggregator, that is connected with the 'CelciusAggr' and 'WaterAggr' aggregators
 * var covariance = {
 *    name: 'covarianceAggr',
 *    type: 'covariance',
@@ -607,7 +646,8 @@
 *    inAggrX: 'CelciusAggr',
 *    inAggrY: 'WaterAggr'
 * }; base.store("Heat").addStreamAggr(covariance);
-* // add the two variance aggregators, that take from the Celcius and WaterConsumption, respectively.
+*
+* // add the two variance aggregators, that take from the 'Celcius' and 'WaterConsumption' fields, respectively.
 * var celVar = {
 *    name: 'celciusVarAggr',
 *    type: 'variance',
@@ -621,7 +661,8 @@
 *    store: 'Heat',
 *    inAggr: 'WaterAggr'
 * }; base.store("Heat").addStreamAggr(waterVar);
-* // add a correlation aggregator, that is connected to covarianceAggr, celciusVarAggr and waterValAggr
+*
+* // add a correlation aggregator, that is connected to 'CovarianceAggr', 'CelciusVarAggr' and 'WaterValAggr' aggregators
 * var corr = {
 *    name: 'corrAggr',
 *    type: 'correlation',
@@ -635,15 +676,17 @@
 
 /**
 * @typedef {module:qm.StreamAggr} StreamAggr_Resampler
-* This stream aggregator represents the resampler window buffer. No methods are implemented for this aggregator.
+* This stream aggregator represents the resampler window buffer. It creates new values that are interpolated by using the values from an existing store.
+* No methods are implemented for this aggregator. 
 * @property {string} name - The given name for the stream aggregator.
-* @property {string} type - The type of the stream aggregator. It must be equal to 'resampler'.
+* @property {string} type - The type of the stream aggregator. It must be equal to <b>'resampler'</b>.
 * @property {string} store - The name of the store from which it takes the data.
 * @property {string} outStore - The store in which the samples are stored.
 * @property {string} timestamp - The store field from which it takes the timestamps.
 * @property {Object} fields - The json, which contains:
 * <br> name (string) - the store field from which it takes the values.
-* <br> interpolator (string) - the type of the interpolation. The options are: 'previous', 'next' and 'linear'.
+* <br> interpolator (string) - the type of the interpolation. The options are 'previous', 'next' and 'linear'.
+* <br> The 'previous' type interpolates with the previous value.
 * @property {boolean} createStore - If the outStore must be created.
 * @property {number} interval - The size/frequency the interpolated values should be given.
 * @example
@@ -668,9 +711,9 @@
 *        ]
 *    }]
 * });
-* // create a new resampler stream aggregator for the Heat store, that takes the values from the Celcius field
-* // and the timestamp from the Time field. The interpolated values are stored in the 'interpolatedValues' store 
-* // the interpolation should be linear
+* // create a new resampler stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // and the timestamp from the 'Time' field. The interpolated values are stored in the 'interpolatedValues' store .
+* // The interpolation should be linear and the interval should be 2 seconds.
 * var res = {
 *    name: 'resamplerAggr',
 *    type: 'resampler',
@@ -692,7 +735,7 @@
 * This stream aggregator represents the merger aggregator. It merges records from two or more stores into a new store
 * depending on the timestamp. No methods are implemented for this aggregator.
 * @property {string} name - The given name for the stream aggregator.
-* @property {string} type - The type of the stream aggregator. It must be equal to 'stmerger'.
+* @property {string} type - The type of the stream aggregator. It must be equal to <b>'stmerger'</b>.
 * @property {string} outStore - The name of the store where it saves the merged records.
 * @property {boolean} createStore - If the outStore must be created.
 * @property {string} timestamp - The store field of outStore, where the timestamp is saved.
@@ -732,8 +775,8 @@
 *        ]
 *    }]
 * });
-* // create a new merger stream aggregator that mergers the records of the "Cars" and "Temperature" stores.
-* // The records are interpolated linearly and stored in the "Merged" store.
+* // create a new merger stream aggregator that mergers the records of the 'Cars' and 'Temperature' stores.
+* // The records are interpolated linearly and stored in the 'Merged' store.
 * var mer = {
 *    name: 'MergerAggr',
 *    type: 'stmerger',
@@ -783,7 +826,7 @@ public:
 	/**
 	* Executes the function when a new record is put in store.
 	* @param {module:qm.Record} rec - The record given to the stream aggregator.
-	* @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.
+	* @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onAdd function.
 	*/
 	//# exports.StreamAggr.prototype.onAdd = function (rec) { return Object.create(require('qminer').StreamAggr.prototype); };
 	JsDeclareFunction(onAdd);
@@ -809,15 +852,26 @@ public:
 	//!- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
 	/**
 	* When executed it return a JSON object as defined by the user.
-	* @param {number} [limit] - The meaning is specific to each type of stream aggregator. //TODO
+	* @param {number} [limit] - The meaning is specific to each type of stream aggregator.
 	* @returns {Object} A JSON object as defined by the user.
 	*/
 	//# exports.StreamAggr.prototype.saveJson = function (limit) {};
 	JsDeclareFunction(saveJson);
 
 	//!- `fout = sa.save(fout)` -- executes save function given output stream `fout` as input. returns `fout`.
+	/**
+	* Saves the current state of the stream aggregator.
+	* @parameter {module:fs.FOut} fout - The output stream.
+	* @returns {module:fs.FOut} The output stream given as the parameter.
+	*/
 	JsDeclareFunction(save);
+	
 	//!- `sa = sa.load(fin)` -- executes load function given input stream `fin` as input. returns self.
+	/**
+	* Loads the stream aggregator, that has been previously saved.
+	* @parameter {module:fs.FIn} fin - The input stream.
+	* @returns {module:qm.StreamAggr} Self.
+	*/
 	JsDeclareFunction(load);
 	// IInt
 	//!- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
@@ -843,8 +897,8 @@ public:
 	*        ]
 	*    }]
 	* });
-	* // create a new time series stream aggregator which stores the 'Procents' value of the 
-	* // 'Grades' store. The size of the window is 1 year (365 * 24 * 60 * 60 * 1000 ms)
+	* // create a new time series stream aggregator which takes the values from the 'Procents' field 
+	* // and the timestamp from the 'Time' field. The size of the window is 1 year.
 	* var ts = {
 	*    name: 'GradesAggr',
 	*    type: 'timeSeriesWinBuf',
@@ -893,7 +947,8 @@ public:
 	*        ]
 	*    }]
 	* });
-	* // create a new time series stream aggregator for the 'SteamSales' store for one month.
+	* // create a new time series stream aggregator which takes the values from the 'Price' field
+	* // and the timestamps from the 'ReleaseDate' field. The window size should be 1 month.
 	* var ts = {
 	*    name: 'GameSeries',
 	*    type: 'timeSeriesWinBuf',
@@ -903,7 +958,7 @@ public:
 	*    winsize: 31 * 60 * 60 * 1000
 	* };
 	* var timeSeries = base.store('GameCollection').addStreamAggr(ts);
-	* // create a new sum stream aggregator for calculating the sum of the prices
+	* // create a new sum stream aggregator
 	* var sum = {
 	*    name: 'SumPrice',
 	*    type: 'winBufSum',
@@ -924,7 +979,7 @@ public:
 	// IFltVec
 	//!- `num = sa.getFltLen()` -- returns a number (internal vector length) if sa implements the interface IFltVec.
 	/**
-	* Gets the length of the vector containing the values still in the window buffer of the time series stream aggregator.
+	* Gets the length of the vector containing the values of the stream aggregator.
 	* @returns {number} The length of the vector.
 	* @example
 	* // import qm module
@@ -942,7 +997,7 @@ public:
 	*    }]
 	* });
 	* // create a time series stream aggregator, that takes values from the 'Price' field and the timestamp
-	* //  from the 'TimeOfConsumation' field of 'IceCream' store. The window size should be one day.
+	* //  from the 'TimeOfConsumation' field of 'IceCream' store. The window size should be 1 day.
 	* var ts = {
 	*    name: 'IcePrice',
 	*    type: 'timeSeriesWinBuf',
@@ -965,7 +1020,7 @@ public:
 
 	//!- `num = sa.getFltAt(idx)` -- returns a number (element at index) if sa implements the interface IFltVec.
 	/**
-	* Returns the value of the vector (containing the values of the time series stream aggregator window buffer) at a specific index.
+	* Returns the value of the vector containing the values of the stream aggregator at a specific index.
 	* @param {number} idx - The index.
 	* @returns {number} The value of the float vector at position idx.
 	* @example 
@@ -983,7 +1038,7 @@ public:
 	*    }]
 	* });
 	* // create a time series containing the 'NumberOfAlbums' values and getting the timestamp from the 'Time' field.
-	* // The window size should be one week.
+	* // The window size should be 1 week.
 	* var ts = {
 	*    name: 'Sales',
 	*    type: 'timeSeriesWinBuf',
@@ -1006,7 +1061,7 @@ public:
 	
 	//!- `vec = sa.getFltV()` -- returns a dense vector if sa implements the interface IFltVec.
 	/**
-	* Gets the whole vector of values contained in the time series stream aggregator window buffer.
+	* Gets the whole vector of values of the stream aggregator.
 	* @returns {module:la.Vector} The vector containing the values of the buffer.
 	* @example
 	* // import qm module
@@ -1047,7 +1102,7 @@ public:
 	// ITmVec
 	//!- `num = sa.getTmLen()` -- returns a number (timestamp vector length) if sa implements the interface ITmVec.
 	/**
-	* Gets the length of the timestamp vector of the time series stream aggregator.
+	* Gets the length of the timestamp vector of the stream aggregator.
 	* @returns {number} The length of the timestamp vector.
 	* @example
 	* // import qm module
@@ -1090,7 +1145,7 @@ public:
 
 	//!- `num = sa.getTmAt(idx)` -- returns a number (windows timestamp at index) if sa implements the interface ITmVec.
 	/**
-	* Gets the timestamp from the timestamp vector of the time series stream buffer at the specific index.
+	* Gets the timestamp from the timestamp vector of the stream aggregator at the specific index.
 	* @param {number} idx - The index.
 	* @returns {number} The timestamp of the timestamp vector at position idx.
 	* @example
@@ -1132,7 +1187,7 @@ public:
 
 	//!- `vec = sa.getTmV()` -- returns a dense vector of windows timestamps if sa implements the interface ITmVec.
 	/**
-	* Gets the vector containing the timestamps of the time series window buffer.
+	* Gets the vector containing the timestamps of the stream aggregator.
 	* @returns {module:la.Vector} The vector containing the timestamps.
 	* @example
 	* // import qm module
@@ -1172,7 +1227,7 @@ public:
 	// IFltTmIO
 	//!- `num = sa.getInFlt()` -- returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.
 	/**
-	* Gets the value of the newest record added to the time series window buffer.
+	* Gets the value of the newest record added to the stream aggregator.
 	* @returns {number} The value of the newest record in the buffer.
 	* @example
 	* // import qm module
@@ -1212,7 +1267,7 @@ public:
 
 	//!- `num = sa.getInTm()` -- returns a number (windows timestamp arriving in the buffer) if sa implements the interface IFltTmIO.
 	/**
-	* Gets the timestamp of the newest record added to the time series window buffer.
+	* Gets the timestamp of the newest record added to the stream aggregator.
 	* @returns {number} The timestamp given as the number of miliseconds since 01.01.1601, time: 00:00:00.0.
 	* @example
 	* // import qm module
@@ -1252,7 +1307,7 @@ public:
 	
 	//!- `vec = sa.getOutFltV()` -- returns a dense vector (values leaving the buffer) if sa implements the interface IFltTmIO.
 	/**
-	* Gets a vector containing the values that are leaving the time series window buffer.
+	* Gets a vector containing the values that are leaving the stream aggregator.
 	* @returns {module:la.Vector} The vector containing the values that are leaving the buffer.
 	* @example
 	* // import qm module
@@ -1294,7 +1349,7 @@ public:
 
 	//!- `vec = sa.getOutTmV()` -- returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.
 	/**
-	* Gets a vector containing the timestamps that are leaving the time series window buffer.
+	* Gets a vector containing the timestamps that are leaving the stream aggregator.
 	* @returns {module:la.Vector} The vector containing the leaving timestamps.
 	* @example
 	* // import qm module
@@ -1337,7 +1392,7 @@ public:
 
 	//!- `num = sa.getN()` -- returns a number of records in the input buffer if sa implements the interface IFltTmIO.
 	/**
-	* Gets the number of records in the time series window buffer.
+	* Gets the number of records in the stream aggregator.
 	* @returns {number} The number of records in the buffer.
 	* @example
 	* // import qm module
@@ -1354,7 +1409,7 @@ public:
 	*    }]
 	* });
 	* // create a time series containing the values from the 'NumberOfAlbums' field and 
-	* // the timestamp from the 'Time' field. The window size should be one week.
+	* // the timestamp from the 'Time' field. The window size should be 1 week.
 	* var ts = {
 	*    name: 'Sales',
 	*    type: 'timeSeriesWinBuf',

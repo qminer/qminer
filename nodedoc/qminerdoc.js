@@ -261,7 +261,7 @@
 /**
 * Feature type: constant
 * @typedef {Object} FeatureExtractor_Constant
-* @property {string} type - The type of the extractor. It must be equal 'constant'.
+* @property {string} type - The type of the extractor. It must be equal <b>'constant'</b>.
 * @property {number} [const = 1.0] - A constant number. 
 * @property {module:qm~FeatureSource} source - The source of the extractor.
 * @example
@@ -280,7 +280,7 @@
 /**
 * Feature type: random
 * @typedef {Object} FeatureExtractor_Random
-* @property {string} type - The type of the extractor. It must be equal 'random'.
+* @property {string} type - The type of the extractor. It must be equal <b>'random'</b>.
 * @property {number} [seed = 0] - A random seed number.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
 * @example
@@ -299,7 +299,7 @@
 /**
 * Feature type: numeric
 * @typedef {Object} FeatureExtractor_Numeric 
-* @property {string} type - The type of the extractor. It must be equal 'numeric'.
+* @property {string} type - The type of the extractor. It must be equal <b>'numeric'</b>.
 * @property {boolean} [normalize = 'false'] - Normalize values between 0.0 and 1.0.
 * @property {number} [min] - The minimal value used to form the normalization.
 * @property {number} [max] - The maximal value used to form the normalization.
@@ -325,8 +325,8 @@
 /**
 * Feature type: categorical
 * @typedef {Object} FeatureExtractor_Categorical
-* @property {string} type - The type of the extractor. It must be equal 'categorical'.
-* @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set. No dimensionalizy changes if new values are seen in the upgrades.
+* @property {string} type - The type of the extractor. It must be equal <b>'categorical'</b>.
+* @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set. No dimensionality changes if new values are seen in the upgrades.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hasDimension to get the corresponding dimension.
 * @property {string} field - The name of the field form which to take the values.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
@@ -351,7 +351,7 @@
 /**
 * Feature type: multinomial
 * @typedef {Object} FeatureExtractor_Multinomial
-* @property {string} type - The type of the extractor. It must be equal 'multinomial'.
+* @property {string} type - The type of the extractor. It must be equal <b>'multinomial'</b>.
 * @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
 * @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
@@ -382,7 +382,7 @@
 /**
 * Feature type: text
 * @typedef {Object} FeatureExtractor_Text
-* @property {string} type - The type of the extractor. It must be equal 'text'.
+* @property {string} type - The type of the extractor. It must be equal <b>'text'</b>.
 * @property {boolean} [normalize = 'true'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
 * @property {module:qm~FeatureWeight} [weight = 'tfidf'] - Type of weighting used for scoring terms.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
@@ -414,14 +414,14 @@
 /**
 * Feature type: join
 * @typedef {Object} FeatureExtractor_Join
-* @property {string} type - The type of the extractor. It must be equal 'join'.
+* @property {string} type - The type of the extractor. It must be equal <b>'join'</b>.
 * @property {number} [bucketSize = 1] - The size of the bucket in which we group consecutive records.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
 */
 /**
 * Feature type: pair
 * @typedef {Object} FeatureExtractor_Pair
-* @property {string} type - The type of the extractor. It must be equal 'pair'.
+* @property {string} type - The type of the extractor. It must be equal <b>'pair'</b>.
 * @property {module:qm~FeatureExtractors} first - The first feature extractor.
 * @property {module:qm~FeatureExtractors} second - The second feature extractor.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
@@ -429,9 +429,9 @@
 /** 
 * Feature type: dateWindow
 * @typedef {Object} FeatureExtractor_DateWindow
-* @property {string} type - The type of the extractor. It must be equal 'dateWindow'.
-* @property {string} [unit = 'day'] - How granular is the time window. Options: day, week, month, year, 12hours, 6hours, 4hours, 2hours,
-* hour, 30minutes, 15minutes, 10minutes, minute, second.
+* @property {string} type - The type of the extractor. It must be equal <b>'dateWindow'</b>.
+* @property {string} [unit = 'day'] - How granular is the time window. The options are: 'day', 'week', 'month', 'year', '12hours', '6hours', '4hours', '2hours',
+* 'hour', '30minutes', '15minutes', '10minutes', 'minute', 'second'.
 * @property {number} [window = 1] - The size of the window.
 * @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO
 * @property {number} start - //TODO
@@ -441,7 +441,7 @@
 /**
 * Feature type: jsfunc
 * @typedef {Object} FeatureExtractor_Jsfunc
-* @property {string} type - The type of the extractor. It must be equal 'jsfunc'.
+* @property {string} type - The type of the extractor. It must be equal <b>'jsfunc'</b>.
 * @property {string} name - The feature's name.
 * @property {function} fun - The javascript function callback. It should take a record as input and return a number or a dense vector.
 * @property {number} [dim = 1] - The dimension of the feature extractor.
