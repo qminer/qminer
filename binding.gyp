@@ -142,8 +142,6 @@
                 'src/qminer/qminer_ftr.cpp',
                 'src/qminer/qminer_aggr.h',
                 'src/qminer/qminer_aggr.cpp',
-                'src/qminer/qminer_snap.h',
-                'src/qminer/qminer_snap.cpp',
                 'src/qminer/qminer_op.h',
                 'src/qminer/qminer_op.cpp'
             ],        
