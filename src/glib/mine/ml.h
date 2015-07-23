@@ -18,8 +18,6 @@
 
 namespace TMl {
 
-using namespace TOpt;
-
 ///////////////////////////////////////////
 // Logistic Regression using the Newton-Raphson method
 class TLogReg {
