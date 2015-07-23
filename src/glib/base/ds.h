@@ -2402,7 +2402,7 @@ public:
 		XDim(_XDim), YDim(_YDim), ValV(_ValV), ColMajor(_ColMajor){
 		IAssert(ValV.Len() == XDim*YDim);
 	}
-	//Andrej beta specialize
+	//Andrej beta specialize this only for row major, works only for row major
 	void GetExtRows(TVVec& VVec, const TSizeTy& RowStart, const TSizeTy& RowEnd){
 		//VVec.ValV.MxVals = -1;//I will not be resonsible for this memory!
 		VVec.ValV.GenExt(&ValV[RowStart*YDim], (RowEnd - RowStart + 1)*YDim);
