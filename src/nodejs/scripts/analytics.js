@@ -54,11 +54,11 @@ module.exports = exports = function (pathPrefix) {
         }
     };
 
-    exports.OneVsAll = function (model, modelParam, cats) {
+    exports.OneVsAll = function (params) {
         // remember parameters
-        this.model = model;
-        this.modelParam = modelParam;
-        this.cats = cats;
+        this.model = params.model;
+        this.modelParam = params.modelParam;
+        this.cats = params.cats;
         // trained models
         this.models = [ ];
 
@@ -476,7 +476,10 @@ module.exports = exports = function (pathPrefix) {
         };
     };
 
-    //// deprecated//////////////////////////////////////////////////
+    ///////////////////////////////
+    ////// code below not yet ported or verified for scikit
+    ///////////////////////////////
+
     function defarg(arg, defaultval) {
         return arg == undefined ? defaultval : arg;
     }

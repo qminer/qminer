@@ -18,12 +18,15 @@
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Machine-Model
 // Holds SVM classification or regression model. 
-// TODO rewrite to JavaScript
 class TNodeJsSvmModel : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 	friend class TNodeJsSVC;
 	friend class TNodeJsSVR;
+public:
+    static const TStr GetClassId() { return "SvmModel"; }
+    
 private:
+    // parameters
 	TStr Algorithm;	
 	double SvmCost;	
 	double SvmUnbalance; // classification specific
@@ -35,14 +38,13 @@ private:
 	bool Verbose;
 	PNotify Notify;
 
-	TSvm::TLinModel* Model;
+    // model
+	TSvm::TLinModel Model;
 
 	TNodeJsSvmModel(const PJsonVal& ParamVal);
 	TNodeJsSvmModel(TSIn& SIn);
-	~TNodeJsSvmModel();
-
-	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
-	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn);
+    
+    static TNodeJsSvmModel* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
 	JsDeclareFunction(New);
@@ -114,6 +116,7 @@ class TNodeJsSVC : public TNodeJsSvmModel {
 	static v8::Persistent <v8::Function> constructor;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
+
 	/**
 	* returns the svc parameters	
 	* @returns {module:analytics~svcParam} Parameters of the classifier model.
@@ -207,6 +210,7 @@ class TNodeJsSVR : public TNodeJsSvmModel {
 	static v8::Persistent <v8::Function> constructor;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
+    
 	/**
 	* returns the svr parameters
 	* @returns {module:analytics~svrParam} Parameters of the regression model.
@@ -294,10 +298,10 @@ public:
     static const TStr GetClassId() { return "RidgeReg"; }
     
 private:
-    TFlt Gamma;
-    TFltV Weights;
+    TRegression::TRidgeReg Model;
     
-    TNodeJsRidgeReg(const TFlt& _Gamma, const TFltV& _Weights) : Gamma(_Gamma), Weights(_Weights) {}
+    TNodeJsRidgeReg(TSIn& SIn): Model(SIn) { }
+    TNodeJsRidgeReg(const TRegression::TRidgeReg& _Model): Model(_Model) { }
     
     static TNodeJsRidgeReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
     
@@ -423,6 +427,10 @@ public:
 };
 
 ///////////////////////////////
+////// code below not yet ported or verified for scikit
+///////////////////////////////
+
+///////////////////////////////
 // QMiner-JavaScript-Recursive-Linear-Regression
 //!
 //! ### Recursive Linear Regression model
@@ -526,10 +534,9 @@ public:
 };
 
 /////////////////////////////////////////////
-// Exponential Regression
+// Proportional Hazards Model
 /**
- * Exponential regression model, where the response is assumed to be exponentially
- * distributed. Finds the rate parameter with respect to the feature vector.
+ * Proportional Hazards model with a constant hazard function.
  *
  * Uses Newtons method to compute the weights.
  *

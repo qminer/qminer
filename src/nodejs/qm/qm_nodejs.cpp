@@ -844,7 +844,7 @@ void TNodeJsStore::newRecordSet(const v8::FunctionCallbackInfo<v8::Value>& Args)
 
 	if (Args.Length() > 0) {
 		// argument 0 = TJsIntV of record ids
-		QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsIntV::GetClassId().CStr()),
+		QmAssertR(TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsIntV::GetClassId().CStr()),
 			"Store.getRecSetByIdV: The first argument must be a TIntV (js linalg full int vector)");
 		TNodeJsVec<TInt, TAuxIntV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
 		TQm::PRecSet ResultSet = TQm::TRecSet::New(Store, JsVecArg->Vec);
@@ -1639,7 +1639,7 @@ void TNodeJsRec::addJoin(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args.Holder());
 
 	// read argument as record
-	QmAssertR(Args.Length() >= 2 && (TNodeJsUtil::IsArgClass(Args, 1, TNodeJsRec::GetClassId()) || Args[1]->IsInt32()),
+	QmAssertR(Args.Length() >= 2 && (TNodeJsUtil::IsArgWrapObj(Args, 1, TNodeJsRec::GetClassId()) || Args[1]->IsInt32()),
         "rec.addJoin needs at least 2 args: JoinNm, (rec | recId) and fq (optional)");
 		
 	TStr JoinNm = TNodeJsUtil::GetArgStr(Args, 0);
@@ -1673,7 +1673,7 @@ void TNodeJsRec::delJoin(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 
 	// read argument as record
-	QmAssertR(Args.Length() >= 2 && (TNodeJsUtil::IsArgClass(Args, 1, TNodeJsRec::GetClassId()) || Args[1]->IsInt32()),
+	QmAssertR(Args.Length() >= 2 && (TNodeJsUtil::IsArgWrapObj(Args, 1, TNodeJsRec::GetClassId()) || Args[1]->IsInt32()),
         "rec.delJoin needs at least 2 args: JoinNm, (rec | recId) and fq (optional)");
 	TStr JoinNm = TNodeJsUtil::GetArgStr(Args, 0);
 	
@@ -3075,7 +3075,7 @@ TNodeJsFtrSpace* TNodeJsFtrSpace::NewFromArgs(const v8::FunctionCallbackInfo<v8:
 
 	const TWPt<TQm::TBase>& Base = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args[0]->ToObject())->Base;
 
-	if (Args[1]->IsString() || TNodeJsUtil::IsArgClass(Args, 1, TNodeJsFIn::GetClassId())) {
+	if (Args[1]->IsString() || TNodeJsUtil::IsArgWrapObj(Args, 1, TNodeJsFIn::GetClassId())) {
 		bool IsArgStr = TNodeJsUtil::IsArgStr(Args, 1);//Args[1]->IsString();
 
 		PSIn SIn = IsArgStr ?
@@ -3319,14 +3319,14 @@ void TNodeJsFtrSpace::invertFeatureVector(const v8::FunctionCallbackInfo<v8::Val
 	v8::HandleScope HandleScope(Isolate);
 
 	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
-	QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId()) || Args[0]->IsArray(), "The argument should be a float array!");
+	QmAssertR(TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId()) || Args[0]->IsArray(), "The argument should be a float array!");
 
 	try {
 		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
 
 		TFltV InvertV;
 
-		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
+		if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId())) {
 			TFltV& FtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject())->Vec;
 			JsFtrSpace->FtrSpace->InvertFullV(FtrV, InvertV);
 		}
@@ -3459,8 +3459,8 @@ void TNodeJsFtrSpace::filter(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	try {
 		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-		QmAssertR(TNodeJsUtil::IsArgClass(Args, 0,
-            TNodeJsFltV::GetClassId()) || TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpVec::GetClassId()),
+		QmAssertR(TNodeJsUtil::IsArgWrapObj(Args, 0,
+            TNodeJsFltV::GetClassId()) || TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsSpVec::GetClassId()),
             "FeatureSpace.filter: expecting a dense or a sparse vector as the first argument!");
 		const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1);
 		const bool KeepOffsetP = TNodeJsUtil::GetArgBool(Args, 2, true);
@@ -3468,7 +3468,7 @@ void TNodeJsFtrSpace::filter(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		const int MnFtrN = JsFtrSpace->FtrSpace->GetMnFtrN(FtrExtN);
 		const int MxFtrN = JsFtrSpace->FtrSpace->GetMxFtrN(FtrExtN);
 
-		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpVec::GetClassId())) {
+		if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsSpVec::GetClassId())) {
 			const TIntFltKdV& SpV = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject())->Vec;
 
 			// filter
@@ -3489,7 +3489,7 @@ void TNodeJsFtrSpace::filter(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			Args.GetReturnValue().Set(
 				TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(NewSpV, VecDim)));
 		}
-		else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
+		else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId())) {
 			const TFltV& Vec = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject())->Vec;
 			int DimN = JsFtrSpace->FtrSpace->GetFtrExtDim(FtrExtN);
 

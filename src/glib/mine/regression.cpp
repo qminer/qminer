@@ -320,3 +320,17 @@ void TPropHazards::PredictInternal(const TFltVV& X, TFltV& IntensV) const {
 		IntensV[i] = exp(IntensV[i]);
 	}
 }
+
+/////////////////////////////////////////////
+// Ridge Regression
+void TRidgeReg::Fit(const TFltVV& X, const TFltV& y) {
+    TNumericalStuff::LeastSquares(X, y, Gamma, WgtV);
+}
+
+double TRidgeReg::Predict(const TFltV& x) const {
+    EAssertR(x.Len() == WgtV.Len(), "TRegression::TRidgeReg::Predict: model and data dimension mismatch");
+    return TLinAlg::DotProduct(x, WgtV);
+}
+
+
+
