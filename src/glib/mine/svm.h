@@ -19,6 +19,7 @@ private:
     TFltV WgtV;
     TFlt Bias;
 public:
+    TLinModel(): Bias(0.0) {  }
     TLinModel(const TFltV& _WgtV): WgtV(_WgtV), Bias(0.0) {  }
     TLinModel(const TFltV& _WgtV, const double& _Bias): WgtV(_WgtV), Bias(_Bias) {  }
 
@@ -26,7 +27,7 @@ public:
     void Save(TSOut& SOut) const { WgtV.Save(SOut); Bias.Save(SOut); }
     
     /// Get weight vector
-    void GetWgtV(TFltV& _WgtV) const { _WgtV = WgtV; }
+    const TFltV& GetWgtV() const { return WgtV; }
     
     /// Get bias
     double GetBias() const { return Bias; }
