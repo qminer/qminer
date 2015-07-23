@@ -495,7 +495,7 @@ double TNumeric::_GetVal(const TRec& FtrRec) const {
     // assert store
     Assert(FtrRec.GetStoreId() == GetFtrStore()->GetStoreId());
     // extract feature value
-    if (FtrRec.IsFieldNull(FieldId)) {
+    if (!FtrRec.IsDef() || FtrRec.IsFieldNull(FieldId)) {
         return 0.0;
     } else if (FieldDesc.IsInt()) {
         return (double)FtrRec.GetFieldInt(FieldId);
@@ -611,7 +611,7 @@ void TNumSpV::_GetVal(const TRec& FtrRec, TIntFltKdV& NumSpV) const {
     // assert store
     Assert(FtrRec.GetStoreId() == GetFtrStore()->GetStoreId());
     // extract feature value
-    if (FtrRec.IsFieldNull(FieldId)) {
+    if (!FtrRec.IsDef() || FtrRec.IsFieldNull(FieldId)) {
         NumSpV.Clr();
     } else if (FieldDesc.IsNumSpV()) {
         FtrRec.GetFieldNumSpV(FieldId, NumSpV);
@@ -627,10 +627,10 @@ void TNumSpV::GetVal(const TRec& FtrRec, TIntFltKdV& NumSpV) const {
         // do the join
         TRec JoinRec = FtrRec.DoSingleJoin(GetBase(), GetJoinIdV(FtrRec.GetStoreId()));
         // get feature value
-		return _GetVal(JoinRec, NumSpV);
+		_GetVal(JoinRec, NumSpV);
     } else {
         // get feature value
-        return _GetVal(FtrRec, NumSpV);
+        _GetVal(FtrRec, NumSpV);
 	}
 }
 
@@ -738,7 +738,7 @@ TStr TCategorical::_GetVal(const TRec& FtrRec) const {
 	// assert store
 	Assert(FtrRec.GetStoreId() == GetFtrStore()->GetStoreId());
 	// separate case when record passed by reference or value
-    if (FtrRec.IsFieldNull(FieldId)) {
+    if (!FtrRec.IsDef() || FtrRec.IsFieldNull(FieldId)) {
         return TStr();
     } else if (FieldDesc.IsStr()) {
 		return FtrRec.GetFieldStr(FieldId);
@@ -932,7 +932,7 @@ void TMultinomial::_GetVal(const TRec& FtrRec, TStrV& StrV) const {
         const int FieldId = FieldIdV[FieldIdN];
         const TFieldDesc& FieldDesc = FieldDescV[FieldIdN];
         // extract feature value
-        if (FtrRec.IsFieldNull(FieldId)) {
+        if (!FtrRec.IsDef() || FtrRec.IsFieldNull(FieldId)) {
             // do nothing
         } else if (FieldDesc.IsStr()) {
             StrV.Add(FtrRec.GetFieldStr(FieldId));
@@ -1166,7 +1166,7 @@ void TBagOfWords::_GetVal(const TRec& FtrRec, TStrV& StrV) const {
         const int FieldId = FieldIdV[FieldIdN];
         const TFieldDesc& FieldDesc = FieldDescV[FieldIdN];
         // extract feature value
-        if (FtrRec.IsFieldNull(FieldId)) {
+        if (!FtrRec.IsDef() || FtrRec.IsFieldNull(FieldId)) {
             // do nothing
         } else if (FieldDesc.IsStr()) {
             StrV.Add(FtrRec.GetFieldStr(FieldId));
@@ -1808,7 +1808,7 @@ uint64 TDateWnd::_GetVal(const TRec& FtrRec) const {
     // assert store
     Assert(FtrRec.GetStoreId() == GetFtrStore()->GetStoreId());
     // extract feature value
-    if (FtrRec.IsFieldNull(FieldId)) {
+    if (!FtrRec.IsDef() || FtrRec.IsFieldNull(FieldId)) {
         return 0;
     } else if (FieldDesc.IsTm()) {
         return FtrRec.GetFieldTmMSecs(FieldId);

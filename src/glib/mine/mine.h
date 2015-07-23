@@ -46,8 +46,8 @@
 #include "kernelmethods.h"
 #include "semspace.h"
 
-// some ML methods
-#include "ml.h"
+// regression methods
+#include "regression.h"
 
 // clustering
 #include "kmpp.h"
