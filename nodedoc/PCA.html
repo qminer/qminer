@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.3.0-beta2">
   <meta charset="utf-8">
-  <title>Class: FOut</title>
+  <title>Class: PCA</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -24,10 +24,10 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-fs.html">fs</a>.<wbr></small><span class="symbol-name">FOut</span></h1>
-            <p class="source-link">Source: <a href="fsdoc.js.html#source-line-164">fsdoc.<wbr>js:164</a></p>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span></div><small></small><span class="symbol-name">PCA</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1710">analyticsdoc.<wbr>js:1710</a></p>
             <div class="symbol-classdesc">
-              <p>Used for writing files.</p>
+              <p>Principal components analysis</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -38,113 +38,38 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-fs.FOut.html#close">close()</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-fs.FOut.html#flush">flush()</a></dt>
+                    <dt><a href="PCA.html#fit">fit(A)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-fs.FOut.html#write">write(str)</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-fs.FOut.html#writeLine">writeLine(str)</a></dt>
+                    <dt><a href="PCA.html#predict">predict(x)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="PCA.html#reconstruct">reconstruct(x)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
                 </div>
               </div>
             </div>
           </section>
           <section>
-            <h2 id="FOut">new&nbsp;<span class="symbol-name">FOut</span><span class="signature"><span class="signature-params">(fileName[, append])</span></span></h2>
-            <p>Output file stream.</p>
-            <section>
-              <h3>
-
-            Example
-
-        </h3>
-              <div>
-                <pre class="prettyprint"><code>// import module
-var fs = require(&#x27;qminer&#x27;).fs;
-// open file in write mode
-var fout = new fs.FOut(&#x27;file.txt&#x27;);
-// write a line
-fout.writeLine(&#x27;example text&#x27;);
-// close
-fout.close();</code></pre>
-              </div>
-            </section>
-            <section>
-              <h3>Parameters</h3>
-              <table class="jsdoc-details-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Optional</th>
-                    <th>Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>
-                      <p>fileName</p>
-                    </td>
-                    <td>
-                      <p>String</p>
-                    </td>
-                    <td>
-                      <p>&nbsp;</p>
-                    </td>
-                    <td>
-                      <p>File name</p>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <p>append</p>
-                    </td>
-                    <td>
-                      <p>boolean</p>
-                    </td>
-                    <td>
-                      <p>Yes</p>
-                    </td>
-                    <td>
-                      <p>Append flag</p>
-                      <p>Defaults to <code>false</code>.</p>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </section>
+            <h2 id="PCA">new&nbsp;<span class="symbol-name">PCA</span><span class="signature"><span class="signature-params">()</span></span></h2>
             <dl class="dl-compact">
             </dl>
           </section>
           <section>
             <h2>Methods</h2>
             <section>
-              <h3 id="close"><span class="symbol-name">close</span><span class="signature"><span class="signature-params">()</span></span></h3>
-              <p>Closes the output stream</p>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="flush"><span class="symbol-name">flush</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>Flushes the output stream</p>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Self.</p>
-                </dd>
-              </dl>
-              <h3 id="write"><span class="symbol-name">write</span><span class="signature"><span class="signature-params">(str)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>Writes a string</p>
+              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(A)</span></span></h3>
+              <p>Computes .</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -159,29 +84,25 @@ fout.close();</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>str</p>
+                        <p>A</p>
                       </td>
                       <td>
-                        <p>String</p>
+                        <p><a href="module-la.Matrix.html">module:la.Matrix</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>String to write</p>
+                        <p>Matrix whose columns correspond to known examples.</p>
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </section>
               <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Self.</p>
-                </dd>
               </dl>
-              <h3 id="writeLine"><span class="symbol-name">writeLine</span><span class="signature"><span class="signature-params">(str)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>Writes a string and adds a new line</p>
+              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
+              <p>Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P. Recovering the data in the original space: (this.P).multiply(p), where p's rows are the coefficients in the eigenvector basis.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -196,16 +117,16 @@ fout.close();</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>str</p>
+                        <p>x</p>
                       </td>
                       <td>
-                        <p>String</p>
+                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>String to write</p>
+                        <p>Test vector or matrix with column examples</p>
                       </td>
                     </tr>
                   </tbody>
@@ -214,7 +135,44 @@ fout.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Self.</p>
+                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;Returns projected vector or matrix</p>
+                </dd>
+              </dl>
+              <h3 id="reconstruct"><span class="symbol-name">reconstruct</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
+              <p>Reconstructs the vector in the original space, reverses centering</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>x</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Test vector or matrix with column examples, in the PCA space</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;Returns the reconstruction</p>
                 </dd>
               </dl>
             </section>

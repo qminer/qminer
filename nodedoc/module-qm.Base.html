@@ -25,9 +25,9 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Base</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-582">qminerdoc.<wbr>js:582</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-586">qminerdoc.<wbr>js:586</a></p>
             <div class="symbol-classdesc">
-              <p>Represents the database and holds stores.</p>
+              <p>Represents the database and holds stores. The base object can be opened in multiple modes: 'create' - create a new database, 'createClean' - force create, and 'openReadOnly' - open in read-onlly mode</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -120,6 +120,63 @@ var base = new qm.Base({mode: &#x27;open&#x27;});</code></pre>
                 </tbody>
               </table>
             </section>
+            <section>
+              <h3>Properties</h3>
+              <table class="jsdoc-details-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p>paramObj.mode</p>
+                    </td>
+                    <td>
+                      <p>String</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>the mode in which base is opened</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p>String</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>Yes</p>
+                    </td>
+                    <td>
+                      <p>paramObj.dbPath - path to the location of the database</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p>Object</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>Yes</p>
+                    </td>
+                    <td>
+                      <p>paramObj.schema - the database schema</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
             <dl class="dl-compact">
             </dl>
           </section>
@@ -150,37 +207,37 @@ var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [
    {
-       &quot;name&quot;: &quot;Superheroes&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; },
-           { &quot;name&quot;: &quot;YearsActive&quot;, &quot;type&quot;: &quot;int&quot; }
+       name: &quot;Superheroes&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;Superpowers&quot;, type: &quot;string_v&quot; },
+           { name&quot;: &quot;YearsActive&quot;, type: &quot;int&quot; }
        ]
    }]
 })
 // create a new store called &quot;Supervillains&quot; in the base
 base.createStore({
-   &quot;name&quot;: &quot;Supervillians&quot;
-   &quot;fields&quot;: [
-       { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-       { &quot;name&quot;: &quot;Superpowers&quot;, &quot;type&quot;: &quot;string_v&quot; },
-       { &quot;name&quot;: &quot;YearsActive&quot;, &quot;type&quot;: &quot;int&quot; }
+   name: &quot;Supervillians&quot;
+   fields: [
+       { name: &quot;Name&quot;, type: &quot;string&quot; },
+       { name: &quot;Superpowers&quot;, type: &quot;string_v&quot; },
+       { name: &quot;YearsActive&quot;, type: &quot;int&quot; }
    ]
 })
 // create two new stores called &quot;Cities&quot; and &quot;Leagues&quot;
 base.createStore([
    {
-       &quot;name&quot;: &quot;Cities&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
-           { &quot;name&quot;: &quot;Population&quot;, &quot;type&quot;: &quot;int&quot; }
+       name: &quot;Cities&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+           { name: &quot;Population&quot;, type: &quot;int&quot; }
        ]
    },
    {
-       &quot;name&quot;: &quot;Leagues&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;Members&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       name: &quot;Leagues&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;Members&quot;, type: &quot;string_v&quot; }
        ]
    }
 ])</code></pre>
@@ -338,23 +395,23 @@ var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [
    {
-       &quot;name&quot;: &quot;Kwik-E-Mart&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Worker&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;Groceries&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       name: &quot;KwikEMart&quot;,
+       fields: [
+           { name: &quot;Worker&quot;, type: &quot;string&quot; },
+           { name: &quot;Groceries&quot;, type: &quot;string_v&quot; }
        ]
    },
    {
-       &quot;name&quot;: &quot;NuclearPowerplant&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Owner&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;NumberOfAccidents&quot;, &quot;type&quot;: &quot;int&quot; },
-           { &quot;name&quot;: &quot;Workers&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       name: &quot;NuclearPowerplant&quot;,
+       fields: [
+           { name: &quot;Owner&quot;, type: &quot;string&quot; },
+           { name: &quot;NumberOfAccidents&quot;, type: &quot;int&quot; },
+           { name: &quot;Workers&quot;, type: &quot;string_v&quot; }
        ]
    }]
 })
-// get the &quot;Kwik-E-Mart&quot; store 
-var store = base.store(&quot;Kwik-E-Mart&quot;);	// returns the store with the name &quot;Kwik-E-Mart&quot;</code></pre>
+// get the &quot;KwikEMart&quot; store 
+var store = base.store(&quot;KwikEMart&quot;);	// returns the store with the name &quot;KwikEMart&quot;</code></pre>
                 </div>
               </section>
               <section>
@@ -402,7 +459,7 @@ var store = base.store(&quot;Kwik-E-Mart&quot;);	// returns the store with the n
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on June 3, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 9, 2015.
       </p>
     </div>
   </footer>

@@ -594,11 +594,11 @@ public:
 
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model
-//#
-//# **Constructor:**
-//#
-//#- `hmc = new analytics.HMC(params)` -- Creates a new model using `params` JSON. TODO param description.
-//#- `hmc = new analytics.HMC(fin)` -- Loads the model from input stream `fin`.
+//!
+//! **Constructor:**
+//!
+//!- `hmc = new analytics.HMC(params)` -- Creates a new model using `params` JSON. TODO param description.
+//!- `hmc = new analytics.HMC(fin)` -- Loads the model from input stream `fin`.
 class TNodeJsStreamStory : public node::ObjectWrap, public TMc::TStreamStory::TCallback {
 	friend class TNodeJsUtil;
 public:
