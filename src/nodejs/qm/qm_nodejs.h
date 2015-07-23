@@ -2909,32 +2909,23 @@ public:
 
 class TNodeJsFtrSpace : public node::ObjectWrap {
 	friend class TNodeJsUtil;
-private:
-	// Node framework
-	static v8::Persistent<v8::Function> constructor;
-
-	TQm::PFtrSpace FtrSpace;
-
-	TNodeJsFtrSpace(const TQm::PFtrSpace& FtrSpace);
-	TNodeJsFtrSpace(const TWPt<TQm::TBase> Base, TSIn& SIn);
-
-	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const TQm::PFtrSpace& FtrSpace);
-	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const TWPt<TQm::TBase> Base, TSIn& SIn);
-
 public:
-	static v8::Local<v8::Object> New(const TQm::PFtrSpace& FtrSpace);
-	static v8::Local<v8::Object> New(const TWPt<TQm::TBase> Base, TSIn& SIn);
-
 	// Node framework
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "FeatureSpace"; }
 
+	TQm::PFtrSpace FtrSpace;
+	TNodeJsFtrSpace(const TQm::PFtrSpace& FtrSpace);
+	TNodeJsFtrSpace(const TWPt<TQm::TBase> Base, TSIn& SIn);
+	
 	TQm::PFtrSpace GetFtrSpace() { return FtrSpace; }
+public:
 	//!
 	//! **Constructor:**
 	//!
 	//!- `fsp = new qm.FeatureSpace(base, fin)` -- construct a new feature space by providing the base and input stream object
 	//!- `fsp = new qm.FeatureSpace(base, params)` -- construct a new feature space by providing the base and parameter JSON object
-	JsDeclareFunction(New);
+	static TNodeJsFtrSpace* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 	//!
 	//! **Functions and properties:**
 	//!

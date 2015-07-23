@@ -696,7 +696,7 @@ module.exports = exports = function (pathPrefix) {
      * @class
      * @param {opts} HierarchMarkovParam - parameters. TODO typedef and describe
      */
-    exports.HierarchMarkov = function (opts) {
+    exports.StreamStory = function (opts) {
     	// constructor
     	if (opts == null) throw 'Missing parameters!';
     	if (opts.base == null) throw 'Missing parameter base!';

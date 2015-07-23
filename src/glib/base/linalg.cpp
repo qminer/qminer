@@ -6,8 +6,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 #include "bd.h"
-#include "base.h"
-
+//#include "base.h"
+#ifdef LAPACKE
+#include "MKLfunctions.h"
+#endif
 
 #ifdef EIGEN
 #include <Eigen/Dense>
@@ -660,12 +662,10 @@ void TNumericalStuff::DualLeastSquares(const TFltVV& A, const TFltV& b, const do
 }
 
 void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps) {
-#ifdef BLAS
+#ifdef LAPACKE
 	EAssertR(A.GetRows() == A.GetCols(), "A should be a square matrix to compute eigenvalues!");
 
 	TFltVV A1 = A;
-
-//    printf("input matrix:\n%s\n", TStrUtil::GetStr(A1, ", ", "%.7f").CStr());
 
     const int Dim = A1.GetRows();
 
@@ -686,7 +686,7 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
 
     // build an initial estimate of the eigenvector
     // decompose (A - Lambda*I) into LU
-	LUFactorization(A1, L, U, PermV);
+	MKLfunctions::LUFactorization(A1, L, U, PermV);
 
     // extract U, replace any zero diagonal elements by |A|*eps
     for (int i = 0; i < Dim; i++) {
@@ -696,9 +696,6 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
         	U(i,i) = Sgn*UEps;
         }
     }
-
-//    printf("U:\n%s\n", TStrUtil::GetStr(U, ", ", "%.7f").CStr());
-//    printf("PermV:\n%s\n", TStrUtil::GetStr(PermV, ", ").CStr());
 
     // construct A from LU
     TLinAlg::Multiply(L, U, A1);
@@ -714,22 +711,16 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
     // compute an initial estimate for the eigenvector
     // I can ignore permutations here since then only swap elements
     // in the vector of ones: P*A = L*U => A*x = b <=> L*U*x = P*b = P*1 = 1
-    TriangularSolve(U, EigenV, OnesV);	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)
-
-//    printf("initial estimate (unnorm): %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
+	MKLfunctions::TriangularSolve(U, EigenV, OnesV);	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)
 
     Norm = TLinAlg::Normalize(EigenV);
 	EAssertR(Norm != 0, "Cannot normalize, norm is 0!");
-
-//	printf("initial estimate: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
 
     // iterate (A - Lambda*I)*x_n+1 = x_n until convergence
     do {
     	TempV = EigenV;
 
-    	LUSolve(A1, EigenV, TempV);
-
-//        printf("solution vector: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
+		MKLfunctions::LUSolve(A1, EigenV, TempV);
 
         // normalize
 //        Norm = TLinAlg::Normalize(EigenV);
@@ -743,11 +734,11 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
         Dist = TLinAlg::EuclDist(EigenV, TempV);
     } while (Dist > ConvergEps);
 #else
-    throw TExcept::New("Should include BLAS!!!");
+    throw TExcept::New("Should include LAPACKE!!!");
 #endif
 }
 
-#ifdef BLAS
+#ifdef LAPACKE
 
 void TNumericalStuff::LUStep(TFltVV& A, TIntV& Perm) {
 	Assert(A.GetRows() == A.GetCols());

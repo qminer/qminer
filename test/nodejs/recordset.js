@@ -87,8 +87,10 @@ describe('Record Set Tests', function () {
         recSet3 = table.base.store("Basketball").allRecords;
         done();
     });
-    afterEach(function () {
+    afterEach(function (done) {
         table.close();
+        this.timeout(5000);
+        done();
     });
 
     describe('Length Test', function () {

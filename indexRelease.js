@@ -13,4 +13,4 @@ exports.fs = require('bindings')('Release/qm.node').fs; // pure native addon
 exports.ht = require('./src/nodejs/scripts/ht.js')('Release'); // includes additional JS implementations
 exports.la = require('./src/nodejs/scripts/la.js')('Release'); // includes additional JS implementations
 exports.snap = require('./src/nodejs/scripts/snap.js')('Release'); // includes additional JS implementations
-exports.statistics = require('bindings')('Release/qm.node').statistics; // pure native addon
+exports.statistics = require('./src/nodejs/scripts/statistics.js')('Release'); // pure native addon

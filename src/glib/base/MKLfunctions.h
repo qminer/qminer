@@ -1,6 +1,13 @@
 #ifndef MKLFUNCTIONS_H
 #define MKLFUNCTIONS_H
 
+#ifdef INDEX_64
+typedef int64 glib_index;
+#define lapack_int long long
+#else
+typedef int glib_index;
+#endif
+
 
 
 #ifdef INTEL
@@ -11,9 +18,12 @@
 	//#include "mkl_scalapack.h"
 #else
 	//OpenBlas fix
+	#define lapack_complex_float std::complex<float>
+	#define lapack_complex_double std::complex<double>
 	#define LAPACK_COMPLEX_CPP
 	#include "cblas.h"
 	#include "lapacke.h"
+	typedef CBLAS_ORDER CBLAS_LAYOUT;
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -29,7 +39,7 @@ private:
 	// LU midstep used for LUFactorization and LUSolve 
 	// (Warning: the matrix is overwritten in the process)
 	template<class Type, class Size, bool ColMajor = false>
-static void LUStep(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<index>, index>& Perm) {//TVec<TNum<Size>, Size>& Perm)
+static void LUStep(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<glib_index>, glib_index>& Perm) {//TVec<TNum<Size>, Size>& Perm)
 		Assert(A.GetRows() == A.GetCols());
 
 		// data used for factorization
@@ -41,25 +51,25 @@ static void LUStep(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<index>, index
 		Perm.Gen(NumOfRows_Matrix);
 
 		// factorization
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dgetrf(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, (Loc *)&A(0, 0).Val, LeadingDimension_Matrix,
 				&Perm[0].Val);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_sgetrf(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, (Loc *)&A(0, 0).Val, LeadingDimension_Matrix,
 				&Perm[0].Val);
 		}
 		else
-		if (is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_zgetrf(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, (Loc *)&A(0, 0).Val, LeadingDimension_Matrix,
 				&Perm[0].Val);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
 			LAPACKE_cgetrf(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, (Loc *)&A(0, 0).Val, LeadingDimension_Matrix,
 				&Perm[0].Val);
@@ -79,22 +89,22 @@ static void CholeskyStep(TVVec<Type, Size, ColMajor>& A) {
 
 		// factorization
 
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dpotrf(Matrix_Layout, uplo, OrderOfMatrix, (Loc *)&A(0, 0).Val, LeadingDimension_Matrix);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_spotrf(Matrix_Layout, uplo, OrderOfMatrix, (Loc *)&A(0, 0).Val, LeadingDimension_Matrix);
 		}
 		else
-		if (is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_zpotrf(Matrix_Layout, uplo, OrderOfMatrix, (Loc *)&A(0, 0).Val, LeadingDimension_Matrix);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
 			LAPACKE_cpotrf(Matrix_Layout, uplo, OrderOfMatrix, (Loc *)&A(0, 0).Val, LeadingDimension_Matrix);
 		}
@@ -103,7 +113,7 @@ static void CholeskyStep(TVVec<Type, Size, ColMajor>& A) {
 	// QR midstep used for LUFactorization and QRSolve. 
 	// (Warning: the matrix is overwritten in the process)
 	template<class Type, class Size, bool ColMajor = false>
-static void QRStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<index>, index>& Tau) {
+static void QRStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<glib_index>, glib_index>& Tau) {
 		Assert(A.GetRows() >= A.GetCols());
 
 		// data used for factorization
@@ -113,22 +123,22 @@ static void QRStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<index>, index>& Tau
 		int Matrix_Layout = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
 
 		// factorization
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dgeqrf(Matrix_Layout, NumOfRows, NumOfCols, (Loc *)&A(0, 0).Val, LeadingDimension_Matrix, (Loc *) &Tau[0].Val);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_sgeqrf(Matrix_Layout, NumOfRows, NumOfCols, (Loc *)&A(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Tau[0].Val);
 		}
 		else
-		if (is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_zgeqrf(Matrix_Layout, NumOfRows, NumOfCols, (Loc *)&A(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Tau[0].Val);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
 			LAPACKE_cgeqrf(Matrix_Layout, NumOfRows, NumOfCols, (Loc *)&A(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Tau[0].Val);
 		}
@@ -137,7 +147,7 @@ static void QRStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<index>, index>& Tau
 	// LQ midstep used for LQFactorization and LQSolve.
 	// (Warning: the matrix is overwritten in the process)
 	template<class Type, class Size, bool ColMajor = false>
-static void LQStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<index>, index>& Tau) {
+static void LQStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<glib_index>, glib_index>& Tau) {
 		Assert(A.GetRows() <= A.GetCols());
 
 		Size NumOfRows = A.GetRows();
@@ -146,22 +156,22 @@ static void LQStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<index>, index>& Tau
 		int Matrix_Layout = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
 
 		
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dgelqf(Matrix_Layout, NumOfRows, NumOfCols, (Loc *)&A(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Tau[0].Val);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_sgelqf(Matrix_Layout, NumOfRows, NumOfCols, (Loc *)&A(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Tau[0].Val);
 		}
 		else
-		if (is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_zgelqf(Matrix_Layout, NumOfRows, NumOfCols, (Loc *)&A(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Tau[0].Val);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
 			LAPACKE_cgelqf(Matrix_Layout, NumOfRows, NumOfCols, (Loc *)&A(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Tau[0].Val);
 		}
@@ -177,7 +187,7 @@ public:
 	// Vector P tell's us: column i is swapped with column P[i].
 	template<class Type, class Size, bool ColMajor = false>
 static void LUFactorization(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& L, 
-		TVVec<Type, Size, ColMajor>& U, TVec<TNum<index>, index>& P) {
+		TVVec<Type, Size, ColMajor>& U, TVec<TNum<glib_index>, glib_index>& P) {
 		Assert(A.GetRows() == A.GetCols());
 
 		Size NumOfRows_Matrix = A.GetRows();
@@ -234,31 +244,31 @@ static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type>, Size>
 		// LU factorization
 		TVVec<TNum<Type>, Size, ColMajor> M = A;
 		//TODO TInt is enough?
-		TVec<TNum<index>, index> Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+		TVec<TNum<glib_index>, glib_index> Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
 		MKLfunctions::LUStep(M, Perm);
 
 		// solution
 		x = b;
 
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dgetrs(Matrix_Layout, 'N', NumOfCols_Matrix, NumOfCols_Vector, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				&Perm[0].Val, (Loc *)&x[0].Val, LeadingDimension_Vector);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_sgetrs(Matrix_Layout, 'N', NumOfCols_Matrix, NumOfCols_Vector, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				&Perm[0].Val, (Loc *)&x[0].Val, LeadingDimension_Vector);
 		}
 		else
-		if (is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef  std::complex<double> Loc;
 			LAPACKE_zgetrs(Matrix_Layout, 'N', NumOfCols_Matrix, NumOfCols_Vector, (const Loc *)(&M(0, 0).Val), LeadingDimension_Matrix,
 				&Perm[0].Val, (Loc *)(&x[0].Val), LeadingDimension_Vector);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
 			LAPACKE_cgetrs(Matrix_Layout, 'N', NumOfCols_Matrix, NumOfCols_Vector, (const Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				&Perm[0].Val, (Loc *)(&x[0].Val), LeadingDimension_Vector);
@@ -284,31 +294,31 @@ static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVVec<TNum<Type>, Size
 		// LU factorization
 		TVVec<TNum<Type>, Size, ColMajor> M = A;
 		//TODO TInt is enough?
-		TVec<TNum<index>, index> Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+		TVec<TNum<glib_index>, glib_index> Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
 		MKLfunctions::LUStep(M, Perm);
 
 		// solution
 		X = B;
 
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dgetrs(Matrix_Layout, 'N', NumOfRows_Matrix, NumOfCols_B, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				&Perm[0].Val, (Loc *)&X(0, 0).Val, LeadingDimension_B);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_sgetrs(Matrix_Layout, 'N', NumOfRows_Matrix, NumOfCols_B, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				&Perm[0].Val, (Loc *)&X(0, 0).Val, LeadingDimension_B);
 		}
 		else
-		if (is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_zgetrs(Matrix_Layout, 'N', NumOfRows_Matrix, NumOfCols_B, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				&Perm[0].Val, (Loc *)&X(0, 0).Val, LeadingDimension_B);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
 			LAPACKE_cgetrs(Matrix_Layout, 'N', NumOfRows_Matrix, NumOfCols_B, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				&Perm[0].Val, (Loc *)&X(0, 0).Val, LeadingDimension_B);
@@ -369,25 +379,25 @@ static void CholeskySolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, T
 		// solution
 		x = b;
 
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dpotrs(Matrix_Layout, uplo, OrderOfMatrix, NumOfCols_Vector, (const Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&x[0].Val, LeadingDimension_Vector);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_spotrs(Matrix_Layout, uplo, OrderOfMatrix, NumOfCols_Vector, (const Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&x[0].Val, LeadingDimension_Vector);
 		}
 		else
-		if (is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_zpotrs(Matrix_Layout, uplo, OrderOfMatrix, NumOfCols_Vector, (const Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&x[0].Val, LeadingDimension_Vector);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
 			LAPACKE_cpotrs(Matrix_Layout, uplo, OrderOfMatrix, NumOfCols_Vector, (const Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&x[0].Val, LeadingDimension_Vector);
@@ -418,25 +428,25 @@ static void CholeskySolve(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColM
 
 		// solution
 		X = B;
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dpotrs(Matrix_Layout, uplo, OrderOfMatrix, NumOfCols_B, (const Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&X(0, 0).Val, LeadingDimension_B);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_spotrs(Matrix_Layout, uplo, OrderOfMatrix, NumOfCols_B, (const Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&X(0, 0).Val, LeadingDimension_B);
 		}
 		else
-		if (is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_zpotrs(Matrix_Layout, uplo, OrderOfMatrix, NumOfCols_B, (const Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&X(0, 0).Val, LeadingDimension_B);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
 			LAPACKE_cpotrs(Matrix_Layout, uplo, OrderOfMatrix, NumOfCols_B, (const Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&X(0, 0).Val, LeadingDimension_B);
@@ -470,25 +480,25 @@ static void TriangularSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type
 		// solution 
 		x = b;
 		
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dtrtrs(Matrix_Layout, uplo, trans, diag, NumOfRows_Matrix, NumOfCols_Vector, (const Loc *)&A(0, 0).Val,
 				LeadingDimension_Matrix, (Loc *)&x[0].Val, LeadingDimension_Vector);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_strtrs(Matrix_Layout, uplo, trans, diag, NumOfRows_Matrix, NumOfCols_Vector, (const Loc *)&A(0, 0).Val,
 				LeadingDimension_Matrix, (Loc *)&x[0].Val, LeadingDimension_Vector);
 		}
 		else
-		if (is_complex_double<Type>::value == true){
-			typedef std::complex<double> Loc;
+		if (TypeCheck::is_complex_double<Type>::value == true){
+			//typedef std::complex<double> Loc;
 			LAPACKE_ztrtrs(Matrix_Layout, uplo, trans, diag, NumOfRows_Matrix, NumOfCols_Vector, reinterpret_cast<const MKL_Complex16 *>(&A(0, 0).Val),
 				LeadingDimension_Matrix, reinterpret_cast<MKL_Complex16 *>(&x[0].Val), LeadingDimension_Vector);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
 			LAPACKE_ctrtrs(Matrix_Layout, uplo, trans, diag, NumOfRows_Matrix, NumOfCols_Vector, (const Loc *)&A(0, 0).Val,
 				LeadingDimension_Matrix, (Loc *)&x[0].Val, LeadingDimension_Vector);
@@ -502,7 +512,7 @@ static void TriangularSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type
 	template<class Type, class Size, bool ColMajor = false>
 static void TriangularSolve(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& X, 
 		TVVec<Type, Size, ColMajor>& B, bool UpperTriangFlag = true, bool DiagonalUnitFlag = false) {
-		Assert(Matrix.GetRows() == B.GetRows());
+		Assert(A.GetRows() == B.GetRows());
 
 		// data used for solution
 		Size NumOfRows_Matrix = A.GetRows();
@@ -517,25 +527,25 @@ static void TriangularSolve(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, Co
 
 		// solution 
 		X = B;
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dtrtrs(Matrix_Layout, uplo, trans, diag, NumOfRows_Matrix, NumOfCols_B, (const Loc*)&A(0, 0).Val,
 				LeadingDimension_Matrix, (Loc*)&X(0, 0).Val, LeadingDimension_B);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_strtrs(Matrix_Layout, uplo, trans, diag, NumOfRows_Matrix, NumOfCols_B, (const Loc*)&A(0, 0).Val,
 				LeadingDimension_Matrix, (Loc*)&X(0, 0).Val, LeadingDimension_B);
 		}
 		else
-		if (is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_ztrtrs(Matrix_Layout, uplo, trans, diag, NumOfRows_Matrix, NumOfCols_B, (const Loc*)&A(0, 0).Val,
 				LeadingDimension_Matrix, (Loc*)&X(0, 0).Val, LeadingDimension_B);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
 			LAPACKE_ctrtrs(Matrix_Layout, uplo, trans, diag, NumOfRows_Matrix, NumOfCols_B, (const Loc*)&A(0, 0).Val,
 				LeadingDimension_Matrix, (Loc*)&X(0, 0).Val, LeadingDimension_B);
@@ -577,22 +587,22 @@ static void QRFactorization(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, Co
 		// construction of Q matrix
 		Q = M;
 		
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dorgqr(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, NumOfCols_Matrix, (Loc *)&Q(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&Tau[0].Val);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_sorgqr(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, NumOfCols_Matrix, (Loc *)&Q(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&Tau[0].Val);
 		}
 		else
-		if (is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_zorgqr(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, NumOfCols_Matrix, (Loc *)&Q(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&Tau[0].Val);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
 			LAPACKE_corgqr(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, NumOfCols_Matrix, (Loc *)&Q(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&Tau[0].Val);
 		}
@@ -624,14 +634,14 @@ static void QRSolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, TVec<Ty
 		Size LeadingDimension_Vector = ColMajor ? b.Len() : 1;
 		Size NumOfElementaryReflectors = NumOfCols_Matrix;
 
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dormqr(Matrix_Layout, 'L', 'T', NumOfRows_Vector, NumOfCols_Vector, NumOfElementaryReflectors,
 				(const Loc *)&M(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&Tau[0].Val, (Loc *)&Temp[0].Val, LeadingDimension_Vector);
 		}
 		else
-		if (is_float<Type>::value == true){
-			typedef float Loc;
+		if (TypeCheck::is_float<Type>::value == true){
+			typedef float Loc; 
 			LAPACKE_sormqr(Matrix_Layout, 'L', 'T', NumOfRows_Vector, NumOfCols_Vector, NumOfElementaryReflectors,
 				(const Loc *)&M(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&Tau[0].Val, (Loc *)&Temp[0].Val, LeadingDimension_Vector);
 		}
@@ -645,25 +655,25 @@ static void QRSolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, TVec<Ty
 		const CBLAS_DIAG		CBLASDiag = CBLAS_DIAG::CblasNonUnit;													// the diagonal elements of matrix M are not all 1
 
 
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			cblas_dtrsm(CBLASLayout, CBLASSide, CBLASUplo, CBLASTrans, CBLASDiag, NumOfCols_Matrix, NumOfCols_Vector, 1.0,
 				(const Loc*)&M(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Temp[0].Val, LeadingDimension_Vector);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			cblas_strsm(CBLASLayout, CBLASSide, CBLASUplo, CBLASTrans, CBLASDiag, NumOfCols_Matrix, NumOfCols_Vector, 1.0,
 				(const Loc*)&M(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Temp[0].Val, LeadingDimension_Vector);
 		}
 		else
-		if (is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef double Loc;
 			cblas_ztrsm(CBLASLayout, CBLASSide, CBLASUplo, CBLASTrans, CBLASDiag, NumOfCols_Matrix, NumOfCols_Vector, 1.0,
 				(const Loc*)&M(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Temp[0].Val, LeadingDimension_Vector);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef float Loc;
 			cblas_ctrsm(CBLASLayout, CBLASSide, CBLASUplo, CBLASTrans, CBLASDiag, NumOfCols_Matrix, NumOfCols_Vector, 1.0,
 				(const Loc*)&M(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Temp[0].Val, LeadingDimension_Vector);
@@ -709,25 +719,25 @@ static void QRSolve(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>&
 		const CBLAS_TRANSPOSE	CBLASTrans = CBLAS_TRANSPOSE::CblasNoTrans;												// the matrix M is not transposed
 		const CBLAS_DIAG		CBLASDiag = CBLAS_DIAG::CblasNonUnit;													// the diagonal elements of matrix M are not all 1
 
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			cblas_dtrsm(CBLASLayout, CBLASSide, CBLASUplo, CBLASTrans, CBLASDiag, NumOfCols_Matrix, NumOfCols_Vector, 1.0,
 				(const Loc*)&M(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Temp[0].Val, LeadingDimension_Vector);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			cblas_strsm(CBLASLayout, CBLASSide, CBLASUplo, CBLASTrans, CBLASDiag, NumOfCols_Matrix, NumOfCols_Vector, 1.0,
 				(const Loc*)&M(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Temp[0].Val, LeadingDimension_Vector);
 		}
 		else
-		if (is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef double Loc;
 			cblas_ztrsm(CBLASLayout, CBLASSide, CBLASUplo, CBLASTrans, CBLASDiag, NumOfCols_Matrix, NumOfCols_Vector, 1.0,
 				(const Loc*)&M(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Temp[0].Val, LeadingDimension_Vector);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef float Loc;
 			cblas_ctrsm(CBLASLayout, CBLASSide, CBLASUplo, CBLASTrans, CBLASDiag, NumOfCols_Matrix, NumOfCols_Vector, 1.0,
 				(const Loc*)&M(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Temp[0].Val, LeadingDimension_Vector);
@@ -773,22 +783,22 @@ static void LQFactorization(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, Co
 
 		// construction of Q matrix
 		Q = M;
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dorglq(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, NumOfRows_Matrix, (Loc *)&Q(0, 0).Val, LeadingDimension_Matrix, (const Loc*)&Tau[0].Val);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_sorglq(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, NumOfRows_Matrix, (Loc *)&Q(0, 0).Val, LeadingDimension_Matrix, (const Loc*)&Tau[0].Val);
 		}
 		else
-		if (is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_zorglq(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, NumOfRows_Matrix, (Loc *)&Q(0, 0).Val, LeadingDimension_Matrix, (const Loc*)&Tau[0].Val);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
 			LAPACKE_corglq(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, NumOfRows_Matrix, (Loc *)&Q(0, 0).Val, LeadingDimension_Matrix, (const Loc*)&Tau[0].Val);
 		}
@@ -831,13 +841,13 @@ static void LQSolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, TVec<Ty
 		const CBLAS_TRANSPOSE	CBLASTrans = CBLAS_TRANSPOSE::CblasNoTrans;												// the matrix M is not transposed
 		const CBLAS_DIAG		CBLASDiag = CBLAS_DIAG::CblasNonUnit;													// the diagonal elements of matrix M are not all 1
 
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			cblas_dtrsm(CBLASLayout, CBLASSide, CBLASUplo, CBLASTrans, CBLASDiag, NumOfRows_Matrix, NumOfCols_b, 1.0,
 				(const Loc*)&M(0, 0).Val, LeadingDimension_Matrix, (Loc*)&Temp[0].Val, LeadingDimension_b);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			cblas_strsm(CBLASLayout, CBLASSide, CBLASUplo, CBLASTrans, CBLASDiag, NumOfRows_Matrix, NumOfCols_b, 1.0,
 				(const Loc*)&M(0, 0).Val, LeadingDimension_Matrix, (Loc*)&Temp[0].Val, LeadingDimension_b);
@@ -849,13 +859,13 @@ static void LQSolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, TVec<Ty
 		Size NumOfReflectors = NumOfRows_Matrix;
 		Size NumOfRows_Solution = Temp.Len();
 
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dormlq(Matrix_Layout, side, trans, NumOfRows_Solution, NumOfCols_b, NumOfReflectors, (const Loc*)&M(0, 0).Val,
 				LeadingDimension_Matrix, (const Loc*)&Tau[0].Val, (Loc*)&Temp[0].Val, LeadingDimension_b);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_sormlq(Matrix_Layout, side, trans, NumOfRows_Solution, NumOfCols_b, NumOfReflectors, (const Loc*)&M(0, 0).Val,
 				LeadingDimension_Matrix, (const Loc*)&Tau[0].Val, (Loc*)&Temp[0].Val, LeadingDimension_b);
@@ -910,13 +920,13 @@ static void LQSolve(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>&
 		const CBLAS_DIAG		CBLASDiag = CBLAS_DIAG::CblasNonUnit;													// the diagonal elements of matrix M are not all 1
 
 
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			cblas_dtrsm(CBLASLayout, CBLASSide, CBLASUplo, CBLASTrans, CBLASDiag, NumOfRows_Matrix, NumOfCols_B, 1.0,
 				(const Loc*)&M(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Temp(0, 0).Val, LeadingDimension_Solution);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			cblas_strsm(CBLASLayout, CBLASSide, CBLASUplo, CBLASTrans, CBLASDiag, NumOfRows_Matrix, NumOfCols_B, 1.0,
 				(const Loc*)&M(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Temp(0, 0).Val, LeadingDimension_Solution);
@@ -927,13 +937,13 @@ static void LQSolve(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>&
 		char trans = 'T';										// matrix is transposed when multiplied
 		Size NumOfElementaryReflectors = NumOfRows_Matrix;
 
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dormlq(Matrix_Layout, side, trans, NumOfRows_Solution, NumOfCols_Solution, NumOfElementaryReflectors,
 				(const Loc*)&M(0, 0).Val, LeadingDimension_Matrix, (const Loc*)&Tau[0].Val, (Loc*)&Temp(0, 0).Val, LeadingDimension_Solution);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_sormlq(Matrix_Layout, side, trans, NumOfRows_Solution, NumOfCols_Solution, NumOfElementaryReflectors,
 				(const Loc*)&M(0, 0).Val, LeadingDimension_Matrix, (const Loc*)&Tau[0].Val, (Loc*)&Temp(0, 0).Val, LeadingDimension_Solution);
@@ -946,7 +956,7 @@ static void LQSolve(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>&
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// SVD factorization and solution
+	// SVD factorization and solution -- currently works only for double and float
 
 	// Makes the SVD factorization of matrix Matrix, such that A = U * Sing * VT.
 	// Sing is the vector containing singular values, U is the matrix with left singular vectors,
@@ -963,6 +973,7 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 
 		// preperation for factorization
 		Sing.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+		//Fix this part, results are only double or float due to bidiagonalization
 		TVec<Type, Size> UpDiag, TauQ, TauP;
 		UpDiag.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix) - 1);
 		TauQ.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
@@ -970,81 +981,85 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 
 		// bidiagonalization of Matrix
 		TVVec<Type, Size, ColMajor> M = A;
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dgebrd(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&Sing[0].Val, &UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_sgebrd(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
-				(Loc *)&Sing[0].Val, &UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
-		}
-		else
-		if (is_complex_double<Type>::value == true){
-			typedef std::complex<double> Loc;
-			LAPACKE_zgebrd(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
-				(Loc *)&Sing[0].Val, &UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
-		}
-		else
-		if (is_complex_float<Type>::value == true){
-			typedef std::complex<float> Loc;
-			LAPACKE_cgebrd(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&Sing[0].Val, (Loc *)&UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
+		}
+		else
+		if (TypeCheck::is_complex_double<Type>::value == true){
+			typedef std::complex<double> Loc;
+			typedef double LocSing;
+			LAPACKE_zgebrd(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
+				(LocSing *)&Sing[0].Val, (LocSing *)&UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
+		}
+		else
+		if (TypeCheck::is_complex_float<Type>::value == true){
+			typedef std::complex<float> Loc;
+			typedef float LocSing;
+			LAPACKE_cgebrd(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
+				(LocSing *)&Sing[0].Val, (LocSing *)&UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
 		}
 
 		// matrix U used in the SVD factorization
+		//Andrej: Fix this for complex matrices
 		U = M;
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dorgbr(Matrix_Layout, 'Q', NumOfRows_Matrix, MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix,
 				(Loc *)&U(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&TauQ[0].Val);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_sorgbr(Matrix_Layout, 'Q', NumOfRows_Matrix, MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix,
 				(Loc *)&U(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&TauQ[0].Val);
 		}
-		else
-		if (is_complex_double<Type>::value == true){
+		/*else
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_zorgbr(Matrix_Layout, 'Q', NumOfRows_Matrix, MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix,
 				(Loc *)&U(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&TauQ[0].Val);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
 			LAPACKE_corgbr(Matrix_Layout, 'Q', NumOfRows_Matrix, MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix,
 				(Loc *)&U(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&TauQ[0].Val);
-		}
+		}*/
 
 		// matrix VT used in the SVD factorization
+		//Andrej: Add support for complex matrices
 		VT = M;
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dorgbr(Matrix_Layout, 'P', MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix, NumOfRows_Matrix,
 				(Loc *)&VT(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&TauP[0].Val);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_sorgbr(Matrix_Layout, 'P', MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix, NumOfRows_Matrix,
 				(Loc *)&VT(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&TauP[0].Val);
 		}
-		else
-		if (is_complex_double<Type>::value == true){
+		/*else
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_zorgbr(Matrix_Layout, 'P', MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix, NumOfRows_Matrix,
 				(Loc *)&VT(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&TauP[0].Val);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
 			LAPACKE_corgbr(Matrix_Layout, 'P', MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix, NumOfRows_Matrix,
 				(Loc *)&VT(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&TauP[0].Val);
-		}
+		}*/
 
 		// factorization
 		TVVec<Type, Size, ColMajor> C;
@@ -1052,27 +1067,29 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 		Size LeadingDimension_VT = ColMajor ? VT.GetRows() : VT.GetCols();
 		Size LeadingDimension_U = ColMajor ? U.GetRows() : U.GetCols();
 
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (Loc *)&Sing[0].Val, (Loc *)&UpDiag[0].Val,
 				(Loc *)&VT(0, 0).Val, LeadingDimension_VT, (Loc *)&U(0, 0).Val, LeadingDimension_U, (Loc *)&C(0, 0).Val, 1);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_sbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (Loc *)&Sing[0].Val, (Loc *)&UpDiag[0].Val,
 				(Loc *)&VT(0, 0).Val, LeadingDimension_VT, (Loc *)&U(0, 0).Val, LeadingDimension_U, (Loc *)&C(0, 0).Val, 1);
 		}
 		else
-		if (is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
-			LAPACKE_zbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (Loc *)&Sing[0].Val, (Loc *)&UpDiag[0].Val,
+			typedef double LocSing;
+			LAPACKE_zbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (LocSing *)&Sing[0].Val, (LocSing *)&UpDiag[0].Val,
 				(Loc *)&VT(0, 0).Val, LeadingDimension_VT, (Loc *)&U(0, 0).Val, LeadingDimension_U, (Loc *)&C(0, 0).Val, 1);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
-			LAPACKE_cbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (Loc *)&Sing[0].Val, (Loc *)&UpDiag[0].Val,
+			typedef float LocSing;
+			LAPACKE_cbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (LocSing *)&Sing[0].Val, (LocSing *)&UpDiag[0].Val,
 				(Loc *)&VT(0, 0).Val, LeadingDimension_VT, (Loc *)&U(0, 0).Val, LeadingDimension_U, (Loc *)&C(0, 0).Val, 1);
 		}
 	}
@@ -1080,7 +1097,7 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 	// SVDSolve solves the Least Squares problem of equation A * x = b, where A is a matrix, x and b are vectors.
 	// The solution is saved in x.
 	template<class Type, class Size, bool ColMajor = false>
-static void SVDSolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, TVec<Type, Size>& b) {
+static void SVDSolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, TVec<Type, Size>& b, const Type& threshold = 1e-8) {
 		Assert(A.GetRows() == b.Len());
 
 		// data used for solution
@@ -1101,7 +1118,9 @@ static void SVDSolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, TVec<T
 			U.GetCol(i, ui);
 			VT.GetRow(i, vi);
 			Type Scalar = TLinAlg::DotProduct(ui, b) / Sing[i].Val;
-			TLinAlg::AddVec(Scalar, vi, x);
+			//Correct Type->TNum<Type>! in the whole file
+			if (Sing[i].Val < threshold.Val) break;
+			TLinAlg::AddVec(Scalar.Val, vi, x);
 		}
 	}
 
@@ -1124,13 +1143,13 @@ static void SymmetricEigen(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& Eig
 		Eigenvalues.Gen(OrderOfMatrix);
 
 
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dsyev(Matrix_Layout, jobz, uplo, OrderOfMatrix, (Loc *)&Eigenvectors(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&Eigenvalues[0].Val);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_ssyev(Matrix_Layout, jobz, uplo, OrderOfMatrix, (Loc *)&Eigenvectors(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&Eigenvalues[0].Val);
@@ -1151,12 +1170,12 @@ static void SymmetricEigen(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& Eig
 
 		Eigenvalues.Gen(OrderOfMatrix);
 
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dsyev(Matrix_Layout, jobz, uplo, OrderOfMatrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Eigenvalues[0].Val);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_ssyev(Matrix_Layout, jobz, uplo, OrderOfMatrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix, (Loc *)&Eigenvalues[0].Val);
 		}
@@ -1193,28 +1212,28 @@ static void UnsymmetricEigen(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& E
 		EigenvaluesImag.Gen(NumOfRows_Matrix);
 
 		// eigenvalues calculation
-		if (is_double<Type>::value == true){
+		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
 			LAPACKE_dgeev(Matrix_Layout, LeftEigen, RightEigen, OrderOfMatrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&EigenvaluesReal[0].Val, (Loc *)&EigenvaluesImag[0].Val, (Loc *)&EigenvectorsLeft(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&EigenvectorsRight(0, 0).Val, LeadingDimension_Matrix);
 		}
 		else
-		if (is_float<Type>::value == true){
+		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_dgeev(Matrix_Layout, LeftEigen, RightEigen, OrderOfMatrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&EigenvaluesReal[0].Val, (Loc *)&EigenvaluesImag[0].Val, (Loc *)&EigenvectorsLeft(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&EigenvectorsRight(0, 0).Val, LeadingDimension_Matrix);
 		}
 		else
-		if (is_complex_double<Type>::value == true){
+		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_dgeev(Matrix_Layout, LeftEigen, RightEigen, OrderOfMatrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&EigenvaluesReal[0].Val, (Loc *)&EigenvaluesImag[0].Val, (Loc *)&EigenvectorsLeft(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&EigenvectorsRight(0, 0).Val, LeadingDimension_Matrix);
 		}
 		else
-		if (is_complex_float<Type>::value == true){
+		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
 			LAPACKE_dgeev(Matrix_Layout, LeftEigen, RightEigen, OrderOfMatrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
 				(Loc *)&EigenvaluesReal[0].Val, (Loc *)&EigenvaluesImag[0].Val, (Loc *)&EigenvectorsLeft(0, 0).Val, LeadingDimension_Matrix,

@@ -37,6 +37,17 @@ describe('Stream Aggregator Tests', function () {
                 this.saveJson = function (limit) {
                     return { val: data };
                 };
+                
+                this.getInt = function () {
+                    return data;
+                };
+                this.getFlt = function () {
+                    throw 'error';
+                };
+                this.getTm = function () {
+                    
+                };
+                
             });
 
 
@@ -48,6 +59,14 @@ describe('Stream Aggregator Tests', function () {
 
             var id3 = base.store('People').push({ name: "Jim" });
             assert(s.saveJson().val == 3);
+            assert.throws(
+            	function() {
+            		s.getFlt() == 3
+            });
+		    assert.throws(
+            	function() {
+            		s.getTm() == 3
+            });
         })
     })
 })

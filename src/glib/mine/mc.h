@@ -20,10 +20,14 @@ namespace TMc {
 
 using namespace TMl;
 
-typedef TIntV TStateIdV;
-typedef TIntSet TStateIdSet;
-typedef TVec<TIntV> TStateSetV;
-typedef TVec<TFltV> TStateFtrVV;
+namespace {
+
+	typedef TIntV TStateIdV;
+	typedef TIntSet TStateIdSet;
+	typedef TVec<TIntV> TStateSetV;
+	typedef TVec<TFltV> TStateFtrVV;
+
+}
 
 //////////////////////////////////////////////////////
 // Distance measures - eucledian distance
@@ -487,14 +491,14 @@ public:
 
 	// static distribution
 	// returns the static distribution for the joined states
-	virtual TVector GetStatDist(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const = 0;
+	virtual void GetStatDist(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltV& StatDist) const = 0;
 
 	// returns a vector of state sizes
-	virtual TVector GetStateSizeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const = 0;
+	virtual void GetStateSizeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltV& StateSizeV) const = 0;
 	virtual TFullMatrix GetTransitionMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const = 0;
 	virtual TFullMatrix GetModel(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const = 0;
 
-	virtual TVector GetHoldingTimeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const = 0;
+	virtual void GetHoldingTimeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltV& HoldingTmV) const = 0;
 
 	// returns the number of states
 	int GetStates() const { return NStates; };
@@ -504,9 +508,9 @@ public:
 	// returns true is the jump from OldStateId to NewStateId is considered anomalous
 	virtual bool IsAnomalousJump(const TFltV& FtrV, const int& NewStateId, const int& OldStateId) const = 0;
 
-	virtual void CreateFtrV(const TFltV& ObsFtrV, const TFltV& PrevObsFtrV,
-    		const TFltV& ContrFtrV, const TFltV& PrevContrFtrV, const uint64& RecTm,
-			const uint64& PrevRecTm, TFltV& FtrV) const = 0;
+//	virtual void CreateFtrV(const TFltV& ObsFtrV, const TFltV& PrevObsFtrV,
+//    		const TFltV& ContrFtrV, const TFltV& PrevContrFtrV, const uint64& RecTm,
+//			const uint64& PrevRecTm, TFltV& FtrV) const = 0;
 
 	// set params
 	double GetTimeHorizon() const { return TmHorizon; }
@@ -546,18 +550,39 @@ protected:
 	virtual const TStr GetType() const = 0;
 };
 
+class TBernoulliIntens {
+private:
+	TLogReg LogReg;
+	double DeltaTm;
+public:
+	TBernoulliIntens():
+		LogReg(0, true, false),
+		DeltaTm(0) {}
+	TBernoulliIntens(const double& _DeltaTm, const double& Lambda=0, const bool Verbose=false):
+		LogReg(Lambda, true, Verbose),
+		DeltaTm(_DeltaTm) {}
+	TBernoulliIntens(TSIn& SIn): LogReg(SIn), DeltaTm(TFlt(SIn)) {}
+
+	void Save(TSOut& SOut) const { LogReg.Save(SOut); TFlt(DeltaTm).Save(SOut); }
+	void Fit(const TFltVV& X, const TFltV& y, const double& Eps=1e-3) { LogReg.Fit(X, y, Eps); }
+	double Predict(const TFltV& x) const {
+		return LogReg.Predict(x) / DeltaTm;
+	}
+};
+
 /////////////////////////////////////////////////////////////////
 // Continous time Markov Chain
 class TCtMChain: public TMChain {
-	typedef TFltV TJumpTmV;
-	typedef TVec<TFltV> TJumpFtrVV;
+	typedef TFltV TLabelV;
+	typedef TVec<TFltV> TFtrVV;
 	typedef TFltVV TJumpFtrMat;
 
-	typedef TVec<TVec<TJumpTmV>> TJumpTmVMat;
-	typedef TVVec<TJumpFtrVV> TJumpFtrVVMat;
+	typedef TVec<TVec<TLabelV>> TLabelVMat;
+	typedef TVVec<TFtrVV> TJumpFtrVVMat;
 	typedef TVVec<TJumpFtrMat> TJumpFtrMatMat;
 
-	typedef TPropHazards TIntensModel;
+//	typedef TPropHazards TIntensModel;
+	typedef TBernoulliIntens TIntensModel;
 	typedef TVVec<TIntensModel> TIntensModelMat;
 public:
 	const static uint64 TU_SECOND;
@@ -589,59 +614,59 @@ public:
 	// returns the most likely next states excluding the current state
 	void GetNextStateProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
 			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
-			const int& NFutStates) const;
+			const int& NFutStates) const override;
 	// returns the most likely previous states excluding the current state
 	void GetPrevStateProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
 			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
-			const int& NFutStates) const;
+			const int& NFutStates) const override;
 
 	void GetProbVOverTm(const double& Height, const int& StateId, const double& StartTm,
 			const double EndTm, const double& DeltaTm, const TStateSetV& StateSetV,
 			const TStateFtrVV& StateFtrVV, const TStateIdV& StateIdV, TVec<TFltV>& FutProbVV,
-			TVec<TFltV>& PastProbVV) const;
+			TVec<TFltV>& PastProbVV) const override;
 
 	// approximates the probability of jumping into the target state in the prespecified
 	// time horizon
 	bool PredictOccurenceTime(const TStateFtrVV& StateFtrVV, const TStateSetV& StateSetV,
 			const TStateIdV& StateIdV, const int& CurrStateId, const int& TargetStateId,
-			double& Prob, TFltV& ProbV, TFltV& TmV) const;
+			double& Prob, TFltV& ProbV, TFltV& TmV) const override;
 
 	// continuous time Markov chain stuff
 	// returns the stationary distribution of the stohastic process
-	TVector GetStatDist(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const;
+	void GetStatDist(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			TFltV& ProbV) const override;
 
 	// returns the size of each state used in the visualization
-	TVector GetStateSizeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const;
-	TFullMatrix GetTransitionMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const;
+	void GetStateSizeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			TFltV& StateSizeV) const override;
+	TFullMatrix GetTransitionMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const override;
 	TFullMatrix GetJumpMatrix(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const;
-	TFullMatrix GetModel(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const
+	TFullMatrix GetModel(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const override
 		{ return GetQMatrix(StateSetV, StateFtrVV); }
 
-	TVector GetHoldingTimeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const;
+	void GetHoldingTimeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			TFltV& HoldingTmV) const override;
 
 	// returns true if the jump from OldStateId to NewStateId has a low enough probability
-	bool IsAnomalousJump(const TFltV& FtrV, const int& NewStateId, const int& OldStateId) const;
+	bool IsAnomalousJump(const TFltV& FtrV, const int& NewStateId, const int& OldStateId) const override;
 
 	int GetStates() const { return NStates; }
 
-	void CreateFtrV(const TFltV& ObsFtrV, const TFltV& PrevObsFtrV,
-    		const TFltV& ContrFtrV, const TFltV& PrevContrFtrV, const uint64& RecTm,
-			const uint64& PrevRecTm, TFltV& FtrV) const;
-
 protected:
 //	void InitStats(const int& NStates);
-	void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool EndsBatch);
+	void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool EndsBatch) override;
 
 	// get future state probabilities for all the states for a fixed time in the future
 	TFullMatrix GetFutureProbMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			const double& Tm) const;
+			const double& Tm) const override;
 	TFullMatrix GetPastProbMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			const double& Tm) const;
+			const double& Tm) const override;
 
-	void InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV, const TIntV& AssignV, const TBoolV& EndBatchV);
+	void InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV, const TIntV& AssignV,
+			const TBoolV& EndBatchV) override;
 	// prints the statistics used to build the Q-matrix
 //	void PrintStats() const;
-	const TStr GetType() const { return "continuous"; }
+	const TStr GetType() const override { return "continuous"; }
 
 private:
 	// returns the intensity matrix (Q-matrix)
@@ -657,7 +682,7 @@ private:
 	// a holding time is the expected time that the process will stay in state i
 	// it is an exponential random variable of parameter -q_ii, so its expected value
 	// is -1/q_ii
-	TVector GetHoldingTimeV(const TFullMatrix& QMat) const;
+	void GetHoldingTimeV(const TFullMatrix& QMat, TFltV& HoldingTmV) const;
 
 	bool IsHiddenStateId(const int& StateId) const { return HasHiddenState && StateId == GetHiddenStateId(); }
 
@@ -668,7 +693,7 @@ private:
 			const PNotify& Notify);
 
 	// returns the stationary distribution
-	static TVector GetStatDist(const TFullMatrix& QMat, const PNotify& Notify);
+	static void GetStatDist(const TFullMatrix& QMat, TFltV& StatDistV, const PNotify& Notify);
 
 	static TFullMatrix GetProbMat(const TFullMatrix& QMat, const double& Dt);
 
@@ -845,7 +870,7 @@ private:
     void DetectAnomalies(const int& NewStateId, const int& OldStateId, const TFltV& ObsFtrV,
     		const TFltV& FtrV) const;
 
-    void PredictTargets(const TStateFtrVV& StateFtrVV, const int& CurrStateId) const;
+    void PredictTargets(const uint64& RecTm, const TStateFtrVV& StateFtrVV, const int& CurrStateId) const;
 
     void CheckBatches(const TUInt64V& TmV, const TBoolV& BatchEndV) const;
 
@@ -858,8 +883,9 @@ public:
     	virtual void OnStateChanged(const TIntFltPrV& StateIdHeightV) = 0;
     	virtual void OnAnomaly(const TStr& AnomalyDesc) = 0;
     	virtual void OnOutlier(const TFltV& FtrV) = 0;
-    	virtual void OnPrediction(const int& CurrStateId, const int& TargetStateId,
-    			const double& Prob, const TFltV& ProbV, const TFltV& TmV) = 0;
+    	virtual void OnPrediction(const uint64& RecTm, const int& CurrStateId,
+    			const int& TargetStateId, const double& Prob, const TFltV& ProbV,
+				const TFltV& TmV) = 0;
     };
 };
 

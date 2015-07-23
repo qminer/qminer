@@ -77,6 +77,7 @@ public:
 	*/
 	//# exports.zscoreResult = function (mat, flag, dim) { return {sigma:'', mu:'', Z:''}; }
 	JsDeclareFunction(zscore);
+<<<<<<< HEAD
 
 	/** TODO Alma napisi komentar
 	* returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`.
@@ -88,6 +89,8 @@ public:
 	JsDeclareFunction(studentCdf);
 private:
    // 
+=======
+>>>>>>> f9a65980266a21fd406abc9795ba845e98cdb4ab
 };
 
 class TPdf {
