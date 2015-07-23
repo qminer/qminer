@@ -18,6 +18,7 @@ void TNodeJsStat::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_METHOD(exports, "mean", _mean);
 	NODE_SET_METHOD(exports, "std", _std);
 	NODE_SET_METHOD(exports, "zscore", _zscore);
+	NODE_SET_METHOD(exports, "studentCdf", _studentCdf);
 }
 
 void TNodeJsStat::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -102,16 +103,24 @@ void TNodeJsStat::zscore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(JsObj);
 }
 
-/////////////////////////////////
-//// Register functions, etc.
-//void init(v8::Handle<v8::Object> exports) {
-//   TNodeJsStat::Init(exports);
-//   // LA
-//   TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
-//   TNodeJsVec<TInt, TAuxIntV>::Init(exports);
-//   TNodeJsFltVV::Init(exports);
-//   TNodeJsSpVec::Init(exports);
-//   TNodeJsSpMat::Init(exports);
-//}
-//
-//NODE_MODULE(statistics, init)
+void TNodeJsStat::studentCdf(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 2 || Args.Length() == 4, "TNodeJsStat::studentCdf: expects 2 or 4 arguments!");
+
+	if (Args.Length() == 2) {
+		const double TVal = TNodeJsUtil::GetArgFlt(Args, 0);
+		const int Df = TNodeJsUtil::GetArgInt32(Args, 1);
+
+		Args.GetReturnValue().Set(v8::Number::New(Isolate, TSpecFunc::StudentCdf(TVal, Df)));
+	}
+	else {
+		const double Val = TNodeJsUtil::GetArgFlt(Args, 0);
+		const double Mean = TNodeJsUtil::GetArgFlt(Args, 1);
+		const double Std = TNodeJsUtil::GetArgFlt(Args, 2);
+		const int Df = TNodeJsUtil::GetArgInt32(Args, 3);
+
+		Args.GetReturnValue().Set(v8::Number::New(Isolate, TSpecFunc::StudentCdf(Val, Mean, Std, Df)));
+	}
+}

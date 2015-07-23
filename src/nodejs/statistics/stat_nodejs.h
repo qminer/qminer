@@ -27,6 +27,7 @@
 class TNodeJsStat : public node::ObjectWrap {
 public:
 	static void Init(v8::Handle<v8::Object> exports);
+
 public:
     // 
 	// **Functions and properties:**
@@ -76,8 +77,24 @@ public:
 	*/
 	//# exports.zscoreResult = function (mat, flag, dim) { return {sigma:'', mu:'', Z:''}; }
 	JsDeclareFunction(zscore);
+
+	/** TODO Alma napisi komentar
+	* returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`.
+	* @param {module:la.Matrix} input - Matrix
+	* @param {number} [flag=0] - Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+	* @param {number} [dim=1] - Computes the standard deviations along the dimension of `mat` specified by parameter `dim`. 1 is col std, 2 is row std.
+	* @returns {zscoreResult}
+	*/
+	JsDeclareFunction(studentCdf);
 private:
    // 
+};
+
+class TPdf {
+private:
+
+public:
+	static double StudentPVal(const double& Val, const double& Mean, const double& Std, const int& Df);
 };
 
 #endif
