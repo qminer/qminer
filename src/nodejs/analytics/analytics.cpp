@@ -896,7 +896,7 @@ TNodeJsLogReg* TNodeJsLogReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Val
 			const double Lambda = ArgJson->IsObjKey("lambda") ? ArgJson->GetObjNum("lambda") : 1;
 			const bool IncludeIntercept = ArgJson->IsObjKey("intercept") ? ArgJson->GetObjBool("intercept") : false;
 
-			return new TNodeJsLogReg(TMl::TLogReg(Lambda, IncludeIntercept));
+			return new TNodeJsLogReg(TRegression::TLogReg(Lambda, IncludeIntercept));
 		}
 	} catch (const PExcept& Except) {
 		Isolate->ThrowException(v8::Exception::TypeError(
@@ -1002,14 +1002,14 @@ TNodeJsPropHaz* TNodeJsPropHaz::NewFromArgs(const v8::FunctionCallbackInfo<v8::V
 		if (Args.Length() > 0 && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::GetClassId())) {
 			// load the model from the input stream
 			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
-			return new TNodeJsPropHaz(TMl::TPropHazards(*JsFIn->SIn));
+			return new TNodeJsPropHaz(TRegression::TPropHazards(*JsFIn->SIn));
 		} else {
 			// parse the arguments
 			PJsonVal ArgJson = Args.Length() > 0 ? TNodeJsUtil::GetArgJson(Args, 0) : TJsonVal::NewObj();
 
 			const double Lambda = ArgJson->IsObjKey("lambda") ? ArgJson->GetObjNum("lambda") : 0;
 
-			return new TNodeJsPropHaz(TMl::TPropHazards(Lambda));
+			return new TNodeJsPropHaz(TRegression::TPropHazards(Lambda));
 		}
 	} catch (const PExcept& Except) {
 		Isolate->ThrowException(v8::Exception::TypeError(

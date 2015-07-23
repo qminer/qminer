@@ -14,7 +14,6 @@
 #include "fs_nodejs.h"
 #include "la_nodejs.h"
 #include "qminer_ftr.h"
-#include "mc.h"
 
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Machine-Model
@@ -486,9 +485,9 @@ public:
 	static const TStr GetClassId() { return "LogReg"; }
 
 private:
-	TMl::TLogReg LogReg;
+	TRegression::TLogReg LogReg;
 
-	TNodeJsLogReg(const TMl::TLogReg& _LogReg): LogReg(_LogReg) {}
+	TNodeJsLogReg(const TRegression::TLogReg& _LogReg): LogReg(_LogReg) {}
 
 	static TNodeJsLogReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
@@ -545,9 +544,9 @@ public:
 	static const TStr GetClassId() { return "PropHazards"; }
 
 private:
-	TMl::TPropHazards Model;
+	TRegression::TPropHazards Model;
 
-	TNodeJsPropHaz(const TMl::TPropHazards& _Model): Model(_Model) {}
+	TNodeJsPropHaz(const TRegression::TPropHazards& _Model): Model(_Model) {}
 
 	static TNodeJsPropHaz* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 

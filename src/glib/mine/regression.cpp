@@ -6,9 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include "ml.h"
-
-using namespace TMl;
+using namespace TRegression;
 
 ///////////////////////////////////////////
 // Logistic Regression

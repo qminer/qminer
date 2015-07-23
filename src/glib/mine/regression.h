@@ -5,18 +5,8 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
- 
-/*
- * clust.h
- *
- *  Created on: Feb 9, 2015
- *      Author: lstopar
- */
 
-#ifndef SRC_GLIB_MINE_ML_H_
-#define SRC_GLIB_MINE_ML_H_
-
-namespace TMl {
+namespace TRegression {
 
 ///////////////////////////////////////////
 // Logistic Regression using the Newton-Raphson method
@@ -77,5 +67,3 @@ private:
 
 
 }
-
-#endif /* SRC_GLIB_MINE_ML_H_ */
