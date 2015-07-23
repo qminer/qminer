@@ -1,3 +1,6 @@
+#ifndef SIGNALPROC_H_
+#define SIGNALPROC_H_
+
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
@@ -7,6 +10,50 @@
  */
 
 namespace TSignalProc {
+
+
+/////////////////////////////////////////////////
+// Online Moving Average (M1))
+class TMaSimple {
+private:
+	TFlt Ma; // current computed MA value  
+	TUInt64 N;
+public:
+	TMaSimple() { Ma = 0; N = 0; };
+	TMaSimple(const PJsonVal& ParamVal) { TMaSimple(); };
+	TMaSimple(TSIn& SIn) : Ma(SIn), N(SIn) {}
+	// serialization
+	void Load(TSIn& SIn) { *this = TMaSimple(SIn); }
+	void Save(TSOut& SOut) const { Ma.Save(SOut); N.Save(SOut); }
+	void Update(const double& InVal) { Ma = Ma + (InVal - Ma) / ++N; }
+	double GetMa() const { return Ma; }
+	void Clr() { Ma = 0; N = 0; }
+};
+
+/////////////////////////////////////////////////
+// Online M2 (variance)
+class TVarSimple {
+private:
+	TFlt OldM;
+	TFlt NewM;
+	TFlt OldS;
+	TFlt NewS;
+	TUInt64 N;
+public:
+	TVarSimple() { OldM = NewM = OldS = NewS = 0.0; N = 0; }
+	TVarSimple(TSIn& SIn) : OldM(SIn), NewM(SIn), OldS(SIn), NewS(SIn), N(SIn) {}
+
+	// serialization
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
+	void Update(const double& InVal);
+	// current status	
+	uint64 GetN() const { return N; }
+	double GetMean() const { return N > 0 ? NewM : 0; }
+	double GetStDev() const { return sqrt((double)GetVar()); }
+	double GetVar() const { return (N > 1 ? NewS / (N - 1) : 0.0); }
+	void Clr() { OldM = NewM = OldS = NewS = 0.0; N = 0; }
+};
 
 /////////////////////////////////////////////////
 // Online Moving Average (M1))
@@ -26,6 +73,7 @@ public:
         const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N);	
 	double GetValue() const { return Ma; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
+	void Clr() { Ma = 0; TmMSecs = 0; }
 };
     
 /////////////////////////////////////////////////
@@ -153,6 +201,7 @@ public:
 		else { return 0; }
 	}
 	uint64 GetTmMSecs() const { return TmMSecs; }
+	void Clr() { Ma = 0; M2 = 0; pNo = 1; TmMSecs = 0; }
 };
 
 /////////////////////////////////////////////////
@@ -619,3 +668,5 @@ public:
 };
 
 }
+
+#endif
