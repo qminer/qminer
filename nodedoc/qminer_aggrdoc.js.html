@@ -1,0 +1,383 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta charset="utf-8">
+  <title>Source: qminer_aggrdoc.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: qminer_aggrdoc.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>/**
+
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+
+ * All rights reserved.
+
+ * 
+
+ * This source code is licensed under the FreeBSD license found in the
+
+ * LICENSE file in the root directory of this source tree.
+
+ */
+
+/**
+
+* Qminer module.
+
+* @module qm
+
+* @example
+
+* // import module
+
+* var qm = require(&#x27;qminer&#x27;);
+
+*/
+
+/**
+
+* Stream Aggregate
+
+* @classdesc Represents the stream aggregate.
+
+* @class
+
+* @param {module:qm.Base} base - The base object on which it&#x27;s created.
+
+* @param {(Object | function)} json - The JSON object containing the schema of the stream aggregate or the function object defining the operations of the stream aggregate.
+
+* @param {(string | Array.&amp;lt;string&gt;)} [storeName] - A store name or an array of store names, where the aggregate will be registered.
+
+* @example
+
+* // import qm module
+
+* var qm = require(&#x27;qminer&#x27;);
+
+* // create a simple base containing one store
+
+* var base = new qm.Base({
+
+*    mode: &quot;createClean&quot;,
+
+*    schema: [
+
+*        name: &quot;People&quot;,
+
+*        fields: [
+
+*            { name: &quot;Name&quot;, type: &quot;string&quot; },
+
+*            { name: &quot;Gendre&quot;, type: &quot;string&quot; },
+
+*        ]
+
+*    },
+
+*    {
+
+*        name: &quot;Laser&quot;,
+
+*        fields: [
+
+*            { name: &quot;Time&quot;, type: &quot;datetime&quot; },
+
+*            { name: &quot;WaveLength&quot;, type: &quot;float&quot; }
+
+*        ]
+
+*    }]
+
+* });
+
+* // create a new stream aggregator for &quot;People&quot; store: get the length of the record name (with the function object)
+
+* var aggr = new qm.StreamAggr(base, new function () {
+
+*    var length = 0;
+
+*    this.name = &#x27;nameLength&#x27;,
+
+*    this.onAdd = function (rec) {
+
+*        length = rec.Name.length;
+
+*    };
+
+*    this.saveJson = function (limit) {
+
+*        return { val: length };
+
+*    }
+
+* }, &quot;People&quot;);
+
+* // create a new stream aggregator for &quot;Laser&quot; store: timeseries window buffer (with the JSON object)
+
+* var wavelength = {
+
+*     name: &quot;WaveLengthLaser&quot;,
+
+*     type: &quot;timeSeriesWinBuf&quot;,
+
+*     store: &quot;Laser&quot;,
+
+*     timestamp: &quot;Time&quot;,
+
+*     value: &quot;WaveLength&quot;,
+
+*     winsize: 10000
+
+* }
+
+* var sa = base.store(&quot;Laser&quot;).addStreamAggr(wavelength);
+
+*/
+
+ exports.StreamAggr = function (base, json, storeName) {};
+
+/**
+
+	* Executes the function when a new record is put in store.
+
+	* @param {module:qm.Record} rec - The record given to the stream aggregator.
+
+	* @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.
+
+	*/
+
+ exports.StreamAggr.prototype.onAdd = function (rec) {};
+
+/**
+
+	* Executes the function when a record in the store is updated.
+
+	* @param {module:qmRecord} rec - The updated record given to the stream aggregator.
+
+	* @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.
+
+	*/
+
+ exports.StreamAggr.prototype.onUpdate = function (rec) {};
+
+/**
+
+	* Executes the function when a record in the store is deleted.
+
+	* @param {module:qm.Record} rec - The deleted record given to the stream aggregator.
+
+	* @returns {module:qm.StreamAggr} Self. The values in the stream aggregator are changed as defined in the inner onDelete function.
+
+	*/
+
+ exports.StreamAggr.prototype.onDelete = function (rec) {};
+
+/**
+
+	* When executed it return a JSON object as defined by the user.
+
+	* @param {number} [limit] - The meaning is specific to each type of stream aggregator. //TODO
+
+	* @returns {Object} A JSON object as defined by the user.
+
+	*/
+
+ exports.StreamAggr.prototype.saveJson = function (limit) {};
+
+/**
+
+	* Returns the float value of the newest record in buffer.
+
+	* @returns {number} The value of the newest record.
+
+	*/
+
+ exports.StreamAggr.prototype.getFloat = function () {};
+
+/**
+
+	* Returns the timestamp value of the newest record in buffer.
+
+	* @returns {number} The timestamp of the newest record. It represents the number of miliseconds between the records time and 1601-01-01T00:00:00.0.
+
+	*/
+
+ exports.StreamAggr.prototype.getTimestamp = function () {};
+
+/**
+
+	* Gets the length of the value vector.
+
+	* @returns {number} The length of the value vector.
+
+	*/
+
+ exports.StreamAggr.prototype.getFloatLength = function () {};
+
+/**
+
+	* Returns the value of the float vector at a specific index.
+
+	* @param {number} idx - The index.
+
+	* @returns {number} The value of the float vector at position idx.
+
+	*/
+
+ exports.StreamAggr.prototype.getFloatAt = function (idx) {};
+
+/**
+
+	* Gets the whole value vector of the buffer.
+
+	* @returns {module:la.Vector} The vector containing the values of the buffer.
+
+	*/
+
+ exports.StreamAggr.prototype.getFloatVector = function () {};
+
+/**
+
+	* Gets the length of the timestamp vector.
+
+	* @returns {number} The length of the timestamp vector.
+
+	*/
+
+ exports.StreamAggr.prototype.getTimestampLength = function () {};
+
+/**
+
+	* Gets the timestamp on the specific location in the buffer.
+
+	* @param {number} idx - The index.
+
+	* @returns {number} The timestamp located on the idx position in the buffer.
+
+	*/
+
+ exports.StreamAggr.prototype.getTimestampAt = function (idx) {};
+
+/**
+
+	* Gets the dense vector containing the windows timestamps.
+
+	* @returns {module:la.Vector} The vector containing the window timestamps.
+
+	*/
+
+ exports.StreamAggr.prototype.getTimestampVector = function () {};
+
+/**
+
+	* Gets the value of the newest record added to the buffer.
+
+	* @returns {number} The value of the newest record in the buffer.
+
+	*/
+
+ exports.StreamAggr.prototype.getInFloat = function () {};
+
+/**
+
+	* Gets the timestamp of the newest record added to the buffer.
+
+	* @returns {number} The timestamp given as the number of miliseconds since 01.01.1601, time: 00:00:00.0.
+
+	*/
+
+ exports.StreamAggr.prototype.getInTimestamp = function () {};
+
+/**
+
+	* Gets a vector containing the values that are leaving the buffer.
+
+	* @returns {module:la.Vector} The vector containing the values that are leaving the buffer.
+
+	*/
+
+ exports.StreamAggr.prototype.getOutFloatVector = function () {};
+
+/**
+
+	* Gets a vector containing the timestamps that are leaving the buffer.
+
+	* @returns {module:la.Vector} The vector containing the leaving timestamps.
+
+	*/
+
+ exports.StreamAggr.prototype.getOutTimestampVector = function () {};
+
+/**
+
+	* Gets the number of records in the buffer.
+
+	* @returns {number} The number of records in the buffer.
+
+	*/
+
+ exports.StreamAggr.prototype.getNumberOfRecords = function () {};
+
+/**
+
+	* Returns the name of the stream aggregate.
+
+	*/
+
+ exports.StreamAggr.prototype.name = undefined;
+
+/**
+
+	* Returns the JSON object of the stream aggregate. Same as the method saveJson.
+
+	*/
+
+ exports.StreamAggr.prototype.val = undefined;
+
+</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 9, 2015.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

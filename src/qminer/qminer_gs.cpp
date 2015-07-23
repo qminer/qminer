@@ -538,8 +538,8 @@ uint64 TInMemStorage::AddVal(const TMem& Val) {
 void TInMemStorage::SetVal(const uint64& ValId, const TMem& Val) {
 	AssertReadOnly();
     ValV[ValId - FirstValOffsetMem] = Val;
-	uchar flag = DirtyV[ValId - FirstValOffsetMem];
-	if (flag == isdfNew) { } // new remains new
+	uchar& flag = DirtyV[ValId - FirstValOffsetMem];
+	if (flag == isdfNew) { }   // new remains new
 	else { flag = isdfDirty; } // set as dirty
 }
 

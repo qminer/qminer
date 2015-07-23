@@ -45,52 +45,6 @@
 
 /**
 
-* Analytics module.
-
-* @module analytics
-
-* @example
-
-* // import module
-
-* var analytics = require(&#x27;qminer&#x27;).analytics;
-
-* // REGRESSION WITH SVR
-
-* // Set up fake train and test data.
-
-* // Four training examples with, number of features = 2
-
-* var featureMatrix = new la.Matrix({rows:2, cols:4});
-
-* // Regression targets for four examples
-
-* var targets = new la.Vector({vals:4});
-
-* // Set up the regression model
-
-* var SVR = new analytics.SVR({verbose:true});
-
-* // Train regression
-
-* SVR.fit(featureMatrix, targets);
-
-* // Save the model to disk
-
-* SVR.save(&#x27;svr.bin&#x27;);*
-
-* // Set up a fake test vector
-
-* var test = new la.Vector({vals:2});
-
-* // Predict the target value
-
-* var prediction = SVR.predict(test);
-
-*/
-
-/**
-
 * SVC constructor parameters
 
 * @typedef {Object} svcParam
@@ -445,9 +399,7 @@
 
  * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
 
- * @property {Number} [opts.lambda = 1] - the regularization parameter
-
- * @property {Boolean} [opts.intercept = false] - if true, the intercept will automatically be included
+ * @property {Number} [opts.lambda = 0] - the regularization parameter
 
  */
 
@@ -731,11 +683,13 @@
 
 /**
 
-	 * Returns the centroid of the specified state.
+	 * Returns the centroid of the specified state containing only the observation parameters.
 
 	 *
 
 	 * @param {Number} stateId - the ID of the state
+
+	 * @param {Boolean} [observations=true] - indicates wether to output observation or control coordinates
 
 	 * @returns {Array} - the coordinates of the state
 
@@ -817,6 +771,26 @@
 
 /**
 
+	 * Sets a callback function which is fired when a prediction is made. 4 paramters are passed
+
+	 * to the callback:
+
+	 * - Id of the target state
+
+	 * - probability of occurring
+
+	 * - vector of probabilities
+
+	 * - vector of times corresponding to those probabilities
+
+	 *
+
+	 * @param {function} callback - the funciton which is called
+
+	 */
+
+/**
+
 	 * Rebuilds its hierarchy.
 
 	 */
@@ -827,7 +801,9 @@
 
 	 *
 
-	 * @param {Matrix} X - the column matrix containing data instances
+	 * @param {Matrix} obsMat - the column matrix containing observation data instances
+
+	 * @param {Matrix} controlMat - the column matrix containing control data instances
 
 	 */
 
@@ -857,6 +833,46 @@
 
 /**
 
+	 * Returns true if the state is a target on the specified height.
+
+	 *
+
+	 * @param {Number} stateId - Id of the state
+
+	 * @param {Number} height - the height
+
+	 * @returns {Boolean}
+
+	 */
+
+/**
+
+	 * Sets whether the specified state is a target state or not.
+
+	 *
+
+	 * @param {Number} stateId - ID of the state
+
+	 * @param {Number} height - the height on which the state is a target
+
+	 * @param {Boolean} isTarget - set target on/off
+
+	 */
+
+/**
+
+	 * Sets the factor of the specified control:
+
+	 *
+
+	 * @param {Number} ftrIdx - the index of the control feature
+
+	 * @param {Number} factor
+
+	 */
+
+/**
+
 	 * Saves the model to the output stream.
 
 	 *
@@ -864,8 +880,6 @@
 	 * @param {FOut} fout - the output stream
 
 	 */
-
- exports.HMC.prototype.save = function(arg) { return arg; }	
 
 
 
@@ -1469,27 +1483,477 @@
 
     }
 
+	
+
+	//!- &#x60;result = new exports.rocScore(sample)&#x60; -- used for computing ROC curve and 
+
+	//!     other related measures such as AUC; the result is a results object
+
+	//!     with the following API:
+
+	exports.rocScore = function () {
+
+		// count of all the positive and negative examples
+
+		this.allPositives = 0;
+
+		this.allNegatives = 0;
+
+		// store of predictions and ground truths
+
+		this.grounds = new la.Vector();
+
+		this.predictions = new la.Vector();
+
+	
+
+		//!     - &#x60;result.push(ground, predict)&#x60; -- add new measurement with ground score (1 or -1) and predicted value
+
+		this.push = function (ground, predict) {
+
+			// remember the scores
+
+			this.grounds.push(ground)
+
+			this.predictions.push(predict);
+
+			// update counts
+
+			if (ground &gt; 0) { 
+
+				this.allPositives++; 
+
+			} else {
+
+				this.allNegatives++;
+
+			}
+
+		}
+
+	
+
+		//!     - &#x60;roc_arr = result.curve(sample)&#x60; -- get ROC parametrization as array of sample points
+
+		this.curve = function (sample) {
+
+			// default sample size is 10
+
+			sample = sample || 10;
+
+			// sort according to predictions
+
+			var perm = this.predictions.sortPerm(false);
+
+			// maintaining the results as we go along
+
+			var TP = 0, FP = 0, ROC = [[0, 0]];
+
+			// for figuring out when to dump a new ROC sample
+
+			var next = Math.floor(perm.perm.length / sample);
+
+			// go over the sorted results
+
+			for (var i = 0; i &amp;lt; perm.perm.length; i++) {
+
+				// get the ground
+
+				var ground = this.grounds[perm.perm[i]];
+
+				// update TP/FP counts according to the ground
+
+				if (ground &gt; 0) { TP++ } else { FP++; }
+
+				// see if time to do next save
+
+				next = next - 1;		
+
+				if (next &amp;lt;= 0) {
+
+					// add new datapoint to the curve 
+
+					ROC.push([FP/this.allNegatives, TP/this.allPositives]);
+
+					// setup next timer 
+
+					next = Math.floor(perm.perm.length / sample);
+
+				}
+
+			}
+
+			// add the last point
+
+			ROC.push([1,1]);
+
+			// return ROC
+
+			return ROC;
+
+		}
+
+    
+
+		//!     - &#x60;num = result.auc(sample)&#x60; -- get AUC of the current curve
+
+		this.auc = function (sample) {
+
+			// default sample size is 10
+
+			sample = sample || 10;
+
+	        // get the curve
+
+	        var curve = this.curve(sample);
+
+	        // compute the area
+
+	        var result = 0;
+
+	        for (var i = 1; i &amp;lt; curve.length; i++) {
+
+	            // get edge points
+
+	            var left = curve[i-1];
+
+	            var right = curve[i];
+
+	            // first the rectangle bellow
+
+	            result = result + (right[0] - left[0]) * left[1];
+
+	            // an then the triangle above 
+
+	            result = result + (right[0] - left[0]) * (right[1] - left[1]) / 2;
+
+	        }
+
+	        return result;
+
+	    }
+
+    
+
+	    //!     - &#x60;num = result.breakEvenPoint()&#x60; -- get break-even point, which is number where precision and recall intersect
+
+	    this.breakEvenPoint = function () {
+
+			// sort according to predictions
+
+			var perm = this.predictions.sortPerm(false);
+
+			// maintaining the results as we go along
+
+			var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
+
+	        var minDiff = 1.0, bep = -1.0;
+
+			// go over the sorted results
+
+			for (var i = 0; i &amp;lt; perm.perm.length; i++) {
+
+				// get the ground
+
+				var ground = this.grounds[perm.perm[i]];
+
+				// update TP/FP counts according to the ground
+
+				if (ground &gt; 0) { TP++; FN--; } else { FP++; TN--; }
+
+	            // do the update
+
+	            if ((TP + FP) &gt; 0 &amp;amp;&amp;amp; (TP + FN) &gt; 0 &amp;amp;&amp;amp; TP &gt; 0) {
+
+	                // compute current precision and recall
+
+	                var precision = TP / (TP + FP);
+
+	                var recall = TP / (TP + FN);
+
+	                // see if we need to update current bep
+
+	                var diff = Math.abs(precision - recall);
+
+	                if (diff &amp;lt; minDiff) { minDiff = diff; bep = (precision + recall) / 2; }
+
+	            }
+
+	        }        
+
+	        return bep;
+
+	    }
+
+    
+
+	    //!     - &#x60;num = result.bestF1()&#x60; -- gets threshold for prediction score, which results in the highest F1
+
+	    this.bestF1 = function () {
+
+			// sort according to predictions
+
+			var perm = this.predictions.sortPerm(false);
+
+			// maintaining the results as we go along
+
+			var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
+
+	        var maxF1 = 0.0, prediction = -1.0;
+
+			// go over the sorted results
+
+			for (var i = 0; i &amp;lt; perm.perm.length; i++) {
+
+				// get the ground
+
+				var ground = this.grounds[perm.perm[i]];
+
+				// update TP/FP counts according to the ground
+
+				if (ground &gt; 0) { TP++; FN--; } else { FP++; TN--; }
+
+	            // do the update
+
+	            if ((TP + FP) &gt; 0 &amp;amp;&amp;amp; (TP + FN) &gt; 0 &amp;amp;&amp;amp; TP &gt; 0) {
+
+	                // compute current precision, recall and F1
+
+	                var precision = TP / (TP + FP);
+
+	                var recall = TP / (TP + FN);
+
+	                var f1 = 2 * precision * recall / (precision + recall);
+
+	                // see if we need to update max F1
+
+	                if (f1 &gt; maxF1) { maxF1 = f1; prediction = perm.vec[i]; }
+
+	            }
+
+	        }        
+
+	        return prediction;
+
+	    }
+
+	    
+
+		//!     - &#x60;result.report(sample)&#x60; -- output to screen
+
+		this.report = function (sample) {
+
+			// default sample size is 10
+
+			sample = sample || 10;
+
+			// get the curve
+
+			var curve = this.curve(sample);
+
+			// print to console
+
+	        console.log(&quot;FPR TPR&quot;);
+
+			for (var i = 0; i &amp;lt; curve.length; i++) {
+
+			 	console.log(curve[i][0] + &quot; &quot; + curve[i][1]);
+
+	        }        
+
+		}
+
+	}
 
 
-    //#- &#x60;result = analytics.crossValidation(rs, features, target, folds)&#x60; -- creates a batch
 
-    //#     model for records from record set &#x60;rs&#x60; using &#x60;features; &#x60;target&#x60; is the
+	//!- &#x60;cf = new analytics.confusionMatrix(cats)&#x60; -- for tracking confusion between label classification
 
-    //#     target field and is assumed discrete; the result is a results object
+	exports.confusionMatrix = function (cats) {
 
-    //#     with the following API:
+	    //!     - &#x60;cf.cats&#x60; -- categories we are tracking
 
-    //#     - &#x60;result.target&#x60; -- an object with categories as keys and the following
+	    this.cats = cats;
 
-    //#       counts as members of these keys: &#x60;count&#x60;, &#x60;TP&#x60;, &#x60;TN&#x60;, &#x60;FP&#x60;, &#x60;FN&#x60;,
+	    //!     - &#x60;cf.matrix&#x60; -- confusion matrix
 
-    //#       &#x60;all()&#x60;, &#x60;precision()&#x60;, &#x60;recall()&#x60;, &#x60;accuracy()&#x60;.
+	    this.matrix = new la.Matrix({rows: cats.length, cols: cats.length});
 
-    //#     - &#x60;result.confusion&#x60; -- confusion matrix between categories
+    
 
-    //#     - &#x60;result.report()&#x60; -- prints basic report on to the console
+	    // get category name to id
 
-    //#     - &#x60;result.reportCSV(fout)&#x60; -- prints CSV output to the &#x60;fout&#x60; output stream
+	    this.getCatId = function (cat) {
+
+	        for (var i = 0; i &amp;lt; cats.length; i++) {
+
+	            if (cats[i] === cat) {
+
+	                return i;
+
+	            }
+
+	        }
+
+	        return -1;
+
+	    }
+
+    
+
+	    //!     - &#x60;cf.count(correct, predicted)&#x60; -- update matrix with new prediction
+
+	    this.count = function(correct, predicted) {
+
+	        var row = this.getCatId(correct);
+
+	        if (row == -1) { console.log(&quot;Unknown category &#x27;&quot; + correct + &quot;&#x27;&quot;); }
+
+	        var col = this.getCatId(predicted);
+
+	        if (col == -1) { console.log(&quot;Unknown category &#x27;&quot; + predicted + &quot;&#x27;&quot;); }
+
+	        this.matrix.put(row, col, this.matrix.at(row, col) + 1);
+
+	    }    
+
+    
+
+	    //!     - &#x60;cf.report()&#x60; -- report on the current status
+
+	    this.report = function() {
+
+	        // get column width
+
+	        var max = 0;
+
+	        // first label name
+
+	        for (var i = 0; i &amp;lt; this.cats.length; i++) {
+
+	            if (cats[i].length &gt; max) { max = cats[i].length; }
+
+	        }
+
+	        // then max number
+
+	        for (var i = 0; i &amp;lt; this.cats.length; i++) {
+
+	            for (var j = 0; j &amp;lt; this.cats.length; j++) {
+
+	                var digits = Math.ceil(Math.log(this.matrix.at(i, j)) / Math.LN10) + 2;
+
+	                if (digits &gt; max) { max = digits; }
+
+	            }
+
+	        }
+
+	        // for prittyfying strings
+
+	        function addSpace(str, len) { 
+
+	            while (str.length &amp;lt; len) { 
+
+	                str = &quot; &quot; + str; 
+
+	            }
+
+	            return str;
+
+	        }
+
+	        // print header
+
+	        var header = addSpace(&quot;&quot;, max);
+
+	        for (var i = 0; i &amp;lt; this.cats.length; i++) {
+
+	            header = header + addSpace(this.cats[i], digits);
+
+	        }
+
+	        console.log(header);
+
+	        // print elements
+
+	        for (var i = 0; i &amp;lt; this.cats.length; i++) {
+
+	            var line = addSpace(this.cats[i], max);
+
+	            for (var j = 0; j &amp;lt; this.cats.length; j++) {
+
+	                line = line + addSpace(&quot;&quot; + Math.round(this.matrix.at(i, j)), max);
+
+	            }
+
+	            console.log(line);
+
+	        }
+
+	    }
+
+    
+
+	    //!     - &#x60;cf.reportCSV(fout)&#x60; -- report on the current status
+
+	    this.reportCSV = function(fout) {
+
+	        // print header
+
+	        var header = &quot;&quot;;
+
+	        for (var i = 0; i &amp;lt; this.cats.length; i++) {
+
+	            header = header + &quot;,&quot; + this.cats[i];
+
+	        }
+
+	        fout.writeLine(header);
+
+	        // print elements
+
+	        for (var i = 0; i &amp;lt; this.cats.length; i++) {
+
+	            var line = this.cats[i];
+
+	            for (var j = 0; j &amp;lt; this.cats.length; j++) {
+
+	                line = line + &quot;,&quot; + Math.round(this.matrix.at(i, j));
+
+	            }
+
+	            fout.writeLine(line);
+
+	        }
+
+	    }    
+
+	}
+
+	
+
+
+
+    //!- &#x60;result = analytics.crossValidation(rs, features, target, folds)&#x60; -- creates a batch
+
+    //!     model for records from record set &#x60;rs&#x60; using &#x60;features; &#x60;target&#x60; is the
+
+    //!     target field and is assumed discrete; the result is a results object
+
+    //!     with the following API:
+
+    //!     - &#x60;result.target&#x60; -- an object with categories as keys and the following
+
+    //!       counts as members of these keys: &#x60;count&#x60;, &#x60;TP&#x60;, &#x60;TN&#x60;, &#x60;FP&#x60;, &#x60;FN&#x60;,
+
+    //!       &#x60;all()&#x60;, &#x60;precision()&#x60;, &#x60;recall()&#x60;, &#x60;accuracy()&#x60;.
+
+    //!     - &#x60;result.confusion&#x60; -- confusion matrix between categories
+
+    //!     - &#x60;result.report()&#x60; -- prints basic report on to the console
+
+    //!     - &#x60;result.reportCSV(fout)&#x60; -- prints CSV output to the &#x60;fout&#x60; output stream
 
     exports.crossValidation = function (records, features, target, folds, limitCategories) {
 
@@ -1578,10 +2042,6 @@
         return cfyRes;
 
     };
-
-
-
-
 
 
 
@@ -2215,7 +2675,7 @@
 
     /**
 
-     * Hierarchical Markov model. TODO description      
+     * StreamStory.  
 
      * @class
 
@@ -2237,35 +2697,159 @@
 
     	var mc;
 
-    	var ftrSpace;
+    	var obsFtrSpace;
+
+    	var controlFtrSpace;
 
     	
 
-    	if (opts.hmcConfig != null &amp;amp;&amp;amp; opts.ftrSpaceConfig != null &amp;amp;&amp;amp; opts.base != null) {
+    	if (opts.hmcConfig != null &amp;amp;&amp;amp; opts.obsFields != null &amp;amp;&amp;amp; 
+
+    			opts.contrFields != null &amp;amp;&amp;amp; opts.base != null) {
+
+    		
 
     		mc = opts.sequenceEndV != null ? new exports.HMC(opts.hmcConfig, opts.sequenceEndV) : new exports.HMC(opts.hmcConfig);
 
-    		ftrSpace = new qm.FeatureSpace(opts.base, opts.ftrSpaceConfig);
+    		
+
+    		obsFtrSpace = new qm.FeatureSpace(opts.base, opts.obsFields);
+
+    		controlFtrSpace = new qm.FeatureSpace(opts.base, opts.contrFields);
 
     	} 
 
-    	else if (opts.hmcFile != null &amp;amp;&amp;amp; opts.ftrSpaceFile != null) {
+    	else if (opts.hmcFile != null) {
 
-    		mc = new exports.HMC(opts.hmcFile);
+    		var fin = new fs.FIn(opts.hmcFile);
 
-    		ftrSpace = new qm.FeatureSpace(opts.base, opts.ftrSpaceFile);
+    		mc = new exports.HMC(fin);
+
+    		obsFtrSpace = new qm.FeatureSpace(opts.base, fin);
+
+    		controlFtrSpace = new qm.FeatureSpace(opts.base, fin);
+
+    	}
+
+    	else {
+
+    		throw &#x27;Parameters missing: &#x27; + JSON.stringify(opts);
 
     	}
 
     	
 
-        // public methods
+    	function getFtrNames(ftrSpace) {
 
-        /**
+    		var names = [];
 
-        * @lends module:analytics.HierarchMarkov.prototype
+    		
 
-        */
+    		var dims = ftrSpace.dims;
+
+    		for (var i = 0; i &amp;lt; dims.length; i++) {
+
+				names.push(ftrSpace.getFeature(i));
+
+			}
+
+    		
+
+    		return names;
+
+    	}
+
+    	
+
+    	function getObsFtrCount() {
+
+			return obsFtrSpace.dims.length;
+
+		}
+
+    	
+
+    	function getObsFtrNames() {
+
+    		return getFtrNames(obsFtrSpace);
+
+    	}
+
+    	
+
+    	function getControlFtrNames() {
+
+    		return getFtrNames(controlFtrSpace);
+
+    	}
+
+    	
+
+    	function getFtrDescriptions(stateId) {
+
+    		var observations = [];
+
+    		var controls = [];
+
+			
+
+			var coords = mc.fullCoords(stateId);
+
+			var obsFtrNames = getObsFtrNames();
+
+			var invObsCoords = obsFtrSpace.invertFeatureVector(coords);
+
+			for (var i = 0; i &amp;lt; invObsCoords.length; i++) {
+
+				observations.push({name: obsFtrNames[i], value: invObsCoords.at(i)});
+
+			}
+
+			
+
+			var controlCoords = mc.fullCoords(stateId, false);
+
+			var contrFtrNames = getControlFtrNames();
+
+			var invControlCoords = controlFtrSpace.invertFeatureVector(controlCoords);
+
+			for (var i = 0; i &amp;lt; invControlCoords.length; i++) {
+
+				controls.push({name: contrFtrNames[i], value: invControlCoords.at(i)});
+
+			}
+
+			
+
+			return {
+
+				observations: observations,
+
+				controls: controls
+
+			};
+
+    	}
+
+    	
+
+    	function getFtrCoord(stateId, ftrIdx) {
+
+    		if (ftrIdx &amp;lt; obsFtrSpace.dims.length) {
+
+    			return obsFtrSpace.invertFeatureVector(mc.fullCoords(stateId))[ftrIdx];
+
+    		} else {
+
+    			return controlFtrSpace.invertFeatureVector(mc.fullCoords(stateId, false))[ftrIdx - obsFtrSpace.dims.length];
+
+    		}
+
+    	}
+
+    	
+
+    	// public methods
 
     	var that = {
 
@@ -2287,11 +2871,15 @@
 
     			log.info(&#x27;Updating feature space ...&#x27;);
 
-    			ftrSpace.updateRecords(recSet);
+    			obsFtrSpace.updateRecords(recSet);
+
+    			controlFtrSpace.updateRecords(recSet);
 
     			
 
-    			var colMat = ftrSpace.extractMatrix(recSet);
+    			var obsColMat = obsFtrSpace.extractMatrix(recSet);
+
+    			var contrColMat = controlFtrSpace.extractMatrix(recSet);
 
     			var timeV = recSet.getVector(timeField);
 
@@ -2299,7 +2887,17 @@
 
     			log.info(&#x27;Creating model ...&#x27;);
 
-    			mc.fit(colMat, timeV, batchEndV);
+    			mc.fit({
+
+    				observations: obsColMat,
+
+    				controls: contrColMat,
+
+    				times: timeV,
+
+    				batchV: batchEndV
+
+    			});
 
     			log.info(&#x27;Done!&#x27;);
 
@@ -2319,15 +2917,19 @@
 
     		update: function (rec) {
 
-    			var ftrVec = ftrSpace.extractVector(rec);
-
-    			var recTm = rec.time;
-
-    			var timestamp = recTm.getTime();
+    			if (rec == null) return;
 
     			
 
-    			mc.update(ftrVec, timestamp);
+    			var obsFtrVec = obsFtrSpace.extractVector(rec);
+
+    			var contFtrVec = controlFtrSpace.extractVector(rec);
+
+    			var timestamp = rec.time.getTime();
+
+    			
+
+    			mc.update(obsFtrVec, contFtrVec, timestamp);
 
     		},
 
@@ -2339,17 +2941,39 @@
 
     		 */
 
-    		save: function (mcFName, ftrFname) {
+    		save: function (mcFName) {
 
-    			log.info(&#x27;Saving Markov chain ...&#x27;);
+    			try {
 
-    			mc.save(mcFName);
+    				console.log(&#x27;Saving Markov chain ...&#x27;);
 
-    			log.info(&#x27;Saving feature space ...&#x27;);
+    				
 
-    			ftrSpace.save(ftrFname);
+    				var fout = new fs.FOut(mcFName);
 
-    			log.info(&#x27;Done!&#x27;);
+	    			
+
+	    			mc.save(fout);
+
+	    			obsFtrSpace.save(fout);
+
+	    			controlFtrSpace.save(fout);
+
+	    			
+
+	    			fout.flush();
+
+	    			fout.close();
+
+	    			
+
+	    			console.log(&#x27;Done!&#x27;);
+
+    			} catch (e) {
+
+    				console.log(&#x27;Failed to save the model!!&#x27; + e.message);
+
+    			}
 
     		},
 
@@ -2393,7 +3017,7 @@
 
     		getFtrSpace: function () {
 
-    			return ftrSpace;
+    			return { observations: obsFtrSpace, controls: controlFtrSpace };
 
     		},
 
@@ -2445,21 +3069,13 @@
 
     		getFtrNames: function () {
 
-    			var names = [];
+    			return {
 
-    			
+    				observation: getObsFtrNames(),
 
-    			var dims = ftrSpace.dims;
-
-    			for (var i = 0; i &amp;lt; dims.length; i++) {
-
-    				names.push(ftrSpace.getFeature(i));
+    				control: getControlFtrNames()
 
     			}
-
-    			
-
-    			return names;
 
     		},
 
@@ -2471,31 +3087,21 @@
 
     		 */
 
-    		stateDetails: function (stateId, level) {
+    		stateDetails: function (stateId, height) {    			
 
-    			var coords = mc.fullCoords(stateId);
+    			var futureStates = mc.futureStates(height, stateId);
 
-    			var invCoords = ftrSpace.invFtrVec(coords);
+    			var pastStates = mc.pastStates(height, stateId);
 
-    			var futureStates = mc.futureStates(level, stateId);
-
-    			var pastStates = mc.pastStates(level, stateId);
+    			var isTarget = mc.isTarget(stateId, height);
 
     			var stateNm = mc.getStateName(stateId);
 
     			var wgts = mc.getStateWgtV(stateId);
 
-    			
+    		
 
-    			var ftrNames = that.getFtrNames();
-
-    			var features = [];
-
-    			for (var i = 0; i &amp;lt; invCoords.length; i++) {
-
-    				features.push({name: ftrNames[i], value: invCoords.at(i)});
-
-    			}
+    			var features = getFtrDescriptions(stateId);
 
     			
 
@@ -2504,6 +3110,8 @@
     				id: stateId,
 
     				name: stateNm.length &gt; 0 ? stateNm : null,
+
+    				isTarget: isTarget,
 
     				features: features,
 
@@ -2531,9 +3139,25 @@
 
     			
 
-    			for (var i = 0; i &amp;lt; hist.binStartV.length; i++) {
+    			var nObsFtrs = getObsFtrCount();
 
-    				hist.binStartV[i] = ftrSpace.invFtr(ftrIdx, hist.binStartV[i]);
+    			
+
+    			if (ftrIdx &amp;lt; nObsFtrs) {
+
+	    			for (var i = 0; i &amp;lt; hist.binStartV.length; i++) {
+
+	    				hist.binStartV[i] = obsFtrSpace.invertFeature(ftrIdx, hist.binStartV[i]);
+
+	    			}
+
+    			} else {
+
+    				for (var i = 0; i &amp;lt; hist.binStartV.length; i++) {
+
+	    				hist.binStartV[i] = controlFtrSpace.invertFeature(ftrIdx - nObsFtrs, hist.binStartV[i]);
+
+	    			}
 
     			}
 
@@ -2577,7 +3201,7 @@
 
     			mc.onOutlier(function (ftrV) {
 
-    				var invFtrV = ftrSpace.invFtrVec(ftrV);
+    				var invFtrV = obsFtrSpace.invertFeatureVector(ftrV);
 
     				
 
@@ -2585,7 +3209,7 @@
 
     				for (var i = 0; i &amp;lt; invFtrV.length; i++) {
 
-    					features.push({name: ftrSpace.getFeature(i), value: invFtrV.at(i)});
+    					features.push({name: obsFtrSpace.getFeature(i), value: invFtrV.at(i)});
 
     				}
 
@@ -2594,6 +3218,14 @@
     				callback(features);
 
     			});
+
+    		},
+
+    		
+
+    		onPrediction: function (callback) {
+
+    			mc.onPrediction(callback);
 
     		},
 
@@ -2619,17 +3251,25 @@
 
     				var stateId = stateIds[i];
 
-    				var coords = ftrSpace.invFtrVec(mc.fullCoords(stateId));
+    				var coord = getFtrCoord(stateId, ftrIdx);
 
-    				
-
-    				result.push({ state: stateId, value: coords[ftrIdx] });
+    				result.push({ state: stateId, value: coord });
 
     			}
 
     			
 
     			return result;
+
+    		},
+
+    		
+
+    		setControl: function (ftrIdx, factor) {
+
+    			var controlFtrIdx = ftrIdx - obsFtrSpace.dims.length;
+
+    			mc.setControlFactor(controlFtrIdx, factor);
 
     		}
 
@@ -2797,6 +3437,138 @@
 
 
 
+
+
+    /** 
+
+    * @classdesc Principal components analysis
+
+    * @class    
+
+    */
+
+    exports.PCA = function () {        
+
+        /** 
+
+        * Computes .
+
+        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples.
+
+        */
+
+        this.fit = function (A, k, iter) {
+
+            var rows = A.rows;
+
+            var cols = A.cols;
+
+
+
+            k = k == undefined ? rows : k;
+
+            //iter = iter == undefined ? -1 : iter;
+
+
+
+            var mu = stat.mean(A, 2);            
+
+            // cov(A) = 1/(n-1) A A&#x27; - mu mu&#x27;
+
+
+
+            // center data (same as matlab)
+
+            var cA = A.minus(mu.outer(la.ones(cols)));            
+
+            var C = cA.multiply(cA.transpose()).multiply(1 / (cols - 1));
+
+            // alternative computation: 
+
+            //var C = (A.multiply(A.transpose()).multiply(1 / (cols - 1))).minus(mu.outer(mu));
+
+            var res = la.svd(C, k, { iter: iter });
+
+            
+
+            this.P = res.U;
+
+            this.lambda = res.s;
+
+            this.mu = mu;
+
+        }
+
+
+
+        /** 
+
+        * Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P.
+
+        * Recovering the data in the original space: (this.P).multiply(p), where p&#x27;s rows are the coefficients
+
+        * in the eigenvector basis.
+
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
+
+        * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
+
+        */
+
+        this.predict = function (x) {
+
+            if (x.constructor.name == &#x27;Matrix&#x27;) {
+
+                // P * (x - mu*ones(1, size(x,2))
+
+                return this.P.multiplyT(x.minus(this.mu.outer(la.ones(x.cols))));
+
+
+
+            } else if (x.constructor.name == &#x27;Vector&#x27;) {
+
+                // P * (x - mu)
+
+                return this.P.multiplyT(x.minus(this.mu));
+
+            }
+
+        }
+
+
+
+        /** 
+
+        * Reconstructs the vector in the original space, reverses centering
+
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
+
+        * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
+
+        */
+
+        this.reconstruct = function (x) {
+
+            if (x.constructor.name == &#x27;Matrix&#x27;) {
+
+                // P x + mu*ones(1, size(x,2)
+
+                return (this.P.multiply(x)).plus(this.mu.outer(la.ones(x.cols)));
+
+            } else if (x.constructor.name == &#x27;Vector&#x27;) {
+
+                // P x + mu
+
+                return (this.P.multiply(x)).plus(this.mu);
+
+            }
+
+        }
+
+    }
+
+
+
     
 
 </code></pre>
@@ -2809,7 +3581,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on June 3, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 9, 2015.
       </p>
     </div>
   </footer>
