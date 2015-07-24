@@ -1394,15 +1394,11 @@ module.exports = exports = function (pathPrefix) {
         }
     }
 
-    ///////// CLUSTERING BATCH K-MEANS
-    //#- `kmeansResult = analytics.kmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
-    //#   matrix `mat`  where colums represent examples, `k` (integer) the number of centroids and
-    //#   `iter` (integer), the number of iterations. The result contains objects `kmeansResult.C` and `kmeansResult.idxv` - a dense centroid matrix, where each column
-    //#    is a cluster centroid and an index array of cluster indices for each data point.
-    //#- `kmeansResult = analytics.kmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
-    //#   sparse matrix `spMat`  where colums represent examples, `k` (integer) the number of centroids and
-    //#   `iter` (integer), the number of iterations. The result contains objects `kmeansResult.C` and `kmeansResult.idxv` - a dense centroid matrix, where each column
-    //#    is a cluster centroid and an index array of cluster indices for each data point.
+
+    /** 
+    * @classdesc KMeans clustering
+    * @class    
+    */
     exports.KMeans = function (param) {
         param = param == undefined ? {} : param;
 
@@ -1416,15 +1412,34 @@ module.exports = exports = function (pathPrefix) {
         var idxv = undefined;
         var norC2 = undefined;
 
+        /** 
+        * Returns the model
+        * @returns {Object} The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data)
+        */
         this.getModel = function () {
             return { C: C, idxv: idxv };
         }
+
+        /** 
+        * Sets parameters
+        * @param {p} Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)
+        */
         this.setParams = function (p) {
             param = p;
         }
+
+        /** 
+        * Returns parameters
+        * @returns Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)
+        */
         this.getParams = function () {
             return param;
         }
+
+        /** 
+        * Computes the centroids
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        */
         this.fit = function (X) {
             // select random k columns of X, returns a dense C++ matrix
             var selectCols = function (X, k) {
@@ -1514,6 +1529,11 @@ module.exports = exports = function (pathPrefix) {
             norC2 = la.square(C.colNorms());
         };
 
+        /** 
+        * Returns an vector of cluster id assignments
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        * @returns {module:la.IntVector} Vector of cluster assignments.
+        */
         this.predict = function (X) {
             var ones_n = la.ones(X.cols).multiply(0.5);
             var ones_k = la.ones(k).multiply(0.5);
@@ -1521,13 +1541,21 @@ module.exports = exports = function (pathPrefix) {
             var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
             return la.findMaxIdx(D);            
         }
-        this.transform = function (X) {
 
+        /** 
+        * Transforms the points to vectors of squared distances to centroids
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        * @returns {module:la.Matrix} Matrix where each column represents the squared distances to the centroid vectors
+        */
+        this.transform = function (X) {
+            var ones_n = la.ones(X.cols).multiply(0.5);
+            var ones_k = la.ones(k).multiply(0.5);
+            var norX2 = la.square(X.colNorms());
+            var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+            D = D.multiply(-1);
+            return D;
         }
     }
-
-    
-
 
     //!ENDJSDOC
 
