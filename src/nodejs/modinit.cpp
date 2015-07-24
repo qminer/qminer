@@ -67,10 +67,11 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
 	// QMiner package
 	TNodeJsSVC::Init(NsObj);
 	TNodeJsSVR::Init(NsObj);
+    TNodeJsRidgeReg::Init(NsObj);
+    TNodeJsSigmoid::Init(NsObj);
 	TNodeJsRecLinReg::Init(NsObj);
 	TNodeJsLogReg::Init(NsObj);
 	TNodeJsPropHaz::Init(NsObj);
-	TNodeJsRidgeReg::Init(NsObj);
 	TNodeJsStreamStory::Init(NsObj);
 	TNodeJsNNet::Init(NsObj);
 	TNodeJsTokenizer::Init(NsObj);

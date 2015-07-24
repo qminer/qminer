@@ -5,20 +5,8 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
- 
-/*
- * clust.h
- *
- *  Created on: Feb 9, 2015
- *      Author: lstopar
- */
 
-#ifndef SRC_GLIB_MINE_ML_H_
-#define SRC_GLIB_MINE_ML_H_
-
-namespace TMl {
-
-using namespace TOpt;
+namespace TRegression {
 
 ///////////////////////////////////////////
 // Logistic Regression using the Newton-Raphson method
@@ -55,7 +43,7 @@ private:
 // Proportional Hazards model
 class TPropHazards {
 private:
-	typedef TVec<TIntFltKdV> TSpVV;
+    typedef TVec<TIntFltKdV> TSpVV;
 
 	double Lambda;
 	TFltV WgtV;
@@ -77,8 +65,27 @@ public:
 private:
 	void PredictInternal(const TFltVV& X, TFltV& IntensV) const;
 };
+    
+/////////////////////////////////////////////
+// Ridge Regression
+class TRidgeReg {
+private:
+    TFlt Gamma;
+    TFltV WgtV;
+    
+public:
+    TRidgeReg(const double& _Gamma): Gamma(_Gamma) { }
+    TRidgeReg(TSIn& SIn) : Gamma(SIn), WgtV(SIn) { }
+    
+    void Save(TSOut& SOut) const { Gamma.Save(SOut); WgtV.Save(SOut); }
+    
+    void Fit(const TFltVV& X, const TFltV& y);
+    double Predict(const TFltV& x) const;
+    
+    const TFltV& GetWgtV() const { return WgtV; }
+    double GetGamma() const { return Gamma; }
+    void SetGamma(const double& _Gamma) { Gamma = _Gamma; }
+};
 
 
 }
-
-#endif /* SRC_GLIB_MINE_ML_H_ */

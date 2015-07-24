@@ -6,8 +6,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include "mc.h"
-
 using namespace TMc;
 
 //////////////////////////////////////////////////////

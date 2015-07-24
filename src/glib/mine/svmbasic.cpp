@@ -1524,59 +1524,6 @@ void TSVMQPSolver::THeap<TVal>::ChangeTop(const TVal& elt) {
 }
 
 //////////////////////////////////////////////////////////////////////////
-// Linear-Large-Scale-SVM
-void TSVMLargeScale::Solve(PSVMTrainSet TrainSet, const double& SvmCost,
-        const int& MxTime, const int& MxIter, const int& _SampleSize, 
-		TFltV& WgtV, const PNotify& Notify) {
-
-    // asserts for input parameters
-    EAssertR(TrainSet->Len() > 0, "Empty training set!");
-    EAssertR(SvmCost > 0.0, "Cost parameter must be positive!");
-    EAssertR(_SampleSize > 0, "Sampling size must be positive!");
-    EAssertR(MxIter > 1, "Number of iterations to small!");
-
-    // initialization 
-    TRnd Rnd(1); 
-	const int Dims = TrainSet->Dim(); // dimension of space
-    const int Vecs = TrainSet->Len(); // number of training documents
-	const int SampleSize = TInt::GetMn(_SampleSize, Vecs);
-	const double Lambda = 1.0 / (double(Vecs) * SvmCost);
-	// we start with random normal vector
-	WgtV.Gen(Dims); TLAMisc::FillRnd(WgtV, Rnd); TLinAlg::Normalize(WgtV);
-	TLinAlg::MultiplyScalar(1.0 / (2.0 * TMath::Sqrt(Lambda)), WgtV, WgtV);
-	TFltV NewWgtV(Dims);
-
-	TExeTm ExeTm;
-	for (int IterN = 1; IterN < MxIter; IterN++) {
-		// tells how much we can move
-		const double Nu = 1.0 / (Lambda * double(IterN + 1));
-		const double VecUpdate = Nu / double(SampleSize);
-		// initilaize updated normal vector
-		NewWgtV.PutAll(0.0);
-		TLinAlg::AddVec((1.0 - Nu * Lambda), WgtV, NewWgtV, NewWgtV);
-		// classify examples from the sample
-		for (int SampleN = 0; SampleN < SampleSize; SampleN++) {
-			const int VecId = Rnd.GetUniDevInt(Vecs);
-			const double VecCfyVal = TrainSet->GetVecParam(VecId);
-			const double CfyVal = VecCfyVal * TrainSet->DotProduct(VecId, WgtV);
-			if (CfyVal < 1.0) { 
-				// with update from the stochastic subgradient
-				TrainSet->AddVec(VecId, NewWgtV, VecUpdate * VecCfyVal);
-			}
-		}
-		// remember new solution
-		WgtV = NewWgtV;
-		// project the current solution on to a ball
-		const double WgtNorm = 1.0 / (TLinAlg::Norm(WgtV) * TMath::Sqrt(Lambda));
-		if (WgtNorm < 1.0) { TLinAlg::MultiplyScalar(WgtNorm, WgtV, WgtV); }
-		// check stopping criteria
-		if ((MxTime != -1) && (ExeTm.GetSecInt() > MxTime)) { break; }
-	}
-	
-	//TLAMisc::SaveMatlabTFltV(WgtV, "w.dat");
-}
-
-//////////////////////////////////////////////////////////////////////////
 // SVM Factory
 void TSVMFactory::trainClassifier(TFltV& alphas, double& threshold,
         const bool& is_linear, const PKernel& ker, const PSVMTrainSet& docs,
