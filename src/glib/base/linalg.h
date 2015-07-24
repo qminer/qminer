@@ -2219,10 +2219,17 @@ public:
 		TSizeTy m = A.GetRows();
 		TSizeTy n = A.GetCols();
 		//Can we multiply and store in y?
-		if (BlasTransposeFlagA)//A'*x n*m x m -> n
-			EAssert(x.Len() == m && y.Reserved() == n);
+		if (BlasTransposeFlagA) {//A'*x n*m x m -> n
+			EAssertR(x.Len() == m, "TLinAlg::Multiply: Invalid dimension of input vector!");
+			if (y.Reserved() != n) {	// TODO should I do this here?? Meybe if the length is > n it would also be OK??
+				y.Gen(n, n);
+			}
+		}
 		else{//A*x  m x n * n -> m
-			EAssert(x.Len() == n && y.Reserved() == m);
+			EAssertR(x.Len() == n, "TLinAlg::Multiply: Invalid dimension of input vector!");
+			if (y.Reserved() != m) {	// TODO should I do this here?? Meybe if the length is > m it would also be OK??
+				y.Gen(m, m);
+			}
 		}
 		TSizeTy lda = ColMajor ? m : n;
 		TSizeTy incx = /*ColMajor ? x.Len() :*/ 1;

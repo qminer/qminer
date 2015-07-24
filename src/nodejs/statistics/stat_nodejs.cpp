@@ -79,10 +79,7 @@ void TNodeJsStat::zscore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	
-	EAssertR(Args.Length() > 0, "Error using stat.zscore function. Not enough input arguments.");
-	EAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId()), "Error using stat.zscore function. First argument should be a matrix.");
-
-	TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
+	TNodeJsFltVV* JsMat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0);
 	int Flag = TNodeJsUtil::GetArgInt32(Args, 1, 0); // Default flag is 0
 	int Dim = TNodeJsUtil::GetArgInt32(Args, 2, 1); // Default dim is 1
 
