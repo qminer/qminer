@@ -535,8 +535,24 @@ TNumeric::TNumeric(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFtrExt(B
         const double MxVal = ParamVal->GetObjNum("max");
         FtrGen = TFtrGen::TNumeric(MnVal, MxVal);
     } else {
-        const bool NormalizeP = ParamVal->GetObjBool("normalize", false);
-        FtrGen = TFtrGen::TNumeric(NormalizeP);
+		bool NormalizeP = false;
+		bool NormalizeVar = false;
+		if (ParamVal->IsObjKey("normalize")) {
+			PJsonVal NormalizeKey = ParamVal->GetObjKey("normalize");
+			if (NormalizeKey->IsBool()) { // old boolean syntax
+				NormalizeP = ParamVal->GetObjBool("normalize", false);
+			} else {
+				TStr Val = ParamVal->GetObjStr("normalize");
+				Val = Val.ToLc();
+				NormalizeP = true;
+				if (Val == "var") {
+					NormalizeVar = true;
+				}
+			}
+		} else {
+			// use defaults
+		}
+        FtrGen = TFtrGen::TNumeric(NormalizeP, NormalizeVar);
     }
     // parse out input parameters  
     TStr FieldNm = ParamVal->GetObjStr("field");
