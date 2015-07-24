@@ -160,7 +160,6 @@
     <ClCompile Include="..\..\..\..\qminer\qminer_gs.cpp" />
     <ClCompile Include="..\..\..\..\qminer\qminer_op.cpp" />
     <ClCompile Include="..\..\..\..\qminer\qminer_pbs.cpp" />
-    <ClCompile Include="..\..\..\..\qminer\qminer_snap.cpp" />
     <ClCompile Include="..\..\..\..\qminer\qminer_srv.cpp" />
     <ClCompile Include="WholeTest.cpp" />
   </ItemGroup>
@@ -173,7 +172,6 @@
     <ClInclude Include="..\..\..\..\qminer\qminer_gs.h" />
     <ClInclude Include="..\..\..\..\qminer\qminer_op.h" />
     <ClInclude Include="..\..\..\..\qminer\qminer_pbs.h" />
-    <ClInclude Include="..\..\..\..\qminer\qminer_snap.h" />
     <ClInclude Include="..\..\..\..\qminer\qminer_srv.h" />
   </ItemGroup>
   <ItemGroup>
