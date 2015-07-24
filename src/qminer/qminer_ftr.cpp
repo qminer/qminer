@@ -546,7 +546,14 @@ TNumeric::TNumeric(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFtrExt(B
 				Val = Val.ToLc();
 				NormalizeP = true;
 				if (Val == "var") {
+					NormalizeP = true;
 					NormalizeVar = true;
+				} else if (Val == "scale") {
+					NormalizeP = true;
+					NormalizeVar = false;
+				} else {
+					NormalizeP = false;
+					NormalizeVar = false;
 				}
 			}
 		} else {

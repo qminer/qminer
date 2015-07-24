@@ -1160,6 +1160,72 @@ describe('Feature Space Tests', function () {
             assert.eqtol(ftr.extractVector(Store[2]).at(0), 1);
             assert.eqtol(ftr.extractVector(Store[3]).at(0), 1);
         })
+        it('should update the feature space with a new record: numeric, normalize (new syntax)', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: "scale", field: "Value" });
+
+            ftr.updateRecord(Store[0]);
+            assert.equal(ftr.extractVector(Store[0]).at(0), 1);
+
+            ftr.updateRecord(Store[1]);
+            assert.equal(ftr.extractVector(Store[0]).at(0), 0);
+            assert.equal(ftr.extractVector(Store[1]).at(0), 1);
+
+            ftr.updateRecord(Store[2]);
+            assert.eqtol(ftr.extractVector(Store[0]).at(0), 0);
+            assert.eqtol(ftr.extractVector(Store[1]).at(0), 0.5);
+            assert.eqtol(ftr.extractVector(Store[2]).at(0), 1);
+            assert.eqtol(ftr.extractVector(Store[3]).at(0), 1);
+        })
+        it('should update the feature space with a new record: numeric, no normalize (new syntax)', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: "none", field: "Value" });
+
+            ftr.updateRecord(Store[0]);
+            assert.equal(ftr.extractVector(Store[0]).at(0), 1);
+
+            ftr.updateRecord(Store[1]);
+            assert.equal(ftr.extractVector(Store[0]).at(0), 1);
+            assert.equal(ftr.extractVector(Store[1]).at(0), 1.1);
+
+            ftr.updateRecord(Store[2]);
+            assert.eqtol(ftr.extractVector(Store[0]).at(0), 1);
+            assert.eqtol(ftr.extractVector(Store[1]).at(0), 1.1);
+            assert.eqtol(ftr.extractVector(Store[2]).at(0), 1.2);
+        })
+        it('should update the feature space with a new record: numeric, normalize (new syntax)', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: "var", field: "Value" });
+
+            ftr.updateRecord(Store[0]);
+            assert.eqtol(ftr.extractVector(Store[0]).at(0), 0);
+
+            ftr.updateRecord(Store[1]);
+            assert.eqtol(ftr.extractVector(Store[0]).at(0), -10);
+            assert.eqtol(ftr.extractVector(Store[1]).at(0), 10);
+
+            ftr.updateRecord(Store[2]);
+            assert.eqtol(ftr.extractVector(Store[0]).at(0), -10);
+            assert.eqtol(ftr.extractVector(Store[1]).at(0), 0);
+            assert.eqtol(ftr.extractVector(Store[2]).at(0), 10);
+			
+			for (var i = 3; i <= 11; i++){
+				ftr.updateRecord(Store[i]);
+			}
+			var expected = [
+				-4.545454545,
+				-3.636363636,
+				-2.727272727,
+				-1.818181818,
+				-0.909090909,
+				0,
+				0.909090909,
+				1.818181818,
+				2.727272727,
+				3.636363636,
+				4.545454545,
+			];
+            for (var i = 0; i <= 11; i++){
+				assert.eqtol(ftr.extractVector(Store[0]).at(i), expected[i]);
+			}
+        })
         it('should update the feature space with a new record: categorical', function () {
             var ftr = new qm.FeatureSpace(base,
                 { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] }
