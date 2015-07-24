@@ -50,7 +50,7 @@ module.exports = exports = function (pathPrefix) {
 		
 		var store = null;
 		var fieldNames = null;
-		var fieldTypes = {};
+		var fieldTypes = null;
 		var initialized = false;
 		
 		var buff = [];    		
