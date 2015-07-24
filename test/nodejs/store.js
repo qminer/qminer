@@ -904,7 +904,7 @@ describe('Load CSV tests', function () {
 			// read the CSV file into a store
 			var base = new qm.Base({ mode: 'createClean' });
 			
-			base.loadCSV({file: 'test.csv', store: 'test', base: base}, function (err, store) {
+			base.loadCSV({file: 'test.csv', store: 'test'}, function (err, store) {
 				if (err != null) {
 					assert.fail(0, 0, 'Exception while loading CSV file! ' + err, ',');
 				} else {

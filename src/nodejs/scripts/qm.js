@@ -46,7 +46,7 @@ module.exports = exports = function (pathPrefix) {
     	if (opts.ignoreFields == null) opts.ignoreFields = [];
     	
 		var storeName = opts.store;
-		var base = opts.base;//opts.base;
+		var base = this;
 		
 		var store = null;
 		var fieldNames = null;
