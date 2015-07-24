@@ -1303,12 +1303,42 @@ module.exports = exports = function (pathPrefix) {
     * @classdesc Principal components analysis
     * @class    
     */
-    exports.PCA = function () {        
+    exports.PCA = function (param) {
+        param = param == undefined ? {} : param;
+
+        // Fit params
+        var iter = param.iter == undefined ? 100 : param.iter;
+        var k = param.k; // can be undefined
+
         /** 
-        * Computes .
-        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples.
+        * Returns the model
+        * @returns {Object} The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)
         */
-        this.fit = function (A, k, iter) {
+        this.getModel = function () {
+            return { P: this.P, mu: this.mu, lambda: this.lambda };
+        }
+
+        /** 
+        * Sets parameters
+        * @param {p} Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        */
+        this.setParams = function (p) {
+            param = p;
+        }
+
+        /** 
+        * Gets parameters
+        * @returns Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        */
+        this.getParams = function () {
+            return param;
+        }
+
+        /** 
+        * Finds the eigenvectors of the variance matrix.
+        * @param {module:la.Matrix} A - Matrix whose columns correspond to examples.
+        */
+        this.fit = function (A) {
             var rows = A.rows;
             var cols = A.cols;
 
@@ -1337,7 +1367,7 @@ module.exports = exports = function (pathPrefix) {
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
         * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
         */
-        this.predict = function (x) {
+        this.transform = function (x) {
             if (x.constructor.name == 'Matrix') {
                 // P * (x - mu*ones(1, size(x,2))
                 return this.P.multiplyT(x.minus(this.mu.outer(la.ones(x.cols))));
@@ -1353,7 +1383,7 @@ module.exports = exports = function (pathPrefix) {
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
         * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
         */
-        this.reconstruct = function (x) {
+        this.inverseTransform = function (x) {
             if (x.constructor.name == 'Matrix') {
                 // P x + mu*ones(1, size(x,2)
                 return (this.P.multiply(x)).plus(this.mu.outer(la.ones(x.cols)));
@@ -1363,6 +1393,141 @@ module.exports = exports = function (pathPrefix) {
             }
         }
     }
+
+    ///////// CLUSTERING BATCH K-MEANS
+    //#- `kmeansResult = analytics.kmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
+    //#   matrix `mat`  where colums represent examples, `k` (integer) the number of centroids and
+    //#   `iter` (integer), the number of iterations. The result contains objects `kmeansResult.C` and `kmeansResult.idxv` - a dense centroid matrix, where each column
+    //#    is a cluster centroid and an index array of cluster indices for each data point.
+    //#- `kmeansResult = analytics.kmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
+    //#   sparse matrix `spMat`  where colums represent examples, `k` (integer) the number of centroids and
+    //#   `iter` (integer), the number of iterations. The result contains objects `kmeansResult.C` and `kmeansResult.idxv` - a dense centroid matrix, where each column
+    //#    is a cluster centroid and an index array of cluster indices for each data point.
+    exports.KMeans = function (param) {
+        param = param == undefined ? {} : param;
+
+        // Fit params
+        var iter = param.iter == undefined ? 100 : param.iter;
+        var k = param.k == undefined ? 2 : param.k;
+        var verbose = param.verbose == undefined ? false : param.verbose;
+
+        // Model
+        var C = undefined;
+        var idxv = undefined;
+        var norC2 = undefined;
+
+        this.getModel = function () {
+            return { C: C, idxv: idxv };
+        }
+        this.setParams = function (p) {
+            param = p;
+        }
+        this.getParams = function () {
+            return param;
+        }
+        this.fit = function (X) {
+            // select random k columns of X, returns a dense C++ matrix
+            var selectCols = function (X, k) {
+                var idx = la.randi(X.cols, k);
+                var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
+                for (var i = 0; i < idx.length; i++) {
+                    var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
+                    idxMat.push(spVec);
+                }
+                var C = X.multiply(idxMat);
+                var result = {};
+                result.C = C;
+                result.idx = idx;
+                return result;
+            };
+
+            // modified k-means algorithm that avoids empty centroids
+            // A Modified k-means Algorithm to Avoid Empty Clusters, Malay K. Pakhira
+            // http://www.academypublisher.com/ijrte/vol01/no01/ijrte0101220226.pdf
+            var getCentroids = function (X, idx, oldC) {
+                // select random k columns of X, returns a dense matrix
+                // 1. construct a sparse matrix (coordinate representation) that encodes the closest centroids
+                var idxvec = new la.IntVector(idx);
+                var rangeV = la.rangeVec(0, X.cols - 1);
+                var ones_cols = la.ones(X.cols);
+                var idxMat = new la.SparseMatrix(idxvec, rangeV, ones_cols, X.cols);
+                idxMat = idxMat.transpose();
+                var ones_n = la.ones(X.cols);
+                // 2. compute the number of points that belong to each centroid, invert
+                var colSum = idxMat.multiplyT(ones_n);
+                for (var i = 0; i < colSum.length; i++) {
+                    var val = 1.0 / (1.0 + colSum.at(i)); // modification
+                    colSum.put(i, val);
+                }
+                // 3. compute the centroids
+                //var w = new qm_util.clsStopwatch();
+                //w.tic();
+                var sD = colSum.spDiag();
+                var C = oldC;
+                if (idxMat.cols == oldC.cols)
+                    C = ((X.multiply(idxMat)).plus(oldC)).multiply(sD); // modification
+                return C;
+            };
+
+
+            // X: column examples
+            // k: number of centroids
+            // iter: number of iterations
+            assert(k <= X.cols, "k <= X.cols");
+            var w = new qm_util.clsStopwatch();
+            var norX2 = la.square(X.colNorms());
+            var initialCentroids = selectCols(X, k);
+            C = initialCentroids.C;
+            var idxvOld = initialCentroids.idx;
+            //printArray(idxvOld); // DEBUG
+            var ones_n = la.ones(X.cols).multiply(0.5);
+            var ones_k = la.ones(k).multiply(0.5);
+            w.tic();
+            for (var i = 0; i < iter; i++) {
+                //console.say("iter: " + i);
+                norC2 = la.square(C.colNorms());
+                //D =  full(C'* X) - norC2' * (0.5* ones(1, n)) - (0.5 * ones(k,1) )* norX2';            
+                var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+                idxv = la.findMaxIdx(D);
+
+                if (verbose) {
+                    var energy = 0.0;
+                    for (var j = 0; j < X.cols; j++) {
+                        if (D.at(idxv[j], j) < 0) {
+                            energy += Math.sqrt(-2 * D.at(idxv[j], j));
+                        }
+                    }
+                    console.log("energy: " + 1.0 / X.cols * energy);
+                }
+                if (qm_util.arraysIdentical(idxv, idxvOld)) {
+                    if (verbose) {
+                        console.say("converged at iter: " + i); //DEBUG
+                    }
+                    break;
+                }
+                idxvOld = idxv.slice();
+                C = getCentroids(X, idxv, C); //drag
+            }
+            if (verbose) {
+                w.toc("end");
+            }
+            norC2 = la.square(C.colNorms());
+        };
+
+        this.predict = function (X) {
+            var ones_n = la.ones(X.cols).multiply(0.5);
+            var ones_k = la.ones(k).multiply(0.5);
+            var norX2 = la.square(X.colNorms());
+            var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+            return la.findMaxIdx(D);            
+        }
+        this.transform = function (X) {
+
+        }
+    }
+
+    
+
 
     //!ENDJSDOC
 
