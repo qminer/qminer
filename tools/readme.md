@@ -33,6 +33,11 @@ Install jsdoc:
     npm install jsdoc -g
     jsdoc nodedoc/htdoc.js nodedoc/statdoc.js nodedoc/fsdoc.js nodedoc/ladoc.js nodedoc/qminerdoc.js nodedoc/analyticsdoc.js nodedoc/datasetsdoc.js -d nodedoc
 
+Install jsdoc baseline template (must call from qminer root folder):
+
+    npm install https://github.com/hegemonic/jsdoc-baseline.git
+    
+
 ## C++ documentation
 
 Requirements:
