@@ -155,12 +155,14 @@ bool TNodeJsUtil::IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm)
     return ObjClassStr == ClassNm;
 }
 
-bool TNodeJsUtil::IsArgClass(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& ClassNm) {
+bool TNodeJsUtil::IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& ClassNm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    // check we have enough arguments
     EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d of class %s", ArgN, ClassNm.CStr()));
-    
+    // check argument is an object
 	if (!Args[ArgN]->IsObject()) return false;
+    // check it's class name
     v8::Handle<v8::Value> Val = Args[ArgN];
     v8::Handle<v8::Object> Data = v8::Handle<v8::Object>::Cast(Val);
     TStr ClassStr = GetClass(Data);

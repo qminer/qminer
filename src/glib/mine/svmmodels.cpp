@@ -919,70 +919,58 @@ PSVMModel TSVMModel::MakeModel(const bool& Linear,
     Model->Linear = Linear;
 	
     TIntV DIdV; int Len;
-	if (Linear && ModelParam.ModelType == smtClassifier && false) {
-		Model->Thresh = 0;
-		const int MxIter = 1000000;
-		if (SubSet.Len() != 0) {
-			TSVMLargeScale::Solve(TSVMTrainSubSet::New(TrainSet, SubSet), ModelParam.C, 
-				LearnParam.Time, MxIter, LearnParam.SubSize, Model->WgtV);
-		} else {
-			TSVMLargeScale::Solve(TrainSet, ModelParam.C, 
-				LearnParam.Time, MxIter, LearnParam.SubSize, Model->WgtV);
-		}
-	} else {
-		if (SubSet.Len() != 0) {
-			TSVMFactory::train(Model->AlphaV, Model->Thresh.Val, Linear, ker, 
-				TSVMTrainSubSet::New(TrainSet(), SubSet), ModelParam, LearnParam);
-			DIdV = SubSet; Len = SubSet.Len();
-		} else {
-			TSVMFactory::train(Model->AlphaV, Model->Thresh.Val, 
-				Linear, ker, TrainSet(), ModelParam, LearnParam);
+    if (SubSet.Len() != 0) {
+        TSVMFactory::train(Model->AlphaV, Model->Thresh.Val, Linear, ker, 
+            TSVMTrainSubSet::New(TrainSet(), SubSet), ModelParam, LearnParam);
+        DIdV = SubSet; Len = SubSet.Len();
+    } else {
+        TSVMFactory::train(Model->AlphaV, Model->Thresh.Val, 
+            Linear, ker, TrainSet(), ModelParam, LearnParam);
 
-			Len = TrainSet->Len(); DIdV.Gen(Len);
-			for (int i = 0; i < Len; i++) { DIdV[i] = i; }
-		}
+        Len = TrainSet->Len(); DIdV.Gen(Len);
+        for (int i = 0; i < Len; i++) { DIdV[i] = i; }
+    }
 
-		if (ModelParam.ModelType == smtClassifier) {
-			for (int i = 0; i < Len; i++) {
-				Model->AlphaV[i] = TrainSet->GetVecParam(DIdV[i]) * Model->AlphaV[i];
-			}
-		} else if (ModelParam.ModelType == smtRegression) {
-			// rearranges alphas for case of regression
-			IAssert(Model->AlphaV.Len() == 2*Len);
-			for (int i = 0; i < Len; i++) {
-				Model->AlphaV[i] = Model->AlphaV[i+Len] - Model->AlphaV[i];
-			}
-			Model->AlphaV.Trunc(Len);
-			// and invert the threshold
-			Model->Thresh = -1.0 * Model->Thresh;
-		}
+    if (ModelParam.ModelType == smtClassifier) {
+        for (int i = 0; i < Len; i++) {
+            Model->AlphaV[i] = TrainSet->GetVecParam(DIdV[i]) * Model->AlphaV[i];
+        }
+    } else if (ModelParam.ModelType == smtRegression) {
+        // rearranges alphas for case of regression
+        IAssert(Model->AlphaV.Len() == 2*Len);
+        for (int i = 0; i < Len; i++) {
+            Model->AlphaV[i] = Model->AlphaV[i+Len] - Model->AlphaV[i];
+        }
+        Model->AlphaV.Trunc(Len);
+        // and invert the threshold
+        Model->Thresh = -1.0 * Model->Thresh;
+    }
 
-		if (Linear) {
-			TrainSet->LinComb(DIdV, Model->AlphaV, Model->WgtV);
-		} else {
-			if (TrainSet->Type() != ststSimMatrix) {
-				TFltV NewAlphaV; TIntV VecIdV;
-				for (int VecN = 0; VecN < Len; VecN++) {
-					if (TFlt::Abs(Model->AlphaV[VecN]) > EPSILON) {
-						NewAlphaV.Add(Model->AlphaV[VecN]);
-						VecIdV.Add(DIdV[VecN]);
-					}
-				}
-				Model->AlphaV = NewAlphaV; // support vectors alphas
-				Model->SupVecs = TrainSet->Clone(VecIdV);
-			} else {
-				TFltV NewAlphaV(TrainSet->Len()); NewAlphaV.PutAll(0.0);
-				for (int VecN = 0; VecN < Len; VecN++) {
-					NewAlphaV[DIdV[VecN]] = Model->AlphaV[VecN];
-				}
-				Model->AlphaV = NewAlphaV; // alphas for all vectors in the trainset
-				Model->SupVecs = TrainSet;
-			}
-			Model->Kernel = ker;
-		}
+    if (Linear) {
+        TrainSet->LinComb(DIdV, Model->AlphaV, Model->WgtV);
+    } else {
+        if (TrainSet->Type() != ststSimMatrix) {
+            TFltV NewAlphaV; TIntV VecIdV;
+            for (int VecN = 0; VecN < Len; VecN++) {
+                if (TFlt::Abs(Model->AlphaV[VecN]) > EPSILON) {
+                    NewAlphaV.Add(Model->AlphaV[VecN]);
+                    VecIdV.Add(DIdV[VecN]);
+                }
+            }
+            Model->AlphaV = NewAlphaV; // support vectors alphas
+            Model->SupVecs = TrainSet->Clone(VecIdV);
+        } else {
+            TFltV NewAlphaV(TrainSet->Len()); NewAlphaV.PutAll(0.0);
+            for (int VecN = 0; VecN < Len; VecN++) {
+                NewAlphaV[DIdV[VecN]] = Model->AlphaV[VecN];
+            }
+            Model->AlphaV = NewAlphaV; // alphas for all vectors in the trainset
+            Model->SupVecs = TrainSet;
+        }
+        Model->Kernel = ker;
+    }
 
-		Model->AlphaV.Pack();
-	}
+    Model->AlphaV.Pack();
     return Model;
 }
 
