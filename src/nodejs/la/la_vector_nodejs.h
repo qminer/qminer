@@ -1031,25 +1031,25 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
 			for (int ElN = 0; ElN < Len; ++ElN) { JsVec->Vec.Add(TAux::CastVal(Arr->Get(ElN))); }
 		}
 		else if (Args[0]->IsObject()) {
-			if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
+			if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 0)) {
 				//printf("vector construct call, class = %s, input TFltV\n", TAux::ClassId.CStr());
 				TNodeJsVec<TFlt, TAuxFltV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
 				Args.GetReturnValue().Set(New(JsVecArg->Vec));
 				return;
 			}
-			else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsIntV::GetClassId())) {
+			else if (TNodeJsUtil::IsArgWrapObj<TNodeJsIntV>(Args, 0)) {
 				//printf("vector construct call, class = %s, input TIntV\n", TAux::ClassId.CStr());
 				TNodeJsVec<TInt, TAuxIntV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
 				Args.GetReturnValue().Set(New(JsVecArg->Vec));
 				return;
 			}
-			else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsStrV::GetClassId())) {
+			else if (TNodeJsUtil::IsArgWrapObj<TNodeJsStrV>(Args, 0)) {
 				//printf("vector construct call, class = %s, input TStrV\n", TAux::ClassId.CStr());
 				TNodeJsVec<TStr, TAuxStrV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TStr, TAuxStrV> >(Args[0]->ToObject());
 				Args.GetReturnValue().Set(New(JsVecArg->Vec));
 				return;
 			}
-			else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsBoolV::GetClassId())) {
+			else if (TNodeJsUtil::IsArgWrapObj<TNodeJsBoolV>(Args, 0)) {
 				TNodeJsBoolV* JsBoolV = ObjectWrap::Unwrap<TNodeJsBoolV>(Args[0]->ToObject());
 				Args.GetReturnValue().Set(New(JsBoolV->Vec));
 				return;
@@ -1122,7 +1122,7 @@ void TNodeJsVec<TVal, TAux>::subVec(const v8::FunctionCallbackInfo<v8::Value>& A
 			Args.GetReturnValue().Set(TNodeJsVec<TVal, TAux>::New(ResultVec));
 			return;
 		}
-		else if (Args[0]->IsObject() && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsIntV::GetClassId().CStr())) {
+		else if (TNodeJsUtil::IsArgWrapObj<TNodeJsIntV>(Args, 0)) {
 			TNodeJsVec<TInt, TAuxIntV>* IdxV = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
 			const int Len = IdxV->Vec.Len();
 			TVec<TVal> ResultVec(Len);

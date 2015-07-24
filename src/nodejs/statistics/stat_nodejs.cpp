@@ -31,14 +31,14 @@ void TNodeJsStat::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// Dim parameter
 	int Dim = TNodeJsUtil::GetArgInt32(Args, 1, 1); // Default dim is 1
 
-	if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
+	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
 		// If input argument is vec
 		//TNodeJsVec* Test = ObjectWrap::Unwrap<TNodeJsVec>(Args[0]->ToObject()); 
 		TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap< TNodeJsVec< TFlt, TAuxFltV > >(Args[0]->ToObject());
 		Args.GetReturnValue().Set(v8::Number::New(Isolate, TLAMisc::Mean(JsVec->Vec)));
 		return;
 	}
-	if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId())) {
+	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())) {
 		//If input argument is matrix
 		TFltV Vec;
 		TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
@@ -59,12 +59,12 @@ void TNodeJsStat::std(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	int Flag = TNodeJsUtil::GetArgInt32(Args, 1, 0); // Default flag is 0
 	int Dim = TNodeJsUtil::GetArgInt32(Args, 2, 1); // Default dim is 1
 
-	if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
+	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
 		// If input argument is vec
 		// TODO
 		throw TExcept::New("stat.std(vec) not implemented yet. Use stat.std(mat).");
 	}
-	if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId())) {
+	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())) {
 		//If input argument is matrix
 		TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 		TFltV Res;
