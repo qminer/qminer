@@ -8,6 +8,10 @@
 //////////////////////////////////////////
 //#- `utilities = require('utilities.js')` -- imports utilities library to variable `utilities`
 //#- `bool = utilities.isObject(arg)` -- is parameter an object?
+
+var fs = require('fs');;
+var Lazy = require('lazy');
+
 exports.isObject = function (arg) {
     if (arg) {
         if ((typeof arg) == "object") {
@@ -155,4 +159,63 @@ exports.arraysIdentical = function(a, b) {
 //#- `string = utilities.numberWithCommas(number)` -- format number 1234 to 1,234
 exports.numberWithCommas = function (x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+/**
+ * Reads a CSV file, calling a callback function on each line.
+ * 
+ * @param {object} opts
+ * @property {string} opts.file - the file name
+ * @property {string} opts.delimiter - CSV cell delimiter
+ * @property {function} onLine - a callback(err, line) function called on each line
+ * @property {function} onEnd - a callback function called when finished. The function takes no parameters.
+ */
+exports.readCsvLines = function (opts) {
+	// Check to see if the delimiter is defined. If not, then default to comma.
+	if (opts.file == null) throw 'Filename missing!';
+	if (opts.delimiter == null) opts.delimiter = ',';
+	if (opts.onLine == null) throw 'Line callback missing!'
+	if (opts.onEnd == null) opts.onEnd = function () {}
+	
+	var fileName = opts.file;
+	var strDelimiter = opts.delimiter;
+	
+	var lineCb = opts.onLine;
+	var endCb = opts.onEnd;
+	    		
+    // Create a regular expression to parse the CSV values.
+    var objPattern = new RegExp((
+            // Delimiters.
+            "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+            // Quoted fields.
+            "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+            // Standard fields.
+            "([^\"\\" + strDelimiter + "\\r\\n]*))"
+        ), "gi");
+    
+    new Lazy(fs.createReadStream(fileName)).lines.map(String).forEach(function (line) {
+    	try {                                
+            var arrData = [ ];
+            // Create an array to hold our individual pattern matching groups.
+            var arrMatches = null;
+            // Keep looping over the regular expression matches until we can no longer find a match.
+            while (arrMatches = objPattern.exec(line)){
+                // Let's check to see which kind of value we captured (quoted or unquoted).
+                var strMatchedValue = arrMatches[2] ?
+                    // We found a quoted value. When we capture this value, unescape any double quotes.
+                    arrMatches[2].replace(new RegExp( "\"\"", "g" ), "\"") :
+                    // We found a non-quoted value.
+                    arrMatches[3];
+                // Now that we have our value string, let's add it to the data array.
+                arrData.push(strMatchedValue);
+            }
+                            
+            // Return the parsed data.
+            lineCb(null, arrData);
+        } catch (err) {
+        	lineCb(err);
+        }
+    }).on('end', function () {
+    	endCb();
+    });
 }

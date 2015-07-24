@@ -9,6 +9,7 @@ var nodefs = require('fs');
 var csv = require('fast-csv');
 var util = require('util');
 
+
 // typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'.
 // Empty argument is supported as well (the first binary that the bindings finds will be used)
 module.exports = exports = function (pathPrefix) {
@@ -16,6 +17,7 @@ module.exports = exports = function (pathPrefix) {
     
     var qm = require('bindings')(pathPrefix + '/qm.node');
     var fs = qm.fs;
+    var qmutil = require(__dirname + '/qm_util.js');
     
     exports = qm;
 
@@ -23,15 +25,20 @@ module.exports = exports = function (pathPrefix) {
     // BASE
     //==================================================================
     
+    
+    //////////////////////////////////////////////////////////////////////
+    
+    //////////////////////////////////////////////////////////////////////
+    
     /**
-     * Loads the store from a CSV file. The opts parameter must have the following format:
+     * Loads a store from a CSV file. The method expects the CSV file to have a header. 
+     * 
+     * The opts parameter must have the following format:
      * 
      * {
      * 		file: 'nameOfFile',		// the name of the input file.
      * 		store: 'nameOfStore',	// name of the store which will be created
-     * 		base: base,				// QMiner base object that creates the store
      * 		delimiter: ',',			// optional delimiter
-     * 		quote: '"'				// optional character to escape values that contain a delimiter
      * }
      * 
      * @param {object} opts - options object, explained in the description
@@ -41,162 +48,150 @@ module.exports = exports = function (pathPrefix) {
     	console.log('Loading CSV file ...');
     	
     	if (opts.delimiter == null) opts.delimiter = ',';
-    	if (opts.quote == null) opts.quote = '"';
     	if (opts.ignoreFields == null) opts.ignoreFields = [];
     	
-    	try {
-    		var fname = opts.file;
-    		var storeName = opts.store;
-    		var base = opts.base;
-    		
-    		var fieldTypes = null;
-    		var store = null;
-    		var buff = [];
-    		
-    		var ignoreFields = {};
-    		for (var i = 0; i < opts.ignoreFields.length; i++)
-    			ignoreFields[opts.ignoreFields] = null;
-    		
-    		var csvOpts = {
-    			headers: true,
-    			ignoreEmpty: true,
-    			delimiter: opts.delimiter,
-    			quote: opts.quote
-    		};
-    		
-    		// need to get the headers and columns types to actually create a store
-    		function initFieldTypes(data) {
-    			if (fieldTypes == null) fieldTypes = {};
+		var storeName = opts.store;
+		var base = opts.base;//opts.base;
+		
+		var store = null;
+		var fieldNames = null;
+		var fieldTypes = {};
+		var initialized = false;
+		
+		var buff = [];    		
+		
+		var ignoreFields = {};
+		for (var i = 0; i < opts.ignoreFields.length; i++)
+			ignoreFields[opts.ignoreFields] = null;
+		
+		function initStore() {
+			console.log('Initializing store ...');
+			
+			// create the store
+			var storeDef = {
+				name: storeName,
+				fields: []
+			};
+			
+			for (var i = 0; i < fieldNames.length; i++) {
+				var key = fieldNames[i];
+				storeDef.fields.push({
+					name: key,
+					type: fieldTypes[key],
+					'null': true
+				});
+			}
+										
+			base.createStore(storeDef);
+			store = base.store(storeName);
+		}
+		
+		function initFieldNames(header) {
+			fieldNames = [];
+			for (var i = 0; i < header.length; i++) {
+				var key = header[i];
+				
+				if (key in ignoreFields) continue;
+				
+				var transKey = key.replace(/\s+/g, '_')	// remove invalid characters
+				  				  .replace(/\.|%|\(|\)|\/|-|\+/g, '');
+				fieldNames.push(transKey)
+			}				
+		}
+		
+		function typesInitialized() {
+			if (fieldTypes == null) return false;
+			if (initialized) return true;
+			
+			for (var i = 0; i < fieldNames.length; i++) {
+				var key = fieldNames[i];
+				if (fieldTypes[key] == null)
+					return false;
+			}
+			
+			initialized = true;
+			return initialized;
+		}
+		
+		function initTypes(data) {
+			if (fieldTypes == null) fieldTypes = {};
+							
+			for (var key in data) {
+				var val = data[key];
+				
+				if (fieldTypes[key] == null) {
+					if (isNaN(val))
+						fieldTypes[key] = 'string';
+					else
+						fieldTypes[key] = 'float';
+				}
+			}
+		}
+		
+		var lines = 0;
+		
+		console.log('Reading CSV file ...');
+		qmutil.readCsvLines({
+			file: opts.file,
+			delimiter: opts.delimiter,
+			onLine: function (err, lineStrArr) {
+    			// check for errors
+    			if (err != null) {
+    				callback(err);
+    				return;
+    			}
     			
-    			for (var key in data) {
-//    				if (key in ignoreFields)
-//    					continue;
-    				
-    				var val = data[key];
-    				if (fieldTypes[key] == null) {
-    					if (val.length == 0)
-    						fieldTypes[key] = null;
-    					else if (isNaN(val))
-    						fieldTypes[key] = 'string';
-    					else
-    						fieldTypes[key] = 'float';
-    						
+    			if (++lines % 10000 == 0)
+		   			console.log(lines + '');
+    			
+    			// header line
+    			if (lines == 1)  {
+    				initFieldNames(lineStrArr);
+    			} else {
+    				// put the data into a map
+    				var data = {};
+    				for (var i = 0; i < lineStrArr.length; i++) {
+    					var key = fieldNames[i];
+    					var val = lineStrArr[i];
+    					
+    					if (key in ignoreFields) continue;
+    					
+    					// if the value is empty ignore it
+    					// and a null value will be inserted automatically
+    					if (val.length > 0)
+    						data[key] = val;
     				}
-    			}
-    		}
-    		
-    		function fieldTypesInitialized() {
-    			if (fieldTypes == null) return false;
-    			
-    			for (var key in fieldTypes) {
-//    				if (key in ignoreFields)
-//    					continue;
     				
-    				if (fieldTypes[key] == null)
-    					return false;
-    			}
-    			
-    			return true;
-    		}
-    		
-    		function getUninitializedFlds() {
-    			var result = [];
-    			
-    			for (var key in fieldTypes) {
-//    				if (key in ignoreFields)
-//    					continue;
+    				// initialize types if you can
+    				if (!typesInitialized())
+    					initTypes(data);
     				
-    				if (fieldTypes[key] == null)
-    					result.push(key);
-    			}
-    			
-    			return result;
-    		}
-    		
-    		function createStore(rec) {
-    			try {
-	    			var storeDef = {
-	    				name: storeName,
-	    				fields: []
-	    			};
-	    			
-	    			for (var fieldName in rec) {
-	    				storeDef.fields.push({
-							name: fieldName,
-							type: fieldTypes[fieldName],
-							"null": true,
-	    				});
-	    			}
-	    			
-	    			base.createStore(storeDef);
-	    			store = base.store(storeName);
-	    			
-	    			// insert all the record in the buffer into the store
-	    			buff.forEach(function (data) {
-	    				store.push(data);
-	    			})
-    			} catch (e) {
-    				if (callback != null)
-    					callback(e);
-    			}
-    		}
-    		
-    		var storeCreated = false;
-    		var lines = 0;
-    		
-    		csv.fromPath(fname, csvOpts)
-    			.transform(function (data) {
-    				var transformed = {};
-    				
+    				// cast the fields
     				for (var key in data) {
-    					if (key in ignoreFields)
-    						continue;
-    					
-    					var val = data[key];
-    					var transKey = key.replace(/\s+/g, '_')	// remove invalid characters
-    									  .replace(/\.|%|\(|\)|\/|-|\+/g, '');
-    					
-    					if (fieldTypes != null && fieldTypes[transKey] != null)
-    						transformed[transKey] = fieldTypes[transKey] == 'float' ? parseFloat(val) : val;
-    					else
-    						transformed[transKey] = (isNaN(val) || val.length == 0) ? val : parseFloat(val);
+    					if (fieldTypes[key] == 'float')
+    						data[key] = parseFloat(data[key]);
     				}
+
+    				// add to buffer
+    				buff.push(data);
     				
-    				return transformed;
-    			})
-    		   	.on('data', function (data) {    		   		
-    		   		if (++lines % 10000 == 0)
-    		   			console.log(lines + '');
-    			   
-    		   		if (fieldTypes == null)
-    		   			initFieldTypes(data);
-    		   		
-    		   		if (store == null && fieldTypesInitialized())
-    		   			createStore(data);
-    		   		else if (!fieldTypesInitialized())
-    		   			initFieldTypes(data);
-    		   		
-    		   		if (store != null)
-    		   			store.push(data);
-    		   		else
-    		   			buff.push(data);
-    		   	})
-    		   	.on('end', function () {
-    		   		if (callback != null) {
-    		   			if (!fieldTypesInitialized()) {
-        		   			var fieldNames = getUninitializedFlds();
-        		   			callback(new Error('Finished with uninitialized fields: ' + 
-								JSON.stringify(fieldNames)) + ', add them to ignore list!');
-        		   			return;
-        		   		} else {
-        		   			callback();
-        		   		}
-    		   		}
-    		   	});   		
-    	} catch (e) {
-    		if (callback != null)
-    			callback(e);
-    	}
+    				// if the store is not initialized, check if you can initialize it
+    				if (store == null && typesInitialized())
+    					initStore();
+    				
+    				// if the store is initialized => flush the buffer
+    				if (store != null) {
+    					while (buff.length > 0) {
+    						store.push(buff.shift());
+    					}
+    				}
+    			}
+    		},
+    		onEnd: function () {
+        		if (callback != null)
+        			callback(null, store);
+    		}
+		});
     }
     
     //==================================================================
