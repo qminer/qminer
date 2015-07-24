@@ -1191,7 +1191,7 @@ describe('Feature Space Tests', function () {
             assert.eqtol(ftr.extractVector(Store[1]).at(0), 1.1);
             assert.eqtol(ftr.extractVector(Store[2]).at(0), 1.2);
         })
-        it('should update the feature space with a new record: numeric, normalize (new syntax)', function () {
+        it('should update the feature space with a new record: numeric, normalize variance (new syntax)', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", normalize: "var", field: "Value" });
 
             ftr.updateRecord(Store[0]);
