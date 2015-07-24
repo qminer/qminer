@@ -49,7 +49,7 @@ public:
 	void Update(const double& InVal);
 	// current status	
 	uint64 GetN() const { return N; }
-	double GetMean() const { return N > 0 ? NewM : 0.0; }
+	double GetMean() const { return N > 0 ? (double)NewM : 0.0; }
 	double GetStDev() const { return sqrt((double)GetVar()); }
 	double GetVar() const { return (N > 1 ? NewS / (N - 1) : 0.0); }
 	void Clr() { OldM = NewM = OldS = NewS = 0.0; N = 0; }
