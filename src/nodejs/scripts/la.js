@@ -164,9 +164,9 @@ module.exports = exports = function (pathPrefix) {
     * Returns a randomly selected integer from an array..
     * @param {number} num - The upper bound of the array. Must be an integer.
     * @param {number} [len] - The number of integers. Must be an integer.
-    * @returns {(number | la.IntVector)} 
+    * @returns {(number | la.IntVector)}
     * <br>1. Randomly selected integer from the array [0, ..., num-1], if no parameters are given.
-    * <br>2. {@link module:la.Vector}, if parameter len is given. The vector contains random integers from the array [0, ..., num-1] (with repetition)     
+    * <br>2. {@link module:la.Vector}, if parameter len is given. The vector contains random integers from the array [0, ..., num-1] (with repetition)
     */
     exports.randi = function () {
         var len = arguments.length;
@@ -361,13 +361,13 @@ exports.cat = function (nestedArrMat) {
     * @param {number} min - Start value (should be an integer)
     * @param {number} max - End value (should be an integer)
     * @returns {module:la.IntVector} Integer range vector
-    * @example    
+    * @example
     * var la = require('qminer').la;
     * var vec = la.rangeVec(1, 3);
     * // returns the vector:
     * // 1  2  3
     */
-    //# exports.rangeVec = function(min, max) {}	
+    //# exports.rangeVec = function(min, max) {}
 exports.rangeVec = function (min, max) {
     var len = max - min + 1;
     var rangeV = new exports.IntVector({ "vals": len });
@@ -392,28 +392,28 @@ exports.square = function(x) {
 
     /**
     * returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input.
-    * @param {(la.Matrix | la.Vector)} X - A matrix or a vector    
+    * @param {(la.Matrix | la.Vector)} X - A matrix or a vector
     * @returns {Array<number>} Array of indexes where maximum is found, one for each column
-    * @example    
+    * @example
     * var la = require('qminer').la;
     * var mat = new la.Matrix([[1,2], [2,0]]);
     * la.findMaxIdx(mat)
     * // returns the array:
     * // [1, 0]
     */
-    //# exports.findMaxIdx = function(X) {}    
+    //# exports.findMaxIdx = function(X) {}
 exports.findMaxIdx = function (X) {
     var idxv = new Array();
     // X is a dense matrix
     if (typeof X.cols !== "undefined") {
-        var cols = X.cols;        
+        var cols = X.cols;
         for (var colN = 0; colN < cols; colN++) {
-            idxv[colN] = X.colMaxIdx(colN);
+            idxv.push(X.colMaxIdx(colN));
         }
     }
     // X is a dense vector
     if (typeof X.length !== "undefined") {
-        idxv[0] = X.getMaxIdx();
+        idxv.push(X.getMaxIdx());
     }
     return idxv;
 };
