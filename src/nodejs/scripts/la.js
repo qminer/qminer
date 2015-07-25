@@ -163,7 +163,10 @@ module.exports = exports = function (pathPrefix) {
     /**
     * Returns a randomly selected integer from an array..
     * @param {number} num - The upper bound of the array. Must be an integer.
-    * @returns {number} Randomly selected integer from the array [0, ..., num-1].
+    * @param {number} [len] - The number of integers. Must be an integer.
+    * @returns {(number | la.IntVector)} 
+    * <br>1. Randomly selected integer from the array [0, ..., num-1], if no parameters are given.
+    * <br>2. {@link module:la.Vector}, if parameter len is given. The vector contains random integers from the array [0, ..., num-1] (with repetition)     
     */
     exports.randi = function () {
         var len = arguments.length;
@@ -171,6 +174,16 @@ module.exports = exports = function (pathPrefix) {
             var n = arguments[0];
             assert(isInt(n), "one integer argument expected");
             return Math.floor((Math.random() * n));
+        } else if (len == 2) {
+            var n = arguments[0];
+            var size = arguments[1];
+            assert(isInt(n), "integer argument[0] expected");
+            assert(isInt(size), "integer argument[1] expected");
+            var result = new exports.IntVector({ "vals": size });
+            for (var i = 0; i < size; i++) {
+                result[i] = Math.floor((Math.random() * n));
+            }
+            return result;
         } else {
             throw new Error("one integer argument expected");
         }
@@ -342,6 +355,28 @@ exports.cat = function (nestedArrMat) {
     }
     return res;
 }
+
+    /**
+    * Generates an integer vector given range
+    * @param {number} min - Start value (should be an integer)
+    * @param {number} max - End value (should be an integer)
+    * @returns {module:la.IntVector} Integer range vector
+    * @example    
+    * var la = require('qminer').la;
+    * var vec = la.rangeVec(1, 3);
+    * // returns the vector:
+    * // 1  2  3
+    */
+    //# exports.rangeVec = function(min, max) {}	
+exports.rangeVec = function (min, max) {
+    var len = max - min + 1;
+    var rangeV = new exports.IntVector({ "vals": len });
+    for (var elN = 0; elN < len; elN++) {
+        rangeV[elN] = elN + min;
+    }
+    return rangeV;
+};
+
 	//////// METHODS
 
 exports.square = function(x) {
@@ -354,6 +389,35 @@ exports.square = function(x) {
     }
     return res;
 };
+
+    /**
+    * returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input.
+    * @param {(la.Matrix | la.Vector)} X - A matrix or a vector    
+    * @returns {Array<number>} Array of indexes where maximum is found, one for each column
+    * @example    
+    * var la = require('qminer').la;
+    * var mat = new la.Matrix([[1,2], [2,0]]);
+    * la.findMaxIdx(mat)
+    * // returns the array:
+    * // [1, 0]
+    */
+    //# exports.findMaxIdx = function(X) {}    
+exports.findMaxIdx = function (X) {
+    var idxv = new Array();
+    // X is a dense matrix
+    if (typeof X.cols !== "undefined") {
+        var cols = X.cols;        
+        for (var colN = 0; colN < cols; colN++) {
+            idxv[colN] = X.colMaxIdx(colN);
+        }
+    }
+    // X is a dense vector
+    if (typeof X.length !== "undefined") {
+        idxv[0] = X.getMaxIdx();
+    }
+    return idxv;
+};
+
 
 //#- `mat3 = la.pdist2(mat, mat2)` -- computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2
 exports.pdist2 = function (mat, mat2) {

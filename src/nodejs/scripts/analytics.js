@@ -490,6 +490,362 @@ module.exports = exports = function (pathPrefix) {
         };
     };
 
+
+    /**
+    * @classdesc Anomaly detector that checks if the test point is too far from
+    * the nearest known point.
+    * @class
+    * @param {Object} [detectorParam={rate:0.05}] - Constructor parameters
+    * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
+    */
+    exports.NearestNeighborAD = function (detectorParam) {
+        // Parameters
+        detectorParam = detectorParam == undefined ? {} : detectorParam;
+        detectorParam.rate = detectorParam.rate == undefined ? 0.05 : detectorParam.rate;
+        assert(detectorParam.rate > 0 && detectorParam.rate <= 1.0, 'rate parameter not in range (0,1]');
+        // model param
+        this.rate = detectorParam.rate;
+        // default model
+        this.thresh = 0;
+
+        /**
+        * Returns the model
+        * @param {p} Object whose keys are: "thresh" - Maximal squared distance to the nearest neighbor that is not anomalous
+        */
+        this.getModel = function () { return { rate: this.rate, thresh: this.thresh }; }
+
+        /**
+        * Sets parameters
+        * @param {p} Object whose keys are: "rate" - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
+        */
+        this.setParams = function (p) {
+            param = p;
+        }
+
+        /**
+        * Returns parameters
+        * @returns Object whose keys are: "rate" - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
+        */
+        this.getParams = function () {
+            return param;
+        }
+
+        /**
+        * Gets the 100*(1-rate) percentile
+        * @param {module:la.Vector} vector - Vector of values
+        * @returns {number} Percentile
+        */
+        function getThreshold(vector, rate) {
+            var sorted = vector.sortPerm().vec;
+            var idx = Math.floor((1 - rate) * sorted.length);
+            return sorted[idx];
+        }
+        var neighborDistances = undefined;
+
+        /**
+        * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
+        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+        * the model.
+        */
+        this.fit = function (A) {
+            this.X = A;
+            // distances
+            var D = la.pdist2(A, A);
+            // add big numbers on the diagonal (exclude the point itself from the nearest point calcualtion)
+            var E = D.plus(D.multiply(la.ones(D.rows)).diag()).multiply(-1);
+            var neighborDistances = new la.Vector({ vals: D.rows });
+            for (var i = 0; i < neighborDistances.length; i++) {
+                // nearest neighbour squared distance
+                neighborDistances[i] = D.at(i, E.rowMaxIdx(i));
+            }
+            this.thresh = getThreshold(neighborDistances, this.rate);
+        }
+
+        /**
+        * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
+        * @param {module:la.Vector} x - Test vector
+        * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
+        */
+        this.predict = function (x) {
+            // compute squared dist and compare to thresh
+            var d = la.pdist2(this.X, x.toMat()).getCol(0);
+            var idx = d.multiply(-1).getMaxIdx();
+            var p = d[idx];
+            //console.log(p)
+            return p > this.thresh ? 1 : 0;
+        }
+
+        /**
+        * Adds a new point (or points) to the known points and recomputes the threhshold
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
+        */
+        this.update = function (x) {
+            // append x to known examples and retrain (slow version)
+            // speedup 1: don't reallocate X every time (fixed window, circular buffer)
+            // speedup 2: don't recompute distances d(X,X), just d(X, y), get the minimum
+            // and append to neighborDistances
+            this.fit(la.cat([[this.X, x.toMat()]]));
+            //console.log('new threshold ' + this.thresh);
+        }
+    }
+
+    /**
+    * @classdesc Principal components analysis
+    * @class
+    */
+    exports.PCA = function (param) {
+        param = param == undefined ? {} : param;
+
+        // Fit params
+        var iter = param.iter == undefined ? 100 : param.iter;
+        var k = param.k; // can be undefined
+
+        /**
+        * Returns the model
+        * @returns {Object} The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)
+        */
+        this.getModel = function () {
+            return { P: this.P, mu: this.mu, lambda: this.lambda };
+        }
+
+        /**
+        * Sets parameters
+        * @param {p} Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        */
+        this.setParams = function (p) {
+            param = p;
+        }
+
+        /**
+        * Gets parameters
+        * @returns Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        */
+        this.getParams = function () {
+            return param;
+        }
+
+        /**
+        * Finds the eigenvectors of the variance matrix.
+        * @param {module:la.Matrix} A - Matrix whose columns correspond to examples.
+        */
+        this.fit = function (A) {
+            var rows = A.rows;
+            var cols = A.cols;
+
+            k = k == undefined ? rows : k;
+            //iter = iter == undefined ? -1 : iter;
+
+            var mu = stat.mean(A, 2);
+            // cov(A) = 1/(n-1) A A' - mu mu'
+
+            // center data (same as matlab)
+            var cA = A.minus(mu.outer(la.ones(cols)));
+            var C = cA.multiply(cA.transpose()).multiply(1 / (cols - 1));
+            // alternative computation:
+            //var C = (A.multiply(A.transpose()).multiply(1 / (cols - 1))).minus(mu.outer(mu));
+            var res = la.svd(C, k, { iter: iter });
+
+            this.P = res.U;
+            this.lambda = res.s;
+            this.mu = mu;
+        }
+
+        /**
+        * Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P.
+        * Recovering the data in the original space: (this.P).multiply(p), where p's rows are the coefficients
+        * in the eigenvector basis.
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
+        * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
+        */
+        this.transform = function (x) {
+            if (x.constructor.name == 'Matrix') {
+                // P * (x - mu*ones(1, size(x,2))
+                return this.P.multiplyT(x.minus(this.mu.outer(la.ones(x.cols))));
+
+            } else if (x.constructor.name == 'Vector') {
+                // P * (x - mu)
+                return this.P.multiplyT(x.minus(this.mu));
+            }
+        }
+
+        /**
+        * Reconstructs the vector in the original space, reverses centering
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
+        * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
+        */
+        this.inverseTransform = function (x) {
+            if (x.constructor.name == 'Matrix') {
+                // P x + mu*ones(1, size(x,2)
+                return (this.P.multiply(x)).plus(this.mu.outer(la.ones(x.cols)));
+            } else if (x.constructor.name == 'Vector') {
+                // P x + mu
+                return (this.P.multiply(x)).plus(this.mu);
+            }
+        }
+    }
+
+    /**
+    * @classdesc KMeans clustering
+    * @class
+    */
+    exports.KMeans = function (param) {
+        param = param == undefined ? {} : param;
+
+        // Fit params
+        var iter = param.iter == undefined ? 100 : param.iter;
+        var k = param.k == undefined ? 2 : param.k;
+        var verbose = param.verbose == undefined ? false : param.verbose;
+
+        // Model
+        var C = undefined;
+        var idxv = undefined;
+        var norC2 = undefined;
+
+        /**
+        * Returns the model
+        * @returns {Object} The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data)
+        */
+        this.getModel = function () {
+            return { C: C, idxv: idxv };
+        }
+
+        /**
+        * Sets parameters
+        * @param {p} Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)
+        */
+        this.setParams = function (p) {
+            param = p;
+        }
+
+        /**
+        * Returns parameters
+        * @returns Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)
+        */
+        this.getParams = function () {
+            return param;
+        }
+
+        /**
+        * Computes the centroids
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        */
+        this.fit = function (X) {
+            // select random k columns of X, returns a dense C++ matrix
+            var selectCols = function (X, k) {
+                var idx = la.randi(X.cols, k);
+                var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
+                for (var i = 0; i < idx.length; i++) {
+                    var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
+                    idxMat.push(spVec);
+                }
+                var C = X.multiply(idxMat);
+                var result = {};
+                result.C = C;
+                result.idx = idx;
+                return result;
+            };
+
+            // modified k-means algorithm that avoids empty centroids
+            // A Modified k-means Algorithm to Avoid Empty Clusters, Malay K. Pakhira
+            // http://www.academypublisher.com/ijrte/vol01/no01/ijrte0101220226.pdf
+            var getCentroids = function (X, idx, oldC) {
+                // select random k columns of X, returns a dense matrix
+                // 1. construct a sparse matrix (coordinate representation) that encodes the closest centroids
+                var idxvec = new la.IntVector(idx);
+                var rangeV = la.rangeVec(0, X.cols - 1);
+                var ones_cols = la.ones(X.cols);
+                var idxMat = new la.SparseMatrix(idxvec, rangeV, ones_cols, X.cols);
+                idxMat = idxMat.transpose();
+                var ones_n = la.ones(X.cols);
+                // 2. compute the number of points that belong to each centroid, invert
+                var colSum = idxMat.multiplyT(ones_n);
+                for (var i = 0; i < colSum.length; i++) {
+                    var val = 1.0 / (1.0 + colSum.at(i)); // modification
+                    colSum.put(i, val);
+                }
+                // 3. compute the centroids
+                //var w = new qm_util.clsStopwatch();
+                //w.tic();
+                var sD = colSum.spDiag();
+                var C = oldC;
+                if (idxMat.cols == oldC.cols)
+                    C = ((X.multiply(idxMat)).plus(oldC)).multiply(sD); // modification
+                return C;
+            };
+
+
+            // X: column examples
+            // k: number of centroids
+            // iter: number of iterations
+            assert(k <= X.cols, "k <= X.cols");
+            var w = new qm_util.clsStopwatch();
+            var norX2 = la.square(X.colNorms());
+            var initialCentroids = selectCols(X, k);
+            C = initialCentroids.C;
+            var idxvOld = initialCentroids.idx;
+            //printArray(idxvOld); // DEBUG
+            var ones_n = la.ones(X.cols).multiply(0.5);
+            var ones_k = la.ones(k).multiply(0.5);
+            w.tic();
+            for (var i = 0; i < iter; i++) {
+                //console.say("iter: " + i);
+                norC2 = la.square(C.colNorms());
+                //D =  full(C'* X) - norC2' * (0.5* ones(1, n)) - (0.5 * ones(k,1) )* norX2';
+                var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+                idxv = la.findMaxIdx(D);
+
+                if (verbose) {
+                    var energy = 0.0;
+                    for (var j = 0; j < X.cols; j++) {
+                        if (D.at(idxv[j], j) < 0) {
+                            energy += Math.sqrt(-2 * D.at(idxv[j], j));
+                        }
+                    }
+                    console.log("energy: " + 1.0 / X.cols * energy);
+                }
+                if (qm_util.arraysIdentical(idxv, idxvOld)) {
+                    if (verbose) {
+                        console.say("converged at iter: " + i); //DEBUG
+                    }
+                    break;
+                }
+                idxvOld = idxv.slice();
+                C = getCentroids(X, idxv, C); //drag
+            }
+            if (verbose) {
+                w.toc("end");
+            }
+            norC2 = la.square(C.colNorms());
+        };
+
+        /**
+        * Returns an vector of cluster id assignments
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        * @returns {module:la.IntVector} Vector of cluster assignments.
+        */
+        this.predict = function (X) {
+            var ones_n = la.ones(X.cols).multiply(0.5);
+            var ones_k = la.ones(k).multiply(0.5);
+            var norX2 = la.square(X.colNorms());
+            var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+            return la.findMaxIdx(D);
+        }
+
+        /**
+        * Transforms the points to vectors of squared distances to centroids
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        * @returns {module:la.Matrix} Matrix where each column represents the squared distances to the centroid vectors
+        */
+        this.transform = function (X) {
+            var ones_n = la.ones(X.cols).multiply(0.5);
+            var ones_k = la.ones(k).multiply(0.5);
+            var norX2 = la.square(X.colNorms());
+            var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+            D = D.multiply(-1);
+            return D;
+        }
+    }
+
     ///////////////////////////////
     ////// code below not yet ported or verified for scikit
     ///////////////////////////////
@@ -1352,150 +1708,6 @@ module.exports = exports = function (pathPrefix) {
 
     	return that;
     };
-
-    /**
-    * @classdesc Anomaly detector that checks if the test point is too far from
-    * the nearest known point.
-    * @class
-    * @param {Object} [detectorParam={rate:0.05}] - Constructor parameters
-    * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
-    */
-    exports.NearestNeighborAD = function(detectorParam) {
-        // Parameters
-        detectorParam = detectorParam == undefined ? {} : detectorParam;
-        detectorParam.rate = detectorParam.rate == undefined ? 0.05 : detectorParam.rate;
-        assert(detectorParam.rate > 0 && detectorParam.rate <= 1.0, 'rate parameter not in range (0,1]');
-        // model param
-        this.rate = detectorParam.rate;
-        // default model
-        this.thresh = 0;
-
-        /**
-        * Gets the 100*(1-rate) percentile
-        * @param {module:la.Vector} vector - Vector of values
-        * @returns {number} Percentile
-        */
-        function getThreshold(vector, rate) {
-            var sorted = vector.sortPerm().vec;
-            var idx = Math.floor((1 - rate) * sorted.length);
-            return sorted[idx];
-        }
-        var neighborDistances = undefined;
-
-        /**
-        * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
-        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
-        * the model.
-        */
-        this.fit = function (A) {
-            this.X = A;
-            // distances
-            var D = la.pdist2(A, A);
-            // add big numbers on the diagonal (exclude the point itself from the nearest point calcualtion)
-            var E = D.plus(D.multiply(la.ones(D.rows)).diag()).multiply(-1);
-            var neighborDistances = new la.Vector({ vals: D.rows });
-            for (var i = 0; i < neighborDistances.length; i++) {
-                // nearest neighbour squared distance
-                neighborDistances[i] = D.at(i, E.rowMaxIdx(i));
-            }
-            this.thresh = getThreshold(neighborDistances, this.rate);
-        }
-
-        /**
-        * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
-        * @param {module:la.Vector} x - Test vector
-        * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
-        */
-        this.predict = function (x) {
-            // compute squared dist and compare to thresh
-            var d = la.pdist2(this.X, x.toMat()).getCol(0);
-            var idx = d.multiply(-1).getMaxIdx();
-            var p = d[idx];
-            //console.log(p)
-            return p > this.thresh ? 1 : 0;
-        }
-
-        /**
-        * Adds a new point (or points) to the known points and recomputes the threhshold
-        * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
-        */
-        this.update = function (x) {
-            // append x to known examples and retrain (slow version)
-            // speedup 1: don't reallocate X every time (fixed window, circular buffer)
-            // speedup 2: don't recompute distances d(X,X), just d(X, y), get the minimum
-            // and append to neighborDistances
-            this.fit(la.cat([[this.X, x.toMat()]]));
-            //console.log('new threshold ' + this.thresh);
-        }
-    }
-
-
-
-    /**
-    * @classdesc Principal components analysis
-    * @class
-    */
-    exports.PCA = function () {
-        /**
-        * Computes .
-        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples.
-        */
-        this.fit = function (A, k, iter) {
-            var rows = A.rows;
-            var cols = A.cols;
-
-            k = k == undefined ? rows : k;
-            //iter = iter == undefined ? -1 : iter;
-
-            var mu = stat.mean(A, 2);
-            // cov(A) = 1/(n-1) A A' - mu mu'
-
-            // center data (same as matlab)
-            var cA = A.minus(mu.outer(la.ones(cols)));
-            var C = cA.multiply(cA.transpose()).multiply(1 / (cols - 1));
-            // alternative computation:
-            //var C = (A.multiply(A.transpose()).multiply(1 / (cols - 1))).minus(mu.outer(mu));
-            var res = la.svd(C, k, { iter: iter });
-
-            this.P = res.U;
-            this.lambda = res.s;
-            this.mu = mu;
-        }
-
-        /**
-        * Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P.
-        * Recovering the data in the original space: (this.P).multiply(p), where p's rows are the coefficients
-        * in the eigenvector basis.
-        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
-        * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
-        */
-        this.predict = function (x) {
-            if (x.constructor.name == 'Matrix') {
-                // P * (x - mu*ones(1, size(x,2))
-                return this.P.multiplyT(x.minus(this.mu.outer(la.ones(x.cols))));
-
-            } else if (x.constructor.name == 'Vector') {
-                // P * (x - mu)
-                return this.P.multiplyT(x.minus(this.mu));
-            }
-        }
-
-        /**
-        * Reconstructs the vector in the original space, reverses centering
-        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
-        * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
-        */
-        this.reconstruct = function (x) {
-            if (x.constructor.name == 'Matrix') {
-                // P x + mu*ones(1, size(x,2)
-                return (this.P.multiply(x)).plus(this.mu.outer(la.ones(x.cols)));
-            } else if (x.constructor.name == 'Vector') {
-                // P x + mu
-                return (this.P.multiply(x)).plus(this.mu);
-            }
-        }
-    }
-
     //!ENDJSDOC
 
     return exports;
