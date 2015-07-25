@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -11,7 +11,7 @@ module.exports = exports = function (pathPrefix) {
 //    exports = require('bindings')(pathPrefix + '/la.node');
     exports = require('bindings')(pathPrefix + '/qm.node').la;
 
-    
+
     var assert = require('assert');
 
     //!STARTJSDOC
@@ -28,7 +28,7 @@ module.exports = exports = function (pathPrefix) {
     /**
     * Returns a string displaying rows, columns and number of non-zero elements of sparse matrix.
     * @returns {string} String displaying row, columns and number of non-zero elements.
-    * @example 
+    * @example
     * // create a new sparse matrix
     * var mat = new la.SparseMatrix([[[0, 1]], [[0, 2], [1, 8]]]);
     * // create the string
@@ -59,7 +59,7 @@ module.exports = exports = function (pathPrefix) {
     exports.SparseVector.prototype.print = function () { console.log(this.toString()); }
 
     /**
-	* Prints the matrix on-screen. 
+	* Prints the matrix on-screen.
 	* @example
 	* // create a new matrix
 	* var mat = new la.Matrix([[1, 2], [3, 4]]);
@@ -72,11 +72,11 @@ module.exports = exports = function (pathPrefix) {
     exports.Matrix.prototype.print = function () { console.log(this.toString()); }
 
 	/**
-	* Returns a copy of the matrix. 
+	* Returns a copy of the matrix.
 	* @returns {module:la.Matrix} Copy
 	*/
 	exports.Matrix.prototype.toMat = function () { return new exports.Matrix(this); }
-    
+
 	/**
     * Prints the vector on-screen.
     * @example
@@ -88,7 +88,7 @@ module.exports = exports = function (pathPrefix) {
     * vec.print();
     */
 	exports.Vector.prototype.print = function () { console.log(this.toString()); }
-	
+
     /**
     * Copies the vector into a JavaScript array of numbers.
     * @param {module:la.Vector} vec - Copied vector.
@@ -113,7 +113,7 @@ module.exports = exports = function (pathPrefix) {
                parseInt(Number(value)) == value &&
                !isNaN(parseInt(value, 10));
     }
-    
+
     ///////// RANDOM GENERATORS
 
     /**
@@ -143,8 +143,8 @@ module.exports = exports = function (pathPrefix) {
             var vec = new exports.Vector({ "vals": dim });
             for (var elN = 0; elN < dim; elN++) {
                 vec.put(elN, exports.randn());
-            }            
-            return vec;       
+            }
+            return vec;
         } else if (len === 2) {
             var rows = arguments[0];
             var cols = arguments[1];
@@ -210,7 +210,7 @@ module.exports = exports = function (pathPrefix) {
     exports.Vector.prototype.print = function () {
         console.log(this.toString());
     }
-    
+
     ///////// COMMON MATRICES
 /////// VECTOR, MATRIX GENERATION
 // generate identity matrix
@@ -282,11 +282,11 @@ exports.ones = function(k) {
     }
     return ones_k;
 };
-        
+
     /**
     * Constructs a matrix by concatenating a doubly-nested array of matrices.
     * @param {Array<Array<module:la.Matrix>> } matrixDoubleArr - An array of block rows, where each block row is an array of matrices.
-    * For example: [[m11, m12], [m21, m22]] is used to construct a matrix where the (i,j)-th block submatrix is mij. 
+    * For example: [[m11, m12], [m21, m22]] is used to construct a matrix where the (i,j)-th block submatrix is mij.
     * @returns {module:la.Matrix} Concatenated matrix
     * @example
     * // create four matrices and concatenate (2 block columns, 2 block rows)
@@ -302,7 +302,7 @@ exports.ones = function(k) {
     * // 9  10 13 14
     * // 11 12 15 16
     */
-    //# exports.cat = function(matrixDoubleArr) {}	
+    //# exports.cat = function(matrixDoubleArr) {}
 exports.cat = function (nestedArrMat) {
     var dimx = []; //cell row dimensions
     var dimy = []; //cell col dimensions
@@ -321,7 +321,7 @@ exports.cat = function (nestedArrMat) {
                 assert(dimy[col] == nestedArrMat[row][col].cols, 'inconsistent column dimensions!');
             } else {
                 dimy[col] = nestedArrMat[row][col].cols;
-            }            
+            }
         }
     }
     cdimx[0] = 0;
@@ -411,7 +411,7 @@ exports.pdist2 = function (mat, mat2) {
     * @param {(module:la.Matrix | module:la.SparseMatrix)} A - The matrix on the left-hand side of the system.
     * @param {module:la.Vector} b - The vector on the right-hand side of the system.
     * @param {module:la.Vector} [x] - Current solution. Default is a vector of zeros.
-    * @returns {module:la.Vector} Solution to the system. 
+    * @returns {module:la.Vector} Solution to the system.
     */
     exports.conjgrad = function (A, b, x) {
     	x = x || new exports.Vector({vals: A.cols});
@@ -433,9 +433,8 @@ exports.pdist2 = function (mat, mat2) {
         }
         return x;
     }
-    
+
     //!ENDJSDOC
 
     return exports;
 }
-

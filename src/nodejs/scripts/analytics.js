@@ -21,7 +21,7 @@ module.exports = exports = function (pathPrefix) {
 
     var qm_util = require(__dirname + '/qm_util.js');
 
-
+    //!STARTJSDOC
     exports.preprocessing = new function() {
         this.binerize = function (y, cat) {
             var target = new la.Vector();
@@ -55,6 +55,18 @@ module.exports = exports = function (pathPrefix) {
             return target;
         }
     };
+
+    // var model = new OneVsAll({
+    //     model : analytics.SVC,
+    //     modelParam: { c: 10, j: 10, maxTime: 123 },
+    //     cats : 123
+    // });
+    //
+    // var X = featureSpace.extractSparseMatrix(recordSet);
+    // var y = store.getCol("label");
+    // model.fit(X, y);
+    //
+    // model.predict(featureSpace.extractSparseVector(record));
 
     exports.OneVsAll = function (params) {
         // remember parameters
@@ -1419,12 +1431,12 @@ module.exports = exports = function (pathPrefix) {
 
 
 
-    /** 
+    /**
     * @classdesc Principal components analysis
-    * @class    
+    * @class
     */
-    exports.PCA = function () {        
-        /** 
+    exports.PCA = function () {
+        /**
         * Computes .
         * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples.
         */
@@ -1435,22 +1447,22 @@ module.exports = exports = function (pathPrefix) {
             k = k == undefined ? rows : k;
             //iter = iter == undefined ? -1 : iter;
 
-            var mu = stat.mean(A, 2);            
+            var mu = stat.mean(A, 2);
             // cov(A) = 1/(n-1) A A' - mu mu'
 
             // center data (same as matlab)
-            var cA = A.minus(mu.outer(la.ones(cols)));            
+            var cA = A.minus(mu.outer(la.ones(cols)));
             var C = cA.multiply(cA.transpose()).multiply(1 / (cols - 1));
-            // alternative computation: 
+            // alternative computation:
             //var C = (A.multiply(A.transpose()).multiply(1 / (cols - 1))).minus(mu.outer(mu));
             var res = la.svd(C, k, { iter: iter });
-            
+
             this.P = res.U;
             this.lambda = res.s;
             this.mu = mu;
         }
 
-        /** 
+        /**
         * Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P.
         * Recovering the data in the original space: (this.P).multiply(p), where p's rows are the coefficients
         * in the eigenvector basis.
@@ -1468,7 +1480,7 @@ module.exports = exports = function (pathPrefix) {
             }
         }
 
-        /** 
+        /**
         * Reconstructs the vector in the original space, reverses centering
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
         * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction

@@ -15,6 +15,13 @@
 #include "la_nodejs.h"
 #include "qminer_ftr.h"
 
+/**
+ * Analytics module.
+ * @module analytics
+ * @example
+ * // import module, load dataset, create model, evaluate model
+ */
+
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Machine-Model
 // Holds SVM classification or regression model. 
@@ -353,7 +360,7 @@ public:
  * Sigmoid funnction (y = 1/[1 + exp[-Ax+B]]) fited on decision function to mimic
  *
  * @class
- * @param {(|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model.
+ * @param {(null|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model.
  * @example
  * la = require('qminer').la;
  * analytics = require('qminer').analytics;
@@ -398,15 +405,15 @@ public:
     /**
      * Returns the expected response for the provided feature vector.
      *
-     * @param {(|module:la.Vector)} x - Prediction score (or vector of them).
-     * @returns {(|module:la.Vector)} Normalized prediction score (or vector of them).
+     * @param {(number|module:la.Vector)} x - Prediction score (or vector of them).
+     * @returns {(number|module:la.Vector)} Normalized prediction score (or vector of them).
      */
     //# exports.Sigmoid.prototype.decision_function = function(x) {}
     /**
      * Returns the expected response for the provided feature vector.
      *
-     * @param {(|module:la.Vector)} x - Prediction score (or vector of them).
-     * @returns {(|module:la.Vector)} Normalized prediction score (or vector of them).
+     * @param {(number|module:la.Vector)} x - Prediction score (or vector of them).
+     * @returns {(number|module:la.Vector)} Normalized prediction score (or vector of them).
      */
     //# exports.Sigmoid.prototype.predict = function(x) {}
     JsDeclareFunction(predict);
