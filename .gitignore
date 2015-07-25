@@ -38,6 +38,7 @@ doc
 Doxyfile-tmp
 log-doxygen.txt
 temp
+cppdoc
 
 qm.conf
 db
