@@ -23,38 +23,38 @@ module.exports = exports = function (pathPrefix) {
 
     //!STARTJSDOC
     exports.preprocessing = new function() {
-        this.binerize = function (y, cat) {
+        this.binarize = function (y, labelId) {
             var target = new la.Vector();
             for (var i = 0; i < y.length; i++) {
-                target.push(y[i] == cat ? 1 : -1);
+                target.push(y[i] === labelId ? 1 : -1);
             }
             return target;
         };
-
-        this.inverse_binerize = function (y) {
-            var labels = [];
-            for (var cat = 0; cat < y.length; cat++) {
-                if (y[cat] > 0.0) { labels.push(cat); }
-            }
-            return labels;
-        };
-
-        this.indicator = function (cat, cats) {
-            var indicator = new la.Vector();
-            for (var i = 0; i < cats; i++) {
-                indicator.push(cat == i ? 1 : 0);
-            }
-            return indicator;
-        }
 
         this.applyModel = function (model, X) {
             var target = new la.Vector();
             for (var i = 0; i < X.cols; i++) {
-                target.push(model.decision_function(X[i]));
+                target.push(model.decisionFunction(X[i]));
             }
             return target;
         }
     };
+
+    /**
+    * SVM model
+    * @typedef {Object} svmModel
+    * @property  {module:la.Vector} [svmModel.weigths] - SVM normal vector
+    */
+    /**
+	* Get SVC model
+	* @returns {module:analytics~svmModel} Get current SVM model
+	*/
+    exports.SVC.prototype.getModel = function() { return { weights: this.weights }; }
+    /**
+	* Get SVR model
+	* @returns {module:analytics~svmModel} Get current SVM model
+	*/
+    exports.SVR.prototype.getModel = function() { return { weights: this.weights }; }
 
     // var model = new OneVsAll({
     //     model : analytics.SVC,
@@ -68,22 +68,42 @@ module.exports = exports = function (pathPrefix) {
     //
     // model.predict(featureSpace.extractSparseVector(record));
 
-    exports.OneVsAll = function (params) {
+    /**
+    * @classdesc One vs. all model for multiclass prediction. Builds binary model
+    * for each category and predicts the one with the highest score. Binary model is
+    * provided as part of the constructor.
+    * @class
+    * @param {Object} [oneVsAllParam] - Constructor parameters
+    * @param {function} [oneVsAllParam.model] - Constructor for binary model to be
+    * used internaly. Constructor should expect only one parameter.
+    * @param {Object} [oneVsAllParam.modelParam] - Parameter for oneVsAllParam.model constructor.
+    * @param {number} [oneVsAllParam.categories] - Number of categories.
+    */
+    exports.OneVsAll = function (oneVsAllParam) {
         // remember parameters
-        this.model = params.model;
-        this.modelParam = params.modelParam;
-        this.cats = params.cats;
+        this.model = oneVsAllParam.model;
+        this.modelParam = oneVsAllParam.modelParam;
+        this.cats = oneVsAllParam.categories;
         // trained models
         this.models = [ ];
 
-        // apply all models to the given vector and return distance to the class boundary
-        this.decision_function = function(x, cat) {
+        /**
+         * apply all models to the given vector and returns a vector of scores, one for each category.
+         * Semantic of scores depand on the provided binary model.
+         * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X -
+         * Input feature vector or matrix with feature vectors as columns
+         * @returns {module:la.Vector | module:la.Matrix}
+         * Score for each input vector and category. In case input is a vector, ouput is
+         * a vector of scores. In case input is a matrix, output is matrix with columns corresponding
+         * to instances, and rows corresponding to labels.
+         */
+        this.decisionFunction = function(X) {
             // check what is our input
             if (x instanceof la.Vector || x instanceof la.SparseVector) {
                 // evaluate all models
                 var scores = new la.Vector();
                 for (var cat = 0; cat < this.cats; cat++) {
-                    scores.push(this.models[cat].decision_function(x));
+                    scores.push(this.models[cat].decisionFunction(x));
                 }
                 return scores;
             } else if (x instanceof la.Matrix || x instanceof la.SparseMatrix) {
@@ -92,19 +112,24 @@ module.exports = exports = function (pathPrefix) {
                 for (var i = 0; i < x.cols; i++) {
                     var x_i = x.getCol(i);
                     for (var cat = 0; cat < this.cats; cat++) {
-                        scores.put(cat, i, this.models[cat].decision_function(x_i));
+                        scores.put(cat, i, this.models[cat].decisionFunction(x_i));
                     }
                 }
                 return scores;
             } else {
-                throw "analytics.OneVsAll.decision_function: Input data of unsupported type!";
+                throw "analytics.OneVsAll.decisionFunction: Input data of unsupported type!";
             }
         }
 
-        // return the most likely category
+        /**
+         * apply all models to the given vector and returns category with the highest score.
+         * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X -
+         * Input feature vector or matrix with feature vectors as columns
+         * @returns {number | module:la.IntVector} Highest scored category, or categories when input is matrix.
+         */
         this.predict = function(x) {
             // evaluate all models
-            var scores = this.decision_function(x);
+            var scores = this.decisionFunction(x);
             // select maximal one
             if (scores instanceof la.Vector) {
                 return scores.getMaxIdx();
@@ -115,19 +140,25 @@ module.exports = exports = function (pathPrefix) {
                 }
                 return predictions;
             } else {
-                throw "analytics.OneVsAll.predict: decision_function returns unsupported type!";
+                throw "analytics.OneVsAll.predict: decisionFunction returns unsupported type!";
             }
         }
 
         // X = feature matrix
         // y = target label from 0..cats
+        /**
+         * apply all models to the given vector and returns category with the highest score.
+         * @param {module:la.Matrix | module:la.SparseMatrix} X - training instance feature vectors
+         * @param {module:la.Vector} y - target category for each training instance. Categories must
+         * be integer numbers between 0 and oneVsAllParam.categories - 1.
+         */        
         this.fit = function(X, y) {
             this.models = [ ];
             // make model for each category
             for (var cat = 0; cat < this.cats; cat++) {
                 console.log("Fitting label", (cat + 1), "/", this.cats);
                 // prepare targert vector for current category
-                var target = exports.preprocessing.binerize(y, cat);
+                var target = exports.preprocessing.binarize(y, cat);
                 // get the model
                 var catModel = new this.model(this.modelParam);
                 this.models.push(catModel.fit(X, target));
@@ -149,7 +180,7 @@ module.exports = exports = function (pathPrefix) {
         // apply all models to the given vector and return distance to the class boundary
         // x = dense vector with prediction score for each class
         // result = traslated predictions based on thresholds
-        this.decision_function = function(x) {
+        this.decisionFunction = function(x) {
             if (x instanceof Number) {
                 // just transate based on the model's threshold
                 return x - this.model;
@@ -161,7 +192,7 @@ module.exports = exports = function (pathPrefix) {
                 }
                 return scores;
             } else {
-                throw "analytics.ThresholdModel.decision_function: Input data of unsupported type!";
+                throw "analytics.ThresholdModel.decisionFunction: Input data of unsupported type!";
             }
         }
 
@@ -170,7 +201,7 @@ module.exports = exports = function (pathPrefix) {
         // result = array of positive label ids
         this.predict = function(x) {
             // evaluate all models
-            var scores = this.decision_function(x)
+            var scores = this.decisionFunction(x)
             // check what we get
             if (scores instanceof la.Vector) {
                 return res = new la.Vector();
@@ -203,7 +234,7 @@ module.exports = exports = function (pathPrefix) {
 
     exports.metrics = new function() {
         // For evaluating provided categories (precision, recall, F1).
-        this.ClassifcationScore = function (yTrue, yPred) {
+        this.ClassificationScore  = function (yTrue, yPred) {
             this.scores = {
                 count: 0, predictionCount: 0,
                 TP: 0, TN: 0, FP: 0, FN: 0,
@@ -249,19 +280,19 @@ module.exports = exports = function (pathPrefix) {
         };
 
         this.accuracyScore = function (yTrue, yPred) {
-            return new this.ClassifcationScore(yTrue, yPred).scores.accuracy();
+            return new this.ClassificationScore (yTrue, yPred).scores.accuracy();
         };
 
         this.precisionScore = function (yTrue, yPred) {
-            return new this.ClassifcationScore(yTrue, yPred).scores.precision();
+            return new this.ClassificationScore (yTrue, yPred).scores.precision();
         };
 
         this.recallScore = function (yTrue, yPred) {
-            return new this.ClassifcationScore(yTrue, yPred).scores.recall();
+            return new this.ClassificationScore (yTrue, yPred).scores.recall();
         };
 
         this.f1Score = function (yTrue, yPred) {
-            return new this.ClassifcationScore(yTrue, yPred).scores.accuracy();
+            return new this.ClassificationScore (yTrue, yPred).scores.accuracy();
         };
 
         // used for computing ROC curve and other related measures such as AUC;
@@ -489,7 +520,6 @@ module.exports = exports = function (pathPrefix) {
             return new this.PredictionCurve(yTrue, yPred).desiredPrecision(desiredPrecision);
         };
     };
-
 
     /**
     * @classdesc Anomaly detector that checks if the test point is too far from
@@ -1077,7 +1107,7 @@ module.exports = exports = function (pathPrefix) {
             // create model for the fold
             var model = exports.newBatchModel(trainRecs, features, target, limitCategories);
             // prepare test counts for each target
-            if (!cfyRes) { cfyRes = new exports.classifcationScore(model.target); }
+            if (!cfyRes) { cfyRes = new exports.ClassificationScore (model.target); }
             // evaluate predictions
             for (var i = 0; i < testRecs.length; i++) {
                 var correct = testRecs[i][target.name];
