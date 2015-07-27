@@ -704,6 +704,7 @@
 * @typedef {module:qm.StreamAggr} StreamAggr_Merger
 * This stream aggregator represents the merger aggregator. It merges records from two or more stores into a new store
 * depending on the timestamp. No methods are implemented for this aggregator.
+* <image src="pictures/merger.gif" alt="Merger Animation">
 * @property {string} name - The given name for the stream aggregator.
 * @property {string} type - The type of the stream aggregator. It must be equal to <b>'stmerger'</b>.
 * @property {string} outStore - The name of the store where it saves the merged records.
