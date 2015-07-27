@@ -41,7 +41,7 @@ bool TNumeric::Update(const double& Val) {
 double TNumeric::GetFtr(const double& Val) const {
 	if (Type == ntNormalizeVar) {
 		double Res = Val - Var.GetMean();
-		double M2 = Var.GetVar();
+		double M2 = Var.GetStDev();
 		if (M2 > 0) Res /= M2;
 		return Res;
 	} else if ((Type != ntNone) && (MnVal < MxVal)) {
