@@ -995,6 +995,8 @@ bool TFile::Move(const TStr& SrcFNm, const TStr& DstFNm,
 void TFile::Copy(const TStr& SrcFNm, const TStr& DstFNm,
  const bool& ThrowExceptP, const bool& FailIfExistsP){
 	int input, output;
+	size_t filesize;
+	void *source, *target;
 
 	if( (input = open(SrcFNm.CStr(), O_RDONLY)) == -1) {
 		if (ThrowExceptP) {
@@ -1019,28 +1021,56 @@ void TFile::Copy(const TStr& SrcFNm, const TStr& DstFNm,
 		}
 	}
 
-    // struct required, rationale: function stat() exists also
-    struct stat stat_source;
-    fstat(input, &stat_source);
 
 	filesize = lseek(input, 0, SEEK_END);
 	posix_fallocate(output, 0, filesize);
 
-    close(input);
-    close(output);
+	if((source = mmap(0, filesize, PROT_READ, MAP_SHARED, input, 0)) == (void *) -1) {
+		close(input);
+		close(output);
+		if (ThrowExceptP) {
+			TExcept::Throw(TStr::Fmt(
+						"Error copying file '%s' to '%s': cannot mmap input file.",
+						SrcFNm.CStr(), DstFNm.CStr()));
+		} else {
+			return;
+		}
+	}
+
+	if((target = mmap(0, filesize, PROT_WRITE, MAP_SHARED, output, 0)) == (void *) -1) {
+		munmap(source, filesize);
+		close(input);
+		close(output);
+		if (ThrowExceptP) {
+			TExcept::Throw(TStr::Fmt(
+						"Error copying file '%s' to '%s': cannot mmap output file.",
+						SrcFNm.CStr(), DstFNm.CStr()));
+		} else {
+			return;
+		}
+	}
+
+	memcpy(target, source, filesize);
+
+	munmap(source, filesize);
+	munmap(target, filesize);
+
+	close(input);
+	close(output);
+
 }
 
 bool TFile::Move(const TStr& SrcFNm, const TStr& DstFNm,
-	const bool& ThrowExceptP, const bool& FailIfExistsP)
-{
+  const bool& ThrowExceptP, const bool& FailIfExistsP) {
 	TFile::Copy(SrcFNm, DstFNm, ThrowExceptP, FailIfExistsP);
 	return TFile::Del(SrcFNm, ThrowExceptP);
 }
 
+
 #elif defined(GLib_MACOSX)
 
 void TFile::Copy(const TStr& SrcFNm, const TStr& DstFNm,
-                 const bool& ThrowExceptP, const bool& FailIfExistsP) {
+  const bool& ThrowExceptP, const bool& FailIfExistsP) {
     
     FailR("Feature not implemented");
 }
