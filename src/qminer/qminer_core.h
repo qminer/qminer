@@ -106,15 +106,7 @@ private:
 	static PExcept Throw(const TStr& MsgStr, const TStr& LocStr = TStr()) { return NULL; }
 public:
 	/// Create new QMiner exception
-	static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr()) { 
-		TChA Stack = LocStr;
-		if (Stack.Len() > 0)
-			Stack += "\n";
-#ifdef GLib_WIN
-		Stack += "Stack trace:\n" + TBufferStackWalker::GetStackTrace();
-#endif
-		return PExcept(new TQmExcept(MsgStr, Stack));
-	}
+	static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr());
 };
 
 #define QmAssert(Cond) \
@@ -356,12 +348,11 @@ private:
 	/// End
 	uint64 EndId;
 
-public:
     /// Empty vector
 	TStoreIterVec();
     /// Vector has elements from MinId till MaxId
 	TStoreIterVec(const uint64& _StartId, const uint64& _EndId, const bool& _AscP);
-
+public:
 	/// Create new iterator for empty vector
 	static PStoreIter New() { return new TStoreIterVec; }
 	/// Create new iterator for vector, which starts with RecId = MinId

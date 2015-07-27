@@ -469,7 +469,7 @@ protected:
 public:
   TVec(): MxVals(0), Vals(0), ValT(NULL){}
   TVec(const TVec<TVal, TSizeTy>& Vec);
-#ifdef CPP11
+#ifdef GLib_CPP11
   // Move constructor
   TVec(TVec<TVal, TSizeTy>&& Vec);
 #endif
@@ -657,8 +657,6 @@ public:
   void DelAll(const TVal& Val);
   /// Sets all elements of the vector to value \c Val.
   void PutAll(const TVal& Val);
-  /// Sets element at pos ValN to value \c Val.
-  void PutAt(const TSizeTy& ValN, const TVal& Val);
   
   /// Move element from position \c ValN1 to \c ValN2
   void Move(const TSizeTy& FromValN, const TSizeTy& ToValN){
@@ -942,7 +940,7 @@ TVec<TVal, TSizeTy>::TVec(const TVec<TVal, TSizeTy>& Vec){
   for (TSizeTy ValN=0; ValN<Vec.Vals; ValN++){ValT[ValN]=Vec.ValT[ValN];}
 }
 
-#ifdef CPP11
+#ifdef GLib_CPP11
 template <class TVal, class TSizeTy>
 TVec<TVal, TSizeTy>::TVec(TVec<TVal, TSizeTy>&& Vec) : MxVals(0), Vals(0), ValT() {
 	//TSizeTy MxVals; //!< Vector capacity. Capacity is the size of allocated storage. If <tt>MxVals==-1</tt>, then \c ValT is not owned by the vector, and it won't free it at destruction.
@@ -1303,11 +1301,6 @@ void TVec<TVal, TSizeTy>::DelAll(const TVal& Val){
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::PutAll(const TVal& Val){
   for (TSizeTy ValN=0; ValN<Vals; ValN++){ValT[ValN]=Val;}
-}
-
-template <class TVal, class TSizeTy>
-void TVec<TVal, TSizeTy>::PutAt(const TSizeTy& ValN, const TVal& Val){
-	ValT[ValN]=Val;
 }
 
 template <class TVal, class TSizeTy>
@@ -2416,7 +2409,7 @@ public:
 	TVVec(const TVec<TVal, TSizeTy> && Vec) :
 		XDim(colmajor ? Vec.Len() : 1), YDim(colmajor ? 1 : Vec.Len()), ValV(std::move(Vec)), ColMajor(colmajor){}
 	//-------------------------------------------------------------------------------------------
-#ifdef CPP11
+#ifdef GLib_CPP11
 	TVVec(const TVVec&& Vec) :
 		XDim(std::move(Vec.XDim)), YDim(std::move(Vec.YDim)), ValV(std::move(Vec.ValV)), ColMajor(std::move(Vec.ColMajor)){ }
 #endif
@@ -3098,8 +3091,6 @@ public:
   ~TLst(){Clr();}
   explicit TLst(TSIn& SIn);
   void Save(TSOut& SOut) const;
-
-  //TLst& operator=(const TLst&);
 
   void Clr(){
     PLstNd Nd=FirstNd;

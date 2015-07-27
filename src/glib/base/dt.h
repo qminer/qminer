@@ -15,32 +15,6 @@ class TILx;
 class TOLx;
 ClassHdTP(TXmlTok, PXmlTok);
 
-template <class Base> class TNum{
-public:
-    Base Val;
-    TNum() : Val(0){}
-    TNum(const Base& _Val) : Val(_Val){}
-    operator Base() const { return Val; }
-    explicit TNum(TSIn& SIn){ SIn.Load(Val); }
-    void Load(TSIn& SIn){ SIn.Load(Val); }
-    void Save(TSOut& SOut) const { SOut.Save(Val); }
-
-    TNum& operator=(const TNum& Other){ Val = Other.Val; return *this; }
-    TNum& operator=(const Base& _Val){ Val = _Val; return *this; }
-    TNum& operator++(){ ++Val; return *this; } // prefix
-    TNum& operator--(){ --Val; return *this; } // prefix
-    TNum operator++(Base){ TNum oldVal = Val; Val++; return oldVal; } // postfix
-    TNum operator--(Base){ TNum oldVal = Val; Val--; return oldVal; } // postfix
-    Base& operator()() { return Val; }
-    /*
-    T& operator~(){ Val = ~Val; return *this; }
-    T& operator&=(const T& Other){ Val &= Other.Val; return *this; }
-    T& operator|=(const T& Other){ Val |= Other.Val; return *this; }
-    T& operator^=(const T& Other){ Val ^= Other.Val; return *this; }
-    */
-    int GetMemUsed() const { return sizeof(TNum); }
-};
-
 /////////////////////////////////////////////////
 // Random
 class TRnd{
@@ -424,13 +398,8 @@ public:
 ///     }
 
 class TStr;
-
-typedef TNum<int> TInt;
-typedef TNum<uint64> TUInt64;
 template <class TVal, class TSizeTy> class TVec;
 typedef TVec<TStr, int> TStrV;
-typedef TVec<TInt, int> TIntV;
-typedef TVec<TUInt64, int> TUInt64V;
 
 class TStr{
 public:
@@ -798,8 +767,6 @@ public:
   static TStr GetStr(const TStr& Str, const char* FmtStr);
   static TStr GetStr(const TStr& Str, const TStr& FmtStr) { return GetStr(Str, FmtStr.CStr()); }
   static TStr GetStr(const TStrV& StrV, const TStr& DelimiterStr);
-  static TStr GetStr(const TIntV& Vec, const TStr& DelimiterStr);
-  static TStr GetStr(const TUInt64V& Vec, const TStr& DelimiterStr);
   static TStr Fmt(const char *FmtStr, ...);
   static TStr GetSpaceStr(const int& Spaces);
 
@@ -948,7 +915,7 @@ public:
   int GetSecHashCd(const uint& Offset) { Assert(Offset < BfL);
     if (Offset != 0) return GetSecHashCd(Bf + Offset); else return GetSecHashCd(""); }
   int GetMemUsed() const {
-      return (int) MxBfL;
+      return (int) MxBfL + 3*sizeof(uint);
   }
 };
 
@@ -987,6 +954,31 @@ public:
   TStr GetStr(const uint64& StrId) const;
 };
 
+template <class Base> class TNum{
+public:
+	Base Val;
+	TNum() : Val(0){}
+	TNum(const Base& _Val) : Val(_Val){}
+	operator Base() const { return Val; }
+	explicit TNum(TSIn& SIn){ SIn.Load(Val); }
+	void Load(TSIn& SIn){ SIn.Load(Val); }
+	void Save(TSOut& SOut) const { SOut.Save(Val); }
+
+	TNum& operator=(const TNum& Other){ Val = Other.Val; return *this; }
+	TNum& operator=(const Base& _Val){ Val = _Val; return *this; }
+	TNum& operator++(){ ++Val; return *this; } // prefix
+	TNum& operator--(){ --Val; return *this; } // prefix
+	TNum operator++(Base){ TNum oldVal = Val; Val++; return oldVal; } // postfix
+	TNum operator--(Base){ TNum oldVal = Val; Val--; return oldVal; } // postfix
+	Base& operator()() { return Val; }
+	/*
+	T& operator~(){ Val = ~Val; return *this; }
+	T& operator&=(const T& Other){ Val &= Other.Val; return *this; }
+	T& operator|=(const T& Other){ Val |= Other.Val; return *this; }
+	T& operator^=(const T& Other){ Val ^= Other.Val; return *this; }
+	*/
+	int GetMemUsed() const { return sizeof(TNum); }
+};
 //Complex double
 template<> 
 class TNum<std::complex<double>>{
@@ -1185,6 +1177,8 @@ public:
   TUCh& operator=(const TUCh& UCh){Val=UCh.Val; return *this;}
   bool operator==(const TUCh& UCh) const {return Val==UCh.Val;}
   bool operator<(const TUCh& UCh) const {return Val<UCh.Val;}
+  TUCh& operator+=(const TUCh& UCh) { Val += UCh.Val; return *this; }
+  TUCh& operator-=(const TUCh& UCh) { Val -= UCh.Val; return *this; }
   uchar operator()() const {return Val;}
   int GetMemUsed() const {return sizeof(TUCh);}
 

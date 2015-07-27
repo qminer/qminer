@@ -672,7 +672,6 @@ PBowDocWgtBs TBowDocWgtBs::New(
       for (int DocWIdN=0; DocWIdN<DocWIds; DocWIdN++){
         int DocWId; double DocWordFq;
         BowDocBs->GetDocWIdFq(DId, DocWIdN, DocWId, DocWordFq);
-        //TStr WordStr=BowDocBs->GetWordStr(DocWId); // for debugging
 		if (IgnoreWIds.IsKey(DocWId))		// skip the words that we want to ignore
 			continue;
         if (BowDocBs->GetWordFq(DocWId)>=_MnWordFq){

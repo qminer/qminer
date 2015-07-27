@@ -44,11 +44,16 @@ void TJsonVal::AddToObj(const PJsonVal& Val) {
 	}
 }
 
+void TJsonVal::AddToObj(const TStr& KeyNm, const PJsonVal& Val) {
+	EAssert(JsonValType == jvtObj);
+	EAssert(KeyNm != "");
+	KeyValH.AddDat(KeyNm, Val);
+}
+
 // extend/update the object with values from Val
 // this and Val should be an Object and not an array or something else
-void TJsonVal::UpdateObj(const PJsonVal& Val) {
-	if (!Val->IsObj() || !IsObj())
-		return;
+void TJsonVal::MergeObj(const PJsonVal& Val) {
+	EAssert(Val->IsObj() && IsObj());
 	for (int N = 0; N < Val->GetObjKeys(); N++) {
 		const TStr Key = Val->GetObjKey(N);
 		AddToObj(Key, Val->GetObjKey(Key));

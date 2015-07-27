@@ -159,7 +159,6 @@ void TSAppSrvFun::Exec(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) {
 		HttpResp = THttpResp::New(THttp::OkStatusCd, 
 			ContTypeVal, false, BodySIn);
     } catch (PExcept Except) {
-		// known internal error
         // known internal error
         Notify->OnStatusFmt("[%s] Exception: %s", TTm::GetCurLocTm().GetWebLogDateTimeStr(true, " ", false).CStr(), Except->GetMsgStr().CStr());
         Notify->OnStatusFmt("Location: %s", Except->GetLocStr().CStr());

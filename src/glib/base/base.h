@@ -13,12 +13,12 @@
 typedef int index_t;
 #else
 typedef long long index_t;
-#endif#pragma warning(disable: 4100)		// unreferenced formal parameter
+#endif
+
+#pragma warning(disable: 4100)		// unreferenced formal parameter
 #pragma warning(disable: 4127)		// conditional expression is constant
 #pragma warning(disable: 4315)		// 'THashKeyDat<TKey,TDat>' : 'this' pointer for member 'THashKeyDat<TKey,TDat>::Dat' may not be aligned 8 as expected by the constructor
 #pragma warning(disable: 4512)		// assignment operator could not be generated
-
-#define CPP11
 
 // if you use glib in multithreaded environment uncomment the next define
 // it avoids definition of some static variables that causes problems when using multiple threads
@@ -96,6 +96,8 @@ typedef long long index_t;
   #include <arpa/inet.h>
   #include <netinet/in.h>
 #endif
+
+#define GLib_CPP11
 
 // word size
 #if __WORDSIZE == 32 || defined(_M_IX86) || defined(__CYGWIN32__) || defined(__i386__)

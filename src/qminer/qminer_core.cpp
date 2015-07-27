@@ -118,6 +118,18 @@ void TValidNm::AssertValidNm(const TStr& NmStr) {
 }
 
 ///////////////////////////////
+// QMiner Exception
+PExcept TQmExcept::New(const TStr& MsgStr, const TStr& LocStr) {
+	TChA Stack = LocStr;
+#ifdef GLib_WIN
+	if (Stack.Len() > 0)
+		Stack += "\n";
+	Stack += "Stack trace:\n" + TBufferStackWalker::GetStackTrace();
+#endif
+	return PExcept(new TQmExcept(MsgStr, Stack));
+}
+
+///////////////////////////////
 // QMiner-Join-Description
 TJoinDesc::TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId,
 	const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc, const bool& IsSmall) :
@@ -429,6 +441,9 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
 			TWPt<TStore> JoinStore = Base->GetStoreByStoreId(JoinDesc.GetJoinStoreId());
 			// different handling for field and index joins
 			if (JoinDesc.IsFieldJoin()) {
+                // first make an empty join
+                SetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId(), TUInt64::Mx);
+                SetFieldInt(RecId, JoinDesc.GetJoinFqFieldId(), 0);
 				// get join record JSon object
 				PJsonVal JoinRecVal = RecVal->GetObjKey(JoinDesc.GetJoinNm());
 				// insert join record
@@ -553,7 +568,7 @@ void TStore::AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRe
 		Index->IndexJoin(this, JoinId, RecId, JoinRecId, JoinFq);
 	} else if (JoinDesc.IsFieldJoin()) {
 		const uint64 ExistingJoinRecId = GetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId());
-		// if we have an existing join and the target record is different 
+		// if we have an existing join and the target record is different
 		// then we first have to remove the existing join
 		if (ExistingJoinRecId != TUInt64::Mx && ExistingJoinRecId != JoinRecId) {
 			const int Fq = GetFieldInt(RecId, JoinDesc.GetJoinFqFieldId());

@@ -296,9 +296,12 @@ TFIn::TFIn(const TStr& FNm, bool& OpenedP, const bool IgnoreBOMIfExistsP):
   FileId=fopen(FNm.CStr(), "rb");
   OpenedP=(FileId!=NULL);
   if (OpenedP){
-	Bf=new char[MxBfL]; BfC=BfL=-1; FillBf();
-	if (IgnoreBOMIfExistsP && Bf[0] == (char)0xEF && Bf[1] == (char)0xBB && Bf[2] == (char)0xBF) 
-		BfC = 3;
+    Bf=new char[MxBfL]; BfC=BfL=-1; FillBf();
+    if (IgnoreBOMIfExistsP && BfL >= 3) {
+      // https://en.wikipedia.org/wiki/Byte_order_mark
+      if (Bf[0] == (char)0xEF && Bf[1] == (char)0xBB && Bf[2] == (char)0xBF)
+        BfC = 3;
+    }
   }
 }
 

@@ -626,10 +626,10 @@ void TNumSpV::GetVal(const TRec& FtrRec, TIntFltKdV& NumSpV) const {
         // do the join
         TRec JoinRec = FtrRec.DoSingleJoin(GetBase(), GetJoinIdV(FtrRec.GetStoreId()));
         // get feature value
-		//return _GetVal(JoinRec);
+		_GetVal(JoinRec, NumSpV);
     } else {
         // get feature value
-        //return _GetVal(FtrRec);
+        _GetVal(FtrRec, NumSpV);
 	}
 }
 
@@ -640,8 +640,8 @@ TNumSpV::TNumSpV(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& 
 
 TNumSpV::TNumSpV(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFtrExt(Base, ParamVal) {       
     // parse out parameters and initialize feature generator
-    const bool Dim = ParamVal->GetObjBool("dimension", false);
-    const bool NormalizeP = ParamVal->GetObjBool("normalize", false);
+    Dim = ParamVal->GetObjInt("dimension", 0);
+    NormalizeP = ParamVal->GetObjBool("normalize", false);
     // parse out input parameters
     TStr FieldNm = ParamVal->GetObjStr("field");
     QmAssertR(GetFtrStore()->IsFieldNm(FieldNm), "Unknown field '" + 

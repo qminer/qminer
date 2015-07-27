@@ -662,7 +662,7 @@ void TDMozBs::SaveTxt(const PDMozBs& DMozBs, const TStr& RootCatNm,
   fprintf(fOut, "#Categories: %d\n", Cats);
   for (int CatId=0; CatId<Cats; CatId++){
     TStr CatNm=DMozBs->GetCatNm(CatId);
-	if ((!RootCatNm.Empty()) && (!CatNm.StartsWith(RootCatNm))) { continue; }
+    if ((!RootCatNm.Empty())&&(!CatNm.StartsWith(RootCatNm))){continue;}
     SavedCats++;
     if (SavedCats%1000==0){printf("  Saved Categories %d\r", SavedCats);}
     fprintf(fOut, "cat: '%s'\n", CatNm.CStr());

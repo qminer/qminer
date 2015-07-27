@@ -3209,7 +3209,7 @@ public:
 
     // copy constructor
     TVector(const TVector& Vector);
-#ifdef CPP11
+#ifdef GLib_CPP11
     // Move constructor
     TVector(const TVector&& Vector);
 #endif
@@ -3374,7 +3374,7 @@ public:
 	TFullMatrix(const TVector& Vec);
 	// copy constructor
 	TFullMatrix(const TFullMatrix& Mat);
-#ifdef CPP11
+#ifdef GLib_CPP11
 	// move constructor
 	TFullMatrix(TFullMatrix&& Mat);
 

@@ -1068,6 +1068,7 @@ TStr TStr::GetFromHex() const {
 TStr TStr::GetSubStr(const int& BChN, const int& EChN) const {
 	int StrLen = Len();
 	//EAssertR(0 <= BChN && BChN <= EChN && EChN < StrLen, "TStr::GetSubStr index out of bounds");    
+	// TODO: add a new method that does the index changes and then calls GetSubStr()
 	int StartN = BChN < 0 ? StrLen + BChN : BChN;
 	int EndN;
 	// specifying -1 as EChN should return all but last char
@@ -1992,26 +1993,6 @@ TStr TStr::GetStr(const TStrV& StrV, const TStr& DelimiterStr){
     ResStr+=StrV[StrN];
   }
   return ResStr;
-}
-
-TStr TStr::GetStr(const TIntV& Vec, const TStr& DelimiterStr) {
-	if (Vec.Empty()) { return TStr(); }
-	TChA ResStr = Vec[0].GetStr();
-	for (int StrN = 1; StrN < Vec.Len(); StrN++) {
-		ResStr += DelimiterStr;
-		ResStr += Vec[StrN].GetStr();
-	}
-	return ResStr;
-}
-
-TStr TStr::GetStr(const TUInt64V& Vec, const TStr& DelimiterStr) {
-	if (Vec.Empty()) { return TStr(); }
-	TChA ResStr = Vec[0].GetStr();
-	for (int StrN = 1; StrN < Vec.Len(); StrN++) {
-		ResStr += DelimiterStr;
-		ResStr += Vec[StrN].GetStr();
-	}
-	return ResStr;
 }
 
 TStr TStr::Fmt(const char *FmtStr, ...){

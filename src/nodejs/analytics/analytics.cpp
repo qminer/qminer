@@ -171,6 +171,36 @@ void TNodeJsSvmModel::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	}
 }
 
+void TNodeJsSvmModel::decision_function(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    QmAssertR(Args.Length() > 0, "svm.predict: missing argument");
+    
+    try {
+        TNodeJsSvmModel* Model = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
+        
+        QmAssertR(Model->Model != nullptr, "svm.decision_function: SVM not initialized");
+        
+        if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
+            TNodeJsVec<TFlt, TAuxFltV>* Vec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(Args[0]->ToObject());
+            const double Res = Model->Model->Predict(Vec->Vec);
+            Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
+        }
+        else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpVec::GetClassId())) {
+            TNodeJsSpVec* SpVec = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
+            const double Res = Model->Model->Predict(SpVec->Vec);
+            Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
+        }
+        else {
+            throw TQm::TQmExcept::New("svm.decision_function: unsupported type of the first argument");
+        }
+    }
+    catch (const PExcept& Except) {
+        throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::decision_function");
+    }
+}
+
 void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -184,12 +214,12 @@ void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
 			TNodeJsVec<TFlt, TAuxFltV>* Vec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(Args[0]->ToObject());
-			const double Res = Model->Model->Predict(Vec->Vec);
+			const double Res = (Model->Model->Predict(Vec->Vec) > 0.0) ? 1.0 : -1.0;
 			Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
 		}
 		else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpVec::GetClassId())) {
 			TNodeJsSpVec* SpVec = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
-			const double Res = Model->Model->Predict(SpVec->Vec);
+            const double Res = (Model->Model->Predict(SpVec->Vec) > 0.0) ? 1.0 : -1.0;
 			Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
 		}
 		else {
@@ -272,8 +302,9 @@ void TNodeJsSVC::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);	
+    NODE_SET_PROTOTYPE_METHOD(tpl, "decision_function", _decision_function);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
 
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
@@ -350,7 +381,8 @@ void TNodeJsSVR::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "decision_function", _decision_function);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _decision_function);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);	
 
 	// properties

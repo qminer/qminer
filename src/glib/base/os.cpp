@@ -665,7 +665,7 @@ TTm TSysTm::GetTmFromMSecs(const uint64& TmNum){
 }
 
 bool TSysTm::IsValidDate(const TTm& Tm) {
-	// in linux I don't know how to validate if the date is ok
+	FailR("Feature not implemented");
 	return true;
 }
 

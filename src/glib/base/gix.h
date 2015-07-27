@@ -1244,7 +1244,8 @@ void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
 		CacheFullP = ItemSetCache.RefreshMemUsed();
 		NewCacheSizeInc = 0;
 		const uint64 NewSize = ItemSetCache.GetMemUsed();
-		printf("Done [%s] (time needed: %.1f + %.1f seconds).\n", TUInt64::GetMegaStr(NewSize).CStr(), Time1, StopWatch.GetSec());
+		if (ReportP)
+			printf("Done [%s] (time needed: %.1f + %.1f seconds).\n", TUInt64::GetMegaStr(NewSize).CStr(), Time1, StopWatch.GetSec());
 	}
 }
 

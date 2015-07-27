@@ -120,72 +120,7 @@ void TLogNotify::OnStatus(const TStr& MsgStr) {
 }
 
 //////////////////////////////////////
-// File-Notify
-TFileNotify::TFileNotify(const TStr& _FileName, const bool& _AddTimeStamp, const bool& _SeparateFilesForEachDay, const bool& _FlushEachWrite)
-	: FileName(_FileName), AddTimeStamp(_AddTimeStamp), SeparateFilesForEachDay(_SeparateFilesForEachDay), FlushEachWrite(_FlushEachWrite) {
-	if (! SeparateFilesForEachDay)
-		File = TFOut::New(_FileName, true);
-	LastLogDate = "";
-}
-
-void TFileNotify::OpenNewFileForDate()
-{
-	LastLogDate = TTm::GetCurLocTm().GetWebLogDateStr();
-	FileName.ChangeChAll('\\', '/');
-	TStr Path, FName; FileName.SplitOnLastCh(Path, '/', FName);
-	File = TFOut::New(Path + "/" + LastLogDate + " " + FName, true);
-}
-
-void TFileNotify::OnStatus(const TStr& MsgStr) {
-	if (SeparateFilesForEachDay && TTm::GetCurLocTm().GetWebLogDateStr() != LastLogDate)
-		OpenNewFileForDate();
-	if (AddTimeStamp) {
-		TTm NowTm = TTm::GetCurLocTm();
-		if (SeparateFilesForEachDay) {
-			File->PutStrFmt("[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
-			File->PutStrLn(MsgStr);
-		}
-		else {
-			File->PutStrFmt("[%s %s] ",
-				NowTm.GetYMDDashStr().CStr(),
-				NowTm.GetHMSTColonDotStr(true, false).CStr());
-			File->PutStrLn(MsgStr);
-		}
-	}
-	else
-		File->PutStrLn(MsgStr);
-	File->Flush();
-}
-
-void TFileNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr){
-	if (SeparateFilesForEachDay && TTm::GetCurLocTm().GetWebLogDateStr() != LastLogDate)
-		OpenNewFileForDate();
-	TStr TypeStr = "";
-	if (Type==ntInfo) TypeStr = "INFO";
-	else if (Type == ntErr) TypeStr = "ERROR";
-	else if (Type == ntWarn) TypeStr = "WARNING";
-	else if (Type == ntStat) TypeStr = "STAT";
-
-	if (AddTimeStamp) {
-		TTm NowTm = TTm::GetCurLocTm();
-		if (SeparateFilesForEachDay) 
-			File->PutStrFmt("[%s] %s: %s\n", 
-				NowTm.GetHMSTColonDotStr(true, false).CStr(), 
-				TypeStr.CStr(),
-				MsgStr.CStr());
-		else
-			File->PutStrFmt("[%s %s] %s: %s\n", 
-				NowTm.GetYMDDashStr().CStr(), 
-				NowTm.GetHMSTColonDotStr(true, false).CStr(), 
-				TypeStr.CStr(),
-				MsgStr.CStr());
-	}
-	else 
-		File->PutStrFmt("%s: %s\n", TypeStr.CStr(), MsgStr.CStr());
-	if (FlushEachWrite)
-		File->Flush();
-}
-
+// Str-Notify
 void TStrNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr)
 {
 	if (Type == ntInfo) {

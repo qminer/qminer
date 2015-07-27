@@ -76,6 +76,7 @@ public:
 
   TUStr& operator+=(const TUStr& UStr){UniChV.AddV(UStr.UniChV); return *this;}
   TUStr& operator+=(const TIntV& UStr){UniChV.AddV(UStr); return *this;}
+  TUStr& operator+=(const TInt& UStrChar){UniChV.Add(UStrChar); return *this;}	// TODO: does this cause any issues?
   TUStr& operator+=(const int& UStrChar){UniChV.Add(UStrChar); return *this;}
   TInt& operator[](const int& UniChN) {return UniChV[UniChN];}
   const TInt& operator[](const int& UniChN) const {return UniChV[UniChN];}  

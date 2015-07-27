@@ -168,7 +168,7 @@ void TFullColMatrix::PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const
 }
 
 void TFullColMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {
-    //EAssert(Vec.Len() >= RowN && Result.Len() >= ColN);
+    EAssert(Vec.Len() >= RowN && Result.Len() >= ColN); // check if works
     for (int i = 0; i < ColN; i++) {
         Result[i] = TLinAlg::DotProduct(Vec, ColV[i]);
     }
@@ -183,7 +183,7 @@ void TFullColMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const 
 }
 
 void TFullColMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {
-    //EAssert(Vec.Len() >= ColN && Result.Len() >= RowN);
+    EAssert(Vec.Len() >= ColN && Result.Len() >= RowN);	 // check if works
     for (int i = 0; i < RowN; i++) { Result[i] = 0.0; }
     for (int i = 0; i < ColN; i++) {
         TLinAlg::AddVec(Vec[i], ColV[i], Result, Result);
@@ -610,10 +610,9 @@ void TNumericalStuff::LeastSquares(const TFltVV& A, const TFltV& b, const double
 
 void TNumericalStuff::PrimalLeastSquares(const TFltVV& A, const TFltV& b, const double& Gamma, TFltV& x) {
 	EAssertR(A.GetCols() == b.Len(), "TNumericalStuff::LeastSquares: number of columns (examples) does not match the number of targets (length of b)");
-	if (x.Empty()) {
+	if (x.Empty()) { 
 		x.Gen(A.GetRows());
-	}
-	else {
+	} else {
 		EAssertR(x.Len() == A.GetRows(), "TNumericalStuff::LeastSquares: solution dimension does not match the number of rows of A (features)");
 	}
 	// x = (A * A' + Gamma^2 * I)^{-1} A * b
@@ -2105,7 +2104,7 @@ TVector::TVector(const TVector& Vector) {
 	Vec = Vector.Vec;
 }
 
-#ifdef CPP11
+#ifdef GLib_CPP11
 // move constructor
 TVector::TVector(const TVector&& Vector) {
 	IsColVector = Vector.IsColVector;

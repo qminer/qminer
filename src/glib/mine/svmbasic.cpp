@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#pragma optimize( "", off )
+
 
 //////////////////////////////////////////////////////////////////////////
 // SVM-Cache
@@ -1660,5 +1660,3 @@ void TSVMFactory::train(TFltV& alphas, double& threshold,
         trainOneClass(alphas, threshold, is_linear, ker, docs, ModelParam.nu, LearnParam);
     }
 }
-
-#pragma optimize( "", on ) 

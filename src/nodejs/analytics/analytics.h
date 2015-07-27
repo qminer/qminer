@@ -55,9 +55,12 @@ public:
 	JsDeclareProperty(weights);
     //- `fout = svmModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
 	JsDeclareFunction(save);
-	//- `num = svmModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
-	//- `num = svmModel.predict(spVec)` -- sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
-	JsDeclareFunction(predict);
+	//- `num = svmModel.decision_function(vec)` -- sends vector `vec` through the model and returns the distance to the decision boundery as a real number `num`
+    //- `num = svmModel.decision_function(spVec)` -- sends sparse vector `spVec` through the model and returns the distance to the decision boundery as a real number `num`
+	JsDeclareFunction(decision_function);
+    //- `num = svmModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
+    //- `num = svmModel.predict(spVec)` -- sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
+    JsDeclareFunction(predict);
 
 private:
 	void UpdateParams(const PJsonVal& ParamVal);
@@ -136,10 +139,17 @@ public:
 	*/
 	//# exports.SVC.prototype.save = function(fout) {}
 
+    /**
+     * sends vector through the model and returns the distance to the decision boundery
+     * @param {module:la.Vector | module:la.SparseVector} vec - Input vector
+     * @returns {number} Prediction real number. Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).
+     */
+    //# exports.SVC.prototype.decision_function = function(vec) {}
+    
 	/**
 	* sends vector through the model and returns the prediction as a real number
 	* @param {module:la.Vector | module:la.SparseVector} vec - Input vector
-	* @returns {number} Prediction real number. Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).
+	* @returns {number} Prediction, 1 for positive class and -1 for negative.
 	*/
 	//# exports.SVC.prototype.predict = function(vec) {}
 	
@@ -221,6 +231,13 @@ public:
 	* @returns {module:fs.FOut} Output stream
 	*/
 	//# exports.SVR.prototype.save = function(fout) {}
+
+    /**
+     * sends vector through the model and returns the prediction as a real number
+     * @param {module:la.Vector | module:la.SparseVector} vec - Input vector
+     * @returns {number} Prediction real number.
+     */
+    //# exports.SVR.prototype.decision_function = function(vec) {}
 
 	/**
 	* sends vector through the model and returns the prediction as a real number
