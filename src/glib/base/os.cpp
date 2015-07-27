@@ -214,6 +214,20 @@ uint TSysTm::GetMSecsFromOsStart(){
   return uint(GetTickCount());
 }
 
+bool TSysTm::IsValidDate(const TTm& Tm) {
+	SYSTEMTIME SysTm; FILETIME FileTm;
+	SysTm.wYear = WORD(Tm.GetYear());
+	SysTm.wMonth = WORD(Tm.GetMonth());
+	SysTm.wDayOfWeek = WORD(Tm.GetDayOfWeek());
+	SysTm.wDay = WORD(Tm.GetDay());
+	SysTm.wHour = WORD(Tm.GetHour());
+	SysTm.wMinute = WORD(Tm.GetMin());
+	SysTm.wSecond = WORD(Tm.GetSec());
+	SysTm.wMilliseconds = WORD(Tm.GetMSec());
+	return (bool) SystemTimeToFileTime(&SysTm, &FileTm);
+}
+
+
 TTm TSysTm::GetLocTmFromUniTm(const TTm& Tm){
   // get time-zone information
   TIME_ZONE_INFORMATION TzInf;
@@ -648,6 +662,11 @@ TTm TSysTm::GetTmFromMSecs(const uint64& TmNum){
 
   return TTm(1900+tms.tm_year, tms.tm_mon + 1, tms.tm_mday, tms.tm_wday,
    tms.tm_hour, tms.tm_min, tms.tm_sec, MSec);
+}
+
+bool TSysTm::IsValidDate(const TTm& Tm) {
+	FailR("Feature not implemented");
+	return true;
 }
 
 TTm TSysTm::GetLocTmFromUniTm(const TTm& Tm) {

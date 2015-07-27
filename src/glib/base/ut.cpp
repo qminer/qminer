@@ -122,3 +122,16 @@ void TLogNotify::OnStatus(const TStr& MsgStr) {
 /////////////////////////////////////////////////
 // Exception
 TExcept::TOnExceptF TExcept::OnExceptF=NULL;
+
+PExcept TExcept::New(const TStr& MsgStr, const TStr& LocStr) {
+	TChA Stack = LocStr;
+	  
+#ifdef GLib_WIN
+	if (Stack.Len() > 0) { Stack += "\n"; }
+	Stack += "Stack trace:\n";
+	Stack += TBufferStackWalker::GetStackTrace();
+#endif
+	  
+	return PExcept(new TExcept(MsgStr, Stack));
+  }
+  

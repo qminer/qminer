@@ -33,9 +33,9 @@ public:
   static PUrl New(const TStr& RelUrlStr, const TStr& BaseUrlStr=TStr()){
     return PUrl(new TUrl(RelUrlStr, BaseUrlStr));}
   ~TUrl(){}
-  TUrl(TSIn&){Fail;}
-  static PUrl Load(TSIn&){Fail; return NULL;}
-  void Save(TSOut&){Fail;}
+  TUrl(TSIn& SIn);
+  static PUrl Load(TSIn& SIn){ return new TUrl(SIn);}
+  void Save(TSOut& SOut);
 
   bool IsOk(const TUrlScheme _Scheme=usUndef) const {
     if (_Scheme==usUndef){return Scheme!=usUndef;}
@@ -104,7 +104,7 @@ public:
    const TStr& UrlStr, const int& MxLen=-1, const bool& HostOnlyP=false);
 };
 typedef TPair<TInt, PUrl> TIdUrlPr;
-typedef TQQueue<TIdUrlPr> TIdUrlPrQ;
+typedef TLst<TIdUrlPr> TIdUrlPrL;
 typedef THash<TInt, PUrl> TIdToUrlH;
 
 /////////////////////////////////////////////////
@@ -175,6 +175,7 @@ public:
 
   // full-url-string
   TStr GetFullUrlStr() const;
+  void GetKeyValPrV(TStrKdV& FldNmValPrV) const;
 
   static PUrlEnv MkClone(const PUrlEnv& UrlEnv);
 };
