@@ -1198,29 +1198,29 @@ describe('Feature Space Tests', function () {
             assert.eqtol(ftr.extractVector(Store[0]).at(0), 0);
 
             ftr.updateRecord(Store[1]);
-            assert.eqtol(ftr.extractVector(Store[0]).at(0), -10);
-            assert.eqtol(ftr.extractVector(Store[1]).at(0), 10);
+            assert.eqtol(ftr.extractVector(Store[0]).at(0), -0.707106781, 0.0000001);
+            assert.eqtol(ftr.extractVector(Store[1]).at(0), 0.707106781, 0.0000001);
 
             ftr.updateRecord(Store[2]);
-            assert.eqtol(ftr.extractVector(Store[0]).at(0), -10);
-            assert.eqtol(ftr.extractVector(Store[1]).at(0), 0);
-            assert.eqtol(ftr.extractVector(Store[2]).at(0), 10);
+            assert.eqtol(ftr.extractVector(Store[0]).at(0), -1, 0.0000001);
+            assert.eqtol(ftr.extractVector(Store[1]).at(0), 0, 0.0000001);
+            assert.eqtol(ftr.extractVector(Store[2]).at(0), 1, 0.0000001);
 			
             for (var i = 3; i < 11; i++){
             	ftr.updateRecord(Store[i]);
 			}
             var expected = [
-				-4.545454545,
-				-3.636363636,
-				-2.727272727,
-				-1.818181818,
-				-0.909090909,
+				-1.507556723,
+				-1.206045378,
+				-0.904534034,
+				-0.603022689,
+				-0.301511345,
 				0,
-				0.909090909,
-				1.818181818,
-				2.727272727,
-				3.636363636,
-				4.545454545,
+				0.301511345,
+				0.603022689,
+				0.904534034,
+				1.206045378,
+				1.507556723
 			];
              for (var i = 0; i < 11; i++){
 				assert.eqtol(ftr.extractVector(Store[i]).at(0), expected[i], 0.0000001);
