@@ -69,13 +69,14 @@ public:
 	int GetDim() const;
 	const TFltV& GetCentroid(int ClusterId) const;
 	const TIntV& GetAssignment() const;
-	double GetDocClusterSim(const int& ClusterId, const int& DocId);
     double GetClusterCompactness(const TFltV & Cluster) const;
     double GetClusteringCompactness() const;
     double GetClusteringQualityBySize(const TIntV & ClusterSizes) const;
     void GetClustersQualityByDCSim(TFltV& ClusterDCQ) const;
     double GetClusteringQualityByDCSim() const;
     double GetClusteringSSE() const;
+
+
 };
 
 class TDefaultMatrixAccess {
@@ -88,7 +89,7 @@ public:
 	}
 	static const PBowSpV& GetDoc(const TBowMatrix *DocVV, int DocId) {
 		return DocVV->ColSpVV[DocId];
-	}
+	}	
 };
 
 template class TKMeans<TIntFltKdV, TLinAlg, TSparseColMatrix>;
@@ -344,15 +345,6 @@ const TIntV& TKMeans<V, LA, M>::GetAssignment() const {
 	return Assignment;
 }
 
-// return similarity of the document to the given cluster
-template<class V, class LA, class M>
-double TKMeans<V, LA, M>::GetDocClusterSim(const int& ClusterId, const int& DocId)
-{
-	AssertR(ClusterId < k, "Requested info about non-existent cluster");
-	AssertR(DocId < GetDocs(), "Requested info about non-existend document");
-	return DCSim[ClusterId][DocId];
-}
-
 template<class V, class LA, class M>
 void TKMeans<V, LA, M>::Apply() {
 	bool stable = false;
@@ -366,7 +358,19 @@ void TKMeans<V, LA, M>::Apply() {
 		for (int CId = 0; CId < k; CId++) {
 			DocVV->MultiplyT(GetCentroid(CId), DCSim[CId]);
 		}
-		
+		//DocVV.MultiplyT()
+		/*#pragma omp parallel for
+		 for (int d = 0; d < GetDocs(); d++) {
+		 const TIntFltKdV& Doc = GetDoc(d);
+		 for (int c = 0; c < k; c++) {
+		 const TFltV& Cluster = GetCentroid(c);
+		 double Sim = TLinAlg::DotProduct(Cluster, Doc);
+		 //printf("%2.4f\t", Sim);
+		 DCSims(d,c) = Sim;
+		 }
+		 //printf("\n");
+		 }*/
+
 		// reassign
 #pragma omp parallel for
 		for (int DId = 0; DId < GetDocs(); DId++) {

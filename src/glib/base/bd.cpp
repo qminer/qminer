@@ -8,7 +8,6 @@
 
 #if defined(SW_TRACE)
 #include <execinfo.h>
-#include <signal.h>
 #endif
 
 /////////////////////////////////////////////////
@@ -78,37 +77,9 @@ void PrintBacktrace() {
   // flush stdout
   fflush(0);
 
-	// get the trace and print it to stdout
-  size = backtrace(array, sizeof(array)/sizeof(array[0]));
-  backtrace_symbols_fd(array, size, STDERR_FILENO);
-}
-
-void signalHandler(int sig) {
-  fprintf(stderr, "Error: signal %d\n", sig);
-  PrintBacktrace();
-  abort();
-}
-
-void terminateHandler()
-{
-  std::exception_ptr exptr = std::current_exception();
-  if (exptr != 0) {
-    // the only useful feature of exception_ptr is that it can be rethrown...
-    try {
-      std::rethrow_exception(exptr);
-    }
-    catch (std::exception &ex) {
-      fprintf(stderr, "Terminated due to exception: %s\n", ex.what());
-    }
-    catch (...) {
-      fprintf(stderr, "Terminated due to unknown exception\n");
-    }
-  }
-  else {
-    fprintf(stderr, "Terminated due to unknown reason\n");
-  }
-  PrintBacktrace();
-  abort();
+  // get the trace and print it to stdout
+  size = backtrace(array, 20);
+  backtrace_symbols_fd(array, size, 1);
 }
 void Crash() {
   char *p;
@@ -129,9 +100,6 @@ void ExeStop(
 #if defined(SW_TRACE)
   PrintBacktrace();
   //Crash();
-#endif
-#ifdef GLib_WIN
-  TFileStackWalker::WriteStackTrace();
 #endif
 
   // construct reason message

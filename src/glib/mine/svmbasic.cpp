@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 // SVM-Cache
 void TSVMCache::Reset(const int& memory_size, const int& d) {
-	EAssert(memory_size > 0 && d > 0);
+    IAssert(memory_size > 0 && d > 0);
 
     top = bottom = NULL;
     size = 0; dim = numRows = d;
@@ -229,7 +229,7 @@ void TSVMCache::Shrink(const int& n, int *ids) {
 THash<TStr, TSVMTrainSet::TSVMTrainSetLoadF> TSVMTrainSet::TypeToLoadFH;
 
 bool TSVMTrainSet::Reg(const TStr& TypeNm, const TSVMTrainSetLoadF& LoadF){
-  EAssert(!TypeToLoadFH.IsKey(TypeNm));
+  IAssert(!TypeToLoadFH.IsKey(TypeNm));
   TypeToLoadFH.AddDat(TypeNm, LoadF);
   return true;
 }
@@ -246,14 +246,14 @@ PSVMTrainSet TSVMTrainSet::Load(TSIn& SIn){
 }
 
 void TSVMTrainSet::LinComb(const TFltV& AlphV, TFltV& Result) {
-    EAssert(AlphV.Len() == Len());
+    IAssert(AlphV.Len() == Len());
     int d = Dim(); Result.Gen(d); Result.PutAll(0.0);
     for (int VecC = 0, VecN = AlphV.Len(); VecC < VecN; VecC++)
         AddVec(VecC, Result, AlphV[VecC]);
 }
 
 void TSVMTrainSet::LinComb(const TIntV& VecIdV, const TFltV& AlphV, TFltV& Result) {
-    EAssert(VecIdV.Len() == AlphV.Len());
+    IAssert(VecIdV.Len() == AlphV.Len());
     Result.Gen(Dim()); Result.PutAll(0.0);
     for (int VecC = 0, VecN = VecIdV.Len(); VecC < VecN; VecC++)
         AddVec(VecIdV[VecC], Result, AlphV[VecC]);
@@ -296,7 +296,7 @@ void TSVMTrainSet::GetKeywords(const TFltV& NormalV, TIntFltKdV& WIdWgtV,
         // save only top WdN positive weights
         WdWgtV.Sort(false);
         WIdWgtV.Gen(WdN, 0);
-        EAssert(WdN <= NormalV.Len());
+        IAssert(WdN <= NormalV.Len());
         for (int WdC = 0; WdC < WdN; WdC++) {
             const double WdWgt = WdWgtV[WdC].Key;
             const int WdId = WdWgtV[WdC].Dat;
@@ -364,14 +364,14 @@ bool TSVMTrainSet::HasNegVecs(const int& MnNegVec) {
 ///////////////////////////////////////////////////////////////////////
 // Sparse-Train-Set-Column-Matrix
 TSTSetMatrix::TSTSetMatrix(PSVMTrainSet Set, TFltV& ClsV): TMatrix(), ColVV(Set) {
-    EAssert(Set->Type() == ststSparse);
+    IAssert(Set->Type() == ststSparse);
     ClsV.Gen(Set->Len(), 0);
     for (int i = 0; i < Set->Len(); i++)
         ClsV.Add(Set->GetVecParam(i) * 0.99);
 }
 
 void TSTSetMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const {
-    EAssert(B.GetXDim() >= PGetCols() && Result.Len() >= PGetRows());
+    IAssert(B.GetXDim() >= PGetCols() && Result.Len() >= PGetRows());
     int RowN = PGetRows(), ColN = PGetCols();
     int i, j; TFlt *ResV = Result.BegI();
     for (i = 0; i < RowN; i++) ResV[i] = 0.0;
@@ -385,7 +385,7 @@ void TSTSetMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const {
 }
 
 void TSTSetMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {
-    EAssert(Vec.Len() >= PGetCols() && Result.Len() >= PGetRows());
+    IAssert(Vec.Len() >= PGetCols() && Result.Len() >= PGetRows());
     int RowN = PGetRows(), ColN = PGetCols();
     int i, j; TFlt *ResV = Result.BegI();
     for (i = 0; i < RowN; i++) ResV[i] = 0.0;
@@ -399,7 +399,7 @@ void TSTSetMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {
 }
 
 void TSTSetMatrix::PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const {
-    EAssert(B.GetXDim() >= PGetRows() && Result.Len() >= PGetCols());
+    IAssert(B.GetXDim() >= PGetRows() && Result.Len() >= PGetCols());
     int ColN = PGetCols();
     int i, j, len; TFlt *ResV = Result.BegI();
     for (j = 0; j < ColN; j++) {
@@ -413,7 +413,7 @@ void TSTSetMatrix::PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const {
 }
 
 void TSTSetMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {
-    EAssert(Vec.Len() >= PGetRows() && Result.Len() >= PGetCols());
+    IAssert(Vec.Len() >= PGetRows() && Result.Len() >= PGetCols());
     int ColN = PGetCols();
     int i, j, len; TFlt *VecV = Vec.BegI(), *ResV = Result.BegI();
     for (j = 0; j < ColN; j++) {
@@ -429,7 +429,7 @@ void TSTSetMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {
 void TSTSetMatrix::Load(TSparseColMatrix& Matrix, TFltV& y,
         PSVMTrainSet TrainSet, const double& PWgt, const double& NWgt) {
 
-    EAssert(TrainSet->Type() == ststSparse);
+    IAssert(TrainSet->Type() == ststSparse);
     Matrix.ColN = TrainSet->Len();
     Matrix.RowN = TrainSet->Dim();
     for (int i = 0; i < Matrix.ColN; i++) {
@@ -444,7 +444,7 @@ void TSTSetMatrix::Load(TSparseColMatrix& Matrix, TFltV& y,
 THash<TStr, TKernel::TKernelLoadF> TKernel::TypeToLoadFH;
 
 bool TKernel::Reg(const TStr& TypeNm, const TKernelLoadF& LoadF){
-  EAssert(!TypeToLoadFH.IsKey(TypeNm));
+  IAssert(!TypeToLoadFH.IsKey(TypeNm));
   TypeToLoadFH.AddDat(TypeNm, LoadF);
   return true;
 }
@@ -487,7 +487,7 @@ TSVMQP::~TSVMQP() {
 
 bool TSVMQP::solve(const int& size, const double& bb, double *u, double *Q,
                    double *A, double *c, double *resultV, const int& verbosity) {
-    EAssert(size <= n);
+    IAssert(size <= n);
     int i;
 
     //some other parameters
@@ -666,8 +666,8 @@ void TSVMQPSolver::optimize(TFltV& alphas, double& _base, const PSVMTrainSet& _d
        const TFltV& _pV, const TFltV& _yV, const double& _D, const TFltV& _CV,
        const int& sub_size, const int& memory_size, const int& time) {
 
-    EAssert(_docs->Len() > 0 && _docs->Dim() > 0);
-    EAssert(_pV.Len() == _yV.Len() && _yV.Len() == _CV.Len());
+    IAssert(_docs->Len() > 0 && _docs->Dim() > 0);
+    IAssert(_pV.Len() == _yV.Len() && _yV.Len() == _CV.Len());
 
     docs = _docs;
     int i, ii, j, jj;       //counters
@@ -677,7 +677,7 @@ void TSVMQPSolver::optimize(TFltV& alphas, double& _base, const PSVMTrainSet& _d
     //size of sub-qp problem for QPSolver (must be even)
     int size = sub_size + sub_size % 2;
     size = size < len ? size : len;
-    EAssert(size >= 2);
+    IAssert(size >= 2);
 
     //allocates memory and initializes QP solver
     double *QQ = new double[size*size];
@@ -735,7 +735,7 @@ void TSVMQPSolver::optimize(TFltV& alphas, double& _base, const PSVMTrainSet& _d
             //otherwise we use standard way (gradient)
             n = selectWorkingSet(size, false);
         //}
-        EAssert(n >= 2 && n <= size);
+        IAssert(n >= 2 && n <= size);
         time_workingset += GetCurrentTime() - time_tmp;
 
         //we check cache for n columns of Hessian matrix
@@ -971,7 +971,7 @@ void TSVMQPSolver::initialize(const TFltV& _pV, const TFltV& _yV,
         p[i] = _pV[i];
         y[i] = _yV[i];
         listV[i] = y[i] * p[i];
-        EAssert(_CV[i] > 0); C[i] = _CV[i];
+        IAssert(_CV[i] > 0); C[i] = _CV[i];
     }
 
     if (is_linear) {
@@ -1058,7 +1058,7 @@ void TSVMQPSolver::initNonzeroD(const int& size) {
             }
             i++;
         }
-        EAssert(M == 0);
+        IAssert(M == 0);
 
         //now we set gradV
         if (is_linear) {
@@ -1529,7 +1529,7 @@ void TSVMFactory::trainClassifier(TFltV& alphas, double& threshold,
         const bool& is_linear, const PKernel& ker, const PSVMTrainSet& docs,
         const double& C, const double& j, const TSVMLearnParam& LearnParam) {
 
-    EAssert(C > 0.0 && j > 0.0);
+    IAssert(C > 0.0 && j > 0.0);
     int len = docs->Len();
     TFltV p(len), y(len), CV(len);
     for (int i = 0; i < len; i++) {
@@ -1549,7 +1549,7 @@ void TSVMFactory::trainOneClass(TFltV& alphas, double& threshold,
         const bool& is_linear, const PKernel& ker, const PSVMTrainSet& docs,
         const double& nu, const TSVMLearnParam& LearnParam) {
 
-    EAssert(0.0 < nu && nu < 1.0);
+    IAssert(0.0 < nu && nu < 1.0);
 
     int len = docs->Len();
     double D = nu*len;
@@ -1571,7 +1571,7 @@ void TSVMFactory::trainRegression(TFltV& alphas, double& threshold,
         const bool& is_linear, const PKernel& ker, const PSVMTrainSet& docs,
         const double& E, const double& C, const TSVMLearnParam& LearnParam) {
 
-    EAssert(E > 0.0 && C > 0.0);
+    IAssert(E > 0.0 && C > 0.0);
 
     int len = docs->Len();
     TIntV IdV(2*len, 0);

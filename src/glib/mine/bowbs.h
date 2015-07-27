@@ -132,8 +132,7 @@ public:
   static PBowSpV Load(TSIn& SIn){return new TBowSpV(SIn);}
   void Save(TSOut& SOut) const {
     DId.Save(SOut); Norm.Save(SOut); WIdWgtKdV.Save(SOut);}
-  int64 GetMemUsed() const { 
-	return int64(sizeof(TInt) + sizeof(TFlt) + WIdWgtKdV.GetMemUsed()); }
+
   // general
   void Clr(){DId=-1; WIdWgtKdV.Clr();}
   void GenMx(const int& MxWIds){WIdWgtKdV.Gen(MxWIds, 0);}
@@ -141,8 +140,6 @@ public:
   void Trunc(){WIdWgtKdV.Trunc();}
   int Len() const {return WIdWgtKdV.Len();}
   int Reserved() const {return WIdWgtKdV.Reserved();}
-
-  void AddBowSpV(const PBowSpV& BowSpV);
 
   // doc-id
   void PutDId(const int& _DId){DId=_DId;}
@@ -161,18 +158,7 @@ public:
 
   // word-id/weights
   void AddWIdWgt(const int& WId, const double& Wgt){
-	  if (IsWId(WId)) { UpdateWIdWgt(WId, Wgt); }
-	  else WIdWgtKdV.Add(TBowWIdWgtKd(WId, (sdouble)Wgt)); 
-  }
-  void DelWId(const int& WId);
-  void UpdateWIdWgt(const int& WId, const double& Wgt){ 
-	  EAssert(IsWId(WId)); int WIdN = GetWIdN(WId); WIdWgtKdV[WIdN].Dat = (sdouble) Wgt; }
-  void IncreaseWIdWgt(const int& WId, const double& Wgt) {
-	  if (!IsWId(WId)) { AddWIdWgt(WId, Wgt); }
-	  else { int WIdN = GetWIdN(WId); WIdWgtKdV[WIdN].Dat += (sdouble) Wgt; } 
-  }
-  void DecreaseWIdWgt(const int& WId, const double& Wgt) {
-	EAssert(IsWId(WId)); int WIdN = GetWIdN(WId); WIdWgtKdV[WIdN].Dat -= (sdouble) Wgt; }
+    WIdWgtKdV.Add(TBowWIdWgtKd(WId, (sdouble)Wgt));}
   int GetWIds() const {return WIdWgtKdV.Len();}
   int GetWIdN(const int& WId) const {return WIdWgtKdV.SearchForw(TBowWIdWgtKd(WId));}
   bool IsWId(const int& WId) const {return WIdWgtKdV.SearchForw(TBowWIdWgtKd(WId))!=-1;}
@@ -301,7 +287,7 @@ public:
   static PBowDocWgtBs New(
    const PBowDocBs& BowDocBs, const TBowWordWgtType& _WordWgtType,
    const double& _CutWordWgtSumPrc=0, const int& _MnWordFq=0,
-   const TIntV& _DIdV=TIntV(), const TIntV& BaseDIdV=TIntV(), const THashSet<TInt>& IgnoreWIds = THashSet<TInt>(),
+   const TIntV& _DIdV=TIntV(), const TIntV& BaseDIdV=TIntV(),
    const PNotify& Notify=TNotify::NullNotify);
   // generates weighted bow from precalculated sparse vectors
   static PBowDocWgtBs New(const TVec<PBowSpV>& BowSpVV);
@@ -386,7 +372,6 @@ public:
   int GetDId(const int& DIdN) const {return DIdV[DIdN];}
   const PBowSpV& GetSpV(const int& DId) const {return DocSpVV[DId];}
   void SetSpV(const int& DId, PBowSpV DocSpV) { DocSpVV[DId] = DocSpV; } //B:
-  int IsValidDId(const int& DId) const { return DocSpVV.Len(); }
 
   void GetDIdV(TIntV& _DIdV) const {_DIdV=DIdV;}
   void SetDIdV(const TIntV& _DIdV){DIdV=_DIdV;}
@@ -424,8 +409,6 @@ public:
     TFIn SIn(FNm); return Load(SIn);}
   void SaveBin(const TStr& FNm) const {
     TFOut SOut(FNm); Save(SOut);}
-  int64 GetMemUsed() {
-	return 4*sizeof(TInt) + sizeof(TFlt) + DIdV.GetMemUsed() + DocSpVV.GetMemUsed(); }
 };
 
 /////////////////////////////////////////////////
@@ -453,9 +436,6 @@ public:
     return Fq==BowWordDesc.Fq;}
   bool operator<(const TBowWordDesc& BowWordDesc) const {
     return Fq<BowWordDesc.Fq;}
-  int64 GetMemUsed() const {
-	  return sizeof(TInt) + 2*sizeof(TFlt);
-  }
 };
 typedef TPair<TBowWordDesc, TStr> TBowWordDescStrPr;
 typedef TVec<TBowWordDescStrPr> TBowWordDescStrPrV;
@@ -565,10 +545,6 @@ public:
    const TStr& CatNm, const TStrV& WordStrV, const TStr& DocStr=TStr()){
     TStrV CatNmV; CatNmV.Add(CatNm);
     return AddDoc(DocNm, CatNmV, WordStrV, DocStr);}
-  int AppendDoc(const TStr& _DocNm, const TStrV& CatNmV, const TStrV& WordStrV, const TStr& DocStr=TStr());
-  int AppendDoc(const TStr& _DocNm, const TStrV& CatNmV, const TIntFltPrV& WIdWgtPrV);
-  void AppendWord(const TStr& DocNm, const TStr& Word, const float Wgt);
-  void AppendWord(int DId, const TStr& Word, const float Wgt);
   int AddHtmlDoc(const TStr& DocNm, const TStrV& CatNmV,
    const TStr& HtmlDocStr, const bool& SaveDocP=false);
   int GetDocs() const {return DocSpVV.Len();}
@@ -597,7 +573,7 @@ public:
   int GetDocWId(const int& DId, const int& DocWIdN) const {
     return DocSpVV[DId]->GetWId(DocWIdN);}
   void PutDocWFq(const int& DId, const int& DocWIdN, double& WordFq){
-    DocSpVV[DId]->AddWIdWgt(DocWIdN, WordFq);}
+    DocSpVV[DId]->GetWgt(DocWIdN)=sdouble(WordFq);}
   double GetDocWFq(const int& DId, const int& DocWIdN) const {
     return DocSpVV[DId]->GetWgt(DocWIdN);}
   bool IsDocWordStr(const int& DId, const TStr& WordStr) const;
@@ -615,8 +591,6 @@ public:
     PutDocDescStr(DId, DateStr);}
   TStr GetDateStr(const int& DId) const {
     return GetDocDescStr(DId);}
-
-  void DelDoc(const TStr& DocNm);
 
   // categories
   bool IsCats() const {return GetCats()>0;}
@@ -638,12 +612,6 @@ public:
     CatNmToFqH[CId]++; DocCIdVV[DId].AddUnique(CId);}
   int AddCatNm(const TStr& CatNm){
     return CatNmToFqH.AddKey(CatNm);}
-  // remove the category from the document
-  void RemoveDocCId(const int &DId, const int& CId) {
-	  CatNmToFqH[CId]--; DocCIdVV[DId].Del(CId); }
-
-  void SetCatToBowDIds(const TStr& CatNm, const TIntV& BowDIdV);
-  void RemoveCatFromBowDIds(const TStr& CatNm, TIntV& BowDIdV);
 
     // train & test documents
   void PutTrainDIdV(const TIntV& DIdV){TrainDIdV=DIdV;}
@@ -673,7 +641,7 @@ public:
   void GetAbsSampleDIdV(const int& Docs, TRnd& Rnd, TIntV& DIdV) const {
     GetAllDIdV(DIdV); DIdV.Shuffle(Rnd); DIdV.Trunc(Docs);}
   void GetRelSampleDIdV(const double& DocsPrc, TRnd& Rnd, TIntV& DIdV) const {
-    EAssert((0<=DocsPrc)&&(DocsPrc<=1));
+    IAssert((0<=DocsPrc)&&(DocsPrc<=1));
     int Docs=int(DocsPrc*GetDocs()); GetAbsSampleDIdV(Docs, Rnd, DIdV);}
 
   // transformation
@@ -681,7 +649,6 @@ public:
    const double& MnWordFqPrc, const double& MxWordFqPrc) const;
   PBowDocBs GetLimWordAbsFqDocBs(const int& MnWordFq) const;
   PBowDocBs GetSubDocSet(const TIntV& DIdV) const;
-  PBowDocBs GetMergedDocs(const TVec<TIntV>& DIdVV, const TStrV& DocNmV) const;
   PBowDocBs GetInvDocBs() const;
   PBowDocBs GetVocBs() const;
 
@@ -706,9 +673,5 @@ public:
   void SaveBin(const TStr& FNm) const {
     TFOut SOut(FNm); Save(SOut);}
 
-  int64 GetMemUsed() {
-	  return DocNmToDescStrH.GetMemUsed() + WordStrToDescH.GetMemUsed() + CatNmToFqH.GetMemUsed() + DocSpVV.GetMemUsed() + 
-		  DocStrV.GetMemUsed() + DocCIdVV.GetMemUsed() + TrainDIdV.GetMemUsed() + TestDIdV.GetMemUsed();
-  }
   friend class TBowFl;
 };

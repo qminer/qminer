@@ -113,7 +113,6 @@ public:
   static TTm GetTmFromMSecs(const uint64& MSecs);
   static uint GetMSecsFromOsStart();
 
-  static bool IsValidDate(const TTm& Tm);
   static TTm GetLocTmFromUniTm(const TTm& Tm);
   static TTm GetUniTmFromLocTm(const TTm& Tm);
 
@@ -233,7 +232,6 @@ public:
   static TTm GetTmFromMSecs(const uint64& MSecs);
   static uint GetMSecsFromOsStart();
 
-  static bool IsValidDate(const TTm& Tm);
   static TTm GetLocTmFromUniTm(const TTm& Tm);
   static TTm GetUniTmFromLocTm(const TTm& Tm);
 

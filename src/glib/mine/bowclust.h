@@ -293,7 +293,6 @@ public:
    const TBowWordWgtType& WordWgtType, const double& CutWordWgtSumPrc,
    const int& MnWordFq, const TIntV& DIdV=TIntV(),
    const bool& PropBowDocWgtBsP=false, const PBowDocWgtBs& BowDocWgtBs=NULL);
-  static void GetHKMeansLeafClustV(const PBowDocPart& HKMeansPart, TVec<PBowDocPartClust>& LeafClustV);
   static PBowDocPart GetHPart(
    const PNotify& Notify,
    const PBowDocBs& BowDocBs, const PBowSim& BowSim, TRnd& Rnd,

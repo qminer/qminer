@@ -21,11 +21,6 @@
 #define PREDICTOR 1
 #define CORRECTOR 2
 
- 
-#ifdef GLib_WIN
-#pragma optimize( "", off )
-#endif
- 
 /*****************************************************************
 replace this by any other function that will exit gracefully
 in a larger system
@@ -607,6 +602,3 @@ int TPrLoqo::pr_loqo(int n, int m, double c[], double h_x[], double a[], double 
     return status;
 }
 
-#ifdef GLib_WIN
-#pragma optimize( "", on )
-#endif

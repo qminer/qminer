@@ -14,11 +14,6 @@ typedef int index_t;
 #else
 typedef long long index_t;
 #endif
-
-// if you use glib in multithreaded environment uncomment the next define
-// it avoids definition of some static variables that causes problems when using multiple threads
-//#define MULTITHREADED
-
 /////////////////////////////////////////////////
 // Environment defines
 #if defined (_WIN32)
@@ -61,14 +56,9 @@ typedef long long index_t;
   #endif
 #endif
 
-// if you need to compile with older compiler (C++98 standard)
-// comment the bottom define
-#define GLib_CPP11
-
 // includes
 #if defined (GLib_WIN)
   #define WIN32_LEAN_AND_MEAN
-  #define NOMINMAX
   #include <windows.h>
   #include <oleauto.h>
   #include <shellapi.h>

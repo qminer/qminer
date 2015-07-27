@@ -1209,9 +1209,9 @@ void TBagOfWords::NewTimeWnd(const uint64& TimeWndMSecs, const uint64& StartMSec
 
 TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
     const int& _FieldId, const TBagOfWordsMode& _Mode, const PTokenizer& Tokenizer, 
-    const int& HashDim, const int& NStart, const int& NEnd): TFtrExt(Base, JoinSeqV),
-        FtrGen(true, true, true, Tokenizer, HashDim, false, NStart, NEnd),
-        Mode(_Mode) { AddField(_FieldId); }
+    const int& HashDim, const int& _NStart, const int& _NEnd):
+        TFtrExt(Base, JoinSeqV), FtrGen(true, true, true, Tokenizer, HashDim), 
+        Mode(_Mode), NStart(_NStart), NEnd(_NEnd) { AddField(_FieldId); }
 
 TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
         TFtrExt(Base, ParamVal) {
@@ -1238,8 +1238,7 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
         Tokenizer = TTokenizer::New(TypeNm, TokenizerVal);
     } else if (ParamVal->IsObjKey("stopwords") || ParamVal->IsObjKey("stemmer")) {
         // this will be deprecated at some point, print warning
-        InfoLog("Warning: stopwords and stemmer no longer direct parameters for text "
-                "feature extractor, please use tokenizer instead");
+        InfoLog("Warning: stopwords and stemmer no longer direct parameters for text feature extractor, please use tokenizer instead");
         // parse stow words
         PSwSet SwSet = ParamVal->IsObjKey("stopwords") ? 
             TSwSet::ParseJson(ParamVal->GetObjKey("stopwords")) :

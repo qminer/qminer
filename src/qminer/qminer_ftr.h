@@ -514,6 +514,11 @@ private:
     /// Forgetting factor
     TFlt ForgetFactor;            
 
+    /// n-grams Start
+    int NStart;
+    /// n-grams End
+    int NEnd;
+
 	void _GetVal(const PRecSet& FtrRecSet, TStrV& StrV) const; 
 	void _GetVal(const TRec& FtrRec, TStrV& StrV) const; 
 	void GetVal(const TRec& Rec, TStrV& StrV) const; 

@@ -254,9 +254,6 @@ public:
   bool IsKeyGetDat(const TKey& Key, TDat& Dat) const {int KeyId;
     if (IsKey(Key, KeyId)){Dat=GetHashKeyDat(KeyId).Dat; return true;}
     else {return false;}}
-  TDat GetDatOrDef(const TKey& Key, const TDat& DefVal) const {
-	  if (IsKey(Key)) { return GetDat(Key); }
-	  return DefVal;}
 
   int FFirstKeyId() const {return 0-1;}
   bool FNextKeyId(int& KeyId) const;
@@ -844,11 +841,6 @@ public:
   void GetDatKeyPrV(TVec<TPair<TDat, TStr> >& DatKeyPrV) const;
 
   void Pack(){KeyDatV.Pack();}
-  int GetMemUsed() const {
-      return PortV.GetMemUsed() + KeyDatV.GetMemUsedDeep() +
-          AutoSizeP.GetMemUsed() + FFreeKeyId.GetMemUsed() +
-          FreeKeys.GetMemUsed() + Pool->GetMemUsed();
-  }
 };
 
 template <class TDat, class TStringPool, class THashFunc>
@@ -1144,10 +1136,7 @@ void TCache<TKey, TDat, THashFunc>::Flush(){
   printf("Flush: 0/%d\r", KeyDatH.Len());
   int KeyId=KeyDatH.FFirstKeyId(); int Done = 0;
   while (KeyDatH.FNextKeyId(KeyId)){
-    if (Done%10000==0){
-		double Perc = Done / (0.01 * (double) KeyDatH.Len());
-		printf("Flush: %d/%d (%.1f%%)\r", Done, KeyDatH.Len(), Perc);
-	}
+    if (Done%10000==0){printf("Flush: %d/%d\r", Done, KeyDatH.Len());}
     const TKey& Key=KeyDatH.GetKey(KeyId);
     TKeyLNDatPr& KeyLNDatPr=KeyDatH[KeyId];
     TDat Dat=KeyLNDatPr.Val2;

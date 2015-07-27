@@ -1462,26 +1462,6 @@ PBowDocPart TBowClust::GetHKMeansPart(
   return DocPart;
 }
 
-void TBowClust::GetHKMeansLeafClustV(const PBowDocPart& HKMeansPart, TVec<PBowDocPartClust>& LeafClustV)
-{
-	int ClustCount = HKMeansPart->GetClusts();
-	for (int ClustN=0; ClustN < ClustCount; ClustN++)
-	{
-		PBowDocPartClust Clust = HKMeansPart->GetClust(ClustN);
-		bool IsSubPart = Clust->IsSubPart();
-		if (IsSubPart)
-		{
-			PBowDocPart Part = Clust->GetSubPart();
-			if (Part->GetClusts() > 1)
-				GetHKMeansLeafClustV(Part, LeafClustV);
-			else
-				LeafClustV.Add(Clust);
-		}
-		else
-			LeafClustV.Add(Clust);
-	}
-}
-
 PBowDocPart TBowClust::GetHPart(
  const PNotify& Notify,
  const PBowDocBs& BowDocBs, const PBowSim& BowSim, TRnd& Rnd,

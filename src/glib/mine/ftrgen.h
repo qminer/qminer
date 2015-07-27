@@ -134,7 +134,7 @@ private:
     /// Hashing dimension
     TInt HashDim;
     /// Keep Hash Table (can be used only when hashing for debuging)
-    TBool StoreHashWordsP;
+    TBool KeepHashTable;
 
     /// Ngrams Range Start
     TInt NStart;
@@ -154,12 +154,12 @@ private:
     TFltV OldDocFqV;
 
     /// Set of tokens that hash into specific dimension
-    TVec<TStrSet> HashWordH;
+    TVec<TStrSet> HashTable;
 
 public:
     TBagOfWords() { }
     TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP,
-        PTokenizer _Tokenizer = NULL, const int& _HashDim = -1, const bool& StoreHashWordsP = false,
+        PTokenizer _Tokenizer = NULL, const int& _HashDim = -1, const bool& KHT = false,
         const int& NStart = 1, const int& NEnd = 1);
     TBagOfWords(TSIn& SIn);
     void Save(TSOut& SOut) const;
@@ -169,7 +169,7 @@ public:
     bool IsIdf() const { return ((Type & btIdf) != 0); }
     bool IsNormalize() const { return ((Type & btNormalize) != 0); }
     bool IsHashing() const { return ((Type & btHashing) != 0); }
-    bool IsKeepingHashTable() const { return StoreHashWordsP; }
+    bool IsKeepingHashTable() const { return KeepHashTable; }
     
     void Clr();
     void GetFtr(const TStr& Str, TStrV& TokenStrV) const;
@@ -188,8 +188,8 @@ public:
     /// Hashing Related Functions
     int GetDim() const { return IsHashing() ? HashDim.Val : TokenSet.Len(); }
     TStr GetVal(const int& ValN) const { return IsHashing() ? TInt::GetStr(ValN) : TokenSet.GetKey(ValN); }
-    TVec<TStrSet> GetHashTable() const { return StoreHashWordsP ? HashWordH : TVec<TStrSet>(); }
-    TStrSet GetHashVals(const int& Hash) const { return StoreHashWordsP ? HashWordH.GetVal(Hash) : TStrSet(); }
+    TVec<TStrSet> GetHashTable() const { return KeepHashTable ? HashTable : TVec<TStrSet>(); }
+    TStrSet GetHashVals(TInt hash) const { return KeepHashTable ? HashTable.GetVal(hash) : TStrSet(); }
     
     PSwSet GetSwSet() const { return SwSet; }
     PStemmer GetStemmer() const { return Stemmer; }

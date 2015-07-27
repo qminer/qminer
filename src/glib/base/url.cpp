@@ -280,53 +280,6 @@ TUrl::TUrl(const TStr& _RelUrlStr, const TStr& _BaseUrlStr):
   */
 }
 
-TUrl::TUrl(TSIn& SIn) : 
-  Scheme(usUndef),
-  UrlStr(),
-  SchemeNm(), HostNm(),
-  PortStr(), PathStr(), SearchStr(), FragIdStr(),
-  PortN(-1), PathSegV(),
-  IpNum(),
-  FinalUrlStr(), FinalHostNm(),
-  HttpRqStr()
-{
-	RelUrlStr = TStr(SIn);
-	BaseUrlStr = TStr(SIn);
-	// we have already serialized the properly formatted content so no need to do it again
-	//RelUrlStr.ToTrunc();
-	//RelUrlStr.ChangeStrAll(" ", "%20");
-	try {
-		if (IsAbs(RelUrlStr)) {
-			GetAbs(RelUrlStr);
-		}
-		else
-			if (IsAbs(BaseUrlStr)) {
-			GetAbsFromBase(RelUrlStr, BaseUrlStr);
-			}
-			else {
-				Scheme = usUndef;
-			}
-	}
-	catch (PExcept&) { Scheme = usUndef; }
-
-	bool IsHttpRq = TBool(SIn);
-	if (IsHttpRq) {
-		HttpRqStr = TStr(SIn);
-	}
-}
-
-void TUrl::Save(TSOut& SOut)
-{
-	RelUrlStr.Save(SOut);
-	BaseUrlStr.Save(SOut);
-
-	TBool IsHttpRq = IsHttpRqStr();
-	IsHttpRq.Save(SOut);
-	
-	if (IsHttpRq)
-		HttpRqStr.Save(SOut);
-}
-
 TStr TUrl::GetDmNm(const int& MxDmSegs) const {
   EAssert(IsOk());
   TChA DmChA; int DmSegs=0;
@@ -532,15 +485,3 @@ PUrlEnv TUrlEnv::MkClone(const PUrlEnv& UrlEnv){
   return CloneUrlEnv;
 }
 
-void TUrlEnv::GetKeyValPrV(TStrKdV& FldNmValPrV) const {
-	FldNmValPrV.Clr();
-	const int Keys = GetKeys();
-	for (int KeyN = 0; KeyN < Keys; KeyN++) {
-		TStr KeyNm = GetKeyNm(KeyN);
-		const int Vals = GetVals(KeyN);
-		for (int ValN = 0; ValN < Vals; ValN++) {
-			TStr Val = GetVal(KeyN, ValN);
-			FldNmValPrV.Add(TStrKd(KeyNm, Val));
-		}
-	}
-}

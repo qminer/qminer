@@ -86,16 +86,8 @@ public:
   static TStr GetExeDir();
   static bool GenDir(const TStr& FPathFNm);
   static bool DelDir(const TStr& FPathFNm);
-  static bool DelNonEmptyDir(const TStr& FPathFNm);
   static bool Exists(const TStr& FPathFNm);
-
   static void ListFiles(const TStr& DirNm, TStrV& FNmV);
-
-  static TStr GetLastDirPart(const TStr& FPathFNm);
-  static void CopyDir(const TStr& SourceDir, const TStr& DestDir, const bool& OverwriteIfExists = true);
-    
-  static void SplitPath(const TStr& FPathFNm, TStrV& PartV);
-  static TStr GetFileName(const TStr& FileWithDir);
 };
 
 /////////////////////////////////////////////////
@@ -126,29 +118,6 @@ public:
 
 	void OnStatus(const TStr& MsgStr);
 };
-
-
-/////////////////////////////////////////////////
-// File-Notifier
-class TFileNotify : public TNotify {
-private:
-	TStr FileName;
-	PSOut File;
-	bool AddTimeStamp;
-
-	bool SeparateFilesForEachDay;
-	bool FlushEachWrite;
-	TStr LastLogDate;
-public:
-	TFileNotify(const TStr& _FileName, const bool& _AddTimeStamp = true, const bool& _SeparateFilesForEachDay = false, const bool& _FlushEachWrite = false);
-	static PNotify New(const TStr& FileName, const bool& AddTimeStamp = true, const bool& SeparateFilesForEachDay = false, const bool& FlushEachWrite = false) {
-		return PNotify(new TFileNotify(FileName, AddTimeStamp, SeparateFilesForEachDay, FlushEachWrite));
-	}
-	void OpenNewFileForDate();
-	void OnNotify(const TNotifyType& Type, const TStr& MsgStr);
-	void OnStatus(const TStr& MsgStr);
-};
-
 
 /////////////////////////////////////////////////
 // File-Lock

@@ -44,22 +44,6 @@ void TJsonVal::AddToObj(const PJsonVal& Val) {
 	}
 }
 
-void TJsonVal::AddToObj(const TStr& KeyNm, const PJsonVal& Val) {
-	EAssert(JsonValType == jvtObj);
-	EAssert(KeyNm != "");
-	KeyValH.AddDat(KeyNm, Val);
-}
-
-// extend/update the object with values from Val
-// this and Val should be an Object and not an array or something else
-void TJsonVal::MergeObj(const PJsonVal& Val) {
-	EAssert(Val->IsObj() && IsObj());
-	for (int N = 0; N < Val->GetObjKeys(); N++) {
-		const TStr Key = Val->GetObjKey(N);
-		AddToObj(Key, Val->GetObjKey(Key));
-	}
-}
-
 PJsonVal TJsonVal::NewArr(const TJsonValV& ValV) {
 	PJsonVal Val = TJsonVal::NewArr();
 	for (int ValN = 0; ValN < ValV.Len(); ValN++) {
@@ -69,14 +53,6 @@ PJsonVal TJsonVal::NewArr(const TJsonValV& ValV) {
 }
 
 PJsonVal TJsonVal::NewArr(const TIntV& IntV) {
-	PJsonVal Val = TJsonVal::NewArr();
-	for (int IntN = 0; IntN < IntV.Len(); IntN++) {
-		Val->AddToArr(TJsonVal::NewNum((double)IntV[IntN]));
-	}
-	return Val;
-}
-
-PJsonVal TJsonVal::NewArr(const TUInt64V& IntV) {
 	PJsonVal Val = TJsonVal::NewArr();
 	for (int IntN = 0; IntN < IntV.Len(); IntN++) {
 		Val->AddToArr(TJsonVal::NewNum((double)IntV[IntN]));
@@ -278,7 +254,7 @@ PJsonVal TJsonVal::GetValFromSIn(const PSIn& SIn, bool& Ok, TStr& MsgStr){
     Val=GetValFromLx(Lx);
 	Ok=true; MsgStr="Ok";
   }
-  catch (const PExcept& Except){
+  catch (PExcept Except){
     Val=TJsonVal::New();
     Ok=false; MsgStr=Except->GetMsgStr();
   }
@@ -386,7 +362,7 @@ void TJsonVal::GetChAFromVal(const PJsonVal& Val, TChA& ChA){
       break;
     case jvtObj:
       ChA+="{";
-	  for (int ObjKeyN = Val->KeyValH.FFirstKeyId(); Val->KeyValH.FNextKeyId(ObjKeyN);) {
+      for (int ObjKeyN=0; ObjKeyN<Val->GetObjKeys(); ObjKeyN++){
         if (ObjKeyN>0){ChA+=", ";}
         TStr ObjKey; PJsonVal ObjVal; Val->GetObjKeyVal(ObjKeyN, ObjKey, ObjVal);
         AddQChAFromStr(ObjKey, ChA);

@@ -203,7 +203,6 @@ public: \
 class TSIn;
 class TSOut;
 class TStr;
-class TChA;
 class TXmlObjSer;
 class TXmlObjSerTagNm;
 template <class TRec> class TPt;
@@ -235,9 +234,8 @@ private: \
 /////////////////////////////////////////////////
 // Assertions
 class TOnExeStop{
-public:
-  typedef bool (*TOnExeStopF)(char* MsgCStr);
 private:
+  typedef bool (*TOnExeStopF)(char* MsgCStr);
   static TOnExeStopF OnExeStopF;
 public:
   static bool IsOnExeStopF(){return OnExeStopF!=NULL;}
@@ -312,8 +310,7 @@ void ExeStop(
 
 #define ESAssert(Cond) \
   ((Cond) ? static_cast<void>(0) : TExcept::Throw(TSysStr::GetLastMsgCStr(), \
-    TStr(__FILE__) + TStr(" line ") + TInt::GetStr(__LINE__) + TStr(": ")+ TStr(#Cond) ))
-
+  TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) +": "+ TStr(#Cond)))
 
 // compile time assert
 // #define STATIC_ASSERT(x) { const char temp[ (((x) == 0) ? 0 : 1) ] = {'\0'}; }
