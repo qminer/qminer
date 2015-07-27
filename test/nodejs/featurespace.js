@@ -1206,10 +1206,10 @@ describe('Feature Space Tests', function () {
             assert.eqtol(ftr.extractVector(Store[1]).at(0), 0);
             assert.eqtol(ftr.extractVector(Store[2]).at(0), 10);
 			
-			for (var i = 3; i <= 11; i++){
-				ftr.updateRecord(Store[i]);
+            for (var i = 3; i < 11; i++){
+            	ftr.updateRecord(Store[i]);
 			}
-			var expected = [
+            var expected = [
 				-4.545454545,
 				-3.636363636,
 				-2.727272727,
@@ -1222,8 +1222,8 @@ describe('Feature Space Tests', function () {
 				3.636363636,
 				4.545454545,
 			];
-            for (var i = 0; i <= 11; i++){
-				assert.eqtol(ftr.extractVector(Store[0]).at(i), expected[i]);
+             for (var i = 0; i < 11; i++){
+				assert.eqtol(ftr.extractVector(Store[i]).at(0), expected[i], 0.0000001);
 			}
         })
         it('should update the feature space with a new record: categorical', function () {
