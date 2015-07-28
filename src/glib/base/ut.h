@@ -230,3 +230,33 @@ public:
 #define CatchFull } catch (PExcept Except){ErrNotify(Except->GetStr());}
 #define CatchAll } catch (...){}
 
+#ifdef GLib_WIN
+#include <StackWalker.h>
+/////////////////////////////////////////////////
+// Stack-trace output for Windows
+class TFileStackWalker : public StackWalker {
+protected:
+    FILE* FOut;
+    
+    void OnOutput(LPCSTR szText);
+public:
+    TFileStackWalker();
+    void CloseOutputFile();
+    ~TFileStackWalker();
+    
+    static void WriteStackTrace();
+};
+
+class TBufferStackWalker : public StackWalker {
+protected:
+    TChA Output;
+    
+    void OnOutput(LPCSTR szText);};
+public:
+TBufferStackWalker();
+TChA GetOutput();
+
+// static method that generates stack trace and returns it
+static TChA GetStackTrace();
+}
+#endif

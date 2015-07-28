@@ -1036,13 +1036,18 @@ void TFile::Copy(const TStr& SrcFNm, const TStr& DstFNm,
 
 	close(input);
 	close(output);
+}
 
+bool TFile::Move(const TStr& SrcFNm, const TStr& DstFNm,
+  const bool& ThrowExceptP, const bool& FailIfExistsP) {
+	TFile::Copy(SrcFNm, DstFNm, ThrowExceptP, FailIfExistsP);
+	return TFile::Del(SrcFNm, ThrowExceptP);
 }
 
 #elif defined(GLib_MACOSX)
 
 void TFile::Copy(const TStr& SrcFNm, const TStr& DstFNm,
-                 const bool& ThrowExceptP, const bool& FailIfExistsP) {
+  const bool& ThrowExceptP, const bool& FailIfExistsP) {
     
     FailR("Feature not implemented");
 }
