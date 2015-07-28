@@ -30,7 +30,7 @@ public:
 		Type(NormalizeP ? (NormalizeVar ? ntNormalizeVar : ntNormalize) : ntNone), MnVal(TFlt::Mx), MxVal(TFlt::Mn) {}
     TNumeric(const double& _MnVal, const double& _MxVal):
         Type(ntMnMxVal), MnVal(_MnVal), MxVal(_MxVal) { }
-    TNumeric(TSIn& SIn): Type(LoadEnum<TNumericType>(SIn)), MnVal(SIn), MxVal(SIn) {  }
+    TNumeric(TSIn& SIn): Type(LoadEnum<TNumericType>(SIn)), MnVal(SIn), MxVal(SIn), Var(SIn) {  }
     void Save(TSOut& SOut) const;
 
     void Clr();
