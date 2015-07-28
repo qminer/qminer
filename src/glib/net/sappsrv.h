@@ -41,9 +41,17 @@ public:
 	static TStr GetFldVal(const TStrKdV& FldNmValPrV, const TStr& FldNm, const TStr& DefFldVal = "");
 	static int GetFldInt(const TStrKdV& FldNmValPrV, const TStr& FldNm); 
 	static int GetFldInt(const TStrKdV& FldNmValPrV, const TStr& FldNm, const int& DefInt); 
+	static double GetFldFlt(const TStrKdV& FldNmValPrV, const TStr& FldNm, const double& DefFlt);
+	static bool GetFldBool(const TStrKdV& FldNmValPrV, const TStr& FldNm, const bool& DefVal);
+	static uint64 GetFldUInt64(const TStrKdV& FldNmValPrV, const TStr& FldNm, const uint64& DefVal);
 	static void GetFldValV(const TStrKdV& FldNmValPrV, const TStr& FldNm, TStrV& FldValV);
 	static void GetFldValSet(const TStrKdV& FldNmValPrV, const TStr& FldNm, TStrSet& FldValSet);
 	static bool IsFldNmVal(const TStrKdV& FldNmValPrV,	const TStr& FldNm, const TStr& FldVal);
+	
+	static void SetFldNmVal(TStrKdV& FldNmValPrV, const TStr& FldNm, const TStr& FldVal);
+	static void SetFldNmInt(TStrKdV& FldNmValPrV, const TStr& FldNm, const int& FldVal);
+	static void SetFldNmBool(TStrKdV& FldNmValPrV, const TStr& FldNm, const bool& FldVal);
+	static void SetFldNmFlt(TStrKdV& FldNmValPrV, const TStr& FldNm, const double& FldVal);
 
 	static TStr XmlHdStr;
 
@@ -64,10 +72,27 @@ protected:
 	virtual PSIn ExecSIn(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv,
 		TStr& ContTypeStr) { EAssert(OutType != saotCustom); return NULL; };
 
+	void LogReqRes(const TStrKdV& FldNmValPrV, const PHttpResp& HttpResp);
+
+	bool NotifyOnRequest;
+	bool ReportResponseSize;
+	bool LogRqToFile;
+	TStr LogRqFolder;
+
 public:
 	TSAppSrvFun(const TStr& _FunNm, const TSAppOutType& _OutType = saotXml): 
-	  FunNm(_FunNm), OutType(_OutType) { EAssert(!FunNm.Empty()); }
+		FunNm(_FunNm), OutType(_OutType) {
+		EAssert(!FunNm.Empty()); 
+		NotifyOnRequest = true; 
+		LogRqToFile = false; 
+		ReportResponseSize = false;
+	 }
 	virtual ~TSAppSrvFun() { }
+
+	void SetNotifyOnRequest(const bool& Val) { NotifyOnRequest = Val; }
+	void SetLogRqToFile(const bool& Val) { LogRqToFile = Val; }
+	void SetLogRqFolder(const TStr& Path) { LogRqFolder = Path; }
+	void SetReportResponseSize(const bool& Val) { ReportResponseSize = Val; }
 
 	// output type
 	TSAppOutType GetFunOutType() const { return OutType; }
@@ -80,23 +105,90 @@ public:
 //////////////////////////////////////
 // Simple-App-Server
 class TSAppSrv : public TWebSrv {
-private:
+protected:
 	TMem Favicon;
     TBool ShowParamP;
 	TBool ListFunP;
     THash<TStr, PSAppSrvFun> FunNmToFunH;
-private:
+
 	static unsigned char Favicon_bf[];
 	static unsigned int Favicon_len;
 
 public:
-    TSAppSrv(const int& PortN, const TSAppSrvFunV& SrvFunV, const PNotify& Notify, 
+    TSAppSrv(const int& PortN, const TSAppSrvFunV& SrvFunV, const PNotify& Notify,
 		const bool& _ShowParamP = false, const bool& _ListFunP = true);
     static PWebSrv New(const int& PortN, const TSAppSrvFunV& SrvFunV, const PNotify& Notify, 
 		const bool& ShowParamP = false, const bool& ListFunP = true) { 
             return new TSAppSrv(PortN, SrvFunV, Notify, ShowParamP, ListFunP); }
     
     virtual void OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq);
+};
+
+
+//////////////////////////////////////
+// Http Request Serialization Info
+// info that we serialize for each http request
+// this info can later be used to do the replay
+class THttpReqSerInfo
+{
+	TStr UrlRel;
+	TStr UrlBase;
+	TCh ReqMethod;
+	TMem Body;
+
+public:
+	THttpReqSerInfo(const TStr& UrlRel, const TStr& UrlBase, const THttpRqMethod& ReqMethod, const TMem& Body);
+	THttpReqSerInfo(const PHttpRq& HttpRq);
+	THttpReqSerInfo(TSIn& SIn);
+	void Save(TSOut& SOut);
+
+	PHttpRq GetHttpRq();
+};
+
+class THttpReqLogger;
+typedef TPt<THttpReqLogger> PHttpReqLogger;
+class THttpReqLogger {
+private:
+	TCRef CRef;
+	THttpReqLogger();
+public:
+	friend class TPt<THttpReqLogger>;
+	static PHttpReqLogger New(const TStr& ReqFNm, const bool& FlushEachReq = false);
+	static void ApplyRequests(const TStr& ReqFNm);
+};
+
+//////////////////////////////////////
+// App-Server with loging and replaying of requests
+class TReplaySrv : public TSAppSrv {
+private:
+	void ReplayHttpRq(const PHttpRq& HttpRq);
+
+	PSOut SOut;
+	bool FlushEachRequest;
+	THashSet<TStr> LoggingFunNmH;	// the set of function names for which we do the logging
+
+public:
+	TReplaySrv(const int& PortN, const TSAppSrvFunV& SrvFunV, const PNotify& Notify,
+		const bool& _ShowParamP = false, const bool& _ListFunP = true);
+	static TReplaySrv* New(const int& PortN, const TSAppSrvFunV& SrvFunV, const PNotify& Notify,
+		const bool& ShowParamP = false, const bool& ListFunP = true) {
+		return new TReplaySrv(PortN, SrvFunV, Notify, ShowParamP, ListFunP);
+	}
+	~TReplaySrv();
+
+	// which functions should be logged - if empty, log all functions
+	void AddLoggingFunNm(const TStr& FunNm) { LoggingFunNmH.AddKey(FunNm); }
+	void AddLoggingFunNms(const TStrV& FunNmV) { LoggingFunNmH.AddKeyV(FunNmV); }
+	void ClearLoggingFunNms() { LoggingFunNmH.Clr(); }
+
+	bool ReplayLog(const TStr& LogFNm, const PNotify& ErrorNotify);
+	bool ReplayStream(const PSIn& SIn, const PNotify& ErrorNotify);
+
+	void StartLogging(const TStr& LogFNm, const bool& _FlushEachRequest = false, const bool& Append = true);
+	void StopLogging();
+	static bool RemoveLogData(const TStr& LogFNm);
+
+	virtual void OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq);
 };
 
 //////////////////////////////////////

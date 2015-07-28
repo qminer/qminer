@@ -210,7 +210,7 @@ void TMultinomial::AddFtr(const TStrV& StrV, TFltV& FullV, int& Offset) const {
 ///////////////////////////////////////
 // Tokenizable-Feature-Generator
 TBagOfWords::TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP, 
-        PTokenizer _Tokenizer, const int& _HashDim, const bool& KHT,
+        PTokenizer _Tokenizer, const int& _HashDim, const bool& StoreHashWordsP,
         const int& _NStart, const int& _NEnd): Tokenizer(_Tokenizer) {
 
     // get settings flags
@@ -224,9 +224,10 @@ TBagOfWords::TBagOfWords(const bool& TfP, const bool& IdfP, const bool& Normaliz
         Type.Val |= btHashing;
         // .. and the dimension
         HashDim = _HashDim;
-        // keep hash table?initialize it if true
-        KeepHashTable = KHT;
-        if(KeepHashTable) { HashTable.Gen(HashDim); }
+        // keep hash table?
+        if (StoreHashWordsP) { Type.Val |= btStoreHashWords; }
+        // initialize it if true
+        if (IsStoreHashWords()) { HashWordV.Gen(HashDim); }
         // initialize DF counts for hashes
         DocFqV.Gen(HashDim); DocFqV.PutAll(0);
         OldDocFqV.Gen(HashDim); OldDocFqV.PutAll(0.0);
@@ -236,16 +237,14 @@ TBagOfWords::TBagOfWords(const bool& TfP, const bool& IdfP, const bool& Normaliz
 }
 
 TBagOfWords::TBagOfWords(TSIn& SIn): Type(SIn),
-    Tokenizer(TTokenizer::Load(SIn)), TokenSet(SIn), HashDim(SIn), KeepHashTable(SIn),
-    NStart(SIn),NEnd(SIn), Docs(SIn), DocFqV(SIn), ForgetP(SIn), OldDocs(SIn),
-    OldDocFqV(SIn), HashTable(SIn) { }
+    Tokenizer(TTokenizer::Load(SIn)), TokenSet(SIn), HashDim(SIn), NStart(SIn), NEnd(SIn),
+    Docs(SIn), DocFqV(SIn), ForgetP(SIn), OldDocs(SIn), OldDocFqV(SIn), HashWordV(SIn) { }
 
 void TBagOfWords::Save(TSOut& SOut) const {
     Type.Save(SOut);
     Tokenizer->Save(SOut);
     TokenSet.Save(SOut);
     HashDim.Save(SOut);
-    KeepHashTable.Save(SOut);
     NStart.Save(SOut);
     NEnd.Save(SOut);
     Docs.Save(SOut);
@@ -253,7 +252,7 @@ void TBagOfWords::Save(TSOut& SOut) const {
     ForgetP.Save(SOut);
     OldDocs.Save(SOut);
     OldDocFqV.Save(SOut);
-    HashTable.Save(SOut);
+    HashWordV.Save(SOut);
 }
 
 void TBagOfWords::Clr() {
@@ -315,7 +314,7 @@ bool TBagOfWords::Update(const TStrV& TokenStrV) {
             const TStr& TokenStr = NgramStrV[TokenStrN];
             TInt TokenId = TokenStr.GetHashTrick() % HashDim;
             TokenIdH.AddKey(TokenId);
-            if(KeepHashTable) { HashTable[TokenId].AddKey(TokenStr); }
+            if (IsStoreHashWords()) { HashWordV[TokenId].AddKey(TokenStr); }
         }
         // update document counts
         int KeyId = TokenIdH.FFirstKeyId();
