@@ -15,26 +15,31 @@ private:
   int MxContLen;
   int MxRetries;
   int LastFId;
-  TIdUrlPrQ WaitFIdUrlPrQ;
-  THash<TInt, PSockEvent> ConnFIdToEventH;
   PSockEvent LastDelEvent;
   TStr ProxyStr;
   TStr UserAgentStr;
   int GetNextFId(){LastFId++; return LastFId;}
-  void PushWait(const int& FId, const PUrl& Url);
+  void PushWait(const int& FId, const PUrl& Url, const bool& QueueAtEnd = true);
   void PopWait(int& FId, PUrl& Url);
   void OpenConn(const int& FId, const PUrl& Url);
   void CloseConn(const int& FId);
-  void ConnUrl(const int& FId=-1, const PUrl& Url=NULL);
-  void DisconnUrl(const int& FId);
+  void ConnUrl(const int& FId = -1, const PUrl& Url = NULL, const bool& QueueAtEnd = true);
   UndefCopyAssign(TWebPgFetch);
+protected:
+  TIdUrlPrL WaitFIdUrlPrL;
+  THash<TInt, PSockEvent> ConnFIdToEventH;
+  void DisconnUrl(const int& FId);
 public:
   TWebPgFetch():
     TimeOutMSecs(30*1000), MxConns(-1), MxContLen(-1), MxRetries(1), LastFId(0),
-    WaitFIdUrlPrQ(), ConnFIdToEventH(1000), LastDelEvent(), 
+    WaitFIdUrlPrL(), ConnFIdToEventH(1000), LastDelEvent(), 
     ProxyStr(), UserAgentStr(){}
   static PWebPgFetch New(){return new TWebPgFetch();}
   virtual ~TWebPgFetch();
+
+  // load, save
+  virtual void Load(TSIn& SIn) {}
+  virtual void Save(TSOut& SOut) const {};
 
   // connections constraints
   void PutTimeOutMSecs(const int& _TimeOutMSecs){
@@ -43,7 +48,7 @@ public:
     EAssert(_MxConns>0); MxConns=_MxConns;}
   int GetMxConns() const {return MxConns;}
   bool IsOkConns(const int& Conns) const {
-    return (MxConns==-1)||(Conns<=MxConns);}
+    return (MxConns==-1)||(Conns<MxConns);}
   void PutMxContLen(const int& _MxContLen){
     EAssert((_MxContLen==-1)||(_MxContLen>=0)); MxContLen=_MxContLen;}
   int GetMxContLen() const {return MxContLen;}
@@ -54,7 +59,7 @@ public:
     return (MxContLen==-1)||(ContLen<=MxContLen);}
 
   // active connections
-  int GetWaitUrls() const {return WaitFIdUrlPrQ.Len();}
+  int GetWaitUrls() const {return WaitFIdUrlPrL.Len();}
   int GetConnUrls() const {return ConnFIdToEventH.Len();}
   bool Empty() const {return (GetWaitUrls()==0)&&(GetConnUrls()==0);}
   bool IsConn(const int& ConnFId) const {
@@ -73,7 +78,7 @@ public:
   void PutUserAgentStrIE8(){UserAgentStr="Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)";}
   TStr GetUserAgentStr() const {return UserAgentStr;}
 
-  int FetchUrl(const PUrl& Url);
+  int FetchUrl(const PUrl& Url, const bool& QueueAtEnd = true);
   int FetchUrl(const TStr& RelUrlStr, const TStr& BaseUrlStr=TStr());
   int FetchHttpRq(const PHttpRq& HttpRq);
   int EnqueueUrl(const TStr& RelUrlStr, const TStr& BaseUrlStr=TStr());
@@ -171,3 +176,44 @@ public:
   void SendJson(const PJsonVal& Json); 
   uint64 GetNumSent() {return NumSent;}
 };
+
+
+
+// the persisten version of the web page fetch class
+// if SaveFName is provided then the class will save in the provided file name
+// the page requests that are still in the queue
+// on creating the class instance the requests will be loaded from the file 
+// and again requested
+
+// if RepeatFailedRequests == true then the failed requests will be again requeued
+// useful for calling web services that often timeout
+// 
+ClassTPE(TWebPgFetchPersist, PWebPgFetchPersist, TWebPgFetch)//{
+protected:
+	TInt SuccessCount;
+	TInt ErrorCount;
+	TStr SaveFName;
+	bool RepeatFailedRequests;
+	bool ReportState;
+	TStr ReportPrefix;
+	PNotify Notify;
+
+	TWebPgFetchPersist(const TStr& _SaveFName = "", const bool& _RepeatFailedRequests = true, const bool& _ReportState = false, const TStr& _ReportPrefix = "", const PNotify& _Notify = TNotify::NullNotify);
+	
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
+	
+public:
+	~TWebPgFetchPersist();
+
+	static PWebPgFetchPersist New(const TStr& SaveFName = "", const bool& RepeatFailedRequests = true, const bool& ReportState = false, const TStr& ReportPrefix = "") {
+		return new TWebPgFetchPersist(SaveFName, RepeatFailedRequests, ReportState, ReportPrefix);
+	}
+
+	virtual void ReportError(const TStr& MsgStr);
+	virtual void OnFetch(const int& FId, const PWebPg& WebPg);
+	virtual void OnError(const int& FId, const TStr& MsgStr);
+	virtual void Report();
+
+};
+

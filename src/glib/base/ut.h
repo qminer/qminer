@@ -181,6 +181,18 @@ public:
 };
 
 /////////////////////////////////////////////////
+// String-Notifier
+class TStrNotify : public TNotify {
+public:
+	TChA Log;
+	TStrNotify(){}
+	static PNotify New(){ return new TStrNotify(); }
+
+	void OnNotify(const TNotifyType& Type, const TStr& MsgStr);
+	void OnStatus(const TStr& MsgStr);
+};
+
+/////////////////////////////////////////////////
 // Exception
 ClassTP(TExcept, PExcept)//{
 private:
@@ -190,8 +202,7 @@ private:
 public:
   TExcept(const TStr& _MsgStr): MsgStr(_MsgStr), LocStr(){}
   TExcept(const TStr& _MsgStr, const TStr& _LocStr): MsgStr(_MsgStr), LocStr(_LocStr){}
-  static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr()) {
-	  return PExcept(new TExcept(MsgStr, LocStr)); }
+  static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr());
   virtual ~TExcept(){}
 
   TStr GetMsgStr() const {return MsgStr;}
@@ -253,10 +264,10 @@ protected:
     
     void OnOutput(LPCSTR szText);};
 public:
-TBufferStackWalker();
-TChA GetOutput();
+	TBufferStackWalker();
+	TChA GetOutput();
 
-// static method that generates stack trace and returns it
-static TChA GetStackTrace();
+	// static method that generates stack trace and returns it
+	static TChA GetStackTrace();
 }
 #endif

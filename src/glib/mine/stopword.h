@@ -36,6 +36,11 @@ public:
   TSwSet(const TStr& SwListNm, const int& _MnWordLen=0); // NEW API
   TSwSet(const TStrV& SwListNmV, const int& _MnWordLen=0);
   static PSwSet New(const TStr& SwListNm){return PSwSet(new TSwSet(SwListNm));}
+  static PSwSet NewFromWords(const TStr& WordList){ 
+	  PSwSet Set = PSwSet(new TSwSet());
+	  Set->MultiAdd(WordList);
+	  return Set;
+  }
   void AddByName(const TStr& _SwListNm);
   static bool IsValidList(const TStr SwListNm);
   // Old New() API
