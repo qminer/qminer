@@ -29,3 +29,5 @@ node factorydoc.js ../nodedoc/module-qm.Iterator.html
 node factorydoc.js ../nodedoc/module-qm.Record.html
 node factorydoc.js ../nodedoc/module-qm.RecordSet.html
 node factorydoc.js ../nodedoc/module-qm.Store.html
+
+xcopy "pictures" "..\nodedoc\pictures\" /S/E/Y

@@ -504,7 +504,7 @@
     /**
     * Returns a string displaying rows, columns and number of non-zero elements of sparse matrix.
     * @returns {string} String displaying row, columns and number of non-zero elements.
-    * @example 
+    * @example
     * // create a new sparse matrix
     * var mat = new la.SparseMatrix([[[0, 1]], [[0, 2], [1, 8]]]);
     * // create the string
@@ -535,7 +535,7 @@
     exports.SparseVector.prototype.print = function () { console.log(this.toString()); }
 
     /**
-	* Prints the matrix on-screen. 
+	* Prints the matrix on-screen.
 	* @example
 	* // create a new matrix
 	* var mat = new la.Matrix([[1, 2], [3, 4]]);
@@ -548,11 +548,11 @@
     exports.Matrix.prototype.print = function () { console.log(this.toString()); }
 
 	/**
-	* Returns a copy of the matrix. 
+	* Returns a copy of the matrix.
 	* @returns {module:la.Matrix} Copy
 	*/
 	exports.Matrix.prototype.toMat = function () { return new exports.Matrix(this); }
-    
+
 	/**
     * Prints the vector on-screen.
     * @example
@@ -564,7 +564,7 @@
     * vec.print();
     */
 	exports.Vector.prototype.print = function () { console.log(this.toString()); }
-	
+
     /**
     * Copies the vector into a JavaScript array of numbers.
     * @param {module:la.Vector} vec - Copied vector.
@@ -589,7 +589,7 @@
                parseInt(Number(value)) == value &&
                !isNaN(parseInt(value, 10));
     }
-    
+
     ///////// RANDOM GENERATORS
 
     /**
@@ -619,8 +619,8 @@
             var vec = new exports.Vector({ "vals": dim });
             for (var elN = 0; elN < dim; elN++) {
                 vec.put(elN, exports.randn());
-            }            
-            return vec;       
+            }
+            return vec;
         } else if (len === 2) {
             var rows = arguments[0];
             var cols = arguments[1];
@@ -639,7 +639,10 @@
     /**
     * Returns a randomly selected integer from an array..
     * @param {number} num - The upper bound of the array. Must be an integer.
-    * @returns {number} Randomly selected integer from the array [0, ..., num-1].
+    * @param {number} [len] - The number of integers. Must be an integer.
+    * @returns {(number | la.IntVector)}
+    * <br>1. Randomly selected integer from the array [0, ..., num-1], if no parameters are given.
+    * <br>2. {@link module:la.Vector}, if parameter len is given. The vector contains random integers from the array [0, ..., num-1] (with repetition)
     */
     exports.randi = function () {
         var len = arguments.length;
@@ -647,6 +650,16 @@
             var n = arguments[0];
             assert(isInt(n), "one integer argument expected");
             return Math.floor((Math.random() * n));
+        } else if (len == 2) {
+            var n = arguments[0];
+            var size = arguments[1];
+            assert(isInt(n), "integer argument[0] expected");
+            assert(isInt(size), "integer argument[1] expected");
+            var result = new exports.IntVector({ "vals": size });
+            for (var i = 0; i < size; i++) {
+                result[i] = Math.floor((Math.random() * n));
+            }
+            return result;
         } else {
             throw new Error("one integer argument expected");
         }
@@ -686,7 +699,7 @@
     exports.Vector.prototype.print = function () {
         console.log(this.toString());
     }
-    
+
     ///////// COMMON MATRICES
 /////// VECTOR, MATRIX GENERATION
 // generate identity matrix
@@ -758,11 +771,11 @@ exports.ones = function(k) {
     }
     return ones_k;
 };
-        
+
     /**
     * Constructs a matrix by concatenating a doubly-nested array of matrices.
     * @param {Array<Array<module:la.Matrix>> } matrixDoubleArr - An array of block rows, where each block row is an array of matrices.
-    * For example: [[m11, m12], [m21, m22]] is used to construct a matrix where the (i,j)-th block submatrix is mij. 
+    * For example: [[m11, m12], [m21, m22]] is used to construct a matrix where the (i,j)-th block submatrix is mij.
     * @returns {module:la.Matrix} Concatenated matrix
     * @example
     * // create four matrices and concatenate (2 block columns, 2 block rows)
@@ -778,7 +791,7 @@ exports.ones = function(k) {
     * // 9  10 13 14
     * // 11 12 15 16
     */
-    //# exports.cat = function(matrixDoubleArr) {}	
+    //# exports.cat = function(matrixDoubleArr) {}
 exports.cat = function (nestedArrMat) {
     var dimx = []; //cell row dimensions
     var dimy = []; //cell col dimensions
@@ -797,7 +810,7 @@ exports.cat = function (nestedArrMat) {
                 assert(dimy[col] == nestedArrMat[row][col].cols, 'inconsistent column dimensions!');
             } else {
                 dimy[col] = nestedArrMat[row][col].cols;
-            }            
+            }
         }
     }
     cdimx[0] = 0;
@@ -818,6 +831,28 @@ exports.cat = function (nestedArrMat) {
     }
     return res;
 }
+
+    /**
+    * Generates an integer vector given range
+    * @param {number} min - Start value (should be an integer)
+    * @param {number} max - End value (should be an integer)
+    * @returns {module:la.IntVector} Integer range vector
+    * @example
+    * var la = require('qminer').la;
+    * var vec = la.rangeVec(1, 3);
+    * // returns the vector:
+    * // 1  2  3
+    */
+    //# exports.rangeVec = function(min, max) {}
+exports.rangeVec = function (min, max) {
+    var len = max - min + 1;
+    var rangeV = new exports.IntVector({ "vals": len });
+    for (var elN = 0; elN < len; elN++) {
+        rangeV[elN] = elN + min;
+    }
+    return rangeV;
+};
+
 	//////// METHODS
 
 exports.square = function(x) {
@@ -830,6 +865,35 @@ exports.square = function(x) {
     }
     return res;
 };
+
+    /**
+    * returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input.
+    * @param {(la.Matrix | la.Vector)} X - A matrix or a vector
+    * @returns {Array<number>} Array of indexes where maximum is found, one for each column
+    * @example
+    * var la = require('qminer').la;
+    * var mat = new la.Matrix([[1,2], [2,0]]);
+    * la.findMaxIdx(mat)
+    * // returns the array:
+    * // [1, 0]
+    */
+    //# exports.findMaxIdx = function(X) {}
+exports.findMaxIdx = function (X) {
+    var idxv = new Array();
+    // X is a dense matrix
+    if (typeof X.cols !== "undefined") {
+        var cols = X.cols;
+        for (var colN = 0; colN < cols; colN++) {
+            idxv.push(X.colMaxIdx(colN));
+        }
+    }
+    // X is a dense vector
+    if (typeof X.length !== "undefined") {
+        idxv.push(X.getMaxIdx());
+    }
+    return idxv;
+};
+
 
 //#- `mat3 = la.pdist2(mat, mat2)` -- computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2
 exports.pdist2 = function (mat, mat2) {
@@ -887,7 +951,7 @@ exports.pdist2 = function (mat, mat2) {
     * @param {(module:la.Matrix | module:la.SparseMatrix)} A - The matrix on the left-hand side of the system.
     * @param {module:la.Vector} b - The vector on the right-hand side of the system.
     * @param {module:la.Vector} [x] - Current solution. Default is a vector of zeros.
-    * @returns {module:la.Vector} Solution to the system. 
+    * @returns {module:la.Vector} Solution to the system.
     */
     exports.conjgrad = function (A, b, x) {
     	x = x || new exports.Vector({vals: A.cols});
@@ -909,5 +973,5 @@ exports.pdist2 = function (mat, mat2) {
         }
         return x;
     }
-    
+
     

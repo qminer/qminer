@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
   <title>Class: RidgeReg</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">RidgeReg</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-266">analyticsdoc.<wbr>js:266</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-194">analyticsdoc.<wbr>js:194</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -51,6 +51,9 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.RidgeReg.html#decisionFunction">decisionFunction(x)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.RidgeReg.html#fit">fit(X, y)</a></dt>
                     <dd>
                     </dd>
@@ -61,14 +64,12 @@
                     <dt><a href="module-analytics.RidgeReg.html#predict">predict(x)</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="module-analytics.RidgeReg.html#save">save(fout)</a></dt>
                     <dd>
                     </dd>
                   </dl>
+                </div>
+                <div class="summary-column">
                 </div>
               </div>
             </div>
@@ -85,21 +86,21 @@
                 <pre class="prettyprint"><code>la = require(&#x27;qminer&#x27;).la;
 analytics = require(&#x27;qminer&#x27;).analytics;
 // create a new model with gamma = 1.0
-regmod = new analytics.RidgeReg(1.0);
+var regmod = new analytics.RidgeReg(1.0);
 // generate a random feature matrix
-A = la.randn(10,100);
+var A = la.randn(10,100);
 // generate a random model
-w = la.randn(10);
+var w = la.randn(10);
 // generate noise
-n = la.randn(100).multiply(0.01);
+var n = la.randn(100).multiply(0.01);
 // generate responses (model&#x27;*data + noise)
-b = A.transpose().multiply(w).plus(n);
+var b = A.transpose().multiply(w).plus(n);
 // fit model
 regmod.fit(A, b);
 // compare
 console.log(&#x27;true model:&#x27;);
 w.print();
-console.log(&#x27;trained model:&#x27;); 
+console.log(&#x27;trained model:&#x27;);
 regmod.weights.print();
 // cosine between the true and the estimated model should be close to 1 if the fit succeeded
 console.log(&#x27;cosine(w, regmod.weights): &#x27; + regmod.weights.cosine(w));</code></pre>
@@ -175,6 +176,43 @@ console.log(&#x27;cosine(w, regmod.weights): &#x27; + regmod.weights.cosine(w));
             </section>
             <h2>Methods</h2>
             <section>
+              <h3 id="decisionFunction"><span class="symbol-name">decisionFunction</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Returns the expected response for the provided feature vector.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>x</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Feature vector</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;Predicted response</p>
+                </dd>
+              </dl>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X, y)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.RidgeReg.html">module:analytics.RidgeReg</a></span></span></h3>
               <p>Fits a column matrix of feature vectors X onto the response variable y.</p>
               <section>
@@ -306,7 +344,7 @@ console.log(&#x27;cosine(w, regmod.weights): &#x27; + regmod.weights.cosine(w));
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 8, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on July 28, 2015.
       </p>
     </div>
   </footer>

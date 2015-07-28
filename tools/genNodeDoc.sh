@@ -29,3 +29,5 @@ node factorydoc.js ../nodedoc/module-qm.Iterator.html
 node factorydoc.js ../nodedoc/module-qm.Record.html
 node factorydoc.js ../nodedoc/module-qm.RecordSet.html
 node factorydoc.js ../nodedoc/module-qm.Store.html
+
+cp -r pictures/ ../nodedoc/pictures/

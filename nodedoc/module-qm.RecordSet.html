@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
   <title>Factory class: RecordSet</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -25,10 +25,21 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">factory class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">RecordSet</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1397">qminerdoc.<wbr>js:1397</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1422">qminerdoc.<wbr>js:1422</a></p>
             <div class="symbol-description">
               <p>Record Set (factory pattern)</p>
             </div>
+            <section>
+              <h2>
+            Example
+        </h2>
+              <div>
+                <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// factory based construction using store.allRecords
+var rs = store.allRecords;</code></pre>
+              </div>
+            </section>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -170,9 +181,7 @@
               <p>Creates a new instance of the record set.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -210,9 +219,7 @@ var philosophers = recordSet.clone();</code></pre>
               <p>Deletes the records, that are also in the other record set.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -284,9 +291,7 @@ recordSet.deleteRecords(fantasy); // returns self, containing only three records
               <p>Executes a function on each record in record set.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -353,9 +358,7 @@ recordSet.each(function (rec) { rec.Name = &quot;Anonymous&quot;; }); // returns
               <p>Keeps only the records that pass the callback function.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -420,9 +423,7 @@ recordSet.filter(function (rec) { return rec.ScorePerRound[2] == 48; }); // keep
               <p>Keeps only the records with a specific value of some field.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -523,9 +524,7 @@ recordSet.filterByField(&quot;Weather&quot;, &quot;Mostly Cloudy&quot;); // retu
               <p>Keeps only records with ids between or equal two values.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm require
@@ -610,9 +609,7 @@ recordSet.filterById(2, 5);</code></pre>
               <p>Creates a vector containing the field values of records.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -682,9 +679,7 @@ var matrix = recordSet.getMatrix(&quot;ScorePerRound&quot;);</code></pre>
               <p>Creates a vector containing the field values of records.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -752,9 +747,7 @@ var vector = recordSet.getVector(&quot;NumberOfEpisodes&quot;);</code></pre>
               <p>Creates a new record set out of the join attribute of records.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -849,9 +842,7 @@ var ledMember = base.store(&quot;Bands&quot;).recs.join(&quot;Members&quot;, 1);
               <p>Creates an array of function outputs created from the records in record set.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -918,9 +909,7 @@ var arr = recordSet.map(function (rec) { return rec.Name; }); // returns an arra
               <p>It reverses the record order.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -960,9 +949,7 @@ recordSet.reverse(); // returns self, the records in the record set are in the r
               <p>Creates a random sample of records of the record set.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1028,9 +1015,7 @@ var sample = base.store(&quot;Movies&quot;).recs.sample(3);</code></pre>
               <p>Creates the set difference between two record sets.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1102,9 +1087,7 @@ var difference = recordSet.setDiff(fantasy); // returns a record set, containing
               <p>Creates the set intersection of two record sets.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1174,9 +1157,7 @@ var intersection = greaterSet.setIntersect(lesserSet); // returns a record set, 
               <p>Creates the set union of two record sets.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1245,9 +1226,7 @@ var union = lesserSet.setUnion(greaterSet); // returns a record set, which is th
               <p>Shuffles the order of records in the record set.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1316,9 +1295,7 @@ recordSet.shuffle(100); // returns self, the records in the record set are shuff
               <p>Sorts the records according to the given callback function.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1388,9 +1365,7 @@ recordSet.sort(function (rec, rec2) { return rec.NumberOfEpisodes &lt; rec2.Numb
               <p>Sorts the records according to a specific record field.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1472,9 +1447,7 @@ recordSet.sortByField(&quot;Title&quot;, true); // returns self, record are sort
               <p>Sorts the records according to record id.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1544,9 +1517,7 @@ recordSet.sortById(1); // returns self, the records are sorted in ascending orde
               <p>Splits the record set into smaller record sets.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1619,9 +1590,7 @@ var arr = recordSet.split(function (rec, rec2) { return rec.MinPlayers &lt; rec2
               <p>Returns the record set as a JSON.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1657,9 +1626,7 @@ var json = recordSet.toJSON();</code></pre>
               <p>Truncates the first records.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1749,7 +1716,7 @@ recordSet2.trunc(2, 2); // returns self, containing only the 2 records (&quot;Em
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 9, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on July 28, 2015.
       </p>
     </div>
   </footer>

@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
   <title>Factory class: Store</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -25,10 +25,67 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">factory class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Store</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-753">qminerdoc.<wbr>js:753</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-778">qminerdoc.<wbr>js:778</a></p>
             <div class="symbol-description">
               <p>Store (factory pattern result)</p>
             </div>
+            <section>
+              <h2>
+            Example
+        </h2>
+              <div>
+                <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// factory based construction using base.createStore
+var base = qm.create(&#x27;qm.conf&#x27;, &quot;&quot;, true);
+base.createStore([{
+   name: &quot;People&quot;,
+   fields: [
+       { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+       { name: &quot;Gender&quot;, type: &quot;string&quot;, shortstring: true },
+       { name: &quot;Age&quot;, type: &quot;int&quot; }
+   ],
+   joins: [
+       { name: &quot;ActedIn&quot;, type: &quot;index&quot;, store: &quot;Movies&quot;, inverse: &quot;Actor&quot; },
+       { name: &quot;Directed&quot;, type: &quot;index&quot;, store: &quot;Movies&quot;, inverse: &quot;Director&quot; }
+   ],
+   keys: [
+       { field: &quot;Name&quot;, type: &quot;text&quot; },
+       { field: &quot;Gender&quot;, type: &quot;value&quot; }
+   ]
+},
+{
+   name: &quot;Movies&quot;,
+   fields: [
+       { name: &quot;Title&quot;, type: &quot;string&quot;, primary: true },
+       { name: &quot;Plot&quot;, type: &quot;string&quot;, store: &quot;cache&quot; },
+       { name: &quot;Year&quot;, type: &quot;int&quot; },
+       { name: &quot;Rating&quot;, type: &quot;float&quot; },
+       { name: &quot;Genres&quot;, type: &quot;string_v&quot;, codebook: true }
+   ],
+   joins: [
+       { name: &quot;Actor&quot;, type: &quot;index&quot;, store: &quot;People&quot;, inverse: &quot;ActedIn&quot; },
+       { name: &quot;Director&quot;, type: &quot;index&quot;, store: &quot;People&quot;, inverse: &quot;Directed&quot; }
+   ],
+   keys: [
+       { field: &quot;Title&quot;, type: &quot;value&quot; },
+       { field: &quot;Plot&quot;, type: &quot;text&quot;, vocabulary: &quot;voc_01&quot; },
+       { field: &quot;Genres&quot;, type: &quot;value&quot; }
+   ]
+}]);
+// using the base constructor
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       name: &quot;Class&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
+       ]
+   }]
+});</code></pre>
+              </div>
+            </section>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -213,9 +270,7 @@
               <p>Gives the field value of a specific record.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>//import qm module
@@ -293,9 +348,7 @@ var fieldValue = base.store(&quot;Festivals&quot;).cell(1, &quot;Type&quot;); //
               <p>Deletes the records in the store.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -362,9 +415,7 @@ base.store(&quot;TVSeries&quot;).clear();  // returns 0</code></pre>
               <p>Executes a function on each record in store.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -430,9 +481,7 @@ base.store(&quot;Class&quot;).each(function (rec) { rec.StudyGroup = &quot;A&quo
               <p>Gets the details of the selected field.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -494,9 +543,7 @@ var details = base.store(&quot;People&quot;).field(&quot;Name&quot;);</code></pr
               <p>Gives a matrix containing the field values of each record.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -564,9 +611,7 @@ var matrix = base.store(&quot;ArcheryChampionship&quot;).getMatrix(&quot;ScorePe
               <p>Gives a vector containing the field value of each record.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -629,9 +674,7 @@ var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;)
               <p>Checks if the field is of type Date.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -693,9 +736,7 @@ var isFirstPlayedDate = base.store(&quot;BasketballPlayers&quot;).isDate(&quot;D
               <p>Checks if the field is of numeric type.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -756,9 +797,7 @@ var isNumberOfEpisodesNumeric = base.store(&quot;TVSeries&quot;).isNumeric(&quot
               <p>Checks if the field is of string type.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -820,9 +859,7 @@ var isAgeString = base.store(&quot;People&quot;).isString(&quot;Age&quot;); // r
               <p>Returns the details of the selected key as a JSON object.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -888,9 +925,7 @@ var details = base.store(&quot;Countries&quot;).key(&quot;Continent&quot;);</cod
               <p>Creates an array of function outputs created from the store records.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -956,9 +991,7 @@ var arr = base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; })
               <p>Creates a new record of given store. The record is not added to the store.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1020,9 +1053,7 @@ var planet = base.store(&quot;Planets&quot;).newRecord({ Name: &quot;Tatooine&qu
               <p>Creates a new record set out of the records in store.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1087,9 +1118,7 @@ var DCHeroes = base.store(&quot;Superheroes&quot;).newRecordSet(intVec);</code><
               <p>Adds a record to the store.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1158,9 +1187,7 @@ base.store(&quot;Supervillians&quot;).push({ Name: &quot;Lex Luthor&quot;, Super
               <p>Returns a record from the store.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1224,9 +1251,7 @@ var record = base.store(&quot;Class&quot;).rec(&quot;Magnitude&quot;);</code></p
               <p>Creates a record set containing random records from store.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1291,9 +1316,7 @@ var randomRecordSet = base.store(&quot;TVSeries&quot;).sample(3); // contains 3 
               <p>Returns the store as a JSON.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1332,7 +1355,7 @@ var json = base.store(&quot;FootballPlayers&quot;).toJSON();</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 9, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on July 28, 2015.
       </p>
     </div>
   </footer>
