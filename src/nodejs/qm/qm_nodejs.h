@@ -317,23 +317,23 @@ private:
 /**
 * Feature extractor types.
 * @typedef {Object} FeatureExtractors
-* @property {module:qm~FeatureExtractorConstant} constant - The constant type.
-* @property {module:qm~FeatureExtractorRandom} random - The random type.
-* @property {module:qm~FeatureExtractorNumeric} numeric - The numeric type.
-* @property {module:qm~FeatureExtractorCategorical} categorical - The categorical type.
-* @property {module:qm~FeatureExtractorMultinomial} multinomial - The multinomial type.
-* @property {module:qm~FeatureExtractorText} text - The text type.
-* @property {module:qm~FeatureExtractorJoin} join - The join type.
-* @property {module:qm~FeatureExtractorPair} pair - The pair type.
-* @property {module:qm~FeatureExtractorJsfunc} jsfunc - The jsfunc type.
-* @property {module:qm~FeatureExtractorDateWindow} dateWindow - The dateWindow type.
+* @property {module:qm~FeatureExtractor_Constant} constant - The constant type.
+* @property {module:qm~FeatureExtractor_Random} random - The random type.
+* @property {module:qm~FeatureExtractor_Numeric} numeric - The numeric type.
+* @property {module:qm~FeatureExtractor_Categorical} categorical - The categorical type.
+* @property {module:qm~FeatureExtractor_Multinomial} multinomial - The multinomial type.
+* @property {module:qm~FeatureExtractor_Text} text - The text type.
+* @property {module:qm~FeatureExtractor_Join} join - The join type.
+* @property {module:qm~FeatureExtractor_Pair} pair - The pair type.
+* @property {module:qm~FeatureExtractor_Jsfunc} jsfunc - The jsfunc type.
+* @property {module:qm~FeatureExtractor_DateWindow} dateWindow - The dateWindow type.
 *
 */
 
 /**
 * Feature type: constant
-* @typedef {Object} FeatureExtractorConstant
-* @property {string} type - The type of the extractor. It must be equal 'constant'.
+* @typedef {Object} FeatureExtractor_Constant
+* @property {string} type - The type of the extractor. It must be equal <b>'constant'</b>.
 * @property {number} [const = 1.0] - A constant number. 
 * @property {module:qm~FeatureSource} source - The source of the extractor.
 * @example
@@ -352,8 +352,8 @@ private:
 
 /**
 * Feature type: random
-* @typedef {Object} FeatureExtractorRandom
-* @property {string} type - The type of the extractor. It must be equal 'random'.
+* @typedef {Object} FeatureExtractor_Random
+* @property {string} type - The type of the extractor. It must be equal <b>'random'</b>.
 * @property {number} [seed = 0] - A random seed number.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
 * @example
@@ -372,8 +372,8 @@ private:
 
 /**
 * Feature type: numeric
-* @typedef {Object} FeatureExtractorNumeric 
-* @property {string} type - The type of the extractor. It must be equal 'numeric'.
+* @typedef {Object} FeatureExtractor_Numeric 
+* @property {string} type - The type of the extractor. It must be equal <b>'numeric'</b>.
 * @property {boolean} [normalize = 'false'] - Normalize values between 0.0 and 1.0.
 * @property {number} [min] - The minimal value used to form the normalization.
 * @property {number} [max] - The maximal value used to form the normalization.
@@ -425,9 +425,9 @@ private:
 
 /**
 * Feature type: categorical
-* @typedef {Object} FeatureExtractorCategorical
-* @property {string} type - The type of the extractor. It must be equal 'categorical'.
-* @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set. No dimensionalizy changes if new values are seen in the upgrades.
+* @typedef {Object} FeatureExtractor_Categorical
+* @property {string} type - The type of the extractor. It must be equal <b>'categorical'</b>.
+* @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set. No dimensionality changes if new values are seen in the upgrades.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hasDimension to get the corresponding dimension.
 * @property {string} field - The name of the field form which to take the values.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
@@ -452,8 +452,8 @@ private:
 
 /**
 * Feature type: multinomial
-* @typedef {Object} FeatureExtractorMultinomial
-* @property {string} type - The type of the extractor. It must be equal 'multinomial'.
+* @typedef {Object} FeatureExtractor_Multinomial
+* @property {string} type - The type of the extractor. It must be equal <b>'multinomial'</b>.
 * @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
 * @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
@@ -484,8 +484,8 @@ private:
 
 /**
 * Feature type: text
-* @typedef {Object} FeatureExtractorText
-* @property {string} type - The type of the extractor. It must be equal 'text'.
+* @typedef {Object} FeatureExtractor_Text
+* @property {string} type - The type of the extractor. It must be equal <b>'text'</b>.
 * @property {boolean} [normalize = 'true'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
 * @property {module:qm~FeatureWeight} [weight = 'tfidf'] - Type of weighting used for scoring terms.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
@@ -517,16 +517,16 @@ private:
 
 /**
 * Feature type: join
-* @typedef {Object} FeatureExtractorJoin
-* @property {string} type - The type of the extractor. It must be equal 'join'.
+* @typedef {Object} FeatureExtractor_Join
+* @property {string} type - The type of the extractor. It must be equal <b>'join'</b>.
 * @property {number} [bucketSize = 1] - The size of the bucket in which we group consecutive records.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
 */
 
 /**
 * Feature type: pair
-* @typedef {Object} FeatureExtractorPair
-* @property {string} type - The type of the extractor. It must be equal 'pair'.
+* @typedef {Object} FeatureExtractor_Pair
+* @property {string} type - The type of the extractor. It must be equal <b>'pair'</b>.
 * @property {module:qm~FeatureExtractors} first - The first feature extractor.
 * @property {module:qm~FeatureExtractors} second - The second feature extractor.
 * @property {module:qm~FeatureSource} source - The source of the extractor.
@@ -534,10 +534,10 @@ private:
 
 /** 
 * Feature type: dateWindow
-* @typedef {Object} FeatureExtractorDateWindow
-* @property {string} type - The type of the extractor. It must be equal 'dateWindow'.
-* @property {string} [unit = 'day'] - How granular is the time window. Options: day, week, month, year, 12hours, 6hours, 4hours, 2hours,
-* hour, 30minutes, 15minutes, 10minutes, minute, second.
+* @typedef {Object} FeatureExtractor_DateWindow
+* @property {string} type - The type of the extractor. It must be equal <b>'dateWindow'</b>.
+* @property {string} [unit = 'day'] - How granular is the time window. The options are: 'day', 'week', 'month', 'year', '12hours', '6hours', '4hours', '2hours',
+* 'hour', '30minutes', '15minutes', '10minutes', 'minute', 'second'.
 * @property {number} [window = 1] - The size of the window.
 * @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO
 * @property {number} start - //TODO
@@ -548,8 +548,8 @@ private:
 
 /**
 * Feature type: jsfunc
-* @typedef {Object} FeatureExtractorJsfunc
-* @property {string} type - The type of the extractor. It must be equal 'jsfunc'.
+* @typedef {Object} FeatureExtractor_Jsfunc
+* @property {string} type - The type of the extractor. It must be equal <b>'jsfunc'</b>.
 * @property {string} name - The feature's name.
 * @property {function} fun - The javascript function callback. It should take a record as input and return a number or a dense vector.
 * @property {number} [dim = 1] - The dimension of the feature extractor.
@@ -839,7 +839,7 @@ private:
 	* @param {module:qm~QueryObject} query - query language JSON object	
 	* @returns {module:qm.RecordSet} - Returns the record set that matches the search criterion
 	*/
-	//# exports.Base.prototype.search = function (query) { return Object.create(require('qminer').RecordSet.prototype);}
+	//# exports.Base.prototype.search = function (query) { return Object.create(require('qminer').RecordSet.prototype); }
 
 	JsDeclareFunction(search);   
 	/**
@@ -980,7 +980,7 @@ private:
 	* // get the record with the name "Magnitude"
 	* var record = base.store("Class").rec("Magnitude");
 	*/
-	//# exports.Store.prototype.recordByName = function (recName) {};
+	//# exports.Store.prototype.recordByName = function (recName) { return Object.create(require('qminer').Record.prototype); };
 	JsDeclareFunction(recordByName);
 
 	//!- `store = store.each(callback)` -- iterates through the store and executes the callback function `callback` on each record. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
@@ -1083,7 +1083,7 @@ private:
 	* // add a new supervillian to the Supervillians store
 	* base.store("Supervillians").push({ Name: "Lex Luthor", Superpowers: ["expert engineer", "genius-level intellect", "money"] }); // returns 0
 	*/
-	//# exports.Store.prototype.push = function (rec) {}
+	//# exports.Store.prototype.push = function (rec) { return 0; }
 	JsDeclareFunction(push);
 
 	//!- `rec = store.newRecord(recordJson)` -- creates new record `rec` by (JSON) value `recordJson` (not added to the store)
@@ -1111,7 +1111,7 @@ private:
 	* // create a record of a planet (not added to the Planets store)
 	* var planet = base.store("Planets").newRecord({ Name: "Tatooine", Diameter: 10465, NearestStars: ["Tatoo 1", "Tatoo 2"] });
 	*/
-	//# exports.Store.prototype.newRecord = function (json) {};
+	//# exports.Store.prototype.newRecord = function (json) { return Object.create(require('qminer').Record.prototype)};
 	JsDeclareFunction(newRecord);
 
 	//!- `rs = store.newRecordSet(idVec)` -- creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);
@@ -1142,7 +1142,7 @@ private:
 	* var intVec = new qm.la.IntVector([0, 1, 3]);
 	* var DCHeroes = base.store("Superheroes").newRecordSet(intVec);
 	*/
-	//# exports.Store.prototype.newRecordSet = function (idVec) {};
+	//# exports.Store.prototype.newRecordSet = function (idVec) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(newRecordSet);
 
 	//!- `rs = store.sample(sampleSize)` -- create a record set containing a random 
@@ -1174,7 +1174,7 @@ private:
 	* // create a sample record set containing 3 records
 	* var randomRecordSet = base.store("TVSeries").sample(3); // contains 3 random records from the TVSeries store
 	*/
-	//# exports.Store.prototype.sample = function (sampleSize) {};
+	//# exports.Store.prototype.sample = function (sampleSize) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(sample);
 
 	//!- `field = store.field(fieldName)` -- get details of field named `fieldName`
@@ -1202,7 +1202,7 @@ private:
 	* // { id: 0, name: "Name", type: "string", primary: true }
 	* var details = base.store("People").field("Name");
 	*/
-	//# exports.Store.prototype.field = function (fieldName) {}; 
+	//# exports.Store.prototype.field = function (fieldName) { return [{ id: 0, name:'', type:'', primary:'' }]; }; 
 	JsDeclareFunction(field);
 
 	//!- `bool = store.isNumeric(fieldName)` -- returns true if the field is of numeric type
@@ -1229,7 +1229,7 @@ private:
 	* // check if the field "NumberOfEpisodes" is of numeric type
 	* var isNumberOfEpisodesNumeric = base.store("TVSeries").isNumeric("NumberOfEpisodes"); // returns true
 	*/
-	//# exports.Store.prototype.isNumeric = function (fieldName) {};
+	//# exports.Store.prototype.isNumeric = function (fieldName) { return true; };
 	JsDeclareFunction(isNumeric)
 
 	//!- `bool = store.isString(fieldName)` -- returns true if the field is of String type
@@ -1257,7 +1257,7 @@ private:
 	* // check if the field "Age" is of string type
 	* var isAgeString = base.store("People").isString("Age"); // returns false
 	*/
-	//# exports.Store.prototype.isString = function (fieldName) {}; 
+	//# exports.Store.prototype.isString = function (fieldName) { return true; }; 
 	JsDeclareFunction(isString)
 
 	//!- `bool = store.isDate(fieldName)` -- returns true if the field is of type Date
@@ -1285,7 +1285,7 @@ private:
 	* // check if the FirstPlayed field is of type Date
 	* var isFirstPlayedDate = base.store("BasketballPlayers").isDate("DateOfBirth"); // returns true
 	*/
-	//# exports.Store.prototype.isDate = function (fieldName) {}
+	//# exports.Store.prototype.isDate = function (fieldName) { return true; }
 	JsDeclareFunction(isDate)
 
 	//!- `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
@@ -1317,7 +1317,7 @@ private:
 	* // { fq: { length: 0 }, vocabulary: { length: 0 }, name: 'Continent', store: { name: 'Countries', ... }}
 	* var details = base.store("Countries").key("Continent");
 	*/
-	//# exports.Store.prototype.key = function (keyName) {};
+	//# exports.Store.prototype.key = function (keyName) { return [{ fq: {}, vocabulary: {}, name:'', store: {} }]; };
 	JsDeclareFunction(key);
 
 	////!- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
@@ -1364,7 +1364,7 @@ private:
 	* // { storeId: 0, storeName: 'FootballPlayers', storeRecords: 0, fields: [...], keys: [], joins: [] }
 	* var json = base.store("FootballPlayers").toJSON();
 	*/
-	//# exports.Store.prototype.toJSON = function () {};
+	//# exports.Store.prototype.toJSON = function () { return { storeId:0, storeName:'', storeRecords:'', fields:[], keys:[], joins:[] }; };
 	JsDeclareFunction(toJSON);
 
 	//!- `store.clear()` -- deletes all records
@@ -1398,7 +1398,7 @@ private:
 	* // delete all remaining records in TVStore
 	* base.store("TVSeries").clear();  // returns 0
 	*/
-	//# exports.Store.prototype.clear = function (num) {};
+	//# exports.Store.prototype.clear = function (num) { return 0; };
 	JsDeclareFunction(clear);
 
 	//!- `vec = store.getVector(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
@@ -1427,7 +1427,7 @@ private:
 	* // get the vector of company names
 	* var companyNames = base.store("Companies").getVector("Name");	// returns a vector ["DC Comics", "DC Shoes", "21st Century Fox"]
 	*/
-	//# exports.Store.prototype.getVector = function (fieldName) {};
+	//# exports.Store.prototype.getVector = function (fieldName) { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getVector);
 
 	//!- `mat = store.getMatrix(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
@@ -1461,7 +1461,7 @@ private:
 	* // 48  44  48
 	* var matrix = base.store("ArcheryChampionship").getMatrix("ScorePerRound");
 	*/
-	//# exports.Store.prototype.getMatrix = function (fieldName) {};
+	//# exports.Store.prototype.getMatrix = function (fieldName) { return Object.create(require('qminer').la.Matrix.prototype); };
 	JsDeclareFunction(getMatrix);
 
 	//!- `val = store.cell(recId, fieldId)` -- if fieldId (int) corresponds to fieldName, this is equivalent to store[recId][fieldName]
@@ -1653,7 +1653,7 @@ private:
 	* // create a clone of the "Attack of the Clones" record
 	* var clone = base.store("StarWarsMovies")[0].$clone();
 	*/
-	//# exports.Record.prototype.$clone = function () {};
+	//# exports.Record.prototype.$clone = function () { return Object.create(require('qminer').Record.prototype); };
     JsDeclareFunction(clone);
     /**
      * Provide json version of record, useful when calling JSON.stringify
@@ -1663,28 +1663,28 @@ private:
      * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
      */
 	
-    //!- `rec = rec.$addJoin(joinName, (joinRecord | joinRecordId))` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string). Returns self.
-    //!- `rec = rec.$addJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
+    //!- `rec = rec.addJoin(joinName, (joinRecord | joinRecordId))` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string). Returns self.
+    //!- `rec = rec.addJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
 	/**
-	* $addJoin // TODO
+	* addJoin // TODO
 	* @param {string} joinName
 	* @param {(module:qm.Record | number)} joinRecord
 	* @param {number} [joinFrequency]
 	* @returns {module:qm.Record} Record.
 	*/
-	//# exports.Record.prototype.$addJoin = function (joinName, joinRecord, joinFrequency) {}
+	//# exports.Record.prototype.addJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
 	JsDeclareFunction(addJoin);
 
-    //!- `rec = rec.$delJoin(joinName, (joinRecord | joinRecordId))` -- deletes join record `joinRecord` (or given id, joinRecordId) from join `joinName` (string). Returns self.
-    //!- `rec = rec.$delJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- deletes join record `joinRecord` (or given id, joinRecordId) from join `joinName` (string) with join frequency `joinFrequency`. Return self.
+    //!- `rec = rec.delJoin(joinName, (joinRecord | joinRecordId))` -- deletes join record `joinRecord` (or given id, joinRecordId) from join `joinName` (string). Returns self.
+    //!- `rec = rec.delJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- deletes join record `joinRecord` (or given id, joinRecordId) from join `joinName` (string) with join frequency `joinFrequency`. Return self.
 	/**
-	* $delJoin // TODO
+	* delJoin // TODO
 	* @param {string} joinName
 	* @param {(module:qm.Record | number)} joinRecord
 	* @param {number} [joinFrequency]
 	* @returns {module:qm.Record} Record.
 	*/
-	//# exports.Record.prototype.$delJoin = function (joinName, joinRecord, joinFrequency) {}
+	//# exports.Record.prototype.delJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
 	JsDeclareFunction(delJoin);
 
     //!- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
@@ -1748,7 +1748,7 @@ private:
 	/**
 	* Returns the store the record belongs to.
 	*/
-	//# exports.Record.prototype.$store = undefined;
+	//# exports.Record.prototype.store = undefined;
 	JsDeclareProperty(store);
 
 	//!- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
@@ -1821,7 +1821,7 @@ private:
 	* // clone the record set of the "Philosophers" store
 	* var philosophers = recordSet.clone();
 	*/
-	//# exports.RecordSet.prototype.clone = function () {};
+	//# exports.RecordSet.prototype.clone = function () { return Object.create(require(qminer).RecordSet.prototype); };
 	JsDeclareFunction(clone);
 
 	//!- `rs2 = rs.join(joinName)` -- executes a join `joinName` on the records in the set, result is another record set `rs2`.
@@ -1870,7 +1870,7 @@ private:
 	* // returns a record set containing only one record, which is "Robert Plant" or "Jimmy Page"
 	* var ledMember = base.store("Bands").recs.join("Members", 1);
 	*/
-	//# exports.RecordSet.prototype.join = function (joinName, sampleSize) {};
+	//# exports.RecordSet.prototype.join = function (joinName, sampleSize) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(join);
 
 	//!- `aggrsJSON = rs.aggr()` -- returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set
@@ -1919,7 +1919,7 @@ private:
 	* // truncate the first 2 records in recordSet2, starting with "Emmanuel Levinas"
 	* recordSet2.trunc(2, 2); // returns self, containing only the 2 records ("Emmanuel Levinas", "Rene Descartes")
 	*/
-	//# exports.RecordSet.prototype.trunc = function (limit_num, offset_num) {};
+	//# exports.RecordSet.prototype.trunc = function (limit_num, offset_num) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(trunc);
 
 	//!- `rs2 = rs.sample(num)` -- create new record set by randomly sampling `num` records.
@@ -1951,7 +1951,7 @@ private:
 	* // create a sample record set of containing 3 records from the "Movies" store
 	* var sample = base.store("Movies").recs.sample(3);
 	*/
-	//# exports.RecordSet.prototype.sample = function (num) {};
+	//# exports.RecordSet.prototype.sample = function (num) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(sample);
 
 	//!- `rs = rs.shuffle(seed)` -- shuffle order using random integer seed `seed`. Returns self.
@@ -1986,7 +1986,7 @@ private:
 	* // shuffle the records in the newly created record set. Use the number 100 as the seed for the shuffle
 	* recordSet.shuffle(100); // returns self, the records in the record set are shuffled
 	*/
-	//# exports.RecordSet.prototype.shuffle = function (seed) {};
+	//# exports.RecordSet.prototype.shuffle = function (seed) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(shuffle);
 
 	//!- `rs = rs.reverse()` -- reverse record order. Returns self.
@@ -2020,7 +2020,7 @@ private:
 	* // reverse the record order in the record set
 	* recordSet.reverse(); // returns self, the records in the record set are in the reverse order
 	*/
-	//# exports.RecordSet.prototype.reverse = function () {};
+	//# exports.RecordSet.prototype.reverse = function () { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(reverse);
 
 	//!- `rs = rs.sortById(asc)` -- sort records according to record id; if `asc > 0` sorted in ascending order. Returns self.
@@ -2055,7 +2055,7 @@ private:
 	* // sort the records in the record set by their id in ascending order
 	* recordSet.sortById(1); // returns self, the records are sorted in ascending order
 	*/
-	//# exports.RecordSet.prototype.sortById = function (asc) {}; 
+	//# exports.RecordSet.prototype.sortById = function (asc) { return Object.create(require('qminer').RecordSet.prototype); }; 
 	JsDeclareFunction(sortById);
 
 	//!- `rs = rs.sortByFq(asc)` -- sort records according to weight; if `asc > 0` sorted in ascending order. Returns self.
@@ -2065,7 +2065,7 @@ private:
 	* @returns {module:qm.RecordSet} Self. Records are sorted according to record weight and asc.
 	* @ignore
 	*/
-	//# exports.RecordSet.prototype.sortByFq = function (asc) {}; 
+	//# exports.RecordSet.prototype.sortByFq = function (asc) { return Object.create(require('qminer').RecordSet.prototype); }; 
 	JsDeclareFunction(sortByFq);
 
 	//!- `rs = rs.sortByField(fieldName, asc)` -- sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order (default is desc). Returns self.
@@ -2099,7 +2099,7 @@ private:
 	* // sort the records by their "Title" field in ascending order 
 	* recordSet.sortByField("Title", true); // returns self, record are sorted by their "Title"
 	*/
-	//# exports.RecordSet.prototype.sortByField = function (fieldName, asc) {};
+	//# exports.RecordSet.prototype.sortByField = function (fieldName, asc) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(sortByField);
 
 	//!- `rs = rs.sort(comparatorCallback)` -- sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Returns self.
@@ -2135,7 +2135,7 @@ private:
 	* // sort the records by their number of episodes
 	* recordSet.sort(function (rec, rec2) { return rec.NumberOfEpisodes < rec2.NumberOfEpisodes; }); // returns self, records are sorted by the number of episodes
 	*/
-	//# exports.RecordSet.prototype.sort = function (callback) {};
+	//# exports.RecordSet.prototype.sort = function (callback) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(sort);
 
 	//!- `rs = rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`. Returns self.
@@ -2173,7 +2173,7 @@ private:
 	* // from the record set keep the records with indeces between or equal 2 and 5
 	* recordSet.filterById(2, 5);
 	*/
-	//# exports.RecordSet.prototype.filterById = function (minId, maxId) {};
+	//# exports.RecordSet.prototype.filterById = function (minId, maxId) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(filterById);
 	
 	//!- `rs = rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`. Returns self.
@@ -2186,7 +2186,7 @@ private:
 	* <br>2. Contains all the records of the original, if no parameter is given.
 	* @ignore
 	*/
-	//# exports.RecordSet.prototype.filterByFq = function (minFq, maxFq) {};
+	//# exports.RecordSet.prototype.filterByFq = function (minFq, maxFq) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(filterByFq);
 
 	//!- `rs = rs.filterByField(fieldName, minVal, maxVal)` -- keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Returns self.
@@ -2229,7 +2229,7 @@ private:
 	* // filter only the records, where the weather is Mostly Cloudy
 	* recordSet.filterByField("Weather", "Mostly Cloudy"); // returns self, containing only the records, where the weather is "Mostly Cloudy"
 	*/
-	//# exports.RecordSet.prototype.filterByField = function (fieldName, minVal, maxVal) {};
+	//# exports.RecordSet.prototype.filterByField = function (fieldName, minVal, maxVal) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(filterByField);
 
 	//!- `rs = rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function. Returns self.
@@ -2260,7 +2260,7 @@ private:
 	* // filter the records: which archers have scored 48 points in the third round
 	* recordSet.filter(function (rec) { return rec.ScorePerRound[2] == 48; }); // keeps only the records, where the score of the third round is equal 48
 	*/
-	//# exports.RecordSet.prototype.filter = function (callback) {}; 
+	//# exports.RecordSet.prototype.filter = function (callback) { return Object.create(require('qminer').RecordSet.prototype); }; 
 	JsDeclareFunction(filter);
 
 	//!- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more than 10. Result is an array of record sets. 
@@ -2299,7 +2299,7 @@ private:
 	* // "Dobble" record
 	* var arr = recordSet.split(function (rec, rec2) { return rec.MinPlayers < rec2.MinPlayers; });
 	*/
-	//# exports.RecordSet.prototype.split = function (callback) {};
+	//# exports.RecordSet.prototype.split = function (callback) {return [Object.create(require('qminer').RecordSet.prototype)]; };
 	JsDeclareFunction(split);
 
 	//!- `rs = rs.deleteRecords(rs2)` -- delete from `rs` records that are also in `rs2`. Returns self.
@@ -2337,7 +2337,7 @@ private:
 	* // delete the records in recordSet, that are also in fantasy
 	* recordSet.deleteRecords(fantasy); // returns self, containing only three records: "Douglas Adams", "Fyodor Dostoyevsky" and "Ivan Cankar"
 	*/
-	//# exports.RecordSet.prototype.deleteRecords = function (rs) {}; 
+	//# exports.RecordSet.prototype.deleteRecords = function (rs) { return Object.create(require('qminer').RecordSet.prototype); }; 
 	JsDeclareFunction(deleteRecords);
 
 	//!- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
@@ -2402,7 +2402,7 @@ private:
 	* // change the Name of all records into "Anonymous"
 	* recordSet.each(function (rec) { rec.Name = "Anonymous"; }); // returns self, all record's Name are "Anonymous"
 	*/
-	//# exports.RecordSet.prototype.each = function (callback) {}
+	//# exports.RecordSet.prototype.each = function (callback) { return Object.create(require('qminer').RecordSet.prototype); }
 	JsDeclareFunction(each);
 
 	//!- `arr = rs.map(callback)` -- iterates through the record set, applies callback function `callback` to each element and returns new array with the callback outputs. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Examples:
@@ -2473,7 +2473,7 @@ private:
 	* // get the intersection of greaterSet and lesserSet
 	* var intersection = greaterSet.setIntersect(lesserSet); // returns a record set, containing the movies with lengths between 110 and 130
 	*/
-	//# exports.RecordSet.prototype.setIntersect = function (rs) {};
+	//# exports.RecordSet.prototype.setIntersect = function (rs) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(setIntersect);
 
 	//!- `rs3 = rs.setUnion(rs2)` -- returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
@@ -2508,7 +2508,7 @@ private:
 	* // get the union of lesserSet and greaterSet
 	* var union = lesserSet.setUnion(greaterSet); // returns a record set, which is the union of the two record sets
 	*/
-	//# exports.RecordSet.prototype.setUnion = function (rs) {};
+	//# exports.RecordSet.prototype.setUnion = function (rs) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(setUnion);
 
 	//!- `rs3 = rs.setDiff(rs2)` -- returns the set difference (record set) `rs3`=`rs`\`rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
@@ -2546,7 +2546,7 @@ private:
 	* // create a new record set containing the difference of recordSet and fantasy
 	* var difference = recordSet.setDiff(fantasy); // returns a record set, containing the records of Douglas Adams, Fyodor Dostoyevsky and Ivan Cankar
 	*/
-	//# exports.RecordSet.prototype.setDiff = function (rs) {}; 
+	//# exports.RecordSet.prototype.setDiff = function (rs) { return Object.create(require('qminer').RecordSet.prototype); }; 
 	JsDeclareFunction(setDiff);
 
 	//!- `vec = rs.getVector(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
@@ -2580,7 +2580,7 @@ private:
 	* // the vector will look like [75, 574, 94, 11, 47]
 	* var vector = recordSet.getVector("NumberOfEpisodes");
 	*/
-	//# exports.RecordSet.prototype.getVector = function (fieldName) {}; 
+	//# exports.RecordSet.prototype.getVector = function (fieldName) { return Object.create(require('qminer').la.Vector.prototype); }; 
 	JsDeclareFunction(getVector);
 
 	//!- `vec = rs.getMatrix(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
@@ -2745,7 +2745,7 @@ public:
 	* // go to the first record in the store
 	* iter.next(); // returns true
 	*/
-	//# exports.Iterator.prototype.next = function () {};
+	//# exports.Iterator.prototype.next = function () { return true; };
 	JsDeclareFunction(next);
 
 	//!- `store = iter.store` -- get the store
@@ -2901,7 +2901,7 @@ public:
 
 /**
 * Feature Space
-* @classdesc Represents the feature space.
+* @classdesc Represents the feature space. It contains any of the {@link module:qm~FeatureExtractors}.
 * @class
 * @param {module:qm.Base} base - The base where the features are extracted from.
 * @param {Array.<Object>} extractors - The extractors.
@@ -2976,7 +2976,7 @@ public:
 	* @param {module:fs.FOut} fout - The output stream.
 	* @returns {module:fs.FOut} The output stream.
 	*/
-	//# exports.FeatureSpace.prototype.save = function (fout) {};
+	//# exports.FeatureSpace.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); };
     JsDeclareFunction(save);
 
 	//!- `fsp = fsp.addFeatureExtractor(objJson)` -- add a feature extractor parametrized by `objJson`
@@ -3012,7 +3012,7 @@ public:
 	* // it adds the new feature extractor to the pre-existing feature extractors in the feature space
 	* ftr.addFeatureExtractor({ type: "text", source: "WeatherForcast", field: "Weather", normalize: true, weight: "tfidf" });      
 	*/
-	//# exports.FeatureSpace.prototype.addFeatureExtractor = function (obj) {};
+	//# exports.FeatureSpace.prototype.addFeatureExtractor = function (obj) { return Object.create(require('qminer').FeatureSpace.prototype); };
 	JsDeclareFunction(addFeatureExtractor);
 
     //!- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
@@ -3064,7 +3064,7 @@ public:
 	* ftr.extractVector(Store[1]); // returns the vector [1/2, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
 	* ftr.extractVector(Store[2]); // returns the vector [1, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
 	*/
-	//# exports.FeatureSpace.prototype.updateRecord = function (rec) {};
+	//# exports.FeatureSpace.prototype.updateRecord = function (rec) { return Object.create(require('qminer').FeatureSpace.prototype); };
 	JsDeclareFunction(updateRecord);
 
     //!- `fsp = fsp.updateRecords(rs)` -- update feature space definitions and extractors
@@ -3115,7 +3115,7 @@ public:
 	* ftr.extractVector(Store[2]); // returns the vector [2/3, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
 	* ftr.extractVector(Store[3]); // returns the vector [1, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
 	*/
-	//# exports.FeatureSpace.prototype.updateRecords = function (rs) {};
+	//# exports.FeatureSpace.prototype.updateRecords = function (rs) { return Object.create(require('qminer').FeatureSpace.prototype); };
 	JsDeclareFunction(updateRecords);
 	//!- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
     JsDeclareFunction(ftrSpVec);
@@ -3165,7 +3165,7 @@ public:
 	* // features in the text feature extractor.
 	* var vec = ftr.extractSparseVector(base.store("Class")[0]);
 	*/
-	//# exports.FeatureSpace.prototype.extractSparseVector = function (rec) {}
+	//# exports.FeatureSpace.prototype.extractSparseVector = function (rec) { return Object.create(require('qminer').la.SparseVector.prototype); }
     JsDeclareFunction(extractSparseVector);
 
     //!- `vec = fsp.extractVector(rec)` -- extracts feature vector `vec` from record  `rec`
@@ -3205,15 +3205,15 @@ public:
 	* // features in the text feature extractor.
 	* var vec = ftr.extractVector(base.store("Class")[0]);
 	*/
-	//# exports.FeatureSpace.prototype.extractVector = function (rec) {};
+	//# exports.FeatureSpace.prototype.extractVector = function (rec) { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(extractVector);
     
 	//!- `vec = fsp.invertFeatureVector(ftrVec)` -- performs the inverse operation of ftrVec, returns the results in
     //!- 	an array
 	/**
 	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
-	* @param {(module:qm.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
-	* @returns {module:qm.Vector} The inverse of ftr as vector.
+	* @param {(module:la.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
+	* @returns {module:la.Vector} The inverse of ftr as vector.
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
@@ -3248,7 +3248,7 @@ public:
 	* // the function returns the values to their first value, i.e. 0.105263 returns to 1995
 	* var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]
 	*/
-	//# exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) {};
+	//# exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(invertFeatureVector);
 
 	//!- `val = fsp.invertFeature(ftrIdx, val)` -- inverts a single feature using the feature
@@ -3324,7 +3324,7 @@ public:
 	* // [[(0, 1), (3, 1)], [(1, 1), (3, 1)], [(1, 1), (2, 1)], [(0, 1), (1, 1)]]
 	* var sparseMatrix = ftr.extractSparseMatrix(base.store("Class").recs);
 	*/
-	//# exports.FeatureSpace.prototype.extractSparseMatrix = function (rs) {};
+	//# exports.FeatureSpace.prototype.extractSparseMatrix = function (rs) { return Object.create(require('qminer').la.SparseMatrix.prototype); };
 	JsDeclareFunction(extractSparseMatrix);
 
     //!- `mat = fsp.extractMatrix(rs)` -- extracts feature vectors from
@@ -3362,7 +3362,7 @@ public:
 	* // 1  1  0  0
 	* var matrix = ftr.extractMatrix(base.store("Class").recs);
 	*/
-	//# exports.FeatureSpace.prototype.extractMatrix = function (rs) {};
+	//# exports.FeatureSpace.prototype.extractMatrix = function (rs) { return Object.create(require('qminer').la.Matrix.prototype); };
     JsDeclareFunction(extractMatrix);
 
 	//!- `name = fsp.getFeatureExtractor(ftrExtractor)` -- returns the name `name` (string) of `ftrExtractor`-th feature extractor in feature space `fsp`
@@ -3393,7 +3393,7 @@ public:
 	* // get the name of the feature extractor with index 1
 	* var extractorName = ftr.getFeatureExtractor(1); // returns "Categorical[Gendre]"
 	*/
-	//# exports.FeatureSpace.prototype.getFeatureExtractor = function (idx) {};
+	//# exports.FeatureSpace.prototype.getFeatureExtractor = function (idx) { return ''; };
 	JsDeclareFunction(getFeatureExtractor);
 
 	//!- `ftrName = fsp.getFeature(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
@@ -3432,7 +3432,7 @@ public:
 	* // get the feature at position 2
 	* var feature2 = ftr.getFeature(2); // returns "magnitude"
 	*/
-	//# exports.FeatureSpace.prototype.getFeature = function (idx) {};
+	//# exports.FeatureSpace.prototype.getFeature = function (idx) { return ''; };
 	JsDeclareFunction(getFeature);
     
 	//!- `out_vec = fsp.filter(in_vec, ftrExtractor)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`
@@ -3490,10 +3490,10 @@ public:
 	/**
 	* Extracts string features from the record.
 	* @param {module:qm.Record} rec
-	* @returns {Arra.<string>} An array containing the strings gained by the extractor.
+	* @returns {Array.<string>} An array containing the strings gained by the extractor.
 	* @ignore
 	*/
-	//# exports.FeatureSpace.prototype.extractStrings = function (rec) {}; 
+	//# exports.FeatureSpace.prototype.extractStrings = function (rec) {return ['']; }; 
     JsDeclareFunction(extractStrings);
 
 private:

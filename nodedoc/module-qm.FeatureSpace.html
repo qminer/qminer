@@ -27,7 +27,7 @@
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">FeatureSpace</span></h1>
             <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-2254">qminerdoc.<wbr>js:2254</a></p>
             <div class="symbol-classdesc">
-              <p>Represents the feature space.</p>
+              <p>Represents the feature space. It contains any of the <a href="module-qm.html#~FeatureExtractors">module:qm~FeatureExtractors</a>.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -116,9 +116,7 @@
             <p>Feature Space</p>
             <section>
               <h3>
-
             Example
-
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import qm module
@@ -211,9 +209,7 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;F
               <p>Adds a new feature extractor to the feature space.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -283,9 +279,7 @@ ftr.addFeatureExtractor({ type: &quot;text&quot;, source: &quot;WeatherForcast&q
               <p>Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -356,9 +350,7 @@ var matrix = ftr.extractMatrix(base.store(&quot;Class&quot;).recs);</code></pre>
               <p>Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -426,9 +418,7 @@ var sparseMatrix = ftr.extractSparseMatrix(base.store(&quot;Class&quot;).recs);<
               <p>Creates a sparse feature vector from the given record.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -502,9 +492,7 @@ var vec = ftr.extractSparseVector(base.store(&quot;Class&quot;)[0]);</code></pre
               <p>Creates a feature vector from the given record.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -578,9 +566,7 @@ var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]);</code></pre>
               <p>Filters the vector to keep only the elements from the feature extractor.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -688,9 +674,7 @@ var spVec3 = ftr.filter(spVec, 1, false); // returns sparse vector [[1, 1]]</cod
               <p>Gives the name of the feature at the given position.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -763,9 +747,7 @@ var feature2 = ftr.getFeature(2); // returns &quot;magnitude&quot;</code></pre>
               <p>Gives the name of feature extractor at given position.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -830,9 +812,7 @@ var extractorName = ftr.getFeatureExtractor(1); // returns &quot;Categorical[Gen
               <p>Calculates the inverse of a single feature using a specific feature extractor.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -915,13 +895,11 @@ var inverse = ftr.invertFeature(0, 0); // returns the value 1994</code></pre>
                   <p><code>Object</code>&nbsp;The inverse of val using the feature extractor with index idx.</p>
                 </dd>
               </dl>
-              <h3 id="invertFeatureVector"><span class="symbol-name">invertFeatureVector</span><span class="signature"><span class="signature-params">(ftr)</span>&nbsp;&rarr; <span class="signature-returns"> module:qm.Vector</span></span></h3>
+              <h3 id="invertFeatureVector"><span class="symbol-name">invertFeatureVector</span><span class="signature"><span class="signature-params">(ftr)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Performs the inverse operation of ftrVec. Works only for numeric feature extractors.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -975,7 +953,7 @@ var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]</code>
                         <p>ftr</p>
                       </td>
                       <td>
-                        <p>(module:qm.Vector or Array of Object)</p>
+                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or Array of Object)</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -990,7 +968,7 @@ var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]</code>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>module:qm.Vector</code>&nbsp;The inverse of ftr as vector.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The inverse of ftr as vector.</p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
@@ -1038,9 +1016,7 @@ var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]</code>
                 <br> For dateWindow feature extractor, it can update the start and the end of the window period to form the normalization.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1124,9 +1100,7 @@ ftr.extractVector(Store[2]); // returns the vector [1, 0, 0, 1, 0, 0, 1 / Math.s
                 <br> For dateWindow feature extractor, it can update the start and the end of the window period to form the normalization.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1211,7 +1185,7 @@ ftr.extractVector(Store[3]); // returns the vector [1, 1, 0, 0, 1 / Math.sqrt(2)
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 9, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 27, 2015.
       </p>
     </div>
   </footer>

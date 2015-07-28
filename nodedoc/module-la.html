@@ -189,9 +189,7 @@
               <p>Constructs a matrix by concatenating a doubly-nested array of matrices.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// create four matrices and concatenate (2 block columns, 2 block rows)
@@ -312,9 +310,7 @@ var mat = la.cat([[A,B], [C,D]]);
               <p>Copies the vector into a JavaScript array of numbers.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// create a new vector
@@ -436,9 +432,7 @@ var arr = la.copyVecToArray(vec); // returns an array [1, 2, 3]</code></pre>
               <p>Returns a vector with all entries set to 1.0.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// create a 3-dimensional vector with all entries set to 1.0
@@ -904,8 +898,7 @@ var vec = la.ones(3);</code></pre>
                 </dd>
               </dl>
               <h3 id="~matrixArg"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">matrixArg</span><small class="property-type">
-
-            &nbsp;Object</small></h3>
+                &nbsp;Object</small></h3>
               <p>Matrix constructor parameter object</p>
               <section>
                 <h4>Properties</h4>
@@ -959,7 +952,7 @@ var vec = la.ones(3);</code></pre>
                       </td>
                       <td>
                         <p>Generate a random matrix with entries sampled from a uniform [0,1] distribution. If set to false, a zero matrix is created.</p>
-                        <p>Defaults to <code>false</code>.</p>
+                        <p>Defaults to <code></code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -968,8 +961,7 @@ var vec = la.ones(3);</code></pre>
               <dl class="dl-compact">
               </dl>
               <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
-
-            &nbsp;Object</small></h3>
+                &nbsp;Object</small></h3>
               <p>Sort with permutation output result</p>
               <section>
                 <h4>Properties</h4>
@@ -1017,8 +1009,7 @@ var vec = la.ones(3);</code></pre>
               <dl class="dl-compact">
               </dl>
               <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
-
-            &nbsp;Object</small></h3>
+                &nbsp;Object</small></h3>
               <p>Sort with permutation output result</p>
               <section>
                 <h4>Properties</h4>
@@ -1066,57 +1057,7 @@ var vec = la.ones(3);</code></pre>
               <dl class="dl-compact">
               </dl>
               <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
-
-            &nbsp;Object</small></h3>
-              <p>Sort with permutation output result</p>
-              <section>
-                <h4>Properties</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>SortResult.vec</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.StrVector.html">module:la.StrVector</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Sorted vector.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>SortResult.perm</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Permutation vector, where SortResult.vec[i] = unsortedVec[SortResult.perm[i]].</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
-
-            &nbsp;Object</small></h3>
+                &nbsp;Object</small></h3>
               <p>Sort with permutation output result</p>
               <section>
                 <h4>Properties</h4>
@@ -1136,6 +1077,54 @@ var vec = la.ones(3);</code></pre>
                       </td>
                       <td>
                         <p><a href="module-la.BoolVector.html">module:la.BoolVector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Sorted vector.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>SortResult.perm</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Permutation vector, where SortResult.vec[i] = unsortedVec[SortResult.perm[i]].</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
+                &nbsp;Object</small></h3>
+              <p>Sort with permutation output result</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>SortResult.vec</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.StrVector.html">module:la.StrVector</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -1275,7 +1264,7 @@ var vec = la.ones(3);</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 9, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 27, 2015.
       </p>
     </div>
   </footer>
