@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
   <title>Class: PCA</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -24,8 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span></div><small></small><span class="symbol-name">PCA</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1710">analyticsdoc.<wbr>js:1710</a></p>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">PCA</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1106">analyticsdoc.<wbr>js:1106</a></p>
             <div class="symbol-classdesc">
               <p>Principal components analysis</p>
             </div>
@@ -38,21 +38,30 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="PCA.html#fit">fit(A)</a></dt>
+                    <dt><a href="module-analytics.PCA.html#fit">fit(A)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.PCA.html#getModel">getModel()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="PCA.html#predict">predict(x)</a></dt>
+                    <dt><a href="module-analytics.PCA.html#getParams">getParams()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.PCA.html#inverseTransform">inverseTransform(x)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="PCA.html#reconstruct">reconstruct(x)</a></dt>
+                    <dt><a href="module-analytics.PCA.html#setParams">setParams(Object)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.PCA.html#transform">transform(x)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -69,7 +78,7 @@
             <h2>Methods</h2>
             <section>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(A)</span></span></h3>
-              <p>Computes .</p>
+              <p>Finds the eigenvectors of the variance matrix.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -93,7 +102,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Matrix whose columns correspond to known examples.</p>
+                        <p>Matrix whose columns correspond to examples.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -101,44 +110,23 @@
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
-              <p>Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P. Recovering the data in the original space: (this.P).multiply(p), where p's rows are the coefficients in the eigenvector basis.</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>x</p>
-                      </td>
-                      <td>
-                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Test vector or matrix with column examples</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
+              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Returns the model</p>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;Returns projected vector or matrix</p>
+                  <p><code>Object</code>&nbsp;The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)</p>
                 </dd>
               </dl>
-              <h3 id="reconstruct"><span class="symbol-name">reconstruct</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Gets parameters</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p>Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)</p>
+                </dd>
+              </dl>
+              <h3 id="inverseTransform"><span class="symbol-name">inverseTransform</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
               <p>Reconstructs the vector in the original space, reverses centering</p>
               <section>
                 <h4>Parameter</h4>
@@ -175,6 +163,76 @@
                   <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;Returns the reconstruction</p>
                 </dd>
               </dl>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(Object)</span></span></h3>
+              <p>Sets parameters</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>p</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>whose keys are: k (number of eigenvectors) and iter (maximum iterations)</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="transform"><span class="symbol-name">transform</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
+              <p>Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P. Recovering the data in the original space: (this.P).multiply(p), where p's rows are the coefficients in the eigenvector basis.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>x</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Test vector or matrix with column examples</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;Returns projected vector or matrix</p>
+                </dd>
+              </dl>
             </section>
           </section>
         </div>
@@ -185,7 +243,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 27, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on July 28, 2015.
       </p>
     </div>
   </footer>

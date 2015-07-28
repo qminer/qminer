@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
-  <title>Class: RidgeReg</title>
+  <title>Class: Sigmoid</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -24,8 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span></div><small></small><span class="symbol-name">RidgeReg</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-242">analyticsdoc.<wbr>js:242</a></p>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">Sigmoid</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-247">analyticsdoc.<wbr>js:247</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -35,7 +35,7 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="RidgeReg.html#weights">weights</a></dt>
+                    <dt><a href="module-analytics.Sigmoid.html#weights">weights</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -51,32 +51,32 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="RidgeReg.html#fit">fit(X, y)</a></dt>
+                    <dt><a href="module-analytics.Sigmoid.html#decisionFunction">decisionFunction(x)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.Sigmoid.html#fit">fit(x, y)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="RidgeReg.html#predict">predict(x)</a></dt>
+                    <dt><a href="module-analytics.Sigmoid.html#predict">predict(x)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.Sigmoid.html#save">save(fout)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="RidgeReg.html#save">save(fout)</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
                 </div>
               </div>
             </div>
           </section>
           <section>
-            <h2 id="RidgeReg">new&nbsp;<span class="symbol-name">RidgeReg</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
-            <p>Ridge regression. Minimizes: ||A' x - b||^2 + ||gamma x||^2</p>
-            <p>Uses Tikhonov regularization: http://en.wikipedia.org/wiki/Tikhonov_regularization</p>
+            <h2 id="Sigmoid">new&nbsp;<span class="symbol-name">Sigmoid</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
+            <p>Sigmoid funnction (y = 1/[1 + exp[-Ax+B]]) fited on decision function to mimic</p>
             <section>
               <h3>
             Example
@@ -84,25 +84,17 @@
               <div>
                 <pre class="prettyprint"><code>la = require(&#x27;qminer&#x27;).la;
 analytics = require(&#x27;qminer&#x27;).analytics;
-// create a new model with gamma = 1.0
-regmod = new analytics.RidgeReg(1.0);
-// generate a random feature matrix
-A = la.randn(10,100);
-// generate a random model
-w = la.randn(10);
-// generate noise
-n = la.randn(100).multiply(0.01);
-// generate responses (model&#x27;*data + noise)
-b = A.transpose().multiply(w).plus(n);
+// create a new model
+var sigmoid = new analytics.Sigmoid();
+// generate a random predictions
+var x = new la.Vector([0.5, 2.3, -0.1, 0.5, -7.3, 1.2]);
+// generate a random labels
+var y = new la.Vector([1, 1, -1, 1, -1, -1]);
 // fit model
-regmod.fit(A, b);
-// compare
-console.log(&#x27;true model:&#x27;);
-w.print();
-console.log(&#x27;trained model:&#x27;); 
-regmod.weights.print();
-// cosine between the true and the estimated model should be close to 1 if the fit succeeded
-console.log(&#x27;cosine(w, regmod.weights): &#x27; + regmod.weights.cosine(w));</code></pre>
+sigmoid.fit(x, y);
+// get predictions
+var pred1 = sigmoid.predict(1.2);
+var pred2 = sigmoid.predict(-1.2);</code></pre>
               </div>
             </section>
             <section>
@@ -122,13 +114,13 @@ console.log(&#x27;cosine(w, regmod.weights): &#x27; + regmod.weights.cosine(w));
                       <p>arg</p>
                     </td>
                     <td>
-                      <p>(number or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
+                      <p>(null or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
                     </td>
                     <td>
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>Loads a model from input stream, or creates a new model by setting gamma=arg. Empty constructor sets gamma to zero.</p>
+                      <p>Loads a model from input stream, or creates a new model.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -164,7 +156,7 @@ console.log(&#x27;cosine(w, regmod.weights): &#x27; + regmod.weights.cosine(w));
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Vector of coefficients for linear regression</p>
+                        <p>Vector with elements A and B that define the sigmoid function.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -175,10 +167,10 @@ console.log(&#x27;cosine(w, regmod.weights): &#x27; + regmod.weights.cosine(w));
             </section>
             <h2>Methods</h2>
             <section>
-              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X, y)</span>&nbsp;&rarr; <span class="signature-returns"> module:analytics.RidgeReg</span></span></h3>
-              <p>Fits a column matrix of feature vectors X onto the response variable y.</p>
+              <h3 id="decisionFunction"><span class="symbol-name">decisionFunction</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.Vector.html">module:la.Vector</a>)</span></span></h3>
+              <p>Returns the expected response for the provided feature vector.</p>
               <section>
-                <h4>Parameters</h4>
+                <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -191,30 +183,16 @@ console.log(&#x27;cosine(w, regmod.weights): &#x27; + regmod.weights.cosine(w));
                   <tbody>
                     <tr>
                       <td>
-                        <p>X</p>
+                        <p>x</p>
                       </td>
                       <td>
-                        <p><a href="module-la.Matrix.html">module:la.Matrix</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Column matrix which stores the feature vectors.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>y</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                        <p>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Response variable.</p>
+                        <p>Prediction score (or vector of them).</p>
                       </td>
                     </tr>
                   </tbody>
@@ -223,13 +201,13 @@ console.log(&#x27;cosine(w, regmod.weights): &#x27; + regmod.weights.cosine(w));
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>module:analytics.RidgeReg</code>&nbsp;Self</p>
+                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;Normalized prediction score (or vector of them).</p>
                 </dd>
               </dl>
-              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Returns the expected response for the provided feature vector.</p>
+              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(x, y)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></span></span></h3>
+              <p>Fits a column matrix of feature vectors X onto the response variable y.</p>
               <section>
-                <h4>Parameter</h4>
+                <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -251,7 +229,21 @@ console.log(&#x27;cosine(w, regmod.weights): &#x27; + regmod.weights.cosine(w));
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Feature vector</p>
+                        <p>Predicted values (e.g., using analytics.SVR)</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>y</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Actual binary labels: 1 or -1.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -260,7 +252,44 @@ console.log(&#x27;cosine(w, regmod.weights): &#x27; + regmod.weights.cosine(w));
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Predicted response</p>
+                  <p><code><a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></code>&nbsp;Self</p>
+                </dd>
+              </dl>
+              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.Vector.html">module:la.Vector</a>)</span></span></h3>
+              <p>Returns the expected response for the provided feature vector.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>x</p>
+                      </td>
+                      <td>
+                        <p>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Prediction score (or vector of them).</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;Normalized prediction score (or vector of them).</p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span></span></h3>
@@ -306,7 +335,7 @@ console.log(&#x27;cosine(w, regmod.weights): &#x27; + regmod.weights.cosine(w));
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 27, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on July 28, 2015.
       </p>
     </div>
   </footer>
