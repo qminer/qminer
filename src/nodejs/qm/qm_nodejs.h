@@ -22,7 +22,6 @@
 // A factory of base objects
 // The only part of node framework: Init
 
-
 /**
 * Qminer module.
 * @module qm

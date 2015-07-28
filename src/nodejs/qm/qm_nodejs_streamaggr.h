@@ -23,11 +23,6 @@
 * var qm = require('qminer');
 */
 
-//! 
-//! ### NodeJs Stream Aggregate
-//! 
-//! Stream aggregates are objects used for processing data streams - their main functionality includes four functions: onAdd, onUpdate, onDelete process a record, and saveJson which returns a JSON object that describes the aggregate's state.
-
 /**
 * Stream Aggregate
 * @classdesc Represents the stream aggregate. The class can construct these {@link module:qm~StreamAggregators}. Also turn to these stream aggregators to see 
@@ -1496,7 +1491,6 @@ private:
 	v8::Persistent<v8::Function> IsNmFun;
 	v8::Persistent<v8::Function> GetNmIntFun;
 	v8::Persistent<v8::Function> GetNmIntVFun;
-
 	// Serialization
 	v8::Persistent<v8::Function> SaveFun;
 	v8::Persistent<v8::Function> LoadFun;

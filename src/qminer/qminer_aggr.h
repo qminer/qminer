@@ -472,7 +472,7 @@ public:
 
 ///////////////////////////////////////
 // Moving Window Buffer Template
-template<class TSignalType>
+template <class TSignalType>
 class TWinBuffer : public TStreamAggr, public TStreamAggrOut::IFltTm {
 private:
 	// input
@@ -571,7 +571,7 @@ public:
 	}
 
 	// stream aggregator type name 
-	static TStr GetType();// { return ""; };
+	static TStr GetType();
 	TStr Type() const { return GetType(); }
 };
 
@@ -995,23 +995,23 @@ public:
 
 /////////////////////////////
 // Moving Window Buffer Sum
-
+template <>
 inline TStr TWinBuffer<TSignalProc::TSum>::GetType() { return "winBufSum"; }
 
 /////////////////////////////
 // Moving Window Buffer Min
-
+template <>
 inline TStr TWinBuffer<TSignalProc::TMin>::GetType() { return "winBufMin"; }
 
 /////////////////////////////
 // Moving Window Buffer Max
-
+template <>
 inline TStr TWinBuffer<TSignalProc::TMax>::GetType() { return "winBufMax"; }
 
 /////////////////////////////
 // Moving Average
-
-void TWinBuffer<TSignalProc::TMa>::OnAddRec(const TRec& Rec) {
+template <>
+inline void TWinBuffer<TSignalProc::TMa>::OnAddRec(const TRec& Rec) {
 	TFltV ValV; InAggrVal->GetOutFltV(ValV);
 	TUInt64V TmMSecsV; InAggrVal->GetOutTmMSecsV(TmMSecsV);
 	if (InAggr->IsInit()) {
@@ -1020,29 +1020,26 @@ void TWinBuffer<TSignalProc::TMa>::OnAddRec(const TRec& Rec) {
 	}
 }
 
+template <>
 inline TStr TWinBuffer<TSignalProc::TMa>::GetType() { return "ma"; }
 
 /////////////////////////////
 // Moving Variance
-
-void TWinBuffer<TSignalProc::TVar>::OnAddRec(const TRec& Rec) {
+template <>
+inline void TWinBuffer<TSignalProc::TVar>::OnAddRec(const TRec& Rec) {
 	TFltV ValV; InAggrVal->GetOutFltV(ValV);
 	TUInt64V TmMSecsV; InAggrVal->GetOutTmMSecsV(TmMSecsV);
 	if (InAggr->IsInit()) {
-		TInt N = InAggrVal->GetN();
-		TFlt InFlt = InAggrVal->GetInFlt();
-		uint64 InTmMSecs = InAggrVal->GetInTmMSecs();
-		Signal.Update(InFlt, InTmMSecs, ValV, TmMSecsV, N);
+		Signal.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(),
+            ValV, TmMSecsV, InAggrVal->GetN());
 	}
 }
 
+template <>
 inline TStr TWinBuffer<TSignalProc::TVar>::GetType() { return "variance"; }
 
 } // TStreamAggrs namespace
 
 } // namespace
-
-
-
 
 #endif
