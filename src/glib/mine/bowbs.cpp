@@ -103,7 +103,7 @@ TBowSpV::TBowSpV(const int& _DId, const TFltV& FullVec,
     Norm = sqrt(SqrSum);
 }
 
-TBowSpV::TBowSpV(const int& DId, const TIntFltKdV& SpV) {
+TBowSpV::TBowSpV(const int& _DId, const TIntFltKdV& SpV) : DId(_DId) {
     double SqrSum = 0.0;
     WIdWgtKdV.Gen(SpV.Len(), 0);
     for (int WIdN = 0; WIdN < SpV.Len(); WIdN++) {
@@ -141,6 +141,18 @@ double TBowSpV::GetNorm(){
     Norm=sqrt(SqWgtSum);
   }
   return Norm;
+}
+
+// update the SpV by adding the BosSpV data
+void TBowSpV::AddBowSpV(const PBowSpV& BowSpV)
+{
+	for (int WIdN=0; WIdN < BowSpV->GetWIds(); WIdN++)
+	{
+		int WId; double Wgt;
+		BowSpV->GetWIdWgt(WIdN, WId, Wgt);
+		IncreaseWIdWgt(WId, Wgt);
+	}
+	Sort();
 }
 
 void TBowSpV::GetWordStrWgtPrV(const PBowDocBs& BowDocBs,
@@ -193,6 +205,17 @@ void TBowSpV::GetIntFltKdV(TIntFltKdV& SpV) const {
         const TBowWIdWgtKd& WIdWgt = WIdWgtKdV[WdN];
         SpV.Add(TIntFltKd(WIdWgt.Key, WIdWgt.Dat.Val));
     }
+}
+
+void TBowSpV::DelWId(const int& WId){
+	for (int WIdN = 0; WIdN < WIdWgtKdV.Len(); WIdN++)
+	{
+		if (WIdWgtKdV[WIdN].Key == WId)
+		{
+			WIdWgtKdV.Del(WIdN);
+			return;
+		}
+	}
 }
 
 void TBowSpV::CutLowWgtWords(const double& CutWordWgtSumPrc){
@@ -327,7 +350,7 @@ PBowSimMtx TBowSimMtx::LoadTxt(const TStr& FNm){
 /////////////////////////////////////////////////
 // BagOfWords-Similarity
 double TBowSim::GetSim(const int& DId1, const int& DId2) const {
-  IAssert(SimType==bstMtx);
+  EAssert(SimType==bstMtx);
   return SimMtx->GetSim(DId1, DId2);
 }
 
@@ -515,7 +538,7 @@ TBowSimType TBowSim::GetSimType(const TStr& Nm){
 PBowDocWgtBs TBowDocWgtBs::New(
  const PBowDocBs& BowDocBs, const TBowWordWgtType& _WordWgtType,
  const double& _CutWordWgtSumPrc, const int& _MnWordFq,
- const TIntV& _DIdV, const TIntV& _BaseDIdV, const PNotify& Notify){
+ const TIntV& _DIdV, const TIntV& _BaseDIdV, const THashSet<TInt>& IgnoreWIds, const PNotify& Notify){
   // create document-weights-base
   PBowDocWgtBs DocWgtBs=TBowDocWgtBs::New(BowDocBs->GetSig());
   // build-parameters
@@ -545,6 +568,8 @@ PBowDocWgtBs TBowDocWgtBs::New(
       for (int DocWIdN=0; DocWIdN<DocWIds; DocWIdN++){
         int DocWId; double DocWordFq;
         BowDocBs->GetDocWIdFq(DId, DocWIdN, DocWId, DocWordFq);
+		if (IgnoreWIds.IsKey(DocWId))		// skip the words that we want to ignore
+			continue;
         DocWgtBs->WordFqV[DocWId]+=DocWordFq;
       }
       // put unit-norm
@@ -567,6 +592,8 @@ PBowDocWgtBs TBowDocWgtBs::New(
       for (int DocWIdN=0; DocWIdN<DocWIds; DocWIdN++){
         int DocWId; double DocWordFq;
         BowDocBs->GetDocWIdFq(DId, DocWIdN, DocWId, DocWordFq);
+		if (IgnoreWIds.IsKey(DocWId))		// skip the words that we want to ignore
+			continue;
         DocWgtBs->WordFqV[DocWId]+=DocWordFq;
         DocWgtBs->DocSpVV[DId]->AddWIdWgt(DocWId, 1.0);
       }
@@ -590,6 +617,8 @@ PBowDocWgtBs TBowDocWgtBs::New(
       for (int DocWIdN=0; DocWIdN<DocWIds; DocWIdN++){
         int DocWId; double DocWordFq;
         BowDocBs->GetDocWIdFq(DId, DocWIdN, DocWId, DocWordFq);
+		if (IgnoreWIds.IsKey(DocWId))		// skip the words that we want to ignore
+			continue;
         DocWgtBs->WordFqV[DocWId]+=DocWordFq;
         double MnWIdFq=BowDocBs->GetWordMnVal(DocWId);
         double MxWIdFq=BowDocBs->GetWordMxVal(DocWId);
@@ -643,7 +672,8 @@ PBowDocWgtBs TBowDocWgtBs::New(
       for (int DocWIdN=0; DocWIdN<DocWIds; DocWIdN++){
         int DocWId; double DocWordFq;
         BowDocBs->GetDocWIdFq(DId, DocWIdN, DocWId, DocWordFq);
-        TStr WordStr=BowDocBs->GetWordStr(DocWId); // for debugging
+		if (IgnoreWIds.IsKey(DocWId))		// skip the words that we want to ignore
+			continue;
         if (BowDocBs->GetWordFq(DocWId)>=_MnWordFq){
           // calculate TFIDF
           double DocWordWgt=DocWordFq*WordIDFV[DocWId];
@@ -679,6 +709,8 @@ PBowDocWgtBs TBowDocWgtBs::New(
       for (int DocWIdN=0; DocWIdN<DocWIds; DocWIdN++){
         int DocWId; double DocWordFq;
         BowDocBs->GetDocWIdFq(DId, DocWIdN, DocWId, DocWordFq);
+		if (IgnoreWIds.IsKey(DocWId))		// skip the words that we want to ignore
+			continue;
         for (int DocCIdN = 0; DocCIdN < DocCIds; DocCIdN++) {
             const int DocCId = BowDocBs->GetDocCId(DId, DocCIdN);
             if (!WordCIdHV[DocWId].IsKey(DocCId)) {
@@ -712,6 +744,8 @@ PBowDocWgtBs TBowDocWgtBs::New(
       for (int DocWIdN=0; DocWIdN<DocWIds; DocWIdN++){
         int DocWId; double DocWordFq;
         BowDocBs->GetDocWIdFq(DId, DocWIdN, DocWId, DocWordFq);
+		if (IgnoreWIds.IsKey(DocWId))		// skip the words that we wan't to ignore
+			continue;
         DocWgtBs->WordFqV[DocWId]+=DocWordFq;
         TStr WordStr=BowDocBs->GetWordStr(DocWId); // for debugging
         if (BowDocBs->GetWordFq(DocWId)>=_MnWordFq){
@@ -744,7 +778,7 @@ PBowDocWgtBs TBowDocWgtBs::New(const TVec<PBowSpV>& BowSpVV) {
     int AllWords=0; DocWgtBs->DIdV.Gen(BowSpVV.Len(), 0);
     for (int DocN = 0; DocN < BowSpVV.Len(); DocN++) {
         DocWgtBs->DIdV.Add(BowSpVV[DocN]->GetDId());
-        AllWords = TInt::GetMx(AllWords, BowSpVV[DocN]->GetLastWId());
+        AllWords = TInt::GetMx(AllWords, BowSpVV[DocN]->GetLastWId()+1);
     }
     // load documents
     DocWgtBs->WordFqV.Gen(AllWords); 
@@ -1228,7 +1262,7 @@ void TBowDocBs::AssertOk() const {
   int Docs=GetDocs();
   for (int DId=0; DId<Docs; DId++){
     PBowSpV DocSpV=GetDocSpV(DId);
-    IAssert(DId==DocSpV->GetDId());
+    EAssert(DId==DocSpV->GetDId());
     TStr DocNm=GetDocNm(DId);
     // check document words
     for (int WIdN=0; WIdN<DocSpV->GetWIds(); WIdN++){
@@ -1289,9 +1323,9 @@ int TBowDocBs::AddDoc(const TStr& _DocNm,
   int DId=-1;
   if (!DocNmToDescStrH.IsKey(DocNm, DId)){
     DId=DocNmToDescStrH.AddKey(DocNm);
-    DocSpVV.Add(TBowSpV::New(DId)); IAssert(DId==DocSpVV.Len()-1);
+    DocSpVV.Add(TBowSpV::New(DId)); EAssert(DId==DocSpVV.Len()-1);
     DocStrV.Add();
-    DocCIdVV.Add(); IAssert(DId==DocCIdVV.Len()-1);
+    DocCIdVV.Add(); EAssert(DId==DocCIdVV.Len()-1);
   }
 
   // convert category names to cat-ids
@@ -1308,7 +1342,7 @@ int TBowDocBs::AddDoc(const TStr& _DocNm,
   TIntFltH DocWIdToWgtH;
   for (int WordN=0; WordN<WIdWgtPrV.Len(); WordN++){
     int WId=WIdWgtPrV[WordN].Val1;
-    IAssert(IsWId(WId));
+    EAssert(IsWId(WId));
     DocWIdToWgtH.AddDat(WId, WIdWgtPrV[WordN].Val2);
   }
   // compose document bag-of-words vector
@@ -1334,9 +1368,9 @@ int TBowDocBs::AddDoc(const TStr& _DocNm,
   int DId=-1;
   if (!DocNmToDescStrH.IsKey(DocNm, DId)){
     DId=DocNmToDescStrH.AddKey(DocNm);
-    DocSpVV.Add(TBowSpV::New(DId)); IAssert(DId==DocSpVV.Len()-1);
+    DocSpVV.Add(TBowSpV::New(DId)); EAssert(DId==DocSpVV.Len()-1);
     DocStrV.Add(DocStr);
-    DocCIdVV.Add(); IAssert(DId==DocCIdVV.Len()-1);
+    DocCIdVV.Add(); EAssert(DId==DocCIdVV.Len()-1);
   }
 
   // convert category names to cat-ids
@@ -1369,6 +1403,174 @@ int TBowDocBs::AddDoc(const TStr& _DocNm,
   return DId;
 }
 
+void TBowDocBs::DelDoc(const TStr& DocNm) {
+	int DId=-1;
+	if (!DocNmToDescStrH.IsKey(DocNm, DId))
+		return;
+	
+	// remove the categories for the document
+	DocCIdVV[DId].Clr();
+	PBowSpV DocSpV=DocSpVV[DId];
+  
+	// decrease the document frequency for the words
+	for (int WIdN = 0; WIdN < DocSpV->GetWIds(); WIdN++) {
+		int WId = DocSpV->GetWId(WIdN);
+		WordStrToDescH[WId].Fq--;
+	}
+	// clear the frequencies of the words
+	DocSpV->Clr();
+}
+
+// if text was added to the document you can call this method with the added text to simply update the bow data for the document
+int TBowDocBs::AppendDoc(const TStr& _DocNm, const TStrV& CatNmV, const TStrV& WordStrV, const TStr& DocStr) {
+	// create doc-id
+	TStr DocNm=_DocNm;
+	if (DocNm.Empty()){DocNm=TInt::GetStr(GetDocs());}
+	int DId=-1;
+	// if the doc doesn't exist yet then simply call AddDoc
+	if (!DocNmToDescStrH.IsKey(DocNm, DId))
+		return AddDoc(DocNm, CatNmV, WordStrV, DocStr);
+
+	// convert category names to cat-ids
+	TIntV& DocCIdV=DocCIdVV[DId];
+	DocCIdV.Gen(CatNmV.Len(), 0);
+	for (int CatNmN=0; CatNmN<CatNmV.Len(); CatNmN++) {
+		int CId=CatNmToFqH.AddKey(CatNmV[CatNmN]);
+		CatNmToFqH[CId]++; DocCIdV.Add(CId);
+	}
+	DocCIdV.Sort();
+
+	// convert word strings to word-ids
+	// collect words
+	TStrIntH DocWordStrToFqH;
+	for (int WordStrN=0; WordStrN<WordStrV.Len(); WordStrN++)
+		DocWordStrToFqH.AddDat(WordStrV[WordStrN])++;
+	
+	// compose document bag-of-words vector
+	PBowSpV DocSpV=DocSpVV[DId];
+	for (int DocWordStrN=0; DocWordStrN<DocWordStrToFqH.Len(); DocWordStrN++) {
+		TStr WordStr=DocWordStrToFqH.GetKey(DocWordStrN);
+		int Fq=DocWordStrToFqH[DocWordStrN];
+		int WId=WordStrToDescH.AddKey(WordStr);
+		WordStrToDescH[WId].Fq++;
+		if (DocSpV->IsWId(WId))
+			DocSpV->IncreaseWIdWgt(WId, Fq);		// for existing WIds increase the weight
+		else
+			DocSpV->AddWIdWgt(WId, Fq);			// for new WIds add them to the vector
+	}
+	DocSpV->Sort();
+
+	// return doc-id
+	return DId;
+}
+
+int TBowDocBs::AppendDoc(const TStr& _DocNm, const TStrV& CatNmV, const TIntFltPrV& WIdWgtPrV) {
+	// create doc-id
+	TStr DocNm=_DocNm;
+	if (DocNm.Empty()){DocNm=TInt::GetStr(GetDocs());}
+	int DId=-1;
+	// if the doc doesn't exist yet then simply call AddDoc
+	if (!DocNmToDescStrH.IsKey(DocNm, DId))
+		return AddDoc(DocNm, CatNmV, WIdWgtPrV);
+
+	// convert category names to cat-ids
+	TIntV& DocCIdV=DocCIdVV[DId];
+	DocCIdV.Gen(CatNmV.Len(), 0);
+	for (int CatNmN=0; CatNmN<CatNmV.Len(); CatNmN++) {
+		int CId=CatNmToFqH.AddKey(CatNmV[CatNmN]);
+		CatNmToFqH[CId]++; DocCIdV.Add(CId);
+	}
+	DocCIdV.Sort();
+
+	// compose document bag-of-words vector
+	PBowSpV DocSpV=DocSpVV[DId];
+	for (int WordN=0; WordN<WIdWgtPrV.Len(); WordN++) {
+		int WId = WIdWgtPrV[WordN].Val1;
+		double Fq = WIdWgtPrV[WordN].Val2;
+		WordStrToDescH[WId].Fq++;
+		if (DocSpV->IsWId(WId))
+			DocSpV->IncreaseWIdWgt(WId, Fq);		// for existing WIds increase the weight
+		else
+			DocSpV->AddWIdWgt(WId, Fq);			// for new WIds add them to the vector
+	}
+	DocSpV->Sort();
+
+	// return doc-id
+	return DId;
+}
+
+void TBowDocBs::AppendWord(const TStr& DocNm, const TStr& Word, const float Wgt) {
+	int DId=-1;
+	// if the doc doesn't exist yet then simply call AddDoc
+	if (!DocNmToDescStrH.IsKey(DocNm, DId))
+		return;
+	AppendWord(DId, Word, Wgt);
+}
+
+void TBowDocBs::AppendWord(const int DId, const TStr& Word, const float Wgt) {
+	PBowSpV DocSpV = DocSpVV[DId];
+	int WId = WordStrToDescH.AddKey(Word);
+	WordStrToDescH[WId].Fq++;
+	if (DocSpV->IsWId(WId))
+		DocSpV->IncreaseWIdWgt(WId, Wgt);		// for existing WIds increase the weight
+	else
+		DocSpV->AddWIdWgt(WId, Wgt);			// for new WIds add them to the vector
+}
+
+/// create a new BowDocBs where a document i is created by merging the vector of documents DIdVV[i]. 
+// The name of the document i is DocNmV[i]
+// NOTE: Categories are ignored
+PBowDocBs TBowDocBs::GetMergedDocs(const TVec<TIntV>& DIdVV, const TStrV& DocNmV) const {
+	// create document set
+	PBowDocBs BowDocBs=TBowDocBs::New();
+	BowDocBs->DocSpVV.Gen(DIdVV.Len(), 0);
+	BowDocBs->DocCIdVV.Gen(DIdVV.Len(), 0);
+	
+	// copy the hash with mapping of words to ids
+	for (int N=0; N < GetWords(); N++)
+		BowDocBs->AddWordStr(GetWordStr(N));
+
+	int Groups=DIdVV.Len();
+	// generate new documents by combining each vector of documents
+	for (int GroupIdN=0; GroupIdN<Groups; GroupIdN++)
+	{
+		TIntV DIdV = DIdVV[GroupIdN];
+		TStr DocNm;
+		if (DocNmV.Empty()){DocNm=TInt::GetStr(GetDocs());}
+		else DocNm = DocNmV[GroupIdN];
+		int NewDId = BowDocBs->DocNmToDescStrH.AddKey(DocNm);
+
+		PBowSpV NewSpV=TBowSpV::New(NewDId);
+		THash<TInt, double> WIdWgtH;
+		for (int DIdN = 0; DIdN < DIdVV[GroupIdN].Len(); DIdN++)
+		{
+			int DId = DIdVV[GroupIdN][DIdN];
+			PBowSpV DocSpV=DocSpVV[DId];
+			for (int WIdN=0; WIdN < DocSpV->GetWIds(); WIdN++)
+			{
+				int WId; double Wgt;
+				DocSpV->GetWIdWgt(WIdN, WId, Wgt);
+				TStr Word = GetWordStr(WId);
+				double ExWgt = 0;
+				if (WIdWgtH.IsKey(WId))
+					ExWgt = WIdWgtH.GetDat(WId);
+				WIdWgtH.AddDat(WId, ExWgt + Wgt);
+			}
+		}
+		for (int KeyId=0; KeyId < WIdWgtH.Len(); KeyId++)
+		{
+			TInt WId; double Wgt;
+			WIdWgtH.GetKeyDat(KeyId, WId, Wgt);
+			NewSpV->AddWIdWgt(WId, Wgt);
+		}
+		NewSpV->Sort();
+		BowDocBs->DocSpVV.Add(NewSpV); EAssert(NewDId==BowDocBs->DocSpVV.Len()-1);
+	}
+	// return results
+	return BowDocBs;
+}
+
+
 int TBowDocBs::AddHtmlDoc(const TStr& DocNm, const TStrV& CatNmV,
  const TStr& HtmlDocStr, const bool& SaveDocP){
   // get word-list
@@ -1395,6 +1597,18 @@ bool TBowDocBs::IsDocWordStr(const int& DId, const TStr& WordStr) const {
   } else {
     return false;
   }
+}
+
+void TBowDocBs::SetCatToBowDIds(const TStr& CatNm, const TIntV& BowDIdV) {
+	int CId = AddCatNm(CatNm);
+	for (int i=0; i < BowDIdV.Len(); i++)
+		AddDocCId(BowDIdV[i], CId);
+}
+
+void TBowDocBs::RemoveCatFromBowDIds(const TStr& CatNm, TIntV& BowDIdV) {
+	int CId = GetCId(CatNm);
+	for (int i=0; i < BowDIdV.Len(); i++)
+		RemoveDocCId(BowDIdV[i], CId);
 }
 
 void TBowDocBs::GetTopCatV(const int& TopCats, TIntStrPrV& FqCatNmPrV) const {
@@ -1529,7 +1743,7 @@ PBowDocBs TBowDocBs::GetSubDocSet(const TIntV& DIdV) const {
     // words
     int NewDId=BowDocBs->DocNmToDescStrH.AddKey(DocNm);
     PBowSpV NewSpV=TBowSpV::New(NewDId, WIds);
-    BowDocBs->DocSpVV.Add(NewSpV); IAssert(NewDId==BowDocBs->DocSpVV.Len()-1);
+    BowDocBs->DocSpVV.Add(NewSpV); EAssert(NewDId==BowDocBs->DocSpVV.Len()-1);
     for (int WIdN=0; WIdN<WIds; WIdN++){
       int WId; double WordFq; SpV->GetWIdWgt(WIdN, WId, WordFq);
       TStr WordStr=GetWordStr(WId);
@@ -1539,7 +1753,7 @@ PBowDocBs TBowDocBs::GetSubDocSet(const TIntV& DIdV) const {
     }
     NewSpV->Sort();
     // categories
-    BowDocBs->DocCIdVV.Add(); IAssert(NewDId+1==BowDocBs->DocCIdVV.Len());
+    BowDocBs->DocCIdVV.Add(); EAssert(NewDId+1==BowDocBs->DocCIdVV.Len());
     BowDocBs->DocCIdVV.Last().Gen(DocCIdV.Len(), 0);
     for (int DocCIdN=0; DocCIdN<DocCIdV.Len(); DocCIdN++){
       int CId=DocCIdV[DocCIdN];
@@ -1578,7 +1792,7 @@ PBowDocBs TBowDocBs::GetInvDocBs() const {
   InvBowDocBs->DocCIdVV.Gen(Words, 0);
   for (int WId=0; WId<Words; WId++){
     TStr WordStr=GetWordStr(WId);
-    int InvDId=InvBowDocBs->DocNmToDescStrH.AddKey(WordStr); IAssert(WId==InvDId);
+    int InvDId=InvBowDocBs->DocNmToDescStrH.AddKey(WordStr); EAssert(WId==InvDId);
     int InvDocWIds=WordFqV[WId];
     PBowSpV BowSpV=TBowSpV::New(InvDId, InvDocWIds);
     InvBowDocBs->DocSpVV.Add(BowSpV);
@@ -1595,7 +1809,7 @@ PBowDocBs TBowDocBs::GetInvDocBs() const {
   // sort word-vectors
   {for (int WId=0; WId<Words; WId++){
     InvBowDocBs->DocSpVV[WId]->Sort();
-    IAssert(InvBowDocBs->DocSpVV[WId]->Len()==InvBowDocBs->DocSpVV[WId]->Reserved());
+    EAssert(InvBowDocBs->DocSpVV[WId]->Len()==InvBowDocBs->DocSpVV[WId]->Reserved());
   }}
   // return results
   InvBowDocBs->AssertOk();

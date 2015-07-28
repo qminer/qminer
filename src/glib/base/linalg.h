@@ -3227,12 +3227,14 @@ public:
 	TVector(const TIntV& Vect, const bool IsColVector = true);
 	TVector(const TFullMatrix& Mat);
 
-	// copy constructor
-	TVector(const TVector& Vector);
-	// Move constructor
-	TVector(const TVector&& Vector);
-	// Move assignment
-	TVector& operator=(TVector Vector);
+    // copy constructor
+    TVector(const TVector& Vector);
+#ifdef GLib_CPP11
+    // Move constructor
+    TVector(const TVector&& Vector);
+#endif
+    // Move assignment
+    TVector& operator=(TVector Vector);
 
 	// returns a new zero vector
 	static TVector Init(const int& Dim, const bool _IsColVect);
@@ -3392,16 +3394,18 @@ public:
 	TFullMatrix(const TVector& Vec);
 	// copy constructor
 	TFullMatrix(const TFullMatrix& Mat);
+#ifdef GLib_CPP11
 	// move constructor
 	TFullMatrix(TFullMatrix&& Mat);
+#endif
 
 private:
 	// wraps the matrix and takes control of all the cleanup
 	TFullMatrix(TFltVV* Mat);
 
 public:
-	// destructor
-	virtual ~TFullMatrix();
+    // destructor
+    virtual ~TFullMatrix();
 
 	// copy constructor
 	TFullMatrix& operator =(const TFullMatrix& Mat);

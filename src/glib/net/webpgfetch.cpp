@@ -110,8 +110,8 @@ TWebPgFetchEvent::TWebPgFetchEvent(TWebPgFetch* _Fetch, const int& _FId,
 }
 
 void TWebPgFetchEvent::OnFetchError(const TStr& MsgStr){
-  CloseConn(); Fetch->DisconnUrl(FId);
   Fetch->OnError(FId, MsgStr+" ["+CurUrl->GetUrlStr()+"]");
+  CloseConn(); Fetch->DisconnUrl(FId);
 }
 
 void TWebPgFetchEvent::OnFetchEnd(const PHttpResp& HttpResp){
@@ -262,14 +262,19 @@ void TWebPgFetchEvent::OnGetHost(const PSockHost& SockHost) {
 
 /////////////////////////////////////////////////
 // Web-Page-Fetch
-void TWebPgFetch::PushWait(const int& FId, const PUrl& Url){
-  WaitFIdUrlPrQ.Push(TIdUrlPr(FId, Url));
+void TWebPgFetch::PushWait(const int& FId, const PUrl& Url, const bool& QueueAtEnd){
+  if (QueueAtEnd)
+    WaitFIdUrlPrL.AddBack(TIdUrlPr(FId, Url));
+  // add item to the front of the queue
+  else
+    WaitFIdUrlPrL.AddFront(TIdUrlPr(FId, Url));
 }
 
 void TWebPgFetch::PopWait(int& FId, PUrl& Url){
-  FId=WaitFIdUrlPrQ.Top().Val1;
-  Url=WaitFIdUrlPrQ.Top().Val2;
-  WaitFIdUrlPrQ.Pop();
+	TLstNd<TIdUrlPr>* LstNd = WaitFIdUrlPrL.First();
+	FId=LstNd->Val.Val1;
+	Url = LstNd->Val.Val2;
+	WaitFIdUrlPrL.Del(LstNd);
 }
 
 void TWebPgFetch::OpenConn(const int& FId, const PUrl& Url){
@@ -283,15 +288,19 @@ void TWebPgFetch::OpenConn(const int& FId, const PUrl& Url){
 }
 
 void TWebPgFetch::CloseConn(const int& FId){
-  PSockEvent Event=ConnFIdToEventH.GetDat(FId);
-  TSockEvent::UnReg(Event);
-  ConnFIdToEventH.DelKey(FId);
-  Event->CloseConn();
-  LastDelEvent=Event;
+	if (ConnFIdToEventH.IsKey(FId)) {
+		PSockEvent Event=ConnFIdToEventH.GetDat(FId);
+		TSockEvent::UnReg(Event);
+		ConnFIdToEventH.DelKey(FId);
+		Event->CloseConn();
+		LastDelEvent=Event;
+	}
 }
 
-void TWebPgFetch::ConnUrl(const int& FId, const PUrl& Url){
-  if (FId!=-1){PushWait(FId, Url);}
+void TWebPgFetch::ConnUrl(const int& FId, const PUrl& Url, const bool& QueueAtEnd){
+  if (FId!=-1) {
+	  PushWait(FId, Url, QueueAtEnd);
+  }
   while ((IsOkConns(GetConnUrls()))&&(GetWaitUrls()>0)){
     int FId; PUrl Url; PopWait(FId, Url);
     OpenConn(FId, Url);
@@ -315,11 +324,11 @@ PUrl TWebPgFetch::GetConnUrl(const int& ConnFId) const {
   return Event->GetUrl();
 }
 
-int TWebPgFetch::FetchUrl(const PUrl& Url){
+int TWebPgFetch::FetchUrl(const PUrl& Url, const bool& QueueAtEnd){
   int FId=-1;
   if (Url->IsOk(usHttp) && Url->IsPortOk()){
     FId=GetNextFId();
-    ConnUrl(FId, Url);
+	ConnUrl(FId, Url, QueueAtEnd);
   } else {
     TStr MsgStr=TStr("Invalid URL [")+Url->GetUrlStr()+"]";
     OnError(FId, MsgStr);
@@ -506,4 +515,114 @@ void TWebFetchSendBatchJson::Send() {
   TMem BodyMem; BodyMem.AddBf(BodyStr.CStr(), BodyStr.Len());
   PHttpRq HttpRq = THttpRq::New(hrmPost, TUrl::New(UrlStr), THttp::AppJSonFldVal, BodyMem);
   FetchHttpRq(HttpRq);
+}
+
+
+/////////////////////////////////////////////////
+// TWebPgFetchPersist
+TWebPgFetchPersist::TWebPgFetchPersist(const TStr& _SaveFName, const bool& _RepeatFailedRequests, const bool& _ReportState, const TStr& _ReportPrefix, const PNotify& _Notify) :
+SaveFName(_SaveFName), RepeatFailedRequests(_RepeatFailedRequests), ReportState(_ReportState), ReportPrefix(_ReportPrefix), Notify(_Notify)
+{
+	PutMxConns(10);
+	PutTimeOutMSecs(30 * 1000);
+	if (SaveFName != "" && TFile::Exists(SaveFName)) {
+		TFIn FIn(SaveFName);
+		uint64 FileLen = TFile::GetSize(SaveFName);
+		if (FileLen > 0)
+			TNotify::StdNotify->OnStatusFmt("Loading %.2f MB of pending web requests...", FileLen / (double) TInt::Mega);
+		Load(FIn);
+		if (FileLen > 0)
+			TNotify::StdNotify->OnStatus("Loading finished.");
+	}
+}
+
+TWebPgFetchPersist::~TWebPgFetchPersist() {
+	if (SaveFName != "") {
+		TFOut FOut(SaveFName);
+		Save(FOut);
+	}
+}
+
+void TWebPgFetchPersist::Load(TSIn& SIn)
+{
+	// load PUrls and call FetchUrl on each of them
+	int Count = 0;
+	while (!SIn.Eof()) {
+		try {
+			PUrl Url = TUrl::Load(SIn);
+			FetchUrl(Url);
+			Count++;
+		}
+		catch (PExcept ex) {
+			Notify->OnStatusFmt("TWebPgFetchPersist.Load. Exception while loading url: %s", ex->GetMsgStr().CStr());
+		}
+		catch (...) {
+			Notify->OnStatus("TWebPgFetchPersist.Load. Unrecognized exception while loading a url.");
+		}
+	}
+}
+
+void TWebPgFetchPersist::Save(TSOut& SOut) const
+{
+	if (ConnFIdToEventH.Len() > 0)
+		Notify->OnStatusFmt("TWebPgFetchPersist.Save. Saving %d pending web requests to disk...", ConnFIdToEventH.Len());
+	// serialize requests in the queue
+	for (int KeyId = ConnFIdToEventH.FFirstKeyId(); ConnFIdToEventH.FNextKeyId(KeyId);) {
+		const int FId = ConnFIdToEventH.GetKey(KeyId);
+		PUrl Url = GetConnUrl(FId);
+		Url->Save(SOut);
+	}
+	// serialize requests that are currently in progress
+	TLstNd<TIdUrlPr>* Item = WaitFIdUrlPrL.First();
+	while (Item != NULL) {
+		Item->Val.Val2->Save(SOut);;
+		Item = Item->Next();
+	}
+	if (ConnFIdToEventH.Len() > 0)
+		Notify->OnStatusFmt("TWebPgFetchPersist.Save. Saved %d requests to the disk.", ConnFIdToEventH.Len());
+}
+
+void TWebPgFetchPersist::ReportError(const TStr& MsgStr) 
+{
+	TNotify::StdNotify->OnStatusFmt("Error info: %s\n", MsgStr.CStr());
+	/*if (!Notify.Empty())
+	Notify->OnStatusFmt("TWebPgFetchPersist.ReportError: %s", MsgStr.CStr());*/
+}
+
+void TWebPgFetchPersist::OnFetch(const int& FId, const PWebPg& WebPg) 
+{
+	SuccessCount++; 
+	Report();
+}
+
+void TWebPgFetchPersist::OnError(const int& FId, const TStr& MsgStr) 
+{
+	ErrorCount++;
+	ReportError(MsgStr);
+	Report();
+	// in case of bad request don't make the request again
+	/*if (!HttpResp.Empty() && HttpResp->GetStatusCd() == 400) {
+	TStr Url = "";
+	if (IsConn(FId))
+	Url = GetConnUrl(FId)->GetUrlStr();
+	if (!Notify.Empty()) {
+	TStr Error = "TWebPgFetchPersist.OnError: Received http response 400 (Bad request). Skipping the request. Request: " + Url;
+	Notify->OnStatus(Error.CStr());
+	}
+	return;
+	}
+	else if (!HttpResp.Empty() && !Notify.Empty()) {
+	Notify->OnStatusFmt("TWebPgFetchPersist.OnError: Received http response %d.", HttpResp->GetStatusCd());
+	}*/
+
+	if (IsConn(FId) && RepeatFailedRequests) {
+		PUrl Url = GetConnUrl(FId);
+		FetchUrl(Url, false);	// enqueue request at the beginning of the queue		
+	}
+}
+
+void TWebPgFetchPersist::Report() 
+{
+	if (ReportState)
+		printf("%squeue size: %6d. Completed: %6d. Failed: %6d\r", ReportPrefix.CStr(), WaitFIdUrlPrL.Len(), SuccessCount.Val, ErrorCount.Val);
 }

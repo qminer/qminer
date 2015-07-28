@@ -115,7 +115,7 @@ exports.clsStopwatch = function () {
         if (typeof msg == "undefined") {
             msg = "";
         }
-        console.say(msg + ": elapsed " + this.formatTime(this.time()));
+        console.log(msg + ": elapsed " + this.formatTime(this.time()));
     };
     //#- `sw.tic()` -- resets and starts the stop watch
     this.tic = function () {

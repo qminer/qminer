@@ -15,6 +15,13 @@
 #include "la_nodejs.h"
 #include "qminer_ftr.h"
 
+/**
+ * Analytics module.
+ * @module analytics
+ * @example
+ * // import module, load dataset, create model, evaluate model
+ */
+
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Machine-Model
 // Holds SVM classification or regression model. 
@@ -56,9 +63,9 @@ public:
 	JsDeclareProperty(weights);
     //- `fout = svmModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
 	JsDeclareFunction(save);
-	//- `num = svmModel.decision_function(vec)` -- sends vector `vec` through the model and returns the distance to the decision boundery as a real number `num`
-    //- `num = svmModel.decision_function(spVec)` -- sends sparse vector `spVec` through the model and returns the distance to the decision boundery as a real number `num`
-	JsDeclareFunction(decision_function);
+	//- `num = svmModel.decisionFunction(vec)` -- sends vector `vec` through the model and returns the distance to the decision boundery as a real number `num`
+    //- `num = svmModel.decisionFunction(spVec)` -- sends sparse vector `spVec` through the model and returns the distance to the decision boundery as a real number `num`
+	JsDeclareFunction(decisionFunction);
     //- `num = svmModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
     //- `num = svmModel.predict(spVec)` -- sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
     JsDeclareFunction(predict);
@@ -143,17 +150,17 @@ public:
 
     /**
      * sends vector through the model and returns the distance to the decision boundery
-     * @param {module:la.Vector | module:la.SparseVector} vec - Input vector
-     * @returns {number} Prediction real number. Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).
+     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
+     * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix). Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).
      */
-    //# exports.SVC.prototype.decision_function = function(vec) {}
+    //# exports.SVC.prototype.decisionFunction = function(X) {}
     
 	/**
 	* sends vector through the model and returns the prediction as a real number
-	* @param {module:la.Vector | module:la.SparseVector} vec - Input vector
-	* @returns {number} Prediction, 1 for positive class and -1 for negative.
+    * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
+    * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix), 1 for positive class and -1 for negative.
 	*/
-	//# exports.SVC.prototype.predict = function(vec) {}
+	//# exports.SVC.prototype.predict = function(X) {}
 	
 	/**
 	* fits an SVM classification model, given column examples in a matrix and vector of targets
@@ -237,17 +244,17 @@ public:
 
     /**
      * sends vector through the model and returns the prediction as a real number
-     * @param {module:la.Vector | module:la.SparseVector} vec - Input vector
-     * @returns {number} Prediction real number.
+     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
+     * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix).
      */
-    //# exports.SVR.prototype.decision_function = function(vec) {}
+    //# exports.SVR.prototype.decisionFunction = function(X) {}
 
 	/**
 	* sends vector through the model and returns the prediction as a real number
-	* @param {module:la.Vector | module:la.SparseVector} vec - Input vector
-	* @returns {number} Prediction real number.
+    * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
+    * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix).
 	*/
-	//# exports.SVR.prototype.predict = function(vec) {}
+	//# exports.SVR.prototype.predict = function(X) {}
 
 	/**
 	* fits an SVM regression model, given column examples in a matrix and vector of targets
@@ -322,14 +329,14 @@ public:
      * @param {module:la.Vector} x - Feature vector
      * @returns {number} Predicted response
      */
-    //# exports.RidgeReg.prototype.decision_function = function(x) {}
+    //# exports.RidgeReg.prototype.decisionFunction = function(X) {}
     /**
      * Returns the expected response for the provided feature vector.
      *
      * @param {module:la.Vector} x - Feature vector
      * @returns {number} Predicted response
      */
-    //# exports.RidgeReg.prototype.predict = function(x) {}
+    //# exports.RidgeReg.prototype.predict = function(X) {}
     JsDeclareFunction(predict);
     
     /**
@@ -353,7 +360,7 @@ public:
  * Sigmoid funnction (y = 1/[1 + exp[-Ax+B]]) fited on decision function to mimic
  *
  * @class
- * @param {(|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model.
+ * @param {(null|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model.
  * @example
  * la = require('qminer').la;
  * analytics = require('qminer').analytics;
@@ -398,15 +405,15 @@ public:
     /**
      * Returns the expected response for the provided feature vector.
      *
-     * @param {(|module:la.Vector)} x - Prediction score (or vector of them).
-     * @returns {(|module:la.Vector)} Normalized prediction score (or vector of them).
+     * @param {(number|module:la.Vector)} x - Prediction score (or vector of them).
+     * @returns {(number|module:la.Vector)} Normalized prediction score (or vector of them).
      */
-    //# exports.Sigmoid.prototype.decision_function = function(x) {}
+    //# exports.Sigmoid.prototype.decisionFunction = function(x) {}
     /**
      * Returns the expected response for the provided feature vector.
      *
-     * @param {(|module:la.Vector)} x - Prediction score (or vector of them).
-     * @returns {(|module:la.Vector)} Normalized prediction score (or vector of them).
+     * @param {(number|module:la.Vector)} x - Prediction score (or vector of them).
+     * @returns {(number|module:la.Vector)} Normalized prediction score (or vector of them).
      */
     //# exports.Sigmoid.prototype.predict = function(x) {}
     JsDeclareFunction(predict);
