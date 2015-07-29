@@ -15,11 +15,6 @@ typedef int index_t;
 typedef long long index_t;
 #endif
 
-#pragma warning(disable: 4100)		// unreferenced formal parameter
-#pragma warning(disable: 4127)		// conditional expression is constant
-#pragma warning(disable: 4315)		// 'THashKeyDat<TKey,TDat>' : 'this' pointer for member 'THashKeyDat<TKey,TDat>::Dat' may not be aligned 8 as expected by the constructor
-#pragma warning(disable: 4512)		// assignment operator could not be generated
-
 /////////////////////////////////////////////////
 // Environment defines
 #if defined (_WIN32)

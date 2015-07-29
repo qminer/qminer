@@ -1085,13 +1085,13 @@ TStr TStr::GetSubStr(const int& BChN, const int& EChN) const {
     char* Bf = nullptr;
     if (Chs <= 0) { 
         // create empty string
-		return TStr();		
+        return TStr();		
     } else if (Chs==StrLen){
         // keep copy of everything
-		Bf = CloneCStr();//
+        Bf = CloneCStr();//
     } else {
         // get copy of a substring
-		Bf = new char[Chs + 1]; strncpy(Bf, CStr() + StartN, Chs); Bf[Chs] = 0;
+        Bf = new char[Chs + 1]; strncpy(Bf, CStr() + StartN, Chs); Bf[Chs] = 0;
     }
     return WrapCStr(Bf);
 }

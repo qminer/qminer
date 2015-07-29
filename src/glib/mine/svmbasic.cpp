@@ -6,8 +6,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-
-
 //////////////////////////////////////////////////////////////////////////
 // SVM-Cache
 void TSVMCache::Reset(const int& memory_size, const int& d) {

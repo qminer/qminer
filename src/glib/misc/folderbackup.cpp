@@ -127,7 +127,7 @@ void TBackupProfile::CopyFolder(const TStr& BaseTargetFolder, const TStr& Source
 {
 	try {
 		// get the name of the source folder
-		TStrV PathV; TFile::SplitPath(SourceFolder, PathV);
+		TStrV PathV; TDir::SplitPath(SourceFolder, PathV);
 		EAssert(PathV.Len() > 0);
 
 		// create the folder in the base target folder
@@ -144,7 +144,7 @@ void TBackupProfile::CopyFolder(const TStr& BaseTargetFolder, const TStr& Source
 		for (int N = 0; N < FileV.Len(); N++) {
 			// we found a file
 			if (TFile::Exists(FileV[N])) {
-				const TStr FileName = TFile::GetFileName(FileV[N]);
+				const TStr FileName = TDir::GetFileName(FileV[N]);
 				// is this a file that we wish to ignore?
 				bool ShouldCopy = true;
 				for (int S = 0; S < SkipIfContainingV.Len(); S++) {
@@ -188,7 +188,7 @@ void TBackupProfile::Restore(const TStr& BackupFolderName, const ERestoringMode&
 			const TVec<TBackupFolderInfo> Folders = GetFolders();
 			for (int N = 0; N < Folders.Len(); N++) {
 				const TStr TargetFolder = Folders[N].Folder;
-				TStrV PartV; TFile::SplitPath(TargetFolder, PartV);
+				TStrV PartV; TDir::SplitPath(TargetFolder, PartV);
 				const TStr LastFolderNamePart = PartV[PartV.Len() - 1];
 
 				// do we want to first remove any existing data in the target folder?

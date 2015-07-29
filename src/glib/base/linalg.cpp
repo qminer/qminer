@@ -168,7 +168,7 @@ void TFullColMatrix::PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const
 }
 
 void TFullColMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {
-    EAssert(Vec.Len() >= RowN && Result.Len() >= ColN); // check if works
+    EAssert(Vec.Len() >= RowN && Result.Len() >= ColN);
     for (int i = 0; i < ColN; i++) {
         Result[i] = TLinAlg::DotProduct(Vec, ColV[i]);
     }
@@ -183,7 +183,7 @@ void TFullColMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const 
 }
 
 void TFullColMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {
-    EAssert(Vec.Len() >= ColN && Result.Len() >= RowN);	 // check if works
+    EAssert(Vec.Len() >= ColN && Result.Len() >= RowN);
     for (int i = 0; i < RowN; i++) { Result[i] = 0.0; }
     for (int i = 0; i < ColN; i++) {
         TLinAlg::AddVec(Vec[i], ColV[i], Result, Result);
@@ -618,7 +618,7 @@ void TNumericalStuff::PrimalLeastSquares(const TFltVV& A, const TFltV& b, const 
 	// x = (A * A' + Gamma^2 * I)^{-1} A * b
 	int Feats = A.GetRows();
 	// A'
-	TFltVV At = TFltVV(A.GetCols(), A.GetRows());
+	TFltVV At = TFltVV(A.GetCols(), A.GetRows()); 
 	TLinAlg::Transpose(A, At);
 	// A * A'
 	TFltVV B = TFltVV(Feats, Feats);
