@@ -620,7 +620,7 @@ int TMIn::GetBf(const void* LBf, const TSize& LBfL){
 void TMIn::GetBfMemCpy(void* LBf, const TSize& LBfL) {
 	EAssertR(TSize(BfC + LBfL) <= TSize(BfL), "Reading beyond the end of stream.");
 	memcpy(LBf, Bf, LBfL);
-	BfC += LBfL;
+	BfC += (int)LBfL;
 }
 
 bool TMIn::GetNextLnBf(TChA& LnChA){
