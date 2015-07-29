@@ -281,9 +281,9 @@ uint64 TZipIn::GetFLen(const TStr& ZipFNm) {
   memset(Bf, 0, BfSz);
   #ifdef GLib_WIN
   DWORD BytesRead;
-  EAssert(ReadFile(ZipStdoutRd, Bf, MxBfL, &BytesRead, NULL) != 0);
+  EAssert(ReadFile(ZipStdoutRd, Bf, BfSz, &BytesRead, NULL) != 0);
   #else
-  size_t BytesRead = fread(Bf, 1, MxBfL, ZipStdoutRd);
+  size_t BytesRead = fread(Bf, 1, BfSz, ZipStdoutRd);
   EAssert(BytesRead != 0);
   EAssert(pclose(ZipStdoutRd) != -1);
   #endif
