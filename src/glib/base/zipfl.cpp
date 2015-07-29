@@ -277,7 +277,6 @@ uint64 TZipIn::GetFLen(const TStr& ZipFNm) {
   // Read output from the child process
   const int BfSz = 32*1024;
   char* Bf = new char [BfSz];
-  int BfC=0, BfL=0;
   memset(Bf, 0, BfSz);
   #ifdef GLib_WIN
   DWORD
@@ -302,8 +301,7 @@ uint64 TZipIn::GetFLen(const TStr& ZipFNm) {
   #else
   EAssert(pclose(ZipStdoutRd) != -1);
   #endif
-  BfL = (int) BytesReadTotal;  IAssert((BfC!=0)||(BfL!=0));
-  BfC = 0; Bf[BfL] = 0;
+  Bf[BfSz - 1] = 0;
   // find file length
   TStr Str(Bf);  delete [] Bf;
   TStrV StrV; Str.SplitOnWs(StrV);
