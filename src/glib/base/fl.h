@@ -13,8 +13,6 @@
 class TMem;
 class TChA;
 class TStr;
-template <class TVal, class TSizeTy> class TVec;
-typedef TVec<TStr, int> TStrV;
 
 /////////////////////////////////////////////////
 // Check-Sum
@@ -591,7 +589,4 @@ public:
   static uint64 GetCreateTm(const TStr& FNm);
   static uint64 GetLastAccessTm(const TStr& FNm);
   static uint64 GetLastWriteTm(const TStr& FNm);
-  static void SplitPath(const TStr& FPathFNm, TStrV& PartV);
-  static TStr GetFileName(const TStr& FileWithDir);
 };
-
