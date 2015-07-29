@@ -102,7 +102,6 @@ void TNodeJsStat::zscore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	JsObj->Set(v8::String::NewFromUtf8(Isolate, "sigma"), TNodeJsVec< TFlt, TAuxFltV >::New(sigma));
 	Args.GetReturnValue().Set(JsObj);
 }
-<<<<<<< HEAD
 
 void TNodeJsStat::studentCdf(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -125,5 +124,3 @@ void TNodeJsStat::studentCdf(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Args.GetReturnValue().Set(v8::Number::New(Isolate, TSpecFunc::StudentCdf(Val, Mean, Std, Df)));
 	}
 }
-=======
->>>>>>> f9a65980266a21fd406abc9795ba845e98cdb4ab

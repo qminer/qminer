@@ -77,27 +77,21 @@ public:
 	*/
 	//# exports.zscoreResult = function (mat, flag, dim) { return {sigma:'', mu:'', Z:''}; }
 	JsDeclareFunction(zscore);
-<<<<<<< HEAD
 
-	/** TODO Alma napisi komentar
-	* returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`.
-	* @param {module:la.Matrix} input - Matrix
-	* @param {number} [flag=0] - Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
-	* @param {number} [dim=1] - Computes the standard deviations along the dimension of `mat` specified by parameter `dim`. 1 is col std, 2 is row std.
-	* @returns {zscoreResult}
+	/**
+	* function studentCdf calculates Student's t cumulative distribution function (PDF integral from -inf to t)
+	* function studentCdf returns 'Alpha' as in the p-value of a Student t-test
+	* If you already have a t-value than the studentCdf function has 2 inputs: t-value and degrees of freedom
+	* @param {number} TVal - The t-value value of the sample you want to calculate the p-value for
+	* @param {number} Df - Degrees of freedom for the sample (if your sample is big n than degrees of freedom in n-1)
+	* If you don't have the t-value than studentCdf function has 4 inputs: Value, Mean, Standard deviation and degrees of freedom
+	* @param {number} Val - The average value of the sample you want to calculate the p-value for
+	* @param {number} Mean - The mean value of the sample you want to calculate the p-value for
+	* @param {number} Std - The sample standard deviation of the sample you want to calculate the p-value for
+	* @param {number} Df - Degrees of freedom for the sample (if your sample is n big then degrees of freedom in n-1)
+	* @returns {Alpha}
 	*/
 	JsDeclareFunction(studentCdf);
-private:
-   // 
-=======
->>>>>>> f9a65980266a21fd406abc9795ba845e98cdb4ab
-};
-
-class TPdf {
-private:
-
-public:
-	static double StudentPVal(const double& Val, const double& Mean, const double& Std, const int& Df);
 };
 
 #endif
