@@ -143,7 +143,7 @@ TZipIn::~TZipIn(){
   if (ZipStdoutRd != NULL) {
     EAssertR(CloseHandle(ZipStdoutRd), "Closing read-end of pipe failed"); }
   if (ZipStdoutWr != NULL) {
-    EAssertR(CloseHandle(ZipStdoutWr)!=0, "Closing write-end of pipe failed"); }
+    EAssertR(CloseHandle(ZipStdoutWr), "Closing write-end of pipe failed"); }
   #else
   if (ZipStdoutRd != NULL) {
     EAssertR(pclose(ZipStdoutRd) != -1, "Closing of the process failed"); }
@@ -296,7 +296,10 @@ uint64 TZipIn::GetFLen(const TStr& ZipFNm) {
     #endif
     BytesReadTotal += BytesRead;
   } while (((int)BytesReadTotal < BfSz) && (BytesRead != 0));
-  #ifndef GLib_WIN
+  #ifdef GLib_WIN
+  EAssertR(CloseHandle(ZipStdoutRd), "Closing read-end of pipe failed");
+  EAssertR(CloseHandle(ZipStdoutWr), "Closing write-end of pipe failed");
+  #else
   EAssert(pclose(ZipStdoutRd) != -1);
   #endif
   BfL = (int) BytesReadTotal;  IAssert((BfC!=0)||(BfL!=0));
