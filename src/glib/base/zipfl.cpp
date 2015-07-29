@@ -280,14 +280,26 @@ uint64 TZipIn::GetFLen(const TStr& ZipFNm) {
   int BfC=0, BfL=0;
   memset(Bf, 0, BfSz);
   #ifdef GLib_WIN
-  DWORD BytesRead;
-  EAssert(ReadFile(ZipStdoutRd, Bf, BfSz, &BytesRead, NULL) != 0);
+  DWORD
   #else
-  size_t BytesRead = fread(Bf, 1, BfSz, ZipStdoutRd);
-  EAssert(BytesRead != 0);
+  size_t
+  #endif
+  BytesRead, BytesReadTotal = 0;
+  do {
+    char* BfCurrent = Bf + BytesReadTotal;
+    int BfSzLeft = BfSz - BytesReadTotal;
+    #ifdef GLib_WIN
+    EAssert(ReadFile(ZipStdoutRd, BfCurrent, BfSzLeft, &BytesRead, NULL) != 0);
+    #else
+    BytesRead = fread(BfCurrent, 1, BfSzLeft, ZipStdoutRd);
+    EAssert(!ferror(ZipStdoutRd));
+    #endif
+    BytesReadTotal += BytesRead;
+  } while (((int)BytesReadTotal < BfSz) && (BytesRead != 0));
+  #ifndef GLib_WIN
   EAssert(pclose(ZipStdoutRd) != -1);
   #endif
-  BfL = (int) BytesRead;  IAssert((BfC!=0)||(BfL!=0));
+  BfL = (int) BytesReadTotal;  IAssert((BfC!=0)||(BfL!=0));
   BfC = 0; Bf[BfL] = 0;
   // find file length
   TStr Str(Bf);  delete [] Bf;
