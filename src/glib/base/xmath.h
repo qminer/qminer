@@ -130,6 +130,10 @@ public:
   //MLE of the power-law coefficient
   static double GetPowerCoef(const TFltV& XValV, double MinX=-1.0); // values (sampled from the distribution)
   static double GetPowerCoef(const TFltPrV& XValCntV, double MinX=-1.0); // (value, count) pairs
+
+  static double StudentCdf(const double& TVal, const int& Df);
+  static double StudentCdf(const double& Val, const double& Mean,
+	  const double& Std, const int& Df);
 };
 
 /////////////////////////////////////////////////

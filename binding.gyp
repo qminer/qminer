@@ -162,7 +162,8 @@
                             'defines' : ['NDEBUG']
                         },
                     }
-                }]
+                }],
+		['OS == "win"', { 'libraries': []}]
             ]
         },{
             # qminer library
@@ -251,7 +252,8 @@
                             'defines' : ['NDEBUG']
                         },
                     }
-                }]
+                }],
+		['OS == "win"', { 'libraries': []}]
             ]
         }, {
             # snap external library
@@ -416,7 +418,8 @@
                             'defines' : ['NDEBUG']
                         },
                     }
-                }]
+                }],
+		['OS == "win"', { 'libraries': []}]
             ]
         }
     ]
