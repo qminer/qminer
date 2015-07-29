@@ -269,5 +269,5 @@ public:
 
 	// static method that generates stack trace and returns it
 	static TChA GetStackTrace();
-}
+};
 #endif
