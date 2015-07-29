@@ -821,15 +821,6 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
-// Linear-Large-Scale-SVM
-class TSVMLargeScale {
-public:
-    static void Solve(PSVMTrainSet TrainSet, const double& SvmCost,
-        const int& MxTime, const int& MxIter, const int& _SampleSize, 
-		TFltV& WgtV, const PNotify& Notify = TStdNotify::New());
-};
-
-//////////////////////////////////////////////////////////////////////////
 // SVM-Learning-Parameters
 //   Parameters controling optimization performance
 class TSVMLearnParam {

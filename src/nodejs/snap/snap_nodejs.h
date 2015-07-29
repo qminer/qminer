@@ -580,7 +580,7 @@ void TNodeJsGraph<T>::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	
-	EAssertR(Args.Length() == 1 && Args[0]->IsObject() && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::GetClassId()),
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject() && TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId()),
 		"Expected a FIn object as the argument.");
 	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
 
@@ -595,7 +595,7 @@ void TNodeJsGraph<T>::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 1 && Args[0]->IsObject() && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFOut::GetClassId()),
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject() && TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFOut::GetClassId()),
 		"Expected a FOut object as the argument.");
 	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
 

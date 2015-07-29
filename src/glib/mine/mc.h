@@ -5,20 +5,10 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
-	
-/*
- * denseclust.h
- *
- *  Created on: Sep 17, 2014
- *      Author: lstopar
- */
-
-#ifndef CTMC_H_
-#define CTMC_H_
 
 namespace TMc {
 
-using namespace TMl;
+using namespace TRegression;
 
 typedef TIntV TStateIdV;
 typedef TIntSet TStateIdSet;
@@ -864,5 +854,3 @@ public:
 };
 
 }
-
-#endif /* CTMC_H_ */

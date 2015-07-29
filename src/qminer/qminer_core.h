@@ -106,9 +106,7 @@ private:
 	static PExcept Throw(const TStr& MsgStr, const TStr& LocStr = TStr()) { return NULL; }
 public:
 	/// Create new QMiner exception
-	static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr()) { 
-		return PExcept(new TQmExcept(MsgStr, LocStr));
-	}
+	static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr());
 };
 
 #define QmAssert(Cond) \
@@ -754,6 +752,14 @@ public:
     void PrintTypes(const TWPt<TBase>& Base, TSOut& SOut) const;
     /// Prints registered fields and joins, useful for debugging
     void PrintTypes(const TWPt<TBase>& Base, const TStr& FNm) const;
+    /// Prints record set with all the field values, useful for debugging
+    void PrintRecSetAsJson(const TWPt<TBase>& Base, const PRecSet& RecSet, TSOut& SOut);
+    /// Prints record set with all the field values, useful for debugging
+    void PrintRecSetAsJson(const TWPt<TBase>& Base, const PRecSet& RecSet, const TStr& FNm);
+    /// Prints all records with all the field values, useful for debugging
+    void PrintAllAsJson(const TWPt<TBase>& Base, TSOut& SOut);
+    /// Prints all records with all the field values, useful for debugging
+    void PrintAllAsJson(const TWPt<TBase>& Base, const TStr& FNm);
 
 	/// Save part of the data, given time-window
 	virtual int PartialFlush(int WndInMsec = 500) { throw TQmExcept::New("Not implemented"); }

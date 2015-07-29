@@ -149,14 +149,6 @@ public:
 // Standard-Notifier
 class TStdNotify: public TNotify{
 public:
-/////////////////////////////////////////////////
-// System-Messages
-class TSysMsg{
-public:
-  static void Loop();
-  static void Quit();
-};
-
   TStdNotify(){}
   static PNotify New(){return PNotify(new TStdNotify());}
 
@@ -189,6 +181,18 @@ public:
 };
 
 /////////////////////////////////////////////////
+// String-Notifier
+class TStrNotify : public TNotify {
+public:
+	TChA Log;
+	TStrNotify(){}
+	static PNotify New(){ return new TStrNotify(); }
+
+	void OnNotify(const TNotifyType& Type, const TStr& MsgStr);
+	void OnStatus(const TStr& MsgStr);
+};
+
+/////////////////////////////////////////////////
 // Exception
 ClassTP(TExcept, PExcept)//{
 private:
@@ -198,8 +202,7 @@ private:
 public:
   TExcept(const TStr& _MsgStr): MsgStr(_MsgStr), LocStr(){}
   TExcept(const TStr& _MsgStr, const TStr& _LocStr): MsgStr(_MsgStr), LocStr(_LocStr){}
-  static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr()) {
-	  return PExcept(new TExcept(MsgStr, LocStr)); }
+  static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr());
   virtual ~TExcept(){}
 
   TStr GetMsgStr() const {return MsgStr;}
@@ -238,3 +241,34 @@ public:
 #define CatchFull } catch (PExcept Except){ErrNotify(Except->GetStr());}
 #define CatchAll } catch (...){}
 
+#ifdef GLib_WIN
+#include <StackWalker.h>
+/////////////////////////////////////////////////
+// Stack-trace output for Windows
+class TFileStackWalker : public StackWalker {
+protected:
+    FILE* FOut;
+    
+    void OnOutput(LPCSTR szText);
+public:
+    TFileStackWalker();
+    void CloseOutputFile();
+    ~TFileStackWalker();
+    
+    static void WriteStackTrace();
+};
+
+class TBufferStackWalker : public StackWalker {
+protected:
+    TChA Output;
+    
+    void OnOutput(LPCSTR szText);
+public:
+	TBufferStackWalker();
+	TChA GetOutput();
+
+	// static method that generates stack trace and returns it
+	static TChA GetStackTrace();
+};
+
+#endif

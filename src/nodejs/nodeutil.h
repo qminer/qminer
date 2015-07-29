@@ -142,7 +142,10 @@ public:
     /// given string. the name is stored in an hidden variable "class"
     static bool IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm) ;
     /// Check if argument ArgN belongs to a given class
-    static bool IsArgClass(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& ClassNm);
+    static bool IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& ClassNm);
+    /// Check if argument ArgN belongs to a given class
+    template <class TClass>
+    static bool IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN of type v8::Function
     static bool IsArgFun(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN of type v8::Object
@@ -186,10 +189,9 @@ public:
     static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const TStr& DefVal);
     /// Extract argument ArgN as GLib Json (PJsonVal)
     static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
-
     /// casts the argument into the appropriate type
-    template <class T>
-    static T* GetArgObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+    template <class TClass>
+    static TClass* GetArgUnwrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
 
     /// returns true if the given object contains a field with the given name
     static bool IsObjFld(v8::Local<v8::Object> Obj, const TStr& FldNm);
@@ -200,8 +202,8 @@ public:
     static bool IsFldClass(v8::Local<v8::Object> Obj, const TStr& FldNm, const TStr& ClassId);
 
     /// extracts the field from the object 'Obj'
-    template <class T>
-    static T* GetObjFld(v8::Local<v8::Object> Obj, const TStr& FldNm);
+    template <class TClass>
+    static TClass* GetUnwrapFld(v8::Local<v8::Object> Obj, const TStr& FldNm);
 
     /// Executes the function with the specified argument and returns a double result.
     static double ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg);
@@ -236,7 +238,6 @@ public:
 	template <class TClass>
 	static v8::Local<v8::Object> NewInstance(TClass* Obj);
 	
-
 	static v8::Local<v8::Value> V8JsonToV8Str(const v8::Handle<v8::Value>& Json);
 	static TStr JSONStringify(const v8::Handle<v8::Value>& Json) { return GetStr(V8JsonToV8Str(Json)->ToString()); }
 
@@ -250,27 +251,36 @@ public:
 	template <class TClass>
 	static TClass* UnwrapCheckWatcher(v8::Handle<v8::Object> handle);
 
-
 	template <class TClass>
 	static TClass* Unwrap(v8::Handle<v8::Object> handle) { return node::ObjectWrap::Unwrap<TClass>(handle); }
 	
 };
 
-template <class T>
-T* TNodeJsUtil::GetArgObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
-	EAssertR(ArgN < Args.Length(), "GetArgObj: Not enough arguments!");
-	EAssertR(IsArgClass(Args, ArgN, T::GetClassId()), "Invalid argument class!");
-	return node::ObjectWrap::Unwrap<T>(Args[ArgN]->ToObject());
+template <class TClass>
+bool TNodeJsUtil::IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+    return IsArgWrapObj(Args, ArgN, TClass::GetClassId());
 }
 
-template <class T>
-T* TNodeJsUtil::GetObjFld(v8::Local<v8::Object> Obj, const TStr& FldNm) {
+template <class TClass>
+TClass* TNodeJsUtil::GetArgUnwrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+	EAssertR(ArgN < Args.Length(), "GetArgObj: Not enough arguments!");
+	EAssertR(IsArgWrapObj<TClass>(Args, ArgN), "Invalid argument class!");
+	return node::ObjectWrap::Unwrap<TClass>(Args[ArgN]->ToObject());
+}
+
+template <class TClass>
+TClass* TNodeJsUtil::GetUnwrapFld(v8::Local<v8::Object> Obj, const TStr& FldNm) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(IsObjFld(Obj, FldNm), "TNodeJsUtil::GetObjFld: Key " + FldNm + " is missing!");
-
-	return node::ObjectWrap::Unwrap<T>(Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()))->ToObject());
+	EAssertR(IsObjFld(Obj, FldNm), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is missing!");
+    v8::Handle<v8::Value> ValFld = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+    
+    EAssertR(ValFld->IsObject(), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is not an object");
+    v8::Handle<v8::Object> ObjFld = ValFld->ToObject();
+    
+    EAssertR(IsClass(ObjFld, TClass::GetClassId()), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is not of type TClass");
+	return node::ObjectWrap::Unwrap<TClass>(ObjFld);
 }
 
 

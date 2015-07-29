@@ -298,9 +298,9 @@ private:
   TFIn& operator=(const TFIn&);
 public:
   TFIn(const TStr& FNm);
-  TFIn(const TStr& FNm, bool& OpenedP);
+  TFIn(const TStr& FNm, bool& OpenedP, const bool IgnoreBOMIfExistsP = false);
   static PSIn New(const TStr& FNm);
-  static PSIn New(const TStr& FNm, bool& OpenedP);
+  static PSIn New(const TStr& FNm, bool& OpenedP, const bool IgnoreBOMIfExistsP = false);
   ~TFIn();
 
   bool Eof(){
@@ -580,6 +580,8 @@ public:
   static void Copy(const TStr& SrcFNm, const TStr& DstFNm, 
     const bool& ThrowExceptP=true, const bool& FailIfExistsP=false);
   static bool Del(const TStr& FNm, const bool& ThrowExceptP=true);
+  static bool Move(const TStr& SrcFNm, const TStr& DstFNm,
+	const bool& ThrowExceptP = true, const bool& FailIfExistsP = false);
   static void DelWc(const TStr& WcStr, const bool& RecurseDirP=false);
   static void Rename(const TStr& SrcFNm, const TStr& DstFNm);
   static TStr GetUniqueFNm(const TStr& FNm);

@@ -495,7 +495,7 @@ double TNumeric::_GetVal(const TRec& FtrRec) const {
     // assert store
     Assert(FtrRec.GetStoreId() == GetFtrStore()->GetStoreId());
     // extract feature value
-    if (FtrRec.IsFieldNull(FieldId)) {
+    if (!FtrRec.IsDef() || FtrRec.IsFieldNull(FieldId)) {
         return 0.0;
     } else if (FieldDesc.IsInt()) {
         return (double)FtrRec.GetFieldInt(FieldId);
@@ -611,7 +611,7 @@ void TNumSpV::_GetVal(const TRec& FtrRec, TIntFltKdV& NumSpV) const {
     // assert store
     Assert(FtrRec.GetStoreId() == GetFtrStore()->GetStoreId());
     // extract feature value
-    if (FtrRec.IsFieldNull(FieldId)) {
+    if (!FtrRec.IsDef() || FtrRec.IsFieldNull(FieldId)) {
         NumSpV.Clr();
     } else if (FieldDesc.IsNumSpV()) {
         FtrRec.GetFieldNumSpV(FieldId, NumSpV);
@@ -627,10 +627,10 @@ void TNumSpV::GetVal(const TRec& FtrRec, TIntFltKdV& NumSpV) const {
         // do the join
         TRec JoinRec = FtrRec.DoSingleJoin(GetBase(), GetJoinIdV(FtrRec.GetStoreId()));
         // get feature value
-		return _GetVal(JoinRec, NumSpV);
+		_GetVal(JoinRec, NumSpV);
     } else {
         // get feature value
-        return _GetVal(FtrRec, NumSpV);
+        _GetVal(FtrRec, NumSpV);
 	}
 }
 
@@ -738,7 +738,7 @@ TStr TCategorical::_GetVal(const TRec& FtrRec) const {
 	// assert store
 	Assert(FtrRec.GetStoreId() == GetFtrStore()->GetStoreId());
 	// separate case when record passed by reference or value
-    if (FtrRec.IsFieldNull(FieldId)) {
+    if (!FtrRec.IsDef() || FtrRec.IsFieldNull(FieldId)) {
         return TStr();
     } else if (FieldDesc.IsStr()) {
 		return FtrRec.GetFieldStr(FieldId);
@@ -932,7 +932,7 @@ void TMultinomial::_GetVal(const TRec& FtrRec, TStrV& StrV) const {
         const int FieldId = FieldIdV[FieldIdN];
         const TFieldDesc& FieldDesc = FieldDescV[FieldIdN];
         // extract feature value
-        if (FtrRec.IsFieldNull(FieldId)) {
+        if (!FtrRec.IsDef() || FtrRec.IsFieldNull(FieldId)) {
             // do nothing
         } else if (FieldDesc.IsStr()) {
             StrV.Add(FtrRec.GetFieldStr(FieldId));
@@ -1166,7 +1166,7 @@ void TBagOfWords::_GetVal(const TRec& FtrRec, TStrV& StrV) const {
         const int FieldId = FieldIdV[FieldIdN];
         const TFieldDesc& FieldDesc = FieldDescV[FieldIdN];
         // extract feature value
-        if (FtrRec.IsFieldNull(FieldId)) {
+        if (!FtrRec.IsDef() || FtrRec.IsFieldNull(FieldId)) {
             // do nothing
         } else if (FieldDesc.IsStr()) {
             StrV.Add(FtrRec.GetFieldStr(FieldId));
@@ -1209,12 +1209,11 @@ void TBagOfWords::NewTimeWnd(const uint64& TimeWndMSecs, const uint64& StartMSec
 
 TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
     const int& _FieldId, const TBagOfWordsMode& _Mode, const PTokenizer& Tokenizer, 
-    const int& HashDim, const int& _NStart, const int& _NEnd):
-        TFtrExt(Base, JoinSeqV), FtrGen(true, true, true, Tokenizer, HashDim), 
-        Mode(_Mode), NStart(_NStart), NEnd(_NEnd) { AddField(_FieldId); }
+    const int& HashDim, const int& NStart, const int& NEnd): TFtrExt(Base, JoinSeqV),
+        FtrGen(true, true, true, Tokenizer, HashDim, false, NStart, NEnd),
+        Mode(_Mode) { AddField(_FieldId); }
 
-TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
-        TFtrExt(Base, ParamVal) {
+TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFtrExt(Base, ParamVal) {
     
     // parse feature generator parameters
     const bool NormalizeP = ParamVal->GetObjBool("normalize", true);
@@ -1257,7 +1256,7 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
     // hashing dimension
     const int HashDim = ParamVal->GetObjInt("hashDimension", -1);
     // keep hash table?
-    const bool KHT = ParamVal->GetObjBool("hashTable", false);
+    const bool StoreHashWordsP = ParamVal->GetObjBool("hashTable", false);
 
     // parse ngrams
     TInt NgramsStart = 1;
@@ -1283,7 +1282,7 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
     }
 
     // initialize
-    FtrGen = TFtrGen::TBagOfWords(TfP, IdfP, NormalizeP, Tokenizer, HashDim, KHT, NgramsStart, NgramsEnd);
+    FtrGen = TFtrGen::TBagOfWords(TfP, IdfP, NormalizeP, Tokenizer, HashDim, StoreHashWordsP, NgramsStart, NgramsEnd);
     
     // parse input field(s)
     PJsonVal FieldVal = ParamVal->GetObjKey("field");
@@ -1389,9 +1388,9 @@ TStr TBagOfWords::GetNm() const {
 };
 
 TStr TBagOfWords::GetFtr(const int& FtrN) const {
-    if(FtrGen.IsKeepingHashTable()) {
-        TStrV StrV;
-        FtrGen.GetHashVals(FtrN).GetKeyV(StrV);
+    if (FtrGen.IsStoreHashWords()) {
+        
+        TStrV StrV; FtrGen.GetHashVals(FtrN).GetKeyV(StrV);
         return TStr::GetStr(StrV, ",");
     } else { 
         return FtrGen.GetVal(FtrN); 
@@ -1808,7 +1807,7 @@ uint64 TDateWnd::_GetVal(const TRec& FtrRec) const {
     // assert store
     Assert(FtrRec.GetStoreId() == GetFtrStore()->GetStoreId());
     // extract feature value
-    if (FtrRec.IsFieldNull(FieldId)) {
+    if (!FtrRec.IsDef() || FtrRec.IsFieldNull(FieldId)) {
         return 0;
     } else if (FieldDesc.IsTm()) {
         return FtrRec.GetFieldTmMSecs(FieldId);

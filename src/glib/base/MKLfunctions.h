@@ -39,7 +39,7 @@ private:
 	// LU midstep used for LUFactorization and LUSolve 
 	// (Warning: the matrix is overwritten in the process)
 	template<class Type, class Size, bool ColMajor = false>
-static void LUStep(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<glib_index>, glib_index>& Perm) {//TVec<TNum<Size>, Size>& Perm)
+	static void LUStep(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<glib_index>, glib_index>& Perm) {//TVec<TNum<Size>, Size>& Perm)
 		Assert(A.GetRows() == A.GetCols());
 
 		// data used for factorization
@@ -113,7 +113,7 @@ static void CholeskyStep(TVVec<Type, Size, ColMajor>& A) {
 	// QR midstep used for LUFactorization and QRSolve. 
 	// (Warning: the matrix is overwritten in the process)
 	template<class Type, class Size, bool ColMajor = false>
-static void QRStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<glib_index>, glib_index>& Tau) {
+	static void QRStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<glib_index>, glib_index>& Tau) {
 		Assert(A.GetRows() >= A.GetCols());
 
 		// data used for factorization
@@ -147,7 +147,7 @@ static void QRStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<glib_index>, glib_i
 	// LQ midstep used for LQFactorization and LQSolve.
 	// (Warning: the matrix is overwritten in the process)
 	template<class Type, class Size, bool ColMajor = false>
-static void LQStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<glib_index>, glib_index>& Tau) {
+	static void LQStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<glib_index>, glib_index>& Tau) {
 		Assert(A.GetRows() <= A.GetCols());
 
 		Size NumOfRows = A.GetRows();
@@ -186,7 +186,7 @@ public:
 	// The L is unit lower triangular matrix and U is an upper triangular matrix. 
 	// Vector P tell's us: column i is swapped with column P[i].
 	template<class Type, class Size, bool ColMajor = false>
-static void LUFactorization(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& L, 
+	static void LUFactorization(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& L, 
 		TVVec<Type, Size, ColMajor>& U, TVec<TNum<glib_index>, glib_index>& P) {
 		Assert(A.GetRows() == A.GetCols());
 
@@ -228,7 +228,7 @@ static void LUFactorization(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, Co
 	// Solves the system of linear equations A * x = b, where A is a matrix, x and b are vectors.
 	// Solution is saved in x.
 	template<class Type, class Size, bool ColMajor = false>
-static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type>, Size>& x, TVec<TNum<Type>, Size>& b) {
+	static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type>, Size>& x, TVec<TNum<Type>, Size>& b) {
 		Assert(A.GetRows() == b.Len());
 
 		// for matrix
@@ -278,7 +278,7 @@ static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type>, Size>
 	// Solves the system of linear equations A * X = B, where A, X and B are matrices.
 	// Solution is saved in X.
 	template<class Type, class Size, bool ColMajor = false>
-static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVVec<TNum<Type>, Size, ColMajor>& X, TVVec<TNum<Type>, Size, ColMajor>& B) {
+	static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVVec<TNum<Type>, Size, ColMajor>& X, TVVec<TNum<Type>, Size, ColMajor>& B) {
 		Assert(A.GetRows() == B.GetRows());
 
 		// for matrix

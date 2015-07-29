@@ -22,7 +22,6 @@
 // A factory of base objects
 // The only part of node framework: Init
 
-
 /**
 * Qminer module.
 * @module qm
@@ -396,6 +395,32 @@ private:
 * // normalized, the values are taken from the field "Grade"
 * var ftr = qm.FeatureSpace(base, { type: "numeric", source: "Class", normalize: true, field: "Grade" });
 */
+
+/**
+ * Feature type: numeric
+ * @typedef {Object} FeatureExtractorSparseVector
+ * @property {string} type - The type of the extractor. It must be equal 'num_sp_v'.
+ * @property {number} [dimension = 0] - Dimensionality of sparse vectors.
+ * @property {boolean} [normalize = false] - Normalize vectors to L2 norm of 1.0.
+ * @property {string} field - The name of the field from which to take the value.
+ * @property {module:qm~FeatureSource} source - The source of the extractor.
+ * @example
+ * var qm = require('qminer');
+ * // create a simple base, where each record contains the student name and it's grade
+ * var base = new qm.Base({
+ *    mode: 'createClean',
+ *    schema: [{
+ *       "name": "Class",
+ *       "fields": [
+ *          { "name": "Name", "type": "string" },
+ *          { "name": "Features", "type": "num_sp_v" }
+ *       ]
+ *    }]
+ * });
+ * // create a feature space containing the numeric extractor, where the values are
+ * // normalized, the values are taken from the field "Grade"
+ * var ftr = qm.FeatureSpace(base, { type: "num_sp_v", source: "Class", normalize: false, field: "Features" });
+ */
 
 /**
 * Feature type: categorical
@@ -3331,7 +3356,7 @@ public:
 	* // create a feature matrix out of the records of the store by using the feature space
 	* // returns a sparse matrix equal to
 	* // 1  0  0  1
-	* // 0  1  1  1
+	* // 0  1  0  1
 	* // 0  0  1  0
 	* // 1  1  0  0
 	* var matrix = ftr.extractMatrix(base.store("Class").recs);

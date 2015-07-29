@@ -223,8 +223,8 @@ void TCountCfyRes::Roc(TFltPrV& RocV) {
     int TP = 0, FP = 0, TN = FPos + TNeg, FN = TPos + FNeg;
     for (int i = 0; i < Len; i++) {
         if (ResultV[i].Dat > 0.0) { FN--; TP++; } else { TN--; FP++; }
-        const double FPR = double(FP) / double(FP + TN);
-		const double TPR = double(TP) / double(TP + FN);
+		const double FPR = (FP + TN > 0) ? double(FP) / double(FP + TN) : -1;
+		const double TPR = (TP + FN > 0) ? (double(TP) / double(TP + FN)) : -1;
         RocV.Add(TFltPr(FPR, TPR));
     }
 }

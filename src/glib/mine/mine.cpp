@@ -41,8 +41,8 @@
 #include "kernelmethods.cpp"
 #include "semspace.cpp"
 
-// some ML methods
-#include "ml.cpp"
+// regression methods
+#include "regression.cpp"
 
 // clustering
 #include "mc.cpp"

@@ -118,6 +118,18 @@ void TValidNm::AssertValidNm(const TStr& NmStr) {
 }
 
 ///////////////////////////////
+// QMiner Exception
+PExcept TQmExcept::New(const TStr& MsgStr, const TStr& LocStr) {
+	TChA Stack = LocStr;
+#ifdef GLib_WIN
+	if (Stack.Len() > 0)
+		Stack += "\n";
+	Stack += "Stack trace:\n" + TBufferStackWalker::GetStackTrace();
+#endif
+	return PExcept(new TQmExcept(MsgStr, Stack));
+}
+
+///////////////////////////////
 // QMiner-Join-Description
 TJoinDesc::TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId,
 	const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc, const bool& IsSmall) :
@@ -1201,6 +1213,31 @@ void TStore::PrintTypes(const TWPt<TBase>& Base, TSOut& SOut) const {
 
 void TStore::PrintTypes(const TWPt<TBase>& Base, const  TStr& FNm) const {
 	TFOut FOut(FNm); PrintTypes(Base, FOut);
+}
+
+void TStore::PrintRecSetAsJson(const TWPt<TBase>& Base, const PRecSet& RecSet, TSOut& SOut) {
+	for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
+		const uint64 RecId = RecSet->GetRecId(RecN);
+		PJsonVal Json = GetRec(RecId).GetJson(Base, true, false);
+		SOut.PutStrLn(Json->SaveStr());
+	}
+}
+
+void TStore::PrintRecSetAsJson(const TWPt<TBase>& Base, const PRecSet& RecSet, const TStr& FNm) {
+	TFOut FOut(FNm); PrintRecSetAsJson(Base, RecSet, FOut);
+}
+
+void TStore::PrintAllAsJson(const TWPt<TBase>& Base, TSOut& SOut) {
+	PStoreIter Iter = GetIter();
+	while (Iter->Next()) {
+		const uint64 RecId = Iter->GetRecId();
+		PJsonVal Json = GetRec(RecId).GetJson(Base, true, false);
+		SOut.PutStrLn(Json->SaveStr());
+	}
+}
+
+void TStore::PrintAllAsJson(const TWPt<TBase>& Base, const TStr& FNm) {
+	TFOut FOut(FNm); PrintAllAsJson(Base, FOut);
 }
 
 ///////////////////////////////
@@ -4373,7 +4410,6 @@ void TAggr::Init() {
 	Register<TAggrs::THistogram>();
 	Register<TAggrs::TKeywords>();
 	Register<TAggrs::TTimeLine>();
-	Register<TAggrs::TTwitterGraph>();
 #ifdef OG_AGGR_DOC_ATLAS
 	Register<TAggrs::TDocAtlas>();
 #endif
