@@ -311,8 +311,8 @@ void ExeStop(
   ((Cond) ? static_cast<void>(0) : TExcept::Throw(MsgStr, ArgStr1, ArgStr2))
 
 #define ESAssert(Cond) \
-	((Cond) ? static_cast<void>(0) : TExcept::Throw(TSysStr::GetLastMsgCStr(), TStr(__FILE__) + TStr(" line ") + TInt::GetStr(__LINE__) + TStr(": ")+ TStr(#Cond) ))
-
+  ((Cond) ? static_cast<void>(0) : TExcept::Throw(TSysStr::GetLastMsgCStr(), \
+    TStr(__FILE__) + TStr(" line ") + TInt::GetStr(__LINE__) + TStr(": ")+ TStr(#Cond) ))
 
 // compile time assert
 // #define STATIC_ASSERT(x) { const char temp[ (((x) == 0) ? 0 : 1) ] = {'\0'}; }
@@ -369,10 +369,6 @@ typedef enum {roUndef, roLs, roLEq, roEq, roNEq, roGEq, roGt} TRelOp;
 
 #ifndef MAX
   #define MAX(a,b) ((a) > (b) ? (a) : (b))
-#endif
-
-#ifndef MINMAX
-  #define MINMAX(min, max, val) MIN(max, MAX(min, val))
 #endif
 
 /////////////////////////////////////////////////
@@ -435,10 +431,8 @@ public:
 
 /////////////////////////////////////////////////
 // Operator-Definitions
-#ifndef BSL_OVERRIDES_STD
 template <class TRec>
 bool operator!=(const TRec& Rec1, const TRec& Rec2){return !(Rec1==Rec2);}
-#endif
 
 template <class TRec>
 bool operator>(const TRec& Rec1, const TRec& Rec2){return Rec2<Rec1;}
@@ -573,7 +567,7 @@ public:
 
   bool Empty() const {return Addr==NULL;}
   void Clr(){Addr=NULL;}
-  void Del(){delete Addr;}
+  void Del(){delete Addr; Addr=NULL;}
 
   int GetPrimHashCd() const {return Addr->GetPrimHashCd();}
   int GetSecHashCd() const { return Addr->GetSecHashCd(); }

@@ -32,20 +32,20 @@ void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "saveJson", _saveJson);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getInt", _getInt);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getFlt", _getFlt);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getTm", _getTm);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getFltLen", _getFltLen);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getFltAt", _getFltAt);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getFltV", _getFltV);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getTmLen", _getTmLen);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getTmAt", _getTmAt);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getTmV", _getTmV);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getInFlt", _getInFlt);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getInTm", _getInTm);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getOutFltV", _getOutFltV);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getOutTmV", _getOutTmV);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getN", _getN);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getInteger", _getInteger);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getFloat", _getFloat);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getTimestamp", _getTimestamp);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getFloatLength", _getFloatLength);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getFloatAt", _getFloatAt);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getFloatVector", _getFloatVector);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getTimestampLength", _getTimestampLength);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getTimestampAt", _getTimestampAt);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getTimestampVector", _getTimestampVector);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getInFloat", _getInFloat);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getInTimestamp", _getInTimestamp);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getOutFloatVector", _getOutFloatVector);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getOutTimestampVector", _getOutTimestampVector);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getNumberOfRecords", _getNumberOfRecords);
 
 	// Properties 
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "name"), _name);
@@ -135,7 +135,6 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			if (Args.Length() >= 3 && Args[2]->IsString()) {
 				ParamVal->AddToObj("store", TNodeJsUtil::GetArgStr(Args, 2));
 			}
-
 			// check if it's one stream aggregate or composition
 			if (TQm::TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
 				// we have a composition of aggregates, call code to assemble it
@@ -297,7 +296,7 @@ void TNodeJsSA::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(Args.Holder());
 }
 
-void TNodeJsSA::getInt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getInteger(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -311,7 +310,7 @@ void TNodeJsSA::getInt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetInt()));
 }
 
-void TNodeJsSA::getFlt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getFloat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -326,7 +325,7 @@ void TNodeJsSA::getFlt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetFlt()));
 }
 
-void TNodeJsSA::getTm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getTimestamp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -341,7 +340,7 @@ void TNodeJsSA::getTm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, (double)Aggr->GetTmMSecs()));
 }
 
-void TNodeJsSA::getFltLen(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getFloatLength(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -355,7 +354,7 @@ void TNodeJsSA::getFltLen(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetFltLen()));
 }
-void TNodeJsSA::getFltAt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getFloatAt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -370,7 +369,7 @@ void TNodeJsSA::getFltAt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetFlt(ElN)));
 }
-void TNodeJsSA::getFltV(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getFloatVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -385,7 +384,7 @@ void TNodeJsSA::getFltV(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Aggr->GetFltV(Res);
 	Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
 }
-void TNodeJsSA::getTmLen(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getTimestampLength(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -400,7 +399,7 @@ void TNodeJsSA::getTmLen(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetTmLen()));
 }
-void TNodeJsSA::getTmAt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getTimestampAt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -416,7 +415,7 @@ void TNodeJsSA::getTmAt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, (double)Aggr->GetTm(ElN)));
 }
-void TNodeJsSA::getTmV(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getTimestampVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -437,7 +436,7 @@ void TNodeJsSA::getTmV(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(FltRes));
 }
-void TNodeJsSA::getInFlt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getInFloat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -451,7 +450,7 @@ void TNodeJsSA::getInFlt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetInFlt()));
 }
-void TNodeJsSA::getInTm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getInTimestamp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -464,7 +463,7 @@ void TNodeJsSA::getInTm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	}
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, (double)Aggr->GetInTmMSecs()));
 }
-void TNodeJsSA::getOutFltV(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getOutFloatVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -481,7 +480,7 @@ void TNodeJsSA::getOutFltV(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
 }
 
-void TNodeJsSA::getOutTmV(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getOutTimestampVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -503,7 +502,7 @@ void TNodeJsSA::getOutTmV(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(FltRes));
 }
 
-void TNodeJsSA::getN(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSA::getNumberOfRecords(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 

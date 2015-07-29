@@ -11,28 +11,30 @@
 ///////////////////////////////////////////////////////////////////////
 // Blas Support
 #ifdef BLAS
-#ifdef AMD
-#include "acml.h"
-#elif INTEL 
-#define MKL_Complex8 std::complex<float>
-#define MKL_Complex16 std::complex<double>
-#undef small
-#include "mkl.h"
-//#include "mkl_scalapack.h"
-#else
-#define LAPACK_COMPLEX_CPP
-#include "cblas.h"
-#ifdef LAPACKE
-#include "lapacke.h"
+	#define MKL_Complex8 std::complex<float>
+	#define MKL_Complex16 std::complex<double>
+	#define lapack_complex_float std::complex<float>
+	#define lapack_complex_double std::complex<double>
+	#define LAPACK_COMPLEX_CPP
+	#ifdef AMD
+		#include "acml.h"
+	#elif INTEL 
+		#undef small
+		#include "mkl.h"
+	//#include "mkl_scalapack.h"
+	#else
+		#include "cblas.h"
+		#ifdef LAPACKE
+			#include "lapacke.h"
+		#endif
+	#endif
 #endif
-#endif
-#endif
-
+#include "base.h"
 //==========================================================
 // TODO remove
-#ifdef BLAS
-#include "lapacke.h"
-#endif
+//#ifdef BLAS
+//#include "lapacke.h"
+//#endif
 //==========================================================
 
 namespace TypeCheck{
@@ -699,6 +701,8 @@ public:
 	//A is rewritten in place with orthogonal matrix Q
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void QRbasis(TVVec<TType, TSizeTy, ColMajor>& A);
+	template <class TType, class TSizeTy, bool ColMajor>
+	inline static void QRbasis(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& Q);
 	// Tested in other function
 	//A is rewritten in place with orthogonal matrix Q (column pivoting to improve stability);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
@@ -3377,13 +3381,13 @@ public:
 #ifdef GLib_CPP11
 	// move constructor
 	TFullMatrix(TFullMatrix&& Mat);
+#endif
 
 private:
 	// wraps the matrix and takes control of all the cleanup
 	TFullMatrix(TFltVV* Mat);
 
 public:
-#endif
     // destructor
     virtual ~TFullMatrix();
 

@@ -227,7 +227,6 @@ bool TSysTm::IsValidDate(const TTm& Tm) {
 	return (bool) SystemTimeToFileTime(&SysTm, &FileTm);
 }
 
-
 TTm TSysTm::GetLocTmFromUniTm(const TTm& Tm){
   // get time-zone information
   TIME_ZONE_INFORMATION TzInf;
@@ -668,7 +667,6 @@ bool TSysTm::IsValidDate(const TTm& Tm) {
 	FailR("Feature not implemented");
 	return true;
 }
-
 
 TTm TSysTm::GetLocTmFromUniTm(const TTm& Tm) {
   struct tm tms, tmr;

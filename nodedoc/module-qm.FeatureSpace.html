@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
   <title>Class: FeatureSpace</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -25,9 +25,9 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">FeatureSpace</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-2238">qminerdoc.<wbr>js:2238</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-2279">qminerdoc.<wbr>js:2279</a></p>
             <div class="symbol-classdesc">
-              <p>Represents the feature space.</p>
+              <p>Represents the feature space. It contains any of the <a href="module-qm.html#~FeatureExtractors">module:qm~FeatureExtractors</a>.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -116,9 +116,7 @@
             <p>Feature Space</p>
             <section>
               <h3>
-
             Example
-
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import qm module
@@ -211,9 +209,7 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;F
               <p>Adds a new feature extractor to the feature space.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -222,21 +218,21 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;WeatherForcast&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Weather&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;Date&quot;, &quot;type&quot;: &quot;datetime&quot; },
-           { &quot;name&quot;: &quot;TemperatureDegrees&quot;, &quot;type&quot;: &quot;int&quot; }
+       type: &quot;WeatherForcast&quot;,
+       fields: [
+           { type: &quot;Weather&quot;, type: &quot;string&quot; },
+           { type: &quot;Date&quot;, type: &quot;datetime&quot; },
+           { type: &quot;TemperatureDegrees&quot;, type: &quot;int&quot; }
        ]
    }]
 });
 // put some records in the &quot;WeatherForecast&quot; store
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-27T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 19 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Partly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-28T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 22 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-29T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-05-30T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 25 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Scattered Showers&quot;, &quot;Date&quot;: &quot;2015-05-31T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 24 });
-base.store(&quot;WeatherForcast&quot;).push({ &quot;Weather&quot;: &quot;Mostly Cloudy&quot;, &quot;Date&quot;: &quot;2015-06-01T11:00:00&quot;, &quot;TemperatureDegrees&quot;: 27 });
+base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Partly Cloudy&quot;, Date: &quot;2015-05-27T11:00:00&quot;, TemperatureDegrees: 19 });
+base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Partly Cloudy&quot;, Date: &quot;2015-05-28T11:00:00&quot;, TemperatureDegrees: 22 });
+base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-05-29T11:00:00&quot;, TemperatureDegrees: 25 });
+base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-05-30T11:00:00&quot;, TemperatureDegrees: 25 });
+base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Scattered Showers&quot;, Date: &quot;2015-05-31T11:00:00&quot;, TemperatureDegrees: 24 });
+base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-06-01T11:00:00&quot;, TemperatureDegrees: 27 });
 // create a feature space 
 var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;WeatherForcast&quot;, field: &quot;TemperatureDegrees&quot; });
 // add a new feature extractor to the feature space
@@ -283,9 +279,7 @@ ftr.addFeatureExtractor({ type: &quot;text&quot;, source: &quot;WeatherForcast&q
               <p>Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -294,24 +288,24 @@ var qm = require(&quot;qminer&quot;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;Class&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
-           { &quot;name&quot;: &quot;StudyGroups&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       type: &quot;Class&quot;,
+       fields: [
+           { type: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+           { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
        ]
    }]
 });
 // add some records to the store
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Dean&quot;, &quot;StudyGroups&quot;: [&quot;A&quot;, &quot;D&quot;] });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroups&quot;: [&quot;B&quot;, &quot;D&quot;] });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Magnitude&quot;, &quot;StudyGroups&quot;: [&quot;B&quot;, &quot;C&quot;] });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Leonard&quot;, &quot;StudyGroups&quot;: [&quot;A&quot;, &quot;B&quot;] });
+base.store(&quot;Class&quot;).push({ Name: &quot;Dean&quot;, StudyGroups: [&quot;A&quot;, &quot;D&quot;] });
+base.store(&quot;Class&quot;).push({ Name: &quot;Chang&quot;, StudyGroups: [&quot;B&quot;, &quot;D&quot;] });
+base.store(&quot;Class&quot;).push({ Name: &quot;Magnitude&quot;, StudyGroups: [&quot;B&quot;, &quot;C&quot;] });
+base.store(&quot;Class&quot;).push({ Name: &quot;Leonard&quot;, StudyGroups: [&quot;A&quot;, &quot;B&quot;] });
 // create a feature space containing the multinomial feature extractor
 var ftr = new qm.FeatureSpace(base, { type: &quot;multinomial&quot;, source: &quot;Class&quot;, field: &quot;StudyGroups&quot;, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;] });
 // create a feature matrix out of the records of the store by using the feature space
 // returns a sparse matrix equal to
 // 1  0  0  1
-// 0  1  1  1
+// 0  1  0  1
 // 0  0  1  0
 // 1  1  0  0
 var matrix = ftr.extractMatrix(base.store(&quot;Class&quot;).recs);</code></pre>
@@ -356,9 +350,7 @@ var matrix = ftr.extractMatrix(base.store(&quot;Class&quot;).recs);</code></pre>
               <p>Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -367,18 +359,18 @@ var qm = require(&quot;qminer&quot;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;Class&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
-           { &quot;name&quot;: &quot;StudyGroups&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       type: &quot;Class&quot;,
+       fields: [
+           { type: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+           { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
        ]
    }]
 });
 // add some records to the store
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Dean&quot;, &quot;StudyGroups&quot;: [&quot;A&quot;, &quot;D&quot;] });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroups&quot;: [&quot;B&quot;, &quot;D&quot;] });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Magnitude&quot;, &quot;StudyGroups&quot;: [&quot;B&quot;, &quot;C&quot;] });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Leonard&quot;, &quot;StudyGroups&quot;: [&quot;A&quot;, &quot;B&quot;] });
+base.store(&quot;Class&quot;).push({ Name: &quot;Dean&quot;, StudyGroups: [&quot;A&quot;, &quot;D&quot;] });
+base.store(&quot;Class&quot;).push({ Name: &quot;Chang&quot;, StudyGroups: [&quot;B&quot;, &quot;D&quot;] });
+base.store(&quot;Class&quot;).push({ Name: &quot;Magnitude&quot;, StudyGroups: [&quot;B&quot;, &quot;C&quot;] });
+base.store(&quot;Class&quot;).push({ Name: &quot;Leonard&quot;, StudyGroups: [&quot;A&quot;, &quot;B&quot;] });
 // create a feature space containing the multinomial feature extractor
 var ftr = new qm.FeatureSpace(base, { type: &quot;multinomial&quot;, source: &quot;Class&quot;, field: &quot;StudyGroups&quot;, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;] });
 // create a sparse feature matrix out of the records of the store by using the feature space
@@ -426,9 +418,7 @@ var sparseMatrix = ftr.extractSparseMatrix(base.store(&quot;Class&quot;).recs);<
               <p>Creates a sparse feature vector from the given record.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -437,18 +427,18 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;Class&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
-           { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+       type: &quot;Class&quot;,
+       fields: [
+           { type: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+           { type: &quot;StudyGroup&quot;, type: &quot;string&quot; }
        ]
    }]
 });
 // add some records to the store
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Dean&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroup&quot;: &quot;D&quot; });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Magnitude&quot;, &quot;StudyGroup&quot;: &quot;C&quot; });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Leonard&quot;, &quot;StudyGroup&quot;: &quot;B&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Dean&quot;, StudyGroup: &quot;A&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Chang&quot;, StudyGroup: &quot;D&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Magnitude&quot;, StudyGroup: &quot;C&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Leonard&quot;, StudyGroup: &quot;B&quot; });
 // create a new feature space
 // the feature space is of dimensions [0, 4]; 4 is the dimension of the categorical feature extractor
 // and 0 is the dimension of text feature extractor (the text feature extractor doesn&#x27;t have any words,
@@ -502,9 +492,7 @@ var vec = ftr.extractSparseVector(base.store(&quot;Class&quot;)[0]);</code></pre
               <p>Creates a feature vector from the given record.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -513,18 +501,18 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;Class&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
-           { &quot;name&quot;: &quot;StudyGroup&quot;, &quot;type&quot;: &quot;string&quot; }
+       type: &quot;Class&quot;,
+       fields: [
+           { type: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+           { type: &quot;StudyGroup&quot;, type: &quot;string&quot; }
        ]
    }]
 });
 // add some records to the store
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Jeff&quot;, &quot;StudyGroup&quot;: &quot;A&quot; });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Britta&quot;, &quot;StudyGroup&quot;: &quot;D&quot; });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Abed&quot;, &quot;StudyGroup&quot;: &quot;C&quot; });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Annie&quot;, &quot;StudyGroup&quot;: &quot;B&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Jeff&quot;, StudyGroup: &quot;A&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Britta&quot;, StudyGroup: &quot;D&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Abed&quot;, StudyGroup: &quot;C&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Annie&quot;, StudyGroup: &quot;B&quot; });
 // create a new feature space
 // the feature space is of dimensions [0, 4]; 4 is the dimension of the categorical feature extractor
 // and 0 is the dimension of text feature extractor (the text feature extractor doesn&#x27;t have any words,
@@ -578,9 +566,7 @@ var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]);</code></pre>
               <p>Filters the vector to keep only the elements from the feature extractor.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -589,12 +575,12 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;Academics&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;Age&quot;, &quot;type&quot;: &quot;int&quot; },
-           { &quot;name&quot;: &quot;Gendre&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;Skills&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       type: &quot;Academics&quot;,
+       fields: [
+           { type: &quot;Name&quot;, type: &quot;string&quot; },
+           { type: &quot;Age&quot;, type: &quot;int&quot; },
+           { type: &quot;Gendre&quot;, type: &quot;string&quot; },
+           { type: &quot;Skills&quot;, type: &quot;string_v&quot; }
        ]
    }]
 });
@@ -688,9 +674,7 @@ var spVec3 = ftr.filter(spVec, 1, false); // returns sparse vector [[1, 1]]</cod
               <p>Gives the name of the feature at the given position.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -699,18 +683,18 @@ var qm = require(&quot;qminer&quot;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;Class&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot;, &quot;primary&quot;: true },
-           { &quot;name&quot;: &quot;StudyGroups&quot;, &quot;type&quot;: &quot;string_v&quot; }
+       type: &quot;Class&quot;,
+       fields: [
+           { type: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+           { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
        ]
    }]
 });
 // add some records to the store
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Dean&quot;, &quot;StudyGroups&quot;: [&quot;A&quot;, &quot;D&quot;] });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Chang&quot;, &quot;StudyGroups&quot;: [&quot;B&quot;, &quot;D&quot;] });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Magnitude&quot;, &quot;StudyGroups&quot;: [&quot;B&quot;, &quot;C&quot;] });
-base.store(&quot;Class&quot;).push({ &quot;Name&quot;: &quot;Leonard&quot;, &quot;StudyGroups&quot;: [&quot;A&quot;, &quot;B&quot;] });
+base.store(&quot;Class&quot;).push({ Name: &quot;Dean&quot;, StudyGroups: [&quot;A&quot;, &quot;D&quot;] });
+base.store(&quot;Class&quot;).push({ Name: &quot;Chang&quot;, StudyGroups: [&quot;B&quot;, &quot;D&quot;] });
+base.store(&quot;Class&quot;).push({ Name: &quot;Magnitude&quot;, StudyGroups: [&quot;B&quot;, &quot;C&quot;] });
+base.store(&quot;Class&quot;).push({ Name: &quot;Leonard&quot;, StudyGroups: [&quot;A&quot;, &quot;B&quot;] });
 // create a feature space containing the multinomial feature extractor
 var ftr = new qm.FeatureSpace(base, [
 { type: &quot;text&quot;, source: &quot;Class&quot;, field: &quot;Name&quot; },
@@ -763,9 +747,7 @@ var feature2 = ftr.getFeature(2); // returns &quot;magnitude&quot;</code></pre>
               <p>Gives the name of feature extractor at given position.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -774,11 +756,11 @@ var qm = require(&quot;qminer&quot;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;People&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;Gendre&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;Age&quot;, &quot;type&quot;: &quot;int&quot; }
+       type: &quot;People&quot;,
+       fields: [
+           { type: &quot;Name&quot;, type: &quot;string&quot; },
+           { type: &quot;Gendre&quot;, type: &quot;string&quot; },
+           { type: &quot;Age&quot;, type: &quot;int&quot; }
        ]
    }]
 });
@@ -830,9 +812,7 @@ var extractorName = ftr.getFeatureExtractor(1); // returns &quot;Categorical[Gen
               <p>Calculates the inverse of a single feature using a specific feature extractor.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -841,21 +821,21 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;TheWitcherSaga&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;YearOfRelese&quot;, &quot;type&quot;: &quot;int&quot; },
-           { &quot;name&quot;: &quot;EnglishEdition&quot;, &quot;type&quot;: &quot;bool&quot; }
+       type: &quot;TheWitcherSaga&quot;,
+       fields: [
+           { type: &quot;Title&quot;, type: &quot;string&quot; },
+           { type: &quot;YearOfRelease&quot;, type: &quot;int&quot; },
+           { type: &quot;EnglishEdition&quot;, type: &quot;bool&quot; }
        ]
    }]
 });
 // put some records in the store
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Blood of Elves&quot;, &quot;YearOfRelese&quot;: 1994, &quot;EnglishEdition&quot;: true });
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Time of Contempt&quot;, &quot;YearOfRelese&quot;: 1995, &quot;EnglishEdition&quot;: true });
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Baptism of Fire&quot;, &quot;YearOfRelese&quot;: 1996, &quot;EnglishEdition&quot;: true });
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;The Swallow&#x27;s Tower&quot;, &quot;YearOfRelese&quot;: 1997, &quot;EnglishEdition&quot;: false });
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Lady of the Lake&quot;, &quot;YearOfRelese&quot;: 1999, &quot;EnglishEdition&quot;: false });
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Season of Storms&quot;, &quot;YearOfRelese&quot;: 2013, &quot;EnglishEdition&quot;: false });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Blood of Elves&quot;, YearOfRelease: 1994, EnglishEdition: true });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Time of Contempt&quot;, YearOfRelease: 1995, EnglishEdition: true });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Baptism of Fire&quot;, YearOfRelease: 1996, EnglishEdition: true });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;The Swallow&#x27;s Tower&quot;, YearOfRelease: 1997, EnglishEdition: false });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Lady of the Lake&quot;, YearOfRelease: 1999, EnglishEdition: false });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Season of Storms&quot;, YearOfRelease: 2013, EnglishEdition: false });
 // create a feature space with the numeric feature extractor and update the feature space with the records in store
 // for update, look the method updateRecords in feature space
 var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;TheWitcherSaga&quot;, field: &quot;YearOfRelese&quot;, normalize: true });
@@ -915,13 +895,11 @@ var inverse = ftr.invertFeature(0, 0); // returns the value 1994</code></pre>
                   <p><code>Object</code>&nbsp;The inverse of val using the feature extractor with index idx.</p>
                 </dd>
               </dl>
-              <h3 id="invertFeatureVector"><span class="symbol-name">invertFeatureVector</span><span class="signature"><span class="signature-params">(ftr)</span>&nbsp;&rarr; <span class="signature-returns"> module:qm.Vector</span></span></h3>
+              <h3 id="invertFeatureVector"><span class="symbol-name">invertFeatureVector</span><span class="signature"><span class="signature-params">(ftr)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Performs the inverse operation of ftrVec. Works only for numeric feature extractors.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -930,21 +908,21 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;TheWitcherSaga&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;YearOfRelese&quot;, &quot;type&quot;: &quot;int&quot; },
-           { &quot;name&quot;: &quot;EnglishEdition&quot;, &quot;type&quot;: &quot;bool&quot; }
+       type: &quot;TheWitcherSaga&quot;,
+       fields: [
+           { type: &quot;Title&quot;, type: &quot;string&quot; },
+           { type: &quot;YearOfRelease&quot;, type: &quot;int&quot; },
+           { type: &quot;EnglishEdition&quot;, type: &quot;bool&quot; }
        ]
    }]
 });
 // put some records in the store
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Blood of Elves&quot;, &quot;YearOfRelese&quot;: 1994, &quot;EnglishEdition&quot;: true });
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Time of Contempt&quot;, &quot;YearOfRelese&quot;: 1995, &quot;EnglishEdition&quot;: true });
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Baptism of Fire&quot;, &quot;YearOfRelese&quot;: 1996, &quot;EnglishEdition&quot;: true });
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;The Swallow&#x27;s Tower&quot;, &quot;YearOfRelese&quot;: 1997, &quot;EnglishEdition&quot;: false });
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Lady of the Lake&quot;, &quot;YearOfRelese&quot;: 1999, &quot;EnglishEdition&quot;: false });
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Season of Storms&quot;, &quot;YearOfRelese&quot;: 2013, &quot;EnglishEdition&quot;: false });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Blood of Elves&quot;, YearOfRelease: 1994, EnglishEdition: true });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Time of Contempt&quot;, YearOfRelease: 1995, EnglishEdition: true });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Baptism of Fire&quot;, YearOfRelease: 1996, EnglishEdition: true });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;The Swallow&#x27;s Tower&quot;, YearOfRelease: 1997, EnglishEdition: false });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Lady of the Lake&quot;, YearOfRelease: 1999, EnglishEdition: false });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Season of Storms&quot;, YearOfRelease: 2013, EnglishEdition: false });
 // create a feature space with the numeric feature extractor and update the feature space with the records in store
 // for update, look the method updateRecords in feature space
 var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;TheWitcherSaga&quot;, field: &quot;YearOfRelese&quot;, normalize: true });
@@ -975,7 +953,7 @@ var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]</code>
                         <p>ftr</p>
                       </td>
                       <td>
-                        <p>(module:qm.Vector or Array of Object)</p>
+                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or Array of Object)</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -990,7 +968,7 @@ var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]</code>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>module:qm.Vector</code>&nbsp;The inverse of ftr as vector.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The inverse of ftr as vector.</p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
@@ -1038,9 +1016,7 @@ var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]</code>
                 <br> For dateWindow feature extractor, it can update the start and the end of the window period to form the normalization.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1124,9 +1100,7 @@ ftr.extractVector(Store[2]); // returns the vector [1, 0, 0, 1, 0, 0, 1 / Math.s
                 <br> For dateWindow feature extractor, it can update the start and the end of the window period to form the normalization.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1211,7 +1185,7 @@ ftr.extractVector(Store[3]); // returns the vector [1, 1, 0, 0, 1 / Math.sqrt(2)
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on June 3, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on July 28, 2015.
       </p>
     </div>
   </footer>

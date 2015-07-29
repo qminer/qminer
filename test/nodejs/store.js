@@ -151,7 +151,7 @@ describe('Empty Store Tests', function () {
 // Small Store
 
 function Store() {
-    this.base = qm.create('qm.conf', "", true);
+    this.base = new qm.Base({ mode: 'createClean' });
     this.base.createStore({
         "name": "People",
         "fields": [
@@ -341,8 +341,8 @@ describe('Store Tests', function () {
 // Two Stores
 
 function TStore() {
-    this.base = qm.create('qm.conf', "", true);
-    this.base.createStore([{
+    this.base = new qm.Base({ mode: 'createClean' });
+	this.base.createStore([{
         "name": "People",
         "fields": [
             { "name": "Name", "type": "string", "primary": true },

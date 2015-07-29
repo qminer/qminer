@@ -87,9 +87,9 @@ void TMin::Update(const double& InVal, const uint64& InTmMSecs,
 
 	if (!OutTmMSecsV.Empty()) {
 		// find maximum timestamp of outgoing measurements
-		uint64 MaxOutTm = OutTmMSecsV[0];
+		uint64 MaxOutTm = OutTmMSecsV.Last();
 
-		while (AllValV[0].Val2 < MaxOutTm) {
+		while (AllValV[0].Val2 <= MaxOutTm) {
 			// pop front
 			AllValV.Del(0);
 		}
@@ -126,9 +126,8 @@ void TMax::Update(const double& InVal, const uint64& InTmMSecs,
 
 	if (!OutTmMSecsV.Empty()) {
 		// find maximum timestamp of outgoing measurements
-		uint64 MaxOutTm = OutTmMSecsV[0];
-
-		while (AllValV[0].Val2 < MaxOutTm) {
+		uint64 MaxOutTm = OutTmMSecsV.Last();
+		while (AllValV[0].Val2 <= MaxOutTm) {
 			// pop front
 			AllValV.Del(0);
 		}
@@ -320,26 +319,43 @@ void TVar::Save(TSOut& SOut) const {
 void TCov::Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV, const int& N){
     
-    pNo = N;
-    int tempN = N - 1 + OutValVX.Len();
-    double deltaX, deltaY;    
-    // remove old values from the mean
-    for (int ValN = 0; ValN < OutValVX.Len(); ValN++)
-    {        
-        tempN--;       
-        deltaX = OutValVX[ValN] - MaX;
-        deltaY = OutValVY[ValN] - MaY;
-        MaX = MaX - deltaX/tempN;  
-        MaY = MaY - deltaY/tempN;  
-        Cov = Cov - (OutValVX[ValN] - MaX) * (OutValVY[ValN] - MaY);
-    }
-    //add the new value to the resulting mean    
-    deltaX = InValX - MaX;
-    deltaY = InValY - MaY;
-    MaX = MaX + deltaX/N;
-    MaY = MaY + deltaY/N;
-    Cov = Cov + (InValX - MaX) * (InValY - MaY);
-    TmMSecs = InTmMSecs;
+  //  pNo = N;
+  //  int tempN = N - 1 + OutValVX.Len();
+  //  double deltaX, deltaY;    
+  //  // remove old values from the mean
+  //  for (int ValN = 0; ValN < OutValVX.Len(); ValN++)
+  //  {        
+  //      tempN--;       
+  //      deltaX = OutValVX[ValN] - MaX;
+  //      deltaY = OutValVY[ValN] - MaY;
+  //      MaX = MaX - deltaX/tempN; 
+  //      MaY = MaY - deltaY/tempN;
+		//Cov = Cov - (OutValVX[ValN] - MaX) * (OutValVY[ValN] - MaY);
+  //  }
+  //  add the new value to the resulting mean    
+  //  deltaX = InValX - MaX;
+  //  deltaY = InValY - MaY;
+  //  MaX = MaX + deltaX/N;
+  //  MaY = MaY + deltaY/N;
+  //  Cov = Cov + (InValX - MaX) * (InValY - MaY);
+  //  TmMSecs = InTmMSecs;
+
+	pNo = N;
+	TFlt delta, fdelta;
+	// remove old values
+	for (int ValN = 0; ValN < OutValVX.Len(); ValN++) {
+		MaX = MaX - OutValVX[ValN];
+		MaY = MaY - OutValVY[ValN];
+		fdelta = (OutValVX[ValN] - MaX / N)*(OutValVY[ValN] - MaY / N);
+		Cov = Cov - fdelta;
+	}
+	// add the new value to the resulting mean
+	MaX = MaX + InValX;
+	MaY = MaY + InValY;
+	delta = (InValX - MaX / N)*(InValY - MaY / N);
+	Cov = Cov + delta;
+
+	TmMSecs = InTmMSecs;
 }
 
 /////////////////////////////////////////
@@ -392,7 +408,8 @@ void TBufferedInterpolator::AddPoint(const double& Val, const uint64& Tm) {
 	// check if the new point can be added
 	if (!Buff.Empty()) {
 		const TUInt64FltPr& LastRec = Buff.GetNewest();
-		IAssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val), "New point has a timestamp lower then the last point in the buffer, or same with different values!");
+		EAssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val),
+            "New point has a timestamp lower then the last point in the buffer, or same with different values!");
 	}
 
 	// add the new point

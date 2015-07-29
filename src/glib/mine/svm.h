@@ -19,6 +19,7 @@ private:
     TFltV WgtV;
     TFlt Bias;
 public:
+    TLinModel(): Bias(0.0) {  }
     TLinModel(const TFltV& _WgtV): WgtV(_WgtV), Bias(0.0) {  }
     TLinModel(const TFltV& _WgtV, const double& _Bias): WgtV(_WgtV), Bias(_Bias) {  }
 
@@ -26,11 +27,11 @@ public:
     void Save(TSOut& SOut) const { WgtV.Save(SOut); Bias.Save(SOut); }
     
     /// Get weight vector
-    void GetWgtV(TFltV& _WgtV) const { _WgtV = WgtV; }
+    const TFltV& GetWgtV() const { return WgtV; }
     
     /// Get bias
     double GetBias() const { return Bias; }
-    
+
     /// Classify full vector
     double Predict(const TFltV& Vec) const { 
         return TLinAlg::DotProduct(WgtV, Vec) + Bias; 
@@ -39,6 +40,11 @@ public:
     /// Classify sparse vector
     double Predict(const TIntFltKdV& SpVec) const { 
         return TLinAlg::DotProduct(WgtV, SpVec) + Bias;
+    }
+
+    /// Classify matrix column vector
+    double Predict(const TFltVV& Mat, const int& ColN) const {
+        return TLinAlg::DotProduct(Mat, ColN, WgtV) + Bias;
     }
 };
 

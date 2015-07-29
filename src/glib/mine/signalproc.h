@@ -24,7 +24,7 @@ public:
 
 	void Update(const double& InVal, const uint64& InTmMSecs, 
         const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N);	
-	double GetMa() const { return Ma; }
+	double GetValue() const { return Ma; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
     
@@ -45,7 +45,7 @@ public:
 
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
-	double GetSum() const { return Sum; }
+	double GetValue() const { return Sum; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
@@ -66,7 +66,7 @@ public:
 
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
-	double GetMin() const { return Min; }
+	double GetValue() const { return Min; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
@@ -87,7 +87,7 @@ public:
 
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
-	double GetMax() const { return Max; }
+	double GetValue() const { return Max; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
@@ -125,7 +125,7 @@ public:
 	void Update(const double& Val, const uint64& NewTmMSecs);
 	// current status
 	bool IsInit() const { return InitP; }
-	double GetEma() const { return Ema; }
+	double GetValue() const { return Ema; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
@@ -148,7 +148,10 @@ public:
 	void Update(const double& InVal, const uint64& InTmMSecs, 
         const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N);
 	// current status	
-	double GetM2() const { return M2 / pNo; }
+	double GetValue() const {
+		if (pNo > 1) { return M2 / (pNo - 1); }
+		else { return 0; }
+	}
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
@@ -166,7 +169,10 @@ public:
 
 	void Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV, const int& N);	
-	double GetCov() const { return Cov/pNo; }
+	double GetCov() const { 
+		if (pNo > 1) { return Cov / (pNo - 1); } 
+		else { return 0; }
+	}
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 

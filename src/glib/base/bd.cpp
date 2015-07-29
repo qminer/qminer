@@ -11,7 +11,6 @@
 #include <signal.h>
 #endif
 
-
 /////////////////////////////////////////////////
 // Mathmatical-Errors
 #if defined(__BCPLUSPLUS__) && (__BCPLUSPLUS__==0x0530)
@@ -72,12 +71,12 @@ void SaveToErrLog(const char* MsgCStr){
 
 #if defined(SW_TRACE)
 void PrintBacktrace() {
-	// stack dump, works for g++
-	void *array[20];
-	size_t size;
+  // stack dump, works for g++
+  void *array[20];
+  size_t size;
 
-	// flush stdout
-	fflush(0);
+  // flush stdout
+  fflush(0);
 
 	// get the trace and print it to stdout
   size = backtrace(array, sizeof(array)/sizeof(array[0]));

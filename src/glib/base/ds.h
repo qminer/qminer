@@ -1208,8 +1208,7 @@ TSizeTy TVec<TVal, TSizeTy>::AddUnique(const TVal& Val){
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::GetSubValV(const TSizeTy& _BValN, const TSizeTy& _EValN, TVec<TVal, TSizeTy>& SubValV) const {
   SubValV.Clr();
-  if (Len() == 0 || _BValN >= Len() || _BValN > _EValN)
-    return;
+  if (Len() == 0 || _BValN >= Len() || _BValN > _EValN) { return; }
   const TSizeTy BValN=TInt::GetInRng(_BValN, 0, Len()-1);
   const TSizeTy EValN=TInt::GetInRng(_EValN, 0, Len()-1);
   const TSizeTy SubVals=TInt::GetMx(0, EValN-BValN+1);
@@ -1221,8 +1220,7 @@ void TVec<TVal, TSizeTy>::GetSubValV(const TSizeTy& _BValN, const TSizeTy& _EVal
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::GetSubValVMemCpy(const TSizeTy& _BValN, const TSizeTy& _EValN, TVec<TVal, TSizeTy>& SubValV) const {
     SubValV.Clr();
-	if (Len() == 0 || _BValN >= Len() || _BValN > _EValN)
-		return;
+	if (Len() == 0 || _BValN >= Len() || _BValN > _EValN) { return; }
 	const TSizeTy BValN = TInt::GetInRng(_BValN, 0, Len() - 1);
 	const TSizeTy EValN = TInt::GetInRng(_EValN, 0, Len() - 1);
 	const TSizeTy SubVals = TInt::GetMx(0, EValN - BValN + 1);
@@ -3029,8 +3027,8 @@ public:
     First++; ValV.Add(Val);}
   // add all items from the vector to the queue
   void PushV(const TVec<TVal>& ValV) {
-	  for (int N = 0; N < ValV.Len(); N++)
-		  Push(ValV[N]);
+	  for (int N = 0; N < ValV.Len(); N++) {
+		  Push(ValV[N]); }
   }
 
   void Shuffle(TRnd& Rnd){

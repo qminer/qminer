@@ -17,14 +17,16 @@ module.exports = exports = function (pathPrefix) {
     exports = qm.analytics;
 
     var la = require(__dirname + '/la.js')(pathPrefix);
+    var stat = qm.statistics;
+
     var qm_util = require(__dirname + '/qm_util.js');
 
-
+    //!STARTJSDOC
     exports.preprocessing = new function() {
-        this.binerize = function (y, cat) {
+        this.binarize = function (y, labelId) {
             var target = new la.Vector();
             for (var i = 0; i < y.length; i++) {
-                target.push(y[i] == cat ? 1 : -1);
+                target.push(y[i] === labelId ? 1 : -1);
             }
             return target;
         };
@@ -32,55 +34,131 @@ module.exports = exports = function (pathPrefix) {
         this.applyModel = function (model, X) {
             var target = new la.Vector();
             for (var i = 0; i < X.cols; i++) {
-                target.push(model.decision_function(X[i]));
+                target.push(model.decisionFunction(X[i]));
             }
             return target;
         }
     };
 
-    exports.OneVsAll = function (model, modelParam, cats) {
+    /**
+    * SVM model
+    * @typedef {Object} svmModel
+    * @property  {module:la.Vector} [svmModel.weigths] - SVM normal vector
+    */
+    /**
+	* Get SVC model
+	* @returns {module:analytics~svmModel} Get current SVM model
+	*/
+    exports.SVC.prototype.getModel = function() { return { weights: this.weights }; }
+    /**
+	* Get SVR model
+	* @returns {module:analytics~svmModel} Get current SVM model
+	*/
+    exports.SVR.prototype.getModel = function() { return { weights: this.weights }; }
+
+    // var model = new OneVsAll({
+    //     model : analytics.SVC,
+    //     modelParam: { c: 10, j: 10, maxTime: 123 },
+    //     cats : 123
+    // });
+    //
+    // var X = featureSpace.extractSparseMatrix(recordSet);
+    // var y = store.getCol("label");
+    // model.fit(X, y);
+    //
+    // model.predict(featureSpace.extractSparseVector(record));
+
+    /**
+    * @classdesc One vs. all model for multiclass prediction. Builds binary model
+    * for each category and predicts the one with the highest score. Binary model is
+    * provided as part of the constructor.
+    * @class
+    * @param {Object} [oneVsAllParam] - Constructor parameters
+    * @param {function} [oneVsAllParam.model] - Constructor for binary model to be
+    * used internaly. Constructor should expect only one parameter.
+    * @param {Object} [oneVsAllParam.modelParam] - Parameter for oneVsAllParam.model constructor.
+    * @param {number} [oneVsAllParam.categories] - Number of categories.
+    */
+    exports.OneVsAll = function (oneVsAllParam) {
         // remember parameters
-        this.model = model;
-        this.modelParam = modelParam;
-        this.cats = cats;
+        this.model = oneVsAllParam.model;
+        this.modelParam = oneVsAllParam.modelParam;
+        this.cats = oneVsAllParam.categories;
         // trained models
         this.models = [ ];
 
-        // apply all models to the given vector and return distance to the class boundary
-        this.decision_function = function(x) {
-            // evaluate all models
-            var scores = [ ];
-            for (var cat = 0; cat < this.cats; cat++) {
-                scores.push(this.models[cat].decision_function(x));
+        /**
+         * apply all models to the given vector and returns a vector of scores, one for each category.
+         * Semantic of scores depand on the provided binary model.
+         * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X -
+         * Input feature vector or matrix with feature vectors as columns
+         * @returns {module:la.Vector | module:la.Matrix}
+         * Score for each input vector and category. In case input is a vector, ouput is
+         * a vector of scores. In case input is a matrix, output is matrix with columns corresponding
+         * to instances, and rows corresponding to labels.
+         */
+        this.decisionFunction = function(X) {
+            // check what is our input
+            if (x instanceof la.Vector || x instanceof la.SparseVector) {
+                // evaluate all models
+                var scores = new la.Vector();
+                for (var cat = 0; cat < this.cats; cat++) {
+                    scores.push(this.models[cat].decisionFunction(x));
+                }
+                return scores;
+            } else if (x instanceof la.Matrix || x instanceof la.SparseMatrix) {
+                // create matrix where cols are instances and rows are scores for categories
+                var scores = new la.Matrix({rows: this.cats, cols: x.cols});
+                for (var i = 0; i < x.cols; i++) {
+                    var x_i = x.getCol(i);
+                    for (var cat = 0; cat < this.cats; cat++) {
+                        scores.put(cat, i, this.models[cat].decisionFunction(x_i));
+                    }
+                }
+                return scores;
+            } else {
+                throw "analytics.OneVsAll.decisionFunction: Input data of unsupported type!";
             }
-            return scores;
         }
 
-        // return the most likely category
+        /**
+         * apply all models to the given vector and returns category with the highest score.
+         * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X -
+         * Input feature vector or matrix with feature vectors as columns
+         * @returns {number | module:la.IntVector} Highest scored category, or categories when input is matrix.
+         */
         this.predict = function(x) {
             // evaluate all models
-            var scores = this.decision_function(x)
+            var scores = this.decisionFunction(x);
             // select maximal one
-            var maxScore = scores[0], maxCat = 0;
-            for (var cat = 1; cat < this.cats; cat++) {
-                if (scores[cat] > maxScore) {
-                    maxScore = scores[cat];
-                    maxCat = cat;
+            if (scores instanceof la.Vector) {
+                return scores.getMaxIdx();
+            } else if (scores instanceof la.Matrix) {
+                var predictions = new la.IntVector();
+                for (var i = 0; i < scores.length; i++) {
+                    predictions.push(scores.getCol(i).getMaxIdx());
                 }
+                return predictions;
+            } else {
+                throw "analytics.OneVsAll.predict: decisionFunction returns unsupported type!";
             }
-            // done!
-            return maxCat;
         }
 
         // X = feature matrix
         // y = target label from 0..cats
+        /**
+         * apply all models to the given vector and returns category with the highest score.
+         * @param {module:la.Matrix | module:la.SparseMatrix} X - training instance feature vectors
+         * @param {module:la.Vector} y - target category for each training instance. Categories must
+         * be integer numbers between 0 and oneVsAllParam.categories - 1.
+         */        
         this.fit = function(X, y) {
             this.models = [ ];
             // make model for each category
             for (var cat = 0; cat < this.cats; cat++) {
                 console.log("Fitting label", (cat + 1), "/", this.cats);
                 // prepare targert vector for current category
-                var target = exports.preprocessing.binerize(y, cat);
+                var target = exports.preprocessing.binarize(y, cat);
                 // get the model
                 var catModel = new this.model(this.modelParam);
                 this.models.push(catModel.fit(X, target));
@@ -90,9 +168,73 @@ module.exports = exports = function (pathPrefix) {
         }
     };
 
+    exports.ThresholdModel = function(params) {
+        // what do we optimize
+        this.target = params.target;
+        if (this.target === "recall" || this.target === "precision") {
+            this.level = params.level;
+        }
+        // threshold model
+        this.model = null;
+
+        // apply all models to the given vector and return distance to the class boundary
+        // x = dense vector with prediction score for each class
+        // result = traslated predictions based on thresholds
+        this.decisionFunction = function(x) {
+            if (x instanceof Number) {
+                // just transate based on the model's threshold
+                return x - this.model;
+            } else if (x instanceof la.Vector) {
+                // each element is a new instance
+                var scores = new la.Vector();
+                for (var i = 0; i < x.length; i++) {
+                    scores.push(x[i] - this.model);
+                }
+                return scores;
+            } else {
+                throw "analytics.ThresholdModel.decisionFunction: Input data of unsupported type!";
+            }
+        }
+
+        // return the most likely category
+        // x = dense vector with prediction score for each class
+        // result = array of positive label ids
+        this.predict = function(x) {
+            // evaluate all models
+            var scores = this.decisionFunction(x)
+            // check what we get
+            if (scores instanceof la.Vector) {
+                return res = new la.Vector();
+                for (var i = 0; i < scores.length; i++) {
+                    res.push(scores[i] > 0 ? 1 : -1);
+                }
+                return res;
+            } else {
+                return scores > 0 ? 1 : -1;
+            }
+        }
+
+        // X = vector of predictions for each instance (output of decision_funcition)
+        // y = target labels (1 or -1)
+        this.fit = function(X, y) {
+            if (this.target === "f1") {
+                // find threshold that maximizes F1 measure
+                this.model = exports.metrics.bestF1Threshold(y, X);
+            } else if (this.target === "recall") {
+                // find threshold that results in desired recall
+                this.model = exports.metrics.desiredRecallThreshold(y, X, this.level);
+            } else if (this.target === "precision") {
+                // find threshold that results in desired precision
+                this.model = exports.metrics.desiredPrecisionThreshold(y, X, this.level);
+            } else {
+                throw "Unknown threshold model target: " + this.target;
+            }
+        }
+    }
+
     exports.metrics = new function() {
         // For evaluating provided categories (precision, recall, F1).
-        this.ClassifcationScore = function (yTrue, yPred) {
+        this.ClassificationScore  = function (yTrue, yPred) {
             this.scores = {
                 count: 0, predictionCount: 0,
                 TP: 0, TN: 0, FP: 0, FN: 0,
@@ -138,23 +280,25 @@ module.exports = exports = function (pathPrefix) {
         };
 
         this.accuracyScore = function (yTrue, yPred) {
-            return new this.ClassifcationScore(yTrue, yPred).scores.accuracy();
+            return new this.ClassificationScore (yTrue, yPred).scores.accuracy();
         };
 
         this.precisionScore = function (yTrue, yPred) {
-            return new this.ClassifcationScore(yTrue, yPred).scores.precision();
+            return new this.ClassificationScore (yTrue, yPred).scores.precision();
         };
 
         this.recallScore = function (yTrue, yPred) {
-            return new this.ClassifcationScore(yTrue, yPred).scores.recall();
+            return new this.ClassificationScore (yTrue, yPred).scores.recall();
         };
 
         this.f1Score = function (yTrue, yPred) {
-            return new this.ClassifcationScore(yTrue, yPred).scores.accuracy();
+            return new this.ClassificationScore (yTrue, yPred).scores.accuracy();
         };
 
         // used for computing ROC curve and other related measures such as AUC;
         this.PredictionCurve = function (yTrue, yPred) {
+            // count of all examples
+            this.length = 0;
             // count of all the positive and negative examples
     		this.allPositives = 0;
     		this.allNegatives = 0;
@@ -168,6 +312,7 @@ module.exports = exports = function (pathPrefix) {
                 this.grounds.push(ground)
                 this.predictions.push(predict);
                 // update counts
+                this.length++;
                 if (ground > 0) {
                     this.allPositives++;
                 } else {
@@ -233,53 +378,11 @@ module.exports = exports = function (pathPrefix) {
     	        return result;
     	    }
 
-            // get precision recall curve sampled on `sample' points
-            this.precisionRecallCurve = function (sample) {
-                // default sample size is 10
-                sample = sample || 10;
-                // sort according to predictions
-                var perm = this.predictions.sortPerm(false);
-                // maintaining the results as we go along
-                var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives
-                var curve = [[0, 1]];
-                // for figuring out when to dump a new ROC sample
-                var next = Math.floor(perm.perm.length / sample);
-                // go over the sorted results
-                for (var i = 0; i < perm.perm.length; i++) {
-                    // get the ground
-                    var ground = this.grounds[perm.perm[i]];
-                    // update TP/FP counts according to the ground
-                    if (ground > 0) { TP++; FN--; } else { FP++; TN--; }
-                    // see if time to do next save
-                    next = next - 1;
-                    if (next <= 0) {
-                        // do the update
-                        if ((TP + FP) > 0 && (TP + FN) > 0) {
-                            // compute current precision and recall
-                            var recall = TP / (TP + FN);
-                            var precision = TP / (TP + FP);
-                            // add to the curve
-                            curve.push([recall, precision]);
-                        }
-                        // setup next timer
-                        next = Math.floor(perm.perm.length / sample);
-                    }
-                }
-                // add the last point
-                var recall = TP / (TP + FN);
-                var precision = TP / (TP + FP);
-                curve.push([recall, precision]);
-                // return ROC
-                return curve;
-            };
-
-            // get break-even point, which is number where precision and recall intersect
-            this.breakEvenPoint = function () {
+            this.evalPrecisionRecall = function (callback) {
                 // sort according to predictions
                 var perm = this.predictions.sortPerm(false);
                 // maintaining the results as we go along
                 var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
-                var minDiff = 1.0, bep = -1.0;
                 // go over the sorted results
                 for (var i = 0; i < perm.perm.length; i++) {
                     // get the ground
@@ -292,11 +395,100 @@ module.exports = exports = function (pathPrefix) {
                         var precision = TP / (TP + FP);
                         var recall = TP / (TP + FN);
                         // see if we need to update current bep
+                        callback.update(ground, perm.vec[i], precision, recall);
+                    }
+                }
+                return callback.finish();
+            }
+
+            // get precision recall curve sampled on `sample' points
+            this.precisionRecallCurve = function (sample) {
+                return this.evalPrecisionRecall(new function (sample, length) {
+                    // default sample size is 10
+                    this.sample = sample || 10;
+                    // curve
+                    this.curve = [[0, 1]];
+                    // for figuring out when to dump a new ROC sample
+                    this.next = Math.floor(length / (this.sample));
+                    this.counter = this.next;
+                    console.log(length, this.sample, this.next);
+                    // keep last value
+                    this.precision = 0; this.recall = 0;
+                    // handlers
+                    this.update = function (yTrue, yPred, precision, recall) {
+                        this.counter = this.counter - 1;
+                        if (this.counter <= 0) {
+                            // add to the curve
+                            this.curve.push([recall, precision]);
+                            // setup next timer
+                            this.counter = this.next;
+                        }
+                        // always remember last value
+                        this.precision = precision; this.recall = recall;
+                    }
+                    this.finish = function () {
+                        // add the last point
+                        this.curve.push([this.recall, this.precision]);
+                        return this.curve;
+                    }
+                }(sample, this.length));
+            };
+
+            // get break-even point, the value where precision and recall intersect
+            this.breakEvenPoint = function () {
+                return this.evalPrecisionRecall(new function () {
+                    this.minDiff = 1.0; this.bep = -1.0;
+                    this.update = function (yTrue, yPred, precision, recall) {
                         var diff = Math.abs(precision - recall);
                         if (diff < minDiff) { minDiff = diff; bep = (precision + recall) / 2; }
                     }
-                }
-                return bep;
+                    this.finish = function () { return this.bep; }
+                }());
+            }
+
+            // gets threshold for prediction score, which results in the highest F1
+            this.bestF1 = function () {
+                return this.evalPrecisionRecall(new function () {
+                    this.maxF1 = 0.0; this.threshold = 0.0;
+                    this.update = function (yTrue, yPred, precision, recall) {
+                        var f1 = 2 * precision * recall / (precision + recall);
+                        if (f1 > this.maxF1) {
+                            this.maxF1 = f1;
+                            this.threshold = yPred;
+                        }
+                    }
+                    this.finish = function () { return this.threshold; }
+                }());
+            }
+
+            // gets threshold for prediction score, nearest to specified recall
+            this.desiredRecall = function (desiredRecall) {
+                return this.evalPrecisionRecall(new function () {
+                    this.recallDiff = 1.0; this.threshold = 0.0;
+                    this.update = function (yTrue, yPred, precision, recall) {
+                        var diff = Math.abs(desiredRecall - recall);
+                        if (diff < this.recallDiff) {
+                            this.recallDiff = diff;
+                            this.threshold = yPred;
+                        }
+                    }
+                    this.finish = function () { return this.threshold; }
+                }());
+            }
+
+            // gets threshold for prediction score, nearest to specified recall
+            this.desiredPrecision = function (desiredPrecision) {
+                return this.evalPrecisionRecall(new function () {
+                    this.precisionDiff = 1.0; this.threshold = 0.0;
+                    this.update = function (yTrue, yPred, precision, recall) {
+                        var diff = Math.abs(desiredPrecision - precision);
+                        if (diff < this.precisionDiff) {
+                            this.precisionDiff = diff;
+                            this.threshold = yPred;
+                        }
+                    }
+                    this.finish = function () { return this.threshold; }
+                }());
             }
         };
 
@@ -315,9 +507,379 @@ module.exports = exports = function (pathPrefix) {
         this.breakEventPointScore = function (yTrue, yPred) {
             return new this.PredictionCurve(yTrue, yPred).breakEvenPoint();
         };
+
+        this.bestF1Threshold = function (yTrue, yPred) {
+            return new this.PredictionCurve(yTrue, yPred).bestF1();
+        };
+
+        this.desiredRecallThreshold = function (yTrue, yPred, desiredRecall) {
+            return new this.PredictionCurve(yTrue, yPred).desiredRecall(desiredRecall);
+        };
+
+        this.desiredPrecisionThreshold = function (yTrue, yPred, desiredPrecision) {
+            return new this.PredictionCurve(yTrue, yPred).desiredPrecision(desiredPrecision);
+        };
     };
 
-    //// deprecated//////////////////////////////////////////////////
+    /**
+    * @classdesc Anomaly detector that checks if the test point is too far from
+    * the nearest known point.
+    * @class
+    * @param {Object} [detectorParam={rate:0.05}] - Constructor parameters
+    * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
+    */
+    exports.NearestNeighborAD = function (detectorParam) {
+        // Parameters
+        detectorParam = detectorParam == undefined ? {} : detectorParam;
+        detectorParam.rate = detectorParam.rate == undefined ? 0.05 : detectorParam.rate;
+        assert(detectorParam.rate > 0 && detectorParam.rate <= 1.0, 'rate parameter not in range (0,1]');
+        // model param
+        this.rate = detectorParam.rate;
+        // default model
+        this.thresh = 0;
+
+        /**
+        * Returns the model
+        * @param {p} Object whose keys are: "thresh" - Maximal squared distance to the nearest neighbor that is not anomalous
+        */
+        this.getModel = function () { return { rate: this.rate, thresh: this.thresh }; }
+
+        /**
+        * Sets parameters
+        * @param {p} Object whose keys are: "rate" - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
+        */
+        this.setParams = function (p) {
+            param = p;
+        }
+
+        /**
+        * Returns parameters
+        * @returns Object whose keys are: "rate" - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
+        */
+        this.getParams = function () {
+            return param;
+        }
+
+        /**
+        * Gets the 100*(1-rate) percentile
+        * @param {module:la.Vector} vector - Vector of values
+        * @returns {number} Percentile
+        */
+        function getThreshold(vector, rate) {
+            var sorted = vector.sortPerm().vec;
+            var idx = Math.floor((1 - rate) * sorted.length);
+            return sorted[idx];
+        }
+        var neighborDistances = undefined;
+
+        /**
+        * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
+        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+        * the model.
+        */
+        this.fit = function (A) {
+            this.X = A;
+            // distances
+            var D = la.pdist2(A, A);
+            // add big numbers on the diagonal (exclude the point itself from the nearest point calcualtion)
+            var E = D.plus(D.multiply(la.ones(D.rows)).diag()).multiply(-1);
+            var neighborDistances = new la.Vector({ vals: D.rows });
+            for (var i = 0; i < neighborDistances.length; i++) {
+                // nearest neighbour squared distance
+                neighborDistances[i] = D.at(i, E.rowMaxIdx(i));
+            }
+            this.thresh = getThreshold(neighborDistances, this.rate);
+        }
+
+        /**
+        * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
+        * @param {module:la.Vector} x - Test vector
+        * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
+        */
+        this.predict = function (x) {
+            // compute squared dist and compare to thresh
+            var d = la.pdist2(this.X, x.toMat()).getCol(0);
+            var idx = d.multiply(-1).getMaxIdx();
+            var p = d[idx];
+            //console.log(p)
+            return p > this.thresh ? 1 : 0;
+        }
+
+        /**
+        * Adds a new point (or points) to the known points and recomputes the threhshold
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
+        */
+        this.update = function (x) {
+            // append x to known examples and retrain (slow version)
+            // speedup 1: don't reallocate X every time (fixed window, circular buffer)
+            // speedup 2: don't recompute distances d(X,X), just d(X, y), get the minimum
+            // and append to neighborDistances
+            this.fit(la.cat([[this.X, x.toMat()]]));
+            //console.log('new threshold ' + this.thresh);
+        }
+    }
+
+    /**
+    * @classdesc Principal components analysis
+    * @class
+    */
+    exports.PCA = function (param) {
+        param = param == undefined ? {} : param;
+
+        // Fit params
+        var iter = param.iter == undefined ? 100 : param.iter;
+        var k = param.k; // can be undefined
+
+        /**
+        * Returns the model
+        * @returns {Object} The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)
+        */
+        this.getModel = function () {
+            return { P: this.P, mu: this.mu, lambda: this.lambda };
+        }
+
+        /**
+        * Sets parameters
+        * @param {p} Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        */
+        this.setParams = function (p) {
+            param = p;
+        }
+
+        /**
+        * Gets parameters
+        * @returns Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        */
+        this.getParams = function () {
+            return param;
+        }
+
+        /**
+        * Finds the eigenvectors of the variance matrix.
+        * @param {module:la.Matrix} A - Matrix whose columns correspond to examples.
+        */
+        this.fit = function (A) {
+            var rows = A.rows;
+            var cols = A.cols;
+
+            k = k == undefined ? rows : k;
+            //iter = iter == undefined ? -1 : iter;
+
+            var mu = stat.mean(A, 2);
+            // cov(A) = 1/(n-1) A A' - mu mu'
+
+            // center data (same as matlab)
+            var cA = A.minus(mu.outer(la.ones(cols)));
+            var C = cA.multiply(cA.transpose()).multiply(1 / (cols - 1));
+            // alternative computation:
+            //var C = (A.multiply(A.transpose()).multiply(1 / (cols - 1))).minus(mu.outer(mu));
+            var res = la.svd(C, k, { iter: iter });
+
+            this.P = res.U;
+            this.lambda = res.s;
+            this.mu = mu;
+        }
+
+        /**
+        * Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P.
+        * Recovering the data in the original space: (this.P).multiply(p), where p's rows are the coefficients
+        * in the eigenvector basis.
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
+        * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
+        */
+        this.transform = function (x) {
+            if (x.constructor.name == 'Matrix') {
+                // P * (x - mu*ones(1, size(x,2))
+                return this.P.multiplyT(x.minus(this.mu.outer(la.ones(x.cols))));
+
+            } else if (x.constructor.name == 'Vector') {
+                // P * (x - mu)
+                return this.P.multiplyT(x.minus(this.mu));
+            }
+        }
+
+        /**
+        * Reconstructs the vector in the original space, reverses centering
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
+        * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
+        */
+        this.inverseTransform = function (x) {
+            if (x.constructor.name == 'Matrix') {
+                // P x + mu*ones(1, size(x,2)
+                return (this.P.multiply(x)).plus(this.mu.outer(la.ones(x.cols)));
+            } else if (x.constructor.name == 'Vector') {
+                // P x + mu
+                return (this.P.multiply(x)).plus(this.mu);
+            }
+        }
+    }
+
+    /**
+    * @classdesc KMeans clustering
+    * @class
+    */
+    exports.KMeans = function (param) {
+        param = param == undefined ? {} : param;
+
+        // Fit params
+        var iter = param.iter == undefined ? 100 : param.iter;
+        var k = param.k == undefined ? 2 : param.k;
+        var verbose = param.verbose == undefined ? false : param.verbose;
+
+        // Model
+        var C = undefined;
+        var idxv = undefined;
+        var norC2 = undefined;
+
+        /**
+        * Returns the model
+        * @returns {Object} The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data)
+        */
+        this.getModel = function () {
+            return { C: C, idxv: idxv };
+        }
+
+        /**
+        * Sets parameters
+        * @param {p} Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)
+        */
+        this.setParams = function (p) {
+            param = p;
+        }
+
+        /**
+        * Returns parameters
+        * @returns Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)
+        */
+        this.getParams = function () {
+            return param;
+        }
+
+        /**
+        * Computes the centroids
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        */
+        this.fit = function (X) {
+            // select random k columns of X, returns a dense C++ matrix
+            var selectCols = function (X, k) {
+                var idx = la.randi(X.cols, k);
+                var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
+                for (var i = 0; i < idx.length; i++) {
+                    var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
+                    idxMat.push(spVec);
+                }
+                var C = X.multiply(idxMat);
+                var result = {};
+                result.C = C;
+                result.idx = idx;
+                return result;
+            };
+
+            // modified k-means algorithm that avoids empty centroids
+            // A Modified k-means Algorithm to Avoid Empty Clusters, Malay K. Pakhira
+            // http://www.academypublisher.com/ijrte/vol01/no01/ijrte0101220226.pdf
+            var getCentroids = function (X, idx, oldC) {
+                // select random k columns of X, returns a dense matrix
+                // 1. construct a sparse matrix (coordinate representation) that encodes the closest centroids
+                var idxvec = new la.IntVector(idx);
+                var rangeV = la.rangeVec(0, X.cols - 1);
+                var ones_cols = la.ones(X.cols);
+                var idxMat = new la.SparseMatrix(idxvec, rangeV, ones_cols, X.cols);
+                idxMat = idxMat.transpose();
+                var ones_n = la.ones(X.cols);
+                // 2. compute the number of points that belong to each centroid, invert
+                var colSum = idxMat.multiplyT(ones_n);
+                for (var i = 0; i < colSum.length; i++) {
+                    var val = 1.0 / (1.0 + colSum.at(i)); // modification
+                    colSum.put(i, val);
+                }
+                // 3. compute the centroids
+                //var w = new qm_util.clsStopwatch();
+                //w.tic();
+                var sD = colSum.spDiag();
+                var C = oldC;
+                if (idxMat.cols == oldC.cols)
+                    C = ((X.multiply(idxMat)).plus(oldC)).multiply(sD); // modification
+                return C;
+            };
+
+
+            // X: column examples
+            // k: number of centroids
+            // iter: number of iterations
+            assert(k <= X.cols, "k <= X.cols");
+            var w = new qm_util.clsStopwatch();
+            var norX2 = la.square(X.colNorms());
+            var initialCentroids = selectCols(X, k);
+            C = initialCentroids.C;
+            var idxvOld = initialCentroids.idx;
+            //printArray(idxvOld); // DEBUG
+            var ones_n = la.ones(X.cols).multiply(0.5);
+            var ones_k = la.ones(k).multiply(0.5);
+            w.tic();
+            for (var i = 0; i < iter; i++) {
+                //console.say("iter: " + i);
+                norC2 = la.square(C.colNorms());
+                //D =  full(C'* X) - norC2' * (0.5* ones(1, n)) - (0.5 * ones(k,1) )* norX2';
+                var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+                idxv = la.findMaxIdx(D);
+
+                if (verbose) {
+                    var energy = 0.0;
+                    for (var j = 0; j < X.cols; j++) {
+                        if (D.at(idxv[j], j) < 0) {
+                            energy += Math.sqrt(-2 * D.at(idxv[j], j));
+                        }
+                    }
+                    console.log("energy: " + 1.0 / X.cols * energy);
+                }
+                if (qm_util.arraysIdentical(idxv, idxvOld)) {
+                    if (verbose) {
+                        console.say("converged at iter: " + i); //DEBUG
+                    }
+                    break;
+                }
+                idxvOld = idxv.slice();
+                C = getCentroids(X, idxv, C); //drag
+            }
+            if (verbose) {
+                w.toc("end");
+            }
+            norC2 = la.square(C.colNorms());
+        };
+
+        /**
+        * Returns an vector of cluster id assignments
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        * @returns {module:la.IntVector} Vector of cluster assignments.
+        */
+        this.predict = function (X) {
+            var ones_n = la.ones(X.cols).multiply(0.5);
+            var ones_k = la.ones(k).multiply(0.5);
+            var norX2 = la.square(X.colNorms());
+            var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+            return la.findMaxIdx(D);
+        }
+
+        /**
+        * Transforms the points to vectors of squared distances to centroids
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        * @returns {module:la.Matrix} Matrix where each column represents the squared distances to the centroid vectors
+        */
+        this.transform = function (X) {
+            var ones_n = la.ones(X.cols).multiply(0.5);
+            var ones_k = la.ones(k).multiply(0.5);
+            var norX2 = la.square(X.colNorms());
+            var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+            D = D.multiply(-1);
+            return D;
+        }
+    }
+
+    ///////////////////////////////
+    ////// code below not yet ported or verified for scikit
+    ///////////////////////////////
+
     function defarg(arg, defaultval) {
         return arg == undefined ? defaultval : arg;
     }
@@ -545,7 +1107,7 @@ module.exports = exports = function (pathPrefix) {
             // create model for the fold
             var model = exports.newBatchModel(trainRecs, features, target, limitCategories);
             // prepare test counts for each target
-            if (!cfyRes) { cfyRes = new exports.classifcationScore(model.target); }
+            if (!cfyRes) { cfyRes = new exports.ClassificationScore (model.target); }
             // evaluate predictions
             for (var i = 0; i < testRecs.length; i++) {
                 var correct = testRecs[i][target.name];
@@ -1176,84 +1738,6 @@ module.exports = exports = function (pathPrefix) {
 
     	return that;
     };
-
-    /**
-    * @classdesc Anomaly detector that checks if the test point is too far from
-    * the nearest known point.
-    * @class
-    * @param {Object} [detectorParam={rate:0.05}] - Constructor parameters
-    * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
-    */
-    exports.NearestNeighborAD = function(detectorParam) {
-        // Parameters
-        detectorParam = detectorParam == undefined ? {} : detectorParam;
-        detectorParam.rate = detectorParam.rate == undefined ? 0.05 : detectorParam.rate;
-        assert(detectorParam.rate > 0 && detectorParam.rate <= 1.0, 'rate parameter not in range (0,1]');
-        // model param
-        this.rate = detectorParam.rate;
-        // default model
-        this.thresh = 0;
-
-        /**
-        * Gets the 100*(1-rate) percentile
-        * @param {module:la.Vector} vector - Vector of values
-        * @returns {number} Percentile
-        */
-        function getThreshold(vector, rate) {
-            var sorted = vector.sortPerm().vec;
-            var idx = Math.floor((1 - rate) * sorted.length);
-            return sorted[idx];
-        }
-        var neighborDistances = undefined;
-
-        /**
-        * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
-        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
-        * the model.
-        */
-        this.fit = function (A) {
-            this.X = A;
-            // distances
-            var D = la.pdist2(A, A);
-            // add big numbers on the diagonal (exclude the point itself from the nearest point calcualtion)
-            var E = D.plus(D.multiply(la.ones(D.rows)).diag()).multiply(-1);
-            var neighborDistances = new la.Vector({ vals: D.rows });
-            for (var i = 0; i < neighborDistances.length; i++) {
-                // nearest neighbour squared distance
-                neighborDistances[i] = D.at(i, E.rowMaxIdx(i));
-            }
-            this.thresh = getThreshold(neighborDistances, this.rate);
-        }
-
-        /**
-        * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
-        * @param {module:la.Vector} x - Test vector
-        * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
-        */
-        this.predict = function (x) {
-            // compute squared dist and compare to thresh
-            var d = la.pdist2(this.X, x.toMat()).getCol(0);
-            var idx = d.multiply(-1).getMaxIdx();
-            var p = d[idx];
-            //console.log(p)
-            return p > this.thresh ? 1 : 0;
-        }
-
-        /**
-        * Adds a new point (or points) to the known points and recomputes the threhshold
-        * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
-        */
-        this.update = function (x) {
-            // append x to known examples and retrain (slow version)
-            // speedup 1: don't reallocate X every time (fixed window, circular buffer)
-            // speedup 2: don't recompute distances d(X,X), just d(X, y), get the minimum
-            // and append to neighborDistances
-            this.fit(la.cat([[this.X, x.toMat()]]));
-            //console.log('new threshold ' + this.thresh);
-        }
-    }
-
-
     //!ENDJSDOC
 
     return exports;

@@ -1215,8 +1215,7 @@ void TStore::PrintTypes(const TWPt<TBase>& Base, const  TStr& FNm) const {
 	TFOut FOut(FNm); PrintTypes(Base, FOut);
 }
 
-void TStore::PrintRecSetAsJson(const TWPt<TBase>& Base, const PRecSet& RecSet, TSOut& SOut)
-{
+void TStore::PrintRecSetAsJson(const TWPt<TBase>& Base, const PRecSet& RecSet, TSOut& SOut) {
 	for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
 		const uint64 RecId = RecSet->GetRecId(RecN);
 		PJsonVal Json = GetRec(RecId).GetJson(Base, true, false);
@@ -1224,13 +1223,11 @@ void TStore::PrintRecSetAsJson(const TWPt<TBase>& Base, const PRecSet& RecSet, T
 	}
 }
 
-void TStore::PrintRecSetAsJson(const TWPt<TBase>& Base, const PRecSet& RecSet, const TStr& FNm)
-{
+void TStore::PrintRecSetAsJson(const TWPt<TBase>& Base, const PRecSet& RecSet, const TStr& FNm) {
 	TFOut FOut(FNm); PrintRecSetAsJson(Base, RecSet, FOut);
 }
 
-void TStore::PrintAllAsJson(const TWPt<TBase>& Base, TSOut& SOut)
-{
+void TStore::PrintAllAsJson(const TWPt<TBase>& Base, TSOut& SOut) {
 	PStoreIter Iter = GetIter();
 	while (Iter->Next()) {
 		const uint64 RecId = Iter->GetRecId();
@@ -1239,8 +1236,7 @@ void TStore::PrintAllAsJson(const TWPt<TBase>& Base, TSOut& SOut)
 	}
 }
 
-void TStore::PrintAllAsJson(const TWPt<TBase>& Base, const TStr& FNm)
-{
+void TStore::PrintAllAsJson(const TWPt<TBase>& Base, const TStr& FNm) {
 	TFOut FOut(FNm); PrintAllAsJson(Base, FOut);
 }
 
@@ -4414,9 +4410,6 @@ void TAggr::Init() {
 	Register<TAggrs::THistogram>();
 	Register<TAggrs::TKeywords>();
 	Register<TAggrs::TTimeLine>();
-#ifdef OG_AGGR_TWITTER_GRAPH
-	Register<TAggrs::TTwitterGraph>();
-#endif
 #ifdef OG_AGGR_DOC_ATLAS
 	Register<TAggrs::TDocAtlas>();
 #endif

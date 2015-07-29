@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
   <title>Module: analytics</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -29,6 +29,14 @@
             <div class="symbol-description">
               <p>Analytics module.</p>
             </div>
+            <section>
+              <h2>
+            Example
+        </h2>
+              <div>
+                <pre class="prettyprint"><code>// import module, load dataset, create model, evaluate model</code></pre>
+              </div>
+            </section>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -41,6 +49,9 @@
                     <dt><a href="module-analytics.HierarchMarkov.html">HierarchMarkov(HierarchMarkovParam)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.KMeans.html">KMeans()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD([detectorParam])</a></dt>
                     <dd>
                     </dd>
@@ -48,20 +59,45 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.RidgeReg.html">RidgeReg([arg])</a></dt>
+                    <dt><a href="module-analytics.OneVsAll.html">OneVsAll([oneVsAllParam])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.SVC.html">SVC(arg)</a></dt>
+                    <dt><a href="module-analytics.PCA.html">PCA()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.RidgeReg.html">RidgeReg([arg])</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.Sigmoid.html">Sigmoid([arg])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.SVC.html">SVC(arg)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.SVR.html">SVR(arg)</a></dt>
                     <dd>
                     </dd>
                   </dl>
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Property</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#.preprocessing">preprocessing</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+                <div class="summary-column">
                 </div>
               </div>
             </div>
@@ -77,12 +113,17 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.html#~svrParam">svrParam</a></dt>
+                    <dt><a href="module-analytics.html#~svmModel">svmModel</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~svrParam">svrParam</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
                 </div>
               </div>
             </div>
@@ -91,15 +132,54 @@
             <h2>Classes</h2>
             <section id='members-links'>
               <h3><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></h3>
+              <h3><a href="module-analytics.KMeans.html">KMeans</a></h3>
               <h3><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD</a></h3>
+              <h3><a href="module-analytics.OneVsAll.html">OneVsAll</a></h3>
+              <h3><a href="module-analytics.PCA.html">PCA</a></h3>
               <h3><a href="module-analytics.RidgeReg.html">RidgeReg</a></h3>
+              <h3><a href="module-analytics.Sigmoid.html">Sigmoid</a></h3>
               <h3><a href="module-analytics.SVC.html">SVC</a></h3>
               <h3><a href="module-analytics.SVR.html">SVR</a></h3>
+            </section>
+            <h2>Property</h2>
+            <section>
+              <h3 id=".preprocessing"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">preprocessing</span></h3>
+              <p>Saves the model to the output stream.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fout</p>
+                      </td>
+                      <td>
+                        <p>FOut</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>the output stream</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
             </section>
             <h2>Abstract types</h2>
             <section>
               <h3 id="~svcParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">svcParam</span><small class="property-type">
-
             &nbsp;Object</small></h3>
               <p>SVC constructor parameters</p>
               <section>
@@ -225,8 +305,41 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="~svmModel"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">svmModel</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <p>SVM model</p>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>svmModel.weigths</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>SVM normal vector</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="~svrParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">svrParam</span><small class="property-type">
-
             &nbsp;Object</small></h3>
               <p>SVR constructor parameters</p>
               <section>
@@ -361,7 +474,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on June 3, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on July 28, 2015.
       </p>
     </div>
   </footer>

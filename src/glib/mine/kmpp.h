@@ -76,8 +76,6 @@ public:
     void GetClustersQualityByDCSim(TFltV& ClusterDCQ) const;
     double GetClusteringQualityByDCSim() const;
     double GetClusteringSSE() const;
-
-
 };
 
 class TDefaultMatrixAccess {

@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
-  <title>Namespace: Iterator</title>
+  <title>Factory class: Iterator</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -24,11 +24,36 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">namespace</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Iterator</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-2164">qminerdoc.<wbr>js:2164</a></p>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">factory class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Iterator</span></h1>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-2205">qminerdoc.<wbr>js:2205</a></p>
             <div class="symbol-description">
               <p>Store Iterator (factory pattern)</p>
             </div>
+            <section>
+              <h2>
+            Example
+        </h2>
+              <div>
+                <pre class="prettyprint"><code>// import qm module
+qm = require(&#x27;qminer&#x27;);
+// create a new base with a simple store
+var base = new qm.Base({ mode: &quot;createClean&quot; });
+base.createStore({
+    type: &quot;People&quot;,
+    fields: [
+        { type: &quot;Name&quot;, type: &quot;string&quot; },
+        { type: &quot;Gendre&quot;, type: &quot;string&quot; }
+    ]
+});
+// add new records to the store
+base.store(&quot;People&quot;).push({ Name: &quot;Geronimo&quot;, Gender: &quot;Male&quot; });
+base.store(&quot;People&quot;).push({ Name: &quot;Pochahontas&quot;, Gender: &quot;Female&quot; });
+base.store(&quot;People&quot;).push({ Name: &quot;John Rolfe&quot;, Gender: &quot;Male&quot; });
+base.store(&quot;People&quot;).push({ Name: &quot;John Smith&quot;, Gender: &quot;Male&quot;});
+// factory based construction with forwardIter
+var iter = base.store(&quot;People&quot;).forwardIter;</code></pre>
+              </div>
+            </section>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -89,9 +114,7 @@
               <p>Moves to the next record.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -100,21 +123,21 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       &quot;name&quot;: &quot;TheWitcherSaga&quot;,
-       &quot;fields&quot;: [
-           { &quot;name&quot;: &quot;Title&quot;, &quot;type&quot;: &quot;string&quot; },
-           { &quot;name&quot;: &quot;YearOfRelese&quot;, &quot;type&quot;: &quot;int&quot; },
-           { &quot;name&quot;: &quot;EnglishEdition&quot;, &quot;type&quot;: &quot;bool&quot; }
+       type: &quot;TheWitcherSaga&quot;,
+       fields: [
+           { type: &quot;Title&quot;, type: &quot;string&quot; },
+           { type: &quot;YearOfRelese&quot;, type: &quot;int&quot; },
+           { type: &quot;EnglishEdition&quot;, type: &quot;bool&quot; }
        ]
    }]
 });
 // put some records in the store
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Blood of Elves&quot;, &quot;YearOfRelese&quot;: 1994, &quot;EnglishEdition&quot;: true });
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Time of Contempt&quot;, &quot;YearOfRelese&quot;: 1995, &quot;EnglishEdition&quot;: true });
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Baptism of Fire&quot;, &quot;YearOfRelese&quot;: 1996, &quot;EnglishEdition&quot;: true });
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;The Swallow&#x27;s Tower&quot;, &quot;YearOfRelese&quot;: 1997, &quot;EnglishEdition&quot;: false });
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Lady of the Lake&quot;, &quot;YearOfRelese&quot;: 1999, &quot;EnglishEdition&quot;: false });
-base.store(&quot;TheWitcherSaga&quot;).push({ &quot;Title&quot;: &quot;Season of Storms&quot;, &quot;YearOfRelese&quot;: 2013, &quot;EnglishEdition&quot;: false });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Blood of Elves&quot;, YearOfRelease: 1994, EnglishEdition: true });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Time of Contempt&quot;, YearOfRelease: 1995, EnglishEdition: true });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Baptism of Fire&quot;, YearOfRelease: 1996, EnglishEdition: true });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;The Swallow&#x27;s Tower&quot;, YearOfRelease: 1997, EnglishEdition: false });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Lady of the Lake&quot;, YearOfRelease: 1999, EnglishEdition: false });
+base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Season of Storms&quot;, YearOfRelease: 2013, EnglishEdition: false });
 // create an iterator for the store
 var iter = base.store(&quot;TheWitcherSaga&quot;).forwardIter;
 // go to the first record in the store
@@ -139,7 +162,7 @@ iter.next(); // returns true</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on June 3, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on July 28, 2015.
       </p>
     </div>
   </footer>

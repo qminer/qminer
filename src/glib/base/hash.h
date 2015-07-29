@@ -256,8 +256,7 @@ public:
     else {return false;}}
   TDat GetDatOrDef(const TKey& Key, const TDat& DefVal) const {
 	  if (IsKey(Key)) { return GetDat(Key); }
-	  return DefVal;
-  }
+	  return DefVal;}
 
   int FFirstKeyId() const {return 0-1;}
   bool FNextKeyId(int& KeyId) const;

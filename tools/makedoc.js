@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -9,7 +9,6 @@
 hfile = process.argv[2];// || './src/nodejs/ht/ht_nodejs.h';
 jsfile = process.argv[3];// || './src/nodejs/scripts/ht.js';
 outfile = process.argv[4];// || './nodedoc/htdoc.js';
-
 docHead = process.argv[5];
 viewArray = process.argv.slice(6);
 
@@ -26,26 +25,25 @@ if (hfile != '') {
 var regex = /(\/\*\*([\s\S]*?)\*\/|\/\/#.*)/g;
 
 fout = fs.createWriteStream(outfile)
-var headerStr = "";	
-while ((match = regex.exec(hstr))!= null) {	
+var headerStr = "";
+while ((match = regex.exec(hstr))!= null) {
     str = match[0];
     // remove //# if found
 	if (str.indexOf('//#') != -1) {
-	    str = str.slice(3);	
+	    str = str.slice(3);
 	}
-	headerStr += str + '\r\n';	
+	headerStr += str + '\r\n';
 }
 
 if (docHead != undefined && docHead != '') {
-	var docHeadStr = fs.readFileSync(docHead, 'ascii');	
+	var docHeadStr = fs.readFileSync(docHead, 'ascii');
 	fout.write(docHeadStr + '\r\n');
 }
 
 if (viewArray != undefined && viewArray.length > 0) {
-    // use template 
+    // use template
     for (var i = 0; i < viewArray.length; i++) {
         var rendered = headerStr;
-
         var mustache = require('mustache')
         mustache.escape = function (value) { return value; }
         var view = require(viewArray[i]).view;
@@ -58,14 +56,11 @@ if (viewArray != undefined && viewArray.length > 0) {
     fout.write(headerStr);
 }
 
-
-
 if (jsfile != '') {
     jsstr = fs.readFileSync(jsfile, 'ascii');
     //  append code between //!STARTJSDOC and //!ENDJSDOC
     var regex = /(\/\/!STARTJSDOC)([\s\S]*?)(\/\/!ENDJSDOC)/;
     match = regex.exec(jsstr)
     fout.write(match[2] + '\r\n');
-
 }
 fout.end();

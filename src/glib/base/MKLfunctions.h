@@ -2,9 +2,10 @@
 #define MKLFUNCTIONS_H
 
 #ifdef INDEX_64
-typedef int64 index;
+typedef int64 glib_index;
+#define lapack_int long long
 #else
-typedef int index;
+typedef int glib_index;
 #endif
 
 
@@ -17,9 +18,12 @@ typedef int index;
 	//#include "mkl_scalapack.h"
 #else
 	//OpenBlas fix
+	#define lapack_complex_float std::complex<float>
+	#define lapack_complex_double std::complex<double>
 	#define LAPACK_COMPLEX_CPP
 	#include "cblas.h"
 	#include "lapacke.h"
+	typedef CBLAS_ORDER CBLAS_LAYOUT;
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -35,7 +39,7 @@ private:
 	// LU midstep used for LUFactorization and LUSolve 
 	// (Warning: the matrix is overwritten in the process)
 	template<class Type, class Size, bool ColMajor = false>
-static void LUStep(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<index>, index>& Perm) {//TVec<TNum<Size>, Size>& Perm)
+	static void LUStep(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<glib_index>, glib_index>& Perm) {//TVec<TNum<Size>, Size>& Perm)
 		Assert(A.GetRows() == A.GetCols());
 
 		// data used for factorization
@@ -109,7 +113,7 @@ static void CholeskyStep(TVVec<Type, Size, ColMajor>& A) {
 	// QR midstep used for LUFactorization and QRSolve. 
 	// (Warning: the matrix is overwritten in the process)
 	template<class Type, class Size, bool ColMajor = false>
-static void QRStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<index>, index>& Tau) {
+	static void QRStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<glib_index>, glib_index>& Tau) {
 		Assert(A.GetRows() >= A.GetCols());
 
 		// data used for factorization
@@ -143,7 +147,7 @@ static void QRStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<index>, index>& Tau
 	// LQ midstep used for LQFactorization and LQSolve.
 	// (Warning: the matrix is overwritten in the process)
 	template<class Type, class Size, bool ColMajor = false>
-static void LQStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<index>, index>& Tau) {
+	static void LQStep(TVVec<Type, Size, ColMajor>& A, TVec<TNum<glib_index>, glib_index>& Tau) {
 		Assert(A.GetRows() <= A.GetCols());
 
 		Size NumOfRows = A.GetRows();
@@ -182,8 +186,8 @@ public:
 	// The L is unit lower triangular matrix and U is an upper triangular matrix. 
 	// Vector P tell's us: column i is swapped with column P[i].
 	template<class Type, class Size, bool ColMajor = false>
-static void LUFactorization(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& L, 
-		TVVec<Type, Size, ColMajor>& U, TVec<TNum<index>, index>& P) {
+	static void LUFactorization(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& L, 
+		TVVec<Type, Size, ColMajor>& U, TVec<TNum<glib_index>, glib_index>& P) {
 		Assert(A.GetRows() == A.GetCols());
 
 		Size NumOfRows_Matrix = A.GetRows();
@@ -224,7 +228,7 @@ static void LUFactorization(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, Co
 	// Solves the system of linear equations A * x = b, where A is a matrix, x and b are vectors.
 	// Solution is saved in x.
 	template<class Type, class Size, bool ColMajor = false>
-static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type>, Size>& x, TVec<TNum<Type>, Size>& b) {
+	static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type>, Size>& x, TVec<TNum<Type>, Size>& b) {
 		Assert(A.GetRows() == b.Len());
 
 		// for matrix
@@ -240,7 +244,7 @@ static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type>, Size>
 		// LU factorization
 		TVVec<TNum<Type>, Size, ColMajor> M = A;
 		//TODO TInt is enough?
-		TVec<TNum<index>, index> Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+		TVec<TNum<glib_index>, glib_index> Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
 		MKLfunctions::LUStep(M, Perm);
 
 		// solution
@@ -274,7 +278,7 @@ static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type>, Size>
 	// Solves the system of linear equations A * X = B, where A, X and B are matrices.
 	// Solution is saved in X.
 	template<class Type, class Size, bool ColMajor = false>
-static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVVec<TNum<Type>, Size, ColMajor>& X, TVVec<TNum<Type>, Size, ColMajor>& B) {
+	static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVVec<TNum<Type>, Size, ColMajor>& X, TVVec<TNum<Type>, Size, ColMajor>& B) {
 		Assert(A.GetRows() == B.GetRows());
 
 		// for matrix
@@ -290,7 +294,7 @@ static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVVec<TNum<Type>, Size
 		// LU factorization
 		TVVec<TNum<Type>, Size, ColMajor> M = A;
 		//TODO TInt is enough?
-		TVec<TNum<index>, index> Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+		TVec<TNum<glib_index>, glib_index> Perm; Perm.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
 		MKLfunctions::LUStep(M, Perm);
 
 		// solution
@@ -489,7 +493,7 @@ static void TriangularSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type
 		}
 		else
 		if (TypeCheck::is_complex_double<Type>::value == true){
-			typedef std::complex<double> Loc;
+			//typedef std::complex<double> Loc;
 			LAPACKE_ztrtrs(Matrix_Layout, uplo, trans, diag, NumOfRows_Matrix, NumOfCols_Vector, reinterpret_cast<const MKL_Complex16 *>(&A(0, 0).Val),
 				LeadingDimension_Matrix, reinterpret_cast<MKL_Complex16 *>(&x[0].Val), LeadingDimension_Vector);
 		}
@@ -508,7 +512,7 @@ static void TriangularSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type
 	template<class Type, class Size, bool ColMajor = false>
 static void TriangularSolve(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& X, 
 		TVVec<Type, Size, ColMajor>& B, bool UpperTriangFlag = true, bool DiagonalUnitFlag = false) {
-		Assert(Matrix.GetRows() == B.GetRows());
+		Assert(A.GetRows() == B.GetRows());
 
 		// data used for solution
 		Size NumOfRows_Matrix = A.GetRows();
@@ -637,7 +641,7 @@ static void QRSolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, TVec<Ty
 		}
 		else
 		if (TypeCheck::is_float<Type>::value == true){
-			typedef float Loc;
+			typedef float Loc; 
 			LAPACKE_sormqr(Matrix_Layout, 'L', 'T', NumOfRows_Vector, NumOfCols_Vector, NumOfElementaryReflectors,
 				(const Loc *)&M(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&Tau[0].Val, (Loc *)&Temp[0].Val, LeadingDimension_Vector);
 		}
@@ -952,7 +956,7 @@ static void LQSolve(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>&
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// SVD factorization and solution
+	// SVD factorization and solution -- currently works only for double and float
 
 	// Makes the SVD factorization of matrix Matrix, such that A = U * Sing * VT.
 	// Sing is the vector containing singular values, U is the matrix with left singular vectors,
@@ -969,6 +973,7 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 
 		// preperation for factorization
 		Sing.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+		//Fix this part, results are only double or float due to bidiagonalization
 		TVec<Type, Size> UpDiag, TauQ, TauP;
 		UpDiag.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix) - 1);
 		TauQ.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
@@ -985,22 +990,25 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_sgebrd(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
-				(Loc *)&Sing[0].Val, &UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
+				(Loc *)&Sing[0].Val, (Loc *)&UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
 		}
 		else
 		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
+			typedef double LocSing;
 			LAPACKE_zgebrd(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
-				(Loc *)&Sing[0].Val, &UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
+				(LocSing *)&Sing[0].Val, (LocSing *)&UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
 		}
 		else
 		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
+			typedef float LocSing;
 			LAPACKE_cgebrd(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, (Loc *)&M(0, 0).Val, LeadingDimension_Matrix,
-				(Loc *)&Sing[0].Val, (Loc *)&UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
+				(LocSing *)&Sing[0].Val, (LocSing *)&UpDiag[0].Val, (Loc *)&TauQ[0].Val, (Loc *)&TauP[0].Val);
 		}
 
 		// matrix U used in the SVD factorization
+		//Andrej: Fix this for complex matrices
 		U = M;
 		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
@@ -1013,7 +1021,7 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 			LAPACKE_sorgbr(Matrix_Layout, 'Q', NumOfRows_Matrix, MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix,
 				(Loc *)&U(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&TauQ[0].Val);
 		}
-		else
+		/*else
 		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_zorgbr(Matrix_Layout, 'Q', NumOfRows_Matrix, MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix,
@@ -1024,9 +1032,10 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 			typedef std::complex<float> Loc;
 			LAPACKE_corgbr(Matrix_Layout, 'Q', NumOfRows_Matrix, MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix,
 				(Loc *)&U(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&TauQ[0].Val);
-		}
+		}*/
 
 		// matrix VT used in the SVD factorization
+		//Andrej: Add support for complex matrices
 		VT = M;
 		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
@@ -1039,7 +1048,7 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 			LAPACKE_sorgbr(Matrix_Layout, 'P', MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix, NumOfRows_Matrix,
 				(Loc *)&VT(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&TauP[0].Val);
 		}
-		else
+		/*else
 		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			LAPACKE_zorgbr(Matrix_Layout, 'P', MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix, NumOfRows_Matrix,
@@ -1050,7 +1059,7 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 			typedef std::complex<float> Loc;
 			LAPACKE_corgbr(Matrix_Layout, 'P', MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix, NumOfRows_Matrix,
 				(Loc *)&VT(0, 0).Val, LeadingDimension_Matrix, (const Loc *)&TauP[0].Val);
-		}
+		}*/
 
 		// factorization
 		TVVec<Type, Size, ColMajor> C;
@@ -1072,13 +1081,15 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 		else
 		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
-			LAPACKE_zbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (Loc *)&Sing[0].Val, (Loc *)&UpDiag[0].Val,
+			typedef double LocSing;
+			LAPACKE_zbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (LocSing *)&Sing[0].Val, (LocSing *)&UpDiag[0].Val,
 				(Loc *)&VT(0, 0).Val, LeadingDimension_VT, (Loc *)&U(0, 0).Val, LeadingDimension_U, (Loc *)&C(0, 0).Val, 1);
 		}
 		else
 		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
-			LAPACKE_cbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (Loc *)&Sing[0].Val, (Loc *)&UpDiag[0].Val,
+			typedef float LocSing;
+			LAPACKE_cbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (LocSing *)&Sing[0].Val, (LocSing *)&UpDiag[0].Val,
 				(Loc *)&VT(0, 0).Val, LeadingDimension_VT, (Loc *)&U(0, 0).Val, LeadingDimension_U, (Loc *)&C(0, 0).Val, 1);
 		}
 	}
@@ -1086,7 +1097,7 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 	// SVDSolve solves the Least Squares problem of equation A * x = b, where A is a matrix, x and b are vectors.
 	// The solution is saved in x.
 	template<class Type, class Size, bool ColMajor = false>
-static void SVDSolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, TVec<Type, Size>& b) {
+static void SVDSolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, TVec<Type, Size>& b, const Type& threshold = 1e-8) {
 		Assert(A.GetRows() == b.Len());
 
 		// data used for solution
@@ -1107,7 +1118,9 @@ static void SVDSolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, TVec<T
 			U.GetCol(i, ui);
 			VT.GetRow(i, vi);
 			Type Scalar = TLinAlg::DotProduct(ui, b) / Sing[i].Val;
-			TLinAlg::AddVec(Scalar, vi, x);
+			//Correct Type->TNum<Type>! in the whole file
+			if (Sing[i].Val < threshold.Val) break;
+			TLinAlg::AddVec(Scalar.Val, vi, x);
 		}
 	}
 

@@ -117,8 +117,8 @@ int TValCache<TVal>::AddVal(const TVal& Val) {
     // check if we have to drop anything from the cache
     if (NewCacheSizeInc > CacheResetThreshold) {
 		// report on the size increase
-        printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr());
-		TTmStopWatch StopWatch(true);
+        // printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr());
+		// TTmStopWatch StopWatch(true);
 		// report on the current size
         //const uint64 OldSize = ValCache.GetMemUsed();
         //printf("[%s] ... ", TUInt64::GetMegaStr(OldSize).CStr());
@@ -127,7 +127,7 @@ int TValCache<TVal>::AddVal(const TVal& Val) {
 		//// report on the current size
         //const uint64 NewSize = ValCache.GetMemUsed();
 		//printf("[%s] ", TUInt64::GetMegaStr(NewSize).CStr());
-		printf("Done (time needed: %.1f seconds).\n", StopWatch.GetSec());
+		// printf("Done (time needed: %.1f seconds).\n", StopWatch.GetSec());
 		// reset increase counter
         NewCacheSizeInc = 0; 
 	}
@@ -372,16 +372,7 @@ TBlockCache<TVal>::TBlockCache(const TStr& _FNmPrefix, const TFAccess& _Access,
 	CacheResetThreshold = MAX(int64(0.1 * double(MxCacheMem)), int64(10*1024*1024));
 	NewCacheSizeInc = 0;
 	// initialize value disk store
-    try 
-	{
-		BlockBlobBs = TMBlobBs::New(FNmPrefix + "BlobBs", Access);
-	}
-	catch (...) 
-	{ 
-		TMBlobBs::New(FNmPrefix + "BlobBs", faRestore);
-		BlockBlobBs = TMBlobBs::New(FNmPrefix + "BlobBs", Access);	// open it then in a normal fashion
-	}
-
+    BlockBlobBs = TMBlobBs::New(FNmPrefix + "BlobBs", Access);
 	// make sure we are not trying to create
 	EAssertR(Access != faCreate, "First call create constructor!");
 	// load BlockId map and BlockSize

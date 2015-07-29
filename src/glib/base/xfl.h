@@ -90,9 +90,12 @@ public:
   static bool Exists(const TStr& FPathFNm);
 
   static void ListFiles(const TStr& DirNm, TStrV& FNmV);
-
+  
   static TStr GetLastDirPart(const TStr& FPathFNm);
   static void CopyDir(const TStr& SourceDir, const TStr& DestDir, const bool& OverwriteIfExists = true);
+
+  static void SplitPath(const TStr& FPathFNm, TStrV& PartV);
+  static TStr GetFileName(const TStr& FileWithDir);
 };
 
 /////////////////////////////////////////////////

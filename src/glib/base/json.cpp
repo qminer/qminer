@@ -79,7 +79,7 @@ PJsonVal TJsonVal::NewArr(const TIntV& IntV) {
 PJsonVal TJsonVal::NewArr(const TUInt64V& IntV) {
 	PJsonVal Val = TJsonVal::NewArr();
 	for (int IntN = 0; IntN < IntV.Len(); IntN++) {
-		Val->AddToArr(TJsonVal::NewNum((double) IntV[IntN]));
+		Val->AddToArr(TJsonVal::NewNum((double)IntV[IntN]));
 	}
 	return Val;
 }

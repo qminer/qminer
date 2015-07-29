@@ -20,10 +20,6 @@ typedef long long index_t;
 #pragma warning(disable: 4315)		// 'THashKeyDat<TKey,TDat>' : 'this' pointer for member 'THashKeyDat<TKey,TDat>::Dat' may not be aligned 8 as expected by the constructor
 #pragma warning(disable: 4512)		// assignment operator could not be generated
 
-// if you use glib in multithreaded environment uncomment the next define
-// it avoids definition of some static variables that causes problems when using multiple threads
-//#define MULTITHREADED
-
 /////////////////////////////////////////////////
 // Environment defines
 #if defined (_WIN32)
@@ -66,6 +62,10 @@ typedef long long index_t;
   #endif
 #endif
 
+// if you need to compile with older compiler (C++98 standard)
+// comment the bottom define
+#define GLib_CPP11
+
 // includes
 #if defined (GLib_WIN)
   #define WIN32_LEAN_AND_MEAN
@@ -96,8 +96,6 @@ typedef long long index_t;
   #include <arpa/inet.h>
   #include <netinet/in.h>
 #endif
-
-#define GLib_CPP11
 
 // word size
 #if __WORDSIZE == 32 || defined(_M_IX86) || defined(__CYGWIN32__) || defined(__i386__)
@@ -143,6 +141,8 @@ typedef long long index_t;
 
 #if defined(GLib_MACOSX)
   // On OS X Maverics there is no default support for OpenMP
+#elif defined(__clang__)
+  // Default clang on Linux also does not support OpenMP
 #else
   #define GLib_OPENMP
 #endif
@@ -216,7 +216,6 @@ typedef long long index_t;
 #include "ss.h"
 #include "linalg.h"
 #include "tensor.h"
-#include "opt.h"
 #include "json.h"
 #include "zipfl.h"
 

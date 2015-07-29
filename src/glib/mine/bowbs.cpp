@@ -1403,8 +1403,7 @@ int TBowDocBs::AddDoc(const TStr& _DocNm,
   return DId;
 }
 
-void TBowDocBs::DelDoc(const TStr& DocNm)
-{
+void TBowDocBs::DelDoc(const TStr& DocNm) {
 	int DId=-1;
 	if (!DocNmToDescStrH.IsKey(DocNm, DId))
 		return;
@@ -1414,8 +1413,7 @@ void TBowDocBs::DelDoc(const TStr& DocNm)
 	PBowSpV DocSpV=DocSpVV[DId];
   
 	// decrease the document frequency for the words
-	for (int WIdN = 0; WIdN < DocSpV->GetWIds(); WIdN++)
-	{
+	for (int WIdN = 0; WIdN < DocSpV->GetWIds(); WIdN++) {
 		int WId = DocSpV->GetWId(WIdN);
 		WordStrToDescH[WId].Fq--;
 	}
@@ -1424,8 +1422,7 @@ void TBowDocBs::DelDoc(const TStr& DocNm)
 }
 
 // if text was added to the document you can call this method with the added text to simply update the bow data for the document
-int TBowDocBs::AppendDoc(const TStr& _DocNm, const TStrV& CatNmV, const TStrV& WordStrV, const TStr& DocStr)
-{
+int TBowDocBs::AppendDoc(const TStr& _DocNm, const TStrV& CatNmV, const TStrV& WordStrV, const TStr& DocStr) {
 	// create doc-id
 	TStr DocNm=_DocNm;
 	if (DocNm.Empty()){DocNm=TInt::GetStr(GetDocs());}
@@ -1437,8 +1434,7 @@ int TBowDocBs::AppendDoc(const TStr& _DocNm, const TStrV& CatNmV, const TStrV& W
 	// convert category names to cat-ids
 	TIntV& DocCIdV=DocCIdVV[DId];
 	DocCIdV.Gen(CatNmV.Len(), 0);
-	for (int CatNmN=0; CatNmN<CatNmV.Len(); CatNmN++)
-	{
+	for (int CatNmN=0; CatNmN<CatNmV.Len(); CatNmN++) {
 		int CId=CatNmToFqH.AddKey(CatNmV[CatNmN]);
 		CatNmToFqH[CId]++; DocCIdV.Add(CId);
 	}
@@ -1452,8 +1448,7 @@ int TBowDocBs::AppendDoc(const TStr& _DocNm, const TStrV& CatNmV, const TStrV& W
 	
 	// compose document bag-of-words vector
 	PBowSpV DocSpV=DocSpVV[DId];
-	for (int DocWordStrN=0; DocWordStrN<DocWordStrToFqH.Len(); DocWordStrN++)
-	{
+	for (int DocWordStrN=0; DocWordStrN<DocWordStrToFqH.Len(); DocWordStrN++) {
 		TStr WordStr=DocWordStrToFqH.GetKey(DocWordStrN);
 		int Fq=DocWordStrToFqH[DocWordStrN];
 		int WId=WordStrToDescH.AddKey(WordStr);
@@ -1469,8 +1464,7 @@ int TBowDocBs::AppendDoc(const TStr& _DocNm, const TStrV& CatNmV, const TStrV& W
 	return DId;
 }
 
-int TBowDocBs::AppendDoc(const TStr& _DocNm, const TStrV& CatNmV, const TIntFltPrV& WIdWgtPrV)
-{
+int TBowDocBs::AppendDoc(const TStr& _DocNm, const TStrV& CatNmV, const TIntFltPrV& WIdWgtPrV) {
 	// create doc-id
 	TStr DocNm=_DocNm;
 	if (DocNm.Empty()){DocNm=TInt::GetStr(GetDocs());}
@@ -1482,8 +1476,7 @@ int TBowDocBs::AppendDoc(const TStr& _DocNm, const TStrV& CatNmV, const TIntFltP
 	// convert category names to cat-ids
 	TIntV& DocCIdV=DocCIdVV[DId];
 	DocCIdV.Gen(CatNmV.Len(), 0);
-	for (int CatNmN=0; CatNmN<CatNmV.Len(); CatNmN++)
-	{
+	for (int CatNmN=0; CatNmN<CatNmV.Len(); CatNmN++) {
 		int CId=CatNmToFqH.AddKey(CatNmV[CatNmN]);
 		CatNmToFqH[CId]++; DocCIdV.Add(CId);
 	}
@@ -1491,8 +1484,7 @@ int TBowDocBs::AppendDoc(const TStr& _DocNm, const TStrV& CatNmV, const TIntFltP
 
 	// compose document bag-of-words vector
 	PBowSpV DocSpV=DocSpVV[DId];
-	for (int WordN=0; WordN<WIdWgtPrV.Len(); WordN++)
-	{
+	for (int WordN=0; WordN<WIdWgtPrV.Len(); WordN++) {
 		int WId = WIdWgtPrV[WordN].Val1;
 		double Fq = WIdWgtPrV[WordN].Val2;
 		WordStrToDescH[WId].Fq++;
@@ -1507,8 +1499,7 @@ int TBowDocBs::AppendDoc(const TStr& _DocNm, const TStrV& CatNmV, const TIntFltP
 	return DId;
 }
 
-void TBowDocBs::AppendWord(const TStr& DocNm, const TStr& Word, const float Wgt)
-{
+void TBowDocBs::AppendWord(const TStr& DocNm, const TStr& Word, const float Wgt) {
 	int DId=-1;
 	// if the doc doesn't exist yet then simply call AddDoc
 	if (!DocNmToDescStrH.IsKey(DocNm, DId))
@@ -1516,8 +1507,7 @@ void TBowDocBs::AppendWord(const TStr& DocNm, const TStr& Word, const float Wgt)
 	AppendWord(DId, Word, Wgt);
 }
 
-void TBowDocBs::AppendWord(const int DId, const TStr& Word, const float Wgt)
-{
+void TBowDocBs::AppendWord(const int DId, const TStr& Word, const float Wgt) {
 	PBowSpV DocSpV = DocSpVV[DId];
 	int WId = WordStrToDescH.AddKey(Word);
 	WordStrToDescH[WId].Fq++;
@@ -1526,7 +1516,6 @@ void TBowDocBs::AppendWord(const int DId, const TStr& Word, const float Wgt)
 	else
 		DocSpV->AddWIdWgt(WId, Wgt);			// for new WIds add them to the vector
 }
-
 
 /// create a new BowDocBs where a document i is created by merging the vector of documents DIdVV[i]. 
 // The name of the document i is DocNmV[i]
@@ -1610,15 +1599,13 @@ bool TBowDocBs::IsDocWordStr(const int& DId, const TStr& WordStr) const {
   }
 }
 
-void TBowDocBs::SetCatToBowDIds(const TStr& CatNm, const TIntV& BowDIdV)
-{
+void TBowDocBs::SetCatToBowDIds(const TStr& CatNm, const TIntV& BowDIdV) {
 	int CId = AddCatNm(CatNm);
 	for (int i=0; i < BowDIdV.Len(); i++)
 		AddDocCId(BowDIdV[i], CId);
 }
 
-void TBowDocBs::RemoveCatFromBowDIds(const TStr& CatNm, TIntV& BowDIdV)
-{
+void TBowDocBs::RemoveCatFromBowDIds(const TStr& CatNm, TIntV& BowDIdV) {
 	int CId = GetCId(CatNm);
 	for (int i=0; i < BowDIdV.Len(); i++)
 		RemoveDocCId(BowDIdV[i], CId);

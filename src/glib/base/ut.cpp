@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-/////////////////////////////////////////////////
+////////////////////////////////////////////////
 // Notifications
 void TNotify::OnNotifyFmt(const TNotifyType& Type, const char *FmtStr, ...) {
   char Bf[10*1024];
@@ -143,3 +143,98 @@ void TStrNotify::OnStatus(const TStr& MsgStr)
 /////////////////////////////////////////////////
 // Exception
 TExcept::TOnExceptF TExcept::OnExceptF=NULL;
+
+PExcept TExcept::New(const TStr& MsgStr, const TStr& LocStr) {
+	TChA Stack = LocStr;
+	  
+#ifdef GLib_WIN
+	if (Stack.Len() > 0) { Stack += "\n"; }
+	Stack += "Stack trace:\n";
+	Stack += TBufferStackWalker::GetStackTrace();
+#endif
+	  
+	return PExcept(new TExcept(MsgStr, Stack));
+  }
+  
+#ifdef GLib_WIN
+/////////////////////////////////////////////////
+// Stack-trace output for Windows
+void TFileStackWalker::OnOutput(LPCSTR szText) {
+    //printf(szText); StackWalker::OnOutput(szText);
+    if (FOut == NULL) { return; }
+    
+    // LPCSTR can be a char or a wchar, depending on the compiler character settings
+    // use the appropriate strcopy method to copy to a string buffer
+    if (sizeof(TCHAR) == sizeof(char)) {
+        fputs((char*) szText, FOut);
+    }
+    else {
+        fputws((wchar_t*) szText, FOut);
+    }
+}
+
+TFileStackWalker::TFileStackWalker() : StackWalker() {
+    int MxFNmLen = 1000;
+    char* FNm = new char[MxFNmLen]; if (FNm == NULL) { return; }
+    int FNmLen = GetModuleFileName(NULL, FNm, MxFNmLen); if (FNmLen == 0) { return; }
+    TStr FileName = TStr(FNm);
+    delete[] FNm;
+    
+    FileName += ".ErrTrace";
+    FOut = fopen(FileName.CStr(), "a+b");
+    
+    time_t Time = time(NULL);
+    fprintf(FOut, "\r\n--------\r\n%s --------\r\n", ctime(&Time));
+}
+
+void TFileStackWalker::CloseOutputFile() {
+    if (FOut != NULL)
+        fclose(FOut);
+    FOut = NULL;
+}
+
+TFileStackWalker::~TFileStackWalker() {
+    CloseOutputFile();
+}
+
+void TFileStackWalker::WriteStackTrace() {
+    TFileStackWalker Walker;
+    Walker.ShowCallstack();
+    Walker.CloseOutputFile();
+}
+
+void TBufferStackWalker::OnOutput(LPCSTR szText) {
+    // LPCSTR can be a char or a wchar, depending on the compiler character settings
+    // use the appropriate strcopy method to copy to a string buffer
+    TStr Text;
+    if (sizeof(TCHAR) == sizeof(char)) {
+        size_t size = strlen(szText);
+        char * pCopy = new char[size + 1];
+        strcpy(pCopy, szText);
+        Text = szText;
+        delete pCopy;
+        
+    }
+    else {
+        size_t size = wcstombs(NULL, (wchar_t*) szText, 0);
+        char * pCopy = new char[size + 1];
+        wcstombs(pCopy, (wchar_t*) szText, size + 1);
+        Text = pCopy;
+        delete pCopy;
+    }
+    // ignore highest stack items that consist of stack walker and TExcept
+    if (Text.SearchStr("StackWalker::") == -1 && Text.SearchStr("TExcept::") == -1)
+        Output += Text;
+}
+
+TBufferStackWalker::TBufferStackWalker() : StackWalker() {  }
+
+TChA TBufferStackWalker::GetOutput() { return Output; }
+
+// static method that generates stack trace and returns it
+TChA TBufferStackWalker::GetStackTrace() {
+    TBufferStackWalker Walker;
+    Walker.ShowCallstack();
+    return Walker.GetOutput();
+}
+#endif

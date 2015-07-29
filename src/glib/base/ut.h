@@ -8,108 +8,6 @@
 
 #include "bd.h"
 
-
-#ifdef GLib_WIN
-#include <StackWalker.h>
-
-class TFileStackWalker : public StackWalker
-{
-public:
-	TFileStackWalker() : StackWalker()
-	{
-		int MxFNmLen = 1000;
-		char* FNm = new char[MxFNmLen]; if (FNm == NULL) { return; }
-		int FNmLen = GetModuleFileName(NULL, FNm, MxFNmLen); if (FNmLen == 0) { return; }
-		TStr FileName = TStr(FNm);
-		delete[] FNm;
-
-		FileName += ".ErrTrace";
-		FOut = fopen(FileName.CStr(), "a+b");
-
-		time_t Time = time(NULL);
-		fprintf(FOut, "\r\n--------\r\n%s --------\r\n", ctime(&Time));
-	}
-
-	void CloseOutputFile() {
-		if (FOut != NULL)
-			fclose(FOut);
-		FOut = NULL;
-	}
-
-	~TFileStackWalker() {
-		CloseOutputFile();
-	}
-
-	static void WriteStackTrace() {
-		TFileStackWalker Walker;
-		Walker.ShowCallstack();
-		Walker.CloseOutputFile();
-	}
-
-protected:
-	/*TStr FileName;*/
-	FILE* FOut;
-
-	virtual void OnOutput(LPCSTR szText)
-	{
-		//printf(szText); StackWalker::OnOutput(szText); 
-		if (FOut == NULL) { return; }
-
-		// LPCSTR can be a char or a wchar, depending on the compiler character settings
-		// use the appropriate strcopy method to copy to a string buffer
-		if (sizeof(TCHAR) == sizeof(char)) {
-			fputs((char*) szText, FOut);
-		}
-		else {
-			fputws((wchar_t*) szText, FOut);
-		}
-	}
-};
-
-class TBufferStackWalker : public StackWalker
-{
-public:
-	TBufferStackWalker() : StackWalker() {  }
-
-	TChA GetOutput() { return Output; }
-
-	// static method that generates stack trace and returns it
-	static TChA GetStackTrace() {
-		TBufferStackWalker Walker;
-		Walker.ShowCallstack();
-		return Walker.GetOutput();
-	}
-
-protected:
-	TChA Output;
-
-	virtual void OnOutput(LPCSTR szText)
-	{
-		// LPCSTR can be a char or a wchar, depending on the compiler character settings
-		// use the appropriate strcopy method to copy to a string buffer
-		TStr Text;
-		if (sizeof(TCHAR) == sizeof(char)) {
-			size_t size = strlen(szText);
-			char * pCopy = new char[size + 1];
-			strcpy(pCopy, szText);
-			Text = szText;
-			delete pCopy;
-			
-		}
-		else {
-			size_t size = wcstombs(NULL, (wchar_t*) szText, 0);
-			char * pCopy = new char[size + 1];
-			wcstombs(pCopy, (wchar_t*) szText, size + 1);
-			Text = pCopy;
-			delete pCopy;
-		}
-		// ignore highest stack items that consist of stack walker and TExcept
-		if (Text.SearchStr("StackWalker::") == -1 && Text.SearchStr("TExcept::") == -1)
-			Output += Text;
-	}
-};
-#endif
-
 /////////////////////////////////////////////////
 // Type-Name
 
@@ -201,7 +99,6 @@ public:
   void OnStatus(const TStr& MsgStr){}
 };
 
-#ifndef SWIG
 /////////////////////////////////////////////////
 // Callback-Notifier
 typedef void (__stdcall *TCallbackF)(const TNotifyType& Type, const TStr& MsgStr);
@@ -247,7 +144,6 @@ public:
     CallbackF((int)ntStat, MsgStr.CStr()); 
   }
 };
-#endif
 
 /////////////////////////////////////////////////
 // Standard-Notifier
@@ -286,7 +182,7 @@ public:
 
 /////////////////////////////////////////////////
 // String-Notifier
-class TStrNotify : public TNotify{
+class TStrNotify : public TNotify {
 public:
 	TChA Log;
 	TStrNotify(){}
@@ -306,18 +202,7 @@ private:
 public:
   TExcept(const TStr& _MsgStr): MsgStr(_MsgStr), LocStr(){}
   TExcept(const TStr& _MsgStr, const TStr& _LocStr): MsgStr(_MsgStr), LocStr(_LocStr){}
-  static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr()) {
-	  TChA Stack = LocStr;
-	  
-#ifdef GLib_WIN
-	  if (Stack.Len() > 0)
-		  Stack += "\n";
-	  Stack += "Stack trace:\n";
-	  Stack += TBufferStackWalker::GetStackTrace();
-#endif
-	  
-	  return PExcept(new TExcept(MsgStr, Stack));
-  }
+  static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr());
   virtual ~TExcept(){}
 
   TStr GetMsgStr() const {return MsgStr;}
@@ -356,3 +241,33 @@ public:
 #define CatchFull } catch (PExcept Except){ErrNotify(Except->GetStr());}
 #define CatchAll } catch (...){}
 
+#ifdef GLib_WIN
+#include <StackWalker.h>
+/////////////////////////////////////////////////
+// Stack-trace output for Windows
+class TFileStackWalker : public StackWalker {
+protected:
+    FILE* FOut;
+    
+    void OnOutput(LPCSTR szText);
+public:
+    TFileStackWalker();
+    void CloseOutputFile();
+    ~TFileStackWalker();
+    
+    static void WriteStackTrace();
+};
+
+class TBufferStackWalker : public StackWalker {
+protected:
+    TChA Output;
+    
+    void OnOutput(LPCSTR szText);
+public:
+	TBufferStackWalker();
+	TChA GetOutput();
+
+	// static method that generates stack trace and returns it
+	static TChA GetStackTrace();
+}
+#endif

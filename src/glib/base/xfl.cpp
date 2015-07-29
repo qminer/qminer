@@ -263,8 +263,7 @@ bool TDir::DelDir(const TStr& FPathFNm){
   return RemoveDirectory(FPathFNm.CStr())!=0;
 }
 
-bool TDir::DelNonEmptyDir(const TStr& FPathFNm)
-{
+bool TDir::DelNonEmptyDir(const TStr& FPathFNm) {
 	TStrV FileV;
 	TFFile::GetFNmV(FPathFNm, TStrV(), false, FileV);
 	bool Ok = true;
@@ -281,20 +280,18 @@ bool TDir::DelNonEmptyDir(const TStr& FPathFNm)
 	return Ok;
 }
 
-TStr TDir::GetLastDirPart(const TStr& FPathFNm)
-{
-	return TFile::GetFileName(FPathFNm);
+TStr TDir::GetLastDirPart(const TStr& FPathFNm) {
+	return TDir::GetFileName(FPathFNm);
 }
 
 // copy (nonempty) directory SourceDir to DestDir
-void TDir::CopyDir(const TStr& SourceDir, const TStr& DestDir, const bool& OverwriteIfExists)
-{
+void TDir::CopyDir(const TStr& SourceDir, const TStr& DestDir, const bool& OverwriteIfExists) {
 	TDir::GenDir(DestDir);
 	// get all files in source dir
 	TStrV FileV;
 	TFFile::GetFNmV(SourceDir, TStrV(), false, FileV);
 	for (int N = 0; N < FileV.Len(); N++) {
-		TStrV PartV; TFile::SplitPath(FileV[N], PartV);
+		TStrV PartV; TDir::SplitPath(FileV[N], PartV);
 		const TStr FName = PartV[PartV.Len() - 1];
 		// if this is a file copy it
 		if (TFile::Exists(FileV[N])) {
@@ -305,6 +302,17 @@ void TDir::CopyDir(const TStr& SourceDir, const TStr& DestDir, const bool& Overw
 			TDir::CopyDir(FileV[N], DestDir + "/" + FName, OverwriteIfExists);
 		}
 	}
+}
+
+void TDir::SplitPath(const TStr& FPathFNm, TStrV& PartV) {
+    FPathFNm.SplitOnAllAnyCh("\\/", PartV);
+}
+
+TStr TDir::GetFileName(const TStr& FileWithDir) {
+    TStrV PartsV; TDir::SplitPath(FileWithDir, PartsV);
+    if (PartsV.Len() > 0)
+        return PartsV[PartsV.Len() - 1];
+    return "";
 }
 
 #ifdef GLib_WIN
@@ -389,8 +397,7 @@ TFileNotify::TFileNotify(const TStr& _FileName, const bool& _AddTimeStamp, const
 	LastLogDate = "";
 }
 
-void TFileNotify::OpenNewFileForDate()
-{
+void TFileNotify::OpenNewFileForDate() {
 	LastLogDate = TTm::GetCurLocTm().GetWebLogDateStr();
 	FileName.ChangeChAll('\\', '/');
 	TStr Path, FName; FileName.SplitOnLastCh(Path, '/', FName);

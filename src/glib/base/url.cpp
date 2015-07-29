@@ -532,8 +532,7 @@ PUrlEnv TUrlEnv::MkClone(const PUrlEnv& UrlEnv){
   return CloneUrlEnv;
 }
 
-void TUrlEnv::GetKeyValPrV(TStrKdV& FldNmValPrV) const
-{
+void TUrlEnv::GetKeyValPrV(TStrKdV& FldNmValPrV) const {
 	FldNmValPrV.Clr();
 	const int Keys = GetKeys();
 	for (int KeyN = 0; KeyN < Keys; KeyN++) {

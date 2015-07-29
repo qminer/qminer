@@ -133,8 +133,7 @@ public:
   void Save(TSOut& SOut) const {
     DId.Save(SOut); Norm.Save(SOut); WIdWgtKdV.Save(SOut);}
   int64 GetMemUsed() const { 
-	return int64(sizeof(TInt) + sizeof(TFlt) + WIdWgtKdV.GetMemUsed());
-}
+	return int64(sizeof(TInt) + sizeof(TFlt) + WIdWgtKdV.GetMemUsed()); }
   // general
   void Clr(){DId=-1; WIdWgtKdV.Clr();}
   void GenMx(const int& MxWIds){WIdWgtKdV.Gen(MxWIds, 0);}
@@ -425,7 +424,7 @@ public:
     TFIn SIn(FNm); return Load(SIn);}
   void SaveBin(const TStr& FNm) const {
     TFOut SOut(FNm); Save(SOut);}
-  int64 GetMemUsed()	{
+  int64 GetMemUsed() {
 	return 4*sizeof(TInt) + sizeof(TFlt) + DIdV.GetMemUsed() + DocSpVV.GetMemUsed(); }
 };
 
@@ -639,18 +638,12 @@ public:
     CatNmToFqH[CId]++; DocCIdVV[DId].AddUnique(CId);}
   int AddCatNm(const TStr& CatNm){
     return CatNmToFqH.AddKey(CatNm);}
-  void RemoveDocCId(const int &DId, const int& CId) {		// remove the category from the document
-	  CatNmToFqH[CId]--;
-	  DocCIdVV[DId].Del(CId);
-  }
+  // remove the category from the document
+  void RemoveDocCId(const int &DId, const int& CId) {
+	  CatNmToFqH[CId]--; DocCIdVV[DId].Del(CId); }
 
   void SetCatToBowDIds(const TStr& CatNm, const TIntV& BowDIdV);
   void RemoveCatFromBowDIds(const TStr& CatNm, TIntV& BowDIdV);
-  /*void ClearCats()
-  {
-	  CatNmToFqH.Clr();
-	  DocCIdVV.Clr();
-  }*/
 
     // train & test documents
   void PutTrainDIdV(const TIntV& DIdV){TrainDIdV=DIdV;}

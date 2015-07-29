@@ -914,9 +914,7 @@ public:
     if (Offset != 0) return GetPrimHashCd(Bf + Offset); else return GetPrimHashCd(""); }
   int GetSecHashCd(const uint& Offset) { Assert(Offset < BfL);
     if (Offset != 0) return GetSecHashCd(Bf + Offset); else return GetSecHashCd(""); }
-  int GetMemUsed() const {
-      return (int) MxBfL + 3*sizeof(uint);
-  }
+  int GetMemUsed() const { return (int) MxBfL + 3*sizeof(uint); }
 };
 
 /////////////////////////////////////////////////
@@ -1374,12 +1372,12 @@ public:
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
-  TNum& operator=(const TNum& UInt){Val=UInt.Val; return *this;}
-  TNum& operator=(const uint& _Val){Val=_Val; return *this;}
-  TNum& operator++(){++Val; return *this;} // prefix
-  TNum& operator--(){--Val; return *this;} // prefix
-  TNum operator++(int){TNum oldVal = Val; Val++; return oldVal;} // postfix
-  TNum operator--(int){TNum oldVal = Val; Val--; return oldVal;} // postfix
+  TNum& operator=(const TNum& UInt){ Val = UInt.Val; return *this; }
+  TNum& operator=(const uint& _Val){ Val = _Val; return *this; }
+  TNum& operator++(){ ++Val; return *this; } // prefix
+  TNum& operator--(){ --Val; return *this; } // prefix
+  TNum operator++(int){ TNum oldVal = Val; Val++; return oldVal; } // postfix
+  TNum operator--(int){ TNum oldVal = Val; Val--; return oldVal; } // postfix
   TNum& operator+=(const uint& Int){ Val += Int; return *this; }
   TNum& operator-=(const uint& Int){ Val -= Int; return *this; }
   //bool operator==(const TUInt& UInt) const {return Val==UInt.Val;}
