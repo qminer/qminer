@@ -1120,14 +1120,14 @@ exports.datasets= require('qminer_datasets');
 	*/
  exports.Store.prototype.key = function (keyName) { return [{ fq: {}, vocabulary: {}, name:'', store: {} }]; };
 /**
-	* //TODO
+	* Returns the stream aggregate with the given name.
 	* @param {string} saName - The name of the stream aggregate.
-	* @ignore
+	* @returns {module:qm.StreamAggr} The stream aggregate with the saName.
 	*/
  exports.Store.prototype.getStreamAggr = function (saName) {}
 /**
-	* //TODO
-	* @ignore
+	* Returns an array of the stream aggregates names connected to the store.
+	* @returns {Array.<string>} An array of stream aggregates names.
 	*/
  exports.Store.prototype.getStreamAggrNames = function () {}
 /**
@@ -1272,11 +1272,11 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Gives the name of the store.
 	*/
- exports.Store.prototype.name = undefined;
+ exports.Store.prototype.name = "";
 /**
 	* Checks if the store is empty.
 	*/
- exports.Store.prototype.empty = undefined;
+ exports.Store.prototype.empty = true;
 /**
 	* Gives the number of records.
 	*/
@@ -1284,7 +1284,7 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Creates a record set containing all the records from the store.
 	*/
- exports.Store.prototype.allRecords = undefined;
+ exports.Store.prototype.allRecords = Object.create(require('qminer').RecordSet.prototype);
 /**
 	* Gives an array of all field descriptor JSON objects.
 	*/
@@ -1314,16 +1314,16 @@ exports.datasets= require('qminer_datasets');
 	*/
  exports.Store.prototype.backwardIter = undefined;
 /**
-	* Gets the record with the given ID. //TODO
+	* Gets the record with the given ID.
 	* @param {number} recId - The id of the record.
 	* @returns {module:qm.Record} The record with the ID equal to recId.
 	* @ignore
 	*/
- exports.Store.prototype.store = function (recId) {};
+ exports.Store.prototype.store = function (recId) { };
 /**
 	* Returns the base, in which the store is contained.
 	*/
- exports.Store.prototype.base = undefined;
+ exports.Store.prototype.base = Object.create(require('qminer').Base.prototype);
 /**
 * Record (factory pattern).
 * @namespace
@@ -1413,7 +1413,7 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Returns the id of the record.
 	*/
- exports.Record.prototype.$id = undefined;
+ exports.Record.prototype.$id = 0;
 /**
 	* Returns the name of the record.
 	*/
@@ -1969,10 +1969,10 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        type: "People",
+	*        name: "People",
 	*        fields: [
-	*            { type: "Name", type: "string" },
-	*            { type: "Gender", type: "string" }
+	*            { name: "Name", type: "string" },
+	*            { name: "Gender", type: "string" }
 	*        ]
 	*    }]
 	* });
@@ -1999,10 +1999,10 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        type: "People",
+	*        name: "People",
 	*        fields: [
-	*            { type: "Name", type: "string" },
-	*            { type: "Gender", type: "string" }
+	*            { name: "Name", type: "string" },
+	*            { name: "Gender", type: "string" }
 	*        ]
 	*    }]
 	* });
@@ -2027,11 +2027,11 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        type: "Movies",
+	*        name: "Movies",
 	*        fields: [
-	*            { type: "Title", type: "string" },
-	*            { type: "Length", type: "int" },
-	*            { type: "Director", type: "string" }
+	*            { name: "Title", type: "string" },
+	*            { name: "Length", type: "int" },
+	*            { name: "Director", type: "string" }
 	*        ]
 	*    }]
 	* });
@@ -2060,10 +2060,10 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        type: "TVSeries",
+	*        name: "TVSeries",
 	*        fields: [
-	*            { type: "Title", type: "string", "primary": true },
-	*            { type: "NumberOfEpisodes", type: "int" }
+	*            { name: "Title", type: "string", "primary": true },
+	*            { name: "NumberOfEpisodes", type: "int" }
 	*        ]
 	*    }]
 	* });
@@ -2092,11 +2092,11 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        type: "BookWriters",
+	*        name: "BookWriters",
 	*        fields: [
-	*            { type: "Name", type: "string" },
-	*            { type: "Genre", type: "string" },
-	*            { type: "Books", type: "string_v" }
+	*            { name: "Name", type: "string" },
+	*            { name: "Genre", type: "string" },
+	*            { name: "Books", type: "string_v" }
 	*        ]
 	*    }]
 	* });
@@ -2127,10 +2127,10 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        type: "TVSeries",
+	*        name: "TVSeries",
 	*        fields: [
-	*            { type: "Title", type: "string", "primary": true },
-	*            { type: "NumberOfEpisodes", type: "int" }
+	*            { name: "Title", type: "string", "primary": true },
+	*            { name: "NumberOfEpisodes", type: "int" }
 	*        ]
 	*    }]
 	* });
@@ -2158,10 +2158,10 @@ exports.datasets= require('qminer_datasets');
 	* var base = new qm.Base({
 	*    mode: "createClean",
 	*    schema: [{
-	*        type: "ArcheryChampionship",
+	*        name: "ArcheryChampionship",
 	*        fields: [
-	*            { type: "Name", type: "string" },
-	*            { type: "ScorePerRound", type: "float_v" }
+	*            { name: "Name", type: "string" },
+	*            { name: "ScorePerRound", type: "float_v" }
 	*        ]
 	*    }]
 	* });
@@ -2187,7 +2187,7 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Returns the number of records in record set.
 	*/
- exports.RecordSet.prototype.length = undefined;
+ exports.RecordSet.prototype.length = 0;
 /**
 	* Checks if the record set is empty. If the record set is empty, then it returns true. Otherwise, it returns false.
 	*/
@@ -2205,10 +2205,10 @@ exports.datasets= require('qminer_datasets');
 * // create a new base with a simple store
 * var base = new qm.Base({ mode: "createClean" });
 * base.createStore({
-*     type: "People",
+*     name: "People",
 *     fields: [
-*         { type: "Name", type: "string" },
-*         { type: "Gendre", type: "string" }
+*         { name: "Name", type: "string" },
+*         { name: "Gendre", type: "string" }
 *     ]
 * });
 * // add new records to the store

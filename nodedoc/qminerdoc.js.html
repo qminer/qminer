@@ -2253,11 +2253,11 @@
 
 /**
 
-	* //TODO
+	* Returns the stream aggregate with the given name.
 
 	* @param {string} saName - The name of the stream aggregate.
 
-	* @ignore
+	* @returns {module:qm.StreamAggr} The stream aggregate with the saName.
 
 	*/
 
@@ -2265,9 +2265,9 @@
 
 /**
 
-	* //TODO
+	* Returns an array of the stream aggregates names connected to the store.
 
-	* @ignore
+	* @returns {Array.&amp;lt;string&gt;} An array of stream aggregates names.
 
 	*/
 
@@ -2557,7 +2557,7 @@
 
 	*/
 
- exports.Store.prototype.name = undefined;
+ exports.Store.prototype.name = &quot;&quot;;
 
 /**
 
@@ -2565,7 +2565,7 @@
 
 	*/
 
- exports.Store.prototype.empty = undefined;
+ exports.Store.prototype.empty = true;
 
 /**
 
@@ -2581,7 +2581,7 @@
 
 	*/
 
- exports.Store.prototype.allRecords = undefined;
+ exports.Store.prototype.allRecords = Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype);
 
 /**
 
@@ -2641,7 +2641,7 @@
 
 /**
 
-	* Gets the record with the given ID. //TODO
+	* Gets the record with the given ID.
 
 	* @param {number} recId - The id of the record.
 
@@ -2651,7 +2651,7 @@
 
 	*/
 
- exports.Store.prototype.store = function (recId) {};
+ exports.Store.prototype.store = function (recId) { };
 
 /**
 
@@ -2659,7 +2659,7 @@
 
 	*/
 
- exports.Store.prototype.base = undefined;
+ exports.Store.prototype.base = Object.create(require(&#x27;qminer&#x27;).Base.prototype);
 
 /**
 
@@ -2839,7 +2839,7 @@
 
 	*/
 
- exports.Record.prototype.$id = undefined;
+ exports.Record.prototype.$id = 0;
 
 /**
 
@@ -3951,13 +3951,13 @@
 
 	*    schema: [{
 
-	*        type: &quot;People&quot;,
+	*        name: &quot;People&quot;,
 
 	*        fields: [
 
-	*            { type: &quot;Name&quot;, type: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { type: &quot;Gender&quot;, type: &quot;string&quot; }
+	*            { name: &quot;Gender&quot;, type: &quot;string&quot; }
 
 	*        ]
 
@@ -4011,13 +4011,13 @@
 
 	*    schema: [{
 
-	*        type: &quot;People&quot;,
+	*        name: &quot;People&quot;,
 
 	*        fields: [
 
-	*            { type: &quot;Name&quot;, type: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { type: &quot;Gender&quot;, type: &quot;string&quot; }
+	*            { name: &quot;Gender&quot;, type: &quot;string&quot; }
 
 	*        ]
 
@@ -4067,15 +4067,15 @@
 
 	*    schema: [{
 
-	*        type: &quot;Movies&quot;,
+	*        name: &quot;Movies&quot;,
 
 	*        fields: [
 
-	*            { type: &quot;Title&quot;, type: &quot;string&quot; },
+	*            { name: &quot;Title&quot;, type: &quot;string&quot; },
 
-	*            { type: &quot;Length&quot;, type: &quot;int&quot; },
+	*            { name: &quot;Length&quot;, type: &quot;int&quot; },
 
-	*            { type: &quot;Director&quot;, type: &quot;string&quot; }
+	*            { name: &quot;Director&quot;, type: &quot;string&quot; }
 
 	*        ]
 
@@ -4133,13 +4133,13 @@
 
 	*    schema: [{
 
-	*        type: &quot;TVSeries&quot;,
+	*        name: &quot;TVSeries&quot;,
 
 	*        fields: [
 
-	*            { type: &quot;Title&quot;, type: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { name: &quot;Title&quot;, type: &quot;string&quot;, &quot;primary&quot;: true },
 
-	*            { type: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
+	*            { name: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -4197,15 +4197,15 @@
 
 	*    schema: [{
 
-	*        type: &quot;BookWriters&quot;,
+	*        name: &quot;BookWriters&quot;,
 
 	*        fields: [
 
-	*            { type: &quot;Name&quot;, type: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { type: &quot;Genre&quot;, type: &quot;string&quot; },
+	*            { name: &quot;Genre&quot;, type: &quot;string&quot; },
 
-	*            { type: &quot;Books&quot;, type: &quot;string_v&quot; }
+	*            { name: &quot;Books&quot;, type: &quot;string_v&quot; }
 
 	*        ]
 
@@ -4267,13 +4267,13 @@
 
 	*    schema: [{
 
-	*        type: &quot;TVSeries&quot;,
+	*        name: &quot;TVSeries&quot;,
 
 	*        fields: [
 
-	*            { type: &quot;Title&quot;, type: &quot;string&quot;, &quot;primary&quot;: true },
+	*            { name: &quot;Title&quot;, type: &quot;string&quot;, &quot;primary&quot;: true },
 
-	*            { type: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
+	*            { name: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
 
 	*        ]
 
@@ -4329,13 +4329,13 @@
 
 	*    schema: [{
 
-	*        type: &quot;ArcheryChampionship&quot;,
+	*        name: &quot;ArcheryChampionship&quot;,
 
 	*        fields: [
 
-	*            { type: &quot;Name&quot;, type: &quot;string&quot; },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-	*            { type: &quot;ScorePerRound&quot;, type: &quot;float_v&quot; }
+	*            { name: &quot;ScorePerRound&quot;, type: &quot;float_v&quot; }
 
 	*        ]
 
@@ -4387,7 +4387,7 @@
 
 	*/
 
- exports.RecordSet.prototype.length = undefined;
+ exports.RecordSet.prototype.length = 0;
 
 /**
 
@@ -4423,13 +4423,13 @@
 
 * base.createStore({
 
-*     type: &quot;People&quot;,
+*     name: &quot;People&quot;,
 
 *     fields: [
 
-*         { type: &quot;Name&quot;, type: &quot;string&quot; },
+*         { name: &quot;Name&quot;, type: &quot;string&quot; },
 
-*         { type: &quot;Gendre&quot;, type: &quot;string&quot; }
+*         { name: &quot;Gendre&quot;, type: &quot;string&quot; }
 
 *     ]
 
@@ -5543,7 +5543,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 29, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 30, 2015.
       </p>
     </div>
   </footer>

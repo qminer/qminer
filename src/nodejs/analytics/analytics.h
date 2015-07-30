@@ -103,11 +103,11 @@ private:
 * // CLASSIFICATION WITH SVC
 * // Set up fake train and test data.
 * // Four training examples with, number of features = 2
-* var featureMatrix = new la.Matrix({rows:2, cols:4, random:true});
+* var featureMatrix = new la.Matrix({rows: 2, cols: 4, random: true});
 * // classification targets for four examples
 * var targets = new la.Vector([-1, -1, 1, 1]);
 * // Set up the classification model
-* var SVC = new analytics.SVC({verbose:true});
+* var SVC = new analytics.SVC({verbose: true});
 * // Train classifier
 * SVC.fit(featureMatrix, targets);
 * // Save the model to disk
