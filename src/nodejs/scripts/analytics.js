@@ -1642,8 +1642,26 @@ module.exports = exports = function (pathPrefix) {
             return la.findMaxIdx(D);            
         }
         this.transform = function (X) {
-
+			throw new Error("KMeans.transform() is not implemented yet");
         }
+		this.save = function(fname){
+			if (!C) {
+				throw new Error("KMeans.save() - model not created yet");
+			}
+
+			var params_vec = new la.Vector();
+			params_vec.push(iter);
+			params_vec.push(k);
+			params_vec.push(verbose ? 1.0 : 0.0);
+
+			var xfs = qm.fs;
+			var fout = fs.openWrite(fname);
+
+			params_vec.save(fout);
+			C.save(fout);
+			new la.Vector(idxv).save(fout);
+			fout.close();
+		}
     }
 
     
