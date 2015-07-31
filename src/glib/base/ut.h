@@ -262,12 +262,13 @@ class TBufferStackWalker : public StackWalker {
 protected:
     TChA Output;
     
-    void OnOutput(LPCSTR szText);};
+    void OnOutput(LPCSTR szText);
 public:
 	TBufferStackWalker();
 	TChA GetOutput();
 
 	// static method that generates stack trace and returns it
 	static TChA GetStackTrace();
-}
+};
+
 #endif
