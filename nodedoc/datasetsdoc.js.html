@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.2">
+  <meta name="generator" content="JSDoc 3.3.0-beta2">
   <meta charset="utf-8">
   <title>Source: datasetsdoc.js</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -30,101 +30,197 @@
           </header>
           <article>
             <pre class="prettyprint linenums"><code>
-    /**
-    * Datasets module includes some standard toy datasets. In addition, this module also includes various
-    * random sample generators that can be used to build artificial datasets of controlled size and complexity.
-    * @module datasets 
-    * @example &amp;lt;caption&gt;Asynchronous loading&amp;lt;/caption&gt;
-    * var qm = require(&#x27;qminer&#x27;);
-    * var datasets = qm.datasets;
-    * 
-    * qm.delLock();
-    * qm.config(&#x27;qm.conf&#x27;, true, 8080, 1024);
-    *
-    * var base = qm.create(&#x27;qm.conf&#x27;, &#x27;&#x27;, true);
-    *
-    * // Load Iris dataset in async way
-    * datasets.loadIris(base, function (err, store) {
-    *     if (err) throw err;
-    *     console.log(&quot;\nSucessfully loaded database: &quot; + store.name)
-    *     console.log(JSON.stringify(store.first, null, 2));
-    * })
-    * @example &amp;lt;caption&gt;Synchronous loading&amp;lt;/caption&gt;
-    * var qm = require(&#x27;qminer&#x27;);
-    * var datasets = qm.datasets;
-    * 
-    * qm.delLock();
-    * qm.config(&#x27;qm.conf&#x27;, true, 8080, 1024);
-    *
-    * var base = qm.create(&#x27;qm.conf&#x27;, &#x27;&#x27;, true);
-    *
-    * // Load Iris in sync way.
-    * var Iris = datasets.loadIrisSync(base);
-    * console.log(&quot;\nSucessfully loaded database: &quot; + Iris.name)
-    * console.log(JSON.stringify(Iris.first, null, 2));
-    */
 
     /**
-    * Loads Iris dataset in asynchronous way. Returns link to the created Irsi store.
-    * @param {module:qm.Base} base
-    * @returns {module:qm.Store} Store with Iris dataset.
+
+    * Datasets module includes some standard toy datasets. In addition, this module also includes various
+
+    * random sample generators that can be used to build artificial datasets of controlled size and complexity.
+
+    * @module datasets 
+
+    * @example &amp;lt;caption&gt;Asynchronous loading&amp;lt;/caption&gt;
+
+    * var qm = require(&#x27;qminer&#x27;);
+
+    * var datasets = qm.datasets;
+
+    * 
+
+    * qm.delLock();
+
+    * qm.config(&#x27;qm.conf&#x27;, true, 8080, 1024);
+
+    *
+
+    * var base = qm.create(&#x27;qm.conf&#x27;, &#x27;&#x27;, true);
+
+    *
+
+    * // Load Iris dataset in async way
+
+    * datasets.loadIris(base, function (err, store) {
+
+    *     if (err) throw err;
+
+    *     console.log(&quot;\nSucessfully loaded database: &quot; + store.name)
+
+    *     console.log(JSON.stringify(store.first, null, 2));
+
+    * })
+
+    * @example &amp;lt;caption&gt;Synchronous loading&amp;lt;/caption&gt;
+
+    * var qm = require(&#x27;qminer&#x27;);
+
+    * var datasets = qm.datasets;
+
+    * 
+
+    * qm.delLock();
+
+    * qm.config(&#x27;qm.conf&#x27;, true, 8080, 1024);
+
+    *
+
+    * var base = qm.create(&#x27;qm.conf&#x27;, &#x27;&#x27;, true);
+
+    *
+
+    * // Load Iris in sync way.
+
+    * var Iris = datasets.loadIrisSync(base);
+
+    * console.log(&quot;\nSucessfully loaded database: &quot; + Iris.name)
+
+    * console.log(JSON.stringify(Iris.first, null, 2));
+
     */
+
+
+
+    /**
+
+    * Loads Iris dataset in asynchronous way. Returns link to the created Irsi store.
+
+    * @param {module:qm.Base} base
+
+    * @returns {module:qm.Store} Store with Iris dataset.
+
+    */
+
     exports.loadIris = function (_base, callback) {
 
+
+
         var options = {
+
             file: __dirname + &#x27;/data/iris.csv&#x27;,
+
             store: &#x27;Iris&#x27;,
+
             base: _base
+
         }
 
+
+
         console.log(&#x27;Loading dataset &#x27; + options.store + &#x27; ...&#x27;);
+
         _base.loadCSV(options, function (err) {
+
             if (err) return callback(err);
 
+
+
             var Iris = _base.store(options.store);
+
             console.log(options.store + &#x27; dataset loaded&#x27;)
+
+
 
             return callback(null, Iris)
+
         })
+
     }
+
+
 
     /**
+
     * Loads Iris dataset in synchronous way. Returns link to the created Iris store.
+
     * @param {module:qm.Base} base
+
     * @returns {module:qm.Store} Store with Iris dataset.
+
     */
+
     exports.loadIrisSync = function (_base) {
 
+
+
         var finished = false;
+
         var options = {
+
             file: __dirname + &#x27;/data/iris.csv&#x27;,
+
             store: &#x27;Iris&#x27;,
+
             base: _base
+
         }
+
+
 
         console.log(&#x27;Loading dataset &#x27; + options.store + &#x27; ...&#x27;);
+
         _base.loadCSV(options, function (err) {
+
             if (err) return callback(err);
+
             
+
             var Iris = _base.store(options.store);
+
             console.log(options.store + &#x27; dataset loaded&#x27;)
 
+
+
             finished = true;
+
         })
 
+
+
         // Used deasync module to turn this function into sync. 
+
         while (finished == false) {
+
             require(&#x27;deasync&#x27;).runLoopOnce();
+
         }
+
         return _base.store(options.store);
-    }
-    
-    // Module description
-    exports.description = function () {
-        return (&quot;Module includes functions to load and make datasets.&quot;);
+
     }
 
     
+
+    // Module description
+
+    exports.description = function () {
+
+        return (&quot;Module includes functions to load and make datasets.&quot;);
+
+    }
+
+
+
+    
+
 </code></pre>
           </article>
         </div>
@@ -135,7 +231,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on July 28, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 31, 2015.
       </p>
     </div>
   </footer>

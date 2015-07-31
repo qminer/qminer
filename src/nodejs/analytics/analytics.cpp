@@ -224,7 +224,7 @@ void TNodeJsSvmModel::UpdateParams(const PJsonVal& ParamVal) {
 	if (ParamVal->IsObjKey("eps")) SvmEps = ParamVal->GetObjNum("eps");
 	if (ParamVal->IsObjKey("batchSize")) SampleSize = ParamVal->GetObjInt("batchSize");
 	if (ParamVal->IsObjKey("maxIterations")) MxIter = ParamVal->GetObjInt("maxIterations");
-	if (ParamVal->IsObjKey("maxTime")) MxTime = 1000 * ParamVal->GetObjInt("maxTime");
+	if (ParamVal->IsObjKey("maxTime")) MxTime = TFlt::Round(1000.0 * ParamVal->GetObjNum("maxTime"));
 	if (ParamVal->IsObjKey("minDiff")) MnDiff = ParamVal->GetObjNum("minDiff");
 	if (ParamVal->IsObjKey("verbose")) {
 		Verbose = ParamVal->GetObjBool("verbose");
@@ -241,7 +241,7 @@ PJsonVal TNodeJsSvmModel::GetParams() const {
 	ParamVal->AddToObj("eps", SvmEps);
 	ParamVal->AddToObj("batchSize", SampleSize);
 	ParamVal->AddToObj("maxIterations", MxIter);
-	ParamVal->AddToObj("maxTime", MxTime);
+	ParamVal->AddToObj("maxTime", MxTime / 1000); // convert from miliseconds to seconds
 	ParamVal->AddToObj("minDiff", MnDiff);
 	ParamVal->AddToObj("verbose", Verbose);
 
