@@ -593,8 +593,7 @@ void TStore::AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRe
 			// if ExistingJoinRecId is a valid record and is different than RecId
 			// then we have to delete the join first, before setting new values
 			if (ExistingJoinRecId != TUInt64::Mx && ExistingJoinRecId != RecId) {
-			    const int Fq = JoinStore->GetFieldInt(JoinRecId, InverseJoinDesc.GetJoinFqFieldId());
-				JoinStore->DelJoin(InverseJoinDesc.GetJoinId(), JoinRecId, ExistingJoinRecId, Fq);
+				const int Fq = JoinStore->GetFieldInt(JoinRecId, InverseJoinDesc.GetJoinFqFieldId());				JoinStore->DelJoin(InverseJoinDesc.GetJoinId(), JoinRecId, ExistingJoinRecId, Fq);
 			}
 			JoinStore->SetFieldUInt64(JoinRecId, InverseJoinDesc.GetJoinRecFieldId(), RecId);
 			JoinStore->SetFieldInt(JoinRecId, InverseJoinDesc.GetJoinFqFieldId(), JoinFq);
@@ -4261,7 +4260,7 @@ void TIndex::SearchOr(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV)
 }
 
 TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base, const TQueryItem& QueryItem,
-        const PQmGixExpMerger& Merger, const PQmGixExpMergerSmall& MergerSmall) const {
+		const PQmGixExpMerger& Merger, const PQmGixExpMergerSmall& MergerSmall) const {
 
 	// get query result store
 	TWPt<TStore> Store = QueryItem.GetStore(Base);
@@ -4294,11 +4293,11 @@ TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base, const TQueryItem& 
 		return TPair<TBool, PRecSet>(NotP, RecSet);
 
 	}
-    throw TQmExcept::New("Error in TIndex::Search - hybrid search is not supported.");
+	throw TQmExcept::New("Error in TIndex::Search - hybrid search is not supported.");
 }
 
 PRecSet TIndex::SearchRange(const TWPt<TBase>& Base, const int& KeyId,
-        const TFltPr& Loc, const double& Radius, const int& Limit) const {
+		const TFltPr& Loc, const double& Radius, const int& Limit) const {
 
 	TUInt64V RecIdV;
 	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
@@ -4307,7 +4306,7 @@ PRecSet TIndex::SearchRange(const TWPt<TBase>& Base, const int& KeyId,
 }
 
 PRecSet TIndex::SearchNn(const TWPt<TBase>& Base, const int& KeyId,
-        const TFltPr& Loc, const int& Limit) const {
+		const TFltPr& Loc, const int& Limit) const {
 
 	TUInt64V RecIdV;
 	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();

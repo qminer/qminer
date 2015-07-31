@@ -11,6 +11,7 @@
 
 #include "qminer_core.h"
 #include "qminer_gs.h"
+#include "qminer_pbs.h"
 #include "qminer_ftr.h"
 #include "qminer_aggr.h"
 #include "qminer_op.h"

@@ -41,13 +41,13 @@ public:
 	/// Get current version as string
 	static TStr GetVersion() { return TStr::Fmt("%d.%d.%d", Version.Val1.Val, Version.Val2.Val, Version.Val3.Val); }
 	
-    /// Maximal number of stores allowed, also sets the upper limit to valid store IDs
-    static uint GetMxStores() { return 0x4000; } // == 16384
-    
-    /// True when QMiner is running in sandboxed mode
-    /// TODO: make it configurable
-    static bool IsSandbox() { return false; }
-    
+	/// Maximal number of stores allowed, also sets the upper limit to valid store IDs
+	static uint GetMxStores() { return 0x4000; } // == 16384
+	
+	/// True when QMiner is running in sandboxed mode
+	/// TODO: make it configurable
+	static bool IsSandbox() { return false; }
+	
 	/// Path to QMiner
 	static TStr QMinerFPath;
 	/// Path to 
@@ -55,13 +55,13 @@ public:
 	/// Default QMiner notification facility
 	static PNotify Error;
 	static PNotify Logger;	
-    static PNotify Debug;
-    /// Verbosity level for debugging.
-    /// 0 => Silent, 1 => Info, 2=> Debug
-    static TInt Verbosity;
-    
-    /// Return code when exiting QMiner
-    static TInt ReturnCode;
+	static PNotify Debug;
+	/// Verbosity level for debugging.
+	/// 0 => Silent, 1 => Info, 2=> Debug
+	static TInt Verbosity;
+	
+	/// Return code when exiting QMiner
+	static TInt ReturnCode;
 	
 	/// Setups QMiner static functions.
 	static void Init();
@@ -72,9 +72,9 @@ public:
 	/// @param FPath		Specify logger output (standard output `std'; No output `null')
 	/// @param TimestampP	Show timestamp with each status
 	static void InitLogger(const int& _Verbosity = 1, const TStr& FPath = TStr(), const bool& TimestampP = false);
-    
-    /// Set return code
-    static void SetReturnCode(const int& _ReturnCode) { ReturnCode = _ReturnCode; }
+	
+	/// Set return code
+	static void SetReturnCode(const int& _ReturnCode) { ReturnCode = _ReturnCode; }
 };
 
 void ErrorLog(const TStr& MsgStr);
@@ -128,7 +128,7 @@ typedef enum {
 class TJoinDesc {
 private:
 	/// Join ID, unique within a store
-    TInt JoinId;
+	TInt JoinId;
 	/// Join name, unique within a store
 	TStr JoinNm;
 	/// Destination store of the join
@@ -139,10 +139,10 @@ private:
 	TInt JoinKeyId;
 	/// Corresponding FieldId, used for field joins
 	TInt JoinRecFieldId;
-    /// Corresponding Frequency, used for field joins
-    TInt JoinFqFieldId;
-    /// Inverse join ID (-1 means not defined)
-    TInt InverseJoinId;
+	/// Corresponding Frequency, used for field joins
+	TInt JoinFqFieldId;
+	/// Inverse join ID (-1 means not defined)
+	TInt InverseJoinId;
 
 public:
 	/// Create an empty join description
@@ -152,15 +152,15 @@ public:
 		const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc, const bool& IsSmall);
 	/// Create a field based join (1-1)
 	TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId, const int& _JoinRecFieldId,
-        const int& _JoinFqFieldId): JoinId(-1), JoinNm(_JoinNm), JoinStoreId(_JoinStoreId), 
-        JoinType(osjtField), JoinKeyId(-1), JoinRecFieldId(_JoinRecFieldId), 
-        JoinFqFieldId(_JoinFqFieldId), InverseJoinId(-1) { TValidNm::AssertValidNm(JoinNm); }
+		const int& _JoinFqFieldId): JoinId(-1), JoinNm(_JoinNm), JoinStoreId(_JoinStoreId), 
+		JoinType(osjtField), JoinKeyId(-1), JoinRecFieldId(_JoinRecFieldId), 
+		JoinFqFieldId(_JoinFqFieldId), InverseJoinId(-1) { TValidNm::AssertValidNm(JoinNm); }
 
 	TJoinDesc(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 	
 	void PutJoinId(const int& _JoinId) { JoinId = _JoinId; }
-    int GetJoinId() const { return JoinId; };
+	int GetJoinId() const { return JoinId; };
 	const TStr& GetJoinNm() const { return JoinNm; }
 	uint GetJoinStoreId() const { return JoinStoreId; }
 	TWPt<TStore> GetJoinStore(const TWPt<TBase>& Base) const;
@@ -169,9 +169,9 @@ public:
 	bool IsFieldJoin() const { return JoinType == osjtField; }
 	int GetJoinRecFieldId() const { return JoinRecFieldId; }
 	int GetJoinFqFieldId() const { return JoinFqFieldId; }
-    void PutInverseJoinId(const int& _InverseJoinId) { InverseJoinId = _InverseJoinId; }
-    bool IsInverseJoinId() const { return InverseJoinId != -1; }
-    int GetInverseJoinId() const { return InverseJoinId; }
+	void PutInverseJoinId(const int& _InverseJoinId) { InverseJoinId = _InverseJoinId; }
+	bool IsInverseJoinId() const { return InverseJoinId != -1; }
+	int GetInverseJoinId() const { return InverseJoinId; }
 };
 typedef TVec<TJoinDesc> TJoinDescV;
 
@@ -230,7 +230,7 @@ typedef TVec<TJoinSeq> TJoinSeqV;
 ///////////////////////////////
 /// Field Type
 typedef enum { 
-    oftUndef    = -1,///< Undefined
+	oftUndef    = -1,///< Undefined
 	oftInt		= 0, ///< Integer
 	oftIntV		= 9, ///< Vector of integers
 	oftUInt64	= 8, ///< Unsigned 64bit integer
@@ -257,9 +257,9 @@ private:
 
 private:
 	/// Field ID
-    TInt FieldId;
+	TInt FieldId;
 	/// Field name
-    TStr FieldNm;
+	TStr FieldNm;
 	/// Field type
 	TFieldType FieldType;
 	/// Property flags
@@ -274,37 +274,37 @@ public:
 	/// @param _FieldType Field type
 	/// @param NullP Can field be empty for some records
 	/// @param InternalP Filed was created is and being used internally by QMiner (E.g. for field joins)
-    TFieldDesc(const TStr& _FieldNm, TFieldType _FieldType, const bool& Primary,
-        const bool& NullP, const bool& InternalP);
+	TFieldDesc(const TStr& _FieldNm, TFieldType _FieldType, const bool& Primary,
+		const bool& NullP, const bool& InternalP);
 	
 	TFieldDesc(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
 	// basic properties
 	void PutFieldId(const int& _FieldId) { FieldId = _FieldId; }
-    int GetFieldId() const { return FieldId; };
-    const TStr& GetFieldNm() const { return FieldNm; }
+	int GetFieldId() const { return FieldId; };
+	const TStr& GetFieldNm() const { return FieldNm; }
 
 	// field data-type
-    TFieldType GetFieldType() const { return FieldType; }
+	TFieldType GetFieldType() const { return FieldType; }
 	TStr GetFieldTypeStr() const;
-    bool IsInt() const { return FieldType == oftInt; }
-    bool IsIntV() const { return FieldType == oftIntV; }
-    bool IsUInt64() const { return FieldType == oftUInt64; }
-    bool IsStr() const { return FieldType == oftStr; }
-    bool IsStrV() const { return FieldType == oftStrV; }
-    bool IsBool() const { return FieldType == oftBool; }
-    bool IsFlt() const { return FieldType == oftFlt; }
-    bool IsFltPr() const { return FieldType == oftFltPr; }
-    bool IsFltV() const { return FieldType == oftFltV; }
-    bool IsTm() const { return FieldType == oftTm; }
-    bool IsNumSpV() const { return FieldType == oftNumSpV; }
-    bool IsBowSpV() const { return FieldType == oftBowSpV; }
+	bool IsInt() const { return FieldType == oftInt; }
+	bool IsIntV() const { return FieldType == oftIntV; }
+	bool IsUInt64() const { return FieldType == oftUInt64; }
+	bool IsStr() const { return FieldType == oftStr; }
+	bool IsStrV() const { return FieldType == oftStrV; }
+	bool IsBool() const { return FieldType == oftBool; }
+	bool IsFlt() const { return FieldType == oftFlt; }
+	bool IsFltPr() const { return FieldType == oftFltPr; }
+	bool IsFltV() const { return FieldType == oftFltV; }
+	bool IsTm() const { return FieldType == oftTm; }
+	bool IsNumSpV() const { return FieldType == oftNumSpV; }
+	bool IsBowSpV() const { return FieldType == oftBowSpV; }
 
 	// flags
 	bool IsNullable() const { return ((Flags & ofdfNull) != 0); }
 	bool IsInternal() const { return ((Flags & ofdfInternal) != 0); }
-    bool IsPrimary() const { return ((Flags & ofdfPrimary) != 0); }
+	bool IsPrimary() const { return ((Flags & ofdfPrimary) != 0); }
 
 	/// Link index key with ID `KeyId` to this field
 	void AddKey(const int& KeyId) { KeyIdV.AddUnique(KeyId); }
@@ -339,18 +339,18 @@ class TStoreIterVec : public TStoreIter {
 private:
 	/// True before first call to Next()
 	bool FirstP;
-    /// True when we reach the end
-    bool LastP;
-    /// Direction (increment or decrement)
-    bool AscP;
+	/// True when we reach the end
+	bool LastP;
+	/// Direction (increment or decrement)
+	bool AscP;
 	/// Current Record ID
 	uint64 RecId;
 	/// End
 	uint64 EndId;
 
-    /// Empty vector
+	/// Empty vector
 	TStoreIterVec();
-    /// Vector has elements from MinId till MaxId
+	/// Vector has elements from MinId till MaxId
 	TStoreIterVec(const uint64& _StartId, const uint64& _EndId, const bool& _AscP);
 public:
 	/// Create new iterator for empty vector
@@ -399,13 +399,13 @@ public:
 	virtual ~TStoreTrigger() { }
 
 	/// Called when trigger added to the store
-    virtual void Init(const TWPt<TStore>& Store) { }
+	virtual void Init(const TWPt<TStore>& Store) { }
 	/// Called after record added to the store
-    virtual void OnAdd(const TRec& Rec) = 0;
+	virtual void OnAdd(const TRec& Rec) = 0;
 	/// Called after record updated in the store
-    virtual void OnUpdate(const TRec& Rec) = 0;
+	virtual void OnUpdate(const TRec& Rec) = 0;
 	/// Called before record from the store
-    virtual void OnDelete(const TRec& Rec) = 0;
+	virtual void OnDelete(const TRec& Rec) = 0;
 
 	/// Unique ID of the trigger
 	const TStr& GetGuid() const { return Guid; }
@@ -423,31 +423,33 @@ private:
 	// smart-pointer
 	TCRef CRef;
 	friend class TPt<TStore>;
-    
-    /// Shortcut to base
-    TWPt<TBase> Base;
-    /// Shortcut to index
-    TWPt<TIndex> Index;
+	
+	/// Shortcut to base
+	TWPt<TBase> Base;
+	/// Shortcut to index
+	TWPt<TIndex> Index;
 	
 	/// Store unique ID
-    TUInt StoreId;
+	TUInt StoreId;
 	/// Store unique Name
-    TStr StoreNm;
+	TStr StoreNm;
+	/// Store type
+	TStr StoreType;
 	/// Join meta-data description
-    TJoinDescV JoinDescV;
+	TJoinDescV JoinDescV;
 	/// Map from join name to join ID
-    TStrH JoinNmToIdH;
+	TStrH JoinNmToIdH;
 	/// Map from join name to index key ID (only for index join)
-    TStrH JoinNmToKeyIdH;
+	TStrH JoinNmToKeyIdH;
 	/// Fields meta-data description
-    TFieldDescV FieldDescV;
+	TFieldDescV FieldDescV;
 	/// Map from field name to ID
-    TStrH FieldNmToIdH;
-    /// List of active triggers
-    TStoreTriggerV TriggerV;
+	TStrH FieldNmToIdH;
+	/// List of active triggers
+	TStoreTriggerV TriggerV;
 
 	/// Load store from stream (to be called only by base class!)
-    void LoadStore(TSIn& SIn);
+	void LoadStore(TSIn& SIn);
 protected:
 	/// Create new store with given ID and name
 	TStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm);
@@ -455,53 +457,57 @@ protected:
 	TStore(const TWPt<TBase>& _Base, TSIn& SIn);
 	/// Load store from file
 	TStore(const TWPt<TBase>& _Base, const TStr& FNm);
-    /// Store to disk
-    virtual ~TStore() { }
-    
+	/// Store to disk
+	virtual ~TStore() { }
+	
 	/// Save store to output stream
 	void SaveStore(TSOut& SOut) const;
+	/// Derived classes can set store type
+	void SetStoreType(const TStr& Type) { StoreType = Type; }
 public:    
-    /// Access to base
-    const TWPt<TBase>& GetBase() const { return Base; }
+	/// Access to base
+	const TWPt<TBase>& GetBase() const { return Base; }
+	/// Access to store type flag
+	const TStr GetStoreType() const { return StoreType; }
 protected:
 	/// Access to index
-    const TWPt<TIndex>& GetIndex() const { return Index; }
-    
+	const TWPt<TIndex>& GetIndex() const { return Index; }
+	
 	/// Register new field to the store
-    int AddFieldDesc(const TFieldDesc& FieldDesc);
+	int AddFieldDesc(const TFieldDesc& FieldDesc);
 	/// Default error when accessing wrong field-type combination
-    PExcept FieldError(const int& FieldId, const TStr& TypeStr) const;
+	PExcept FieldError(const int& FieldId, const TStr& TypeStr) const;
 
-    /// Should be called after record RecId added; executes OnAdd event in all register triggers
-    void OnAdd(const uint64& RecId);
-    /// Should be called after record RecId updated; executes OnUpdate event in all register triggers
-    void OnUpdate(const uint64& RecId);
-    /// Should be called before record RecId deleted; executes OnDelete event in all register triggers
-    void OnDelete(const uint64& RecId);
+	/// Should be called after record RecId added; executes OnAdd event in all register triggers
+	void OnAdd(const uint64& RecId);
+	/// Should be called after record RecId updated; executes OnUpdate event in all register triggers
+	void OnUpdate(const uint64& RecId);
+	/// Should be called before record RecId deleted; executes OnDelete event in all register triggers
+	void OnDelete(const uint64& RecId);
 
 	/// Helper function for handling string and vector pools
-    void StrVToIntV(const TStrV& StrV, TStrHash<TInt, TBigStrPool>& WordH, TIntV& IntV);
+	void StrVToIntV(const TStrV& StrV, TStrHash<TInt, TBigStrPool>& WordH, TIntV& IntV);
 	/// Helper function for handling string and vector pools
-    void IntVToStrV(const TIntV& IntV, const TStrHash<TInt, TBigStrPool>& WordH, TStrV& StrV) const;
+	void IntVToStrV(const TIntV& IntV, const TStrHash<TInt, TBigStrPool>& WordH, TStrV& StrV) const;
 	/// Helper function for handling string and vector pools
 	void IntVToStrV(const TIntV& IntV, TStrV& StrV) const;
-    
-    /// Processing nested join records in JSon
-    void AddJoinRec(const uint64& RecId, const PJsonVal& RecVal);
+	
+	/// Processing nested join records in JSon
+	void AddJoinRec(const uint64& RecId, const PJsonVal& RecVal);
 
 public:
-    /// Get store ID
-    uint GetStoreId() const { return StoreId; }
+	/// Get store ID
+	uint GetStoreId() const { return StoreId; }
 	/// Get store name
-    TStr GetStoreNm() const { return StoreNm; }
+	TStr GetStoreNm() const { return StoreNm; }
 
-    /// Load store ID from the stream and retrieve store
-    static TWPt<TStore> LoadById(const TWPt<TBase>& Base, TSIn& SIn);
-    /// Save store ID to the output stream
-    void SaveId(TSOut& SOut) const { StoreId.Save(SOut); }
-    
+	/// Load store ID from the stream and retrieve store
+	static TWPt<TStore> LoadById(const TWPt<TBase>& Base, TSIn& SIn);
+	/// Save store ID to the output stream
+	void SaveId(TSOut& SOut) const { StoreId.Save(SOut); }
+	
 	/// Register new join
-    int AddJoinDesc(const TJoinDesc& JoinDesc);
+	int AddJoinDesc(const TJoinDesc& JoinDesc);
 	/// Get number of registered joins
 	int GetJoins() const { return JoinDescV.Len(); }
 	/// Checks if join with given ID exists
@@ -518,43 +524,43 @@ public:
 	int GetJoinKeyId(const int& JoinId) const { return JoinDescV[JoinId].GetJoinKeyId(); }
 	/// Get full join description for the join with the given ID
 	const TJoinDesc& GetJoinDesc(const int& JoinId) const { return JoinDescV[JoinId]; }
-    /// Register inverse join
-    void PutInverseJoinId(const int& JoinId, const int& InverseJoinId);
+	/// Register inverse join
+	void PutInverseJoinId(const int& JoinId, const int& InverseJoinId);
 
-    /// Get number of registered fields
-    int GetFields() const { return FieldDescV.Len(); }
+	/// Get number of registered fields
+	int GetFields() const { return FieldDescV.Len(); }
 	/// Checks if field with the given ID exists
 	bool IsFieldId(const int& FieldId) const { return (FieldId >=0) && (FieldId < FieldDescV.Len()); }
 	/// Get name of a field with the given ID
-    const TStr& GetFieldNm(const int& FieldId) const { return FieldDescV[FieldId].GetFieldNm(); }
+	const TStr& GetFieldNm(const int& FieldId) const { return FieldDescV[FieldId].GetFieldNm(); }
 	/// Check if field with the given name exists
-    bool IsFieldNm(const TStr& FieldNm) const { return FieldNmToIdH.IsKey(FieldNm); }
+	bool IsFieldNm(const TStr& FieldNm) const { return FieldNmToIdH.IsKey(FieldNm); }
 	/// Get ID of a field with the given name
-    int GetFieldId(const TStr& FieldNm) const { return FieldNmToIdH.GetDat(FieldNm); }
+	int GetFieldId(const TStr& FieldNm) const { return FieldNmToIdH.GetDat(FieldNm); }
 	/// Get full field description for the field with the given ID
-    const TFieldDesc& GetFieldDesc(const int& FieldId) const { return FieldDescV[FieldId]; }
+	const TFieldDesc& GetFieldDesc(const int& FieldId) const { return FieldDescV[FieldId]; }
 	/// Get vector of all existing field IDs
 	TIntV GetFieldIdV(const TFieldType& Type);
 	/// Link field and index key
 	void AddFieldKey(const int& FieldId, const int& KeyId) { FieldDescV[FieldId].AddKey(KeyId); }
 	/// Get linked index key for a given field
 	int GetFieldKeyId(const int& FieldId) const { return FieldDescV[FieldId].GetKeyId(); }
-    
-    /// Register new trigger to the store
-    void AddTrigger(const PStoreTrigger& Trigger);
+	
+	/// Register new trigger to the store
+	void AddTrigger(const PStoreTrigger& Trigger);
 	/// Unregister given trigger
 	void DelTrigger(const PStoreTrigger& Trigger);
 
-    /// True when records have names (default is false)
+	/// True when records have names (default is false)
 	virtual bool HasRecNm() const { return false; }
 	/// Check if record with given ID exists
-    virtual bool IsRecId(const uint64& RecId) const = 0;
+	virtual bool IsRecId(const uint64& RecId) const = 0;
 	/// check if record with given name exists
 	virtual bool IsRecNm(const TStr& RecNm) const = 0;
 	/// Get record name for a given id
 	virtual TStr GetRecNm(const uint64& RecId) const = 0;
 	/// Get record id for a given name
-    virtual uint64 GetRecId(const TStr& RecNm) const = 0;
+	virtual uint64 GetRecId(const TStr& RecNm) const = 0;
 	/// Get record with a given ID
 	TRec GetRec(const uint64& RecId);
 	/// Get record with a given name
@@ -575,151 +581,155 @@ public:
 	/// Checks if no records in the store
 	bool Empty() const { return (GetRecs() == uint64(0)); }
 
-    /// Gets the first record in the store (order defined by store implementation)
-    virtual uint64 FirstRecId() const { throw TQmExcept::New("Not implemented"); }
-    /// Gets the last record in the store (order defined by store implementation)
-    virtual uint64 LastRecId() const { throw TQmExcept::New("Not implemented"); };
-    /// Gets forward moving iterator (order defined by store implementation)
-    virtual PStoreIter ForwardIter() const { throw TQmExcept::New("Not implemented"); };
-    /// Gets backward moving iterator (order defined by store implementation)
-    virtual PStoreIter BackwardIter() const { throw TQmExcept::New("Not implemented"); };
-    
+	/// Gets the first record in the store (order defined by store implementation)
+	virtual uint64 FirstRecId() const { throw TQmExcept::New("Not implemented"); }
+	/// Gets the last record in the store (order defined by store implementation)
+	virtual uint64 LastRecId() const { throw TQmExcept::New("Not implemented"); };
+	/// Gets forward moving iterator (order defined by store implementation)
+	virtual PStoreIter ForwardIter() const { throw TQmExcept::New("Not implemented"); };
+	/// Gets backward moving iterator (order defined by store implementation)
+	virtual PStoreIter BackwardIter() const { throw TQmExcept::New("Not implemented"); };
+	
 	/// Add new record provided as JSon
 	virtual uint64 AddRec(const PJsonVal& RecVal) = 0;
 	/// Update existing record with updates in provided JSon
 	virtual void UpdateRec(const uint64& RecId, const PJsonVal& RecVal) = 0;
-    
-    /// Add join
-    void AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq = 1);
+	
+	/// Add join
+	void AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq = 1);
 	void AddJoin(const TStr& JoinNm, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq = 1);
-    /// Delete join
-    void DelJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq = TInt::Mx);
+	/// Delete join
+	void DelJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq = TInt::Mx);
 	void DelJoin(const TStr& JoinNm, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq = TInt::Mx);
 	/// Delete joins
 	void DelJoins(const int& JoinId, const uint64& RecId);
 	void DelJoins(const TStr& JoinNm, const uint64& RecId);
-    
-    /// Signal to purge any old stuff, e.g. records that fall out of time window when store has one
+	
+	/// Signal to purge any old stuff, e.g. records that fall out of time window when store has one
 	virtual void GarbageCollect() { }
+	/// Deletes all records
+	virtual void DeleteAllRecs() = 0;
 	/// Delete the first DelRecs records (the records that were inserted first)
-	virtual void DeleteFirstNRecs(int DelRecs) { };
-    
-    /// Check if the value of given field for a given record is NULL
+	virtual void DeleteFirstNRecs(int DelRecs) {};
+	/// Delete specific records
+	virtual void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true) = 0;
+	
+	/// Check if the value of given field for a given record is NULL
 	virtual bool IsFieldNull(const uint64& RecId, const int& FieldId) const { return false; }
-    /// Get field value using field id (default implementation throws exception)
-    virtual int GetFieldInt(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id (default implementation throws exception)
-    virtual void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const;
-    /// Get field value using field id (default implementation throws exception)
-    virtual uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id (default implementation throws exception)
+	/// Get field value using field id (default implementation throws exception)
+	virtual int GetFieldInt(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
 	virtual TStr GetFieldStr(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id (default implementation throws exception)
+	/// Get field value using field id (default implementation throws exception)
 	virtual void GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const;
-    /// Get field value using field id (default implementation throws exception)
+	/// Get field value using field id (default implementation throws exception)
 	virtual bool GetFieldBool(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id (default implementation throws exception)
-    virtual double GetFieldFlt(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id (default implementation throws exception)
-    virtual TFltPr GetFieldFltPr(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id (default implementation throws exception)
-    virtual void GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const;
-    /// Get field value using field id (default implementation throws exception)
-    virtual void GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const;
-    /// Get field value using field id (default implementation throws exception)
-    virtual uint64 GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id (default implementation throws exception)
-    virtual void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const;
-    /// Get field value using field id (default implementation throws exception)
-    virtual void GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual double GetFieldFlt(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual TFltPr GetFieldFltPr(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual void GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual void GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual uint64 GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual void GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const;
 
 	/// Check if the value of given field for a given record is NULL
 	bool IsFieldNmNull(const uint64& RecId, const TStr& FieldNm) const;
-    /// Get field value using field name (default implementation throws exception)
-    int GetFieldNmInt(const uint64& RecId, const TStr& FieldNm) const;
-    /// Get field value using field name (default implementation throws exception)
-    void GetFieldNmIntV(const uint64& RecId, const TStr& FieldNm, TIntV& IntV) const;
-    /// Get field value using field name (default implementation throws exception)
-    uint64 GetFieldNmUInt64(const uint64& RecId, const TStr& FieldNm) const;
-    /// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name (default implementation throws exception)
+	int GetFieldNmInt(const uint64& RecId, const TStr& FieldNm) const;
+	/// Get field value using field name (default implementation throws exception)
+	void GetFieldNmIntV(const uint64& RecId, const TStr& FieldNm, TIntV& IntV) const;
+	/// Get field value using field name (default implementation throws exception)
+	uint64 GetFieldNmUInt64(const uint64& RecId, const TStr& FieldNm) const;
+	/// Get field value using field name (default implementation throws exception)
 	TStr GetFieldNmStr(const uint64& RecId, const TStr& FieldNm) const;
-    /// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name (default implementation throws exception)
 	void GetFieldNmStrV(const uint64& RecId, const TStr& FieldNm, TStrV& StrV) const;
-    /// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name (default implementation throws exception)
 	bool GetFieldNmBool(const uint64& RecId, const TStr& FieldNm) const;
-    /// Get field value using field name (default implementation throws exception)
-    double GetFieldNmFlt(const uint64& RecId, const TStr& FieldNm) const;
-    /// Get field value using field name (default implementation throws exception)
-    TFltPr GetFieldNmFltPr(const uint64& RecId, const TStr& FieldNm) const;
-    /// Get field value using field name (default implementation throws exception)
-    void GetFieldNmFltV(const uint64& RecId, const TStr& FieldNm, TFltV& FltV) const;
-    /// Get field value using field name (default implementation throws exception)
-    void GetFieldNmTm(const uint64& RecId, const TStr& FieldNm, TTm& Tm) const;
-    /// Get field value using field name (default implementation throws exception)
-    uint64 GetFieldNmTmMSecs(const uint64& RecId, const TStr& FieldNm) const;
-    /// Get field value using field name (default implementation throws exception)
-    void GetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, TIntFltKdV& SpV) const;
-    /// Get field value using field name (default implementation throws exception)
-    void GetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, PBowSpV& SpV) const;
+	/// Get field value using field name (default implementation throws exception)
+	double GetFieldNmFlt(const uint64& RecId, const TStr& FieldNm) const;
+	/// Get field value using field name (default implementation throws exception)
+	TFltPr GetFieldNmFltPr(const uint64& RecId, const TStr& FieldNm) const;
+	/// Get field value using field name (default implementation throws exception)
+	void GetFieldNmFltV(const uint64& RecId, const TStr& FieldNm, TFltV& FltV) const;
+	/// Get field value using field name (default implementation throws exception)
+	void GetFieldNmTm(const uint64& RecId, const TStr& FieldNm, TTm& Tm) const;
+	/// Get field value using field name (default implementation throws exception)
+	uint64 GetFieldNmTmMSecs(const uint64& RecId, const TStr& FieldNm) const;
+	/// Get field value using field name (default implementation throws exception)
+	void GetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, TIntFltKdV& SpV) const;
+	/// Get field value using field name (default implementation throws exception)
+	void GetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, PBowSpV& SpV) const;
  
 	/// Set the value of given field to NULL
 	virtual void SetFieldNull(const uint64& RecId, const int& FieldId);
-    /// Set field value using field id (default implementation throws exception)
-    virtual void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int);
-    /// Set field value using field id (default implementation throws exception)
-    virtual void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV);
-    /// Set field value using field id (default implementation throws exception)
-    virtual void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64);
-    /// Set field value using field id (default implementation throws exception)
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64);
+	/// Set field value using field id (default implementation throws exception)
 	virtual void SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str);
-    /// Set field value using field id (default implementation throws exception)
+	/// Set field value using field id (default implementation throws exception)
 	virtual void SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV);
-    /// Set field value using field id (default implementation throws exception)
+	/// Set field value using field id (default implementation throws exception)
 	virtual void SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool);
-    /// Set field value using field id (default implementation throws exception)
-    virtual void SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt);
-    /// Set field value using field id (default implementation throws exception)
-    virtual void SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr);
-    /// Set field value using field id (default implementation throws exception)
-    virtual void SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV);
-    /// Set field value using field id (default implementation throws exception)
-    virtual void SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm);
-    /// Set field value using field id (default implementation throws exception)
-    virtual void SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs);
-    /// Set field value using field id (default implementation throws exception)
-    virtual void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV);
-    /// Set field value using field id (default implementation throws exception)
-    virtual void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);
 
 	/// Set the value of given field to NULL
 	void SetFieldNmNull(const uint64& RecId, const TStr& FieldNm);
-    /// Set field value using field name (default implementation throws exception)
-    void SetFieldNmInt(const uint64& RecId, const TStr& FieldNm, const int& Int);
-    /// Set field value using field name (default implementation throws exception)
-    void SetFieldNmIntV(const uint64& RecId, const TStr& FieldNm, const TIntV& IntV);
-    /// Set field value using field name (default implementation throws exception)
-    void SetFieldNmUInt64(const uint64& RecId, const TStr& FieldNm, const uint64& UInt64);
-    /// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name (default implementation throws exception)
+	void SetFieldNmInt(const uint64& RecId, const TStr& FieldNm, const int& Int);
+	/// Set field value using field name (default implementation throws exception)
+	void SetFieldNmIntV(const uint64& RecId, const TStr& FieldNm, const TIntV& IntV);
+	/// Set field value using field name (default implementation throws exception)
+	void SetFieldNmUInt64(const uint64& RecId, const TStr& FieldNm, const uint64& UInt64);
+	/// Set field value using field name (default implementation throws exception)
 	void SetFieldNmStr(const uint64& RecId, const TStr& FieldNm, const TStr& Str);
-    /// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name (default implementation throws exception)
 	void SetFieldNmStrV(const uint64& RecId, const TStr& FieldNm, const TStrV& StrV);
-    /// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name (default implementation throws exception)
 	void SetFieldNmBool(const uint64& RecId, const TStr& FieldNm, const bool& Bool);
-    /// Set field value using field name (default implementation throws exception)
-    void SetFieldNmFlt(const uint64& RecId, const TStr& FieldNm, const double& Flt);
-    /// Set field value using field name (default implementation throws exception)
-    void SetFieldNmFltPr(const uint64& RecId, const TStr& FieldNm, const TFltPr& FltPr);
-    /// Set field value using field name (default implementation throws exception)
-    void SetFieldNmFltV(const uint64& RecId, const TStr& FieldNm, const TFltV& FltV);
-    /// Set field value using field name (default implementation throws exception)
-    void SetFieldNmTm(const uint64& RecId, const TStr& FieldNm, const TTm& Tm);
-    /// Set field value using field name (default implementation throws exception)
-    void SetFieldNmTmMSecs(const uint64& RecId, const TStr& FieldNm, const uint64& TmMSecs);
-    /// Set field value using field name (default implementation throws exception)
-    void SetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, const TIntFltKdV& SpV);
-    /// Set field value using field name (default implementation throws exception)
-    void SetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, const PBowSpV& SpV);   
-    
+	/// Set field value using field name (default implementation throws exception)
+	void SetFieldNmFlt(const uint64& RecId, const TStr& FieldNm, const double& Flt);
+	/// Set field value using field name (default implementation throws exception)
+	void SetFieldNmFltPr(const uint64& RecId, const TStr& FieldNm, const TFltPr& FltPr);
+	/// Set field value using field name (default implementation throws exception)
+	void SetFieldNmFltV(const uint64& RecId, const TStr& FieldNm, const TFltV& FltV);
+	/// Set field value using field name (default implementation throws exception)
+	void SetFieldNmTm(const uint64& RecId, const TStr& FieldNm, const TTm& Tm);
+	/// Set field value using field name (default implementation throws exception)
+	void SetFieldNmTmMSecs(const uint64& RecId, const TStr& FieldNm, const uint64& TmMSecs);
+	/// Set field value using field name (default implementation throws exception)
+	void SetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, const TIntFltKdV& SpV);
+	/// Set field value using field name (default implementation throws exception)
+	void SetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, const PBowSpV& SpV);   
+	
 	/// Get field value as JSon object using field id
 	virtual PJsonVal GetFieldJson(const uint64& RecId, const int& FieldId) const;
 	/// Get field value as human-readable text using field id
@@ -730,25 +740,25 @@ public:
 	virtual TStr GetFieldNmText(const uint64& RecId, const TStr& FieldNm) const;
 
 	/// Helper function for returning JSon definition of fields
-    PJsonVal GetStoreFieldsJson() const;
+	PJsonVal GetStoreFieldsJson() const;
 	/// Helper function for returning JSon definition of index keys
-    PJsonVal GetStoreKeysJson(const TWPt<TBase>& Base) const;
+	PJsonVal GetStoreKeysJson(const TWPt<TBase>& Base) const;
 	/// Helper function for returning JSon definition of joins
-    PJsonVal GetStoreJoinsJson(const TWPt<TBase>& Base) const;
+	PJsonVal GetStoreJoinsJson(const TWPt<TBase>& Base) const;
 	/// Helper function for returning JSon definition of store
-    virtual PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
-    /// Parse out record id from record JSon serialization
-    uint64 GetRecId(const PJsonVal& RecVal) const;
+	virtual PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
+	/// Parse out record id from record JSon serialization
+	uint64 GetRecId(const PJsonVal& RecVal) const;
 	
-    /// Prints record set with all the field values, useful for debugging
+	/// Prints record set with all the field values, useful for debugging
 	void PrintRecSet(const TWPt<TBase>& Base, const PRecSet& RecSet, TSOut& SOut) const;
-    /// Prints record set with all the field values, useful for debugging
+	/// Prints record set with all the field values, useful for debugging
 	void PrintRecSet(const TWPt<TBase>& Base, const PRecSet& RecSet, const TStr& FNm) const;
-    /// Prints all records with all the field values, useful for debugging
-    void PrintAll(const TWPt<TBase>& Base, TSOut& SOut, const bool& IncludingJoins = false);
-    /// Prints all records with all the field values, useful for debugging
+	/// Prints all records with all the field values, useful for debugging
+	void PrintAll(const TWPt<TBase>& Base, TSOut& SOut, const bool& IncludingJoins = false);
+	/// Prints all records with all the field values, useful for debugging
 	void PrintAll(const TWPt<TBase>& Base, const TStr& FNm, const bool& IncludingJoins = false);
-    /// Prints registered fields and joins, useful for debugging
+   /// Prints registered fields and joins, useful for debugging
     void PrintTypes(const TWPt<TBase>& Base, TSOut& SOut) const;
     /// Prints registered fields and joins, useful for debugging
     void PrintTypes(const TWPt<TBase>& Base, const TStr& FNm) const;
@@ -765,134 +775,144 @@ public:
 	virtual int PartialFlush(int WndInMsec = 500) { throw TQmExcept::New("Not implemented"); }
 	/// Retrieve performance statistics for this store
 	virtual PJsonVal GetStats() = 0;
+
+	/// Check if store supports TOAST
+	virtual bool CanToast() { return false; }
+	/// Return max size of non-TOAST-ed record
+	virtual int GetMaxToastLen() { return -1; }
+	/// Store value into internal storage using TOAST method
+	virtual TPgBlobPt ToastVal(const TMemBase& Mem) { Fail; return TPgBlobPt(); }
+	/// Retrieve value that is saved using TOAST method from storage 
+	virtual void UnToastVal(const TPgBlobPt& Pt, TMem& Mem) { Fail; }
+	/// Delete TOAST-ed value from storage 
+	virtual void DelToastVal(const TPgBlobPt& Pt) { Fail; }
 };
-//typedef THash<TUCh, PStore> TUChStoreH;
 
 ///////////////////////////////
 /// Record.
 /// Holds record by reference (store ID and record ID) or by value (store ID and all field values).
 class TRec {
 private:
-    /// Record store
-    TWPt<TStore> Store;
-    /// True when holding record by reference
+	/// Record store
+	TWPt<TStore> Store;
+	/// True when holding record by reference
 	TBool ByRefP;
 	/// Record ID (by reference)
 	TUInt64 RecId;
-    /// Field position in serialization (by value)
-    THash<TInt, TInt> FieldIdPosH;
-    /// Join position in serialization (by value)
-    THash<TInt, TInt> JoinIdPosH;
-    /// Record serialization (by value);    
-    TMem RecVal;
-    /// Output stream for serialization; points to RecVal (by value)
-    TRefMemOut RecValOut;
+	/// Field position in serialization (by value)
+	THash<TInt, TInt> FieldIdPosH;
+	/// Join position in serialization (by value)
+	THash<TInt, TInt> JoinIdPosH;
+	/// Record serialization (by value);    
+	TMem RecVal;
+	/// Output stream for serialization; points to RecVal (by value)
+	TRefMemOut RecValOut;
 
 private:
 	/// Get QMiner exception for requesting wrong field-type combinations
-    PExcept FieldError(const int& FieldId, const TStr& TypeStr) const;
+	PExcept FieldError(const int& FieldId, const TStr& TypeStr) const;
 
 public:
 	/// Create empty record (no reference, no value)
-    TRec(): ByRefP(false), RecId(TUInt64::Mx), RecValOut(RecVal) { }
+	TRec(): ByRefP(false), RecId(TUInt64::Mx), RecValOut(RecVal) { }
 	/// Create empty record from a given store. Used to create records by value, 
 	/// expects field values to be added using AddField methods.
-    TRec(const TWPt<TStore>& _Store): Store(_Store), 
-        ByRefP(false), RecId(TUInt64::Mx), RecValOut(RecVal) { }
+	TRec(const TWPt<TStore>& _Store): Store(_Store), 
+		ByRefP(false), RecId(TUInt64::Mx), RecValOut(RecVal) { }
 	/// Create record by reference
-    TRec(const TWPt<TStore>& _Store, const uint64& _RecId): Store(_Store), 
-        ByRefP(true), RecId(_RecId), RecValOut(RecVal) { }
-    /// Constructor from JSon
-    TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal);    
-    /// Copy-constructor
-    TRec(const TRec& Rec);
-    /// Assignment operator
-    TRec& operator=(const TRec& Rec);
-    
-    // TODO
-    TRec(TSIn& SIn): RecValOut(RecVal) { Fail; }
-    void Save(TSOut& SOut) const { Fail; };
+	TRec(const TWPt<TStore>& _Store, const uint64& _RecId): Store(_Store), 
+		ByRefP(true), RecId(_RecId), RecValOut(RecVal) { }
+	/// Constructor from JSon
+	TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal);    
+	/// Copy-constructor
+	TRec(const TRec& Rec);
+	/// Assignment operator
+	TRec& operator=(const TRec& Rec);
+	
+	// TODO
+	TRec(TSIn& SIn): RecValOut(RecVal) { Fail; }
+	void Save(TSOut& SOut) const { Fail; };
 
 	/// Check if record is well defined
-    bool IsDef() const { return !Store.Empty() && ((ByRefP && (RecId != TUInt64::Mx)) || !ByRefP); }
+	bool IsDef() const { return !Store.Empty() && ((ByRefP && (RecId != TUInt64::Mx)) || !ByRefP); }
 	/// Get record's store
 	const TWPt<TStore>& GetStore() const { return Store; }
 	/// Get record's store ID    
 	uint GetStoreId() const { return Store->GetStoreId(); }
 	/// True when by reference
-    bool IsByRef() const { return ByRefP; }
+	bool IsByRef() const { return ByRefP; }
 	/// True when by value
-    bool IsByVal() const { return !ByRefP; }
+	bool IsByVal() const { return !ByRefP; }
 	/// Get record id (only valid when by reference)
-    uint64 GetRecId() const { return RecId; }
-    /// Get record name (only valid when by reference)
-    TStr GetRecNm() const { return Store->GetRecNm(RecId); }
+	uint64 GetRecId() const { return RecId; }
+	/// Get record name (only valid when by reference)
+	TStr GetRecNm() const { return Store->GetRecNm(RecId); }
 
-    /// Checks if field value is null
+	/// Checks if field value is null
 	bool IsFieldNull(const int& FieldId) const;
-    /// Field value retrieval
-    int GetFieldInt(const int& FieldId) const;
-    /// Field value retrieval
-    void GetFieldIntV(const int& FieldId, TIntV& IntV) const;
-    /// Field value retrieval
-    uint64 GetFieldUInt64(const int& FieldId) const;
-    /// Field value retrieval
+	/// Field value retrieval
+	int GetFieldInt(const int& FieldId) const;
+	/// Field value retrieval
+	void GetFieldIntV(const int& FieldId, TIntV& IntV) const;
+	/// Field value retrieval
+	uint64 GetFieldUInt64(const int& FieldId) const;
+	/// Field value retrieval
 	TStr GetFieldStr(const int& FieldId) const;
-    /// Field value retrieval
+	/// Field value retrieval
 	void GetFieldStrV(const int& FieldId, TStrV& StrV) const;
-    /// Field value retrieval
+	/// Field value retrieval
 	bool GetFieldBool(const int& FieldId) const;
-    /// Field value retrieval
-    double GetFieldFlt(const int& FieldId) const;
-    /// Field value retrieval
-    TFltPr GetFieldFltPr(const int& FieldId) const;
-    /// Field value retrieval
-    void GetFieldFltV(const int& FieldId, TFltV& FltV) const;
-    /// Field value retrieval
-    void GetFieldTm(const int& FieldId, TTm& Tm) const;
-    /// Field value retrieval
-    uint64 GetFieldTmMSecs(const int& FieldId) const;    
-    /// Field value retrieval
-    void GetFieldNumSpV(const int& FieldId, TIntFltKdV& NumSpV) const;
-    /// Field value retrieval
-    void GetFieldBowSpV(const int& FieldId, PBowSpV& BowSpV) const;
+	/// Field value retrieval
+	double GetFieldFlt(const int& FieldId) const;
+	/// Field value retrieval
+	TFltPr GetFieldFltPr(const int& FieldId) const;
+	/// Field value retrieval
+	void GetFieldFltV(const int& FieldId, TFltV& FltV) const;
+	/// Field value retrieval
+	void GetFieldTm(const int& FieldId, TTm& Tm) const;
+	/// Field value retrieval
+	uint64 GetFieldTmMSecs(const int& FieldId) const;    
+	/// Field value retrieval
+	void GetFieldNumSpV(const int& FieldId, TIntFltKdV& NumSpV) const;
+	/// Field value retrieval
+	void GetFieldBowSpV(const int& FieldId, PBowSpV& BowSpV) const;
 
 	/// Get field value as JSon object using field id
 	PJsonVal GetFieldJson(const int& FieldId) const;
 	/// Get field value as human-readable text using field id
 	TStr GetFieldText(const int& FieldId) const;
-    
-    /// Set field value to NULL
+	
+	/// Set field value to NULL
 	void SetFieldNull(const int& FieldId);
-    /// Set field value
+	/// Set field value
 	void SetFieldInt(const int& FieldId, const int& Int);
-    /// Set field value
-    void SetFieldIntV(const int& FieldId, const TIntV& IntV);
-    /// Set field value
-    void SetFieldUInt64(const int& FieldId, const uint64& UInt64);
-    /// Set field value
+	/// Set field value
+	void SetFieldIntV(const int& FieldId, const TIntV& IntV);
+	/// Set field value
+	void SetFieldUInt64(const int& FieldId, const uint64& UInt64);
+	/// Set field value
 	void SetFieldStr(const int& FieldId, const TStr& Str);
-    /// Set field value
+	/// Set field value
 	void SetFieldStrV(const int& FieldId, const TStrV& StrV);
-    /// Set field value
+	/// Set field value
 	void SetFieldBool(const int& FieldId, const bool& Bool);
-    /// Set field value
-    void SetFieldFlt(const int& FieldId, const double& Flt);
-    /// Set field value
-    void SetFieldFltV(const int& FieldId, const TFltV& FltV);
-    /// Set field value
-    void SetFieldFltPr(const int& FieldId, const TFltPr& FltPr);
-    /// Set field value
-    void SetFieldTm(const int& FieldId, const TTm& Tm);
-    /// Set field value
-    void SetFieldNumSpV(const int& FieldId, const TIntFltKdV& NumSpV);
-    /// Set field value
-    void SetFieldBowSpV(const int& FieldId, const PBowSpV& BowSpV);
+	/// Set field value
+	void SetFieldFlt(const int& FieldId, const double& Flt);
+	/// Set field value
+	void SetFieldFltV(const int& FieldId, const TFltV& FltV);
+	/// Set field value
+	void SetFieldFltPr(const int& FieldId, const TFltPr& FltPr);
+	/// Set field value
+	void SetFieldTm(const int& FieldId, const TTm& Tm);
+	/// Set field value
+	void SetFieldNumSpV(const int& FieldId, const TIntFltKdV& NumSpV);
+	/// Set field value
+	void SetFieldBowSpV(const int& FieldId, const PBowSpV& BowSpV);
 	/// Add join
 	void AddJoin(const int& JoinId, const PRecSet& JoinRecSet);
 
-    /// Get record set containing only this record (by reference)
-    PRecSet ToRecSet() const;
+	/// Get record set containing only this record (by reference)
+	PRecSet ToRecSet() const;
 	/// Execute join with the given id
 	PRecSet DoJoin(const TWPt<TBase>& Base, const int& JoinId) const;
 	/// Execute join with the given name
@@ -925,252 +945,252 @@ public:
 /// Record Comparator by Frequency. If same, sort by ID
 class TRecCmpByFq {
 private:
-    TBool Asc;
+	TBool Asc;
 public:
-    TRecCmpByFq(const bool& _Asc) : Asc(_Asc) { }
+	TRecCmpByFq(const bool& _Asc) : Asc(_Asc) { }
 
-    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-        if (Asc) {
-            return (RecIdWgt1.Dat == RecIdWgt2.Dat) ?
-                (RecIdWgt1.Key < RecIdWgt2.Key) : (RecIdWgt1.Dat < RecIdWgt2.Dat);
-        } else {
-            return (RecIdWgt2.Dat == RecIdWgt1.Dat) ?
-                (RecIdWgt2.Key < RecIdWgt1.Key) : (RecIdWgt2.Dat < RecIdWgt1.Dat);
-        }
-    }
+	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
+		if (Asc) {
+			return (RecIdWgt1.Dat == RecIdWgt2.Dat) ?
+				(RecIdWgt1.Key < RecIdWgt2.Key) : (RecIdWgt1.Dat < RecIdWgt2.Dat);
+		} else {
+			return (RecIdWgt2.Dat == RecIdWgt1.Dat) ?
+				(RecIdWgt2.Key < RecIdWgt1.Key) : (RecIdWgt2.Dat < RecIdWgt1.Dat);
+		}
+	}
 };
 
 ///////////////////////////////
 /// Record Comparator by Integer Field. 
 class TRecCmpByFieldInt {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
-    /// Field according to which we are sorting
-    TInt FieldId;
-    /// Sort direction
-    TBool Asc;
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Sort direction
+	TBool Asc;
 public:
-    TRecCmpByFieldInt(const TWPt<TStore>& _Store, const int& _FieldId,
-        const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
-    
-    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-        const int RecVal1 = Store->GetFieldInt(RecIdWgt1.Key, FieldId);
-        const int RecVal2 = Store->GetFieldInt(RecIdWgt2.Key, FieldId);
-        if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
-    }
+	TRecCmpByFieldInt(const TWPt<TStore>& _Store, const int& _FieldId,
+		const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
+	
+	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
+		const int RecVal1 = Store->GetFieldInt(RecIdWgt1.Key, FieldId);
+		const int RecVal2 = Store->GetFieldInt(RecIdWgt2.Key, FieldId);
+		if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
+	}
 };
 
 ///////////////////////////////
 /// Record Comparator by Numeric Field. 
 class TRecCmpByFieldFlt {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
-    /// Field according to which we are sorting
-    TInt FieldId;
-    /// Sort direction
-    TBool Asc;
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Sort direction
+	TBool Asc;
 public:
-    TRecCmpByFieldFlt(const TWPt<TStore>& _Store, const int& _FieldId,
-        const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
-    
-    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-        const double RecVal1 = Store->GetFieldFlt(RecIdWgt1.Key, FieldId);
-        const double RecVal2 = Store->GetFieldFlt(RecIdWgt2.Key, FieldId);
-        if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
-    }
+	TRecCmpByFieldFlt(const TWPt<TStore>& _Store, const int& _FieldId,
+		const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
+	
+	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
+		const double RecVal1 = Store->GetFieldFlt(RecIdWgt1.Key, FieldId);
+		const double RecVal2 = Store->GetFieldFlt(RecIdWgt2.Key, FieldId);
+		if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
+	}
 };
 
 ///////////////////////////////
 /// Record Comparator by String Field. 
 class TRecCmpByFieldStr {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
-    /// Field according to which we are sorting
-    TInt FieldId;
-    /// Sort direction
-    TBool Asc;
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Sort direction
+	TBool Asc;
 public:
-    TRecCmpByFieldStr(const TWPt<TStore>& _Store, const int& _FieldId,
-        const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
-    
-    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-        const TStr RecVal1 = Store->GetFieldStr(RecIdWgt1.Key, FieldId);
-        const TStr RecVal2 = Store->GetFieldStr(RecIdWgt2.Key, FieldId);
-        if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
-    }
+	TRecCmpByFieldStr(const TWPt<TStore>& _Store, const int& _FieldId,
+		const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
+	
+	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
+		const TStr RecVal1 = Store->GetFieldStr(RecIdWgt1.Key, FieldId);
+		const TStr RecVal2 = Store->GetFieldStr(RecIdWgt2.Key, FieldId);
+		if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
+	}
 };
 
 ///////////////////////////////
 /// Record Comparator by Time Field. 
 class TRecCmpByFieldTm {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
-    /// Field according to which we are sorting
-    TInt FieldId;
-    /// Sort direction
-    TBool Asc;
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Sort direction
+	TBool Asc;
 public:
-    TRecCmpByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId,
-        const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
-    
-    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-        const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdWgt1.Key, FieldId);
-        const uint64 RecVal2 = Store->GetFieldTmMSecs(RecIdWgt2.Key, FieldId);
-        if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
-    }
+	TRecCmpByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId,
+		const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
+	
+	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
+		const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdWgt1.Key, FieldId);
+		const uint64 RecVal2 = Store->GetFieldTmMSecs(RecIdWgt2.Key, FieldId);
+		if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
+	}
 };
 
 ///////////////////////////////
 /// Record Filter by Record Exists. 
 class TRecFilterByExists {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
 public:
-    TRecFilterByExists(const TWPt<TStore>& _Store): Store(_Store) { }
-    
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        return Store->IsRecId(RecIdWgt.Key);
-    }
+	TRecFilterByExists(const TWPt<TStore>& _Store): Store(_Store) { }
+	
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		return Store->IsRecId(RecIdWgt.Key);
+	}
 };
 
 ///////////////////////////////
 /// Record Filter by Record Id. 
 class TRecFilterByRecId {
 private:
-    /// Minimal value
-    TUInt64 MinRecId;
-    /// Maximal value
-    TUInt64 MaxRecId;
+	/// Minimal value
+	TUInt64 MinRecId;
+	/// Maximal value
+	TUInt64 MaxRecId;
 public:
-    TRecFilterByRecId(const uint64& _MinRecId, const uint64& _MaxRecId): 
-        MinRecId(_MinRecId), MaxRecId(_MaxRecId) { }
-    
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        return (MinRecId <= RecIdWgt.Key) && (RecIdWgt.Key <= MaxRecId);
-    }
+	TRecFilterByRecId(const uint64& _MinRecId, const uint64& _MaxRecId): 
+		MinRecId(_MinRecId), MaxRecId(_MaxRecId) { }
+	
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		return (MinRecId <= RecIdWgt.Key) && (RecIdWgt.Key <= MaxRecId);
+	}
 };
 
 ///////////////////////////////
 /// Record Filter by Record Id Set. 
 class TRecFilterByRecIdSet {
 private:
-    /// Store from which we are sorting the records 
-    const TUInt64Set& RecIdSet;
-    /// Check for in our out
-    TBool InP;
+	/// Store from which we are sorting the records 
+	const TUInt64Set& RecIdSet;
+	/// Check for in our out
+	TBool InP;
 public:
-    TRecFilterByRecIdSet(const TUInt64Set& _RecIdSet, const bool _InP): 
-        RecIdSet(_RecIdSet), InP(_InP) { }
-    
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        return InP ? RecIdSet.IsKey(RecIdWgt.Key) : !RecIdSet.IsKey(RecIdWgt.Key);
-    }
+	TRecFilterByRecIdSet(const TUInt64Set& _RecIdSet, const bool _InP): 
+		RecIdSet(_RecIdSet), InP(_InP) { }
+	
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		return InP ? RecIdSet.IsKey(RecIdWgt.Key) : !RecIdSet.IsKey(RecIdWgt.Key);
+	}
 };
 
 ///////////////////////////////
 /// Record Filter by Record Id. 
 class TRecFilterByRecFq {
 private:
-    /// Minimal value
-    TInt MinFq;
-    /// Maximal value
-    TInt MaxFq;
+	/// Minimal value
+	TInt MinFq;
+	/// Maximal value
+	TInt MaxFq;
 public:
-    TRecFilterByRecFq(const int& _MinFq, const int& _MaxFq): 
-        MinFq(_MinFq), MaxFq(_MaxFq) { }
-    
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        return (MinFq <= RecIdWgt.Dat) && (RecIdWgt.Dat <= MaxFq);
-    }
+	TRecFilterByRecFq(const int& _MinFq, const int& _MaxFq): 
+		MinFq(_MinFq), MaxFq(_MaxFq) { }
+	
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		return (MinFq <= RecIdWgt.Dat) && (RecIdWgt.Dat <= MaxFq);
+	}
 };
 
 ///////////////////////////////
 /// Record Filter by Integer Field. 
 class TRecFilterByFieldInt {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
-    /// Field according to which we are sorting
-    TInt FieldId;
-    /// Minimal value
-    TInt MinVal;
-    /// Maximal value
-    TInt MaxVal;
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Minimal value
+	TInt MinVal;
+	/// Maximal value
+	TInt MaxVal;
 public:
-    TRecFilterByFieldInt(const TWPt<TStore>& _Store, const int& _FieldId, const int& _MinVal,
-        const int& _MaxVal): Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
-    
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        const int RecVal = Store->GetFieldInt(RecIdWgt.Key, FieldId);
-        return (MinVal <= RecVal) && (RecVal <= MaxVal);
-    }
+	TRecFilterByFieldInt(const TWPt<TStore>& _Store, const int& _FieldId, const int& _MinVal,
+		const int& _MaxVal): Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
+	
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const int RecVal = Store->GetFieldInt(RecIdWgt.Key, FieldId);
+		return (MinVal <= RecVal) && (RecVal <= MaxVal);
+	}
 };
 
 ///////////////////////////////
 /// Record Filter by Numeric Field. 
 class TRecFilterByFieldFlt {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
-    /// Field according to which we are sorting
-    TInt FieldId;
-    /// Minimal value
-    TFlt MinVal;
-    /// Maximal value
-    TFlt MaxVal;
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Minimal value
+	TFlt MinVal;
+	/// Maximal value
+	TFlt MaxVal;
 public:
-    TRecFilterByFieldFlt(const TWPt<TStore>& _Store, const int& _FieldId, const double& _MinVal,
-        const double& _MaxVal): Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
-    
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        const double RecVal = Store->GetFieldFlt(RecIdWgt.Key, FieldId);
-        return (MinVal <= RecVal) && (RecVal <= MaxVal);
-    }
+	TRecFilterByFieldFlt(const TWPt<TStore>& _Store, const int& _FieldId, const double& _MinVal,
+		const double& _MaxVal): Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
+	
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const double RecVal = Store->GetFieldFlt(RecIdWgt.Key, FieldId);
+		return (MinVal <= RecVal) && (RecVal <= MaxVal);
+	}
 };
 
 ///////////////////////////////
 /// Record Filter by String Field. 
 class TRecFilterByFieldStr {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
-    /// Field according to which we are sorting
-    TInt FieldId;
-    /// String value
-    const TStr& StrVal;
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// String value
+	const TStr& StrVal;
 public:
-    TRecFilterByFieldStr(const TWPt<TStore>& _Store, const int& _FieldId, 
-        const TStr& _StrVal): Store(_Store), FieldId(_FieldId), StrVal(_StrVal) { }
-    
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        const TStr RecVal = Store->GetFieldStr(RecIdWgt.Key, FieldId);
-        return StrVal == RecVal;
-    }
+	TRecFilterByFieldStr(const TWPt<TStore>& _Store, const int& _FieldId, 
+		const TStr& _StrVal): Store(_Store), FieldId(_FieldId), StrVal(_StrVal) { }
+	
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const TStr RecVal = Store->GetFieldStr(RecIdWgt.Key, FieldId);
+		return StrVal == RecVal;
+	}
 };
 
 ///////////////////////////////
 /// Record Filter by String Field Set. 
 class TRecFilterByFieldStrSet {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
-    /// Field according to which we are sorting
-    TInt FieldId;
-    /// String values
-    const TStrSet& StrSet;
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// String values
+	const TStrSet& StrSet;
 public:
-    TRecFilterByFieldStrSet(const TWPt<TStore>& _Store, const int& _FieldId, 
-        const TStrSet& _StrSet): Store(_Store), FieldId(_FieldId), StrSet(_StrSet) { }
-    
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        const TStr RecVal = Store->GetFieldStr(RecIdWgt.Key, FieldId);
-        return StrSet.IsKey(RecVal);
-    }
+	TRecFilterByFieldStrSet(const TWPt<TStore>& _Store, const int& _FieldId, 
+		const TStrSet& _StrSet): Store(_Store), FieldId(_FieldId), StrSet(_StrSet) { }
+	
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const TStr RecVal = Store->GetFieldStr(RecIdWgt.Key, FieldId);
+		return StrSet.IsKey(RecVal);
+	}
 };
 
 
@@ -1178,48 +1198,48 @@ public:
 /// Record Filter by Time Field. 
 class TRecFilterByFieldTm {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
-    /// Field according to which we are sorting
-    TInt FieldId;
-    /// Minimal value
-    TUInt64 MinVal;
-    /// Maximal value
-    TUInt64 MaxVal;
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Minimal value
+	TUInt64 MinVal;
+	/// Maximal value
+	TUInt64 MaxVal;
 public:
-    TRecFilterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _MinVal,
-        const uint64& _MaxVal): Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
-    TRecFilterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId, 
-        const TTm& _MinVal, const TTm& _MaxVal): Store(_Store), FieldId(_FieldId), 
-        MinVal(_MinVal.IsDef() ? TTm::GetMSecsFromTm(_MinVal) : (uint64)TUInt64::Mn), 
-        MaxVal(_MaxVal.IsDef() ? TTm::GetMSecsFromTm(_MaxVal) : (uint64)TUInt64::Mx) { }
-    
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        const uint64 RecVal = Store->GetFieldTmMSecs(RecIdWgt.Key, FieldId);
-        return (MinVal <= RecVal) && (RecVal <= MaxVal);
-    }
+	TRecFilterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _MinVal,
+		const uint64& _MaxVal): Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
+	TRecFilterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId, 
+		const TTm& _MinVal, const TTm& _MaxVal): Store(_Store), FieldId(_FieldId), 
+		MinVal(_MinVal.IsDef() ? TTm::GetMSecsFromTm(_MinVal) : (uint64)TUInt64::Mn), 
+		MaxVal(_MaxVal.IsDef() ? TTm::GetMSecsFromTm(_MaxVal) : (uint64)TUInt64::Mx) { }
+	
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const uint64 RecVal = Store->GetFieldTmMSecs(RecIdWgt.Key, FieldId);
+		return (MinVal <= RecVal) && (RecVal <= MaxVal);
+	}
 };
 
 ///////////////////////////////
 /// Record Splitter by Time Field. 
 class TRecSplitterByFieldTm {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
-    /// Field according to which we are sorting
-    TInt FieldId;
-    /// Maximal difference value
-    TUInt64 DiffMSecs;
-    
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Maximal difference value
+	TUInt64 DiffMSecs;
+	
 public:
-    TRecSplitterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _DiffMSecs):
-        Store(_Store), FieldId(_FieldId), DiffMSecs(_DiffMSecs) { }
-    
-    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-        const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdWgt1.Key, FieldId);
-        const uint64 RecVal2 = Store->GetFieldTmMSecs(RecIdWgt2.Key, FieldId);
-        return (RecVal2 - RecVal1) > DiffMSecs;
-    }
+	TRecSplitterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _DiffMSecs):
+		Store(_Store), FieldId(_FieldId), DiffMSecs(_DiffMSecs) { }
+	
+	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
+		const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdWgt1.Key, FieldId);
+		const uint64 RecVal2 = Store->GetFieldTmMSecs(RecIdWgt2.Key, FieldId);
+		return (RecVal2 - RecVal1) > DiffMSecs;
+	}
 };
 
 ///////////////////////////////
@@ -1237,11 +1257,11 @@ private:
 	/// Store
 	TWPt<TStore> Store;
 	/// True when records have valid weights
-    TBool WgtP;
+	TBool WgtP;
 	/// Vector of pairs (record id, weight)
 	TUInt64IntKdV RecIdFqV;
-    /// Vector of computed aggregates
-    TVec<PAggr> AggrV;
+	/// Vector of computed aggregates
+	TVec<PAggr> AggrV;
 
 private:
 	/// Samples records from result set
@@ -1254,8 +1274,8 @@ private:
 	void LimitToSampleRecIdV(const TUInt64IntKdV& SampleRecIdFqV);
 
 	TRecSet() { }
-    TRecSet(const TWPt<TStore>& Store, const uint64& RecId, const int& Wgt);
-    TRecSet(const TWPt<TStore>& Store, const TUInt64V& RecIdV);
+	TRecSet(const TWPt<TStore>& Store, const uint64& RecId, const int& Wgt);
+	TRecSet(const TWPt<TStore>& Store, const TUInt64V& RecIdV);
 	TRecSet(const TWPt<TStore>& Store, const TIntV& RecIdV);
 	TRecSet(const TWPt<TStore>& Store, const TUInt64IntKdV& _RecIdFqV, const bool& _WgtP);
 	TRecSet(const TWPt<TBase>& Base, TSIn& SIn);
@@ -1280,19 +1300,19 @@ public:
 	/// Save record set from input stream. Does not serialize aggregates.
 	void Save(TSOut& SOut);
 
-    /// True when record set contains valid record weights
-    bool IsWgt() const { return WgtP; }
+	/// True when record set contains valid record weights
+	bool IsWgt() const { return WgtP; }
 	/// True when no record
 	bool Empty() const { return RecIdFqV.Empty(); }
-    /// Get store of the record set
-    const TWPt<TStore>& GetStore() const { return Store; }
+	/// Get store of the record set
+	const TWPt<TStore>& GetStore() const { return Store; }
 	/// Get store id of the record set
 	uint GetStoreId() const { return Store->GetStoreId(); }
 
 	/// Number of records in the set
 	int GetRecs() const { return RecIdFqV.Len(); }	// FIXME this method should return uint64
 	/// Get RecN-th record as TRec by reference
-    TRec GetRec(const int& RecN) const { return TRec(GetStore(), RecIdFqV[RecN].Key); }
+	TRec GetRec(const int& RecN) const { return TRec(GetStore(), RecIdFqV[RecN].Key); }
 	/// Get id of RecN-th record
 	uint64 GetRecId(const int& RecN) const { return RecIdFqV[RecN].Key; }
 	/// Get weight of RecN-th record
@@ -1302,25 +1322,25 @@ public:
 	/// Get id of the last record in the set
 	uint64 GetLastRecId() const { return RecIdFqV.Last().Key; }
 	/// Get reference to complete vector of pairs (record id, weight)
-    const TUInt64IntKdV& GetRecIdFqV() const { return RecIdFqV; }
-    /// Get direct reference to elements of vecotr
-    const TUInt64IntKd& GetRecIdFq(const int& RecN) const { return RecIdFqV[RecN]; }
+	const TUInt64IntKdV& GetRecIdFqV() const { return RecIdFqV; }
+	/// Get direct reference to elements of vecotr
+	const TUInt64IntKd& GetRecIdFq(const int& RecN) const { return RecIdFqV[RecN]; }
 
 	/// Load record ids into the provided vector
-    void GetRecIdV(TUInt64V& RecIdV) const;
+	void GetRecIdV(TUInt64V& RecIdV) const;
 	/// Load record ids into the provided hashset
 	void GetRecIdSet(TUInt64Set& RecIdSet) const;
 	/// Load record ids and weights into the provided hash table (ids map to weights)
 	void GetRecIdFqH(THash<TUInt64, TInt>& RecIdFqH) const;
 
-    /// Set weight for the RecN-th record to `Fq'
+	/// Set weight for the RecN-th record to `Fq'
 	void PutRecFq(const int& RecN, const int& Fq) { RecIdFqV[RecN].Dat = Fq; }
 	/// Use provided map (record id -> weight) to set record weights
 	void PutAllRecFq(const THash<TUInt64, TInt>& RecIdFqH);
 	/// Remove the last record from the set
-    void DelLastRec() { RecIdFqV.DelLast(); }
+	void DelLastRec() { RecIdFqV.DelLast(); }
 	/// Randomly shuffle the order of records in the set. Uses provided random number generator.
-    void Shuffle(TRnd& Rnd) { RecIdFqV.Shuffle(Rnd); }
+	void Shuffle(TRnd& Rnd) { RecIdFqV.Shuffle(Rnd); }
 	/// Reverse the order of records in the set
 	void Reverse() { RecIdFqV.Reverse(); }
 	/// Keep only first `Recs' records
@@ -1359,11 +1379,11 @@ public:
 	void FilterByFieldTm(const int& FieldId, const TTm& MinVal, const TTm& MaxVal);
 	/// Filter records to keep only the ones with values of a given field within given range
 	template <class TFilter> void FilterBy(const TFilter& Filter);
-    
-    /// Split records into several whenever value of two consecutive records above threshold
-    TVec<PRecSet> SplitByFieldTm(const int& FieldId, const uint64& DiffMSecs) const;
-    /// Split records into several whenever value of two consecutive records above threshold
-    template <class TSplitter> TVec<PRecSet> SplitBy(const TSplitter& Splitter) const;
+	
+	/// Split records into several whenever value of two consecutive records above threshold
+	TVec<PRecSet> SplitByFieldTm(const int& FieldId, const uint64& DiffMSecs) const;
+	/// Split records into several whenever value of two consecutive records above threshold
+	template <class TSplitter> TVec<PRecSet> SplitBy(const TSplitter& Splitter) const;
 
 	/// Remove record from the set (warning: time complexity O(GetRecs()) )
 	void RemoveRecId(const TUInt64& RecId);
@@ -1371,9 +1391,9 @@ public:
 	/// (warning: time complexity O(GetRecs()*RemoveItemIdSet.Length()) )
 	void RemoveRecIdSet(THashSet<TUInt64>& RemoveItemIdSet);
 	
-    /// Create a cloned record set. Forgets aggregations.
-    PRecSet Clone() const;
-    /// Returns a new record set generated by sampling this one
+	/// Create a cloned record set. Forgets aggregations.
+	PRecSet Clone() const;
+	/// Returns a new record set generated by sampling this one
 	PRecSet GetSampleRecSet(const int& SampleSize, const bool& SortedP) const;
 	/// Get record set containing `Limit' records starting from `RecN=Offset'
 	PRecSet GetLimit(const int& Limit, const int& Offset) const;
@@ -1382,7 +1402,7 @@ public:
 	/// Merging does not assume any sort order. In the process, records in this record set 
 	/// are sorted by ids.
 	PRecSet GetMerge(const PRecSet& RecSet) const;
-    static PRecSet GetMerge(const TVec<PRecSet>& RecSetV);
+	static PRecSet GetMerge(const TVec<PRecSet>& RecSetV);
 
 	/// Merges provided record set with `this'. Merging does not assume  any sort order. 
 	/// In the process, records in this record set are sorted by ids.
@@ -1410,7 +1430,7 @@ public:
 	/// @param SortedP True when records in this record set are sorted according the weight, to help with sampling
 	PRecSet DoJoin(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, const bool& SortedP) const;
 
-    /// Get number of aggregations in the record set
+	/// Get number of aggregations in the record set
 	int GetAggrs() const { return AggrV.Len(); }
 	/// Get AggrN-th aggregation
 	const PAggr& GetAggr(const int& AggrN) const { return AggrV[AggrN]; }
@@ -1437,37 +1457,37 @@ void TRecSet::FilterBy(const TFilter& Filter) {
 	// prepare an empty key-dat vector for storing records that pass the filter
 	const int Recs = GetRecs();
 	TUInt64IntKdV NewRecIdFqV(Recs, 0);
-    for (int RecN = 0; RecN < Recs; RecN++) {
-        const TUInt64IntKd& RecIdFq = RecIdFqV[RecN];
-        // check the filter
-        if (Filter(RecIdFq)) { NewRecIdFqV.Add(RecIdFq); }
-    }
+	for (int RecN = 0; RecN < Recs; RecN++) {
+		const TUInt64IntKd& RecIdFq = RecIdFqV[RecN];
+		// check the filter
+		if (Filter(RecIdFq)) { NewRecIdFqV.Add(RecIdFq); }
+	}
 	// overwrite old result vector with filtered list
 	RecIdFqV = NewRecIdFqV;    
 }
 
 template <class TSplitter> 
 TVec<PRecSet> TRecSet::SplitBy(const TSplitter& Splitter) const {
-    TRecSetV ResV;
-    // if no records, nothing to do
-    if (Empty()) { return ResV; }
-    // initialize with the first record
-    TUInt64IntKdV NewRecIdFqV; NewRecIdFqV.Add(RecIdFqV[0]);
-    // go over the rest and see when to split
-    for (int RecN = 1; RecN < GetRecs(); RecN++) {
-        if (Splitter(RecIdFqV[RecN-1], RecIdFqV[RecN])) {
-            // we need to split, first we create record set for all existing records
-            ResV.Add(TRecSet::New(Store, NewRecIdFqV, IsWgt()));
-            // and initialize a new one
-            NewRecIdFqV.Clr(false);            
-        }
-        // add new record to the next record set
-        NewRecIdFqV.Add(RecIdFqV[RecN]);
-    }
-    // add last record set to the result list
-    ResV.Add(TRecSet::New(GetStore(), NewRecIdFqV, IsWgt()));
-    // done
-    return ResV;
+	TRecSetV ResV;
+	// if no records, nothing to do
+	if (Empty()) { return ResV; }
+	// initialize with the first record
+	TUInt64IntKdV NewRecIdFqV; NewRecIdFqV.Add(RecIdFqV[0]);
+	// go over the rest and see when to split
+	for (int RecN = 1; RecN < GetRecs(); RecN++) {
+		if (Splitter(RecIdFqV[RecN-1], RecIdFqV[RecN])) {
+			// we need to split, first we create record set for all existing records
+			ResV.Add(TRecSet::New(Store, NewRecIdFqV, IsWgt()));
+			// and initialize a new one
+			NewRecIdFqV.Clr(false);            
+		}
+		// add new record to the next record set
+		NewRecIdFqV.Add(RecIdFqV[RecN]);
+	}
+	// add last record set to the result list
+	ResV.Add(TRecSet::New(GetStore(), NewRecIdFqV, IsWgt()));
+	// done
+	return ResV;
 }
 
 ///////////////////////////////
@@ -1516,8 +1536,8 @@ private:
 	TIntV FieldIdV;
 	/// Linked join (only for internal field)
 	TStr JoinNm;
-    /// Tokenizer, when key requires one (e.g. text)
-    PTokenizer Tokenizer;
+	/// Tokenizer, when key requires one (e.g. text)
+	PTokenizer Tokenizer;
 
 public:
 	/// Empty constructor creates undefined key
@@ -1552,8 +1572,8 @@ public:
 	/// Set key id (used only when creating new keys)
 	void PutKeyId(const int& _KeyId) { KeyId = _KeyId; }
 
-    /// Get key type
-    TIndexKeyType GetTypeFlags() const { return TypeFlags; }
+	/// Get key type
+	TIndexKeyType GetTypeFlags() const { return TypeFlags; }
 	/// Checks key type is value
 	bool IsValue() const { return ((TypeFlags & oiktValue) != 0); }
 	/// Checks key type is text
@@ -1575,7 +1595,7 @@ public:
 	bool IsSortByFlt() const { return SortType == oikstByFlt; }
 	/// Checks if key is sortable by word id in the vocabulary
 	bool IsSortById() const { return SortType == oikstById; }
-    
+	
 	/// Checks if the key has assigned word vocabulary (e.g. locations and joins do not)
 	bool IsWordVoc() const { return WordVocId != -1; }
 	/// Get id of word vocabulary used by the key
@@ -1592,13 +1612,13 @@ public:
 
 	/// Get name of associated join
 	const TStr& GetJoinNm() const { return JoinNm; }
-    
-    /// Do we have a tokenizer
-    bool IsTokenizer() const { return !Tokenizer.Empty(); }
-    /// Get the tokenizer
-    const PTokenizer& GetTokenizer() const { return Tokenizer; }
-    /// Set the tokenizer
-    void PutTokenizer(const PTokenizer& _Tokenizer) { Tokenizer = _Tokenizer; }
+	
+	/// Do we have a tokenizer
+	bool IsTokenizer() const { return !Tokenizer.Empty(); }
+	/// Get the tokenizer
+	const PTokenizer& GetTokenizer() const { return Tokenizer; }
+	/// Set the tokenizer
+	void PutTokenizer(const PTokenizer& _Tokenizer) { Tokenizer = _Tokenizer; }
 };
 
 ///////////////////////////////
@@ -1608,8 +1628,8 @@ private:
 	// smart-pointer
 	TCRef CRef;
 	friend class TPt<TIndexWordVoc>;
-    /// Word vocabulary name
-    TStr WordVocNm;
+	/// Word vocabulary name
+	TStr WordVocNm;
 	/// Count of records sent through this vocabulary
 	TUInt64 Recs; 
 	/// Hash table with all the words
@@ -1662,13 +1682,13 @@ public:
 	void IncRecs() { Recs++; }
 	/// Add new word to the vocabulary (if existing, it increases its count)
 	uint64 AddWordStr(const TStr& WordStr);
-    
-    /// Check if vocabulary has a name assigned (used for easier referencing in schemas)
-    bool IsWordVocNm() const { return !WordVocNm.Empty(); }
-    /// Get name of the vocabulary
-    const TStr& GetWordVocNm() const { return WordVocNm; }    
-    /// Set vocabulary name
-    void SetWordVocNm(const TStr& _WordVocNm) { WordVocNm = _WordVocNm; }
+	
+	/// Check if vocabulary has a name assigned (used for easier referencing in schemas)
+	bool IsWordVocNm() const { return !WordVocNm.Empty(); }
+	/// Get name of the vocabulary
+	const TStr& GetWordVocNm() const { return WordVocNm; }    
+	/// Set vocabulary name
+	void SetWordVocNm(const TStr& _WordVocNm) { WordVocNm = _WordVocNm; }
 };
 typedef TPt<TIndexWordVoc> PIndexWordVoc;
 typedef TVec<PIndexWordVoc> TIndexWordVocV;
@@ -1680,12 +1700,12 @@ private:
 	// smart-pointer
 	TCRef CRef;
 	friend class TPt<TIndexVoc>;
-    /// List of all the keys
-    THash<TUIntStrPr, TIndexKey> KeyH;
-    /// Keys split by stores
-    THash<TUInt, TIntSet> StoreIdKeyIdSetH;
+	/// List of all the keys
+	THash<TUIntStrPr, TIndexKey> KeyH;
+	/// Keys split by stores
+	THash<TUInt, TIntSet> StoreIdKeyIdSetH;
 	/// Word vocabularies
-    TIndexWordVocV WordVocV;
+	TIndexWordVocV WordVocV;
 	/// Used to return empty set by reference
 	TIntSet EmptySet;
 
@@ -1695,16 +1715,16 @@ private:
 	const PIndexWordVoc& GetWordVoc(const int& KeyId) const;
 
 	TIndexVoc() { }
-    TIndexVoc(TSIn& SIn);
+	TIndexVoc(TSIn& SIn);
 public:
 	/// Create new index vocabulary
-    static PIndexVoc New() { return new TIndexVoc; }
+	static PIndexVoc New() { return new TIndexVoc; }
 	/// Load existing vocabulary from stream
-    static PIndexVoc Load(TSIn& SIn) { return new TIndexVoc(SIn); }
+	static PIndexVoc Load(TSIn& SIn) { return new TIndexVoc(SIn); }
 	/// Serialize vocabulary to stream
-    void Save(TSOut& SOut) const;
+	void Save(TSOut& SOut) const;
 
-    /// Get number of keys
+	/// Get number of keys
 	int GetKeys() const { return KeyH.Len(); }
 	/// Checks if key with given id exists
 	bool IsKeyId(const int& KeyId) const;
@@ -1723,11 +1743,11 @@ public:
 	
 	/// Create new word vocabulary, returns its ID
 	int NewWordVoc() { return WordVocV.Add(TIndexWordVoc::New()); }
-    /// Get Id of word vocabulary with a given name if one exists, -1 otherwise
-    int GetWordVoc(const TStr& WordVocNm) const;
-    /// Set the name of word vocabulary 
-    void SetWordVocNm(const int& WordVocId, const TStr& WordVocNm);
-    
+	/// Get Id of word vocabulary with a given name if one exists, -1 otherwise
+	int GetWordVoc(const TStr& WordVocNm) const;
+	/// Set the name of word vocabulary 
+	void SetWordVocNm(const int& WordVocId, const TStr& WordVocNm);
+	
 	/// Create new key in the index vocabulary
 	int AddKey(const uint& StoreId, const TStr& KeyNm, const int& WordVocId, 
 		const TIndexKeyType& Type, const TIndexKeySortType& SortType = oikstUndef);
@@ -1735,12 +1755,12 @@ public:
 	int AddInternalKey(const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm, const bool& IsSmall);
 	/// Linking key to a field
 	void AddKeyField(const int& KeyId, const uint& StoreId, const int& FieldId);
-    /// Check if store has any index keys
-    bool IsStoreKeys(const uint& StoreId) const;
+	/// Check if store has any index keys
+	bool IsStoreKeys(const uint& StoreId) const;
 	/// Get set of all the keys for a given store
-    const TIntSet& GetStoreKeys(const uint& StoreId) const;
+	const TIntSet& GetStoreKeys(const uint& StoreId) const;
 
-    /// Checks if given key contains a word vocabulary
+	/// Checks if given key contains a word vocabulary
 	bool IsWordVoc(const int& KeyId) const;
 	/// Checks if word is in the vocabulary of a key
 	bool IsWordId(const int& KeyId, const uint64& WordId) const;
@@ -1757,26 +1777,26 @@ public:
 	/// Get weight of a word of a key
 	uint64 GetWordFq(const int& KeyId, const uint64& WordId) const;
 	/// Get word id from a key for a given string (does not add new words)
-    uint64 GetWordId(const int& KeyId, const TStr& WordStr) const;
+	uint64 GetWordId(const int& KeyId, const TStr& WordStr) const;
 	/// Get word ids from a key for a given text (does not add new words)
 	void GetWordIdV(const int& KeyId, const TStr& TextStr, TUInt64V& WordIdV) const;
 	/// For parsing strings (adds new words)
-    uint64 AddWordStr(const int& KeyId, const TStr& WordStr);
+	uint64 AddWordStr(const int& KeyId, const TStr& WordStr);
 	/// Get word ids from a key for a given text (adds new words)
 	void AddWordIdV(const int& KeyId, const TStr& TextStr, TUInt64V& WordIdV);
 	/// Get word ids from a key for a given texts (adds new words)
 	void AddWordIdV(const int& KeyId, const TStrV& TextStr, TUInt64V& WordIdV);
 	/// Get vector of all words from a key that match given wildchar query
 	void GetWcWordIdV(const int& KeyId, const TStr& WcStr, TUInt64V& WcWordIdV);
-    /// Get all words from a key that are greater than `startWordId
-    void GetAllGreaterV(const int& KeyId, const uint64& StartWordId, TKeyWordV& AllGreaterV);
-    /// Get all words from a key that are smaller than `startWordId
-    void GetAllLessV(const int& KeyId, const uint64& StartWordId, TKeyWordV& AllLessV);
-    
-    /// Get tokenizer from a key
-    const PTokenizer& GetTokenizer(const int& KeyId) const;
-    /// Set tokenizer for a key
-    void PutTokenizer(const int& KeyId, const PTokenizer& Tokenizer);
+	/// Get all words from a key that are greater than `startWordId
+	void GetAllGreaterV(const int& KeyId, const uint64& StartWordId, TKeyWordV& AllGreaterV);
+	/// Get all words from a key that are smaller than `startWordId
+	void GetAllLessV(const int& KeyId, const uint64& StartWordId, TKeyWordV& AllLessV);
+	
+	/// Get tokenizer from a key
+	const PTokenizer& GetTokenizer(const int& KeyId) const;
+	/// Set tokenizer for a key
+	void PutTokenizer(const int& KeyId, const PTokenizer& Tokenizer);
 
 	/// Save human-readable statistics to a file
 	void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) const;
@@ -1830,11 +1850,11 @@ private:
 	/// type of query item
 	TQueryItemType Type;
 	/// Index key (for leaf node)
-    TInt KeyId;
+	TInt KeyId;
 	/// Value or text query (for leaf node)
-    TUInt64V WordIdV;
+	TUInt64V WordIdV;
 	/// Comparison between field and value (for leaf node)
-    TQueryCmpType CmpType;
+	TQueryCmpType CmpType;
 	/// Geo. coordinates (for location query)
 	TFltPr Loc;
 	/// Radius of search space in meters (for location query)
@@ -1844,13 +1864,13 @@ private:
 	/// List of subordinate query items.
 	/// Has exactly one element when NOT or JOIN node type
 	TQueryItemV ItemV;
-    /// Join ID (for join nodes)
+	/// Join ID (for join nodes)
 	TInt JoinId;
 	/// Join sampling size (for join nodes). Value -1 means everything.
 	TInt SampleSize;
-    /// Record set which this query node returns
+	/// Record set which this query node returns
 	PRecSet RecSet;
-    /// Record which this query node returns
+	/// Record which this query node returns
 	TRec Rec;
 	/// Store which this query node returns
 	TUInt StoreId;
@@ -1883,22 +1903,22 @@ public:
 	/// New undefined item (necessary for resizing vectors)
 	TQueryItem() { };
 	/// Create query returning known record
-    TQueryItem(const TWPt<TStore>& Store, const uint64& RecId);
+	TQueryItem(const TWPt<TStore>& Store, const uint64& RecId);
 	/// Create query returning known record
 	TQueryItem(const TRec& _Rec);
 	/// Create query returning known record set
 	TQueryItem(const PRecSet& _RecSet);
 	/// Create new inverted index leaf query
-    TQueryItem(const TWPt<TBase>& Base, const int& _KeyId, const uint64& WordId, 
+	TQueryItem(const TWPt<TBase>& Base, const int& _KeyId, const uint64& WordId, 
 		const TQueryCmpType& _CmpType = oqctEqual);
 	/// Create new inverted index leaf query
-    TQueryItem(const TWPt<TBase>& Base, const int& _KeyId, const TStr& WordStr, 
+	TQueryItem(const TWPt<TBase>& Base, const int& _KeyId, const TStr& WordStr, 
 		const TQueryCmpType& _CmpType = oqctEqual);
 	/// Create new inverted index leaf query
-    TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm, 
+	TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm, 
 		const TStr& WordStr, const TQueryCmpType& _CmpType = oqctEqual);
 	/// Create new inverted index leaf query
-    TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm, 
+	TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm, 
 		const TStr& WordStr, const TQueryCmpType& _CmpType = oqctEqual);
 	/// New leaf location query (limit always required, range used when positive)
 	TQueryItem(const TWPt<TBase>& Base, const int& _KeyId, 
@@ -1969,9 +1989,9 @@ public:
 	/// Get Index key (for inverted index queries)
 	int GetKeyId() const { return KeyId; }
 	/// Get (first) word id  (for inverted index queries)
-    uint64 GetWordId() const { return WordIdV[0]; }
+	uint64 GetWordId() const { return WordIdV[0]; }
 	/// Get index key and all values (for inverted index queries)
-    void GetKeyWordV(TKeyWordV& KeyWordPrV) const;
+	void GetKeyWordV(TKeyWordV& KeyWordPrV) const;
 	/// Get location (for location queries)
 	const TFltPr& GetLoc() const { return Loc; }
 	/// Check if location query has radios (for location queries)
@@ -1985,11 +2005,11 @@ public:
 	/// Check comparison type
 	bool IsEqual() const { return (CmpType == oqctEqual); }
 	/// Check comparison type
-    bool IsGreater() const { return (CmpType == oqctGreater); }
+	bool IsGreater() const { return (CmpType == oqctGreater); }
 	/// Check comparison type
-    bool IsLess() const { return (CmpType == oqctLess); }
+	bool IsLess() const { return (CmpType == oqctLess); }
 	/// Check comparison type
-    bool IsNotEqual() const { return (CmpType == oqctNotEqual); }
+	bool IsNotEqual() const { return (CmpType == oqctNotEqual); }
 	/// Check comparison type
 	bool IsWildChar() const { return (CmpType == oqctWildChar); }
 
@@ -2124,7 +2144,7 @@ private:
 	TCRef CRef;
 	friend class TPt<TIndex>;
 public:
-    // gix template definitions
+	// gix template definitions
 	typedef TKeyWord TQmGixKey; // (int KeyId, uint64 WordId)
 	typedef TKeyDat<TUInt64, TInt> TQmGixItem; // [RecId, Freq]
 	typedef TKeyDat<TUInt, TSInt> TQmGixItemSmall; // [RecId, Freq]
@@ -2134,7 +2154,7 @@ public:
 	typedef TPt<TGixExpMerger<TQmGixKey, TQmGixItemSmall> > PQmGixExpMergerSmall;
 	typedef TPt<TGixKeyStr<TQmGixKey> > PQmGixKeyStr;
 
-    /// Merger which sums up the frequencies
+	/// Merger which sums up the frequencies
 	class TQmGixDefMerger : public TGixExpMerger<TQmGixKey, TQmGixItem> {
 	public:
 		static PGixExpMerger New() { return new TQmGixDefMerger(); }
@@ -2220,29 +2240,29 @@ public:
 
 private:    
 	/// Remember index location
-    TStr IndexFPath;
-    /// Remember access mode to the index
-    TFAccess Access;
-    /// Inverted index
-    mutable PQmGix Gix;
+	TStr IndexFPath;
+	/// Remember access mode to the index
+	TFAccess Access;
+	/// Inverted index
+	mutable PQmGix Gix;
 	/// Inverted index - small
 	mutable PQmGixSmall GixSmall;
 
 	/// Location index
 	THash<TInt, PGeoIndex> GeoIndexH;
-    /// Index Vocabulary
-    PIndexVoc IndexVoc;
+	/// Index Vocabulary
+	PIndexVoc IndexVoc;
 	/// Inverted Index Default Merger
 	PQmGixExpMerger DefMerger;
 	/// Inverted Index Default Merger Small
 	PQmGixExpMergerSmall DefMergerSmall;
 
-    /// Converts query item tree to GIX query expression
+	/// Converts query item tree to GIX query expression
 	PQmGixExpItem ToExpItem(const TQueryItem& QueryItem) const;
 	/// Converts query item tree to GIX-small query expression
 	PQmGixExpItemSmall ToExpItemSmall(const TQueryItem& QueryItem) const;
-    /// Executes GIX query expression against the index
-    bool DoQuery(const PQmGixExpItem& ExpItem, const PQmGixExpMerger& Merger, 
+	/// Executes GIX query expression against the index
+	bool DoQuery(const PQmGixExpItem& ExpItem, const PQmGixExpMerger& Merger, 
 		TQmGixItemV& RecIdFqV) const;
 	/// Executes GIX-small query expression against the index
 	bool DoQuerySmall(const PQmGixExpItemSmall& ExpItem, const PQmGixExpMergerSmall& Merger,
@@ -2261,12 +2281,12 @@ private:
 	}
 
 	/// Constructor
-    TIndex(const TStr& _IndexFPath, const TFAccess& _Access, 
+	TIndex(const TStr& _IndexFPath, const TFAccess& _Access, 
 		const PIndexVoc& IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall,
 		const int& SplitLen);
 public:
 	/// Create (Access==faCreate) or open existing index
-    static PIndex New(const TStr& IndexFPath, const TFAccess& Access, 
+	static PIndex New(const TStr& IndexFPath, const TFAccess& Access, 
 		const PIndexVoc& IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall,
 		const int& SplitLen) {
 		return new TIndex(IndexFPath, Access, IndexVoc, CacheSize, CacheSizeSmall, SplitLen);
@@ -2274,7 +2294,7 @@ public:
 	/// Checks if there is an existing index at the given path
 	static bool Exists(const TStr& IndexFPath) {
 		return TFile::Exists(IndexFPath + "Index.Gix"); }
-    
+	
 	/// Close the query
 	~TIndex();
 
@@ -2282,28 +2302,28 @@ public:
 	TStr GetIndexFPath() const { return IndexFPath; }
 	/// Get index cache size - this one looks obsolete, so it was commented out
 	//uint64 GetIndexCacheSize() const { return Gix->GetCacheSize() + GixSmall->GetCacheSize(); }
-    /// Get index vocabulary
-    TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
+	/// Get index vocabulary
+	TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
 	/// Get default index merger
 	PQmGixExpMerger GetDefMerger() const { return DefMerger; }
 	/// Get default index merger - small gix
 	PQmGixExpMergerSmall GetDefMergerSmall() const { return DefMergerSmall; }
 
-    /// Index RecId under (Key, Word)
-    void Index(const int& KeyId, const uint64& WordId, const uint64& RecId);
+	/// Index RecId under (Key, Word)
+	void Index(const int& KeyId, const uint64& WordId, const uint64& RecId);
 	/// Index RecId under (Key, Word). WordStr is sent through index vocabulary.
-    void Index(const int& KeyId, const TStr& WordStr, const uint64& RecId);
+	void Index(const int& KeyId, const TStr& WordStr, const uint64& RecId);
 	/// Index RecId under (Key, Word). WordStrV is sent through index vocabulary.
 	/// Repeated words have associated weight based on their count.
-    void Index(const int& KeyId, const TStrV& WordStrV, const uint64& RecId);
+	void Index(const int& KeyId, const TStrV& WordStrV, const uint64& RecId);
 	/// Index RecId under (Key, Word). WordStrV is sent through index vocabulary.
 	/// Each word indexed given the weight (frequency) from the input.
 	void Index(const int& KeyId, const TStrIntPrV& WordStrFqV, const uint64& RecId);	
 	/// Index RecId under (Key, Word). WordStr is sent through index vocabulary.
 	/// Repeated words have associated weight based on their count, in case of text keys.
-    void Index(const uint& StoreId, const TStr& KeyNm, const TStr& WordStr, const uint64& RecId);
+	void Index(const uint& StoreId, const TStr& KeyNm, const TStr& WordStr, const uint64& RecId);
 	/// Index RecId under (Key, Word). WordStrV is sent through index vocabulary.
-    void Index(const uint& StoreId, const TStr& KeyNm, const TStrV& WordStrV, const uint64& RecId);
+	void Index(const uint& StoreId, const TStr& KeyNm, const TStrV& WordStrV, const uint64& RecId);
 	/// Index RecId under (Key, Word). WordStrV is sent through index vocabulary.
 	/// Each word indexed given the weight (frequency) from the input.
 	void Index(const uint& StoreId, const TStr& KeyNm, const TStrIntPrV& WordStrFqV, const uint64& RecId);
@@ -2323,17 +2343,17 @@ public:
 	/// Index a join between RecId and JoinRecId
 	void IndexJoin(const TWPt<TStore>& Store, const TStr& JoinNm, 
 		const uint64& RecId, const uint64& JoinRecId, const int& JoinFq = 1);
-    /// Add to inverted index (RecId, RecFq) under key (KeyId, WordId).
-    void Index(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq);
+	/// Add to inverted index (RecId, RecFq) under key (KeyId, WordId).
+	void Index(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq);
 
-    /// Delete index for RecId under (Key, Word). WordStr is sent through index vocabulary.
+	/// Delete index for RecId under (Key, Word). WordStr is sent through index vocabulary.
 	void Delete(const int& KeyId, const TStr& WordStr, const uint64& RecId);
 	/// Delete index for RecId under (Key, Word). WordStrV is sent through index vocabulary.
 	/// Repeated words have associated weight based on their count.
 	void Delete(const int& KeyId, const TStrV& WordStrV, const uint64& RecId);
 	/// Delete index for RecId under (Key, Word). WordStr is sent through index vocabulary.
 	void Delete(const uint& StoreId, const TStr& KeyNm, const TStr& WordStr, const uint64& RecId);
-    /// Delete index for RecId under (Key, Word)
+	/// Delete index for RecId under (Key, Word)
 	void Delete(const uint& StoreId, const TStr& KeyNm, const uint64& WordId, const uint64& RecId);
 	/// Delete index for RecId under (Key, Word). Each word is sent through index vocabulary
 	void Delete(const uint& StoreId, const TStrPrV& KeyWordV, const uint64& RecId);
@@ -2355,7 +2375,7 @@ public:
 	void Delete(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq);
 
 	/// Add RecId to location index under key (Key, Loc)
-    void Index(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc, const uint64& RecId);
+	void Index(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc, const uint64& RecId);
 	/// Add RecId to location index under key (Key, Loc)
 	void Index(const int& KeyId, const TFltPr& Loc, const uint64& RecId);
 	/// Delete RecId from location index under (Key, Loc)
@@ -2367,11 +2387,11 @@ public:
 	/// Checks if two locations point to the same place
 	bool LocEquals(const int& KeyId, const TFltPr& Loc1, const TFltPr& Loc2) const;
 
-    /// Check if the index is taking all the available cache space
+	/// Check if the index is taking all the available cache space
 	bool IsCacheFull() const { Fail; return Gix->IsCacheFull(); } // deprecated
 	/// Check if index opened in read-only mode
 	bool IsReadOnly() const { return Access == faRdOnly; }
-    /// Merge with another index
+	/// Merge with another index
 	void MergeIndex(const TWPt<TIndex>& TmpIndex); // basically deprecated
 
 	/// Do flat AND search, given the vector of inverted index queries
@@ -2382,10 +2402,10 @@ public:
 	TPair<TBool, PRecSet> Search(const TWPt<TBase>& Base, const TQueryItem& QueryItem, const PQmGixExpMerger& Merger, const PQmGixExpMergerSmall& MergerSmall) const;
 	/// Do geo-location range (in meters) search
 	PRecSet SearchRange(const TWPt<TBase>& Base, const int& KeyId, 
-        const TFltPr& Loc, const double& Radius, const int& Limit) const;
+		const TFltPr& Loc, const double& Radius, const int& Limit) const;
 	/// Do geo-location nearest-neighbor search
 	PRecSet SearchNn(const TWPt<TBase>& Base, const int& KeyId, 
-        const TFltPr& Loc, const int& Limit) const;
+		const TFltPr& Loc, const int& Limit) const;
 	/// Get records ids and counts that are joined with given RecId (via given join key)
 	void GetJoinRecIdFqV(const int& JoinKeyId, const uint64& RecId, TUInt64IntKdV& JoinRecIdFqV) const;
 
@@ -2440,7 +2460,7 @@ public:
 	/// Is the temporary index full
 	bool IsIndexFull() const { return TempIndex->IsCacheFull(); }
 	/// Returns index to which new items can be added
-    TWPt<TIndex> GetIndex() const { return TempIndex; }
+	TWPt<TIndex> GetIndex() const { return TempIndex; }
 	/// Initialize new empty temporary index
 	void NewIndex(const PIndexVoc& IndexVoc);
 	/// Merge all temporary indices with the given main index
@@ -2470,7 +2490,7 @@ public:
 
 	/// Get operator name
 	TStr GetOpNm() const { return OpNm; }
-    
+	
 	/// Execute the operator
 	/// @param InRecSetV   Input record sets, can be empty
 	/// @param ParamVal    Operator parameters
@@ -2497,27 +2517,27 @@ private:
 	/// New constructor delegate
 	typedef PAggr (*TNewF)(const TWPt<TBase>& Base, const TStr& AggrNm, 
 		const PRecSet& RecSet, const PJsonVal& ParamVal);
-    /// Stream aggregate descriptions
+	/// Stream aggregate descriptions
 	static TFunRouter<PAggr, TNewF> NewRouter;   
 public:
-    /// Register default aggregates
-    static void Init();
-    /// Register new aggregate
-    template <class TObj> static void Register() { 
-        NewRouter.Register(TObj::GetType(), TObj::New);
-    }
+	/// Register default aggregates
+	static void Init();
+	/// Register new aggregate
+	template <class TObj> static void Register() { 
+		NewRouter.Register(TObj::GetType(), TObj::New);
+	}
 
 private:
-    /// QMiner Base pointer
-    TWPt<TBase> Base;    
+	/// QMiner Base pointer
+	TWPt<TBase> Base;    
 	/// Aggreagte name
 	const TStr AggrNm;
 
 protected:
 	TAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm);
-    
-    /// Get pointer to QMiner base
-    const TWPt<TBase>& GetBase() const { return Base; }
+	
+	/// Get pointer to QMiner base
+	const TWPt<TBase>& GetBase() const { return Base; }
 public:
 	/// Create new aggregate of a given type.
 	/// @param RecSet    Record collection on which to compute the aggregates
@@ -2543,24 +2563,24 @@ private:
 private:
 	/// New constructor delegate
 	typedef PStreamAggr (*TNewF)(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-    /// Stream aggregate New constructor router
+	/// Stream aggregate New constructor router
 	static TFunRouter<PStreamAggr, TNewF> NewRouter;   
-    /// Load constructor delegate
+	/// Load constructor delegate
 	typedef PStreamAggr(*TLoadF)(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
-    /// Stream aggregate Load constructor router
+	/// Stream aggregate Load constructor router
 	static TFunRouter<PStreamAggr, TLoadF> LoadRouter;
 public:
-    /// Register default stream aggregates
-    static void Init();
-    /// Register new stream aggregate
-    template <class TObj> static void Register() { 
-        NewRouter.Register(TObj::GetType(), TObj::New);
-        LoadRouter.Register(TObj::GetType(), TObj::Load);
-    }
-    
+	/// Register default stream aggregates
+	static void Init();
+	/// Register new stream aggregate
+	template <class TObj> static void Register() { 
+		NewRouter.Register(TObj::GetType(), TObj::New);
+		LoadRouter.Register(TObj::GetType(), TObj::Load);
+	}
+	
 protected:
-    /// QMiner Base pointer
-    TWPt<TBase> Base;
+	/// QMiner Base pointer
+	TWPt<TBase> Base;
 	/// Stream aggreagte name
 	const TStr AggrNm;
 
@@ -2569,19 +2589,19 @@ protected:
 protected:
 	/// Create new stream aggregate
 	TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm);
-    /// Create new stream aggregate from JSon parameters
+	/// Create new stream aggregate from JSon parameters
 	TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal);       
 	/// Load basic class of stream aggregate
 	TStreamAggr(const TWPt<TBase>& _Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
 	
-    /// Get pointer to QMiner base
-    const TWPt<TBase>& GetBase() const { return Base; }
+	/// Get pointer to QMiner base
+	const TWPt<TBase>& GetBase() const { return Base; }
 public:
 	/// Create new stream aggregate based on provided JSon parameters
 	static PStreamAggr New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal);
-    /// Virtual destructor!
+	/// Virtual destructor!
 	virtual ~TStreamAggr() { }
-    
+	
 	/// Load stream aggregate from stream
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
 	/// Load stream aggregate state from stream
@@ -2603,14 +2623,14 @@ public:
 	/// Recored already added to the aggregate is being deleted from the store 
 	virtual void OnDeleteRec(const TRec& Rec) { }
 
-    // retrieving input aggregate names
-    virtual void GetInAggrNmV(TStrV& InAggrNmV) const { };
+	// retrieving input aggregate names
+	virtual void GetInAggrNmV(TStrV& InAggrNmV) const { };
 
 	/// Print latest statistics to logger
 	virtual void PrintStat() const { }
 	/// Serialization current status to JSon
 	virtual PJsonVal SaveJson(const int& Limit) const = 0;
-    
+	
 	/// Unique ID of the stream aggregate
 	const TStr& GetGuid() const { return Guid; }  
 
@@ -2637,18 +2657,18 @@ namespace TStreamAggrOut {
 		// retireving value from the aggregate
 		virtual uint64 GetTmMSecs() const = 0;
 	};
-    
-    // combination of numeric value and timestamp
-    class IFltTm: public IFlt, public ITm { };
-    
-    class IFltTmIO {
-    public:
-        virtual double GetInFlt() const = 0;
-        virtual uint64 GetInTmMSecs() const = 0;
+	
+	// combination of numeric value and timestamp
+	class IFltTm: public IFlt, public ITm { };
+	
+	class IFltTmIO {
+	public:
+		virtual double GetInFlt() const = 0;
+		virtual uint64 GetInTmMSecs() const = 0;
 		virtual void GetOutFltV(TFltV& ValV) const = 0;
-        virtual void GetOutTmMSecsV(TUInt64V& MSecsV) const = 0;
-        virtual int GetN() const = 0;
-    };
+		virtual void GetOutTmMSecsV(TUInt64V& MSecsV) const = 0;
+		virtual int GetN() const = 0;
+	};
 
 	class IFltVec {
 	public:
@@ -2715,8 +2735,8 @@ public:
 	bool GetNextStreamAggrId(int& AggrId) const;
 	
 	// forward the calls to stream aggregates
-    void OnAddRec(const TRec& Rec);
-    void OnUpdateRec(const TRec& Rec);
+	void OnAddRec(const TRec& Rec);
+	void OnUpdateRec(const TRec& Rec);
 	void OnDeleteRec(const TRec& Rec);
 	
 	// serialize the base into json
@@ -2734,8 +2754,8 @@ public:
 	static PStoreTrigger New(const PStreamAggrBase& StreamAggrBase);
 
 	// forward the calls to stream aggreagte base
-    void OnAdd(const TRec& Rec);
-    void OnUpdate(const TRec& Rec);
+	void OnAdd(const TRec& Rec);
+	void OnUpdate(const TRec& Rec);
 	void OnDelete(const TRec& Rec);
 };
 
@@ -2751,22 +2771,22 @@ private:
 	TBool InitP;
 
 	// location
-    TStr FPath;
+	TStr FPath;
 	// access type
-    TFAccess FAccess;
+	TFAccess FAccess;
 	// is temporary folder defined
 	TBool TempFPathP;
 	// default temporary directory
 	TStr TempFPath;
 
 	// index
-    PIndexVoc IndexVoc;
-    PIndex Index;
-    // stores
+	PIndexVoc IndexVoc;
+	PIndex Index;
+	// stores
 	TVec<PStore> StoreV;
-    THash<TStr, PStore> StoreH;
+	THash<TStr, PStore> StoreH;
 	// stream aggregate base for each store
-    TVec<PStreamAggrBase> StreamAggrBaseV;
+	TVec<PStreamAggrBase> StreamAggrBaseV;
 	// default stream aggregate base (store independent)
 	PStreamAggrBase StreamAggrDefaultBase;
 	// operators
@@ -2776,15 +2796,15 @@ private:
 	PTempIndex TempIndex;
 
 private:
-    TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen);
+	TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen);
 	TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize, const int& SplitLen);
 public:
 	~TBase();
 private:
-    // serialization
-    void SaveStreamAggrBaseV(TSOut& SOut);
-    void LoadStreamAggrBaseV(TSIn& SIn);
-    
+	// serialization
+	void SaveStreamAggrBaseV(TSOut& SOut);
+	void LoadStreamAggrBaseV(TSIn& SIn);
+	
 	// searching
 	PRecSet Invert(const PRecSet& RecSet, const TIndex::PQmGixExpMerger& Merger);
 	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall, const TQueryGixUsedType& ParentGixFlag);
@@ -2811,20 +2831,20 @@ public:
 	const TFAccess& GetFAccess() const { return FAccess; }
 
 	// index
-    TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
+	TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
 	TWPt<TIndex> GetIndex() const;
 
 	// stores
-    void AddStore(const PStore& NewStore);
-    int GetStores() const { return StoreH.Len(); }
-    bool IsStoreN(const uint& StoreN) const { return StoreN < (uint)StoreH.Len(); }
-    const TWPt<TStore> GetStoreByStoreN(const int& StoreN) const;
-    bool IsStoreId(const uint& StoreId) const { return !StoreV[StoreId].Empty(); }
-    const TWPt<TStore> GetStoreByStoreId(const uint& StoreId) const;
-    bool IsStoreNm(const TStr& StoreNm) const { return StoreH.IsKey(StoreNm); }
+	void AddStore(const PStore& NewStore);
+	int GetStores() const { return StoreH.Len(); }
+	bool IsStoreN(const uint& StoreN) const { return StoreN < (uint)StoreH.Len(); }
+	const TWPt<TStore> GetStoreByStoreN(const int& StoreN) const;
+	bool IsStoreId(const uint& StoreId) const { return !StoreV[StoreId].Empty(); }
+	const TWPt<TStore> GetStoreByStoreId(const uint& StoreId) const;
+	bool IsStoreNm(const TStr& StoreNm) const { return StoreH.IsKey(StoreNm); }
 	const TWPt<TStore> GetStoreByStoreNm(const TStr& StoreNm) const;
 	/// Helper function for returning JSon definition of store
-    PJsonVal GetStoreJson(const TWPt<TStore>& Store);
+	PJsonVal GetStoreJson(const TWPt<TStore>& Store);
 
 	// stream aggregates
 	const PStreamAggrBase& GetStreamAggrBase(const uint& StoreId) const;
@@ -2839,7 +2859,7 @@ public:
 	void AddStreamAggr(const TStr& StoreNm, const PStreamAggr& StreamAggr);
 	void AddStreamAggr(const TStrV& StoreNmV, const PStreamAggr& StreamAggr);
 	void AddStreamAggr(const PStreamAggr& StreamAggr);
-    // aggregate records
+	// aggregate records
 	void Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV);
 
 	// operators
@@ -2858,16 +2878,16 @@ public:
 	// creates index key, without linking it to a filed, returns the id of created key
 	int NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const TIndexKeyType& Type = oiktValue,
 		const TIndexKeySortType& SortType = oikstUndef);
-    // creates index key, without linking it to a field using specified vocabulary,
+	// creates index key, without linking it to a field using specified vocabulary,
 	// returns the id of created key
 	int NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& WordVocId, 
 		const TIndexKeyType& Type = oiktValue, const TIndexKeySortType& SortType = oikstUndef);
-    // create index key for a specified (store, field) pair, returns the id of created key
+	// create index key for a specified (store, field) pair, returns the id of created key
 	int NewFieldIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& FieldId,
 		const TIndexKeyType& Type = oiktValue, const TIndexKeySortType& SortType = oikstUndef);
 	int NewFieldIndexKey(const TWPt<TStore>& Store, const int& FieldId, 
 		const TIndexKeyType& Type = oiktValue, const TIndexKeySortType& SortType = oikstUndef);
-    // create index key for a specified (store, field) pair using specified vocabulary,
+	// create index key for a specified (store, field) pair using specified vocabulary,
 	// returns the id of created key
 	int NewFieldIndexKey(const TWPt<TStore>& Store, const int& FieldId, const int& WordVocId, 
 		const TIndexKeyType& Type = oiktValue, const TIndexKeySortType& SortType = oikstUndef);
@@ -2875,43 +2895,43 @@ public:
 		const int& WordVocId, const TIndexKeyType& Type = oiktValue, 
 		const TIndexKeySortType& SortType = oikstUndef);
 
-    /// Add new record to a give store
+	/// Add new record to a give store
 	uint64 AddRec(const TWPt<TStore>& Store, const PJsonVal& RecVal);
-    /// Add new record to a give store
+	/// Add new record to a give store
 	uint64 AddRec(const TStr& StoreNm, const PJsonVal& RecVal);
-    /// Add new record to a give store
+	/// Add new record to a give store
 	uint64 AddRec(const uint& StoreId, const PJsonVal& RecVal);
-    
-    // searching records (default search interface)
+	
+	// searching records (default search interface)
 	PRecSet Search(const PQuery& Query);
 	PRecSet Search(const TQueryItem& QueryItem);
 	PRecSet Search(const TStr& QueryStr);
 	PRecSet Search(const PJsonVal& QueryVal);
-    
-    /// Execute garbage collection on all stores
-    void GarbageCollect();    
+	
+	/// Execute garbage collection on all stores
+	void GarbageCollect();    
 
-    // is temporary folder defined
+	// is temporary folder defined
 	bool IsTempFPath() const { return TempFPathP; }
 	// get temporary folder
 	TStr GetTempFPath() const { return TempFPath; }
 	// set temporary folder
 	void PutTempFPath(const TStr& _TempFPath) { TempFPathP = true; TempFPath = _TempFPath; }
 
-    // temporary index (useful at batch processing)
-  	bool IsTempIndex() const { return !TempIndex.Empty(); }
+	// temporary index (useful at batch processing)
+	bool IsTempIndex() const { return !TempIndex.Empty(); }
 	void InitTempIndex(const uint64& IndexCacheSize);
 	void MergeTempIndex() { TempIndex->Merge(Index); TempIndex.Clr(); }
 	bool IsTempIndexFull() const { return TempIndex->IsIndexFull(); }
 	void NewTempIndex() const { TempIndex->NewIndex(IndexVoc); }
 	void CheckTempIndexSize() { if (IsTempIndexFull()) { NewTempIndex(); } }
 
-    // JSON dump and load
+	// JSON dump and load
 	bool SaveJSonDump(const TStr& DumpDir);
 	bool RestoreJSonDump(const TStr& DumpDir);
-    
-    // statistics
-    void PrintStores(const TStr& FNm, const bool& FullP = false);
+	
+	// statistics
+	void PrintStores(const TStr& FNm, const bool& FullP = false);
 	void PrintIndexVoc(const TStr& FNm);
 	void PrintIndex(const TStr& FNm, const bool& SortP);
 		
