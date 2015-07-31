@@ -120,6 +120,7 @@ var merger = new qm.StreamAggr(base, mer);
 // import the os module
 var os = require('os');
 
+// putting the Brownian motion to the store for the Stat/Average
 var dataStats = function () {
     var date = new Date().toISOString();
     var lastStat = base.store('Stats').last;
@@ -132,6 +133,7 @@ var dataStats = function () {
     setTimeout(dataStats, 1000);
 };
 
+// putting the Brownian motion to the store for Resampler
 var dataResampler = function () {
     var date = new Date().toISOString();
     var lastRandom = base.store('Random').last;
@@ -147,6 +149,7 @@ var dataResampler = function () {
 
 // counters for the merger aggregator
 var numberOfNewPoints = 0;
+// putting the Guassian values in the store for Merger
 var dataGauss = function () {
     var date = new Date().toISOString();
     var numBefore= base.store('Merger').length;
@@ -188,19 +191,20 @@ io.on('connection', function (socket) {
         console.log('user disconnected');
     });
 
+    // used for sending the moving average values
     setInterval(function () {
-        // used for sending the moving average values
-        socket.emit('getStats',
-            {
-                stat: base.store("Stats").last.Value,
-                smooth: base.store("Average").last.Value,
-                timeStat: base.store("Stats").last.Time
-            }
-        )
+        if(base.store("Stats").last != null) {
+            socket.emit('getStats',
+                {
+                    stat: base.store("Stats").last.Value,
+                    smooth: base.store("Average").last.Value,
+                    timeStat: base.store("Stats").last.Time
+                });
+        }
     }, 1000);
 
+    // used for sending the resampler values
     setInterval(function () {
-        // used for sending the resampler values
         var resValue = [],
             resTime = [],
             last = 0,
@@ -211,21 +215,22 @@ io.on('connection', function (socket) {
         } else if (base.store("Random").length > 0){
             previous = (new Date(base.store("Random").first.Time)).getTime();
         }
+        // check if there are any resampler points and add them to the array
         if ((last - previous) >= 1000) {
             for (var i = Math.floor((last - previous) / 1000) ; i > 0; i--) {
                 resValue.push(base.store("Resampler")[base.store("Resampler").length - i].Value);
                 resTime.push(base.store("Resampler")[base.store("Resampler").length - i].Time);
             }
         }
-        // used for calculating how many points from resampler we need
+        // used for calculating how many points we need for the resampler
         var numberOfPoints = 0;
         if (base.store("Random").length > 10) {
             numberOfPoints = (new Date(base.store("Random")[base.store("Random").length - 10].Time)).getTime();
-   
         } else if (base.store("Random").length > 0) {
             numberOfPoints = (new Date(base.store("Random").first.Time)).getTime();
         }
         numberOfPoints = Math.floor((last - numberOfPoints) / 1000);
+        // sending data
         if (base.store("Random").last != null) {
             socket.emit('getResampler',
                 {
@@ -239,17 +244,17 @@ io.on('connection', function (socket) {
         }
     }, 1000);
 
-
+    // used for sending the Gaussian values
     setInterval(function () {
         if (base.store('Gauss').last != null) {
-            socket.emit('getMergerGauss',
+            socket.emit('getGauss',
                 {
                     gaussVal: base.store('Gauss').last.Value,
                     gaussTime: base.store('Gauss').last.Time,
                 });
         }
         if (base.store('OtherGauss').last != null) {
-            socket.emit('getMergerOtherGauss',
+            socket.emit('getOtherGauss',
                 {
                     otherGaussVal: base.store('OtherGauss').last.Value,
                     otherGaussTime: base.store('OtherGauss').last.Time
@@ -257,6 +262,7 @@ io.on('connection', function (socket) {
         }
     }, 1000);
 
+    // used for sending the Merger values
     setInterval(function () {
         if (base.store('Merger').last != null) {
             var firstGauss = [], secondGauss = [], mergerTime = [];

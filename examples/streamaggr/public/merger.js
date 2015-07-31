@@ -1,14 +1,14 @@
 ///////////////////////////////////////////////////////////
-// used for the resampler chart
+// used for the merger chart
 
 var socket = io();
 var gaussVal, gaussTime;
-socket.on('getMergerGauss', function (data) {
+socket.on('getGauss', function (data) {
     gaussVal = data.gaussVal;
     gaussTime = data.gaussTime;
 });
 var otherGaussVal, otherGaussTime;
-socket.on('getMergerOtherGauss', function (data) {
+socket.on('getOtherGauss', function (data) {
     otherGaussVal = data.otherGaussVal;
     otherGaussTime = data.otherGaussTime;
 });
@@ -65,7 +65,7 @@ $(function () {
             }
         },
         title: {
-            text: 'The Guassian chart'
+            text: 'The Gaussian chart'
         },
         xAxis: {
             type: 'datetime',

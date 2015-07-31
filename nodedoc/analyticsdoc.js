@@ -16,9 +16,9 @@
 * @typedef {Object} svcParam
 * @property  {number} [svcParam.c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting) 
 * @property  {number} [svcParam.j=1.0] - Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting c=n is like adding n-1 copies of the positive training examples to the data set.
-* @property  {number} [svcParam.batchSize=10000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate
+* @property  {number} [svcParam.batchSize=1000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate
 * @property  {number} [svcParam.maxIterations=10000] - Maximum number of iterations
-* @property  {number} [svcParam.maxTime=1.0] - Maximum runtime in seconds
+* @property  {number} [svcParam.maxTime=1] - Maximum runtime in seconds
 * @property  {number} [svcParam.minDiff=1e-6] - Stopping criterion tolerance
 * @property  {boolean} [svcParam.verbose=false] - Toggle verbose output in the console
 */
@@ -33,11 +33,11 @@
 * // CLASSIFICATION WITH SVC
 * // Set up fake train and test data.
 * // Four training examples with, number of features = 2
-* var featureMatrix = new la.Matrix({rows:2, cols:4, random:true});
+* var featureMatrix = new la.Matrix({rows: 2, cols: 4, random: true});
 * // classification targets for four examples
 * var targets = new la.Vector([-1, -1, 1, 1]);
 * // Set up the classification model
-* var SVC = new analytics.SVC({verbose:true});
+* var SVC = new analytics.SVC({verbose: true});
 * // Train classifier
 * SVC.fit(featureMatrix, targets);
 * // Save the model to disk
