@@ -503,7 +503,6 @@ exports = {}; require.modules.qminer_la = exports;
         return Math.pow(this.frob(), 2);
     }
 
-
     /**
     * Returns a string displaying rows, columns and number of non-zero elements of sparse matrix.
     * @returns {string} String displaying row, columns and number of non-zero elements.
@@ -684,7 +683,6 @@ exports = {}; require.modules.qminer_la = exports;
         return idx;
     };
 
-    //!- `arr = la.randPerm(k)` -- returns a permutation of `k` elements. `arr` is a javascript array of integers
     /**
     * Returns a permutation of elements.
     * @param {number} k - Number of elements to permutate.
@@ -698,67 +696,59 @@ exports = {}; require.modules.qminer_la = exports;
         return res.perm;
     };
 
-
     exports.Vector.prototype.print = function () {
         console.log(this.toString());
     }
 
     ///////// COMMON MATRICES
-/////// VECTOR, MATRIX GENERATION
-// generate identity matrix
-    //!- `mat = la.eye(dim)` -- `mat` is a `dim`-by-`dim` identity matrix
+
     /**
     * Returns an dense identity matrix
     * @param {number} dim - The dimension of the identity matrix. Must be a positive integer.
     * @returns {module:la.Matrix} A dim-by-dim identity matrix.
     */
-exports.eye = function(dim) {
-    var identity = new exports.Matrix({ "rows": dim, "cols": dim });
-    for (var rowN = 0; rowN < identity.rows; rowN++) {
-        identity.put(rowN, rowN, 1.0);
-    }
-    return identity;
-};
+    exports.eye = function(dim) {
+        var identity = new exports.Matrix({ "rows": dim, "cols": dim });
+        for (var rowN = 0; rowN < identity.rows; rowN++) {
+            identity.put(rowN, rowN, 1.0);
+        }
+        return identity;
+    };
 
-    //!- `spMat = la.speye(dim)` -- `spMat` is a `dim`-by-`dim` sparse identity matrix
     /**
     * Returns a sparse identity matrix
     * @param {number} dim - The dimension of the identity matrix. Must be a positive integer.
     * @returns {module:la.SparseMatrix} A dim-by-dim identity matrix.
     */
-exports.speye = function (dim) {
-    var vec = exports.ones(dim);
-    return vec.spDiag();
-};
+    exports.speye = function (dim) {
+        var vec = exports.ones(dim);
+        return vec.spDiag();
+    };
 
-    //!- `spMat = la.sparse(rows, cols)` -- `spMat` is a `rows`-by-`cols` sparse zero matrix
     /**
     * Returns a sparse zero matrix.
     * @param {number} rows - Number of rows of the sparse matrix.
     * @param {number} cols - Number of columns of the sparse matrix.
     * @returns {module:la.SparseMatrix} A rows-by-cols sparse zero matrix.
     */
-exports.sparse = function (rows, cols) {
-    cols = typeof cols == 'undefined' ? rows : cols;
-    var spmat = new exports.SparseMatrix({ "rows": rows, "cols": cols });
-    return spmat;
-};
+    exports.sparse = function (rows, cols) {
+        cols = typeof cols == 'undefined' ? rows : cols;
+        var spmat = new exports.SparseMatrix({ "rows": rows, "cols": cols });
+        return spmat;
+    };
 
-    //!- `mat = la.zeros(rows, cols)` -- `mat` is a `rows`-by-`cols` sparse zero matrix
     /**
     * Returns a dense zero matrix.
     * @param {number} rows - Number of rows of the matrix.
     * @param {number} cols - Number of columns of the matrix.
     * @returns {module:la.Matrix} A rows-by-cols dense zero matrix.
     */
-exports.zeros = function (rows, cols) {
-    cols = typeof cols == 'undefined' ? rows : cols;
-    var mat = new exports.Matrix({ "rows": rows, "cols": cols });
-    return mat;
-};
+    exports.zeros = function (rows, cols) {
+        cols = typeof cols == 'undefined' ? rows : cols;
+        var mat = new exports.Matrix({ "rows": rows, "cols": cols });
+        return mat;
+    };
 
-// generate a C++ vector of ones
-    //!- `vec = la.ones(k)` -- `vec` is a `k`-dimensional vector whose entries are set to `1.0`.
     /**
     * Returns a vector with all entries set to 1.0.
     * @param {number} dim - Dimension of the vector.
@@ -767,13 +757,13 @@ exports.zeros = function (rows, cols) {
     * // create a 3-dimensional vector with all entries set to 1.0
     * var vec = la.ones(3);
     */
-exports.ones = function(k) {
-    var ones_k = new exports.Vector({ "vals": k });
-    for (var i = 0; i < k; i++) {
-        ones_k.put(i, 1.0);
-    }
-    return ones_k;
-};
+    exports.ones = function(k) {
+        var ones_k = new exports.Vector({ "vals": k });
+        for (var i = 0; i < k; i++) {
+            ones_k.put(i, 1.0);
+        }
+        return ones_k;
+    };
 
     /**
     * Constructs a matrix by concatenating a doubly-nested array of matrices.
@@ -795,45 +785,45 @@ exports.ones = function(k) {
     * // 11 12 15 16
     */
     //# exports.cat = function(matrixDoubleArr) {}
-exports.cat = function (nestedArrMat) {
-    var dimx = []; //cell row dimensions
-    var dimy = []; //cell col dimensions
-    var cdimx = []; //cumulative row dims
-    var cdimy = []; //cumulative coldims
-    var rows = nestedArrMat.length;
-    var cols = nestedArrMat[0].length;
-    for (var row = 0; row < rows; row++) {
-        for (var col = 0; col < cols; col++) {
-            if (col > 0) {
-                assert(dimx[row] == nestedArrMat[row][col].rows, 'inconsistent row dimensions!');
-            } else {
-                dimx[row] = nestedArrMat[row][col].rows;
-            }
-            if (row > 0) {
-                assert(dimy[col] == nestedArrMat[row][col].cols, 'inconsistent column dimensions!');
-            } else {
-                dimy[col] = nestedArrMat[row][col].cols;
+    exports.cat = function (nestedArrMat) {
+        var dimx = []; //cell row dimensions
+        var dimy = []; //cell col dimensions
+        var cdimx = []; //cumulative row dims
+        var cdimy = []; //cumulative coldims
+        var rows = nestedArrMat.length;
+        var cols = nestedArrMat[0].length;
+        for (var row = 0; row < rows; row++) {
+            for (var col = 0; col < cols; col++) {
+                if (col > 0) {
+                    assert(dimx[row] == nestedArrMat[row][col].rows, 'inconsistent row dimensions!');
+                } else {
+                    dimx[row] = nestedArrMat[row][col].rows;
+                }
+                if (row > 0) {
+                    assert(dimy[col] == nestedArrMat[row][col].cols, 'inconsistent column dimensions!');
+                } else {
+                    dimy[col] = nestedArrMat[row][col].cols;
+                }
             }
         }
-    }
-    cdimx[0] = 0;
-    cdimy[0] = 0;
-    for (var row = 1; row < rows; row++) {
-        cdimx[row] = cdimx[row - 1] + dimx[row - 1];
-    }
-    for (var col = 1; col < cols; col++) {
-        cdimy[col] = cdimy[col - 1] + dimy[col - 1];
-    }
+        cdimx[0] = 0;
+        cdimy[0] = 0;
+        for (var row = 1; row < rows; row++) {
+            cdimx[row] = cdimx[row - 1] + dimx[row - 1];
+        }
+        for (var col = 1; col < cols; col++) {
+            cdimy[col] = cdimy[col - 1] + dimy[col - 1];
+        }
 
-    var res = new exports.Matrix({ rows: (cdimx[rows - 1] + dimx[rows - 1]), cols: (cdimy[cols - 1] + dimy[cols - 1]) });
-    // copy submatrices
-    for (var row = 0; row < rows; row++) {
-        for (var col = 0; col < cols; col++) {
-            res.put(cdimx[row], cdimy[col], nestedArrMat[row][col]);
+        var res = new exports.Matrix({ rows: (cdimx[rows - 1] + dimx[rows - 1]), cols: (cdimy[cols - 1] + dimy[cols - 1]) });
+        // copy submatrices
+        for (var row = 0; row < rows; row++) {
+            for (var col = 0; col < cols; col++) {
+                res.put(cdimx[row], cdimy[col], nestedArrMat[row][col]);
+            }
         }
+        return res;
     }
-    return res;
-}
 
     /**
     * Generates an integer vector given range
@@ -847,27 +837,27 @@ exports.cat = function (nestedArrMat) {
     * // 1  2  3
     */
     //# exports.rangeVec = function(min, max) {}
-exports.rangeVec = function (min, max) {
-    var len = max - min + 1;
-    var rangeV = new exports.IntVector({ "vals": len });
-    for (var elN = 0; elN < len; elN++) {
-        rangeV[elN] = elN + min;
-    }
-    return rangeV;
-};
+    exports.rangeVec = function (min, max) {
+        var len = max - min + 1;
+        var rangeV = new exports.IntVector({ "vals": len });
+        for (var elN = 0; elN < len; elN++) {
+            rangeV[elN] = elN + min;
+        }
+        return rangeV;
+    };
 
 	//////// METHODS
 
-exports.square = function(x) {
-    if (typeof x.length == "undefined") {
-        return x * x;
-    }
-    var res = new exports.Vector(x);
-    for (var i = 0; i < x.length; i++) {
-        res[i] = x[i] * x[i];
-    }
-    return res;
-};
+    exports.square = function(x) {
+        if (typeof x.length == "undefined") {
+            return x * x;
+        }
+        var res = new exports.Vector(x);
+        for (var i = 0; i < x.length; i++) {
+            res[i] = x[i] * x[i];
+        }
+        return res;
+    };
 
     /**
     * returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input.
@@ -881,36 +871,49 @@ exports.square = function(x) {
     * // [1, 0]
     */
     //# exports.findMaxIdx = function(X) {}
-exports.findMaxIdx = function (X) {
-    var idxv = new Array();
-    // X is a dense matrix
-    if (typeof X.cols !== "undefined") {
-        var cols = X.cols;
-        for (var colN = 0; colN < cols; colN++) {
-            idxv.push(X.colMaxIdx(colN));
+    exports.findMaxIdx = function (X) {
+        var idxv = new Array();
+        // X is a dense matrix
+        if (typeof X.cols !== "undefined") {
+            var cols = X.cols;
+            for (var colN = 0; colN < cols; colN++) {
+                idxv.push(X.colMaxIdx(colN));
+            }
         }
-    }
-    // X is a dense vector
-    if (typeof X.length !== "undefined") {
-        idxv.push(X.getMaxIdx());
-    }
-    return idxv;
-};
+        // X is a dense vector
+        if (typeof X.length !== "undefined") {
+            idxv.push(X.getMaxIdx());
+        }
+        return idxv;
+    };
 
-
-//#- `mat3 = la.pdist2(mat, mat2)` -- computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2
-exports.pdist2 = function (mat, mat2) {
-    var snorm1 = exports.square(mat.colNorms());
-    var snorm2 = exports.square(mat2.colNorms());
-    var ones_1 = exports.ones(mat.cols);
-    var ones_2 = exports.ones(mat2.cols);
-    var D = (mat.multiplyT(mat2).multiply(-2)).plus(snorm1.outer(ones_2)).plus(ones_1.outer(snorm2));
-    return D;
-}
+    /**
+    * computes and returns the pairwise squared euclidean distances between columns of `X1` and `X2` (`mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2`).
+    * @param {la.Matrix} X1 - First matrix
+    * @param {la.Matrix} X2 - Second matrix
+    * @returns {la.Matrix} Matrix with `X1.cols` rows and `X2.cols` columns containing squared euclidiean distances.
+    * @example
+    * var la = require('qminer').la;
+    * // construct two input matrices
+    * var X1 = new la.Matrix([[1,2], [2,0]]);
+    * var X2 = new la.Matrix([[1,0.5,0],[0,-0.5,-1]]);
+    * la.pdist2(X1, X2)
+    * // returns the matrix:
+    * // 4 6.5 10
+    * // 1 2.5 5 
+    */
+    // exports.pdist2 = function (X1, X2) {}
+    exports.pdist2 = function (X1, X2) {
+        var snorm1 = exports.square(X1.colNorms());
+        var snorm2 = exports.square(X2.colNorms());
+        var ones_1 = exports.ones(X1.cols);
+        var ones_2 = exports.ones(X2.cols);
+        var D = (X1.multiplyT(X2).multiply(-2)).plus(snorm1.outer(ones_2)).plus(ones_1.outer(snorm2));
+        return D;
+    }
 
     ///////// ALGORITHMS
 
-    //!- `la.inverseSVD(mat)` -- calculates inverse matrix with SVD, where `mat` is a dense matrix
     /**
     * Calculates the inverse matrix with SVD.
     * @param {module:la.Matrix} mat - The matrix we want to inverse.

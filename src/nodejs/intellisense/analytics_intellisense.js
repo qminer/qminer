@@ -526,7 +526,7 @@ exports = {}; require.modules.qminer_analytics = exports;
     /**
     * SVM model
     * @typedef {Object} svmModel
-    * @property  {module:la.Vector} [svmModel.weigths] - SVM normal vector
+    * @property  {module:la.Vector} svmModel.weigths - SVM normal vector
     */
     /**
 	* Get SVC model
@@ -634,7 +634,7 @@ exports = {}; require.modules.qminer_analytics = exports;
          * @param {module:la.Matrix | module:la.SparseMatrix} X - training instance feature vectors
          * @param {module:la.Vector} y - target category for each training instance. Categories must
          * be integer numbers between 0 and oneVsAllParam.categories - 1.
-         */        
+         */
         this.fit = function(X, y) {
             this.models = [ ];
             // make model for each category

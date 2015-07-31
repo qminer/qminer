@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
- 
+
 console.log(__filename)
-// 
-// Sample unit test using standard assert JS library 
-// 
+//
+// Sample unit test using standard assert JS library
+//
 var assert = require("../../src/nodejs/scripts/assert.js")
 var la = require('qminer').la;
 
@@ -1535,6 +1535,22 @@ describe('Matrix Test', function () {
                 })
             })
         });
+
+        describe('Pairwise square euclidean distance Test', function () {
+            it('should return distance matrix [[1, 5, 1], [5, 1, 5]]', function () {
+                var distMat = la.pdist2(new la.Matrix([[1,0],[0,1]]), new la.Matrix([[1,-1,1],[-1,1,-1]]));
+                var controlMat = new la.Matrix([[1, 5, 1], [5, 1, 5]]);
+
+                assert.equal(distMat.cols, 3);
+                assert.equal(distMat.rows, 2);
+
+                for (var i = 0; i < controlMat.rows; i++) {
+                    for (var j = 0; j < controlMat.cols; j++) {
+                        assert.eqtol(distMat.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+        });
     });
 });
 
@@ -1804,7 +1820,7 @@ describe('Sparse Vector', function () {
         // not implemented (TODO: low priority)
         //describe('Sort Test', function () {
         //    it('should return the permutation integer vector for sorted spV', function () {
-        //        spV.sort();        
+        //        spV.sort();
 
         //    })
         //});
