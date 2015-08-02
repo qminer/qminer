@@ -1,5 +1,5 @@
-//var qm = require('qminer');
-var qm = require('../../../bval_logs/bin/qminer');
+var qm = require('qminer');
+//var qm = require('../../../bval_logs/bin/qminer');
 
 
 describe('KMeans', function() {
