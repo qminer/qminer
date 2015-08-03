@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -13,19 +13,21 @@ var util = require('util');
 // Empty argument is supported as well (the first binary that the bindings finds will be used)
 module.exports = exports = function (pathPrefix) {
     pathPrefix = pathPrefix || '';
-    
+
     var qm = require('bindings')(pathPrefix + '/qm.node');
     var fs = qm.fs;
-    
+
     exports = qm;
+
+    //!STARTJSDOC
 
     //==================================================================
     // BASE
     //==================================================================
-    
+
     /**
      * Loads the store from a CSV file. The opts parameter must have the following format:
-     * 
+     *
      * {
      * 		file: 'nameOfFile',		// the name of the input file.
      * 		store: 'nameOfStore',	// name of the store which will be created
@@ -33,45 +35,45 @@ module.exports = exports = function (pathPrefix) {
      * 		delimiter: ',',			// optional delimiter
      * 		quote: '"'				// optional character to escape values that contain a delimiter
      * }
-     * 
+     *
      * @param {object} opts - options object, explained in the description
      * @param {function} [callback] - callback function, called on errors and when the procedure finishes
      */
     exports.Base.prototype.loadCSV = function (opts, callback) {
     	console.log('Loading CSV file ...');
-    	
+
     	if (opts.delimiter == null) opts.delimiter = ',';
     	if (opts.quote == null) opts.quote = '"';
     	if (opts.ignoreFields == null) opts.ignoreFields = [];
-    	
+
     	try {
     		var fname = opts.file;
     		var storeName = opts.store;
     		var base = opts.base;
-    		
+
     		var fieldTypes = null;
     		var store = null;
     		var buff = [];
-    		
+
     		var ignoreFields = {};
     		for (var i = 0; i < opts.ignoreFields.length; i++)
     			ignoreFields[opts.ignoreFields] = null;
-    		
+
     		var csvOpts = {
     			headers: true,
     			ignoreEmpty: true,
     			delimiter: opts.delimiter,
     			quote: opts.quote
     		};
-    		
+
     		// need to get the headers and columns types to actually create a store
     		function initFieldTypes(data) {
     			if (fieldTypes == null) fieldTypes = {};
-    			
+
     			for (var key in data) {
 //    				if (key in ignoreFields)
 //    					continue;
-    				
+
     				var val = data[key];
     				if (fieldTypes[key] == null) {
     					if (val.length == 0)
@@ -80,46 +82,46 @@ module.exports = exports = function (pathPrefix) {
     						fieldTypes[key] = 'string';
     					else
     						fieldTypes[key] = 'float';
-    						
+
     				}
     			}
     		}
-    		
+
     		function fieldTypesInitialized() {
     			if (fieldTypes == null) return false;
-    			
+
     			for (var key in fieldTypes) {
 //    				if (key in ignoreFields)
 //    					continue;
-    				
+
     				if (fieldTypes[key] == null)
     					return false;
     			}
-    			
+
     			return true;
     		}
-    		
+
     		function getUninitializedFlds() {
     			var result = [];
-    			
+
     			for (var key in fieldTypes) {
 //    				if (key in ignoreFields)
 //    					continue;
-    				
+
     				if (fieldTypes[key] == null)
     					result.push(key);
     			}
-    			
+
     			return result;
     		}
-    		
+
     		function createStore(rec) {
     			try {
 	    			var storeDef = {
 	    				name: storeName,
 	    				fields: []
 	    			};
-	    			
+
 	    			for (var fieldName in rec) {
 	    				storeDef.fields.push({
 							name: fieldName,
@@ -127,10 +129,10 @@ module.exports = exports = function (pathPrefix) {
 							"null": true,
 	    				});
 	    			}
-	    			
+
 	    			base.createStore(storeDef);
 	    			store = base.store(storeName);
-	    			
+
 	    			// insert all the record in the buffer into the store
 	    			buff.forEach(function (data) {
 	    				store.push(data);
@@ -140,42 +142,42 @@ module.exports = exports = function (pathPrefix) {
     					callback(e);
     			}
     		}
-    		
+
     		var storeCreated = false;
     		var lines = 0;
-    		
+
     		csv.fromPath(fname, csvOpts)
     			.transform(function (data) {
     				var transformed = {};
-    				
+
     				for (var key in data) {
     					if (key in ignoreFields)
     						continue;
-    					
+
     					var val = data[key];
     					var transKey = key.replace(/\s+/g, '_')	// remove invalid characters
     									  .replace(/\.|%|\(|\)|\/|-|\+/g, '');
-    					
+
     					if (fieldTypes != null && fieldTypes[transKey] != null)
     						transformed[transKey] = fieldTypes[transKey] == 'float' ? parseFloat(val) : val;
     					else
     						transformed[transKey] = (isNaN(val) || val.length == 0) ? val : parseFloat(val);
     				}
-    				
+
     				return transformed;
     			})
-    		   	.on('data', function (data) {    		   		
+    		   	.on('data', function (data) {
     		   		if (++lines % 10000 == 0)
     		   			console.log(lines + '');
-    			   
+
     		   		if (fieldTypes == null)
     		   			initFieldTypes(data);
-    		   		
+
     		   		if (store == null && fieldTypesInitialized())
     		   			createStore(data);
     		   		else if (!fieldTypesInitialized())
     		   			initFieldTypes(data);
-    		   		
+
     		   		if (store != null)
     		   			store.push(data);
     		   		else
@@ -185,28 +187,28 @@ module.exports = exports = function (pathPrefix) {
     		   		if (callback != null) {
     		   			if (!fieldTypesInitialized()) {
         		   			var fieldNames = getUninitializedFlds();
-        		   			callback(new Error('Finished with uninitialized fields: ' + 
+        		   			callback(new Error('Finished with uninitialized fields: ' +
 								JSON.stringify(fieldNames)) + ', add them to ignore list!');
         		   			return;
         		   		} else {
         		   			callback();
         		   		}
     		   		}
-    		   	});   		
+    		   	});
     	} catch (e) {
     		if (callback != null)
     			callback(e);
     	}
     }
-    
+
     //==================================================================
     // STORE
     //==================================================================
-    
+
     exports.Store.prototype.addTrigger = function (trigger) {
-        // this == store instance: print //console.log(util.inspect(this, { colors: true })); 
+        // this == store instance: print //console.log(util.inspect(this, { colors: true }));
         // name is automatically generated
-        // saveJson isn't needed    
+        // saveJson isn't needed
         var Callbacks = {
             onAdd: trigger.onAdd,
             saveJson: function (limit) { return {}; }
@@ -217,44 +219,44 @@ module.exports = exports = function (pathPrefix) {
     }
 
     exports.Store.prototype.addStreamAggr = function (params) {
-        // this == store instance: print //console.log(util.inspect(this, { colors: true })); 
+        // this == store instance: print //console.log(util.inspect(this, { colors: true }));
         return new exports.StreamAggr(this.base, params, this.name);
     }
-    
-    exports.Store.prototype.inspect = function (depth) {        
+
+    exports.Store.prototype.inspect = function (depth) {
         var d = (depth == null) ? 0 : depth;
         return util.inspect(this, { depth: d, 'customInspect': false });
     }
-    
+
     //==================================================================
     // RECORD SET
     //==================================================================
-    
+
     /**
      * Saves the record set into a CSV file specified in the opts parameter.
-     * 
-     * @param {object} opts - The options parameter contains 2 fields. 
-	 *      The first field 'opts.fname' specifies the output file. 
+     *
+     * @param {object} opts - The options parameter contains 2 fields.
+	 *      The first field 'opts.fname' specifies the output file.
 	 *      The second field 'opts.headers' specifies if headers should be included in the output file.
      * @param {function} [callback] - The callback fired when the operation finishes.
      */
     exports.RecSet.prototype.saveCSV = function (opts, callback) {
     	// defaults
     	if (opts.headers == null) { opts.headers = true; }
-    	
+
     	try {
     		console.log('Writing ' + this.length + ' lines to CSV file: ' + opts.fname + ' ...');
-    		
+
     		// find out which columns to quote
     		var store = this.store;
     		var fields = store.fields;
-    		
+
     		var quoteColumns = {};
     		for (var i = 0; i < fields.length; i++) {
     			var fldName = fields[i].name;
     			quoteColumns[fldName] = store.isString(fldName) || store.isDate(fldName);
     		}
-	
+
 	    	// write to file
 	    	var out = nodefs.createWriteStream(opts.fname);
 	    	var csvOut = csv.createWriteStream({
@@ -262,21 +264,21 @@ module.exports = exports = function (pathPrefix) {
 	    		quoteHeaders: true,
 	    		quoteColumns: quoteColumns
 	    	});
-	    	
+
 	    	out.on('error', function (e) {
 	    		if (callback != null) {
 	    			callback(e);
 				}
 	    	});
-	    	
+
 	    	out.on('finish', function () {
 	    		if (callback != null) {
 	    			callback();
 				}
 	    	});
-	    	
+
 	    	csvOut.pipe(out);
-	    	
+
 	    	this.each(function (rec, idx) {
 	    		try {
 		    		if (idx % 10000 == 0) {
@@ -289,7 +291,7 @@ module.exports = exports = function (pathPrefix) {
 					}
 	    		}
 	    	});
-	    	
+
 	    	csvOut.end();
     	} catch (e) {
     		if (callback != null) {
@@ -297,12 +299,72 @@ module.exports = exports = function (pathPrefix) {
 			}
     	}
     }
-    
+
+    //==================================================================
+    // CIRCULAR BUFFER
+    //==================================================================
+
+    /**
+    * @classdesc Circular buffer for storing records. Size of buffer is defined at
+    * start and is denoted in number of records. When buffer is full, old records
+    * are removed from the buffer and new records are stored in their place. For
+    * adding and deleting a callback is called. Records are stored by their IDs.
+    * @class
+    * @param {Object} [CircularBufferParam] - Constructor parameters
+    * @param {module:qm.Store} CircularBufferParam.store - Store for the records in the buffer.
+    * @param {number} CircularBufferParam.size - Size of the buffer (number of records).
+    * @param {function} [CircularBufferParam.onAdd] - Callback executed when new record is
+    * added to the buffer. Callback is give two parameters: record and instance of CircularBuffer.
+    * @param {function} [CircularBufferParam.onDelete] - Callback executed when record is removed
+    * from the buffer. Callback is give two parameters: record and instance of CircularBuffer.
+    * @example
+	* // TODO
+    */
+    exports.CircularBuffer = function (params) {
+        // check we have all encessary parameters
+        if (params.store == undefined) { throw new Error("CircularBuffer requires store in constructor"); }
+        if (!(params.store instanceof qm.Store)) { throw new Error("CircularBuffer requires store in constructor" + params.store); }
+        if (params.size == undefined) { throw new Error("CircularBuffer requires size in constructor"); }
+        if (!(params.size >= 1)) { throw new Error("CircularBuffer positive size in constructor"); }
+        // parameters
+        this.store = params.store;
+        this.size = params.size;
+        this.buffer = new qm.la.IntVector();
+        this.next = 0;
+        // Callbacks
+        this.onAdd = (params.onAdd == undefined) ? function () {} : params.onAdd;
+        this.onDelete = (params.onDelete == undefined) ? function () {} : params.onDelete;
+
+        /**
+    	* Add new record to the buffer.
+        * @param {module:qm.Record} rec - New record.
+        * @example
+        * // TODO
+    	*/
+        this.push = function (rec) {
+            if (this.buffer.length < this.size) {
+                // we did not fill buffer yet, just add new element
+                this.buffer.push(rec.$id);
+                this.onAdd(rec, this);
+            } else {
+                // we are full, first delete the oldest record.
+                var oldRec = this.store[this.buffer[this.next]];
+                this.onDelete(oldRec, this);
+                // remember new record
+                this.buffer[this.next] = rec.$id;
+                this.onAdd(rec, this);
+                // move pointer to the oldest record forwards
+                this.next++;
+                if (this.next == this.size) { this.next = 0; }
+            }
+        }
+    }
+
     //==================================================================
     // FEATURE SPACE
     //==================================================================
-    
-    //#- `qm.FeatureSpace.getSparseVectorFeatures(spVec)` -- Return array of feature 
+
+    //#- `qm.FeatureSpace.getSparseVectorFeatures(spVec)` -- Return array of feature
 	//#  names based on feature space `fsp` where the elements of a sparse feature
 	//#  vector `spVec` are non-zero.
     exports.FeatureSpace.prototype.getSparseVectorFeatures = function (spVec) {
@@ -314,7 +376,7 @@ module.exports = exports = function (pathPrefix) {
         }
         return cols;
     }
-    
+
     //==================================================================
     // EXPORTS
     //==================================================================
@@ -323,7 +385,7 @@ module.exports = exports = function (pathPrefix) {
     exports.load = function () {
         var _obj = {};
 
-        //#- `num = qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
+        //#- `num = qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName`
         //#   line by line, parsing each line as JSON and adding it as record to `store`.
         //#   When `limit != -1` only first first `limit` lines are loaded. Returns `num`:
         //#   the number of lines loaded.
@@ -355,7 +417,7 @@ module.exports = exports = function (pathPrefix) {
             return count;
         }
 
-        //#- `num = qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line, 
+        //#- `num = qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line,
         //#   parsing each line as JSON and adding it as record to `store`. Returns `num`:
         //#   the number of lines loaded.
         _obj.jsonFile = function (store, file) {
@@ -399,6 +461,8 @@ module.exports = exports = function (pathPrefix) {
 	// Forbids constructors that would crash node - these objects are factory constructed
 	exports.Store = forbidConstructor(exports.Store);
 	exports.RecSet = forbidConstructor(exports.RecSet);
+
+    //!ENDJSDOC
 
     return exports;
 }

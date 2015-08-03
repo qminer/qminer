@@ -1005,21 +1005,36 @@ exports = {}; require.modules.qminer_analytics = exports;
     };
 
     /**
-    * @classdesc Anomaly detector that checks if the test point is too far from
-    * the nearest known point.
+    * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
     * @class
-    * @param {Object} [detectorParam={rate:0.05}] - Constructor parameters
-    * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
+    * @param {Object} [detectorParam={rate:0.05, window:100, matrix: module:la.Matrix}] - Constructor parameters
+    * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies).
+    * @param {number} [detectorParam.window=100] - Number of most recent instances kept in the model.
+    * @param {function} [detectorParam.matrix=module:la.Matrix] - Matrix implementation used to store the modelo (e.g., `la.Matrix` or `la.SparseMatrix`).
     */
     exports.NearestNeighborAD = function (detectorParam) {
-        // Parameters
         detectorParam = detectorParam == undefined ? {} : detectorParam;
-        detectorParam.rate = detectorParam.rate == undefined ? 0.05 : detectorParam.rate;
-        assert(detectorParam.rate > 0 && detectorParam.rate <= 1.0, 'rate parameter not in range (0,1]');
-        // model param
-        this.rate = detectorParam.rate;
-        // default model
+        // model parameter
+        this.rate = (detectorParam.rate == undefined) ? 0.05 : detectorParam.rate;
+        assert(this.rate > 0 && this.rate <= 1.0, "NearestNeighborAD: rate parameter not in range (0,1]");
+        // window size
+        this.windowSize = (detectorParam.windowSize == undefined) ? 100 : detectorParam.windowSize;
+        assert(this.windowSize >= 1, "NearestNeighborAD: window parameter not positive");
+        // matrix constructor
+        this.matrix = (detectorParam.matrix == undefined) ? la.Matrix : detectorParam.matrix;
+        // dimensionality
+        this.dim = (detectorParam.dim == undefined) ? -1 : detectorParam.dim;
+        // model
         this.thresh = 0;
+        this.dist = new la.Vector();
+        this.distId = new la.IntVector();
+        this.X = new this.matrix({ cols: this.windowSize, rows: this.dim });
+        this.init = 0;
+        this.next = 0;
+        // initial distance, should be biger then dataset diameter
+        this.maxDist = 1e10;
+        // for private consumption
+        var that = this;
 
         /**
         * Returns the model
@@ -1043,17 +1058,105 @@ exports = {}; require.modules.qminer_analytics = exports;
             return param;
         }
 
-        /**
-        * Gets the 100*(1-rate) percentile
-        * @param {module:la.Vector} vector - Vector of values
-        * @returns {number} Percentile
-        */
-        function getThreshold(vector, rate) {
-            var sorted = vector.sortPerm().vec;
-            var idx = Math.floor((1 - rate) * sorted.length);
-            return sorted[idx];
+        // return vector of distances between x and each column of X
+        var vectorDistances = function (x) {
+            return la.pdist2(that.X, x.toMat()).getCol(0);
         }
-        var neighborDistances = undefined;
+
+        // update distance vector for vector X[xId], ignoring vector X[ignoreId]
+        var updateDistances = function (xId, ignoreId) {
+            // in case we are not given vector to ignore, use self
+            ignoreId = (ignoreId == undefined) ? xId : ignoreId;
+            // compared to rest
+            var x = that.X.getCol(xId);
+            var y = vectorDistances(x);
+            // update distances and compute its nearest neighbor
+            var minDist = that.maxDist, minDistId = xId;
+            for (var i = 0; i < that.init; i++) {
+                // skip self and ignore
+                if (i == xId) { continue; }
+                if (i == ignoreId) { continue; }
+                // x is the new nearest neighbor for column i
+                if (y[i] < that.dist[i]) { that.dist[i] = y[i]; that.distId[i] = xId; }
+                // found new nearest neighbor for x
+                if (y[i] < minDist) { minDist = y[i]; minDistId = i; }
+            }
+            // update its own nearest neighbor
+            that.dist[xId] = minDist;
+            that.distId[xId] = minDistId;
+        }
+
+        // compute new threshold on the current distance vector
+        var updateThreshold = function () {
+            // sort distances
+            var sorted = new la.Vector(that.dist); sorted.sort();
+            // get the id corresonding to rate-th element
+            var idx = Math.floor((1 - that.rate) * sorted.length);
+            // set the threshold
+            that.thresh = sorted[idx];
+        }
+
+        // Add new vector to the instance matrix and update distances
+        var addVector = function (x, xId) {
+            if (that.dist.length == xId) {
+                // we are still adding vectors
+                that.dist.push(that.maxDist);
+                that.distId.push(xId);
+                that.X.setCol(xId, x);
+                that.init++;
+            } else {
+                // just replace existing vector
+                that.dist[xId] = that.maxDist;
+                that.distId[xId] = xId;
+                that.X.setCol(xId, x);
+            }
+            // update distances
+            updateDistances(xId);
+        }
+
+        // Remove vector from the instance matrix and update distances
+        var delVector = function (xId) {
+            // construct list of vectors that we need to reasses
+            var toCheck = new la.IntVector();
+            for (var i = 0; i < that.distId.length; i++) {
+                // skip self
+                if (i == xId) { continue; }
+                // check if xId is current nearest neighbor
+                if (that.distId[i] == xId) { toCheck.push(i); }
+            }
+            // reasses detected elements
+            for (var i = 0; i < toCheck.length; i++) {
+                var yId = toCheck[i];
+                // find new nearest neighbor for yId, ignoring xId
+                updateDistances(yId, xId);
+            }
+        }
+
+        /**
+        * Adds a new point (or points) to the known points and recomputes the threhshold
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
+        */
+        this.partialFit = function (x) {
+            // console.log(this.next);
+            if (this.init < this.windowSize) {
+                // we are not yet initialized, just remember the vector and update distances
+                addVector(x, this.init);
+                // check if we are now set to start
+                if (this.init == this.windowSize) { updateThreshold(); }
+            }
+            else {
+                // first remove old vector
+                delVector(this.next);
+                // add new vector
+                addVector(x, this.next);
+                // update threshold
+                updateThreshold();
+                // move to the next
+                this.next++;
+                // reset counter, if we get to the end
+                if (this.next == this.windowSize) { this.next = 0; }
+            }
+        }
 
         /**
         * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
@@ -1061,17 +1164,10 @@ exports = {}; require.modules.qminer_analytics = exports;
         * the model.
         */
         this.fit = function (A) {
-            this.X = A;
-            // distances
-            var D = la.pdist2(A, A);
-            // add big numbers on the diagonal (exclude the point itself from the nearest point calcualtion)
-            var E = D.plus(D.multiply(la.ones(D.rows)).diag()).multiply(-1);
-            var neighborDistances = new la.Vector({ vals: D.rows });
-            for (var i = 0; i < neighborDistances.length; i++) {
-                // nearest neighbour squared distance
-                neighborDistances[i] = D.at(i, E.rowMaxIdx(i));
+            // just call partial fit on each column
+            for (var i = 0; i < A.cols; i++) {
+                this.partialFit(A.getCol(i));
             }
-            this.thresh = getThreshold(neighborDistances, this.rate);
         }
 
         /**
@@ -1080,25 +1176,21 @@ exports = {}; require.modules.qminer_analytics = exports;
         * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
         */
         this.predict = function (x) {
-            // compute squared dist and compare to thresh
-            var d = la.pdist2(this.X, x.toMat()).getCol(0);
+            // compute squared dist ...
+            var d = vectorDistances(x);
             var idx = d.multiply(-1).getMaxIdx();
             var p = d[idx];
-            //console.log(p)
+            // and compare to the threshold
             return p > this.thresh ? 1 : 0;
         }
 
-        /**
-        * Adds a new point (or points) to the known points and recomputes the threhshold
-        * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
-        */
-        this.update = function (x) {
-            // append x to known examples and retrain (slow version)
-            // speedup 1: don't reallocate X every time (fixed window, circular buffer)
-            // speedup 2: don't recompute distances d(X,X), just d(X, y), get the minimum
-            // and append to neighborDistances
-            this.fit(la.cat([[this.X, x.toMat()]]));
-            //console.log('new threshold ' + this.thresh);
+        this.decisionFunction = function (x) {
+            // compute squared dist ...
+            var d = vectorDistances(x);
+            var idx = d.multiply(-1).getMaxIdx();
+            var p = d[idx];
+            // and compare to the threshold
+            return p - this.thresh;
         }
     }
 
