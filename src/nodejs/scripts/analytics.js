@@ -48,6 +48,13 @@ module.exports = exports = function (pathPrefix) {
     /**
 	* Get SVC model
 	* @returns {module:analytics~svmModel} Get current SVM model
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create a SVC model
+    * var SVC = new analytics.SVC();
+    * // get the properties of the model
+    * var model = SVC.getModel(); // returns { weight: new require('qminer').la.Vector(); }
 	*/
     exports.SVC.prototype.getModel = function() { return { weights: this.weights }; }
     /**

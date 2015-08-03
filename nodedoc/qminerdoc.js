@@ -844,7 +844,7 @@
 	* @param {function} callback - Function that generates the array. It takes two parameters:
 	* <br>rec - The current record.
 	* <br>[idx] - The index of the current record.
-	* @returns {Array<Object>} The array created by the callback function. //TODO
+	* @returns {Array<Object>} The array created by the callback function.
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
@@ -924,7 +924,7 @@
 	* // create a record of a planet (not added to the Planets store)
 	* var planet = base.store("Planets").newRecord({ Name: "Tatooine", Diameter: 10465, NearestStars: ["Tatoo 1", "Tatoo 2"] });
 	*/
- exports.Store.prototype.newRecord = function (json) { return Object.create(require('qminer').Record.prototype)};
+ exports.Store.prototype.newRecord = function (json) { return Object.create(require('qminer').Record.prototype); };
 /**
 	* Creates a new record set out of the records in store.
 	* @param {module:la.IntVector} idVec - The integer vector containing the ids of selected records.
@@ -1005,7 +1005,7 @@
 	* // { id: 0, name: "Name", type: "string", primary: true }
 	* var details = base.store("People").field("Name");
 	*/
- exports.Store.prototype.field = function (fieldName) { return [{ id: 0, name:'', type:'', primary:'' }]; }; 
+ exports.Store.prototype.field = function (fieldName) { return { id: 0, name:'', type:'', primary:'' }; }; 
 /**
 	* Checks if the field is of numeric type.
 	* @param {string} fieldName - The checked field.
@@ -1108,18 +1108,18 @@
 	* // { fq: { length: 0 }, vocabulary: { length: 0 }, name: 'Continent', store: { name: 'Countries', ... }}
 	* var details = base.store("Countries").key("Continent");
 	*/
- exports.Store.prototype.key = function (keyName) { return [{ fq: {}, vocabulary: {}, name:'', store: {} }]; };
+ exports.Store.prototype.key = function (keyName) { return { fq: {}, vocabulary: {}, name:'', store: {} }; };
 /**
 	* Returns the stream aggregate with the given name.
 	* @param {string} saName - The name of the stream aggregate.
 	* @returns {module:qm.StreamAggr} The stream aggregate with the saName.
 	*/
- exports.Store.prototype.getStreamAggr = function (saName) {}
+ exports.Store.prototype.getStreamAggr = function (saName) { return Object.create(require('qminer').StreamAggr.prototype); }
 /**
 	* Returns an array of the stream aggregates names connected to the store.
 	* @returns {Array.<string>} An array of stream aggregates names.
 	*/
- exports.Store.prototype.getStreamAggrNames = function () {}
+ exports.Store.prototype.getStreamAggrNames = function () { return [""]; }
 /**
 	* Returns the store as a JSON.
 	* @returns {Object} The store as a JSON.
@@ -2283,7 +2283,7 @@
 * // create a feature space 
 * var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpace", field: "Value" });
 */
- exports.FeatureSpace = function (base, extractors) {};
+ exports.FeatureSpace = function (base, extractors) { return Object.create(require('qminer').FeatureSpace.prototype); };
 /**
 	* Returns the dimension of the feature space.
 	*/

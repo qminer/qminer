@@ -85,11 +85,13 @@
 
 * @class
 
-* @param {module:fs.FIn | module:analytics~svcParam} arg - File input stream (loads the model from disk) or constructor parameters svcParam.
+* @param {module:fs.FIn | module:analytics~svcParam} [arg] - File input stream (loads the model from disk) or constructor parameters svcParam.
 
 * @example
 
-* // import module
+* // import modules
+
+* var la = require(&#x27;qminer&#x27;).la;
 
 * var analytics = require(&#x27;qminer&#x27;).analytics;
 
@@ -127,35 +129,95 @@
 
 */
 
- exports.SVC = function(arg) {};
+ exports.SVC = function(arg) { return Object.create(require(&#x27;qminer&#x27;).analytics.SVC.prototype); };
 
 /**
 
-	* returns the svc parameters	
+	* Returns the SVC parameters.	
 
 	* @returns {module:analytics~svcParam} Parameters of the classifier model.
 
+	* @example
+
+	* // import analytics module
+
+	* var analytics = require(&#x27;qminer&#x27;).analytics;
+
+	* // create a new SVC model with json
+
+	* var SVC = new analytics.SVC({ c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxSize: 2, minDiff: 1e-10, verbose: true });
+
+	* // get the parameters of the SVC model
+
+	* // returns { algorithm: &#x27;SGD&#x27; c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxSize: 2, minDiff: 1e-10, verbose: true }
+
+	* var json = SVC.getParams(); 
+
 	*/
 
- exports.SVC.prototype.getParams = function() {};
+ exports.SVC.prototype.getParams = function() { return { algorithm: &#x27;&#x27;, c: 0, j: 0, batchSize: 0, maxIterations: 0, maxSize: 0, minDiff: 0, verbose: true } };
 
 /**
 
-	* sets the svc parameters
+	* Sets the SVC parameters.
 
 	* @param {module:analytics~svcParam} param - Classifier training parameters.
 
+	* @returns {module:analytics.SVC} Self.
+
+	* @example
+
+	* // import analytics module
+
+	* var analytics = require(&#x27;qminer&#x27;).analytics;
+
+	* // create a default SVC model
+
+	* var SVC = new analytics.SVC();
+
+	* // change the parameters of the SVC with the json { j: 5, maxIterations: 12000, minDIff: 1e-10 }
+
+	* SVC.setParams({ j: 5, maxIterations: 12000, minDiff: 1e-10 }); // returns self
+
 	*/
 
- exports.SVC.prototype.setParams = function(param) {};
+ exports.SVC.prototype.setParams = function(param) { return Object.create(require(&#x27;qminer&#x27;).analytics.SVC.prototype); };
 
 /**	
 
-	* @property {module:la.Vector} weights - Vector of coefficients of the linear model
+	* Gets the vector of coefficients of the linear model.
+
+	* @returns {module:la.Vector} weights - Vector of coefficients of the linear model.
+
+	* @example 
+
+	* // import the analytics and la modules
+
+	* var analytics = require(&#x27;qminer&#x27;).analytics;
+
+	* var la = require(&#x27;qminer&#x27;).la;
+
+	* // create a new SVC object
+
+	* var SVC = new analytics.SVC();
+
+	* // create the matrix containing the input features and the input vector for each matrix.
+
+	* var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+
+	* var vec = new la.Vector([1, 1, -1, -1]);
+
+	* // fit the model
+
+	* SVC.fit(matrix, vec);
+
+	* get the weights
+
+	* var weights = SVC.weights; // returns the coefficients of the normal vector of the hyperplane gained from the model
 
 	*/
 
- exports.SVC.prototype.weights = undefined;
+ exports.SVC.prototype.weights = Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype);
 
 /**
 
@@ -163,47 +225,131 @@
 
 	* @param {module:fs.FOut} fout - Output stream.
 
-	* @returns {module:fs.FOut} Output stream
+	* @returns {module:fs.FOut} The Output stream.
 
 	*/
 
- exports.SVC.prototype.save = function(fout) {}
+ exports.SVC.prototype.save = function(fout) { return Object.create(require(&#x27;qminer&#x27;).fs.FOut.prototype); }
 
 /**
 
-     * sends vector through the model and returns the distance to the decision boundery
+    * Sends vector through the model and returns the distance to the decision boundery.
 
-     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
+    * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
 
-     * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix). Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).
+    * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix). Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).
 
-     */
+    * @example
 
- exports.SVC.prototype.decisionFunction = function(X) {}
+	* // import the analytics and la modules
+
+	* var analytics = require(&#x27;qminer&#x27;).analytics;
+
+	* var la = require(&#x27;qminer&#x27;).la;
+
+	* // create a new SVC object
+
+	* var SVC = new analytics.SVC();
+
+	* // create the matrix containing the input features and the input vector for each matrix
+
+	* var matrix = new la.Matrix([[1, 0], [0, -1]]);
+
+	* var vec = new la.Vector([1, -1]);
+
+	* // fit the model
+
+	* SVC.fit(matrix, vec);
+
+	* // create the vector you want to get the distance from the model
+
+	* var vec2 = new la.Vector([2, 3]);
+
+	* // use the decisionFunction to get the distance of vec2 from the model
+
+	* var distance = SVC.decisionFunction(vec2); // returns something close to 1
+
+	*/
+
+ exports.SVC.prototype.decisionFunction = function(X) { return (X instanceof require(&#x27;qminer&#x27;).la.Vector | X instanceof require(&#x27;qminer&#x27;).la.SparseVector) ? 0 : Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype); }
 
 /**
 
-	* sends vector through the model and returns the prediction as a real number
+	* Sends vector through the model and returns the prediction as a real number.
 
     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
 
     * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix), 1 for positive class and -1 for negative.
 
+	* @example
+
+	* // import the analytics and la modules
+
+	* var analytics = require(&#x27;qminer&#x27;).analytics;
+
+	* var la = require(&#x27;qminer&#x27;).la;
+
+	* // create a new SVC object
+
+	* var SVC = new analytics.SVC();
+
+	* // create the matrix containing the input features and the input vector for each matrix
+
+	* var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+
+	* var vec = new la.Vector([1, 1, -1, -1]);
+
+	* // fit the model
+
+	* SVC.fit(matrix, vec);
+
+	* // create a vector you want to predict 
+
+	* var vec2 = new la.Vector([3, 5]);
+
+	* // predict the vector
+
+	* var prediction = SVC.predict(vec2); // returns 1
+
 	*/
 
- exports.SVC.prototype.predict = function(X) {}
+ exports.SVC.prototype.predict = function(X) { return (X instanceof require(&#x27;qminer&#x27;).la.Vector | X instanceof require(&#x27;qminer&#x27;).la.SparseVector) ? 0 : Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype); }
 
 /**
 
-	* fits an SVM classification model, given column examples in a matrix and vector of targets
+	* Fits a SVM classification model, given column examples in a matrix and vector of targets.
 
-	* @param {module:la.Matrix | module:la.SparseMatrix} X - Input feature matrix where columns correspond to feature vectors
+	* @param {module:la.Matrix | module:la.SparseMatrix} X - Input feature matrix where columns correspond to feature vectors.
 
-	* @param {module:la.Vector} y - Input vector of targets, one for each column of X
+	* @param {module:la.Vector} y - Input vector of targets, one for each column of X.
+
+	* @returns {module:analytics.SVC} Self.
+
+	* @example
+
+	* // import the analytics and la modules
+
+	* var analytics = require(&#x27;qminer&#x27;).analytics;
+
+	* var la = require(&#x27;qminer&#x27;).la;
+
+	* // create a new SVC object
+
+	* var SVC = new analytics.SVC();
+
+	* // create the matrix containing the input features and the input vector for each matrix.
+
+	* var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+
+	* var vec = new la.Vector([1, 1, -1, -1]);
+
+	* // fit the model
+
+	* SVC.fit(matrix, vec); // creates a model, where the hyperplane has the normal semi-equal to [1, 1]
 
 	*/
 
- exports.SVC.prototype.fit = function(X, y) {}
+ exports.SVC.prototype.fit = function(X, y) { return Object.create(require(&#x27;qminer&#x27;).analytics.SVC.prototype); }
 
 /**
 
@@ -1088,6 +1234,20 @@
 	* Get SVC model
 
 	* @returns {module:analytics~svmModel} Get current SVM model
+
+    * @example
+
+    * // import analytics module
+
+    * var analytics = require(&#x27;qminer&#x27;).analytics;
+
+    * // create a SVC model
+
+    * var SVC = new analytics.SVC();
+
+    * // get the properties of the model
+
+    * var model = SVC.getModel(); // returns { weight: new require(&#x27;qminer&#x27;).la.Vector(); }
 
 	*/
 
@@ -4481,7 +4641,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 31, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on August 3, 2015.
       </p>
     </div>
   </footer>

@@ -1031,7 +1031,7 @@ private:
 	* @param {function} callback - Function that generates the array. It takes two parameters:
 	* <br>rec - The current record.
 	* <br>[idx] - The index of the current record.
-	* @returns {Array<Object>} The array created by the callback function. //TODO
+	* @returns {Array<Object>} The array created by the callback function.
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
@@ -1117,7 +1117,7 @@ private:
 	* // create a record of a planet (not added to the Planets store)
 	* var planet = base.store("Planets").newRecord({ Name: "Tatooine", Diameter: 10465, NearestStars: ["Tatoo 1", "Tatoo 2"] });
 	*/
-	//# exports.Store.prototype.newRecord = function (json) { return Object.create(require('qminer').Record.prototype)};
+	//# exports.Store.prototype.newRecord = function (json) { return Object.create(require('qminer').Record.prototype); };
 	JsDeclareFunction(newRecord);
 
 	//!- `rs = store.newRecordSet(idVec)` -- creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);
@@ -1208,7 +1208,7 @@ private:
 	* // { id: 0, name: "Name", type: "string", primary: true }
 	* var details = base.store("People").field("Name");
 	*/
-	//# exports.Store.prototype.field = function (fieldName) { return [{ id: 0, name:'', type:'', primary:'' }]; }; 
+	//# exports.Store.prototype.field = function (fieldName) { return { id: 0, name:'', type:'', primary:'' }; }; 
 	JsDeclareFunction(field);
 
 	//!- `bool = store.isNumeric(fieldName)` -- returns true if the field is of numeric type
@@ -1323,7 +1323,7 @@ private:
 	* // { fq: { length: 0 }, vocabulary: { length: 0 }, name: 'Continent', store: { name: 'Countries', ... }}
 	* var details = base.store("Countries").key("Continent");
 	*/
-	//# exports.Store.prototype.key = function (keyName) { return [{ fq: {}, vocabulary: {}, name:'', store: {} }]; };
+	//# exports.Store.prototype.key = function (keyName) { return { fq: {}, vocabulary: {}, name:'', store: {} }; };
 	JsDeclareFunction(key);
 
 	////!- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
@@ -1335,7 +1335,7 @@ private:
 	* @param {string} saName - The name of the stream aggregate.
 	* @returns {module:qm.StreamAggr} The stream aggregate with the saName.
 	*/
-	//# exports.Store.prototype.getStreamAggr = function (saName) {}
+	//# exports.Store.prototype.getStreamAggr = function (saName) { return Object.create(require('qminer').StreamAggr.prototype); }
 	JsDeclareFunction(getStreamAggr);
 
 	//!- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
@@ -1343,7 +1343,7 @@ private:
 	* Returns an array of the stream aggregates names connected to the store.
 	* @returns {Array.<string>} An array of stream aggregates names.
 	*/
-	//# exports.Store.prototype.getStreamAggrNames = function () {}
+	//# exports.Store.prototype.getStreamAggrNames = function () { return [""]; }
 	JsDeclareFunction(getStreamAggrNames);
 
 	//!- `objJSON = store.toJSON()` -- returns the store as a JSON
@@ -2937,7 +2937,7 @@ public:
 * // create a feature space 
 * var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpace", field: "Value" });
 */
-//# exports.FeatureSpace = function (base, extractors) {};
+//# exports.FeatureSpace = function (base, extractors) { return Object.create(require('qminer').FeatureSpace.prototype); };
 
 class TNodeJsFtrSpace : public node::ObjectWrap {
 	friend class TNodeJsUtil;
