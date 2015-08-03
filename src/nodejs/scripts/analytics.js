@@ -1655,22 +1655,21 @@ module.exports = exports = function (pathPrefix) {
 			params_vec.push(verbose ? 1.0 : 0.0);
 
 			var xfs = qm.fs;
-			var fout = fs.openWrite(fname);
-
+			var fout = xfs.openWrite(fname);
 			C.save(fout);
 			norC2.save(fout);
-			new la.Vector(idxv).save(fout);
+			(new la.Vector(idxv)).save(fout);
 			params_vec.save(fout);
 			fout.close();
 			fout = null;
 		}
 		this.load = function (fname) {
 		    var xfs = qm.fs;
-		    var fin = fs.openRead(fname);
+		    var fin = xfs.openRead(fname);
 
 		    C = new la.Matrix();
 		    C.load(fin);
-		    norC2 = new la.Matrix();
+		    norC2 = new la.Vector();
 		    norC2.load(fin);
 
 		    var idxvtmp = new la.Vector();
