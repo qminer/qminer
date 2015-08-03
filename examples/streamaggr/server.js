@@ -4,6 +4,7 @@
 // import qm module
 var qm = require('qminer');
 // create a base with two stores
+
 var base = new qm.Base({
     mode: 'createClean',
     schema: [
@@ -55,17 +56,18 @@ var base = new qm.Base({
     {
         name: 'Merger',
         fields: [
-            { name: 'Gaussian', type: 'float' },
-            { name: 'OtherGaussian', type: 'float' },
+            { name: 'FirstValue', type: 'float' },
+            { name: 'SecondValue', type: 'float' },
             { name: 'Time', type: 'datetime' }
         ]
     }
     ]
 });
-///////////////////////////////////////////////////////////
-// Agregators
 
-// add a time series window stream aggregator for the 'Value' field in the 'Stats' store
+///////////////////////////////////////////////////////////
+// Stream Agregates
+
+// add a time series window stream aggregate for the 'Value' field in the 'Stats' store
 var ts = {
     name: 'StatWindow',
     type: 'timeSeriesWinBuf',
@@ -76,7 +78,7 @@ var ts = {
 };
 var tsWindow = base.store('Stats').addStreamAggr(ts);
 
-// add a moving average stream aggregator connected to the 'StatWindow' time series
+// add a moving average stream aggregate connected to the 'StatWindow' time series
 var ma = {
     name: 'StatAverage',
     type: 'ma',
@@ -85,7 +87,7 @@ var ma = {
 };
 var maAverage = base.store('Stats').addStreamAggr(ma);
 
-// add a resampler stream aggregator connected to the 'Random' store
+// add a resampler stream aggregate connected to the 'Random' store
 var res = {
     name: 'ResamplerAggr',
     type: 'resampler',
@@ -100,7 +102,7 @@ var res = {
 }
 var resampler = base.store('Random').addStreamAggr(res);
 
-// add a merger stream aggregator connected to the 'Gauss' and 'OtherGauss' stores
+// add a merger stream aggregate connected to the 'Gauss' and 'OtherGauss' stores
 var mer = {
     name: 'MergerAggr',
     type: 'stmerger',
@@ -108,27 +110,23 @@ var mer = {
     createStore: false,
     timestamp: 'Time',
     fields: [
-        { source: 'Gauss', inField: 'Value', outField: 'Gaussian', interpolation: 'linear', timestamp: 'Time' },
-        { source: 'OtherGauss', inField: 'Value', outField: 'OtherGaussian', interpolation: 'linear', timestamp: 'Time' }
+        { source: 'Gauss', inField: 'Value', outField: 'FirstValue', interpolation: 'linear', timestamp: 'Time' },
+        { source: 'OtherGauss', inField: 'Value', outField: 'SecondValue', interpolation: 'linear', timestamp: 'Time' }
     ]
 };
 var merger = new qm.StreamAggr(base, mer);
 
+
 ///////////////////////////////////////////////////////////
 // Getting the values
-
-// import the os module
-var os = require('os');
 
 // putting the Brownian motion to the store for the Stat/Average
 var dataStats = function () {
     var date = new Date().toISOString();
     var lastStat = base.store('Stats').last;
-    if (lastStat != null) {
-        base.store('Stats').push({ Value: lastStat.Value + qm.la.randn(), Time: date });
-    } else {
-        base.store('Stats').push({ Value: qm.la.randn(), Time: date });
-    }
+    if (lastStat != null) { base.store('Stats').push({ Value: lastStat.Value + qm.la.randn(), Time: date }); }
+    else { base.store('Stats').push({ Value: qm.la.randn(), Time: date }); }
+
     base.store('Average').push({ Value: maAverage.getFloat(), Time: date });
     setTimeout(dataStats, 1000);
 };
@@ -138,22 +136,18 @@ var dataResampler = function () {
     var date = new Date().toISOString();
     var lastRandom = base.store('Random').last;
     if (Math.random() > 0.5) {
-        if (lastRandom != null) {
-            base.store('Random').push({ Value: lastRandom.Value + qm.la.randn(), Time: date });
-        } else {
-            base.store('Random').push({ Value: qm.la.randn(), Time: date });
-        }
+        if (lastRandom != null) { base.store('Random').push({ Value: lastRandom.Value + qm.la.randn(), Time: date }); }
+        else { base.store('Random').push({ Value: qm.la.randn(), Time: date }); }
     }
     setTimeout(dataResampler, 1000);
-}
+};
 
 // counters for the merger aggregator
 var numberOfNewPoints = 0;
 // putting the Guassian values in the store for Merger
 var dataGauss = function () {
     var date = new Date().toISOString();
-    var numBefore= base.store('Merger').length;
-
+    var numBefore = base.store('Merger').length;
     // first store: Gauss
     if (Math.random() > 0.5) { base.store('Gauss').push({ Value: qm.la.randn(), Time: date }); };
     // second store: otherGauss
@@ -161,14 +155,17 @@ var dataGauss = function () {
 
     numberOfNewPoints = base.store('Merger').length - numBefore;
     setTimeout(dataGauss, 1000);
-}
+};
+
+// start putting records in the stores
+dataStats();
+dataResampler();
+dataGauss();
+
 
 ///////////////////////////////////////////////////////////
 // Server
 
-dataStats();
-dataResampler();
-dataGauss();
 // create the server
 var path = require('path');
 var express = require('express');
@@ -184,105 +181,118 @@ app.get('/', function (request, response) {
     response.sendFile(__dirname + '/example.html');
 });
 
-io.on('connection', function (socket) {
-
-    console.log('a user connected');
-    socket.on('disconnect', function () {
-        console.log('user disconnected');
-    });
-
-    // used for sending the moving average values
-    setInterval(function () {
-        if(base.store("Stats").last != null) {
-            socket.emit('getStats',
-                {
-                    stat: base.store("Stats").last.Value,
-                    smooth: base.store("Average").last.Value,
-                    timeStat: base.store("Stats").last.Time
+// the callback function
+var getData = function () {
+    // create a new stream aggregate for the 'Stats' store
+    new qm.StreamAggr(base, new function () {
+        this.name = 'statsPush';
+        this.onAdd = function (rec) {
+            if (io.sockets.connected) {
+                io.sockets.emit('getStats', {
+                    value: rec.Value,
+                    time: rec.Time
                 });
-        }
-    }, 1000);
-
-    // used for sending the resampler values
-    setInterval(function () {
-        var resValue = [],
-            resTime = [],
-            last = 0,
-            previous = 0;
-        if (base.store("Random").length > 1) {
-            last = (new Date(base.store("Random").last.Time)).getTime(),
-            previous = (new Date(base.store("Random")[base.store("Random").length - 2].Time)).getTime();
-        } else if (base.store("Random").length > 0){
-            previous = (new Date(base.store("Random").first.Time)).getTime();
-        }
-        // check if there are any resampler points and add them to the array
-        if ((last - previous) >= 1000) {
-            for (var i = Math.floor((last - previous) / 1000) ; i > 0; i--) {
-                resValue.push(base.store("Resampler")[base.store("Resampler").length - i].Value);
-                resTime.push(base.store("Resampler")[base.store("Resampler").length - i].Time);
             }
         }
-        // used for calculating how many points we need for the resampler
-        var numberOfPoints = 0;
-        if (base.store("Random").length > 10) {
-            numberOfPoints = (new Date(base.store("Random")[base.store("Random").length - 10].Time)).getTime();
-        } else if (base.store("Random").length > 0) {
-            numberOfPoints = (new Date(base.store("Random").first.Time)).getTime();
+        this.saveJson = function (limit) {
+            return {};
         }
-        numberOfPoints = Math.floor((last - numberOfPoints) / 1000);
-        // sending data
-        if (base.store("Random").last != null) {
-            socket.emit('getResampler',
-                {
-                    random: base.store("Random").last.Value,
-                    timeRes: base.store("Random").last.Time,
-                    resValue: resValue,
-                    resTime: resTime,
-                    number: numberOfPoints
-                }
-            );
-        }
-    }, 1000);
-
-    // used for sending the Gaussian values
-    setInterval(function () {
-        if (base.store('Gauss').last != null) {
-            socket.emit('getGauss',
-                {
-                    gaussVal: base.store('Gauss').last.Value,
-                    gaussTime: base.store('Gauss').last.Time,
+    }, 'Stats');
+    // create a new stream aggregate for the 'Average' store
+    new qm.StreamAggr(base, new function () {
+        this.name = 'averagePush';
+        this.onAdd = function (rec) {
+            if (io.sockets.connected) {
+                io.sockets.emit('getAverage', {
+                    value: rec.Value,
+                    time: rec.Time
                 });
-        }
-        if (base.store('OtherGauss').last != null) {
-            socket.emit('getOtherGauss',
-                {
-                    otherGaussVal: base.store('OtherGauss').last.Value,
-                    otherGaussTime: base.store('OtherGauss').last.Time
-                });
-        }
-    }, 1000);
-
-    // used for sending the Merger values
-    setInterval(function () {
-        if (base.store('Merger').last != null) {
-            var firstGauss = [], secondGauss = [], mergerTime = [];
-            for (var i = numberOfNewPoints; i > 0; i--) {
-                var k = base.store('Merger').length - i;
-                firstGauss.push(base.store('Merger')[k].Gaussian);
-                secondGauss.push(base.store('Merger')[k].OtherGaussian);
-                mergerTime.push(base.store('Merger')[k].Time);
             }
-            socket.emit('getMerger',
-                {
-                    firstGauss: firstGauss,
-                    secondGauss: secondGauss,
-                    mergerTime: mergerTime
-                }
-            );
+        }
+        this.saveJson = function (limit) {
+            return {};
+        }
+    }, 'Average');
+    // create a new stream aggregate for the 'Random' store
+    new qm.StreamAggr(base, new function () {
+        this.name = 'randomPush';
+        this.onAdd = function (rec) {
+            if (io.sockets.connected) {
+                io.sockets.emit('getRandom', {
+                    value: rec.Value,
+                    time: rec.Time
+                });
+            }
+        }
+        this.saveJson = function (limit) {
+            return {};
+        }
+    }, 'Random');
+    // create a new stream aggregate for the 'Resampler' store TODO
+    new qm.StreamAggr(base, new function () {
+        this.name = 'resamplerPush';
+        this.onAdd = function (rec) {
+            if (io.sockets.connected) {
+                io.sockets.emit('getResampler', {
+                    value: rec.Value,
+                    time: rec.Time
+                });
+            }
+        }
+        this.saveJson = function (limit) {
+            return {};
+        }
+    }, 'Resampler');
+    // create a new stream aggregate for the 'Gauss' store
+    new qm.StreamAggr(base, new function () {
+        this.name = 'gaussPush';
+        this.onAdd = function (rec) {
+            if (io.sockets.connected) {
+                io.sockets.emit('getGauss', {
+                    value: rec.Value,
+                    time: rec.Time
+                });
+            }
         };
-    }, 1000);
+        this.saveJson = function (limit) {
+            return {};
+        };
+    }, 'Gauss');
+    // create a new stream aggregate for the 'OtherGauss' store
+    new qm.StreamAggr(base, new function () {
+        this.name = 'otherGaussPush';
+        this.onAdd = function (rec) {
+            if (io.sockets.connected) {
+                io.sockets.emit('getOtherGauss', {
+                    value: rec.Value,
+                    time: rec.Time
+                });
+            }
+        };
+        this.saveJson = function (limit) {
+            return {};
+        };
+    }, 'OtherGauss');
+    // create a new stream aggregate for the 'Merger' store
+    new qm.StreamAggr(base, new function () {
+        this.name = 'mergerPush';
+        this.onAdd = function (rec) {
+            if (io.sockets.connected) {
+                io.sockets.emit('getMerger', {
+                    firstValue: rec.FirstValue,
+                    secondValue: rec.SecondValue,
+                    time: rec.Time
+                });
+            }
+        };
+        this.saveJson = function (limit) {
+            return {};
+        };
+    }, 'Merger');
+}
 
-});
+// create the stream aggregates that send the data to the client-side
+getData();
 
 // creates the server listener, so that we know that it's connected
 http.listen(3000, '127.0.0.1');

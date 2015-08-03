@@ -2,14 +2,6 @@
 // used for the resampler chart
 
 var socket = io();
-var random, timeRes, resValue, resTime, number;
-socket.on('getResampler', function (data) {
-    random = data.random;
-    timeRes = data.timeRes;
-    resValue = data.resValue;
-    resTime = data.resTime;
-    number = data.number;
-});
 
 $(function () {
     $(document).ready(function () {
@@ -30,29 +22,22 @@ $(function () {
                     // set up the updating of the chart each second
                     var seriesRandom = this.series[0],
                         seriesResampler = this.series[1],
-
                         maxPointsOrigin = 10,
+                        maxPointsResampler = 14,
                         counterOrigin = 0,
                         counterResampler = 0,
-                        previous = 0,
-                        date, value, ifFull;
-                    setInterval(function () {
-                        if (previous != timeRes) {
-                            if (previous != 0 && resValue.length > 0) {
-                                for (var i = 0; i < resValue.length; i++) {
-                                    date = (new Date(resTime[i])).getTime();
-                                    value = resValue[i];
-                                    seriesResampler.addPoint([date, value], false, (counterResampler >= number));
-                                    counterResampler++;
-                                }
-                            }
-                            date = (new Date(timeRes)).getTime();
-                            ifFull = (counterOrigin >= maxPointsOrigin);
-                            seriesRandom.addPoint([date, random], true, ifFull);
-                            previous = timeRes;
-                            counterOrigin++;
-                        }
-                    }, 1000);
+                        date;
+                    // use sockets
+                    socket.on('getResampler', function (data) {
+                        date = (new Date(data.time)).getTime();
+                        seriesResampler.addPoint([date, data.value], false, (counterResampler >= maxPointsResampler));
+                        counterResampler++;
+                    });
+                    socket.on('getRandom', function (data) {
+                        date = (new Date(data.time)).getTime();
+                        seriesRandom.addPoint([date, data.value], true, (counterOrigin >= maxPointsOrigin));
+                        counterOrigin++;
+                    });
 
                 }
             }

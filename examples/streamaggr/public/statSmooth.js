@@ -2,12 +2,6 @@
 // Used for the stat/smooth chart
 
 var socket = io();
-var stat, smooth, timeStat;
-socket.on('getStats', function (data) {
-    stat = data.stat;
-    smooth = data.smooth;
-    timeStat = data.timeStat;
-});
 
 $(function () {
     $(document).ready(function () {
@@ -32,12 +26,16 @@ $(function () {
                         maxSamples = 10,
                         count = 0,
                         date;
-                    setInterval(function () {
-                        date = (new Date(timeStat)).getTime();
-                        seriesOrigin.addPoint([date, stat], false, (count >= maxSamples));
-                        seriesSmooth.addPoint([date, smooth], true, (count >= maxSamples));
+                    // used sockets
+                    socket.on('getStats', function (data) {
+                        date = (new Date(data.time)).getTime();
+                        seriesOrigin.addPoint([date, data.value], false, (count >= maxSamples));
+                    });
+                    socket.on('getAverage', function (data) {
+                        date = (new Date(data.time)).getTime();
+                        seriesSmooth.addPoint([date, data.value], true, (count >= maxSamples));
                         count++;
-                    }, 1000);
+                    });
                 }
             }
         },

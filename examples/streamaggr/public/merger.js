@@ -2,22 +2,22 @@
 // used for the merger chart
 
 var socket = io();
-var gaussVal, gaussTime;
+var gauss = { val: 0, time: 0 };
 socket.on('getGauss', function (data) {
-    gaussVal = data.gaussVal;
-    gaussTime = data.gaussTime;
+    gauss.val = data.value;
+    gauss.time = data.time;
 });
-var otherGaussVal, otherGaussTime;
+var otherGauss = { val: 0, time: 0 };
 socket.on('getOtherGauss', function (data) {
-    otherGaussVal = data.otherGaussVal;
-    otherGaussTime = data.otherGaussTime;
+    otherGauss.val = data.value;
+    otherGauss.time = data.time;
 });
 
-var firstGauss, secondGauss, mergerTime;
+var merger = { first: 0, second: 0, time: 0 };
 socket.on('getMerger', function (data) {
-    firstGauss = data.firstGauss;
-    secondGauss = data.secondGauss;
-    mergerTime = data.mergerTime;
+    merger.first = data.firstValue;
+    merger.second = data.secondValue;
+    merger.time = data.time;
 });
 
 $(function () {
@@ -42,25 +42,18 @@ $(function () {
                         maxPointsGauss = 10,
                         counterGauss = 0,
                         counterOtherGauss = 0,
-                        previousGauss = 0,
-                        previousOtherGauss = 0,
                         date;
-                    setInterval(function () {
-                        if (previousGauss != gaussTime) {
-                 
-                            date = (new Date(gaussTime)).getTime();
-                            seriesGauss.addPoint([date, gaussVal], false, (counterGauss >= maxPointsGauss));
-                            previousGauss = gaussTime;
-                            counterGauss++;
-                        }
-                        if (previousOtherGauss != otherGaussTime) {
-                            date = (new Date(otherGaussTime)).getTime();
-                            seriesOtherGauss.addPoint([date, otherGaussVal], true, (counterOtherGauss >= maxPointsGauss));
-                            previousOtherGauss = otherGaussTime;
-                            counterOtherGauss++;
-                        }
-                    }, 1000);
-
+                    // use sockets
+                    socket.on('getGauss', function (data) {
+                        date = (new Date(data.time)).getTime();
+                        seriesGauss.addPoint([date, data.value], true, (counterGauss >= maxPointsGauss));
+                        counterGauss++;
+                    });
+                    socket.on('getOtherGauss', function (data) {
+                        date = (new Date(data.time)).getTime();
+                        seriesOtherGauss.addPoint([date, data.value], true, (counterOtherGauss >= maxPointsGauss));
+                        counterOtherGauss++;
+                    });
                 }
             }
         },
@@ -126,22 +119,18 @@ $(function () {
             events: {
                 load: function () {
                     // set up the updating of the chart each second
-                    var seriesGaussFirst = this.series[0],
-                        seriesGaussSecond = this.series[1],
+                    var seriesFirstValues = this.series[0],
+                        seriesSecondValues = this.series[1],
                         maxPointsMerger = 10,
                         counterMerger = 0,
                         date;
-                    setInterval(function () {
-                        if (firstGauss.length > 0) {
-                            for (var i = 0; i < firstGauss.length; i++) {
-                                date = (new Date(mergerTime[i])).getTime();
-                                seriesGaussFirst.addPoint([date, firstGauss[i]], false, (counterMerger >= maxPointsMerger));
-                                seriesGaussSecond.addPoint([date, secondGauss[i]], true, (counterMerger >= maxPointsMerger));
-                                counterMerger++;
-                            }
-                        }
-                    }, 1000);
-
+                    // use sockets
+                    socket.on('getMerger', function (data) {
+                        date = (new Date(data.time)).getTime();
+                        seriesFirstValues.addPoint([date, data.firstValue], false, (counterMerger >= maxPointsMerger));
+                        seriesSecondValues.addPoint([date, data.secondValue], true, (counterMerger >= maxPointsMerger));
+                        counterMerger++;
+                    });
                 }
             }
         },
@@ -213,38 +202,28 @@ $(function () {
                         firstMerger = this.series[2],
                         secondMerger = this.series[3],
                         maxPointsGauss = 10,
-                        maxPointsMerger = 14,
+                        maxPointsMerger = 10,
                         counterMerger = 0,
                         counterGauss = 0,
                         counterOtherGauss = 0,
-                        previousGauss = 0,
-                        previousOtherGauss = 0,
                         date;
-                    setInterval(function () {
-
-                        if (previousGauss != gaussTime) {
-                            date = (new Date(gaussTime)).getTime();
-                            seriesGaussFirst.addPoint([date, gaussVal], false, (counterGauss >= maxPointsGauss));
-                            previousGauss = gaussTime;
-                            counterGauss++;
-                        }
-                        if (previousOtherGauss != otherGaussTime) {
-                            date = (new Date(otherGaussTime)).getTime();
-                            seriesGaussSecond.addPoint([date, otherGaussVal], true, (counterOtherGauss >= maxPointsGauss));
-                            previousOtherGauss = otherGaussTime;
-                            counterOtherGauss++;
-                        }
-
-                        if (firstGauss.length > 0) {
-                            for (var i = 0; i < firstGauss.length; i++) {
-                                date = (new Date(mergerTime[i])).getTime();
-                                firstMerger.addPoint([date, firstGauss[i]], false, (counterMerger >= maxPointsMerger));
-                                secondMerger.addPoint([date, secondGauss[i]], true, (counterMerger >= maxPointsMerger));
-                                counterMerger++;
-                            }
-                        }
-                    }, 1000);
-
+                    // use sockets
+                    socket.on('getGauss', function (data) {
+                        date = (new Date(data.time)).getTime();
+                        seriesGaussFirst.addPoint([date, data.value], true, (counterGauss >= maxPointsGauss));
+                        counterGauss++;
+                    });
+                    socket.on('getOtherGauss', function (data) {
+                        date = (new Date(data.time)).getTime();
+                        seriesGaussSecond.addPoint([date, data.value], true, (counterOtherGauss >= maxPointsGauss));
+                        counterOtherGauss++;
+                    });
+                    socket.on('getMerger', function (data) {
+                        date = (new Date(data.time)).getTime();
+                        firstMerger.addPoint([date, data.firstValue], false, (counterMerger >= maxPointsMerger));
+                        secondMerger.addPoint([date, data.secondValue], true, (counterMerger >= maxPointsMerger));
+                        counterMerger++;
+                    });
                 }
             }
         },
