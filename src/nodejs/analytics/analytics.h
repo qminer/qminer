@@ -83,13 +83,13 @@ private:
 /**
 * SVC constructor parameters
 * @typedef {Object} svcParam
-* @property  {number} [svcParam.c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting) 
+* @property  {number} [svcParam.c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting) .
 * @property  {number} [svcParam.j=1.0] - Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting c=n is like adding n-1 copies of the positive training examples to the data set.
-* @property  {number} [svcParam.batchSize=1000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate
-* @property  {number} [svcParam.maxIterations=10000] - Maximum number of iterations
-* @property  {number} [svcParam.maxTime=1] - Maximum runtime in seconds
-* @property  {number} [svcParam.minDiff=1e-6] - Stopping criterion tolerance
-* @property  {boolean} [svcParam.verbose=false] - Toggle verbose output in the console
+* @property  {number} [svcParam.batchSize=1000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate.
+* @property  {number} [svcParam.maxIterations=10000] - Maximum number of iterations.
+* @property  {number} [svcParam.maxTime=1] - Maximum runtime in seconds.
+* @property  {number} [svcParam.minDiff=1e-6] - Stopping criterion tolerance.
+* @property  {boolean} [svcParam.verbose=false] - Toggle verbose output in the console.
 */
 
 /**
@@ -102,20 +102,20 @@ private:
 * var la = require('qminer').la;
 * var analytics = require('qminer').analytics;
 * // CLASSIFICATION WITH SVC
-* // Set up fake train and test data.
-* // Four training examples with, number of features = 2
+* // set up fake train and test data
+* // four training examples with number of features = 2
 * var featureMatrix = new la.Matrix({rows: 2, cols: 4, random: true});
 * // classification targets for four examples
 * var targets = new la.Vector([-1, -1, 1, 1]);
-* // Set up the classification model
+* // set up the classification model
 * var SVC = new analytics.SVC({verbose: true});
-* // Train classifier
+* // train classifier
 * SVC.fit(featureMatrix, targets);
-* // Save the model to disk
+* // save the model to disk
 * SVC.save('svc.bin');
-* // Set up a fake test vector
+* // set up a fake test vector
 * var test = new la.Vector([1.1, -0.5]);
-* // Predict the target value
+* // predict the target value
 * var prediction = SVC.predict(test);
 */
 //# exports.SVC = function(arg) { return Object.create(require('qminer').analytics.SVC.prototype); };
@@ -167,13 +167,13 @@ public:
 	* var vec = new la.Vector([1, 1, -1, -1]);
 	* // fit the model
 	* SVC.fit(matrix, vec);
-	* get the weights
-	* var weights = SVC.weights; // returns the coefficients of the normal vector of the hyperplane gained from the model
+	* // get the weights
+	* var weights = SVC.weights; // returns the coefficients of the normal vector of the hyperplane gained from the model: [1, 1]
 	*/
 	//# exports.SVC.prototype.weights = Object.create(require('qminer').la.Vector.prototype);
 
 	/**
-	* saves model to output file stream 
+	* Saves model to output file stream .
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} The Output stream.
 	*/
@@ -181,7 +181,7 @@ public:
 
     /**
     * Sends vector through the model and returns the distance to the decision boundery.
-    * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
+    * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
     * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix). Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).
     * @example
 	* // import the analytics and la modules
@@ -203,7 +203,7 @@ public:
     
 	/**
 	* Sends vector through the model and returns the prediction as a real number.
-    * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
+    * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
     * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix), 1 for positive class and -1 for negative.
 	* @example
 	* // import the analytics and la modules

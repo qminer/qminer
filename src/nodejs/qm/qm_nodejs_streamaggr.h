@@ -76,7 +76,7 @@
 * }
 * var sa = base.store("Laser").addStreamAggr(wavelength);
 */
-//# exports.StreamAggr = function (base, json, storeName) {};
+//# exports.StreamAggr = function (base, json, storeName) { return Object.create(require('qminer').StreamAggr.prototype); };
 
 /**
 * @typedef {module:qm.StreamAggr} StreamAggregators
@@ -707,7 +707,7 @@
 *    }]
 * });
 * // create a new resampler stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
-* // and the timestamp from the 'Time' field. The interpolated values are stored in the 'interpolatedValues' store .
+* // and the timestamp from the 'Time' field. The interpolated values are stored in the 'interpolatedValues' store.
 * // The interpolation should be linear and the interval should be 2 seconds.
 * var res = {
 *    name: 'resamplerAggr',
@@ -857,17 +857,19 @@ public:
 	//!- `fout = sa.save(fout)` -- executes save function given output stream `fout` as input. returns `fout`.
 	/**
 	* Saves the current state of the stream aggregator.
-	* @parameter {module:fs.FOut} fout - The output stream.
+	* @param {module:fs.FOut} fout - The output stream.
 	* @returns {module:fs.FOut} The output stream given as the parameter.
 	*/
+	//# exports.StreamAggr.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 	JsDeclareFunction(save);
 	
 	//!- `sa = sa.load(fin)` -- executes load function given input stream `fin` as input. returns self.
 	/**
 	* Loads the stream aggregator, that has been previously saved.
-	* @parameter {module:fs.FIn} fin - The input stream.
+	* @param {module:fs.FIn} fin - The input stream.
 	* @returns {module:qm.StreamAggr} Self.
 	*/
+	//# exports.StreamAggr.prototype.load = function (fin) { return Object.create(require('qminer').StreamAggr.prototype); }
 	JsDeclareFunction(load);
 	// IInt
 	//!- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
@@ -967,7 +969,7 @@ public:
 	* base.store('GameCollection').push({ GameName: 'Super Mario Bros.', Price: 100, ReleaseDate: '1985-09-13T00:00:00.0' });
 	* base.store('GameCollection').push({ GameName: 'The Legend of Zelda', Price: 90, ReleaseDate: '1986-02-21T00:00:00.0 '});
 	* // get the timestamp of the last bought game by using getTimestamp
-	* var date = priceSum.getTimestamp(); // returns 12153801600000 (the miliseconds since midnight 01.01.1601)
+	* var date = priceSum.getTimestamp(); // returns 12153801600000 (the miliseconds since 1601-01-01T00:00:00.0)
 	*/
 	//# exports.StreamAggr.prototype.getTimestamp = function () { return 0; };
 	JsDeclareFunction(getTimestamp);
@@ -1430,7 +1432,7 @@ public:
 	/**
 	* Returns the name of the stream aggregate.
 	*/
-	//# exports.StreamAggr.prototype.name = undefined;
+	//# exports.StreamAggr.prototype.name = "";
 	JsDeclareProperty(name);
 
 	//!- `objJSON = sa.val` -- same as sa.saveJson(-1)

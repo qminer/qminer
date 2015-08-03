@@ -183,45 +183,45 @@
 
  var fieldTypes = {
 
-    /** signed 32-bit integer */
+		/** signed 32-bit integer */
 
-    int: &#x27;int&#x27;, 
+		int: &#x27;int&#x27;, 
 
-    /** vector of signed 32-bit integers */
+		/** vector of signed 32-bit integers */
 
-    int_v: &#x27;int_v&#x27;, 
+		int_v: &#x27;int_v&#x27;, 
 
- /** string */
+		/** string */
 
- string : &#x27;string&#x27;,
+		string : &#x27;string&#x27;,
 
- /** vector of strings */
+		/** vector of strings */
 
- string_v : &#x27;string_v&#x27;,
+		string_v : &#x27;string_v&#x27;,
 
- /** boolean */
+		/** boolean */
 
- bool : &#x27;bool&#x27;,
+		bool : &#x27;bool&#x27;,
 
- /** double precision floating point number */
+		/** double precision floating point number */
 
- float : &#x27;float&#x27;,
+		float : &#x27;float&#x27;,
 
- /** a pair of floats, useful for storing geo coordinates */
+		/** a pair of floats, useful for storing geo coordinates */
 
- float_pair : &#x27;float_pair&#x27;,
+		float_pair : &#x27;float_pair&#x27;,
 
- /** vector of floats */
+		/** vector of floats */
 
- float_v : &#x27;float_v&#x27;,
+		float_v : &#x27;float_v&#x27;,
 
- /** date and time format, stored in a form of milliseconds since 1600 */
+		/** date and time format, stored in a form of milliseconds since 1600 */
 
- datetime : &#x27;datetime&#x27;,
+		datetime : &#x27;datetime&#x27;,
 
- /** sparse vector(same format as used by QMiner JavaScript linear algebra library) */
+		/** sparse vector(same format as used by QMiner JavaScript linear algebra library) */
 
- num_sp_v : &#x27;num_sp_v&#x27;,
+		num_sp_v : &#x27;num_sp_v&#x27;,
 
  }
 
@@ -301,7 +301,7 @@
 
 *   Tokens: [&#x27;token1&#x27;, &#x27;token2&#x27;], 
 
-*   Vector: [[0,1], [1,1]]})
+*   Vector: [[0,1], [1,1]]});
 
 */
 
@@ -1059,21 +1059,21 @@
 
  var FeatureWeight = {
 
- /** Sets 1 if term occurs, 0 otherwise. */
+		/** Sets 1 if term occurs, 0 otherwise. */
 
- none: &#x27;none&#x27;,
+		none: &#x27;none&#x27;,
 
- /** Sets the term frequency in the document. */
+		/** Sets the term frequency in the document. */
 
- tf: &#x27;tf&#x27;,
+		tf: &#x27;tf&#x27;,
 
- /** Sets the inverse document frequency in the document. */
+		/** Sets the inverse document frequency in the document. */
 
- idf: &#x27;idf&#x27;,
+		idf: &#x27;idf&#x27;,
 
- /** Sets the product of the tf and idf frequency. */
+		/** Sets the product of the tf and idf frequency. */
 
- tfidf: &#x27;tfidf&#x27;
+		tfidf: &#x27;tfidf&#x27;
 
  }
 
@@ -1105,17 +1105,17 @@
 
  var FeatureTokenizerType = {
 
-	/** The simple encoding. */
+		/** The simple encoding. */
 
-	simple: &#x27;simple&#x27;,
+		simple: &#x27;simple&#x27;,
 
-	/** The html encoding. */
+		/** The html encoding. */
 
- html: &#x27;html&#x27;,
+		html: &#x27;html&#x27;,
 
- /** The unicode encoding. */
+		/** The unicode encoding. */
 
- unicode: &#x27;unicode&#x27;
+		unicode: &#x27;unicode&#x27;
 
  }
 
@@ -1131,29 +1131,29 @@
 
  var FeatureTokenizerStopwords = {
 
- /** The pre-defined stopword list (none). */
+		/** The pre-defined stopword list (none). */
 
- none: &#x27;none&#x27;,
+		none: &#x27;none&#x27;,
 
- /** The pre-defined stopword list (english). */
+		/** The pre-defined stopword list (english). */
 
- en: &#x27;en&#x27;,
+		en: &#x27;en&#x27;,
 
- /** The pre-defined stopword list (slovene). */
+		/** The pre-defined stopword list (slovene). */
 
- si: &#x27;si&#x27;,
+		si: &#x27;si&#x27;,
 
- /** The pre-defined stopword list (spanish). */
+		/** The pre-defined stopword list (spanish). */
 
- es: &#x27;es&#x27;,
+		es: &#x27;es&#x27;,
 
- /** The pre-defined stopword list (german). */
+		/** The pre-defined stopword list (german). */
 
- de: &#x27;de&#x27;,
+		de: &#x27;de&#x27;,
 
- /** An array of stopwords. The array must be given as a parameter instead of &#x27;array&#x27;! */
+		/** An array of stopwords. The array must be given as a parameter instead of &#x27;array&#x27;! */
 
- array: &#x27;array&#x27;
+		array: &#x27;array&#x27;
 
  }
 
@@ -1169,17 +1169,17 @@
 
  var FeatureTokenizerStemmer = {
 
- /** For using the porter stemmer. */
+		/** For using the porter stemmer. */
 
- boolean: &#x27;true&#x27;,
+		boolean: &#x27;true&#x27;,
 
- /** For using the porter stemmer. */
+		/** For using the porter stemmer. */
 
- porter: &#x27;porter&#x27;,
+		porter: &#x27;porter&#x27;,
 
- /** For using no stemmer. */
+		/** For using no stemmer. */
 
- none: &#x27;none&#x27;,
+		none: &#x27;none&#x27;,
 
  }
 
@@ -1223,17 +1223,17 @@
 
  var FeatureStream = {
 
- /** (optional) Field name which is providing timestamp, if missing system time is used. */
+		/** (optional) Field name which is providing timestamp, if missing system time is used. */
 
- field: &#x27;field&#x27;,
+		field: &#x27;field&#x27;,
 
- /** Forgetting factor, by which the old IDFs are multiplied after each iteration. */
+		/** Forgetting factor, by which the old IDFs are multiplied after each iteration. */
 
- factor: &#x27;factor&#x27;,
+		factor: &#x27;factor&#x27;,
 
- /** The time between iterations when the factor is applied, standard JSon time format is used to specify the interval duration. */
+		/** The time between iterations when the factor is applied, standard JSon time format is used to specify the interval duration. */
 
- interval: &#x27;interval&#x27;
+		interval: &#x27;interval&#x27;
 
  }
 
@@ -1267,7 +1267,7 @@
 
 */
 
- exports.Base = function (paramObj) {};
+ exports.Base = function (paramObj) { return Object.create(require(&#x27;qminer&#x27;).Base.prototype); };
 
 /**
 
@@ -1277,7 +1277,7 @@
 
 	*/
 
- exports.Base.prototype.close = function () {}
+ exports.Base.prototype.close = function () { return null; }
 
 /**
 
@@ -1355,7 +1355,7 @@
 
 	* Creates a new store.
 
-	* @param {Array&amp;lt;module:qm~SchemaDefinition&gt;} storeDef - The definition of the store(s).
+	* @param {Array.&amp;lt;module:qm~SchemaDefinition&gt;} storeDef - The definition of the store(s).
 
 	* @param {number} [storeSizeInMB = 1024] - The reserved size of the store(s).
 
@@ -1489,6 +1489,28 @@
 
 /**
 
+	* Gets the stream aggregate of the given name.
+
+	* @param {string} saName - The name of the stream aggregate.
+
+	* @returns {module:qm.StreamAggr} The stream aggregate whose name is saName.
+
+	*/
+
+ exports.Base.prototype.getStreamAggr = function (saName) { return Object.create(require(&#x27;qminer&#x27;).StreamAggr.prototype); }
+
+/**
+
+	* Gets an array of the stream aggregate names in the base.
+
+	* @returns {Array.&amp;lt;string&gt;} The array containing the stream aggregat names.
+
+	*/
+
+ exports.Base.prototype.getStreamAggrNames = function () { return [&quot;&quot;]; }
+
+/**
+
 * Store (factory pattern result) 
 
 * @namespace
@@ -1597,7 +1619,7 @@
 
 */
 
- exports.Store = function (base, storeDef) {};
+ exports.Store = function (base, storeDef) { return Object.create(require(&#x27;qminer&#x27;).Store.prototype); };
 
 /**
 
@@ -1709,7 +1731,7 @@
 
 	*/
 
- exports.Store.prototype.each = function (callback) {}
+ exports.Store.prototype.each = function (callback) { return Object.create(require(&#x27;qminer&#x27;).Store.prototype); }
 
 /**
 

@@ -163,7 +163,7 @@
 
 */
 
- exports.StreamAggr = function (base, json, storeName) {};
+ exports.StreamAggr = function (base, json, storeName) { return Object.create(require(&#x27;qminer&#x27;).StreamAggr.prototype); };
 
 /**
 
@@ -1399,7 +1399,7 @@
 
 * // create a new resampler stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field
 
-* // and the timestamp from the &#x27;Time&#x27; field. The interpolated values are stored in the &#x27;interpolatedValues&#x27; store .
+* // and the timestamp from the &#x27;Time&#x27; field. The interpolated values are stored in the &#x27;interpolatedValues&#x27; store.
 
 * // The interpolation should be linear and the interval should be 2 seconds.
 
@@ -1607,21 +1607,25 @@
 
 	* Saves the current state of the stream aggregator.
 
-	* @parameter {module:fs.FOut} fout - The output stream.
+	* @param {module:fs.FOut} fout - The output stream.
 
 	* @returns {module:fs.FOut} The output stream given as the parameter.
 
 	*/
 
+ exports.StreamAggr.prototype.save = function (fout) { return Object.create(require(&#x27;qminer&#x27;).fs.FOut.prototype); }
+
 /**
 
 	* Loads the stream aggregator, that has been previously saved.
 
-	* @parameter {module:fs.FIn} fin - The input stream.
+	* @param {module:fs.FIn} fin - The input stream.
 
 	* @returns {module:qm.StreamAggr} Self.
 
 	*/
+
+ exports.StreamAggr.prototype.load = function (fin) { return Object.create(require(&#x27;qminer&#x27;).StreamAggr.prototype); }
 
 /**
 
@@ -1799,7 +1803,7 @@
 
 	* // get the timestamp of the last bought game by using getTimestamp
 
-	* var date = priceSum.getTimestamp(); // returns 12153801600000 (the miliseconds since midnight 01.01.1601)
+	* var date = priceSum.getTimestamp(); // returns 12153801600000 (the miliseconds since 1601-01-01T00:00:00.0)
 
 	*/
 
@@ -2647,7 +2651,7 @@
 
 	*/
 
- exports.StreamAggr.prototype.name = undefined;
+ exports.StreamAggr.prototype.name = &quot;&quot;;
 
 /**
 

@@ -47,14 +47,20 @@
                     <dt><a href="module-qm.Base.html#garbageCollect">garbageCollect()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.Base.html#getStats">getStats()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.Base.html#getStats">getStats()</a></dt>
+                    <dt><a href="module-qm.Base.html#getStoreList">getStoreList()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Base.html#getStoreList">getStoreList()</a></dt>
+                    <dt><a href="module-qm.Base.html#getStreamAggr">getStreamAggr(saName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Base.html#getStreamAggrNames">getStreamAggrNames()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.Base.html#partialFlush">partialFlush(window)</a></dt>
@@ -303,6 +309,51 @@ base.createStore([
                 <dt>Returns</dt>
                 <dd>
                   <p><code>Array of Object</code>&nbsp;The list of store descriptors.</p>
+                </dd>
+              </dl>
+              <h3 id="getStreamAggr"><span class="symbol-name">getStreamAggr</span><span class="signature"><span class="signature-params">(saName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
+              <p>Gets the stream aggregate of the given name.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>saName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the stream aggregate.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></code>&nbsp;The stream aggregate whose name is saName.</p>
+                </dd>
+              </dl>
+              <h3 id="getStreamAggrNames"><span class="symbol-name">getStreamAggrNames</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Array of string</span></span></h3>
+              <p>Gets an array of the stream aggregate names in the base.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Array of string</code>&nbsp;The array containing the stream aggregat names.</p>
                 </dd>
               </dl>
               <h3 id="partialFlush"><span class="symbol-name">partialFlush</span><span class="signature"><span class="signature-params">(window)</span></span></h3>

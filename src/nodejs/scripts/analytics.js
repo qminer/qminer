@@ -41,13 +41,13 @@ module.exports = exports = function (pathPrefix) {
     };
 
     /**
-    * SVM model
+    * SVM model.
     * @typedef {Object} svmModel
-    * @property  {module:la.Vector} [svmModel.weigths] - SVM normal vector
+    * @property  {module:la.Vector} [svmModel.weigths] - SVM normal vector.
     */
     /**
-	* Get SVC model
-	* @returns {module:analytics~svmModel} Get current SVM model
+	* Get SVC model.
+	* @returns {module:analytics~svmModel} The current SVM model.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;

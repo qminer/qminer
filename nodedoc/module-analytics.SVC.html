@@ -100,20 +100,20 @@
 var la = require(&#x27;qminer&#x27;).la;
 var analytics = require(&#x27;qminer&#x27;).analytics;
 // CLASSIFICATION WITH SVC
-// Set up fake train and test data.
-// Four training examples with, number of features = 2
+// set up fake train and test data
+// four training examples with number of features = 2
 var featureMatrix = new la.Matrix({rows: 2, cols: 4, random: true});
 // classification targets for four examples
 var targets = new la.Vector([-1, -1, 1, 1]);
-// Set up the classification model
+// set up the classification model
 var SVC = new analytics.SVC({verbose: true});
-// Train classifier
+// train classifier
 SVC.fit(featureMatrix, targets);
-// Save the model to disk
+// save the model to disk
 SVC.save(&#x27;svc.bin&#x27;);
-// Set up a fake test vector
+// set up a fake test vector
 var test = new la.Vector([1.1, -0.5]);
-// Predict the target value
+// predict the target value
 var prediction = SVC.predict(test);</code></pre>
               </div>
             </section>
@@ -169,8 +169,8 @@ var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
 var vec = new la.Vector([1, 1, -1, -1]);
 // fit the model
 SVC.fit(matrix, vec);
-get the weights
-var weights = SVC.weights; // returns the coefficients of the normal vector of the hyperplane gained from the model</code></pre>
+// get the weights
+var weights = SVC.weights; // returns the coefficients of the normal vector of the hyperplane gained from the model: [1, 1]</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -228,7 +228,7 @@ var distance = SVC.decisionFunction(vec2); // returns something close to 1</code
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Input feature vector or matrix with feature vectors as columns</p>
+                        <p>Input feature vector or matrix with feature vectors as columns.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -310,7 +310,7 @@ SVC.fit(matrix, vec); // creates a model, where the hyperplane has the normal se
                 </dd>
               </dl>
               <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~svmModel">module:analytics~svmModel</a></span></span></h3>
-              <p>Get SVC model</p>
+              <p>Get SVC model.</p>
               <section>
                 <h4>
             Example
@@ -327,7 +327,7 @@ var model = SVC.getModel(); // returns { weight: new require(&#x27;qminer&#x27;)
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.html#~svmModel">module:analytics~svmModel</a></code>&nbsp;Get current SVM model</p>
+                  <p><code><a href="module-analytics.html#~svmModel">module:analytics~svmModel</a></code>&nbsp;The current SVM model.</p>
                 </dd>
               </dl>
               <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~svcParam">module:analytics~svcParam</a></span></span></h3>
@@ -398,7 +398,7 @@ var prediction = SVC.predict(vec2); // returns 1</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Input feature vector or matrix with feature vectors as columns</p>
+                        <p>Input feature vector or matrix with feature vectors as columns.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -411,7 +411,7 @@ var prediction = SVC.predict(vec2); // returns 1</code></pre>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>saves model to output file stream</p>
+              <p>Saves model to output file stream .</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">

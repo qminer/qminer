@@ -140,26 +140,26 @@ private:
 * @enum {string}
 */
 //# var fieldTypes = {
-//#    /** signed 32-bit integer */
-//#    int: 'int', 
-//#    /** vector of signed 32-bit integers */
-//#    int_v: 'int_v', 
-//# /** string */
-//# string : 'string',
-//# /** vector of strings */
-//# string_v : 'string_v',
-//# /** boolean */
-//# bool : 'bool',
-//# /** double precision floating point number */
-//# float : 'float',
-//# /** a pair of floats, useful for storing geo coordinates */
-//# float_pair : 'float_pair',
-//# /** vector of floats */
-//# float_v : 'float_v',
-//# /** date and time format, stored in a form of milliseconds since 1600 */
-//# datetime : 'datetime',
-//# /** sparse vector(same format as used by QMiner JavaScript linear algebra library) */
-//# num_sp_v : 'num_sp_v',
+//#		/** signed 32-bit integer */
+//#		int: 'int', 
+//#		/** vector of signed 32-bit integers */
+//#		int_v: 'int_v', 
+//#		/** string */
+//#		string : 'string',
+//#		/** vector of strings */
+//#		string_v : 'string_v',
+//#		/** boolean */
+//#		bool : 'bool',
+//#		/** double precision floating point number */
+//#		float : 'float',
+//#		/** a pair of floats, useful for storing geo coordinates */
+//#		float_pair : 'float_pair',
+//#		/** vector of floats */
+//#		float_v : 'float_v',
+//#		/** date and time format, stored in a form of milliseconds since 1600 */
+//#		datetime : 'datetime',
+//#		/** sparse vector(same format as used by QMiner JavaScript linear algebra library) */
+//#		num_sp_v : 'num_sp_v',
 //# }
 
 /**
@@ -200,7 +200,7 @@ private:
 *   DateTime: '2015-01-01T00:05:00', 
 *   Title: 'the title', 
 *   Tokens: ['token1', 'token2'], 
-*   Vector: [[0,1], [1,1]]})
+*   Vector: [[0,1], [1,1]]});
 */
 
 /**
@@ -597,14 +597,14 @@ private:
 * @enum {string}
 */
 //# var FeatureWeight = {
-//# /** Sets 1 if term occurs, 0 otherwise. */
-//# none: 'none',
-//# /** Sets the term frequency in the document. */
-//# tf: 'tf',
-//# /** Sets the inverse document frequency in the document. */
-//# idf: 'idf',
-//# /** Sets the product of the tf and idf frequency. */
-//# tfidf: 'tfidf'
+//#		/** Sets 1 if term occurs, 0 otherwise. */
+//#		none: 'none',
+//#		/** Sets the term frequency in the document. */
+//#		tf: 'tf',
+//#		/** Sets the inverse document frequency in the document. */
+//#		idf: 'idf',
+//#		/** Sets the product of the tf and idf frequency. */
+//#		tfidf: 'tfidf'
 //# }
 
 /**
@@ -622,12 +622,12 @@ private:
 * @enum {string}
 */
 //# var FeatureTokenizerType = {
-//#	/** The simple encoding. */
-//#	simple: 'simple',
-//#	/** The html encoding. */
-//# html: 'html',
-//# /** The unicode encoding. */
-//# unicode: 'unicode'
+//#		/** The simple encoding. */
+//#		simple: 'simple',
+//#		/** The html encoding. */
+//#		html: 'html',
+//#		/** The unicode encoding. */
+//#		unicode: 'unicode'
 //# }
 
 /**
@@ -636,18 +636,18 @@ private:
 * @enum {Object}
 */
 //# var FeatureTokenizerStopwords = {
-//# /** The pre-defined stopword list (none). */
-//# none: 'none',
-//# /** The pre-defined stopword list (english). */
-//# en: 'en',
-//# /** The pre-defined stopword list (slovene). */
-//# si: 'si',
-//# /** The pre-defined stopword list (spanish). */
-//# es: 'es',
-//# /** The pre-defined stopword list (german). */
-//# de: 'de',
-//# /** An array of stopwords. The array must be given as a parameter instead of 'array'! */
-//# array: 'array'
+//#		/** The pre-defined stopword list (none). */
+//#		none: 'none',
+//#		/** The pre-defined stopword list (english). */
+//#		en: 'en',
+//#		/** The pre-defined stopword list (slovene). */
+//#		si: 'si',
+//#		/** The pre-defined stopword list (spanish). */
+//#		es: 'es',
+//#		/** The pre-defined stopword list (german). */
+//#		de: 'de',
+//#		/** An array of stopwords. The array must be given as a parameter instead of 'array'! */
+//#		array: 'array'
 //# }
 
 /**
@@ -656,12 +656,12 @@ private:
 * @enum {Object}
 */
 //# var FeatureTokenizerStemmer = {
-//# /** For using the porter stemmer. */
-//# boolean: 'true',
-//# /** For using the porter stemmer. */
-//# porter: 'porter',
-//# /** For using no stemmer. */
-//# none: 'none',
+//#		/** For using the porter stemmer. */
+//#		boolean: 'true',
+//#		/** For using the porter stemmer. */
+//#		porter: 'porter',
+//#		/** For using no stemmer. */
+//#		none: 'none',
 //# }
 
 /**
@@ -685,12 +685,12 @@ private:
 * @enum {string}
 */
 //# var FeatureStream = {
-//# /** (optional) Field name which is providing timestamp, if missing system time is used. */
-//# field: 'field',
-//# /** Forgetting factor, by which the old IDFs are multiplied after each iteration. */
-//# factor: 'factor',
-//# /** The time between iterations when the factor is applied, standard JSon time format is used to specify the interval duration. */
-//# interval: 'interval'
+//#		/** (optional) Field name which is providing timestamp, if missing system time is used. */
+//#		field: 'field',
+//#		/** Forgetting factor, by which the old IDFs are multiplied after each iteration. */
+//#		factor: 'factor',
+//#		/** The time between iterations when the factor is applied, standard JSon time format is used to specify the interval duration. */
+//#		interval: 'interval'
 //# }
 
 class TNodeJsBaseWatcher {
@@ -722,7 +722,7 @@ typedef TPt<TNodeJsBaseWatcher> PNodeJsBaseWatcher;
 * // using a constructor, in open mode:
 * var base = new qm.Base({mode: 'open'});
 */
-//# exports.Base = function (paramObj) {};
+//# exports.Base = function (paramObj) { return Object.create(require('qminer').Base.prototype); };
 class TNodeJsBase : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
@@ -747,7 +747,7 @@ private:
 	* Closes the database.
 	* @returns {null}
 	*/
-	//# exports.Base.prototype.close = function () {}
+	//# exports.Base.prototype.close = function () { return null; }
 	JsDeclareFunction(close);
 
 	/**
@@ -792,7 +792,7 @@ private:
 
 	/**
 	* Creates a new store.
-	* @param {Array<module:qm~SchemaDefinition>} storeDef - The definition of the store(s).
+	* @param {Array.<module:qm~SchemaDefinition>} storeDef - The definition of the store(s).
 	* @param {number} [storeSizeInMB = 1024] - The reserved size of the store(s).
 	* @returns {(module:qm.Store | module:qm.Store[])} - Returns a store or an array of stores (if the schema definition was an array).
 	* @example
@@ -868,9 +868,20 @@ private:
 	JsDeclareFunction(getStats);
 
 	//!- `sa = base.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
+	/**
+	* Gets the stream aggregate of the given name.
+	* @param {string} saName - The name of the stream aggregate.
+	* @returns {module:qm.StreamAggr} The stream aggregate whose name is saName.
+	*/
+	//# exports.Base.prototype.getStreamAggr = function (saName) { return Object.create(require('qminer').StreamAggr.prototype); }
 	JsDeclareFunction(getStreamAggr);
 
 	//!- `strArr = base.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
+	/**
+	* Gets an array of the stream aggregate names in the base.
+	* @returns {Array.<string>} The array containing the stream aggregat names.
+	*/
+	//# exports.Base.prototype.getStreamAggrNames = function () { return [""]; }
 	JsDeclareFunction(getStreamAggrNames);	
 	//!JSIMPLEMENT:src/qminer/qminer.js    
 };
@@ -934,7 +945,7 @@ private:
 *    }]
 * });
 */
-//# exports.Store = function (base, storeDef) {};
+//# exports.Store = function (base, storeDef) { return Object.create(require('qminer').Store.prototype); };
 class TNodeJsStore : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
@@ -1020,7 +1031,7 @@ private:
 	* // change the StudyGroup of all records of store Class to A
 	* base.store("Class").each(function (rec) { rec.StudyGroup = "A"; });	// all records in Class are now in study group A
 	*/
-	//# exports.Store.prototype.each = function (callback) {}
+	//# exports.Store.prototype.each = function (callback) { return Object.create(require('qminer').Store.prototype); }
 	JsDeclareFunction(each);
 
 	//!- `arr = store.map(callback)` -- iterates through the store, applies callback function `callback` to each record and returns new array with the callback outputs. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Examples:
