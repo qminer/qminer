@@ -2641,13 +2641,27 @@ namespace TStreamAggrOut {
     // combination of numeric value and timestamp
     class IFltTm: public IFlt, public ITm { };
     
+	// interface of a buffered stream aggregate (I stands for incomming, O stands
+	// for outgoing). The methods enable incremental updates of other stream
+	// aggregates that read the state of such a class.
+	// 
     class IFltTmIO {
     public:
+		// the newest value that was added to the buffer
         virtual double GetInFlt() const = 0;
+		// the time of newest value that was added to the buffer
         virtual uint64 GetInTmMSecs() const = 0;
+		// a vector of values that have recently fallen out of the buffer
 		virtual void GetOutFltV(TFltV& ValV) const = 0;
+		// a vector of timestamps that have recently fallen out of the buffer
         virtual void GetOutTmMSecsV(TUInt64V& MSecsV) const = 0;
-        virtual int GetN() const = 0;
+		// the number of points in the buffer
+        virtual int GetN() const = 0;		
+		// the oldest value that is still in the buffer
+		virtual double GetOldestFlt() const = 0;
+		// the oldest timestamp that is still in the buffer
+		virtual uint64 GetOldestTmMSecs() const = 0;
+		
     };
 
 	class IFltVec {

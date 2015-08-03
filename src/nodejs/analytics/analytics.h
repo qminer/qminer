@@ -54,7 +54,6 @@ private:
     static TNodeJsSvmModel* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
-	JsDeclareFunction(New);
 	//- `params = svmModel.getParams()` -- returns the parameters of this model as a Javascript object
 	JsDeclareFunction(getParams);
 	//- `svmModel = svmModel.getParams(params)` -- sets one or more parameters given in the input argument `params` returns this
