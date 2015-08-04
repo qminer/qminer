@@ -260,6 +260,19 @@ var prediction = SVR.predict(test);</code></pre>
               </dl>
               <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~svrParam">module:analytics~svrParam</a></span></span></h3>
               <p>Returns the SVR parameters.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create a new SVR object
+var SVR = new analytics.SVR({ c: 10, eps: e-10, maxTime: 12000, verbose: true });
+// get the parameters of SVR
+var params = SVR.getParams();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -342,6 +355,19 @@ var prediction = SVR.predict(test);</code></pre>
               </dl>
               <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(param)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.SVR.html">module:analytics.SVR</a></span></span></h3>
               <p>Sets the SVR parameters.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create a new SVR object
+var SVR = new analytics.SVR();
+// set the parameters of the SVR object
+SVR.setParams({ c: 10, maxTime: 12000 });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">

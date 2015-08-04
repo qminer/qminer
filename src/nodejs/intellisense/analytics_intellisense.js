@@ -120,7 +120,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* // create the vector you want to get the distance from the model
 	* var vec2 = new la.Vector([2, 3]);
 	* // use the decisionFunction to get the distance of vec2 from the model
-	* var distance = SVC.decisionFunction(vec2); // returns something close to 1
+	* var distance = SVC.decisionFunction(vec2); // returns something close to 5
 	*/
  exports.SVC.prototype.decisionFunction = function(X) { return (X instanceof require('qminer').la.Vector | X instanceof require('qminer').la.SparseVector) ? 0 : Object.create(require('qminer').la.Vector.prototype); }
 /**
@@ -202,12 +202,26 @@ exports = {}; require.modules.qminer_analytics = exports;
 /**
 	* Returns the SVR parameters.
 	* @returns {module:analytics~svrParam} Parameters of the regression model.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new SVR object
+	* var SVR = new analytics.SVR({ c: 10, eps: e-10, maxTime: 12000, verbose: true });
+	* // get the parameters of SVR
+	* var params = SVR.getParams();
 	*/
  exports.SVR.prototype.getParams = function() { return { c: 0, eps: 0, batchSize: 0, maxIterations: 0, maxTime: 0, minDiff: 0, verbose: true } };
 /**
 	* Sets the SVR parameters.
 	* @param {module:analytics~svrParam} param - Regression training parameters.
 	* @returns {module:analytics.SVR} Self.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new SVR object
+	* var SVR = new analytics.SVR();
+	* // set the parameters of the SVR object
+	* SVR.setParams({ c: 10, maxTime: 12000 });
 	*/
  exports.SVR.prototype.setParams = function(param) { return Object.create(require('qminer').analytics.SVR.prototype); };
 /**
@@ -1283,6 +1297,9 @@ exports = {}; require.modules.qminer_analytics = exports;
     /**
     * @classdesc KMeans clustering
     * @class
+    * @property {number} iter - The maximum number of iterations.
+    * @property {number} k - The number of centroids.
+    * @property {boolean} verbose - If false, the console output is supressed.
     */
     exports.KMeans = function (param) {
         param = param == undefined ? {} : param;
@@ -1298,24 +1315,29 @@ exports = {}; require.modules.qminer_analytics = exports;
         var norC2 = undefined;
 
         /**
-        * Returns the model
-        * @returns {Object} The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data)
+        * Returns the model.
+        * @returns {Object} The model object whose keys are: C (centroids) and idxv (cluster ids of the training data).
         */
         this.getModel = function () {
             return { C: C, idxv: idxv };
         }
 
         /**
-        * Sets parameters
-        * @param {p} Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)
+        * Sets the parameters.
+        * @param {Object} p - Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed).
+        * @returns {module:analytics.KMeans} Self.
         */
         this.setParams = function (p) {
             param = p;
+
+            iter = param.iter == undefined ? iter : param.iter;
+            k = param.k == undefined ? k : param.k;
+            verbose = param.verbose == undefined ? verbose : param.verbose;
         }
 
         /**
-        * Returns parameters
-        * @returns Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)
+        * Returns the parameters.
+        * @returns Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed).
         */
         this.getParams = function () {
             return param;

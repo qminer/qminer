@@ -197,7 +197,7 @@ public:
 	* // create the vector you want to get the distance from the model
 	* var vec2 = new la.Vector([2, 3]);
 	* // use the decisionFunction to get the distance of vec2 from the model
-	* var distance = SVC.decisionFunction(vec2); // returns something close to 1
+	* var distance = SVC.decisionFunction(vec2); // returns something close to 5
 	*/
     //# exports.SVC.prototype.decisionFunction = function(X) { return (X instanceof require('qminer').la.Vector | X instanceof require('qminer').la.SparseVector) ? 0 : Object.create(require('qminer').la.Vector.prototype); }
     
@@ -294,6 +294,13 @@ public:
 	/**
 	* Returns the SVR parameters.
 	* @returns {module:analytics~svrParam} Parameters of the regression model.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new SVR object
+	* var SVR = new analytics.SVR({ c: 10, eps: e-10, maxTime: 12000, verbose: true });
+	* // get the parameters of SVR
+	* var params = SVR.getParams();
 	*/
 	//# exports.SVR.prototype.getParams = function() { return { c: 0, eps: 0, batchSize: 0, maxIterations: 0, maxTime: 0, minDiff: 0, verbose: true } };
 
@@ -301,6 +308,13 @@ public:
 	* Sets the SVR parameters.
 	* @param {module:analytics~svrParam} param - Regression training parameters.
 	* @returns {module:analytics.SVR} Self.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new SVR object
+	* var SVR = new analytics.SVR();
+	* // set the parameters of the SVR object
+	* SVR.setParams({ c: 10, maxTime: 12000 });
 	*/
 	//# exports.SVR.prototype.setParams = function(param) { return Object.create(require('qminer').analytics.SVR.prototype); };
 

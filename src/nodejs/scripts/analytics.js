@@ -724,6 +724,9 @@ module.exports = exports = function (pathPrefix) {
     /**
     * @classdesc KMeans clustering
     * @class
+    * @property {number} iter - The maximum number of iterations.
+    * @property {number} k - The number of centroids.
+    * @property {boolean} verbose - If false, the console output is supressed.
     */
     exports.KMeans = function (param) {
         param = param == undefined ? {} : param;
@@ -739,24 +742,29 @@ module.exports = exports = function (pathPrefix) {
         var norC2 = undefined;
 
         /**
-        * Returns the model
-        * @returns {Object} The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data)
+        * Returns the model.
+        * @returns {Object} The model object whose keys are: C (centroids) and idxv (cluster ids of the training data).
         */
         this.getModel = function () {
             return { C: C, idxv: idxv };
         }
 
         /**
-        * Sets parameters
-        * @param {p} Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)
+        * Sets the parameters.
+        * @param {Object} p - Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed).
+        * @returns {module:analytics.KMeans} Self.
         */
         this.setParams = function (p) {
             param = p;
+
+            iter = param.iter == undefined ? iter : param.iter;
+            k = param.k == undefined ? k : param.k;
+            verbose = param.verbose == undefined ? verbose : param.verbose;
         }
 
         /**
-        * Returns parameters
-        * @returns Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)
+        * Returns the parameters.
+        * @returns Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed).
         */
         this.getParams = function () {
             return param;
