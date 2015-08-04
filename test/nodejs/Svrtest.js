@@ -190,28 +190,26 @@ describe("SVR test", function () {
                 SVR.fit(matrix, vector);
             });         
         })
-        it("should return a fitted model", function () { //fenomenalen primer
+        //degenerated example
+        it("should return a fitted model", function () {
             var matrix = new la.Matrix([[1, -1], [1, -1]]);
             var vector = new la.Vector([1, 1]);
             var SVR = new analytics.SVR();
             SVR.fit(matrix, vector);
             var model = SVR.getModel();
-            assert.eqtol(model.weights[0], 0, 1e-3);
-            assert.eqtol(model.weights[1], 0, 1e-3);
+            assert.eqtol(model.weights[0], 0, 1e-2);
+            assert.eqtol(model.weights[1], 0, 1e-2);
         })
+        //the tolerance in the test is equal to epsilon in SVR
         it("should again return a fitted model", function () {
             var matrix = new la.Matrix([[1, -1], [1, 1]]);
             var vector = new la.Vector([1, 1]);
-            var SVR = new analytics.SVR({ batchSize: 1, maxTime: 10, eps: 1e-8, maxIterations: 10000000, verbose: false, c: 1e-6, minDiff: 1e-8});
-            console.log(SVR.getParams());
+            var SVR = new analytics.SVR({c: 10});
             SVR.fit(matrix, vector);
-            console.log("norm ", SVR.weights.norm());
 
-            SVR.predict(matrix).print();
-            process.stdout.write(SVR.weights.toString() + "\n");
             var model = SVR.getModel();
-            assert.eqtol(model.weights[0], 0, 1e-3);
-            assert.eqtol(model.weights[1], 1, 1e-3);
+            assert.eqtol(model.weights[0], 0, 1e-1);
+            assert.eqtol(model.weights[1], 1, 1e-1);
         })
     });
 })
