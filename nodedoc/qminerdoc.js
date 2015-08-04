@@ -1301,19 +1301,19 @@
 /**
 	* Returns the first record of the store.
 	*/
- exports.Store.prototype.first = undefined;
+ exports.Store.prototype.first = Object.create(require('qminer').Record.prototype);
 /**
 	* Returns the last record of the store.
 	*/
- exports.Store.prototype.last = undefined;
+ exports.Store.prototype.last = Object.create(require('qminer').Record.prototype);
 /**
 	* Returns an iterator for iterating over the store from start to end.
 	*/
- exports.Store.prototype.forwardIter = undefined;
+ exports.Store.prototype.forwardIter = Object.create(require('qminer').Iterator.prototype);
 /**
 	* Returns an iterator for iterating over the store form end to start.
 	*/
- exports.Store.prototype.backwardIter = undefined;
+ exports.Store.prototype.backwardIter = Object.create(require('qminer').Iterator.prototype);
 /**
 	* Gets the record with the given ID.
 	* @param {number} recId - The id of the record.
@@ -1326,7 +1326,7 @@
 	*/
  exports.Store.prototype.base = Object.create(require('qminer').Base.prototype);
 /**
-* Record (factory pattern).
+* Record (factory pattern). The records are used for storing data in {@link module:qm.Store}.
 * @namespace
 */
  exports.Record = function () {}; 
@@ -1418,18 +1418,17 @@
 /**
 	* Returns the name of the record.
 	*/
- exports.Record.prototype.$name = undefined;
+ exports.Record.prototype.$name = "";
 /**
 	* Returns the frequency of the record.
-	* @ignore
 	*/
- exports.Record.prototype.$fq = undefined;
+ exports.Record.prototype.$fq = 0;
 /**
 	* Returns the store the record belongs to.
 	*/
- exports.Record.prototype.store = undefined;
+ exports.Record.prototype.store = Object.create('qminer').Store.prototype;
 /**
-* Record Set (factory pattern)
+* Record Set (factory pattern). The Record Set is a set of records.
 * @namespace
 * @example
 * // import qm module
@@ -2016,7 +2015,7 @@
 	* // make an array of record Names
 	* var arr = recordSet.map(function (rec) { return rec.Name; }); // returns an array: ["Eric Sugar", "Jane Tokyo", "Mister Tea"]
 	*/
- exports.RecordSet.prototype.map = function (callback) {}
+ exports.RecordSet.prototype.map = function (callback) { return [Object];  }
 /**
 	* Creates the set intersection of two record sets.
 	* @param {module:qm.RecordSet} rs - The other record set.
@@ -2180,11 +2179,11 @@
 	* // 48  44  48
 	* var matrix = recordSet.getMatrix("ScorePerRound");
 	*/
- exports.RecordSet.prototype.getMatrix = function (fieldName) {};
+ exports.RecordSet.prototype.getMatrix = function (fieldName) { return Object.create(require('qminer').la.Matrix.prototype); };
 /**
 	* Returns the store, where the records in the record set are stored.
 	*/
- exports.RecordSet.prototype.store = undefined;
+ exports.RecordSet.prototype.store = Object.create(require('qminer').Store.prototype);
 /**
 	* Returns the number of records in record set.
 	*/
@@ -2192,11 +2191,11 @@
 /**
 	* Checks if the record set is empty. If the record set is empty, then it returns true. Otherwise, it returns false.
 	*/
- exports.RecordSet.prototype.empty = undefined;
+ exports.RecordSet.prototype.empty = true;
 /**
 	* Checks if the record set is weighted. If the record set is weighted, then it returns true. Otherwise, it returns false.
 	*/
- exports.RecordSet.prototype.weighted = undefined;
+ exports.RecordSet.prototype.weighted = true;
 /**
 * Store Iterator (factory pattern)
 * @namespace
@@ -2220,7 +2219,7 @@
 * // factory based construction with forwardIter
 * var iter = base.store("People").forwardIter;
 */
- exports.Iterator = function () {};
+ exports.Iterator = function () { return Object.create(require('qminer').Iterator.prototype); };
 /**
 	* Moves to the next record.
 	* @returns {boolean} 
@@ -2257,11 +2256,11 @@
 /**
 	* Gives the store of the iterator.
 	*/
- exports.Iterator.prototype.store = undefined;
+ exports.Iterator.prototype.store = Object.create(require('qminer').Store.prototype);
 /**
 	* Gives the current record.
 	*/
- exports.Iterator.prototype.record = undefined;
+ exports.Iterator.prototype.record = Object.create(require('qminer').Record.prototype);
 /**
 * Feature Space
 * @classdesc Represents the feature space. It contains any of the {@link module:qm~FeatureExtractors}.
@@ -2298,11 +2297,11 @@
 /**
 	* Returns the dimension of the feature space.
 	*/
- exports.FeatureSpace.prototype.dim = undefined;
+ exports.FeatureSpace.prototype.dim = 0;
 /**
 	* Returns an array of the dimensions of each feature extractor in the feature space.
 	*/
- exports.FeatureSpace.prototype.dims = undefined;
+ exports.FeatureSpace.prototype.dims = [0];
 /**
 	* Serialize the feature space to an output stream.
 	* @param {module:fs.FOut} fout - The output stream.
@@ -2753,7 +2752,7 @@
 	* // filter the elements from the second feature extractor, without keeping the offset
 	* var spVec3 = ftr.filter(spVec, 1, false); // returns sparse vector [[1, 1]]
 	*/
- exports.FeatureSpace.prototype.filter = function (vec, idx, keepOffset) {};
+ exports.FeatureSpace.prototype.filter = function (vec, idx, keepOffset) { return (vec instanceof require('qminer').la.Vector) ? require('qminer').la.Vector : require('qminer').la.SparseVector; };
 /**
 	* Extracts string features from the record.
 	* @param {module:qm.Record} rec

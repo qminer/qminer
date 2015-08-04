@@ -60,7 +60,7 @@ public:
 * // create a new matrix with nested arrays
 * var mat2 = new la.Matrix([[1, 7, 4], [-10, 0, 3]]); // creates a 2 x 3 matrix
 */
-//# exports.Matrix = function(arg) {}	
+//# exports.Matrix = function(arg) { return Object.create(require('qminer').la.Matrix.prototype); }	
 
 class TNodeJsFltVV : public node::ObjectWrap {
 	friend class TNodeJsUtil;
@@ -108,7 +108,7 @@ private:
     * // 4  12 13
     * // 7  8  9   
 	*/
-	//# exports.Matrix.prototype.put = function(rowIdx, colIdx, arg) {}
+	//# exports.Matrix.prototype.put = function(rowIdx, colIdx, arg) { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(put);
 
 	//!- `mat2 = mat.multiply(num)` -- Matrix multiplication: `num` is a number, `mat2` is a matrix
@@ -130,7 +130,7 @@ private:
 	* //multiply mat and vec
 	* var vec2 = mat.multiply(vec); // returns vector [-1, -6]
 	*/
-	//# exports.Matrix.prototype.multiply = function(arg) {}
+	//# exports.Matrix.prototype.multiply = function(arg) { return (arg instanceof require('qminer').la.Vector | arg instanceof require('qminer').la.SparseVector) ? Object.create(require('qminer').la.Vector.prototype) : Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(multiply);
 
 	//!- `mat2 = mat.multiplyT(num)` -- Matrix transposed multiplication: `num` is a number, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
@@ -153,7 +153,7 @@ private:
 	* //multiply mat and vec
 	* var vec2 = mat.multiplyT(vec); // returns vector [2, 7]
 	*/
-	//# exports.Matrix.prototype.multiplyT = function(arg) {}
+	//# exports.Matrix.prototype.multiplyT = function(arg) { return (arg instanceof require('qminer').la.Vector | arg instanceof require('qminer').la.SparseVector) ? Object.create(require('qminer').la.Vector.prototype) : Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(multiplyT);
 
 	//!- `mat3 = mat.plus(mat2)` -- `mat3` is the sum of matrices `mat` and `mat2`
@@ -162,7 +162,7 @@ private:
 	* @param {module:la.Matrix} mat - Second matrix.
 	* @returns {module:la.Matrix} The sum of matrices.
 	*/
-	//# exports.Matrix.prototype.plus = function(mat2) {}
+	//# exports.Matrix.prototype.plus = function(mat2) { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(plus);
 
 	//!- `mat3 = mat.minus(mat2)` -- `mat3` is the difference of matrices `mat` and `mat2`
@@ -171,7 +171,7 @@ private:
 	* @param {module:la.Matrix} mat - Second matrix.
 	* @returns {module:la.Matrix} The difference of matrices.
 	*/
-	//# exports.Matrix.prototype.minus = function(mat2) {}
+	//# exports.Matrix.prototype.minus = function(mat2) { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(minus);
 
 	//!- `mat2 = mat.transpose()` -- matrix `mat2` is matrix `mat` transposed
@@ -179,7 +179,7 @@ private:
 	* Transposes matrix.
 	* @returns {module:la.Matrix} Transposed matrix.
 	*/
-	//# exports.Matrix.prototype.transpose = function() {}
+	//# exports.Matrix.prototype.transpose = function() { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(transpose);
 
 	//!- `vec2 = mat.solve(vec)` -- vector `vec2` is the solution to the linear system mat * vec2 = vec
@@ -195,7 +195,7 @@ private:
 	* // solve the linear system M*x = b
 	* var x = M.solve(b); // returns vector [1, -1]
 	*/
-	//# exports.Matrix.prototype.solve = function (vec) {}
+	//# exports.Matrix.prototype.solve = function (vec) { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(solve);
 
 	//!- `vec = mat.rowNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
@@ -203,7 +203,7 @@ private:
 	* Returns a vector of row norms.
 	* @returns {module:la.Vector} Vector, where the value at i-th index is the norm of the i-th row of matrix.
 	*/
-	//# exports.Matrix.prototype.rowNorms = function () {}
+	//# exports.Matrix.prototype.rowNorms = function () { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(rowNorms);
 
 
@@ -212,7 +212,7 @@ private:
 	* Returns a vector of column norms.
 	* @returns {module:la.Vector} Vector, where the value at i-th index is the norm of the i-th column of matrix.
 	*/
-	//# exports.Matrix.prototype.colNorms = function () { return Object.create(require('qminer').la.IntVector.prototype) }
+	//# exports.Matrix.prototype.colNorms = function () { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(colNorms);
 
 	//!- `mat = mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation). Returns self.
@@ -220,7 +220,7 @@ private:
 	* Normalizes each column of matrix
 	* @returns {module:la.Matrix} Self.
 	*/
-	//# exports.Matrix.prototype.normalizeCols = function () {}
+	//# exports.Matrix.prototype.normalizeCols = function () { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(normalizeCols);
 
 	//!- `str = mat.printStr()` -- print matrix `mat` to a string `str`
@@ -233,7 +233,7 @@ private:
 	* // get matrix as string
 	* var text = mat.toString(); // returns `1 2 \n3 5 \n\n`
 	*/
-	//# exports.Matrix.prototype.toString = function () {}
+	//# exports.Matrix.prototype.toString = function () { return ""; }
 	JsDeclareFunction(toString);
 
 	//!- `spMat = mat.sparse()` -- get sparse column matrix representation `spMat` of dense matrix `mat`
@@ -241,7 +241,7 @@ private:
 	* Transforms the matrix from dense to sparse format.
 	* @returns {module:la.SparseMatrix} Sparse column matrix representation of dense matrix.
 	*/
-	//# exports.Matrix.prototype.sparse = function () {}
+	//# exports.Matrix.prototype.sparse = function () { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(sparse);
 
 	//!- `num = mat.frob()` -- number `num` is the Frobenious norm of matrix `mat`
@@ -249,7 +249,7 @@ private:
 	* Returns the frobenious norm of matrix.
 	* @returns {number} Frobenious norm of matrix.
 	*/
-	//# exports.Matrix.prototype.frob = function () {}
+	//# exports.Matrix.prototype.frob = function () { return 0; }
 	JsDeclareFunction(frob);
 
 	//!- `num = mat.rows` -- integer `num` corresponds to the number of rows of `mat`
@@ -257,7 +257,7 @@ private:
 	* Returns the number of rows of matrix.
 	* @returns {number} Number of rows in matrix.
 	*/
-	//# exports.Matrix.prototype.rows = undefined
+	//# exports.Matrix.prototype.rows = 0;
 	JsDeclareProperty(rows);
 
 	//!- `num = mat.cols` -- integer `num` corresponds to the number of columns of `mat`
@@ -265,7 +265,7 @@ private:
 	* Returns the number of columns of matrix.
 	* @returns {number} Number of columns in matrix.
 	*/
-	//# exports.Matrix.prototype.cols = undefined
+	//# exports.Matrix.prototype.cols = 0;
 	JsDeclareProperty(cols);
 
 	//!- `colIdx = mat.rowMaxIdx(rowIdx)`: get the index `colIdx` of the maximum element in row `rowIdx` of dense matrix `mat`
@@ -274,7 +274,7 @@ private:
 	* @param {number} rowIdx - Row index (zero based).
 	* @returns {number} Column index (zero based) of the maximum value in rowIdx-th row of matrix.
 	*/
-	//# exports.Matrix.prototype.rowMaxIdx = function (rowIdx) {}
+	//# exports.Matrix.prototype.rowMaxIdx = function (rowIdx) { return 0; }
 	JsDeclareFunction(rowMaxIdx);
 
 	//!- `rowIdx = mat.colMaxIdx(colIdx)`: get the index `rowIdx` of the maximum element in column `colIdx` of dense matrix `mat`
@@ -283,7 +283,7 @@ private:
 	* @param {number} colIdx - Column index (zero based).
 	* @returns {number} Row index (zero based) of the maximum value in colIdx-th column of matrix.
 	*/
-	//# exports.Matrix.prototype.colMaxIdx = function (colIdx) {}
+	//# exports.Matrix.prototype.colMaxIdx = function (colIdx) { return 0; }
 	JsDeclareFunction(colMaxIdx);
 
 	//!- `vec = mat.getCol(colIdx)` -- `vec` corresponds to the `colIdx`-th column of dense matrix `mat`. `colIdx` must be an integer.
@@ -292,7 +292,7 @@ private:
 	* @param {number} colIdx - Column index (zero based).
 	* @returns {module:la.Vector} The colIdx-th column of matrix.
 	*/
-	//# exports.Matrix.prototype.getCol = function (colIdx) {}
+	//# exports.Matrix.prototype.getCol = function (colIdx) { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(getCol);
 
 	//!- `mat = mat.setCol(colIdx, vec)` -- Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector. Returns self.
@@ -302,7 +302,7 @@ private:
 	* @param {module:la.Vector} vec - The new column of matrix.
 	* @returns {module:la.Matrix} Self.
 	*/
-	//# exports.Matrix.prototype.setCol = function (colIdx, vec) {}
+	//# exports.Matrix.prototype.setCol = function (colIdx, vec) { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(setCol);
 
 	//!- `vec = mat.getRow(rowIdx)` -- `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.
@@ -311,7 +311,7 @@ private:
 	* @param {number} rowIdx - Row index (zero based).
 	* @returns {module:la.Vector} The rowIdx-th row of matrix.
 	*/
-	//# exports.Matrix.prototype.getRow = function (rowIdx) {}
+	//# exports.Matrix.prototype.getRow = function (rowIdx) { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(getRow);
 
 	//!- `mat.setRow(rowIdx, vec)` -- Sets the row of a dense matrix `mat`. `rowIdx` must be an integer, `vec` must be a dense vector.
@@ -321,7 +321,7 @@ private:
 	* @param {module:la.Vector} vec - The new row of matrix.
 	* @returns {module:la.Matrix} Self.
 	*/
-	//# exports.Matrix.prototype.setRow = function (rowIdx, vec) {}
+	//# exports.Matrix.prototype.setRow = function (rowIdx, vec) { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(setRow);
 
 	//!- `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
@@ -334,7 +334,7 @@ private:
 	* // call diag function
 	* var vec = mat.diag(); // returns a vector [1, 8, 0]
 	*/
-	//# exports.Matrix.prototype.diag = function () {}
+	//# exports.Matrix.prototype.diag = function () { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(diag);
 
 	//!- `fout = mat.save(fout)` -- print `mat` (full matrix) to output stream `fout`. Returns `fout`.
@@ -352,7 +352,7 @@ private:
 	* // save matrix and close write stream
 	* mat.save(fout).close();
 	*/
-	//# exports.Matrix.prototype.save = function (fout) {}
+	//# exports.Matrix.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 	JsDeclareFunction(save);
 
 	//!- `mat = mat.load(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
@@ -370,7 +370,7 @@ private:
 	* // load the matrix
 	* mat.load(fin);
 	*/
-	//# exports.Matrix.prototype.load = function (FIn) {}
+	//# exports.Matrix.prototype.load = function (FIn) { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(load);
 
 	//!- `fout = mat.saveascii(fout)` -- save `mat` (full matrix) to output stream `fout`. Returns `fout`.
@@ -410,7 +410,7 @@ public:
 * // create new sparse vector with dim
 * var spVec2 = new la.SparseVector([[0, 1], [2, 3], [3, 6]], 5); // largest index (zero based) is 4
 */
-//# exports.SparseVector = function(arg, dim) {}	
+//# exports.SparseVector = function(arg, dim) { return Object.create(require('qminer').la.SparseVector.prototype); }	
 
 class TNodeJsSpVec : public node::ObjectWrap {
 	friend class TNodeJsUtil;
@@ -443,7 +443,7 @@ public:
 	* @param {number} idx - Index (zero based).
 	* @returns {number} Sparse vector element.
 	*/
-	//# exports.SparseVector.prototype.at = function (idx) {}
+	//# exports.SparseVector.prototype.at = function (idx) { return 0; }
 	JsDeclareFunction(at);
 
 	//!- `spVec = spVec.put(idx, num)` -- Set the element of a sparse vector `spVec`. Inputs: index `idx` (integer), value `num` (number). Uses 0-based indexing. Returns self.
@@ -453,7 +453,7 @@ public:
 	* @param {number} num - Input value.
 	* @returns {module:la.SparseVector} Self.
 	*/
-	//# exports.SparseVector.prototype.put = function (idx, num) {}
+	//# exports.SparseVector.prototype.put = function (idx, num) { return Object.create(require('qminer').la.SparseVector.prototype); }
 	JsDeclareFunction(put);
 
 	//!- `num = spVec.sum()` -- `num` is the sum of elements of `spVec`
@@ -461,7 +461,7 @@ public:
 	* Returns the sum of all values in sparse vector.
 	* @returns {number} The sum of all values in sparse vector.
 	*/
-	//# exports.SparseVector.prototype.sum = function () {}
+	//# exports.SparseVector.prototype.sum = function () { return 0; }
 	JsDeclareFunction(sum);
 
 	//!- `num = spVec.inner(vec)` -- `num` is the inner product between `spVec` and dense vector `vec`.
@@ -471,7 +471,7 @@ public:
 	* @param {(module:la.Vector | module:la.SparseVector)} arg - Inner product input. Supports dense vector and sparse vector.
 	* @returns {number} The inner product.
 	*/
-	//# exports.SparseVector.prototype.inner = function (arg) {}
+	//# exports.SparseVector.prototype.inner = function (arg) { return 0; }
 	JsDeclareFunction(inner);
 
 	//!- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
@@ -485,7 +485,7 @@ public:
 	* // multiply sparse vector with scalar 3.14
 	* var spVec2 = spVec.multiply(3.14); // returns sparse vector [3.14, 0, 9.42, 18.84]
 	*/
-	//# exports.SparseVector.prototype.multiply = function (num) {}
+	//# exports.SparseVector.prototype.multiply = function (num) { return Object.create(require('qminer').la.SparseVector.prototype); }
 	JsDeclareFunction(multiply);
 
 	//!- `spVec = spVec.normalize()` -- normalizes the vector spVec (inplace operation). Returns self.
@@ -493,7 +493,7 @@ public:
 	* Normalizes the sparse vector.
 	* @returns {module:la.SparseVector} Self - Normalized.
 	*/
-	//# exports.SparseVector.prototype.normalize = function () {}
+	//# exports.SparseVector.prototype.normalize = function () { return Object.create(require('qminer').la.SparseVector.prototype); }
 	JsDeclareFunction(normalize);
 
 	//!- `num = spVec.nnz` -- gets the number of nonzero elements `num` of vector `spVec`
@@ -501,7 +501,7 @@ public:
 	* Returns the number of nonzero values.
 	* @returns {number} Number of nonzero values.
 	*/
-	//# exports.SparseVector.prototype.nnz = undefined
+	//# exports.SparseVector.prototype.nnz = 0;
 	JsDeclareProperty(nnz);
 
 	//!- `num = spVec.dim` -- gets the dimension `num` (-1 means that it is unknown)
@@ -509,7 +509,7 @@ public:
 	* Returns the dimension of sparse vector.
 	* @returns {number} Dimension of sparse vector.
 	*/
-	//# exports.SparseVector.prototype.dim = undefined
+	//# exports.SparseVector.prototype.dim = 0;
 	JsDeclareProperty(dim);
 
 	// #- `num = spVec.norm()` -- returns `num` - the norm of `spVec`
@@ -517,7 +517,7 @@ public:
 	* Returns the norm of sparse vector.
 	* @returns {number} Norm of sparse vector.
 	*/
-	//# exports.SparseVector.prototype.norm = function () {}
+	//# exports.SparseVector.prototype.norm = function () { return 0; }
 	JsDeclareFunction(norm);
 
 	//!- `vec = spVec.full()` --  returns `vec` - a dense vector representation of sparse vector `spVec`.
@@ -525,7 +525,7 @@ public:
 	* Returns the dense vector representation of sparse vector.
 	* @returns {module:la.Vector} Dense vector representation.
 	*/
-	//# exports.SparseVector.prototype.full = function () {}
+	//# exports.SparseVector.prototype.full = function () { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(full);
 
 	//!- `valVec = spVec.valVec()` --  returns `valVec` - a dense (double) vector of values of nonzero elements of `spVec`.
@@ -533,7 +533,7 @@ public:
 	* Returns a dense vector of values of nonzero elements of sparse vector.
 	* @returns {module:la.Vector} Dense vector of values.
 	*/
-	//# exports.SparseVector.prototype.valVec = function () {}
+	//# exports.SparseVector.prototype.valVec = function () { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(valVec);
 
 	//!- `idxVec = spVec.idxVec()` --  returns `idxVec` - a dense (int) vector of indices (0-based) of nonzero elements of `spVec`.
@@ -541,7 +541,7 @@ public:
 	* Returns a dense vector of indices (zero based) of nonzero elements of sparse vector.
 	* @returns {module:la.Vector} Dense vector of indeces.
 	*/
-	//# exports.SparseVector.prototype.idxVec = function () {}
+	//# exports.SparseVector.prototype.idxVec = function () { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(idxVec);
 		
 	/**
@@ -551,7 +551,7 @@ public:
 	* var spVec = new la.SparseVector([[0, 1], [2, 3]]);	
 	* spVec.toString(); // returns the string '[(0, 1), (2, 3)]'
 	*/
-	//# exports.SparseVector.prototype.toString = function () {}
+	//# exports.SparseVector.prototype.toString = function () { return ""; }
 	JsDeclareFunction(toString);
 };
 
@@ -584,7 +584,7 @@ public:
 * // create a new sparse matrix with specified max rows
 * var mat2 = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]], 3);
 */
-//# exports.SparseMatrix = function(arg) {}	
+//# exports.SparseMatrix = function(arg) { return Object.create(require('qminer').la.SparseMatrix.prototype); }	
 
 class TNodeJsSpMat : public node::ObjectWrap {
 public:
@@ -613,7 +613,7 @@ public:
 	* @param {number} colIdx - Column index (zero based).
 	* @returns {number} Matrix value.
 	*/
-	//# exports.SparseMatrix.prototype.at = function (rowIdx, colIdx) {}
+	//# exports.SparseMatrix.prototype.at = function (rowIdx, colIdx) { return 0; }
 	JsDeclareFunction(at);
 
 	//!- `spMat = spMat.put(rowIdx, colIdx, num)` -- Sets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.
@@ -624,7 +624,7 @@ public:
 	* @param {number} num - Element value.
 	* @returns {module:la.SparseMatrix} Self.
 	*/
-	//# exports.SparseMatrix.prototype.put = function (rowIdx, colIdx, num) {}
+	//# exports.SparseMatrix.prototype.put = function (rowIdx, colIdx, num) { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(put);
 
 	//!- `spVec = spMat[colIdx]; spMat[colIdx] = spVec` -- setting and getting sparse vectors `spVec` from sparse column matrix, given column index `colIdx` (integer)
@@ -638,7 +638,7 @@ public:
 	* @param {number} colIdx - Column index (zero based).
 	* @returns {module:la.SparseVector} Sparse vector corresponding to the colIdx-th column of sparse matrix.
 	*/
-	//# exports.SparseMatrix.prototype.getCol = function (colIdx) {}
+	//# exports.SparseMatrix.prototype.getCol = function (colIdx) { return Object.create(require('qminer').la.SparseVector.prototype); }
 
 	JsDeclareFunction(indexSet);
 	//!- `spMat = spMat.setCol(colIdx, spVec)` -- Sets the column of a sparse matrix `spMat`. `colIdx` must be an integer, `spVec` must be a sparse vector. Returns self.
@@ -648,7 +648,7 @@ public:
 	* @param {module:la.SparseVector} spVec - New column sparse vector.
 	* @returns {module:la.SparseMatrix} Self.
 	*/
-	//# exports.SparseMatrix.prototype.setCol = function (colIdx, spVec) {}
+	//# exports.SparseMatrix.prototype.setCol = function (colIdx, spVec) { return Object.create(require('qminer').la.SparseVector.prototype); }
 
 	//!- `spMat = spMat.push(spVec)` -- attaches a column `spVec` (sparse vector) to `spMat` (sparse matrix). Returns self.
 	/**
@@ -656,7 +656,7 @@ public:
 	* @param {module:la.SparseVector} spVec - Attached column as sparse vector.
 	* @returns {module:la.SparseMatrix} Self.
 	*/
-	//# exports.SparseMatrix.prototype.push = function (spVec) {}
+	//# exports.SparseMatrix.prototype.push = function (spVec) { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(push);
 
 	//!- `spMat2 = spMat.multiply(num)` -- Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix
@@ -671,7 +671,7 @@ public:
 	* <br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
 	* <br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
 	*/
-	//# exports.SparseMatrix.prototype.multiply = function (arg) {}
+	//# exports.SparseMatrix.prototype.multiply = function (arg) { return (arg instanceof require('qminer').la.Vector | arg instanceof require('qminer').la.SparseVector) ? Object.create(require('qminer').la.Vector.prototype) : Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(multiply);
 
 	//!- `spMat2 = spMat.multiplyT(num)` -- Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
@@ -686,7 +686,7 @@ public:
 	* <br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
 	* <br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
 	*/
-	//# exports.SparseMatrix.prototype.multiplyT = function (arg) {}
+	//# exports.SparseMatrix.prototype.multiplyT = function (arg) { return (arg instanceof require('qminer').la.Vector | arg instanceof require('qminer').la.SparseVector) ? Object.create(require('qminer').la.Vector.prototype) : Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(multiplyT);
 
 	//!- `spMat3 = spMat.plus(spMat2)` -- `spMat3` is the sum of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)
@@ -695,7 +695,7 @@ public:
 	* @param {module:la.SparseMatrix} mat - Second sparse matrix.
 	* @returns {module:la.SparseMatrix} Sum of two sparse matrices.
 	*/
-	//# exports.SparseMatrix.prototype.plus = function (spMat) {}
+	//# exports.SparseMatrix.prototype.plus = function (spMat) { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(plus);
 
 	//!- `spMat3 = spMat.minus(spMat2)` -- `spMat3` is the difference of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)
@@ -704,7 +704,7 @@ public:
 	* @param {module:la.SparseMatrix} mat - Second sparse matrix.
 	* @returns {module:la.SparseMatrix} The difference of two sparse matrices.
 	*/
-	//# exports.SparseMatrix.prototype.minus = function (spMat) {}
+	//# exports.SparseMatrix.prototype.minus = function (spMat) { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(minus);
 
 	//!- `spMat2 = spMat.transpose()` -- `spMat2` (sparse matrix) is `spMat` (sparse matrix) transposed 
@@ -712,7 +712,7 @@ public:
 	* Returns the transposed sparse matrix.
 	* @returns {module:la.SparseMatrix} Transposed sparse matrix.
 	*/
-	//# exports.SparseMatrix.prototype.transpose = function () {}
+	//# exports.SparseMatrix.prototype.transpose = function () { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(transpose);
 
 	//!- `vec = spMat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `spMat`
@@ -720,7 +720,7 @@ public:
 	* Returns the vector of column norms of sparse matrix.
 	* @returns {module:la.Vector} Vector of column norms. Ihe i-th value of said vector is the norm of i-th column of sparse matrix.
 	*/
-	//# exports.SparseMatrix.prototype.colNorms = function () {}
+	//# exports.SparseMatrix.prototype.colNorms = function () { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(colNorms);
 
 	//!- `spMat = spMat.normalizeCols()` -- normalizes each column of a sparse matrix `spMat` (inplace operation). Returns self.
@@ -728,7 +728,7 @@ public:
 	* Normalizes columns of sparse matrix.
 	* @returns {module:la.SparseMatrix} Self - Normalized columns.
 	*/
-	//# exports.SparseMatrix.prototype.normalizeCols = function () {}
+	//# exports.SparseMatrix.prototype.normalizeCols = function () { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(normalizeCols);
 
 	//!- `mat = spMat.full()` -- get dense matrix representation `mat` of `spMat (sparse column matrix)`
@@ -736,7 +736,7 @@ public:
 	* Returns the dense representation of sparse matrix.
 	* @returns {module:la.Matrix} Dense representation of sparse matrix.
 	*/
-	//# exports.SparseMatrix.prototype.full = function () {}
+	//# exports.SparseMatrix.prototype.full = function () { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(full);
 
 	//!- `num = spMat.frob()` -- number `num` is the Frobenious norm of `spMat` (sparse matrix)
@@ -744,7 +744,7 @@ public:
 	* Returns the frobenious norm of sparse matrix.
 	* @returns {number} Frobenious norm of sparse matrix.
 	*/
-	//# exports.SparseMatrix.prototype.frob = function () {}
+	//# exports.SparseMatrix.prototype.frob = function () { return 0; }
 	JsDeclareFunction(frob);
 
 	//!- `num = spMat.rows` -- integer `num` corresponds to the number of rows of `spMat` (sparse matrix)
@@ -752,7 +752,7 @@ public:
 	* Number of rows of sparse matrix.
 	* @returns {number} Number of rows of sparse matrix.
 	*/
-	//# exports.SparseMatrix.prototype.rows = undefined
+	//# exports.SparseMatrix.prototype.rows = 0; 
 	JsDeclareProperty(rows);
 
 	//!- `num = spMat.cols` -- integer `num` corresponds to the number of columns of `spMat` (sparse matrix)
@@ -760,7 +760,7 @@ public:
 	* Number of columns of sparse matrix.
 	* @returns {number} Number of columns of sparse matrix.
 	*/
-	//# exports.SparseMatrix.prototype.cols = undefined
+	//# exports.SparseMatrix.prototype.cols = 0; 
 	JsDeclareProperty(cols);
 
 	//!- `spMat = spMat.print()` -- print `spMat` (sparse matrix) to console. Returns self.
@@ -795,7 +795,7 @@ public:
 	* // save matrix and close write stream
 	* mat.save(fout).close();
 	*/
-	//# exports.SparseMatrix.prototype.save = function (fout) {}
+	//# exports.SparseMatrix.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 	JsDeclareFunction(save);
 
 	//!- `spMat = spMat.load(fin)` -- replace `spMat` (sparse matrix) by loading from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`. Returns self.
@@ -813,7 +813,7 @@ public:
 	* // load the matrix
 	* mat.load(fin);
 	*/
-	//# exports.SparseMatrix.prototype.load = function (FIn) {}
+	//# exports.SparseMatrix.prototype.load = function (FIn) { return Object.create(require('qminer').fs.FIn.prototype); }
 	JsDeclareFunction(load);
 	//!- `spMat2 = spMat.sign()` -- create a new sparse matrix `spMat2` whose elements are sign function applied to elements of `spMat`.
 	// (TODO) JsDeclareFunction(sign);

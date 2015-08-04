@@ -1566,28 +1566,28 @@ private:
 	/**
 	* Returns the first record of the store.
 	*/
-	//# exports.Store.prototype.first = undefined;
+	//# exports.Store.prototype.first = Object.create(require('qminer').Record.prototype);
 	JsDeclareProperty(first);
 
 	//!- `rec = store.last` -- last record from the store
 	/**
 	* Returns the last record of the store.
 	*/
-	//# exports.Store.prototype.last = undefined;
+	//# exports.Store.prototype.last = Object.create(require('qminer').Record.prototype);
 	JsDeclareProperty(last);
 
 	//!- `iter = store.forwardIter` -- returns iterator for iterating over the store from start to end
 	/**
 	* Returns an iterator for iterating over the store from start to end.
 	*/
-	//# exports.Store.prototype.forwardIter = undefined;
+	//# exports.Store.prototype.forwardIter = Object.create(require('qminer').Iterator.prototype);
 	JsDeclareProperty(forwardIter);
 
 	//!- `iter = store.backwardIter` -- returns iterator for iterating over the store from end to start
 	/**
 	* Returns an iterator for iterating over the store form end to start.
 	*/
-	//# exports.Store.prototype.backwardIter = undefined;
+	//# exports.Store.prototype.backwardIter = Object.create(require('qminer').Iterator.prototype);
 	JsDeclareProperty(backwardIter);
 
 	//!- `rec = store[recId]` -- get record with ID `recId`; 
@@ -1614,7 +1614,7 @@ private:
 // NodeJs QMiner Record
 
 /**
-* Record (factory pattern).
+* Record (factory pattern). The records are used for storing data in {@link module:qm.Store}.
 * @namespace
 */
 //# exports.Record = function () {}; 
@@ -1750,22 +1750,21 @@ private:
 	/**
 	* Returns the name of the record.
 	*/
-	//# exports.Record.prototype.$name = undefined;
+	//# exports.Record.prototype.$name = "";
 	JsDeclareProperty(name);
 
 	//!- `recFq = rec.$fq` -- returns record frequency (used for randomized joins)
 	/**
 	* Returns the frequency of the record.
-	* @ignore
 	*/
-	//# exports.Record.prototype.$fq = undefined;
+	//# exports.Record.prototype.$fq = 0;
 	JsDeclareProperty(fq);
 
 	//!- `recStore = rec.$store` -- returns record store
 	/**
 	* Returns the store the record belongs to.
 	*/
-	//# exports.Record.prototype.store = undefined;
+	//# exports.Record.prototype.store = Object.create('qminer').Store.prototype;
 	JsDeclareProperty(store);
 
 	//!- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
@@ -1781,7 +1780,7 @@ private:
 // NodeJs QMiner Record Set
 
 /**
-* Record Set (factory pattern)
+* Record Set (factory pattern). The Record Set is a set of records.
 * @namespace
 * @example
 * // import qm module
@@ -2454,7 +2453,7 @@ private:
 	* // make an array of record Names
 	* var arr = recordSet.map(function (rec) { return rec.Name; }); // returns an array: ["Eric Sugar", "Jane Tokyo", "Mister Tea"]
 	*/
-	//# exports.RecordSet.prototype.map = function (callback) {}
+	//# exports.RecordSet.prototype.map = function (callback) { return [Object];  }
 	JsDeclareFunction(map);
 
 	//!- `rs3 = rs.setIntersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
@@ -2633,14 +2632,14 @@ private:
 	* // 48  44  48
 	* var matrix = recordSet.getMatrix("ScorePerRound");
 	*/
-	//# exports.RecordSet.prototype.getMatrix = function (fieldName) {};
+	//# exports.RecordSet.prototype.getMatrix = function (fieldName) { return Object.create(require('qminer').la.Matrix.prototype); };
 	JsDeclareFunction(getMatrix);
 	
 	//!- `storeName = rs.store` -- store of the records
 	/**
 	* Returns the store, where the records in the record set are stored.
 	*/
-	//# exports.RecordSet.prototype.store = undefined;
+	//# exports.RecordSet.prototype.store = Object.create(require('qminer').Store.prototype);
 	JsDeclareProperty(store);
 
 	//!- `len = rs.length` -- number of records in the set
@@ -2654,14 +2653,14 @@ private:
 	/**
 	* Checks if the record set is empty. If the record set is empty, then it returns true. Otherwise, it returns false.
 	*/
-	//# exports.RecordSet.prototype.empty = undefined;
+	//# exports.RecordSet.prototype.empty = true;
 	JsDeclareProperty(empty);
 
 	//!- `bool =  rs.weighted` -- `bool = true` when records in the set are assigned weights
 	/**
 	* Checks if the record set is weighted. If the record set is weighted, then it returns true. Otherwise, it returns false.
 	*/
-	//# exports.RecordSet.prototype.weighted = undefined;
+	//# exports.RecordSet.prototype.weighted = true;
 	JsDeclareProperty(weighted);
 
 	//!- `rec = rs[n]` -- return n-th record from the record set
@@ -2696,7 +2695,7 @@ private:
 * // factory based construction with forwardIter
 * var iter = base.store("People").forwardIter;
 */
-//# exports.Iterator = function () {};
+//# exports.Iterator = function () { return Object.create(require('qminer').Iterator.prototype); };
 
 class TNodeJsStoreIter: public node::ObjectWrap {
 	friend class TNodeJsUtil;
@@ -2769,14 +2768,14 @@ public:
 	/**
 	* Gives the store of the iterator.
 	*/
-	//# exports.Iterator.prototype.store = undefined;
+	//# exports.Iterator.prototype.store = Object.create(require('qminer').Store.prototype);
 	JsDeclareProperty(store);
 
 	//!- `rec = iter.record` -- get current record; reuses JavaScript record wrapper, need to call `rec.$clone()` on it to if there is any wish to store intermediate records.
 	/**
 	* Gives the current record.
 	*/
-	//# exports.Iterator.prototype.record = undefined;
+	//# exports.Iterator.prototype.record = Object.create(require('qminer').Record.prototype);
 	JsDeclareProperty(record);
 };
 
@@ -2977,14 +2976,14 @@ public:
 	/**
 	* Returns the dimension of the feature space.
 	*/
-	//# exports.FeatureSpace.prototype.dim = undefined;
+	//# exports.FeatureSpace.prototype.dim = 0;
     JsDeclareProperty(dim);
     
 	//!- `num_array = fsp.dims` -- dimensionality of feature space for each of the internal feature extarctors
 	/**
 	* Returns an array of the dimensions of each feature extractor in the feature space.
 	*/
-	//# exports.FeatureSpace.prototype.dims = undefined;
+	//# exports.FeatureSpace.prototype.dims = [0];
     JsDeclareProperty(dims);
 
     //!- `fout = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns `fout`.
@@ -3494,7 +3493,7 @@ public:
 	* // filter the elements from the second feature extractor, without keeping the offset
 	* var spVec3 = ftr.filter(spVec, 1, false); // returns sparse vector [[1, 1]]
 	*/
-	//# exports.FeatureSpace.prototype.filter = function (vec, idx, keepOffset) {};
+	//# exports.FeatureSpace.prototype.filter = function (vec, idx, keepOffset) { return (vec instanceof require('qminer').la.Vector) ? require('qminer').la.Vector : require('qminer').la.SparseVector; };
     JsDeclareFunction(filter);
 
 	//!- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string
