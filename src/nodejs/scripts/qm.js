@@ -301,7 +301,7 @@ module.exports = exports = function (pathPrefix) {
     }
 
     //==================================================================
-    // CIRCULAR BUFFER
+    // CIRCULAR RECORD BUFFER
     //==================================================================
 
     /**
@@ -310,22 +310,22 @@ module.exports = exports = function (pathPrefix) {
     * are removed from the buffer and new records are stored in their place. For
     * adding and deleting a callback is called. Records are stored by their IDs.
     * @class
-    * @param {Object} [CircularBufferParam] - Constructor parameters
-    * @param {module:qm.Store} CircularBufferParam.store - Store for the records in the buffer.
-    * @param {number} CircularBufferParam.size - Size of the buffer (number of records).
-    * @param {function} [CircularBufferParam.onAdd] - Callback executed when new record is
-    * added to the buffer. Callback is give two parameters: record and instance of CircularBuffer.
-    * @param {function} [CircularBufferParam.onDelete] - Callback executed when record is removed
-    * from the buffer. Callback is give two parameters: record and instance of CircularBuffer.
+    * @param {Object} [CircularRecordBufferParam] - Constructor parameters
+    * @param {module:qm.Store} CircularRecordBufferParam.store - Store for the records in the buffer.
+    * @param {number} CircularRecordBufferParam.size - Size of the buffer (number of records).
+    * @param {function} [CircularRecordBufferParam.onAdd] - Callback executed when new record is
+    * added to the buffer. Callback is give two parameters: record and instance of CircularRecordBuffer.
+    * @param {function} [CircularRecordBufferParam.onDelete] - Callback executed when record is removed
+    * from the buffer. Callback is give two parameters: record and instance of CircularRecordBuffer.
     * @example
 	* // TODO
     */
-    exports.CircularBuffer = function (params) {
+    exports.CircularRecordBuffer = function (params) {
         // check we have all encessary parameters
-        if (params.store == undefined) { throw new Error("CircularBuffer requires store in constructor"); }
-        if (!(params.store instanceof qm.Store)) { throw new Error("CircularBuffer requires store in constructor" + params.store); }
-        if (params.size == undefined) { throw new Error("CircularBuffer requires size in constructor"); }
-        if (!(params.size >= 1)) { throw new Error("CircularBuffer positive size in constructor"); }
+        if (params.store == undefined) { throw new Error("CircularRecordBuffer requires store in constructor"); }
+        if (!(params.store instanceof qm.Store)) { throw new Error("CircularRecordBuffer requires store in constructor" + params.store); }
+        if (params.size == undefined) { throw new Error("CircularRecordBuffer requires size in constructor"); }
+        if (!(params.size >= 1)) { throw new Error("CircularRecordBuffer positive size in constructor"); }
         // parameters
         this.store = params.store;
         this.size = params.size;
