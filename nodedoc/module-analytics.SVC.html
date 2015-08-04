@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
   <title>Class: SVC</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">SVC</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-67">analyticsdoc.<wbr>js:67</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-50">analyticsdoc.<wbr>js:50</a></p>
             <div class="symbol-classdesc">
               <p>Support Vector Machine Classifier. Implements a soft margin linear support vector classifier using the PEGASOS algorithm, see: <a href="http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf">Pegasos: Primal Estimated sub-GrAdient SOlver for SVM</a>.</p>
             </div>
@@ -54,17 +54,23 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.SVC.html#decisionFunction">decisionFunction(X)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.SVC.html#fit">fit(X, y)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.SVC.html#getParams">getParams()</a></dt>
+                    <dt><a href="module-analytics.SVC.html#getModel">getModel()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.SVC.html#predict">predict(vec)</a></dt>
+                    <dt><a href="module-analytics.SVC.html#getParams">getParams()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.SVC.html#predict">predict(X)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.SVC.html#save">save(fout)</a></dt>
@@ -103,7 +109,7 @@ var SVC = new analytics.SVC({verbose:true});
 // Train classifier
 SVC.fit(featureMatrix, targets);
 // Save the model to disk
-SVC.save(&#x27;svc.bin&#x27;);*
+SVC.save(&#x27;svc.bin&#x27;);
 // Set up a fake test vector
 var test = new la.Vector([1.1, -0.5]);
 // Predict the target value
@@ -180,6 +186,44 @@ var prediction = SVC.predict(test);</code></pre>
             </section>
             <h2>Methods</h2>
             <section>
+              <h3 id="decisionFunction"><span class="symbol-name">decisionFunction</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.Vector.html">module:la.Vector</a>)</span></span></h3>
+              <p>sends vector through the model and returns the distance to the decision boundery</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>X</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Vector.html">module:la.Vector</a>, <a href="module-la.SparseVector.html">module:la.SparseVector</a>, <a href="module-la.Matrix.html">module:la.Matrix</a>, or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Input feature vector or matrix with feature vectors as columns</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;Prediction real number (if input vector) or vector (if input matrix). Sign of the number corresponds to the class and the magnitude corresponds to the
+                    distance from the margin (certainty).</p>
+                </dd>
+              </dl>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X, y)</span></span></h3>
               <p>fits an SVM classification model, given column examples in a matrix and vector of targets</p>
               <section>
@@ -227,6 +271,14 @@ var prediction = SVC.predict(test);</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~svmModel">module:analytics~svmModel</a></span></span></h3>
+              <p>Get SVC model</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-analytics.html#~svmModel">module:analytics~svmModel</a></code>&nbsp;Get current SVM model</p>
+                </dd>
+              </dl>
               <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~svcParam">module:analytics~svcParam</a></span></span></h3>
               <p>returns the svc parameters</p>
               <dl class="dl-compact">
@@ -235,7 +287,7 @@ var prediction = SVC.predict(test);</code></pre>
                   <p><code><a href="module-analytics.html#~svcParam">module:analytics~svcParam</a></code>&nbsp;Parameters of the classifier model.</p>
                 </dd>
               </dl>
-              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(vec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.Vector.html">module:la.Vector</a>)</span></span></h3>
               <p>sends vector through the model and returns the prediction as a real number</p>
               <section>
                 <h4>Parameter</h4>
@@ -251,16 +303,16 @@ var prediction = SVC.predict(test);</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>vec</p>
+                        <p>X</p>
                       </td>
                       <td>
-                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>)</p>
+                        <p>(<a href="module-la.Vector.html">module:la.Vector</a>, <a href="module-la.SparseVector.html">module:la.SparseVector</a>, <a href="module-la.Matrix.html">module:la.Matrix</a>, or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Input vector</p>
+                        <p>Input feature vector or matrix with feature vectors as columns</p>
                       </td>
                     </tr>
                   </tbody>
@@ -269,7 +321,7 @@ var prediction = SVC.predict(test);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Prediction real number. Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).</p>
+                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;Prediction real number (if input vector) or vector (if input matrix), 1 for positive class and -1 for negative.</p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
@@ -352,7 +404,7 @@ var prediction = SVC.predict(test);</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 8, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 3, 2015.
       </p>
     </div>
   </footer>

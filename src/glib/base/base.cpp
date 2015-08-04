@@ -88,3 +88,6 @@ int _daylight = 0;
 
 #include "zipfl.cpp"
 
+#ifdef GLib_WIN
+#include "StackWalker.cpp"
+#endif

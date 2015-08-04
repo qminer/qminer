@@ -61,8 +61,7 @@ public:
   void AddToArr(const bool& Val){ AddToArr(NewBool(Val)); }
   void AddToArr(const TJsonValV& ValV){ AddToArr(NewArr(ValV)); }
   void PutObj(){JsonValType=jvtObj;}
-  void AddToObj(const TStr& KeyNm, const PJsonVal& Val){
-    EAssert(JsonValType==jvtObj); KeyValH.AddDat(KeyNm, Val);}
+  void AddToObj(const TStr& KeyNm, const PJsonVal& Val);
   void AddToObj(const TStr& KeyNm, const int& Val){ AddToObj(KeyNm, NewNum((double)Val)); }
   void AddToObj(const TStr& KeyNm, const uint& Val){ AddToObj(KeyNm, NewNum((double)Val)); }
   void AddToObj(const TStr& KeyNm, const uint64& Val){ AddToObj(KeyNm, NewNum((double)Val)); }
@@ -73,8 +72,8 @@ public:
   void AddToObj(const TStr& KeyNm, const bool& Val){ AddToObj(KeyNm, NewBool(Val)); }
   void AddToObj(const TStr& KeyNm, const TJsonValV& ValV){ AddToObj(KeyNm, NewArr(ValV)); }
   void AddToObj(const PJsonVal& Val);
-  void DelObjKey(const TStr& KeyNm) { KeyValH.DelIfKey(KeyNm); }
-
+  void MergeObj(const PJsonVal& Val);
+  
   // simplified creation of basic elements
   static PJsonVal NewNull() { PJsonVal Val = TJsonVal::New(); Val->PutNull(); return Val; }
   static PJsonVal NewBool(const bool& Bool) { PJsonVal Val = TJsonVal::New(); Val->PutBool(Bool); return Val; }
@@ -83,6 +82,7 @@ public:
   static PJsonVal NewArr() { PJsonVal Val = TJsonVal::New(); Val->PutArr(); return Val; }
   static PJsonVal NewArr(const TJsonValV& ValV);
   static PJsonVal NewArr(const TIntV& IntV);
+  static PJsonVal NewArr(const TUInt64V& IntV);
   static PJsonVal NewArr(const TFltV& FltV);
   static PJsonVal NewArr(const double& Val1, const double& Val2);
   static PJsonVal NewArr(const TStrV& StrV);
@@ -123,6 +123,8 @@ public:
   int GetObjKeys() const {EAssert(IsObj()); return KeyValH.Len();}
   void GetObjKeyVal(const int& KeyValN, TStr& Key, PJsonVal& Val) const {
     EAssert(IsObj()); Key=KeyValH.GetKey(KeyValN); Val=KeyValH[KeyValN];}
+  const TStr& GetObjKey(const int& KeyValN) const {
+	  EAssert(IsObj()); return KeyValH.GetKey(KeyValN);}
   bool IsObjKey(const TStr& Key) const {EAssert(IsObj()); return KeyValH.IsKey(Key);}
   bool IsObjKey(const char *Key) const {EAssert(IsObj()); return KeyValH.IsKey(Key);}
   PJsonVal GetObjKey(const TStr& Key) const;
@@ -146,6 +148,11 @@ public:
   const TStr& GetObjStr(const char *Key, const TStr& DefStr) const;
   void GetObjStrV(const TStr& Key, TStrV& StrV) const;
   void GetObjStrV(const char *Key, TStrV& StrV) const;
+
+  // removing value
+  void DelObjKey(const TStr& Key) { EAssert(IsObj()); KeyValH.DelIfKey(Key); /*KeyValH.Defrag();*/ }
+  void DelObjKey(const char *Key) { EAssert(IsObj()); KeyValH.DelIfKey(Key); /*KeyValH.Defrag();*/ }
+  void DelArrVal(const int& ValN) { EAssert(IsArr()); ValV.Del(ValN); }
 
   // (de)serialization
   static PJsonVal GetValFromLx(TILx& Lx);
@@ -185,7 +192,7 @@ public:
 	static PJsonVal GetJsonVoc(TSIn& SIn, TStrHash<TInt, TBigStrPool>& Voc) { 
         return GetJsonRecursive(SIn, &Voc); };
 
-	static void UnitTest();
+	static void UnitTest() { }
 
 private:
 	static void CreateBsonRecursive(const TJsonVal& JsonVal, 

@@ -120,7 +120,8 @@ private:
         btTf = (1 << 0),
         btIdf = (1 << 1),
         btNormalize = (1 << 2),
-        btHashing = (1 << 3)
+        btHashing = (1 << 3),
+        btStoreHashWords = (1 << 4)
     } TBagOfWordsType;
     
 private:
@@ -136,8 +137,6 @@ private:
     TStrSet TokenSet;
     /// Hashing dimension
     TInt HashDim;
-    /// Keep Hash Table (can be used only when hashing for debuging)
-    TBool KeepHashTable;
 
     /// Ngrams Range Start
     TInt NStart;
@@ -157,13 +156,15 @@ private:
     TFltV OldDocFqV;
 
     /// Set of tokens that hash into specific dimension
-    TVec<TStrSet> HashTable;
+    TVec<TStrSet> HashWordV;
+    /// default return in case sets are empty
+    TStrSet EmptySet;
 
 public:
     TBagOfWords() { }
     TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP,
-        PTokenizer _Tokenizer = NULL, const int& _HashDim = -1, const bool& KHT = false,
-        const int& NStart = 1, const int& NEnd = 1);
+        PTokenizer _Tokenizer = NULL, const int& _HashDim = -1,
+        const bool& StoreHashWordsP = false, const int& NStart = 1, const int& NEnd = 1);
     TBagOfWords(TSIn& SIn);
     void Save(TSOut& SOut) const;
 
@@ -172,7 +173,7 @@ public:
     bool IsIdf() const { return ((Type & btIdf) != 0); }
     bool IsNormalize() const { return ((Type & btNormalize) != 0); }
     bool IsHashing() const { return ((Type & btHashing) != 0); }
-    bool IsKeepingHashTable() const { return KeepHashTable; }
+    bool IsStoreHashWords() const { return ((Type & btStoreHashWords) != 0); }
     
     void Clr();
     void GetFtr(const TStr& Str, TStrV& TokenStrV) const;
@@ -191,8 +192,8 @@ public:
     /// Hashing Related Functions
     int GetDim() const { return IsHashing() ? HashDim.Val : TokenSet.Len(); }
     TStr GetVal(const int& ValN) const { return IsHashing() ? TInt::GetStr(ValN) : TokenSet.GetKey(ValN); }
-    TVec<TStrSet> GetHashTable() const { return KeepHashTable ? HashTable : TVec<TStrSet>(); }
-    TStrSet GetHashVals(TInt hash) const { return KeepHashTable ? HashTable.GetVal(hash) : TStrSet(); }
+    const TVec<TStrSet>& GetHashWordH() const { return HashWordV; }
+    TStrSet GetHashVals(const int& Hash) const { return IsStoreHashWords() ? HashWordV.GetVal(Hash) : EmptySet; }
     
     PSwSet GetSwSet() const { return SwSet; }
     PStemmer GetStemmer() const { return Stemmer; }

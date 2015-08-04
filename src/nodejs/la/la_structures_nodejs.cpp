@@ -564,7 +564,7 @@ void TNodeJsFltVV::colMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     const int ColN = Args[0]->Int32Value();
 
     EAssertR(0 <= ColN && ColN < JsMat->Mat.GetCols(),
-        "Index out of bounds.");
+        TStr::Fmt("Index out of bounds: %d / %d.", ColN, JsMat->Mat.GetCols()));
 
     const int MxIdx = TLinAlg::GetColMaxIdx(JsMat->Mat, ColN);
 

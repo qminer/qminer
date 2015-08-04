@@ -668,6 +668,10 @@ public:
   TStr RightOf(const char& SplitCh) const;
   /// Get substring from the character after last occurrence of SplitCh till the end
   TStr RightOfLast(const char& SplitCh) const;
+  /// Remove the StartStr if it occurs at the beginning of the string
+  TStr TrimLeft(const TStr& StartStr) const { return StartsWith(StartStr) ? GetSubStr(StartStr.Len()) : TStr(*this); }
+  /// Remove the EndStr if it occurs at the end of the string
+  TStr TrimRight(const TStr& EndStr) const { return EndsWith(EndStr) ? GetSubStr(0, Len() - EndStr.Len() - 1) : TStr(*this); }
 
   /// Puts the contents to the left of LeftOfChN (exclusive) into LStr and the 
   /// contents on the right of RightOfChN into RStr (exclusive)
@@ -1007,6 +1011,7 @@ public:
     if (Offset != 0) return GetPrimHashCd(Bf + Offset); else return GetPrimHashCd(""); }
   int GetSecHashCd(const uint& Offset) { Assert(Offset < BfL);
     if (Offset != 0) return GetSecHashCd(Bf + Offset); else return GetSecHashCd(""); }
+  int GetMemUsed() const { return (int) MxBfL + 3*sizeof(uint); }
 };
 
 /////////////////////////////////////////////////
@@ -1469,7 +1474,9 @@ public:
   TNum& operator--(){ --Val; return *this; } // prefix
   TNum operator++(int){ TNum oldVal = Val; Val++; return oldVal; } // postfix
   TNum operator--(int){ TNum oldVal = Val; Val--; return oldVal; } // postfix
-  //bool operator==(const T& UInt) const {return Val==UInt.Val;}
+  TNum& operator+=(const uint& Int){ Val += Int; return *this; }
+  TNum& operator-=(const uint& Int){ Val -= Int; return *this; }
+  //bool operator==(const TUInt& UInt) const {return Val==UInt.Val;}
   //bool operator==(const uint& UInt) const {return Val==UInt;}
   //bool operator!=(const uint& UInt) const {return Val!=UInt;}
   //bool operator<(const TUInt& UInt) const {return Val<UInt.Val;}
@@ -1742,7 +1749,7 @@ public:
   bool IsNum() const { return IsNum(Val); }
   bool IsNan() const { return IsNan(Val); }
 
-TStr GetStr() const {return TNum::GetStr(Val);}
+  TStr GetStr() const {return TNum::GetStr(Val);}
   static TStr GetStr(const double& Val, const int& Width=-1, const int& Prec=-1);
   static TStr GetStr(const TNum& Flt, const int& Width=-1, const int& Prec=-1){
     return GetStr(Flt.Val, Width, Prec);}

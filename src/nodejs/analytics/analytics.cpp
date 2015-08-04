@@ -128,11 +128,11 @@ void TNodeJsSvmModel::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	}
 }
 
-void TNodeJsSvmModel::decision_function(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSvmModel::decisionFunction(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     
-    EAssertR(Args.Length() == 1, "svm.decision_function: expecting 1 argument");
+    EAssertR(Args.Length() == 1, "svm.decisionFunction: expecting 1 argument");
     
     try {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
@@ -164,15 +164,15 @@ void TNodeJsSvmModel::decision_function(const v8::FunctionCallbackInfo<v8::Value
             Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
         }
         else {
-            throw TExcept::New("svm.decision_function: unsupported type of the first argument");
+            throw TExcept::New("svm.decisionFunction: unsupported type of the first argument");
         }
     }
     catch (const PExcept& Except) {
-        throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::decision_function");
+        throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::decisionFunction");
     }
 }
 
-// TODO: try to call directly decision_function and check response
+// TODO: try to call directly decisionFunction and check response
 void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -282,7 +282,7 @@ void TNodeJsSVC::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "decision_function", _decision_function);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "decisionFunction", _decisionFunction);
     NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
 
@@ -361,8 +361,8 @@ void TNodeJsSVR::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "decision_function", _decision_function);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _decision_function);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "decisionFunction", _decisionFunction);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _decisionFunction);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);	
 
 	// properties
@@ -437,7 +437,7 @@ void TNodeJsRidgeReg::Init(v8::Handle<v8::Object> exports) {
     
     // Add all methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "decision_function", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "decisionFunction", _predict);
     NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
     
@@ -532,7 +532,7 @@ void TNodeJsSigmoid::Init(v8::Handle<v8::Object> exports) {
     
     // Add all methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "decision_function", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "decisionFunction", _predict);
     NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
     

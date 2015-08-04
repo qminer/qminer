@@ -135,7 +135,6 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			if (Args.Length() >= 3 && Args[2]->IsString()) {
 				ParamVal->AddToObj("store", TNodeJsUtil::GetArgStr(Args, 2));
 			}
-
 			// check if it's one stream aggregate or composition
 			if (TQm::TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
 				// we have a composition of aggregates, call code to assemble it

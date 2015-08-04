@@ -21,57 +21,89 @@ module.exports = exports = function (pathPrefix) {
 
     var qm_util = require(__dirname + '/qm_util.js');
 
-
+    //!STARTJSDOC
     exports.preprocessing = new function() {
-        this.binerize = function (y, cat) {
+        this.binarize = function (y, labelId) {
             var target = new la.Vector();
             for (var i = 0; i < y.length; i++) {
-                target.push(y[i] == cat ? 1 : -1);
+                target.push(y[i] === labelId ? 1 : -1);
             }
             return target;
         };
 
-        this.inverse_binerize = function (y) {
-            var labels = [];
-            for (var cat = 0; cat < y.length; cat++) {
-                if (y[cat] > 0.0) { labels.push(cat); }
-            }
-            return labels;
-        };
-
-        this.indicator = function (cat, cats) {
-            var indicator = new la.Vector();
-            for (var i = 0; i < cats; i++) {
-                indicator.push(cat == i ? 1 : 0);
-            }
-            return indicator;
-        }
-
         this.applyModel = function (model, X) {
             var target = new la.Vector();
             for (var i = 0; i < X.cols; i++) {
-                target.push(model.decision_function(X[i]));
+                target.push(model.decisionFunction(X[i]));
             }
             return target;
         }
     };
 
-    exports.OneVsAll = function (params) {
+    /**
+    * SVM model
+    * @typedef {Object} svmModel
+    * @property  {module:la.Vector} svmModel.weigths - SVM normal vector
+    */
+    /**
+	* Get SVC model
+	* @returns {module:analytics~svmModel} Get current SVM model
+	*/
+    exports.SVC.prototype.getModel = function() { return { weights: this.weights }; }
+    /**
+	* Get SVR model
+	* @returns {module:analytics~svmModel} Get current SVM model
+	*/
+    exports.SVR.prototype.getModel = function() { return { weights: this.weights }; }
+
+    // var model = new OneVsAll({
+    //     model : analytics.SVC,
+    //     modelParam: { c: 10, j: 10, maxTime: 123 },
+    //     cats : 123
+    // });
+    //
+    // var X = featureSpace.extractSparseMatrix(recordSet);
+    // var y = store.getCol("label");
+    // model.fit(X, y);
+    //
+    // model.predict(featureSpace.extractSparseVector(record));
+
+    /**
+    * @classdesc One vs. all model for multiclass prediction. Builds binary model
+    * for each category and predicts the one with the highest score. Binary model is
+    * provided as part of the constructor.
+    * @class
+    * @param {Object} [oneVsAllParam] - Constructor parameters
+    * @param {function} [oneVsAllParam.model] - Constructor for binary model to be
+    * used internaly. Constructor should expect only one parameter.
+    * @param {Object} [oneVsAllParam.modelParam] - Parameter for oneVsAllParam.model constructor.
+    * @param {number} [oneVsAllParam.categories] - Number of categories.
+    */
+    exports.OneVsAll = function (oneVsAllParam) {
         // remember parameters
-        this.model = params.model;
-        this.modelParam = params.modelParam;
-        this.cats = params.cats;
+        this.model = oneVsAllParam.model;
+        this.modelParam = oneVsAllParam.modelParam;
+        this.cats = oneVsAllParam.categories;
         // trained models
         this.models = [ ];
 
-        // apply all models to the given vector and return distance to the class boundary
-        this.decision_function = function(x, cat) {
+        /**
+         * apply all models to the given vector and returns a vector of scores, one for each category.
+         * Semantic of scores depand on the provided binary model.
+         * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X -
+         * Input feature vector or matrix with feature vectors as columns
+         * @returns {module:la.Vector | module:la.Matrix}
+         * Score for each input vector and category. In case input is a vector, ouput is
+         * a vector of scores. In case input is a matrix, output is matrix with columns corresponding
+         * to instances, and rows corresponding to labels.
+         */
+        this.decisionFunction = function(X) {
             // check what is our input
             if (x instanceof la.Vector || x instanceof la.SparseVector) {
                 // evaluate all models
                 var scores = new la.Vector();
                 for (var cat = 0; cat < this.cats; cat++) {
-                    scores.push(this.models[cat].decision_function(x));
+                    scores.push(this.models[cat].decisionFunction(x));
                 }
                 return scores;
             } else if (x instanceof la.Matrix || x instanceof la.SparseMatrix) {
@@ -80,19 +112,24 @@ module.exports = exports = function (pathPrefix) {
                 for (var i = 0; i < x.cols; i++) {
                     var x_i = x.getCol(i);
                     for (var cat = 0; cat < this.cats; cat++) {
-                        scores.put(cat, i, this.models[cat].decision_function(x_i));
+                        scores.put(cat, i, this.models[cat].decisionFunction(x_i));
                     }
                 }
                 return scores;
             } else {
-                throw "analytics.OneVsAll.decision_function: Input data of unsupported type!";
+                throw "analytics.OneVsAll.decisionFunction: Input data of unsupported type!";
             }
         }
 
-        // return the most likely category
+        /**
+         * apply all models to the given vector and returns category with the highest score.
+         * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X -
+         * Input feature vector or matrix with feature vectors as columns
+         * @returns {number | module:la.IntVector} Highest scored category, or categories when input is matrix.
+         */
         this.predict = function(x) {
             // evaluate all models
-            var scores = this.decision_function(x);
+            var scores = this.decisionFunction(x);
             // select maximal one
             if (scores instanceof la.Vector) {
                 return scores.getMaxIdx();
@@ -103,19 +140,25 @@ module.exports = exports = function (pathPrefix) {
                 }
                 return predictions;
             } else {
-                throw "analytics.OneVsAll.predict: decision_function returns unsupported type!";
+                throw "analytics.OneVsAll.predict: decisionFunction returns unsupported type!";
             }
         }
 
         // X = feature matrix
         // y = target label from 0..cats
+        /**
+         * apply all models to the given vector and returns category with the highest score.
+         * @param {module:la.Matrix | module:la.SparseMatrix} X - training instance feature vectors
+         * @param {module:la.Vector} y - target category for each training instance. Categories must
+         * be integer numbers between 0 and oneVsAllParam.categories - 1.
+         */
         this.fit = function(X, y) {
             this.models = [ ];
             // make model for each category
             for (var cat = 0; cat < this.cats; cat++) {
                 console.log("Fitting label", (cat + 1), "/", this.cats);
                 // prepare targert vector for current category
-                var target = exports.preprocessing.binerize(y, cat);
+                var target = exports.preprocessing.binarize(y, cat);
                 // get the model
                 var catModel = new this.model(this.modelParam);
                 this.models.push(catModel.fit(X, target));
@@ -137,7 +180,7 @@ module.exports = exports = function (pathPrefix) {
         // apply all models to the given vector and return distance to the class boundary
         // x = dense vector with prediction score for each class
         // result = traslated predictions based on thresholds
-        this.decision_function = function(x) {
+        this.decisionFunction = function(x) {
             if (x instanceof Number) {
                 // just transate based on the model's threshold
                 return x - this.model;
@@ -149,7 +192,7 @@ module.exports = exports = function (pathPrefix) {
                 }
                 return scores;
             } else {
-                throw "analytics.ThresholdModel.decision_function: Input data of unsupported type!";
+                throw "analytics.ThresholdModel.decisionFunction: Input data of unsupported type!";
             }
         }
 
@@ -158,7 +201,7 @@ module.exports = exports = function (pathPrefix) {
         // result = array of positive label ids
         this.predict = function(x) {
             // evaluate all models
-            var scores = this.decision_function(x)
+            var scores = this.decisionFunction(x)
             // check what we get
             if (scores instanceof la.Vector) {
                 return res = new la.Vector();
@@ -191,7 +234,7 @@ module.exports = exports = function (pathPrefix) {
 
     exports.metrics = new function() {
         // For evaluating provided categories (precision, recall, F1).
-        this.ClassifcationScore = function (yTrue, yPred) {
+        this.ClassificationScore  = function (yTrue, yPred) {
             this.scores = {
                 count: 0, predictionCount: 0,
                 TP: 0, TN: 0, FP: 0, FN: 0,
@@ -237,19 +280,19 @@ module.exports = exports = function (pathPrefix) {
         };
 
         this.accuracyScore = function (yTrue, yPred) {
-            return new this.ClassifcationScore(yTrue, yPred).scores.accuracy();
+            return new this.ClassificationScore (yTrue, yPred).scores.accuracy();
         };
 
         this.precisionScore = function (yTrue, yPred) {
-            return new this.ClassifcationScore(yTrue, yPred).scores.precision();
+            return new this.ClassificationScore (yTrue, yPred).scores.precision();
         };
 
         this.recallScore = function (yTrue, yPred) {
-            return new this.ClassifcationScore(yTrue, yPred).scores.recall();
+            return new this.ClassificationScore (yTrue, yPred).scores.recall();
         };
 
         this.f1Score = function (yTrue, yPred) {
-            return new this.ClassifcationScore(yTrue, yPred).scores.accuracy();
+            return new this.ClassificationScore (yTrue, yPred).scores.accuracy();
         };
 
         // used for computing ROC curve and other related measures such as AUC;
@@ -477,6 +520,501 @@ module.exports = exports = function (pathPrefix) {
             return new this.PredictionCurve(yTrue, yPred).desiredPrecision(desiredPrecision);
         };
     };
+
+    /**
+    * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
+    * @class
+    * @param {Object} [detectorParam={rate:0.05, window:100, matrix: module:la.Matrix}] - Constructor parameters
+    * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies).
+    * @param {number} [detectorParam.window=100] - Number of most recent instances kept in the model.
+    * @param {function} [detectorParam.matrix=module:la.Matrix] - Matrix implementation used to store the modelo (e.g., `la.Matrix` or `la.SparseMatrix`).
+    */
+    exports.NearestNeighborAD = function (detectorParam) {
+        detectorParam = detectorParam == undefined ? {} : detectorParam;
+        // model parameter
+        this.rate = (detectorParam.rate == undefined) ? 0.05 : detectorParam.rate;
+        assert(this.rate > 0 && this.rate <= 1.0, "NearestNeighborAD: rate parameter not in range (0,1]");
+        // window size
+        this.windowSize = (detectorParam.windowSize == undefined) ? 100 : detectorParam.windowSize;
+        assert(this.windowSize >= 1, "NearestNeighborAD: window parameter not positive");
+        // matrix constructor
+        this.matrix = (detectorParam.matrix == undefined) ? la.Matrix : detectorParam.matrix;
+        // dimensionality
+        this.dim = (detectorParam.dim == undefined) ? -1 : detectorParam.dim;
+        // model
+        this.thresh = 0;
+        this.dist = new la.Vector();
+        this.distId = new la.IntVector();
+        this.X = new this.matrix({ cols: this.windowSize, rows: this.dim });
+        this.init = 0;
+        this.next = 0;
+        // initial distance, should be biger then dataset diameter
+        this.maxDist = 1e10;
+        // for private consumption
+        var that = this;
+
+        /**
+        * Returns the model
+        * @param {p} Object whose keys are: "thresh" - Maximal squared distance to the nearest neighbor that is not anomalous
+        */
+        this.getModel = function () { return { rate: this.rate, thresh: this.thresh }; }
+
+        /**
+        * Sets parameters
+        * @param {p} Object whose keys are: "rate" - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
+        */
+        this.setParams = function (p) {
+            param = p;
+        }
+
+        /**
+        * Returns parameters
+        * @returns Object whose keys are: "rate" - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
+        */
+        this.getParams = function () {
+            return param;
+        }
+
+        // return vector of distances between x and each column of X
+        var vectorDistances = function (x) {
+            return la.pdist2(that.X, x.toMat()).getCol(0);
+        }
+
+        // update distance vector for vector X[xId], ignoring vector X[ignoreId]
+        var updateDistances = function (xId, ignoreId) {
+            // in case we are not given vector to ignore, use self
+            ignoreId = (ignoreId == undefined) ? xId : ignoreId;
+            // compared to rest
+            var x = that.X.getCol(xId);
+            var y = vectorDistances(x);
+            // update distances and compute its nearest neighbor
+            var minDist = that.maxDist, minDistId = xId;
+            for (var i = 0; i < that.init; i++) {
+                // skip self and ignore
+                if (i == xId) { continue; }
+                if (i == ignoreId) { continue; }
+                // x is the new nearest neighbor for column i
+                if (y[i] < that.dist[i]) { that.dist[i] = y[i]; that.distId[i] = xId; }
+                // found new nearest neighbor for x
+                if (y[i] < minDist) { minDist = y[i]; minDistId = i; }
+            }
+            // update its own nearest neighbor
+            that.dist[xId] = minDist;
+            that.distId[xId] = minDistId;
+        }
+
+        // compute new threshold on the current distance vector
+        var updateThreshold = function () {
+            // sort distances
+            var sorted = new la.Vector(that.dist); sorted.sort();
+            // get the id corresonding to rate-th element
+            var idx = Math.floor((1 - that.rate) * sorted.length);
+            // set the threshold
+            that.thresh = sorted[idx];
+        }
+
+        // Add new vector to the instance matrix and update distances
+        var addVector = function (x, xId) {
+            if (that.dist.length == xId) {
+                // we are still adding vectors
+                that.dist.push(that.maxDist);
+                that.distId.push(xId);
+                that.X.setCol(xId, x);
+                that.init++;
+            } else {
+                // just replace existing vector
+                that.dist[xId] = that.maxDist;
+                that.distId[xId] = xId;
+                that.X.setCol(xId, x);
+            }
+            // update distances
+            updateDistances(xId);
+        }
+
+        // Remove vector from the instance matrix and update distances
+        var delVector = function (xId) {
+            // construct list of vectors that we need to reasses
+            var toCheck = new la.IntVector();
+            for (var i = 0; i < that.distId.length; i++) {
+                // skip self
+                if (i == xId) { continue; }
+                // check if xId is current nearest neighbor
+                if (that.distId[i] == xId) { toCheck.push(i); }
+            }
+            // reasses detected elements
+            for (var i = 0; i < toCheck.length; i++) {
+                var yId = toCheck[i];
+                // find new nearest neighbor for yId, ignoring xId
+                updateDistances(yId, xId);
+            }
+        }
+
+        /**
+        * Adds a new point (or points) to the known points and recomputes the threhshold
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
+        */
+        this.partialFit = function (x) {
+            // console.log(this.next);
+            if (this.init < this.windowSize) {
+                // we are not yet initialized, just remember the vector and update distances
+                addVector(x, this.init);
+                // check if we are now set to start
+                if (this.init == this.windowSize) { updateThreshold(); }
+            }
+            else {
+                // first remove old vector
+                delVector(this.next);
+                // add new vector
+                addVector(x, this.next);
+                // update threshold
+                updateThreshold();
+                // move to the next
+                this.next++;
+                // reset counter, if we get to the end
+                if (this.next == this.windowSize) { this.next = 0; }
+            }
+        }
+
+        /**
+        * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
+        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+        * the model.
+        */
+        this.fit = function (A) {
+            // just call partial fit on each column
+            for (var i = 0; i < A.cols; i++) {
+                this.partialFit(A.getCol(i));
+            }
+        }
+
+        /**
+        * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
+        * @param {module:la.Vector} x - Test vector
+        * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
+        */
+        this.predict = function (x) {
+            // compute squared dist ...
+            var d = vectorDistances(x);
+            var idx = d.multiply(-1).getMaxIdx();
+            var p = d[idx];
+            // and compare to the threshold
+            return p > this.thresh ? 1 : 0;
+        }
+
+        this.decisionFunction = function (x) {
+            // compute squared dist ...
+            var d = vectorDistances(x);
+            var idx = d.multiply(-1).getMaxIdx();
+            var p = d[idx];
+            // and compare to the threshold
+            return p - this.thresh;
+        }
+    }
+
+    /**
+    * @classdesc Principal components analysis
+    * @class
+    */
+    exports.PCA = function (param) {
+        param = param == undefined ? {} : param;
+
+        // Fit params
+        var iter = param.iter == undefined ? 100 : param.iter;
+        var k = param.k; // can be undefined
+
+        /**
+        * Returns the model
+        * @returns {Object} The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)
+        */
+        this.getModel = function () {
+            return { P: this.P, mu: this.mu, lambda: this.lambda };
+        }
+
+        /**
+        * Sets parameters
+        * @param {p} Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        */
+        this.setParams = function (p) {
+            param = p;
+        }
+
+        /**
+        * Gets parameters
+        * @returns Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        */
+        this.getParams = function () {
+            return param;
+        }
+
+        /**
+        * Finds the eigenvectors of the variance matrix.
+        * @param {module:la.Matrix} A - Matrix whose columns correspond to examples.
+        */
+        this.fit = function (A) {
+            var rows = A.rows;
+            var cols = A.cols;
+
+            k = k == undefined ? rows : k;
+            //iter = iter == undefined ? -1 : iter;
+
+            var mu = stat.mean(A, 2);
+            // cov(A) = 1/(n-1) A A' - mu mu'
+
+            // center data (same as matlab)
+            var cA = A.minus(mu.outer(la.ones(cols)));
+            var C = cA.multiply(cA.transpose()).multiply(1 / (cols - 1));
+            // alternative computation:
+            //var C = (A.multiply(A.transpose()).multiply(1 / (cols - 1))).minus(mu.outer(mu));
+            var res = la.svd(C, k, { iter: iter });
+
+            this.P = res.U;
+            this.lambda = res.s;
+            this.mu = mu;
+        }
+
+        /**
+        * Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P.
+        * Recovering the data in the original space: (this.P).multiply(p), where p's rows are the coefficients
+        * in the eigenvector basis.
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
+        * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
+        */
+        this.transform = function (x) {
+            if (x.constructor.name == 'Matrix') {
+                // P * (x - mu*ones(1, size(x,2))
+                return this.P.multiplyT(x.minus(this.mu.outer(la.ones(x.cols))));
+
+            } else if (x.constructor.name == 'Vector') {
+                // P * (x - mu)
+                return this.P.multiplyT(x.minus(this.mu));
+            }
+        }
+
+        /**
+        * Reconstructs the vector in the original space, reverses centering
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
+        * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
+        */
+        this.inverseTransform = function (x) {
+            if (x.constructor.name == 'Matrix') {
+                // P x + mu*ones(1, size(x,2)
+                return (this.P.multiply(x)).plus(this.mu.outer(la.ones(x.cols)));
+            } else if (x.constructor.name == 'Vector') {
+                // P x + mu
+                return (this.P.multiply(x)).plus(this.mu);
+            }
+        }
+    }
+
+    /**
+    * @classdesc KMeans clustering
+    * @class
+    */
+    exports.KMeans = function (param) {
+        param = param == undefined ? {} : param;
+
+        // Fit params
+        var iter = param.iter == undefined ? 100 : param.iter;
+        var k = param.k == undefined ? 2 : param.k;
+        var verbose = param.verbose == undefined ? false : param.verbose;
+
+        // Model
+        var C = undefined;
+        var idxv = undefined;
+        var norC2 = undefined;
+
+        /**
+        * Returns the model
+        * @returns {Object} The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data)
+        */
+        this.getModel = function () {
+            return { C: C, idxv: idxv };
+        }
+
+        /**
+        * Sets parameters
+        * @param {p} Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)
+        */
+        this.setParams = function (p) {
+            param = p;
+        }
+
+        /**
+        * Returns parameters
+        * @returns Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)
+        */
+        this.getParams = function () {
+            return param;
+        }
+
+        /**
+        * Computes the centroids
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        */
+        this.fit = function (X) {
+            // select random k columns of X, returns a dense C++ matrix
+            var selectCols = function (X, k) {
+                var idx = la.randi(X.cols, k);
+                var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
+                for (var i = 0; i < idx.length; i++) {
+                    var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
+                    idxMat.push(spVec);
+                }
+                var C = X.multiply(idxMat);
+                var result = {};
+                result.C = C;
+                result.idx = idx;
+                return result;
+            };
+
+            // modified k-means algorithm that avoids empty centroids
+            // A Modified k-means Algorithm to Avoid Empty Clusters, Malay K. Pakhira
+            // http://www.academypublisher.com/ijrte/vol01/no01/ijrte0101220226.pdf
+            var getCentroids = function (X, idx, oldC) {
+                // select random k columns of X, returns a dense matrix
+                // 1. construct a sparse matrix (coordinate representation) that encodes the closest centroids
+                var idxvec = new la.IntVector(idx);
+                var rangeV = la.rangeVec(0, X.cols - 1);
+                var ones_cols = la.ones(X.cols);
+                var idxMat = new la.SparseMatrix(idxvec, rangeV, ones_cols, X.cols);
+                idxMat = idxMat.transpose();
+                var ones_n = la.ones(X.cols);
+                // 2. compute the number of points that belong to each centroid, invert
+                var colSum = idxMat.multiplyT(ones_n);
+                for (var i = 0; i < colSum.length; i++) {
+                    var val = 1.0 / (1.0 + colSum.at(i)); // modification
+                    colSum.put(i, val);
+                }
+                // 3. compute the centroids
+                //var w = new qm_util.clsStopwatch();
+                //w.tic();
+                var sD = colSum.spDiag();
+                var C = oldC;
+                if (idxMat.cols == oldC.cols)
+                    C = ((X.multiply(idxMat)).plus(oldC)).multiply(sD); // modification
+                return C;
+            };
+
+
+            // X: column examples
+            // k: number of centroids
+            // iter: number of iterations
+            assert(k <= X.cols, "k <= X.cols");
+            var w = new qm_util.clsStopwatch();
+            var norX2 = la.square(X.colNorms());
+            var initialCentroids = selectCols(X, k);
+            C = initialCentroids.C;
+            var idxvOld = initialCentroids.idx;
+            //printArray(idxvOld); // DEBUG
+            var ones_n = la.ones(X.cols).multiply(0.5);
+            var ones_k = la.ones(k).multiply(0.5);
+            w.tic();
+            for (var i = 0; i < iter; i++) {
+                //console.say("iter: " + i);
+                norC2 = la.square(C.colNorms());
+                //D =  full(C'* X) - norC2' * (0.5* ones(1, n)) - (0.5 * ones(k,1) )* norX2';
+                var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+                idxv = la.findMaxIdx(D);
+
+                if (verbose) {
+                    var energy = 0.0;
+                    for (var j = 0; j < X.cols; j++) {
+                        if (D.at(idxv[j], j) < 0) {
+                            energy += Math.sqrt(-2 * D.at(idxv[j], j));
+                        }
+                    }
+                    console.log("energy: " + 1.0 / X.cols * energy);
+                }
+                if (qm_util.arraysIdentical(idxv, idxvOld)) {
+                    if (verbose) {
+                        console.say("converged at iter: " + i); //DEBUG
+                    }
+                    break;
+                }
+                idxvOld = idxv.slice();
+                C = getCentroids(X, idxv, C); //drag
+            }
+            if (verbose) {
+                w.toc("end");
+            }
+            norC2 = la.square(C.colNorms());
+        };
+
+        /**
+        * Returns an vector of cluster id assignments
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        * @returns {module:la.IntVector} Vector of cluster assignments.
+        */
+        this.predict = function (X) {
+            var ones_n = la.ones(X.cols).multiply(0.5);
+            var ones_k = la.ones(k).multiply(0.5);
+            var norX2 = la.square(X.colNorms());
+            var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+            return la.findMaxIdx(D);
+        }
+
+        /**
+        * Transforms the points to vectors of squared distances to centroids
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        * @returns {module:la.Matrix} Matrix where each column represents the squared distances to the centroid vectors
+        */
+        this.transform = function (X) {
+            var ones_n = la.ones(X.cols).multiply(0.5);
+            var ones_k = la.ones(k).multiply(0.5);
+            var norX2 = la.square(X.colNorms());
+            var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+            D = D.multiply(-1);
+            return D;
+        }
+		/**
+        * Saves KMeans internal state into (binary) file
+        * @param {string} fname - Name of the file to write into.
+        */
+        this.save = function(fname){
+			if (!C) {
+				throw new Error("KMeans.save() - model not created yet");
+			}
+
+			var params_vec = new la.Vector();
+			params_vec.push(iter);
+			params_vec.push(k);
+			params_vec.push(verbose ? 1.0 : 0.0);
+
+			var xfs = qm.fs;
+			var fout = xfs.openWrite(fname);
+			C.save(fout);
+			norC2.save(fout);
+			(new la.Vector(idxv)).save(fout);
+			params_vec.save(fout);
+			fout.close();
+			fout = null;
+		}
+		/**
+        * Loads KMeans internal state from (binary) file
+        * @param {string} fname - Name of the file to read from.
+        */
+        this.load = function (fname) {
+		    var xfs = qm.fs;
+		    var fin = xfs.openRead(fname);
+
+		    C = new la.Matrix();
+		    C.load(fin);
+		    norC2 = new la.Vector();
+		    norC2.load(fin);
+
+		    var idxvtmp = new la.Vector();
+		    idxvtmp.load(fin);
+		    idxv = idxvtmp; // make normal vector (?)
+
+		    var params_vec = new la.Vector();
+		    params_vec.load(fin);
+		    iter = params_vec[0];
+		    k = params_vec[1];
+		    verbose = (params_vec[2] != 0);
+
+		    fin = null;
+		}
+    }
 
     ///////////////////////////////
     ////// code below not yet ported or verified for scikit
@@ -709,7 +1247,7 @@ module.exports = exports = function (pathPrefix) {
             // create model for the fold
             var model = exports.newBatchModel(trainRecs, features, target, limitCategories);
             // prepare test counts for each target
-            if (!cfyRes) { cfyRes = new exports.classifcationScore(model.target); }
+            if (!cfyRes) { cfyRes = new exports.ClassificationScore (model.target); }
             // evaluate predictions
             for (var i = 0; i < testRecs.length; i++) {
                 var correct = testRecs[i][target.name];
@@ -1340,355 +1878,6 @@ module.exports = exports = function (pathPrefix) {
 
     	return that;
     };
-
-    /**
-    * @classdesc Anomaly detector that checks if the test point is too far from
-    * the nearest known point.
-    * @class
-    * @param {Object} [detectorParam={rate:0.05}] - Constructor parameters
-    * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
-    */
-    exports.NearestNeighborAD = function(detectorParam) {
-        // Parameters
-        detectorParam = detectorParam == undefined ? {} : detectorParam;
-        detectorParam.rate = detectorParam.rate == undefined ? 0.05 : detectorParam.rate;
-        assert(detectorParam.rate > 0 && detectorParam.rate <= 1.0, 'rate parameter not in range (0,1]');
-        // model param
-        this.rate = detectorParam.rate;
-        // default model
-        this.thresh = 0;
-
-        /**
-        * Gets the 100*(1-rate) percentile
-        * @param {module:la.Vector} vector - Vector of values
-        * @returns {number} Percentile
-        */
-        function getThreshold(vector, rate) {
-            var sorted = vector.sortPerm().vec;
-            var idx = Math.floor((1 - rate) * sorted.length);
-            return sorted[idx];
-        }
-        var neighborDistances = undefined;
-
-        /**
-        * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
-        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
-        * the model.
-        */
-        this.fit = function (A) {
-            this.X = A;
-            // distances
-            var D = la.pdist2(A, A);
-            // add big numbers on the diagonal (exclude the point itself from the nearest point calcualtion)
-            var E = D.plus(D.multiply(la.ones(D.rows)).diag()).multiply(-1);
-            var neighborDistances = new la.Vector({ vals: D.rows });
-            for (var i = 0; i < neighborDistances.length; i++) {
-                // nearest neighbour squared distance
-                neighborDistances[i] = D.at(i, E.rowMaxIdx(i));
-            }
-            this.thresh = getThreshold(neighborDistances, this.rate);
-        }
-
-        /**
-        * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
-        * @param {module:la.Vector} x - Test vector
-        * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
-        */
-        this.predict = function (x) {
-            // compute squared dist and compare to thresh
-            var d = la.pdist2(this.X, x.toMat()).getCol(0);
-            var idx = d.multiply(-1).getMaxIdx();
-            var p = d[idx];
-            //console.log(p)
-            return p > this.thresh ? 1 : 0;
-        }
-
-        /**
-        * Adds a new point (or points) to the known points and recomputes the threhshold
-        * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
-        */
-        this.update = function (x) {
-            // append x to known examples and retrain (slow version)
-            // speedup 1: don't reallocate X every time (fixed window, circular buffer)
-            // speedup 2: don't recompute distances d(X,X), just d(X, y), get the minimum
-            // and append to neighborDistances
-            this.fit(la.cat([[this.X, x.toMat()]]));
-            //console.log('new threshold ' + this.thresh);
-        }
-    }
-
-
-
-    /** 
-    * @classdesc Principal components analysis
-    * @class    
-    */
-    exports.PCA = function (param) {
-        param = param == undefined ? {} : param;
-
-        // Fit params
-        var iter = param.iter == undefined ? 100 : param.iter;
-        var k = param.k; // can be undefined
-
-        /** 
-        * Returns the model
-        * @returns {Object} The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)
-        */
-        this.getModel = function () {
-            return { P: this.P, mu: this.mu, lambda: this.lambda };
-        }
-
-        /** 
-        * Sets parameters
-        * @param {p} Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
-        */
-        this.setParams = function (p) {
-            param = p;
-        }
-
-        /** 
-        * Gets parameters
-        * @returns Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
-        */
-        this.getParams = function () {
-            return param;
-        }
-
-        /** 
-        * Finds the eigenvectors of the variance matrix.
-        * @param {module:la.Matrix} A - Matrix whose columns correspond to examples.
-        */
-        this.fit = function (A) {
-            var rows = A.rows;
-            var cols = A.cols;
-
-            k = k == undefined ? rows : k;
-            //iter = iter == undefined ? -1 : iter;
-
-            var mu = stat.mean(A, 2);            
-            // cov(A) = 1/(n-1) A A' - mu mu'
-
-            // center data (same as matlab)
-            var cA = A.minus(mu.outer(la.ones(cols)));            
-            var C = cA.multiply(cA.transpose()).multiply(1 / (cols - 1));
-            // alternative computation: 
-            //var C = (A.multiply(A.transpose()).multiply(1 / (cols - 1))).minus(mu.outer(mu));
-            var res = la.svd(C, k, { iter: iter });
-            
-            this.P = res.U;
-            this.lambda = res.s;
-            this.mu = mu;
-        }
-
-        /** 
-        * Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P.
-        * Recovering the data in the original space: (this.P).multiply(p), where p's rows are the coefficients
-        * in the eigenvector basis.
-        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
-        * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
-        */
-        this.transform = function (x) {
-            if (x.constructor.name == 'Matrix') {
-                // P * (x - mu*ones(1, size(x,2))
-                return this.P.multiplyT(x.minus(this.mu.outer(la.ones(x.cols))));
-
-            } else if (x.constructor.name == 'Vector') {
-                // P * (x - mu)
-                return this.P.multiplyT(x.minus(this.mu));
-            }
-        }
-
-        /** 
-        * Reconstructs the vector in the original space, reverses centering
-        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
-        * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
-        */
-        this.inverseTransform = function (x) {
-            if (x.constructor.name == 'Matrix') {
-                // P x + mu*ones(1, size(x,2)
-                return (this.P.multiply(x)).plus(this.mu.outer(la.ones(x.cols)));
-            } else if (x.constructor.name == 'Vector') {
-                // P x + mu
-                return (this.P.multiply(x)).plus(this.mu);
-            }
-        }
-    }
-
-    ///////// CLUSTERING BATCH K-MEANS
-    //#- `kmeansResult = analytics.kmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
-    //#   matrix `mat`  where colums represent examples, `k` (integer) the number of centroids and
-    //#   `iter` (integer), the number of iterations. The result contains objects `kmeansResult.C` and `kmeansResult.idxv` - a dense centroid matrix, where each column
-    //#    is a cluster centroid and an index array of cluster indices for each data point.
-    //#- `kmeansResult = analytics.kmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
-    //#   sparse matrix `spMat`  where colums represent examples, `k` (integer) the number of centroids and
-    //#   `iter` (integer), the number of iterations. The result contains objects `kmeansResult.C` and `kmeansResult.idxv` - a dense centroid matrix, where each column
-    //#    is a cluster centroid and an index array of cluster indices for each data point.
-    exports.KMeans = function (param) {
-        param = param == undefined ? {} : param;
-
-        // Fit params
-        var iter = param.iter == undefined ? 100 : param.iter;
-        var k = param.k == undefined ? 2 : param.k;
-        var verbose = param.verbose == undefined ? false : param.verbose;
-
-        // Model
-        var C = undefined;
-        var idxv = undefined;
-        var norC2 = undefined;
-
-        this.getModel = function () {
-            return { C: C, idxv: idxv };
-        }
-        this.setParams = function (p) {
-            param = p;
-        }
-        this.getParams = function () {
-            return param;
-        }
-        this.fit = function (X) {
-            // select random k columns of X, returns a dense C++ matrix
-            var selectCols = function (X, k) {
-                var idx = la.randi(X.cols, k);
-                var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
-                for (var i = 0; i < idx.length; i++) {
-                    var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
-                    idxMat.push(spVec);
-                }
-                var C = X.multiply(idxMat);
-                var result = {};
-                result.C = C;
-                result.idx = idx;
-                return result;
-            };
-
-            // modified k-means algorithm that avoids empty centroids
-            // A Modified k-means Algorithm to Avoid Empty Clusters, Malay K. Pakhira
-            // http://www.academypublisher.com/ijrte/vol01/no01/ijrte0101220226.pdf
-            var getCentroids = function (X, idx, oldC) {
-                // select random k columns of X, returns a dense matrix
-                // 1. construct a sparse matrix (coordinate representation) that encodes the closest centroids
-                var idxvec = new la.IntVector(idx);
-                var rangeV = la.rangeVec(0, X.cols - 1);
-                var ones_cols = la.ones(X.cols);
-                var idxMat = new la.SparseMatrix(idxvec, rangeV, ones_cols, X.cols);
-                idxMat = idxMat.transpose();
-                var ones_n = la.ones(X.cols);
-                // 2. compute the number of points that belong to each centroid, invert
-                var colSum = idxMat.multiplyT(ones_n);
-                for (var i = 0; i < colSum.length; i++) {
-                    var val = 1.0 / (1.0 + colSum.at(i)); // modification
-                    colSum.put(i, val);
-                }
-                // 3. compute the centroids
-                //var w = new qm_util.clsStopwatch();
-                //w.tic();
-                var sD = colSum.spDiag();
-                var C = oldC;
-                if (idxMat.cols == oldC.cols)
-                    C = ((X.multiply(idxMat)).plus(oldC)).multiply(sD); // modification
-                return C;
-            };
-
-
-            // X: column examples
-            // k: number of centroids
-            // iter: number of iterations
-            assert(k <= X.cols, "k <= X.cols");
-            var w = new qm_util.clsStopwatch();
-            var norX2 = la.square(X.colNorms());
-            var initialCentroids = selectCols(X, k);
-            C = initialCentroids.C;
-            var idxvOld = initialCentroids.idx;
-            //printArray(idxvOld); // DEBUG
-            var ones_n = la.ones(X.cols).multiply(0.5);
-            var ones_k = la.ones(k).multiply(0.5);
-            w.tic();
-            for (var i = 0; i < iter; i++) {
-                //console.say("iter: " + i);
-                norC2 = la.square(C.colNorms());
-                //D =  full(C'* X) - norC2' * (0.5* ones(1, n)) - (0.5 * ones(k,1) )* norX2';            
-                var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
-                idxv = la.findMaxIdx(D);
-
-                if (verbose) {
-                    var energy = 0.0;
-                    for (var j = 0; j < X.cols; j++) {
-                        if (D.at(idxv[j], j) < 0) {
-                            energy += Math.sqrt(-2 * D.at(idxv[j], j));
-                        }
-                    }
-                    console.log("energy: " + 1.0 / X.cols * energy);
-                }
-                if (qm_util.arraysIdentical(idxv, idxvOld)) {
-                    if (verbose) {
-                        console.say("converged at iter: " + i); //DEBUG
-                    }
-                    break;
-                }
-                idxvOld = idxv.slice();
-                C = getCentroids(X, idxv, C); //drag
-            }
-            if (verbose) {
-                w.toc("end");
-            }
-            norC2 = la.square(C.colNorms());
-        };
-
-        this.predict = function (X) {
-            var ones_n = la.ones(X.cols).multiply(0.5);
-            var ones_k = la.ones(k).multiply(0.5);
-            var norX2 = la.square(X.colNorms());
-            var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
-            return la.findMaxIdx(D);            
-        }
-        this.transform = function (X) {
-			throw new Error("KMeans.transform() is not implemented yet");
-        }
-		this.save = function(fname){
-			if (!C) {
-				throw new Error("KMeans.save() - model not created yet");
-			}
-
-			var params_vec = new la.Vector();
-			params_vec.push(iter);
-			params_vec.push(k);
-			params_vec.push(verbose ? 1.0 : 0.0);
-
-			var xfs = qm.fs;
-			var fout = xfs.openWrite(fname);
-			C.save(fout);
-			norC2.save(fout);
-			(new la.Vector(idxv)).save(fout);
-			params_vec.save(fout);
-			fout.close();
-			fout = null;
-		}
-		this.load = function (fname) {
-		    var xfs = qm.fs;
-		    var fin = xfs.openRead(fname);
-
-		    C = new la.Matrix();
-		    C.load(fin);
-		    norC2 = new la.Vector();
-		    norC2.load(fin);
-
-		    var idxvtmp = new la.Vector();
-		    idxvtmp.load(fin);
-		    idxv = idxvtmp; // make normal vector (?)
-
-		    var params_vec = new la.Vector();
-		    params_vec.load(fin);
-		    iter = params_vec[0];
-		    k = params_vec[1];
-		    verbose = (params_vec[2] != 0);
-
-		    fin = null;
-		}
-    }
-
-    
-
-
     //!ENDJSDOC
 
     return exports;

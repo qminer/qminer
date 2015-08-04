@@ -1232,12 +1232,11 @@ void TBagOfWords::NewTimeWnd(const uint64& TimeWndMSecs, const uint64& StartMSec
 
 TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
     const int& _FieldId, const TBagOfWordsMode& _Mode, const PTokenizer& Tokenizer, 
-    const int& HashDim, const int& _NStart, const int& _NEnd):
-        TFtrExt(Base, JoinSeqV), FtrGen(true, true, true, Tokenizer, HashDim), 
-        Mode(_Mode), NStart(_NStart), NEnd(_NEnd) { AddField(_FieldId); }
+    const int& HashDim, const int& NStart, const int& NEnd): TFtrExt(Base, JoinSeqV),
+        FtrGen(true, true, true, Tokenizer, HashDim, false, NStart, NEnd),
+        Mode(_Mode) { AddField(_FieldId); }
 
-TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
-        TFtrExt(Base, ParamVal) {
+TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFtrExt(Base, ParamVal) {
     
     // parse feature generator parameters
     const bool NormalizeP = ParamVal->GetObjBool("normalize", true);
@@ -1280,7 +1279,7 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
     // hashing dimension
     const int HashDim = ParamVal->GetObjInt("hashDimension", -1);
     // keep hash table?
-    const bool KHT = ParamVal->GetObjBool("hashTable", false);
+    const bool StoreHashWordsP = ParamVal->GetObjBool("hashTable", false);
 
     // parse ngrams
     TInt NgramsStart = 1;
@@ -1306,7 +1305,7 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
     }
 
     // initialize
-    FtrGen = TFtrGen::TBagOfWords(TfP, IdfP, NormalizeP, Tokenizer, HashDim, KHT, NgramsStart, NgramsEnd);
+    FtrGen = TFtrGen::TBagOfWords(TfP, IdfP, NormalizeP, Tokenizer, HashDim, StoreHashWordsP, NgramsStart, NgramsEnd);
     
     // parse input field(s)
     PJsonVal FieldVal = ParamVal->GetObjKey("field");
@@ -1412,9 +1411,9 @@ TStr TBagOfWords::GetNm() const {
 };
 
 TStr TBagOfWords::GetFtr(const int& FtrN) const {
-    if(FtrGen.IsKeepingHashTable()) {
-        TStrV StrV;
-        FtrGen.GetHashVals(FtrN).GetKeyV(StrV);
+    if (FtrGen.IsStoreHashWords()) {
+        
+        TStrV StrV; FtrGen.GetHashVals(FtrN).GetKeyV(StrV);
         return TStr::GetStr(StrV, ",");
     } else { 
         return FtrGen.GetVal(FtrN); 

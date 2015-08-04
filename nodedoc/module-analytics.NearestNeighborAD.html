@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
   <title>Class: NearestNeighborAD</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">NearestNeighborAD</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1315">analyticsdoc.<wbr>js:1315</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1012">analyticsdoc.<wbr>js:1012</a></p>
             <div class="symbol-classdesc">
               <p>Anomaly detector that checks if the test point is too far from the nearest known point.</p>
             </div>
@@ -41,22 +41,30 @@
                     <dt><a href="module-analytics.NearestNeighborAD.html#fit">fit(A)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.NearestNeighborAD.html#predict">predict(x)</a></dt>
+                    <dt><a href="module-analytics.NearestNeighborAD.html#getModel">getModel(Object)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.NearestNeighborAD.html#update">update(x)</a></dt>
+                    <dt><a href="module-analytics.NearestNeighborAD.html#getParams">getParams()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.NearestNeighborAD.html#~getThreshold">getThreshold(vector)</a></dt>
+                    <dt><a href="module-analytics.NearestNeighborAD.html#partialFit">partialFit(x)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.NearestNeighborAD.html#predict">predict(x)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.NearestNeighborAD.html#setParams">setParams(Object)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
                 </div>
               </div>
             </div>
@@ -87,7 +95,7 @@
                     </td>
                     <td>
                       <p>Constructor parameters</p>
-                      <p>Defaults to <code>{rate:0.05}</code>.</p>
+                      <p>Defaults to <code>{rate:0.05, window:100, matrix: module:la.Matrix}</code>.</p>
                       <p>Values in <code>detectorParam</code> have the following properties:</p>
                       <table class="jsdoc-details-table">
                         <thead>
@@ -104,14 +112,44 @@
                               <p>rate</p>
                             </td>
                             <td>
-                              <p>&nbsp;</p>
+                              <p>number</p>
                             </td>
                             <td>
                               <p>Yes</p>
                             </td>
                             <td>
-                              <p>The rate is the expected fraction of emmited anomalies (0.05 -&gt; 5% of cases will be classified as anomalies)</p>
+                              <p>The rate is the expected fraction of emmited anomalies (0.05 -&gt; 5% of cases will be classified as anomalies).</p>
                               <p>Defaults to <code>0.05</code>.</p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>window</p>
+                            </td>
+                            <td>
+                              <p>number</p>
+                            </td>
+                            <td>
+                              <p>Yes</p>
+                            </td>
+                            <td>
+                              <p>Number of most recent instances kept in the model.</p>
+                              <p>Defaults to <code>100</code>.</p>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <p>matrix</p>
+                            </td>
+                            <td>
+                              <p>function()</p>
+                            </td>
+                            <td>
+                              <p>Yes</p>
+                            </td>
+                            <td>
+                              <p>Matrix implementation used to store the modelo (e.g., <code>la.Matrix</code> or <code>la.SparseMatrix</code>).</p>
+                              <p>Defaults to <code>module:la.Matrix</code>.</p>
                             </td>
                           </tr>
                         </tbody>
@@ -160,6 +198,80 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">(Object)</span></span></h3>
+              <p>Returns the model</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>p</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>whose keys are: &quot;thresh&quot; - Maximal squared distance to the nearest neighbor that is not anomalous</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Returns parameters</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p>Object whose keys are: &quot;rate&quot; - The rate is the expected fraction of emmited anomalies (0.05 -&gt; 5% of cases will be classified as anomalies)</p>
+                </dd>
+              </dl>
+              <h3 id="partialFit"><span class="symbol-name">partialFit</span><span class="signature"><span class="signature-params">(x)</span></span></h3>
+              <p>Adds a new point (or points) to the known points and recomputes the threhshold</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>x</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Test example (vector input) or column examples (matrix input)</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)</p>
               <section>
@@ -197,8 +309,8 @@
                   <p><code>number</code>&nbsp;Returns 1.0 if x is an anomaly and 0.0 otherwise</p>
                 </dd>
               </dl>
-              <h3 id="update"><span class="symbol-name">update</span><span class="signature"><span class="signature-params">(x)</span></span></h3>
-              <p>Adds a new point (or points) to the known points and recomputes the threhshold</p>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(Object)</span></span></h3>
+              <p>Sets parameters</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -213,59 +325,22 @@
                   <tbody>
                     <tr>
                       <td>
-                        <p>x</p>
+                        <p>Object</p>
                       </td>
                       <td>
-                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</p>
+                        <p>p</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Test example (vector input) or column examples (matrix input)</p>
+                        <p>whose keys are: &quot;rate&quot; - The rate is the expected fraction of emmited anomalies (0.05 -&gt; 5% of cases will be classified as anomalies)</p>
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </section>
               <dl class="dl-compact">
-              </dl>
-              <h3 id="~getThreshold"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">getThreshold</span><span class="signature"><span class="signature-params">(vector)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Gets the 100*(1-rate) percentile</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>vector</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Vector of values</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>number</code>&nbsp;Percentile</p>
-                </dd>
               </dl>
             </section>
           </section>
@@ -277,7 +352,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 8, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 3, 2015.
       </p>
     </div>
   </footer>
