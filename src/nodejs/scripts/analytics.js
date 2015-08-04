@@ -740,7 +740,7 @@ module.exports = exports = function (pathPrefix) {
 
         /**
         * Returns the model
-        * @returns {Object} The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data)
+        * @returns {Object} The model object whose keys are: C (centroids) and idxv (cluster ids of the training data)
         */
         this.getModel = function () {
             return { C: C, idxv: idxv };
@@ -752,6 +752,9 @@ module.exports = exports = function (pathPrefix) {
         */
         this.setParams = function (p) {
             param = p;
+            iter = param.iter == undefined ? iter : param.iter;
+            k = param.k == undefined ? k : param.k;
+            verbose = param.verbose == undefined ? verbose : param.verbose;
         }
 
         /**

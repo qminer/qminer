@@ -354,7 +354,7 @@ describe("SVC test", function () {
 
             assert.eqtol(distance, 1, 1e-3);
         })
-        it('should throw an exception if the vector is to long or short', function () {
+        it('should throw an exception if the vector is too long or short', function () {
             var matrix = new la.Matrix([[1, -1], [0, 0]]);
             var vec = new la.Vector([1, -1]);
             var SVC = new analytics.SVC();
@@ -378,7 +378,7 @@ describe("SVC test", function () {
             assert.eqtol(distance[1], -1, 1e-3);
             assert.eqtol(distance[2], 0, 1e-2);
         })
-        it('should throw an exception of the matrix has to many rows', function () {
+        it('should throw an exception of the matrix has too many rows', function () {
             var matrix = new la.Matrix([[1, -1], [0, 0]]);
             var vec = new la.Vector([1, -1]);
             var SVC = new analytics.SVC();
