@@ -102,11 +102,11 @@ var analytics = require(&#x27;qminer&#x27;).analytics;
 // CLASSIFICATION WITH SVC
 // set up fake train and test data
 // four training examples with number of features = 2
-var featureMatrix = new la.Matrix({rows: 2, cols: 4, random: true});
+var featureMatrix = new la.Matrix({ rows: 2, cols: 4, random: true });
 // classification targets for four examples
 var targets = new la.Vector([-1, -1, 1, 1]);
 // set up the classification model
-var SVC = new analytics.SVC({verbose: true});
+var SVC = new analytics.SVC({ verbose: true });
 // train classifier
 SVC.fit(featureMatrix, targets);
 // save the model to disk
@@ -340,9 +340,9 @@ var model = SVC.getModel(); // returns { weight: new require(&#x27;qminer&#x27;)
                   <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a new SVC model with json
-var SVC = new analytics.SVC({ c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxSize: 2, minDiff: 1e-10, verbose: true });
+var SVC = new analytics.SVC({ c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true });
 // get the parameters of the SVC model
-// returns { algorithm: &#x27;SGD&#x27; c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxSize: 2, minDiff: 1e-10, verbose: true }
+// returns { algorithm: &#x27;SGD&#x27; c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true }
 var json = SVC.getParams(); </code></pre>
                 </div>
               </section>

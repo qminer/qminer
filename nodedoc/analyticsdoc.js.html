@@ -101,7 +101,7 @@
 
 * // four training examples with number of features = 2
 
-* var featureMatrix = new la.Matrix({rows: 2, cols: 4, random: true});
+* var featureMatrix = new la.Matrix({ rows: 2, cols: 4, random: true });
 
 * // classification targets for four examples
 
@@ -109,7 +109,7 @@
 
 * // set up the classification model
 
-* var SVC = new analytics.SVC({verbose: true});
+* var SVC = new analytics.SVC({ verbose: true });
 
 * // train classifier
 
@@ -145,17 +145,17 @@
 
 	* // create a new SVC model with json
 
-	* var SVC = new analytics.SVC({ c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxSize: 2, minDiff: 1e-10, verbose: true });
+	* var SVC = new analytics.SVC({ c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true });
 
 	* // get the parameters of the SVC model
 
-	* // returns { algorithm: &#x27;SGD&#x27; c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxSize: 2, minDiff: 1e-10, verbose: true }
+	* // returns { algorithm: &#x27;SGD&#x27; c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true }
 
 	* var json = SVC.getParams(); 
 
 	*/
 
- exports.SVC.prototype.getParams = function() { return { algorithm: &#x27;&#x27;, c: 0, j: 0, batchSize: 0, maxIterations: 0, maxSize: 0, minDiff: 0, verbose: true } };
+ exports.SVC.prototype.getParams = function() { return { algorithm: &#x27;&#x27;, c: 0, j: 0, batchSize: 0, maxIterations: 0, maxTime: 0, minDiff: 0, verbose: true } };
 
 /**
 
@@ -357,19 +357,19 @@
 
 * @typedef {Object} svrParam
 
-* @property  {number} [svrParam.c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting)
+* @property  {number} [svrParam.c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting).
 
 * @property  {number} [svrParam.eps=1e-1] - Epsilon insensitive loss parameter. Larger values result in fewer support vectors (smaller model complexity).
 
-* @property  {number} [svrParam.batchSize=10000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate
+* @property  {number} [svrParam.batchSize=1000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate.
 
-* @property  {number} [svrParam.maxIterations=10000] - Maximum number of iterations
+* @property  {number} [svrParam.maxIterations=10000] - Maximum number of iterations.
 
-* @property  {number} [svrParam.maxTime=1.0] - Maximum runtime in seconds
+* @property  {number} [svrParam.maxTime=1.0] - Maximum runtime in seconds.
 
-* @property  {number} [svrParam.minDiff=1e-6] - Stopping criterion tolerance
+* @property  {number} [svrParam.minDiff=1e-6] - Stopping criterion tolerance.
 
-* @property  {boolean} [svrParam.verbose=false] - Toggle verbose output in the console
+* @property  {boolean} [svrParam.verbose=false] - Toggle verbose output in the console.
 
 */
 
@@ -395,7 +395,7 @@
 
 * // Four training examples with, number of features = 2
 
-* var featureMatrix = new la.Matrix({rows:2, cols:4, random:true});
+* var featureMatrix = new la.Matrix({ rows: 2, cols: 4, random: true });
 
 * // Regression targets for four examples
 
@@ -403,7 +403,7 @@
 
 * // Set up the regression model
 
-* var SVR = new analytics.SVR({verbose:true});
+* var SVR = new analytics.SVR({ verbose: true });
 
 * // Train regression
 
@@ -423,83 +423,89 @@
 
 */
 
- exports.SVR = function(arg) {};
+ exports.SVR = function(arg) { return Object.create(require(&#x27;qminer&#x27;).analytics.SVR.prototype); };
 
 /**
 
-	* returns the svr parameters
+	* Returns the SVR parameters.
 
 	* @returns {module:analytics~svrParam} Parameters of the regression model.
 
 	*/
 
- exports.SVR.prototype.getParams = function() {};
+ exports.SVR.prototype.getParams = function() { return { c: 0, eps: 0, batchSize: 0, maxIterations: 0, maxTime: 0, minDiff: 0, verbose: true } };
 
 /**
 
-	* sets the svr parameters
+	* Sets the SVR parameters.
 
 	* @param {module:analytics~svrParam} param - Regression training parameters.
 
-	*/
-
- exports.SVR.prototype.setParams = function(param) {};
-
-/**
-
-	* @property {module:la.Vector} weights - Vector of coefficients of the linear model
+	* @returns {module:analytics.SVR} Self.
 
 	*/
 
- exports.SVR.prototype.weights = undefined;
+ exports.SVR.prototype.setParams = function(param) { return Object.create(require(&#x27;qminer&#x27;).analytics.SVR.prototype); };
 
 /**
 
-	* saves model to output file stream
+	* The vector of coefficients of the linear model.
+
+	* @returns {module:la.Vector} weights - Vector of coefficients of the linear model.
+
+	*/
+
+ exports.SVR.prototype.weights = Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype);
+
+/**
+
+	* Saves model to output file stream.
 
 	* @param {module:fs.FOut} fout - Output stream.
 
-	* @returns {module:fs.FOut} Output stream
+	* @returns {module:fs.FOut} Output stream.
 
 	*/
 
- exports.SVR.prototype.save = function(fout) {}
+ exports.SVR.prototype.save = function(fout) { return Object.create(require(&#x27;qminer&#x27;).fs.FOut.prototype); }
 
 /**
 
      * sends vector through the model and returns the prediction as a real number
 
-     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
+     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
 
      * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix).
 
      */
 
- exports.SVR.prototype.decisionFunction = function(X) {}
+ exports.SVR.prototype.decisionFunction = function(X) { return (X instanceof require(&#x27;qminer&#x27;).la.Vector | X instanceof require(&#x27;qminer&#x27;).la.SparseVector) ? 0 : Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype); }
 
 /**
 
 	* sends vector through the model and returns the prediction as a real number
 
-    * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
+    * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
 
     * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix).
 
 	*/
 
- exports.SVR.prototype.predict = function(X) {}
+ exports.SVR.prototype.predict = function(X) { return (X instanceof require(&#x27;qminer&#x27;).la.Vector | X instanceof require(&#x27;qminer&#x27;).la.SparseVector) ? 0 : Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype); }
 
 /**
 
 	* fits an SVM regression model, given column examples in a matrix and vector of targets
 
-	* @param {module:la.Matrix | module:la.SparseMatrix} X - Input feature matrix where columns correspond to feature vectors
+	* @param {module:la.Matrix | module:la.SparseMatrix} X - Input feature matrix where columns correspond to feature vectors.
 
-	* @param {module:la.Vector} y - Input vector of targets, one for each column of X
+	* @param {module:la.Vector} y - Input vector of targets, one for each column of X.
+
+	* @returns {module:analytics.SVR} Self.
 
 	*/
 
- exports.SVR.prototype.fit = function(X, y) {}
+ exports.SVR.prototype.fit = function(X, y) { return Object.create(require(&#x27;qminer&#x27;).analytics.SVR.prototype); }
 
 /**
 

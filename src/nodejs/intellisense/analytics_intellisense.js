@@ -37,11 +37,11 @@ exports = {}; require.modules.qminer_analytics = exports;
 * // CLASSIFICATION WITH SVC
 * // set up fake train and test data
 * // four training examples with number of features = 2
-* var featureMatrix = new la.Matrix({rows: 2, cols: 4, random: true});
+* var featureMatrix = new la.Matrix({ rows: 2, cols: 4, random: true });
 * // classification targets for four examples
 * var targets = new la.Vector([-1, -1, 1, 1]);
 * // set up the classification model
-* var SVC = new analytics.SVC({verbose: true});
+* var SVC = new analytics.SVC({ verbose: true });
 * // train classifier
 * SVC.fit(featureMatrix, targets);
 * // save the model to disk
@@ -59,12 +59,12 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* // import analytics module
 	* var analytics = require('qminer').analytics;
 	* // create a new SVC model with json
-	* var SVC = new analytics.SVC({ c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxSize: 2, minDiff: 1e-10, verbose: true });
+	* var SVC = new analytics.SVC({ c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true });
 	* // get the parameters of the SVC model
-	* // returns { algorithm: 'SGD' c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxSize: 2, minDiff: 1e-10, verbose: true }
+	* // returns { algorithm: 'SGD' c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true }
 	* var json = SVC.getParams(); 
 	*/
- exports.SVC.prototype.getParams = function() { return { algorithm: '', c: 0, j: 0, batchSize: 0, maxIterations: 0, maxSize: 0, minDiff: 0, verbose: true } };
+ exports.SVC.prototype.getParams = function() { return { algorithm: '', c: 0, j: 0, batchSize: 0, maxIterations: 0, maxTime: 0, minDiff: 0, verbose: true } };
 /**
 	* Sets the SVC parameters.
 	* @param {module:analytics~svcParam} param - Classifier training parameters.
@@ -165,13 +165,13 @@ exports = {}; require.modules.qminer_analytics = exports;
 /**
 * SVR constructor parameters
 * @typedef {Object} svrParam
-* @property  {number} [svrParam.c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting)
+* @property  {number} [svrParam.c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting).
 * @property  {number} [svrParam.eps=1e-1] - Epsilon insensitive loss parameter. Larger values result in fewer support vectors (smaller model complexity).
-* @property  {number} [svrParam.batchSize=10000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate
-* @property  {number} [svrParam.maxIterations=10000] - Maximum number of iterations
-* @property  {number} [svrParam.maxTime=1.0] - Maximum runtime in seconds
-* @property  {number} [svrParam.minDiff=1e-6] - Stopping criterion tolerance
-* @property  {boolean} [svrParam.verbose=false] - Toggle verbose output in the console
+* @property  {number} [svrParam.batchSize=1000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate.
+* @property  {number} [svrParam.maxIterations=10000] - Maximum number of iterations.
+* @property  {number} [svrParam.maxTime=1.0] - Maximum runtime in seconds.
+* @property  {number} [svrParam.minDiff=1e-6] - Stopping criterion tolerance.
+* @property  {boolean} [svrParam.verbose=false] - Toggle verbose output in the console.
 */
 /**
 * SVR
@@ -184,11 +184,11 @@ exports = {}; require.modules.qminer_analytics = exports;
 * // REGRESSION WITH SVR
 * // Set up fake train and test data.
 * // Four training examples with, number of features = 2
-* var featureMatrix = new la.Matrix({rows:2, cols:4, random:true});
+* var featureMatrix = new la.Matrix({ rows: 2, cols: 4, random: true });
 * // Regression targets for four examples
 * var targets = new la.Vector([1.1, -2, 3, 4.2]);
 * // Set up the regression model
-* var SVR = new analytics.SVR({verbose:true});
+* var SVR = new analytics.SVR({ verbose: true });
 * // Train regression
 * SVR.fit(featureMatrix, targets);
 * // Save the model to disk
@@ -198,45 +198,48 @@ exports = {}; require.modules.qminer_analytics = exports;
 * // Predict the target value
 * var prediction = SVR.predict(test);
 */
- exports.SVR = function(arg) {};
+ exports.SVR = function(arg) { return Object.create(require('qminer').analytics.SVR.prototype); };
 /**
-	* returns the svr parameters
+	* Returns the SVR parameters.
 	* @returns {module:analytics~svrParam} Parameters of the regression model.
 	*/
- exports.SVR.prototype.getParams = function() {};
+ exports.SVR.prototype.getParams = function() { return { c: 0, eps: 0, batchSize: 0, maxIterations: 0, maxTime: 0, minDiff: 0, verbose: true } };
 /**
-	* sets the svr parameters
+	* Sets the SVR parameters.
 	* @param {module:analytics~svrParam} param - Regression training parameters.
+	* @returns {module:analytics.SVR} Self.
 	*/
- exports.SVR.prototype.setParams = function(param) {};
+ exports.SVR.prototype.setParams = function(param) { return Object.create(require('qminer').analytics.SVR.prototype); };
 /**
-	* @property {module:la.Vector} weights - Vector of coefficients of the linear model
+	* The vector of coefficients of the linear model.
+	* @returns {module:la.Vector} weights - Vector of coefficients of the linear model.
 	*/
- exports.SVR.prototype.weights = undefined;
+ exports.SVR.prototype.weights = Object.create(require('qminer').la.Vector.prototype);
 /**
-	* saves model to output file stream
+	* Saves model to output file stream.
 	* @param {module:fs.FOut} fout - Output stream.
-	* @returns {module:fs.FOut} Output stream
+	* @returns {module:fs.FOut} Output stream.
 	*/
- exports.SVR.prototype.save = function(fout) {}
+ exports.SVR.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
      * sends vector through the model and returns the prediction as a real number
-     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
+     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
      * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix).
      */
- exports.SVR.prototype.decisionFunction = function(X) {}
+ exports.SVR.prototype.decisionFunction = function(X) { return (X instanceof require('qminer').la.Vector | X instanceof require('qminer').la.SparseVector) ? 0 : Object.create(require('qminer').la.Vector.prototype); }
 /**
 	* sends vector through the model and returns the prediction as a real number
-    * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
+    * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
     * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix).
 	*/
- exports.SVR.prototype.predict = function(X) {}
+ exports.SVR.prototype.predict = function(X) { return (X instanceof require('qminer').la.Vector | X instanceof require('qminer').la.SparseVector) ? 0 : Object.create(require('qminer').la.Vector.prototype); }
 /**
 	* fits an SVM regression model, given column examples in a matrix and vector of targets
-	* @param {module:la.Matrix | module:la.SparseMatrix} X - Input feature matrix where columns correspond to feature vectors
-	* @param {module:la.Vector} y - Input vector of targets, one for each column of X
+	* @param {module:la.Matrix | module:la.SparseMatrix} X - Input feature matrix where columns correspond to feature vectors.
+	* @param {module:la.Vector} y - Input vector of targets, one for each column of X.
+	* @returns {module:analytics.SVR} Self.
 	*/
- exports.SVR.prototype.fit = function(X, y) {}
+ exports.SVR.prototype.fit = function(X, y) { return Object.create(require('qminer').analytics.SVR.prototype); }
 /**
  * Ridge regression. Minimizes: ||A' x - b||^2 + ||gamma x||^2
  *
