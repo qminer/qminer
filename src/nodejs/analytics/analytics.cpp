@@ -404,7 +404,7 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             TFltVV& VecV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject())->Mat;
             if (JsModel->Algorithm == "SGD") {
                 JsModel->Model = TSvm::SolveRegression<TFltVV>(VecV, VecV.GetRows(),
-                    VecV.GetCols(), ClsV, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->MxTime,
+                    VecV.GetCols(), ClsV, JsModel->SvmCost, JsModel->SvmEps, JsModel->MxTime,
                     JsModel->MxIter, JsModel->MnDiff, JsModel->SampleSize, JsModel->Notify);
             } else if (JsModel->Algorithm == "PR_LOQO") {
                 PSVMTrainSet TrainSet = TRefDenseTrainSet::New(VecV, ClsV);
