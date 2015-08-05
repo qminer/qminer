@@ -206,7 +206,6 @@ module.exports = exports = function (pathPrefix) {
     //==================================================================
 
     exports.Store.prototype.addTrigger = function (trigger) {
-        // this == store instance: print //console.log(util.inspect(this, { colors: true }));
         // name is automatically generated
         // saveJson isn't needed
         var Callbacks = {
@@ -219,7 +218,6 @@ module.exports = exports = function (pathPrefix) {
     }
 
     exports.Store.prototype.addStreamAggr = function (params) {
-        // this == store instance: print //console.log(util.inspect(this, { colors: true }));
         return new exports.StreamAggr(this.base, params, this.name);
     }
 
@@ -334,6 +332,33 @@ module.exports = exports = function (pathPrefix) {
         // Callbacks
         this.onAdd = (params.onAdd == undefined) ? function () {} : params.onAdd;
         this.onDelete = (params.onDelete == undefined) ? function () {} : params.onDelete;
+
+        /**
+        * Load circular buffer from input stream. Assumes store, onAdd and onDelete
+        * were already initialized in constructor.
+        * @param {module:fs.FIn} fin - input stream
+        */
+        this.load = function (fin) {
+            var finParam = fin.readJson();
+            this.size = finParam.size;
+            this.next = finParam.next;
+            this.buffer.load(fin);
+        }
+
+        /**
+        * Saves circular buffer to the output stream. Does not save store, onAdd
+        * and onDelete callbacks.
+        * @param {module:fs.FOut} fout - output stream
+        * @returns {module:fs.FOut} output stream
+        */
+        this.save = function (fout) {
+            fout.writeJson({
+                size: this.size,
+                next: this.next
+            });
+            this.buffer.save(fout);
+            return fout;
+        }
 
         /**
     	* Add new record to the buffer.
