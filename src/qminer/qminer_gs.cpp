@@ -1304,8 +1304,7 @@ void TRecSerializator::Serialize(const PJsonVal& RecVal, TMem& RecMem, const TWP
 				continue;
 			} else {
 				// report missing field value since no other option available
-				TStr Str = TJsonVal::GetStrFromVal(RecVal);
-				throw TQmExcept::New("JSon data is missing field - expecting " + FieldName);
+				throw TQmExcept::New("JSon data is missing field - expecting " + FieldName + ", store " + Store->GetStoreNm());
 			}
 		}
 		// load field value when default not already loaded
