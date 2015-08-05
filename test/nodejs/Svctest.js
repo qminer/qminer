@@ -304,7 +304,18 @@ describe("SVC test", function () {
             var vec2 = new la.Vector([3, 0, 1]);
             assert.throws(function () {
                 SVC.predict(vec2);
-            })
+            });
+        })
+        it('should throw an exception if the vector is shorter', function () {
+            var matrix = new la.Matrix([[1, -1], [0, 0]]);
+            var vec = new la.Vector([1, -1]);
+            var SVC = new analytics.SVC();
+            SVC.fit(matrix, vec);
+
+            var vec2 = new la.Vector([3]);
+            assert.throws(function () {
+                SVC.predict(vec2);
+            });
         })
         it('should return the vector [1, 1, -1] for the given matrix', function () {
             var matrix = new la.Matrix([[0, 1, -1, 0], [1, 0, 0, -1]]);
@@ -328,7 +339,18 @@ describe("SVC test", function () {
             var matrix2 = new la.Matrix([[1, 3, -1], [0, 3, -2], [1, 1, 2]]);
             assert.throws(function () {
                 SVC.predict(matrix2);
-            })
+            });
+        })
+        it('should throw an exception if the matrix has too lesserrows', function () {
+            var matrix = new la.Matrix([[1, -1], [0, 0]]);
+            var vec = new la.Vector([1, -1]);
+            var SVC = new analytics.SVC();
+            SVC.fit(matrix, vec);
+
+            var matrix2 = new la.Matrix([[1, 3, -1]]);
+            assert.throws(function () {
+                SVC.predict(matrix2);
+            });
         })
     });
     describe('DecisionFunction Tests', function () {
@@ -354,12 +376,23 @@ describe("SVC test", function () {
 
             assert.eqtol(distance, 1, 1e-3);
         })
-        it('should throw an exception if the vector is too long or short', function () {
+        it('should throw an exception if the vector is too long', function () {
             var matrix = new la.Matrix([[1, -1], [0, 0]]);
             var vec = new la.Vector([1, -1]);
             var SVC = new analytics.SVC();
             SVC.fit(matrix, vec);
             var vec2 = new la.Vector([1, 1, -1]);
+
+            assert.throws(function () {
+                SVC.decisionFunction(vec2);
+            });
+        })
+        it('should throw an exception if the vector is too short', function () {
+            var matrix = new la.Matrix([[1, -1], [0, 0]]);
+            var vec = new la.Vector([1, -1]);
+            var SVC = new analytics.SVC();
+            SVC.fit(matrix, vec);
+            var vec2 = new la.Vector([1]);
 
             assert.throws(function () {
                 SVC.decisionFunction(vec2);
@@ -378,13 +411,24 @@ describe("SVC test", function () {
             assert.eqtol(distance[1], -1, 1e-3);
             assert.eqtol(distance[2], 0, 1e-2);
         })
-        it('should throw an exception of the matrix has too many rows', function () {
+        it('should throw an exception if the matrix has too many rows', function () {
             var matrix = new la.Matrix([[1, -1], [0, 0]]);
             var vec = new la.Vector([1, -1]);
             var SVC = new analytics.SVC();
             SVC.fit(matrix, vec);
 
             var matrix2 = new la.Matrix([[1, -1, 0], [2, 1, -3], [1, -2, 0]]);
+            assert.throws(function () {
+                SVC.decisionFunction(matrix2);
+            });
+        })
+        it('should throw an exception if the matrix has too lesser or rows', function () {
+            var matrix = new la.Matrix([[1, -1], [0, 0]]);
+            var vec = new la.Vector([1, -1]);
+            var SVC = new analytics.SVC();
+            SVC.fit(matrix, vec);
+
+            var matrix2 = new la.Matrix([[1, -1, 0]]);
             assert.throws(function () {
                 SVC.decisionFunction(matrix2);
             });

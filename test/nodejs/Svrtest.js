@@ -218,7 +218,252 @@ describe("SVR test", function () {
             SVR.fit(matrix, vector);
 
             var weights = SVR.weights;
+            assert.eqtol(weights[0], 1, 3e-1);
+        })
+        it('should throw an exception if the number of matrix cols and the vector length aren\'t equal', function () {
+            var matrix = new la.Matrix([[1, -1, 2], [1, -2, 3]]);
+            var vector = new la.Vector([1, -1]);
+            var SVR = new analytics.SVR({ c: 10 });
+
+            assert.throws(function () {
+                SVR.fit(matrix, vector);
+            });
+        })
+        it('should forget the previous model', function () {
+            this.timeout(4000);
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 100 });
+            SVR.fit(matrix, vector);
+
+            var weights = SVR.weights;
+            assert.eqtol(weights[0], 0, 1e-1);
+            assert.eqtol(weights[1], 1, 1e-1);
+
+            var matrix2 = new la.Matrix([[1, -1]]);
+            var vec2 = new la.Vector([1, -1]);
+            SVR.fit(matrix2, vec2);
+
+            weights = SVR.weights;
             assert.eqtol(weights[0], 1, 1e-1);
+
+        })
+        // test for setParams
+        it('should not change the model', function () {
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            var model = SVR.getModel();
+            assert.eqtol(model.weights[0], 0, 1e-1);
+            assert.eqtol(model.weights[1], 1, 1e-1);
+
+            // changing the parameters
+            SVR.setParams({ c: 100, maxTime: 12000 });
+            var weights = SVR.weights;
+            assert.eqtol(weights[0], 0, 1e-1);
+            assert.eqtol(weights[1], 1, 1e-1);
+        })
+    });
+    describe('Predict Tests', function () {
+        it('should not throw an exception for giving the correct values', function () {
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            var vec2 = new la.Vector([2, 3]);
+            assert.doesNotThrow(function () {
+                SVR.predict(vec2);
+            });
+        })
+        it('should return the prediction of the vector [2, 3]', function () {
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            var vec2 = new la.Vector([2, 3]);
+            var prediction = SVR.predict(vec2);
+
+            assert.eqtol(prediction, 3, 5e-1);
+        })
+        it('should throw an exception if the given vector is to long', function () {
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            assert.throws(function () {
+                SVR.predict(new la.Vector([1, 2, 3]));
+            });
+        })
+        it('should throw an exception if the given vector is to short', function () {
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            assert.throws(function () {
+                SVR.predict(new la.Vector([1]));
+            });
+        })
+        it('should throw an exception if the given vector is empty', function () {
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            assert.throws(function () {
+                SVR.predict(new la.Vector());
+            });
+        })
+        it('should return the prediction of the one-dimensional vector', function () {
+            var matrix = new la.Matrix([[1, -1]]);
+            var vector = new la.Vector([1, -1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            var vec2 = new la.Vector([3]);
+            var prediction = SVR.predict(vec2);
+            assert.eqtol(prediction, 3, 5e-1);
+        })
+        // if fit is not previously used
+        it('should throw an exception if the fit is not used', function () {
+            var SVR = new analytics.SVR({ c: 10 });
+            var vector = new la.Vector([1, 1]);
+            assert.throws(function () {
+                SVR.predict(vector);
+            });
+        })
+        it('should return the predictions for the matrix', function () {
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            var mat2 = new la.Matrix([[2, -3, 5], [1, -4, 0.3]]);
+            var prediction = SVR.predict(mat2);
+
+            assert.eqtol(prediction[0], 1, 5e-1);
+            assert.eqtol(prediction[1], -4, 5e-1);
+            assert.eqtol(prediction[2], 0.3, 5e-1);
+        })
+        it('should throw an exception if there are too many rows in the matrix', function () {
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            var mat2 = new la.Matrix([[2, -3, 5], [1, -4, 0.3], [0, 0, 1]]);
+            assert.throws(function () {
+                SVR.predict(mat2);
+            });
+        })
+        it('should throw an exception if there are too lesser rows in the matrix', function () {
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            var mat2 = new la.Matrix([[2, -3, 5]]);
+            assert.throws(function () {
+                SVR.predict(mat2);
+            });
+        })
+    });
+    describe('DecisionFunction Tests', function () {
+        it('should not return an exception for the given correct values', function () {
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            var vec2 = new la.Vector([2, 3]);
+            assert.doesNotThrow(function () {
+                SVR.decisionFunction(vec2);
+            })
+
+        })
+        it('should return the distance from the model', function () {
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            var vec2 = new la.Vector([2, 3]);
+            var distance = SVR.decisionFunction(vec2);
+
+            assert.eqtol(distance, 3, 5e-1);
+        })
+        it('should return the distance of the one-dimensional vector from the model', function () {
+            var matrix = new la.Matrix([[1, -1]]);
+            var vector = new la.Vector([1, -1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            var vec2 = new la.Vector([0.5]);
+            var distance = SVR.decisionFunction(vec2);
+
+            assert.eqtol(distance, 0.5, 1e-1);
+        })
+        it('should return the distance of the matrix from the model', function () {
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            var matrix2 = new la.Matrix([[1, 2, 3], [-2, 3, -0.5]]);
+            var distance = SVR.decisionFunction(matrix2);
+
+            assert.eqtol(distance[0], -2, 5e-1);
+            assert.eqtol(distance[1], 3, 5e-1);
+            assert.eqtol(distance[2], -0.5, 5e-1);
+        })
+        it('should throw an exception if the vector is too long', function () {
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            var vec2 = new la.Vector([2, 3, 4]);
+            assert.throws(function () {
+                SVR.decisionFunction(vec2);
+            });
+        })
+        it('should throw an exception if the vector is too short', function () {
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            var vec2 = new la.Vector([2]);
+            assert.throws(function () {
+                SVR.decisionFunction(vec2);
+            });
+        })
+        it('should throw an exception if the matrix has to many rows', function () {
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            var matrix2 = new la.Matrix([[1, 2, 3], [2, 3, -4], [-1, 0, 0]]);
+            assert.throws(function () {
+                SVR.decisionFunction(matrix2);
+            })
+        })
+        it('should throw an exception if the matrix has too lesser of rows', function () {
+            var matrix = new la.Matrix([[1, -1], [1, 1]]);
+            var vector = new la.Vector([1, 1]);
+            var SVR = new analytics.SVR({ c: 10 });
+            SVR.fit(matrix, vector);
+
+            var matrix2 = new la.Matrix([[1, 2, 3]]);
+            assert.throws(function () {
+                SVR.decisionFunction(matrix2);
+            });
         })
     });
 })
