@@ -53,4 +53,28 @@ describe("Kmeans test", function () {
             assert.equal(params.verbose, undefined);
         });
     })
+
+    describe("Fit test", function () {
+        it("should create the model", function () {
+            var KMeans = new analytics.KMeans({iter: 100, k: 2, verbose: true});
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            model.C.print();
+            console.log(model.idxv);
+            assert.equal(model.C.cols, 2);
+            assert.equal(model.idxv.length, 2);
+        });
+
+        it("", function () {
+            var KMeans = new analytics.KMeans({ iter: 100, k: 2, verbose: true, fitIdx: [0, 1] });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            model.C.print();
+            console.log(model.idxv);
+            assert.equal(model.C.cols, 2);
+            assert.equal(model.idxv.length, 2);
+        })
+    })
 });
