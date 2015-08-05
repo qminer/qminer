@@ -1356,21 +1356,25 @@ exports.datasets= require('qminer_datasets');
      * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
      */
 /**
-	* addJoin // TODO
-	* @param {string} joinName
-	* @param {(module:qm.Record | number)} joinRecord
-	* @param {number} [joinFrequency]
+	* Adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`
+	* @param {string} joinName - join name
+	* @param {(module:qm.Record | number)} joinRecord - joined record or its ID
+	* @param {number} [joinFrequency=1] - frequency attached to the join
 	* @returns {module:qm.Record} Record.
+    * @example
+    * //TODO
 	*/
- exports.Record.prototype.addJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
+ exports.Record.prototype.$addJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
 /**
-	* delJoin // TODO
-	* @param {string} joinName
-	* @param {(module:qm.Record | number)} joinRecord
-	* @param {number} [joinFrequency]
+	* Deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`.
+	* @param {string} joinName - join name
+	* @param {(module:qm.Record | number)} joinRecord - joined record or its ID
+	* @param {number} [joinFrequency=1] - frequency attached to the join
 	* @returns {module:qm.Record} Record.
+    * @example
+    * //TODO
 	*/
- exports.Record.prototype.delJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
+ exports.Record.prototype.$delJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
 /**
 	* Creates a JSON version of the record.
 	*
@@ -1406,16 +1410,16 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Returns the id of the record.
 	*/
- exports.Record.prototype.$id = undefined;
+ exports.Record.prototype.$id = 0;
 /**
 	* Returns the name of the record.
 	*/
- exports.Record.prototype.$name = undefined;
+ exports.Record.prototype.$name = '';
 /**
 	* Returns the frequency of the record.
 	* @ignore
 	*/
- exports.Record.prototype.$fq = undefined;
+ exports.Record.prototype.$fq = 0;
 /**
 	* Returns the store the record belongs to.
 	*/
@@ -2249,17 +2253,17 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Gives the store of the iterator.
 	*/
- exports.Iterator.prototype.store = undefined;
+ exports.Iterator.prototype.store = Object.create(require('qminer').Store.prototype);;
 /**
 	* Gives the current record.
 	*/
- exports.Iterator.prototype.record = undefined;
+ exports.Iterator.prototype.record = Object.create(require('qminer').Record.prototype);;
 /**
 * Feature Space
 * @classdesc Represents the feature space. It contains any of the {@link module:qm~FeatureExtractors}.
 * @class
 * @param {module:qm.Base} base - The base where the features are extracted from.
-* @param {Array.<Object>} extractors - The extractors.
+* @param {(Array.<Object> | module:fs.FIn)} param - Array with definiton of extractors or input stream.
 * @example
 * // import qm module
 * var qm = require('qminer');
@@ -2286,15 +2290,15 @@ exports.datasets= require('qminer_datasets');
 * // create a feature space 
 * var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpace", field: "Value" });
 */
- exports.FeatureSpace = function (base, extractors) {};
+ exports.FeatureSpace = function (base, param) {};
 /**
 	* Returns the dimension of the feature space.
 	*/
- exports.FeatureSpace.prototype.dim = undefined;
+ exports.FeatureSpace.prototype.dim = 0;
 /**
 	* Returns an array of the dimensions of each feature extractor in the feature space.
 	*/
- exports.FeatureSpace.prototype.dims = undefined;
+ exports.FeatureSpace.prototype.dims = [0];
 /**
 	* Serialize the feature space to an output stream.
 	* @param {module:fs.FOut} fout - The output stream.
@@ -2944,7 +2948,6 @@ exports.datasets= require('qminer_datasets');
     //==================================================================
 
     exports.Store.prototype.addTrigger = function (trigger) {
-        // this == store instance: print //console.log(util.inspect(this, { colors: true }));
         // name is automatically generated
         // saveJson isn't needed
         var Callbacks = {
@@ -2957,7 +2960,6 @@ exports.datasets= require('qminer_datasets');
     }
 
     exports.Store.prototype.addStreamAggr = function (params) {
-        // this == store instance: print //console.log(util.inspect(this, { colors: true }));
         return new exports.StreamAggr(this.base, params, this.name);
     }
 
@@ -3039,7 +3041,7 @@ exports.datasets= require('qminer_datasets');
     }
 
     //==================================================================
-    // CIRCULAR BUFFER
+    // CIRCULAR RECORD BUFFER
     //==================================================================
 
     /**
@@ -3048,22 +3050,22 @@ exports.datasets= require('qminer_datasets');
     * are removed from the buffer and new records are stored in their place. For
     * adding and deleting a callback is called. Records are stored by their IDs.
     * @class
-    * @param {Object} [CircularBufferParam] - Constructor parameters
-    * @param {module:qm.Store} CircularBufferParam.store - Store for the records in the buffer.
-    * @param {number} CircularBufferParam.size - Size of the buffer (number of records).
-    * @param {function} [CircularBufferParam.onAdd] - Callback executed when new record is
-    * added to the buffer. Callback is give two parameters: record and instance of CircularBuffer.
-    * @param {function} [CircularBufferParam.onDelete] - Callback executed when record is removed
-    * from the buffer. Callback is give two parameters: record and instance of CircularBuffer.
+    * @param {Object} [CircularRecordBufferParam] - Constructor parameters
+    * @param {module:qm.Store} CircularRecordBufferParam.store - Store for the records in the buffer.
+    * @param {number} CircularRecordBufferParam.size - Size of the buffer (number of records).
+    * @param {function} [CircularRecordBufferParam.onAdd] - Callback executed when new record is
+    * added to the buffer. Callback is give two parameters: record and instance of CircularRecordBuffer.
+    * @param {function} [CircularRecordBufferParam.onDelete] - Callback executed when record is removed
+    * from the buffer. Callback is give two parameters: record and instance of CircularRecordBuffer.
     * @example
 	* // TODO
     */
-    exports.CircularBuffer = function (params) {
+    exports.CircularRecordBuffer = function (params) {
         // check we have all encessary parameters
-        if (params.store == undefined) { throw new Error("CircularBuffer requires store in constructor"); }
-        if (!(params.store instanceof qm.Store)) { throw new Error("CircularBuffer requires store in constructor" + params.store); }
-        if (params.size == undefined) { throw new Error("CircularBuffer requires size in constructor"); }
-        if (!(params.size >= 1)) { throw new Error("CircularBuffer positive size in constructor"); }
+        if (params.store == undefined) { throw new Error("CircularRecordBuffer requires store in constructor"); }
+        if (!(params.store instanceof qm.Store)) { throw new Error("CircularRecordBuffer requires store in constructor" + params.store); }
+        if (params.size == undefined) { throw new Error("CircularRecordBuffer requires size in constructor"); }
+        if (!(params.size >= 1)) { throw new Error("CircularRecordBuffer positive size in constructor"); }
         // parameters
         this.store = params.store;
         this.size = params.size;
@@ -3072,6 +3074,33 @@ exports.datasets= require('qminer_datasets');
         // Callbacks
         this.onAdd = (params.onAdd == undefined) ? function () {} : params.onAdd;
         this.onDelete = (params.onDelete == undefined) ? function () {} : params.onDelete;
+
+        /**
+        * Load circular buffer from input stream. Assumes store, onAdd and onDelete
+        * were already initialized in constructor.
+        * @param {module:fs.FIn} fin - input stream
+        */
+        this.load = function (fin) {
+            var finParam = fin.readJson();
+            this.size = finParam.size;
+            this.next = finParam.next;
+            this.buffer.load(fin);
+        }
+
+        /**
+        * Saves circular buffer to the output stream. Does not save store, onAdd
+        * and onDelete callbacks.
+        * @param {module:fs.FOut} fout - output stream
+        * @returns {module:fs.FOut} output stream
+        */
+        this.save = function (fout) {
+            fout.writeJson({
+                size: this.size,
+                next: this.next
+            });
+            this.buffer.save(fout);
+            return fout;
+        }
 
         /**
     	* Add new record to the buffer.

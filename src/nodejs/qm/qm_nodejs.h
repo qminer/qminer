@@ -2714,13 +2714,13 @@ public:
 	/**
 	* Gives the store of the iterator.
 	*/
-	//# exports.Iterator.prototype.store = return Object.create(require('qminer').Store.prototype);;
+	//# exports.Iterator.prototype.store = Object.create(require('qminer').Store.prototype);
 	JsDeclareProperty(store);
 
 	/**
 	* Gives the current record.
 	*/
-	//# exports.Iterator.prototype.record = return Object.create(require('qminer').Record.prototype);;
+	//# exports.Iterator.prototype.record = Object.create(require('qminer').Record.prototype);
 	JsDeclareProperty(record);
 };
 
