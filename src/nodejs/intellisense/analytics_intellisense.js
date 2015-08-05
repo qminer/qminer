@@ -1349,6 +1349,16 @@ exports = {}; require.modules.qminer_analytics = exports;
     * @property {number} iter - The maximum number of iterations.
     * @property {number} k - The number of centroids.
     * @property {boolean} verbose - If false, the console output is supressed.
+    * @example
+    * // import analytics and la modules
+    * var analytics = require('qminer').analytics;
+    * var la = require('qminer').la;
+    * // create a KMeans object
+    * var KMeans = new analytics.KMeans();
+    * // create the matrix to be fitted
+    * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+    * // create the model 
+    * KMeans.fit(X);
     */
     exports.KMeans = function (param) {
         param = param == undefined ? {} : param;
@@ -1357,6 +1367,7 @@ exports = {}; require.modules.qminer_analytics = exports;
         var iter = param.iter == undefined ? 100 : param.iter;
         var k = param.k == undefined ? 2 : param.k;
         var verbose = param.verbose == undefined ? false : param.verbose;
+        var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
 
         // Model
         var C = undefined;
@@ -1366,6 +1377,18 @@ exports = {}; require.modules.qminer_analytics = exports;
         /**
         * Returns the model.
         * @returns {Object} The model object whose keys are: C (centroids) and idxv (cluster ids of the training data).
+        * @example
+        * // import modules
+        * var analytics = require('qminer').analytics;
+        * var la = require('qminer').la;
+        * // create the KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000 });
+        * // create a matrix to be fitted
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+        * // create the model
+        * KMeans.fit(X);
+        * // get the model
+        * var model = KMeans.getModel();
         */
         this.getModel = function () {
             return { C: C, idxv: idxv };
@@ -1375,6 +1398,13 @@ exports = {}; require.modules.qminer_analytics = exports;
         * Sets the parameters.
         * @param {Object} p - Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed).
         * @returns {module:analytics.KMeans} Self.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans();
+        * // change the parameters of the KMeans object
+        * KMeans.setParams({ iter: 1000, k: 5 });
         */
         this.setParams = function (p) {
             param = p;
@@ -1382,11 +1412,19 @@ exports = {}; require.modules.qminer_analytics = exports;
             iter = param.iter == undefined ? iter : param.iter;
             k = param.k == undefined ? k : param.k;
             verbose = param.verbose == undefined ? verbose : param.verbose;
+            fitIdx = param.fitIdx == undefined ? fitIdx : param.fitIdx;
         }
 
         /**
         * Returns the parameters.
         * @returns Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed).
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000, k: 5 });
+        * // get the parameters
+        * var json = KMeans.getParams();
         */
         this.getParams = function () {
             return param;
@@ -1395,11 +1433,28 @@ exports = {}; require.modules.qminer_analytics = exports;
         /**
         * Computes the centroids
         * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        * @returns {module:analytics.KMeans} Self. It stores the info about the new model.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+        * // create a matrix to be fitted
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+        * // create the model with the matrix X
+        * KMeans.fit(X);
         */
         this.fit = function (X) {
             // select random k columns of X, returns a dense C++ matrix
             var selectCols = function (X, k) {
-                var idx = la.randi(X.cols, k);
+                var idx;
+                if (fitIdx == undefined) {
+                    idx = la.randi(X.cols, k);
+                } else {
+                    assert(fitIdx.length == k, "Error: fitIdx is not of length k!");
+                    assert(Math.max.apply(Math, fitIdx) < X.cols, "Error: fitIdx contains index greater than number of columns in matrix. Index out of range!");
+                    idx = fitIdx;
+                }
                 var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
                 for (var i = 0; i < idx.length; i++) {
                     var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
@@ -1489,6 +1544,19 @@ exports = {}; require.modules.qminer_analytics = exports;
         * Returns an vector of cluster id assignments
         * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
         * @returns {module:la.IntVector} Vector of cluster assignments.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+        * // create a matrix to be fitted
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+        * // create the model with the matrix X
+        * KMeans.fit(X);
+        * // create the matrix of the prediction vectors
+        * var pred = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
+        * // predict the values
+        * var prediction = KMeans.predict(pred);
         */
         this.predict = function (X) {
             var ones_n = la.ones(X.cols).multiply(0.5);
