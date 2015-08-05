@@ -784,7 +784,7 @@ module.exports = exports = function (pathPrefix) {
                     idx = la.randi(X.cols, k);
                 } else {
                     assert(fitIdx.length == k, "Error: fitIdx is not of length k!");
-                    assert(Math.max[fitIdx] < X.cols, "Error: fitIdx contains index greater than number of columns in matrix. Index out of range!");
+                    assert(Math.max.apply(Math, fitIdx) < X.cols, "Error: fitIdx contains index greater than number of columns in matrix. Index out of range!");
                     idx = fitIdx;
                 }
                 var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
