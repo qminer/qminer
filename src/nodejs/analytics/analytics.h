@@ -181,7 +181,10 @@ public:
     /**
     * Sends vector through the model and returns the distance to the decision boundery.
     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
-    * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix). Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).
+    * @returns {number | module:la.Vector} Distance:
+	* <br>1. Real number, if input is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>2. {@link module:la.Vector}, if input is {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* <br>Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).
     * @example
 	* // import the analytics and la modules
 	* var analytics = require('qminer').analytics;
@@ -203,7 +206,10 @@ public:
 	/**
 	* Sends vector through the model and returns the prediction as a real number.
     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
-    * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix), 1 for positive class and -1 for negative.
+    * @returns {number | module:la.Vector} Prediction:
+	* <br>1. Real number, if input is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>2. {@link module:la.Vector}, if input is {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* <br>1 for positive class and -1 for negative.
 	* @example
 	* // import the analytics and la modules
 	* var analytics = require('qminer').analytics;
@@ -331,16 +337,48 @@ public:
 	//# exports.SVR.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 
     /**
-     * sends vector through the model and returns the prediction as a real number
+     * Sends vector through the model and returns the scalar product as a real number.
      * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
-     * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix).
+     * @returns {number | module:la.Vector} Distance:
+	 * <br>1. Real number if input is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	 * <br>2. {@link module:la.Vector}, if input is {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	 * @example
+	 * // import the modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create a new SVR object
+	 * var SVR = new analytics.SVR({ c: 10 });
+	 * // create a matrix and vector for the model
+	 * var matrix = new la.Matrix([[1, -1], [1, 1]]);
+	 * var vector = new la.Vector([1, 1]);
+	 * // create the model by fitting the values
+	 * SVR.fit(matrix, vector);
+	 * // get the distance between the model and the given vector
+	 * var vec2 = new la.Vector([-5, 1]);
+	 * var distance = SVR.decisionFunction(vec2);
      */
     //# exports.SVR.prototype.decisionFunction = function(X) { return (X instanceof require('qminer').la.Vector | X instanceof require('qminer').la.SparseVector) ? 0 : Object.create(require('qminer').la.Vector.prototype); }
 
 	/**
-	* sends vector through the model and returns the prediction as a real number
+	* Sends vector through the model and returns the prediction as a real number.
     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
-    * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix).
+    * @returns {number | module:la.Vector} Prediction:
+	* <br>1. Real number, if input is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>2. {@link module:la.Vector}, if input is {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* @example
+	* // import the modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new SVR object
+	* var SVR = new analytics.SVR({ c: 10 });
+	* // create a matrix and vector for the model
+	* var matrix = new la.Matrix([[1, -1], [1, 1]]);
+	* var vector = new la.Vector([1, 1]);
+	* // create the model by fitting the values
+	* SVR.fit(matrix, vector);
+	* // predict the value of the given vector
+	* var vec2 = new la.Vector([-5, 1]);
+	* var prediction = SVR.predict(vec2);
 	*/
 	//# exports.SVR.prototype.predict = function(X) { return (X instanceof require('qminer').la.Vector | X instanceof require('qminer').la.SparseVector) ? 0 : Object.create(require('qminer').la.Vector.prototype); }
 
@@ -349,6 +387,17 @@ public:
 	* @param {module:la.Matrix | module:la.SparseMatrix} X - Input feature matrix where columns correspond to feature vectors.
 	* @param {module:la.Vector} y - Input vector of targets, one for each column of X.
 	* @returns {module:analytics.SVR} Self.
+	* @example
+	* // import the modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new SVR object
+	* var SVR = new analytics.SVR({ c: 10 });
+	* // create a matrix and vector for the model
+	* var matrix = new la.Matrix([[1, -1], [1, 1]]);
+	* var vector = new la.Vector([1, 1]);
+	* // create the model by fitting the values
+	* SVR.fit(matrix, vector);
 	*/
 	//# exports.SVR.prototype.fit = function(X, y) { return Object.create(require('qminer').analytics.SVR.prototype); }
 	JsDeclareFunction(fit);	

@@ -341,7 +341,7 @@ describe("SVC test", function () {
                 SVC.predict(matrix2);
             });
         })
-        it('should throw an exception if the matrix has too lesserrows', function () {
+        it('should throw an exception if the matrix has too lesser rows', function () {
             var matrix = new la.Matrix([[1, -1], [0, 0]]);
             var vec = new la.Vector([1, -1]);
             var SVC = new analytics.SVC();

@@ -180,7 +180,7 @@ describe("SVR test", function () {
         })
     });
 
-    describe("Fit", function () {
+    describe("Fit Tests", function () {
         it("should not throw an exception for correct values", function () {
             var matrix = new la.Matrix([[1, -1], [1, -1]]);
             var vector = new la.Vector([1, 1]);
