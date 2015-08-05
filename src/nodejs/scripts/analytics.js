@@ -735,6 +735,7 @@ module.exports = exports = function (pathPrefix) {
         var iter = param.iter == undefined ? 100 : param.iter;
         var k = param.k == undefined ? 2 : param.k;
         var verbose = param.verbose == undefined ? false : param.verbose;
+        var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
 
         // Model
         var C = undefined;
@@ -760,6 +761,7 @@ module.exports = exports = function (pathPrefix) {
             iter = param.iter == undefined ? iter : param.iter;
             k = param.k == undefined ? k : param.k;
             verbose = param.verbose == undefined ? verbose : param.verbose;
+            fitIdx = param.fitIdx == undefined ? fitIdx : param.fitIdx;
         }
 
         /**
@@ -777,7 +779,14 @@ module.exports = exports = function (pathPrefix) {
         this.fit = function (X) {
             // select random k columns of X, returns a dense C++ matrix
             var selectCols = function (X, k) {
-                var idx = la.randi(X.cols, k);
+                var idx;
+                if (fitIdx == undefined) {
+                    idx = la.randi(X.cols, k);
+                } else {
+                    assert(fitIdx.length == k, "Error: fitIdx is not of length k!");
+                    assert(Math.max[fitIdx] < X.cols, "Error: fitIdx contains index greater than number of columns in matrix. Index out of range!");
+                    idx = fitIdx;
+                }
                 var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
                 for (var i = 0; i < idx.length; i++) {
                     var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
