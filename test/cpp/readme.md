@@ -12,7 +12,17 @@ ROOT\qminer\package.json
 
 
 
-LINUX / OSX:
+Debian derivatives (including Ubuntu):
+
+1) Install gtest package:
+ $ sudo apt-get install libgtest-dev
+
+2) Run tests:
+ $ cd qminer/test/cpp/; make -f Makefile.debian run    # compiles and runs all the tests
+
+
+
+Other LINUX / OSX:
 
 1) Go to folder where you want to install Google Test (different from qminer folders).
 
