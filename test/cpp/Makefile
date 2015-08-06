@@ -34,7 +34,7 @@ run: test
 	$(CC) $(CXXFLAGS) -c $<
 
 $(MAIN): $(MAIN).o $(TEST_OBJS) $(GLIB)/glib.a
-	$(CC) $(CXXFLAGS) -o $(MAIN) $^ $(LDFLAGS) $(LIBS)
+	$(CC) -o $(MAIN) $^ $(LDFLAGS) $(LIBS)
 
 $(GLIB)/glib.a:
 	$(MAKE) -C $(GLIB) release
