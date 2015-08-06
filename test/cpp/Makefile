@@ -9,11 +9,10 @@
 #	make run
 #
 
-include ../../Makefile.config
 # dependencies
 LIBS += -lgtest
 GLIB = ../../src/glib
-GLIB_BASE = $(GLIB)/base
+include $(GLIB)/Makefile.config
 
 ## Main application file
 MAIN = run-all-tests
@@ -32,10 +31,10 @@ run: test
 
 # COMPILE
 .cpp.o:
-	$(CC) $(CXXFLAGS) -I$(GLIB_BASE) -c $<
+	$(CC) $(CXXFLAGS) -c $<
 
 $(MAIN): $(MAIN).o $(TEST_OBJS) $(GLIB)/glib.a
-	$(CC) $(CXXFLAGS) -o $(MAIN) $^ -I$(GLIB_BASE) $(LDFLAGS) $(LIBS)
+	$(CC) $(CXXFLAGS) -o $(MAIN) $^ $(LDFLAGS) $(LIBS)
 
 $(GLIB)/glib.a:
 	$(MAKE) -C $(GLIB) release
