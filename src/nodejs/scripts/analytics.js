@@ -533,8 +533,8 @@ module.exports = exports = function (pathPrefix) {
         // set default parameters
         this.rate = 0.05;
         this.windowSize = 100;
-        this.matrix = la.Matrix;
         this.dim = -1;
+        this.matrix = la.Matrix;
         this.thresh = 0;
         this.dist = new la.Vector();
         this.distId = new la.IntVector();
@@ -546,8 +546,36 @@ module.exports = exports = function (pathPrefix) {
         // for private consumption
         var that = this;
 
+        /**
+        * Sets parameters (TODO)
+        * @param {Object} param - Parameters
+        */
+        this.setParams = function (param) {
+            // update parameters that are provided
+            if (param.rate != undefined) { this.rate = param.rate; }
+            if (param.windowSize != undefined) { this.windowSize = param.windowSize; }
+            if (param.dim != undefined) { this.dim = param.dim; }
+            if (param.matrix != undefined) { this.matrix = param.matrix; }
+            // check all valid
+            assert(this.rate > 0 && this.rate <= 1.0, "NearestNeighborAD: rate parameter not in range (0,1]");
+            assert(this.windowSize >= 1, "NearestNeighborAD: window parameter not positive");
+        }
+
+        /**
+        * Returns parameters (TODO)
+        * @returns {Object} Parameters
+        */
+        this.getParams = function () {
+            return {
+                rate: this.rate,
+                windowSize: this.windowSize,
+                dim: this.dim,
+                matrix: this.matrix
+            };
+        }
+
         // parse parameters, if any are given
-        if (detectorParam == x instanceof fs.FIn) {
+        if (detectorParam instanceof fs.FIn) {
             // read from input stream
             var params = detectorParam.readJson();
             this.rate = params.rate;
@@ -564,6 +592,8 @@ module.exports = exports = function (pathPrefix) {
         } else if (detectorParam != undefined) {
             // update default parameter values if provided
             this.setParams(detectorParam);
+            // initialize matrix
+            this.X = new this.matrix({ cols: this.windowSize, rows: this.dim });
         }
 
         /**
@@ -597,34 +627,6 @@ module.exports = exports = function (pathPrefix) {
                 X: this.X,
                 thresh: this.thresh,
                 next: this.next
-            };
-        }
-
-        /**
-        * Sets parameters (TODO)
-        * @param {Object} param - Parameters
-        */
-        this.setParams = function (param) {
-            // update parameters that are provided
-            if (param.rate != undefined) { this.rate = param.rate}
-            if (param.windowSize != undefined) { this.windowSize = param.windowSize}
-            if (param.matrix != undefined) { this.matrix = param.matrix}
-            if (param.dim != undefined) { this.dim = param.dim}
-            // check all valid
-            assert(this.rate > 0 && this.rate <= 1.0, "NearestNeighborAD: rate parameter not in range (0,1]");
-            assert(this.windowSize >= 1, "NearestNeighborAD: window parameter not positive");
-        }
-
-        /**
-        * Returns parameters (TODO)
-        * @returns {Object} Parameters
-        */
-        this.getParams = function () {
-            return {
-                rate: this.rate,
-                windowSize: this.windowSize,
-                matrix: this.matrix,
-                dim: this.dim
             };
         }
 
