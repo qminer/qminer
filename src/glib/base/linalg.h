@@ -628,6 +628,9 @@ public:
 	// ||x|| (Euclidian), x is sparse
 	template<class TSizeTy = int>
 	inline static double Norm(const TVec<TIntFltKdV, TSizeTy>& x);
+	// ||X(:, ColId)|| (Euclidian), x is sparse
+	template<class TSizeTy = int>
+	inline static double Norm(const TVec<TIntFltKdV, TSizeTy>& x, const int& ColId);
 	// x := x / ||x||, x is sparse
 	template<class TSizeTy = int, TSizeTy>
 	inline static void Normalize(TVec<TIntFltKdV>& x);
@@ -1607,6 +1610,11 @@ public:
 	template<class TSizeTy>
 	double TLinAlg::Norm(const TVec<TIntFltKdV, TSizeTy>& x) {
 		return sqrt(Norm2(x));
+	}
+	
+	template<class TSizeTy>
+	double TLinAlg::Norm(const TVec<TIntFltKdV, TSizeTy>& x, const int& ColId) {
+		return Norm(x[ColId]);		
 	}
 
 	// x := x / ||x||, x is sparse
