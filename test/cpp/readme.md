@@ -6,9 +6,18 @@ The solution files of qminer and gtest should look like this
 ROOT\gtest-1.7.0\msvc\gtest.sln
 ROOT\qminer\package.json
 
-2) open ROOT\qminer\test\cpp\tests.sln
+2) open ROOT\gtest-1.7.0\msvc\gtest.sln
 
-3) build and run (64bit release only)
+3) accept one-way upgrade to newer Visual Studio setttings
+
+4) Create a x64 platform by following:
+   https://code.google.com/p/googletest/wiki/FAQ#How_do_I_generate_64-bit_binaries_on_Windows_(using_Visual_Studi
+
+5) build the gtest project (64bit release only)
+
+6) open ROOT\qminer\test\cpp\tests.sln
+
+7) build and run (64bit release only)
 
 
 

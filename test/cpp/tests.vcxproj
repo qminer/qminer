@@ -66,6 +66,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>..\..\..\gtest-1.7.0\msvc\x64\Release;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -86,15 +87,14 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>..\..\..\gtest-1.7.0\msvc\x64\Debug;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\glib\base\base.cpp" />
     <ClCompile Include="run-all-tests.cpp" />
+    <ClCompile Include="test-THash.cpp" />
     <ClCompile Include="test-TStr.cpp" />
-    <ClCompile Include="test-TStr.rei.cpp" />
-    <ClCompile Include="test-TStr_Jan.cpp" />
-    <ClCompile Include="tstr-lstopar.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
