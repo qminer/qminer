@@ -26,6 +26,7 @@ TEST_OBJS = $(TEST_SRCS:.cpp=.o)
 # we test in release	
 CXXFLAGS += -O3 -DNDEBUG
 
+.PHONY: all run
 all: $(MAIN)
 run: test
 
@@ -36,12 +37,15 @@ run: test
 $(MAIN): $(MAIN).o $(TEST_OBJS) $(GLIB)/glib.a
 	$(CC) -o $(MAIN) $^ $(LDFLAGS) $(LIBS)
 
+.PHONY: $(GLIB)/glib.a
 $(GLIB)/glib.a:
 	$(MAKE) -C $(GLIB) release
 
+.PHONY: test
 test: $(MAIN)
 	./$(MAIN)
 
+.PHONY: clean
 clean:
 	$(MAKE) -C $(GLIB) clean
 	rm -f *.o $(MAIN)
