@@ -294,12 +294,14 @@ uint64 TZipIn::GetFLen(const TStr& ZipFNm) {
   TStrV StrV; Str.SplitOnWs(StrV);
   int n = StrV.Len()-1;
   while (n > 0 && ! StrV[n].StartsWith("-----")) { n--; }
-  if (n-7 <= 0) {
+  int FLenIndex = n-7;
+  if (FLenIndex <= 0) {
     WrNotify(TStr::Fmt("Corrupt file %s: MESSAGE:\n", ZipFNm.CStr()).CStr(), Str.CStr());
     SaveToErrLog(TStr::Fmt("Corrupt file %s. Message:\n:%s\n", ZipFNm.CStr(), Str.CStr()).CStr());
     return 0;
   }
-  return StrV[n-7].GetInt64();
+  if (StrV[FLenIndex].StartsWith("-----")) return 0; // empty archive
+  return StrV[FLenIndex].GetInt64();
 }
 
 /////////////////////////////////////////////////
