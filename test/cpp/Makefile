@@ -19,7 +19,8 @@ MAIN = run-all-tests
 
 TEST_SRCS = \
 	test-TStr.cpp \
-	test-THash.cpp
+	test-THash.cpp \
+	test-zipfl.cpp
 
 TEST_OBJS = $(TEST_SRCS:.cpp=.o)
 
