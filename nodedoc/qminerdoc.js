@@ -1346,21 +1346,25 @@
      * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
      */
 /**
-	* addJoin // TODO
-	* @param {string} joinName
-	* @param {(module:qm.Record | number)} joinRecord
-	* @param {number} [joinFrequency]
+	* Adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`
+	* @param {string} joinName - join name
+	* @param {(module:qm.Record | number)} joinRecord - joined record or its ID
+	* @param {number} [joinFrequency=1] - frequency attached to the join
 	* @returns {module:qm.Record} Record.
+    * @example
+    * //TODO
 	*/
- exports.Record.prototype.addJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
+ exports.Record.prototype.$addJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
 /**
-	* delJoin // TODO
-	* @param {string} joinName
-	* @param {(module:qm.Record | number)} joinRecord
-	* @param {number} [joinFrequency]
+	* Deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`.
+	* @param {string} joinName - join name
+	* @param {(module:qm.Record | number)} joinRecord - joined record or its ID
+	* @param {number} [joinFrequency=1] - frequency attached to the join
 	* @returns {module:qm.Record} Record.
+    * @example
+    * //TODO
 	*/
- exports.Record.prototype.delJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
+ exports.Record.prototype.$delJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
 /**
 	* Creates a JSON version of the record.
 	*
@@ -1396,16 +1400,16 @@
 /**
 	* Returns the id of the record.
 	*/
- exports.Record.prototype.$id = undefined;
+ exports.Record.prototype.$id = 0;
 /**
 	* Returns the name of the record.
 	*/
- exports.Record.prototype.$name = undefined;
+ exports.Record.prototype.$name = '';
 /**
 	* Returns the frequency of the record.
 	* @ignore
 	*/
- exports.Record.prototype.$fq = undefined;
+ exports.Record.prototype.$fq = 0;
 /**
 	* Returns the store the record belongs to.
 	*/
@@ -2239,17 +2243,17 @@
 /**
 	* Gives the store of the iterator.
 	*/
- exports.Iterator.prototype.store = undefined;
+ exports.Iterator.prototype.store = Object.create(require('qminer').Store.prototype);;
 /**
 	* Gives the current record.
 	*/
- exports.Iterator.prototype.record = undefined;
+ exports.Iterator.prototype.record = Object.create(require('qminer').Record.prototype);;
 /**
 * Feature Space
 * @classdesc Represents the feature space. It contains any of the {@link module:qm~FeatureExtractors}.
 * @class
 * @param {module:qm.Base} base - The base where the features are extracted from.
-* @param {Array.<Object>} extractors - The extractors.
+* @param {(Array.<Object> | module:fs.FIn)} param - Array with definiton of extractors or input stream.
 * @example
 * // import qm module
 * var qm = require('qminer');
@@ -2276,15 +2280,15 @@
 * // create a feature space 
 * var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpace", field: "Value" });
 */
- exports.FeatureSpace = function (base, extractors) {};
+ exports.FeatureSpace = function (base, param) {};
 /**
 	* Returns the dimension of the feature space.
 	*/
- exports.FeatureSpace.prototype.dim = undefined;
+ exports.FeatureSpace.prototype.dim = 0;
 /**
 	* Returns an array of the dimensions of each feature extractor in the feature space.
 	*/
- exports.FeatureSpace.prototype.dims = undefined;
+ exports.FeatureSpace.prototype.dims = [0];
 /**
 	* Serialize the feature space to an output stream.
 	* @param {module:fs.FOut} fout - The output stream.
@@ -2747,3 +2751,472 @@
 	* @ignore
 	*/
  exports.FeatureSpace.prototype.extractStrings = function (rec) {return ['']; }; 
+
+
+    //==================================================================
+    // BASE
+    //==================================================================
+
+    /**
+     * Loads the store from a CSV file. The opts parameter must have the following format:
+     *
+     * {
+     * 		file: 'nameOfFile',		// the name of the input file.
+     * 		store: 'nameOfStore',	// name of the store which will be created
+     * 		base: base,				// QMiner base object that creates the store
+     * 		delimiter: ',',			// optional delimiter
+     * 		quote: '"'				// optional character to escape values that contain a delimiter
+     * }
+     *
+     * @param {object} opts - options object, explained in the description
+     * @param {function} [callback] - callback function, called on errors and when the procedure finishes
+     */
+    exports.Base.prototype.loadCSV = function (opts, callback) {
+    	console.log('Loading CSV file ...');
+
+    	if (opts.delimiter == null) opts.delimiter = ',';
+    	if (opts.quote == null) opts.quote = '"';
+    	if (opts.ignoreFields == null) opts.ignoreFields = [];
+
+    	try {
+    		var fname = opts.file;
+    		var storeName = opts.store;
+    		var base = opts.base;
+
+    		var fieldTypes = null;
+    		var store = null;
+    		var buff = [];
+
+    		var ignoreFields = {};
+    		for (var i = 0; i < opts.ignoreFields.length; i++)
+    			ignoreFields[opts.ignoreFields] = null;
+
+    		var csvOpts = {
+    			headers: true,
+    			ignoreEmpty: true,
+    			delimiter: opts.delimiter,
+    			quote: opts.quote
+    		};
+
+    		// need to get the headers and columns types to actually create a store
+    		function initFieldTypes(data) {
+    			if (fieldTypes == null) fieldTypes = {};
+
+    			for (var key in data) {
+//    				if (key in ignoreFields)
+//    					continue;
+
+    				var val = data[key];
+    				if (fieldTypes[key] == null) {
+    					if (val.length == 0)
+    						fieldTypes[key] = null;
+    					else if (isNaN(val))
+    						fieldTypes[key] = 'string';
+    					else
+    						fieldTypes[key] = 'float';
+
+    				}
+    			}
+    		}
+
+    		function fieldTypesInitialized() {
+    			if (fieldTypes == null) return false;
+
+    			for (var key in fieldTypes) {
+//    				if (key in ignoreFields)
+//    					continue;
+
+    				if (fieldTypes[key] == null)
+    					return false;
+    			}
+
+    			return true;
+    		}
+
+    		function getUninitializedFlds() {
+    			var result = [];
+
+    			for (var key in fieldTypes) {
+//    				if (key in ignoreFields)
+//    					continue;
+
+    				if (fieldTypes[key] == null)
+    					result.push(key);
+    			}
+
+    			return result;
+    		}
+
+    		function createStore(rec) {
+    			try {
+	    			var storeDef = {
+	    				name: storeName,
+	    				fields: []
+	    			};
+
+	    			for (var fieldName in rec) {
+	    				storeDef.fields.push({
+							name: fieldName,
+							type: fieldTypes[fieldName],
+							"null": true,
+	    				});
+	    			}
+
+	    			base.createStore(storeDef);
+	    			store = base.store(storeName);
+
+	    			// insert all the record in the buffer into the store
+	    			buff.forEach(function (data) {
+	    				store.push(data);
+	    			})
+    			} catch (e) {
+    				if (callback != null)
+    					callback(e);
+    			}
+    		}
+
+    		var storeCreated = false;
+    		var lines = 0;
+
+    		csv.fromPath(fname, csvOpts)
+    			.transform(function (data) {
+    				var transformed = {};
+
+    				for (var key in data) {
+    					if (key in ignoreFields)
+    						continue;
+
+    					var val = data[key];
+    					var transKey = key.replace(/\s+/g, '_')	// remove invalid characters
+    									  .replace(/\.|%|\(|\)|\/|-|\+/g, '');
+
+    					if (fieldTypes != null && fieldTypes[transKey] != null)
+    						transformed[transKey] = fieldTypes[transKey] == 'float' ? parseFloat(val) : val;
+    					else
+    						transformed[transKey] = (isNaN(val) || val.length == 0) ? val : parseFloat(val);
+    				}
+
+    				return transformed;
+    			})
+    		   	.on('data', function (data) {
+    		   		if (++lines % 10000 == 0)
+    		   			console.log(lines + '');
+
+    		   		if (fieldTypes == null)
+    		   			initFieldTypes(data);
+
+    		   		if (store == null && fieldTypesInitialized())
+    		   			createStore(data);
+    		   		else if (!fieldTypesInitialized())
+    		   			initFieldTypes(data);
+
+    		   		if (store != null)
+    		   			store.push(data);
+    		   		else
+    		   			buff.push(data);
+    		   	})
+    		   	.on('end', function () {
+    		   		if (callback != null) {
+    		   			if (!fieldTypesInitialized()) {
+        		   			var fieldNames = getUninitializedFlds();
+        		   			callback(new Error('Finished with uninitialized fields: ' +
+								JSON.stringify(fieldNames)) + ', add them to ignore list!');
+        		   			return;
+        		   		} else {
+        		   			callback();
+        		   		}
+    		   		}
+    		   	});
+    	} catch (e) {
+    		if (callback != null)
+    			callback(e);
+    	}
+    }
+
+    //==================================================================
+    // STORE
+    //==================================================================
+
+    exports.Store.prototype.addTrigger = function (trigger) {
+        // name is automatically generated
+        // saveJson isn't needed
+        var Callbacks = {
+            onAdd: trigger.onAdd,
+            saveJson: function (limit) { return {}; }
+        };
+        if (trigger.onUpdate != undefined) { Callbacks["onUpdate"] = trigger.onUpdate; }
+        if (trigger.onDelete != undefined) { Callbacks["onDelete"] = trigger.onDelete; }
+        var streamAggr = new exports.StreamAggr(this.base, Callbacks, this.name);
+    }
+
+    exports.Store.prototype.addStreamAggr = function (params) {
+        return new exports.StreamAggr(this.base, params, this.name);
+    }
+
+    exports.Store.prototype.inspect = function (depth) {
+        var d = (depth == null) ? 0 : depth;
+        return util.inspect(this, { depth: d, 'customInspect': false });
+    }
+
+    //==================================================================
+    // RECORD SET
+    //==================================================================
+
+    /**
+     * Saves the record set into a CSV file specified in the opts parameter.
+     *
+     * @param {object} opts - The options parameter contains 2 fields.
+	 *      The first field 'opts.fname' specifies the output file.
+	 *      The second field 'opts.headers' specifies if headers should be included in the output file.
+     * @param {function} [callback] - The callback fired when the operation finishes.
+     */
+    exports.RecSet.prototype.saveCSV = function (opts, callback) {
+    	// defaults
+    	if (opts.headers == null) { opts.headers = true; }
+
+    	try {
+    		console.log('Writing ' + this.length + ' lines to CSV file: ' + opts.fname + ' ...');
+
+    		// find out which columns to quote
+    		var store = this.store;
+    		var fields = store.fields;
+
+    		var quoteColumns = {};
+    		for (var i = 0; i < fields.length; i++) {
+    			var fldName = fields[i].name;
+    			quoteColumns[fldName] = store.isString(fldName) || store.isDate(fldName);
+    		}
+
+	    	// write to file
+	    	var out = nodefs.createWriteStream(opts.fname);
+	    	var csvOut = csv.createWriteStream({
+	    		headers: opts.headers,
+	    		quoteHeaders: true,
+	    		quoteColumns: quoteColumns
+	    	});
+
+	    	out.on('error', function (e) {
+	    		if (callback != null) {
+	    			callback(e);
+				}
+	    	});
+
+	    	out.on('finish', function () {
+	    		if (callback != null) {
+	    			callback();
+				}
+	    	});
+
+	    	csvOut.pipe(out);
+
+	    	this.each(function (rec, idx) {
+	    		try {
+		    		if (idx % 10000 == 0) {
+		    			console.log(idx);
+					}
+		    		csvOut.write(rec.toJSON());
+	    		} catch (e) {
+	    			if (callback != null) {
+	    				callback(e);
+					}
+	    		}
+	    	});
+
+	    	csvOut.end();
+    	} catch (e) {
+    		if (callback != null) {
+    			callback(e);
+			}
+    	}
+    }
+
+    //==================================================================
+    // CIRCULAR RECORD BUFFER
+    //==================================================================
+
+    /**
+    * @classdesc Circular buffer for storing records. Size of buffer is defined at
+    * start and is denoted in number of records. When buffer is full, old records
+    * are removed from the buffer and new records are stored in their place. For
+    * adding and deleting a callback is called. Records are stored by their IDs.
+    * @class
+    * @param {Object} [CircularRecordBufferParam] - Constructor parameters
+    * @param {module:qm.Store} CircularRecordBufferParam.store - Store for the records in the buffer.
+    * @param {number} CircularRecordBufferParam.size - Size of the buffer (number of records).
+    * @param {function} [CircularRecordBufferParam.onAdd] - Callback executed when new record is
+    * added to the buffer. Callback is give two parameters: record and instance of CircularRecordBuffer.
+    * @param {function} [CircularRecordBufferParam.onDelete] - Callback executed when record is removed
+    * from the buffer. Callback is give two parameters: record and instance of CircularRecordBuffer.
+    * @example
+	* // TODO
+    */
+    exports.CircularRecordBuffer = function (params) {
+        // check we have all encessary parameters
+        if (params.store == undefined) { throw new Error("CircularRecordBuffer requires store in constructor"); }
+        if (!(params.store instanceof qm.Store)) { throw new Error("CircularRecordBuffer requires store in constructor" + params.store); }
+        if (params.size == undefined) { throw new Error("CircularRecordBuffer requires size in constructor"); }
+        if (!(params.size >= 1)) { throw new Error("CircularRecordBuffer positive size in constructor"); }
+        // parameters
+        this.store = params.store;
+        this.size = params.size;
+        this.buffer = new qm.la.IntVector();
+        this.next = 0;
+        // Callbacks
+        this.onAdd = (params.onAdd == undefined) ? function () {} : params.onAdd;
+        this.onDelete = (params.onDelete == undefined) ? function () {} : params.onDelete;
+
+        /**
+        * Load circular buffer from input stream. Assumes store, onAdd and onDelete
+        * were already initialized in constructor.
+        * @param {module:fs.FIn} fin - input stream
+        */
+        this.load = function (fin) {
+            var finParam = fin.readJson();
+            this.size = finParam.size;
+            this.next = finParam.next;
+            this.buffer.load(fin);
+        }
+
+        /**
+        * Saves circular buffer to the output stream. Does not save store, onAdd
+        * and onDelete callbacks.
+        * @param {module:fs.FOut} fout - output stream
+        * @returns {module:fs.FOut} output stream
+        */
+        this.save = function (fout) {
+            fout.writeJson({
+                size: this.size,
+                next: this.next
+            });
+            this.buffer.save(fout);
+            return fout;
+        }
+
+        /**
+    	* Add new record to the buffer.
+        * @param {module:qm.Record} rec - New record.
+        * @example
+        * // TODO
+    	*/
+        this.push = function (rec) {
+            if (this.buffer.length < this.size) {
+                // we did not fill buffer yet, just add new element
+                this.buffer.push(rec.$id);
+                this.onAdd(rec, this);
+            } else {
+                // we are full, first delete the oldest record.
+                var oldRec = this.store[this.buffer[this.next]];
+                this.onDelete(oldRec, this);
+                // remember new record
+                this.buffer[this.next] = rec.$id;
+                this.onAdd(rec, this);
+                // move pointer to the oldest record forwards
+                this.next++;
+                if (this.next == this.size) { this.next = 0; }
+            }
+        }
+    }
+
+    //==================================================================
+    // FEATURE SPACE
+    //==================================================================
+
+    //#- `qm.FeatureSpace.getSparseVectorFeatures(spVec)` -- Return array of feature
+	//#  names based on feature space `fsp` where the elements of a sparse feature
+	//#  vector `spVec` are non-zero.
+    exports.FeatureSpace.prototype.getSparseVectorFeatures = function (spVec) {
+        // get index vector
+        var idxVec = spVec.idxVec();
+        var cols = [];
+        for (var elN = 0; elN < idxVec.length; elN++) {
+            cols.push(this.getFeature(idxVec[elN]));
+        }
+        return cols;
+    }
+
+    //==================================================================
+    // EXPORTS
+    //==================================================================
+
+    // loading data into stores
+    exports.load = function () {
+        var _obj = {};
+
+        //#- `num = qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName`
+        //#   line by line, parsing each line as JSON and adding it as record to `store`.
+        //#   When `limit != -1` only first first `limit` lines are loaded. Returns `num`:
+        //#   the number of lines loaded.
+        _obj.jsonFileLimit = function (store, file, limit) {
+            var fin = fs.openRead(file);
+            var count = 0;
+            while (!fin.eof) {
+                var line = fin.readLine();
+                if (line == "") { continue; }
+                try {
+                    var rec = JSON.parse(line);
+                    store.push(rec);
+                    // count, GC and report
+                    count++;
+                    if (count % 1000 == 0) {
+                        store.base.garbageCollect();
+                    }
+                    if (count % 10000 == 0) {
+                        console.log("  " + count + " records");
+                    }
+                    if (count == limit) {
+                        break;
+                    }
+                } catch (err) {
+                    console.log("Error parsing [" + line + "]: " + err)
+                }
+            }
+            console.log("Loaded " + count + " records to " + store.name);
+            return count;
+        }
+
+        //#- `num = qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line,
+        //#   parsing each line as JSON and adding it as record to `store`. Returns `num`:
+        //#   the number of lines loaded.
+        _obj.jsonFile = function (store, file) {
+            return _obj.jsonFileLimit(store, file, -1);
+        }
+
+        return _obj;
+    }();
+
+    exports.delLock = function () {
+        if (nodefs.existsSync('lock')) {
+            try {
+                nodefs.unlinkSync('lock');
+            } catch (e) {
+                console.log(e);
+            }
+        }
+    }
+
+    exports.rmDir = function (dirPath) {
+        try { var files = nodefs.readdirSync(dirPath); }
+        catch (e) { return; }
+        if (files.length > 0)
+            for (var i = 0; i < files.length; i++) {
+                var filePath = dirPath + '/' + files[i];
+                if (nodefs.statSync(filePath).isFile())
+                    nodefs.unlinkSync(filePath);
+                else
+                    rmDir(filePath);
+            }
+        nodefs.rmdirSync(dirPath);
+    };
+
+	function forbidConstructor(obj) {
+		proto = obj.prototype;
+		obj = function () {throw  new Error('constructor is private, ' + obj.prototype.constructor.name +  ' is factory based.');}
+		obj.prototype = proto;
+		return obj;
+	}
+
+	// Forbids constructors that would crash node - these objects are factory constructed
+	exports.Store = forbidConstructor(exports.Store);
+	exports.RecSet = forbidConstructor(exports.RecSet);
+
+    

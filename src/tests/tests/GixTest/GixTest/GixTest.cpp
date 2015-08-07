@@ -976,20 +976,103 @@ public:
 // Unit tests to be executed
 //////////////////////////////////////////////////////////////////////////
 
-TEST(testTBlobBs, Simple10) { XTest::Test_Simple_1(); }
-TEST(testTBlobBs, Simple200) { XTest::Test_Simple_220(); }
-TEST(testTBlobBs, Simple220Unsorted) { XTest::Test_Simple_220_Unsorted(); }
-TEST(testTBlobBs, Merge220Into50) { XTest::Test_Merge_220_Into_50(); }
-TEST(testTBlobBs, Merge220Into120) { XTest::Test_Merge_220_Into_120(); }
-TEST(testTBlobBs, Merge22000Into50) { XTest::Test_Merge_22000_Into_50(); }
-TEST(testTBlobBs, Delete1) { XTest::Test_Delete_1(); }
-TEST(testTBlobBs, Delete20) { XTest::Test_Delete_20(); }
-TEST(testTBlobBs, Delete20And1) { XTest::Test_Delete_20And1(); }
-TEST(testTBlobBs, Delete120) { XTest::Test_Delete_120(); }
-TEST(testTBlobBs, Delete120And1) { XTest::Test_Delete_120And1(); }
-TEST(testTBlobBs, Delete120And110) { XTest::Test_Delete_120And110(); }
-TEST(testTBlobBs, Delete22000And1000) { XTest::Test_Delete_22000And1000(); }
-TEST(testTBlobBs, QuasiDelete120And1And2) { XTest::Test_QuasiDelete_120And1And2(); }
-TEST(testTBlobBs, QuasiDelete120And20) { XTest::Test_QuasiDelete_120And20(); }
-TEST(testTBlobBs, QuasiDelete22000And1000) { XTest::Test_QuasiDelete_22000And1000(); }
-TEST(testTBlobBs, ReadOnlyAfterCrash) { XTest::Test_ReadOnlyAfterCrash(); }
+//TEST(testTBlobBs, Simple10) { XTest::Test_Simple_1(); }
+//TEST(testTBlobBs, Simple200) { XTest::Test_Simple_220(); }
+//TEST(testTBlobBs, Simple220Unsorted) { XTest::Test_Simple_220_Unsorted(); }
+//TEST(testTBlobBs, Merge220Into50) { XTest::Test_Merge_220_Into_50(); }
+//TEST(testTBlobBs, Merge220Into120) { XTest::Test_Merge_220_Into_120(); }
+//TEST(testTBlobBs, Merge22000Into50) { XTest::Test_Merge_22000_Into_50(); }
+//TEST(testTBlobBs, Delete1) { XTest::Test_Delete_1(); }
+//TEST(testTBlobBs, Delete20) { XTest::Test_Delete_20(); }
+//TEST(testTBlobBs, Delete20And1) { XTest::Test_Delete_20And1(); }
+//TEST(testTBlobBs, Delete120) { XTest::Test_Delete_120(); }
+//TEST(testTBlobBs, Delete120And1) { XTest::Test_Delete_120And1(); }
+//TEST(testTBlobBs, Delete120And110) { XTest::Test_Delete_120And110(); }
+//TEST(testTBlobBs, Delete22000And1000) { XTest::Test_Delete_22000And1000(); }
+//TEST(testTBlobBs, QuasiDelete120And1And2) { XTest::Test_QuasiDelete_120And1And2(); }
+//TEST(testTBlobBs, QuasiDelete120And20) { XTest::Test_QuasiDelete_120And20(); }
+//TEST(testTBlobBs, QuasiDelete22000And1000) { XTest::Test_QuasiDelete_22000And1000(); }
+//TEST(testTBlobBs, ReadOnlyAfterCrash) { XTest::Test_ReadOnlyAfterCrash(); }
+
+//////////////////////////////////////////////////////////////////////////
+
+TEST(testTGix, AddRemove) {
+	TStr Nm = "Test1";
+	TStr Path = "data";
+
+	// create index and add single item
+	TMyGix gix(Nm, Path, faCreate, 10000, 100);
+
+	auto key = TIntUInt64Pr(1, 1);
+	TMyItem item(7234, 1);
+
+	gix.AddItem(key, item);
+	gix.DelItem(key, item);
+
+	ASSERT_EQ(gix.GetKeys(), 1);
+	{
+		auto itemset = gix.GetItemSet(key);
+		itemset->Def();
+		ASSERT_EQ(itemset->Empty(), true);
+	}
+	gix.PartialFlush(1000*1000);
+	ASSERT_EQ(gix.GetKeys(), 0);
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+TEST(testTGix, AddRemoveBatch) {
+	TStr Nm = "Test1";
+	TStr Path = "data";
+	int loops = 100;
+	int items = 19;
+
+	// create index and add items
+	{
+		TMyGix gix(Nm, Path, faCreate, 10000, 100);
+
+		for (int i = 0; i < loops; i++) {
+			auto key = TIntUInt64Pr(i, 1);
+			for (int j = 0; j < items; j++) {
+				TMyItem item(j, 1);
+				gix.AddItem(key, item);
+			}
+		}
+		ASSERT_EQ(gix.GetKeys(), loops);
+	}
+	{
+		TMyGix gix(Nm, Path, faUpdate, 10000, 100);
+
+		int deleted_itemsets = gix.GetKeys();
+
+		for (int i = 0; i < loops; i++) {
+			auto key = TIntUInt64Pr(i, 1);
+			for (int j = 0; j < items; j++) {
+				TMyItem item(j, 1);
+				// here stale itemsets are removed from cache and already get deleted!
+				gix.DelItem(key, item);
+			}
+		}
+
+		// detect how many itemsets were deleted already due to cache eviction
+		deleted_itemsets -= gix.GetKeys();
+
+		for (int i = 0; i < loops; i++) {
+			auto key = TIntUInt64Pr(i, 1);
+			auto itemset = gix.GetItemSet(key);
+			if (itemset.Empty() || itemset->Empty()) {
+				deleted_itemsets--;
+			} else {
+				itemset->Def();
+				ASSERT_EQ(itemset->Empty(), true);
+			}
+		}
+
+		// missing-keys count must match deleted-keys count
+		ASSERT_EQ(deleted_itemsets, 0);
+
+		gix.PartialFlush(1000 * 1000);
+
+		ASSERT_EQ(gix.GetKeys(), 0);
+	}
+}

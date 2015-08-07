@@ -1622,11 +1622,6 @@ public:
 	static v8::Local<v8::Object> NewInstance(TNodeJsRec* Obj);
 	
 private:
-	//!
-	//! **Functions and properties:**
-	//!
-
-    //!- `rec2 = rec.$clone()` -- create a clone of JavaScript wrapper with same record inside
 	/**
 	* Clones the record.
 	* @returns {module:qm.Record} The clone of the record.
@@ -1662,31 +1657,30 @@ private:
      * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
      */
 	
-    //!- `rec = rec.addJoin(joinName, (joinRecord | joinRecordId))` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string). Returns self.
-    //!- `rec = rec.addJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- adds a join record `joinRecord` (or given id, joinRecordId) to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
 	/**
-	* addJoin // TODO
-	* @param {string} joinName
-	* @param {(module:qm.Record | number)} joinRecord
-	* @param {number} [joinFrequency]
+	* Adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`
+	* @param {string} joinName - join name
+	* @param {(module:qm.Record | number)} joinRecord - joined record or its ID
+	* @param {number} [joinFrequency=1] - frequency attached to the join
 	* @returns {module:qm.Record} Record.
+    * @example
+    * //TODO
 	*/
-	//# exports.Record.prototype.addJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
+	//# exports.Record.prototype.$addJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
 	JsDeclareFunction(addJoin);
 
-    //!- `rec = rec.delJoin(joinName, (joinRecord | joinRecordId))` -- deletes join record `joinRecord` (or given id, joinRecordId) from join `joinName` (string). Returns self.
-    //!- `rec = rec.delJoin(joinName, (joinRecord | joinRecordId), joinFrequency)` -- deletes join record `joinRecord` (or given id, joinRecordId) from join `joinName` (string) with join frequency `joinFrequency`. Return self.
 	/**
-	* delJoin // TODO
-	* @param {string} joinName
-	* @param {(module:qm.Record | number)} joinRecord
-	* @param {number} [joinFrequency]
+	* Deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`.
+	* @param {string} joinName - join name
+	* @param {(module:qm.Record | number)} joinRecord - joined record or its ID
+	* @param {number} [joinFrequency=1] - frequency attached to the join
 	* @returns {module:qm.Record} Record.
+    * @example
+    * //TODO
 	*/
-	//# exports.Record.prototype.delJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
+	//# exports.Record.prototype.$delJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
 	JsDeclareFunction(delJoin);
 
-    //!- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
 	/**
 	* Creates a JSON version of the record.
 	*
@@ -1721,26 +1715,23 @@ private:
 	//# exports.Record.prototype.toJSON = function () {};
     JsDeclareFunction(toJSON);
 
-	//!- `recId = rec.$id` -- returns record ID
 	/**
 	* Returns the id of the record.
 	*/
-	//# exports.Record.prototype.$id = undefined;
+	//# exports.Record.prototype.$id = 0;
 	JsDeclareProperty(id);
 
-	//!- `recName = rec.$name` -- returns record name
 	/**
 	* Returns the name of the record.
 	*/
-	//# exports.Record.prototype.$name = undefined;
+	//# exports.Record.prototype.$name = '';
 	JsDeclareProperty(name);
 
-	//!- `recFq = rec.$fq` -- returns record frequency (used for randomized joins)
 	/**
 	* Returns the frequency of the record.
 	* @ignore
 	*/
-	//# exports.Record.prototype.$fq = undefined;
+	//# exports.Record.prototype.$fq = 0;
 	JsDeclareProperty(fq);
 
 	//!- `recStore = rec.$store` -- returns record store
@@ -1750,11 +1741,7 @@ private:
 	//# exports.Record.prototype.store = undefined;
 	JsDeclareProperty(store);
 
-	//!- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
-	//!- `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
 	JsDeclareSetProperty(getField, setField);
-	//!- `rs = rec['joinName']` -- gets the record set if `joinName` is an index join. Equivalent: `rs = rec.joinName`. No setter currently.
-	//!- `rec2 = rec['joinName']` -- gets the record `rec2` is the join `joinName` is a field join. Equivalent: `rec2 = rec.joinName`. No setter currently.
 	JsDeclareProperty(join);
 	JsDeclareProperty(sjoin);
 };
@@ -1788,10 +1775,6 @@ public:
 	// C++ constructors
 	TNodeJsRecSet(const TQm::PRecSet& _RecSet, PNodeJsBaseWatcher& _Watcher) : RecSet(_RecSet), Watcher(_Watcher) {}
 private:
-	//! 
-	//! **Functions and properties:**
-	//!   
-	//!- `rs2 = rs.clone()` -- creates new instance of record set
 	/**
 	* Creates a new instance of the record set.
 	* @returns {module:qm.RecordSet} A copy of the record set.
@@ -1823,8 +1806,6 @@ private:
 	//# exports.RecordSet.prototype.clone = function () { return Object.create(require(qminer).RecordSet.prototype); };
 	JsDeclareFunction(clone);
 
-	//!- `rs2 = rs.join(joinName)` -- executes a join `joinName` on the records in the set, result is another record set `rs2`.
-	//!- `rs2 = rs.join(joinName, sampleSize)` -- executes a join `joinName` on a sample of `sampleSize` records in the set, result is another record set `rs2`.
 	/**
 	* Creates a new record set out of the join attribute of records.
 	* @param {string} joinName - The name of the join attribute.
@@ -1872,8 +1853,6 @@ private:
 	//# exports.RecordSet.prototype.join = function (joinName, sampleSize) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(join);
 
-	//!- `aggrsJSON = rs.aggr()` -- returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set
-	//!- `aggr = rs.aggr(aggrQueryJSON)` -- computes the aggregates based on the `aggrQueryJSON` parameter JSON object. If only one aggregate is involved and an array of JSON objects when more than one are returned.
 	/**
 	* Aggr // TODO
 	* @param {Object} [aggrQueryJSON] 
@@ -1883,8 +1862,6 @@ private:
 	//# exports.RecordSet.prototype.aggr = function (aggrQueryJSON) {};
 	JsDeclareFunction(aggr);
     
-	//!- `rs = rs.trunc(limit_num)` -- truncate to first `limit_num` record and return self.
-	//!- `rs = rs.trunc(limit_num, offset_num)` -- truncate to `limit_num` record starting with `offset_num` and return self.
 	/**
 	* Truncates the first records.
 	* @param {number} limit_num - How many records to truncate.
@@ -1921,7 +1898,6 @@ private:
 	//# exports.RecordSet.prototype.trunc = function (limit_num, offset_num) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(trunc);
 
-	//!- `rs2 = rs.sample(num)` -- create new record set by randomly sampling `num` records.
 	/**
 	* Creates a random sample of records of the record set.
 	* @param {number} num - The number of records in the sample.
@@ -1953,7 +1929,6 @@ private:
 	//# exports.RecordSet.prototype.sample = function (num) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(sample);
 
-	//!- `rs = rs.shuffle(seed)` -- shuffle order using random integer seed `seed`. Returns self.
 	/**
 	* Shuffles the order of records in the record set.
 	* @param {number} [seed] - Integer.
@@ -1988,7 +1963,6 @@ private:
 	//# exports.RecordSet.prototype.shuffle = function (seed) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(shuffle);
 
-	//!- `rs = rs.reverse()` -- reverse record order. Returns self.
 	/**
 	* It reverses the record order.
 	* @returns {module:qm.RecordSet} Self. Records are in reversed order.
@@ -2022,7 +1996,6 @@ private:
 	//# exports.RecordSet.prototype.reverse = function () { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(reverse);
 
-	//!- `rs = rs.sortById(asc)` -- sort records according to record id; if `asc > 0` sorted in ascending order. Returns self.
 	/**
 	* Sorts the records according to record id.
 	* @param {number} [asc=-1] - If asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.  
@@ -2057,7 +2030,6 @@ private:
 	//# exports.RecordSet.prototype.sortById = function (asc) { return Object.create(require('qminer').RecordSet.prototype); }; 
 	JsDeclareFunction(sortById);
 
-	//!- `rs = rs.sortByFq(asc)` -- sort records according to weight; if `asc > 0` sorted in ascending order. Returns self.
 	/**
 	* Sorts the records according to their weight.
 	* @param {number} [asc=1] - If asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.
@@ -2067,7 +2039,6 @@ private:
 	//# exports.RecordSet.prototype.sortByFq = function (asc) { return Object.create(require('qminer').RecordSet.prototype); }; 
 	JsDeclareFunction(sortByFq);
 
-	//!- `rs = rs.sortByField(fieldName, asc)` -- sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order (default is desc). Returns self.
 	/**
 	* Sorts the records according to a specific record field.
 	* @param {string} fieldName - The field by which the sort will work.
@@ -2652,9 +2623,6 @@ private:
 
 ///////////////////////////////
 // NodeJs QMiner Store Iterator
-//! 
-//! ### Store iterator
-//! 
 /**
 * Store Iterator (factory pattern)
 * @namespace
@@ -2708,10 +2676,6 @@ public:
     // delete placeholder
     ~TNodeJsStoreIter() { RecObj.Reset(); }
 	
-    //!
-	//! **Functions and properties:**
-	//!   
-	//!- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
 	/**
 	* Moves to the next record.
 	* @returns {boolean} 
@@ -2747,18 +2711,16 @@ public:
 	//# exports.Iterator.prototype.next = function () { return true; };
 	JsDeclareFunction(next);
 
-	//!- `store = iter.store` -- get the store
 	/**
 	* Gives the store of the iterator.
 	*/
-	//# exports.Iterator.prototype.store = undefined;
+	//# exports.Iterator.prototype.store = Object.create(require('qminer').Store.prototype);
 	JsDeclareProperty(store);
 
-	//!- `rec = iter.record` -- get current record; reuses JavaScript record wrapper, need to call `rec.$clone()` on it to if there is any wish to store intermediate records.
 	/**
 	* Gives the current record.
 	*/
-	//# exports.Iterator.prototype.record = undefined;
+	//# exports.Iterator.prototype.record = Object.create(require('qminer').Record.prototype);
 	JsDeclareProperty(record);
 };
 
@@ -2807,9 +2769,6 @@ public:
 
 ///////////////////////////////
 // NodeJs QMiner Index Key
-//!
-//! ### Index key
-//!
 class TNodeJsIndexKey: public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
@@ -2829,9 +2788,6 @@ public:
 		Store(_Store), IndexKey(_IndexKey), Watcher(_Watcher) { }
     
 public:
-    //!
-	//! **Functions and properties:**
-	//!   
 	//!- `store = key.store` -- gets the key's store
 	JsDeclareProperty(store);
 	//!- `keyName = key.name` -- gets the key's name
@@ -2845,9 +2801,6 @@ public:
 
 ///////////////////////////////////////////////
 /// Javscript Function Feature Extractor.
-//-
-//- ## Javascript Feature Extractor
-//-
 class TNodeJsFuncFtrExt : public TQm::TFtrExt {
 private:
 	// private constructor
@@ -2903,7 +2856,7 @@ public:
 * @classdesc Represents the feature space. It contains any of the {@link module:qm~FeatureExtractors}.
 * @class
 * @param {module:qm.Base} base - The base where the features are extracted from.
-* @param {Array.<Object>} extractors - The extractors.
+* @param {(Array.<Object> | module:fs.FIn)} param - Array with definiton of extractors or input stream.
 * @example
 * // import qm module
 * var qm = require('qminer');
@@ -2930,7 +2883,7 @@ public:
 * // create a feature space 
 * var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpace", field: "Value" });
 */
-//# exports.FeatureSpace = function (base, extractors) {};
+//# exports.FeatureSpace = function (base, param) {};
 
 class TNodeJsFtrSpace : public node::ObjectWrap {
 	friend class TNodeJsUtil;
@@ -2945,31 +2898,20 @@ public:
 	
 	TQm::PFtrSpace GetFtrSpace() { return FtrSpace; }
 public:
-	//!
-	//! **Constructor:**
-	//!
-	//!- `fsp = new qm.FeatureSpace(base, fin)` -- construct a new feature space by providing the base and input stream object
-	//!- `fsp = new qm.FeatureSpace(base, params)` -- construct a new feature space by providing the base and parameter JSON object
 	static TNodeJsFtrSpace* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
-	//!
-	//! **Functions and properties:**
-	//!
-    
-	//!- `num = fsp.dim` -- dimensionality of feature space
-	/**
+
+    /**
 	* Returns the dimension of the feature space.
 	*/
-	//# exports.FeatureSpace.prototype.dim = undefined;
+	//# exports.FeatureSpace.prototype.dim = 0;
     JsDeclareProperty(dim);
     
-	//!- `num_array = fsp.dims` -- dimensionality of feature space for each of the internal feature extarctors
 	/**
 	* Returns an array of the dimensions of each feature extractor in the feature space.
 	*/
-	//# exports.FeatureSpace.prototype.dims = undefined;
+	//# exports.FeatureSpace.prototype.dims = [0];
     JsDeclareProperty(dims);
 
-    //!- `fout = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns `fout`.
 	/**
 	* Serialize the feature space to an output stream.
 	* @param {module:fs.FOut} fout - The output stream.
@@ -2978,7 +2920,6 @@ public:
 	//# exports.FeatureSpace.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); };
     JsDeclareFunction(save);
 
-	//!- `fsp = fsp.addFeatureExtractor(objJson)` -- add a feature extractor parametrized by `objJson`
 	/**
 	* Adds a new feature extractor to the feature space.
 	* @param {Object} obj - The added feature extractor. It must be given as a JSON object.
@@ -3014,9 +2955,6 @@ public:
 	//# exports.FeatureSpace.prototype.addFeatureExtractor = function (obj) { return Object.create(require('qminer').FeatureSpace.prototype); };
 	JsDeclareFunction(addFeatureExtractor);
 
-    //!- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
-    //!     by exposing them to record `rec`. Returns self. For example, this can update the vocabulary
-    //!     used by bag-of-words extractor by taking into account new text.
 	/**
 	* Updates the feature space definitions and extractors by adding one record.
 	* <br> For text feature extractors, it can update it's vocabulary by taking into account the new text.
@@ -3066,9 +3004,6 @@ public:
 	//# exports.FeatureSpace.prototype.updateRecord = function (rec) { return Object.create(require('qminer').FeatureSpace.prototype); };
 	JsDeclareFunction(updateRecord);
 
-    //!- `fsp = fsp.updateRecords(rs)` -- update feature space definitions and extractors
-    //!     by exposing them to records from record set `rs`. Returns self. For example, this can update
-    //!     the vocabulary used by bag-of-words extractor by taking into account new text.
 	/**
 	* Updates the feature space definitions and extractors by adding all the records of a record set.
 	* <br> For text feature extractors, it can update it's vocabulary by taking into account the new text.
@@ -3116,18 +3051,7 @@ public:
 	*/
 	//# exports.FeatureSpace.prototype.updateRecords = function (rs) { return Object.create(require('qminer').FeatureSpace.prototype); };
 	JsDeclareFunction(updateRecords);
-	//!- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
-    JsDeclareFunction(ftrSpVec);
-    //!- `vec = fsp.ftrVec(rec)` -- extracts feature vector `vec` from record  `rec`
-    JsDeclareFunction(ftrVec);
-    //!- `vec = fsp.invFtrVec(ftrVec)` -- performs the inverse operation of ftrVec, returns the results in
-    //!- 	an array
-	JsDeclareFunction(invFtrVec);
-	//!- `val = fsp.invFtrVec(ftrIdx, val)` -- inverts a single feature using the feature
-	//!- 	extractor on index `ftrIdx`
-	JsDeclareFunction(invFtr);
 
-	//!- `spVec = fsp.extractSparseVector(rec)` -- extracts sparse feature vector `spVec` from record `rec`
 	/**
 	* Creates a sparse feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
@@ -3167,7 +3091,6 @@ public:
 	//# exports.FeatureSpace.prototype.extractSparseVector = function (rec) { return Object.create(require('qminer').la.SparseVector.prototype); }
     JsDeclareFunction(extractSparseVector);
 
-    //!- `vec = fsp.extractVector(rec)` -- extracts feature vector `vec` from record  `rec`
 	/**
 	* Creates a feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
@@ -3207,8 +3130,6 @@ public:
 	//# exports.FeatureSpace.prototype.extractVector = function (rec) { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(extractVector);
     
-	//!- `vec = fsp.invertFeatureVector(ftrVec)` -- performs the inverse operation of ftrVec, returns the results in
-    //!- 	an array
 	/**
 	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
 	* @param {(module:la.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
@@ -3250,8 +3171,6 @@ public:
 	//# exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(invertFeatureVector);
 
-	//!- `val = fsp.invertFeature(ftrIdx, val)` -- inverts a single feature using the feature
-	//!- 	extractor on index `ftrIdx`
 	/**
 	* Calculates the inverse of a single feature using a specific feature extractor.
 	* @param {number} idx - The index of the specific feature extractor.
@@ -3291,8 +3210,6 @@ public:
 	//# exports.FeatureSpace.prototype.invertFeature = function (idx, val) {};
 	JsDeclareFunction(invertFeature);
 
-    //!- `spMat = fsp.extractSparseMatrix(rs)` -- extracts sparse feature vectors from
-    //!     record set `rs` and returns them as columns in a sparse matrix `spMat`.
 	/**
 	* Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.
 	* @param {module:qm.RecordSet} rs - The given record set.
@@ -3326,8 +3243,6 @@ public:
 	//# exports.FeatureSpace.prototype.extractSparseMatrix = function (rs) { return Object.create(require('qminer').la.SparseMatrix.prototype); };
 	JsDeclareFunction(extractSparseMatrix);
 
-    //!- `mat = fsp.extractMatrix(rs)` -- extracts feature vectors from
-    //!     record set `rs` and returns them as columns in a matrix `mat`.
 	/**
 	* Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.
 	* @param {module:qm.RecordSet} rs - The given record set.
@@ -3364,7 +3279,6 @@ public:
 	//# exports.FeatureSpace.prototype.extractMatrix = function (rs) { return Object.create(require('qminer').la.Matrix.prototype); };
     JsDeclareFunction(extractMatrix);
 
-	//!- `name = fsp.getFeatureExtractor(ftrExtractor)` -- returns the name `name` (string) of `ftrExtractor`-th feature extractor in feature space `fsp`
 	/**
 	* Gives the name of feature extractor at given position.
 	* @param {number} idx - The index of the feature extractor in feature space (zero based).
@@ -3395,7 +3309,6 @@ public:
 	//# exports.FeatureSpace.prototype.getFeatureExtractor = function (idx) { return ''; };
 	JsDeclareFunction(getFeatureExtractor);
 
-	//!- `ftrName = fsp.getFeature(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
 	/**
 	* Gives the name of the feature at the given position.
 	* @param {number} idx - The index of the feature in feature space (zero based).
@@ -3434,9 +3347,6 @@ public:
 	//# exports.FeatureSpace.prototype.getFeature = function (idx) { return ''; };
 	JsDeclareFunction(getFeature);
     
-	//!- `out_vec = fsp.filter(in_vec, ftrExtractor)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`
-    //!- `out_vec = fsp.filter(in_vec, ftrExtractor, keepOffset)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`.
-    //!     If `keepOffset` == `true`, then original feature ID offset is kept, otherwise the first feature of `ftrExtractor` starts with position 0.
 	/**
 	* Filters the vector to keep only the elements from the feature extractor.
 	* @param {(module:la.Vector | module:la.SparseVector)} vec - The vector from where the function filters the elements.
@@ -3483,9 +3393,6 @@ public:
 	//# exports.FeatureSpace.prototype.filter = function (vec, idx, keepOffset) {};
     JsDeclareFunction(filter);
 
-	//!- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string
-    //!     features from record `rec` (e.g. words from string fields); results are returned
-    //!     as a string array
 	/**
 	* Extracts string features from the record.
 	* @param {module:qm.Record} rec

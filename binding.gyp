@@ -162,7 +162,9 @@
                 'src/qminer/qminer_aggr.h',
                 'src/qminer/qminer_aggr.cpp',
                 'src/qminer/qminer_op.h',
-                'src/qminer/qminer_op.cpp'
+                'src/qminer/qminer_op.cpp',
+                'src/qminer/qminer_pbs.h',
+                'src/qminer/qminer_pbs.cpp'
             ],        
             'include_dirs': [
                 'src/qminer',

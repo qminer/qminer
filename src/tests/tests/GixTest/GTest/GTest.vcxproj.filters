@@ -23,6 +23,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\WholeTest\ReadMe.md" />
+    <None Include="ReadMe.md" />
   </ItemGroup>
 </Project>

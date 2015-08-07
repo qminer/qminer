@@ -7,6 +7,35 @@
  */
 
 namespace TSignalProc {
+
+/////////////////////////////////////////////////
+// Simple Online Moving Variance
+void TVarSimple::Update(const double& InVal) {	 
+	// See Knuth TAOCP vol 2, 3rd edition, page 232
+	N++;
+	if (N == 1) {
+		OldM = NewM = InVal;
+		OldS = 0.0;
+	} else {
+		NewM = OldM + (InVal - OldM) / N;
+		NewS = OldS + (InVal - OldM)*(InVal - NewM);
+		// set up for next iteration
+		OldM = NewM;
+		OldS = NewS;
+	}
+}
+
+void TVarSimple::Load(TSIn& SIn) {
+	*this = TVarSimple(SIn);
+}
+
+void TVarSimple::Save(TSOut& SOut) const {
+	OldM.Save(SOut);
+	NewM.Save(SOut);
+	OldS.Save(SOut);
+	NewS.Save(SOut);
+	N.Save(SOut);
+}
     
 /////////////////////////////////////////////////
 // Online Moving Average 

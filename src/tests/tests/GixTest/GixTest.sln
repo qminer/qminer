@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		Performance1.psess = Performance1.psess
 		Performance2.psess = Performance2.psess
+		Performance3.psess = Performance3.psess
 	EndProjectSection
 EndProject
 Global
@@ -59,7 +60,8 @@ Global
 		{4A35D885-1D2E-460C-9FD5-011614B4941A}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{4A35D885-1D2E-460C-9FD5-011614B4941A}.Release|Win32.ActiveCfg = Release|Win32
 		{4A35D885-1D2E-460C-9FD5-011614B4941A}.Release|Win32.Build.0 = Release|Win32
-		{4A35D885-1D2E-460C-9FD5-011614B4941A}.Release|x64.ActiveCfg = Release|Win32
+		{4A35D885-1D2E-460C-9FD5-011614B4941A}.Release|x64.ActiveCfg = Release|x64
+		{4A35D885-1D2E-460C-9FD5-011614B4941A}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
