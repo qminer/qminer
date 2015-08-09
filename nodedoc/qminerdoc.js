@@ -605,7 +605,7 @@
 /**
 * Base
 * @classdesc Represents the database and holds stores. The base object can be opened in multiple
-* modes: 'create' - create a new database, 'createClean' - force create, and 'openReadOnly' - open in read-onlly mode
+* modes: 'create' - create a new database, 'createClean' - force create, and 'openReadOnly' - open in read-only mode.
 * @class
 * @param {module:qm~BaseConstructorParam} paramObj - The base constructor parameter object.
 * @property {String} paramObj.mode - The mode in which base is opened.
@@ -614,7 +614,7 @@
 * @example
 * // import qm module
 * var qm = require('qminer');
-* // using a constructor, in open mode:
+* // using a constructor, in open mode
 * var base = new qm.Base({mode: 'open'});
 */
  exports.Base = function (paramObj) { return Object.create(require('qminer').Base.prototype); };
