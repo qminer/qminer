@@ -7,6 +7,15 @@
     <link rel="stylesheet" href="example.css">
 </head>
 <body>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+
+    <!-- Highcharts chart representation -->
+    <script src="statSmooth.js"></script>
+    <script src="resampler.js"></script>
+    <script src="merger.js"></script>
+
     <h1>Storage and stream aggregator example</h1>
 
     <p>
@@ -75,15 +84,6 @@
     </p>
 
     <div id="combinedMerger"></div>
-
-    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-    <script src="http://code.highcharts.com/highcharts.js"></script>
-
-    <!-- Highcharts chart representation -->
-    <script src="statSmooth.js"></script>
-    <script src="resampler.js"></script>
-    <script src="merger.js"></script>
         
 </body>
 </html>

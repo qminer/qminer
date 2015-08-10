@@ -178,7 +178,7 @@ app.use(express.static(path.join(__dirname + '/public')));
 
 // when the client calls the server, it calls the dataSystemStats() and the example.html
 app.get('/', function (request, response) {
-    response.sendFile(__dirname + '/example.html');
+    response.sendFile(__dirname + '/streamaggregate.html');
 });
 
 // the callback function
@@ -295,5 +295,5 @@ var getData = function () {
 getData();
 
 // creates the server listener, so that we know that it's connected
-http.listen(3000, '127.0.0.1');
-console.log('Server running at http://127.0.0.1:3000/');
+http.listen(3000, '95.87.154.136');
+console.log('Server running at http://95.87.154.136:3000/');
