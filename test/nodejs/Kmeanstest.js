@@ -16,16 +16,15 @@ describe("Kmeans test", function () {
         it("should return empty parameter values", function () {
             var KMeans = new analytics.KMeans();
             var params = KMeans.getParams();
-            assert.equal(Object.keys(params).length, 0)
-
+            assert.equal(Object.keys(params).length, 0);
         });
         it("should return parameter values", function () {
-            var KMeans = new analytics.KMeans();
-            KMeans.setParams({ iter: 100, k: 2, verbose: false });
+            var KMeans = new analytics.KMeans({ iter: 100, k: 2, verbose: false });
             var params = KMeans.getParams();
             assert.equal(params.iter, 100);
             assert.equal(params.k, 2);
             assert.equal(params.verbose, false);
+            assert.equal(params.fitIdx, undefined);
         });
         it("should return empty model parameters", function () {
             var KMeans = new analytics.KMeans();
@@ -33,8 +32,7 @@ describe("Kmeans test", function () {
             assert.equal(model.C, undefined);
             assert.equal(model.idxv, undefined);
         });
-    })
-
+    });
     describe("Testing getParams and setParams", function () {
         it("should return the changed values of parameters", function () {
             var KMeans = new analytics.KMeans();
@@ -52,8 +50,13 @@ describe("Kmeans test", function () {
             assert.equal(params.k, 5);
             assert.equal(params.verbose, undefined);
         });
-    })
-
+        //Javascript tolerates Json key values that are not valid
+        it("should return the added key value", function () {
+            var KMeans = new analytics.KMeans({ alpha: false });
+            var params = KMeans.getParams();
+            assert.equal(params.alpha, false);
+        });
+    });
     describe("Fit test", function () {
         it("should create the model", function () {
             var KMeans = new analytics.KMeans();
@@ -62,7 +65,6 @@ describe("Kmeans test", function () {
                 KMeans.fit(matrix);
             });
         });
-
         it("should create the model, using fitIdx", function () {
             var KMeans = new analytics.KMeans({ fitIdx: [0, 1] });
             var matrix = new la.Matrix([[-1, 1], [0, 0]]);
@@ -81,15 +83,15 @@ describe("Kmeans test", function () {
         });
         it("should return the correct centroids of the model", function () {
             var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
-            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
-            KMeans.fit(X);
+            var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(matrix);
             var model = KMeans.getModel();
-            assert.deepEqual(model.C, X);
+            assert.deepEqual(model.C, matrix);
         });
         it("should return the correct C of the model", function () {
             var KMeans = new analytics.KMeans({ k: 3, fitIdx: [1, 7, 6] });
-            var X = new la.Matrix([[1, 2, 3, -10, -10, 4, 2, -10], [7, 6, 5, 5, -5, -1, -3, 0]]);
-            KMeans.fit(X);
+            var matrix = new la.Matrix([[1, 2, 3, -10, -10, 4, 2, -10], [7, 6, 5, 5, -5, -1, -3, 0]]);
+            KMeans.fit(matrix);
             var C = KMeans.getModel().C;
             assert.eqtol(C.at(0, 0), 2, 5e-1);
             assert.eqtol(C.at(1, 0), 6, 5e-1);
@@ -105,7 +107,7 @@ describe("Kmeans test", function () {
                 KMeans.fit(matrix);
             });
         });
-        it("should throw an exception if fitIdx is not of length k", function () {
+        it("should throw an exception if fitIdx has index greater than number of matrix columns", function () {
             var KMeans = new analytics.KMeans({ k: 3, fitIdx: [4, 1, 2] });
             var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             assert.throws(function () {
@@ -124,7 +126,6 @@ describe("Kmeans test", function () {
             assert.deepEqual(model2.C, X);
         });
     });
-
     describe("Predict Tests", function () {
         it("should not throw an exception", function () {
             var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
@@ -144,6 +145,66 @@ describe("Kmeans test", function () {
             assert.equal(prediction[0], 1);
             assert.equal(prediction[1], 0);
             assert.equal(prediction[2], 2);
+        });
+        it("should throw an exception if the matrix has less rows", function () {
+            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.Matrix([[1, 1]]);
+            assert.throws(function () {
+                KMeans.predict(matrix);
+            });
+        });
+        it("should throw an exception if the matrix has too many rows", function () {
+            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.Matrix([[1, 1], [0, -1], [0, 0]]);
+            assert.throws(function () {
+                KMeans.predict(matrix);
+            });
+        });
+    });
+    describe("Transform Tests", function () {
+        it("should not throw an exception", function () {
+            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.Matrix([[1, 1], [0, -1]]);
+            assert.doesNotThrow(function () {
+                KMeans.transform(matrix);
+            });
+        });
+        it("should return the distance", function () {
+            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.Matrix([[-2, 0], [0, -3]]);
+            var transform = KMeans.transform(matrix);
+            assert.eqtol(transform.at(0, 0), 10);
+            assert.eqtol(transform.at(0, 1), 17);
+            assert.eqtol(transform.at(1, 0), 1);
+            assert.eqtol(transform.at(1, 1), 20);
+            assert.eqtol(transform.at(2, 0), 10);
+            assert.eqtol(transform.at(2, 1), 1);
+        });
+        it("should throw an exception because the matrix dimension is too big", function () {
+            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.Matrix([[-2, 0], [0, -3], [0, 0]]);
+            assert.throws(function () {
+                var transform = KMeans.transform(matrix);
+            });
+        });
+        it("should throw an exception because the matrix dimension is too short", function () {
+            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.Matrix([[-2, 0]]);
+            assert.throws(function () {
+                var transform = KMeans.transform(matrix);
+            });
         });
     });
 });

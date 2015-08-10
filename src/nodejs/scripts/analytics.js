@@ -954,7 +954,7 @@ module.exports = exports = function (pathPrefix) {
             var ones_k = la.ones(k).multiply(0.5);
             var norX2 = la.square(X.colNorms());
             var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
-            D = D.multiply(-1);
+            D = D.multiply(-2);
             return D;
         }
     }
