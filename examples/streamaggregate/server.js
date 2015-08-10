@@ -5,7 +5,7 @@
 var qm = require('qminer');
 // create a base with two stores
 
-var base = new qm.Base({
+var saBase = new qm.Base({
     mode: 'createClean',
     schema: [
         // used for the the Stat/Smooth chart
@@ -76,7 +76,7 @@ var ts = {
     value: 'Value',
     winsize: 10 * 1000
 };
-var tsWindow = base.store('Stats').addStreamAggr(ts);
+var tsWindow = saBase.store('Stats').addStreamAggr(ts);
 
 // add a moving average stream aggregate connected to the 'StatWindow' time series
 var ma = {
@@ -85,7 +85,7 @@ var ma = {
     store: 'Stats',
     inAggr: 'StatWindow'
 };
-var maAverage = base.store('Stats').addStreamAggr(ma);
+var maAverage = saBase.store('Stats').addStreamAggr(ma);
 
 // add a resampler stream aggregate connected to the 'Random' store
 var res = {
@@ -100,7 +100,7 @@ var res = {
     createStore: false,
     interval: 1000
 }
-var resampler = base.store('Random').addStreamAggr(res);
+var resampler = saBase.store('Random').addStreamAggr(res);
 
 // add a merger stream aggregate connected to the 'Gauss' and 'OtherGauss' stores
 var mer = {
@@ -114,7 +114,7 @@ var mer = {
         { source: 'OtherGauss', inField: 'Value', outField: 'SecondValue', interpolation: 'linear', timestamp: 'Time' }
     ]
 };
-var merger = new qm.StreamAggr(base, mer);
+var merger = new qm.StreamAggr(saBase, mer);
 
 
 ///////////////////////////////////////////////////////////
@@ -123,37 +123,34 @@ var merger = new qm.StreamAggr(base, mer);
 // putting the Brownian motion to the store for the Stat/Average
 var dataStats = function () {
     var date = new Date().toISOString();
-    var lastStat = base.store('Stats').last;
-    if (lastStat != null) { base.store('Stats').push({ Value: lastStat.Value + qm.la.randn(), Time: date }); }
-    else { base.store('Stats').push({ Value: qm.la.randn(), Time: date }); }
+    var lastStat = saBase.store('Stats').last;
+    if (lastStat != null) { saBase.store('Stats').push({ Value: lastStat.Value + qm.la.randn(), Time: date }); }
+    else { saBase.store('Stats').push({ Value: qm.la.randn(), Time: date }); }
 
-    base.store('Average').push({ Value: maAverage.getFloat(), Time: date });
+    saBase.store('Average').push({ Value: maAverage.getFloat(), Time: date });
     setTimeout(dataStats, 1000);
 };
 
 // putting the Brownian motion to the store for Resampler
 var dataResampler = function () {
     var date = new Date().toISOString();
-    var lastRandom = base.store('Random').last;
+    var lastRandom = saBase.store('Random').last;
     if (Math.random() > 0.5) {
-        if (lastRandom != null) { base.store('Random').push({ Value: lastRandom.Value + qm.la.randn(), Time: date }); }
-        else { base.store('Random').push({ Value: qm.la.randn(), Time: date }); }
+        if (lastRandom != null) { saBase.store('Random').push({ Value: lastRandom.Value + qm.la.randn(), Time: date }); }
+        else { saBase.store('Random').push({ Value: qm.la.randn(), Time: date }); }
     }
     setTimeout(dataResampler, 1000);
 };
 
-// counters for the merger aggregator
-var numberOfNewPoints = 0;
 // putting the Guassian values in the store for Merger
 var dataGauss = function () {
     var date = new Date().toISOString();
-    var numBefore = base.store('Merger').length;
+    var numBefore = saBase.store('Merger').length;
     // first store: Gauss
-    if (Math.random() > 0.5) { base.store('Gauss').push({ Value: qm.la.randn(), Time: date }); };
+    if (Math.random() > 0.5) { saBase.store('Gauss').push({ Value: qm.la.randn(), Time: date }); };
     // second store: otherGauss
-    if (Math.random() > 0.5) { base.store('OtherGauss').push({ Value: qm.la.randn(), Time: date }); };
+    if (Math.random() > 0.5) { saBase.store('OtherGauss').push({ Value: qm.la.randn(), Time: date }); };
 
-    numberOfNewPoints = base.store('Merger').length - numBefore;
     setTimeout(dataGauss, 1000);
 };
 
@@ -184,7 +181,7 @@ app.get('/', function (request, response) {
 // the callback function
 var getData = function () {
     // create a new stream aggregate for the 'Stats' store
-    new qm.StreamAggr(base, new function () {
+    new qm.StreamAggr(saBase, new function () {
         this.name = 'statsPush';
         this.onAdd = function (rec) {
             if (io.sockets.connected) {
@@ -199,7 +196,7 @@ var getData = function () {
         }
     }, 'Stats');
     // create a new stream aggregate for the 'Average' store
-    new qm.StreamAggr(base, new function () {
+    new qm.StreamAggr(saBase, new function () {
         this.name = 'averagePush';
         this.onAdd = function (rec) {
             if (io.sockets.connected) {
@@ -214,7 +211,7 @@ var getData = function () {
         }
     }, 'Average');
     // create a new stream aggregate for the 'Random' store
-    new qm.StreamAggr(base, new function () {
+    new qm.StreamAggr(saBase, new function () {
         this.name = 'randomPush';
         this.onAdd = function (rec) {
             if (io.sockets.connected) {
@@ -229,7 +226,7 @@ var getData = function () {
         }
     }, 'Random');
     // create a new stream aggregate for the 'Resampler' store TODO
-    new qm.StreamAggr(base, new function () {
+    new qm.StreamAggr(saBase, new function () {
         this.name = 'resamplerPush';
         this.onAdd = function (rec) {
             if (io.sockets.connected) {
@@ -244,7 +241,7 @@ var getData = function () {
         }
     }, 'Resampler');
     // create a new stream aggregate for the 'Gauss' store
-    new qm.StreamAggr(base, new function () {
+    new qm.StreamAggr(saBase, new function () {
         this.name = 'gaussPush';
         this.onAdd = function (rec) {
             if (io.sockets.connected) {
@@ -259,7 +256,7 @@ var getData = function () {
         };
     }, 'Gauss');
     // create a new stream aggregate for the 'OtherGauss' store
-    new qm.StreamAggr(base, new function () {
+    new qm.StreamAggr(saBase, new function () {
         this.name = 'otherGaussPush';
         this.onAdd = function (rec) {
             if (io.sockets.connected) {
@@ -274,7 +271,7 @@ var getData = function () {
         };
     }, 'OtherGauss');
     // create a new stream aggregate for the 'Merger' store
-    new qm.StreamAggr(base, new function () {
+    new qm.StreamAggr(saBase, new function () {
         this.name = 'mergerPush';
         this.onAdd = function (rec) {
             if (io.sockets.connected) {

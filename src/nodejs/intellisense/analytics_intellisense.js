@@ -702,7 +702,7 @@ exports = {}; require.modules.qminer_analytics = exports;
     * for each category and predicts the one with the highest score. Binary model is
     * provided as part of the constructor.
     * @class
-    * @param {Object} [oneVsAllParam] - Constructor parameters
+    * @param {Object} [oneVsAllParam] - Constructor parameters.
     * @param {function} [oneVsAllParam.model] - Constructor for binary model to be
     * used internaly. Constructor should expect only one parameter.
     * @param {Object} [oneVsAllParam.modelParam] - Parameter for oneVsAllParam.model constructor.
@@ -717,10 +717,27 @@ exports = {}; require.modules.qminer_analytics = exports;
         this.models = [ ];
 
         /**
-         * apply all models to the given vector and returns a vector of scores, one for each category.
+        * Gets the parameters.
+        * @returns {Object} Json object containing the parameters.
+        */
+        exports.OneVsAll.prototype.getParams = function () {
+            return { model: this.model, modelParam: this.modelParam, cats: this.cats, models: this.models }
+        };
+
+        /**
+        * Sets the parameters.
+        */
+        exports.OneVsAll.prototype.setParams = function (oneVsAllParam) {
+            this.model = oneVsAllParam.model == undefined ? this.model : oneVsAllParam.model;
+            this.modelParam = oneVsAllParam.modelParam == undefined ? this.modelParam : oneVsAllParam.modelParam;
+            this.cats = oneVsAllParam.cats == undefined ? this.cats : oneVsAllParam.cats;
+        }
+
+        /**
+         * Apply all models to the given vector and returns a vector of scores, one for each category.
          * Semantic of scores depand on the provided binary model.
          * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X -
-         * Input feature vector or matrix with feature vectors as columns
+         * Input feature vector or matrix with feature vectors as columns.
          * @returns {module:la.Vector | module:la.Matrix}
          * Score for each input vector and category. In case input is a vector, ouput is
          * a vector of scores. In case input is a matrix, output is matrix with columns corresponding
@@ -751,9 +768,9 @@ exports = {}; require.modules.qminer_analytics = exports;
         }
 
         /**
-         * apply all models to the given vector and returns category with the highest score.
+         * Apply all models to the given vector and returns category with the highest score.
          * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X -
-         * Input feature vector or matrix with feature vectors as columns
+         * Input feature vector or matrix with feature vectors as columns.
          * @returns {number | module:la.IntVector} Highest scored category, or categories when input is matrix.
          */
         this.predict = function(x) {
@@ -776,8 +793,8 @@ exports = {}; require.modules.qminer_analytics = exports;
         // X = feature matrix
         // y = target label from 0..cats
         /**
-         * apply all models to the given vector and returns category with the highest score.
-         * @param {module:la.Matrix | module:la.SparseMatrix} X - training instance feature vectors
+         * Apply all models to the given vector and returns category with the highest score.
+         * @param {module:la.Matrix | module:la.SparseMatrix} X - training instance feature vectors.
          * @param {module:la.Vector} y - target category for each training instance. Categories must
          * be integer numbers between 0 and oneVsAllParam.categories - 1.
          */        
@@ -1151,60 +1168,118 @@ exports = {}; require.modules.qminer_analytics = exports;
     };
 
     /**
+    * @typedef {Object} detectorParam
+    * A Json object used for the creation of the {@link module:analytics.NearestNeighborAD}.
+    * @param {number} [rate= 0.05] - The expected fracton of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies).
+    */
+
+    /**
     * @classdesc Anomaly detector that checks if the test point is too far from
     * the nearest known point.
     * @class
-    * @param {Object} [detectorParam={rate:0.05}] - Constructor parameters
-    * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
+    * @param {module:analytics~detectorParam} [detectorParam] - Constructor parameters.
+    * @example
+    * // import modules
+    * var analytics = require('qminer').analytics;
+    * var la = require('qminer').la;
+    * // create a new NearestNeighborAD object
+    * var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
+    * // create a matrix 
+    * var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+    * // fit the model with the matrix
+    * neighbor.fit(matrix);
+    * // create a new vector
+    * var vector = new la.Vector([4, 0]);
+    * // predict if the vector is an anomaly or not
+    * var prediction = neighbor.predict(vector);
     */
     exports.NearestNeighborAD = function (detectorParam) {
         // Parameters
-        detectorParam = detectorParam == undefined ? {} : detectorParam;
-        detectorParam.rate = detectorParam.rate == undefined ? 0.05 : detectorParam.rate;
-        assert(detectorParam.rate > 0 && detectorParam.rate <= 1.0, 'rate parameter not in range (0,1]');
+        var param = detectorParam == undefined ? {} : detectorParam;
+        param.rate = param.rate == undefined ? 0.05 : param.rate;
+        assert(param.rate > 0 && param.rate <= 1.0, 'rate parameter not in range (0,1]');
         // model param
-        this.rate = detectorParam.rate;
+        this.rate = param.rate;
         // default model
         this.thresh = 0;
 
         /**
-        * Returns the model
-        * @param {p} Object whose keys are: "thresh" - Maximal squared distance to the nearest neighbor that is not anomalous
+        * Returns the model.
+        * @returns {Object} Json object whose keys are: 
+        * <br> 1. rate - The expected fraction of emmited anomalies.
+        * <br> 2. thresh - Maximal squared distance to the nearest neighbor that is not anomalous.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new NearestNeighborAD object
+        * var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
+        * // get the model of the object
+        * // returns a json object { rate: 0.1, thresh: 0 }
+        * var model = neighbor.getModel();
         */
         this.getModel = function () { return { rate: this.rate, thresh: this.thresh }; }
 
         /**
-        * Sets parameters
-        * @param {p} Object whose keys are: "rate" - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
+        * Sets parameters.
+        * @param {module:analytics~detectorParam} newParams - The Json object containing the new rate value.
+        * @returns {module:analytics.NearestNeighborAD} Self. The parameters are updated with newParams.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new NearestNeighborAD object
+        * var neighbor = new analytics.NearestNeighborAD();
+        * // set it's parameters to rate: 0.1
+        * neighbor.setParams({ rate: 0.1 });
         */
-        this.setParams = function (p) {
-            param = p;
+        this.setParams = function (newParams) {
+            // Parameters
+            param.rate = newParams.rate == undefined ? param.rate : newParams.rate;
+            assert(param.rate > 0 && param.rate <= 1.0, 'rate parameter not in range (0,1]');
         }
 
         /**
-        * Returns parameters
-        * @returns Object whose keys are: "rate" - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
+        * Returns parameters.
+        * @returns {module:analytics~detectorParam} The Json object containing the rate value. 
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new NearestNeighborAD object
+        * var neighbor = new analytics.NearestNeighborAD();
+        * // get the parameters of the object
+        * // returns a json object { rate: 0.05 }
+        * var params = neighbor.getParams();
         */
         this.getParams = function () {
             return param;
         }
 
         /**
-        * Gets the 100*(1-rate) percentile
-        * @param {module:la.Vector} vector - Vector of values
-        * @returns {number} Percentile
+        * Gets the 100*(1-rate) percentile.
+        * @param {module:la.Vector} vector - Vector of values.
+        * @returns {number} The 100*(1-rate) percentile.
         */
         function getThreshold(vector, rate) {
             var sorted = vector.sortPerm().vec;
             var idx = Math.floor((1 - rate) * sorted.length);
             return sorted[idx];
         }
-        var neighborDistances = undefined;
+        //var neighborDistances = undefined;
 
         /**
         * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
         * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
         * the model.
+        * @returns {module:analytics.NearestNeighborAD} Self. The model is set by the matrix A.
+        * @example
+        * // import modules
+        * var analytics = require('qminer').analytics;
+        * var la = require('qminer').la;
+        * // create a new NearestNeighborAD object
+        * var neighbor = new analytics.NearestNeighborAD();
+        * // create a new matrix
+        * var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+        * // fit the model with the matrix
+        * neighbor.fit(matrix);
         */
         this.fit = function (A) {
             this.X = A;
@@ -1221,9 +1296,23 @@ exports = {}; require.modules.qminer_analytics = exports;
         }
 
         /**
-        * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
-        * @param {module:la.Vector} x - Test vector
-        * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
+        * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold).
+        * @param {module:la.Vector} x - Test vector.
+        * @returns {number} Returns 1.0 if the vector x is an anomaly and 0.0 otherwise.
+        * @example
+        * // import modules
+        * var analytics = require('qminer').analytics;
+        * var la = require('qminer').la;
+        * // create a new NearestNeighborAD object
+        * var neighbor = new analytics.NearestNeighborAD();
+        * // create a new matrix
+        * var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+        * // fit the model with the matrix
+        * neighbor.fit(matrix);
+        * // create a new vector 
+        * var vector = new la.Vector([4, 0]);
+        * // check if the vector is an anomaly
+        * var prediction = neighbor.predict(vector); // returns 1
         */
         this.predict = function (x) {
             // compute squared dist and compare to thresh
@@ -1235,8 +1324,23 @@ exports = {}; require.modules.qminer_analytics = exports;
         }
 
         /**
-        * Adds a new point (or points) to the known points and recomputes the threhshold
-        * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
+        * Adds a new point (or points) to the known points and recomputes the threshold.
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input).
+        * @returns {module:analytics.NearestNeighborAD} Self. The model is updated.
+         * @example
+        * // import modules
+        * var analytics = require('qminer').analytics;
+        * var la = require('qminer').la;
+        * // create a new NearestNeighborAD object
+        * var neighbor = new analytics.NearestNeighborAD();
+        * // create a new matrix
+        * var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+        * // fit the model with the matrix
+        * neighbor.fit(matrix);
+        * // create a new vector
+        * var vector = new la.Vector([2, 5]);
+        * // update the model with the vector
+        * neighbor.update(vector);
         */
         this.update = function (x) {
             // append x to known examples and retrain (slow version)
@@ -1273,6 +1377,9 @@ exports = {}; require.modules.qminer_analytics = exports;
         */
         this.setParams = function (p) {
             param = p;
+
+            iter = param.iter == undefined ? iter : param.iter;
+            k = param.k == undefined ? k : param.iter; 
         }
 
         /**
@@ -1567,16 +1674,34 @@ exports = {}; require.modules.qminer_analytics = exports;
         }
 
         /**
-        * Transforms the points to vectors of squared distances to centroids
+        * Transforms the points to vectors of squared distances to centroids.
         * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
-        * @returns {module:la.Matrix} Matrix where each column represents the squared distances to the centroid vectors
+        * @returns {module:la.Matrix} Matrix where each column represents the squared distances to the centroid vectors.
+        * @example
+        * // import modules
+        * var analytics = require('qminer').analytics;
+        * var la = require('qminer').la;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+        * // create a matrix to be fitted
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+        * // create the model with the matrix X
+        * KMeans.fit(X);
+        * // create the matrix of the transform vectors
+        * var matrix = new la.Matrix([[-2, 0], [0, -3]]);
+        * // get the transform values of matrix
+        * // returns the matrix
+        * //  10    17
+        * //   1    20
+        * //  10     1
+        * KMeans.transform(matrix);
         */
         this.transform = function (X) {
             var ones_n = la.ones(X.cols).multiply(0.5);
             var ones_k = la.ones(k).multiply(0.5);
             var norX2 = la.square(X.colNorms());
             var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
-            D = D.multiply(-1);
+            D = D.multiply(-2);
             return D;
         }
     }

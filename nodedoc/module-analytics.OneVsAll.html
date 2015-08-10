@@ -41,10 +41,6 @@
                     <dt><a href="module-analytics.OneVsAll.html#decisionFunction">decisionFunction(X)</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="module-analytics.OneVsAll.html#fit">fit(X, y)</a></dt>
                     <dd>
                     </dd>
@@ -52,7 +48,17 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.OneVsAll.html#getParams">getParams()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.OneVsAll.html#predict">predict(X)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.OneVsAll.html#setParams">setParams()</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -85,7 +91,7 @@
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>Constructor parameters</p>
+                      <p>Constructor parameters.</p>
                       <p>Values in <code>oneVsAllParam</code> have the following properties:</p>
                       <table class="jsdoc-details-table">
                         <thead>
@@ -153,7 +159,7 @@
             <h2>Methods</h2>
             <section>
               <h3 id="decisionFunction"><span class="symbol-name">decisionFunction</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
-              <p>apply all models to the given vector and returns a vector of scores, one for each category. Semantic of scores depand on the provided binary model.</p>
+              <p>Apply all models to the given vector and returns a vector of scores, one for each category. Semantic of scores depand on the provided binary model.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -177,7 +183,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Input feature vector or matrix with feature vectors as columns</p>
+                        <p>Input feature vector or matrix with feature vectors as columns.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -191,7 +197,7 @@
                 </dd>
               </dl>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X, y)</span></span></h3>
-              <p>apply all models to the given vector and returns category with the highest score.</p>
+              <p>Apply all models to the given vector and returns category with the highest score.</p>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -215,7 +221,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>training instance feature vectors</p>
+                        <p>training instance feature vectors.</p>
                       </td>
                     </tr>
                     <tr>
@@ -237,8 +243,16 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Gets the parameters.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;Json object containing the parameters.</p>
+                </dd>
+              </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.IntVector.html">module:la.IntVector</a>)</span></span></h3>
-              <p>apply all models to the given vector and returns category with the highest score.</p>
+              <p>Apply all models to the given vector and returns category with the highest score.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -262,7 +276,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Input feature vector or matrix with feature vectors as columns</p>
+                        <p>Input feature vector or matrix with feature vectors as columns.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -274,6 +288,10 @@
                   <p><code>(number or <a href="module-la.IntVector.html">module:la.IntVector</a>)</code>&nbsp;Highest scored category, or categories when input is matrix.</p>
                 </dd>
               </dl>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Sets the parameters.</p>
+              <dl class="dl-compact">
+              </dl>
             </section>
           </section>
         </div>
@@ -284,7 +302,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on August 9, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on August 10, 2015.
       </p>
     </div>
   </footer>
