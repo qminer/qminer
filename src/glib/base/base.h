@@ -213,6 +213,7 @@ typedef long long index_t;
 #include "tensor.h"
 #include "json.h"
 #include "zipfl.h"
+#include "pgblob.h"
 
 void BaseTralala();
 

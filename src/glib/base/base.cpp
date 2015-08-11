@@ -74,6 +74,7 @@ int _daylight = 0;
 #include "xmath.cpp"
 
 #include "blobbs.cpp"
+#include "pgblob.cpp"
 #include "lx.cpp"
 #include "url.cpp"
 #include "http.cpp"
