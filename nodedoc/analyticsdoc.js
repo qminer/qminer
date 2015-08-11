@@ -356,7 +356,7 @@
 /**
      * @property {module:la.Vector} weights - Vector of coefficients for linear regression
      */
- exports.RidgeReg.prototype.weights = undefined;
+ exports.RidgeReg.prototype.weights = Object.create(require('qminer').la.Vector.prototype);
 /**
      * Saves the model into the output stream.
      *
@@ -717,14 +717,15 @@
         * Gets the parameters.
         * @returns {Object} Json object containing the parameters.
         */
-        exports.OneVsAll.prototype.getParams = function () {
+        this.getParams = function () {
             return { model: this.model, modelParam: this.modelParam, cats: this.cats, models: this.models }
         };
 
         /**
         * Sets the parameters.
+        * @returns {module:analytics.OneVsAll} Self. The parameters are changed.
         */
-        exports.OneVsAll.prototype.setParams = function (oneVsAllParam) {
+        this.setParams = function (oneVsAllParam) {
             this.model = oneVsAllParam.model == undefined ? this.model : oneVsAllParam.model;
             this.modelParam = oneVsAllParam.modelParam == undefined ? this.modelParam : oneVsAllParam.modelParam;
             this.cats = oneVsAllParam.cats == undefined ? this.cats : oneVsAllParam.cats;
@@ -1229,6 +1230,7 @@
         * neighbor.setParams({ rate: 0.1 });
         */
         this.setParams = function (newParams) {
+            assert(newParams.rate != undefined, 'rate parameter must be defined!');
             // Parameters
             param.rate = newParams.rate == undefined ? param.rate : newParams.rate;
             assert(param.rate > 0 && param.rate <= 1.0, 'rate parameter not in range (0,1]');
