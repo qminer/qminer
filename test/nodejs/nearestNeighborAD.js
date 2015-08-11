@@ -1,0 +1,279 @@
+
+var assert = require("../../src/nodejs/scripts/assert.js");
+
+var analytics = require('qminer').analytics;
+var la = require('qminer').la;
+
+
+describe('NearestNeighborAD Tests', function () {
+
+    describe('Constructor Tests', function () {
+        it('should not throw an exception', function () {
+            assert.doesNotThrow(function () {
+                var neighbour = new analytics.NearestNeighborAD();
+            });
+        })
+        it('should construct a default NearestNeighborAD object', function () {
+            var neighbour = new analytics.NearestNeighborAD();
+            var params = neighbour.getParams();
+            assert.equal(params.rate, 0.05);
+        })
+        it('should construct a NearestNeighborAD object out of the params', function () {
+            var neighbour = new analytics.NearestNeighborAD({ rate: 0.5 });
+            var params = neighbour.getParams();
+            assert.equal(params.rate, 0.5);
+        })
+        it('should throw an exception if the parameter.rate is greater than 1', function () {
+            assert.throws(function () {
+                var neighbour = new analytics.NearestNeighborAD({ rate: 1.01 });
+            });
+        })
+        it('should throw an exception if the parameter.rate is lesser than 0', function () {
+            assert.throws(function () {
+                var neighbour = new analytics.NearestNeighborAD({ rate: -0.01 });
+            });
+        })
+    });
+
+    describe('SetParams Tests', function () {
+        it('should not throw an exception', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            assert.doesNotThrow(function () {
+                neighbor.setParams({ rate: 0.1 });
+            });
+        })
+        it('should set the parameters of the default object', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            neighbor.setParams({ rate: 0.1 });
+            var params = neighbor.getParams();
+            assert.equal(params.rate, 0.1);
+        })
+        it('should set the parameters of the object', function () {
+            var neighbor = new analytics.NearestNeighborAD({ rate: 0.25 });
+            neighbor.setParams({ rate: 0.1 });
+            var params = neighbor.getParams();
+            assert.equal(params.rate, 0.1);
+        })
+        it('should throw an exception if the given rate is bigger than 1', function () {
+            var neighbor = new analytics.NearestNeighborAD({ rate: 0.25 });
+            assert.throws(function () {
+                neighbor.setParams({ rate: 1.01 });
+            });
+        })
+        it('should throw an excpetion if the given rate is lesser than 0', function () {
+            var neighbor = new analytics.NearestNeighborAD({ rate: 0.25 });
+            assert.throws(function () {
+                neighbor.setParams({ rate: -0.001 });
+            });
+        })
+    });
+
+    describe('GetParams Tests', function () {
+        it('should not throw an exception', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            assert.doesNotThrow(function () {
+                neighbor.getParams();
+            });
+        })
+        it('should get the parameters of the default object', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var params = neighbor.getParams();
+            assert.equal(params.rate, 0.05);
+        })
+        it('should get the parameters of the object', function () {
+            var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
+            var params = neighbor.getParams();
+            assert.equal(params.rate, 0.1);
+        })
+    });
+
+    describe('Fit Tests', function () {
+        it('should not throw an exception', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+            assert.doesNotThrow(function () {
+                neighbor.fit(matrix);
+            });
+        })
+        it('should create a model with tresh equal to 8', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+            neighbor.fit(matrix);
+            var model = neighbor.getModel();
+
+            assert.eqtol(model.thresh, 8);
+        })
+        it('should create a model with tresh equal to 2', function () {
+            var neighbor = new analytics.NearestNeighborAD({ rate: 0.34 });
+            var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+            neighbor.fit(matrix);
+            var model = neighbor.getModel();
+
+            assert.eqtol(model.thresh, 2);
+        })
+    });
+
+    describe('GetModel Tests', function () {
+        it('should not throw an exception', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            assert.doesNotThrow(function () {
+                var model = neighbor.getModel();
+            });
+        })
+        it('should return the default parameters of the model', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var model = neighbor.getModel();
+            assert.equal(model.rate, 0.05);
+            assert.equal(model.thresh, 0);
+        })
+        it('should return the parameters of the model', function () {
+            var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
+            var model = neighbor.getModel();
+            assert.equal(model.rate, 0.1);
+            assert.equal(model.thresh, 0);
+        })
+        it('should return the parameters of the model, after fit', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+            neighbor.fit(matrix);
+            var model = neighbor.getModel();
+
+            assert.equal(model.rate, 0.05);
+            assert.eqtol(model.thresh, 8);
+        })
+    });
+
+    describe('Predict Tests', function () {
+        it('should not throw an exception', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+            neighbor.fit(matrix);
+
+            var vector = new la.Vector([1, 2]);
+            assert.doesNotThrow(function () {
+                neighbor.predict(vector);
+            });
+        })
+        it('should return 0 for the given vector', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+            neighbor.fit(matrix);
+
+            var vector = new la.Vector([1, 2]);
+            var prediction = neighbor.predict(vector);
+            assert.equal(prediction, 0);
+        })
+        it('should return 1 for the given vector', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+            neighbor.fit(matrix);
+
+            var vector = new la.Vector([4, 0]);
+            var prediction = neighbor.predict(vector);
+            assert.equal(prediction, 1);
+        })
+        it('should throw an exception if the vector is too long', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+            neighbor.fit(matrix);
+
+            var vector = new la.Vector([1, 2, 3]);
+            assert.throws(function () {
+                neighbor.predict(vector);
+            });
+        })
+        it('should throw an exception if the vector is to short', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+            neighbor.fit(matrix);
+
+            var vector = new la.Vector([1]);
+            assert.throws(function () {
+                neighbor.fit(vector);
+            });
+        })
+    });
+
+    describe('Update Tests', function () {
+        it('should not throw an exception', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var matrix = new la.Matrix([[1, -2], [2, 3]]);
+            neighbor.fit(matrix);
+
+            var vector = new la.Vector([0, 1]);
+            assert.doesNotThrow(function () {
+                neighbor.update(vector);
+            });
+        })
+        it('should update the model and return the threshold equal to 8, vector input', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var matrix = new la.Matrix([[1, -2], [2, 3]]);
+            neighbor.fit(matrix);
+
+            var vector = new la.Vector([0, 1]);
+            neighbor.update(vector);
+            var model = neighbor.getModel();
+
+            assert.eqtol(model.thresh, 8);
+        })
+        it('should update the model and return the threshold equal to 8, matrix input', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var matrix = new la.Matrix([[1], [2]]);
+            neighbor.fit(matrix);
+
+            var uMatrix = new la.Matrix([[-2, 0], [3, 1]]);
+            neighbor.update(uMatrix);
+            var model = neighbor.getModel();
+
+            assert.eqtol(model.thresh, 8);
+        })
+        it('should throw an exception if the vector is too long', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var matrix = new la.Matrix([[1, -2], [2, 3]]);
+            neighbor.fit(matrix);
+
+            var vector = new la.Vector([0, 1, 2]);
+            assert.throws(function () {
+                neighbor.update(vector);
+            })
+        });
+        it('should throw an exception if the vector is too short', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var matrix = new la.Matrix([[1, -2], [2, 3]]);
+            neighbor.fit(matrix);
+
+            var vector = new la.Vector([0]);
+            assert.throws(function () {
+                neighbor.update(vector);
+            });
+        })
+        it('should throw an exception if the matrix has too many rows', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var matrix = new la.Matrix([[1, -2], [2, 3]]);
+            neighbor.fit(matrix);
+
+            var uMatrix = new la.Matrix([[1, 2], [3, 4], [2, 21]]);
+            assert.throws(function () {
+                neighbor.update(uMatrix);
+            });
+        })
+        it('should throw an exception if the matrix doesn\'t have enough rows', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+            var matrix = new la.Matrix([[1, -2], [2, 3]]);
+            neighbor.fit(matrix);
+
+            var uMatrix = new la.Matrix([[1, 2]]);
+            assert.throws(function () {
+                neighbor.update(uMatrix);
+            });
+        })
+        it('should throw an exception if the fit function was not used previously', function () {
+            var neighbor = new analytics.NearestNeighborAD();
+
+            var uMatrix = new la.Matrix([[1, 2]]);
+            assert.throws(function () {
+                neighbor.update(uMatrix);
+            });
+        })
+    });
+});

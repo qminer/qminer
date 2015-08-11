@@ -1195,7 +1195,7 @@ exports.pdist2 = function (mat, mat2) {
 * // create a new vector
 * var vec2 = new la.Vector([1, 2, 3]);
 */
- exports.Vector = function() {}
+ exports.Vector = function() { return Object.create(require('qminer').la.Vector.prototype); }
  var VectorDefaultVal = 0.0; // for intellisense
 /**
 	* Returns element at index.
@@ -1500,7 +1500,7 @@ exports.pdist2 = function (mat, mat2) {
 * // create a new vector
 * var vec2 = new la.StrVector(['a', 'b', 'c']);
 */
- exports.StrVector = function() {}
+ exports.StrVector = function() { return Object.create(require('qminer').la.StrVector.prototype); }
  var StrVectorDefaultVal = ''; // for intellisense
 /**
 	* Returns element at index.
@@ -1805,7 +1805,7 @@ exports.pdist2 = function (mat, mat2) {
 * // create a new vector
 * var vec2 = new la.IntVector([1, 2, 3]);
 */
- exports.IntVector = function() {}
+ exports.IntVector = function() { return Object.create(require('qminer').la.IntVector.prototype); }
  var IntVectorDefaultVal = 0; // for intellisense
 /**
 	* Returns element at index.
@@ -2110,7 +2110,7 @@ exports.pdist2 = function (mat, mat2) {
 * // create a new vector
 * var vec2 = new la.BoolVector([true, true, false]);
 */
- exports.BoolVector = function() {}
+ exports.BoolVector = function() { return Object.create(require('qminer').la.BoolVector.prototype); }
  var BoolVectorDefaultVal = false; // for intellisense
 /**
 	* Returns element at index.

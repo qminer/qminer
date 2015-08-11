@@ -1962,16 +1962,16 @@ int TLAMisc::GetMinIdx(const TFltV& Vec) {
  void TLAMisc::Mean(const TFltVV& Mat, TFltV& Res, const int& Dim) {
 	 EAssertR(Dim == 1 || Dim == 2, "TLAMisc::Mean: Invalid value of 'Dim' argument. "
 		 "Supported 'Dim' arguments are 1 (col mean), or 2 (row mean).");
+	 int Rows = Mat.GetRows();
+	 int Cols = Mat.GetCols();
 	 if (Dim == 1) {
-		 int Rows = Mat.GetRows();
-		 TFltV Vec(Rows);
-		 Vec.PutAll(1.0 / Rows);
-		 TLinAlg::MultiplyT(Mat, Vec, Res);
-	 } else if (Dim == 2) {
-		 int Cols = Mat.GetCols();
 		 TFltV Vec(Cols);
 		 Vec.PutAll(1.0 / Cols);
 		 TLinAlg::Multiply(Mat, Vec, Res);
+	 } else if (Dim == 2) {
+		 TFltV Vec(Rows);
+		 Vec.PutAll(1.0 / Rows);
+		 TLinAlg::MultiplyT(Mat, Vec, Res);
 	 }
  }
 

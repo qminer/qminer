@@ -480,7 +480,7 @@ public:
     /**
      * @property {module:la.Vector} weights - Vector of coefficients for linear regression
      */
-    //# exports.RidgeReg.prototype.weights = undefined;
+    //# exports.RidgeReg.prototype.weights = Object.create(require('qminer').la.Vector.prototype);
     JsDeclareProperty(weights);
     
     /**
