@@ -707,18 +707,18 @@
     */
     exports.OneVsAll = function (oneVsAllParam) {
         // remember parameters
-        this.model = oneVsAllParam.model;
-        this.modelParam = oneVsAllParam.modelParam;
-        this.cats = oneVsAllParam.categories;
+        var model = oneVsAllParam.model;
+        var modelParam = oneVsAllParam.modelParam;
+        var cats = oneVsAllParam.categories;
         // trained models
-        this.models = [ ];
+        var models = [ ];
 
         /**
         * Gets the parameters.
         * @returns {Object} Json object containing the parameters.
         */
         this.getParams = function () {
-            return { model: this.model, modelParam: this.modelParam, cats: this.cats, models: this.models }
+            return { model: model, modelParam: modelParam, cats: cats, models: models }
         };
 
         /**
@@ -726,9 +726,9 @@
         * @returns {module:analytics.OneVsAll} Self. The parameters are changed.
         */
         this.setParams = function (oneVsAllParam) {
-            this.model = oneVsAllParam.model == undefined ? this.model : oneVsAllParam.model;
-            this.modelParam = oneVsAllParam.modelParam == undefined ? this.modelParam : oneVsAllParam.modelParam;
-            this.cats = oneVsAllParam.cats == undefined ? this.cats : oneVsAllParam.cats;
+            model = oneVsAllParam.model == undefined ? model : oneVsAllParam.model;
+            modelParam = oneVsAllParam.modelParam == undefined ? modelParam : oneVsAllParam.modelParam;
+            cats = oneVsAllParam.cats == undefined ? cats : oneVsAllParam.cats;
         }
 
         /**
@@ -797,7 +797,7 @@
          * be integer numbers between 0 and oneVsAllParam.categories - 1.
          */        
         this.fit = function(X, y) {
-            this.models = [ ];
+            models = [ ];
             // make model for each category
             for (var cat = 0; cat < this.cats; cat++) {
                 console.log("Fitting label", (cat + 1), "/", this.cats);
@@ -805,7 +805,7 @@
                 var target = exports.preprocessing.binarize(y, cat);
                 // get the model
                 var catModel = new this.model(this.modelParam);
-                this.models.push(catModel.fit(X, target));
+                models.push(catModel.fit(X, target));
             }
             console.log("Done!");
             return this;
@@ -1195,11 +1195,11 @@
         // Parameters
         var param = detectorParam == undefined ? {} : detectorParam;
         param.rate = param.rate == undefined ? 0.05 : param.rate;
-        assert(param.rate > 0 && param.rate <= 1.0, 'rate parameter not in range (0,1]');
         // model param
-        this.rate = param.rate;
+        var rate = param.rate == undefined ? 0.05 : param.rate;
+        assert(rate > 0 && rate <= 1.0, 'rate parameter not in range (0,1]');
         // default model
-        this.thresh = 0;
+        var thresh = 0;
 
         /**
         * Returns the model.
@@ -1215,7 +1215,7 @@
         * // returns a json object { rate: 0.1, thresh: 0 }
         * var model = neighbor.getModel();
         */
-        this.getModel = function () { return { rate: this.rate, thresh: this.thresh }; }
+        this.getModel = function () { return { rate: rate, thresh: thresh }; }
 
         /**
         * Sets parameters.
@@ -1230,10 +1230,11 @@
         * neighbor.setParams({ rate: 0.1 });
         */
         this.setParams = function (newParams) {
-            assert(newParams.rate != undefined, 'rate parameter must be defined!');
-            // Parameters
-            param.rate = newParams.rate == undefined ? param.rate : newParams.rate;
+            param = newParams;
             assert(param.rate > 0 && param.rate <= 1.0, 'rate parameter not in range (0,1]');
+            // Parameters
+            rate = param.rate == undefined ? param : newParams.rate;
+            
         }
 
         /**
@@ -1291,7 +1292,7 @@
                 // nearest neighbour squared distance
                 neighborDistances[i] = D.at(i, E.rowMaxIdx(i));
             }
-            this.thresh = getThreshold(neighborDistances, this.rate);
+            thresh = getThreshold(neighborDistances, rate);
         }
 
         /**
@@ -1319,7 +1320,7 @@
             var idx = d.multiply(-1).getMaxIdx();
             var p = d[idx];
             //console.log(p)
-            return p > this.thresh ? 1 : 0;
+            return p > thresh ? 1 : 0;
         }
 
         /**
@@ -1404,7 +1405,7 @@
             // cov(A) = 1/(n-1) A A' - mu mu'
 
             // center data (same as matlab)
-            var cA = A.minus(mu.outer(la.ones(cols)));
+            var cA = A.minus(la.ones(cols).outer(mu));
             var C = cA.multiply(cA.transpose()).multiply(1 / (cols - 1));
             // alternative computation:
             //var C = (A.multiply(A.transpose()).multiply(1 / (cols - 1))).minus(mu.outer(mu));

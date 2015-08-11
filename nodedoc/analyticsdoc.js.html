@@ -1447,15 +1447,15 @@
 
         // remember parameters
 
-        this.model = oneVsAllParam.model;
+        var model = oneVsAllParam.model;
 
-        this.modelParam = oneVsAllParam.modelParam;
+        var modelParam = oneVsAllParam.modelParam;
 
-        this.cats = oneVsAllParam.categories;
+        var cats = oneVsAllParam.categories;
 
         // trained models
 
-        this.models = [ ];
+        var models = [ ];
 
 
 
@@ -1469,7 +1469,7 @@
 
         this.getParams = function () {
 
-            return { model: this.model, modelParam: this.modelParam, cats: this.cats, models: this.models }
+            return { model: model, modelParam: modelParam, cats: cats, models: models }
 
         };
 
@@ -1485,11 +1485,11 @@
 
         this.setParams = function (oneVsAllParam) {
 
-            this.model = oneVsAllParam.model == undefined ? this.model : oneVsAllParam.model;
+            model = oneVsAllParam.model == undefined ? model : oneVsAllParam.model;
 
-            this.modelParam = oneVsAllParam.modelParam == undefined ? this.modelParam : oneVsAllParam.modelParam;
+            modelParam = oneVsAllParam.modelParam == undefined ? modelParam : oneVsAllParam.modelParam;
 
-            this.cats = oneVsAllParam.cats == undefined ? this.cats : oneVsAllParam.cats;
+            cats = oneVsAllParam.cats == undefined ? cats : oneVsAllParam.cats;
 
         }
 
@@ -1627,7 +1627,7 @@
 
         this.fit = function(X, y) {
 
-            this.models = [ ];
+            models = [ ];
 
             // make model for each category
 
@@ -1643,7 +1643,7 @@
 
                 var catModel = new this.model(this.modelParam);
 
-                this.models.push(catModel.fit(X, target));
+                models.push(catModel.fit(X, target));
 
             }
 
@@ -2423,15 +2423,15 @@
 
         param.rate = param.rate == undefined ? 0.05 : param.rate;
 
-        assert(param.rate &gt; 0 &amp;amp;&amp;amp; param.rate &amp;lt;= 1.0, &#x27;rate parameter not in range (0,1]&#x27;);
-
         // model param
 
-        this.rate = param.rate;
+        var rate = param.rate == undefined ? 0.05 : param.rate;
+
+        assert(rate &gt; 0 &amp;amp;&amp;amp; rate &amp;lt;= 1.0, &#x27;rate parameter not in range (0,1]&#x27;);
 
         // default model
 
-        this.thresh = 0;
+        var thresh = 0;
 
 
 
@@ -2463,7 +2463,7 @@
 
         */
 
-        this.getModel = function () { return { rate: this.rate, thresh: this.thresh }; }
+        this.getModel = function () { return { rate: rate, thresh: thresh }; }
 
 
 
@@ -2493,13 +2493,15 @@
 
         this.setParams = function (newParams) {
 
-            assert(newParams.rate != undefined, &#x27;rate parameter must be defined!&#x27;);
+            param = newParams;
+
+            assert(param.rate &gt; 0 &amp;amp;&amp;amp; param.rate &amp;lt;= 1.0, &#x27;rate parameter not in range (0,1]&#x27;);
 
             // Parameters
 
-            param.rate = newParams.rate == undefined ? param.rate : newParams.rate;
+            rate = param.rate == undefined ? param : newParams.rate;
 
-            assert(param.rate &gt; 0 &amp;amp;&amp;amp; param.rate &amp;lt;= 1.0, &#x27;rate parameter not in range (0,1]&#x27;);
+            
 
         }
 
@@ -2615,7 +2617,7 @@
 
             }
 
-            this.thresh = getThreshold(neighborDistances, this.rate);
+            thresh = getThreshold(neighborDistances, rate);
 
         }
 
@@ -2671,7 +2673,7 @@
 
             //console.log(p)
 
-            return p &gt; this.thresh ? 1 : 0;
+            return p &gt; thresh ? 1 : 0;
 
         }
 
@@ -2841,7 +2843,7 @@
 
             // center data (same as matlab)
 
-            var cA = A.minus(mu.outer(la.ones(cols)));
+            var cA = A.minus(la.ones(cols).outer(mu));
 
             var C = cA.multiply(cA.transpose()).multiply(1 / (cols - 1));
 
