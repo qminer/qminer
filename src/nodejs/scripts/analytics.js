@@ -90,7 +90,7 @@ module.exports = exports = function (pathPrefix) {
         // remember parameters
         var model = oneVsAllParam.model;
         var modelParam = oneVsAllParam.modelParam;
-        var cats = oneVsAllParam.categories;
+        var cats = oneVsAllParam.cats;
         // trained models
         var models = [ ];
 
@@ -127,17 +127,17 @@ module.exports = exports = function (pathPrefix) {
             if (x instanceof la.Vector || x instanceof la.SparseVector) {
                 // evaluate all models
                 var scores = new la.Vector();
-                for (var cat = 0; cat < this.cats; cat++) {
-                    scores.push(this.models[cat].decisionFunction(x));
+                for (var cat = 0; cat < cats; cat++) {
+                    scores.push(models[cat].decisionFunction(x));
                 }
                 return scores;
             } else if (x instanceof la.Matrix || x instanceof la.SparseMatrix) {
                 // create matrix where cols are instances and rows are scores for categories
-                var scores = new la.Matrix({rows: this.cats, cols: x.cols});
+                var scores = new la.Matrix({rows: cats, cols: x.cols});
                 for (var i = 0; i < x.cols; i++) {
                     var x_i = x.getCol(i);
-                    for (var cat = 0; cat < this.cats; cat++) {
-                        scores.put(cat, i, this.models[cat].decisionFunction(x_i));
+                    for (var cat = 0; cat < cats; cat++) {
+                        scores.put(cat, i, models[cat].decisionFunction(x_i));
                     }
                 }
                 return scores;
@@ -180,12 +180,12 @@ module.exports = exports = function (pathPrefix) {
         this.fit = function(X, y) {
             models = [ ];
             // make model for each category
-            for (var cat = 0; cat < this.cats; cat++) {
-                console.log("Fitting label", (cat + 1), "/", this.cats);
+            for (var cat = 0; cat < cats; cat++) {
+                console.log("Fitting label", (cat + 1), "/", cats);
                 // prepare targert vector for current category
                 var target = exports.preprocessing.binarize(y, cat);
                 // get the model
-                var catModel = new this.model(this.modelParam);
+                var catModel = new model(modelParam);
                 models.push(catModel.fit(X, target));
             }
             console.log("Done!");
