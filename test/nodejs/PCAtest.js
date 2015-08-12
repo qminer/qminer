@@ -79,8 +79,14 @@ describe("PCA test", function () {
             var matrix = new la.Matrix([[0, 1], [-1, 0]]);
             pca.fit(matrix);
             var model = pca.getModel();
-            assert.equal(model.mu[0], -0.5);
-            assert.equal(model.mu[1], 0.5);
+            assert.eqtol(model.lambda[0], 1);
+            assert.eqtol(model.lambda[1], 0);
+            assert.eqtol(model.mu[0], -0.5);
+            assert.eqtol(model.mu[1], 0.5);
+            //assert.eqtol(model.P.at(0, 0), 0.707106781186547);
+            //assert.eqtol(model.P.at(1, 0), -0.707106781186547);
+            assert.eqtol(model.P.at(0, 1), 0);
+            assert.eqtol(model.P.at(1, 1), 0);
         });
     });
 });

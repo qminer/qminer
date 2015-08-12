@@ -785,7 +785,7 @@ module.exports = exports = function (pathPrefix) {
             // cov(A) = 1/(n-1) A A' - mu mu'
 
             // center data (same as matlab)
-            var cA = A.minus(mu.outer(la.ones(cols)));
+            var cA = A.minus(la.ones(cols).outer(mu));
             var C = cA.multiply(cA.transpose()).multiply(1 / (cols - 1));
             // alternative computation:
             //var C = (A.multiply(A.transpose()).multiply(1 / (cols - 1))).minus(mu.outer(mu));
