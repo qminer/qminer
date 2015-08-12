@@ -697,7 +697,6 @@ module.exports = exports = function (pathPrefix) {
                 if (that.distId[i] == xId) { toCheck.push(i); }
             }
             // reasses detected elements
-            console.log("To check", toCheck.length);
             for (var i = 0; i < toCheck.length; i++) {
                 var yId = toCheck[i];
                 // find new nearest neighbor for yId, ignoring xId
