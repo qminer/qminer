@@ -493,7 +493,7 @@ public:
 };
 
 /////////////////////////////////////////////
-// Sigomid
+// Sigmoid
 /**
  * Sigmoid funnction (y = 1/[1 + exp[-Ax+B]]) fited on decision function to mimic
  *
