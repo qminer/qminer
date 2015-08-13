@@ -306,7 +306,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 /**
  * Ridge regression. Minimizes: ||A' x - b||^2 + ||gamma x||^2
  *
- * Uses Tikhonov regularization: http://en.wikipedia.org/wiki/Tikhonov_regularization
+ * Uses Tikhonov regularization: {@link http://en.wikipedia.org/wiki/Tikhonov_regularization Tikhonov regularization}
  *
  * @class
  * @param {(number|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model by setting gamma=arg. Empty constructor sets gamma to zero.
