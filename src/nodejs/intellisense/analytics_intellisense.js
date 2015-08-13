@@ -1013,22 +1013,15 @@ exports = {}; require.modules.qminer_analytics = exports;
     * @param {function} [detectorParam.matrix=module:la.Matrix] - Matrix implementation used to store the modelo (e.g., `la.Matrix` or `la.SparseMatrix`).
     */
     exports.NearestNeighborAD = function (detectorParam) {
-        detectorParam = detectorParam == undefined ? {} : detectorParam;
-        // model parameter
-        this.rate = (detectorParam.rate == undefined) ? 0.05 : detectorParam.rate;
-        assert(this.rate > 0 && this.rate <= 1.0, "NearestNeighborAD: rate parameter not in range (0,1]");
-        // window size
-        this.windowSize = (detectorParam.windowSize == undefined) ? 100 : detectorParam.windowSize;
-        assert(this.windowSize >= 1, "NearestNeighborAD: window parameter not positive");
-        // matrix constructor
-        this.matrix = (detectorParam.matrix == undefined) ? la.Matrix : detectorParam.matrix;
-        // dimensionality
-        this.dim = (detectorParam.dim == undefined) ? -1 : detectorParam.dim;
-        // model
+        // set default parameters
+        this.rate = 0.05;
+        this.windowSize = 100;
+        this.matrix = la.Matrix;
+        this.dim = -1;
         this.thresh = 0;
         this.dist = new la.Vector();
         this.distId = new la.IntVector();
-        this.X = new this.matrix({ cols: this.windowSize, rows: this.dim });
+        this.X = new this.matrix();
         this.init = 0;
         this.next = 0;
         // initial distance, should be biger then dataset diameter
@@ -1036,26 +1029,86 @@ exports = {}; require.modules.qminer_analytics = exports;
         // for private consumption
         var that = this;
 
-        /**
-        * Returns the model
-        * @param {p} Object whose keys are: "thresh" - Maximal squared distance to the nearest neighbor that is not anomalous
-        */
-        this.getModel = function () { return { rate: this.rate, thresh: this.thresh }; }
-
-        /**
-        * Sets parameters
-        * @param {p} Object whose keys are: "rate" - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
-        */
-        this.setParams = function (p) {
-            param = p;
+        // parse parameters, if any are given
+        if (detectorParam == x instanceof fs.FIn) {
+            // read from input stream
+            var params = detectorParam.readJson();
+            this.rate = params.rate;
+            this.windowSize = params.windowSize;
+            this.dim = params.dim;
+            this.thresh = params.thresh;
+            this.init = params.init;
+            this.next = params.next;
+            this.maxDist = params.maxDist;
+            this.dist.load(detectorParam);
+            this.distId.load(detectorParam);
+            this.X.load(detectorParam);
+            // TODO: how to save this.matrix ?!
+        } else if (detectorParam != undefined) {
+            // update default parameter values if provided
+            this.setParams(detectorParam);
         }
 
         /**
-        * Returns parameters
-        * @returns Object whose keys are: "rate" - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
+        * Save model to provided output stream
+        * @param {module:fs.FOut} fout - output stream
+        * @returns {module:fs.FOut} provided output stream
+        */
+        this.save = function (fout) {
+            fout.writeJson({
+                rate: this.rate,
+                windowSize: this.windowSize,
+                dim: this.dim,
+                thresh: this.params,
+                init: this.init,
+                next: this.next,
+                maxDist: this.maxDist
+            });
+            this.dist.save(fout);
+            this.distId.save(fout);
+            this.X.save(fout);
+        }
+
+        /**
+        * Returns the model (TODO)
+        * @returns {Object} Model object
+        */
+        this.getModel = function () {
+            return {
+                dist: this.dist,
+                distId: this.distId,
+                X: this.X,
+                thresh: this.thresh,
+                next: this.next
+            };
+        }
+
+        /**
+        * Sets parameters (TODO)
+        * @param {Object} param - Parameters
+        */
+        this.setParams = function (param) {
+            // update parameters that are provided
+            if (param.rate != undefined) { this.rate = param.rate}
+            if (param.windowSize != undefined) { this.windowSize = param.windowSize}
+            if (param.matrix != undefined) { this.matrix = param.matrix}
+            if (param.dim != undefined) { this.dim = param.dim}
+            // check all valid
+            assert(this.rate > 0 && this.rate <= 1.0, "NearestNeighborAD: rate parameter not in range (0,1]");
+            assert(this.windowSize >= 1, "NearestNeighborAD: window parameter not positive");
+        }
+
+        /**
+        * Returns parameters (TODO)
+        * @returns {Object} Parameters
         */
         this.getParams = function () {
-            return param;
+            return {
+                rate: this.rate,
+                windowSize: this.windowSize,
+                matrix: this.matrix,
+                dim: this.dim
+            };
         }
 
         // return vector of distances between x and each column of X
@@ -1125,6 +1178,7 @@ exports = {}; require.modules.qminer_analytics = exports;
                 if (that.distId[i] == xId) { toCheck.push(i); }
             }
             // reasses detected elements
+            console.log("To check", toCheck.length);
             for (var i = 0; i < toCheck.length; i++) {
                 var yId = toCheck[i];
                 // find new nearest neighbor for yId, ignoring xId

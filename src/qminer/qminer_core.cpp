@@ -18,8 +18,6 @@ namespace TQm {
 
 ///////////////////////////////
 // QMiner Environment
-TIntTr TEnv::Version = TIntTr(0, 8, 0);
-
 bool TEnv::InitP = false;
 TStr TEnv::QMinerFPath;
 TStr TEnv::RootFPath;

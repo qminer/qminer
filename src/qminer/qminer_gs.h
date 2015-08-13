@@ -794,6 +794,7 @@ private:
 	/// Transform Join name to it's corresponding field name
 	TStr GetJoinFieldNm(const TStr& JoinNm) const { return JoinNm + "Id"; }
 	
+
 	/// Initialize from given store schema
 	void InitFromSchema(const TStoreSchema& StoreSchema);    
 	/// Initialize field location flags

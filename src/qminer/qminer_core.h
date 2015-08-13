@@ -36,11 +36,6 @@ class TEnv {
 private:
 	static bool InitP;
 public:
-	/// QMiner version
-	static TIntTr Version;
-	/// Get current version as string
-	static TStr GetVersion() { return TStr::Fmt("%d.%d.%d", Version.Val1.Val, Version.Val2.Val, Version.Val3.Val); }
-	
 	/// Maximal number of stores allowed, also sets the upper limit to valid store IDs
 	static uint GetMxStores() { return 0x4000; } // == 16384
 	
