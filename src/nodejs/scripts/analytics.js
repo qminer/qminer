@@ -879,6 +879,25 @@ module.exports = exports = function (pathPrefix) {
         var norC2 = undefined;
 
         /**
+        * Permutes centroid with given mapping.
+        @param {object} mapping - object that contains the mappping. E.g. mapping[4]=2 means "map cluster 4 into cluster 2"
+        */
+        this.permuteCentroids = function (mapping) {
+            var cl_count = C.cols;
+            var perm_matrix = la.zeros(cl_count, cl_count);
+            for (var i = 0; i < cl_count; i++) {
+                perm_matrix.put(i, mapping[i], 1);
+            }
+            var C_new = C.multiply(perm_matrix);
+            var idxv_new = new la.Vector(idxv);
+            for (var i = 0; i < idxv_new.length; i++) {
+                idxv_new[i] = mapping[idxv[i]]
+            }
+            C = C_new;
+            norC2 = la.square(C.colNorms());
+            idxv = idxv_new;
+        }
+        /**
         * Returns the model
         * @returns {Object} The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data)
         */
@@ -1021,6 +1040,54 @@ module.exports = exports = function (pathPrefix) {
             D = D.multiply(-1);
             return D;
         }
+		/**
+        * Saves KMeans internal state into (binary) file
+        * @param {string} fname - Name of the file to write into.
+        */
+        this.save = function(fname){
+			if (!C) {
+				throw new Error("KMeans.save() - model not created yet");
+			}
+
+			var params_vec = new la.Vector();
+			params_vec.push(iter);
+			params_vec.push(k);
+			params_vec.push(verbose ? 1.0 : 0.0);
+
+			var xfs = qm.fs;
+			var fout = xfs.openWrite(fname);
+			C.save(fout);
+			norC2.save(fout);
+			(new la.Vector(idxv)).save(fout);
+			params_vec.save(fout);
+			fout.close();
+			fout = null;
+		}
+		/**
+        * Loads KMeans internal state from (binary) file
+        * @param {string} fname - Name of the file to read from.
+        */
+        this.load = function (fname) {
+		    var xfs = qm.fs;
+		    var fin = xfs.openRead(fname);
+
+		    C = new la.Matrix();
+		    C.load(fin);
+		    norC2 = new la.Vector();
+		    norC2.load(fin);
+
+		    var idxvtmp = new la.Vector();
+		    idxvtmp.load(fin);
+		    idxv = idxvtmp; // make normal vector (?)
+
+		    var params_vec = new la.Vector();
+		    params_vec.load(fin);
+		    iter = params_vec[0];
+		    k = params_vec[1];
+		    verbose = (params_vec[2] != 0);
+
+		    fin = null;
+		}
     }
 
     ///////////////////////////////

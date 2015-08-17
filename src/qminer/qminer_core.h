@@ -753,7 +753,7 @@ public:
 	void PrintAll(const TWPt<TBase>& Base, TSOut& SOut, const bool& IncludingJoins = false);
 	/// Prints all records with all the field values, useful for debugging
 	void PrintAll(const TWPt<TBase>& Base, const TStr& FNm, const bool& IncludingJoins = false);
-    /// Prints registered fields and joins, useful for debugging
+   /// Prints registered fields and joins, useful for debugging
     void PrintTypes(const TWPt<TBase>& Base, TSOut& SOut) const;
     /// Prints registered fields and joins, useful for debugging
     void PrintTypes(const TWPt<TBase>& Base, const TStr& FNm) const;

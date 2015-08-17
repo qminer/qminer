@@ -765,10 +765,10 @@ private:
 	const TRecSerializator* GetFieldSerializator(const int &FieldId) const;
 	/// Remove record from name-id map
 	inline void DelRecNm(const uint64& RecId);    
-    /// Do we have a primary field
-    bool IsPrimaryField() const { return PrimaryFieldId != -1; }
-    /// Set primary field map
-    void SetPrimaryField(const uint64& RecId);
+	/// Do we have a primary field
+	bool IsPrimaryField() const { return PrimaryFieldId != -1; }
+	/// Set primary field map
+	void SetPrimaryField(const uint64& RecId);
     /// Set primary field map for a given string value
     void SetPrimaryFieldStr(const uint64& RecId, const TStr& Str);
     /// Set primary field map for a given integer value
@@ -779,8 +779,8 @@ private:
     void SetPrimaryFieldFlt(const uint64& RecId, const double& Flt);
     /// Set primary field map for a given TTm value
     void SetPrimaryFieldMSecs(const uint64& RecId, const uint64& MSecs);
-    /// Delete primary field map
-    void DelPrimaryField(const uint64& RecId);
+	/// Delete primary field map
+	void DelPrimaryField(const uint64& RecId);
     /// Delete primary field map for a given string value
     void DelPrimaryFieldStr(const uint64& RecId, const TStr& Str);
     /// Delete primary field map for a given integer value
@@ -791,9 +791,9 @@ private:
     void DelPrimaryFieldFlt(const uint64& RecId, const double& Flt);
     /// Delete primary field map for a given TTm value
     void DelPrimaryFieldMSecs(const uint64& RecId, const uint64& MSecs);
-    /// Transform Join name to it's corresponding field name
-    TStr GetJoinFieldNm(const TStr& JoinNm) const { return JoinNm + "Id"; }
-    
+	/// Transform Join name to it's corresponding field name
+	TStr GetJoinFieldNm(const TStr& JoinNm) const { return JoinNm + "Id"; }
+	
 
 	/// Initialize from given store schema
 	void InitFromSchema(const TStoreSchema& StoreSchema);    

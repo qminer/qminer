@@ -547,10 +547,10 @@ uint64 TInMemStorage::AddVal(const TMem& Val) {
 
 void TInMemStorage::SetVal(const uint64& ValId, const TMem& Val) {
 	AssertReadOnly();
-    ValV[ValId - FirstValOffsetMem] = Val;
+	ValV[ValId - FirstValOffsetMem] = Val;
 	uchar& flag = DirtyV[ValId - FirstValOffsetMem];
 	if (flag == isdfNew) { } // new remains new
-    else { flag = isdfDirty; } // set as dirty
+	else { flag = isdfDirty; } // set as dirty
 }
 
 void TInMemStorage::DelVals(int Vals) {
@@ -1304,8 +1304,7 @@ void TRecSerializator::Serialize(const PJsonVal& RecVal, TMem& RecMem, const TWP
 				continue;
 			} else {
 				// report missing field value since no other option available
-				TStr Str = TJsonVal::GetStrFromVal(RecVal);
-				throw TQmExcept::New("JSon data is missing field - expecting " + FieldName);
+				throw TQmExcept::New("JSon data is missing field - expecting " + FieldName + ", store " + Store->GetStoreNm());
 			}
 		}
 		// load field value when default not already loaded
