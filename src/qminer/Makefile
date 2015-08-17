@@ -7,7 +7,7 @@
 ##
 
 #
-# GLib makefile, builds all
+# QMiner makefile, builds all
 #
 
 include ../../Makefile.config
