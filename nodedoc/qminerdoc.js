@@ -2243,11 +2243,11 @@
 /**
 	* Gives the store of the iterator.
 	*/
- exports.Iterator.prototype.store = Object.create(require('qminer').Store.prototype);;
+ exports.Iterator.prototype.store = Object.create(require('qminer').Store.prototype);
 /**
 	* Gives the current record.
 	*/
- exports.Iterator.prototype.record = Object.create(require('qminer').Record.prototype);;
+ exports.Iterator.prototype.record = Object.create(require('qminer').Record.prototype);
 /**
 * Feature Space
 * @classdesc Represents the feature space. It contains any of the {@link module:qm~FeatureExtractors}.

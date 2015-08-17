@@ -1016,8 +1016,8 @@ exports = {}; require.modules.qminer_analytics = exports;
         // set default parameters
         this.rate = 0.05;
         this.windowSize = 100;
-        this.matrix = la.Matrix;
         this.dim = -1;
+        this.matrix = la.Matrix;
         this.thresh = 0;
         this.dist = new la.Vector();
         this.distId = new la.IntVector();
@@ -1029,8 +1029,36 @@ exports = {}; require.modules.qminer_analytics = exports;
         // for private consumption
         var that = this;
 
+        /**
+        * Sets parameters (TODO)
+        * @param {Object} param - Parameters
+        */
+        this.setParams = function (param) {
+            // update parameters that are provided
+            if (param.rate != undefined) { this.rate = param.rate; }
+            if (param.windowSize != undefined) { this.windowSize = param.windowSize; }
+            if (param.dim != undefined) { this.dim = param.dim; }
+            if (param.matrix != undefined) { this.matrix = param.matrix; }
+            // check all valid
+            assert(this.rate > 0 && this.rate <= 1.0, "NearestNeighborAD: rate parameter not in range (0,1]");
+            assert(this.windowSize >= 1, "NearestNeighborAD: window parameter not positive");
+        }
+
+        /**
+        * Returns parameters (TODO)
+        * @returns {Object} Parameters
+        */
+        this.getParams = function () {
+            return {
+                rate: this.rate,
+                windowSize: this.windowSize,
+                dim: this.dim,
+                matrix: this.matrix
+            };
+        }
+
         // parse parameters, if any are given
-        if (detectorParam == x instanceof fs.FIn) {
+        if (detectorParam instanceof fs.FIn) {
             // read from input stream
             var params = detectorParam.readJson();
             this.rate = params.rate;
@@ -1047,6 +1075,8 @@ exports = {}; require.modules.qminer_analytics = exports;
         } else if (detectorParam != undefined) {
             // update default parameter values if provided
             this.setParams(detectorParam);
+            // initialize matrix
+            this.X = new this.matrix({ cols: this.windowSize, rows: this.dim });
         }
 
         /**
@@ -1080,34 +1110,6 @@ exports = {}; require.modules.qminer_analytics = exports;
                 X: this.X,
                 thresh: this.thresh,
                 next: this.next
-            };
-        }
-
-        /**
-        * Sets parameters (TODO)
-        * @param {Object} param - Parameters
-        */
-        this.setParams = function (param) {
-            // update parameters that are provided
-            if (param.rate != undefined) { this.rate = param.rate}
-            if (param.windowSize != undefined) { this.windowSize = param.windowSize}
-            if (param.matrix != undefined) { this.matrix = param.matrix}
-            if (param.dim != undefined) { this.dim = param.dim}
-            // check all valid
-            assert(this.rate > 0 && this.rate <= 1.0, "NearestNeighborAD: rate parameter not in range (0,1]");
-            assert(this.windowSize >= 1, "NearestNeighborAD: window parameter not positive");
-        }
-
-        /**
-        * Returns parameters (TODO)
-        * @returns {Object} Parameters
-        */
-        this.getParams = function () {
-            return {
-                rate: this.rate,
-                windowSize: this.windowSize,
-                matrix: this.matrix,
-                dim: this.dim
             };
         }
 
@@ -1178,7 +1180,6 @@ exports = {}; require.modules.qminer_analytics = exports;
                 if (that.distId[i] == xId) { toCheck.push(i); }
             }
             // reasses detected elements
-            console.log("To check", toCheck.length);
             for (var i = 0; i < toCheck.length; i++) {
                 var yId = toCheck[i];
                 // find new nearest neighbor for yId, ignoring xId
@@ -1361,6 +1362,25 @@ exports = {}; require.modules.qminer_analytics = exports;
         var norC2 = undefined;
 
         /**
+        * Permutes centroid with given mapping.
+        @param {object} mapping - object that contains the mappping. E.g. mapping[4]=2 means "map cluster 4 into cluster 2"
+        */
+        this.permuteCentroids = function (mapping) {
+            var cl_count = C.cols;
+            var perm_matrix = la.zeros(cl_count, cl_count);
+            for (var i = 0; i < cl_count; i++) {
+                perm_matrix.put(i, mapping[i], 1);
+            }
+            var C_new = C.multiply(perm_matrix);
+            var idxv_new = new la.Vector(idxv);
+            for (var i = 0; i < idxv_new.length; i++) {
+                idxv_new[i] = mapping[idxv[i]]
+            }
+            C = C_new;
+            norC2 = la.square(C.colNorms());
+            idxv = idxv_new;
+        }
+        /**
         * Returns the model
         * @returns {Object} The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data)
         */
@@ -1503,6 +1523,54 @@ exports = {}; require.modules.qminer_analytics = exports;
             D = D.multiply(-1);
             return D;
         }
+		/**
+        * Saves KMeans internal state into (binary) file
+        * @param {string} fname - Name of the file to write into.
+        */
+        this.save = function(fname){
+			if (!C) {
+				throw new Error("KMeans.save() - model not created yet");
+			}
+
+			var params_vec = new la.Vector();
+			params_vec.push(iter);
+			params_vec.push(k);
+			params_vec.push(verbose ? 1.0 : 0.0);
+
+			var xfs = qm.fs;
+			var fout = xfs.openWrite(fname);
+			C.save(fout);
+			norC2.save(fout);
+			(new la.Vector(idxv)).save(fout);
+			params_vec.save(fout);
+			fout.close();
+			fout = null;
+		}
+		/**
+        * Loads KMeans internal state from (binary) file
+        * @param {string} fname - Name of the file to read from.
+        */
+        this.load = function (fname) {
+		    var xfs = qm.fs;
+		    var fin = xfs.openRead(fname);
+
+		    C = new la.Matrix();
+		    C.load(fin);
+		    norC2 = new la.Vector();
+		    norC2.load(fin);
+
+		    var idxvtmp = new la.Vector();
+		    idxvtmp.load(fin);
+		    idxv = idxvtmp; // make normal vector (?)
+
+		    var params_vec = new la.Vector();
+		    params_vec.load(fin);
+		    iter = params_vec[0];
+		    k = params_vec[1];
+		    verbose = (params_vec[2] != 0);
+
+		    fin = null;
+		}
     }
 
     ///////////////////////////////

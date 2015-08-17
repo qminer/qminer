@@ -564,6 +564,47 @@
     */
 	exports.Vector.prototype.print = function () { console.log(this.toString()); }
 
+	/**
+    * Copies the vector into a JavaScript array of numbers.
+    * @returns {Array<number>} A JavaScript array of numbers.
+    * @example
+    * // create a new vector
+    * var vec = new la.Vector([1, 2, 3]);
+    * // create a JavaScript array out of vec
+    * var arr = vec.toArray(); // returns an array [1, 2, 3]
+    */
+    exports.Vector.prototype.toArray = function () { 
+        var len = this.length;
+        var arr = [];
+        for (var elN = 0; elN < len; elN++) {
+            arr[elN] = this[elN];
+        }
+        return arr;
+	}
+	
+	/**
+    * Copies the matrix into a JavaScript array of arrays of numbers.
+    * @returns {Array<Array<number>>} A JavaScript array of arrays of numbers.
+    * @example
+    * // create a new matrix
+    * var mat = new la.Matrix([[1, 2], [3, 4]]);
+    * // create a JavaScript array out of matrix
+    * var arr = mat.toArray(); // returns an array [[1, 2], [3, 4]]
+    */
+    exports.Matrix.prototype.toArray = function () { 
+        var rows = this.rows;
+		var cols = this.cols;
+        var arr = [];
+        for (var i = 0; i < rows; i++) {
+			var arr_row = [];
+			for (var j = 0; j < cols; j++) {
+				arr_row.push(this.at(i, j));
+			}
+            arr.push(arr_row);
+        }
+        return arr;
+	}
+	
     /**
     * Copies the vector into a JavaScript array of numbers.
     * @param {module:la.Vector} vec - Copied vector.
@@ -574,14 +615,7 @@
     * // create a JavaScript array out of vec
     * var arr = la.copyVecToArray(vec); // returns an array [1, 2, 3]
     */
-    exports.copyVecToArray = function (vec) {
-        var len = vec.length;
-        var arr = [];
-        for (var elN = 0; elN < len; elN++) {
-            arr[elN] = vec[elN];
-        }
-        return arr;
-    };
+    exports.copyVecToArray = function (vec) { return vec.toArray(); };
 
     function isInt(value) {
         return !isNaN(value) &&
@@ -692,10 +726,6 @@
         var res = vec.sortPerm();
         return res.perm;
     };
-
-    exports.Vector.prototype.print = function () {
-        console.log(this.toString());
-    }
 
     ///////// COMMON MATRICES
 
