@@ -138,17 +138,17 @@ void TNodeJsSvmModel::decisionFunction(const v8::FunctionCallbackInfo<v8::Value>
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
         
         if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 0)) {
-            TNodeJsFltV* Vec = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
+            TNodeJsFltV* Vec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 0);
             const double Res = JsModel->Model.Predict(Vec->Vec);
             Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
         }
         else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpVec>(Args, 0)) {
-            TNodeJsSpVec* SpVec = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
+            TNodeJsSpVec* SpVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpVec>(Args, 0);
             const double Res = JsModel->Model.Predict(SpVec->Vec);
             Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
         }
         else if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
-            const TFltVV& Mat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject())->Mat;
+            const TFltVV& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0)->Mat;
             TFltV ResV(Mat.GetCols(), 0);
             for (int ColN = 0; ColN < Mat.GetCols(); ColN++) {
                 ResV.Add(JsModel->Model.Predict(Mat, ColN));
@@ -156,7 +156,7 @@ void TNodeJsSvmModel::decisionFunction(const v8::FunctionCallbackInfo<v8::Value>
             Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
         }
         else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
-            const TVec<TIntFltKdV>& Mat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
+            const TVec<TIntFltKdV>& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0)->Mat;
             TFltV ResV(Mat.Len(), 0);
             for (int ColN = 0; ColN < Mat.Len(); ColN++) {
                 ResV.Add(JsModel->Model.Predict(Mat[ColN]));
@@ -183,17 +183,17 @@ void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
 
 		if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 0)) {
-			TNodeJsFltV* Vec = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
+			TNodeJsFltV* Vec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 0);
 			const double Res = (JsModel->Model.Predict(Vec->Vec) > 0.0) ? 1.0 : -1.0;
 			Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
 		}
 		else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpVec>(Args, 0)) {
-			TNodeJsSpVec* SpVec = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
+			TNodeJsSpVec* SpVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpVec>(Args, 0);
             const double Res = (JsModel->Model.Predict(SpVec->Vec) > 0.0) ? 1.0 : -1.0;
 			Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
 		}
         else if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
-            const TFltVV& Mat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject())->Mat;
+            const TFltVV& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0)->Mat;
             TFltV ResV(Mat.GetCols(), 0);
             for (int ColN = 0; ColN < Mat.GetCols(); ColN++) {
                 ResV.Add(JsModel->Model.Predict(Mat, ColN) > 0.0 ? 1.0 : -1.0);
@@ -201,7 +201,7 @@ void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
         }
         else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
-            const TVec<TIntFltKdV>& Mat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
+            const TVec<TIntFltKdV>& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0)->Mat;
             TFltV ResV(Mat.Len(), 0);
             for (int ColN = 0; ColN < Mat.Len(); ColN++) {
                 ResV.Add(JsModel->Model.Predict(Mat[ColN])  > 0.0 ? 1.0 : -1.0);
@@ -596,7 +596,7 @@ void TNodeJsSigmoid::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     
-    EAssertR(Args.Length() == 1, "RidgeReg.predict: expects 1 argument!");
+    EAssertR(Args.Length() == 1, "Sigmoid.predict: expects 1 argument!");
     
     TNodeJsSigmoid* JsModel = ObjectWrap::Unwrap<TNodeJsSigmoid>(Args.Holder());
     const TSigmoid& Sigmoid = JsModel->Sigmoid;
@@ -635,7 +635,7 @@ void TNodeJsSigmoid::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
     
     EAssertR(Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFOut::GetClassId()),
-        "RidgeReg.save: expects 1 argument of type qminer.fs.FOut!");
+        "Sigmoid.save: expects 1 argument of type qminer.fs.FOut!");
     
     TNodeJsSigmoid* JsModel = ObjectWrap::Unwrap<TNodeJsSigmoid>(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
@@ -644,6 +644,186 @@ void TNodeJsSigmoid::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     
     Args.GetReturnValue().Set(Args[0]);
 }
+
+
+/////////////////////////////////////////////
+// Nearest Neighbor Annomaly Detection
+void TNodeJsNNAnomalies::Init(v8::Handle<v8::Object> exports) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsNNAnomalies>);
+    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    // ObjectWrap uses the first internal field to store the wrapped pointer.
+    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+    
+    // Add all methods, getters and setters here.
+    NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getModel", _getModel);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "decisionFunction", _decisionFunction);
+
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsNNAnomalies::TNodeJsNNAnomalies(const PJsonVal& ParamVal):
+    Model(ParamVal->GetObjNum("rate", 0.05), ParamVal->GetObjInt("windowSize", 100)) { }
+
+
+TNodeJsNNAnomalies* TNodeJsNNAnomalies::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    if (Args.Length() > 0 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+        // load the model from the input stream
+        TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
+        return new TNodeJsNNAnomalies(*JsFIn->SIn);
+    }
+    else {
+        // create new model from given gamma parameter
+        PJsonVal JsonVal = (Args.Length() > 0) ? TNodeJsUtil::GetArgJson(Args, 0) : TJsonVal::NewObj();
+        return new TNodeJsNNAnomalies(JsonVal);
+    }
+}
+
+void TNodeJsNNAnomalies::SetParams(const PJsonVal& ParamVal) {
+    Model = TAnomalyDetection::TNearestNeighbor(
+        ParamVal->GetObjNum("rate", 0.05),
+        ParamVal->GetObjInt("windowSize", 100));
+}
+
+PJsonVal TNodeJsNNAnomalies::GetParams() const {
+    PJsonVal ParamVal = TJsonVal::NewObj();
+    ParamVal->AddToObj("rate", Model.GetRate(0));
+    ParamVal->AddToObj("windowSize", Model.GetWindowSize());
+    return ParamVal;
+}
+
+PJsonVal TNodeJsNNAnomalies::GetModel() const {
+    PJsonVal ParamVal = TJsonVal::NewObj();
+    ParamVal->AddToObj("threshold", Model.GetThreshold(0));
+    return ParamVal;
+}
+
+void TNodeJsNNAnomalies::Save(TSOut& SOut) {
+    Model.Save(SOut);
+}
+
+void TNodeJsNNAnomalies::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    // unwrap
+    TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+    // check arguments
+    EAssertR(Args.Length() == 1, "NearestNeighborAD.setParams: expects 1 argument!");
+    // get the arguments
+    PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+    JsModel->SetParams(ParamVal);
+    // return self
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsNNAnomalies::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    // unwrap
+    TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+    // prepare parameters
+    PJsonVal ParamVal = JsModel->GetParams();
+    // return self
+    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
+}
+
+void TNodeJsNNAnomalies::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    // unwrap
+    TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+    // check arguments
+    EAssertR(Args.Length() == 1, "NearestNeighborAD.save: expects 1 argument!");
+    // get the arguments
+    TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    // save model
+    JsModel->Save(*JsFOut->SOut);
+    // return fout
+    Args.GetReturnValue().Set(Args[0]);
+}
+
+void TNodeJsNNAnomalies::getModel(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    // unwrap
+    TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+    // prepare parameters
+    PJsonVal ParamVal = JsModel->GetModel();
+    // return self
+    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
+}
+
+void TNodeJsNNAnomalies::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    // unwrap
+    TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+    // check arguments
+    EAssertR(Args.Length() == 1, "NearestNeighborAD.partialFit: expects at 1 argument!");
+    // get the arguments
+    TNodeJsSpVec* SpVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpVec>(Args, 0);
+    // fit model
+    JsModel->Model.PartialFit(SpVec->Vec);
+    // return self
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsNNAnomalies::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    // unwrap
+    TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+    // check arguments
+    EAssertR(Args.Length() == 1, "NearestNeighborAD.fit: expects 1 argument!");
+    // get the arguments
+    TNodeJsSpMat* SpMat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0);
+    // fit model
+    for (const TIntFltKdV& Vec : SpMat->Mat) {
+        JsModel->Model.PartialFit(Vec);
+    }
+    // return self
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsNNAnomalies::decisionFunction(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    // unwrap
+    TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+    // check arguments
+    EAssertR(Args.Length() == 1, "NearestNeighborAD.predict: expects 1 argument!");
+    // get the arguments
+    TNodeJsSpVec* SpVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpVec>(Args, 0);
+    const double Result = JsModel->Model.DecisionFunction(SpVec->Vec);
+    // return result
+    Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+}
+
+void TNodeJsNNAnomalies::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    // unwrap
+    TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+    // check arguments
+    EAssertR(Args.Length() == 1, "NearestNeighborAD.predict: expects 1 argument!");
+    // get the arguments
+    TNodeJsSpVec* SpVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpVec>(Args, 0);
+    const int Result = JsModel->Model.Predict(SpVec->Vec);
+    // return result
+    Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+}
+
 
 ///////////////////////////////
 ////// code below not yet ported or verified for scikit

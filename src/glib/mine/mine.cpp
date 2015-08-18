@@ -47,6 +47,9 @@
 // clustering
 #include "mc.cpp"
 
+// Anomaly Detection
+#include "anomaly.cpp"
+
 // cross-lingual
 #include "crosslingual.cpp"
 

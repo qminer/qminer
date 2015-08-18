@@ -95,7 +95,7 @@ module.exports = exports = function (pathPrefix) {
     * // create a JavaScript array out of vec
     * var arr = vec.toArray(); // returns an array [1, 2, 3]
     */
-    exports.Vector.prototype.toArray = function () { 
+    exports.Vector.prototype.toArray = function () {
         var len = this.length;
         var arr = [];
         for (var elN = 0; elN < len; elN++) {
@@ -103,7 +103,7 @@ module.exports = exports = function (pathPrefix) {
         }
         return arr;
 	}
-	
+
 	/**
     * Copies the matrix into a JavaScript array of arrays of numbers.
     * @returns {Array<Array<number>>} A JavaScript array of arrays of numbers.
@@ -113,7 +113,7 @@ module.exports = exports = function (pathPrefix) {
     * // create a JavaScript array out of matrix
     * var arr = mat.toArray(); // returns an array [[1, 2], [3, 4]]
     */
-    exports.Matrix.prototype.toArray = function () { 
+    exports.Matrix.prototype.toArray = function () {
         var rows = this.rows;
 		var cols = this.cols;
         var arr = [];
@@ -126,7 +126,7 @@ module.exports = exports = function (pathPrefix) {
         }
         return arr;
 	}
-	
+
     /**
     * Copies the vector into a JavaScript array of numbers.
     * @param {module:la.Vector} vec - Copied vector.
@@ -449,7 +449,7 @@ module.exports = exports = function (pathPrefix) {
     * la.pdist2(X1, X2)
     * // returns the matrix:
     * // 4 6.5 10
-    * // 1 2.5 5 
+    * // 1 2.5 5
     */
     // exports.pdist2 = function (X1, X2) {}
     exports.pdist2 = function (X1, X2) {

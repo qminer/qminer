@@ -433,6 +433,101 @@ public:
     JsDeclareFunction(save);
 };
 
+/////////////////////////////////////////////
+// Nearest Neighbor Annomaly Detection
+/**
+ * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
+ * @class
+ * @param {Object} [detectorParam={rate:0.05, window:100, matrix: module:la.Matrix}] - Constructor parameters
+ * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies).
+ * @param {number} [detectorParam.window=100] - Number of most recent instances kept in the model.
+ * @param {function} [detectorParam.matrix=module:la.Matrix] - Matrix implementation used to store the modelo (e.g., `la.Matrix` or `la.SparseMatrix`).
+ */
+//# exports.NearestNeighborAD = function(arg) {};
+class TNodeJsNNAnomalies : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "NearestNeighborAD"; }
+    
+private:
+    TAnomalyDetection::TNearestNeighbor Model;
+
+    // create from json parameters
+    TNodeJsNNAnomalies(const PJsonVal& ParamVal);
+    // serialization
+    TNodeJsNNAnomalies(TSIn& SIn): Model(SIn) { }
+    void Save(TSOut& SOut);
+    // change parameters, resets the model
+    void SetParams(const PJsonVal& JsonVal);
+    // get parameters JSon
+    PJsonVal GetParams() const;
+    // get model as JSon
+    PJsonVal GetModel() const;
+
+    static TNodeJsNNAnomalies* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+    /**
+     * Sets parameters (TODO)
+     * @param {Object} param - Parameters
+     */
+    JsDeclareFunction(setParams);
+    
+    /**
+     * Returns parameters (TODO)
+     * @returns {Object} Parameters
+     */
+    JsDeclareFunction(getParams);
+    
+    /**
+     * Save model to provided output stream
+     * @param {module:fs.FOut} fout - output stream
+     * @returns {module:fs.FOut} provided output stream
+     */
+    //# exports.NearestNeighborAD.prototype.save = function(fout) {};
+    JsDeclareFunction(save);
+    
+    /**
+     * Returns the model (TODO)
+     * @returns {Object} Model object
+     */
+    JsDeclareFunction(getModel);
+
+    /**
+     * Adds a new point (or points) to the known points and recomputes the threhshold
+     * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
+     * @returns {module:analytics.NearestNeighborAD} Self
+     */
+    //# exports.NearestNeighborAD.prototype.partialFit = function(x) {}
+    JsDeclareFunction(partialFit);
+    
+    /**
+     * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
+     * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+     * the model.
+     * @returns {module:analytics.NearestNeighborAD} Self
+     */
+    //# exports.NearestNeighborAD.prototype.fit = function(A) {}
+    JsDeclareFunction(fit);
+
+    /**
+     * Compares the point to the known points and returns distance to the nearest one
+     * @param {module:la.Vector} x - Test vector
+     * @returns {number} Distnace to the nearets point
+     */
+    //# exports.NearestNeighborAD.prototype.decisionFunction = function(x) {}
+    JsDeclareFunction(decisionFunction);
+
+    /**
+     * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
+     * @param {module:la.Vector} x - Test vector
+     * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
+     */
+    //# exports.NearestNeighborAD.prototype.predict = function(x) {}
+    JsDeclareFunction(predict);
+};
+
 ///////////////////////////////
 ////// code below not yet ported or verified for scikit
 ///////////////////////////////
