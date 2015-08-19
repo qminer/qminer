@@ -303,11 +303,13 @@
 /**
  * Ridge regression. Minimizes: ||A' x - b||^2 + ||gamma x||^2
  *
- * Uses Tikhonov regularization: {@link http://en.wikipedia.org/wiki/Tikhonov_regularization Tikhonov regularization}
+ * Uses {@link http://en.wikipedia.org/wiki/Tikhonov_regularization Tikhonov regularization}.
  *
  * @class
- * @param {(number|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model by setting gamma=arg. Empty constructor sets gamma to zero.
+ * @param {(Object|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model by setting gamma=arg from a Json object.
+ * Empty constructor sets gamma to zero.
  * @example
+ * // import modules
  * la = require('qminer').la;
  * analytics = require('qminer').analytics;
  * // create a new model with gamma = 1.0
@@ -332,37 +334,108 @@
  */
  exports.RidgeReg = function(arg) {};
 /**
+	* Gets the parameters.
+	* @returns {Object} The Json object containing the parameters.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new Ridge Regression object
+	* var regmod = new analytics.RidgeReg({ gamma: 5 });
+	* // get the parameters
+	* // returns a json object { gamma: 5 }
+	* var param = regmod.getParams();
+	*/
+ exports.RidgeReg.prototype.getParams = function () { return { gamma: 0.0 } }
+/**
+	* Set the parameters.
+	* @param {(number|Object)} gamma - The new parameter for the model, given as a number or as a json object.
+	* @returns {module:analytics.RidgeReg} Self. The parameter is set to gamma.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new Ridge Regression object
+	* var regmod = new analytics.RidgeReg({ gamma: 5 });
+	* // set the parameters of the object
+	* var param = regmod.setParams({ gamma: 10 });
+	*/
+ exports.RidgeReg.prototype.setParams = function (gamma) { return Object.create(require('qminer').analytics.RidgeReg.prototype); }
+/**
      * Fits a column matrix of feature vectors X onto the response variable y.
      *
      * @param {module:la.Matrix} X - Column matrix which stores the feature vectors.
      * @param {module:la.Vector} y - Response variable.
-     * @returns {module:analytics.RidgeReg} Self
+     * @returns {module:analytics.RidgeReg} Self. The model is fitted by X and y.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create a new Ridge Regression object
+	 * var regmod = new analytics.RidgeReg();
+	 * // create the test matrix and vector
+	 * var X = new la.Matrix([[1, 2], [1, -1]]);
+	 * var y = new la.Matrix([3, 3]);
+	 * // fit the model with X and y
+	 * // the weights of the model are 2, 1
+	 * regmod.fit(X, y);
      */
- exports.RidgeReg.prototype.fit = function(X,y) {}
+ exports.RidgeReg.prototype.fit = function(X, y) { return Object.create(require('qminer').analytics.RidgeReg.prototype); }
 /**
      * Returns the expected response for the provided feature vector.
      *
-     * @param {module:la.Vector} x - Feature vector
-     * @returns {number} Predicted response
+     * @param {module:la.Vector} x - Feature vector.
+     * @returns {number} Predicted response.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create a new Ridge Regression object
+	 * var regmod = new analytics.RidgeReg();
+	 * // create the test matrix and vector
+	 * var X = new la.Matrix([[1, 2], [1, -1]]);
+	 * var y = new la.Matrix([3, 3]);
+	 * // fit the model with X and y
+	 * regmod.fit(X, y);
+	 * // create a new vector for the prediction
+	 * var vec = new la.Vector([3, 4]);
+	 * // create the prediction
+	 * // returns the value 10
+	 * var prediction = regmod.decisionFunction(vec);
      */
- exports.RidgeReg.prototype.decisionFunction = function(X) {}
+ exports.RidgeReg.prototype.decisionFunction = function(X) { return 0.0; }
 /**
      * Returns the expected response for the provided feature vector.
      *
-     * @param {module:la.Vector} x - Feature vector
-     * @returns {number} Predicted response
+     * @param {module:la.Vector} x - Feature vector.
+     * @returns {number} Predicted response.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create a new Ridge Regression object
+	 * var regmod = new analytics.RidgeReg();
+	 * // create the test matrix and vector
+	 * var X = new la.Matrix([[1, 2], [1, -1]]);
+	 * var y = new la.Matrix([3, 3]);
+	 * // fit the model with X and y
+	 * regmod.fit(X, y);
+	 * // create a new vector for the prediction
+	 * var vec = new la.Vector([3, 4]);
+	 * // create the prediction
+	 * // returns the value 10
+	 * var prediction = regmod.predict(vec);
      */
- exports.RidgeReg.prototype.predict = function(X) {}
+ exports.RidgeReg.prototype.predict = function(X) { return 0.0; }
 /**
-     * @property {module:la.Vector} weights - Vector of coefficients for linear regression
+     * @property {module:la.Vector} weights - Vector of coefficients for linear regression.
      */
  exports.RidgeReg.prototype.weights = Object.create(require('qminer').la.Vector.prototype);
 /**
      * Saves the model into the output stream.
      *
-     * @param {module:fs.FOut} fout - Output stream
+     * @param {module:fs.FOut} fout - Output stream.
+	 * @returns {module:fs.FOut} THe output stream fout.
      */
- exports.RidgeReg.prototype.save = function(fout) {};
+ exports.RidgeReg.prototype.save = function(fout) { Object.create(require('qminer').fs.FOut.prototype); };
 /**
  * Sigmoid funnction (y = 1/[1 + exp[-Ax+B]]) fited on decision function to mimic
  *
@@ -681,6 +754,14 @@
 	* @returns {module:analytics~svmModel} Get current SVM model
 	*/
     exports.SVR.prototype.getModel = function() { return { weights: this.weights }; }
+
+    // Ridge Regression
+    /**
+    * Gets RidgeReg model.
+    * @returns {module:analytics~ridgeRegModel} Get current RidgeReg model.
+    */
+    exports.RidgeReg.prototype.getModel = function () { return { weights: this.weights }; }
+
 
     // var model = new OneVsAll({
     //     model : analytics.SVC,

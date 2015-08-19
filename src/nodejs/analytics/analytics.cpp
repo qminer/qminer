@@ -436,6 +436,8 @@ void TNodeJsRidgeReg::Init(v8::Handle<v8::Object> exports) {
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
     
     // Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
     NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
     NODE_SET_PROTOTYPE_METHOD(tpl, "decisionFunction", _predict);
     NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
@@ -450,16 +452,61 @@ TNodeJsRidgeReg* TNodeJsRidgeReg::NewFromArgs(const v8::FunctionCallbackInfo<v8:
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     
-    if (Args.Length() > 0 && TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {
+	if (Args.Length() == 0) {
+		return new TNodeJsRidgeReg(TRegression::TRidgeReg(0));
+	}
+	else if (Args.Length() > 0 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
         // load the model from the input stream
-        TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+        TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
         return new TNodeJsRidgeReg(*JsFIn->SIn);
-    }
-    else {
+    } 
+	else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+		const double Gamma = ParamVal->GetObjNum("gamma", 0.0);
+		return new TNodeJsRidgeReg(TRegression::TRidgeReg(Gamma));
+	}
+    else if (Args.Length() == 1 && TNodeJsUtil::IsArgFlt(Args, 0)) {
+		printf("DEPRICATED: consider using Json object as argument!\n");
         // create new model from given gamma parameter
-        TFlt Gamma = TNodeJsUtil::GetArgFlt(Args, 0, 0);
+        const double Gamma = TNodeJsUtil::GetArgFlt(Args, 0, 0.0);
         return new TNodeJsRidgeReg(TRegression::TRidgeReg(Gamma));
     }
+	else {
+		throw TExcept::New("new RidgeReg: wrong arguments in constructor!");
+	}
+}
+
+void TNodeJsRidgeReg::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 0, "RidgeReg.getParams: expects none arguments!");
+
+	TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
+	// get the parameters
+	PJsonVal ParamVal = TJsonVal::NewObj();
+	ParamVal->AddToObj("gamma", JsModel->Model.GetGamma());
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
+}
+
+void TNodeJsRidgeReg::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "RidgeReg.setParams: Expects one argument!");
+
+	if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
+		// set the parameters
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+		const double Gamma = ParamVal->GetObjNum("gamma");
+		JsModel->Model.SetGamma(Gamma);
+
+		Args.GetReturnValue().Set(Args.Holder());
+	}
+	else {
+		throw TExcept::New("RidgeReg.setParams: expecting Json object!");
+	}
 }
 
 void TNodeJsRidgeReg::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {

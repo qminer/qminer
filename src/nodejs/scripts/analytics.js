@@ -63,6 +63,14 @@ module.exports = exports = function (pathPrefix) {
 	*/
     exports.SVR.prototype.getModel = function() { return { weights: this.weights }; }
 
+    // Ridge Regression
+    /**
+    * Gets RidgeReg model.
+    * @returns {module:analytics~ridgeRegModel} Get current RidgeReg model.
+    */
+    exports.RidgeReg.prototype.getModel = function () { return { weights: this.weights }; }
+
+
     // var model = new OneVsAll({
     //     model : analytics.SVC,
     //     modelParam: { c: 10, j: 10, maxTime: 123 },
