@@ -2263,40 +2263,27 @@ private:
 	bool DoQuerySmall(const PQmGixExpItemSmall& ExpItem, const PQmGixExpMergerSmall& Merger,
 		TQmGixItemSmallV& RecIdFqV) const;
 	/// Determines which Gix should be used for given KeyId
-	bool UseGixSmall(const int& KeyId) const { 
-		return IndexVoc->GetKey(KeyId).IsSmall();
-	}	
-
+	bool UseGixSmall(const int& KeyId) const { return IndexVoc->GetKey(KeyId).IsSmall(); }
 	/// Upgrades a vector of small items into a vector of big ones
-	void Upgrade(const TQmGixItemSmallV& Src, TQmGixItemV& Dest) const {
-		Dest.Clr(); Dest.Reserve(Src.Len());
-		for (int i = 0; i < Src.Len(); i++) {
-			Dest.Add(TQmGixItem((uint64)Src[i].Key, (int)Src[i].Dat));
-		}
-	}
+	void Upgrade(const TQmGixItemSmallV& Src, TQmGixItemV& Dest) const;
 
 	/// Constructor
-	TIndex(const TStr& _IndexFPath, const TFAccess& _Access, 
-		const PIndexVoc& IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall,
-		const int& SplitLen);
+	TIndex(const TStr& _IndexFPath, const TFAccess& _Access, const PIndexVoc& IndexVoc,
+        const int64& CacheSize, const int64& CacheSizeSmall, const int& SplitLen);
 public:
 	/// Create (Access==faCreate) or open existing index
-	static PIndex New(const TStr& IndexFPath, const TFAccess& Access, 
-		const PIndexVoc& IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall,
-		const int& SplitLen) {
-		return new TIndex(IndexFPath, Access, IndexVoc, CacheSize, CacheSizeSmall, SplitLen);
+	static PIndex New(const TStr& IndexFPath, const TFAccess& Access, const PIndexVoc& IndexVoc,
+        const int64& CacheSize, const int64& CacheSizeSmall, const int& SplitLen) {
+            return new TIndex(IndexFPath, Access, IndexVoc, CacheSize, CacheSizeSmall, SplitLen);
 	}
 	/// Checks if there is an existing index at the given path
-	static bool Exists(const TStr& IndexFPath) {
-		return TFile::Exists(IndexFPath + "Index.Gix"); }
+	static bool Exists(const TStr& IndexFPath) { return TFile::Exists(IndexFPath + "Index.Gix"); }
 	
 	/// Close the query
 	~TIndex();
 
 	/// Get index location
 	TStr GetIndexFPath() const { return IndexFPath; }
-	/// Get index cache size - this one looks obsolete, so it was commented out
-	//uint64 GetIndexCacheSize() const { return Gix->GetCacheSize() + GixSmall->GetCacheSize(); }
 	/// Get index vocabulary
 	TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
 	/// Get default index merger
@@ -2382,12 +2369,8 @@ public:
 	/// Checks if two locations point to the same place
 	bool LocEquals(const int& KeyId, const TFltPr& Loc1, const TFltPr& Loc2) const;
 
-	/// Check if the index is taking all the available cache space
-	bool IsCacheFull() const { Fail; return Gix->IsCacheFull(); } // deprecated
 	/// Check if index opened in read-only mode
 	bool IsReadOnly() const { return Access == faRdOnly; }
-	/// Merge with another index
-	void MergeIndex(const TWPt<TIndex>& TmpIndex); // basically deprecated
 
 	/// Do flat AND search, given the vector of inverted index queries
 	void SearchAnd(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const;
@@ -2408,13 +2391,9 @@ public:
 	void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm);
 
 	/// get blob stats
-	const TBlobBsStats GetBlobStats() {
-		return TBlobBsStats::Add(Gix->GetBlobStats(), GixSmall->GetBlobStats());
-	}
+	TBlobBsStats GetBlobStats() const;
 	/// get gix stats
-	const TGixStats GetGixStats(bool do_refresh = true) { 
-		return TGixStats::Add(Gix->GetGixStats(do_refresh), GixSmall->GetGixStats(do_refresh));
-	}
+	TGixStats GetGixStats(const bool& RefreshP = true) const;
 
 	/// Get split length of inner Gix
 	int GetSplitLen() const { return Gix->GetSplitLen(); }
@@ -2422,46 +2401,8 @@ public:
 	void ResetStats() { Gix->ResetStats(); GixSmall->ResetStats(); }
 
 	/// perform partial flush of index contents
-	int PartialFlush(int WndInMsec = 500);
+	int PartialFlush(const int& WndInMsec = 500);
 };
-
-///////////////////////////////
-/// Temporary Index.
-/// Useful for fast batch indexing, where we create a new index each time we fill
-/// the given cache space. At the end all the indices are merged together.
-class TTempIndex {
-private: 
-	// smart-pointer
-	TCRef CRef;
-	friend class TPt<TTempIndex>;
-
-	/// Maximal size of temporary index
-	int64 IndexCacheSize;
-	/// Location of the temporary index
-	TStr TempFPath;
-	/// List of previous temporary index locations, used at final merging into the main index
-	TStrQ TempIndexFPathQ;
-	/// Current temporary index
-	PIndex TempIndex;
-
-	UndefDefaultCopyAssign(TTempIndex);
-	TTempIndex(const TStr& _TempFPath, const int64& _IndexCacheSize): 
-		 IndexCacheSize(_IndexCacheSize), TempFPath(_TempFPath) { }
-public:
-	/// Create new empty temporary index
-	static TPt<TTempIndex> New(const TStr& TempFPath, const int64& IndexCacheSize) { 
-		return new TTempIndex(TempFPath, IndexCacheSize); }
-
-	/// Is the temporary index full
-	bool IsIndexFull() const { return TempIndex->IsCacheFull(); }
-	/// Returns index to which new items can be added
-	TWPt<TIndex> GetIndex() const { return TempIndex; }
-	/// Initialize new empty temporary index
-	void NewIndex(const PIndexVoc& IndexVoc);
-	/// Merge all temporary indices with the given main index
-	void Merge(const TWPt<TIndex>& Index);
-};
-typedef TPt<TTempIndex> PTempIndex;
 
 ///////////////////////////////
 /// Operator. 
@@ -2787,9 +2728,6 @@ private:
 	// operators
 	THash<TStr, POp> OpH;
 
-	// temporary indices
-	PTempIndex TempIndex;
-
 private:
 	TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen);
 	TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize, const int& SplitLen);
@@ -2805,10 +2743,10 @@ private:
 	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall, const TQueryGixUsedType& ParentGixFlag);
 
 public:
-	static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const int& SplitLen = TInt::Giga) {
+	static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const int& SplitLen) {
 		return new TBase(FPath, IndexCacheSize, SplitLen);
 	}
-	static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize, const int& SplitLen = TInt::Giga) {
+	static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize, const int& SplitLen) {
 		return new TBase(FPath, FAccess, IndexCacheSize, SplitLen);
 	}
 
@@ -2912,14 +2850,6 @@ public:
 	TStr GetTempFPath() const { return TempFPath; }
 	// set temporary folder
 	void PutTempFPath(const TStr& _TempFPath) { TempFPathP = true; TempFPath = _TempFPath; }
-
-	// temporary index (useful at batch processing)
-	bool IsTempIndex() const { return !TempIndex.Empty(); }
-	void InitTempIndex(const uint64& IndexCacheSize);
-	void MergeTempIndex() { TempIndex->Merge(Index); TempIndex.Clr(); }
-	bool IsTempIndexFull() const { return TempIndex->IsIndexFull(); }
-	void NewTempIndex() const { TempIndex->NewIndex(IndexVoc); }
-	void CheckTempIndexSize() { if (IsTempIndexFull()) { NewTempIndex(); } }
 
 	// JSON dump and load
 	bool SaveJSonDump(const TStr& DumpDir);
