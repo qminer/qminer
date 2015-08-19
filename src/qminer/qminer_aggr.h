@@ -10,8 +10,8 @@
 #define QMINER_AGGR_H
 
 #include "qminer_core.h"
+#include "qminer_storage.h"
 #include "qminer_ftr.h"
-#include "qminer_pbs.h"
 
 namespace TQm {
 

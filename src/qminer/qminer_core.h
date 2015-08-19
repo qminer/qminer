@@ -23,8 +23,6 @@ class TRec;
 class TRecSet; typedef TPt<TRecSet> PRecSet;
 class TIndexVoc; typedef TPt<TIndexVoc> PIndexVoc;
 class TIndex; typedef TPt<TIndex> PIndex;
-class TIndex2; typedef TPt<TIndex2> PIndex2;
-class TOp; typedef TPt<TOp> POp;
 class TAggr; typedef TPt<TAggr> PAggr;
 class TStreamAggr; typedef TPt<TStreamAggr> PStreamAggr;
 class TStreamAggrBase; typedef TPt<TStreamAggrBase> PStreamAggrBase;
@@ -561,11 +559,7 @@ public:
 	/// Get record with a given name
 	TRec GetRec(const TStr& RecNm);
 	/// Get number of records in the store
-	virtual uint64 GetRecs() const = 0; 
-	/// Get ID of the first record
-	virtual uint64 GetFirstRecId() const = 0;
-	/// Get ID of the last record
-	virtual uint64 GetLastRecId() const = 0;
+	virtual uint64 GetRecs() const = 0;
 	/// Get iterator to go over all records in the store
 	virtual PStoreIter GetIter() const = 0;
 	/// Get record set with all the records in the store
@@ -577,9 +571,9 @@ public:
 	bool Empty() const { return (GetRecs() == uint64(0)); }
 
 	/// Gets the first record in the store (order defined by store implementation)
-	virtual uint64 FirstRecId() const { throw TQmExcept::New("Not implemented"); }
+	virtual uint64 GetFirstRecId() const { throw TQmExcept::New("Not implemented"); }
 	/// Gets the last record in the store (order defined by store implementation)
-	virtual uint64 LastRecId() const { throw TQmExcept::New("Not implemented"); };
+	virtual uint64 GetLastRecId() const { throw TQmExcept::New("Not implemented"); };
 	/// Gets forward moving iterator (order defined by store implementation)
 	virtual PStoreIter ForwardIter() const { throw TQmExcept::New("Not implemented"); };
 	/// Gets backward moving iterator (order defined by store implementation)
@@ -605,7 +599,7 @@ public:
 	/// Deletes all records
 	virtual void DeleteAllRecs() = 0;
 	/// Delete the first DelRecs records (the records that were inserted first)
-	virtual void DeleteFirstNRecs(int DelRecs) {};
+	virtual void DeleteFirstRecs(const int& DelRecs) = 0;
 	/// Delete specific records
 	virtual void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true) = 0;
 	
@@ -2405,42 +2399,6 @@ public:
 };
 
 ///////////////////////////////
-/// Operator. 
-/// Abstraction for functions working with record sets. 
-///   Input: zero or more record sets, parameters as JSon object
-///   Output: one or more record sets.
-/// Operators returning exactly one record set are called "Functional".
-class TOp {
-private: 
-	// smart-pointer
-	TCRef CRef;
-	friend class TPt<TOp>;
-	/// Operator name
-	const TStr OpNm;
-
-protected:
-	/// Create new operator with a given name. Name is validated against naming constraints.
-	TOp(const TStr& _OpNm);
-public:	
-	virtual ~TOp() { }
-
-	/// Get operator name
-	TStr GetOpNm() const { return OpNm; }
-	
-	/// Execute the operator
-	/// @param InRecSetV   Input record sets, can be empty
-	/// @param ParamVal    Operator parameters
-	/// @param OutRecSetV  Output record sets, should not be empty.
-	virtual void Exec(const TWPt<TBase>& Base, const TRecSetV& InRecSetV, 
-		const PJsonVal& ParamVal, TRecSetV& OutRecSetV) = 0;
-	/// True when operator always returns exactly one record set
-	virtual bool IsFunctional() = 0;
-	/// Wrapper for easier calling of functional operators.
-	PRecSet Exec(const TWPt<TBase>& Base, const TRecSetV& InRecSetV, 
-		const PJsonVal& ParamVal);
-};
-
-///////////////////////////////
 /// Aggregator.
 /// Computes and holds statistics from a given record set.
 /// Works in batch mode: record set in, wait, aggregate out.
@@ -2725,8 +2683,6 @@ private:
 	TVec<PStreamAggrBase> StreamAggrBaseV;
 	// default stream aggregate base (store independent)
 	PStreamAggrBase StreamAggrDefaultBase;
-	// operators
-	THash<TStr, POp> OpH;
 
 private:
 	TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen);
@@ -2794,17 +2750,6 @@ public:
 	void AddStreamAggr(const PStreamAggr& StreamAggr);
 	// aggregate records
 	void Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV);
-
-	// operators
-	void AddOp(const POp& NewOp);
-	int GetOps() const { return OpH.Len(); }
-	int GetFirstOpId() const { return OpH.FFirstKeyId(); }
-	bool GetNextOpId(int& OpId) const { return OpH.FNextKeyId(OpId); }
-	const POp& GetOp(const int& OpId) const { return OpH[OpId]; }
-	bool IsOp(const TStr& OpNm) const { return OpH.IsKey(OpNm); }
-	const POp& GetOp(const TStr& OpNm) const { return OpH.GetDat(OpNm); }
-	// execute operator
-	void Operator(const TRecSetV& InRecSetV, const PJsonVal& ParamVal, TRecSetV& OutRecSetV);	
 
 	// create new word vocabulary and returns its id
 	int NewIndexWordVoc(const TIndexKeyType& Type, const TStr& WordVocNm = TStr());

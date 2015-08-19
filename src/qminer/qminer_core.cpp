@@ -9,7 +9,6 @@
 #include "qminer_core.h"
 #include "qminer_ftr.h"
 #include "qminer_aggr.h"
-#include "qminer_op.h"
 
 // external dependecies
 #include <sphere.h>
@@ -4358,17 +4357,6 @@ int TIndex::PartialFlush(const int& WndInMsec) {
 	return Res;
 }
 
-////////////////////////////////////////////////
-// QMiner-Operator
-TOp::TOp(const TStr& _OpNm) : OpNm(_OpNm) { TValidNm::AssertValidNm(OpNm); }
-
-PRecSet TOp::Exec(const TWPt<TBase>& Base, const TRecSetV& InRecSetV, const PJsonVal& ParamVal) {
-	QmAssertR(IsFunctional(), "Non-functional operator called as functional!");
-	TRecSetV OutRSetV; Exec(Base, InRecSetV, ParamVal, OutRSetV);
-	QmAssertR(OutRSetV.Len() == 1, "Non-functional return for functional operator!");
-	return OutRSetV[0];
-}
-
 ///////////////////////////////
 // QMiner-Aggregator
 TFunRouter<PAggr, TAggr::TNewF> TAggr::NewRouter;
@@ -4559,10 +4547,6 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLe
 	// prepare index
 	IndexVoc = TIndexVoc::New();
 	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, SplitLen);
-	// add standard operators
-	AddOp(TOpLinSearch::New());
-	AddOp(TOpGroupBy::New());
-	AddOp(TOpSplitBy::New());
 	// initialize with empty stores
 	StoreV.Gen(TEnv::GetMxStores()); StoreV.PutAll(NULL);
 	// initialize empty stream aggregate bases for each store
@@ -4588,10 +4572,6 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	TFIn IndexVocFIn(FPath + "IndexVoc.dat");
 	IndexVoc = TIndexVoc::Load(IndexVocFIn);
 	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, SplitLen);
-	// add standard operators
-	AddOp(TOpLinSearch::New());
-	AddOp(TOpGroupBy::New());
-	AddOp(TOpSplitBy::New());
 	// initialize with empty stores
 	StoreV.Gen(TEnv::GetMxStores()); StoreV.PutAll(NULL);
 	// initialize empty stream aggregate bases for each store
@@ -4934,21 +4914,6 @@ void TBase::Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV) {
 		const TQueryAggr& Aggr = QueryAggrV[QueryAggrN];
 		RecSet->AddAggr(TAggr::New(this, RecSet, Aggr));
 	}
-}
-
-void TBase::AddOp(const POp& NewOp) {
-	OpH.AddDat(NewOp->GetOpNm(), NewOp);
-}
-
-void TBase::Operator(const TRecSetV& InRecSetV, const PJsonVal& ParamVal, TRecSetV& OutRecSetV) {
-	// check what operator was requested
-	QmAssert(ParamVal->IsObjKey("operator"));
-	TStr OpNm = ParamVal->GetObjStr("operator");
-	// make sure we have it
-	QmAssert(this->IsOp(OpNm));
-	POp Op = this->GetOp(OpNm);
-	// execute the operator
-	Op->Exec(this, InRecSetV, ParamVal, OutRecSetV);
 }
 
 int TBase::NewIndexWordVoc(const TIndexKeyType& Type, const TStr& WordVocNm) {
