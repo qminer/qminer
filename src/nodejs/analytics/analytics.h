@@ -579,6 +579,7 @@ public:
  * @class
  * @param {(null|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model.
  * @example
+ * // import modules
  * la = require('qminer').la;
  * analytics = require('qminer').analytics;
  * // create a new model
@@ -609,6 +610,29 @@ private:
     static TNodeJsSigmoid* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
     
 public:
+
+	/**
+	* Get the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.
+	* @returns {Object} The Json object containing parameters.
+	*/
+	//# exports.Sigmoid.prototype.getParams = function () { return {} }
+	JsDeclareFunction(getParams);
+
+	/**
+	* Sets the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.
+	* @param {Object} arg - Json object. 
+	* @returns {module:analytics.Sigmoid} Self.
+	*/
+	//# exports.Sigmoid.prototype.getParams = function (arg) { return Object.create(require('qminer').analytics.Sigmoid.prototype); }
+	JsDeclareFunction(setParams);
+
+	/**
+	* Gets the model.
+	* @returns {Object} The Json object containing the A and B values of the Sigmoid.
+	*/
+	//# exports.Sigmoid.prototype.getModel = function () {return { A: 0, B: 0 }; }
+	JsDeclareFunction(getModel);
+
     /**
      * Fits a column matrix of feature vectors X onto the response variable y.
      *
@@ -634,12 +658,6 @@ public:
      */
     //# exports.Sigmoid.prototype.predict = function(x) {}
     JsDeclareFunction(predict);
-    
-    /**
-     * @property {module:la.Vector} weights - Vector with elements A and B that define the sigmoid function.
-     */
-    //# exports.Sigmoid.prototype.weights = undefined;
-    JsDeclareProperty(weights);
     
     /**
      * Saves the model into the output stream.
