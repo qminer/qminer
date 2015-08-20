@@ -57,6 +57,8 @@ void TNearestNeighbor::Forget(const int& ColId) {
 TNearestNeighbor::TNearestNeighbor(const double& Rate, const int& _WindowSize):
         WindowSize(_WindowSize) {
 
+    // assert rate parameter range
+    EAssertR(0.0 < Rate && Rate < 1.0, "TAnomalyDetection::TNearestNeighbor: Rate parameter not > 0.0 and < 1.0");
     // remember the rate
     RateV.Add(Rate);
     // initialize all vectors to window size
