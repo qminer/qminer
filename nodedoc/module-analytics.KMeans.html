@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">KMeans</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1347">analyticsdoc.<wbr>js:1347</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1348">analyticsdoc.<wbr>js:1348</a></p>
             <div class="symbol-classdesc">
               <p>KMeans clustering</p>
             </div>
@@ -44,11 +44,17 @@
                     <dt><a href="module-analytics.KMeans.html#getModel">getModel()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.KMeans.html#getParams">getParams()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.KMeans.html#getParams">getParams()</a></dt>
+                    <dt><a href="module-analytics.KMeans.html#load">load(fname)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.KMeans.html#permuteCentroids">permuteCentroids(mapping)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.KMeans.html#predict">predict(A)</a></dt>
@@ -58,6 +64,9 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.KMeans.html#save">save(fname)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.KMeans.html#setParams">setParams(Object)</a></dt>
                     <dd>
                     </dd>
@@ -126,6 +135,72 @@
                   <p>Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)</p>
                 </dd>
               </dl>
+              <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(fname)</span></span></h3>
+              <p>Loads KMeans internal state from (binary) file</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fname</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Name of the file to read from.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="permuteCentroids"><span class="symbol-name">permuteCentroids</span><span class="signature"><span class="signature-params">(mapping)</span></span></h3>
+              <p>Permutes centroid with given mapping.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>mapping</p>
+                      </td>
+                      <td>
+                        <p>object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>object that contains the mappping. E.g. mapping[4]=2 means &quot;map cluster 4 into cluster 2&quot;</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(A)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.IntVector.html">module:la.IntVector</a></span></span></h3>
               <p>Returns an vector of cluster id assignments</p>
               <section>
@@ -162,6 +237,39 @@
                 <dd>
                   <p><code><a href="module-la.IntVector.html">module:la.IntVector</a></code>&nbsp;Vector of cluster assignments.</p>
                 </dd>
+              </dl>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fname)</span></span></h3>
+              <p>Saves KMeans internal state into (binary) file</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fname</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Name of the file to write into.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
               </dl>
               <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(Object)</span></span></h3>
               <p>Sets parameters</p>
@@ -243,7 +351,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 5, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 17, 2015.
       </p>
     </div>
   </footer>

@@ -522,252 +522,6 @@ module.exports = exports = function (pathPrefix) {
     };
 
     /**
-    * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
-    * @class
-    * @param {Object} [detectorParam={rate:0.05, window:100, matrix: module:la.Matrix}] - Constructor parameters
-    * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies).
-    * @param {number} [detectorParam.window=100] - Number of most recent instances kept in the model.
-    * @param {function} [detectorParam.matrix=module:la.Matrix] - Matrix implementation used to store the modelo (e.g., `la.Matrix` or `la.SparseMatrix`).
-    */
-    exports.NearestNeighborAD = function (detectorParam) {
-        // set default parameters
-        this.rate = 0.05;
-        this.windowSize = 100;
-        this.dim = -1;
-        this.matrix = la.Matrix;
-        this.thresh = 0;
-        this.dist = new la.Vector();
-        this.distId = new la.IntVector();
-        this.X = new this.matrix();
-        this.init = 0;
-        this.next = 0;
-        // initial distance, should be biger then dataset diameter
-        this.maxDist = 1e10;
-        // for private consumption
-        var that = this;
-
-        /**
-        * Sets parameters (TODO)
-        * @param {Object} param - Parameters
-        */
-        this.setParams = function (param) {
-            // update parameters that are provided
-            if (param.rate != undefined) { this.rate = param.rate; }
-            if (param.windowSize != undefined) { this.windowSize = param.windowSize; }
-            if (param.dim != undefined) { this.dim = param.dim; }
-            if (param.matrix != undefined) { this.matrix = param.matrix; }
-            // check all valid
-            assert(this.rate > 0 && this.rate <= 1.0, "NearestNeighborAD: rate parameter not in range (0,1]");
-            assert(this.windowSize >= 1, "NearestNeighborAD: window parameter not positive");
-        }
-
-        /**
-        * Returns parameters (TODO)
-        * @returns {Object} Parameters
-        */
-        this.getParams = function () {
-            return {
-                rate: this.rate,
-                windowSize: this.windowSize,
-                dim: this.dim,
-                matrix: this.matrix
-            };
-        }
-
-        // parse parameters, if any are given
-        if (detectorParam instanceof fs.FIn) {
-            // read from input stream
-            var params = detectorParam.readJson();
-            this.rate = params.rate;
-            this.windowSize = params.windowSize;
-            this.dim = params.dim;
-            this.thresh = params.thresh;
-            this.init = params.init;
-            this.next = params.next;
-            this.maxDist = params.maxDist;
-            this.dist.load(detectorParam);
-            this.distId.load(detectorParam);
-            this.X.load(detectorParam);
-            // TODO: how to save this.matrix ?!
-        } else if (detectorParam != undefined) {
-            // update default parameter values if provided
-            this.setParams(detectorParam);
-            // initialize matrix
-            this.X = new this.matrix({ cols: this.windowSize, rows: this.dim });
-        }
-
-        /**
-        * Save model to provided output stream
-        * @param {module:fs.FOut} fout - output stream
-        * @returns {module:fs.FOut} provided output stream
-        */
-        this.save = function (fout) {
-            fout.writeJson({
-                rate: this.rate,
-                windowSize: this.windowSize,
-                dim: this.dim,
-                thresh: this.params,
-                init: this.init,
-                next: this.next,
-                maxDist: this.maxDist
-            });
-            this.dist.save(fout);
-            this.distId.save(fout);
-            this.X.save(fout);
-        }
-
-        /**
-        * Returns the model (TODO)
-        * @returns {Object} Model object
-        */
-        this.getModel = function () {
-            return {
-                dist: this.dist,
-                distId: this.distId,
-                X: this.X,
-                thresh: this.thresh,
-                next: this.next
-            };
-        }
-
-        // return vector of distances between x and each column of X
-        var vectorDistances = function (x) {
-            return la.pdist2(that.X, x.toMat()).getCol(0);
-        }
-
-        // update distance vector for vector X[xId], ignoring vector X[ignoreId]
-        var updateDistances = function (xId, ignoreId) {
-            // in case we are not given vector to ignore, use self
-            ignoreId = (ignoreId == undefined) ? xId : ignoreId;
-            // compared to rest
-            var x = that.X.getCol(xId);
-            var y = vectorDistances(x);
-            // update distances and compute its nearest neighbor
-            var minDist = that.maxDist, minDistId = xId;
-            for (var i = 0; i < that.init; i++) {
-                // skip self and ignore
-                if (i == xId) { continue; }
-                if (i == ignoreId) { continue; }
-                // x is the new nearest neighbor for column i
-                if (y[i] < that.dist[i]) { that.dist[i] = y[i]; that.distId[i] = xId; }
-                // found new nearest neighbor for x
-                if (y[i] < minDist) { minDist = y[i]; minDistId = i; }
-            }
-            // update its own nearest neighbor
-            that.dist[xId] = minDist;
-            that.distId[xId] = minDistId;
-        }
-
-        // compute new threshold on the current distance vector
-        var updateThreshold = function () {
-            // sort distances
-            var sorted = new la.Vector(that.dist); sorted.sort();
-            // get the id corresonding to rate-th element
-            var idx = Math.floor((1 - that.rate) * sorted.length);
-            // set the threshold
-            that.thresh = sorted[idx];
-        }
-
-        // Add new vector to the instance matrix and update distances
-        var addVector = function (x, xId) {
-            if (that.dist.length == xId) {
-                // we are still adding vectors
-                that.dist.push(that.maxDist);
-                that.distId.push(xId);
-                that.X.setCol(xId, x);
-                that.init++;
-            } else {
-                // just replace existing vector
-                that.dist[xId] = that.maxDist;
-                that.distId[xId] = xId;
-                that.X.setCol(xId, x);
-            }
-            // update distances
-            updateDistances(xId);
-        }
-
-        // Remove vector from the instance matrix and update distances
-        var delVector = function (xId) {
-            // construct list of vectors that we need to reasses
-            var toCheck = new la.IntVector();
-            for (var i = 0; i < that.distId.length; i++) {
-                // skip self
-                if (i == xId) { continue; }
-                // check if xId is current nearest neighbor
-                if (that.distId[i] == xId) { toCheck.push(i); }
-            }
-            // reasses detected elements
-            console.log("To check", toCheck.length);
-            for (var i = 0; i < toCheck.length; i++) {
-                var yId = toCheck[i];
-                // find new nearest neighbor for yId, ignoring xId
-                updateDistances(yId, xId);
-            }
-        }
-
-        /**
-        * Adds a new point (or points) to the known points and recomputes the threhshold
-        * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
-        */
-        this.partialFit = function (x) {
-            // console.log(this.next);
-            if (this.init < this.windowSize) {
-                // we are not yet initialized, just remember the vector and update distances
-                addVector(x, this.init);
-                // check if we are now set to start
-                if (this.init == this.windowSize) { updateThreshold(); }
-            }
-            else {
-                // first remove old vector
-                delVector(this.next);
-                // add new vector
-                addVector(x, this.next);
-                // update threshold
-                updateThreshold();
-                // move to the next
-                this.next++;
-                // reset counter, if we get to the end
-                if (this.next == this.windowSize) { this.next = 0; }
-            }
-        }
-
-        /**
-        * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
-        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
-        * the model.
-        */
-        this.fit = function (A) {
-            // just call partial fit on each column
-            for (var i = 0; i < A.cols; i++) {
-                this.partialFit(A.getCol(i));
-            }
-        }
-
-        /**
-        * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
-        * @param {module:la.Vector} x - Test vector
-        * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
-        */
-        this.predict = function (x) {
-            // compute squared dist ...
-            var d = vectorDistances(x);
-            var idx = d.multiply(-1).getMaxIdx();
-            var p = d[idx];
-            // and compare to the threshold
-            return p > this.thresh ? 1 : 0;
-        }
-
-        this.decisionFunction = function (x) {
-            // compute squared dist ...
-            var d = vectorDistances(x);
-            var idx = d.multiply(-1).getMaxIdx();
-            var p = d[idx];
-            // and compare to the threshold
-            return p - this.thresh;
-        }
-    }
-
-    /**
     * @classdesc Principal components analysis
     * @class
     */
@@ -879,6 +633,25 @@ module.exports = exports = function (pathPrefix) {
         var idxv = undefined;
         var norC2 = undefined;
 
+        /**
+        * Permutes centroid with given mapping.
+        @param {object} mapping - object that contains the mappping. E.g. mapping[4]=2 means "map cluster 4 into cluster 2"
+        */
+        this.permuteCentroids = function (mapping) {
+            var cl_count = C.cols;
+            var perm_matrix = la.zeros(cl_count, cl_count);
+            for (var i = 0; i < cl_count; i++) {
+                perm_matrix.put(i, mapping[i], 1);
+            }
+            var C_new = C.multiply(perm_matrix);
+            var idxv_new = new la.Vector(idxv);
+            for (var i = 0; i < idxv_new.length; i++) {
+                idxv_new[i] = mapping[idxv[i]]
+            }
+            C = C_new;
+            norC2 = la.square(C.colNorms());
+            idxv = idxv_new;
+        }
         /**
         * Returns the model
         * @returns {Object} The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data)
@@ -1022,6 +795,54 @@ module.exports = exports = function (pathPrefix) {
             D = D.multiply(-1);
             return D;
         }
+		/**
+        * Saves KMeans internal state into (binary) file
+        * @param {string} fname - Name of the file to write into.
+        */
+        this.save = function(fname){
+			if (!C) {
+				throw new Error("KMeans.save() - model not created yet");
+			}
+
+			var params_vec = new la.Vector();
+			params_vec.push(iter);
+			params_vec.push(k);
+			params_vec.push(verbose ? 1.0 : 0.0);
+
+			var xfs = qm.fs;
+			var fout = xfs.openWrite(fname);
+			C.save(fout);
+			norC2.save(fout);
+			(new la.Vector(idxv)).save(fout);
+			params_vec.save(fout);
+			fout.close();
+			fout = null;
+		}
+		/**
+        * Loads KMeans internal state from (binary) file
+        * @param {string} fname - Name of the file to read from.
+        */
+        this.load = function (fname) {
+		    var xfs = qm.fs;
+		    var fin = xfs.openRead(fname);
+
+		    C = new la.Matrix();
+		    C.load(fin);
+		    norC2 = new la.Vector();
+		    norC2.load(fin);
+
+		    var idxvtmp = new la.Vector();
+		    idxvtmp.load(fin);
+		    idxv = idxvtmp; // make normal vector (?)
+
+		    var params_vec = new la.Vector();
+		    params_vec.load(fin);
+		    iter = params_vec[0];
+		    k = params_vec[1];
+		    verbose = (params_vec[2] != 0);
+
+		    fin = null;
+		}
     }
 
     ///////////////////////////////
