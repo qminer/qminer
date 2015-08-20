@@ -615,7 +615,7 @@ public:
 	* Get the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.
 	* @returns {Object} The Json object containing parameters.
 	*/
-	//# exports.Sigmoid.prototype.getParams = function () { return {} }
+	//# exports.Sigmoid.prototype.getParams = function () { return {}; }
 	JsDeclareFunction(getParams);
 
 	/**
