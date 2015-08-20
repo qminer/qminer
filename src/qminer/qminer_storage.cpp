@@ -971,7 +971,7 @@ void TRecSerializator::SetFieldTmMSecs(char* Bf, const int& BfL, const int& Fiel
 /// Destructor that calls parent
 TRecSerializator::TToastWatcher::~TToastWatcher() {
 	for (int i = 0; i < Parent->ToastPtToDel.Len(); i++) {
-		Parent->Store->DelToastVal(Parent->ToastPtToDel[i]);
+		Parent->Toaster->DelToastVal(Parent->ToastPtToDel[i]);
 	}
 	Parent->ToastPtToDel.Clr();
 }
@@ -986,7 +986,7 @@ void TRecSerializator::CheckToast(TMOut& SOut, const int& Offset) {
 	// ok, perform TOAST-ing	
 	// Store serialized data into store
 	TMemBase mb(SOut.GetBfAddr() + Offset + 1, SOut.Len() - Offset - 1, false);
-	TPgBlobPt Pt = Store->ToastVal(mb);
+	TPgBlobPt Pt = Toaster->ToastVal(mb);
 	// rewind SOut back to Offset
 	SOut.Seek(Offset);
 	SOut.PutCh(ToastYes);
@@ -1170,17 +1170,18 @@ void TRecSerializator::Merge(const TMem& FixedMem, const TMOut& VarSOut, TMem& O
 	OutRecMem.AddBf(VarSOut.GetBfAddr(), VarSOut.Len());
 }
 
-TRecSerializator::TRecSerializator(const TWPt<TStore>& _Store,
-		const TStoreSchema& StoreSchema, const TStoreLoc& _TargetStorage):
-			TargetStorage(_TargetStorage) {
-	
-	Store = _Store;
-	UseToast = Store->CanToast();
-	if (UseToast) {
-		MxToastLen = Store->GetMaxToastLen();
-	}
-	const int Fields = Store->GetFields();
+TRecSerializator::TRecSerializator(const TWPt<TStore>& Store, const TWPt<TToaster>& _Toaster,
+		const TStoreSchema& StoreSchema, const TStoreLoc& _TargetStorage): TargetStorage(_TargetStorage) {
 
+    // initialize toaster
+	Toaster = _Toaster;
+	UseToast = Toaster->CanToast();
+	if (UseToast) {
+		MxToastLen = Toaster->GetMaxToastLen();
+	}
+
+    // initialize offsets
+	const int Fields = Store->GetFields();
 	// fixed part starts after null-flags
 	FixedPartOffset = (int)ceil((float)Fields / 8);
 	// variable part starts same place before any fixed-width fields identified
@@ -1430,7 +1431,7 @@ void TRecSerializator::GetFieldIntV(TThinMIn& min, const int& FieldId, TIntV& In
 		TPgBlobPt Pt;
 		min.GetBf(&Pt, sizeof(TPgBlobPt));
 		TMem Mem;
-		Store->UnToastVal(Pt, Mem);
+		Toaster->UnToastVal(Pt, Mem);
 		TThinMIn min2(Mem);
 		IntV.Load(min2);
 	} else {
@@ -1458,7 +1459,7 @@ TStr TRecSerializator::GetFieldStr(TThinMIn& min, const int& FieldId) const {
 			TPgBlobPt Pt;
 			min.GetBf(&Pt, sizeof(TPgBlobPt));
 			TMem Mem;
-			Store->UnToastVal(Pt, Mem);
+			Toaster->UnToastVal(Pt, Mem);
 			TThinMIn min2(Mem);
 			TStr Str;
 			Str.Load(min2, FieldSerialDesc.SmallStringP);
@@ -1480,7 +1481,7 @@ void TRecSerializator::GetFieldStrV(TThinMIn& min, const int& FieldId, TStrV& St
 		TPgBlobPt Pt;
 		min.GetBf(&Pt, sizeof(TPgBlobPt));
 		TMem Mem;
-		Store->UnToastVal(Pt, Mem);
+		Toaster->UnToastVal(Pt, Mem);
 		TThinMIn min2(Mem);
 		StrV.Load(min2);
 	} else {
@@ -1510,7 +1511,7 @@ void TRecSerializator::GetFieldFltV(TThinMIn& min, const int& FieldId, TFltV& Fl
 		TPgBlobPt Pt;
 		min.GetBf(&Pt, sizeof(TPgBlobPt));
 		TMem Mem;
-		Store->UnToastVal(Pt, Mem);
+		Toaster->UnToastVal(Pt, Mem);
 		TThinMIn min2(Mem);
 		FltV.Load(min2);
 	} else {
@@ -1534,7 +1535,7 @@ void TRecSerializator::GetFieldNumSpV(TThinMIn& min, const int& FieldId, TIntFlt
 		TPgBlobPt Pt;
 		min.GetBf(&Pt, sizeof(TPgBlobPt));
 		TMem Mem;
-		Store->UnToastVal(Pt, Mem);
+		Toaster->UnToastVal(Pt, Mem);
 		TThinMIn min2(Mem);
 		SpV.Load(min2);
 	} else {
@@ -1549,7 +1550,7 @@ void TRecSerializator::GetFieldBowSpV(TThinMIn& min, const int& FieldId, PBowSpV
 		TPgBlobPt Pt;
 		min.GetBf(&Pt, sizeof(TPgBlobPt));
 		TMem Mem;
-		Store->UnToastVal(Pt, Mem);
+		Toaster->UnToastVal(Pt, Mem);
 		TThinMIn min2(Mem);
 		TBowSpV::Load(min2);
 	} else {
@@ -2364,8 +2365,8 @@ void TStoreImpl::InitFromSchema(const TStoreSchema& StoreSchema) {
 		if (IndexKeyEx.IsTokenizer()) { IndexVoc->PutTokenizer(KeyId, IndexKeyEx.Tokenizer); }
 	}
 	// prepare serializators for disk and in-memory store
-	SerializatorCache = new TRecSerializator(this, StoreSchema, slDisk);
-	SerializatorMem = new TRecSerializator(this, StoreSchema, slMemory);
+	SerializatorCache = new TRecSerializator(this, this, StoreSchema, slDisk);
+	SerializatorMem = new TRecSerializator(this, this, StoreSchema, slMemory);
 	// initialize field to storage location map
 	InitFieldLocV();
 	// initialize record indexer
@@ -4116,8 +4117,8 @@ void TStorePbBlob::InitFromSchema(const TStoreSchema& StoreSchema) {
         if (IndexKeyEx.IsTokenizer()) { IndexVoc->PutTokenizer(KeyId, IndexKeyEx.Tokenizer); }
     }
     // prepare serializators for disk and in-memory store
-    SerializatorCache = new TRecSerializator(this, StoreSchema, slDisk);
-    SerializatorMem = new TRecSerializator(this, StoreSchema, slMemory);
+    SerializatorCache = new TRecSerializator(this, this, StoreSchema, slDisk);
+    SerializatorMem = new TRecSerializator(this, this, StoreSchema, slMemory);
     // initialize field to storage location map
     InitFieldLocV();
     // initialize record indexer
