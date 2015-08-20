@@ -1120,7 +1120,7 @@ module.exports = exports = function (pathPrefix) {
                 }
                 if (qm_util.arraysIdentical(idxv, idxvOld)) {
                     if (verbose) {
-                        console.say("converged at iter: " + i); //DEBUG
+                        console.log("converged at iter: " + i); //DEBUG
                     }
                     break;
                 }
