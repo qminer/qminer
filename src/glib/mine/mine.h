@@ -12,7 +12,7 @@
 #include <base.h>
 #include <funrouter.h>
 
-// utilitiesTFun
+// utilities
 #include "cfyres.h"
 
 // text processing
@@ -55,6 +55,9 @@
 
 // Markov Chains
 #include "mc.h"
+
+// Anomaly Detection
+#include "anomaly.h"
 
 // cross-lingual
 #include "crosslingual.h"

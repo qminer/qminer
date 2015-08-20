@@ -1548,7 +1548,7 @@ TSigmoid::TSigmoid(const TFltIntKdV& data) {
   double minProj = data[0].Key, maxProj = data[0].Key;
   {for (int i = 1; i < data.Len(); i++) {
     double zi = data[i].Key; if (zi < minProj) minProj = zi; if (zi > maxProj) maxProj = zi; }}
-  //const bool dump = false;
+  // const bool dump = true;
   A = 1.0; B = 0.5 * (minProj + maxProj);
   double bestJ = 0.0, bestA = 0.0, bestB = 0.0, lambda = 1.0;
   for (int nIter = 0; nIter < 50; nIter++)
@@ -1556,29 +1556,30 @@ TSigmoid::TSigmoid(const TFltIntKdV& data) {
     double J, JA, JB; TSigmoid::EvaluateFit(data, A, B, J, JA, JB);
     if (nIter == 0 || J < bestJ) { bestJ = J; bestA = A; bestB = B; }
     // How far should we move?
-    //if (dump) printf("Iter %2d: A = %.5f, B = %.5f, J = %.5f, partial = (%.5f, %.5f)\n", nIter, A, B, J, JA, JB);
-        double norm = TMath::Sqr(JA) + TMath::Sqr(JB);
+    // if (dump) printf("Iter %2d: A = %.5f, B = %.5f, J = %.5f, partial = (%.5f, %.5f)\n", nIter, A.Val, B.Val, J, JA, JB);
+    double norm = TMath::Sqr(JA) + TMath::Sqr(JB);
     if (norm < 1e-10) break;
     const int cl = -1; // should be -1
 
     double Jc = TSigmoid::EvaluateFit(data, A + cl * lambda * JA / norm, B + cl * lambda * JB / norm);
-    //if (dump) printf("  At lambda = %.5f, Jc = %.5f\n", lambda, Jc);
+    // if (dump) printf("  At lambda = %.5f, Jc = %.5f\n", lambda, Jc);
     if (Jc > J) {
       while (lambda > 1e-5) {
         lambda = 0.5 * lambda;
         Jc = TSigmoid::EvaluateFit(data, A + cl * lambda * JA / norm, B + cl * lambda * JB / norm);
-        //if (dump) printf("  At lambda = %.5f, Jc = %.5f\n", lambda, Jc);
+        // if (dump) printf("  At lambda = %.5f, Jc = %.5f\n", lambda, Jc);
       } }
     else if (Jc < J) {
       while (lambda < 1e5) {
         double lambda2 = 2 * lambda;
         double Jc2 = TSigmoid::EvaluateFit(data, A + cl * lambda2 * JA / norm, B + cl * lambda2 * JB / norm);
-        //if (dump) printf("  At lambda = %.5f, Jc = %.5f\n", lambda2, Jc2);
-        if (Jc2 > Jc) break;
+        // if (dump) printf("  At lambda = %.5f, Jc = %.5f\n", lambda2, Jc2);
+        if (Jc2 > Jc) { break; }
+        if (TFlt::IsNan(Jc2)) { break; }
         lambda = lambda2; Jc = Jc2; } }
     if (Jc >= J) break;
     A += cl * lambda * JA / norm; B += cl * lambda * JB / norm;
-    //if (dump) printf("   Lambda = %.5f, new A = %.5f, new B = %.5f, new J = %.5f\n", lambda, A, B, Jc);
+    // if (dump) printf("   Lambda = %.5f, new A = %.5f, new B = %.5f, new J = %.5f\n", lambda, A.Val, B.Val, Jc);
   }
   A = bestA; B = bestB;
 }

@@ -13,6 +13,7 @@ namespace TFtrGen {
 void TNumeric::Save(TSOut& SOut) const { 
     SaveEnum<TNumericType>(SOut, Type); 
     MnVal.Save(SOut); MxVal.Save(SOut); 
+	Var.Save(SOut);
 }
     
 void TNumeric::Clr() {
@@ -20,7 +21,9 @@ void TNumeric::Clr() {
         MnVal = 0.0; MxVal = 0.0;
     } else if (Type == ntNormalize) {
         MnVal = TFlt::Mx; MxVal = TFlt::Mn;
-    } else if (Type == ntMnMxVal) {
+	} else if (Type == ntNormalizeVar) {
+		Var.Clr();
+	} else if (Type == ntMnMxVal) {
         // nothing to do
     }
 }
@@ -29,12 +32,19 @@ bool TNumeric::Update(const double& Val) {
 	if (Type == ntNormalize) {
         MnVal = TFlt::GetMn(MnVal, Val); 
         MxVal = TFlt::GetMx(MxVal, Val);         
-    }   
+	} else if (Type == ntNormalizeVar) {
+		Var.Update(Val);
+	}
     return false;
 }
 
 double TNumeric::GetFtr(const double& Val) const {
-	if ((Type != ntNone) && (MnVal < MxVal)) {
+	if (Type == ntNormalizeVar) {
+		double Res = Val - Var.GetMean();
+		double M2 = Var.GetStDev();
+		if (M2 > 0) Res /= M2;
+		return Res;
+	} else if ((Type != ntNone) && (MnVal < MxVal)) {
 		if (Val > MxVal) { 
 			return 1; 
 		} else if (Val < MnVal) { 
@@ -56,11 +66,13 @@ void TNumeric::AddFtr(const double& Val, TFltV& FullV, int& Offset) const {
 
 double TNumeric::InvFtr(const TFltV& FullV, int& Offset) const {
 	double Val = FullV[Offset++];
-
-	if (Type != ntNone && MnVal < MxVal) {
+	if (Type == ntNormalizeVar) {
+		double M2 = Var.GetVar();
+		if (M2 > 0) Val *= M2;
+		Val += Var.GetMean();
+	} else if (Type != ntNone && MnVal < MxVal) {
 		Val =  Val*(MxVal - MnVal) + MnVal;
 	}
-
 	return Val;
 }
 

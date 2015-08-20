@@ -1,13 +1,13 @@
 {
     'variables': { 'LIN_ALG_BLAS%': 'NBLAS',
-		   'LIN_ALG_LAPACKE%': 'NLAPACKE',	
+		   'LIN_ALG_LAPACKE%': 'NLAPACKE',
    		   'LIN_ALG_INCLUDE%': 'src/glib/base/',
 		   #full path to lapack or openblas libraries
 		   'LIN_ALG_LIB%': '',
 		   #64 bit indexing for BLAS
 		   'INDEX_64%': 'NINDEX_64',
 		   'INTEL%': 'NINTEL'
- 
+
     },
     'target_defaults': {
         # GCC flags
@@ -91,8 +91,7 @@
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
                         'GCC_ENABLE_CPP_RTTI': 'YES',
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
-                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ]
                     },
                     "configurations": {
                         "Debug": {
@@ -115,7 +114,7 @@
                                 "GCC_INLINES_ARE_PRIVATE_EXTERN": "YES"
                             }
                         }
-                    }                    
+                    }
                 }],
                 ['OS == "win"', {
                     'configurations': {
@@ -123,7 +122,7 @@
                             'msvs_settings': {
                                 'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
-				    'OpenMP': 'true'	
+				    'OpenMP': 'true'
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
@@ -134,13 +133,13 @@
                         'Release': {
                             'msvs_settings': {
                                 'VCCLCompilerTool': {
-				    #'AdditionalIncludeDirectories': '<(LIN_ALG_INCLUDE)',	
+				    #'AdditionalIncludeDirectories': '<(LIN_ALG_INCLUDE)',
                                     'RuntimeTypeInfo': 'true',      # /GR
-				    'OpenMP': 'true'	
+				    'OpenMP': 'true'
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
-				    'AdditionalDependencies': ['<(LIN_ALG_LIB)']	
+				    'AdditionalDependencies': ['<(LIN_ALG_LIB)']
                                 },
                             },
                             'defines' : ['NDEBUG']
@@ -155,15 +154,13 @@
             'sources': [
                 'src/qminer/qminer_core.h',
                 'src/qminer/qminer_core.cpp',
-                'src/qminer/qminer_gs.h',
-                'src/qminer/qminer_gs.cpp',
+                'src/qminer/qminer_storage.h',
+                'src/qminer/qminer_storage.cpp',
                 'src/qminer/qminer_ftr.h',
                 'src/qminer/qminer_ftr.cpp',
                 'src/qminer/qminer_aggr.h',
-                'src/qminer/qminer_aggr.cpp',
-                'src/qminer/qminer_op.h',
-                'src/qminer/qminer_op.cpp'
-            ],        
+                'src/qminer/qminer_aggr.cpp'
+            ],
             'include_dirs': [
                 'src/qminer',
                 'src/glib/base/',
@@ -180,8 +177,7 @@
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
                         'GCC_ENABLE_CPP_RTTI': 'YES',
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
-                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ]
                     },
                     "configurations": {
                         "Debug": {
@@ -204,7 +200,7 @@
                                 "GCC_INLINES_ARE_PRIVATE_EXTERN": "YES"
                             }
                         }
-                    }                    
+                    }
                 }],
                 ['OS == "win"', {
                     'configurations': {
@@ -212,12 +208,12 @@
                             'msvs_settings': {
                                 'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
-				    'OpenMP': 'true'	
+				    'OpenMP': 'true'
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
       				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
-				    'AdditionalOptions': ['<(LIN_ALG_LIB)']					
+				    'AdditionalOptions': ['<(LIN_ALG_LIB)']
                                 },
                             },
                         },
@@ -225,7 +221,7 @@
                             'msvs_settings': {
                                'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
-				    'OpenMP': 'true'	
+				    'OpenMP': 'true'
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
@@ -244,7 +240,7 @@
             'type': 'static_library',
             'sources': [
                 'src/third_party/Snap/snap-core/Snap.cpp'
-            ],        
+            ],
             'include_dirs': [
                 'src/third_party/Snap/snap-core',
                 'src/third_party/Snap/snap-adv',
@@ -264,8 +260,7 @@
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
                         'GCC_ENABLE_CPP_RTTI': 'YES',
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
-                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ]
                     },
                     "configurations": {
                         "Debug": {
@@ -288,7 +283,7 @@
                                 "GCC_INLINES_ARE_PRIVATE_EXTERN": "YES"
                             }
                         }
-                    }                    
+                    }
                 }],
                 ['OS == "win"', {
                     'configurations': {
@@ -296,7 +291,7 @@
                             'msvs_settings': {
                                'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
-				    'OpenMP': 'true'	
+				    'OpenMP': 'true'
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
@@ -309,7 +304,7 @@
                             'msvs_settings': {
                                'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
-				    'OpenMP': 'true'	
+				    'OpenMP': 'true'
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
@@ -331,7 +326,7 @@
                 'src/glib/base/base.cpp',
                 'src/glib/mine/mine.h',
                 'src/glib/mine/mine.cpp'
-            ],        
+            ],
             'include_dirs': [
                 'src/glib/base/',
                 'src/glib/mine/',
@@ -352,8 +347,7 @@
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
                         'GCC_ENABLE_CPP_RTTI': 'YES',
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
-                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ]
                     },
                     "configurations": {
                         "Debug": {
@@ -376,7 +370,7 @@
                                 "GCC_INLINES_ARE_PRIVATE_EXTERN": "YES"
                             }
                         }
-                    }                    
+                    }
                 }],
                 ['OS == "win"', {
                     'configurations': {
@@ -384,7 +378,7 @@
                             'msvs_settings': {
                                'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
-				    'OpenMP': 'true'	
+				    'OpenMP': 'true'
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
@@ -397,7 +391,7 @@
                             'msvs_settings': {
                                'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
-				    'OpenMP': 'true'	
+				    'OpenMP': 'true'
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console

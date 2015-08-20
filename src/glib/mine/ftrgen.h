@@ -6,13 +6,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#include "signalproc.h"
+
 namespace TFtrGen {
 
 ///////////////////////////////////////
 /// Numeric feature generator
 class TNumeric {
 private:
-    typedef enum { ntNone, ntNormalize, ntMnMxVal } TNumericType;
+	typedef enum { ntNone, ntNormalize, ntNormalizeVar, ntMnMxVal } TNumericType;
     
 private:
     /// Feature generator type
@@ -20,14 +22,15 @@ private:
     /// Minimal value for normalization
     TFlt MnVal;
     /// Maximal value for normalization
-    TFlt MxVal;   
-
+    TFlt MxVal;
+	/// Object for calculation of variance
+	TSignalProc::TVarSimple Var;
 public:
-    TNumeric(const bool& NormalizeP = true):
-		Type(NormalizeP ? ntNormalize : ntNone), MnVal(TFlt::Mx), MxVal(TFlt::Mn) { }
+	TNumeric(const bool& NormalizeP = true, const bool& NormalizeVar = false) :
+		Type(NormalizeP ? (NormalizeVar ? ntNormalizeVar : ntNormalize) : ntNone), MnVal(TFlt::Mx), MxVal(TFlt::Mn) {}
     TNumeric(const double& _MnVal, const double& _MxVal):
         Type(ntMnMxVal), MnVal(_MnVal), MxVal(_MxVal) { }
-    TNumeric(TSIn& SIn): Type(LoadEnum<TNumericType>(SIn)), MnVal(SIn), MxVal(SIn) {  }
+    TNumeric(TSIn& SIn): Type(LoadEnum<TNumericType>(SIn)), MnVal(SIn), MxVal(SIn), Var(SIn) {  }
     void Save(TSOut& SOut) const;
 
     void Clr();

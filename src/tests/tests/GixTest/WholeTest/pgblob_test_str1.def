@@ -1,0 +1,14 @@
+[
+    { 
+        "name": "TestStore", 
+		"options": {
+			"type": "paged"
+		},
+        "fields": [ 
+            { "name": "FieldString", "type": "string", "primary": true, "store" : "cache" }, 
+            { "name": "FieldBool", "type": "bool", "store" : "cache" } 
+        ], 
+        "joins": [ ],
+        "keys": [ ]
+    }
+]
