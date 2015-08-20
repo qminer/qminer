@@ -577,16 +577,6 @@ void TNodeJsSigmoid::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         }
         // fit!
         JsModel->Sigmoid = TSigmoid(PredTrueV);
-        // debug
-        double A = 0.0, B = 0.0;
-        JsModel->Sigmoid.GetSigmoidAB(A, B);
-        printf("A=%.4f B=%.4f\n", A, B);
-        for (int EltN = 0; EltN < 100; EltN++) {
-            const double Pred = PredTrueV[EltN].Key;
-            const int True = PredTrueV[EltN].Dat;
-            const double Prob = JsModel->Sigmoid.GetVal(Pred);
-            printf("%d. %.4f %d %.4f\n", EltN, Pred, True, Prob);
-        }
     }
     // return self
     Args.GetReturnValue().Set(Args.Holder());

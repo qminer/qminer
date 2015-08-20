@@ -409,6 +409,7 @@ public:
      * @returns {(number|module:la.Vector)} Normalized prediction score (or vector of them).
      */
     //# exports.Sigmoid.prototype.decisionFunction = function(x) {}
+
     /**
      * Returns the expected response for the provided feature vector.
      *
