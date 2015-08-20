@@ -25,27 +25,11 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">Sigmoid</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-459">analyticsdoc.<wbr>js:459</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-460">analyticsdoc.<wbr>js:460</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
           <section id="summary">
-            <div class="summary-callout">
-              <h2 class="summary-callout-heading">Property</h2>
-              <div class="summary-content">
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.Sigmoid.html#weights">weights</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                </div>
-                <div class="summary-column">
-                </div>
-              </div>
-            </div>
             <div class="summary-callout">
               <h2 class="summary-callout-heading">Methods</h2>
               <div class="summary-content">
@@ -57,32 +41,44 @@
                     <dt><a href="module-analytics.Sigmoid.html#fit">fit(x, y)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.Sigmoid.html#getModel">getModel()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.Sigmoid.html#predict">predict(x)</a></dt>
+                    <dt><a href="module-analytics.Sigmoid.html#getParams">getParams(arg)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.Sigmoid.html#save">save(fout)</a></dt>
+                    <dt><a href="module-analytics.Sigmoid.html#getParams">getParams()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.Sigmoid.html#predict">predict(x)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.Sigmoid.html#save">save(fout)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
                 </div>
               </div>
             </div>
           </section>
           <section>
             <h2 id="Sigmoid">new&nbsp;<span class="symbol-name">Sigmoid</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
-            <p>Sigmoid funnction (y = 1/[1 + exp[-Ax+B]]) fited on decision function to mimic</p>
+            <p>Sigmoid function (y = 1/[1 + exp[-A*x + B]]) fitted on decision function to mimic.</p>
             <section>
               <h3>
             Example
         </h3>
               <div>
-                <pre class="prettyprint"><code>la = require(&#x27;qminer&#x27;).la;
+                <pre class="prettyprint"><code>// import modules
+la = require(&#x27;qminer&#x27;).la;
 analytics = require(&#x27;qminer&#x27;).analytics;
 // create a new model
 var sigmoid = new analytics.Sigmoid();
@@ -130,41 +126,6 @@ var pred2 = sigmoid.predict(-1.2);</code></pre>
             </dl>
           </section>
           <section>
-            <h2>Property</h2>
-            <section>
-              <h3 id="weights"><span class="symbol-name">weights</span></h3>
-              <section>
-                <h4>Property</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>weights</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Vector with elements A and B that define the sigmoid function.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
-            </section>
             <h2>Methods</h2>
             <section>
               <h3 id="decisionFunction"><span class="symbol-name">decisionFunction</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.Vector.html">module:la.Vector</a>)</span></span></h3>
@@ -255,6 +216,59 @@ var pred2 = sigmoid.predict(-1.2);</code></pre>
                   <p><code><a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></code>&nbsp;Self</p>
                 </dd>
               </dl>
+              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Gets the model.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;The Json object containing the A and B values of the Sigmoid.</p>
+                </dd>
+              </dl>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">(arg)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></span></span></h3>
+              <p>Sets the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>arg</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Json object.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Get the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;The Json object containing parameters.</p>
+                </dd>
+              </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.Vector.html">module:la.Vector</a>)</span></span></h3>
               <p>Returns the expected response for the provided feature vector.</p>
               <section>
@@ -335,7 +349,7 @@ var pred2 = sigmoid.predict(-1.2);</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on August 19, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on August 20, 2015.
       </p>
     </div>
   </footer>

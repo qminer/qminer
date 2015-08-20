@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.3.0-beta2">
   <meta charset="utf-8">
-  <title>Module: statistics</title>
+  <title>Class: PCA</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -24,10 +24,10 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">statistics</span></h1>
-            <p class="source-link">Source: <a href="statdoc.js.html#source-line-8">statdoc.<wbr>js:8</a></p>
-            <div class="symbol-description">
-              <p>Statistics module.</p>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">PCA</span></h1>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-3567">qminerdoc.<wbr>js:3567</a></p>
+            <div class="symbol-classdesc">
+              <p>Principal components analysis</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -38,21 +38,30 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-statistics.html#.mean">mean(input)</a></dt>
+                    <dt><a href="module-qm.PCA.html#fit">fit(A)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.PCA.html#getModel">getModel()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-statistics.html#.std">std(input[, flag][, dim])</a></dt>
+                    <dt><a href="module-qm.PCA.html#getParams">getParams()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.PCA.html#inverseTransform">inverseTransform(x)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-statistics.html#.zscoreResult">zscoreResult(input[, flag][, dim])</a></dt>
+                    <dt><a href="module-qm.PCA.html#setParams">setParams(Object)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.PCA.html#transform">transform(x)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -61,10 +70,15 @@
             </div>
           </section>
           <section>
+            <h2 id="PCA">new&nbsp;<span class="symbol-name">PCA</span><span class="signature"><span class="signature-params">()</span></span></h2>
+            <dl class="dl-compact">
+            </dl>
+          </section>
+          <section>
             <h2>Methods</h2>
             <section>
-              <h3 id=".mean"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">mean</span><span class="signature"><span class="signature-params">(input)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.Vector.html">module:la.Vector</a>)</span></span></h3>
-              <p>returns mean of vector.</p>
+              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(A)</span></span></h3>
+              <p>Finds the eigenvectors of the variance matrix.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -79,115 +93,7 @@
                   <tbody>
                     <tr>
                       <td>
-                        <p>input</p>
-                      </td>
-                      <td>
-                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>input can be vector or a matrix.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;
-                    <br>1. Number, if input parameters is <a href="module-la.Vector.html">module:la.Vector</a>.
-                    <br>2. <a href="module-la.Vector.html">module:la.Vector</a>, if parameter is <a href="module-la.Matrix.html">module:la.Matrix</a>.</p>
-                </dd>
-              </dl>
-              <h3 id=".std"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">std</span><span class="signature"><span class="signature-params">(input[, flag][, dim])</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.Vector.html">module:la.Vector</a>)</span></span></h3>
-              <p>returns vector containing the standard deviation of each column from input matrix.</p>
-              <section>
-                <h4>Parameters</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>input</p>
-                      </td>
-                      <td>
-                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>input can be vector or a matrix.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>flag</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Set <code>flag</code> to 0 to normalize Y by n-1; set flag to 1 to normalize by n.</p>
-                        <p>Defaults to <code></code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>dim</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Computes the standard deviations along the dimension of <code>mat</code> specified by parameter <code>dim</code>. 1 is col std, 2 is row std.</p>
-                        <p>Defaults to <code>1</code>.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;
-                    <br>1. Number, if input parameters is <a href="module-la.Vector.html">module:la.Vector</a>.
-                    <br>2. <a href="module-la.Vector.html">module:la.Vector</a>, if parameter is <a href="module-la.Matrix.html">module:la.Matrix</a>.</p>
-                </dd>
-              </dl>
-              <h3 id=".zscoreResult"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">zscoreResult</span><span class="signature"><span class="signature-params">(input[, flag][, dim])</span>&nbsp;&rarr; <span class="signature-returns"> zscoreResult</span></span></h3>
-              <p>returns <code>zscoreResult</code> containing the standard deviation <code>zscoreResult.sigma</code> of each column from matrix <code>mat</code>, mean vector <code>zscoreResult.mu</code> and z-score matrix <code>zscoreResult.Z</code>.</p>
-              <section>
-                <h4>Parameters</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>input</p>
+                        <p>A</p>
                       </td>
                       <td>
                         <p><a href="module-la.Matrix.html">module:la.Matrix</a></p>
@@ -196,37 +102,56 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Matrix</p>
+                        <p>Matrix whose columns correspond to examples.</p>
                       </td>
                     </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Returns the model</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)</p>
+                </dd>
+              </dl>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Gets parameters</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p>Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)</p>
+                </dd>
+              </dl>
+              <h3 id="inverseTransform"><span class="symbol-name">inverseTransform</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
+              <p>Reconstructs the vector in the original space, reverses centering</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
                     <tr>
-                      <td>
-                        <p>flag</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Set <code>flag</code> to 0 to normalize Y by n-1; set flag to 1 to normalize by n.</p>
-                        <p>Defaults to <code></code>.</p>
-                      </td>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
                     </tr>
+                  </thead>
+                  <tbody>
                     <tr>
                       <td>
-                        <p>dim</p>
+                        <p>x</p>
                       </td>
                       <td>
-                        <p>number</p>
+                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</p>
                       </td>
                       <td>
-                        <p>Yes</p>
+                        <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Computes the standard deviations along the dimension of <code>mat</code> specified by parameter <code>dim</code>. 1 is col std, 2 is row std.</p>
-                        <p>Defaults to <code>1</code>.</p>
+                        <p>Test vector or matrix with column examples, in the PCA space</p>
                       </td>
                     </tr>
                   </tbody>
@@ -235,10 +160,77 @@
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>zscoreResult</code>&nbsp;
-                    <br>zscoreResult.sigma - Standard deviation of input used to compute the z-scores.
-                    <br>zscoreResult.mu - Mean of input used to compute the z-scores.
-                    <br>zscoreResult.Z - A vector of z-scores has mean 0 and variance 1.</p>
+                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;Returns the reconstruction</p>
+                </dd>
+              </dl>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(Object)</span></span></h3>
+              <p>Sets parameters</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>p</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>whose keys are: k (number of eigenvectors) and iter (maximum iterations)</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="transform"><span class="symbol-name">transform</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
+              <p>Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P. Recovering the data in the original space: (this.P).multiply(p), where p's rows are the coefficients in the eigenvector basis.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>x</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Test vector or matrix with column examples</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;Returns projected vector or matrix</p>
                 </dd>
               </dl>
             </section>

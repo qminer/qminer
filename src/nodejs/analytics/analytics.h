@@ -638,9 +638,9 @@ public:
      *
      * @param {module:la.Vector} x - Predicted values (e.g., using analytics.SVR)
      * @param {module:la.Vector} y - Actual binary labels: 1 or -1.
-     * @returns {module:analytics.Sigmoid} Self
+     * @returns {module:analytics.Sigmoid} Self.
      */
-    //# exports.Sigmoid.prototype.fit = function(X,y) {}
+    //# exports.Sigmoid.prototype.fit = function(X, y) { return Object.create(require('qminer').analytics.Sigmoid.prototype); }
     JsDeclareFunction(fit);
     
     /**
@@ -649,7 +649,7 @@ public:
      * @param {(number|module:la.Vector)} x - Prediction score (or vector of them).
      * @returns {(number|module:la.Vector)} Normalized prediction score (or vector of them).
      */
-    //# exports.Sigmoid.prototype.decisionFunction = function(x) {}
+    //# exports.Sigmoid.prototype.decisionFunction = function(x) { return (x instanceof la.Vector) ? Object.create(require('qminer').la.Vector.prototype) : 0.0; }
 
     /**
      * Returns the expected response for the provided feature vector.
@@ -657,15 +657,16 @@ public:
      * @param {(number|module:la.Vector)} x - Prediction score (or vector of them).
      * @returns {(number|module:la.Vector)} Normalized prediction score (or vector of them).
      */
-    //# exports.Sigmoid.prototype.predict = function(x) {}
+    //# exports.Sigmoid.prototype.predict = function(x) { return (x instanceof la.Vector) ? Object.create(require('qminer').la.Vector.prototype) : 0.0; }
     JsDeclareFunction(predict);
     
     /**
      * Saves the model into the output stream.
      *
-     * @param {module:fs.FOut} fout - Output stream
+     * @param {module:fs.FOut} fout - Output stream.
+	 * @returns {module:fs.FOut} The output stream fout.
      */
-    //# exports.Sigmoid.prototype.save = function(fout) {};
+    //# exports.Sigmoid.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); };
     JsDeclareFunction(save);
 };
 

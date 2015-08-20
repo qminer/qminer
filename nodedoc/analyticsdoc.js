@@ -437,11 +437,12 @@
      */
  exports.RidgeReg.prototype.save = function(fout) { Object.create(require('qminer').fs.FOut.prototype); };
 /**
- * Sigmoid funnction (y = 1/[1 + exp[-Ax+B]]) fited on decision function to mimic
+ * Sigmoid function (y = 1/[1 + exp[-A*x + B]]) fitted on decision function to mimic.
  *
  * @class
  * @param {(null|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model.
  * @example
+ * // import modules
  * la = require('qminer').la;
  * analytics = require('qminer').analytics;
  * // create a new model
@@ -457,6 +458,22 @@
  * var pred2 = sigmoid.predict(-1.2);
  */
  exports.Sigmoid = function(arg) {};
+/**
+	* Get the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.
+	* @returns {Object} The Json object containing parameters.
+	*/
+ exports.Sigmoid.prototype.getParams = function () { return {} }
+/**
+	* Sets the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.
+	* @param {Object} arg - Json object. 
+	* @returns {module:analytics.Sigmoid} Self.
+	*/
+ exports.Sigmoid.prototype.getParams = function (arg) { return Object.create(require('qminer').analytics.Sigmoid.prototype); }
+/**
+	* Gets the model.
+	* @returns {Object} The Json object containing the A and B values of the Sigmoid.
+	*/
+ exports.Sigmoid.prototype.getModel = function () {return { A: 0, B: 0 }; }
 /**
      * Fits a column matrix of feature vectors X onto the response variable y.
      *
@@ -480,15 +497,63 @@
      */
  exports.Sigmoid.prototype.predict = function(x) {}
 /**
-     * @property {module:la.Vector} weights - Vector with elements A and B that define the sigmoid function.
-     */
- exports.Sigmoid.prototype.weights = undefined;
-/**
      * Saves the model into the output stream.
      *
      * @param {module:fs.FOut} fout - Output stream
      */
  exports.Sigmoid.prototype.save = function(fout) {};
+/**
+ * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
+ * @class
+ * @param {Object} [detectorParam={rate:0.05, window:100, matrix: module:la.Matrix}] - Constructor parameters
+ * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies).
+ * @param {number} [detectorParam.window=100] - Number of most recent instances kept in the model.
+ * @param {function} [detectorParam.matrix=module:la.Matrix] - Matrix implementation used to store the modelo (e.g., `la.Matrix` or `la.SparseMatrix`).
+ */
+ exports.NearestNeighborAD = function(arg) {};
+/**
+     * Sets parameters (TODO)
+     * @param {Object} param - Parameters
+     */
+/**
+     * Returns parameters (TODO)
+     * @returns {Object} Parameters
+     */
+/**
+     * Save model to provided output stream
+     * @param {module:fs.FOut} fout - output stream
+     * @returns {module:fs.FOut} provided output stream
+     */
+ exports.NearestNeighborAD.prototype.save = function(fout) {};
+/**
+     * Returns the model (TODO)
+     * @returns {Object} Model object
+     */
+/**
+     * Adds a new point (or points) to the known points and recomputes the threhshold
+     * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
+     * @returns {module:analytics.NearestNeighborAD} Self
+     */
+ exports.NearestNeighborAD.prototype.partialFit = function(x) {}
+/**
+     * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
+     * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+     * the model.
+     * @returns {module:analytics.NearestNeighborAD} Self
+     */
+ exports.NearestNeighborAD.prototype.fit = function(A) {}
+/**
+     * Compares the point to the known points and returns distance to the nearest one
+     * @param {module:la.Vector} x - Test vector
+     * @returns {number} Distnace to the nearets point
+     */
+ exports.NearestNeighborAD.prototype.decisionFunction = function(x) {}
+/**
+     * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
+     * @param {module:la.Vector} x - Test vector
+     * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
+     */
+ exports.NearestNeighborAD.prototype.predict = function(x) {}
 /**
  * Logistic regression model. Uses Newtons method to compute the weights.
  *
@@ -1639,6 +1704,27 @@
         var norC2 = undefined;
 
         /**
+        * Permutes centroid with given mapping.
+        @param {object} mapping - object that contains the mappping. E.g. mapping[4]=2 means "map cluster 4 into cluster 2"
+        */
+        this.permuteCentroids = function (mapping) {
+            var cl_count = C.cols;
+            var perm_matrix = la.zeros(cl_count, cl_count);
+            for (var i = 0; i < cl_count; i++) {
+                perm_matrix.put(i, mapping[i], 1);
+            }
+            var C_new = C.multiply(perm_matrix);
+            var idxv_new = new la.Vector(idxv);
+            for (var i = 0; i < idxv_new.length; i++) {
+                idxv_new[i] = mapping[idxv[i]]
+            }
+            C = C_new;
+            norC2 = la.square(C.colNorms());
+            idxv = idxv_new;
+        }
+        /**
+        * Returns the model
+        * @returns {Object} The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data)
         * Returns the model.
         * @returns {Object} The model object whose keys are: C (centroids) and idxv (cluster ids of the training data).
         * @example
@@ -1861,6 +1947,54 @@
             D = D.multiply(-2);
             return D;
         }
+		/**
+        * Saves KMeans internal state into (binary) file
+        * @param {string} fname - Name of the file to write into.
+        */
+        this.save = function(fname){
+			if (!C) {
+				throw new Error("KMeans.save() - model not created yet");
+			}
+
+			var params_vec = new la.Vector();
+			params_vec.push(iter);
+			params_vec.push(k);
+			params_vec.push(verbose ? 1.0 : 0.0);
+
+			var xfs = qm.fs;
+			var fout = xfs.openWrite(fname);
+			C.save(fout);
+			norC2.save(fout);
+			(new la.Vector(idxv)).save(fout);
+			params_vec.save(fout);
+			fout.close();
+			fout = null;
+		}
+		/**
+        * Loads KMeans internal state from (binary) file
+        * @param {string} fname - Name of the file to read from.
+        */
+        this.load = function (fname) {
+		    var xfs = qm.fs;
+		    var fin = xfs.openRead(fname);
+
+		    C = new la.Matrix();
+		    C.load(fin);
+		    norC2 = new la.Vector();
+		    norC2.load(fin);
+
+		    var idxvtmp = new la.Vector();
+		    idxvtmp.load(fin);
+		    idxv = idxvtmp; // make normal vector (?)
+
+		    var params_vec = new la.Vector();
+		    params_vec.load(fin);
+		    iter = params_vec[0];
+		    k = params_vec[1];
+		    verbose = (params_vec[2] != 0);
+
+		    fin = null;
+		}
     }
 
     ///////////////////////////////

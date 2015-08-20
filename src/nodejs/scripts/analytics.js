@@ -257,7 +257,6 @@ module.exports = exports = function (pathPrefix) {
          * // fit the model
          * onevsall.fit(matrix, vector);
          */        
-         */
         this.fit = function(X, y) {
             models = [ ];
             // make model for each category
