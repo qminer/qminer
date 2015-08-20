@@ -614,6 +614,14 @@ public:
 	/**
 	* Get the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.
 	* @returns {Object} The Json object containing parameters.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create the Sigmoid model
+	* var s = new analytics.Sigmoid();
+	* // get the parameters
+	* // returns an empty Json object
+	* var param = s.getParams();
 	*/
 	//# exports.Sigmoid.prototype.getParams = function () { return {}; }
 	JsDeclareFunction(getParams);
@@ -622,13 +630,29 @@ public:
 	* Sets the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.
 	* @param {Object} arg - Json object. 
 	* @returns {module:analytics.Sigmoid} Self.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create the Sigmoid model
+	* var s = new analytics.Sigmoid();
+	* // set the parameters 
+	* // doesn't change the model
+	* s.setParams({});
 	*/
-	//# exports.Sigmoid.prototype.getParams = function (arg) { return Object.create(require('qminer').analytics.Sigmoid.prototype); }
+	//# exports.Sigmoid.prototype.setParams = function (arg) { return Object.create(require('qminer').analytics.Sigmoid.prototype); }
 	JsDeclareFunction(setParams);
 
 	/**
 	* Gets the model.
 	* @returns {Object} The Json object containing the A and B values of the Sigmoid.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create the Sigmoid model
+	* var s = new analytics.Sigmoid();
+	* // get the model parameters
+	* // returns a Json object { A: 0, B: 0 }
+	* var model = s.getModel();
 	*/
 	//# exports.Sigmoid.prototype.getModel = function () {return { A: 0, B: 0 }; }
 	JsDeclareFunction(getModel);
@@ -639,6 +663,19 @@ public:
      * @param {module:la.Vector} x - Predicted values (e.g., using analytics.SVR)
      * @param {module:la.Vector} y - Actual binary labels: 1 or -1.
      * @returns {module:analytics.Sigmoid} Self.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the Sigmoid model
+	 * var s = new analytics.Sigmoid();
+	 * // create the predicted values and the binary labels
+	 * var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+	 * var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+	 * // fit the model
+	 * // changes the internal A and B values of the model 
+	 * // (these values can be obtained with the getModel method)
+	 * s.fit(X, y);
      */
     //# exports.Sigmoid.prototype.fit = function(X, y) { return Object.create(require('qminer').analytics.Sigmoid.prototype); }
     JsDeclareFunction(fit);
@@ -648,6 +685,20 @@ public:
      *
      * @param {(number|module:la.Vector)} x - Prediction score (or vector of them).
      * @returns {(number|module:la.Vector)} Normalized prediction score (or vector of them).
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the Sigmoid model
+	 * var s = new analytics.Sigmoid();
+	 * // create the predicted values and the binary labels
+	 * var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+	 * var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+	 * // fit the model
+	 * s.fit(X, y);
+	 * // predict the probability of the value 0 on this model
+	 * // returns 0.5
+	 * var prediction = s.decisionFunction(0.5);
      */
     //# exports.Sigmoid.prototype.decisionFunction = function(x) { return (x instanceof la.Vector) ? Object.create(require('qminer').la.Vector.prototype) : 0.0; }
 
@@ -656,6 +707,20 @@ public:
      *
      * @param {(number|module:la.Vector)} x - Prediction score (or vector of them).
      * @returns {(number|module:la.Vector)} Normalized prediction score (or vector of them).
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the Sigmoid model
+	 * var s = new analytics.Sigmoid();
+	 * // create the predicted values and the binary labels
+	 * var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+	 * var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+	 * // fit the model
+	 * s.fit(X, y);
+	 * // predict the probability of the value 0 on this model
+	 * // returns 0.5
+	 * var prediction = s.predict(0.5);
      */
     //# exports.Sigmoid.prototype.predict = function(x) { return (x instanceof la.Vector) ? Object.create(require('qminer').la.Vector.prototype) : 0.0; }
     JsDeclareFunction(predict);
@@ -672,15 +737,34 @@ public:
 
 /////////////////////////////////////////////
 // Nearest Neighbor Annomaly Detection
+
+/**
+* @typedef {Object} detectorParam
+* A Json object used for the creation of the {@link module:analytics.NearestNeighborAD}.
+* @param {number} [rate=0.05] - The expected fracton of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies).
+* @param {number} [windowSize=100] - Number of most recent instances kept in the model.
+*/
+
 /**
  * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
  * @class
- * @param {Object} [detectorParam={rate:0.05, window:100, matrix: module:la.Matrix}] - Constructor parameters
- * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies).
- * @param {number} [detectorParam.window=100] - Number of most recent instances kept in the model.
- * @param {function} [detectorParam.matrix=module:la.Matrix] - Matrix implementation used to store the modelo (e.g., `la.Matrix` or `la.SparseMatrix`).
+ * @param {module:analytics~detectorParam} [detectorParam] - Constructor parameters.
+ * @example
+ * // import modules
+ * var analytics = require('qminer').analytics;
+ * var la = require('qminer').la;
+ * // create a new NearestNeighborAD object
+ * var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
+ * // create a matrix 
+ * var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+ * // fit the model with the matrix
+ * neighbor.fit(matrix);
+ * // create a new vector
+ * var vector = new la.Vector([4, 0]);
+ * // predict if the vector is an anomaly or not
+ * var prediction = neighbor.predict(vector);
  */
-//# exports.NearestNeighborAD = function(arg) {};
+//# exports.NearestNeighborAD = function(arg) { return Object.create(require('qminer').analytics.NearestNeighborAD.prototype); };
 class TNodeJsNNAnomalies : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
@@ -705,63 +789,130 @@ private:
     static TNodeJsNNAnomalies* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
-    /**
-     * Sets parameters (TODO)
-     * @param {Object} param - Parameters
-     */
+	/**
+	* Sets parameters.
+	* @param {module:analytics~detectorParam} newParams - The Json object containing the new rate value.
+	* @returns {module:analytics.NearestNeighborAD} Self. The parameters are updated with newParams.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD();
+	* // set it's parameters to rate: 0.1
+	* neighbor.setParams({ rate: 0.1 });
+	*/
+	//# exports.NearestNeighborAD.prototype.setParams = function (newParams) { return Object.create(require('qminer').analytics.NearestNeighborAD.prototype); }
     JsDeclareFunction(setParams);
     
-    /**
-     * Returns parameters (TODO)
-     * @returns {Object} Parameters
-     */
+	/**
+	* Returns parameters.
+	* @returns {module:analytics~detectorParam} The Json object containing the rate value.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD();
+	* // get the parameters of the object
+	* // returns a json object { rate: 0.05 }
+	* var params = neighbor.getParams();
+	*/
+	//# exports.NearestNeighborAD.prototype.getParams = function () { return { rate: 0.0, windowSize: 0.0 }; }
     JsDeclareFunction(getParams);
     
     /**
-     * Save model to provided output stream
-     * @param {module:fs.FOut} fout - output stream
-     * @returns {module:fs.FOut} provided output stream
+     * Save model to provided output stream.
+     * @param {module:fs.FOut} fout - The output stream.
+     * @returns {module:fs.FOut} Provided output stream fout.
      */
-    //# exports.NearestNeighborAD.prototype.save = function(fout) {};
+    //# exports.NearestNeighborAD.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
     
-    /**
-     * Returns the model (TODO)
-     * @returns {Object} Model object
-     */
+	/**
+	* Returns the model.
+	* @returns {Object} Json object whose keys are:
+	* <br> 1. rate - The expected fraction of emmited anomalies.
+	* <br> 2. thresh - Maximal squared distance to the nearest neighbor that is not anomalous.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
+	* // get the model of the object
+	* // returns a json object { rate: 0.1, window: 0 }
+	* var model = neighbor.getModel();
+	*/
+	//# exports.NearestNeighborAD.prototype.getModel = function () { return { threshold: 0.0 }; }
     JsDeclareFunction(getModel);
 
-    /**
-     * Adds a new point (or points) to the known points and recomputes the threhshold
-     * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
-     * @returns {module:analytics.NearestNeighborAD} Self
-     */
-    //# exports.NearestNeighborAD.prototype.partialFit = function(x) {}
+	/**
+	* Adds a new point (or points) to the known points and recomputes the threshold.
+	* @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input).
+	* @returns {module:analytics.NearestNeighborAD} Self. The model is updated.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD();
+	* // create a new matrix
+	* var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+	* // fit the model with the matrix
+	* neighbor.fit(matrix);
+	* // create a new vector
+	* var vector = new la.Vector([2, 5]);
+	* // update the model with the vector
+	* neighbor.update(vector);
+	*/
+    //# exports.NearestNeighborAD.prototype.partialFit = function(x) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
     JsDeclareFunction(partialFit);
     
-    /**
-     * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
-     * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
-     * the model.
-     * @returns {module:analytics.NearestNeighborAD} Self
-     */
-    //# exports.NearestNeighborAD.prototype.fit = function(A) {}
+	/**
+	* Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
+	* @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+	* the model.
+	* @returns {module:analytics.NearestNeighborAD} Self. The model is set by the matrix A.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD();
+	* // create a new matrix
+	* var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+	* // fit the model with the matrix
+	* neighbor.fit(matrix);
+	*/
+    //# exports.NearestNeighborAD.prototype.fit = function(A) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
     JsDeclareFunction(fit);
 
     /**
-     * Compares the point to the known points and returns distance to the nearest one
-     * @param {module:la.Vector} x - Test vector
-     * @returns {number} Distnace to the nearets point
+     * Compares the point to the known points and returns distance to the nearest one.
+     * @param {module:la.Vector} x - Test vector.
+     * @returns {number} Distnace to the nearest point.
      */
-    //# exports.NearestNeighborAD.prototype.decisionFunction = function(x) {}
+    //# exports.NearestNeighborAD.prototype.decisionFunction = function(x) { return 0.0; }
     JsDeclareFunction(decisionFunction);
 
-    /**
-     * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
-     * @param {module:la.Vector} x - Test vector
-     * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
-     */
-    //# exports.NearestNeighborAD.prototype.predict = function(x) {}
+	/**
+	* Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold).
+	* @param {module:la.Vector} x - Test vector.
+	* @returns {number} Returns 1.0 if the vector x is an anomaly and 0.0 otherwise.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD();
+	* // create a new matrix
+	* var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+	* // fit the model with the matrix
+	* neighbor.fit(matrix);
+	* // create a new vector
+	* var vector = new la.Vector([4, 0]);
+	* // check if the vector is an anomaly
+	* var prediction = neighbor.predict(vector); // returns 1
+	*/
+    //# exports.NearestNeighborAD.prototype.predict = function(x) { return 0.0; }
     JsDeclareFunction(predict);
 };
 

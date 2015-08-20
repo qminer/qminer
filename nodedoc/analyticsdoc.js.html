@@ -955,9 +955,25 @@
 
 	* @returns {Object} The Json object containing parameters.
 
+	* @example
+
+	* // import analytics module
+
+	* var analytics = require(&#x27;qminer&#x27;).analytics;
+
+	* // create the Sigmoid model
+
+	* var s = new analytics.Sigmoid();
+
+	* // get the parameters
+
+	* // returns an empty Json object
+
+	* var param = s.getParams();
+
 	*/
 
- exports.Sigmoid.prototype.getParams = function () { return {} }
+ exports.Sigmoid.prototype.getParams = function () { return {}; }
 
 /**
 
@@ -967,15 +983,47 @@
 
 	* @returns {module:analytics.Sigmoid} Self.
 
+	* @example
+
+	* // import analytics module
+
+	* var analytics = require(&#x27;qminer&#x27;).analytics;
+
+	* // create the Sigmoid model
+
+	* var s = new analytics.Sigmoid();
+
+	* // set the parameters 
+
+	* // doesn&#x27;t change the model
+
+	* s.setParams({});
+
 	*/
 
- exports.Sigmoid.prototype.getParams = function (arg) { return Object.create(require(&#x27;qminer&#x27;).analytics.Sigmoid.prototype); }
+ exports.Sigmoid.prototype.setParams = function (arg) { return Object.create(require(&#x27;qminer&#x27;).analytics.Sigmoid.prototype); }
 
 /**
 
 	* Gets the model.
 
 	* @returns {Object} The Json object containing the A and B values of the Sigmoid.
+
+	* @example
+
+	* // import analytics module
+
+	* var analytics = require(&#x27;qminer&#x27;).analytics;
+
+	* // create the Sigmoid model
+
+	* var s = new analytics.Sigmoid();
+
+	* // get the model parameters
+
+	* // returns a Json object { A: 0, B: 0 }
+
+	* var model = s.getModel();
 
 	*/
 
@@ -991,11 +1039,37 @@
 
      * @param {module:la.Vector} y - Actual binary labels: 1 or -1.
 
-     * @returns {module:analytics.Sigmoid} Self
+     * @returns {module:analytics.Sigmoid} Self.
+
+	 * @example
+
+	 * // import modules
+
+	 * var analytics = require(&#x27;qminer&#x27;).analytics;
+
+	 * var la = require(&#x27;qminer&#x27;).la;
+
+	 * // create the Sigmoid model
+
+	 * var s = new analytics.Sigmoid();
+
+	 * // create the predicted values and the binary labels
+
+	 * var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+
+	 * var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+
+	 * // fit the model
+
+	 * // changes the internal A and B values of the model 
+
+	 * // (these values can be obtained with the getModel method)
+
+	 * s.fit(X, y);
 
      */
 
- exports.Sigmoid.prototype.fit = function(X,y) {}
+ exports.Sigmoid.prototype.fit = function(X, y) { return Object.create(require(&#x27;qminer&#x27;).analytics.Sigmoid.prototype); }
 
 /**
 
@@ -1007,9 +1081,37 @@
 
      * @returns {(number|module:la.Vector)} Normalized prediction score (or vector of them).
 
+	 * @example
+
+	 * // import modules
+
+	 * var analytics = require(&#x27;qminer&#x27;).analytics;
+
+	 * var la = require(&#x27;qminer&#x27;).la;
+
+	 * // create the Sigmoid model
+
+	 * var s = new analytics.Sigmoid();
+
+	 * // create the predicted values and the binary labels
+
+	 * var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+
+	 * var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+
+	 * // fit the model
+
+	 * s.fit(X, y);
+
+	 * // predict the probability of the value 0 on this model
+
+	 * // returns 0.5
+
+	 * var prediction = s.decisionFunction(0.5);
+
      */
 
- exports.Sigmoid.prototype.decisionFunction = function(x) {}
+ exports.Sigmoid.prototype.decisionFunction = function(x) { return (x instanceof la.Vector) ? Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype) : 0.0; }
 
 /**
 
@@ -1021,9 +1123,37 @@
 
      * @returns {(number|module:la.Vector)} Normalized prediction score (or vector of them).
 
+	 * @example
+
+	 * // import modules
+
+	 * var analytics = require(&#x27;qminer&#x27;).analytics;
+
+	 * var la = require(&#x27;qminer&#x27;).la;
+
+	 * // create the Sigmoid model
+
+	 * var s = new analytics.Sigmoid();
+
+	 * // create the predicted values and the binary labels
+
+	 * var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+
+	 * var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+
+	 * // fit the model
+
+	 * s.fit(X, y);
+
+	 * // predict the probability of the value 0 on this model
+
+	 * // returns 0.5
+
+	 * var prediction = s.predict(0.5);
+
      */
 
- exports.Sigmoid.prototype.predict = function(x) {}
+ exports.Sigmoid.prototype.predict = function(x) { return (x instanceof la.Vector) ? Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype) : 0.0; }
 
 /**
 
@@ -1031,11 +1161,13 @@
 
      *
 
-     * @param {module:fs.FOut} fout - Output stream
+     * @param {module:fs.FOut} fout - Output stream.
+
+	 * @returns {module:fs.FOut} The output stream fout.
 
      */
 
- exports.Sigmoid.prototype.save = function(fout) {};
+ exports.Sigmoid.prototype.save = function(fout) { return Object.create(require(&#x27;qminer&#x27;).fs.FOut.prototype); };
 
 /**
 
@@ -1052,8 +1184,6 @@
  * @param {function} [detectorParam.matrix=module:la.Matrix] - Matrix implementation used to store the modelo (e.g., &#x60;la.Matrix&#x60; or &#x60;la.SparseMatrix&#x60;).
 
  */
-
- exports.NearestNeighborAD = function(arg) {};
 
 /**
 
@@ -3787,7 +3917,7 @@
 
                     if (verbose) {
 
-                        console.say(&quot;converged at iter: &quot; + i); //DEBUG
+                        console.log(&quot;converged at iter: &quot; + i); //DEBUG
 
                     }
 

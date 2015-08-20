@@ -464,17 +464,41 @@ exports = {}; require.modules.qminer_analytics = exports;
 /**
 	* Get the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.
 	* @returns {Object} The Json object containing parameters.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create the Sigmoid model
+	* var s = new analytics.Sigmoid();
+	* // get the parameters
+	* // returns an empty Json object
+	* var param = s.getParams();
 	*/
- exports.Sigmoid.prototype.getParams = function () { return {} }
+ exports.Sigmoid.prototype.getParams = function () { return {}; }
 /**
 	* Sets the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.
 	* @param {Object} arg - Json object. 
 	* @returns {module:analytics.Sigmoid} Self.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create the Sigmoid model
+	* var s = new analytics.Sigmoid();
+	* // set the parameters 
+	* // doesn't change the model
+	* s.setParams({});
 	*/
- exports.Sigmoid.prototype.getParams = function (arg) { return Object.create(require('qminer').analytics.Sigmoid.prototype); }
+ exports.Sigmoid.prototype.setParams = function (arg) { return Object.create(require('qminer').analytics.Sigmoid.prototype); }
 /**
 	* Gets the model.
 	* @returns {Object} The Json object containing the A and B values of the Sigmoid.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create the Sigmoid model
+	* var s = new analytics.Sigmoid();
+	* // get the model parameters
+	* // returns a Json object { A: 0, B: 0 }
+	* var model = s.getModel();
 	*/
  exports.Sigmoid.prototype.getModel = function () {return { A: 0, B: 0 }; }
 /**
@@ -482,29 +506,71 @@ exports = {}; require.modules.qminer_analytics = exports;
      *
      * @param {module:la.Vector} x - Predicted values (e.g., using analytics.SVR)
      * @param {module:la.Vector} y - Actual binary labels: 1 or -1.
-     * @returns {module:analytics.Sigmoid} Self
+     * @returns {module:analytics.Sigmoid} Self.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the Sigmoid model
+	 * var s = new analytics.Sigmoid();
+	 * // create the predicted values and the binary labels
+	 * var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+	 * var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+	 * // fit the model
+	 * // changes the internal A and B values of the model 
+	 * // (these values can be obtained with the getModel method)
+	 * s.fit(X, y);
      */
- exports.Sigmoid.prototype.fit = function(X,y) {}
+ exports.Sigmoid.prototype.fit = function(X, y) { return Object.create(require('qminer').analytics.Sigmoid.prototype); }
 /**
      * Returns the expected response for the provided feature vector.
      *
      * @param {(number|module:la.Vector)} x - Prediction score (or vector of them).
      * @returns {(number|module:la.Vector)} Normalized prediction score (or vector of them).
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the Sigmoid model
+	 * var s = new analytics.Sigmoid();
+	 * // create the predicted values and the binary labels
+	 * var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+	 * var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+	 * // fit the model
+	 * s.fit(X, y);
+	 * // predict the probability of the value 0 on this model
+	 * // returns 0.5
+	 * var prediction = s.decisionFunction(0.5);
      */
- exports.Sigmoid.prototype.decisionFunction = function(x) {}
+ exports.Sigmoid.prototype.decisionFunction = function(x) { return (x instanceof la.Vector) ? Object.create(require('qminer').la.Vector.prototype) : 0.0; }
 /**
      * Returns the expected response for the provided feature vector.
      *
      * @param {(number|module:la.Vector)} x - Prediction score (or vector of them).
      * @returns {(number|module:la.Vector)} Normalized prediction score (or vector of them).
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the Sigmoid model
+	 * var s = new analytics.Sigmoid();
+	 * // create the predicted values and the binary labels
+	 * var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+	 * var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+	 * // fit the model
+	 * s.fit(X, y);
+	 * // predict the probability of the value 0 on this model
+	 * // returns 0.5
+	 * var prediction = s.predict(0.5);
      */
- exports.Sigmoid.prototype.predict = function(x) {}
+ exports.Sigmoid.prototype.predict = function(x) { return (x instanceof la.Vector) ? Object.create(require('qminer').la.Vector.prototype) : 0.0; }
 /**
      * Saves the model into the output stream.
      *
-     * @param {module:fs.FOut} fout - Output stream
+     * @param {module:fs.FOut} fout - Output stream.
+	 * @returns {module:fs.FOut} The output stream fout.
      */
- exports.Sigmoid.prototype.save = function(fout) {};
+ exports.Sigmoid.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); };
 /**
  * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
  * @class
@@ -513,7 +579,6 @@ exports = {}; require.modules.qminer_analytics = exports;
  * @param {number} [detectorParam.window=100] - Number of most recent instances kept in the model.
  * @param {function} [detectorParam.matrix=module:la.Matrix] - Matrix implementation used to store the modelo (e.g., `la.Matrix` or `la.SparseMatrix`).
  */
- exports.NearestNeighborAD = function(arg) {};
 /**
      * Sets parameters (TODO)
      * @param {Object} param - Parameters
@@ -1880,7 +1945,7 @@ exports = {}; require.modules.qminer_analytics = exports;
                 }
                 if (qm_util.arraysIdentical(idxv, idxvOld)) {
                     if (verbose) {
-                        console.say("converged at iter: " + i); //DEBUG
+                        console.log("converged at iter: " + i); //DEBUG
                     }
                     break;
                 }

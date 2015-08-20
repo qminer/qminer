@@ -41,36 +41,22 @@
                     <dt><a href="module-qm.Base.html">Base(paramObj)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.CircularRecordBuffer.html">CircularRecordBuffer([param])</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
                     <dt><a href="module-qm.FeatureSpace.html">FeatureSpace(base, param)</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-qm.HierarchMarkov.html">HierarchMarkov(HierarchMarkovParam)</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.KMeans.html">KMeans()</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-qm.NearestNeighborAD.html">NearestNeighborAD([detectorParam])</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-qm.OneVsAll.html">OneVsAll([oneVsAllParam])</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.PCA.html">PCA()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html">StreamAggr(base, json[, storeName])</a></dt>
                     <dd>
                     </dd>
                   </dl>
+                </div>
+                <div class="summary-column">
                 </div>
               </div>
             </div>
@@ -169,9 +155,6 @@
                     <dt><a href="module-qm.html#~BaseConstructorParam">BaseConstructorParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.html#~detectorParam">detectorParam</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.html#~FeatureExtractorCategorical">FeatureExtractorCategorical</a></dt>
                     <dd>
                     </dd>
@@ -216,9 +199,6 @@
                     <dd>
                     </dd>
                     <dt><a href="module-qm.html#~FeatureTokenizer">FeatureTokenizer</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-qm.html#~oneVsAllParam">oneVsAllParam</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.html#~SchemaDefinition">SchemaDefinition</a></dt>
@@ -282,9 +262,6 @@
                     <dt><a href="module-qm.html#~StreamAggregators">StreamAggregators</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.html#~svmModel">svmModel</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
               </div>
@@ -294,12 +271,8 @@
             <h2>Classes</h2>
             <section id='members-links'>
               <h3><a href="module-qm.Base.html">Base</a></h3>
+              <h3><a href="module-qm.CircularRecordBuffer.html">CircularRecordBuffer</a></h3>
               <h3><a href="module-qm.FeatureSpace.html">FeatureSpace</a></h3>
-              <h3><a href="module-qm.HierarchMarkov.html">HierarchMarkov</a></h3>
-              <h3><a href="module-qm.KMeans.html">KMeans</a></h3>
-              <h3><a href="module-qm.NearestNeighborAD.html">NearestNeighborAD</a></h3>
-              <h3><a href="module-qm.OneVsAll.html">OneVsAll</a></h3>
-              <h3><a href="module-qm.PCA.html">PCA</a></h3>
               <h3><a href="module-qm.StreamAggr.html">StreamAggr</a></h3>
             </section>
             <h2>Factory classs</h2>
@@ -1190,41 +1163,6 @@
                       <td>
                         <p>The path to db directory.</p>
                         <p>Defaults to <code>'./db/'</code>.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="~detectorParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">detectorParam</span><small class="property-type">
-                &nbsp;Object</small></h3>
-              <p>A Json object used for the creation of the <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a>.</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>rate</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>The expected fracton of emmited anomalies (0.05 -&gt; 5% of cases will be classified as anomalies).</p>
-                        <p>Defaults to <code>0.05</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -2752,83 +2690,6 @@ var ftr = qm.FeatureSpace(base, {
                       <td>
                         <p>Changing all words to uppercase.</p>
                         <p>Defaults to <code>'true'</code>.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="~oneVsAllParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">oneVsAllParam</span><small class="property-type">
-                &nbsp;Object</small></h3>
-              <p>The parameter given to the OneVsAll object. A Json object containing the parameter keys with values.</p>
-              <section>
-                <h4>Parameters</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>model</p>
-                      </td>
-                      <td>
-                        <p>function()</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Constructor for binary model to be used internaly. Constructor should expect only one parameter.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>modelParam</p>
-                      </td>
-                      <td>
-                        <p>Object</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Parameter for oneVsAllParam.model constructor.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>categories</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Number of categories.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>verbose</p>
-                      </td>
-                      <td>
-                        <p>boolean</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>If false, the console output is supressed.</p>
-                        <p>Defaults to <code></code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -5450,40 +5311,6 @@ base.store(&quot;Heat&quot;).addStreamAggr(aggr); </code></pre>
                         </td>
                         <td>
                           <p>The merger type.</p>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </section>
-                <dl class="dl-compact">
-                </dl>
-                <h3 id="~svmModel"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">svmModel</span><small class="property-type">
-                &nbsp;Object</small></h3>
-                <p>SVM model.</p>
-                <section>
-                  <h4>Property</h4>
-                  <table class="jsdoc-details-table">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Optional</th>
-                        <th>Description</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>
-                          <p>svmModel.weigths</p>
-                        </td>
-                        <td>
-                          <p><a href="module-la.Vector.html">module:la.Vector</a></p>
-                        </td>
-                        <td>
-                          <p>Yes</p>
-                        </td>
-                        <td>
-                          <p>SVM normal vector.</p>
                         </td>
                       </tr>
                     </tbody>
