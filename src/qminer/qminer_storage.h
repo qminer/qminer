@@ -274,6 +274,22 @@ private:
 };
 
 //////////////////////////////////////////////////////////////////////////////
+/// API for storing large fields.
+class TToaster {
+public:
+	/// Check if store supports TOAST
+	virtual bool CanToast() { return false; }
+	/// Return max size of non-TOAST-ed record
+	virtual int GetMaxToastLen() { return -1; }
+	/// Store value into internal storage using TOAST method
+	virtual TPgBlobPt ToastVal(const TMemBase& Mem) { Fail; return TPgBlobPt(); }
+	/// Retrieve value that is saved using TOAST method from storage 
+	virtual void UnToastVal(const TPgBlobPt& Pt, TMem& Mem) { Fail; }
+	/// Delete TOAST-ed value from storage 
+	virtual void DelToastVal(const TPgBlobPt& Pt) { Fail; }
+};
+
+//////////////////////////////////////////////////////////////////////////////
 /// Serialization and de-serialization of records to TMem.
 /// This class handles smart serialization of JSON with respect to field 
 /// serialization definitions. It supports NULL flags. It packs fixed-width 
@@ -353,8 +369,8 @@ private:
 	TBool UseToast;
 	/// Max length of non-TOAST-ed record
 	TInt MxToastLen;
-	/// Store to be used for TOAST-ing
-	TWPt<TStore> Store;
+	/// Toaster to be used for TOAST-ing
+	TWPt<TToaster> Toaster;
 	/// TOAST objects to delete
 	TVec<TPgBlobPt> ToastPtToDel;	
 
@@ -469,10 +485,10 @@ private:
 	/// Check if given field value is currently TOAST-ed and delete it
 	void CheckToastDel(const TMemBase& InRecMem, const TFieldSerialDesc& FieldSerialDesc);
 public:
-	TRecSerializator(const TWPt<TStore>& _Store) { Store = _Store; }
+	TRecSerializator(const TWPt<TToaster> _Toaster) { Toaster = _Toaster; }
 	/// Initialize object from store schema
-	TRecSerializator(const TWPt<TStore>& Store, 
-			const TStoreSchema& StoreSchema, const TStoreLoc& _TargetStorage);
+	TRecSerializator(const TWPt<TStore>& Store, const TWPt<TToaster>& _Toaster,
+        const TStoreSchema& StoreSchema, const TStoreLoc& _TargetStorage);
 	
 	/// Load from input stream
 	void Load(TSIn& SIn);
@@ -686,7 +702,7 @@ public:
 
 ///////////////////////////////
 /// Implementation of store which can be initialized from a schema.
-class TStoreImpl: public TStore {
+class TStoreImpl: public TStore, public TToaster {
 private:
 	/// For temporarily storing inverse joins which need to be indexed after adding records
 	struct TFieldJoinDat {
@@ -900,7 +916,6 @@ public:
 	/// Helper function for returning JSon definition of store
 	PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
 
-
 	/// Save part of the data, given time-window
 	int PartialFlush(int WndInMsec = 500);
 	/// Retrieve performance statistics for this store
@@ -910,7 +925,7 @@ public:
 ///////////////////////////////
 /// Implementation of store which can be initialized from a schema.
 /// It also uses Paged-BLOB storage engine.
-class TStorePbBlob : public TStore {
+class TStorePbBlob : public TStore, public TToaster {
 private:
 
     /// For temporarily storing inverse joins which need to be 

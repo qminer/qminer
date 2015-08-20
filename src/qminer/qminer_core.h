@@ -764,17 +764,6 @@ public:
 	virtual int PartialFlush(int WndInMsec = 500) { throw TQmExcept::New("Not implemented"); }
 	/// Retrieve performance statistics for this store
 	virtual PJsonVal GetStats() = 0;
-
-	/// Check if store supports TOAST
-	virtual bool CanToast() { return false; }
-	/// Return max size of non-TOAST-ed record
-	virtual int GetMaxToastLen() { return -1; }
-	/// Store value into internal storage using TOAST method
-	virtual TPgBlobPt ToastVal(const TMemBase& Mem) { Fail; return TPgBlobPt(); }
-	/// Retrieve value that is saved using TOAST method from storage 
-	virtual void UnToastVal(const TPgBlobPt& Pt, TMem& Mem) { Fail; }
-	/// Delete TOAST-ed value from storage 
-	virtual void DelToastVal(const TPgBlobPt& Pt) { Fail; }
 };
 
 ///////////////////////////////
