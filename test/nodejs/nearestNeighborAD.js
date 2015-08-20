@@ -96,7 +96,7 @@ describe('NearestNeighborAD Tests', function () {
             });
         })
         it('should create a model with tresh equal to 8', function () {
-            var neighbor = new analytics.NearestNeighborAD();
+            var neighbor = new analytics.NearestNeighborAD({ windowSize: 3 });
             var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
             neighbor.fit(matrix);
             var model = neighbor.getModel();
@@ -104,7 +104,7 @@ describe('NearestNeighborAD Tests', function () {
             assert.eqtol(model.threshold, 8);
         })
         it('should create a model with tresh equal to 2', function () {
-            var neighbor = new analytics.NearestNeighborAD({ rate: 0.34 });
+            var neighbor = new analytics.NearestNeighborAD({ rate: 0.34, windowSize: 3 });
             var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
             neighbor.fit(matrix);
             var model = neighbor.getModel();
@@ -123,39 +123,36 @@ describe('NearestNeighborAD Tests', function () {
         it('should return the default parameters of the model', function () {
             var neighbor = new analytics.NearestNeighborAD();
             var model = neighbor.getModel();
-            assert.equal(model.rate, 0.05);
             assert.equal(model.threshold, 0);
         })
         it('should return the parameters of the model', function () {
             var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
             var model = neighbor.getModel();
-            assert.equal(model.rate, 0.1);
             assert.equal(model.threshold, 0);
         })
         it('should return the parameters of the model, after fit', function () {
-            var neighbor = new analytics.NearestNeighborAD();
+            var neighbor = new analytics.NearestNeighborAD({ windowSize: 3 });
             var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
             neighbor.fit(matrix);
             var model = neighbor.getModel();
 
-            assert.equal(model.rate, 0.05);
             assert.eqtol(model.threshold, 8);
         })
     });
 
     describe('Predict Tests', function () {
         it('should not throw an exception', function () {
-            var neighbor = new analytics.NearestNeighborAD();
+            var neighbor = new analytics.NearestNeighborAD({ windowSize: 3 });
             var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
             neighbor.fit(matrix);
 
-            var vector = new la.Vector([1, 2]);
+            var vector = new la.SparseVector([[0, 1], [1, 2]]);
             assert.doesNotThrow(function () {
                 neighbor.predict(vector);
             });
         })
         it('should return 0 for the given vector', function () {
-            var neighbor = new analytics.NearestNeighborAD();
+            var neighbor = new analytics.NearestNeighborAD({ windowSize: 3 });
             var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
             neighbor.fit(matrix);
 
@@ -164,7 +161,7 @@ describe('NearestNeighborAD Tests', function () {
             assert.equal(prediction, 0);
         })
         it('should return 1 for the given vector', function () {
-            var neighbor = new analytics.NearestNeighborAD();
+            var neighbor = new analytics.NearestNeighborAD({ windowSize: 3 });
             var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
             neighbor.fit(matrix);
 
@@ -176,7 +173,7 @@ describe('NearestNeighborAD Tests', function () {
 
     describe('PartialFit Tests', function () {
         it('should not throw an exception', function () {
-            var neighbor = new analytics.NearestNeighborAD();
+            var neighbor = new analytics.NearestNeighborAD({ windowSize: 2 });
             var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]]]);
             neighbor.fit(matrix);
 
@@ -186,24 +183,15 @@ describe('NearestNeighborAD Tests', function () {
             });
         })
         it('should update the model and return the threshold equal to 8, vector input', function () {
-            var neighbor = new analytics.NearestNeighborAD();
+            var neighbor = new analytics.NearestNeighborAD({ windowSize: 2 });
             var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]]]);
             neighbor.fit(matrix);
 
             var vector = new la.SparseVector([[0, 0], [1, 1]]);
-            neighbor.update(vector);
+            neighbor.partialFit(vector);
             var model = neighbor.getModel();
 
             assert.eqtol(model.threshold, 8);
-        })
-
-        it('should throw an exception if the fit function was not used previously', function () {
-            var neighbor = new analytics.NearestNeighborAD();
-
-            var vector = new la.SparseVector([[0, 0], [1, 1]]);
-            assert.throws(function () {
-                neighbor.update(vector);
-            });
         })
     });
 });
