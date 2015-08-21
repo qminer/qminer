@@ -2,7 +2,7 @@
 
 ### 21 Aug 2015
 
-** non-breaking with new features **
+**non-breaking with new features**
 
 New features:
 
