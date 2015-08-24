@@ -1960,35 +1960,30 @@ int TLAMisc::GetMinIdx(const TFltV& Vec) {
 	 return TLinAlg::SumVec(Vec) / Vec.Len();
  }
 
- void TLAMisc::Mean(const TFltVV& Mat, TFltV& Res, const int& Dim) {
-	 EAssertR(Dim == 1 || Dim == 2, "TLAMisc::Mean: Invalid value of 'Dim' argument. "
-		 "Supported 'Dim' arguments are 1 (col mean), or 2 (row mean).");
-	 if (Dim == 1) {
-		 int Rows = Mat.GetRows();
+ void TLAMisc::Mean(const TFltVV& Mat, TFltV& Res, const TMatDim& Dim) {
+	 int Rows = Mat.GetRows();
+	 int Cols = Mat.GetCols();
+	 if (Dim == TMatDim::mdCols) {
 		 TFltV Vec(Rows);
 		 Vec.PutAll(1.0 / Rows);
 		 TLinAlg::MultiplyT(Mat, Vec, Res);
-	 } else if (Dim == 2) {
-		 int Cols = Mat.GetCols();
+	 } else if (Dim == TMatDim::mdRows) {
 		 TFltV Vec(Cols);
 		 Vec.PutAll(1.0 / Cols);
 		 TLinAlg::Multiply(Mat, Vec, Res);
 	 }
  }
 
-void TLAMisc::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const int& Dim) {
+void TLAMisc::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const TMatDim& Dim) {
 	EAssertR(Flag == 0 || Flag == 1, "TLAMisc::Std: Invalid value of 'Flag' argument. "
 							"Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
-	EAssertR(Dim == 1 || Dim == 2, "TLAMisc::Std: Invalid value of 'Dim' argument. "
-							"Supported 'Dim' arguments are 1 (col std), or 2 (row std).");
-
 	int Cols = Mat.GetCols();
 	int Rows = Mat.GetRows();
 	TFltV MeanVec;
 	TLAMisc::Mean(Mat, MeanVec, Dim);
 	EAssertR(Cols == MeanVec.Len() || Rows == MeanVec.Len(), "TLAMisc::Std");
 
-	if (Dim == 1) {
+	if (Dim == TMatDim::mdCols) {
 		if(Res.Empty()) Res.Gen(Cols);
 		EAssertR(Cols == Res.Len(), "TLAMisc::Std");	
 
@@ -2001,7 +1996,8 @@ void TLAMisc::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const int& Dim
 			TLinAlg::LinComb(-1.0, Mat, ColN, MeanVec[ColN], Ones, TempRes);
 			Res[ColN] = Scalar * TLinAlg::Norm(TempRes);
 		}
-	} else if (Dim == 2) {
+	}
+	else if (Dim == TMatDim::mdRows) {
 		if(Res.Empty()) Res.Gen(Rows);
 		EAssertR(Rows == Res.Len(), "TLAMisc::Std");	
 
@@ -2017,11 +2013,9 @@ void TLAMisc::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const int& Dim
 	}
 }
 
-void TLAMisc::ZScore(const TFltVV& Mat, TFltVV& Res, const int& Flag, const int& Dim) {
+void TLAMisc::ZScore(const TFltVV& Mat, TFltVV& Res, const int& Flag, const TMatDim& Dim) {
 	EAssertR(Flag == 0 || Flag == 1, "TLAMisc::ZScore: Invalid value of 'Flag' argument. "
 							"Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
-	EAssertR(Dim == 1 || Dim == 2, "TLAMisc::ZScore: Invalid value of 'Dim' argument. "
-							"Supported 'Dim' arguments are 1 (col std), or 2 (row std).");
 
 	int Cols = Mat.GetCols();
 	int Rows = Mat.GetRows();
@@ -2033,7 +2027,7 @@ void TLAMisc::ZScore(const TFltVV& Mat, TFltVV& Res, const int& Flag, const int&
 	TFltV StdVec;
 	TLAMisc::Std(Mat, StdVec, Flag, Dim);
 
-	if (Dim == 1) {
+	if (Dim == TMatDim::mdCols) {
 		
 		TFltV TempRes(Rows);
 		TFltV Ones(Rows);
@@ -2045,7 +2039,8 @@ void TLAMisc::ZScore(const TFltVV& Mat, TFltVV& Res, const int& Flag, const int&
 				Res.At(RowN, ColN) = TempRes[RowN];
 			}
 		}
-	} else if (Dim == 2) {
+	}
+	else if (Dim == TMatDim::mdRows) {
 
 		TFltV TempRes(Cols);
 		TFltV Ones(Cols);

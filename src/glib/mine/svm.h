@@ -252,8 +252,12 @@ TLinModel SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
         Profiler.StartTimer(ProfilerPost);
         // project the current solution on to a ball
         const double WgtNorm = 1.0 / (TLinAlg::Norm(NewWgtV) * TMath::Sqrt(Lambda));
-        if (WgtNorm < 1.0) { TLinAlg::MultiplyScalar(WgtNorm, NewWgtV, NewWgtV); }
-        // compute the difference with respect to the previous iteration
+        
+		// renormalizing is not needed according to new results:
+		//"Pegasos: Primal Estimated sub-GrAdient SOlver for SVM" Shai Shalev-Shwartz, Yoram Singer, Nathan Srebro, Andrew Cotter." Mathematical Programming, Series B, 127(1):3-30, 2011.
+		//if (WgtNorm < 1.0) { TLinAlg::MultiplyScalar(WgtNorm, NewWgtV, NewWgtV); }
+        
+		// compute the difference with respect to the previous iteration
         Diff = 2.0 * TLinAlg::EuclDist(WgtV, NewWgtV) / (TLinAlg::Norm(WgtV) + TLinAlg::Norm(NewWgtV));
         // remember new solution
         WgtV = NewWgtV;

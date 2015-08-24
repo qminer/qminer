@@ -30,6 +30,7 @@ void TNodeJsStat::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	
 	// Dim parameter
 	int Dim = TNodeJsUtil::GetArgInt32(Args, 1, 1); // Default dim is 1
+	EAssertR((Dim == 1 || Dim == 2), "Error using stat.mean function. Dim must be 1 (col mean) or 2 (row mean)");
 
 	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
 		// If input argument is vec
@@ -42,7 +43,7 @@ void TNodeJsStat::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		//If input argument is matrix
 		TFltV Vec;
 		TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
-		TLAMisc::Mean(JsMat->Mat, Vec, Dim);
+		TLAMisc::Mean(JsMat->Mat, Vec, Dim == 1 ? TMatDim::mdCols : TMatDim::mdRows);
 		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Vec));
 		return;
 	}
@@ -58,6 +59,7 @@ void TNodeJsStat::std(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	int Flag = TNodeJsUtil::GetArgInt32(Args, 1, 0); // Default flag is 0
 	int Dim = TNodeJsUtil::GetArgInt32(Args, 2, 1); // Default dim is 1
+	EAssertR((Dim == 1 || Dim == 2), "Error using stat.std function. Dim must be 1 (col mean) or 2 (row mean)");
 
 	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
 		// If input argument is vec
@@ -68,7 +70,8 @@ void TNodeJsStat::std(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		//If input argument is matrix
 		TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 		TFltV Res;
-		TLAMisc::Std(JsMat->Mat, Res, Flag, Dim);
+		const TMatDim CalcDim = Dim == 1 ? TMatDim::mdCols : TMatDim::mdRows;
+		TLAMisc::Std(JsMat->Mat, Res, Flag, CalcDim);
 
 		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
 		return;
@@ -84,6 +87,7 @@ void TNodeJsStat::zscore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	int Flag = TNodeJsUtil::GetArgInt32(Args, 1, 0); // Default flag is 0
 	int Dim = TNodeJsUtil::GetArgInt32(Args, 2, 1); // Default dim is 1
+	EAssertR((Dim == 1 || Dim == 2), "Error using stat.zscore function. Dim must be 1 (col mean) or 2 (row mean)");
 
 	TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 	v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result
@@ -92,9 +96,10 @@ void TNodeJsStat::zscore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TFltV mu;
 	TFltV sigma;
 
-	TLAMisc::ZScore(JsMat->Mat, Z, Flag, Dim);
-	TLAMisc::Mean(JsMat->Mat, mu, Dim);
-	TLAMisc::Std(JsMat->Mat, sigma, Flag, Dim);
+	const TMatDim CalcDim = Dim == 1 ? TMatDim::mdCols : TMatDim::mdRows;
+	TLAMisc::ZScore(JsMat->Mat, Z, Flag, CalcDim);
+	TLAMisc::Mean(JsMat->Mat, mu, CalcDim);
+	TLAMisc::Std(JsMat->Mat, sigma, Flag, CalcDim);
 
 	JsObj->Set(v8::String::NewFromUtf8(Isolate, "Z"), TNodeJsFltVV::New(Z));
 	JsObj->Set(v8::String::NewFromUtf8(Isolate, "mu"), TNodeJsVec< TFlt, TAuxFltV >::New(mu));
