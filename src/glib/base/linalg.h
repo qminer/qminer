@@ -64,6 +64,12 @@ namespace TypeCheck {
 	struct is_complex_double< TNum<std::complex<double> > > { static const bool value = true; };
 }
 
+// the matrix dimension classificator for the (Dim parameter)
+enum TMatDim { 
+	mdCols, 
+	mdRows 
+};
+
 ///////////////////////////////////////////////////////////////////////
 // forward declarations
 class TLinAlg;
@@ -159,11 +165,11 @@ public:
 	// returns the mean value of Vec.
 	static double Mean(const TFltV& Vec);
 	// returns the mean value along the dimension (Dim) of Mat. See Matlab documentation - mean().
-	static void Mean(const TFltVV& Mat, TFltV& Vec, const int& Dim = 1);
+	static void Mean(const TFltVV& Mat, TFltV& Vec, const TMatDim& Dim = TMatDim::mdCols);
 	// returns standard deviation. See Matlab documentation - std().
-	static void Std(const TFltVV& Mat, TFltV& Vec, const int& Flag = 0, const int& Dim = 1);
+	static void Std(const TFltVV& Mat, TFltV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
 	// returns the z-score for each element of X such that columns of X are centered to have mean 0 and scaled to have standard deviation 1.
-	static void ZScore(const TFltVV& Mat, TFltVV& Vec, const int& Flag = 0, const int& Dim = 1);
+	static void ZScore(const TFltVV& Mat, TFltVV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
 };
 
 #ifdef SCALAPACK 

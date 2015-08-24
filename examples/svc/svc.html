@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./svc.css" />
+    <title>SVC Example</title>
+</head>
+<body>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="storing.js"></script>
+
+    <h1 class="text-center">SVC Example</h1>
+
+    <p class="text-justify">
+        Some description.
+    </p>
+
+    <form class="form-horizontal">
+        <div class="form-group">
+            <label for="text">Text</label>
+            <input type="text" class="form-control" id="text" />
+        </div>
+    </form>
+    <form class="form-inline pull-right">
+        <select class="form-control" id="RegularSpam">
+            <option value=1>Regular</option>
+            <option value=-1>Spam</option>
+        </select>
+        <button type="submit" class="btn btn-default" onclick="return send();">Send to storage</button>
+    </form>
+
+    <div id="sentances">
+    </div>
+    
+    
+</body>
+</html>

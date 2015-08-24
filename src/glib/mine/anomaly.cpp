@@ -32,7 +32,7 @@ void TNearestNeighbor::UpdateThreshold() {
     // establish thrashold for each rate
     for (const double Rate : RateV) {
         // element Id corresponding to Rate-th percentile
-        const int Elt = floor((1.0 - Rate) * SortedV.Len());
+        const int Elt = (int)floor((1.0 - Rate) * SortedV.Len());
         // remember the distance as threshold
         ThresholdV.Add(SortedV[Elt]);
     }
