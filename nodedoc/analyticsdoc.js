@@ -569,56 +569,141 @@
      */
  exports.Sigmoid.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); };
 /**
+* @typedef {Object} detectorParam
+* A Json object used for the creation of the {@link module:analytics.NearestNeighborAD}.
+* @param {number} [rate=0.05] - The expected fracton of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies).
+* @param {number} [windowSize=100] - Number of most recent instances kept in the model.
+*/
+/**
  * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
  * @class
- * @param {Object} [detectorParam={rate:0.05, window:100, matrix: module:la.Matrix}] - Constructor parameters
- * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies).
- * @param {number} [detectorParam.window=100] - Number of most recent instances kept in the model.
- * @param {function} [detectorParam.matrix=module:la.Matrix] - Matrix implementation used to store the modelo (e.g., `la.Matrix` or `la.SparseMatrix`).
+ * @param {module:analytics~detectorParam} [detectorParam] - Constructor parameters.
+ * @example
+ * // import modules
+ * var analytics = require('qminer').analytics;
+ * var la = require('qminer').la;
+ * // create a new NearestNeighborAD object
+ * var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
+ * // create a matrix 
+ * var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+ * // fit the model with the matrix
+ * neighbor.fit(matrix);
+ * // create a new vector
+ * var vector = new la.Vector([4, 0]);
+ * // predict if the vector is an anomaly or not
+ * var prediction = neighbor.predict(vector);
  */
+ exports.NearestNeighborAD = function(arg) { return Object.create(require('qminer').analytics.NearestNeighborAD.prototype); };
 /**
-     * Sets parameters (TODO)
-     * @param {Object} param - Parameters
-     */
+	* Sets parameters.
+	* @param {module:analytics~detectorParam} newParams - The Json object containing the new rate value.
+	* @returns {module:analytics.NearestNeighborAD} Self. The parameters are updated with newParams.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD();
+	* // set it's parameters to rate: 0.1
+	* neighbor.setParams({ rate: 0.1 });
+	*/
+ exports.NearestNeighborAD.prototype.setParams = function (newParams) { return Object.create(require('qminer').analytics.NearestNeighborAD.prototype); }
 /**
-     * Returns parameters (TODO)
-     * @returns {Object} Parameters
-     */
+	* Returns parameters.
+	* @returns {module:analytics~detectorParam} The Json object containing the rate value.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD();
+	* // get the parameters of the object
+	* // returns a json object { rate: 0.05 }
+	* var params = neighbor.getParams();
+	*/
+ exports.NearestNeighborAD.prototype.getParams = function () { return { rate: 0.0, windowSize: 0.0 }; }
 /**
-     * Save model to provided output stream
-     * @param {module:fs.FOut} fout - output stream
-     * @returns {module:fs.FOut} provided output stream
+     * Save model to provided output stream.
+     * @param {module:fs.FOut} fout - The output stream.
+     * @returns {module:fs.FOut} Provided output stream fout.
      */
- exports.NearestNeighborAD.prototype.save = function(fout) {};
+ exports.NearestNeighborAD.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
-     * Returns the model (TODO)
-     * @returns {Object} Model object
-     */
+	* Returns the model.
+	* @returns {Object} Json object whose keys are:
+	* <br> 1. rate - The expected fraction of emmited anomalies.
+	* <br> 2. thresh - Maximal squared distance to the nearest neighbor that is not anomalous.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
+	* // get the model of the object
+	* // returns a json object { rate: 0.1, window: 0 }
+	* var model = neighbor.getModel();
+	*/
+ exports.NearestNeighborAD.prototype.getModel = function () { return { threshold: 0.0 }; }
 /**
-     * Adds a new point (or points) to the known points and recomputes the threhshold
-     * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
-     * @returns {module:analytics.NearestNeighborAD} Self
-     */
- exports.NearestNeighborAD.prototype.partialFit = function(x) {}
+	* Adds a new point (or points) to the known points and recomputes the threshold.
+	* @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input).
+	* @returns {module:analytics.NearestNeighborAD} Self. The model is updated.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD();
+	* // create a new matrix
+	* var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+	* // fit the model with the matrix
+	* neighbor.fit(matrix);
+	* // create a new vector
+	* var vector = new la.Vector([2, 5]);
+	* // update the model with the vector
+	* neighbor.update(vector);
+	*/
+ exports.NearestNeighborAD.prototype.partialFit = function(x) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
 /**
-     * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
-     * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
-     * the model.
-     * @returns {module:analytics.NearestNeighborAD} Self
-     */
- exports.NearestNeighborAD.prototype.fit = function(A) {}
+	* Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
+	* @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+	* the model.
+	* @returns {module:analytics.NearestNeighborAD} Self. The model is set by the matrix A.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD();
+	* // create a new matrix
+	* var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+	* // fit the model with the matrix
+	* neighbor.fit(matrix);
+	*/
+ exports.NearestNeighborAD.prototype.fit = function(A) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
 /**
-     * Compares the point to the known points and returns distance to the nearest one
-     * @param {module:la.Vector} x - Test vector
-     * @returns {number} Distnace to the nearets point
+     * Compares the point to the known points and returns distance to the nearest one.
+     * @param {module:la.Vector} x - Test vector.
+     * @returns {number} Distnace to the nearest point.
      */
- exports.NearestNeighborAD.prototype.decisionFunction = function(x) {}
+ exports.NearestNeighborAD.prototype.decisionFunction = function(x) { return 0.0; }
 /**
-     * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
-     * @param {module:la.Vector} x - Test vector
-     * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
-     */
- exports.NearestNeighborAD.prototype.predict = function(x) {}
+	* Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold).
+	* @param {module:la.Vector} x - Test vector.
+	* @returns {number} Returns 1.0 if the vector x is an anomaly and 0.0 otherwise.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD();
+	* // create a new matrix
+	* var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+	* // fit the model with the matrix
+	* neighbor.fit(matrix);
+	* // create a new vector
+	* var vector = new la.Vector([4, 0]);
+	* // check if the vector is an anomaly
+	* var prediction = neighbor.predict(vector); // returns 1
+	*/
+ exports.NearestNeighborAD.prototype.predict = function(x) { return 0.0; }
 /**
  * Logistic regression model. Uses Newtons method to compute the weights.
  *
@@ -1452,192 +1537,6 @@
         };
     };
 
-    /**
-    * @typedef {Object} detectorParam
-    * A Json object used for the creation of the {@link module:analytics.NearestNeighborAD}.
-    * @param {number} [rate= 0.05] - The expected fracton of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies).
-    */
-
-    /**
-    * @classdesc Anomaly detector that checks if the test point is too far from
-    * the nearest known point.
-    * @class
-    * @param {module:analytics~detectorParam} [detectorParam] - Constructor parameters.
-    * @example
-    * // import modules
-    * var analytics = require('qminer').analytics;
-    * var la = require('qminer').la;
-    * // create a new NearestNeighborAD object
-    * var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
-    * // create a matrix 
-    * var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
-    * // fit the model with the matrix
-    * neighbor.fit(matrix);
-    * // create a new vector
-    * var vector = new la.Vector([4, 0]);
-    * // predict if the vector is an anomaly or not
-    * var prediction = neighbor.predict(vector);
-    */
-    exports.NearestNeighborAD = function (detectorParam) {
-        // Parameters
-        var param = detectorParam == undefined ? {} : detectorParam;
-        param.rate = param.rate == undefined ? 0.05 : param.rate;
-        // model param
-        var rate = param.rate == undefined ? 0.05 : param.rate;
-        assert(rate > 0 && rate <= 1.0, 'rate parameter not in range (0,1]');
-        // default model
-        var thresh = 0;
-
-        /**
-        * Returns the model.
-        * @returns {Object} Json object whose keys are: 
-        * <br> 1. rate - The expected fraction of emmited anomalies.
-        * <br> 2. thresh - Maximal squared distance to the nearest neighbor that is not anomalous.
-        * @example
-        * // import analytics module
-        * var analytics = require('qminer').analytics;
-        * // create a new NearestNeighborAD object
-        * var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
-        * // get the model of the object
-        * // returns a json object { rate: 0.1, thresh: 0 }
-        * var model = neighbor.getModel();
-        */
-        this.getModel = function () { return { rate: rate, thresh: thresh }; }
-
-        /**
-        * Sets parameters.
-        * @param {module:analytics~detectorParam} newParams - The Json object containing the new rate value.
-        * @returns {module:analytics.NearestNeighborAD} Self. The parameters are updated with newParams.
-        * @example
-        * // import analytics module
-        * var analytics = require('qminer').analytics;
-        * // create a new NearestNeighborAD object
-        * var neighbor = new analytics.NearestNeighborAD();
-        * // set it's parameters to rate: 0.1
-        * neighbor.setParams({ rate: 0.1 });
-        */
-        this.setParams = function (newParams) {
-            param = newParams;
-            assert(param.rate > 0 && param.rate <= 1.0, 'rate parameter not in range (0,1]');
-            // Parameters
-            rate = param.rate == undefined ? param : newParams.rate;
-            
-        }
-
-        /**
-        * Returns parameters.
-        * @returns {module:analytics~detectorParam} The Json object containing the rate value. 
-        * @example
-        * // import analytics module
-        * var analytics = require('qminer').analytics;
-        * // create a new NearestNeighborAD object
-        * var neighbor = new analytics.NearestNeighborAD();
-        * // get the parameters of the object
-        * // returns a json object { rate: 0.05 }
-        * var params = neighbor.getParams();
-        */
-        this.getParams = function () {
-            return param;
-        }
-
-        /**
-        * Gets the 100*(1-rate) percentile.
-        * @param {module:la.Vector} vector - Vector of values.
-        * @returns {number} The 100*(1-rate) percentile.
-        */
-        function getThreshold(vector, rate) {
-            var sorted = vector.sortPerm().vec;
-            var idx = Math.floor((1 - rate) * sorted.length);
-            return sorted[idx];
-        }
-        //var neighborDistances = undefined;
-
-        /**
-        * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
-        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
-        * the model.
-        * @returns {module:analytics.NearestNeighborAD} Self. The model is set by the matrix A.
-        * @example
-        * // import modules
-        * var analytics = require('qminer').analytics;
-        * var la = require('qminer').la;
-        * // create a new NearestNeighborAD object
-        * var neighbor = new analytics.NearestNeighborAD();
-        * // create a new matrix
-        * var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
-        * // fit the model with the matrix
-        * neighbor.fit(matrix);
-        */
-        this.fit = function (A) {
-            this.X = A;
-            // distances
-            var D = la.pdist2(A, A);
-            // add big numbers on the diagonal (exclude the point itself from the nearest point calcualtion)
-            var E = D.plus(D.multiply(la.ones(D.rows)).diag()).multiply(-1);
-            var neighborDistances = new la.Vector({ vals: D.rows });
-            for (var i = 0; i < neighborDistances.length; i++) {
-                // nearest neighbour squared distance
-                neighborDistances[i] = D.at(i, E.rowMaxIdx(i));
-            }
-            thresh = getThreshold(neighborDistances, rate);
-        }
-
-        /**
-        * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold).
-        * @param {module:la.Vector} x - Test vector.
-        * @returns {number} Returns 1.0 if the vector x is an anomaly and 0.0 otherwise.
-        * @example
-        * // import modules
-        * var analytics = require('qminer').analytics;
-        * var la = require('qminer').la;
-        * // create a new NearestNeighborAD object
-        * var neighbor = new analytics.NearestNeighborAD();
-        * // create a new matrix
-        * var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
-        * // fit the model with the matrix
-        * neighbor.fit(matrix);
-        * // create a new vector 
-        * var vector = new la.Vector([4, 0]);
-        * // check if the vector is an anomaly
-        * var prediction = neighbor.predict(vector); // returns 1
-        */
-        this.predict = function (x) {
-            // compute squared dist and compare to thresh
-            var d = la.pdist2(this.X, x.toMat()).getCol(0);
-            var idx = d.multiply(-1).getMaxIdx();
-            var p = d[idx];
-            //console.log(p)
-            return p > thresh ? 1 : 0;
-        }
-
-        /**
-        * Adds a new point (or points) to the known points and recomputes the threshold.
-        * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input).
-        * @returns {module:analytics.NearestNeighborAD} Self. The model is updated.
-         * @example
-        * // import modules
-        * var analytics = require('qminer').analytics;
-        * var la = require('qminer').la;
-        * // create a new NearestNeighborAD object
-        * var neighbor = new analytics.NearestNeighborAD();
-        * // create a new matrix
-        * var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
-        * // fit the model with the matrix
-        * neighbor.fit(matrix);
-        * // create a new vector
-        * var vector = new la.Vector([2, 5]);
-        * // update the model with the vector
-        * neighbor.update(vector);
-        */
-        this.update = function (x) {
-            // append x to known examples and retrain (slow version)
-            // speedup 1: don't reallocate X every time (fixed window, circular buffer)
-            // speedup 2: don't recompute distances d(X,X), just d(X, y), get the minimum
-            // and append to neighborDistances
-            this.fit(la.cat([[this.X, x.toMat()]]));
-            //console.log('new threshold ' + this.thresh);
-        }
-    }
 
     /**
     * @classdesc Principal components analysis

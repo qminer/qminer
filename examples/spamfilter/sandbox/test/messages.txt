@@ -1,0 +1,27 @@
+Value	Text
+-1	As seen on
+-1	Buy
+-1	Buy direct
+-1	Buying judgments
+-1	Clearence
+-1	Order
+-1	Order status
+-1	Order shipped by
+-1	shopper
+-1	Dig up dirt on friends
+-1	Meet singles
+-1	Score with babes
+-1	Additional Income
+-1	Double your
+-1	Expect to earn
+-1	Work at home
+-1	Work from home
+-1	While you sleep
+1	I was shopping in the mall and i met John.
+1	Where are the articles you said you'll send?
+1	Ok, so when can we meet for the party?
+1	This is the shizzle!
+1	The new Star Wars movie is comming out at winter 2015.
+1	Did you hear the new song of Watsky?
+1	I double dare you!
+1	This is a legit message.

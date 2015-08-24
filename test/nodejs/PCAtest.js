@@ -74,7 +74,7 @@ describe("PCA test", function () {
                 pca.fit(matrix);
             });
         });
-        it("should return the model parameters after using fit", function () {
+        it.skip("should return the model parameters after using fit", function () {
             var pca = new analytics.PCA();
             var matrix = new la.Matrix([[0, 1], [-1, 0]]);
             pca.fit(matrix);
