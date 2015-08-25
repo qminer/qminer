@@ -1,13 +1,13 @@
 {
-    'variables': { 'LIN_ALG_BLAS%': 'NBLAS',
-		   'LIN_ALG_LAPACKE%': 'NLAPACKE',
-   		   'LIN_ALG_INCLUDE%': 'src/glib/base/',
-		   #full path to lapack or openblas libraries
-		   'LIN_ALG_LIB%': '',
-		   #64 bit indexing for BLAS
-		   'INDEX_64%': 'NINDEX_64',
-		   'INTEL%': 'NINTEL'
-
+    'variables': {
+        'LIN_ALG_BLAS%': 'NBLAS',
+        'LIN_ALG_LAPACKE%': 'NLAPACKE',
+        'LIN_ALG_INCLUDE%': 'src/glib/base/',
+        #full path to lapack or openblas libraries
+        'LIN_ALG_LIB%': '',
+        #64 bit indexing for BLAS
+        'INDEX_64%': 'NINDEX_64',
+        'INTEL%': 'NINTEL'
     },
     'target_defaults': {
         # GCC flags
@@ -70,12 +70,13 @@
                 'src/third_party/Snap/snap-adv',
                 'src/third_party/Snap/snap-exp',
                 'src/third_party/Snap/qlib-core',
-		'<(LIN_ALG_INCLUDE)'
+                '<(LIN_ALG_INCLUDE)'
             ],
-            'defines': ['<(LIN_ALG_BLAS)',
-			'<(LIN_ALG_LAPACKE)',
-			'<(INDEX_64)',
-			'<(INTEL)'
+            'defines': [
+                '<(LIN_ALG_BLAS)',
+                '<(LIN_ALG_LAPACKE)',
+                '<(INDEX_64)',
+                '<(INTEL)'
             ],
             'dependencies': [
                 'glib',
@@ -122,24 +123,23 @@
                             'msvs_settings': {
                                 'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
-				    'OpenMP': 'true'
+                                    'OpenMP': 'true'
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
-      				    'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
+                                    'AdditionalOptions': ['<(LIN_ALG_LIB)']
                                 },
                             },
                         },
                         'Release': {
                             'msvs_settings': {
                                 'VCCLCompilerTool': {
-				    #'AdditionalIncludeDirectories': '<(LIN_ALG_INCLUDE)',
                                     'RuntimeTypeInfo': 'true',      # /GR
-				    'OpenMP': 'true'
+                                    'OpenMP': 'true'
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
-				    'AdditionalDependencies': ['<(LIN_ALG_LIB)']
+                                    'AdditionalOptions': ['<(LIN_ALG_LIB)']
                                 },
                             },
                             'defines' : ['NDEBUG']
@@ -166,7 +166,7 @@
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
-	        '<(LIN_ALG_INCLUDE)'
+                '<(LIN_ALG_INCLUDE)'
             ],
             'conditions': [
                 # operating system specific parameters
@@ -208,12 +208,11 @@
                             'msvs_settings': {
                                 'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
-				    'OpenMP': 'true'
+                                    'OpenMP': 'true'
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
-      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
-				    'AdditionalOptions': ['<(LIN_ALG_LIB)']
+                                    'AdditionalOptions': ['<(LIN_ALG_LIB)']
                                 },
                             },
                         },
@@ -221,12 +220,11 @@
                             'msvs_settings': {
                                'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
-				    'OpenMP': 'true'
+                                    'OpenMP': 'true'
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
-      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
-				    'AdditionalOptions': ['<(LIN_ALG_LIB)']
+                                    'AdditionalOptions': ['<(LIN_ALG_LIB)']
                                 },
                             },
                             'defines' : ['NDEBUG']
@@ -249,7 +247,7 @@
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
-		'<(LIN_ALG_INCLUDE)'
+                '<(LIN_ALG_INCLUDE)'
             ],
             'conditions': [
                 # operating system specific parameters
@@ -291,12 +289,11 @@
                             'msvs_settings': {
                                'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
-				    'OpenMP': 'true'
+                                    'OpenMP': 'true'
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
-      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
-				    'AdditionalOptions' : ['<(LIN_ALG_LIB)']
+                                    'AdditionalOptions' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                         },
@@ -304,12 +301,11 @@
                             'msvs_settings': {
                                'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
-				    'OpenMP': 'true'
+                                    'OpenMP': 'true'
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
-      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
-				    'AdditionalOptions' : ['<(LIN_ALG_LIB)']
+                                    'AdditionalOptions' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                             'defines' : ['NDEBUG']
@@ -331,12 +327,13 @@
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
-		'<(LIN_ALG_INCLUDE)'
+                '<(LIN_ALG_INCLUDE)'
             ],
-            'defines': ['<(LIN_ALG_BLAS)',
-			'<(LIN_ALG_LAPACKE)',
-			'<(INDEX_64)',
-			'<(INTEL)'
+            'defines': [
+                '<(LIN_ALG_BLAS)',
+                '<(LIN_ALG_LAPACKE)',
+                '<(INDEX_64)',
+                '<(INTEL)'
             ],
             'conditions': [
                 # operating system specific parameters
@@ -378,12 +375,11 @@
                             'msvs_settings': {
                                'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
-				    'OpenMP': 'true'
+                                    'OpenMP': 'true'
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
-      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
-				    'AdditionalOptions' : ['<(LIN_ALG_LIB)']
+                                    'AdditionalOptions' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                         },
@@ -391,12 +387,11 @@
                             'msvs_settings': {
                                'VCCLCompilerTool': {
                                     'RuntimeTypeInfo': 'true',      # /GR
-				    'OpenMP': 'true'
+                                    'OpenMP': 'true'
                                 },
                                 'VCLinkerTool': {
                                     'SubSystem' : 1, # Console
-      				    #'AdditionalDependencies' : ['<(LIN_ALG_LIB)']
-			            'AdditionalOptions' : ['<(LIN_ALG_LIB)']
+                                    'AdditionalOptions' : ['<(LIN_ALG_LIB)']
                                 },
                             },
                             'defines' : ['NDEBUG']
