@@ -254,7 +254,8 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 	// Add all prototype methods, getters and setters here
 	NODE_SET_PROTOTYPE_METHOD(tpl, "peekCh", _peekCh);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getCh", _getCh);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "readLine", _readLine);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "readLine", _readLine);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "readJson", _readJson);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "readAll", _readAll);
 	// Add properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "eof"), _eof);
@@ -303,6 +304,17 @@ void TNodeJsFIn::readLine(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, LnChA.CStr()));
 }
 
+void TNodeJsFIn::readJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args.This());
+    TStr JsonStr = TStr(*JsFIn->SIn);
+    PJsonVal JsonVal = TJsonVal::GetValFromStr(JsonStr);
+    
+    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsonVal));
+}
+
 void TNodeJsFIn::readAll(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -347,6 +359,7 @@ void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
     // Add all prototype methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "write", _write);
     NODE_SET_PROTOTYPE_METHOD(tpl, "writeLine", _writeLine);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "writeJson", _writeJson);
     NODE_SET_PROTOTYPE_METHOD(tpl, "flush", _flush);
     NODE_SET_PROTOTYPE_METHOD(tpl, "close", _close);
 
@@ -427,6 +440,20 @@ void TNodeJsFOut::writeLine(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
     JsFOut->SOut->PutLn();
 
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsFOut::writeJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    PJsonVal JsonVal = TNodeJsUtil::GetArgJson(Args, 0);
+    TStr JsonStr = JsonVal->SaveStr();
+    
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
+    JsonStr.Save(*JsFOut->SOut);
+    
     Args.GetReturnValue().Set(Args.Holder());
 }
 

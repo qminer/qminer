@@ -154,7 +154,7 @@ public:
 * // create a new vector
 * var vec2 = new la.<% className %>(<% example1 %>);
 */
-//# exports.<% className %> = function() {}
+//# exports.<% className %> = function() { return Object.create(require('qminer').la.<% className %>.prototype); }
 template <class TVal = TFlt, class TAux = TAuxFltV>
 class TNodeJsVec : public node::ObjectWrap {
 	friend class TNodeJsFltVV;

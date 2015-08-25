@@ -14,105 +14,184 @@
 /**
 * SVC constructor parameters
 * @typedef {Object} svcParam
-* @property  {number} [svcParam.c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting) 
+* @property  {number} [svcParam.c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting) .
 * @property  {number} [svcParam.j=1.0] - Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting c=n is like adding n-1 copies of the positive training examples to the data set.
-* @property  {number} [svcParam.batchSize=10000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate
-* @property  {number} [svcParam.maxIterations=10000] - Maximum number of iterations
-* @property  {number} [svcParam.maxTime=1.0] - Maximum runtime in seconds
-* @property  {number} [svcParam.minDiff=1e-6] - Stopping criterion tolerance
-* @property  {boolean} [svcParam.verbose=false] - Toggle verbose output in the console
+* @property  {number} [svcParam.batchSize=1000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate.
+* @property  {number} [svcParam.maxIterations=10000] - Maximum number of iterations.
+* @property  {number} [svcParam.maxTime=1] - Maximum runtime in seconds.
+* @property  {number} [svcParam.minDiff=1e-6] - Stopping criterion tolerance.
+* @property  {boolean} [svcParam.verbose=false] - Toggle verbose output in the console.
 */
 /**
 * SVC
 * @classdesc Support Vector Machine Classifier. Implements a soft margin linear support vector classifier using the PEGASOS algorithm, see: {@link http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf Pegasos: Primal Estimated sub-GrAdient SOlver for SVM}.
 * @class
-* @param {module:fs.FIn | module:analytics~svcParam} arg - File input stream (loads the model from disk) or constructor parameters svcParam.
+* @param {module:fs.FIn | module:analytics~svcParam} [arg] - File input stream (loads the model from disk) or constructor parameters svcParam.
 * @example
-* // import module
+* // import modules
+* var la = require('qminer').la;
 * var analytics = require('qminer').analytics;
 * // CLASSIFICATION WITH SVC
-* // Set up fake train and test data.
-* // Four training examples with, number of features = 2
-* var featureMatrix = new la.Matrix({rows:2, cols:4, random:true});
+* // set up fake train and test data
+* // four training examples with number of features = 2
+* var featureMatrix = new la.Matrix({ rows: 2, cols: 4, random: true });
 * // classification targets for four examples
 * var targets = new la.Vector([-1, -1, 1, 1]);
-* // Set up the classification model
-* var SVC = new analytics.SVC({verbose:true});
-* // Train classifier
+* // set up the classification model
+* var SVC = new analytics.SVC({ verbose: true });
+* // train classifier
 * SVC.fit(featureMatrix, targets);
-* // Save the model to disk
+* // save the model to disk
 * SVC.save('svc.bin');
-* // Set up a fake test vector
+* // set up a fake test vector
 * var test = new la.Vector([1.1, -0.5]);
-* // Predict the target value
+* // predict the target value
 * var prediction = SVC.predict(test);
 */
- exports.SVC = function(arg) {};
+ exports.SVC = function(arg) { return Object.create(require('qminer').analytics.SVC.prototype); };
 /**
-	* returns the svc parameters	
+	* Returns the SVC parameters.	
 	* @returns {module:analytics~svcParam} Parameters of the classifier model.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new SVC model with json
+	* var SVC = new analytics.SVC({ c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true });
+	* // get the parameters of the SVC model
+	* // returns { algorithm: 'SGD' c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true }
+	* var json = SVC.getParams(); 
 	*/
- exports.SVC.prototype.getParams = function() {};
+ exports.SVC.prototype.getParams = function() { return { algorithm: '', c: 0, j: 0, batchSize: 0, maxIterations: 0, maxTime: 0, minDiff: 0, verbose: true } };
 /**
-	* sets the svc parameters
+	* Sets the SVC parameters.
 	* @param {module:analytics~svcParam} param - Classifier training parameters.
+	* @returns {module:analytics.SVC} Self.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a default SVC model
+	* var SVC = new analytics.SVC();
+	* // change the parameters of the SVC with the json { j: 5, maxIterations: 12000, minDIff: 1e-10 }
+	* SVC.setParams({ j: 5, maxIterations: 12000, minDiff: 1e-10 }); // returns self
 	*/
- exports.SVC.prototype.setParams = function(param) {};
+ exports.SVC.prototype.setParams = function(param) { return Object.create(require('qminer').analytics.SVC.prototype); };
 /**	
-	* @property {module:la.Vector} weights - Vector of coefficients of the linear model
+	* Gets the vector of coefficients of the linear model.
+	* @returns {module:la.Vector} weights - Vector of coefficients of the linear model.
+	* @example 
+	* // import the analytics and la modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new SVC object
+	* var SVC = new analytics.SVC();
+	* // create the matrix containing the input features and the input vector for each matrix.
+	* var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	* var vec = new la.Vector([1, 1, -1, -1]);
+	* // fit the model
+	* SVC.fit(matrix, vec);
+	* // get the weights
+	* var weights = SVC.weights; // returns the coefficients of the normal vector of the hyperplane gained from the model: [1, 1]
 	*/
- exports.SVC.prototype.weights = undefined;
+ exports.SVC.prototype.weights = Object.create(require('qminer').la.Vector.prototype);
 /**
-	* saves model to output file stream 
+	* Saves model to output file stream .
 	* @param {module:fs.FOut} fout - Output stream.
-	* @returns {module:fs.FOut} Output stream
+	* @returns {module:fs.FOut} The Output stream.
 	*/
- exports.SVC.prototype.save = function(fout) {}
+ exports.SVC.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
-     * sends vector through the model and returns the distance to the decision boundery
-     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
-     * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix). Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).
-     */
- exports.SVC.prototype.decisionFunction = function(X) {}
-/**
-	* sends vector through the model and returns the prediction as a real number
-    * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
-    * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix), 1 for positive class and -1 for negative.
+    * Sends vector through the model and returns the distance to the decision boundery.
+    * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
+    * @returns {number | module:la.Vector} Distance:
+	* <br>1. Real number, if input is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>2. {@link module:la.Vector}, if input is {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* <br>Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).
+    * @example
+	* // import the analytics and la modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new SVC object
+	* var SVC = new analytics.SVC();
+	* // create the matrix containing the input features and the input vector for each matrix
+	* var matrix = new la.Matrix([[1, 0], [0, -1]]);
+	* var vec = new la.Vector([1, -1]);
+	* // fit the model
+	* SVC.fit(matrix, vec);
+	* // create the vector you want to get the distance from the model
+	* var vec2 = new la.Vector([2, 3]);
+	* // use the decisionFunction to get the distance of vec2 from the model
+	* var distance = SVC.decisionFunction(vec2); // returns something close to 5
 	*/
- exports.SVC.prototype.predict = function(X) {}
+ exports.SVC.prototype.decisionFunction = function(X) { return (X instanceof require('qminer').la.Vector | X instanceof require('qminer').la.SparseVector) ? 0 : Object.create(require('qminer').la.Vector.prototype); }
 /**
-	* fits an SVM classification model, given column examples in a matrix and vector of targets
-	* @param {module:la.Matrix | module:la.SparseMatrix} X - Input feature matrix where columns correspond to feature vectors
-	* @param {module:la.Vector} y - Input vector of targets, one for each column of X
+	* Sends vector through the model and returns the prediction as a real number.
+    * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
+    * @returns {number | module:la.Vector} Prediction:
+	* <br>1. Real number, if input is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>2. {@link module:la.Vector}, if input is {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* <br>1 for positive class and -1 for negative.
+	* @example
+	* // import the analytics and la modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new SVC object
+	* var SVC = new analytics.SVC();
+	* // create the matrix containing the input features and the input vector for each matrix
+	* var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	* var vec = new la.Vector([1, 1, -1, -1]);
+	* // fit the model
+	* SVC.fit(matrix, vec);
+	* // create a vector you want to predict 
+	* var vec2 = new la.Vector([3, 5]);
+	* // predict the vector
+	* var prediction = SVC.predict(vec2); // returns 1
 	*/
- exports.SVC.prototype.fit = function(X, y) {}
+ exports.SVC.prototype.predict = function(X) { return (X instanceof require('qminer').la.Vector | X instanceof require('qminer').la.SparseVector) ? 0 : Object.create(require('qminer').la.Vector.prototype); }
+/**
+	* Fits a SVM classification model, given column examples in a matrix and vector of targets.
+	* @param {module:la.Matrix | module:la.SparseMatrix} X - Input feature matrix where columns correspond to feature vectors.
+	* @param {module:la.Vector} y - Input vector of targets, one for each column of X.
+	* @returns {module:analytics.SVC} Self.
+	* @example
+	* // import the analytics and la modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new SVC object
+	* var SVC = new analytics.SVC();
+	* // create the matrix containing the input features and the input vector for each matrix.
+	* var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	* var vec = new la.Vector([1, 1, -1, -1]);
+	* // fit the model
+	* SVC.fit(matrix, vec); // creates a model, where the hyperplane has the normal semi-equal to [1, 1]
+	*/
+ exports.SVC.prototype.fit = function(X, y) { return Object.create(require('qminer').analytics.SVC.prototype); }
 /**
 * SVR constructor parameters
 * @typedef {Object} svrParam
-* @property  {number} [svrParam.c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting)
+* @property  {number} [svrParam.c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting).
 * @property  {number} [svrParam.eps=1e-1] - Epsilon insensitive loss parameter. Larger values result in fewer support vectors (smaller model complexity).
-* @property  {number} [svrParam.batchSize=10000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate
-* @property  {number} [svrParam.maxIterations=10000] - Maximum number of iterations
-* @property  {number} [svrParam.maxTime=1.0] - Maximum runtime in seconds
-* @property  {number} [svrParam.minDiff=1e-6] - Stopping criterion tolerance
-* @property  {boolean} [svrParam.verbose=false] - Toggle verbose output in the console
+* @property  {number} [svrParam.batchSize=1000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate.
+* @property  {number} [svrParam.maxIterations=10000] - Maximum number of iterations.
+* @property  {number} [svrParam.maxTime=1.0] - Maximum runtime in seconds.
+* @property  {number} [svrParam.minDiff=1e-6] - Stopping criterion tolerance.
+* @property  {boolean} [svrParam.verbose=false] - Toggle verbose output in the console.
 */
 /**
 * SVR
 * @classdesc Support Vector Machine Regression. Implements a soft margin linear support vector regression using the PEGASOS algorithm with epsilon insensitive loss, see: {@link http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf Pegasos: Primal Estimated sub-GrAdient SOlver for SVM}.
 * @class
-* @param {module:fs.FIn | module:analytics~svrParam} arg - File input stream (loads the model from disk) or constructor parameters svcParam.
+* @param {module:fs.FIn | module:analytics~svrParam} [arg] - File input stream (loads the model from disk) or constructor parameters svcParam.
 * @example
 * // import module
 * var analytics = require('qminer').analytics;
 * // REGRESSION WITH SVR
 * // Set up fake train and test data.
 * // Four training examples with, number of features = 2
-* var featureMatrix = new la.Matrix({rows:2, cols:4, random:true});
+* var featureMatrix = new la.Matrix({ rows: 2, cols: 4, random: true });
 * // Regression targets for four examples
 * var targets = new la.Vector([1.1, -2, 3, 4.2]);
 * // Set up the regression model
-* var SVR = new analytics.SVR({verbose:true});
+* var SVR = new analytics.SVR({ verbose: true });
 * // Train regression
 * SVR.fit(featureMatrix, targets);
 * // Save the model to disk
@@ -122,53 +201,115 @@
 * // Predict the target value
 * var prediction = SVR.predict(test);
 */
- exports.SVR = function(arg) {};
+ exports.SVR = function(arg) { return Object.create(require('qminer').analytics.SVR.prototype); };
 /**
-	* returns the svr parameters
+	* Returns the SVR parameters.
 	* @returns {module:analytics~svrParam} Parameters of the regression model.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new SVR object
+	* var SVR = new analytics.SVR({ c: 10, eps: e-10, maxTime: 12000, verbose: true });
+	* // get the parameters of SVR
+	* var params = SVR.getParams();
 	*/
- exports.SVR.prototype.getParams = function() {};
+ exports.SVR.prototype.getParams = function() { return { c: 0, eps: 0, batchSize: 0, maxIterations: 0, maxTime: 0, minDiff: 0, verbose: true } };
 /**
-	* sets the svr parameters
+	* Sets the SVR parameters.
 	* @param {module:analytics~svrParam} param - Regression training parameters.
+	* @returns {module:analytics.SVR} Self.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new SVR object
+	* var SVR = new analytics.SVR();
+	* // set the parameters of the SVR object
+	* SVR.setParams({ c: 10, maxTime: 12000 });
 	*/
- exports.SVR.prototype.setParams = function(param) {};
+ exports.SVR.prototype.setParams = function(param) { return Object.create(require('qminer').analytics.SVR.prototype); };
 /**
-	* @property {module:la.Vector} weights - Vector of coefficients of the linear model
+	* The vector of coefficients of the linear model.
+	* @returns {module:la.Vector} weights - Vector of coefficients of the linear model.
 	*/
- exports.SVR.prototype.weights = undefined;
+ exports.SVR.prototype.weights = Object.create(require('qminer').la.Vector.prototype);
 /**
-	* saves model to output file stream
+	* Saves model to output file stream.
 	* @param {module:fs.FOut} fout - Output stream.
-	* @returns {module:fs.FOut} Output stream
+	* @returns {module:fs.FOut} Output stream.
 	*/
- exports.SVR.prototype.save = function(fout) {}
+ exports.SVR.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
-     * sends vector through the model and returns the prediction as a real number
-     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
-     * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix).
+     * Sends vector through the model and returns the scalar product as a real number.
+     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
+     * @returns {number | module:la.Vector} Distance:
+	 * <br>1. Real number if input is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	 * <br>2. {@link module:la.Vector}, if input is {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	 * @example
+	 * // import the modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create a new SVR object
+	 * var SVR = new analytics.SVR({ c: 10 });
+	 * // create a matrix and vector for the model
+	 * var matrix = new la.Matrix([[1, -1], [1, 1]]);
+	 * var vector = new la.Vector([1, 1]);
+	 * // create the model by fitting the values
+	 * SVR.fit(matrix, vector);
+	 * // get the distance between the model and the given vector
+	 * var vec2 = new la.Vector([-5, 1]);
+	 * var distance = SVR.decisionFunction(vec2);
      */
- exports.SVR.prototype.decisionFunction = function(X) {}
+ exports.SVR.prototype.decisionFunction = function(X) { return (X instanceof require('qminer').la.Vector | X instanceof require('qminer').la.SparseVector) ? 0 : Object.create(require('qminer').la.Vector.prototype); }
 /**
-	* sends vector through the model and returns the prediction as a real number
-    * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns
-    * @returns {number | module:la.Vector} Prediction real number (if input vector) or vector (if input matrix).
+	* Sends vector through the model and returns the prediction as a real number.
+    * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
+    * @returns {number | module:la.Vector} Prediction:
+	* <br>1. Real number, if input is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>2. {@link module:la.Vector}, if input is {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* @example
+	* // import the modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new SVR object
+	* var SVR = new analytics.SVR({ c: 10 });
+	* // create a matrix and vector for the model
+	* var matrix = new la.Matrix([[1, -1], [1, 1]]);
+	* var vector = new la.Vector([1, 1]);
+	* // create the model by fitting the values
+	* SVR.fit(matrix, vector);
+	* // predict the value of the given vector
+	* var vec2 = new la.Vector([-5, 1]);
+	* var prediction = SVR.predict(vec2);
 	*/
- exports.SVR.prototype.predict = function(X) {}
+ exports.SVR.prototype.predict = function(X) { return (X instanceof require('qminer').la.Vector | X instanceof require('qminer').la.SparseVector) ? 0 : Object.create(require('qminer').la.Vector.prototype); }
 /**
 	* fits an SVM regression model, given column examples in a matrix and vector of targets
-	* @param {module:la.Matrix | module:la.SparseMatrix} X - Input feature matrix where columns correspond to feature vectors
-	* @param {module:la.Vector} y - Input vector of targets, one for each column of X
+	* @param {module:la.Matrix | module:la.SparseMatrix} X - Input feature matrix where columns correspond to feature vectors.
+	* @param {module:la.Vector} y - Input vector of targets, one for each column of X.
+	* @returns {module:analytics.SVR} Self.
+	* @example
+	* // import the modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new SVR object
+	* var SVR = new analytics.SVR({ c: 10 });
+	* // create a matrix and vector for the model
+	* var matrix = new la.Matrix([[1, -1], [1, 1]]);
+	* var vector = new la.Vector([1, 1]);
+	* // create the model by fitting the values
+	* SVR.fit(matrix, vector);
 	*/
- exports.SVR.prototype.fit = function(X, y) {}
+ exports.SVR.prototype.fit = function(X, y) { return Object.create(require('qminer').analytics.SVR.prototype); }
 /**
  * Ridge regression. Minimizes: ||A' x - b||^2 + ||gamma x||^2
  *
- * Uses Tikhonov regularization: http://en.wikipedia.org/wiki/Tikhonov_regularization
+ * Uses {@link http://en.wikipedia.org/wiki/Tikhonov_regularization Tikhonov regularization}.
  *
  * @class
- * @param {(number|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model by setting gamma=arg. Empty constructor sets gamma to zero.
+ * @param {(Object|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model by setting gamma=arg from a Json object.
+ * Empty constructor sets gamma to zero.
  * @example
+ * // import modules
  * la = require('qminer').la;
  * analytics = require('qminer').analytics;
  * // create a new model with gamma = 1.0
@@ -193,43 +334,115 @@
  */
  exports.RidgeReg = function(arg) {};
 /**
+	* Gets the parameters.
+	* @returns {Object} The Json object containing the parameters.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new Ridge Regression object
+	* var regmod = new analytics.RidgeReg({ gamma: 5 });
+	* // get the parameters
+	* // returns a json object { gamma: 5 }
+	* var param = regmod.getParams();
+	*/
+ exports.RidgeReg.prototype.getParams = function () { return { gamma: 0.0 } }
+/**
+	* Set the parameters.
+	* @param {(number|Object)} gamma - The new parameter for the model, given as a number or as a json object.
+	* @returns {module:analytics.RidgeReg} Self. The parameter is set to gamma.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new Ridge Regression object
+	* var regmod = new analytics.RidgeReg({ gamma: 5 });
+	* // set the parameters of the object
+	* var param = regmod.setParams({ gamma: 10 });
+	*/
+ exports.RidgeReg.prototype.setParams = function (gamma) { return Object.create(require('qminer').analytics.RidgeReg.prototype); }
+/**
      * Fits a column matrix of feature vectors X onto the response variable y.
      *
      * @param {module:la.Matrix} X - Column matrix which stores the feature vectors.
      * @param {module:la.Vector} y - Response variable.
-     * @returns {module:analytics.RidgeReg} Self
+     * @returns {module:analytics.RidgeReg} Self. The model is fitted by X and y.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create a new Ridge Regression object
+	 * var regmod = new analytics.RidgeReg();
+	 * // create the test matrix and vector
+	 * var X = new la.Matrix([[1, 2], [1, -1]]);
+	 * var y = new la.Matrix([3, 3]);
+	 * // fit the model with X and y
+	 * // the weights of the model are 2, 1
+	 * regmod.fit(X, y);
      */
- exports.RidgeReg.prototype.fit = function(X,y) {}
+ exports.RidgeReg.prototype.fit = function(X, y) { return Object.create(require('qminer').analytics.RidgeReg.prototype); }
 /**
      * Returns the expected response for the provided feature vector.
      *
-     * @param {module:la.Vector} x - Feature vector
-     * @returns {number} Predicted response
+     * @param {module:la.Vector} x - Feature vector.
+     * @returns {number} Predicted response.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create a new Ridge Regression object
+	 * var regmod = new analytics.RidgeReg();
+	 * // create the test matrix and vector
+	 * var X = new la.Matrix([[1, 2], [1, -1]]);
+	 * var y = new la.Matrix([3, 3]);
+	 * // fit the model with X and y
+	 * regmod.fit(X, y);
+	 * // create a new vector for the prediction
+	 * var vec = new la.Vector([3, 4]);
+	 * // create the prediction
+	 * // returns the value 10
+	 * var prediction = regmod.decisionFunction(vec);
      */
- exports.RidgeReg.prototype.decisionFunction = function(X) {}
+ exports.RidgeReg.prototype.decisionFunction = function(X) { return 0.0; }
 /**
      * Returns the expected response for the provided feature vector.
      *
-     * @param {module:la.Vector} x - Feature vector
-     * @returns {number} Predicted response
+     * @param {module:la.Vector} x - Feature vector.
+     * @returns {number} Predicted response.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create a new Ridge Regression object
+	 * var regmod = new analytics.RidgeReg();
+	 * // create the test matrix and vector
+	 * var X = new la.Matrix([[1, 2], [1, -1]]);
+	 * var y = new la.Matrix([3, 3]);
+	 * // fit the model with X and y
+	 * regmod.fit(X, y);
+	 * // create a new vector for the prediction
+	 * var vec = new la.Vector([3, 4]);
+	 * // create the prediction
+	 * // returns the value 10
+	 * var prediction = regmod.predict(vec);
      */
- exports.RidgeReg.prototype.predict = function(X) {}
+ exports.RidgeReg.prototype.predict = function(X) { return 0.0; }
 /**
-     * @property {module:la.Vector} weights - Vector of coefficients for linear regression
+     * @property {module:la.Vector} weights - Vector of coefficients for linear regression.
      */
- exports.RidgeReg.prototype.weights = undefined;
+ exports.RidgeReg.prototype.weights = Object.create(require('qminer').la.Vector.prototype);
 /**
      * Saves the model into the output stream.
      *
-     * @param {module:fs.FOut} fout - Output stream
+     * @param {module:fs.FOut} fout - Output stream.
+	 * @returns {module:fs.FOut} THe output stream fout.
      */
- exports.RidgeReg.prototype.save = function(fout) {};
+ exports.RidgeReg.prototype.save = function(fout) { Object.create(require('qminer').fs.FOut.prototype); };
 /**
- * Sigmoid funnction (y = 1/[1 + exp[-Ax+B]]) fited on decision function to mimic
+ * Sigmoid function (y = 1/[1 + exp[-A*x + B]]) fitted on decision function to mimic.
  *
  * @class
  * @param {(null|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model.
  * @example
+ * // import modules
  * la = require('qminer').la;
  * analytics = require('qminer').analytics;
  * // create a new model
@@ -246,37 +459,251 @@
  */
  exports.Sigmoid = function(arg) {};
 /**
+	* Get the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.
+	* @returns {Object} The Json object containing parameters.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create the Sigmoid model
+	* var s = new analytics.Sigmoid();
+	* // get the parameters
+	* // returns an empty Json object
+	* var param = s.getParams();
+	*/
+ exports.Sigmoid.prototype.getParams = function () { return {}; }
+/**
+	* Sets the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.
+	* @param {Object} arg - Json object. 
+	* @returns {module:analytics.Sigmoid} Self.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create the Sigmoid model
+	* var s = new analytics.Sigmoid();
+	* // set the parameters 
+	* // doesn't change the model
+	* s.setParams({});
+	*/
+ exports.Sigmoid.prototype.setParams = function (arg) { return Object.create(require('qminer').analytics.Sigmoid.prototype); }
+/**
+	* Gets the model.
+	* @returns {Object} The Json object containing the A and B values of the Sigmoid.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create the Sigmoid model
+	* var s = new analytics.Sigmoid();
+	* // get the model parameters
+	* // returns a Json object { A: 0, B: 0 }
+	* var model = s.getModel();
+	*/
+ exports.Sigmoid.prototype.getModel = function () {return { A: 0, B: 0 }; }
+/**
      * Fits a column matrix of feature vectors X onto the response variable y.
      *
      * @param {module:la.Vector} x - Predicted values (e.g., using analytics.SVR)
      * @param {module:la.Vector} y - Actual binary labels: 1 or -1.
-     * @returns {module:analytics.Sigmoid} Self
+     * @returns {module:analytics.Sigmoid} Self.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the Sigmoid model
+	 * var s = new analytics.Sigmoid();
+	 * // create the predicted values and the binary labels
+	 * var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+	 * var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+	 * // fit the model
+	 * // changes the internal A and B values of the model 
+	 * // (these values can be obtained with the getModel method)
+	 * s.fit(X, y);
      */
- exports.Sigmoid.prototype.fit = function(X,y) {}
+ exports.Sigmoid.prototype.fit = function(X, y) { return Object.create(require('qminer').analytics.Sigmoid.prototype); }
 /**
      * Returns the expected response for the provided feature vector.
      *
      * @param {(number|module:la.Vector)} x - Prediction score (or vector of them).
      * @returns {(number|module:la.Vector)} Normalized prediction score (or vector of them).
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the Sigmoid model
+	 * var s = new analytics.Sigmoid();
+	 * // create the predicted values and the binary labels
+	 * var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+	 * var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+	 * // fit the model
+	 * s.fit(X, y);
+	 * // predict the probability of the value 0 on this model
+	 * // returns 0.5
+	 * var prediction = s.decisionFunction(0.5);
      */
- exports.Sigmoid.prototype.decisionFunction = function(x) {}
+ exports.Sigmoid.prototype.decisionFunction = function(x) { return (x instanceof la.Vector) ? Object.create(require('qminer').la.Vector.prototype) : 0.0; }
 /**
      * Returns the expected response for the provided feature vector.
      *
      * @param {(number|module:la.Vector)} x - Prediction score (or vector of them).
      * @returns {(number|module:la.Vector)} Normalized prediction score (or vector of them).
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the Sigmoid model
+	 * var s = new analytics.Sigmoid();
+	 * // create the predicted values and the binary labels
+	 * var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+	 * var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+	 * // fit the model
+	 * s.fit(X, y);
+	 * // predict the probability of the value 0 on this model
+	 * // returns 0.5
+	 * var prediction = s.predict(0.5);
      */
- exports.Sigmoid.prototype.predict = function(x) {}
-/**
-     * @property {module:la.Vector} weights - Vector with elements A and B that define the sigmoid function.
-     */
- exports.Sigmoid.prototype.weights = undefined;
+ exports.Sigmoid.prototype.predict = function(x) { return (x instanceof la.Vector) ? Object.create(require('qminer').la.Vector.prototype) : 0.0; }
 /**
      * Saves the model into the output stream.
      *
-     * @param {module:fs.FOut} fout - Output stream
+     * @param {module:fs.FOut} fout - Output stream.
+	 * @returns {module:fs.FOut} The output stream fout.
      */
- exports.Sigmoid.prototype.save = function(fout) {};
+ exports.Sigmoid.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); };
+/**
+* @typedef {Object} detectorParam
+* A Json object used for the creation of the {@link module:analytics.NearestNeighborAD}.
+* @param {number} [rate=0.05] - The expected fracton of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies).
+* @param {number} [windowSize=100] - Number of most recent instances kept in the model.
+*/
+/**
+ * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
+ * @class
+ * @param {module:analytics~detectorParam} [detectorParam] - Constructor parameters.
+ * @example
+ * // import modules
+ * var analytics = require('qminer').analytics;
+ * var la = require('qminer').la;
+ * // create a new NearestNeighborAD object
+ * var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
+ * // create a matrix 
+ * var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+ * // fit the model with the matrix
+ * neighbor.fit(matrix);
+ * // create a new vector
+ * var vector = new la.Vector([4, 0]);
+ * // predict if the vector is an anomaly or not
+ * var prediction = neighbor.predict(vector);
+ */
+ exports.NearestNeighborAD = function(arg) { return Object.create(require('qminer').analytics.NearestNeighborAD.prototype); };
+/**
+	* Sets parameters.
+	* @param {module:analytics~detectorParam} newParams - The Json object containing the new rate value.
+	* @returns {module:analytics.NearestNeighborAD} Self. The parameters are updated with newParams.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD();
+	* // set it's parameters to rate: 0.1
+	* neighbor.setParams({ rate: 0.1 });
+	*/
+ exports.NearestNeighborAD.prototype.setParams = function (newParams) { return Object.create(require('qminer').analytics.NearestNeighborAD.prototype); }
+/**
+	* Returns parameters.
+	* @returns {module:analytics~detectorParam} The Json object containing the rate value.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD();
+	* // get the parameters of the object
+	* // returns a json object { rate: 0.05 }
+	* var params = neighbor.getParams();
+	*/
+ exports.NearestNeighborAD.prototype.getParams = function () { return { rate: 0.0, windowSize: 0.0 }; }
+/**
+     * Save model to provided output stream.
+     * @param {module:fs.FOut} fout - The output stream.
+     * @returns {module:fs.FOut} Provided output stream fout.
+     */
+ exports.NearestNeighborAD.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+/**
+	* Returns the model.
+	* @returns {Object} Json object whose keys are:
+	* <br> 1. rate - The expected fraction of emmited anomalies.
+	* <br> 2. thresh - Maximal squared distance to the nearest neighbor that is not anomalous.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
+	* // get the model of the object
+	* // returns a json object { rate: 0.1, window: 0 }
+	* var model = neighbor.getModel();
+	*/
+ exports.NearestNeighborAD.prototype.getModel = function () { return { threshold: 0.0 }; }
+/**
+	* Adds a new point (or points) to the known points and recomputes the threshold.
+	* @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input).
+	* @returns {module:analytics.NearestNeighborAD} Self. The model is updated.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD();
+	* // create a new matrix
+	* var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+	* // fit the model with the matrix
+	* neighbor.fit(matrix);
+	* // create a new vector
+	* var vector = new la.Vector([2, 5]);
+	* // update the model with the vector
+	* neighbor.update(vector);
+	*/
+ exports.NearestNeighborAD.prototype.partialFit = function(x) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
+/**
+	* Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
+	* @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+	* the model.
+	* @returns {module:analytics.NearestNeighborAD} Self. The model is set by the matrix A.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD();
+	* // create a new matrix
+	* var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+	* // fit the model with the matrix
+	* neighbor.fit(matrix);
+	*/
+ exports.NearestNeighborAD.prototype.fit = function(A) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
+/**
+     * Compares the point to the known points and returns distance to the nearest one.
+     * @param {module:la.Vector} x - Test vector.
+     * @returns {number} Distnace to the nearest point.
+     */
+ exports.NearestNeighborAD.prototype.decisionFunction = function(x) { return 0.0; }
+/**
+	* Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold).
+	* @param {module:la.Vector} x - Test vector.
+	* @returns {number} Returns 1.0 if the vector x is an anomaly and 0.0 otherwise.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD();
+	* // create a new matrix
+	* var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+	* // fit the model with the matrix
+	* neighbor.fit(matrix);
+	* // create a new vector
+	* var vector = new la.Vector([4, 0]);
+	* // check if the vector is an anomaly
+	* var prediction = neighbor.predict(vector); // returns 1
+	*/
+ exports.NearestNeighborAD.prototype.predict = function(x) { return 0.0; }
 /**
  * Logistic regression model. Uses Newtons method to compute the weights.
  *
@@ -521,13 +948,20 @@
     };
 
     /**
-    * SVM model
+    * SVM model.
     * @typedef {Object} svmModel
-    * @property  {module:la.Vector} [svmModel.weigths] - SVM normal vector
+    * @property  {module:la.Vector} [svmModel.weigths] - SVM normal vector.
     */
     /**
-	* Get SVC model
-	* @returns {module:analytics~svmModel} Get current SVM model
+	* Get SVC model.
+	* @returns {module:analytics~svmModel} The current SVM model.
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create a SVC model
+    * var SVC = new analytics.SVC();
+    * // get the properties of the model
+    * var model = SVC.getModel(); // returns { weight: new require('qminer').la.Vector(); }
 	*/
     exports.SVC.prototype.getModel = function() { return { weights: this.weights }; }
     /**
@@ -535,6 +969,14 @@
 	* @returns {module:analytics~svmModel} Get current SVM model
 	*/
     exports.SVR.prototype.getModel = function() { return { weights: this.weights }; }
+
+    // Ridge Regression
+    /**
+    * Gets RidgeReg model.
+    * @returns {module:analytics~ridgeRegModel} Get current RidgeReg model.
+    */
+    exports.RidgeReg.prototype.getModel = function () { return { weights: this.weights }; }
+
 
     // var model = new OneVsAll({
     //     model : analytics.SVC,
@@ -549,50 +991,111 @@
     // model.predict(featureSpace.extractSparseVector(record));
 
     /**
+    * @typedef {Object} oneVsAllParam
+    * The parameter given to the OneVsAll object. A Json object containing the parameter keys with values.
+    * @param {function} [model] - Constructor for binary model to be
+    * used internaly. Constructor should expect only one parameter.
+    * @param {Object} [modelParam] - Parameter for oneVsAllParam.model constructor.
+    * @param {number} [categories] - Number of categories.
+    * @param {boolean} [verbose = false] - If false, the console output is supressed.
+    */
+
+    /**
     * @classdesc One vs. all model for multiclass prediction. Builds binary model
     * for each category and predicts the one with the highest score. Binary model is
     * provided as part of the constructor.
     * @class
-    * @param {Object} [oneVsAllParam] - Constructor parameters
-    * @param {function} [oneVsAllParam.model] - Constructor for binary model to be
-    * used internaly. Constructor should expect only one parameter.
-    * @param {Object} [oneVsAllParam.modelParam] - Parameter for oneVsAllParam.model constructor.
-    * @param {number} [oneVsAllParam.categories] - Number of categories.
+    * @param {module:analytics~oneVsAllParam} [oneVsAllParam] - Constructor parameters.
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create a new OneVsAll object with the model analytics.SVC
+    * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
     */
     exports.OneVsAll = function (oneVsAllParam) {
         // remember parameters
-        this.model = oneVsAllParam.model;
-        this.modelParam = oneVsAllParam.modelParam;
-        this.cats = oneVsAllParam.categories;
+        var model = oneVsAllParam.model;
+        var modelParam = oneVsAllParam.modelParam;
+        var cats = oneVsAllParam.cats;
+        var verbose = oneVsAllParam.verbose == undefined ? false : oneVsAllParam.verbose;
         // trained models
-        this.models = [ ];
+        var models = [ ];
 
         /**
-         * apply all models to the given vector and returns a vector of scores, one for each category.
+        * Gets the parameters.
+        * @returns {Object} Json object containing the parameters.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new OneVsAll object with the model analytics.SVC
+        * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+        * // get the parameters
+        * // returns the JSon object
+        * // { model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2, models: [] }
+        * var params = onevsall.getParams();
+        */
+        this.getParams = function () {
+            return { model: model, modelParam: modelParam, cats: cats, models: models }
+        };
+
+        /**
+        * Sets the parameters.
+        * @returns {module:analytics.OneVsAll} Self. The parameters are changed.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new OneVsAll object with the model analytics.SVC
+        * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+        * // set the parameters
+        * var params = onevsall.setParams({ model: analytics.SVR, modelParam: { c: 12, maxTime: 10000}, cats: 3, verbose: true });
+        */
+        this.setParams = function (oneVsAllParam) {
+            model = oneVsAllParam.model == undefined ? model : oneVsAllParam.model;
+            modelParam = oneVsAllParam.modelParam == undefined ? modelParam : oneVsAllParam.modelParam;
+            cats = oneVsAllParam.cats == undefined ? cats : oneVsAllParam.cats;
+            verbose = oneVsAllParam.verbose == undefined ? verbose : oneVsAllParam.verbose;
+        }
+
+        /**
+         * Apply all models to the given vector and returns a vector of scores, one for each category.
          * Semantic of scores depand on the provided binary model.
          * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X -
-         * Input feature vector or matrix with feature vectors as columns
-         * @returns {module:la.Vector | module:la.Matrix}
-         * Score for each input vector and category. In case input is a vector, ouput is
-         * a vector of scores. In case input is a matrix, output is matrix with columns corresponding
-         * to instances, and rows corresponding to labels.
+         * Input feature vector or matrix with feature vectors as columns.
+         * @returns {module:la.Vector | module:la.Matrix} The score and label of the input:
+         * <br>1. {@link module:la.Vector} of scores, if X is of type {@link module:la.Vector} or {@link module:la.SparseVector}.
+         * <br>2. {@link module:la.Matrix} with columns corresponding to instances, and rows corresponding to labels, if X is of type {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+         * @example
+         * // import modules
+         * var analytics = require('qminer').analytics;
+         * var la = require('qminer').la;
+         * // create a new OneVsAll object with the model analytics.SVC
+         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+         * // create the data (matrix and vector) used to fit the model
+         * var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
+         * var vector = new la.Vector([0, 0, 1, 1]);
+         * // fit the model
+         * onevsall.fit(matrix, vector);
+         * // create the vector for the decisionFunction
+         * var test = new la.Vector([1, 2]);
+         * // give the vector to the decision function
+         * var prediction = onevsall.predict(test); // returns the vector of scores 
          */
         this.decisionFunction = function(X) {
             // check what is our input
-            if (x instanceof la.Vector || x instanceof la.SparseVector) {
+            if (X instanceof la.Vector || X instanceof la.SparseVector) {
                 // evaluate all models
                 var scores = new la.Vector();
-                for (var cat = 0; cat < this.cats; cat++) {
-                    scores.push(this.models[cat].decisionFunction(x));
+                for (var cat = 0; cat < cats; cat++) {
+                    scores.push(models[cat].decisionFunction(X));
                 }
                 return scores;
-            } else if (x instanceof la.Matrix || x instanceof la.SparseMatrix) {
+            } else if (X instanceof la.Matrix || X instanceof la.SparseMatrix) {
                 // create matrix where cols are instances and rows are scores for categories
-                var scores = new la.Matrix({rows: this.cats, cols: x.cols});
-                for (var i = 0; i < x.cols; i++) {
-                    var x_i = x.getCol(i);
-                    for (var cat = 0; cat < this.cats; cat++) {
-                        scores.put(cat, i, this.models[cat].decisionFunction(x_i));
+                var scores = new la.Matrix({rows: cats, cols: X.cols});
+                for (var i = 0; i < X.cols; i++) {
+                    var x_i = X.getCol(i);
+                    for (var cat = 0; cat < cats; cat++) {
+                        scores.put(cat, i, models[cat].decisionFunction(x_i));
                     }
                 }
                 return scores;
@@ -602,20 +1105,37 @@
         }
 
         /**
-         * apply all models to the given vector and returns category with the highest score.
+         * Apply all models to the given vector and returns category with the highest score.
          * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X -
-         * Input feature vector or matrix with feature vectors as columns
-         * @returns {number | module:la.IntVector} Highest scored category, or categories when input is matrix.
+         * Input feature vector or matrix with feature vectors as columns.
+         * @returns {number | module:la.IntVector} Returns:
+         * <br>1. number of the category with the higher score, if X is {@link module:la.Vector} or {@link module:la.SparseVector}.
+         * <br>2. {@link module:la.IntVector} of categories with the higher score for each column of X, if X is {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+         * @example
+         * // import modules
+         * var analytics = require('qminer').analytics;
+         * var la = require('qminer').la;
+         * // create a new OneVsAll object with the model analytics.SVC
+         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+         * // create the data (matrix and vector) used to fit the model
+         * var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
+         * var vector = new la.Vector([0, 0, 1, 1]);
+         * // fit the model
+         * onevsall.fit(matrix, vector);
+         * // create the vector for the prediction
+         * var test = new la.Vector([1, 2]);
+         * // get the prediction of the vector
+         * var prediction = onevsall.predict(test); // returns 0
          */
-        this.predict = function(x) {
+        this.predict = function(X) {
             // evaluate all models
-            var scores = this.decisionFunction(x);
+            var scores = this.decisionFunction(X);
             // select maximal one
             if (scores instanceof la.Vector) {
                 return scores.getMaxIdx();
             } else if (scores instanceof la.Matrix) {
                 var predictions = new la.IntVector();
-                for (var i = 0; i < scores.length; i++) {
+                for (var i = 0; i < scores.cols; i++) {
                     predictions.push(scores.getCol(i).getMaxIdx());
                 }
                 return predictions;
@@ -627,23 +1147,39 @@
         // X = feature matrix
         // y = target label from 0..cats
         /**
-         * apply all models to the given vector and returns category with the highest score.
-         * @param {module:la.Matrix | module:la.SparseMatrix} X - training instance feature vectors
+         * Apply all models to the given vector and returns category with the highest score.
+         * @param {module:la.Matrix | module:la.SparseMatrix} X - training instance feature vectors.
          * @param {module:la.Vector} y - target category for each training instance. Categories must
          * be integer numbers between 0 and oneVsAllParam.categories - 1.
+         * @returns {module:analytics.OneVsAll} Self. The models are now fitted.
+         * @example
+         * // import modules
+         * var analytics = require('qminer').analytics;
+         * var la = require('qminer').la;
+         * // create a new OneVsAll object with the model analytics.SVC
+         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+         * // create the data (matrix and vector) used to fit the model
+         * var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
+         * var vector = new la.Vector([0, 0, 1, 1]);
+         * // fit the model
+         * onevsall.fit(matrix, vector);
          */        
         this.fit = function(X, y) {
-            this.models = [ ];
+            models = [ ];
             // make model for each category
-            for (var cat = 0; cat < this.cats; cat++) {
-                console.log("Fitting label", (cat + 1), "/", this.cats);
+            for (var cat = 0; cat < cats; cat++) {
+                if (verbose) {
+                    console.log("Fitting label", (cat + 1), "/", cats);
+                };
                 // prepare targert vector for current category
                 var target = exports.preprocessing.binarize(y, cat);
                 // get the model
-                var catModel = new this.model(this.modelParam);
-                this.models.push(catModel.fit(X, target));
+                var catModel = new model(modelParam);
+                models.push(catModel.fit(X, target));
             }
-            console.log("Done!");
+            if (verbose) {
+                console.log("Done!");
+            };
             return this;
         }
     };
@@ -1001,103 +1537,6 @@
         };
     };
 
-    /**
-    * @classdesc Anomaly detector that checks if the test point is too far from
-    * the nearest known point.
-    * @class
-    * @param {Object} [detectorParam={rate:0.05}] - Constructor parameters
-    * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
-    */
-    exports.NearestNeighborAD = function (detectorParam) {
-        // Parameters
-        detectorParam = detectorParam == undefined ? {} : detectorParam;
-        detectorParam.rate = detectorParam.rate == undefined ? 0.05 : detectorParam.rate;
-        assert(detectorParam.rate > 0 && detectorParam.rate <= 1.0, 'rate parameter not in range (0,1]');
-        // model param
-        this.rate = detectorParam.rate;
-        // default model
-        this.thresh = 0;
-
-        /**
-        * Returns the model
-        * @param {p} Object whose keys are: "thresh" - Maximal squared distance to the nearest neighbor that is not anomalous
-        */
-        this.getModel = function () { return { rate: this.rate, thresh: this.thresh }; }
-
-        /**
-        * Sets parameters
-        * @param {p} Object whose keys are: "rate" - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
-        */
-        this.setParams = function (p) {
-            param = p;
-        }
-
-        /**
-        * Returns parameters
-        * @returns Object whose keys are: "rate" - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies)
-        */
-        this.getParams = function () {
-            return param;
-        }
-
-        /**
-        * Gets the 100*(1-rate) percentile
-        * @param {module:la.Vector} vector - Vector of values
-        * @returns {number} Percentile
-        */
-        function getThreshold(vector, rate) {
-            var sorted = vector.sortPerm().vec;
-            var idx = Math.floor((1 - rate) * sorted.length);
-            return sorted[idx];
-        }
-        var neighborDistances = undefined;
-
-        /**
-        * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
-        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
-        * the model.
-        */
-        this.fit = function (A) {
-            this.X = A;
-            // distances
-            var D = la.pdist2(A, A);
-            // add big numbers on the diagonal (exclude the point itself from the nearest point calcualtion)
-            var E = D.plus(D.multiply(la.ones(D.rows)).diag()).multiply(-1);
-            var neighborDistances = new la.Vector({ vals: D.rows });
-            for (var i = 0; i < neighborDistances.length; i++) {
-                // nearest neighbour squared distance
-                neighborDistances[i] = D.at(i, E.rowMaxIdx(i));
-            }
-            this.thresh = getThreshold(neighborDistances, this.rate);
-        }
-
-        /**
-        * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
-        * @param {module:la.Vector} x - Test vector
-        * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
-        */
-        this.predict = function (x) {
-            // compute squared dist and compare to thresh
-            var d = la.pdist2(this.X, x.toMat()).getCol(0);
-            var idx = d.multiply(-1).getMaxIdx();
-            var p = d[idx];
-            //console.log(p)
-            return p > this.thresh ? 1 : 0;
-        }
-
-        /**
-        * Adds a new point (or points) to the known points and recomputes the threhshold
-        * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
-        */
-        this.update = function (x) {
-            // append x to known examples and retrain (slow version)
-            // speedup 1: don't reallocate X every time (fixed window, circular buffer)
-            // speedup 2: don't recompute distances d(X,X), just d(X, y), get the minimum
-            // and append to neighborDistances
-            this.fit(la.cat([[this.X, x.toMat()]]));
-            //console.log('new threshold ' + this.thresh);
-        }
-    }
 
     /**
     * @classdesc Principal components analysis
@@ -1124,6 +1563,9 @@
         */
         this.setParams = function (p) {
             param = p;
+
+            iter = param.iter == undefined ? iter : param.iter;
+            k = param.k == undefined ? k : param.iter; 
         }
 
         /**
@@ -1149,7 +1591,7 @@
             // cov(A) = 1/(n-1) A A' - mu mu'
 
             // center data (same as matlab)
-            var cA = A.minus(mu.outer(la.ones(cols)));
+            var cA = A.minus(la.ones(cols).outer(mu));
             var C = cA.multiply(cA.transpose()).multiply(1 / (cols - 1));
             // alternative computation:
             //var C = (A.multiply(A.transpose()).multiply(1 / (cols - 1))).minus(mu.outer(mu));
@@ -1197,6 +1639,19 @@
     /**
     * @classdesc KMeans clustering
     * @class
+    * @property {number} iter - The maximum number of iterations.
+    * @property {number} k - The number of centroids.
+    * @property {boolean} verbose - If false, the console output is supressed.
+    * @example
+    * // import analytics and la modules
+    * var analytics = require('qminer').analytics;
+    * var la = require('qminer').la;
+    * // create a KMeans object
+    * var KMeans = new analytics.KMeans();
+    * // create the matrix to be fitted
+    * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+    * // create the model 
+    * KMeans.fit(X);
     */
     exports.KMeans = function (param) {
         param = param == undefined ? {} : param;
@@ -1205,6 +1660,7 @@
         var iter = param.iter == undefined ? 100 : param.iter;
         var k = param.k == undefined ? 2 : param.k;
         var verbose = param.verbose == undefined ? false : param.verbose;
+        var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
 
         // Model
         var C = undefined;
@@ -1212,24 +1668,77 @@
         var norC2 = undefined;
 
         /**
+        * Permutes centroid with given mapping.
+        @param {object} mapping - object that contains the mappping. E.g. mapping[4]=2 means "map cluster 4 into cluster 2"
+        */
+        this.permuteCentroids = function (mapping) {
+            var cl_count = C.cols;
+            var perm_matrix = la.zeros(cl_count, cl_count);
+            for (var i = 0; i < cl_count; i++) {
+                perm_matrix.put(i, mapping[i], 1);
+            }
+            var C_new = C.multiply(perm_matrix);
+            var idxv_new = new la.Vector(idxv);
+            for (var i = 0; i < idxv_new.length; i++) {
+                idxv_new[i] = mapping[idxv[i]]
+            }
+            C = C_new;
+            norC2 = la.square(C.colNorms());
+            idxv = idxv_new;
+        }
+        /**
         * Returns the model
         * @returns {Object} The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data)
+        * Returns the model.
+        * @returns {Object} The model object whose keys are: C (centroids) and idxv (cluster ids of the training data).
+        * @example
+        * // import modules
+        * var analytics = require('qminer').analytics;
+        * var la = require('qminer').la;
+        * // create the KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000 });
+        * // create a matrix to be fitted
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+        * // create the model
+        * KMeans.fit(X);
+        * // get the model
+        * var model = KMeans.getModel();
         */
         this.getModel = function () {
             return { C: C, idxv: idxv };
         }
 
         /**
-        * Sets parameters
-        * @param {p} Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)
+        * Sets the parameters.
+        * @param {Object} p - Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed).
+        * @returns {module:analytics.KMeans} Self.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans();
+        * // change the parameters of the KMeans object
+        * KMeans.setParams({ iter: 1000, k: 5 });
         */
         this.setParams = function (p) {
             param = p;
+
+            iter = param.iter == undefined ? iter : param.iter;
+            k = param.k == undefined ? k : param.k;
+            verbose = param.verbose == undefined ? verbose : param.verbose;
+            fitIdx = param.fitIdx == undefined ? fitIdx : param.fitIdx;
         }
 
         /**
-        * Returns parameters
-        * @returns Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)
+        * Returns the parameters.
+        * @returns Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed).
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000, k: 5 });
+        * // get the parameters
+        * var json = KMeans.getParams();
         */
         this.getParams = function () {
             return param;
@@ -1238,11 +1747,28 @@
         /**
         * Computes the centroids
         * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        * @returns {module:analytics.KMeans} Self. It stores the info about the new model.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+        * // create a matrix to be fitted
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+        * // create the model with the matrix X
+        * KMeans.fit(X);
         */
         this.fit = function (X) {
             // select random k columns of X, returns a dense C++ matrix
             var selectCols = function (X, k) {
-                var idx = la.randi(X.cols, k);
+                var idx;
+                if (fitIdx == undefined) {
+                    idx = la.randi(X.cols, k);
+                } else {
+                    assert(fitIdx.length == k, "Error: fitIdx is not of length k!");
+                    assert(Math.max.apply(Math, fitIdx) < X.cols, "Error: fitIdx contains index greater than number of columns in matrix. Index out of range!");
+                    idx = fitIdx;
+                }
                 var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
                 for (var i = 0; i < idx.length; i++) {
                     var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
@@ -1315,7 +1841,7 @@
                 }
                 if (qm_util.arraysIdentical(idxv, idxvOld)) {
                     if (verbose) {
-                        console.say("converged at iter: " + i); //DEBUG
+                        console.log("converged at iter: " + i); //DEBUG
                     }
                     break;
                 }
@@ -1332,6 +1858,19 @@
         * Returns an vector of cluster id assignments
         * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
         * @returns {module:la.IntVector} Vector of cluster assignments.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+        * // create a matrix to be fitted
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+        * // create the model with the matrix X
+        * KMeans.fit(X);
+        * // create the matrix of the prediction vectors
+        * var pred = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
+        * // predict the values
+        * var prediction = KMeans.predict(pred);
         */
         this.predict = function (X) {
             var ones_n = la.ones(X.cols).multiply(0.5);
@@ -1342,18 +1881,84 @@
         }
 
         /**
-        * Transforms the points to vectors of squared distances to centroids
+        * Transforms the points to vectors of squared distances to centroids.
         * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
-        * @returns {module:la.Matrix} Matrix where each column represents the squared distances to the centroid vectors
+        * @returns {module:la.Matrix} Matrix where each column represents the squared distances to the centroid vectors.
+        * @example
+        * // import modules
+        * var analytics = require('qminer').analytics;
+        * var la = require('qminer').la;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+        * // create a matrix to be fitted
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+        * // create the model with the matrix X
+        * KMeans.fit(X);
+        * // create the matrix of the transform vectors
+        * var matrix = new la.Matrix([[-2, 0], [0, -3]]);
+        * // get the transform values of matrix
+        * // returns the matrix
+        * //  10    17
+        * //   1    20
+        * //  10     1
+        * KMeans.transform(matrix);
         */
         this.transform = function (X) {
             var ones_n = la.ones(X.cols).multiply(0.5);
             var ones_k = la.ones(k).multiply(0.5);
             var norX2 = la.square(X.colNorms());
             var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
-            D = D.multiply(-1);
+            D = D.multiply(-2);
             return D;
         }
+		/**
+        * Saves KMeans internal state into (binary) file
+        * @param {string} fname - Name of the file to write into.
+        */
+        this.save = function(fname){
+			if (!C) {
+				throw new Error("KMeans.save() - model not created yet");
+			}
+
+			var params_vec = new la.Vector();
+			params_vec.push(iter);
+			params_vec.push(k);
+			params_vec.push(verbose ? 1.0 : 0.0);
+
+			var xfs = qm.fs;
+			var fout = xfs.openWrite(fname);
+			C.save(fout);
+			norC2.save(fout);
+			(new la.Vector(idxv)).save(fout);
+			params_vec.save(fout);
+			fout.close();
+			fout = null;
+		}
+		/**
+        * Loads KMeans internal state from (binary) file
+        * @param {string} fname - Name of the file to read from.
+        */
+        this.load = function (fname) {
+		    var xfs = qm.fs;
+		    var fin = xfs.openRead(fname);
+
+		    C = new la.Matrix();
+		    C.load(fin);
+		    norC2 = new la.Vector();
+		    norC2.load(fin);
+
+		    var idxvtmp = new la.Vector();
+		    idxvtmp.load(fin);
+		    idxv = idxvtmp; // make normal vector (?)
+
+		    var params_vec = new la.Vector();
+		    params_vec.load(fin);
+		    iter = params_vec[0];
+		    k = params_vec[1];
+		    verbose = (params_vec[2] != 0);
+
+		    fin = null;
+		}
     }
 
     ///////////////////////////////

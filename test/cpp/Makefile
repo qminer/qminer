@@ -9,40 +9,44 @@
 #	make run
 #
 
-include ../../Makefile.config
 # dependencies
 LIBS += -lgtest
 GLIB = ../../src/glib
-GLIB_BASE = $(GLIB)/base
+include $(GLIB)/Makefile.config
 
 ## Main application file
 MAIN = run-all-tests
 
 TEST_SRCS = \
 	test-TStr.cpp \
-	test-THash.cpp
+	test-THash.cpp \
+	test-zipfl.cpp
 
 TEST_OBJS = $(TEST_SRCS:.cpp=.o)
 
 # we test in release	
 CXXFLAGS += -O3 -DNDEBUG
 
+.PHONY: all run
 all: $(MAIN)
 run: test
 
 # COMPILE
 .cpp.o:
-	$(CC) $(CXXFLAGS) -I$(GLIB_BASE) -c $<
+	$(CC) $(CXXFLAGS) -c $<
 
 $(MAIN): $(MAIN).o $(TEST_OBJS) $(GLIB)/glib.a
-	$(CC) $(CXXFLAGS) -o $(MAIN) $^ -I$(GLIB_BASE) $(LDFLAGS) $(LIBS)
+	$(CC) -o $(MAIN) $^ $(LDFLAGS) $(LIBS)
 
+.PHONY: $(GLIB)/glib.a
 $(GLIB)/glib.a:
 	$(MAKE) -C $(GLIB) release
 
+.PHONY: test
 test: $(MAIN)
 	./$(MAIN)
 
+.PHONY: clean
 clean:
 	$(MAKE) -C $(GLIB) clean
 	rm -f *.o $(MAIN)

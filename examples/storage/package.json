@@ -1,9 +1,0 @@
-{
-  "name": "storage-aggregators-example",
-  "version": "0.0.1",
-  "description": "An example of using the storage and stream aggregators from the qminer module.",
-  "dependencies": {
-    "express": "^4.10.2",
-    "socket.io": "^1.3.6"
-  }
-}
