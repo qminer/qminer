@@ -10,8 +10,8 @@
 #define QMINER_AGGR_H
 
 #include "qminer_core.h"
+#include "qminer_storage.h"
 #include "qminer_ftr.h"
-#include "qminer_pbs.h"
 
 namespace TQm {
 
@@ -402,10 +402,17 @@ public:
 	// most recent values
 	double GetInFlt() const { return InVal; }
 	uint64 GetInTmMSecs() const { return InTmMSecs; }
-    // oldest values
+    // old values that fall out of the buffer
 	void GetOutFltV(TFltV& ValV) const { ValV = OutValV; }
 	void GetOutTmMSecsV(TUInt64V& MSecsV) const { MSecsV = OutTmMSecsV; }  
-    int GetN() const { return AllValV.Len(); }
+	
+	// the oldest value that is still in the buffer
+	double GetOldestFlt() const { return AllValV[0].Val1; }
+	// the oldest timestamp that is still in the buffer
+	uint64 GetOldestTmMSecs() const { return AllValV[0].Val2; }
+
+    // buffer length
+	int GetN() const { return AllValV.Len(); }
 
 	// IFltVec
 	int GetFltLen() const {	return AllValV.Len(); }

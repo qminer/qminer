@@ -9,7 +9,6 @@
 #include "qminer_core.h"
 #include "qminer_ftr.h"
 #include "qminer_aggr.h"
-#include "qminer_op.h"
 
 // external dependecies
 #include <sphere.h>
@@ -3893,6 +3892,13 @@ bool TIndex::DoQuerySmall(const TIndex::PQmGixExpItemSmall& ExpItem,
 	return ExpItem->Eval(GixSmall, ResIdFqV, Merger);
 }
 
+void TIndex::Upgrade(const TQmGixItemSmallV& Src, TQmGixItemV& Dest) const {
+    Dest.Clr(); Dest.Reserve(Src.Len());
+    for (int i = 0; i < Src.Len(); i++) {
+        Dest.Add(TQmGixItem((uint64)Src[i].Key, (int)Src[i].Dat));
+    }
+}
+
 TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access,
 	const PIndexVoc& _IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall,
 	const int& SplitLen) {
@@ -4209,11 +4215,6 @@ bool TIndex::LocEquals(const int& KeyId, const TFltPr& Loc1, const TFltPr& Loc2)
 	return GeoIndexH.IsKey(KeyId) ? GeoIndexH.GetDat(KeyId)->LocEquals(Loc1, Loc2) : false;
 }
 
-void TIndex::MergeIndex(const TWPt<TIndex>& TmpIndex) {
-	Gix->MergeIndex(TmpIndex->Gix);
-	GixSmall->MergeIndex(TmpIndex->GixSmall);
-}
-
 void TIndex::SearchAnd(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const {
 	// prepare the query
 	TVec<PQmGixExpItem> ExpItemV(KeyWordV.Len(), 0);
@@ -4343,7 +4344,15 @@ void TIndex::SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) {
 	GixSmall->SaveTxt(FNm + ".small", TQmGixKeyStr::New(Base, IndexVoc));
 }
 
-int TIndex::PartialFlush(int WndInMsec) {
+TBlobBsStats TIndex::GetBlobStats() const {
+    return TBlobBsStats::Add(Gix->GetBlobStats(), GixSmall->GetBlobStats());
+}
+
+TGixStats TIndex::GetGixStats(const bool& RefreshP) const {
+    return TGixStats::Add(Gix->GetGixStats(RefreshP), GixSmall->GetGixStats(RefreshP));
+}
+
+int TIndex::PartialFlush(const int& WndInMsec) {
 	int WndInMsecHalf = WndInMsec / 2;
 	int Res = 0; int LastRes = 0;
 	TTmStopWatch sw(true);
@@ -4354,56 +4363,6 @@ int TIndex::PartialFlush(int WndInMsec) {
 		LastRes = Res;
 	}
 	return Res;
-}
-
-///////////////////////////////
-// QMiner-Temporary-Index
-void TTempIndex::NewIndex(const PIndexVoc& IndexVoc) {
-	// prepare a temporary index path
-	TUInt64 NowTmMSec = TTm::GetMSecsFromTm(TTm::GetCurUniTm());
-	TStr TempIndexFPath = TempFPath + NowTmMSec.GetStr() + "/";
-	EAssertR(TDir::GenDir(TempIndexFPath), "Unable to create directory '" + TempIndexFPath + "'");
-	TempIndexFPathQ.Push(TempIndexFPath);
-	// prepare new temporary index
-	TEnv::Logger->OnStatus(TStr::Fmt("Creating a temporary index in %s ...", TempIndexFPath.CStr()));
-	TempIndex = TIndex::New(TempIndexFPath, faCreate, IndexVoc, IndexCacheSize, IndexCacheSize, TInt::Giga);
-}
-
-void TTempIndex::Merge(const TWPt<TIndex>& Index) {
-	// close any previous indices
-	TempIndex.Clr();
-	// marge new indexes with the current one
-	while (!TempIndexFPathQ.Empty()) {
-		TStr TempIndexFPath = TempIndexFPathQ.Top();
-		TempIndexFPathQ.Pop();
-		// load index
-		TEnv::Logger->OnStatus(TStr::Fmt("Merging a temporary index from %s ...", TempIndexFPath.CStr()));
-		PIndex NewIndex = TIndex::New(TempIndexFPath,
-			faRdOnly, Index->GetIndexVoc(), int64(10 * TInt::Mega), int64(10 * TInt::Mega), Index->GetSplitLen());
-		// merge with main index
-		Index->MergeIndex(NewIndex);
-		TEnv::Logger->OnStatus("Closing temporary index Start");
-		NewIndex.Clr();
-		TEnv::Logger->OnStatus("Closing temporary index Done");
-		// deleting temp index
-		TFFile TempFile(TempIndexFPath, ""); TStr DelFNm;
-		while (TempFile.Next(DelFNm)) { TFile::Del(DelFNm, false); }
-		if (!TDir::DelDir(TempIndexFPath)) {
-			TEnv::Logger->OnStatus(
-				TStr::Fmt("Unable to delete directory '%s'", TempIndexFPath.CStr()));
-		}
-	}
-}
-
-////////////////////////////////////////////////
-// QMiner-Operator
-TOp::TOp(const TStr& _OpNm) : OpNm(_OpNm) { TValidNm::AssertValidNm(OpNm); }
-
-PRecSet TOp::Exec(const TWPt<TBase>& Base, const TRecSetV& InRecSetV, const PJsonVal& ParamVal) {
-	QmAssertR(IsFunctional(), "Non-functional operator called as functional!");
-	TRecSetV OutRSetV; Exec(Base, InRecSetV, ParamVal, OutRSetV);
-	QmAssertR(OutRSetV.Len() == 1, "Non-functional return for functional operator!");
-	return OutRSetV[0];
 }
 
 ///////////////////////////////
@@ -4596,10 +4555,6 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLe
 	// prepare index
 	IndexVoc = TIndexVoc::New();
 	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, SplitLen);
-	// add standard operators
-	AddOp(TOpLinSearch::New());
-	AddOp(TOpGroupBy::New());
-	AddOp(TOpSplitBy::New());
 	// initialize with empty stores
 	StoreV.Gen(TEnv::GetMxStores()); StoreV.PutAll(NULL);
 	// initialize empty stream aggregate bases for each store
@@ -4625,10 +4580,6 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	TFIn IndexVocFIn(FPath + "IndexVoc.dat");
 	IndexVoc = TIndexVoc::Load(IndexVocFIn);
 	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, SplitLen);
-	// add standard operators
-	AddOp(TOpLinSearch::New());
-	AddOp(TOpGroupBy::New());
-	AddOp(TOpSplitBy::New());
 	// initialize with empty stores
 	StoreV.Gen(TEnv::GetMxStores()); StoreV.PutAll(NULL);
 	// initialize empty stream aggregate bases for each store
@@ -4875,7 +4826,7 @@ void TBase::Init() {
 }
 
 TWPt<TIndex> TBase::GetIndex() const {
-	return TempIndex.Empty() ? TWPt<TIndex>(Index) : TempIndex->GetIndex();
+	return TWPt<TIndex>(Index);
 }
 
 void TBase::AddStore(const PStore& NewStore) {
@@ -4971,21 +4922,6 @@ void TBase::Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV) {
 		const TQueryAggr& Aggr = QueryAggrV[QueryAggrN];
 		RecSet->AddAggr(TAggr::New(this, RecSet, Aggr));
 	}
-}
-
-void TBase::AddOp(const POp& NewOp) {
-	OpH.AddDat(NewOp->GetOpNm(), NewOp);
-}
-
-void TBase::Operator(const TRecSetV& InRecSetV, const PJsonVal& ParamVal, TRecSetV& OutRecSetV) {
-	// check what operator was requested
-	QmAssert(ParamVal->IsObjKey("operator"));
-	TStr OpNm = ParamVal->GetObjStr("operator");
-	// make sure we have it
-	QmAssert(this->IsOp(OpNm));
-	POp Op = this->GetOp(OpNm);
-	// execute the operator
-	Op->Exec(this, InRecSetV, ParamVal, OutRecSetV);
 }
 
 int TBase::NewIndexWordVoc(const TIndexKeyType& Type, const TStr& WordVocNm) {
@@ -5100,11 +5036,6 @@ void TBase::GarbageCollect() {
 	while (StoreH.FNextKeyId(StoreKeyId)) {
 		StoreH[StoreKeyId]->GarbageCollect();
 	}
-}
-
-void TBase::InitTempIndex(const uint64& IndexCacheSize) {
-	TempIndex = TTempIndex::New(TempFPath, IndexCacheSize);
-	TempIndex->NewIndex(IndexVoc);
 }
 
 bool TBase::SaveJSonDump(const TStr& DumpDir) {

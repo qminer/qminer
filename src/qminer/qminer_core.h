@@ -23,8 +23,6 @@ class TRec;
 class TRecSet; typedef TPt<TRecSet> PRecSet;
 class TIndexVoc; typedef TPt<TIndexVoc> PIndexVoc;
 class TIndex; typedef TPt<TIndex> PIndex;
-class TIndex2; typedef TPt<TIndex2> PIndex2;
-class TOp; typedef TPt<TOp> POp;
 class TAggr; typedef TPt<TAggr> PAggr;
 class TStreamAggr; typedef TPt<TStreamAggr> PStreamAggr;
 class TStreamAggrBase; typedef TPt<TStreamAggrBase> PStreamAggrBase;
@@ -561,11 +559,7 @@ public:
 	/// Get record with a given name
 	TRec GetRec(const TStr& RecNm);
 	/// Get number of records in the store
-	virtual uint64 GetRecs() const = 0; 
-	/// Get ID of the first record
-	virtual uint64 GetFirstRecId() const = 0;
-	/// Get ID of the last record
-	virtual uint64 GetLastRecId() const = 0;
+	virtual uint64 GetRecs() const = 0;
 	/// Get iterator to go over all records in the store
 	virtual PStoreIter GetIter() const = 0;
 	/// Get record set with all the records in the store
@@ -577,9 +571,9 @@ public:
 	bool Empty() const { return (GetRecs() == uint64(0)); }
 
 	/// Gets the first record in the store (order defined by store implementation)
-	virtual uint64 FirstRecId() const { throw TQmExcept::New("Not implemented"); }
+	virtual uint64 GetFirstRecId() const { throw TQmExcept::New("Not implemented"); }
 	/// Gets the last record in the store (order defined by store implementation)
-	virtual uint64 LastRecId() const { throw TQmExcept::New("Not implemented"); };
+	virtual uint64 GetLastRecId() const { throw TQmExcept::New("Not implemented"); };
 	/// Gets forward moving iterator (order defined by store implementation)
 	virtual PStoreIter ForwardIter() const { throw TQmExcept::New("Not implemented"); };
 	/// Gets backward moving iterator (order defined by store implementation)
@@ -605,7 +599,7 @@ public:
 	/// Deletes all records
 	virtual void DeleteAllRecs() = 0;
 	/// Delete the first DelRecs records (the records that were inserted first)
-	virtual void DeleteFirstNRecs(int DelRecs) {};
+	virtual void DeleteFirstRecs(const int& DelRecs) = 0;
 	/// Delete specific records
 	virtual void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true) = 0;
 	
@@ -770,17 +764,6 @@ public:
 	virtual int PartialFlush(int WndInMsec = 500) { throw TQmExcept::New("Not implemented"); }
 	/// Retrieve performance statistics for this store
 	virtual PJsonVal GetStats() = 0;
-
-	/// Check if store supports TOAST
-	virtual bool CanToast() { return false; }
-	/// Return max size of non-TOAST-ed record
-	virtual int GetMaxToastLen() { return -1; }
-	/// Store value into internal storage using TOAST method
-	virtual TPgBlobPt ToastVal(const TMemBase& Mem) { Fail; return TPgBlobPt(); }
-	/// Retrieve value that is saved using TOAST method from storage 
-	virtual void UnToastVal(const TPgBlobPt& Pt, TMem& Mem) { Fail; }
-	/// Delete TOAST-ed value from storage 
-	virtual void DelToastVal(const TPgBlobPt& Pt) { Fail; }
 };
 
 ///////////////////////////////
@@ -2291,40 +2274,27 @@ private:
 	bool DoQuerySmall(const PQmGixExpItemSmall& ExpItem, const PQmGixExpMergerSmall& Merger,
 		TQmGixItemSmallV& RecIdFqV) const;
 	/// Determines which Gix should be used for given KeyId
-	bool UseGixSmall(const int& KeyId) const { 
-		return IndexVoc->GetKey(KeyId).IsSmall();
-	}	
-
+	bool UseGixSmall(const int& KeyId) const { return IndexVoc->GetKey(KeyId).IsSmall(); }
 	/// Upgrades a vector of small items into a vector of big ones
-	void Upgrade(const TQmGixItemSmallV& Src, TQmGixItemV& Dest) const {
-		Dest.Clr(); Dest.Reserve(Src.Len());
-		for (int i = 0; i < Src.Len(); i++) {
-			Dest.Add(TQmGixItem((uint64)Src[i].Key, (int)Src[i].Dat));
-		}
-	}
+	void Upgrade(const TQmGixItemSmallV& Src, TQmGixItemV& Dest) const;
 
 	/// Constructor
-	TIndex(const TStr& _IndexFPath, const TFAccess& _Access, 
-		const PIndexVoc& IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall,
-		const int& SplitLen);
+	TIndex(const TStr& _IndexFPath, const TFAccess& _Access, const PIndexVoc& IndexVoc,
+        const int64& CacheSize, const int64& CacheSizeSmall, const int& SplitLen);
 public:
 	/// Create (Access==faCreate) or open existing index
-	static PIndex New(const TStr& IndexFPath, const TFAccess& Access, 
-		const PIndexVoc& IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall,
-		const int& SplitLen) {
-		return new TIndex(IndexFPath, Access, IndexVoc, CacheSize, CacheSizeSmall, SplitLen);
+	static PIndex New(const TStr& IndexFPath, const TFAccess& Access, const PIndexVoc& IndexVoc,
+        const int64& CacheSize, const int64& CacheSizeSmall, const int& SplitLen) {
+            return new TIndex(IndexFPath, Access, IndexVoc, CacheSize, CacheSizeSmall, SplitLen);
 	}
 	/// Checks if there is an existing index at the given path
-	static bool Exists(const TStr& IndexFPath) {
-		return TFile::Exists(IndexFPath + "Index.Gix"); }
+	static bool Exists(const TStr& IndexFPath) { return TFile::Exists(IndexFPath + "Index.Gix"); }
 	
 	/// Close the query
 	~TIndex();
 
 	/// Get index location
 	TStr GetIndexFPath() const { return IndexFPath; }
-	/// Get index cache size - this one looks obsolete, so it was commented out
-	//uint64 GetIndexCacheSize() const { return Gix->GetCacheSize() + GixSmall->GetCacheSize(); }
 	/// Get index vocabulary
 	TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
 	/// Get default index merger
@@ -2410,12 +2380,8 @@ public:
 	/// Checks if two locations point to the same place
 	bool LocEquals(const int& KeyId, const TFltPr& Loc1, const TFltPr& Loc2) const;
 
-	/// Check if the index is taking all the available cache space
-	bool IsCacheFull() const { Fail; return Gix->IsCacheFull(); } // deprecated
 	/// Check if index opened in read-only mode
 	bool IsReadOnly() const { return Access == faRdOnly; }
-	/// Merge with another index
-	void MergeIndex(const TWPt<TIndex>& TmpIndex); // basically deprecated
 
 	/// Do flat AND search, given the vector of inverted index queries
 	void SearchAnd(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const;
@@ -2436,13 +2402,9 @@ public:
 	void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm);
 
 	/// get blob stats
-	const TBlobBsStats GetBlobStats() {
-		return TBlobBsStats::Add(Gix->GetBlobStats(), GixSmall->GetBlobStats());
-	}
+	TBlobBsStats GetBlobStats() const;
 	/// get gix stats
-	const TGixStats GetGixStats(bool do_refresh = true) { 
-		return TGixStats::Add(Gix->GetGixStats(do_refresh), GixSmall->GetGixStats(do_refresh));
-	}
+	TGixStats GetGixStats(const bool& RefreshP = true) const;
 
 	/// Get split length of inner Gix
 	int GetSplitLen() const { return Gix->GetSplitLen(); }
@@ -2450,81 +2412,7 @@ public:
 	void ResetStats() { Gix->ResetStats(); GixSmall->ResetStats(); }
 
 	/// perform partial flush of index contents
-	int PartialFlush(int WndInMsec = 500);
-};
-
-///////////////////////////////
-/// Temporary Index.
-/// Useful for fast batch indexing, where we create a new index each time we fill
-/// the given cache space. At the end all the indices are merged together.
-class TTempIndex {
-private: 
-	// smart-pointer
-	TCRef CRef;
-	friend class TPt<TTempIndex>;
-
-	/// Maximal size of temporary index
-	int64 IndexCacheSize;
-	/// Location of the temporary index
-	TStr TempFPath;
-	/// List of previous temporary index locations, used at final merging into the main index
-	TStrQ TempIndexFPathQ;
-	/// Current temporary index
-	PIndex TempIndex;
-
-	UndefDefaultCopyAssign(TTempIndex);
-	TTempIndex(const TStr& _TempFPath, const int64& _IndexCacheSize): 
-		 IndexCacheSize(_IndexCacheSize), TempFPath(_TempFPath) { }
-public:
-	/// Create new empty temporary index
-	static TPt<TTempIndex> New(const TStr& TempFPath, const int64& IndexCacheSize) { 
-		return new TTempIndex(TempFPath, IndexCacheSize); }
-
-	/// Is the temporary index full
-	bool IsIndexFull() const { return TempIndex->IsCacheFull(); }
-	/// Returns index to which new items can be added
-	TWPt<TIndex> GetIndex() const { return TempIndex; }
-	/// Initialize new empty temporary index
-	void NewIndex(const PIndexVoc& IndexVoc);
-	/// Merge all temporary indices with the given main index
-	void Merge(const TWPt<TIndex>& Index);
-};
-typedef TPt<TTempIndex> PTempIndex;
-
-///////////////////////////////
-/// Operator. 
-/// Abstraction for functions working with record sets. 
-///   Input: zero or more record sets, parameters as JSon object
-///   Output: one or more record sets.
-/// Operators returning exactly one record set are called "Functional".
-class TOp {
-private: 
-	// smart-pointer
-	TCRef CRef;
-	friend class TPt<TOp>;
-	/// Operator name
-	const TStr OpNm;
-
-protected:
-	/// Create new operator with a given name. Name is validated against naming constraints.
-	TOp(const TStr& _OpNm);
-public:	
-	virtual ~TOp() { }
-
-	/// Get operator name
-	TStr GetOpNm() const { return OpNm; }
-	
-	/// Execute the operator
-	/// @param InRecSetV   Input record sets, can be empty
-	/// @param ParamVal    Operator parameters
-	/// @param OutRecSetV  Output record sets, should not be empty.
-	virtual void Exec(const TWPt<TBase>& Base, const TRecSetV& InRecSetV, 
-		const PJsonVal& ParamVal, TRecSetV& OutRecSetV) = 0;
-	/// True when operator always returns exactly one record set
-	virtual bool IsFunctional() = 0;
-	/// Wrapper for easier calling of functional operators.
-	PRecSet Exec(const TWPt<TBase>& Base, const TRecSetV& InRecSetV, 
-		const PJsonVal& ParamVal);
+	int PartialFlush(const int& WndInMsec = 500);
 };
 
 ///////////////////////////////
@@ -2812,11 +2700,6 @@ private:
 	TVec<PStreamAggrBase> StreamAggrBaseV;
 	// default stream aggregate base (store independent)
 	PStreamAggrBase StreamAggrDefaultBase;
-	// operators
-	THash<TStr, POp> OpH;
-
-	// temporary indices
-	PTempIndex TempIndex;
 
 private:
 	TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen);
@@ -2833,10 +2716,10 @@ private:
 	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall, const TQueryGixUsedType& ParentGixFlag);
 
 public:
-	static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const int& SplitLen = TInt::Giga) {
+	static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const int& SplitLen) {
 		return new TBase(FPath, IndexCacheSize, SplitLen);
 	}
-	static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize, const int& SplitLen = TInt::Giga) {
+	static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize, const int& SplitLen) {
 		return new TBase(FPath, FAccess, IndexCacheSize, SplitLen);
 	}
 
@@ -2885,17 +2768,6 @@ public:
 	// aggregate records
 	void Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV);
 
-	// operators
-	void AddOp(const POp& NewOp);
-	int GetOps() const { return OpH.Len(); }
-	int GetFirstOpId() const { return OpH.FFirstKeyId(); }
-	bool GetNextOpId(int& OpId) const { return OpH.FNextKeyId(OpId); }
-	const POp& GetOp(const int& OpId) const { return OpH[OpId]; }
-	bool IsOp(const TStr& OpNm) const { return OpH.IsKey(OpNm); }
-	const POp& GetOp(const TStr& OpNm) const { return OpH.GetDat(OpNm); }
-	// execute operator
-	void Operator(const TRecSetV& InRecSetV, const PJsonVal& ParamVal, TRecSetV& OutRecSetV);	
-
 	// create new word vocabulary and returns its id
 	int NewIndexWordVoc(const TIndexKeyType& Type, const TStr& WordVocNm = TStr());
 	// creates index key, without linking it to a filed, returns the id of created key
@@ -2940,14 +2812,6 @@ public:
 	TStr GetTempFPath() const { return TempFPath; }
 	// set temporary folder
 	void PutTempFPath(const TStr& _TempFPath) { TempFPathP = true; TempFPath = _TempFPath; }
-
-	// temporary index (useful at batch processing)
-	bool IsTempIndex() const { return !TempIndex.Empty(); }
-	void InitTempIndex(const uint64& IndexCacheSize);
-	void MergeTempIndex() { TempIndex->Merge(Index); TempIndex.Clr(); }
-	bool IsTempIndexFull() const { return TempIndex->IsIndexFull(); }
-	void NewTempIndex() const { TempIndex->NewIndex(IndexVoc); }
-	void CheckTempIndexSize() { if (IsTempIndexFull()) { NewTempIndex(); } }
 
 	// JSON dump and load
 	bool SaveJSonDump(const TStr& DumpDir);

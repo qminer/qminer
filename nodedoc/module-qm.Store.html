@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.2">
+  <meta name="generator" content="JSDoc 3.3.0-beta2">
   <meta charset="utf-8">
   <title>Factory class: Store</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -25,67 +25,10 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">factory class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Store</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-778">qminerdoc.<wbr>js:778</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-796">qminerdoc.<wbr>js:796</a></p>
             <div class="symbol-description">
               <p>Store (factory pattern result)</p>
             </div>
-            <section>
-              <h2>
-            Example
-        </h2>
-              <div>
-                <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
-// factory based construction using base.createStore
-var base = qm.create(&#x27;qm.conf&#x27;, &quot;&quot;, true);
-base.createStore([{
-   name: &quot;People&quot;,
-   fields: [
-       { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
-       { name: &quot;Gender&quot;, type: &quot;string&quot;, shortstring: true },
-       { name: &quot;Age&quot;, type: &quot;int&quot; }
-   ],
-   joins: [
-       { name: &quot;ActedIn&quot;, type: &quot;index&quot;, store: &quot;Movies&quot;, inverse: &quot;Actor&quot; },
-       { name: &quot;Directed&quot;, type: &quot;index&quot;, store: &quot;Movies&quot;, inverse: &quot;Director&quot; }
-   ],
-   keys: [
-       { field: &quot;Name&quot;, type: &quot;text&quot; },
-       { field: &quot;Gender&quot;, type: &quot;value&quot; }
-   ]
-},
-{
-   name: &quot;Movies&quot;,
-   fields: [
-       { name: &quot;Title&quot;, type: &quot;string&quot;, primary: true },
-       { name: &quot;Plot&quot;, type: &quot;string&quot;, store: &quot;cache&quot; },
-       { name: &quot;Year&quot;, type: &quot;int&quot; },
-       { name: &quot;Rating&quot;, type: &quot;float&quot; },
-       { name: &quot;Genres&quot;, type: &quot;string_v&quot;, codebook: true }
-   ],
-   joins: [
-       { name: &quot;Actor&quot;, type: &quot;index&quot;, store: &quot;People&quot;, inverse: &quot;ActedIn&quot; },
-       { name: &quot;Director&quot;, type: &quot;index&quot;, store: &quot;People&quot;, inverse: &quot;Directed&quot; }
-   ],
-   keys: [
-       { field: &quot;Title&quot;, type: &quot;value&quot; },
-       { field: &quot;Plot&quot;, type: &quot;text&quot;, vocabulary: &quot;voc_01&quot; },
-       { field: &quot;Genres&quot;, type: &quot;value&quot; }
-   ]
-}]);
-// using the base constructor
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [{
-       name: &quot;Class&quot;,
-       fields: [
-           { name: &quot;Name&quot;, type: &quot;string&quot; },
-           { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
-       ]
-   }]
-});</code></pre>
-              </div>
-            </section>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -163,13 +106,19 @@ var base = new qm.Base({
                     <dt><a href="module-qm.Store.html#getMatrix">getMatrix(fieldName)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Store.html#getVector">getVector(fieldName)</a></dt>
+                    <dt><a href="module-qm.Store.html#getStreamAggr">getStreamAggr(saName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#getStreamAggrNames">getStreamAggrNames()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Store.html#getVector">getVector(fieldName)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.Store.html#isDate">isDate(fieldName)</a></dt>
                     <dd>
                     </dd>
@@ -607,6 +556,51 @@ var matrix = base.store(&quot;ArcheryChampionship&quot;).getMatrix(&quot;ScorePe
                   <p><code>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>&nbsp;The matrix containing the field values.</p>
                 </dd>
               </dl>
+              <h3 id="getStreamAggr"><span class="symbol-name">getStreamAggr</span><span class="signature"><span class="signature-params">(saName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
+              <p>Returns the stream aggregate with the given name.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>saName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the stream aggregate.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></code>&nbsp;The stream aggregate with the saName.</p>
+                </dd>
+              </dl>
+              <h3 id="getStreamAggrNames"><span class="symbol-name">getStreamAggrNames</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Array of string</span></span></h3>
+              <p>Returns an array of the stream aggregates names connected to the store.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Array of string</code>&nbsp;An array of stream aggregates names.</p>
+                </dd>
+              </dl>
               <h3 id="getVector"><span class="symbol-name">getVector</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Gives a vector containing the field value of each record.</p>
               <section>
@@ -984,7 +978,7 @@ var arr = base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; })
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of Object</code>&nbsp;The array created by the callback function. //TODO</p>
+                  <p><code>Array of Object</code>&nbsp;The array created by the callback function.</p>
                 </dd>
               </dl>
               <h3 id="newRecord"><span class="symbol-name">newRecord</span><span class="signature"><span class="signature-params">(json)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Record.html">module:qm.Record</a></span></span></h3>
@@ -1355,7 +1349,7 @@ var json = base.store(&quot;FootballPlayers&quot;).toJSON();</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 17, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on August 20, 2015.
       </p>
     </div>
   </footer>

@@ -7,7 +7,7 @@ node makedoc.js ../src/nodejs/la/la_structures_nodejs.h ../src/nodejs/scripts/la
 
 node makedoc.js ../src/nodejs/la/la_vector_nodejs.h "" ../nodedoc/ladoc.js ../nodedoc/ladoc_structures.js ../src/nodejs/la/VectorDocData.js ../src/nodejs/la/StrVectorDocData.js ../src/nodejs/la/IntVectorDocData.js ../src/nodejs/la/BoolVectorDocData.js
 
-node makedoc.js ../src/nodejs/qm/qm_nodejs.h ../src/nodejs/scripts/analytics.js ../nodedoc/qminerdoc.js
+node makedoc.js ../src/nodejs/qm/qm_nodejs.h ../src/nodejs/scripts/qm.js ../nodedoc/qminerdoc.js
 node makedoc.js ../src/nodejs/qm/qm_nodejs_streamaggr.h "" ../nodedoc/qminer_aggrdoc.js
 
 node makedoc.js ../src/nodejs/statistics/stat_nodejs.h "" ../nodedoc/statdoc.js
