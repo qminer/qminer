@@ -2246,9 +2246,15 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
 		const int MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
 		JsRecSet->RecSet->FilterByFieldInt(FieldId, MnVal, MxVal);
 	}
-	else if (Desc.IsStr() && TNodeJsUtil::IsArgStr(Args, 1)) {
-		TStr StrVal = TNodeJsUtil::GetArgStr(Args, 1);
-		JsRecSet->RecSet->FilterByFieldStr(FieldId, StrVal);
+	else if (Desc.IsStr()) {
+        if (TNodeJsUtil::IsArgStr(Args, 1)) {
+            TStr StrVal = TNodeJsUtil::GetArgStr(Args, 1);
+            JsRecSet->RecSet->FilterByFieldStr(FieldId, StrVal);
+        } else {
+            TStr StrValMin = TNodeJsUtil::GetArgStr(Args, 1);
+            TStr StrValMax = TNodeJsUtil::GetArgStr(Args, 2);
+            JsRecSet->RecSet->FilterByFieldStrMinMax(FieldId, StrValMin, StrValMax);
+        }
 	}
 	else if (Desc.IsFlt()) {
 		const double MnVal = TNodeJsUtil::GetArgFlt(Args, 1);

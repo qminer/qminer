@@ -2042,6 +2042,14 @@ void TRecSet::FilterByFieldStr(const int& FieldId, const TStr& FldVal) {
 	FilterBy(TRecFilterByFieldStr(Store, FieldId, FldVal));
 }
 
+void TRecSet::FilterByFieldStrMinMax(const int& FieldId, const TStr& FldVal, const TStr& FldValMax) {
+    // get store and field type
+    const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+    QmAssertR(Desc.IsStr(), "Wrong field type, string expected");
+    // apply the filter
+    FilterBy(TRecFilterByFieldStrMinMax(Store, FieldId, FldVal, FldValMax));
+}
+
 void TRecSet::FilterByFieldStrSet(const int& FieldId, const TStrSet& ValSet) {
 	// get store and field type
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
