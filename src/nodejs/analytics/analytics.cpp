@@ -916,6 +916,7 @@ void TNodeJsRecLinReg::Init(v8::Handle<v8::Object> exports) {
 
 	// Add all methods, getters and setters here.
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
@@ -953,9 +954,43 @@ void TNodeJsRecLinReg::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
+	// get feature matrix
+	EAssertR(TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId()),
+		"RecLinRegModel.fit: The first argument must be a JsTFltVV (js linalg full matrix)");
+	EAssertR(TNodeJsUtil::IsArgWrapObj(Args, 1, TNodeJsFltV::GetClassId()), "Argument 1 should be a full vector!");
+
+	TNodeJsRecLinReg* Model = ObjectWrap::Unwrap<TNodeJsRecLinReg>(Args.Holder());
+	TNodeJsFltVV* JsFeatMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
+	TNodeJsFltV* TargetVec = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
+	
+	// make sure dimensions of matrix and vector math
+	EAssertR(JsFeatMat->Mat.GetCols() == TargetVec->Vec.Len(),
+		"RecLinRegModel.fit: passed matrix dimension != passed argument dimension");
+
+	// make sure dimensions match
+	EAssertR(Model->Model->GetDim() == JsFeatMat->Mat.GetRows(),
+		"RecLinRegModel.fit: model dimension != passed argument dimension");
+
+	// learn
+	TFltV Col;
+	for (int i = 0; i < JsFeatMat->Mat.GetRows(); i++) {
+		JsFeatMat->Mat.GetCol(i, Col);
+		Model->Model->Learn(Col, TargetVec->Vec[i]);
+	}
+
+	EAssertR(!Model->Model->HasNaN(), "RecLinRegModel.fit: NaN detected!");
+
+	Args.GetReturnValue().Set(Args.Holder());
+
+}
+
+void TNodeJsRecLinReg::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
 	// get feature vector
 	EAssertR(TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId()),
-		"RecLinRegModel.learn: The first argument must be a JsTFltV (js linalg full vector)");
+		"RecLinRegModel.partialFit: The first argument must be a JsTFltV (js linalg full vector)");
 	EAssertR(TNodeJsUtil::IsArgFlt(Args, 1), "Argument 1 should be float!");
 
 	TNodeJsRecLinReg* Model = ObjectWrap::Unwrap<TNodeJsRecLinReg>(Args.Holder());
@@ -964,11 +999,11 @@ void TNodeJsRecLinReg::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	// make sure dimensions match
 	EAssertR(Model->Model->GetDim() == JsFeatVec->Vec.Len(),
-		"RecLinRegModel.learn: model dimension != passed argument dimension");
+		"RecLinRegModel.partialFit: model dimension != passed argument dimension");
 
 	// learn
 	Model->Model->Learn(JsFeatVec->Vec, Target);
-	EAssertR(!Model->Model->HasNaN(), "RecLinRegModel.learn: NaN detected!");
+	EAssertR(!Model->Model->HasNaN(), "RecLinRegModel.partialFit: NaN detected!");
 
 	Args.GetReturnValue().Set(Args.Holder());
 }

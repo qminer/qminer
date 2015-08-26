@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
   <title>Module: analytics</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -29,6 +29,14 @@
             <div class="symbol-description">
               <p>Analytics module.</p>
             </div>
+            <section>
+              <h2>
+            Example
+        </h2>
+              <div>
+                <pre class="prettyprint"><code>// import module, load dataset, create model, evaluate model</code></pre>
+              </div>
+            </section>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -47,26 +55,29 @@
                     <dt><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD([detectorParam])</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.OneVsAll.html">OneVsAll([oneVsAllParam])</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.OneVsAll.html">OneVsAll([oneVsAllParam])</a></dt>
+                    <dt><a href="module-analytics.PCA.html">PCA()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.PCA.html">PCA()</a></dt>
+                    <dt><a href="module-analytics.RecLinReg.html">RecLinReg(param)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.RidgeReg.html">RidgeReg([arg])</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.Sigmoid.html">Sigmoid([arg])</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.Sigmoid.html">Sigmoid([arg])</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-analytics.SVC.html">SVC([arg])</a></dt>
                     <dd>
                     </dd>
@@ -104,6 +115,22 @@
                     <dt><a href="module-analytics.html#~oneVsAllParam">oneVsAllParam</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.html#~recLinearRegParam">recLinearRegParam</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~recLinRegModel">recLinRegModel</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.html#~ridgeRegModel">ridgeRegModel</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.html#~ridgeRegParam">ridgeRegParam</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
@@ -114,10 +141,6 @@
                     <dt><a href="module-analytics.html#~svmModel">svmModel</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="module-analytics.html#~svrParam">svrParam</a></dt>
                     <dd>
                     </dd>
@@ -134,6 +157,7 @@
               <h3><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD</a></h3>
               <h3><a href="module-analytics.OneVsAll.html">OneVsAll</a></h3>
               <h3><a href="module-analytics.PCA.html">PCA</a></h3>
+              <h3><a href="module-analytics.RecLinReg.html">RecLinReg</a></h3>
               <h3><a href="module-analytics.RidgeReg.html">RidgeReg</a></h3>
               <h3><a href="module-analytics.Sigmoid.html">Sigmoid</a></h3>
               <h3><a href="module-analytics.SVC.html">SVC</a></h3>
@@ -178,7 +202,7 @@
             <h2>Abstract types</h2>
             <section>
               <h3 id="~detectorParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">detectorParam</span><small class="property-type">
-                &nbsp;Object</small></h3>
+            &nbsp;Object</small></h3>
               <p>A Json object used for the creation of the <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a>.</p>
               <section>
                 <h4>Parameters</h4>
@@ -228,7 +252,7 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~oneVsAllParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">oneVsAllParam</span><small class="property-type">
-                &nbsp;Object</small></h3>
+            &nbsp;Object</small></h3>
               <p>The parameter given to the OneVsAll object. A Json object containing the parameter keys with values.</p>
               <section>
                 <h4>Parameters</h4>
@@ -296,7 +320,172 @@
                       </td>
                       <td>
                         <p>If false, the console output is supressed.</p>
-                        <p>Defaults to <code></code>.</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~recLinearRegParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">recLinearRegParam</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <p>The constructor parameter for <a href="module-analytics.RecLinReg.html">module:analytics.RecLinReg</a>.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>dim</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The dimension of the model.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>regFact</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The regularization factor.</p>
+                        <p>Defaults to <code>1.0</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>forgetFact</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The forgetting factor.</p>
+                        <p>Defaults to <code>1.0</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~recLinRegModel"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">recLinRegModel</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>recLinRegModel.weights</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Recursive Linear Regression model vector.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~ridgeRegModel"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">ridgeRegModel</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>ridgeRegModel.weights</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The Ridge Regression model vector.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~ridgeRegParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">ridgeRegParam</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <p>The Ridge Regression constructor parameter.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>gamma</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The gamma value.</p>
+                        <p>Defaults to <code>1.0</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -305,7 +494,7 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~svcParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">svcParam</span><small class="property-type">
-                &nbsp;Object</small></h3>
+            &nbsp;Object</small></h3>
               <p>SVC constructor parameters</p>
               <section>
                 <h4>Properties</h4>
@@ -422,7 +611,7 @@
                       </td>
                       <td>
                         <p>Toggle verbose output in the console.</p>
-                        <p>Defaults to <code></code>.</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -431,7 +620,7 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~svmModel"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">svmModel</span><small class="property-type">
-                &nbsp;Object</small></h3>
+            &nbsp;Object</small></h3>
               <p>SVM model.</p>
               <section>
                 <h4>Property</h4>
@@ -465,7 +654,7 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="~svrParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">svrParam</span><small class="property-type">
-                &nbsp;Object</small></h3>
+            &nbsp;Object</small></h3>
               <p>SVR constructor parameters</p>
               <section>
                 <h4>Properties</h4>
@@ -581,7 +770,7 @@
                       </td>
                       <td>
                         <p>Toggle verbose output in the console.</p>
-                        <p>Defaults to <code></code>.</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -599,7 +788,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on August 20, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 26, 2015.
       </p>
     </div>
   </footer>

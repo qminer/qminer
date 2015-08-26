@@ -405,13 +405,20 @@ public:
 
 /////////////////////////////////////////////
 // Ridge Regression
+
+/**
+* @typedef {Object} ridgeRegParam
+* The Ridge Regression constructor parameter.
+* @param {number} [gamma=1.0] - The gamma value.
+*/
+
 /**
  * Ridge regression. Minimizes: ||A' x - b||^2 + ||gamma x||^2
  *
  * Uses {@link http://en.wikipedia.org/wiki/Tikhonov_regularization Tikhonov regularization}.
  *
  * @class
- * @param {(Object|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model by setting gamma=arg from a Json object.
+ * @param {(module:analytics~ridgeRegParam|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model by setting gamma=arg from a Json object.
  * Empty constructor sets gamma to zero.
  * @example
  * // import modules
@@ -498,7 +505,7 @@ public:
 	 * var regmod = new analytics.RidgeReg();
 	 * // create the test matrix and vector
 	 * var X = new la.Matrix([[1, 2], [1, -1]]);
-	 * var y = new la.Matrix([3, 3]);
+	 * var y = new la.Vector([3, 3]);
 	 * // fit the model with X and y
 	 * // the weights of the model are 2, 1
 	 * regmod.fit(X, y);
@@ -519,7 +526,7 @@ public:
 	 * var regmod = new analytics.RidgeReg();
 	 * // create the test matrix and vector
 	 * var X = new la.Matrix([[1, 2], [1, -1]]);
-	 * var y = new la.Matrix([3, 3]);
+	 * var y = new la.Vector([3, 3]);
 	 * // fit the model with X and y
 	 * regmod.fit(X, y);
 	 * // create a new vector for the prediction
@@ -543,7 +550,7 @@ public:
 	 * var regmod = new analytics.RidgeReg();
 	 * // create the test matrix and vector
 	 * var X = new la.Matrix([[1, 2], [1, -1]]);
-	 * var y = new la.Matrix([3, 3]);
+	 * var y = new la.Vector([3, 3]);
 	 * // fit the model with X and y
 	 * regmod.fit(X, y);
 	 * // create a new vector for the prediction
@@ -755,12 +762,12 @@ public:
  * var la = require('qminer').la;
  * // create a new NearestNeighborAD object
  * var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
- * // create a matrix 
- * var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+ * // create a sparse matrix 
+ * var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
  * // fit the model with the matrix
  * neighbor.fit(matrix);
- * // create a new vector
- * var vector = new la.Vector([4, 0]);
+ * // create a new sparse vector
+ * var vector = new la.SparseVector([[0, 4], [1, 0]]);
  * // predict if the vector is an anomaly or not
  * var prediction = neighbor.predict(vector);
  */
@@ -846,7 +853,7 @@ public:
 
 	/**
 	* Adds a new point (or points) to the known points and recomputes the threshold.
-	* @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input).
+	* @param {(module:la.SparseVector | module:la.SparseMatrix)} X - Test example (vector input) or column examples (matrix input).
 	* @returns {module:analytics.NearestNeighborAD} Self. The model is updated.
 	* @example
 	* // import modules
@@ -854,21 +861,21 @@ public:
 	* var la = require('qminer').la;
 	* // create a new NearestNeighborAD object
 	* var neighbor = new analytics.NearestNeighborAD();
-	* // create a new matrix
-	* var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+	* // create a new sparse matrix
+	* var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 	* // fit the model with the matrix
 	* neighbor.fit(matrix);
-	* // create a new vector
-	* var vector = new la.Vector([2, 5]);
+	* // create a new sparse vector
+	* var vector = new la.SparseVector([[0, 2], [1, 5]]);
 	* // update the model with the vector
-	* neighbor.update(vector);
+	* neighbor.partialFit(vector);
 	*/
-    //# exports.NearestNeighborAD.prototype.partialFit = function(x) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
+    //# exports.NearestNeighborAD.prototype.partialFit = function(X) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
     JsDeclareFunction(partialFit);
     
 	/**
 	* Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
-	* @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+	* @param {module:la.SparseMatrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
 	* the model.
 	* @returns {module:analytics.NearestNeighborAD} Self. The model is set by the matrix A.
 	* @example
@@ -877,8 +884,8 @@ public:
 	* var la = require('qminer').la;
 	* // create a new NearestNeighborAD object
 	* var neighbor = new analytics.NearestNeighborAD();
-	* // create a new matrix
-	* var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+	* // create a new sparse matrix
+	* var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 	* // fit the model with the matrix
 	* neighbor.fit(matrix);
 	*/
@@ -888,14 +895,14 @@ public:
     /**
      * Compares the point to the known points and returns distance to the nearest one.
      * @param {module:la.Vector} x - Test vector.
-     * @returns {number} Distnace to the nearest point.
+     * @returns {number} Distance to the nearest point.
      */
     //# exports.NearestNeighborAD.prototype.decisionFunction = function(x) { return 0.0; }
     JsDeclareFunction(decisionFunction);
 
 	/**
 	* Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold).
-	* @param {module:la.Vector} x - Test vector.
+	* @param {module:la.SparseVector} x - Test vector.
 	* @returns {number} Returns 1.0 if the vector x is an anomaly and 0.0 otherwise.
 	* @example
 	* // import modules
@@ -903,12 +910,12 @@ public:
 	* var la = require('qminer').la;
 	* // create a new NearestNeighborAD object
 	* var neighbor = new analytics.NearestNeighborAD();
-	* // create a new matrix
-	* var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+	* // create a new sparse matrix
+	* var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 	* // fit the model with the matrix
 	* neighbor.fit(matrix);
-	* // create a new vector
-	* var vector = new la.Vector([4, 0]);
+	* // create a new sparse vector
+	* var vector = new la.SparseVector([[0, 4], [1, 0]]);
 	* // check if the vector is an anomaly
 	* var prediction = neighbor.predict(vector); // returns 1
 	*/
@@ -926,6 +933,26 @@ public:
 //! ### Recursive Linear Regression model
 //!
 //! Holds online regression model.
+
+/**
+* @typedef {Object} recLinearRegParam
+* The constructor parameter for {@link module:analytics.RecLinReg}.
+* @param {number} dim - The dimension of the model.
+* @param {number} [regFact=1.0] - The regularization factor.
+* @param {number} [forgetFact=1.0] - The forgetting factor.
+*/
+
+/**
+* @classdesc Holds the Recursive Linear Regression model.
+* @class
+* @param {module:analytics~recLinearRegParam} param - The constructor parameter json object.
+* @example
+* // import analytics module
+* var analytics = require('qminer').analytics;
+* // create the recursive linear regression model holder
+* var linreg = new analytics.RecLinReg({ dim: 10, regFact: 1.0, forgetFact: 1.0 });
+*/
+//# exports.RecLinReg = function(param) { return Object.create(require('qminer').analytics.RecLinReg.prototype); }
 class TNodeJsRecLinReg : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
@@ -947,20 +974,58 @@ private:
 	//! **Functions and properties:**
 	//!
     //!- `recLinRegModel = recLinRegModel.fit(vec, num)` -- updates the model using full vector `vec` and target number `num`as training data. Returns self.
+	/**
+	* Creates a partial fit of the input.
+	* @param {module:la.Vector} vec - The input vector.
+	* @param {number} num - The target number for the vector.
+	* @returns {module:analytics.RecLinReg} Self. The internal model is updated.
+	*/
+	//# exports.RecLinReg.prototype.partialFit = function (vec, num) { return Object.create(require('qminer').analytics.RecLinReg.prototype); }
+	JsDeclareFunction(partialFit);
+
+	/**
+	* Creates a fit of the input.
+	* @param {module:la.Matrix} mat - The input matrix.
+	* @param {module:la.Vector} vec - The target numbers, where the i-th number in vector is the target number for the i-th column of the matrix.
+	* @returns {module:analytics.RecLinReg} Self. The internal model is updated.
+	*/
+	//# exports.RecLinReg.prototype.fit = function (mat, vec) { return Object.create(require('qminer').analytics.RecLinReg.prototype); }
 	JsDeclareFunction(fit);
+
     //!- `num = recLinRegModel.predict(vec)` -- sends vector `vec` through the
     //!     model and returns the prediction as a real number `num`
 	JsDeclareFunction(predict);
 
 	//!- `params = svmModel.getParams()` -- returns the parameters of this model as
 	//!- a Javascript object
+	/**
+	* Returns the parameters.
+	* @returns {module:analytics~recLinearRegParam} The parameters of the model.
+	*/
+	//# exports.RecLinReg.prototype.getParams = function () { return { dim: 0, regFact: 1.0, forgetFact: 1.0 }}
 	JsDeclareFunction(getParams);
 
     //!- `vec = recLinRegModel.weights` -- weights of the linear model as a full vector `vec`
+	/**
+	* Gives the weights of the model.
+	*/
+	//# exports.RecLinReg.prototype.weights = Object.create(require('qminer').la.Vector);
 	JsDeclareProperty(weights);
+
     //!- `num = recLinRegModel.dim` -- dimensionality of the feature space on which this model works
+	/**
+	* Gets the dimensionality of the model.
+	*/
+	//# exports.RecLinReg.prototype.dim = 0;
 	JsDeclareProperty(dim);
+
 	//!- `fout = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
+	/**
+	* Save model to provided output stream.
+	* @param {module:fs.FOut} fout - The output stream.
+	* @returns {module:fs.FOut} Provided output stream fout.
+	*/
+	//# exports.RecLinReg.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 	JsDeclareFunction(save);
 
 private:

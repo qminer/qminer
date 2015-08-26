@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
   <title>Class: NearestNeighborAD</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">NearestNeighborAD</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-596">analyticsdoc.<wbr>js:596</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-601">analyticsdoc.<wbr>js:601</a></p>
             <div class="symbol-classdesc">
               <p>Anomaly detector that checks if the test point is too far from the nearest known point.</p>
             </div>
@@ -54,7 +54,7 @@
                     <dt><a href="module-analytics.NearestNeighborAD.html#getParams">getParams()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.NearestNeighborAD.html#partialFit">partialFit(x)</a></dt>
+                    <dt><a href="module-analytics.NearestNeighborAD.html#partialFit">partialFit(X)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.NearestNeighborAD.html#predict">predict(x)</a></dt>
@@ -87,12 +87,12 @@ var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
 // create a new NearestNeighborAD object
 var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
-// create a matrix 
-var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+// create a sparse matrix 
+var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 // fit the model with the matrix
 neighbor.fit(matrix);
-// create a new vector
-var vector = new la.Vector([4, 0]);
+// create a new sparse vector
+var vector = new la.SparseVector([[0, 4], [1, 0]]);
 // predict if the vector is an anomaly or not
 var prediction = neighbor.predict(vector);</code></pre>
               </div>
@@ -166,7 +166,7 @@ var prediction = neighbor.predict(vector);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Distnace to the nearest point.</p>
+                  <p><code>number</code>&nbsp;Distance to the nearest point.</p>
                 </dd>
               </dl>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(A)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></span></span></h3>
@@ -181,8 +181,8 @@ var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
 // create a new NearestNeighborAD object
 var neighbor = new analytics.NearestNeighborAD();
-// create a new matrix
-var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+// create a new sparse matrix
+var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 // fit the model with the matrix
 neighbor.fit(matrix);</code></pre>
                 </div>
@@ -204,7 +204,7 @@ neighbor.fit(matrix);</code></pre>
                         <p>A</p>
                       </td>
                       <td>
-                        <p><a href="module-la.Matrix.html">module:la.Matrix</a></p>
+                        <p><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -268,7 +268,7 @@ var params = neighbor.getParams();</code></pre>
                   <p><code><a href="module-analytics.html#~detectorParam">module:analytics~detectorParam</a></code>&nbsp;The Json object containing the rate value.</p>
                 </dd>
               </dl>
-              <h3 id="partialFit"><span class="symbol-name">partialFit</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></span></span></h3>
+              <h3 id="partialFit"><span class="symbol-name">partialFit</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></span></span></h3>
               <p>Adds a new point (or points) to the known points and recomputes the threshold.</p>
               <section>
                 <h4>
@@ -280,14 +280,14 @@ var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
 // create a new NearestNeighborAD object
 var neighbor = new analytics.NearestNeighborAD();
-// create a new matrix
-var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+// create a new sparse matrix
+var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 // fit the model with the matrix
 neighbor.fit(matrix);
-// create a new vector
-var vector = new la.Vector([2, 5]);
+// create a new sparse vector
+var vector = new la.SparseVector([[0, 2], [1, 5]]);
 // update the model with the vector
-neighbor.update(vector);</code></pre>
+neighbor.partialFit(vector);</code></pre>
                 </div>
               </section>
               <section>
@@ -304,10 +304,10 @@ neighbor.update(vector);</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>x</p>
+                        <p>X</p>
                       </td>
                       <td>
-                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</p>
+                        <p>(<a href="module-la.SparseVector.html">module:la.SparseVector</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -337,12 +337,12 @@ var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
 // create a new NearestNeighborAD object
 var neighbor = new analytics.NearestNeighborAD();
-// create a new matrix
-var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+// create a new sparse matrix
+var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 // fit the model with the matrix
 neighbor.fit(matrix);
-// create a new vector
-var vector = new la.Vector([4, 0]);
+// create a new sparse vector
+var vector = new la.SparseVector([[0, 4], [1, 0]]);
 // check if the vector is an anomaly
 var prediction = neighbor.predict(vector); // returns 1</code></pre>
                 </div>
@@ -364,7 +364,7 @@ var prediction = neighbor.predict(vector); // returns 1</code></pre>
                         <p>x</p>
                       </td>
                       <td>
-                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                        <p><a href="module-la.SparseVector.html">module:la.SparseVector</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -479,7 +479,7 @@ neighbor.setParams({ rate: 0.1 });</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on August 20, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 26, 2015.
       </p>
     </div>
   </footer>

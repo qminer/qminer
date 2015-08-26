@@ -304,12 +304,17 @@ exports = {}; require.modules.qminer_analytics = exports;
 	*/
  exports.SVR.prototype.fit = function(X, y) { return Object.create(require('qminer').analytics.SVR.prototype); }
 /**
+* @typedef {Object} ridgeRegParam
+* The Ridge Regression constructor parameter.
+* @param {number} [gamma=1.0] - The gamma value.
+*/
+/**
  * Ridge regression. Minimizes: ||A' x - b||^2 + ||gamma x||^2
  *
  * Uses {@link http://en.wikipedia.org/wiki/Tikhonov_regularization Tikhonov regularization}.
  *
  * @class
- * @param {(Object|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model by setting gamma=arg from a Json object.
+ * @param {(module:analytics~ridgeRegParam|module:fs.FIn)} [arg] - Loads a model from input stream, or creates a new model by setting gamma=arg from a Json object.
  * Empty constructor sets gamma to zero.
  * @example
  * // import modules
@@ -376,7 +381,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 	 * var regmod = new analytics.RidgeReg();
 	 * // create the test matrix and vector
 	 * var X = new la.Matrix([[1, 2], [1, -1]]);
-	 * var y = new la.Matrix([3, 3]);
+	 * var y = new la.Vector([3, 3]);
 	 * // fit the model with X and y
 	 * // the weights of the model are 2, 1
 	 * regmod.fit(X, y);
@@ -395,7 +400,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 	 * var regmod = new analytics.RidgeReg();
 	 * // create the test matrix and vector
 	 * var X = new la.Matrix([[1, 2], [1, -1]]);
-	 * var y = new la.Matrix([3, 3]);
+	 * var y = new la.Vector([3, 3]);
 	 * // fit the model with X and y
 	 * regmod.fit(X, y);
 	 * // create a new vector for the prediction
@@ -418,7 +423,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 	 * var regmod = new analytics.RidgeReg();
 	 * // create the test matrix and vector
 	 * var X = new la.Matrix([[1, 2], [1, -1]]);
-	 * var y = new la.Matrix([3, 3]);
+	 * var y = new la.Vector([3, 3]);
 	 * // fit the model with X and y
 	 * regmod.fit(X, y);
 	 * // create a new vector for the prediction
@@ -587,12 +592,12 @@ exports = {}; require.modules.qminer_analytics = exports;
  * var la = require('qminer').la;
  * // create a new NearestNeighborAD object
  * var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
- * // create a matrix 
- * var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+ * // create a sparse matrix 
+ * var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
  * // fit the model with the matrix
  * neighbor.fit(matrix);
- * // create a new vector
- * var vector = new la.Vector([4, 0]);
+ * // create a new sparse vector
+ * var vector = new la.SparseVector([[0, 4], [1, 0]]);
  * // predict if the vector is an anomaly or not
  * var prediction = neighbor.predict(vector);
  */
@@ -646,7 +651,7 @@ exports = {}; require.modules.qminer_analytics = exports;
  exports.NearestNeighborAD.prototype.getModel = function () { return { threshold: 0.0 }; }
 /**
 	* Adds a new point (or points) to the known points and recomputes the threshold.
-	* @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input).
+	* @param {(module:la.SparseVector | module:la.SparseMatrix)} X - Test example (vector input) or column examples (matrix input).
 	* @returns {module:analytics.NearestNeighborAD} Self. The model is updated.
 	* @example
 	* // import modules
@@ -654,19 +659,19 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* var la = require('qminer').la;
 	* // create a new NearestNeighborAD object
 	* var neighbor = new analytics.NearestNeighborAD();
-	* // create a new matrix
-	* var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+	* // create a new sparse matrix
+	* var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 	* // fit the model with the matrix
 	* neighbor.fit(matrix);
-	* // create a new vector
-	* var vector = new la.Vector([2, 5]);
+	* // create a new sparse vector
+	* var vector = new la.SparseVector([[0, 2], [1, 5]]);
 	* // update the model with the vector
-	* neighbor.update(vector);
+	* neighbor.partialFit(vector);
 	*/
- exports.NearestNeighborAD.prototype.partialFit = function(x) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
+ exports.NearestNeighborAD.prototype.partialFit = function(X) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
 /**
 	* Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
-	* @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+	* @param {module:la.SparseMatrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
 	* the model.
 	* @returns {module:analytics.NearestNeighborAD} Self. The model is set by the matrix A.
 	* @example
@@ -675,8 +680,8 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* var la = require('qminer').la;
 	* // create a new NearestNeighborAD object
 	* var neighbor = new analytics.NearestNeighborAD();
-	* // create a new matrix
-	* var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+	* // create a new sparse matrix
+	* var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 	* // fit the model with the matrix
 	* neighbor.fit(matrix);
 	*/
@@ -684,12 +689,12 @@ exports = {}; require.modules.qminer_analytics = exports;
 /**
      * Compares the point to the known points and returns distance to the nearest one.
      * @param {module:la.Vector} x - Test vector.
-     * @returns {number} Distnace to the nearest point.
+     * @returns {number} Distance to the nearest point.
      */
  exports.NearestNeighborAD.prototype.decisionFunction = function(x) { return 0.0; }
 /**
 	* Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold).
-	* @param {module:la.Vector} x - Test vector.
+	* @param {module:la.SparseVector} x - Test vector.
 	* @returns {number} Returns 1.0 if the vector x is an anomaly and 0.0 otherwise.
 	* @example
 	* // import modules
@@ -697,16 +702,67 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* var la = require('qminer').la;
 	* // create a new NearestNeighborAD object
 	* var neighbor = new analytics.NearestNeighborAD();
-	* // create a new matrix
-	* var matrix = new la.Matrix([[1, -2, 0], [2, 3, 1]]);
+	* // create a new sparse matrix
+	* var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 	* // fit the model with the matrix
 	* neighbor.fit(matrix);
-	* // create a new vector
-	* var vector = new la.Vector([4, 0]);
+	* // create a new sparse vector
+	* var vector = new la.SparseVector([[0, 4], [1, 0]]);
 	* // check if the vector is an anomaly
 	* var prediction = neighbor.predict(vector); // returns 1
 	*/
  exports.NearestNeighborAD.prototype.predict = function(x) { return 0.0; }
+/**
+* @typedef {Object} recLinearRegParam
+* The constructor parameter for {@link module:analytics.RecLinReg}.
+* @param {number} dim - The dimension of the model.
+* @param {number} [regFact=1.0] - The regularization factor.
+* @param {number} [forgetFact=1.0] - The forgetting factor.
+*/
+/**
+* @classdesc Holds the Recursive Linear Regression model.
+* @class
+* @param {module:analytics~recLinearRegParam} param - The constructor parameter json object.
+* @example
+* // import analytics module
+* var analytics = require('qminer').analytics;
+* // create the recursive linear regression model holder
+* var linreg = new analytics.RecLinReg({ dim: 10, regFact: 1.0, forgetFact: 1.0 });
+*/
+ exports.RecLinReg = function(param) { return Object.create(require('qminer').analytics.RecLinReg.prototype); }
+/**
+	* Creates a partial fit of the input.
+	* @param {module:la.Vector} vec - The input vector.
+	* @param {number} num - The target number for the vector.
+	* @returns {module:analytics.RecLinReg} Self. The internal model is updated.
+	*/
+ exports.RecLinReg.prototype.partialFit = function (vec, num) { return Object.create(require('qminer').analytics.RecLinReg.prototype); }
+/**
+	* Creates a fit of the input.
+	* @param {module:la.Matrix} mat - The input matrix.
+	* @param {module:la.Vector} vec - The target numbers, where the i-th number in vector is the target number for the i-th column of the matrix.
+	* @returns {module:analytics.RecLinReg} Self. The internal model is updated.
+	*/
+ exports.RecLinReg.prototype.fit = function (mat, vec) { return Object.create(require('qminer').analytics.RecLinReg.prototype); }
+/**
+	* Returns the parameters.
+	* @returns {module:analytics~recLinearRegParam} The parameters of the model.
+	*/
+ exports.RecLinReg.prototype.getParams = function () { return { dim: 0, regFact: 1.0, forgetFact: 1.0 }}
+/**
+	* Gives the weights of the model.
+	*/
+ exports.RecLinReg.prototype.weights = Object.create(require('qminer').la.Vector);
+/**
+	* Gets the dimensionality of the model.
+	*/
+ exports.RecLinReg.prototype.dim = 0;
+/**
+	* Save model to provided output stream.
+	* @param {module:fs.FOut} fout - The output stream.
+	* @returns {module:fs.FOut} Provided output stream fout.
+	*/
+ exports.RecLinReg.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
  * Logistic regression model. Uses Newtons method to compute the weights.
  *
@@ -956,7 +1012,7 @@ exports = {}; require.modules.qminer_analytics = exports;
     * @property  {module:la.Vector} [svmModel.weigths] - SVM normal vector.
     */
     /**
-	* Get SVC model.
+	* Get the model.
 	* @returns {module:analytics~svmModel} The current SVM model.
     * @example
     * // import analytics module
@@ -968,18 +1024,54 @@ exports = {}; require.modules.qminer_analytics = exports;
 	*/
     exports.SVC.prototype.getModel = function() { return { weights: this.weights }; }
     /**
-	* Get SVR model
+	* Get the model.
 	* @returns {module:analytics~svmModel} Get current SVM model
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create a SVR model
+    * var SVC = new analytics.SVR();
+    * // get the properties of the model
+    * var model = SVR.getModel(); // returns { weights: new require('qminer').la.Vector(); }
 	*/
     exports.SVR.prototype.getModel = function() { return { weights: this.weights }; }
 
     // Ridge Regression
     /**
-    * Gets RidgeReg model.
-    * @returns {module:analytics~ridgeRegModel} Get current RidgeReg model.
+    * @typedef {Object} ridgeRegModel
+    * @property {module:la.Vector} [ridgeRegModel.weights] - The Ridge Regression model vector.
+    */
+
+    /**
+    * Gets the model.
+    * @returns {module:analytics~ridgeRegModel} Get current model.
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create the Ridge Regression model
+    * var regmod = new analytics.RidgeReg();
+    * // get the model
+    * var model = regmod.getModel(); returns { weights: new require('qminer').la.Vector(); }
     */
     exports.RidgeReg.prototype.getModel = function () { return { weights: this.weights }; }
 
+    // Recursive Linear Regression
+    /**
+    * @typedef {Object} recLinRegModel
+    * @property {module:la.Vector} [recLinRegModel.weights] - Recursive Linear Regression model vector.
+    */
+    /**
+    * Gets Recursive Linear Regression model
+    * @returns {module:analytics~recLnRegModel} The current model.
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create the Recursive Linear Regression model
+    * var linreg = new analytics.RecLinReg({ dim: 10 });
+    * // get the model
+    * var model = linreg.getModel(); returns { weights: new require('qminer').la.Vector(); }
+    */
+    exports.RecLinReg.prototype.getModel = function () { return { weights: this.weights } }
 
     // var model = new OneVsAll({
     //     model : analytics.SVC,
@@ -1594,7 +1686,7 @@ exports = {}; require.modules.qminer_analytics = exports;
             // cov(A) = 1/(n-1) A A' - mu mu'
 
             // center data (same as matlab)
-            var cA = A.minus(la.ones(cols).outer(mu));
+            var cA = A.minus(mu.outer(la.ones(cols)));
             var C = cA.multiply(cA.transpose()).multiply(1 / (cols - 1));
             // alternative computation:
             //var C = (A.multiply(A.transpose()).multiply(1 / (cols - 1))).minus(mu.outer(mu));
