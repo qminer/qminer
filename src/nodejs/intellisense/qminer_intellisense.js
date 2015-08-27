@@ -254,365 +254,6 @@ exports.datasets= require('qminer_datasets');
 * }]);
 */
 /**
-* Feature extractor types.
-* @typedef {Object} FeatureExtractors
-* @property {module:qm~FeatureExtractorConstant} constant - The constant type.
-* @property {module:qm~FeatureExtractorRandom} random - The random type.
-* @property {module:qm~FeatureExtractorNumeric} numeric - The numeric type.
-* @property {module:qm~FeatureExtractorCategorical} categorical - The categorical type.
-* @property {module:qm~FeatureExtractorMultinomial} multinomial - The multinomial type.
-* @property {module:qm~FeatureExtractorText} text - The text type.
-* @property {module:qm~FeatureExtractorJoin} join - The join type.
-* @property {module:qm~FeatureExtractorPair} pair - The pair type.
-* @property {module:qm~FeatureExtractorJsfunc} jsfunc - The jsfunc type.
-* @property {module:qm~FeatureExtractorDateWindow} dateWindow - The date window type.
-* @property {module:qm~FeatureExtractorSparseVector} sparseVector - The sparse vector type.
-*
-*/
-/**
-* @typedef {Object} FeatureExtractorConstant
-* The feature extractor of type 'contant'.
-* @property {string} type - The type of the extractor. It must be equal <b>'constant'</b>.
-* @property {number} [const = 1.0] - A constant number. 
-* @property {module:qm~FeatureSource} source - The source of the extractor.
-* @example
-* var qm = require('qminer');
-* // create a simple base, where each record contains only a persons name
-* var base = new qm.Base({
-*   mode: 'createClean',
-*   schema: [{
-*      type: "Person",
-*      type: [{ type: "Name", type: "string" }]
-*   }]
-* });
-* // create a feature space containing the constant extractor, where the constant is equal 5
-* var ftr = qm.FeatureSpace(base, { type: "constant", source: "Person", const: 5 });
-*/
-/**
-* @typedef {Object} FeatureExtractorRandom
-* The feature extractor of type 'random'.
-* @property {string} type - The type of the extractor. It must be equal <b>'random'</b>.
-* @property {number} [seed = 0] - The seed number used to construct the random number.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
-* @example
-* var qm = require('qminer');
-* // create a simple base, where each record contains only a persons name
-* var base = new qm.Base({
-*   mode: 'createClean',
-*   schema: [{
-*      type: "Person",
-*      type: [{ type: "Name", type: "string" }]
-*   }]
-* });
-* // create a feature space containing the random extractor
-* var ftr = qm.FeatureSpace(base, { type: "random", source: "Person" });
-*/
-/**
-* @typedef {Object} FeatureExtractorNumeric 
-* The feature extractor of type 'numeric'.
-* @property {string} type - The type of the extractor. It must be equal <b>'numeric'</b>.
-* @property {boolean} [normalize = 'false'] - Normalize values between 0.0 and 1.0.
-* @property {number} [min] - The minimal value used to form the normalization.
-* @property {number} [max] - The maximal value used to form the normalization.
-* @property {string} field - The name of the field from which to take the value.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
-* @example
-* var qm = require('qminer');
-* // create a simple base, where each record contains the student name and it's grade
-* var base = new qm.Base({
-*    mode: 'createClean',
-*    schema: [{
-*       type: "Class",
-*       type: [
-*          { type: "Name", type: "string" },
-*          { type: "Grade", type: "number" }
-*       ]
-*    }]
-* });
-* // create a feature space containing the numeric extractor, where the values are 
-* // normalized, the values are taken from the field "Grade"
-* var ftr = qm.FeatureSpace(base, { type: "numeric", source: "Class", normalize: true, field: "Grade" });
-*/
-/**
- * @typedef {Object} FeatureExtractorSparseVector
- * The feature extractor of type 'num_sp_v'.
- * @property {string} type - The type of the extractor. It must be equal <b>'num_sp_v'</b>.
- * @property {number} [dimension = 0] - Dimensionality of sparse vectors.
- * @property {boolean} [normalize = false] - Normalize vectors to L2 norm of 1.0.
- * @property {string} field - The name of the field from which to take the value.
- * @property {module:qm~FeatureSource} source - The source of the extractor.
- * @example
- * var qm = require('qminer');
- * // create a simple base, where each record contains the student name and it's grade
- * var base = new qm.Base({
- *    mode: 'createClean',
- *    schema: [{
- *       "name": "Class",
- *       "fields": [
- *          { "name": "Name", "type": "string" },
- *          { "name": "Features", "type": "num_sp_v" }
- *       ]
- *    }]
- * });
- * // create a feature space containing the numeric extractor, where the values are
- * // normalized, the values are taken from the field "Grade"
- * var ftr = qm.FeatureSpace(base, { type: "num_sp_v", source: "Class", normalize: false, field: "Features" });
- */
-/**
-* @typedef {Object} FeatureExtractorCategorical
-* The feature extractor of type 'categorical'.
-* @property {string} type - The type of the extractor. It must be equal <b>'categorical'</b>.
-* @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set. No dimensionality changes if new values are seen in the upgrades.
-* @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hasDimension to get the corresponding dimension.
-* @property {string} field - The name of the field form which to take the values.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
-* @example
-* var qm = require('qminer');
-* // create a simple base, where each record contains the student name and it's study group
-* // here we know the student is part of only one study group
-* var base = new qm.Base({
-*    mode: 'createClean',
-*    schema: [{
-*       type: "Class",
-*       type: [
-*          { type: "Name", type: "string" },
-*          { type: "StudyGroup", type: "string" }
-*       ]
-*    }]
-* });
-* // create a feature space containing the categorical extractor, where the it's values
-* // are taken from the field "StudyGroup": "A", "B", "C" and "D"
-* var ftr = qm.FeatureSpace(base, { type: "categorical", source: "Class", field: "StudyGroup", values: ["A", "B", "C", "D"] });
-*/
-/**
-* @typedef {Object} FeatureExtractorMultinomial
-* The feature extractor of type 'multinomial'.
-* @property {string} type - The type of the extractor. It must be equal <b>'multinomial'</b>.
-* @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
-* @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates. Cannot be used the same time as datetime.
-* @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
-* @property {Object} [datetime = false] - Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
-* <br> This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.
-* @property {string} field - The name of the field from which to take the value.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
-* @example
-* var qm = require('qminer');
-* // create a simple base, where each record contains the student name and an array of study groups
-* // here we know a student can be part of multiple study groups
-* var base = new qm.Base({
-*    mode: 'createClean',
-*    schema: [{
-*       type: "Class",
-*       type: [
-*          { type: "Name", type: "string" },
-*          { type: "StudyGroups", type: "string_v" }
-*       ]
-*    }]
-* });
-* // create a feature space containing the multinomial extractor, where the values are normalized,
-* // and taken from the field "StudyGroup": "A", "B", "C", "D", "E", "F"
-* var ftr = qm.FeatureSpace(base, { 
-*              type: "multinomial", source: "CLass", field: "StudyGroups", normalize: true, values: ["A", "B", "C", "D", "E", "F"]
-*           });
-*/
-/**
-* @typedef {Object} FeatureExtractorText
-* The feature extractor of type 'text'.
-* @property {string} type - The type of the extractor. It must be equal <b>'text'</b>.
-* @property {boolean} [normalize = 'true'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
-* @property {module:qm~FeatureWeight} [weight = 'tfidf'] - Type of weighting used for scoring terms.
-* @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
-* @property {string} field - The name of the field from which to take the value.
-* @property {module:qm~FeatureTokenizer} tokenizer - The settings for extraction of text.
-* @property {module:qm~FeatureMode} mode - How are multi-record cases combined into single vector.
-* @property {module:qm~FeatureStream} stream - Details on forgetting old IDFs when running on stream.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
-* @example
-* var qm = require('qminer');
-* // create a simple base, where each record contains the title of the article and it's content
-* var base = new qm.Base({
-*    mode: 'createClean',
-*    schema: [{
-*       type: "Articles",
-*       type: [
-*          { type: "Title", type: "string" },
-*          { type: "Text", type: "string" }
-*       ]
-*    }]
-* });
-* // create a feature spave containing the text (bag of words) extractor, where the values are normalized,
-* // weighted with 'tfidf' and the tokenizer is of 'simple' type, it uses english stopwords.
-* var ftr = qm.FeatureSpace(base, { 
-*              type: "text", source: "Articles", field: "Text", normalize: true, weight: "tfidf",
-*              tokenizer: { type: "simple", stopwords: "en"}
-*           });
-*/
-/**
-* @typedef {Object} FeatureExtractorJoin
-* The feature extractor of type 'join'.
-* @property {string} type - The type of the extractor. It must be equal <b>'join'</b>.
-* @property {number} [bucketSize = 1] - The size of the bucket in which we group consecutive records.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
-* @example
-* // import qm module
-* var qm = require('qminer');
-*/
-/**
-* @typedef {Object} FeatureExtractorPair
-* The feature extractor of type 'pair'.
-* @property {string} type - The type of the extractor. It must be equal <b>'pair'</b>.
-* @property {module:qm~FeatureExtractors} first - The first feature extractor.
-* @property {module:qm~FeatureExtractors} second - The second feature extractor.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
-* @example
-* var qm = require('qminer');
-*/
-/** 
-* @typedef {Object} FeatureExtractorDateWindow
-* The feature extractor of type 'dateWindow'.
-* @property {string} type - The type of the extractor. It must be equal <b>'dateWindow'</b>.
-* @property {string} [unit = 'day'] - How granular is the time window. The options are: 'day', 'week', 'month', 'year', '12hours', '6hours', '4hours', '2hours',
-* 'hour', '30minutes', '15minutes', '10minutes', 'minute', 'second'.
-* @property {number} [window = 1] - The size of the window.
-* @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO
-* @property {number} start - //TODO
-* @property {number} end - //TODO
-* @property {module:qm~FeatureSource} source - The source of the extractor.
-* @example
-* // import qm module
-* var qm = require('qminer');
-*/
-/**
-* @typedef {Object} FeatureExtractorJsfunc
-* The feature extractor of type 'jsfunc'.
-* @property {string} type - The type of the extractor. It must be equal <b>'jsfunc'</b>.
-* @property {string} name - The feature's name.
-* @property {function} fun - The javascript function callback. It should take a record as input and return a number or a dense vector.
-* @property {number} [dim = 1] - The dimension of the feature extractor.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
-* @example
-* var qm = require('qminer');
-* // create a simple base, where each record contains the name of the student and his study groups
-* // each student is part of multiple study groups
-* var base = new qm.Base({
-*    mode: 'createClean',
-*    schema: [{
-*       type: "Class",
-*       type: [
-*          { type: "Name", type: "string" },
-*          { type: "StudyGroups", type: "string_v" }
-*       ]
-*    }]
-* });
-* // create a feature space containing the jsfunc extractor, where the function counts the number 
-* // of study groups each student is part of. The functions name is "NumberOFGroups", it's dimension
-* // is 1 (returns only one value, not an array)
-* var ftr = qm.FeatureSpace(base, {
-*              type: "jsfunc", source: "Class", name: "NumberOfGroups", dim: 1,
-*              fun: function (rec) { returns rec.StudyGroups.length; }
-*           });
-*/
-/**
-* From where are the input records taken.
-* @typedef {Object} FeatureSource
-* @property {string} store - The store name.
-*/
-/**
-* Type of weighting used for scoring terms.
-* @readonly
-* @enum {string}
-*/
- var FeatureWeight = {
-		/** Sets 1 if term occurs, 0 otherwise. */
-		none: 'none',
-		/** Sets the term frequency in the document. */
-		tf: 'tf',
-		/** Sets the inverse document frequency in the document. */
-		idf: 'idf',
-		/** Sets the product of the tf and idf frequency. */
-		tfidf: 'tfidf'
- }
-/**
-* The settings for extraction of text.
-* @typedef {Object} FeatureTokenizer
-* @property {module:qm~FeatureTokenizerType} [type = 'simple'] - The type of the encoding text.
-* @property {module:qm~FeatureTokenizerStopwords} [stopwords = 'en'] - The stopwords used for extraction.
-* @property {module:qm~FeatureTokenizerStemmer} [stemmer = 'none'] - The stemmer used for extraction.
-* @property {boolean} [uppercase = 'true'] - Changing all words to uppercase.
-*/
-/**
-* The type of the encoding text.
-* @readonly
-* @enum {string}
-*/
- var FeatureTokenizerType = {
-		/** The simple encoding. */
-		simple: 'simple',
-		/** The html encoding. */
-		html: 'html',
-		/** The unicode encoding. */
-		unicode: 'unicode'
- }
-/**
-* THe stopwords used for extraction.
-* @readonly
-* @enum {Object}
-*/
- var FeatureTokenizerStopwords = {
-		/** The pre-defined stopword list (none). */
-		none: 'none',
-		/** The pre-defined stopword list (english). */
-		en: 'en',
-		/** The pre-defined stopword list (slovene). */
-		si: 'si',
-		/** The pre-defined stopword list (spanish). */
-		es: 'es',
-		/** The pre-defined stopword list (german). */
-		de: 'de',
-		/** An array of stopwords. The array must be given as a parameter instead of 'array'! */
-		array: 'array'
- }
-/**
-* The steemer used for extraction.
-* @readonly
-* @enum {Object}
-*/
- var FeatureTokenizerStemmer = {
-		/** For using the porter stemmer. */
-		boolean: 'true',
-		/** For using the porter stemmer. */
-		porter: 'porter',
-		/** For using no stemmer. */
-		none: 'none',
- }
-/**
-* How are multi-record cases combined into a single vector. //TODO not implemented for join record cases (works only if the start store and the 
-* feature store are the same)
-* @readonly
-* @enum {string}
-*/
- var FeatureMode = {
-		/** Multi-record cases are merged into one document. */
-		concatenate: 'concatenate', 
-		/** Treat each case as a separate document. */
-		centroid: 'centroid', 
-		/** //TODO (Use the tokenizer option) */
-		tokenized : 'tokenized'
- }
-/**
-* Details on forgetting old IDFs when running on stream.
-* @readonly
-* @enum {string}
-*/
- var FeatureStream = {
-		/** (optional) Field name which is providing timestamp, if missing system time is used. */
-		field: 'field',
-		/** Forgetting factor, by which the old IDFs are multiplied after each iteration. */
-		factor: 'factor',
-		/** The time between iterations when the factor is applied, standard JSon time format is used to specify the interval duration. */
-		interval: 'interval'
- }
-/**
 * Base
 * @classdesc Represents the database and holds stores. The base object can be opened in multiple
 * modes: 'create' - create a new database, 'createClean' - force create, and 'openReadOnly' - open in read-only mode.
@@ -2275,6 +1916,365 @@ exports.datasets= require('qminer_datasets');
 	* Gives the current record.
 	*/
  exports.Iterator.prototype.record = Object.create(require('qminer').Record.prototype);
+/**
+* Feature extractor types.
+* @typedef {Object} FeatureExtractors
+* @property {module:qm~FeatureExtractorConstant} constant - The constant type.
+* @property {module:qm~FeatureExtractorRandom} random - The random type.
+* @property {module:qm~FeatureExtractorNumeric} numeric - The numeric type.
+* @property {module:qm~FeatureExtractorCategorical} categorical - The categorical type.
+* @property {module:qm~FeatureExtractorMultinomial} multinomial - The multinomial type.
+* @property {module:qm~FeatureExtractorText} text - The text type.
+* @property {module:qm~FeatureExtractorJoin} join - The join type.
+* @property {module:qm~FeatureExtractorPair} pair - The pair type.
+* @property {module:qm~FeatureExtractorJsfunc} jsfunc - The jsfunc type.
+* @property {module:qm~FeatureExtractorDateWindow} dateWindow - The date window type.
+* @property {module:qm~FeatureExtractorSparseVector} sparseVector - The sparse vector type.
+*
+*/
+/**
+* @typedef {Object} FeatureExtractorConstant
+* The feature extractor of type 'contant'.
+* @property {string} type - The type of the extractor. It must be equal <b>'constant'</b>.
+* @property {number} [const = 1.0] - A constant number.
+* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains only a persons name
+* var base = new qm.Base({
+*   mode: 'createClean',
+*   schema: [{
+*      type: "Person",
+*      type: [{ type: "Name", type: "string" }]
+*   }]
+* });
+* // create a feature space containing the constant extractor, where the constant is equal 5
+* var ftr = qm.FeatureSpace(base, { type: "constant", source: "Person", const: 5 });
+*/
+/**
+* @typedef {Object} FeatureExtractorRandom
+* The feature extractor of type 'random'.
+* @property {string} type - The type of the extractor. It must be equal <b>'random'</b>.
+* @property {number} [seed = 0] - The seed number used to construct the random number.
+* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains only a persons name
+* var base = new qm.Base({
+*   mode: 'createClean',
+*   schema: [{
+*      type: "Person",
+*      type: [{ type: "Name", type: "string" }]
+*   }]
+* });
+* // create a feature space containing the random extractor
+* var ftr = qm.FeatureSpace(base, { type: "random", source: "Person" });
+*/
+/**
+* @typedef {Object} FeatureExtractorNumeric
+* The feature extractor of type 'numeric'.
+* @property {string} type - The type of the extractor. It must be equal <b>'numeric'</b>.
+* @property {boolean} [normalize = 'false'] - Normalize values between 0.0 and 1.0.
+* @property {number} [min] - The minimal value used to form the normalization.
+* @property {number} [max] - The maximal value used to form the normalization.
+* @property {string} field - The name of the field from which to take the value.
+* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains the student name and it's grade
+* var base = new qm.Base({
+*    mode: 'createClean',
+*    schema: [{
+*       type: "Class",
+*       type: [
+*          { type: "Name", type: "string" },
+*          { type: "Grade", type: "number" }
+*       ]
+*    }]
+* });
+* // create a feature space containing the numeric extractor, where the values are
+* // normalized, the values are taken from the field "Grade"
+* var ftr = qm.FeatureSpace(base, { type: "numeric", source: "Class", normalize: true, field: "Grade" });
+*/
+/**
+* @typedef {Object} FeatureExtractorSparseVector
+* The feature extractor of type 'num_sp_v'.
+* @property {string} type - The type of the extractor. It must be equal <b>'num_sp_v'</b>.
+* @property {number} [dimension = 0] - Dimensionality of sparse vectors.
+* @property {boolean} [normalize = false] - Normalize vectors to L2 norm of 1.0.
+* @property {string} field - The name of the field from which to take the value.
+* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains the student name and it's grade
+* var base = new qm.Base({
+*    mode: 'createClean',
+*    schema: [{
+*       "name": "Class",
+*       "fields": [
+*          { "name": "Name", "type": "string" },
+*          { "name": "Features", "type": "num_sp_v" }
+*       ]
+*    }]
+* });
+* // create a feature space containing the numeric extractor, where the values are
+* // normalized, the values are taken from the field "Grade"
+* var ftr = qm.FeatureSpace(base, { type: "num_sp_v", source: "Class", normalize: false, field: "Features" });
+*/
+/**
+* @typedef {Object} FeatureExtractorCategorical
+* The feature extractor of type 'categorical'.
+* @property {string} type - The type of the extractor. It must be equal <b>'categorical'</b>.
+* @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set. No dimensionality changes if new values are seen in the upgrades.
+* @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hasDimension to get the corresponding dimension.
+* @property {string} field - The name of the field form which to take the values.
+* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains the student name and it's study group
+* // here we know the student is part of only one study group
+* var base = new qm.Base({
+*    mode: 'createClean',
+*    schema: [{
+*       type: "Class",
+*       type: [
+*          { type: "Name", type: "string" },
+*          { type: "StudyGroup", type: "string" }
+*       ]
+*    }]
+* });
+* // create a feature space containing the categorical extractor, where the it's values
+* // are taken from the field "StudyGroup": "A", "B", "C" and "D"
+* var ftr = qm.FeatureSpace(base, { type: "categorical", source: "Class", field: "StudyGroup", values: ["A", "B", "C", "D"] });
+*/
+/**
+* @typedef {Object} FeatureExtractorMultinomial
+* The feature extractor of type 'multinomial'.
+* @property {string} type - The type of the extractor. It must be equal <b>'multinomial'</b>.
+* @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
+* @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates. Cannot be used the same time as datetime.
+* @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
+* @property {Object} [datetime = false] - Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
+* <br> This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.
+* @property {string} field - The name of the field from which to take the value.
+* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains the student name and an array of study groups
+* // here we know a student can be part of multiple study groups
+* var base = new qm.Base({
+*    mode: 'createClean',
+*    schema: [{
+*       type: "Class",
+*       type: [
+*          { type: "Name", type: "string" },
+*          { type: "StudyGroups", type: "string_v" }
+*       ]
+*    }]
+* });
+* // create a feature space containing the multinomial extractor, where the values are normalized,
+* // and taken from the field "StudyGroup": "A", "B", "C", "D", "E", "F"
+* var ftr = qm.FeatureSpace(base, {
+*              type: "multinomial", source: "CLass", field: "StudyGroups", normalize: true, values: ["A", "B", "C", "D", "E", "F"]
+*           });
+*/
+/**
+* @typedef {Object} FeatureExtractorText
+* The feature extractor of type 'text'.
+* @property {string} type - The type of the extractor. It must be equal <b>'text'</b>.
+* @property {boolean} [normalize = 'true'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
+* @property {module:qm~FeatureWeight} [weight = 'tfidf'] - Type of weighting used for scoring terms.
+* @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
+* @property {string} field - The name of the field from which to take the value.
+* @property {module:qm~FeatureTokenizer} tokenizer - The settings for extraction of text.
+* @property {module:qm~FeatureMode} mode - How are multi-record cases combined into single vector.
+* @property {module:qm~FeatureStream} stream - Details on forgetting old IDFs when running on stream.
+* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains the title of the article and it's content
+* var base = new qm.Base({
+*    mode: 'createClean',
+*    schema: [{
+*       type: "Articles",
+*       type: [
+*          { type: "Title", type: "string" },
+*          { type: "Text", type: "string" }
+*       ]
+*    }]
+* });
+* // create a feature spave containing the text (bag of words) extractor, where the values are normalized,
+* // weighted with 'tfidf' and the tokenizer is of 'simple' type, it uses english stopwords.
+* var ftr = qm.FeatureSpace(base, {
+*              type: "text", source: "Articles", field: "Text", normalize: true, weight: "tfidf",
+*              tokenizer: { type: "simple", stopwords: "en"}
+*           });
+*/
+/**
+* @typedef {Object} FeatureExtractorJoin
+* The feature extractor of type 'join'.
+* @property {string} type - The type of the extractor. It must be equal <b>'join'</b>.
+* @property {number} [bucketSize = 1] - The size of the bucket in which we group consecutive records.
+* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* // import qm module
+* var qm = require('qminer');
+*/
+/**
+* @typedef {Object} FeatureExtractorPair
+* The feature extractor of type 'pair'.
+* @property {string} type - The type of the extractor. It must be equal <b>'pair'</b>.
+* @property {module:qm~FeatureExtractors} first - The first feature extractor.
+* @property {module:qm~FeatureExtractors} second - The second feature extractor.
+* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+*/
+/**
+* @typedef {Object} FeatureExtractorDateWindow
+* The feature extractor of type 'dateWindow'.
+* @property {string} type - The type of the extractor. It must be equal <b>'dateWindow'</b>.
+* @property {string} [unit = 'day'] - How granular is the time window. The options are: 'day', 'week', 'month', 'year', '12hours', '6hours', '4hours', '2hours',
+* 'hour', '30minutes', '15minutes', '10minutes', 'minute', 'second'.
+* @property {number} [window = 1] - The size of the window.
+* @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO
+* @property {number} start - //TODO
+* @property {number} end - //TODO
+* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* // import qm module
+* var qm = require('qminer');
+*/
+/**
+* @typedef {Object} FeatureExtractorJsfunc
+* The feature extractor of type 'jsfunc'.
+* @property {string} type - The type of the extractor. It must be equal <b>'jsfunc'</b>.
+* @property {string} name - The feature's name.
+* @property {function} fun - The javascript function callback. It should take a record as input and return a number or a dense vector.
+* @property {number} [dim = 1] - The dimension of the feature extractor.
+* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @example
+* var qm = require('qminer');
+* // create a simple base, where each record contains the name of the student and his study groups
+* // each student is part of multiple study groups
+* var base = new qm.Base({
+*    mode: 'createClean',
+*    schema: [{
+*       type: "Class",
+*       type: [
+*          { type: "Name", type: "string" },
+*          { type: "StudyGroups", type: "string_v" }
+*       ]
+*    }]
+* });
+* // create a feature space containing the jsfunc extractor, where the function counts the number
+* // of study groups each student is part of. The functions name is "NumberOFGroups", it's dimension
+* // is 1 (returns only one value, not an array)
+* var ftr = qm.FeatureSpace(base, {
+*              type: "jsfunc", source: "Class", name: "NumberOfGroups", dim: 1,
+*              fun: function (rec) { returns rec.StudyGroups.length; }
+*           });
+*/
+/**
+* From where are the input records taken.
+* @typedef {Object} FeatureSource
+* @property {string} store - The store name.
+*/
+/**
+* Type of weighting used for scoring terms.
+* @readonly
+* @enum {string}
+*/
+ var FeatureWeight = {
+		/** Sets 1 if term occurs, 0 otherwise. */
+		none: 'none',
+		/** Sets the term frequency in the document. */
+		tf: 'tf',
+		/** Sets the inverse document frequency in the document. */
+		idf: 'idf',
+		/** Sets the product of the tf and idf frequency. */
+		tfidf: 'tfidf'
+ }
+/**
+* The settings for extraction of text.
+* @typedef {Object} FeatureTokenizer
+* @property {module:qm~FeatureTokenizerType} [type = 'simple'] - The type of the encoding text.
+* @property {module:qm~FeatureTokenizerStopwords} [stopwords = 'en'] - The stopwords used for extraction.
+* @property {module:qm~FeatureTokenizerStemmer} [stemmer = 'none'] - The stemmer used for extraction.
+* @property {boolean} [uppercase = 'true'] - Changing all words to uppercase.
+*/
+/**
+* The type of the encoding text.
+* @readonly
+* @enum {string}
+*/
+ var FeatureTokenizerType = {
+		/** The simple encoding. */
+		simple: 'simple',
+		/** The html encoding. */
+		html: 'html',
+		/** The unicode encoding. */
+		unicode: 'unicode'
+ }
+/**
+* THe stopwords used for extraction.
+* @readonly
+* @enum {Object}
+*/
+ var FeatureTokenizerStopwords = {
+		/** The pre-defined stopword list (none). */
+		none: 'none',
+		/** The pre-defined stopword list (english). */
+		en: 'en',
+		/** The pre-defined stopword list (slovene). */
+		si: 'si',
+		/** The pre-defined stopword list (spanish). */
+		es: 'es',
+		/** The pre-defined stopword list (german). */
+		de: 'de',
+		/** An array of stopwords. The array must be given as a parameter instead of 'array'! */
+		array: 'array'
+ }
+/**
+* The steemer used for extraction.
+* @readonly
+* @enum {Object}
+*/
+ var FeatureTokenizerStemmer = {
+		/** For using the porter stemmer. */
+		boolean: 'true',
+		/** For using the porter stemmer. */
+		porter: 'porter',
+		/** For using no stemmer. */
+		none: 'none',
+ }
+/**
+* How are multi-record cases combined into a single vector. //TODO not implemented for join record cases (works only if the start store and the
+* feature store are the same)
+* @readonly
+* @enum {string}
+*/
+ var FeatureMode = {
+		/** Multi-record cases are merged into one document. */
+		concatenate: 'concatenate', 
+		/** Treat each case as a separate document. */
+		centroid: 'centroid', 
+		/** //TODO (Use the tokenizer option) */
+		tokenized : 'tokenized'
+ }
+/**
+* Details on forgetting old IDFs when running on stream.
+* @readonly
+* @enum {string}
+*/
+ var FeatureStream = {
+		/** (optional) Field name which is providing timestamp, if missing system time is used. */
+		field: 'field',
+		/** Forgetting factor, by which the old IDFs are multiplied after each iteration. */
+		factor: 'factor',
+		/** The time between iterations when the factor is applied, standard JSon time format is used to specify the interval duration. */
+		interval: 'interval'
+ }
 /**
 * Feature Space
 * @classdesc Represents the feature space. It contains any of the {@link module:qm~FeatureExtractors}.
