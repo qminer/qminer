@@ -75,6 +75,7 @@
 *     winsize: 10000
 * }
 * var sa = base.store("Laser").addStreamAggr(wavelength);
+* base.close();
 */
 //# exports.StreamAggr = function (base, json, storeName) { return Object.create(require('qminer').StreamAggr.prototype); };
 
@@ -130,9 +131,10 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 2 * 1000
+*    winsize: 2000
 * };
 * base.store("Heat").addStreamAggr(aggr); 
+* base.close();
 */
 
 /**
@@ -169,9 +171,9 @@
 *    store: 'Students',
 *    timestamp: 'TimeOfGraduation',
 *    value: 'Id',
-*    winsize: 31 * 24 * 60 * 60 * 1000
+*    winsize: 2678400000 // 31 days in miliseconds
 * };
-* var timeSeries = base.store("Heat").addStreamAggr(timeser);
+* var timeSeries = base.store("Students").addStreamAggr(timeser);
 *
 * // add a count aggregator, that is connected with the 'TimeSeriesAggr' aggregator
 * var co = {
@@ -180,7 +182,8 @@
 *    store: 'Students',
 *    inAggr: 'TimeSeriesAggr'
 * };
-* var count = base.store("Heat").addStreamAggr(co);
+* var count = base.store("Students").addStreamAggr(co);
+* base.close();
 */
 
 /**
@@ -217,9 +220,9 @@
 *    store: 'Income',
 *    timestamp: 'Time',
 *    value: 'Amount',
-*    winsize: 7 * 24 * 60 * 60 * 1000
+*    winsize: 604800000 // 7 days in miliseconds
 * };
-* var timeSeries = base.store("Heat").addStreamAggr(timeser);
+* var timeSeries = base.store("Income").addStreamAggr(timeser);
 *
 * // add a sum aggregator, that is connected with the 'TimeSeriesAggr' aggregator
 * var sum = {
@@ -228,7 +231,8 @@
 *    store: 'Heat',
 *    inAggr: 'TimeSeriesAggr'
 * };
-* var sumAggr = base.store("Heat").addStreamAggr(sum);
+* var sumAggr = base.store("Income").addStreamAggr(sum);
+* base.close();
 */
 
 /**
@@ -265,7 +269,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 24 * 60 * 60 * 1000
+*    winsize: 86400000 // 1 day in miliseconds
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
 *
@@ -277,6 +281,7 @@
 *    inAggr: 'TimeSeriesAggr'
 * };
 * var minimal = base.store("Heat").addStreamAggr(min);
+* base.close();
 */
 
 /**
@@ -313,7 +318,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 24 * 60 * 60 * 1000
+*    winsize: 86400000 // one day in miliseconds
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
 *
@@ -325,6 +330,7 @@
 *    inAggr: 'TimeSeriesAggr'
 * };
 * var maximal = base.store("Heat").addStreamAggr(max);
+* base.close();
 */
 
 /**
@@ -363,7 +369,8 @@
 *    timestamp: 'TimeOfGraduation',
 *    value: 'Id',
 * };
-* var timeSeriesTick = base.store("Heat").addStreamAggr(tick);
+* var timeSeriesTick = base.store("Students").addStreamAggr(tick);
+* base.close();
 */
 
 /**
@@ -400,7 +407,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 24 * 60 * 60 * 1000
+*    winsize: 86400000
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
 *
@@ -412,6 +419,7 @@
 *    inAggr: 'TimeSeriesAggr'
 * };
 * var movingAverage = base.store("Heat").addStreamAggr(ma);
+* base.close();
 */
 
 /**
@@ -455,7 +463,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 60 * 60 * 1000
+*    winsize: 3600000
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
 *
@@ -471,6 +479,7 @@
 *    initWindow: 2000
 * };
 * var expoMovingAverage = base.store("Heat").addStreamAggr(ema);
+* base.close();
 */
 
 /**
@@ -507,7 +516,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 24 * 60 * 60 * 1000
+*    winsize: 86400000
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
 *
@@ -519,6 +528,7 @@
 *    inAggr: 'TimeSeriesAggr'
 * };
 * var varianceAggr = base.store("Heat").addStreamAggr(variance);
+* base.close();
 */
 
 /**
@@ -557,7 +567,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 24 * 60 * 60 * 1000
+*    winsize: 86400000
 * }; base.store("Heat").addStreamAggr(celcius);
 *
 * // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'WaterConsumption' field
@@ -568,7 +578,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'WaterConsumption',
-*    winsize: 24 * 60 * 60 * 1000
+*    winsize: 86400000
 * }; base.store("Heat").addStreamAggr(water);
 *
 * // add a covariance aggregator, that is connected with the 'CelciusAggr' and 'WaterAggr' stream aggregators
@@ -580,6 +590,7 @@
 *    inAggrY: 'WaterAggr'
 * };
 * var covarianceAggr = base.store("Heat").addStreamAggr(covariance);
+* base.close();
 */
 
 /**
@@ -619,7 +630,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 24 * 60 * 60 * 1000
+*    winsize: 86400000
 * }; base.store("Heat").addStreamAggr(celcius);
 *
 * // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'WaterConsumption' field
@@ -630,7 +641,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'WaterConsumption',
-*    winsize: 24 * 60 * 60 * 1000
+*    winsize: 86400000
 * }; base.store("Heat").addStreamAggr(water);
 *
 * // add a covariance aggregator, that is connected with the 'CelciusAggr' and 'WaterAggr' aggregators
@@ -667,6 +678,7 @@
 *    inAggrVarY: 'waterVarAggr'
 * };
 * var correlation = base.store("Heat").addStreamAggr(corr);
+* base.close();
 */
 
 /**
@@ -720,9 +732,10 @@
 *        interpolator: 'linear'
 *    }],
 *    createStore: false,
-*    interval: 2 * 1000
+*    interval: 2000
 * };
 * var resampler = base.store("Heat").addStreamAggr(res);
+* base.close();
 */
 
 /**
@@ -785,6 +798,7 @@
 *    ]
 * };
 * var merger = new qm.StreamAggr(base, mer);
+* base.close();
 */
 
 class TNodeJsSA : public node::ObjectWrap {
@@ -894,7 +908,7 @@ public:
 	*    store: 'Grades',
 	*    timestamp: 'Time',
 	*    value: 'Procents',
-	*    winsize: 365 * 24 * 60 * 60 * 1000 
+	*    winsize: 31536000000 
 	* };
 	* var timeSeries = base.store('Grades').addStreamAggr(ts);
 	* // create a new moving average stream aggregator that takes the values from the 
@@ -912,6 +926,7 @@ public:
 	* base.store("Grades").push({ Grade: 8, Procents: 70, Time: '2015-02-03T10:00:00.0' });
 	* // get the average grade procents by using the getFloat method
 	* var average = averageGrade.getFloat(); // returns 74 + 1/3
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getFloat = function () { return 0; };
 	JsDeclareFunction(getFloat);
@@ -944,7 +959,7 @@ public:
 	*    store: 'GameCollection',
 	*    timestamp: 'ReleaseDate',
 	*    value: 'Price',
-	*    winsize: 31 * 60 * 60 * 1000
+	*    winsize: 2678400000
 	* };
 	* var timeSeries = base.store('GameCollection').addStreamAggr(ts);
 	* // create a new sum stream aggregator
@@ -961,6 +976,7 @@ public:
 	* base.store('GameCollection').push({ GameName: 'The Legend of Zelda', Price: 90, ReleaseDate: '1986-02-21T00:00:00.0 '});
 	* // get the timestamp of the last bought game by using getTimestamp
 	* var date = priceSum.getTimestamp(); // returns 12153801600000 (the miliseconds since 1601-01-01T00:00:00.0)
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getTimestamp = function () { return 0; };
 	JsDeclareFunction(getTimestamp);
@@ -993,7 +1009,7 @@ public:
 	*    store: 'IceCreams',
 	*    timestamp: 'TimeOfConsumption',
 	*    value: 'Price',
-	*    winsize: 24 * 60 * 60 * 1000
+	*    winsize: 86400000
 	* };
 	* var icePrice = base.store('IceCreams').addStreamAggr(ts);
 	* // add some ice creams in the store
@@ -1002,7 +1018,7 @@ public:
 	* base.store('IceCreams').push({ Type: 'Stracciatella', Price: 5, TimeOfConsumption: '2015-07-21T21:05:00.0' });
 	* // get the number of ice creams consumed by using getFloatLength method
 	* var numberOfIceCreamsEaten = icePrice.getFloatLength(); // returns 3
-	* 
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getFloatLength = function () { return 0; };
 	JsDeclareFunction(getFloatLength);
@@ -1034,7 +1050,7 @@ public:
 	*    store: 'MusicSale',
 	*    timestamp: 'Time',
 	*    value: 'NumberOfAlbums',
-	*    winsize: 7 * 24 * 60 * 60 * 1000
+	*    winsize: 604800000
 	* };
 	* var weekSales = base.store('MusicSale').addStreamAggr(ts);
 	* // add some records in the store
@@ -1044,6 +1060,7 @@ public:
 	* base.store('MusicSale').push({ NumberOfAlbums: 45, Time: '2015-03-20T00:00:00.0' });
 	* // get the second value of the value vector 
 	* var albums = weekSales.getFloatAt(1); // returns 15
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getFloatAt = function (idx) { return 0; };
 	JsDeclareFunction(getFloatAt);
@@ -1074,7 +1091,7 @@ public:
 	*    store: 'Hospital',
 	*    timestamp: 'Date',
 	*    value: 'NumberOfPatients',
-	*    winsize: 7 * 24 * 60 * 60 * 1000
+	*    winsize: 604800000
 	* };
 	* var weekPatients = base.store('Hospital').addStreamAggr(ts);
 	* // add some records in the store
@@ -1084,6 +1101,7 @@ public:
 	* base.store('Hospital').push({ NumberOfPatients: 40, Date: '2015-05-23T00:00:00.0' });
 	* // get the values that are in the time series window buffer as a vector
 	* var values = weekPatients.getFloatVector(); // returns the vector [50, 56, 120, 40]
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getFloatVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getFloatVector);
@@ -1115,7 +1133,7 @@ public:
 	*    store: 'Medicine',
 	*    timestamp: 'Time',
 	*    value: 'NumberOfPills',
-	*    winsize: 7 * 24 * 60 * 60 * 1000
+	*    winsize: 604800000
 	* };
 	* var weekly = base.store('Medicine').addStreamAggr(ts);
 	* // add some records in the store
@@ -1128,6 +1146,7 @@ public:
 	* base.store('Medicine').push({ NumberOfPills: 4, Time: '2015-07-24T09:00:00.0' });
 	* // get the length of the timestamp vector
 	* var length = weekly.getTimestampLength(); // returns 7
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getTimestampLength = function () { return 0; };
 	JsDeclareFunction(getTimestampLength);
@@ -1159,7 +1178,7 @@ public:
 	*    store: 'Route66',
 	*    timestamp: 'Time',
 	*    value: 'NumberOfCars',
-	*    winsize: 24 * 60 * 60 * 1000
+	*    winsize: 86400000
 	* };
 	* var traffic = base.store('Route66').addStreamAggr(ts);
 	* // add some records in the store
@@ -1170,6 +1189,7 @@ public:
 	* base.store('Route66').push({ NumberOfCars: 110, Time: '2015-06-16T00:00:00.0' });
 	* // get the third timestamp in the buffer
 	* var time = traffic.getTimestampAt(2); // returns 13078864800000
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getTimestampAt = function (idx) { return 0; };
 	JsDeclareFunction(getTimestampAt);
@@ -1200,7 +1220,7 @@ public:
 	*    store: 'Signals',
 	*    timestamp: 'Time',
 	*    value: 'BeepLoudness',
-	*    winsize: 10 * 1000
+	*    winsize: 10000
 	* };
 	* var signalBeep = base.store('Signals').addStreamAggr(ts);
 	* // add some records to the store
@@ -1209,6 +1229,7 @@ public:
 	* base.store('Signals').push({ BeepLoudness: 20, Time: '2015-07-21T12:30:32.0' });
 	* // get the timestamp vector of signalBeep
 	* var vec = signalBeep.getTimestampVector(); // returns vector [13081955430000, 13081955431000, 13081955432000]
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getTimestampVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getTimestampVector);
@@ -1241,7 +1262,7 @@ public:
 	*    store: 'Marathon',
 	*    timestamp: 'Time',
 	*    value: 'Speed',
-	*    winsize: 10 * 60 * 1000
+	*    winsize: 600000
 	* };
 	* var sensor = base.store('Marathon').addStreamAggr(ts);
 	* // add some records to the store
@@ -1250,6 +1271,7 @@ public:
 	* base.store('Marathon').push({ Runner: 'Coco Chanelle', Speed: 13.7, Time: '2015-07-21T20:24:27.0' });
 	* // get the last value that got in the buffer
 	* var last = sensor.getInFloat(); // returns 13.7
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getInFloat = function () { return 0; };
 	JsDeclareFunction(getInFloat);
@@ -1281,7 +1303,7 @@ public:
 	*    store: 'F1',
 	*    timestamp: 'Time',
 	*    value: 'Speed',
-	*    winsize: 5 * 60 * 1000
+	*    winsize: 300000
 	* };
 	* var sensor = base.store('F1').addStreamAggr(ts);
 	* // add some records to the store
@@ -1290,6 +1312,7 @@ public:
 	* base.store('F1').push({ Driver: 'Mark Ham', Speed: 189.5, Time: '2015-07-19T09:38:43.0' });
 	* // get the last timestamp that was added in the window buffer
 	* var time = sensor.getInTimestamp(); // returns 13081772323000
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getInTimestamp = function () { return 0; };
 	JsDeclareFunction(getInTimestamp);
@@ -1321,7 +1344,7 @@ public:
 	*    store: 'F1',
 	*    timestamp: 'Time',
 	*    value: 'Speed',
-	*    winsize: 5 * 60 * 1000
+	*    winsize: 300000
 	* };
 	* var sensor = base.store('F1').addStreamAggr(ts);
 	* // add some records to the store
@@ -1332,6 +1355,7 @@ public:
 	* // get the values, that have got out of the window buffer.
 	* // because the window size is 5 seconds, the last value that have left the buffer is 152.8
 	* var left = sensor.getOutFloatVector(); // returns [152.8]
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getOutFloatVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getOutFloatVector);
@@ -1375,6 +1399,7 @@ public:
 	* base.store('Noise').push({ Decibels: 53, Time: '2015-07-21T14:43:01.2' });
 	* // get the timestamps that just left the window buffer by adding the last record
 	* var last = music.getOutTimestampVector(); // returns [13081963380000]
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getOutTimestampVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getOutTimestampVector);
@@ -1405,7 +1430,7 @@ public:
 	*    store: 'MusicSale',
 	*    timestamp: 'Time',
 	*    value: 'NumberOfAlbums',
-	*    winsize: 7 * 24 * 60 * 60 * 1000
+	*    winsize: 604800000
 	* };
 	* var weekSales = base.store('MusicSale').addStreamAggr(ts);
 	* // add some records in the store
@@ -1415,6 +1440,7 @@ public:
 	* base.store('MusicSale').push({ NumberOfAlbums: 45, Time: '2015-03-20T00:00:00.0' });
 	* // get the number of records in the window buffer
 	* var num = weekSales.getNumberOfRecords(); // returns 4
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getNumberOfRecords = function () { return 0; };
 	JsDeclareFunction(getNumberOfRecords);

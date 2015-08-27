@@ -730,8 +730,8 @@ public:
 	* var la = require('qminer').la;
 	* // create a sparse matrix
 	* var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
-	* // get the value at the position (1, 3)
-	* mat.at(1, 3); // returns 3
+	* // get the value at the position (1, 1)
+	* mat.at(1, 1); // returns 3
 	*/
 	//# exports.SparseMatrix.prototype.at = function (rowIdx, colIdx) { return 0.0; }
 	JsDeclareFunction(at);
@@ -748,8 +748,8 @@ public:
 	* var la = require('qminer').la;
 	* // create a new sparse matrix
 	* var mat = new la.SparseMatrix([[[0, 3], [1, 2]], [[1, -2], [3, 4]], [[10, 8]]]);
-	* // set the value at position (2, 3) to -4
-	* var mat.put(2, 3, -4);
+	* // set the value at position (2, 2) to -4
+	* mat.put(2, 2, -4);
 	*/
 	//# exports.SparseMatrix.prototype.put = function (rowIdx, colIdx, num) { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(put);
@@ -863,7 +863,7 @@ public:
 	* // 0   -3
 	* // 0    1
 	* // 2    0
-	* mat.sum(mat2);
+	* var sum = mat.plus(mat2);
 	*/
 	//# exports.SparseMatrix.prototype.plus = function (spMat) { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(plus);
@@ -885,7 +885,7 @@ public:
 	* //  0   -3
 	* //  0   -1
 	* //  2    0
-	* mat.sum(mat2);
+	* var diff = mat.minus(mat2);
 	*/
 	//# exports.SparseMatrix.prototype.minus = function (spMat) { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(minus);
@@ -898,7 +898,7 @@ public:
 	* // import la module
 	* var la = require('qminer').la;
 	* // create a new sparse matrix
-	* var mat = new la.SparseMatrix([[[0, 2], [2, -3]], [[1, 1], [3, -2]]);
+	* var mat = new la.SparseMatrix([[[0, 2], [2, -3]], [[1, 1], [3, -2]]]);
 	* // transpose the sparse matrix
 	* // returns the transposed matrix (in sparse form)
 	* // 2    0   -3    0
@@ -960,6 +960,8 @@ public:
 	/**
 	* Prints sparse matrix on screen.
 	* @example
+	* // import la module
+	* var la = require('qminer').la;
 	* // create a new sparse matrix
 	* var spMat = new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 8]]]);
 	* // print sparse matrix on screen

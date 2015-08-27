@@ -41,8 +41,6 @@
 * var SVC = new analytics.SVC({ verbose: true });
 * // train classifier
 * SVC.fit(featureMatrix, targets);
-* // save the model to disk
-* SVC.save('svc.bin');
 * // set up a fake test vector
 * var test = new la.Vector([1.1, -0.5]);
 * // predict the target value
@@ -50,7 +48,7 @@
 */
  exports.SVC = function(arg) { return Object.create(require('qminer').analytics.SVC.prototype); };
 /**
-	* Returns the SVC parameters.	
+	* Returns the SVC parameters.
 	* @returns {module:analytics~svcParam} Parameters of the classifier model.
 	* @example
 	* // import analytics module
@@ -94,7 +92,7 @@
 	*/
  exports.SVC.prototype.weights = Object.create(require('qminer').la.Vector.prototype);
 /**
-	* Saves model to output file stream .
+	* Saves model to output file stream.
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} The Output stream.
 	*/
@@ -184,6 +182,7 @@
 * @example
 * // import module
 * var analytics = require('qminer').analytics;
+* var la = require('qminer').la;
 * // REGRESSION WITH SVR
 * // Set up fake train and test data.
 * // Four training examples with, number of features = 2
@@ -194,8 +193,6 @@
 * var SVR = new analytics.SVR({ verbose: true });
 * // Train regression
 * SVR.fit(featureMatrix, targets);
-* // Save the model to disk
-* SVR.save('svr.bin');
 * // Set up a fake test vector
 * var test = new la.Vector([1.1, -0.8]);
 * // Predict the target value
@@ -209,7 +206,7 @@
 	* // import analytics module
 	* var analytics = require('qminer').analytics;
 	* // create a new SVR object
-	* var SVR = new analytics.SVR({ c: 10, eps: e-10, maxTime: 12000, verbose: true });
+	* var SVR = new analytics.SVR({ c: 10, eps: 1e-10, maxTime: 12000, verbose: true });
 	* // get the parameters of SVR
 	* var params = SVR.getParams();
 	*/
@@ -580,6 +577,7 @@
 * @param {number} [windowSize=100] - Number of most recent instances kept in the model.
 */
 /**
+ * Nearest Neighbour Anomaly Detection 
  * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
  * @class
  * @param {module:analytics~detectorParam} [detectorParam] - Constructor parameters.
@@ -731,6 +729,7 @@
 * @param {number} [forgetFact=1.0] - The forgetting factor.
 */
 /**
+* Recursive Linear Regression
 * @classdesc Holds the Recursive Linear Regression model.
 * @class
 * @param {module:analytics~recLinearRegParam} param - The constructor parameter json object.
@@ -773,7 +772,7 @@
 	* var mat = new la.Matrix([[1, 2, 3], [3, 4, 5]]);
 	* var vec = new la.Vector([3, 5, -1]);
 	* // fit the model with the matrix
-	* linreg.partialFit(mat, vec);
+	* linreg.fit(mat, vec);
 	*/
  exports.RecLinReg.prototype.fit = function (mat, vec) { return Object.create(require('qminer').analytics.RecLinReg.prototype); }
 /**
@@ -790,7 +789,7 @@
 	* var mat = new la.Matrix([[1, 2], [1, -1]]);
 	* var vec = new la.Vector([3, 3]);
 	* // fit the model with the matrix
-	* linreg.partialFit(mat, vec);
+	* linreg.fit(mat, vec);
 	* // create the vector to be predicted
 	* var pred = new la.Vector([1, 1]);
 	* // predict the value of the vector
@@ -1103,7 +1102,7 @@
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // create a SVR model
-    * var SVC = new analytics.SVR();
+    * var SVR = new analytics.SVR();
     * // get the properties of the model
     * var model = SVR.getModel(); // returns { weights: new require('qminer').la.Vector(); }
 	*/
@@ -1124,7 +1123,7 @@
     * // create the Ridge Regression model
     * var regmod = new analytics.RidgeReg();
     * // get the model
-    * var model = regmod.getModel(); returns { weights: new require('qminer').la.Vector(); }
+    * var model = regmod.getModel(); // returns { weights: new require('qminer').la.Vector(); }
     */
     exports.RidgeReg.prototype.getModel = function () { return { weights: this.weights }; }
 
@@ -1142,7 +1141,7 @@
     * // create the Recursive Linear Regression model
     * var linreg = new analytics.RecLinReg({ dim: 10 });
     * // get the model
-    * var model = linreg.getModel(); returns { weights: new require('qminer').la.Vector(); }
+    * var model = linreg.getModel(); // returns { weights: new require('qminer').la.Vector(); }
     */
     exports.RecLinReg.prototype.getModel = function () { return { weights: this.weights } }
 
