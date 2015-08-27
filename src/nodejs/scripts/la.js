@@ -26,6 +26,8 @@ module.exports = exports = function (pathPrefix) {
     * Returns a string displaying rows, columns and number of non-zero elements of sparse matrix.
     * @returns {string} String displaying row, columns and number of non-zero elements.
     * @example
+    * // import la module
+    * var la = require('qminer').la;
     * // create a new sparse matrix
     * var mat = new la.SparseMatrix([[[0, 1]], [[0, 2], [1, 8]]]);
     * // create the string
@@ -48,6 +50,8 @@ module.exports = exports = function (pathPrefix) {
     /**
 	* Prints the sparse vector on-screen.
 	* @example
+    * // import la module
+    * var la = require('qminer').la;
 	* // create a new sparse vector
 	* var spVec = new la.SparseVector([[0, 1], [2, 3]]);
 	* // print sparse vector
@@ -58,6 +62,8 @@ module.exports = exports = function (pathPrefix) {
     /**
 	* Prints the matrix on-screen.
 	* @example
+    * // import la module
+    * var la = require('qminer').la;
 	* // create a new matrix
 	* var mat = new la.Matrix([[1, 2], [3, 4]]);
 	* // print the matrix
@@ -77,6 +83,8 @@ module.exports = exports = function (pathPrefix) {
 	/**
     * Prints the vector on-screen.
     * @example
+    * // import la module
+    * var la = require('qminer').la;
     * // create a new vector
     * var vec = new la.Vector([1, 2, 3]);
     * // print the vector
@@ -90,6 +98,8 @@ module.exports = exports = function (pathPrefix) {
     * Copies the vector into a JavaScript array of numbers.
     * @returns {Array<number>} A JavaScript array of numbers.
     * @example
+    * // import la module
+    * var la = require('qminer').la;
     * // create a new vector
     * var vec = new la.Vector([1, 2, 3]);
     * // create a JavaScript array out of vec
@@ -108,6 +118,8 @@ module.exports = exports = function (pathPrefix) {
     * Copies the matrix into a JavaScript array of arrays of numbers.
     * @returns {Array<Array<number>>} A JavaScript array of arrays of numbers.
     * @example
+    * // import la module
+    * var la = require('qminer').la;
     * // create a new matrix
     * var mat = new la.Matrix([[1, 2], [3, 4]]);
     * // create a JavaScript array out of matrix
@@ -132,6 +144,8 @@ module.exports = exports = function (pathPrefix) {
     * @param {module:la.Vector} vec - Copied vector.
     * @returns {Array<number>} A JavaScript array of numbers.
     * @example
+    * // import la module
+    * var la = require('qminer').la;
     * // create a new vector
     * var vec = new la.Vector([1, 2, 3]);
     * // create a JavaScript array out of vec
@@ -303,6 +317,8 @@ module.exports = exports = function (pathPrefix) {
     * @param {number} dim - Dimension of the vector.
     * @returns {module:la.Vector} A dim-dimensional vector whose entries are set to 1.0.
     * @example
+    * // import la module
+    * var la = require('qminer').la;
     * // create a 3-dimensional vector with all entries set to 1.0
     * var vec = la.ones(3);
     */
@@ -320,6 +336,8 @@ module.exports = exports = function (pathPrefix) {
     * For example: [[m11, m12], [m21, m22]] is used to construct a matrix where the (i,j)-th block submatrix is mij.
     * @returns {module:la.Matrix} Concatenated matrix
     * @example
+    * // import la module
+    * var la = require('qminer').la;
     * // create four matrices and concatenate (2 block columns, 2 block rows)
     * var la = require('qminer').la;
     * var A = new la.Matrix([[1,2], [3,4]]);
@@ -380,6 +398,7 @@ module.exports = exports = function (pathPrefix) {
     * @param {number} max - End value (should be an integer)
     * @returns {module:la.IntVector} Integer range vector
     * @example
+    * // import la module
     * var la = require('qminer').la;
     * var vec = la.rangeVec(1, 3);
     * // returns the vector:
@@ -413,8 +432,10 @@ module.exports = exports = function (pathPrefix) {
     * @param {(la.Matrix | la.Vector)} X - A matrix or a vector
     * @returns {Array<number>} Array of indexes where maximum is found, one for each column
     * @example
+    * // import la module
     * var la = require('qminer').la;
-    * var mat = new la.Matrix([[1,2], [2,0]]);
+    * // create a dense matrix
+    * var mat = new la.Matrix([[1, 2], [2, 0]]);
     * la.findMaxIdx(mat)
     * // returns the array:
     * // [1, 0]
@@ -442,6 +463,7 @@ module.exports = exports = function (pathPrefix) {
     * @param {la.Matrix} X2 - Second matrix
     * @returns {la.Matrix} Matrix with `X1.cols` rows and `X2.cols` columns containing squared euclidiean distances.
     * @example
+    * // import la module
     * var la = require('qminer').la;
     * // construct two input matrices
     * var X1 = new la.Matrix([[1,2], [2,0]]);

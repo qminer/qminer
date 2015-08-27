@@ -31,3 +31,5 @@ node factorydoc.js ../nodedoc/module-qm.RecordSet.html
 node factorydoc.js ../nodedoc/module-qm.Store.html
 
 xcopy "pictures" "..\nodedoc\pictures\" /S/E/Y
+
+node createExampleTests.js ../nodedoc/ ../test/nodejs/
