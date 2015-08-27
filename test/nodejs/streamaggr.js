@@ -3,6 +3,8 @@ var assert = require('../../src/nodejs/scripts/assert.js');
 
 
 describe('Stream Aggregator Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
 
@@ -300,6 +302,8 @@ describe('Stream Aggregator Tests', function () {
 });
 
 describe('Time Series Window Buffer Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -813,6 +817,8 @@ describe('Time Series Window Buffer Tests', function () {
 });
 
 describe('MovingWindowBufferCount Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -967,6 +973,8 @@ describe('MovingWindowBufferCount Tests', function () {
 });
 
 describe('MovingWindowBufferSum Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1121,6 +1129,8 @@ describe('MovingWindowBufferSum Tests', function () {
 });
 
 describe('MovingWindowBufferMin Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1292,6 +1302,8 @@ describe('MovingWindowBufferMin Tests', function () {
 });
 
 describe('MovingWindowBufferMax Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1459,6 +1471,8 @@ describe('MovingWindowBufferMax Tests', function () {
 });
 
 describe('MovingAverage Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1623,6 +1637,8 @@ describe('MovingAverage Tests', function () {
 });
 
 describe('TimeSeriesTick Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1804,6 +1820,8 @@ describe('TimeSeriesTick Tests', function () {
 })
 
 describe('EMA Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -2026,6 +2044,8 @@ describe('EMA Tests', function () {
 });
 
 describe('MovingVariance Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -2204,6 +2224,8 @@ describe('MovingVariance Tests', function () {
 });
 
 describe('Covariance Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -2395,6 +2417,8 @@ describe('Covariance Tests', function () {
 });
 
 describe('Correlation Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -2635,6 +2659,8 @@ describe('Correlation Tests', function () {
 });
 
 describe('Resampler Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     var out = undefined;
@@ -2805,6 +2831,8 @@ describe('Resampler Tests', function () {
 });
 
 describe('Merger Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var strore = undefined;
     beforeEach(function () {
@@ -2902,7 +2930,7 @@ describe('Merger Tests', function () {
             };
             var merger = new qm.StreamAggr(base, aggr);
             base.store("Cars").push({ NumberOfCars: 5, Time: '1601-01-01T00:00:00.0' });
-            
+
             assert.equal(store.length, 0);
         })
         it('should still return an empty "Merged" store if there is only one record in each of the stores', function () {
@@ -2994,11 +3022,11 @@ describe('Merger Tests', function () {
             base.store("Temperature").push({ Celcius: 30.3, Time: '1601-01-01T00:00:04.000' });
 
             assert.equal(store.length, 3);
-            assert.eqtol(store[0].NumberOfCars, 5 + 10/3);
+            assert.eqtol(store[0].NumberOfCars, 5 + 10 / 3);
             assert.equal(store[0].Celcius, 28.3);
             //assert.equal(store[0].Time.getTime(), 1000);
 
-            assert.eqtol(store[1].NumberOfCars, 5 + 2*10/3);
+            assert.eqtol(store[1].NumberOfCars, 5 + 2 * 10 / 3);
             assert.equal(store[1].Celcius, 29.7);
             //assert.equal(store[1].Time.getTime(), 2000);
 
@@ -3021,9 +3049,9 @@ describe('Merger Tests', function () {
             var merger = new qm.StreamAggr(base, aggr);
             base.store("Cars").push({ NumberOfCars: 5, Time: '1601-01-01T00:00:00.000' });
             base.store("Cars").push({ NumberOfCars: 15, Time: '1601-01-01T00:00:02.000' });
-            assert.throws(function () { 
+            assert.throws(function () {
                 base.store("Temperature").push({ Celcius: 28.3, Time: '1601-01-01T00:00:01.000' });
-            })
+            });
         })
-    })
-})
+    });
+});
