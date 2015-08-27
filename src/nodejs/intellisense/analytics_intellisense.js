@@ -690,7 +690,21 @@ exports = {}; require.modules.qminer_analytics = exports;
      * Compares the point to the known points and returns distance to the nearest one.
      * @param {module:la.Vector} x - Test vector.
      * @returns {number} Distance to the nearest point.
-     */
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create a new NearestNeighborAD object
+	 * var neighbor = new analytics.NearestNeighborAD();
+	 * // create a new sparse matrix
+	 * var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+	 * // fit the model with the matrix
+	 * neighbor.fit(matrix);
+	 * // create a new sparse vector
+	 * var vector = new la.SparseVector([[0, 4], [1, 0]]);
+	 * // get the distance of the vector from the model
+	 * var prediction = neighbor.decisionFunction(vector); // returns 1
+	 */
  exports.NearestNeighborAD.prototype.decisionFunction = function(x) { return 0.0; }
 /**
 	* Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold).
@@ -735,6 +749,16 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* @param {module:la.Vector} vec - The input vector.
 	* @param {number} num - The target number for the vector.
 	* @returns {module:analytics.RecLinReg} Self. The internal model is updated.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create the Recursive Linear Regression model
+	* var linreg = new analytics.RecLinReg({ dim: 3.0 });
+	* // create a new dense vector
+	* var vec = new la.Vector([1, 2, 3]);
+	* // fit the model with the vector
+	* linreg.partialFit(vec, 6);
 	*/
  exports.RecLinReg.prototype.partialFit = function (vec, num) { return Object.create(require('qminer').analytics.RecLinReg.prototype); }
 /**
@@ -742,11 +766,63 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* @param {module:la.Matrix} mat - The input matrix.
 	* @param {module:la.Vector} vec - The target numbers, where the i-th number in vector is the target number for the i-th column of the matrix.
 	* @returns {module:analytics.RecLinReg} Self. The internal model is updated.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create the Recursive Linear Regression model
+	* var linreg = new analytics.RecLinReg({ dim: 2.0 });
+	* // create a new dense matrix and target vector
+	* var mat = new la.Matrix([[1, 2, 3], [3, 4, 5]]);
+	* var vec = new la.Vector([3, 5, -1]);
+	* // fit the model with the matrix
+	* linreg.partialFit(mat, vec);
 	*/
  exports.RecLinReg.prototype.fit = function (mat, vec) { return Object.create(require('qminer').analytics.RecLinReg.prototype); }
 /**
+	* Puts the vector through the model and returns the prediction as a real number.
+	* @param {module:la.Vector} vec - The vector needed to be predicted.
+	* @returns {number} The prediction.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create the Recursive Linear Regression model
+	* var linreg = new analytics.RecLinReg({ dim: 2.0, recFact: 1e-10 });
+	* // create a new dense matrix and target vector
+	* var mat = new la.Matrix([[1, 2], [1, -1]]);
+	* var vec = new la.Vector([3, 3]);
+	* // fit the model with the matrix
+	* linreg.partialFit(mat, vec);
+	* // create the vector to be predicted
+	* var pred = new la.Vector([1, 1]);
+	* // predict the value of the vector
+	* var prediction = linreg.predict(pred); // returns something close to 3.0
+	*/
+ exports.RecLinReg.prototype.predict = function (vec) { return 0.0 }  
+/**
+	* Sets the parameters of the model.
+	* @param {module:analytics~recLinearRegParam} param - The new parameters of the model.
+	* @returns {module:analytics.RecLinReg} Self. The parameters are updated. Any previous model is set to default.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new Recursive Linear Regression model
+	* var linreg = new analytics.RecLinReg({ dim: 10 });
+	* // set the parameters of the model
+	* linreg.setParams({ dim: 3, recFact: 1e2, forgetFact: 0.5 });
+	*/
+ exports.RecLinReg.prototype.setParams = function (param) { return Object.create(require('qminer').analytics.RecLinReg.prototype); }
+/**
 	* Returns the parameters.
 	* @returns {module:analytics~recLinearRegParam} The parameters of the model.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new Recursive Linear Regression model
+	* var linreg = new analytics.RecLinReg({ dim: 10 });
+	* // get the parameters of the model
+	* var params = linreg.getParams(); // returns { dim: 10, recFact: 1.0, forgetFact: 1.0 }
 	*/
  exports.RecLinReg.prototype.getParams = function () { return { dim: 0, regFact: 1.0, forgetFact: 1.0 }}
 /**

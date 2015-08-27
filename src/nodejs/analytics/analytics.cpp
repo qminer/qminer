@@ -919,6 +919,7 @@ void TNodeJsRecLinReg::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
 	// properties
@@ -981,7 +982,6 @@ void TNodeJsRecLinReg::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	EAssertR(!Model->Model->HasNaN(), "RecLinRegModel.fit: NaN detected!");
 
 	Args.GetReturnValue().Set(Args.Holder());
-
 }
 
 void TNodeJsRecLinReg::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1031,6 +1031,26 @@ void TNodeJsRecLinReg::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 	TNodeJsRecLinReg* Model = ObjectWrap::Unwrap<TNodeJsRecLinReg>(Args.Holder());
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Model->GetParams()));
+}
+
+void TNodeJsRecLinReg::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
+
+	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+
+	TNodeJsRecLinReg* Model = ObjectWrap::Unwrap<TNodeJsRecLinReg>(Args.Holder());
+
+	const int Dim = ParamVal->GetObjInt("dim", Model->Model->GetDim());
+	const double RegFact = ParamVal->GetObjNum("regFact", Model->Model->GetRegFact());
+	const double ForgetFact = ParamVal->GetObjNum("forgetFact", Model->Model->GetForgetFact());
+
+	// copy the values
+	Model->Model = TSignalProc::TRecLinReg::New(Dim, RegFact, ForgetFact);
+
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsRecLinReg::weights(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
