@@ -94,10 +94,11 @@
 * var base = new qm.Base({
 *     mode: &#x27;createClean&#x27;,
 *     schema: [{
-*       type: &quot;Movies&quot;,
-*       type: [{ name: &quot;title&quot;, type: &quot;string&quot; }]
+*       name: &quot;Movies&quot;,
+*       fields: [{ name: &quot;title&quot;, type: &quot;string&quot; }]
 *     }]
 * });
+* base.close();
 */
 /**
 * Field types.
@@ -165,6 +166,7 @@
 *   Title: &#x27;the title&#x27;, 
 *   Tokens: [&#x27;token1&#x27;, &#x27;token2&#x27;], 
 *   Vector: [[0,1], [1,1]]});
+* base.close();
 */
 /**
 * Store schema join definition object
@@ -215,6 +217,7 @@
 * // prints: 
 * //   &#x27;Broken Flowers&#x27;
 * //   &#x27;Coffee and Cigarettes&#x27;
+* base.close();
 */
 /**
 * Store schema key definition object
@@ -252,6 +255,7 @@
 * base.search({$from : &#x27;People&#x27;, name: &#x27;Smith&#x27;}); // Returns the empty record set.
 * // search based on text indexing
 * base.search({$from : &#x27;People&#x27;, nameText: &#x27;Smith&#x27;}); // Returns both records.
+* base.close();
 */
 /**
 * Stores can have a window, which is used by garbage collector to delete records once they
@@ -264,14 +268,15 @@
 * @example
 * var qm = require(&#x27;qminer&#x27;);
 * // Create a store
-* var base = new qm.Base([{
+* // var base = new qm.Base([{
 * // ...
-*   timeWindow : { 
-*     duration : 12,
-*     unit : &quot;hour&quot;,
-*     field : &quot;DateTime&quot;
-*   }
-* }]);
+* //  timeWindow : { 
+* //    duration : 12,
+* //    unit : &quot;hour&quot;,
+* //    field : &quot;DateTime&quot;
+* //  }
+* //}]);
+* //base.close();
 */
 /**
 * Base
@@ -287,6 +292,7 @@
 * var qm = require(&#x27;qminer&#x27;);
 * // using a constructor, in open mode
 * var base = new qm.Base({mode: &#x27;open&#x27;});
+* base.close();
 */
  exports.Base = function (paramObj) { return Object.create(require(&#x27;qminer&#x27;).Base.prototype); };
 /**
@@ -323,6 +329,7 @@
 	 * });
 	 * // get the &quot;KwikEMart&quot; store 
 	 * var store = base.store(&quot;KwikEMart&quot;);	// returns the store with the name &quot;KwikEMart&quot;
+	 * base.close();
 	 */
  exports.Base.prototype.store = function (name) { return Object.create(require(&#x27;qminer&#x27;).Store.prototype); }
 /**
@@ -377,6 +384,7 @@
 	*        ]
 	*    }
 	* ]);
+	* base.close();
 	*/
  exports.Base.prototype.createStore = function (storeDef, storeSizeInMB) { return storeDef instanceof Array ? [Object.create(require(&#x27;qminer&#x27;).Store.prototype)] : Object.create(require(&#x27;qminer&#x27;).Store.prototype) ;}
 /**
@@ -452,6 +460,7 @@
 *        { field: &quot;Genres&quot;, type: &quot;value&quot; }
 *    ]
 * }]);
+* base.close();
 * // using the base constructor
 * var base = new qm.Base({
 *    mode: &quot;createClean&quot;,
@@ -463,6 +472,7 @@
 *        ]
 *    }]
 * });
+* base.close();
 */
  exports.Store = function (base, storeDef) { return Object.create(require(&#x27;qminer&#x27;).Store.prototype); };
 /**
@@ -489,7 +499,8 @@
 	* base.store(&quot;Class&quot;).push({ Name: &quot;Magnitude&quot;, StudyGroup: &quot;C&quot; });
 	* base.store(&quot;Class&quot;).push({ Name: &quot;Leonard&quot;, StudyGroup: &quot;B&quot; });
 	* // get the record with the name &quot;Magnitude&quot;
-	* var record = base.store(&quot;Class&quot;).rec(&quot;Magnitude&quot;);
+	* var record = base.store(&quot;Class&quot;).recordByName(&quot;Magnitude&quot;);
+	* base.close();
 	*/
  exports.Store.prototype.recordByName = function (recName) { return Object.create(require(&#x27;qminer&#x27;).Record.prototype); };
 /**
@@ -519,6 +530,7 @@
 	* base.store(&quot;Class&quot;).push({ Name: &quot;Jeff&quot;, StudyGroup: &quot;A&quot; });
 	* // change the StudyGroup of all records of store Class to A
 	* base.store(&quot;Class&quot;).each(function (rec) { rec.StudyGroup = &quot;A&quot;; });	// all records in Class are now in study group A
+	* base.close();
 	*/
  exports.Store.prototype.each = function (callback) { return Object.create(require(&#x27;qminer&#x27;).Store.prototype); }
 /**
@@ -548,6 +560,7 @@
 	* base.store(&quot;Class&quot;).push({ Name: &quot;Pierce&quot;, StudyGroup: &quot;A&quot; });
 	* // make an array of record names
 	* var arr = base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; }); // returns an array [&quot;Shirley&quot;, &quot;Troy&quot;, &quot;Chang&quot;, &quot;Pierce&quot;]
+	* base.close();
 	*/
  exports.Store.prototype.map = function (callback) {}
 /**
@@ -580,6 +593,7 @@
 	* base.store(&quot;Superheroes&quot;).push({ Name: &quot;Superman&quot;, Superpowers: [&quot;flight&quot;, &quot;heat vision&quot;, &quot;bulletproof&quot;] }); // returns 0
 	* // add a new supervillian to the Supervillians store
 	* base.store(&quot;Supervillians&quot;).push({ Name: &quot;Lex Luthor&quot;, Superpowers: [&quot;expert engineer&quot;, &quot;genius-level intellect&quot;, &quot;money&quot;] }); // returns 0
+	* base.close();	
 	*/
  exports.Store.prototype.push = function (rec) { return 0; }
 /**
@@ -605,6 +619,7 @@
 	* base.store(&quot;Planets&quot;).push({ Name: &quot;Earth&quot;, Diameter: 299196522, NearestStars: [&quot;Sun&quot;] });
 	* // create a record of a planet (not added to the Planets store)
 	* var planet = base.store(&quot;Planets&quot;).newRecord({ Name: &quot;Tatooine&quot;, Diameter: 10465, NearestStars: [&quot;Tatoo 1&quot;, &quot;Tatoo 2&quot;] });
+	* base.close();
 	*/
  exports.Store.prototype.newRecord = function (json) { return Object.create(require(&#x27;qminer&#x27;).Record.prototype); };
 /**
@@ -633,6 +648,7 @@
 	* // create a new record set containing only the DC Comic superheroes (those with the record ids 0, 1 and 3)
 	* var intVec = new qm.la.IntVector([0, 1, 3]);
 	* var DCHeroes = base.store(&quot;Superheroes&quot;).newRecordSet(intVec);
+	* base.close();
 	*/
  exports.Store.prototype.newRecordSet = function (idVec) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 /**
@@ -661,6 +677,7 @@
 	* base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 	* // create a sample record set containing 3 records
 	* var randomRecordSet = base.store(&quot;TVSeries&quot;).sample(3); // contains 3 random records from the TVSeries store
+	* base.close();
 	*/
  exports.Store.prototype.sample = function (sampleSize) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 /**
@@ -686,6 +703,7 @@
 	* // it returns a JSON object:
 	* // { id: 0, name: &quot;Name&quot;, type: &quot;string&quot;, primary: true }
 	* var details = base.store(&quot;People&quot;).field(&quot;Name&quot;);
+	* base.close();
 	*/
  exports.Store.prototype.field = function (fieldName) { return { id: 0, name:&#x27;&#x27;, type:&#x27;&#x27;, primary:&#x27;&#x27; }; }; 
 /**
@@ -710,6 +728,7 @@
 	* var isTitleNumeric = base.store(&quot;TVSeries&quot;).isNumeric(&quot;Title&quot;); // returns false
 	* // check if the field &quot;NumberOfEpisodes&quot; is of numeric type
 	* var isNumberOfEpisodesNumeric = base.store(&quot;TVSeries&quot;).isNumeric(&quot;NumberOfEpisodes&quot;); // returns true
+	* base.close();
 	*/
  exports.Store.prototype.isNumeric = function (fieldName) { return true; };
 /**
@@ -735,6 +754,7 @@
 	* var isNameString = base.store(&quot;People&quot;).isString(&quot;Name&quot;); // returns true
 	* // check if the field &quot;Age&quot; is of string type
 	* var isAgeString = base.store(&quot;People&quot;).isString(&quot;Age&quot;); // returns false
+	* base.close();
 	*/
  exports.Store.prototype.isString = function (fieldName) { return true; }; 
 /**
@@ -760,6 +780,7 @@
 	* var isSeasonScoreDate = base.store(&quot;BasketballPlayers&quot;).isDate(&quot;SeasonScore&quot;); // returns false
 	* // check if the FirstPlayed field is of type Date
 	* var isFirstPlayedDate = base.store(&quot;BasketballPlayers&quot;).isDate(&quot;DateOfBirth&quot;); // returns true
+	* base.close();
 	*/
  exports.Store.prototype.isDate = function (fieldName) { return true; }
 /**
@@ -789,6 +810,7 @@
 	* // returns a JSON object containing the details of the key:
 	* // { fq: { length: 0 }, vocabulary: { length: 0 }, name: &#x27;Continent&#x27;, store: { name: &#x27;Countries&#x27;, ... }}
 	* var details = base.store(&quot;Countries&quot;).key(&quot;Continent&quot;);
+	* base.close();
 	*/
  exports.Store.prototype.key = function (keyName) { return { fq: {}, vocabulary: {}, name:&#x27;&#x27;, store: {} }; };
 /**
@@ -824,6 +846,7 @@
 	* // the returned JSON object is:
 	* // { storeId: 0, storeName: &#x27;FootballPlayers&#x27;, storeRecords: 0, fields: [...], keys: [], joins: [] }
 	* var json = base.store(&quot;FootballPlayers&quot;).toJSON();
+	* base.close();
 	*/
  exports.Store.prototype.toJSON = function () { return { storeId:0, storeName:&#x27;&#x27;, storeRecords:&#x27;&#x27;, fields:[], keys:[], joins:[] }; };
 /**
@@ -854,6 +877,7 @@
 	* base.store(&quot;TVSeries&quot;).clear(2); // returns 3
 	* // delete all remaining records in TVStore
 	* base.store(&quot;TVSeries&quot;).clear();  // returns 0
+	* base.close();
 	*/
  exports.Store.prototype.clear = function (num) { return 0; };
 /**
@@ -880,6 +904,7 @@
 	* base.store(&quot;Companies&quot;).push({ Name: &quot;21st Century Fox&quot;, Location: &quot;New York City, New York&quot; });
 	* // get the vector of company names
 	* var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;);	// returns a vector [&quot;DC Comics&quot;, &quot;DC Shoes&quot;, &quot;21st Century Fox&quot;]
+	* base.close();
 	*/
  exports.Store.prototype.getVector = function (fieldName) { return Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype); };
 /**
@@ -911,6 +936,7 @@
 	* // 48  46  50
 	* // 48  44  48
 	* var matrix = base.store(&quot;ArcheryChampionship&quot;).getMatrix(&quot;ScorePerRound&quot;);
+	* base.close();
 	*/
  exports.Store.prototype.getMatrix = function (fieldName) { return Object.create(require(&#x27;qminer&#x27;).la.Matrix.prototype); };
 /**
@@ -939,6 +965,7 @@
 	* base.store(&quot;Festivals&quot;).push({ Name: &quot;The Festival of Chocolate&quot;, Type: &quot;food&quot;, Location: &quot;Hillsborough, USA&quot; });
 	* // get the field value of the second record for field &quot;Type&quot;
 	* var fieldValue = base.store(&quot;Festivals&quot;).cell(1, &quot;Type&quot;); // returns &quot;movie&quot;
+	* base.close();
 	*/
  exports.Store.prototype.cell = function (recId, fieldName) {};
 /**
@@ -1025,6 +1052,7 @@
 	* base.store(&quot;StarWarsMovies&quot;).push({ Title: &quot;Return of the Jedi&quot;, ReleseDate: &quot;1983-05-25T00:00:00&quot;, Length: 134 });
 	* // create a clone of the &quot;Attack of the Clones&quot; record
 	* var clone = base.store(&quot;StarWarsMovies&quot;)[0].$clone();
+	* base.close();
 	*/
  exports.Record.prototype.$clone = function () { return Object.create(require(&#x27;qminer&#x27;).Record.prototype); };
 /**
@@ -1083,7 +1111,8 @@
 	* // get a JSON version of the &quot;Beyonce&quot; record 
 	* // The JSON object for this example si:
 	* // { &#x27;$id&#x27;: 1, Name: &#x27;Beyonce&#x27;, ActiveSince: &#x27;1981-09-04T00:00:00&#x27;, GreatestHits: [&#x27;Single Ladies (Put a Ring on It)&#x27;] }
-	* var json = base.store(&quot;Musicians&quot;).rec(&quot;Beyonce&quot;).toJSON();
+	* var json = base.store(&quot;Musicians&quot;).recordByName(&quot;Beyonce&quot;).toJSON();
+	* base.close();
 	*/
  exports.Record.prototype.toJSON = function () {};
 /**
@@ -1105,11 +1134,6 @@
 /**
 * Record Set (factory pattern). The Record Set is a set of records.
 * @namespace
-* @example
-* // import qm module
-* var qm = require(&#x27;qminer&#x27;);
-* // factory based construction using store.allRecords
-* var rs = store.allRecords;
 */
  exports.RecordSet = function () {}
 /**
@@ -1139,6 +1163,7 @@
 	* var recordSet = base.store(&quot;Philosophers&quot;).allRecords;
 	* // clone the record set of the &quot;Philosophers&quot; store
 	* var philosophers = recordSet.clone();
+	* base.close();
 	*/
  exports.RecordSet.prototype.clone = function () { return Object.create(require(qminer).RecordSet.prototype); };
 /**
@@ -1184,6 +1209,7 @@
 	* // create a record set containing the first musician, that is a member of some band
 	* // returns a record set containing only one record, which is &quot;Robert Plant&quot; or &quot;Jimmy Page&quot;
 	* var ledMember = base.store(&quot;Bands&quot;).allRecords.join(&quot;Members&quot;, 1);
+	* base.close();
 	*/
  exports.RecordSet.prototype.join = function (joinName, sampleSize) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 /**
@@ -1225,6 +1251,7 @@
 	* recordSet1.trunc(3); // return self, containing only the first 3 records (&quot;Plato&quot;, &quot;Immanuel Kant&quot;, &quot;Emmanuel Levinas&quot;)
 	* // truncate the first 2 records in recordSet2, starting with &quot;Emmanuel Levinas&quot;
 	* recordSet2.trunc(2, 2); // returns self, containing only the 2 records (&quot;Emmanuel Levinas&quot;, &quot;Rene Descartes&quot;)
+	* base.close();
 	*/
  exports.RecordSet.prototype.trunc = function (limit_num, offset_num) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 /**
@@ -1254,6 +1281,7 @@
 	* base.store(&quot;Movies&quot;).push({ Title: &quot;Full Metal Jacket&quot;, Length: 116, Director: &quot;Stanely Kubrick&quot; });
 	* // create a sample record set of containing 3 records from the &quot;Movies&quot; store
 	* var sample = base.store(&quot;Movies&quot;).allRecords.sample(3);
+	* base.close();
 	*/
  exports.RecordSet.prototype.sample = function (num) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 /**
@@ -1286,6 +1314,7 @@
 	* var recordSet = base.store(&quot;WeatherForcast&quot;).allRecords;
 	* // shuffle the records in the newly created record set. Use the number 100 as the seed for the shuffle
 	* recordSet.shuffle(100); // returns self, the records in the record set are shuffled
+	* base.close();
 	*/
  exports.RecordSet.prototype.shuffle = function (seed) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 /**
@@ -1317,6 +1346,7 @@
 	* var recordSet = base.store(&quot;WeatherForcast&quot;).allRecords;
 	* // reverse the record order in the record set
 	* recordSet.reverse(); // returns self, the records in the record set are in the reverse order
+	* base.close();
 	*/
  exports.RecordSet.prototype.reverse = function () { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 /**
@@ -1349,6 +1379,7 @@
 	* recordSet.sortById(); // returns self, the records are sorted in descending order (default)
 	* // sort the records in the record set by their id in ascending order
 	* recordSet.sortById(1); // returns self, the records are sorted in ascending order
+	* base.close();
 	*/
  exports.RecordSet.prototype.sortById = function (asc) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); }; 
 /**
@@ -1387,6 +1418,7 @@
 	* var recordSet = base.store(&quot;TVSeries&quot;).allRecords;
 	* // sort the records by their &quot;Title&quot; field in ascending order 
 	* recordSet.sortByField(&quot;Title&quot;, true); // returns self, record are sorted by their &quot;Title&quot;
+	* base.close();
 	*/
  exports.RecordSet.prototype.sortByField = function (fieldName, asc) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 /**
@@ -1420,6 +1452,7 @@
 	* var recordSet = base.store(&quot;TVSeries&quot;).allRecords;
 	* // sort the records by their number of episodes
 	* recordSet.sort(function (rec, rec2) { return rec.NumberOfEpisodes &amp;lt; rec2.NumberOfEpisodes; }); // returns self, records are sorted by the number of episodes
+	* base.close();
 	*/
  exports.RecordSet.prototype.sort = function (callback) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 /**
@@ -1455,6 +1488,7 @@
 	* var recordSet = base.store(&quot;FrankSinatraGreatestHits&quot;).allRecords;
 	* // from the record set keep the records with indeces between or equal 2 and 5
 	* recordSet.filterById(2, 5);
+	* base.close();
 	*/
  exports.RecordSet.prototype.filterById = function (minId, maxId) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 /**
@@ -1503,6 +1537,7 @@
 	* var recordSet = base.store(&quot;WeatherForcast&quot;).allRecords;
 	* // filter only the records, where the weather is Mostly Cloudy
 	* recordSet.filterByField(&quot;Weather&quot;, &quot;Mostly Cloudy&quot;); // returns self, containing only the records, where the weather is &quot;Mostly Cloudy&quot;
+	* base.close();
 	*/
  exports.RecordSet.prototype.filterByField = function (fieldName, minVal, maxVal) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 /**
@@ -1531,6 +1566,7 @@
 	* var recordSet = base.store(&quot;ArcheryChampionship&quot;).allRecords;
 	* // filter the records: which archers have scored 48 points in the third round
 	* recordSet.filter(function (rec) { return rec.ScorePerRound[2] == 48; }); // keeps only the records, where the score of the third round is equal 48
+	* base.close();
 	*/
  exports.RecordSet.prototype.filter = function (callback) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); }; 
 /**
@@ -1567,6 +1603,7 @@
 	* // the second containing the &quot;Settlers of Catan&quot; and &quot;Munchkin&quot; records and the third containing the 
 	* // &quot;Dobble&quot; record
 	* var arr = recordSet.split(function (rec, rec2) { return rec.MinPlayers &amp;lt; rec2.MinPlayers; });
+	* base.close();
 	*/
  exports.RecordSet.prototype.split = function (callback) {return [Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype)]; };
 /**
@@ -1602,6 +1639,7 @@
 	* var fantasy = base.store(&quot;BookWriters&quot;).allRecords.filterByField(&quot;Genre&quot;, &quot;Fantasy&quot;);
 	* // delete the records in recordSet, that are also in fantasy
 	* recordSet.deleteRecords(fantasy); // returns self, containing only three records: &quot;Douglas Adams&quot;, &quot;Fyodor Dostoyevsky&quot; and &quot;Ivan Cankar&quot;
+	* base.close();
 	*/
  exports.RecordSet.prototype.deleteRecords = function (rs) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); }; 
 /**
@@ -1629,6 +1667,7 @@
 	* var recordSet = base.store(&quot;Musicians&quot;).allRecords;
 	* // create a JSON object out of the record set
 	* var json = recordSet.toJSON();
+	* base.close();
 	*/
  exports.RecordSet.prototype.toJSON = function () {};
 /**
@@ -1659,6 +1698,7 @@
 	* var recordSet = base.store(&quot;People&quot;).allRecords;
 	* // change the Name of all records into &quot;Anonymous&quot;
 	* recordSet.each(function (rec) { rec.Name = &quot;Anonymous&quot;; }); // returns self, all record&#x27;s Name are &quot;Anonymous&quot;
+	* base.close();
 	*/
  exports.RecordSet.prototype.each = function (callback) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); }
 /**
@@ -1689,6 +1729,7 @@
 	* var recordSet = base.store(&quot;People&quot;).allRecords;
 	* // make an array of record Names
 	* var arr = recordSet.map(function (rec) { return rec.Name; }); // returns an array: [&quot;Eric Sugar&quot;, &quot;Jane Tokyo&quot;, &quot;Mister Tea&quot;]
+	* base.close();
 	*/
  exports.RecordSet.prototype.map = function (callback) { return [Object];  }
 /**
@@ -1722,6 +1763,7 @@
 	* var lesserSet = base.store(&quot;Movies&quot;).allRecords.filterByField(&quot;Length&quot;, 0, 130);
 	* // get the intersection of greaterSet and lesserSet
 	* var intersection = greaterSet.setIntersect(lesserSet); // returns a record set, containing the movies with lengths between 110 and 130
+	* base.close();
 	*/
  exports.RecordSet.prototype.setIntersect = function (rs) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 /**
@@ -1754,6 +1796,7 @@
 	* var greaterSet = base.store(&quot;TVSeries&quot;).allRecords.filterByField(&quot;NumberOfEpisodes&quot;, 100, 600);
 	* // get the union of lesserSet and greaterSet
 	* var union = lesserSet.setUnion(greaterSet); // returns a record set, which is the union of the two record sets
+	* base.close();
 	*/
  exports.RecordSet.prototype.setUnion = function (rs) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); };
 /**
@@ -1789,6 +1832,7 @@
 	* var fantasy = base.store(&quot;BookWriters&quot;).allRecords.filterByField(&quot;Genre&quot;, &quot;Fantasy&quot;);
 	* // create a new record set containing the difference of recordSet and fantasy
 	* var difference = recordSet.setDiff(fantasy); // returns a record set, containing the records of Douglas Adams, Fyodor Dostoyevsky and Ivan Cankar
+	* base.close();
 	*/
  exports.RecordSet.prototype.setDiff = function (rs) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); }; 
 /**
@@ -1820,6 +1864,7 @@
 	* // create a vector containing the number of episodes for each series
 	* // the vector will look like [75, 574, 94, 11, 47]
 	* var vector = recordSet.getVector(&quot;NumberOfEpisodes&quot;);
+	* base.close();
 	*/
  exports.RecordSet.prototype.getVector = function (fieldName) { return Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype); }; 
 /**
@@ -1853,6 +1898,7 @@
 	* // 48  46  50
 	* // 48  44  48
 	* var matrix = recordSet.getMatrix(&quot;ScorePerRound&quot;);
+	* base.close();
 	*/
  exports.RecordSet.prototype.getMatrix = function (fieldName) { return Object.create(require(&#x27;qminer&#x27;).la.Matrix.prototype); };
 /**
@@ -1883,7 +1929,7 @@
 *     name: &quot;People&quot;,
 *     fields: [
 *         { name: &quot;Name&quot;, type: &quot;string&quot; },
-*         { name: &quot;Gendre&quot;, type: &quot;string&quot; }
+*         { name: &quot;Gender&quot;, type: &quot;string&quot; }
 *     ]
 * });
 * // add new records to the store
@@ -1893,6 +1939,7 @@
 * base.store(&quot;People&quot;).push({ Name: &quot;John Smith&quot;, Gender: &quot;Male&quot;});
 * // factory based construction with forwardIter
 * var iter = base.store(&quot;People&quot;).forwardIter;
+* base.close();
 */
  exports.Iterator = function () { return Object.create(require(&#x27;qminer&#x27;).Iterator.prototype); };
 /**
@@ -1926,6 +1973,7 @@
 	* var iter = base.store(&quot;TheWitcherSaga&quot;).forwardIter;
 	* // go to the first record in the store
 	* iter.next(); // returns true
+	* base.close();
 	*/
  exports.Iterator.prototype.next = function () { return true; };
 /**
@@ -1964,12 +2012,13 @@
 * var base = new qm.Base({
 *   mode: &#x27;createClean&#x27;,
 *   schema: [{
-*      type: &quot;Person&quot;,
-*      type: [{ type: &quot;Name&quot;, type: &quot;string&quot; }]
+*      name: &quot;Person&quot;,
+*      fields: [{ name: &quot;Name&quot;, type: &quot;string&quot; }]
 *   }]
 * });
 * // create a feature space containing the constant extractor, where the constant is equal 5
-* var ftr = qm.FeatureSpace(base, { type: &quot;constant&quot;, source: &quot;Person&quot;, const: 5 });
+* var ftr = new qm.FeatureSpace(base, { type: &quot;constant&quot;, source: &quot;Person&quot;, const: 5 });
+* base.close();
 */
 /**
 * @typedef {Object} FeatureExtractorRandom
@@ -1983,12 +2032,13 @@
 * var base = new qm.Base({
 *   mode: &#x27;createClean&#x27;,
 *   schema: [{
-*      type: &quot;Person&quot;,
-*      type: [{ type: &quot;Name&quot;, type: &quot;string&quot; }]
+*      name: &quot;Person&quot;,
+*      fields: [{ name: &quot;Name&quot;, type: &quot;string&quot; }]
 *   }]
 * });
 * // create a feature space containing the random extractor
-* var ftr = qm.FeatureSpace(base, { type: &quot;random&quot;, source: &quot;Person&quot; });
+* var ftr = new qm.FeatureSpace(base, { type: &quot;random&quot;, source: &quot;Person&quot; });
+* base.close();
 */
 /**
 * @typedef {Object} FeatureExtractorNumeric
@@ -2005,16 +2055,17 @@
 * var base = new qm.Base({
 *    mode: &#x27;createClean&#x27;,
 *    schema: [{
-*       type: &quot;Class&quot;,
-*       type: [
-*          { type: &quot;Name&quot;, type: &quot;string&quot; },
-*          { type: &quot;Grade&quot;, type: &quot;number&quot; }
+*       name: &quot;Class&quot;,
+*       fields: [
+*          { name: &quot;Name&quot;, type: &quot;string&quot; },
+*          { name: &quot;Grade&quot;, type: &quot;int&quot; }
 *       ]
 *    }]
 * });
 * // create a feature space containing the numeric extractor, where the values are
 * // normalized, the values are taken from the field &quot;Grade&quot;
-* var ftr = qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class&quot;, normalize: true, field: &quot;Grade&quot; });
+* var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class&quot;, normalize: true, field: &quot;Grade&quot; });
+* base.close();
 */
 /**
 * @typedef {Object} FeatureExtractorSparseVector
@@ -2039,7 +2090,8 @@
 * });
 * // create a feature space containing the numeric extractor, where the values are
 * // normalized, the values are taken from the field &quot;Grade&quot;
-* var ftr = qm.FeatureSpace(base, { type: &quot;num_sp_v&quot;, source: &quot;Class&quot;, normalize: false, field: &quot;Features&quot; });
+* var ftr = new qm.FeatureSpace(base, { type: &quot;num_sp_v&quot;, source: &quot;Class&quot;, normalize: false, field: &quot;Features&quot; });
+* base.close();
 */
 /**
 * @typedef {Object} FeatureExtractorCategorical
@@ -2056,16 +2108,17 @@
 * var base = new qm.Base({
 *    mode: &#x27;createClean&#x27;,
 *    schema: [{
-*       type: &quot;Class&quot;,
-*       type: [
-*          { type: &quot;Name&quot;, type: &quot;string&quot; },
-*          { type: &quot;StudyGroup&quot;, type: &quot;string&quot; }
+*       name: &quot;Class&quot;,
+*       fields: [
+*          { name: &quot;Name&quot;, type: &quot;string&quot; },
+*          { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
 *       ]
 *    }]
 * });
 * // create a feature space containing the categorical extractor, where the it&#x27;s values
 * // are taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot; and &quot;D&quot;
-* var ftr = qm.FeatureSpace(base, { type: &quot;categorical&quot;, source: &quot;Class&quot;, field: &quot;StudyGroup&quot;, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;] });
+* var ftr = new qm.FeatureSpace(base, { type: &quot;categorical&quot;, source: &quot;Class&quot;, field: &quot;StudyGroup&quot;, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;] });
+* base.close();
 */
 /**
 * @typedef {Object} FeatureExtractorMultinomial
@@ -2085,18 +2138,19 @@
 * var base = new qm.Base({
 *    mode: &#x27;createClean&#x27;,
 *    schema: [{
-*       type: &quot;Class&quot;,
-*       type: [
-*          { type: &quot;Name&quot;, type: &quot;string&quot; },
-*          { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
+*       name: &quot;Class&quot;,
+*       fields: [
+*          { name: &quot;Name&quot;, type: &quot;string&quot; },
+*          { name: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
 *       ]
 *    }]
 * });
 * // create a feature space containing the multinomial extractor, where the values are normalized,
 * // and taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;
-* var ftr = qm.FeatureSpace(base, {
-*              type: &quot;multinomial&quot;, source: &quot;CLass&quot;, field: &quot;StudyGroups&quot;, normalize: true, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;]
+* var ftr = new qm.FeatureSpace(base, {
+*              type: &quot;multinomial&quot;, source: &quot;Class&quot;, field: &quot;StudyGroups&quot;, normalize: true, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;]
 *           });
+* base.close();
 */
 /**
 * @typedef {Object} FeatureExtractorText
@@ -2116,19 +2170,20 @@
 * var base = new qm.Base({
 *    mode: &#x27;createClean&#x27;,
 *    schema: [{
-*       type: &quot;Articles&quot;,
-*       type: [
-*          { type: &quot;Title&quot;, type: &quot;string&quot; },
-*          { type: &quot;Text&quot;, type: &quot;string&quot; }
+*       name: &quot;Articles&quot;,
+*       fields: [
+*          { name: &quot;Title&quot;, type: &quot;string&quot; },
+*          { name: &quot;Text&quot;, type: &quot;string&quot; }
 *       ]
 *    }]
 * });
 * // create a feature spave containing the text (bag of words) extractor, where the values are normalized,
 * // weighted with &#x27;tfidf&#x27; and the tokenizer is of &#x27;simple&#x27; type, it uses english stopwords.
-* var ftr = qm.FeatureSpace(base, {
+* var ftr = new qm.FeatureSpace(base, {
 *              type: &quot;text&quot;, source: &quot;Articles&quot;, field: &quot;Text&quot;, normalize: true, weight: &quot;tfidf&quot;,
 *              tokenizer: { type: &quot;simple&quot;, stopwords: &quot;en&quot;}
 *           });
+* base.close();
 */
 /**
 * @typedef {Object} FeatureExtractorJoin
@@ -2180,20 +2235,21 @@
 * var base = new qm.Base({
 *    mode: &#x27;createClean&#x27;,
 *    schema: [{
-*       type: &quot;Class&quot;,
-*       type: [
-*          { type: &quot;Name&quot;, type: &quot;string&quot; },
-*          { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
+*       name: &quot;Class&quot;,
+*       fields: [
+*          { name: &quot;Name&quot;, type: &quot;string&quot; },
+*          { name: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
 *       ]
 *    }]
 * });
 * // create a feature space containing the jsfunc extractor, where the function counts the number
 * // of study groups each student is part of. The functions name is &quot;NumberOFGroups&quot;, it&#x27;s dimension
 * // is 1 (returns only one value, not an array)
-* var ftr = qm.FeatureSpace(base, {
+* var ftr = new qm.FeatureSpace(base, {
 *              type: &quot;jsfunc&quot;, source: &quot;Class&quot;, name: &quot;NumberOfGroups&quot;, dim: 1,
-*              fun: function (rec) { returns rec.StudyGroups.length; }
+*              fun: function (rec) { return rec.StudyGroups.length; }
 *           });
+* base.close();
 */
 /**
 * From where are the input records taken.
@@ -2326,6 +2382,7 @@
 * Store.push({ Value: 1.3, Category: &quot;a&quot;, Categories: [&quot;a&quot;, &quot;q&quot;] });
 * // create a feature space 
 * var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;FtrSpace&quot;, field: &quot;Value&quot; });
+* base.close();
 */
  exports.FeatureSpace = function (base, extractors) { return Object.create(require(&#x27;qminer&#x27;).FeatureSpace.prototype); };
 /**
@@ -2373,6 +2430,7 @@
 	* // add a new feature extractor to the feature space
 	* // it adds the new feature extractor to the pre-existing feature extractors in the feature space
 	* ftr.addFeatureExtractor({ type: &quot;text&quot;, source: &quot;WeatherForcast&quot;, field: &quot;Weather&quot;, normalize: true, weight: &quot;tfidf&quot; });      
+	* base.close();
 	*/
  exports.FeatureSpace.prototype.addFeatureExtractor = function (obj) { return Object.create(require(&#x27;qminer&#x27;).FeatureSpace.prototype); };
 /**
@@ -2418,6 +2476,7 @@
 	* ftr.extractVector(Store[0]); // returns the vector [0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
 	* ftr.extractVector(Store[1]); // returns the vector [1/2, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
 	* ftr.extractVector(Store[2]); // returns the vector [1, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
+	* base.close();
 	*/
  exports.FeatureSpace.prototype.updateRecord = function (rec) { return Object.create(require(&#x27;qminer&#x27;).FeatureSpace.prototype); };
 /**
@@ -2462,6 +2521,7 @@
 	* ftr.extractVector(Store[1]); // returns the vector [1/3, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
 	* ftr.extractVector(Store[2]); // returns the vector [2/3, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
 	* ftr.extractVector(Store[3]); // returns the vector [1, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
+	* base.close();
 	*/
  exports.FeatureSpace.prototype.updateRecords = function (rs) { return Object.create(require(&#x27;qminer&#x27;).FeatureSpace.prototype); };
 /**
@@ -2499,6 +2559,7 @@
 	* // the sparse vector will be [(0, 1)] - uses only the categorical feature extractor. There are no
 	* // features in the text feature extractor.
 	* var vec = ftr.extractSparseVector(base.store(&quot;Class&quot;)[0]);
+	* base.close();
 	*/
  exports.FeatureSpace.prototype.extractSparseVector = function (rec) { return Object.create(require(&#x27;qminer&#x27;).la.SparseVector.prototype); }
 /**
@@ -2536,6 +2597,7 @@
 	* // the sparse vector will be [1, 0, 0, 0] - uses only the categorical feature extractor. There are no
 	* // features in the text feature extractor.
 	* var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]);
+	* base.close();
 	*/
  exports.FeatureSpace.prototype.extractVector = function (rec) { return Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype); };
 /**
@@ -2575,6 +2637,7 @@
 	* // get the inverse of the feature vector
 	* // the function returns the values to their first value, i.e. 0.105263 returns to 1995
 	* var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]
+	* base.close();
 	*/
  exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) { return Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype); };
 /**
@@ -2612,6 +2675,7 @@
 	* // the values are not equal to those of the records 
 	* // invert the value 0 using the numeric feature extractor
 	* var inverse = ftr.invertFeature(0, 0); // returns the value 1994
+	* base.close();
 	*/
  exports.FeatureSpace.prototype.invertFeature = function (idx, val) {};
 /**
@@ -2643,6 +2707,7 @@
 	* // returns a sparse matrix equal to 
 	* // [[(0, 1), (3, 1)], [(1, 1), (3, 1)], [(1, 1), (2, 1)], [(0, 1), (1, 1)]]
 	* var sparseMatrix = ftr.extractSparseMatrix(base.store(&quot;Class&quot;).allRecords);
+	* base.close();
 	*/
  exports.FeatureSpace.prototype.extractSparseMatrix = function (rs) { return Object.create(require(&#x27;qminer&#x27;).la.SparseMatrix.prototype); };
 /**
@@ -2677,6 +2742,7 @@
 	* // 0  0  1  0
 	* // 1  1  0  0
 	* var matrix = ftr.extractMatrix(base.store(&quot;Class&quot;).allRecords);
+	* base.close();
 	*/
  exports.FeatureSpace.prototype.extractMatrix = function (rs) { return Object.create(require(&#x27;qminer&#x27;).la.Matrix.prototype); };
 /**
@@ -2705,6 +2771,7 @@
 	* ]);
 	* // get the name of the feature extractor with index 1
 	* var extractorName = ftr.getFeatureExtractor(1); // returns &quot;Categorical[Gendre]&quot;
+	* base.close();
 	*/
  exports.FeatureSpace.prototype.getFeatureExtractor = function (idx) { return &#x27;&#x27;; };
 /**
@@ -2741,6 +2808,7 @@
 	* ftr.updateRecords(base.store(&quot;Class&quot;).allRecords);
 	* // get the feature at position 2
 	* var feature2 = ftr.getFeature(2); // returns &quot;magnitude&quot;
+	* base.close();
 	*/
  exports.FeatureSpace.prototype.getFeature = function (idx) { return &#x27;&#x27;; };
 /**
@@ -2785,6 +2853,7 @@
 	* var spVec2 = ftr.filter(spVec, 1); // returns sparse vector [[2, 1]]
 	* // filter the elements from the second feature extractor, without keeping the offset
 	* var spVec3 = ftr.filter(spVec, 1, false); // returns sparse vector [[1, 1]]
+	* base.close();
 	*/
  exports.FeatureSpace.prototype.filter = function (vec, idx, keepOffset) { return (vec instanceof require(&#x27;qminer&#x27;).la.Vector) ? require(&#x27;qminer&#x27;).la.Vector : require(&#x27;qminer&#x27;).la.SparseVector; };
 /**
@@ -3273,7 +3342,7 @@
                     <footer id="jsdoc-footer" class="jsdoc-footer">
                             <div id="jsdoc-footer-container">
                                     <p>
-                                      Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 27, 2015.
+                                      Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 28, 2015.
                                     </p>
                             </div>
                     </footer>

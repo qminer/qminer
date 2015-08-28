@@ -64,7 +64,7 @@ module.exports = exports = function (pathPrefix) {
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // create a SVR model
-    * var SVC = new analytics.SVR();
+    * var SVR = new analytics.SVR();
     * // get the properties of the model
     * var model = SVR.getModel(); // returns { weights: new require('qminer').la.Vector(); }
 	*/
@@ -85,7 +85,7 @@ module.exports = exports = function (pathPrefix) {
     * // create the Ridge Regression model
     * var regmod = new analytics.RidgeReg();
     * // get the model
-    * var model = regmod.getModel(); returns { weights: new require('qminer').la.Vector(); }
+    * var model = regmod.getModel(); // returns { weights: new require('qminer').la.Vector(); }
     */
     exports.RidgeReg.prototype.getModel = function () { return { weights: this.weights }; }
 
@@ -103,7 +103,7 @@ module.exports = exports = function (pathPrefix) {
     * // create the Recursive Linear Regression model
     * var linreg = new analytics.RecLinReg({ dim: 10 });
     * // get the model
-    * var model = linreg.getModel(); returns { weights: new require('qminer').la.Vector(); }
+    * var model = linreg.getModel(); // returns { weights: new require('qminer').la.Vector(); }
     */
     exports.RecLinReg.prototype.getModel = function () { return { weights: this.weights } }
 
