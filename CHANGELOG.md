@@ -34,7 +34,7 @@ Other:
 - Removed deprecated `TTempIndex` from `qminer_core`
 - Merged `qminer_gs` and `qminer_pbs` into `qminer_storage`
 - Moved TOAST functions from `qminer_core` to `qminer_storage`
-- 
+
 ### 7 Aug 2015
 
 **New version: 2.0.0**
