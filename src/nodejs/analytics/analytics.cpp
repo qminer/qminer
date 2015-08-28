@@ -1038,7 +1038,7 @@ void TNodeJsRecLinReg::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args
 	v8::HandleScope HandleScope(Isolate);
 
 	EAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
-
+	EAssertR(TNodeJsUtil::IsArgJson(Args, 0), "RecLinReg.setParams: first argument should be a Javascript object!");
 	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 
 	TNodeJsRecLinReg* Model = ObjectWrap::Unwrap<TNodeJsRecLinReg>(Args.Holder());
@@ -1048,7 +1048,9 @@ void TNodeJsRecLinReg::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args
 	const double ForgetFact = ParamVal->GetObjNum("forgetFact", Model->Model->GetForgetFact());
 
 	// copy the values
-	Model->Model = TSignalProc::TRecLinReg::New(Dim, RegFact, ForgetFact);
+	Model->Model->setForgetFact(ForgetFact);
+	Model->Model->setRegFact(RegFact);
+	Model->Model->setDim(Dim);
 
 	Args.GetReturnValue().Set(Args.Holder());
 }
@@ -1123,6 +1125,8 @@ void TNodeJsLogReg::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _getParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
@@ -1137,12 +1141,15 @@ TNodeJsLogReg* TNodeJsLogReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Val
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
+	EAssertR(Args.Length() < 2, "new LogReg: expecting 0 or 1 parameter!");
+
 	try {
 		if (Args.Length() > 0 && TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {
 			// load the model from the input stream
 			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
 			return new TNodeJsLogReg(*JsFIn->SIn);
-		} else {
+		}
+		else if ((Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) || Args.Length() == 0)  {
 			// parse the argumentts
 			PJsonVal ArgJson = Args.Length() > 0 ? TNodeJsUtil::GetArgJson(Args, 0) : TJsonVal::NewObj();
 
@@ -1151,6 +1158,9 @@ TNodeJsLogReg* TNodeJsLogReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Val
 
 			return new TNodeJsLogReg(TRegression::TLogReg(Lambda, IncludeIntercept));
 		}
+		else {
+			throw TExcept::New("new LogReg: wrong arguments in constructor!");
+		}
 	} catch (const PExcept& Except) {
 		Isolate->ThrowException(v8::Exception::TypeError(
 					v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr())));
@@ -1158,6 +1168,34 @@ TNodeJsLogReg* TNodeJsLogReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Val
 	}
 }
 
+void TNodeJsLogReg::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsLogReg* JsModel = ObjectWrap::Unwrap<TNodeJsLogReg>(Args.Holder());
+	PJsonVal ParamVal = TJsonVal::NewObj();
+
+	ParamVal->AddToObj("lambda", JsModel->LogReg.getLambda());
+	ParamVal->AddToObj("intercept", JsModel->LogReg.getIntercept());
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
+}
+
+void TNodeJsLogReg::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
+	EAssertR(TNodeJsUtil::IsArgJson(Args, 0), "LogReg.setParams: first argument should be a Javascript object!");
+
+	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+	TNodeJsLogReg* JsModel = ObjectWrap::Unwrap<TNodeJsLogReg>(Args.Holder());
+
+	if (ParamVal->IsObjKey("lambda")) { JsModel->LogReg.setLambda(ParamVal->GetObjNum("lambda")); }
+	if (ParamVal->IsObjKey("intercept")) { JsModel->LogReg.setIntercept(ParamVal->GetObjBool("intercept")); }
+
+	Args.GetReturnValue().Set(Args.Holder());
+}
 
 void TNodeJsLogReg::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();

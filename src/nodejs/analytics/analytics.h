@@ -1109,15 +1109,25 @@ private:
 	PJsonVal GetParams() const;
 };
 
+/**
+* @typedef {Object} logisticRegParam
+* The Json constructor parameters for {@link module:analytics.LogReg}.
+* @property {number} [lambda=1] - The regularization parameter.
+* @property {boolean} [intercept=false] - Indicates wether to automatically include the intercept.
+*/
 
 /**
  * Logistic regression model. Uses Newtons method to compute the weights.
- *
+ * Before use: include BLAS library for matrix functions.
  * @constructor
- * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
- * @property {Number} [opts.lambda = 1] - the regularization parameter
- * @property {Boolean} [opts.intercept = false] - indicates wether to automatically include the intercept
+ * @param {(module:analytics~logisticRegParam|FIn)} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @example
+ * // import analytics module
+ * var analytics = require('qminer').analytics;
+ * // create the Logistic Regression model
+ * var logreg = new analytics.LogReg({ lambda: 2 });
  */
+//# exports.LogReg = function (opts) { return Object.create(require('qminer').analytics.LogReg.prototype); }
 class TNodeJsLogReg : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 public:
@@ -1132,36 +1142,59 @@ private:
 	static TNodeJsLogReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
+
+	/**
+	* Gets the parameters.
+	* @returns {module:analytics~logisticRegParam} The parameters of the model.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create the Logistic Regression model
+	* var logreg = new analytics.LogReg({ lambda: 10 });
+	* // get the parameters of the model
+	* var param = logreg.getParams(); // returns { lambda: 10, intercept: false }
+	*/
+	//# exports.LogReg.prototype.getParams = function () { return { lambda: 1.0, intercept: false } };
+	JsDeclareFunction(getParams);
+
+	/**
+	* Set the parameters.
+	* @param {module:analytics~logisticRegParam} param - The new parameters.
+	* @returns {module:analytics.LogReg} Self. The parameters are updated.
+	*/
+	//# exports.LogReg.prototype.setParams = function () { return Object.create(require('qminer').analytics.LogReg.prototype); }
+	JsDeclareFunction(setParams);
+
 	/**
 	 * Fits a column matrix of feature vectors X onto the response variable y.
-	 *
-	 * @param {Matrix} X - the column matrix which stores the feature vectors.
-	 * @param {Vector} y - the response variable.
-	 * @param {Number} [eps] - the epsilon used for convergence
-	 * @returns {LogReg} - returns itself
+	 * @param {module:la.Matrix} X - the column matrix which stores the feature vectors.
+	 * @param {module:la.Vector} y - the response variable.
+	 * @param {number} [eps] - the epsilon used for convergence.
+	 * @returns {module:analytics.LogReg} Self.
 	 */
+	//# exports.LogReg.prototype.fit = function (X, y, eps) { return Object.create(require('qminer').analytics.LogReg.prototype); }
 	JsDeclareFunction(fit);
 
 	/**
 	 * Returns the expected response for the provided feature vector.
-	 *
-	 * @param {Vector} x - the feature vector
-	 * @returns {Number} - the expected response
+	 * @param {module:la.Vector} x - the feature vector.
+	 * @returns {number} the expected response.
 	 */
+	//# exports.LogReg.prototype.predict = function (x) { return 0.0; } 
 	JsDeclareFunction(predict);
 
 	/**
-	 * The models weights.
-	 *
-	 * @type {Vector}
+	 * Gives the weights of the model.
 	 */
+	//# exports.LogReg.prototype.weights = Object.create(require('qminer').analytics.LogReg.prototype);
 	JsDeclareProperty(weights);
 
 	/**
 	 * Saves the model into the output stream.
-	 *
-	 * @param {FOut} sout - the output stream
+	 * @param {module:fs.FOut} fout - the output stream.
+	 * @returns {module:fs.FOut} The output stream fout. 
 	 */
+	//# exports.LogReg.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 	JsDeclareFunction(save);
 };
 
