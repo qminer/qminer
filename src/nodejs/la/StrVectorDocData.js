@@ -35,6 +35,7 @@ exports.view = {
 	"skipNormalize": "skip.",
 	"skipDiag": "skip.",
 	"skipSpDiag": "skip.",
+    "skipSort": "skip.",
 	"skipNorm": "skip.",
 	"skipSparse": "skip.",
 	"skipToMat": "skip.",

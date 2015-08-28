@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
-  <title>Class: NearestNeighborAD</title>
+  <title>Class: RecLinReg</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -24,50 +24,68 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">NearestNeighborAD</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-599">analyticsdoc.<wbr>js:599</a></p>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">RecLinReg</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-742">analyticsdoc.<wbr>js:742</a></p>
             <div class="symbol-classdesc">
-              <p>Anomaly detector that checks if the test point is too far from the nearest known point.</p>
+              <p>Holds the Recursive Linear Regression model.</p>
             </div>
             <dl class="dl-compact">
             </dl>
           </header>
           <section id="summary">
             <div class="summary-callout">
+              <h2 class="summary-callout-heading">Properties</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.RecLinReg.html#dim">dim</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.RecLinReg.html#weights">weights</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
               <h2 class="summary-callout-heading">Methods</h2>
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.NearestNeighborAD.html#decisionFunction">decisionFunction(x)</a></dt>
+                    <dt><a href="module-analytics.RecLinReg.html#fit">fit(mat, vec)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.NearestNeighborAD.html#fit">fit(A)</a></dt>
+                    <dt><a href="module-analytics.RecLinReg.html#getModel">getModel()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.NearestNeighborAD.html#getModel">getModel()</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.NearestNeighborAD.html#getParams">getParams()</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-analytics.NearestNeighborAD.html#partialFit">partialFit(X)</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-analytics.NearestNeighborAD.html#predict">predict(x)</a></dt>
+                    <dt><a href="module-analytics.RecLinReg.html#getParams">getParams()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.NearestNeighborAD.html#save">save(fout)</a></dt>
+                    <dt><a href="module-analytics.RecLinReg.html#partialFit">partialFit(vec, num)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.NearestNeighborAD.html#setParams">setParams(newParams)</a></dt>
+                    <dt><a href="module-analytics.RecLinReg.html#predict">predict(vec)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.RecLinReg.html#save">save(fout)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.RecLinReg.html#setParams">setParams(param)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -76,26 +94,17 @@
             </div>
           </section>
           <section>
-            <h2 id="NearestNeighborAD">new&nbsp;<span class="symbol-name">NearestNeighborAD</span><span class="signature"><span class="signature-params">([detectorParam])</span></span></h2>
-            <p>Nearest Neighbour Anomaly Detection</p>
+            <h2 id="RecLinReg">new&nbsp;<span class="symbol-name">RecLinReg</span><span class="signature"><span class="signature-params">(param)</span></span></h2>
+            <p>Recursive Linear Regression</p>
             <section>
               <h3>
             Example
         </h3>
               <div>
-                <pre class="prettyprint"><code>// import modules
+                <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
-// create a new NearestNeighborAD object
-var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
-// create a sparse matrix 
-var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
-// fit the model with the matrix
-neighbor.fit(matrix);
-// create a new sparse vector
-var vector = new la.SparseVector([[0, 4], [1, 0]]);
-// predict if the vector is an anomaly or not
-var prediction = neighbor.predict(vector);</code></pre>
+// create the recursive linear regression model holder
+var linreg = new analytics.RecLinReg({ dim: 10, regFact: 1.0, forgetFact: 1.0 });</code></pre>
               </div>
             </section>
             <section>
@@ -112,16 +121,16 @@ var prediction = neighbor.predict(vector);</code></pre>
                 <tbody>
                   <tr>
                     <td>
-                      <p>detectorParam</p>
+                      <p>param</p>
                     </td>
                     <td>
-                      <p><a href="module-analytics.html#~detectorParam">module:analytics~detectorParam</a></p>
+                      <p><a href="module-analytics.html#~recLinearRegParam">module:analytics~recLinearRegParam</a></p>
                     </td>
                     <td>
-                      <p>Yes</p>
+                      <p>&nbsp;</p>
                     </td>
                     <td>
-                      <p>Constructor parameters.</p>
+                      <p>The constructor parameter json object.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -131,10 +140,21 @@ var prediction = neighbor.predict(vector);</code></pre>
             </dl>
           </section>
           <section>
+            <h2>Properties</h2>
+            <section>
+              <h3 id="dim"><span class="symbol-name">dim</span></h3>
+              <p>Gets the dimensionality of the model.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="weights"><span class="symbol-name">weights</span></h3>
+              <p>Gives the weights of the model.</p>
+              <dl class="dl-compact">
+              </dl>
+            </section>
             <h2>Methods</h2>
             <section>
-              <h3 id="decisionFunction"><span class="symbol-name">decisionFunction</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Compares the point to the known points and returns distance to the nearest one.</p>
+              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(mat, vec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.RecLinReg.html">module:analytics.RecLinReg</a></span></span></h3>
+              <p>Creates a fit of the input.</p>
               <section>
                 <h4>
             Example
@@ -143,20 +163,17 @@ var prediction = neighbor.predict(vector);</code></pre>
                   <pre class="prettyprint"><code>// import modules
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
-// create a new NearestNeighborAD object
-var neighbor = new analytics.NearestNeighborAD();
-// create a new sparse matrix
-var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+// create the Recursive Linear Regression model
+var linreg = new analytics.RecLinReg({ dim: 2.0 });
+// create a new dense matrix and target vector
+var mat = new la.Matrix([[1, 2, 3], [3, 4, 5]]);
+var vec = new la.Vector([3, 5, -1]);
 // fit the model with the matrix
-neighbor.fit(matrix);
-// create a new sparse vector
-var vector = new la.SparseVector([[0, 4], [1, 0]]);
-// get the distance of the vector from the model
-var prediction = neighbor.decisionFunction(vector); // returns 1</code></pre>
+linreg.fit(mat, vec);</code></pre>
                 </div>
               </section>
               <section>
-                <h4>Parameter</h4>
+                <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -169,7 +186,21 @@ var prediction = neighbor.decisionFunction(vector); // returns 1</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>x</p>
+                        <p>mat</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Matrix.html">module:la.Matrix</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The input matrix.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>vec</p>
                       </td>
                       <td>
                         <p><a href="module-la.Vector.html">module:la.Vector</a></p>
@@ -178,7 +209,7 @@ var prediction = neighbor.decisionFunction(vector); // returns 1</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Test vector.</p>
+                        <p>The target numbers, where the i-th number in vector is the target number for the i-th column of the matrix.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -187,64 +218,11 @@ var prediction = neighbor.decisionFunction(vector); // returns 1</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Distance to the nearest point.</p>
+                  <p><code><a href="module-analytics.RecLinReg.html">module:analytics.RecLinReg</a></code>&nbsp;Self. The internal model is updated.</p>
                 </dd>
               </dl>
-              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(A)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></span></span></h3>
-              <p>Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.</p>
-              <section>
-                <h4>
-            Example
-        </h4>
-                <div>
-                  <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
-// create a new NearestNeighborAD object
-var neighbor = new analytics.NearestNeighborAD();
-// create a new sparse matrix
-var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
-// fit the model with the matrix
-neighbor.fit(matrix);</code></pre>
-                </div>
-              </section>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>A</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Matrix whose columns correspond to known examples. Gets saved as it is part of the model.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></code>&nbsp;Self. The model is set by the matrix A.</p>
-                </dd>
-              </dl>
-              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
-              <p>Returns the model.</p>
+              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> module:analytics~recLnRegModel</span></span></h3>
+              <p>Gets Recursive Linear Regression model</p>
               <section>
                 <h4>
             Example
@@ -252,23 +230,20 @@ neighbor.fit(matrix);</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
-// create a new NearestNeighborAD object
-var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
-// get the model of the object
-// returns a json object { rate: 0.1, window: 0 }
-var model = neighbor.getModel();</code></pre>
+// create the Recursive Linear Regression model
+var linreg = new analytics.RecLinReg({ dim: 10 });
+// get the model
+var model = linreg.getModel(); // returns { weights: new require(&#x27;qminer&#x27;).la.Vector(); }</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;Json object whose keys are:
-                    <br> 1. rate - The expected fraction of emmited anomalies.
-                    <br> 2. thresh - Maximal squared distance to the nearest neighbor that is not anomalous.</p>
+                  <p><code>module:analytics~recLnRegModel</code>&nbsp;The current model.</p>
                 </dd>
               </dl>
-              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~detectorParam">module:analytics~detectorParam</a></span></span></h3>
-              <p>Returns parameters.</p>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~recLinearRegParam">module:analytics~recLinearRegParam</a></span></span></h3>
+              <p>Returns the parameters.</p>
               <section>
                 <h4>
             Example
@@ -276,21 +251,20 @@ var model = neighbor.getModel();</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
-// create a new NearestNeighborAD object
-var neighbor = new analytics.NearestNeighborAD();
-// get the parameters of the object
-// returns a json object { rate: 0.05 }
-var params = neighbor.getParams();</code></pre>
+// create a new Recursive Linear Regression model
+var linreg = new analytics.RecLinReg({ dim: 10 });
+// get the parameters of the model
+var params = linreg.getParams(); // returns { dim: 10, recFact: 1.0, forgetFact: 1.0 }</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.html#~detectorParam">module:analytics~detectorParam</a></code>&nbsp;The Json object containing the rate value.</p>
+                  <p><code><a href="module-analytics.html#~recLinearRegParam">module:analytics~recLinearRegParam</a></code>&nbsp;The parameters of the model.</p>
                 </dd>
               </dl>
-              <h3 id="partialFit"><span class="symbol-name">partialFit</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></span></span></h3>
-              <p>Adds a new point (or points) to the known points and recomputes the threshold.</p>
+              <h3 id="partialFit"><span class="symbol-name">partialFit</span><span class="signature"><span class="signature-params">(vec, num)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.RecLinReg.html">module:analytics.RecLinReg</a></span></span></h3>
+              <p>Creates a partial fit of the input.</p>
               <section>
                 <h4>
             Example
@@ -299,16 +273,84 @@ var params = neighbor.getParams();</code></pre>
                   <pre class="prettyprint"><code>// import modules
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
-// create a new NearestNeighborAD object
-var neighbor = new analytics.NearestNeighborAD();
-// create a new sparse matrix
-var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+// create the Recursive Linear Regression model
+var linreg = new analytics.RecLinReg({ dim: 3.0 });
+// create a new dense vector
+var vec = new la.Vector([1, 2, 3]);
+// fit the model with the vector
+linreg.partialFit(vec, 6);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>vec</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The input vector.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>num</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The target number for the vector.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-analytics.RecLinReg.html">module:analytics.RecLinReg</a></code>&nbsp;Self. The internal model is updated.</p>
+                </dd>
+              </dl>
+              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(vec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Puts the vector through the model and returns the prediction as a real number.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create the Recursive Linear Regression model
+var linreg = new analytics.RecLinReg({ dim: 2.0, recFact: 1e-10 });
+// create a new dense matrix and target vector
+var mat = new la.Matrix([[1, 2], [1, -1]]);
+var vec = new la.Vector([3, 3]);
 // fit the model with the matrix
-neighbor.fit(matrix);
-// create a new sparse vector
-var vector = new la.SparseVector([[0, 2], [1, 5]]);
-// update the model with the vector
-neighbor.partialFit(vector);</code></pre>
+linreg.fit(mat, vec);
+// create the vector to be predicted
+var pred = new la.Vector([1, 1]);
+// predict the value of the vector
+var prediction = linreg.predict(pred); // returns something close to 3.0</code></pre>
                 </div>
               </section>
               <section>
@@ -325,16 +367,16 @@ neighbor.partialFit(vector);</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>X</p>
+                        <p>vec</p>
                       </td>
                       <td>
-                        <p>(<a href="module-la.SparseVector.html">module:la.SparseVector</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Test example (vector input) or column examples (matrix input).</p>
+                        <p>The vector needed to be predicted.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -343,64 +385,7 @@ neighbor.partialFit(vector);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></code>&nbsp;Self. The model is updated.</p>
-                </dd>
-              </dl>
-              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold).</p>
-              <section>
-                <h4>
-            Example
-        </h4>
-                <div>
-                  <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
-// create a new NearestNeighborAD object
-var neighbor = new analytics.NearestNeighborAD();
-// create a new sparse matrix
-var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
-// fit the model with the matrix
-neighbor.fit(matrix);
-// create a new sparse vector
-var vector = new la.SparseVector([[0, 4], [1, 0]]);
-// check if the vector is an anomaly
-var prediction = neighbor.predict(vector); // returns 1</code></pre>
-                </div>
-              </section>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>x</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.SparseVector.html">module:la.SparseVector</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Test vector.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>number</code>&nbsp;Returns 1.0 if the vector x is an anomaly and 0.0 otherwise.</p>
+                  <p><code>number</code>&nbsp;The prediction.</p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
@@ -440,8 +425,8 @@ var prediction = neighbor.predict(vector); // returns 1</code></pre>
                   <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Provided output stream fout.</p>
                 </dd>
               </dl>
-              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(newParams)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></span></span></h3>
-              <p>Sets parameters.</p>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(param)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.RecLinReg.html">module:analytics.RecLinReg</a></span></span></h3>
+              <p>Sets the parameters of the model.</p>
               <section>
                 <h4>
             Example
@@ -449,10 +434,10 @@ var prediction = neighbor.predict(vector); // returns 1</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
-// create a new NearestNeighborAD object
-var neighbor = new analytics.NearestNeighborAD();
-// set it&#x27;s parameters to rate: 0.1
-neighbor.setParams({ rate: 0.1 });</code></pre>
+// create a new Recursive Linear Regression model
+var linreg = new analytics.RecLinReg({ dim: 10 });
+// set the parameters of the model
+linreg.setParams({ dim: 3, recFact: 1e2, forgetFact: 0.5 });</code></pre>
                 </div>
               </section>
               <section>
@@ -469,16 +454,16 @@ neighbor.setParams({ rate: 0.1 });</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>newParams</p>
+                        <p>param</p>
                       </td>
                       <td>
-                        <p><a href="module-analytics.html#~detectorParam">module:analytics~detectorParam</a></p>
+                        <p><a href="module-analytics.html#~recLinearRegParam">module:analytics~recLinearRegParam</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The Json object containing the new rate value.</p>
+                        <p>The new parameters of the model.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -487,7 +472,7 @@ neighbor.setParams({ rate: 0.1 });</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></code>&nbsp;Self. The parameters are updated with newParams.</p>
+                  <p><code><a href="module-analytics.RecLinReg.html">module:analytics.RecLinReg</a></code>&nbsp;Self. The parameters are updated. Any previous model is set to default.</p>
                 </dd>
               </dl>
             </section>

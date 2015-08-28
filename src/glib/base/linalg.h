@@ -66,8 +66,8 @@ namespace TypeCheck {
 
 // the matrix dimension classificator for the (Dim parameter)
 enum TMatDim { 
-	mdCols, 
-	mdRows 
+	mdCols = 1, 
+	mdRows = 2
 };
 
 ///////////////////////////////////////////////////////////////////////

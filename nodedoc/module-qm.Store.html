@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
   <title>Factory class: Store</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -25,10 +25,69 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">factory class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Store</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-796">qminerdoc.<wbr>js:796</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-447">qminerdoc.<wbr>js:447</a></p>
             <div class="symbol-description">
               <p>Store (factory pattern result)</p>
             </div>
+            <section>
+              <h2>
+            Example
+        </h2>
+              <div>
+                <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// factory based construction using base.createStore
+var base = qm.create(&#x27;qm.conf&#x27;, &quot;&quot;, true);
+base.createStore([{
+   name: &quot;People&quot;,
+   fields: [
+       { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+       { name: &quot;Gender&quot;, type: &quot;string&quot;, shortstring: true },
+       { name: &quot;Age&quot;, type: &quot;int&quot; }
+   ],
+   joins: [
+       { name: &quot;ActedIn&quot;, type: &quot;index&quot;, store: &quot;Movies&quot;, inverse: &quot;Actor&quot; },
+       { name: &quot;Directed&quot;, type: &quot;index&quot;, store: &quot;Movies&quot;, inverse: &quot;Director&quot; }
+   ],
+   keys: [
+       { field: &quot;Name&quot;, type: &quot;text&quot; },
+       { field: &quot;Gender&quot;, type: &quot;value&quot; }
+   ]
+},
+{
+   name: &quot;Movies&quot;,
+   fields: [
+       { name: &quot;Title&quot;, type: &quot;string&quot;, primary: true },
+       { name: &quot;Plot&quot;, type: &quot;string&quot;, store: &quot;cache&quot; },
+       { name: &quot;Year&quot;, type: &quot;int&quot; },
+       { name: &quot;Rating&quot;, type: &quot;float&quot; },
+       { name: &quot;Genres&quot;, type: &quot;string_v&quot;, codebook: true }
+   ],
+   joins: [
+       { name: &quot;Actor&quot;, type: &quot;index&quot;, store: &quot;People&quot;, inverse: &quot;ActedIn&quot; },
+       { name: &quot;Director&quot;, type: &quot;index&quot;, store: &quot;People&quot;, inverse: &quot;Directed&quot; }
+   ],
+   keys: [
+       { field: &quot;Title&quot;, type: &quot;value&quot; },
+       { field: &quot;Plot&quot;, type: &quot;text&quot;, vocabulary: &quot;voc_01&quot; },
+       { field: &quot;Genres&quot;, type: &quot;value&quot; }
+   ]
+}]);
+base.close();
+// using the base constructor
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       name: &quot;Class&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
+       ]
+   }]
+});
+base.close();</code></pre>
+              </div>
+            </section>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -241,7 +300,8 @@ base.store(&quot;Festivals&quot;).push({ Name: &quot;Metaldays&quot;, Type: &quo
 base.store(&quot;Festivals&quot;).push({ Name: &quot;Festival de Cannes&quot;, Type: &quot;movie&quot;, Location: &quot;Cannes, France&quot; });
 base.store(&quot;Festivals&quot;).push({ Name: &quot;The Festival of Chocolate&quot;, Type: &quot;food&quot;, Location: &quot;Hillsborough, USA&quot; });
 // get the field value of the second record for field &quot;Type&quot;
-var fieldValue = base.store(&quot;Festivals&quot;).cell(1, &quot;Type&quot;); // returns &quot;movie&quot;</code></pre>
+var fieldValue = base.store(&quot;Festivals&quot;).cell(1, &quot;Type&quot;); // returns &quot;movie&quot;
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -322,7 +382,8 @@ base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, Numb
 // deletes the first 2 records (Archer and The Simpsons) in TVSeries
 base.store(&quot;TVSeries&quot;).clear(2); // returns 3
 // delete all remaining records in TVStore
-base.store(&quot;TVSeries&quot;).clear();  // returns 0</code></pre>
+base.store(&quot;TVSeries&quot;).clear();  // returns 0
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -386,7 +447,8 @@ base.store(&quot;Class&quot;).push({ Name: &quot;Annie&quot;, StudyGroup: &quot;
 base.store(&quot;Class&quot;).push({ Name: &quot;Britta&quot;, StudyGroup: &quot;C&quot; });
 base.store(&quot;Class&quot;).push({ Name: &quot;Jeff&quot;, StudyGroup: &quot;A&quot; });
 // change the StudyGroup of all records of store Class to A
-base.store(&quot;Class&quot;).each(function (rec) { rec.StudyGroup = &quot;A&quot;; });	// all records in Class are now in study group A</code></pre>
+base.store(&quot;Class&quot;).each(function (rec) { rec.StudyGroup = &quot;A&quot;; });	// all records in Class are now in study group A
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -450,7 +512,8 @@ var base = new qm.Base({
 // get the details of the field &quot;Name&quot; of store &quot;People&quot;
 // it returns a JSON object:
 // { id: 0, name: &quot;Name&quot;, type: &quot;string&quot;, primary: true }
-var details = base.store(&quot;People&quot;).field(&quot;Name&quot;);</code></pre>
+var details = base.store(&quot;People&quot;).field(&quot;Name&quot;);
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -518,7 +581,8 @@ base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Legolas&quot;, Sc
 // 50  44  50
 // 48  46  50
 // 48  44  48
-var matrix = base.store(&quot;ArcheryChampionship&quot;).getMatrix(&quot;ScorePerRound&quot;);</code></pre>
+var matrix = base.store(&quot;ArcheryChampionship&quot;).getMatrix(&quot;ScorePerRound&quot;);
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -626,7 +690,8 @@ base.store(&quot;Companies&quot;).push({ Name: &quot;DC Comics&quot;, Location: 
 base.store(&quot;Companies&quot;).push({ Name: &quot;DC Shoes&quot;, Location: &quot;Huntington Beach, California&quot; });
 base.store(&quot;Companies&quot;).push({ Name: &quot;21st Century Fox&quot;, Location: &quot;New York City, New York&quot; });
 // get the vector of company names
-var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;);	// returns a vector [&quot;DC Comics&quot;, &quot;DC Shoes&quot;, &quot;21st Century Fox&quot;]</code></pre>
+var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;);	// returns a vector [&quot;DC Comics&quot;, &quot;DC Shoes&quot;, &quot;21st Century Fox&quot;]
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -688,7 +753,8 @@ var base = new qm.Base({
 // check if the SeasonScore field is of type Date
 var isSeasonScoreDate = base.store(&quot;BasketballPlayers&quot;).isDate(&quot;SeasonScore&quot;); // returns false
 // check if the FirstPlayed field is of type Date
-var isFirstPlayedDate = base.store(&quot;BasketballPlayers&quot;).isDate(&quot;DateOfBirth&quot;); // returns true</code></pre>
+var isFirstPlayedDate = base.store(&quot;BasketballPlayers&quot;).isDate(&quot;DateOfBirth&quot;); // returns true
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -749,7 +815,8 @@ var base = new qm.Base({
 // check if the field &quot;Title&quot; is of numeric type
 var isTitleNumeric = base.store(&quot;TVSeries&quot;).isNumeric(&quot;Title&quot;); // returns false
 // check if the field &quot;NumberOfEpisodes&quot; is of numeric type
-var isNumberOfEpisodesNumeric = base.store(&quot;TVSeries&quot;).isNumeric(&quot;NumberOfEpisodes&quot;); // returns true</code></pre>
+var isNumberOfEpisodesNumeric = base.store(&quot;TVSeries&quot;).isNumeric(&quot;NumberOfEpisodes&quot;); // returns true
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -811,7 +878,8 @@ var base = new qm.Base({
 // check if the field &quot;Name&quot; is of string type
 var isNameString = base.store(&quot;People&quot;).isString(&quot;Name&quot;); // returns true
 // check if the field &quot;Age&quot; is of string type
-var isAgeString = base.store(&quot;People&quot;).isString(&quot;Age&quot;); // returns false</code></pre>
+var isAgeString = base.store(&quot;People&quot;).isString(&quot;Age&quot;); // returns false
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -877,7 +945,8 @@ var base = new qm.Base({
 // get the details of the key of the field &quot;Continent&quot;
 // returns a JSON object containing the details of the key:
 // { fq: { length: 0 }, vocabulary: { length: 0 }, name: &#x27;Continent&#x27;, store: { name: &#x27;Countries&#x27;, ... }}
-var details = base.store(&quot;Countries&quot;).key(&quot;Continent&quot;);</code></pre>
+var details = base.store(&quot;Countries&quot;).key(&quot;Continent&quot;);
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -941,7 +1010,8 @@ base.store(&quot;Class&quot;).push({ Name: &quot;Troy&quot;, StudyGroup: &quot;B
 base.store(&quot;Class&quot;).push({ Name: &quot;Chang&quot;, StudyGroup: &quot;C&quot; });
 base.store(&quot;Class&quot;).push({ Name: &quot;Pierce&quot;, StudyGroup: &quot;A&quot; });
 // make an array of record names
-var arr = base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; }); // returns an array [&quot;Shirley&quot;, &quot;Troy&quot;, &quot;Chang&quot;, &quot;Pierce&quot;]</code></pre>
+var arr = base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; }); // returns an array [&quot;Shirley&quot;, &quot;Troy&quot;, &quot;Chang&quot;, &quot;Pierce&quot;]
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1005,7 +1075,8 @@ var base = new qm.Base({
 // add a new planet in the store
 base.store(&quot;Planets&quot;).push({ Name: &quot;Earth&quot;, Diameter: 299196522, NearestStars: [&quot;Sun&quot;] });
 // create a record of a planet (not added to the Planets store)
-var planet = base.store(&quot;Planets&quot;).newRecord({ Name: &quot;Tatooine&quot;, Diameter: 10465, NearestStars: [&quot;Tatoo 1&quot;, &quot;Tatoo 2&quot;] });</code></pre>
+var planet = base.store(&quot;Planets&quot;).newRecord({ Name: &quot;Tatooine&quot;, Diameter: 10465, NearestStars: [&quot;Tatoo 1&quot;, &quot;Tatoo 2&quot;] });
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1070,7 +1141,8 @@ base.store(&quot;Superheroes&quot;).push({ Name: &quot;Thor&quot;, Superpowers: 
 base.store(&quot;Superheroes&quot;).push({ Name: &quot;Wonder Woman&quot;, Superpowers: [&quot;Superhuman strength, agility and endurance&quot;, &quot;Flight&quot;, &quot;Highly skilled hand-to-hand combatant&quot;] });
 // create a new record set containing only the DC Comic superheroes (those with the record ids 0, 1 and 3)
 var intVec = new qm.la.IntVector([0, 1, 3]);
-var DCHeroes = base.store(&quot;Superheroes&quot;).newRecordSet(intVec);</code></pre>
+var DCHeroes = base.store(&quot;Superheroes&quot;).newRecordSet(intVec);
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1139,7 +1211,8 @@ var base = new qm.Base({
 // add a new superhero to the Superheroes store
 base.store(&quot;Superheroes&quot;).push({ Name: &quot;Superman&quot;, Superpowers: [&quot;flight&quot;, &quot;heat vision&quot;, &quot;bulletproof&quot;] }); // returns 0
 // add a new supervillian to the Supervillians store
-base.store(&quot;Supervillians&quot;).push({ Name: &quot;Lex Luthor&quot;, Superpowers: [&quot;expert engineer&quot;, &quot;genius-level intellect&quot;, &quot;money&quot;] }); // returns 0</code></pre>
+base.store(&quot;Supervillians&quot;).push({ Name: &quot;Lex Luthor&quot;, Superpowers: [&quot;expert engineer&quot;, &quot;genius-level intellect&quot;, &quot;money&quot;] }); // returns 0
+base.close();	</code></pre>
                 </div>
               </section>
               <section>
@@ -1203,7 +1276,8 @@ base.store(&quot;Class&quot;).push({ Name: &quot;Chang&quot;, StudyGroup: &quot;
 base.store(&quot;Class&quot;).push({ Name: &quot;Magnitude&quot;, StudyGroup: &quot;C&quot; });
 base.store(&quot;Class&quot;).push({ Name: &quot;Leonard&quot;, StudyGroup: &quot;B&quot; });
 // get the record with the name &quot;Magnitude&quot;
-var record = base.store(&quot;Class&quot;).rec(&quot;Magnitude&quot;);</code></pre>
+var record = base.store(&quot;Class&quot;).recordByName(&quot;Magnitude&quot;);
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1268,7 +1342,8 @@ base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpi
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 // create a sample record set containing 3 records
-var randomRecordSet = base.store(&quot;TVSeries&quot;).sample(3); // contains 3 random records from the TVSeries store</code></pre>
+var randomRecordSet = base.store(&quot;TVSeries&quot;).sample(3); // contains 3 random records from the TVSeries store
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1330,7 +1405,8 @@ var base = new qm.Base({
 // get the store as a JSON object
 // the returned JSON object is:
 // { storeId: 0, storeName: &#x27;FootballPlayers&#x27;, storeRecords: 0, fields: [...], keys: [], joins: [] }
-var json = base.store(&quot;FootballPlayers&quot;).toJSON();</code></pre>
+var json = base.store(&quot;FootballPlayers&quot;).toJSON();
+base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -1349,7 +1425,7 @@ var json = base.store(&quot;FootballPlayers&quot;).toJSON();</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on August 20, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 28, 2015.
       </p>
     </div>
   </footer>
