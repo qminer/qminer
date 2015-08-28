@@ -46,7 +46,7 @@ module.exports = exports = function (pathPrefix) {
     * @property  {module:la.Vector} [svmModel.weigths] - SVM normal vector.
     */
     /**
-	* Get SVC model.
+	* Get the model.
 	* @returns {module:analytics~svmModel} The current SVM model.
     * @example
     * // import analytics module
@@ -58,18 +58,54 @@ module.exports = exports = function (pathPrefix) {
 	*/
     exports.SVC.prototype.getModel = function() { return { weights: this.weights }; }
     /**
-	* Get SVR model
+	* Get the model.
 	* @returns {module:analytics~svmModel} Get current SVM model
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create a SVR model
+    * var SVR = new analytics.SVR();
+    * // get the properties of the model
+    * var model = SVR.getModel(); // returns { weights: new require('qminer').la.Vector(); }
 	*/
     exports.SVR.prototype.getModel = function() { return { weights: this.weights }; }
 
     // Ridge Regression
     /**
-    * Gets RidgeReg model.
-    * @returns {module:analytics~ridgeRegModel} Get current RidgeReg model.
+    * @typedef {Object} ridgeRegModel
+    * @property {module:la.Vector} [ridgeRegModel.weights] - The Ridge Regression model vector.
+    */
+
+    /**
+    * Gets the model.
+    * @returns {module:analytics~ridgeRegModel} Get current model.
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create the Ridge Regression model
+    * var regmod = new analytics.RidgeReg();
+    * // get the model
+    * var model = regmod.getModel(); // returns { weights: new require('qminer').la.Vector(); }
     */
     exports.RidgeReg.prototype.getModel = function () { return { weights: this.weights }; }
 
+    // Recursive Linear Regression
+    /**
+    * @typedef {Object} recLinRegModel
+    * @property {module:la.Vector} [recLinRegModel.weights] - Recursive Linear Regression model vector.
+    */
+    /**
+    * Gets Recursive Linear Regression model
+    * @returns {module:analytics~recLnRegModel} The current model.
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create the Recursive Linear Regression model
+    * var linreg = new analytics.RecLinReg({ dim: 10 });
+    * // get the model
+    * var model = linreg.getModel(); // returns { weights: new require('qminer').la.Vector(); }
+    */
+    exports.RecLinReg.prototype.getModel = function () { return { weights: this.weights } }
 
     // var model = new OneVsAll({
     //     model : analytics.SVC,
