@@ -50,7 +50,7 @@ describe('Testing mean functionalities...', function () {
 
 describe('Testing std functionalities...', function () {
 
-    describe('Matrix mean test: Testing matrix is la.matrix([[1, 2, 3], [2, 3, 4]]', function () {
+    describe('Matrix std test: Testing matrix is la.matrix([[1, 2, 3], [2, 3, 4]]', function () {
 
         it('stat.std(mat) should return new vector [0.707107, 0.707107, 0.707107]', function () {
             assert.equal(stat.std(mat).toString(), new la.Vector([0.707107, 0.707107, 0.707107]).toString());

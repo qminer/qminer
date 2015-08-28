@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">StreamAggr</span></h1>
-            <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-68">qminer_aggrdoc.<wbr>js:68</a></p>
+            <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-69">qminer_aggrdoc.<wbr>js:69</a></p>
             <div class="symbol-classdesc">
               <p>Represents the stream aggregate. The class can construct these <a href="module-qm.html#~StreamAggregators">module:qm~StreamAggregators</a>. Also turn to these stream aggregators to see which methods are implemented for them.</p>
             </div>
@@ -77,13 +77,13 @@
                     <dt><a href="module-qm.StreamAggr.html#getInTimestamp">getInTimestamp()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.StreamAggr.html#getNumberOfRecords">getNumberOfRecords()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.StreamAggr.html#getNumberOfRecords">getNumberOfRecords()</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.StreamAggr.html#getOutFloatVector">getOutFloatVector()</a></dt>
                     <dd>
                     </dd>
@@ -99,13 +99,16 @@
                     <dt><a href="module-qm.StreamAggr.html#getTimestampLength">getTimestampLength()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.StreamAggr.html#getTimestampVector">getTimestampVector()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.StreamAggr.html#load">load(fin)</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.StreamAggr.html#getTimestampVector">getTimestampVector()</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.StreamAggr.html#onAdd">onAdd(rec)</a></dt>
                     <dd>
                     </dd>
@@ -113,6 +116,9 @@
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#onUpdate">onUpdate(rec)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.StreamAggr.html#save">save(fout)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#saveJson">saveJson([limit])</a></dt>
@@ -136,7 +142,7 @@ var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
-   schema: [
+   schema: [{
        name: &quot;People&quot;,
        fields: [
            { name: &quot;Name&quot;, type: &quot;string&quot; },
@@ -173,7 +179,8 @@ var wavelength = {
     value: &quot;WaveLength&quot;,
     winsize: 10000
 }
-var sa = base.store(&quot;Laser&quot;).addStreamAggr(wavelength);</code></pre>
+var sa = base.store(&quot;Laser&quot;).addStreamAggr(wavelength);
+base.close();</code></pre>
               </div>
             </section>
             <section>
@@ -279,7 +286,7 @@ var ts = {
    store: &#x27;Grades&#x27;,
    timestamp: &#x27;Time&#x27;,
    value: &#x27;Procents&#x27;,
-   winsize: 365 * 24 * 60 * 60 * 1000 
+   winsize: 31536000000 
 };
 var timeSeries = base.store(&#x27;Grades&#x27;).addStreamAggr(ts);
 // create a new moving average stream aggregator that takes the values from the 
@@ -296,7 +303,8 @@ base.store(&quot;Grades&quot;).push({ Grade: 7, Procents: 65, Time: &#x27;2014-1
 base.store(&quot;Grades&quot;).push({ Grade: 9, Procents: 88, Time: &#x27;2014-12-20T12:00:00.0&#x27; });
 base.store(&quot;Grades&quot;).push({ Grade: 8, Procents: 70, Time: &#x27;2015-02-03T10:00:00.0&#x27; });
 // get the average grade procents by using the getFloat method
-var average = averageGrade.getFloat(); // returns 74 + 1/3</code></pre>
+var average = averageGrade.getFloat(); // returns 74 + 1/3
+base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -333,7 +341,7 @@ var ts = {
    store: &#x27;MusicSale&#x27;,
    timestamp: &#x27;Time&#x27;,
    value: &#x27;NumberOfAlbums&#x27;,
-   winsize: 7 * 24 * 60 * 60 * 1000
+   winsize: 604800000
 };
 var weekSales = base.store(&#x27;MusicSale&#x27;).addStreamAggr(ts);
 // add some records in the store
@@ -342,7 +350,8 @@ base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 15, Time: &#x27;2015-03
 base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 30, Time: &#x27;2015-03-19T00:00:00.0&#x27; });
 base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 45, Time: &#x27;2015-03-20T00:00:00.0&#x27; });
 // get the second value of the value vector 
-var albums = weekSales.getFloatAt(1); // returns 15</code></pre>
+var albums = weekSales.getFloatAt(1); // returns 15
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -409,7 +418,7 @@ var ts = {
    store: &#x27;IceCreams&#x27;,
    timestamp: &#x27;TimeOfConsumption&#x27;,
    value: &#x27;Price&#x27;,
-   winsize: 24 * 60 * 60 * 1000
+   winsize: 86400000
 };
 var icePrice = base.store(&#x27;IceCreams&#x27;).addStreamAggr(ts);
 // add some ice creams in the store
@@ -417,7 +426,8 @@ base.store(&#x27;IceCreams&#x27;).push({ Type: &#x27;Chocholate&#x27;, Price: 5,
 base.store(&#x27;IceCreams&#x27;).push({ Type: &#x27;Blue Sky&#x27;, Price: 3, TimeOfConsumption: &#x27;2015-07-21T14:13:00.0&#x27; });
 base.store(&#x27;IceCreams&#x27;).push({ Type: &#x27;Stracciatella&#x27;, Price: 5, TimeOfConsumption: &#x27;2015-07-21T21:05:00.0&#x27; });
 // get the number of ice creams consumed by using getFloatLength method
-var numberOfIceCreamsEaten = icePrice.getFloatLength(); // returns 3</code></pre>
+var numberOfIceCreamsEaten = icePrice.getFloatLength(); // returns 3
+base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -454,7 +464,7 @@ var ts = {
    store: &#x27;Hospital&#x27;,
    timestamp: &#x27;Date&#x27;,
    value: &#x27;NumberOfPatients&#x27;,
-   winsize: 7 * 24 * 60 * 60 * 1000
+   winsize: 604800000
 };
 var weekPatients = base.store(&#x27;Hospital&#x27;).addStreamAggr(ts);
 // add some records in the store
@@ -463,7 +473,8 @@ base.store(&#x27;Hospital&#x27;).push({ NumberOfPatients: 56, Date: &#x27;2015-0
 base.store(&#x27;Hospital&#x27;).push({ NumberOfPatients: 120, Date: &#x27;2015-05-22T00:00:00.0&#x27; });
 base.store(&#x27;Hospital&#x27;).push({ NumberOfPatients: 40, Date: &#x27;2015-05-23T00:00:00.0&#x27; });
 // get the values that are in the time series window buffer as a vector
-var values = weekPatients.getFloatVector(); // returns the vector [50, 56, 120, 40]</code></pre>
+var values = weekPatients.getFloatVector(); // returns the vector [50, 56, 120, 40]
+base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -501,7 +512,7 @@ var ts = {
    store: &#x27;Marathon&#x27;,
    timestamp: &#x27;Time&#x27;,
    value: &#x27;Speed&#x27;,
-   winsize: 10 * 60 * 1000
+   winsize: 600000
 };
 var sensor = base.store(&#x27;Marathon&#x27;).addStreamAggr(ts);
 // add some records to the store
@@ -509,7 +520,8 @@ base.store(&#x27;Marathon&#x27;).push({ Runner: &#x27;Marko Primozic&#x27;, Spee
 base.store(&#x27;Marathon&#x27;).push({ Runner: &#x27;Leonard Cohen&#x27;, Speed: 14.1, Time: &#x27;2015-07-21T20:24:01.0&#x27; });
 base.store(&#x27;Marathon&#x27;).push({ Runner: &#x27;Coco Chanelle&#x27;, Speed: 13.7, Time: &#x27;2015-07-21T20:24:27.0&#x27; });
 // get the last value that got in the buffer
-var last = sensor.getInFloat(); // returns 13.7</code></pre>
+var last = sensor.getInFloat(); // returns 13.7
+base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -547,7 +559,7 @@ var ts = {
    store: &#x27;F1&#x27;,
    timestamp: &#x27;Time&#x27;,
    value: &#x27;Speed&#x27;,
-   winsize: 5 * 60 * 1000
+   winsize: 300000
 };
 var sensor = base.store(&#x27;F1&#x27;).addStreamAggr(ts);
 // add some records to the store
@@ -555,7 +567,8 @@ base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Sebastian Vettel&#x27;, Speed: 2
 base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Thomas &quot;Tommy&quot; Angelo&#x27;, Speed: 152.8, Time: &#x27;2015-07-19T09:35:23.0&#x27; });
 base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Mark Ham&#x27;, Speed: 189.5, Time: &#x27;2015-07-19T09:38:43.0&#x27; });
 // get the last timestamp that was added in the window buffer
-var time = sensor.getInTimestamp(); // returns 13081772323000</code></pre>
+var time = sensor.getInTimestamp(); // returns 13081772323000
+base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -592,7 +605,7 @@ var ts = {
    store: &#x27;MusicSale&#x27;,
    timestamp: &#x27;Time&#x27;,
    value: &#x27;NumberOfAlbums&#x27;,
-   winsize: 7 * 24 * 60 * 60 * 1000
+   winsize: 604800000
 };
 var weekSales = base.store(&#x27;MusicSale&#x27;).addStreamAggr(ts);
 // add some records in the store
@@ -601,7 +614,8 @@ base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 15, Time: &#x27;2015-03
 base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 30, Time: &#x27;2015-03-19T00:00:00.0&#x27; });
 base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 45, Time: &#x27;2015-03-20T00:00:00.0&#x27; });
 // get the number of records in the window buffer
-var num = weekSales.getNumberOfRecords(); // returns 4</code></pre>
+var num = weekSales.getNumberOfRecords(); // returns 4
+base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -639,7 +653,7 @@ var ts = {
    store: &#x27;F1&#x27;,
    timestamp: &#x27;Time&#x27;,
    value: &#x27;Speed&#x27;,
-   winsize: 5 * 60 * 1000
+   winsize: 300000
 };
 var sensor = base.store(&#x27;F1&#x27;).addStreamAggr(ts);
 // add some records to the store
@@ -649,7 +663,8 @@ base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Mark Ham&#x27;, Speed: 189.5, Ti
 base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Speedy Gonzales&#x27;, Speed: 171.4, Time: &#x27;2015-07-19T09:40:32.0&#x27; });
 // get the values, that have got out of the window buffer.
 // because the window size is 5 seconds, the last value that have left the buffer is 152.8
-var left = sensor.getOutFloatVector(); // returns [152.8]</code></pre>
+var left = sensor.getOutFloatVector(); // returns [152.8]
+base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -698,7 +713,8 @@ base.store(&#x27;Noise&#x27;).push({ Decibels: 53, Time: &#x27;2015-07-21T14:43:
 base.store(&#x27;Noise&#x27;).push({ Decibels: 54, Time: &#x27;2015-07-21T14:43:01.0&#x27; });
 base.store(&#x27;Noise&#x27;).push({ Decibels: 53, Time: &#x27;2015-07-21T14:43:01.2&#x27; });
 // get the timestamps that just left the window buffer by adding the last record
-var last = music.getOutTimestampVector(); // returns [13081963380000]</code></pre>
+var last = music.getOutTimestampVector(); // returns [13081963380000]
+base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -736,7 +752,7 @@ var ts = {
    store: &#x27;GameCollection&#x27;,
    timestamp: &#x27;ReleaseDate&#x27;,
    value: &#x27;Price&#x27;,
-   winsize: 31 * 60 * 60 * 1000
+   winsize: 2678400000
 };
 var timeSeries = base.store(&#x27;GameCollection&#x27;).addStreamAggr(ts);
 // create a new sum stream aggregator
@@ -752,7 +768,8 @@ base.store(&#x27;GameCollection&#x27;).push({ GameName: &#x27;Tetris&#x27;, Pric
 base.store(&#x27;GameCollection&#x27;).push({ GameName: &#x27;Super Mario Bros.&#x27;, Price: 100, ReleaseDate: &#x27;1985-09-13T00:00:00.0&#x27; });
 base.store(&#x27;GameCollection&#x27;).push({ GameName: &#x27;The Legend of Zelda&#x27;, Price: 90, ReleaseDate: &#x27;1986-02-21T00:00:00.0 &#x27;});
 // get the timestamp of the last bought game by using getTimestamp
-var date = priceSum.getTimestamp(); // returns 12153801600000 (the miliseconds since midnight 01.01.1601)</code></pre>
+var date = priceSum.getTimestamp(); // returns 12153801600000 (the miliseconds since 1601-01-01T00:00:00.0)
+base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -789,7 +806,7 @@ var ts = {
    store: &#x27;Route66&#x27;,
    timestamp: &#x27;Time&#x27;,
    value: &#x27;NumberOfCars&#x27;,
-   winsize: 24 * 60 * 60 * 1000
+   winsize: 86400000
 };
 var traffic = base.store(&#x27;Route66&#x27;).addStreamAggr(ts);
 // add some records in the store
@@ -799,7 +816,8 @@ base.store(&#x27;Route66&#x27;).push({ NumberOfCars: 60, Time: &#x27;2015-06-15T
 base.store(&#x27;Route66&#x27;).push({ NumberOfCars: 90, Time: &#x27;2015-06-15T18:00:00.0&#x27; });
 base.store(&#x27;Route66&#x27;).push({ NumberOfCars: 110, Time: &#x27;2015-06-16T00:00:00.0&#x27; });
 // get the third timestamp in the buffer
-var time = traffic.getTimestampAt(2); // returns 13078864800000</code></pre>
+var time = traffic.getTimestampAt(2); // returns 13078864800000
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -865,7 +883,7 @@ var ts = {
    store: &#x27;Medicine&#x27;,
    timestamp: &#x27;Time&#x27;,
    value: &#x27;NumberOfPills&#x27;,
-   winsize: 7 * 24 * 60 * 60 * 1000
+   winsize: 604800000
 };
 var weekly = base.store(&#x27;Medicine&#x27;).addStreamAggr(ts);
 // add some records in the store
@@ -877,7 +895,8 @@ base.store(&#x27;Medicine&#x27;).push({ NumberOfPills: 4, Time: &#x27;2015-07-23
 base.store(&#x27;Medicine&#x27;).push({ NumberOfPills: 6, Time: &#x27;2015-07-23T19:00:00.0&#x27; });
 base.store(&#x27;Medicine&#x27;).push({ NumberOfPills: 4, Time: &#x27;2015-07-24T09:00:00.0&#x27; });
 // get the length of the timestamp vector
-var length = weekly.getTimestampLength(); // returns 7</code></pre>
+var length = weekly.getTimestampLength(); // returns 7
+base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -914,7 +933,7 @@ var ts = {
    store: &#x27;Signals&#x27;,
    timestamp: &#x27;Time&#x27;,
    value: &#x27;BeepLoudness&#x27;,
-   winsize: 10 * 1000
+   winsize: 10000
 };
 var signalBeep = base.store(&#x27;Signals&#x27;).addStreamAggr(ts);
 // add some records to the store
@@ -922,13 +941,51 @@ base.store(&#x27;Signals&#x27;).push({ BeepLoudness: 10, Time: &#x27;2015-07-21T
 base.store(&#x27;Signals&#x27;).push({ BeepLoudness: 25, Time: &#x27;2015-07-21T12:30:31.0&#x27; });
 base.store(&#x27;Signals&#x27;).push({ BeepLoudness: 20, Time: &#x27;2015-07-21T12:30:32.0&#x27; });
 // get the timestamp vector of signalBeep
-var vec = signalBeep.getTimestampVector(); // returns vector [13081955430000, 13081955431000, 13081955432000]</code></pre>
+var vec = signalBeep.getTimestampVector(); // returns vector [13081955430000, 13081955431000, 13081955432000]
+base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
                   <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the timestamps.</p>
+                </dd>
+              </dl>
+              <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(fin)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
+              <p>Loads the stream aggregator, that has been previously saved.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fin</p>
+                      </td>
+                      <td>
+                        <p><a href="module-fs.FIn.html">module:fs.FIn</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The input stream.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></code>&nbsp;Self.</p>
                 </dd>
               </dl>
               <h3 id="onAdd"><span class="symbol-name">onAdd</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
@@ -1042,6 +1099,43 @@ var vec = signalBeep.getTimestampVector(); // returns vector [13081955430000, 13
                   <p><code><a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></code>&nbsp;Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.</p>
                 </dd>
               </dl>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Saves the current state of the stream aggregator.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fout</p>
+                      </td>
+                      <td>
+                        <p><a href="module-fs.FOut.html">module:fs.FOut</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The output stream.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream given as the parameter.</p>
+                </dd>
+              </dl>
               <h3 id="saveJson"><span class="symbol-name">saveJson</span><span class="signature"><span class="signature-params">([limit])</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>When executed it return a JSON object as defined by the user.</p>
               <section>
@@ -1089,7 +1183,7 @@ var vec = signalBeep.getTimestampVector(); // returns vector [13081955430000, 13
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 17, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 28, 2015.
       </p>
     </div>
   </footer>

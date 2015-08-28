@@ -154,7 +154,7 @@ public:
 * // create a new vector
 * var vec2 = new la.<% className %>(<% example1 %>);
 */
-//# exports.<% className %> = function() {}
+//# exports.<% className %> = function() { return Object.create(require('qminer').la.<% className %>.prototype); }
 template <class TVal = TFlt, class TAux = TAuxFltV>
 class TNodeJsVec : public node::ObjectWrap {
 	friend class TNodeJsFltVV;
@@ -300,6 +300,7 @@ private:
 	* @param {boolean} [asc] - Sort in ascending order flag. Default is boolean and true.
 	* @returns {module:la~SortResult} Self.
 	* @example
+	* // import la module
 	* var la = require('qminer').la;
 	* // create a new vector
 	* var vec = new la.<% className %>(<% exampleSort %>);
@@ -332,7 +333,7 @@ private:
 	JsDeclareFunction(trunc);
 	
 	/**
-	* Creates a dense matrix A by multiplying two vectors x and y: A = x * y^T.
+	* Creates a dense matrix A by multiplying two vectors x and y: A = x y^T.
 	* @param {module:la.<% className %>} vec - Second vector.
 	* @returns {module:la.Matrix} Matrix obtained by the outer product of the instance and second vector.
 	* @example
@@ -341,7 +342,7 @@ private:
 	* var x = new la.<% className %>([1, 2, 3]);
 	* var y = new la.<% className %>([4, 5]);
 	* // create the outer product of these vectors
-	* var A = vec.outer(vec2); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]
+	* var A = x.outer(y); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]
 	*/
 	//# <% skipOuter %>exports.<% className %>.prototype.outer = function (vec) { return Object.create(require('qminer').la.Matrix.prototype);}
 	JsDeclareSpecializedFunction(outer);

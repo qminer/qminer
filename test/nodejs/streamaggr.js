@@ -3,6 +3,8 @@ var assert = require('../../src/nodejs/scripts/assert.js');
 
 
 describe('Stream Aggregator Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
 
@@ -300,6 +302,8 @@ describe('Stream Aggregator Tests', function () {
 });
 
 describe('Time Series Window Buffer Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -467,6 +471,7 @@ describe('Time Series Window Buffer Tests', function () {
         })
     });
     describe('GetFloatAt Tests', function () {
+        this.timeout(10000);
         it('should return the value with the index 1', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
@@ -812,6 +817,8 @@ describe('Time Series Window Buffer Tests', function () {
 });
 
 describe('MovingWindowBufferCount Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -966,6 +973,8 @@ describe('MovingWindowBufferCount Tests', function () {
 });
 
 describe('MovingWindowBufferSum Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1120,6 +1129,8 @@ describe('MovingWindowBufferSum Tests', function () {
 });
 
 describe('MovingWindowBufferMin Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1291,6 +1302,8 @@ describe('MovingWindowBufferMin Tests', function () {
 });
 
 describe('MovingWindowBufferMax Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1458,6 +1471,8 @@ describe('MovingWindowBufferMax Tests', function () {
 });
 
 describe('MovingAverage Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1622,6 +1637,8 @@ describe('MovingAverage Tests', function () {
 });
 
 describe('TimeSeriesTick Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1704,8 +1721,8 @@ describe('TimeSeriesTick Tests', function () {
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
             store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
-            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
-            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:33.400', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.400', Value: 5 });
             assert.equal(tick.getFloat(), 5);
         })
         it('should return 0 if the buffer is empty', function () {
@@ -1770,9 +1787,9 @@ describe('TimeSeriesTick Tests', function () {
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
             store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
-            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
-            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
-            assert.equal(tick.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:35.004').getTime());
+            store.push({ Time: '2015-06-10T14:13:33.400', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.400', Value: 5 });
+            assert.equal(tick.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:35.400').getTime());
         })
     });
     describe('Property Tests', function () {
@@ -1803,6 +1820,8 @@ describe('TimeSeriesTick Tests', function () {
 })
 
 describe('EMA Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1988,9 +2007,9 @@ describe('EMA Tests', function () {
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
             store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
-            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
-            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
-            assert.equal(ema.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:35.004').getTime());
+            store.push({ Time: '2015-06-10T14:13:33.400', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.400', Value: 5 });
+            assert.equal(ema.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:35.400').getTime());
         })
     });
     describe('Property Tests', function () {
@@ -2025,6 +2044,8 @@ describe('EMA Tests', function () {
 });
 
 describe('MovingVariance Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -2111,8 +2132,8 @@ describe('MovingVariance Tests', function () {
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
             store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
-            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
-            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:33.400', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.400', Value: 5 });
             assert.equal(variance.getFloat(), 1 / 2);
         })
         it('should return 0 if no records are in the buffer', function () {
@@ -2148,8 +2169,8 @@ describe('MovingVariance Tests', function () {
             var variance = store.addStreamAggr(aggr);
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
-            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
-            assert.equal(variance.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:33.002').getTime()); // look if Date returns the correct value
+            store.push({ Time: '2015-06-10T14:13:33.200', Value: 3 });
+            assert.equal(variance.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:33.200').getTime()); // look if Date returns the correct value
         })
         it('should return the newest timestamp of the buffer, there are some allready output records', function () {
             var aggr = {
@@ -2161,10 +2182,10 @@ describe('MovingVariance Tests', function () {
             var variance = store.addStreamAggr(aggr);
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
-            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
-            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
-            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
-            assert.equal(variance.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:35.004').getTime()); // look if Date returns the correct value
+            store.push({ Time: '2015-06-10T14:13:33.200', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.400', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.400', Value: 5 });
+            assert.equal(variance.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:35.400').getTime()); // look if Date returns the correct value
         })
         it('should return the default timestamp if the buffer is empty', function () {
             var aggr = {
@@ -2203,6 +2224,8 @@ describe('MovingVariance Tests', function () {
 });
 
 describe('Covariance Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -2346,8 +2369,8 @@ describe('Covariance Tests', function () {
             var cov = store.addStreamAggr(aggr);
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
-            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3, Value2: 3 });
-            assert.equal(cov.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:33.002').getTime());
+            store.push({ Time: '2015-06-10T14:13:33.200', Value: 3, Value2: 3 });
+            assert.equal(cov.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:33.200').getTime());
         })
         it('should return the timestamp of the last record in the buffer, that is still in the window', function () {
             var aggr = {
@@ -2360,10 +2383,10 @@ describe('Covariance Tests', function () {
             var cov = store.addStreamAggr(aggr);
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
-            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3, Value2: 3 });
-            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4, Value2: 2 });
-            store.push({ Time: '2015-06-10T14:13:43.4', Value: 5, Value2: 6 });
-            assert.equal(cov.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:43.004').getTime());
+            store.push({ Time: '2015-06-10T14:13:33.200', Value: 3, Value2: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.400', Value: 4, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:43.400', Value: 5, Value2: 6 });
+            assert.equal(cov.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:43.400').getTime());
         })
     });
     describe('Property Tests', function () {
@@ -2394,6 +2417,8 @@ describe('Covariance Tests', function () {
 });
 
 describe('Correlation Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -2634,6 +2659,8 @@ describe('Correlation Tests', function () {
 });
 
 describe('Resampler Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var store = undefined;
     var out = undefined;
@@ -2719,13 +2746,13 @@ describe('Resampler Tests', function () {
             assert.equal(out[0].Value, 10);
             assert.equal(out[0].Time.getTime(), new Date('2015-07-08T14:30:00.0').getTime());
 
-            store.push({ Value: 15, Time: '2015-07-08T14:30:10.1' });
+            store.push({ Value: 15, Time: '2015-07-08T14:30:10.100' });
             assert.equal(out[1].Value, 10);
-            assert.equal(out[1].Time.getTime(), new Date('2015-07-08T14:30:10.0').getTime());
+            assert.equal(out[1].Time.getTime(), new Date('2015-07-08T14:30:10.000').getTime());
 
-            store.push({ Value: 20, Time: '2015-07-08T14:30:20.1' });
+            store.push({ Value: 20, Time: '2015-07-08T14:30:20.100' });
             assert.equal(out[2].Value, 15);
-            assert.equal(out[2].Time.getTime(), new Date('2015-07-08T14:30:20.0').getTime());
+            assert.equal(out[2].Time.getTime(), new Date('2015-07-08T14:30:20.000').getTime());
         })
         it('should interpolate with the current value', function () {
             var aggr = {
@@ -2804,6 +2831,8 @@ describe('Resampler Tests', function () {
 });
 
 describe('Merger Tests', function () {
+    this.timeout(10000);
+
     var base = undefined;
     var strore = undefined;
     beforeEach(function () {
@@ -2901,7 +2930,7 @@ describe('Merger Tests', function () {
             };
             var merger = new qm.StreamAggr(base, aggr);
             base.store("Cars").push({ NumberOfCars: 5, Time: '1601-01-01T00:00:00.0' });
-            
+
             assert.equal(store.length, 0);
         })
         it('should still return an empty "Merged" store if there is only one record in each of the stores', function () {
@@ -2993,11 +3022,11 @@ describe('Merger Tests', function () {
             base.store("Temperature").push({ Celcius: 30.3, Time: '1601-01-01T00:00:04.000' });
 
             assert.equal(store.length, 3);
-            assert.eqtol(store[0].NumberOfCars, 5 + 10/3);
+            assert.eqtol(store[0].NumberOfCars, 5 + 10 / 3);
             assert.equal(store[0].Celcius, 28.3);
             //assert.equal(store[0].Time.getTime(), 1000);
 
-            assert.eqtol(store[1].NumberOfCars, 5 + 2*10/3);
+            assert.eqtol(store[1].NumberOfCars, 5 + 2 * 10 / 3);
             assert.equal(store[1].Celcius, 29.7);
             //assert.equal(store[1].Time.getTime(), 2000);
 
@@ -3020,9 +3049,9 @@ describe('Merger Tests', function () {
             var merger = new qm.StreamAggr(base, aggr);
             base.store("Cars").push({ NumberOfCars: 5, Time: '1601-01-01T00:00:00.000' });
             base.store("Cars").push({ NumberOfCars: 15, Time: '1601-01-01T00:00:02.000' });
-            assert.throws(function () { 
+            assert.throws(function () {
                 base.store("Temperature").push({ Celcius: 28.3, Time: '1601-01-01T00:00:01.000' });
-            })
+            });
         })
-    })
-})
+    });
+});

@@ -64,6 +64,12 @@ namespace TypeCheck {
 	struct is_complex_double< TNum<std::complex<double> > > { static const bool value = true; };
 }
 
+// the matrix dimension classificator for the (Dim parameter)
+enum TMatDim { 
+	mdCols = 1, 
+	mdRows = 2
+};
+
 ///////////////////////////////////////////////////////////////////////
 // forward declarations
 class TLinAlg;
@@ -159,11 +165,11 @@ public:
 	// returns the mean value of Vec.
 	static double Mean(const TFltV& Vec);
 	// returns the mean value along the dimension (Dim) of Mat. See Matlab documentation - mean().
-	static void Mean(const TFltVV& Mat, TFltV& Vec, const int& Dim = 1);
+	static void Mean(const TFltVV& Mat, TFltV& Vec, const TMatDim& Dim = TMatDim::mdCols);
 	// returns standard deviation. See Matlab documentation - std().
-	static void Std(const TFltVV& Mat, TFltV& Vec, const int& Flag = 0, const int& Dim = 1);
+	static void Std(const TFltVV& Mat, TFltV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
 	// returns the z-score for each element of X such that columns of X are centered to have mean 0 and scaled to have standard deviation 1.
-	static void ZScore(const TFltVV& Mat, TFltVV& Vec, const int& Flag = 0, const int& Dim = 1);
+	static void ZScore(const TFltVV& Mat, TFltVV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
 };
 
 #ifdef SCALAPACK 
@@ -641,6 +647,9 @@ public:
 	// ||x|| (Euclidian), x is sparse
 	template<class TSizeTy = int>
 	inline static double Norm(const TVec<TIntFltKdV, TSizeTy>& x);
+	// ||X(:, ColId)|| (Euclidian), x is sparse
+	template<class TSizeTy = int>
+	inline static double Norm(const TVec<TIntFltKdV, TSizeTy>& x, const int& ColId);
 	// x := x / ||x||, x is sparse
 	template<class TSizeTy = int, TSizeTy>
 	inline static void Normalize(TVec<TIntFltKdV>& x);
@@ -1618,6 +1627,11 @@ public:
 	template<class TSizeTy>
 	double TLinAlg::Norm(const TVec<TIntFltKdV, TSizeTy>& x) {
 		return sqrt(Norm2(x));
+	}
+	
+	template<class TSizeTy>
+	double TLinAlg::Norm(const TVec<TIntFltKdV, TSizeTy>& x, const int& ColId) {
+		return Norm(x[ColId]);		
 	}
 
 	// x := x / ||x||, x is sparse

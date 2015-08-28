@@ -25,9 +25,9 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Base</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-611">qminerdoc.<wbr>js:611</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-267">qminerdoc.<wbr>js:267</a></p>
             <div class="symbol-classdesc">
-              <p>Represents the database and holds stores. The base object can be opened in multiple modes: 'create' - create a new database, 'createClean' - force create, and 'openReadOnly' - open in read-onlly mode</p>
+              <p>Represents the database and holds stores. The base object can be opened in multiple modes: 'create' - create a new database, 'createClean' - force create, and 'openReadOnly' - open in read-only mode.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -47,14 +47,20 @@
                     <dt><a href="module-qm.Base.html#garbageCollect">garbageCollect()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.Base.html#getStats">getStats()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.Base.html#getStats">getStats()</a></dt>
+                    <dt><a href="module-qm.Base.html#getStoreList">getStoreList()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Base.html#getStoreList">getStoreList()</a></dt>
+                    <dt><a href="module-qm.Base.html#getStreamAggr">getStreamAggr(saName)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Base.html#getStreamAggrNames">getStreamAggrNames()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.Base.html#loadCSV">loadCSV(opts[, callback])</a></dt>
@@ -88,8 +94,9 @@
               <div>
                 <pre class="prettyprint"><code>// import qm module
 var qm = require(&#x27;qminer&#x27;);
-// using a constructor, in open mode:
-var base = new qm.Base({mode: &#x27;open&#x27;});</code></pre>
+// using a constructor, in open mode
+var base = new qm.Base({mode: &#x27;open&#x27;});
+base.close();</code></pre>
               </div>
             </section>
             <section>
@@ -144,7 +151,7 @@ var base = new qm.Base({mode: &#x27;open&#x27;});</code></pre>
                       <p>&nbsp;</p>
                     </td>
                     <td>
-                      <p>the mode in which base is opened</p>
+                      <p>The mode in which base is opened.</p>
                     </td>
                   </tr>
                   <tr>
@@ -158,7 +165,7 @@ var base = new qm.Base({mode: &#x27;open&#x27;});</code></pre>
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>paramObj.dbPath - path to the location of the database</p>
+                      <p>paramObj.dbPath - The path to the location of the database.</p>
                     </td>
                   </tr>
                   <tr>
@@ -172,7 +179,7 @@ var base = new qm.Base({mode: &#x27;open&#x27;});</code></pre>
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>paramObj.schema - the database schema</p>
+                      <p>paramObj.schema - The database schema.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -210,19 +217,19 @@ var base = new qm.Base({
        fields: [
            { name: &quot;Name&quot;, type: &quot;string&quot; },
            { name: &quot;Superpowers&quot;, type: &quot;string_v&quot; },
-           { name&quot;: &quot;YearsActive&quot;, type: &quot;int&quot; }
+           { name: &quot;YearsActive&quot;, type: &quot;int&quot; }
        ]
    }]
-})
+});
 // create a new store called &quot;Supervillains&quot; in the base
 base.createStore({
-   name: &quot;Supervillians&quot;
+   name: &quot;Supervillians&quot;,
    fields: [
        { name: &quot;Name&quot;, type: &quot;string&quot; },
        { name: &quot;Superpowers&quot;, type: &quot;string_v&quot; },
        { name: &quot;YearsActive&quot;, type: &quot;int&quot; }
    ]
-})
+});
 // create two new stores called &quot;Cities&quot; and &quot;Leagues&quot;
 base.createStore([
    {
@@ -239,7 +246,8 @@ base.createStore([
            { name: &quot;Members&quot;, type: &quot;string_v&quot; }
        ]
    }
-])</code></pre>
+]);
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -305,7 +313,52 @@ base.createStore([
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of Object</code>&nbsp;</p>
+                  <p><code>Array of Object</code>&nbsp;The list of store descriptors.</p>
+                </dd>
+              </dl>
+              <h3 id="getStreamAggr"><span class="symbol-name">getStreamAggr</span><span class="signature"><span class="signature-params">(saName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
+              <p>Gets the stream aggregate of the given name.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>saName</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The name of the stream aggregate.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></code>&nbsp;The stream aggregate whose name is saName.</p>
+                </dd>
+              </dl>
+              <h3 id="getStreamAggrNames"><span class="symbol-name">getStreamAggrNames</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Array of string</span></span></h3>
+              <p>Gets an array of the stream aggregate names in the base.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Array of string</code>&nbsp;The array containing the stream aggregat names.</p>
                 </dd>
               </dl>
               <h3 id="loadCSV"><span class="symbol-name">loadCSV</span><span class="signature"><span class="signature-params">(opts[, callback])</span></span></h3>
@@ -456,9 +509,10 @@ var base = new qm.Base({
            { name: &quot;Workers&quot;, type: &quot;string_v&quot; }
        ]
    }]
-})
+});
 // get the &quot;KwikEMart&quot; store 
-var store = base.store(&quot;KwikEMart&quot;);	// returns the store with the name &quot;KwikEMart&quot;</code></pre>
+var store = base.store(&quot;KwikEMart&quot;);	// returns the store with the name &quot;KwikEMart&quot;
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -506,7 +560,7 @@ var store = base.store(&quot;KwikEMart&quot;);	// returns the store with the nam
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 17, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 28, 2015.
       </p>
     </div>
   </footer>

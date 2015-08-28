@@ -25,21 +25,10 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">factory class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">RecordSet</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1426">qminerdoc.<wbr>js:1426</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1108">qminerdoc.<wbr>js:1108</a></p>
             <div class="symbol-description">
-              <p>Record Set (factory pattern)</p>
+              <p>Record Set (factory pattern). The Record Set is a set of records.</p>
             </div>
-            <section>
-              <h2>
-            Example
-        </h2>
-              <div>
-                <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
-// factory based construction using store.allRecords
-var rs = store.allRecords;</code></pre>
-              </div>
-            </section>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -204,9 +193,10 @@ base.store(&quot;Philosophers&quot;).push({ Name: &quot;Emmanuel Levinas&quot;, 
 base.store(&quot;Philosophers&quot;).push({ Name: &quot;Rene Descartes&quot;, Era: &quot;17th-century philosophy&quot; });
 base.store(&quot;Philosophers&quot;).push({ Name: &quot;Confucius&quot;, Era: &quot;Ancient philosophy&quot; });
 // create a record set out of the records in store
-var recordSet = base.store(&quot;Philosophers&quot;).recs;
+var recordSet = base.store(&quot;Philosophers&quot;).allRecords;
 // clone the record set of the &quot;Philosophers&quot; store
-var philosophers = recordSet.clone();</code></pre>
+var philosophers = recordSet.clone();
+base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -245,11 +235,12 @@ base.store(&quot;BookWriters&quot;).push({ Name: &quot;George R.R. Martin&quot;,
 base.store(&quot;BookWriters&quot;).push({ Name: &quot;J. K. Rowling&quot;, Genre: &quot;Fantasy&quot;, Books: [&quot;Harry Potter and the Philosopher&#x27;s Stone&quot;] });
 base.store(&quot;BookWriters&quot;).push({ Name: &quot;Ivan Cankar&quot;, Genre: &quot;Drama&quot;, Books: [&quot;On the Hill&quot;, &quot;The King of Betajnova&quot;, &quot;The Serfs&quot;] });
 // create one record set containing all records of store
-var recordSet = base.store(&quot;BookWriters&quot;).recs;
+var recordSet = base.store(&quot;BookWriters&quot;).allRecords;
 // create one record set containing the records with genre &quot;Fantasy&quot;
-var fantasy = base.store(&quot;BookWriters&quot;).recs.filterByField(&quot;Genre&quot;, &quot;Fantasy&quot;);
+var fantasy = base.store(&quot;BookWriters&quot;).allRecords.filterByField(&quot;Genre&quot;, &quot;Fantasy&quot;);
 // delete the records in recordSet, that are also in fantasy
-recordSet.deleteRecords(fantasy); // returns self, containing only three records: &quot;Douglas Adams&quot;, &quot;Fyodor Dostoyevsky&quot; and &quot;Ivan Cankar&quot;</code></pre>
+recordSet.deleteRecords(fantasy); // returns self, containing only three records: &quot;Douglas Adams&quot;, &quot;Fyodor Dostoyevsky&quot; and &quot;Ivan Cankar&quot;
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -300,10 +291,10 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;People&quot;,
+       name: &quot;People&quot;,
        fields: [
-           { type: &quot;Name&quot;, type: &quot;string&quot; },
-           { type: &quot;Gender&quot;, type: &quot;string&quot; }
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;Gender&quot;, type: &quot;string&quot; }
        ]
    }]
 });
@@ -312,9 +303,10 @@ base.store(&quot;People&quot;).push({ Name: &quot;Eric Sugar&quot;, Gender: &quo
 base.store(&quot;People&quot;).push({ Name: &quot;Jane Tokyo&quot;, Gender: &quot;Female&quot; });
 base.store(&quot;People&quot;).push({ Name: &quot;Mister Tea&quot;, Gender: &quot;Male&quot; });
 // create a record set out of the records of the store
-var recordSet = base.store(&quot;People&quot;).recs;
+var recordSet = base.store(&quot;People&quot;).allRecords;
 // change the Name of all records into &quot;Anonymous&quot;
-recordSet.each(function (rec) { rec.Name = &quot;Anonymous&quot;; }); // returns self, all record&#x27;s Name are &quot;Anonymous&quot;</code></pre>
+recordSet.each(function (rec) { rec.Name = &quot;Anonymous&quot;; }); // returns self, all record&#x27;s Name are &quot;Anonymous&quot;
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -379,9 +371,10 @@ base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Robin Hood&quot;,
 base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Oliver Queen&quot;, ScorePerRound: [44, 46, 44] });
 base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Legolas&quot;, ScorePerRound: [50, 50, 48] });
 // create a record set out of the records of the store
-var recordSet = base.store(&quot;ArcheryChampionship&quot;).recs;
+var recordSet = base.store(&quot;ArcheryChampionship&quot;).allRecords;
 // filter the records: which archers have scored 48 points in the third round
-recordSet.filter(function (rec) { return rec.ScorePerRound[2] == 48; }); // keeps only the records, where the score of the third round is equal 48</code></pre>
+recordSet.filter(function (rec) { return rec.ScorePerRound[2] == 48; }); // keeps only the records, where the score of the third round is equal 48
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -448,9 +441,10 @@ base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;
 base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Scattered Showers&quot;, Date: &quot;2015-05-31T11:00:00&quot;, TemperatureDegrees: 24 });
 base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-06-01T11:00:00&quot;, TemperatureDegrees: 27 });
 // get the record set containing the records from the &quot;WeatherForcast&quot; store
-var recordSet = base.store(&quot;WeatherForcast&quot;).recs;
+var recordSet = base.store(&quot;WeatherForcast&quot;).allRecords;
 // filter only the records, where the weather is Mostly Cloudy
-recordSet.filterByField(&quot;Weather&quot;, &quot;Mostly Cloudy&quot;); // returns self, containing only the records, where the weather is &quot;Mostly Cloudy&quot;</code></pre>
+recordSet.filterByField(&quot;Weather&quot;, &quot;Mostly Cloudy&quot;); // returns self, containing only the records, where the weather is &quot;Mostly Cloudy&quot;
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -549,9 +543,10 @@ base.store(&quot;FrankSinatraGreatestHits&quot;).push({ Title: &quot;Forget Doma
 base.store(&quot;FrankSinatraGreatestHits&quot;).push({ Title: &quot;Somethin&#x27; Stupid&quot;, Length: 155 });
 base.store(&quot;FrankSinatraGreatestHits&quot;).push({ Title: &quot;This Town&quot;, Length: 186 });
 // get the records of the store as a record set
-var recordSet = base.store(&quot;FrankSinatraGreatestHits&quot;).recs;
+var recordSet = base.store(&quot;FrankSinatraGreatestHits&quot;).allRecords;
 // from the record set keep the records with indeces between or equal 2 and 5
-recordSet.filterById(2, 5);</code></pre>
+recordSet.filterById(2, 5);
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -618,10 +613,10 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;ArcheryChampionship&quot;,
+       name: &quot;ArcheryChampionship&quot;,
        fields: [
-           { type: &quot;Name&quot;, type: &quot;string&quot; },
-           { type: &quot;ScorePerRound&quot;, type: &quot;float_v&quot; }
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;ScorePerRound&quot;, type: &quot;float_v&quot; }
        ]
    }]
 });
@@ -630,14 +625,15 @@ base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Robin Hood&quot;,
 base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Oliver Queen&quot;, ScorePerRound: [44, 46, 44] });
 base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Legolas&quot;, ScorePerRound: [50, 50, 48] });
 // create a record set of the records in store
-var recordSet = base.store(&quot;ArcheryChampionship&quot;).recs;
+var recordSet = base.store(&quot;ArcheryChampionship&quot;).allRecords;
 // create a matrix from the &quot;ScorePerRound&quot; field
 // the i-th column of the matrix is the data of the i-th record in record set
 // the matrix will look like
 // 50  44  50
 // 48  46  50
 // 48  44  48
-var matrix = recordSet.getMatrix(&quot;ScorePerRound&quot;);</code></pre>
+var matrix = recordSet.getMatrix(&quot;ScorePerRound&quot;);
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -688,10 +684,10 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;TVSeries&quot;,
+       name: &quot;TVSeries&quot;,
        fields: [
-           { type: &quot;Title&quot;, type: &quot;string&quot;, &quot;primary&quot;: true },
-           { type: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
+           { name: &quot;Title&quot;, type: &quot;string&quot;, &quot;primary&quot;: true },
+           { name: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
        ]
    }]
 });
@@ -702,10 +698,11 @@ base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpi
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 // create a record set of the records of store
-var recordSet = base.store(&quot;TVSeries&quot;).recs;
+var recordSet = base.store(&quot;TVSeries&quot;).allRecords;
 // create a vector containing the number of episodes for each series
 // the vector will look like [75, 574, 94, 11, 47]
-var vector = recordSet.getVector(&quot;NumberOfEpisodes&quot;);</code></pre>
+var vector = recordSet.getVector(&quot;NumberOfEpisodes&quot;);
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -783,10 +780,11 @@ base.store(&quot;Musicians&quot;).push({ Name: &quot;Jimmy Page&quot;, Instrumen
 base.store(&quot;Bands&quot;).push({ Name: &quot;The White Stripes&quot;, Genre: &quot;Rock&quot; });
 // create a record set containing the musicians, that are members of some bend
 // returns a record set containing the records of &quot;Robert Plant&quot; and &quot;Jimmy Page&quot;
-var ledZeppelin = base.store(&quot;Bands&quot;).recs.join(&quot;Members&quot;);
+var ledZeppelin = base.store(&quot;Bands&quot;).allRecords.join(&quot;Members&quot;);
 // create a record set containing the first musician, that is a member of some band
 // returns a record set containing only one record, which is &quot;Robert Plant&quot; or &quot;Jimmy Page&quot;
-var ledMember = base.store(&quot;Bands&quot;).recs.join(&quot;Members&quot;, 1);</code></pre>
+var ledMember = base.store(&quot;Bands&quot;).allRecords.join(&quot;Members&quot;, 1);
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -851,10 +849,10 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;People&quot;,
+       name: &quot;People&quot;,
        fields: [
-           { type: &quot;Name&quot;, type: &quot;string&quot; },
-           { type: &quot;Gender&quot;, type: &quot;string&quot; }
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;Gender&quot;, type: &quot;string&quot; }
        ]
    }]
 });
@@ -863,9 +861,10 @@ base.store(&quot;People&quot;).push({ Name: &quot;Eric Sugar&quot;, Gender: &quo
 base.store(&quot;People&quot;).push({ Name: &quot;Jane Tokyo&quot;, Gender: &quot;Female&quot; });
 base.store(&quot;People&quot;).push({ Name: &quot;Mister Tea&quot;, Gender: &quot;Male&quot; });
 // create a record set out of the records of the store
-var recordSet = base.store(&quot;People&quot;).recs;
+var recordSet = base.store(&quot;People&quot;).allRecords;
 // make an array of record Names
-var arr = recordSet.map(function (rec) { return rec.Name; }); // returns an array: [&quot;Eric Sugar&quot;, &quot;Jane Tokyo&quot;, &quot;Mister Tea&quot;]</code></pre>
+var arr = recordSet.map(function (rec) { return rec.Name; }); // returns an array: [&quot;Eric Sugar&quot;, &quot;Jane Tokyo&quot;, &quot;Mister Tea&quot;]
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -934,9 +933,10 @@ base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;
 base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Scattered Showers&quot;, Date: &quot;2015-05-31T11:00:00&quot;, TemperatureDegrees: 24 });
 base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-06-01T11:00:00&quot;, TemperatureDegrees: 27 });
 // get the record set containing the records from the &quot;WeatherForcast&quot; store
-var recordSet = base.store(&quot;WeatherForcast&quot;).recs;
+var recordSet = base.store(&quot;WeatherForcast&quot;).allRecords;
 // reverse the record order in the record set
-recordSet.reverse(); // returns self, the records in the record set are in the reverse order</code></pre>
+recordSet.reverse(); // returns self, the records in the record set are in the reverse order
+base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -973,7 +973,8 @@ base.store(&quot;Movies&quot;).push({ Title: &quot;The Avengers&quot;, Length: 1
 base.store(&quot;Movies&quot;).push({ Title: &quot;The Clockwork Orange&quot;, Length: 136, Director: &quot;Stanley Kubrick&quot; });
 base.store(&quot;Movies&quot;).push({ Title: &quot;Full Metal Jacket&quot;, Length: 116, Director: &quot;Stanely Kubrick&quot; });
 // create a sample record set of containing 3 records from the &quot;Movies&quot; store
-var sample = base.store(&quot;Movies&quot;).recs.sample(3);</code></pre>
+var sample = base.store(&quot;Movies&quot;).allRecords.sample(3);
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1024,11 +1025,11 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;BookWriters&quot;,
+       name: &quot;BookWriters&quot;,
        fields: [
-           { type: &quot;Name&quot;, type: &quot;string&quot; },
-           { type: &quot;Genre&quot;, type: &quot;string&quot; },
-           { type: &quot;Books&quot;, type: &quot;string_v&quot; }
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;Genre&quot;, type: &quot;string&quot; },
+           { name: &quot;Books&quot;, type: &quot;string_v&quot; }
        ]
    }]
 });
@@ -1041,11 +1042,12 @@ base.store(&quot;BookWriters&quot;).push({ Name: &quot;George R.R. Martin&quot;,
 base.store(&quot;BookWriters&quot;).push({ Name: &quot;J. K. Rowling&quot;, Genre: &quot;Fantasy&quot;, Books: [&quot;Harry Potter and the Philosopher&#x27;s Stone&quot;] });
 base.store(&quot;BookWriters&quot;).push({ Name: &quot;Ivan Cankar&quot;, Genre: &quot;Drama&quot;, Books: [&quot;On the Hill&quot;, &quot;The King of Betajnova&quot;, &quot;The Serfs&quot;] });
 // create one record set containing all records of store
-var recordSet = base.store(&quot;BookWriters&quot;).recs;
+var recordSet = base.store(&quot;BookWriters&quot;).allRecords;
 // create one record set containing the records with genre &quot;Fantasy&quot;
-var fantasy = base.store(&quot;BookWriters&quot;).recs.filterByField(&quot;Genre&quot;, &quot;Fantasy&quot;);
+var fantasy = base.store(&quot;BookWriters&quot;).allRecords.filterByField(&quot;Genre&quot;, &quot;Fantasy&quot;);
 // create a new record set containing the difference of recordSet and fantasy
-var difference = recordSet.setDiff(fantasy); // returns a record set, containing the records of Douglas Adams, Fyodor Dostoyevsky and Ivan Cankar</code></pre>
+var difference = recordSet.setDiff(fantasy); // returns a record set, containing the records of Douglas Adams, Fyodor Dostoyevsky and Ivan Cankar
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1096,11 +1098,11 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;Movies&quot;,
+       name: &quot;Movies&quot;,
        fields: [
-           { type: &quot;Title&quot;, type: &quot;string&quot; },
-           { type: &quot;Length&quot;, type: &quot;int&quot; },
-           { type: &quot;Director&quot;, type: &quot;string&quot; }
+           { name: &quot;Title&quot;, type: &quot;string&quot; },
+           { name: &quot;Length&quot;, type: &quot;int&quot; },
+           { name: &quot;Director&quot;, type: &quot;string&quot; }
        ]
    }]
 });
@@ -1111,11 +1113,12 @@ base.store(&quot;Movies&quot;).push({ Title: &quot;The Avengers&quot;, Length: 1
 base.store(&quot;Movies&quot;).push({ Title: &quot;The Clockwork Orange&quot;, Length: 136, Director: &quot;Stanley Kubrick&quot; });
 base.store(&quot;Movies&quot;).push({ Title: &quot;Full Metal Jacket&quot;, Length: 116, Director: &quot;Stanely Kubrick&quot; });
 // create a record set out of the records in store, where length of the movie is greater than 110
-var greaterSet = base.store(&quot;Movies&quot;).recs.filterByField(&quot;Length&quot;, 110, 150);
+var greaterSet = base.store(&quot;Movies&quot;).allRecords.filterByField(&quot;Length&quot;, 110, 150);
 // create a record set out of the records in store, where the length of the movie is lesser than 130
-var lesserSet = base.store(&quot;Movies&quot;).recs.filterByField(&quot;Length&quot;, 0, 130);
+var lesserSet = base.store(&quot;Movies&quot;).allRecords.filterByField(&quot;Length&quot;, 0, 130);
 // get the intersection of greaterSet and lesserSet
-var intersection = greaterSet.setIntersect(lesserSet); // returns a record set, containing the movies with lengths between 110 and 130</code></pre>
+var intersection = greaterSet.setIntersect(lesserSet); // returns a record set, containing the movies with lengths between 110 and 130
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1166,10 +1169,10 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;TVSeries&quot;,
+       name: &quot;TVSeries&quot;,
        fields: [
-           { type: &quot;Title&quot;, type: &quot;string&quot;, &quot;primary&quot;: true },
-           { type: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
+           { name: &quot;Title&quot;, type: &quot;string&quot;, &quot;primary&quot;: true },
+           { name: &quot;NumberOfEpisodes&quot;, type: &quot;int&quot; }
        ]
    }]
 });
@@ -1180,11 +1183,12 @@ base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpi
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 // create a record set out of the records in store, where the number of episodes is lesser than 47
-var lesserSet = base.store(&quot;TVSeries&quot;).recs.filterByField(&quot;NumberOfEpisodes&quot;, 0, 47);
+var lesserSet = base.store(&quot;TVSeries&quot;).allRecords.filterByField(&quot;NumberOfEpisodes&quot;, 0, 47);
 // create a record set out of the records in store, where the number of episodes is greater than 100
-var greaterSet = base.store(&quot;TVSeries&quot;).recs.filterByField(&quot;NumberOfEpisodes&quot;, 100, 600);
+var greaterSet = base.store(&quot;TVSeries&quot;).allRecords.filterByField(&quot;NumberOfEpisodes&quot;, 100, 600);
 // get the union of lesserSet and greaterSet
-var union = lesserSet.setUnion(greaterSet); // returns a record set, which is the union of the two record sets</code></pre>
+var union = lesserSet.setUnion(greaterSet); // returns a record set, which is the union of the two record sets
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1251,9 +1255,10 @@ base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;
 base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Scattered Showers&quot;, Date: &quot;2015-05-31T11:00:00&quot;, TemperatureDegrees: 24 });
 base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-06-01T11:00:00&quot;, TemperatureDegrees: 27 });
 // get the record set containing the records from the &quot;WeatherForcast&quot; store
-var recordSet = base.store(&quot;WeatherForcast&quot;).recs;
+var recordSet = base.store(&quot;WeatherForcast&quot;).allRecords;
 // shuffle the records in the newly created record set. Use the number 100 as the seed for the shuffle
-recordSet.shuffle(100); // returns self, the records in the record set are shuffled</code></pre>
+recordSet.shuffle(100); // returns self, the records in the record set are shuffled
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1318,9 +1323,10 @@ base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpi
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 // get the records of the &quot;TVSeries&quot; store as a record set
-var recordSet = base.store(&quot;TVSeries&quot;).recs;
+var recordSet = base.store(&quot;TVSeries&quot;).allRecords;
 // sort the records by their number of episodes
-recordSet.sort(function (rec, rec2) { return rec.NumberOfEpisodes &lt; rec2.NumberOfEpisodes; }); // returns self, records are sorted by the number of episodes</code></pre>
+recordSet.sort(function (rec, rec2) { return rec.NumberOfEpisodes &lt; rec2.NumberOfEpisodes; }); // returns self, records are sorted by the number of episodes
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1388,9 +1394,10 @@ base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpi
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 // get the records of the &quot;TVSeries&quot; store as a record set
-var recordSet = base.store(&quot;TVSeries&quot;).recs;
+var recordSet = base.store(&quot;TVSeries&quot;).allRecords;
 // sort the records by their &quot;Title&quot; field in ascending order 
-recordSet.sortByField(&quot;Title&quot;, true); // returns self, record are sorted by their &quot;Title&quot;</code></pre>
+recordSet.sortByField(&quot;Title&quot;, true); // returns self, record are sorted by their &quot;Title&quot;
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1470,11 +1477,12 @@ base.store(&quot;Tea&quot;).push({ Name: &quot;Rou Gui&quot;, Type: &quot;White&
 base.store(&quot;Tea&quot;).push({ Name: &quot;Tieluohan Tea&quot;, Type: &quot;Wuyi&quot;, Origin: &quot;Northern Fujian&quot; });
 base.store(&quot;Tea&quot;).push({ Name: &quot;Red Robe&quot;, Type: &quot;Oolong&quot;, Origin: &quot;Wuyi Mountains&quot; });
 // get the records of the &quot;Tea&quot; store as a record set
-var recordSet = base.store(&quot;Tea&quot;).recs;
+var recordSet = base.store(&quot;Tea&quot;).allRecords;
 // sort the records in the record set by their id in descending order
 recordSet.sortById(); // returns self, the records are sorted in descending order (default)
 // sort the records in the record set by their id in ascending order
-recordSet.sortById(1); // returns self, the records are sorted in ascending order</code></pre>
+recordSet.sortById(1); // returns self, the records are sorted in ascending order
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1541,14 +1549,15 @@ base.store(&quot;SocialGames&quot;).push({ Title: &quot;Dobble&quot;, Type: &quo
 base.store(&quot;SocialGames&quot;).push({ Title: &quot;Settlers of Catan&quot;, Type: &quot;Board&quot;, MinPlayers: 3, MaxPlayers: 4 });
 base.store(&quot;SocialGames&quot;).push({ Title: &quot;Munchkin&quot;, Type: &quot;Card&quot;, MinPlayers: 3, MaxPlayers: 6 });
 // create a record set out of the records of the store
-var recordSet = base.store(&quot;SocialGames&quot;).recs;
+var recordSet = base.store(&quot;SocialGames&quot;).allRecords;
 // sort the records by MinPlayers in ascending order
 recordSet.sortByField(&quot;MinPlayers&quot;, true);
 // split the record set by the minimum number of players
 // returns an array containing three record sets: the first containing the &quot;DungeonsAndDragons&quot; record,
 // the second containing the &quot;Settlers of Catan&quot; and &quot;Munchkin&quot; records and the third containing the 
 // &quot;Dobble&quot; record
-var arr = recordSet.split(function (rec, rec2) { return rec.MinPlayers &lt; rec2.MinPlayers; });</code></pre>
+var arr = recordSet.split(function (rec, rec2) { return rec.MinPlayers &lt; rec2.MinPlayers; });
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1611,9 +1620,10 @@ var base = new qm.Base({
 base.store(&quot;Musicians&quot;).push({ Name: &quot;Jimmy Page&quot;, DateOfBirth:  &quot;1944-01-09T00:00:00&quot;, GreatestHits: [&quot;Stairway to Heaven&quot;, &quot;Whole Lotta Love&quot;] });
 base.store(&quot;Musicians&quot;).push({ Name: &quot;Beyonce&quot;, DateOfBirth: &quot;1981-09-04T00:00:00&quot;, GreatestHits: [&quot;Single Ladies (Put a Ring on It)&quot;] });
 // create a record set out of the records in the &quot;Musicians&quot; store
-var recordSet = base.store(&quot;Musicians&quot;).recs;
+var recordSet = base.store(&quot;Musicians&quot;).allRecords;
 // create a JSON object out of the record set
-var json = recordSet.toJSON();</code></pre>
+var json = recordSet.toJSON();
+base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -1649,12 +1659,13 @@ base.store(&quot;Philosophers&quot;).push({ Name: &quot;Emmanuel Levinas&quot;, 
 base.store(&quot;Philosophers&quot;).push({ Name: &quot;Rene Descartes&quot;, Era: &quot;17th-century philosophy&quot; });
 base.store(&quot;Philosophers&quot;).push({ Name: &quot;Confucius&quot;, Era: &quot;Ancient philosophy&quot; });
 // create two identical record sets of the &quot;Philosophers&quot; store
-var recordSet1 = base.store(&quot;Philosophers&quot;).recs;
-var recordSet2 = base.store(&quot;Philosophers&quot;).recs;
+var recordSet1 = base.store(&quot;Philosophers&quot;).allRecords;
+var recordSet2 = base.store(&quot;Philosophers&quot;).allRecords;
 // truncate the first 3 records in recordSet1
 recordSet1.trunc(3); // return self, containing only the first 3 records (&quot;Plato&quot;, &quot;Immanuel Kant&quot;, &quot;Emmanuel Levinas&quot;)
 // truncate the first 2 records in recordSet2, starting with &quot;Emmanuel Levinas&quot;
-recordSet2.trunc(2, 2); // returns self, containing only the 2 records (&quot;Emmanuel Levinas&quot;, &quot;Rene Descartes&quot;)</code></pre>
+recordSet2.trunc(2, 2); // returns self, containing only the 2 records (&quot;Emmanuel Levinas&quot;, &quot;Rene Descartes&quot;)
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1716,7 +1727,7 @@ recordSet2.trunc(2, 2); // returns self, containing only the 2 records (&quot;Em
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 17, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 28, 2015.
       </p>
     </div>
   </footer>
