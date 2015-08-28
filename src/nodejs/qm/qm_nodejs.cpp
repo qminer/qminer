@@ -2245,7 +2245,7 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
 		JsRecSet->RecSet->FilterByFieldInt(FieldId, MnVal, MxVal);
 	}
 	else if (Desc.IsStr()) {
-        if (TNodeJsUtil::IsArgStr(Args, 1)) {
+        if (Args.Length() < 3 || !TNodeJsUtil::IsArgStr(Args, 2)) {
             TStr StrVal = TNodeJsUtil::GetArgStr(Args, 1);
             JsRecSet->RecSet->FilterByFieldStr(FieldId, StrVal);
         } else {

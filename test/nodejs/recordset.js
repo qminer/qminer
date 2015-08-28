@@ -376,13 +376,19 @@ describe('Record Set Tests', function () {
             assert.equal(recSet2[0].Name, "Blaz Fortuna");
         })
         it('should keep only the "Blaz Fortuna" record, search by min-max', function () {
-            var rs = recSet2.filterByField("Name", "Blaz", "Bz");
-            assert.equal(rs.length, 1);
-            assert.equal(rs[0].Name, "Blaz Fortuna");
+            var xrs = recSet2.filterByField("Name", "Blaz", "Bz");
+            assert.equal(xrs.length, 1);
+            assert.equal(xrs[0].Name, "Blaz Fortuna");
         })
+        // it('should keep all records record, search by min-max', function () {
+            // var xrs = recSet2.filterByField("Name", "Aa", "Zz");
+            // assert.equal(xrs.length, 2);
+            // assert.equal(xrs[0].Name, "Carolina Fortuna");
+            // assert.equal(xrs[1].Name, "Blaz Fortuna");
+        // })
         it('should return empty recordset, search by min-max', function () {
-            var rs = recSet2.filterByField("Name", "Ma", "Nz");
-            assert.equal(rs.length, 0);
+            var xrs = recSet2.filterByField("Name", "Aa", "Ab");
+            assert.equal(xrs.length, 0);
         })
         it('should keep only the "Every Day" record', function () {
             recSet.filterByField("Rating", 5.5, 5.7);
