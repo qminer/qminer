@@ -375,6 +375,11 @@ describe('Record Set Tests', function () {
             assert.equal(recSet2.length, 1);
             assert.equal(recSet2[0].Name, "Blaz Fortuna");
         })
+        it('should keep only the "Blaz Fortuna" record, search by min-max', function () {
+            recSet2.filterByField("Name", "Ba", "Bz");
+            assert.equal(recSet2.length, 1);
+            assert.equal(recSet2[0].Name, "Blaz Fortuna");
+        })
         it('should keep only the "Every Day" record', function () {
             recSet.filterByField("Rating", 5.5, 5.7);
             assert.equal(recSet.length, 1);
