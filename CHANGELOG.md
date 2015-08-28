@@ -8,7 +8,7 @@
 
 Other:
 
-- Added testes for almost all documented classes and methods in `analytics.js`
+- Added tests for almost all documented classes and methods in `analytics.js`
 - All examples from documentation are now also converted to tests
 - Tests now have 10s to finish
 - Removed copy-paste from `binding.gyp`, MS Build toolset now defaults to v120
@@ -27,7 +27,7 @@ New features:
 Bug fixes:
 
 - `TZipIn` does not hang when looking for length, on empty files, etc.
-- Fixed NaN issue in `TSigmoid`, now works normaly
+- Fixed NaN issue in `TSigmoid`, now works normally
 
 Other:
 
