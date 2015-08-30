@@ -143,7 +143,7 @@ TZipIn::~TZipIn(){
   if (ZipStdoutRd != NULL) {
     EAssertR(CloseHandle(ZipStdoutRd), "Closing read-end of pipe failed"); }
   if (ZipStdoutWr != NULL) {
-    EAssertR(CloseHandle(ZipStdoutWr), "Closing write-end of pipe failed"); }
+    EAssertR(CloseHandle(ZipStdoutWr)!=0, "Closing write-end of pipe failed"); }
   #else
   if (ZipStdoutRd != NULL) {
     EAssertR(pclose(ZipStdoutRd) != -1, "Closing of the process failed"); }
@@ -240,7 +240,7 @@ TStr TZipIn::GetCmd(const TStr& ZipFNm) {
 
 uint64 TZipIn::GetFLen(const TStr& ZipFNm) {
   #ifdef GLib_WIN
-  HANDLE FLenStdoutRd, FLenStdoutWr;
+  HANDLE ZipStdoutRd, ZipStdoutWr;
   // create pipes
   SECURITY_ATTRIBUTES saAttr;
   saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
@@ -248,9 +248,9 @@ uint64 TZipIn::GetFLen(const TStr& ZipFNm) {
   saAttr.lpSecurityDescriptor = NULL;
     // Create a pipe for the child process's STDOUT.
   const int PipeBufferSz = 32*1024;
-  EAssertR(CreatePipe(&FLenStdoutRd, &FLenStdoutWr, &saAttr, PipeBufferSz), "Stdout pipe creation failed");
+  EAssertR(CreatePipe(&ZipStdoutRd, &ZipStdoutWr, &saAttr, PipeBufferSz), "Stdout pipe creation failed");
   // Ensure the read handle to the pipe for STDOUT is not inherited.
-  SetHandleInformation(FLenStdoutRd, HANDLE_FLAG_INHERIT, 0);
+  SetHandleInformation(ZipStdoutRd, HANDLE_FLAG_INHERIT, 0);
   //CreateZipProcess(GetCmd(FNm), FNm);
   { const TStr CmdLine = TStr::Fmt("7z.exe l %s", ZipFNm.CStr());
   PROCESS_INFORMATION piProcInfo;
@@ -258,7 +258,7 @@ uint64 TZipIn::GetFLen(const TStr& ZipFNm) {
   ZeroMemory( &piProcInfo, sizeof(PROCESS_INFORMATION));
   ZeroMemory( &siStartInfo, sizeof(STARTUPINFO));
   siStartInfo.cb = sizeof(STARTUPINFO);
-  siStartInfo.hStdOutput = FLenStdoutWr;
+  siStartInfo.hStdOutput = ZipStdoutWr;
   siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
   // Create the child process.
   const BOOL FuncRetn = CreateProcess(NULL, (LPSTR) CmdLine.CStr(),
@@ -268,53 +268,38 @@ uint64 TZipIn::GetFLen(const TStr& ZipFNm) {
   CloseHandle(piProcInfo.hThread); }
   #else
   const TStr CmdLine = TStr::Fmt("7za l %s", ZipFNm.CStr());
-  FILE* FLenStdoutRd = popen(CmdLine.CStr(), "r");
-  if (FLenStdoutRd == NULL) { // try using SevenZipPath
-    FLenStdoutRd = popen((TZipIn::SevenZipPath+"/"+CmdLine).CStr(), "r");
+  FILE* ZipStdoutRd = popen(CmdLine.CStr(), "r");
+  if (ZipStdoutRd == NULL) { // try using SevenZipPath
+    ZipStdoutRd = popen((TZipIn::SevenZipPath+"/"+CmdLine).CStr(), "r");
   }
-  EAssertR(FLenStdoutRd != NULL, TStr::Fmt("Can not execute '%s'", CmdLine.CStr()).CStr());
+  EAssertR(ZipStdoutRd != NULL, TStr::Fmt("Can not execute '%s'", CmdLine.CStr()).CStr());
   #endif
   // Read output from the child process
-  const int FLenBfSz = 32*1024;
-  char* FLenBf = new char [FLenBfSz];
-  memset(FLenBf, 0, FLenBfSz);
+  const int BfSz = 32*1024;
+  char* Bf = new char [BfSz];
+  int BfC=0, BfL=0;
+  memset(Bf, 0, BfSz);
   #ifdef GLib_WIN
-  DWORD
+  DWORD BytesRead;
+  EAssert(ReadFile(ZipStdoutRd, Bf, MxBfL, &BytesRead, NULL) != 0);
   #else
-  size_t
+  size_t BytesRead = fread(Bf, 1, MxBfL, ZipStdoutRd);
+  EAssert(BytesRead != 0);
+  EAssert(pclose(ZipStdoutRd) != -1);
   #endif
-  BytesRead, BytesReadTotal = 0;
-  do {
-    char* FLenBfLeft = FLenBf + BytesReadTotal;
-    int FLenBfLeftSz = FLenBfSz - BytesReadTotal;
-    #ifdef GLib_WIN
-    EAssert(ReadFile(FLenStdoutRd, FLenBfLeft, FLenBfLeftSz, &BytesRead, NULL) != 0);
-    #else
-    BytesRead = fread(FLenBfLeft, 1, FLenBfLeftSz, FLenStdoutRd);
-    EAssert(!ferror(FLenStdoutRd));
-    #endif
-    BytesReadTotal += BytesRead;
-  } while (((int)BytesReadTotal < FLenBfSz) && (BytesRead != 0));
-  #ifdef GLib_WIN
-  EAssertR(CloseHandle(FLenStdoutRd), "Closing read-end of pipe failed");
-  EAssertR(CloseHandle(FLenStdoutWr), "Closing write-end of pipe failed");
-  #else
-  EAssert(pclose(FLenStdoutRd) != -1);
-  #endif
-  FLenBf[FLenBfSz - 1] = 0;
-  // find file length
-  TStr Str(FLenBf);  delete [] FLenBf;
+  BfL = (int) BytesRead;  IAssert((BfC!=0)||(BfL!=0));
+  BfC = 0; Bf[BfL] = 0;
+  // find file lenght
+  TStr Str(Bf);  delete [] Bf;
   TStrV StrV; Str.SplitOnWs(StrV);
   int n = StrV.Len()-1;
   while (n > 0 && ! StrV[n].StartsWith("-----")) { n--; }
-  int FLenIndex = n-7;
-  if (FLenIndex <= 0) {
+  if (n-7 <= 0) {
     WrNotify(TStr::Fmt("Corrupt file %s: MESSAGE:\n", ZipFNm.CStr()).CStr(), Str.CStr());
     SaveToErrLog(TStr::Fmt("Corrupt file %s. Message:\n:%s\n", ZipFNm.CStr(), Str.CStr()).CStr());
     return 0;
   }
-  if (StrV[FLenIndex].StartsWith("-----")) return 0; // empty archive
-  return StrV[FLenIndex].GetInt64();
+  return StrV[n-7].GetInt64();
 }
 
 /////////////////////////////////////////////////
