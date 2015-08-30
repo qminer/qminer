@@ -2632,18 +2632,24 @@ bool TUInt::IsIpv6Str(const TStr& IpStr, const char& SplitCh) {
 	return true;
 }
 
+
+/////////////////////////////////////////////////
+// Signed-Integer-64Bit
+const int64 TInt64::Mn(_I64_MIN);
+const int64 TInt64::Mx(_I64_MAX);
+
 /////////////////////////////////////////////////
 // Unsigned-Integer-64Bit
 
 #if defined (GLib_WIN)
-const TUInt64 TUInt64::Mn(uint64(0x0000000000000000i64));
-const TUInt64 TUInt64::Mx(uint64(0xFFFFFFFFFFFFFFFFi64));
+const uint64 TUInt64::Mn(uint64(0x0000000000000000i64));
+const uint64 TUInt64::Mx(uint64(0xFFFFFFFFFFFFFFFFi64));
 #elif defined (GLib_BCB)
-const TUInt64 TUInt64::Mn(0x0000000000000000i64);
-const TUInt64 TUInt64::Mx(0xFFFFFFFFFFFFFFFFi64);
+const uint64 TUInt64::Mn(0x0000000000000000i64);
+const uint64 TUInt64::Mx(0xFFFFFFFFFFFFFFFFi64);
 #else
-const TUInt64 TUInt64::Mn((uint64)0x0000000000000000LL);
-const TUInt64 TUInt64::Mx(0xFFFFFFFFFFFFFFFFLL);
+const uint64 TUInt64::Mn((uint64)0x0000000000000000LL);
+const uint64 TUInt64::Mx(0xFFFFFFFFFFFFFFFFLL);
 #endif
 
 void TUInt64::LoadXml(const PXmlTok& XmlTok, const TStr& Nm){

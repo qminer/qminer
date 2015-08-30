@@ -1540,8 +1540,8 @@ class TNum<int64>{
 public:
 	int64 Val;
 public:
-	static const TNum Mn;
-	static const TNum Mx;
+	static const int64 Mn;
+	static const int64 Mx;
 
 	TNum() : Val(0){}
 	TNum(const TNum& Int) : Val(Int.Val){}
@@ -1607,8 +1607,8 @@ class TNum<uint64>{
 public:
   uint64 Val;
 public:
-  static const TNum Mn;
-  static const TNum Mx;
+  static const uint64 Mn;
+  static const uint64 Mx;
 
   TNum() : Val(0){}
   TNum(const TNum& Int) : Val(Int.Val){}
