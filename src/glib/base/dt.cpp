@@ -2649,8 +2649,13 @@ bool TUInt::IsIpv6Str(const TStr& IpStr, const char& SplitCh) {
 
 /////////////////////////////////////////////////
 // Signed-Integer-64Bit
-const int64 TInt64::Mn(_I64_MIN);
-const int64 TInt64::Mx(_I64_MAX);
+
+//#if defined (GLib_WIN)
+const int64 TInt64::Mn(INT64_MIN);
+const int64 TInt64::Mx(INT64_MAX);
+//#else
+
+//#endif
 
 /////////////////////////////////////////////////
 // Unsigned-Integer-64Bit
