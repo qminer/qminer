@@ -649,6 +649,10 @@ public:
   TStr GetSubStr(const int& BChN, const int& EChN) const;
   /// Get substring from BchN to the end of the string
   TStr GetSubStr(const int& BChN) const { return GetSubStr(BChN, Len()-1); }
+  /// safe version for getting substring from BchN to EchN
+  TStr GetSubStrSafe(const int& BChN, const int& EChN) const;
+  /// safe version for getting substring from BchN to EchN
+  TStr GetSubStrSafe(const int& BChN) const { return GetSubStrSafe(BChN, Len() - 1); }
   /// Insert a string Str into this string starting position BchN (not thread safe)
   void InsStr(const int& BChN, const TStr& Str);
   /// Delete all the occurrences of char Ch (not thread safe)

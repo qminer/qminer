@@ -1119,33 +1119,47 @@ TStr TStr::GetFromHex() const {
 
 TStr TStr::GetSubStr(const int& BChN, const int& EChN) const {
 	int StrLen = Len();
-	//EAssertR(0 <= BChN && BChN <= EChN && EChN < StrLen, "TStr::GetSubStr index out of bounds");    
-	// TODO: add a new method that does the index changes and then calls GetSubStr()
-	int StartN = BChN < 0 ? StrLen + BChN : BChN;
+	EAssertR(0 <= BChN && BChN <= EChN && EChN < StrLen, "TStr::GetSubStr index out of bounds");
+	int Chs = EChN - BChN + 1;
+	// initialize accordingly
+	char* Bf = nullptr;
+	if (Chs <= 0) {
+		// create empty string
+		return TStr();
+	}
+	else if (Chs == StrLen) {
+		// keep copy of everything
+		Bf = CloneCStr();//
+	}
+	else {
+		// get copy of a substring
+		Bf = new char[Chs + 1]; strncpy(Bf, CStr() + BChN, Chs); Bf[Chs] = 0;
+	}
+	return WrapCStr(Bf);
+}
+
+// safe version of GetSubStr(). 
+// Fixes BChN and EChN values that are outside of string's range
+// supports also negative indices (python like): 
+// GetSubStrSafe(0,-1) will return all but last char
+TStr TStr::GetSubStrSafe(const int& BChN, const int& EChN) const {
+	int StrLen = Len();
+	int StartN;
+	if (BChN <= -StrLen)
+		StartN = 0;
+	else if (BChN < 0)
+		StartN = StrLen + BChN;
+	else
+		StartN = BChN;
 	int EndN;
-	// specifying -1 as EChN should return all but last char
 	if (EChN < 0)
 		EndN = StrLen + EChN - 1;
 	else
 		EndN = EChN >= StrLen ? StrLen - 1 : EChN;
 
-	if (!(0 <= StartN && StartN <= EndN+1 && EndN < StrLen)) {
-		return "";
-	}
-	int Chs = EndN - StartN + 1;
-    // initialize accordingly
-    char* Bf = nullptr;
-    if (Chs <= 0) { 
-        // create empty string
-        return TStr();		
-    } else if (Chs==StrLen){
-        // keep copy of everything
-        Bf = CloneCStr();//
-    } else {
-        // get copy of a substring
-        Bf = new char[Chs + 1]; strncpy(Bf, CStr() + StartN, Chs); Bf[Chs] = 0;
-    }
-    return WrapCStr(Bf);
+	if (!(0 <= StartN && StartN <= EndN && EndN < StrLen))
+		return TStr();
+	return GetSubStr(StartN, EndN);
 }
 
 void TStr::InsStr(const int& BChN, const TStr& Str) {
