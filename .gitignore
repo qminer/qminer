@@ -128,3 +128,6 @@ db1
 db2
 
 binding-1.gyp
+/test/nodejs/.tmpclfile
+/test/nodejs/tmpclfile
+/test/nodejs/tmpclfile2

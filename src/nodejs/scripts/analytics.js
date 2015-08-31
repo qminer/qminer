@@ -41,20 +41,71 @@ module.exports = exports = function (pathPrefix) {
     };
 
     /**
-    * SVM model
+    * SVM model.
     * @typedef {Object} svmModel
-    * @property  {module:la.Vector} svmModel.weigths - SVM normal vector
+    * @property  {module:la.Vector} [svmModel.weigths] - SVM normal vector.
     */
     /**
-	* Get SVC model
-	* @returns {module:analytics~svmModel} Get current SVM model
+	* Get the model.
+	* @returns {module:analytics~svmModel} The current SVM model.
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create a SVC model
+    * var SVC = new analytics.SVC();
+    * // get the properties of the model
+    * var model = SVC.getModel(); // returns { weight: new require('qminer').la.Vector(); }
 	*/
     exports.SVC.prototype.getModel = function() { return { weights: this.weights }; }
     /**
-	* Get SVR model
+	* Get the model.
 	* @returns {module:analytics~svmModel} Get current SVM model
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create a SVR model
+    * var SVR = new analytics.SVR();
+    * // get the properties of the model
+    * var model = SVR.getModel(); // returns { weights: new require('qminer').la.Vector(); }
 	*/
     exports.SVR.prototype.getModel = function() { return { weights: this.weights }; }
+
+    // Ridge Regression
+    /**
+    * @typedef {Object} ridgeRegModel
+    * @property {module:la.Vector} [ridgeRegModel.weights] - The Ridge Regression model vector.
+    */
+
+    /**
+    * Gets the model.
+    * @returns {module:analytics~ridgeRegModel} Get current model.
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create the Ridge Regression model
+    * var regmod = new analytics.RidgeReg();
+    * // get the model
+    * var model = regmod.getModel(); // returns { weights: new require('qminer').la.Vector(); }
+    */
+    exports.RidgeReg.prototype.getModel = function () { return { weights: this.weights }; }
+
+    // Recursive Linear Regression
+    /**
+    * @typedef {Object} recLinRegModel
+    * @property {module:la.Vector} [recLinRegModel.weights] - Recursive Linear Regression model vector.
+    */
+    /**
+    * Gets Recursive Linear Regression model
+    * @returns {module:analytics~recLnRegModel} The current model.
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create the Recursive Linear Regression model
+    * var linreg = new analytics.RecLinReg({ dim: 10 });
+    * // get the model
+    * var model = linreg.getModel(); // returns { weights: new require('qminer').la.Vector(); }
+    */
+    exports.RecLinReg.prototype.getModel = function () { return { weights: this.weights } }
 
     // var model = new OneVsAll({
     //     model : analytics.SVC,
@@ -69,50 +120,111 @@ module.exports = exports = function (pathPrefix) {
     // model.predict(featureSpace.extractSparseVector(record));
 
     /**
+    * @typedef {Object} oneVsAllParam
+    * The parameter given to the OneVsAll object. A Json object containing the parameter keys with values.
+    * @param {function} [model] - Constructor for binary model to be
+    * used internaly. Constructor should expect only one parameter.
+    * @param {Object} [modelParam] - Parameter for oneVsAllParam.model constructor.
+    * @param {number} [categories] - Number of categories.
+    * @param {boolean} [verbose = false] - If false, the console output is supressed.
+    */
+
+    /**
     * @classdesc One vs. all model for multiclass prediction. Builds binary model
     * for each category and predicts the one with the highest score. Binary model is
     * provided as part of the constructor.
     * @class
-    * @param {Object} [oneVsAllParam] - Constructor parameters
-    * @param {function} [oneVsAllParam.model] - Constructor for binary model to be
-    * used internaly. Constructor should expect only one parameter.
-    * @param {Object} [oneVsAllParam.modelParam] - Parameter for oneVsAllParam.model constructor.
-    * @param {number} [oneVsAllParam.categories] - Number of categories.
+    * @param {module:analytics~oneVsAllParam} [oneVsAllParam] - Constructor parameters.
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create a new OneVsAll object with the model analytics.SVC
+    * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
     */
     exports.OneVsAll = function (oneVsAllParam) {
         // remember parameters
-        this.model = oneVsAllParam.model;
-        this.modelParam = oneVsAllParam.modelParam;
-        this.cats = oneVsAllParam.categories;
+        var model = oneVsAllParam.model;
+        var modelParam = oneVsAllParam.modelParam;
+        var cats = oneVsAllParam.cats;
+        var verbose = oneVsAllParam.verbose == undefined ? false : oneVsAllParam.verbose;
         // trained models
-        this.models = [ ];
+        var models = [ ];
 
         /**
-         * apply all models to the given vector and returns a vector of scores, one for each category.
+        * Gets the parameters.
+        * @returns {Object} Json object containing the parameters.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new OneVsAll object with the model analytics.SVC
+        * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+        * // get the parameters
+        * // returns the JSon object
+        * // { model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2, models: [] }
+        * var params = onevsall.getParams();
+        */
+        this.getParams = function () {
+            return { model: model, modelParam: modelParam, cats: cats, models: models }
+        };
+
+        /**
+        * Sets the parameters.
+        * @returns {module:analytics.OneVsAll} Self. The parameters are changed.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new OneVsAll object with the model analytics.SVC
+        * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+        * // set the parameters
+        * var params = onevsall.setParams({ model: analytics.SVR, modelParam: { c: 12, maxTime: 10000}, cats: 3, verbose: true });
+        */
+        this.setParams = function (oneVsAllParam) {
+            model = oneVsAllParam.model == undefined ? model : oneVsAllParam.model;
+            modelParam = oneVsAllParam.modelParam == undefined ? modelParam : oneVsAllParam.modelParam;
+            cats = oneVsAllParam.cats == undefined ? cats : oneVsAllParam.cats;
+            verbose = oneVsAllParam.verbose == undefined ? verbose : oneVsAllParam.verbose;
+        }
+
+        /**
+         * Apply all models to the given vector and returns a vector of scores, one for each category.
          * Semantic of scores depand on the provided binary model.
          * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X -
-         * Input feature vector or matrix with feature vectors as columns
-         * @returns {module:la.Vector | module:la.Matrix}
-         * Score for each input vector and category. In case input is a vector, ouput is
-         * a vector of scores. In case input is a matrix, output is matrix with columns corresponding
-         * to instances, and rows corresponding to labels.
+         * Input feature vector or matrix with feature vectors as columns.
+         * @returns {module:la.Vector | module:la.Matrix} The score and label of the input:
+         * <br>1. {@link module:la.Vector} of scores, if X is of type {@link module:la.Vector} or {@link module:la.SparseVector}.
+         * <br>2. {@link module:la.Matrix} with columns corresponding to instances, and rows corresponding to labels, if X is of type {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+         * @example
+         * // import modules
+         * var analytics = require('qminer').analytics;
+         * var la = require('qminer').la;
+         * // create a new OneVsAll object with the model analytics.SVC
+         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+         * // create the data (matrix and vector) used to fit the model
+         * var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
+         * var vector = new la.Vector([0, 0, 1, 1]);
+         * // fit the model
+         * onevsall.fit(matrix, vector);
+         * // create the vector for the decisionFunction
+         * var test = new la.Vector([1, 2]);
+         * // give the vector to the decision function
+         * var prediction = onevsall.predict(test); // returns the vector of scores 
          */
         this.decisionFunction = function(X) {
             // check what is our input
-            if (x instanceof la.Vector || x instanceof la.SparseVector) {
+            if (X instanceof la.Vector || X instanceof la.SparseVector) {
                 // evaluate all models
                 var scores = new la.Vector();
-                for (var cat = 0; cat < this.cats; cat++) {
-                    scores.push(this.models[cat].decisionFunction(x));
+                for (var cat = 0; cat < cats; cat++) {
+                    scores.push(models[cat].decisionFunction(X));
                 }
                 return scores;
-            } else if (x instanceof la.Matrix || x instanceof la.SparseMatrix) {
+            } else if (X instanceof la.Matrix || X instanceof la.SparseMatrix) {
                 // create matrix where cols are instances and rows are scores for categories
-                var scores = new la.Matrix({rows: this.cats, cols: x.cols});
-                for (var i = 0; i < x.cols; i++) {
-                    var x_i = x.getCol(i);
-                    for (var cat = 0; cat < this.cats; cat++) {
-                        scores.put(cat, i, this.models[cat].decisionFunction(x_i));
+                var scores = new la.Matrix({rows: cats, cols: X.cols});
+                for (var i = 0; i < X.cols; i++) {
+                    var x_i = X.getCol(i);
+                    for (var cat = 0; cat < cats; cat++) {
+                        scores.put(cat, i, models[cat].decisionFunction(x_i));
                     }
                 }
                 return scores;
@@ -122,20 +234,37 @@ module.exports = exports = function (pathPrefix) {
         }
 
         /**
-         * apply all models to the given vector and returns category with the highest score.
+         * Apply all models to the given vector and returns category with the highest score.
          * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X -
-         * Input feature vector or matrix with feature vectors as columns
-         * @returns {number | module:la.IntVector} Highest scored category, or categories when input is matrix.
+         * Input feature vector or matrix with feature vectors as columns.
+         * @returns {number | module:la.IntVector} Returns:
+         * <br>1. number of the category with the higher score, if X is {@link module:la.Vector} or {@link module:la.SparseVector}.
+         * <br>2. {@link module:la.IntVector} of categories with the higher score for each column of X, if X is {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+         * @example
+         * // import modules
+         * var analytics = require('qminer').analytics;
+         * var la = require('qminer').la;
+         * // create a new OneVsAll object with the model analytics.SVC
+         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+         * // create the data (matrix and vector) used to fit the model
+         * var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
+         * var vector = new la.Vector([0, 0, 1, 1]);
+         * // fit the model
+         * onevsall.fit(matrix, vector);
+         * // create the vector for the prediction
+         * var test = new la.Vector([1, 2]);
+         * // get the prediction of the vector
+         * var prediction = onevsall.predict(test); // returns 0
          */
-        this.predict = function(x) {
+        this.predict = function(X) {
             // evaluate all models
-            var scores = this.decisionFunction(x);
+            var scores = this.decisionFunction(X);
             // select maximal one
             if (scores instanceof la.Vector) {
                 return scores.getMaxIdx();
             } else if (scores instanceof la.Matrix) {
                 var predictions = new la.IntVector();
-                for (var i = 0; i < scores.length; i++) {
+                for (var i = 0; i < scores.cols; i++) {
                     predictions.push(scores.getCol(i).getMaxIdx());
                 }
                 return predictions;
@@ -147,23 +276,39 @@ module.exports = exports = function (pathPrefix) {
         // X = feature matrix
         // y = target label from 0..cats
         /**
-         * apply all models to the given vector and returns category with the highest score.
-         * @param {module:la.Matrix | module:la.SparseMatrix} X - training instance feature vectors
+         * Apply all models to the given vector and returns category with the highest score.
+         * @param {module:la.Matrix | module:la.SparseMatrix} X - training instance feature vectors.
          * @param {module:la.Vector} y - target category for each training instance. Categories must
          * be integer numbers between 0 and oneVsAllParam.categories - 1.
-         */
+         * @returns {module:analytics.OneVsAll} Self. The models are now fitted.
+         * @example
+         * // import modules
+         * var analytics = require('qminer').analytics;
+         * var la = require('qminer').la;
+         * // create a new OneVsAll object with the model analytics.SVC
+         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+         * // create the data (matrix and vector) used to fit the model
+         * var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
+         * var vector = new la.Vector([0, 0, 1, 1]);
+         * // fit the model
+         * onevsall.fit(matrix, vector);
+         */        
         this.fit = function(X, y) {
-            this.models = [ ];
+            models = [ ];
             // make model for each category
-            for (var cat = 0; cat < this.cats; cat++) {
-                console.log("Fitting label", (cat + 1), "/", this.cats);
+            for (var cat = 0; cat < cats; cat++) {
+                if (verbose) {
+                    console.log("Fitting label", (cat + 1), "/", cats);
+                };
                 // prepare targert vector for current category
                 var target = exports.preprocessing.binarize(y, cat);
                 // get the model
-                var catModel = new this.model(this.modelParam);
-                this.models.push(catModel.fit(X, target));
+                var catModel = new model(modelParam);
+                models.push(catModel.fit(X, target));
             }
-            console.log("Done!");
+            if (verbose) {
+                console.log("Done!");
+            };
             return this;
         }
     };
@@ -521,251 +666,6 @@ module.exports = exports = function (pathPrefix) {
         };
     };
 
-    /**
-    * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
-    * @class
-    * @param {Object} [detectorParam={rate:0.05, window:100, matrix: module:la.Matrix}] - Constructor parameters
-    * @param {number} [detectorParam.rate=0.05] - The rate is the expected fraction of emmited anomalies (0.05 -> 5% of cases will be classified as anomalies).
-    * @param {number} [detectorParam.window=100] - Number of most recent instances kept in the model.
-    * @param {function} [detectorParam.matrix=module:la.Matrix] - Matrix implementation used to store the modelo (e.g., `la.Matrix` or `la.SparseMatrix`).
-    */
-    exports.NearestNeighborAD = function (detectorParam) {
-        // set default parameters
-        this.rate = 0.05;
-        this.windowSize = 100;
-        this.dim = -1;
-        this.matrix = la.Matrix;
-        this.thresh = 0;
-        this.dist = new la.Vector();
-        this.distId = new la.IntVector();
-        this.X = new this.matrix();
-        this.init = 0;
-        this.next = 0;
-        // initial distance, should be biger then dataset diameter
-        this.maxDist = 1e10;
-        // for private consumption
-        var that = this;
-
-        /**
-        * Sets parameters (TODO)
-        * @param {Object} param - Parameters
-        */
-        this.setParams = function (param) {
-            // update parameters that are provided
-            if (param.rate != undefined) { this.rate = param.rate; }
-            if (param.windowSize != undefined) { this.windowSize = param.windowSize; }
-            if (param.dim != undefined) { this.dim = param.dim; }
-            if (param.matrix != undefined) { this.matrix = param.matrix; }
-            // check all valid
-            assert(this.rate > 0 && this.rate <= 1.0, "NearestNeighborAD: rate parameter not in range (0,1]");
-            assert(this.windowSize >= 1, "NearestNeighborAD: window parameter not positive");
-        }
-
-        /**
-        * Returns parameters (TODO)
-        * @returns {Object} Parameters
-        */
-        this.getParams = function () {
-            return {
-                rate: this.rate,
-                windowSize: this.windowSize,
-                dim: this.dim,
-                matrix: this.matrix
-            };
-        }
-
-        // parse parameters, if any are given
-        if (detectorParam instanceof fs.FIn) {
-            // read from input stream
-            var params = detectorParam.readJson();
-            this.rate = params.rate;
-            this.windowSize = params.windowSize;
-            this.dim = params.dim;
-            this.thresh = params.thresh;
-            this.init = params.init;
-            this.next = params.next;
-            this.maxDist = params.maxDist;
-            this.dist.load(detectorParam);
-            this.distId.load(detectorParam);
-            this.X.load(detectorParam);
-            // TODO: how to save this.matrix ?!
-        } else if (detectorParam != undefined) {
-            // update default parameter values if provided
-            this.setParams(detectorParam);
-            // initialize matrix
-            this.X = new this.matrix({ cols: this.windowSize, rows: this.dim });
-        }
-
-        /**
-        * Save model to provided output stream
-        * @param {module:fs.FOut} fout - output stream
-        * @returns {module:fs.FOut} provided output stream
-        */
-        this.save = function (fout) {
-            fout.writeJson({
-                rate: this.rate,
-                windowSize: this.windowSize,
-                dim: this.dim,
-                thresh: this.params,
-                init: this.init,
-                next: this.next,
-                maxDist: this.maxDist
-            });
-            this.dist.save(fout);
-            this.distId.save(fout);
-            this.X.save(fout);
-        }
-
-        /**
-        * Returns the model (TODO)
-        * @returns {Object} Model object
-        */
-        this.getModel = function () {
-            return {
-                dist: this.dist,
-                distId: this.distId,
-                X: this.X,
-                thresh: this.thresh,
-                next: this.next
-            };
-        }
-
-        // return vector of distances between x and each column of X
-        var vectorDistances = function (x) {
-            return la.pdist2(that.X, x.toMat()).getCol(0);
-        }
-
-        // update distance vector for vector X[xId], ignoring vector X[ignoreId]
-        var updateDistances = function (xId, ignoreId) {
-            // in case we are not given vector to ignore, use self
-            ignoreId = (ignoreId == undefined) ? xId : ignoreId;
-            // compared to rest
-            var x = that.X.getCol(xId);
-            var y = vectorDistances(x);
-            // update distances and compute its nearest neighbor
-            var minDist = that.maxDist, minDistId = xId;
-            for (var i = 0; i < that.init; i++) {
-                // skip self and ignore
-                if (i == xId) { continue; }
-                if (i == ignoreId) { continue; }
-                // x is the new nearest neighbor for column i
-                if (y[i] < that.dist[i]) { that.dist[i] = y[i]; that.distId[i] = xId; }
-                // found new nearest neighbor for x
-                if (y[i] < minDist) { minDist = y[i]; minDistId = i; }
-            }
-            // update its own nearest neighbor
-            that.dist[xId] = minDist;
-            that.distId[xId] = minDistId;
-        }
-
-        // compute new threshold on the current distance vector
-        var updateThreshold = function () {
-            // sort distances
-            var sorted = new la.Vector(that.dist); sorted.sort();
-            // get the id corresonding to rate-th element
-            var idx = Math.floor((1 - that.rate) * sorted.length);
-            // set the threshold
-            that.thresh = sorted[idx];
-        }
-
-        // Add new vector to the instance matrix and update distances
-        var addVector = function (x, xId) {
-            if (that.dist.length == xId) {
-                // we are still adding vectors
-                that.dist.push(that.maxDist);
-                that.distId.push(xId);
-                that.X.setCol(xId, x);
-                that.init++;
-            } else {
-                // just replace existing vector
-                that.dist[xId] = that.maxDist;
-                that.distId[xId] = xId;
-                that.X.setCol(xId, x);
-            }
-            // update distances
-            updateDistances(xId);
-        }
-
-        // Remove vector from the instance matrix and update distances
-        var delVector = function (xId) {
-            // construct list of vectors that we need to reasses
-            var toCheck = new la.IntVector();
-            for (var i = 0; i < that.distId.length; i++) {
-                // skip self
-                if (i == xId) { continue; }
-                // check if xId is current nearest neighbor
-                if (that.distId[i] == xId) { toCheck.push(i); }
-            }
-            // reasses detected elements
-            console.log("To check", toCheck.length);
-            for (var i = 0; i < toCheck.length; i++) {
-                var yId = toCheck[i];
-                // find new nearest neighbor for yId, ignoring xId
-                updateDistances(yId, xId);
-            }
-        }
-
-        /**
-        * Adds a new point (or points) to the known points and recomputes the threhshold
-        * @param {(module:la.Vector | module:la.Matrix)} x - Test example (vector input) or column examples (matrix input)
-        */
-        this.partialFit = function (x) {
-            // console.log(this.next);
-            if (this.init < this.windowSize) {
-                // we are not yet initialized, just remember the vector and update distances
-                addVector(x, this.init);
-                // check if we are now set to start
-                if (this.init == this.windowSize) { updateThreshold(); }
-            }
-            else {
-                // first remove old vector
-                delVector(this.next);
-                // add new vector
-                addVector(x, this.next);
-                // update threshold
-                updateThreshold();
-                // move to the next
-                this.next++;
-                // reset counter, if we get to the end
-                if (this.next == this.windowSize) { this.next = 0; }
-            }
-        }
-
-        /**
-        * Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
-        * @param {module:la.Matrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
-        * the model.
-        */
-        this.fit = function (A) {
-            // just call partial fit on each column
-            for (var i = 0; i < A.cols; i++) {
-                this.partialFit(A.getCol(i));
-            }
-        }
-
-        /**
-        * Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)
-        * @param {module:la.Vector} x - Test vector
-        * @returns {number} Returns 1.0 if x is an anomaly and 0.0 otherwise
-        */
-        this.predict = function (x) {
-            // compute squared dist ...
-            var d = vectorDistances(x);
-            var idx = d.multiply(-1).getMaxIdx();
-            var p = d[idx];
-            // and compare to the threshold
-            return p > this.thresh ? 1 : 0;
-        }
-
-        this.decisionFunction = function (x) {
-            // compute squared dist ...
-            var d = vectorDistances(x);
-            var idx = d.multiply(-1).getMaxIdx();
-            var p = d[idx];
-            // and compare to the threshold
-            return p - this.thresh;
-        }
-    }
 
     /**
     * @classdesc Principal components analysis
@@ -792,6 +692,9 @@ module.exports = exports = function (pathPrefix) {
         */
         this.setParams = function (p) {
             param = p;
+
+            iter = param.iter == undefined ? iter : param.iter;
+            k = param.k == undefined ? k : param.iter; 
         }
 
         /**
@@ -865,6 +768,19 @@ module.exports = exports = function (pathPrefix) {
     /**
     * @classdesc KMeans clustering
     * @class
+    * @property {number} iter - The maximum number of iterations.
+    * @property {number} k - The number of centroids.
+    * @property {boolean} verbose - If false, the console output is supressed.
+    * @example
+    * // import analytics and la modules
+    * var analytics = require('qminer').analytics;
+    * var la = require('qminer').la;
+    * // create a KMeans object
+    * var KMeans = new analytics.KMeans();
+    * // create the matrix to be fitted
+    * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+    * // create the model 
+    * KMeans.fit(X);
     */
     exports.KMeans = function (param) {
         param = param == undefined ? {} : param;
@@ -873,6 +789,7 @@ module.exports = exports = function (pathPrefix) {
         var iter = param.iter == undefined ? 100 : param.iter;
         var k = param.k == undefined ? 2 : param.k;
         var verbose = param.verbose == undefined ? false : param.verbose;
+        var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
 
         // Model
         var C = undefined;
@@ -880,24 +797,77 @@ module.exports = exports = function (pathPrefix) {
         var norC2 = undefined;
 
         /**
+        * Permutes centroid with given mapping.
+        @param {object} mapping - object that contains the mappping. E.g. mapping[4]=2 means "map cluster 4 into cluster 2"
+        */
+        this.permuteCentroids = function (mapping) {
+            var cl_count = C.cols;
+            var perm_matrix = la.zeros(cl_count, cl_count);
+            for (var i = 0; i < cl_count; i++) {
+                perm_matrix.put(i, mapping[i], 1);
+            }
+            var C_new = C.multiply(perm_matrix);
+            var idxv_new = new la.Vector(idxv);
+            for (var i = 0; i < idxv_new.length; i++) {
+                idxv_new[i] = mapping[idxv[i]]
+            }
+            C = C_new;
+            norC2 = la.square(C.colNorms());
+            idxv = idxv_new;
+        }
+        /**
         * Returns the model
         * @returns {Object} The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data)
+        * Returns the model.
+        * @returns {Object} The model object whose keys are: C (centroids) and idxv (cluster ids of the training data).
+        * @example
+        * // import modules
+        * var analytics = require('qminer').analytics;
+        * var la = require('qminer').la;
+        * // create the KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000 });
+        * // create a matrix to be fitted
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+        * // create the model
+        * KMeans.fit(X);
+        * // get the model
+        * var model = KMeans.getModel();
         */
         this.getModel = function () {
             return { C: C, idxv: idxv };
         }
 
         /**
-        * Sets parameters
-        * @param {p} Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)
+        * Sets the parameters.
+        * @param {Object} p - Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed).
+        * @returns {module:analytics.KMeans} Self.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans();
+        * // change the parameters of the KMeans object
+        * KMeans.setParams({ iter: 1000, k: 5 });
         */
         this.setParams = function (p) {
             param = p;
+
+            iter = param.iter == undefined ? iter : param.iter;
+            k = param.k == undefined ? k : param.k;
+            verbose = param.verbose == undefined ? verbose : param.verbose;
+            fitIdx = param.fitIdx == undefined ? fitIdx : param.fitIdx;
         }
 
         /**
-        * Returns parameters
-        * @returns Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed)
+        * Returns the parameters.
+        * @returns Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed).
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000, k: 5 });
+        * // get the parameters
+        * var json = KMeans.getParams();
         */
         this.getParams = function () {
             return param;
@@ -906,11 +876,28 @@ module.exports = exports = function (pathPrefix) {
         /**
         * Computes the centroids
         * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        * @returns {module:analytics.KMeans} Self. It stores the info about the new model.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+        * // create a matrix to be fitted
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+        * // create the model with the matrix X
+        * KMeans.fit(X);
         */
         this.fit = function (X) {
             // select random k columns of X, returns a dense C++ matrix
             var selectCols = function (X, k) {
-                var idx = la.randi(X.cols, k);
+                var idx;
+                if (fitIdx == undefined) {
+                    idx = la.randi(X.cols, k);
+                } else {
+                    assert(fitIdx.length == k, "Error: fitIdx is not of length k!");
+                    assert(Math.max.apply(Math, fitIdx) < X.cols, "Error: fitIdx contains index greater than number of columns in matrix. Index out of range!");
+                    idx = fitIdx;
+                }
                 var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
                 for (var i = 0; i < idx.length; i++) {
                     var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
@@ -983,7 +970,7 @@ module.exports = exports = function (pathPrefix) {
                 }
                 if (qm_util.arraysIdentical(idxv, idxvOld)) {
                     if (verbose) {
-                        console.say("converged at iter: " + i); //DEBUG
+                        console.log("converged at iter: " + i); //DEBUG
                     }
                     break;
                 }
@@ -1000,6 +987,19 @@ module.exports = exports = function (pathPrefix) {
         * Returns an vector of cluster id assignments
         * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
         * @returns {module:la.IntVector} Vector of cluster assignments.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+        * // create a matrix to be fitted
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+        * // create the model with the matrix X
+        * KMeans.fit(X);
+        * // create the matrix of the prediction vectors
+        * var pred = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
+        * // predict the values
+        * var prediction = KMeans.predict(pred);
         */
         this.predict = function (X) {
             var ones_n = la.ones(X.cols).multiply(0.5);
@@ -1010,18 +1010,84 @@ module.exports = exports = function (pathPrefix) {
         }
 
         /**
-        * Transforms the points to vectors of squared distances to centroids
+        * Transforms the points to vectors of squared distances to centroids.
         * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
-        * @returns {module:la.Matrix} Matrix where each column represents the squared distances to the centroid vectors
+        * @returns {module:la.Matrix} Matrix where each column represents the squared distances to the centroid vectors.
+        * @example
+        * // import modules
+        * var analytics = require('qminer').analytics;
+        * var la = require('qminer').la;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+        * // create a matrix to be fitted
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+        * // create the model with the matrix X
+        * KMeans.fit(X);
+        * // create the matrix of the transform vectors
+        * var matrix = new la.Matrix([[-2, 0], [0, -3]]);
+        * // get the transform values of matrix
+        * // returns the matrix
+        * //  10    17
+        * //   1    20
+        * //  10     1
+        * KMeans.transform(matrix);
         */
         this.transform = function (X) {
             var ones_n = la.ones(X.cols).multiply(0.5);
             var ones_k = la.ones(k).multiply(0.5);
             var norX2 = la.square(X.colNorms());
             var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
-            D = D.multiply(-1);
+            D = D.multiply(-2);
             return D;
         }
+		/**
+        * Saves KMeans internal state into (binary) file
+        * @param {string} fname - Name of the file to write into.
+        */
+        this.save = function(fname){
+			if (!C) {
+				throw new Error("KMeans.save() - model not created yet");
+			}
+
+			var params_vec = new la.Vector();
+			params_vec.push(iter);
+			params_vec.push(k);
+			params_vec.push(verbose ? 1.0 : 0.0);
+
+			var xfs = qm.fs;
+			var fout = xfs.openWrite(fname);
+			C.save(fout);
+			norC2.save(fout);
+			(new la.Vector(idxv)).save(fout);
+			params_vec.save(fout);
+			fout.close();
+			fout = null;
+		}
+		/**
+        * Loads KMeans internal state from (binary) file
+        * @param {string} fname - Name of the file to read from.
+        */
+        this.load = function (fname) {
+		    var xfs = qm.fs;
+		    var fin = xfs.openRead(fname);
+
+		    C = new la.Matrix();
+		    C.load(fin);
+		    norC2 = new la.Vector();
+		    norC2.load(fin);
+
+		    var idxvtmp = new la.Vector();
+		    idxvtmp.load(fin);
+		    idxv = idxvtmp; // make normal vector (?)
+
+		    var params_vec = new la.Vector();
+		    params_vec.load(fin);
+		    iter = params_vec[0];
+		    k = params_vec[1];
+		    verbose = (params_vec[2] != 0);
+
+		    fin = null;
+		}
     }
 
     ///////////////////////////////

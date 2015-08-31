@@ -37,7 +37,7 @@
 * // create a simple base containing one store
 * var base = new qm.Base({
 *    mode: "createClean",
-*    schema: [
+*    schema: [{
 *        name: "People",
 *        fields: [
 *            { name: "Name", type: "string" },
@@ -75,29 +75,30 @@
 *     winsize: 10000
 * }
 * var sa = base.store("Laser").addStreamAggr(wavelength);
+* base.close();
 */
-//# exports.StreamAggr = function (base, json, storeName) {};
+//# exports.StreamAggr = function (base, json, storeName) { return Object.create(require('qminer').StreamAggr.prototype); };
 
 /**
 * @typedef {module:qm.StreamAggr} StreamAggregators
 * Stream aggregator types.
-* @property {module:qm~StreamAggr_TimeSeriesWindow} timeSeries - The time series type.
-* @property {module:qm~StreamAggr_Count} count - The count type.
-* @property {module:qm~StreamAggr_Sum} sum - The sum type.
-* @property {module:qm~StreamAggr_Min} min - The minimal type.
-* @property {module:qm~StreamAggr_Max} max - The maximal type.
-* @property {module:qm~StreamAggr_TimeSeriesTick} tick - The time series tick type.
-* @property {module:qm~StreamAggr_MovingAverage} ma - The moving average type.
-* @property {module:qm~StreamAggr_EMA} ema - The exponental moving average type.
-* @property {module:qm~StreamAggr_MovingVariance} var - The moving variance type.
-* @property {module:qm~StreamAggr_MovingCovariance} cov - The moving covariance type.
-* @property {module:qm~StreamAggr_MovingCorrelation} cor - The moving correlation type.
-* @property {module:qm~StreamAggr_Resampler} res - The resampler type.
-* @property {module:qm~StreamAggr_Merger} mer - The merger type.
+* @property {module:qm~StreamAggregateTimeSeriesWindow} timeSeries - The time series type.
+* @property {module:qm~StreamAggregateCount} count - The count type.
+* @property {module:qm~StreamAggregateSum} sum - The sum type.
+* @property {module:qm~StreamAggregateMin} min - The minimal type.
+* @property {module:qm~StreamAggregateMax} max - The maximal type.
+* @property {module:qm~StreamAggregateTimeSeriesTick} tick - The time series tick type.
+* @property {module:qm~StreamAggregateMovingAverage} ma - The moving average type.
+* @property {module:qm~StreamAggregateEMA} ema - The exponental moving average type.
+* @property {module:qm~StreamAggregateMovingVariance} var - The moving variance type.
+* @property {module:qm~StreamAggregateMovingCovariance} cov - The moving covariance type.
+* @property {module:qm~StreamAggregateMovingCorrelation} cor - The moving correlation type.
+* @property {module:qm~StreamAggregateResampler} res - The resampler type.
+* @property {module:qm~StreamAggregateMerger} mer - The merger type.
 */
 
 /**
-* @typedef {module:qm.StreamAggr} StreamAggr_TimeSeriesWindow
+* @typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesWindow
 * This stream aggregator represents the time series window buffer. It stores the values inside a moving window. 
 * It implements all the methods of <b>except</b> {@link module:qm.StreamAggr#getFloat}, {@link module:qm.StreamAggr#getTimestamp}.
 * @property {string} name - The given name of the stream aggregator.
@@ -130,13 +131,14 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 2 * 1000
+*    winsize: 2000
 * };
 * base.store("Heat").addStreamAggr(aggr); 
+* base.close();
 */
 
 /**
-* @typedef {module:qm.StreamAggr} StreamAggr_Count
+* @typedef {module:qm.StreamAggr} StreamAggregateCount
 * This stream aggregator represents the count moving window buffer. It counts the number of records in the
 * stream aggregator, that it connects to. It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the number of records in the it's buffer window. 
@@ -169,9 +171,9 @@
 *    store: 'Students',
 *    timestamp: 'TimeOfGraduation',
 *    value: 'Id',
-*    winsize: 31 * 24 * 60 * 60 * 1000
+*    winsize: 2678400000 // 31 days in miliseconds
 * };
-* var timeSeries = base.store("Heat").addStreamAggr(timeser);
+* var timeSeries = base.store("Students").addStreamAggr(timeser);
 *
 * // add a count aggregator, that is connected with the 'TimeSeriesAggr' aggregator
 * var co = {
@@ -180,11 +182,12 @@
 *    store: 'Students',
 *    inAggr: 'TimeSeriesAggr'
 * };
-* var count = base.store("Heat").addStreamAggr(co);
+* var count = base.store("Students").addStreamAggr(co);
+* base.close();
 */
 
 /**
-* @typedef {module:qm.StreamAggr} StreamAggr_Sum
+* @typedef {module:qm.StreamAggr} StreamAggregateSum
 * This stream aggregator represents the sum moving window buffer. It sums all the values, that are in the connected stream aggregator.
 * It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the sum of the values of the records in the it's buffer window.
@@ -217,9 +220,9 @@
 *    store: 'Income',
 *    timestamp: 'Time',
 *    value: 'Amount',
-*    winsize: 7 * 24 * 60 * 60 * 1000
+*    winsize: 604800000 // 7 days in miliseconds
 * };
-* var timeSeries = base.store("Heat").addStreamAggr(timeser);
+* var timeSeries = base.store("Income").addStreamAggr(timeser);
 *
 * // add a sum aggregator, that is connected with the 'TimeSeriesAggr' aggregator
 * var sum = {
@@ -228,11 +231,12 @@
 *    store: 'Heat',
 *    inAggr: 'TimeSeriesAggr'
 * };
-* var sumAggr = base.store("Heat").addStreamAggr(sum);
+* var sumAggr = base.store("Income").addStreamAggr(sum);
+* base.close();
 */
 
 /**
-* @typedef {module:qm.StreamAggr} StreamAggr_Min
+* @typedef {module:qm.StreamAggr} StreamAggregateMin
 * This stream aggregator represents the minimum moving window buffer. It monitors the minimal value in the connected stream aggregator.
 * It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the minimal value of the records in it's buffer window.
@@ -265,7 +269,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 24 * 60 * 60 * 1000
+*    winsize: 86400000 // 1 day in miliseconds
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
 *
@@ -277,10 +281,11 @@
 *    inAggr: 'TimeSeriesAggr'
 * };
 * var minimal = base.store("Heat").addStreamAggr(min);
+* base.close();
 */
 
 /**
-* @typedef {module:qm.StreamAggr} StreamAggr_Max
+* @typedef {module:qm.StreamAggr} StreamAggregateMax
 * This stream aggregator represents the maximum moving window buffer. It monitors the maximal value in the connected stream aggregator. 
 * It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the maximal value of the records in the it's buffer window.
@@ -313,7 +318,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 24 * 60 * 60 * 1000
+*    winsize: 86400000 // one day in miliseconds
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
 *
@@ -325,10 +330,11 @@
 *    inAggr: 'TimeSeriesAggr'
 * };
 * var maximal = base.store("Heat").addStreamAggr(max);
+* base.close();
 */
 
 /**
-* @typedef {module:qm.StreamAggr} StreamAggr_TimeSeriesTick
+* @typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesTick
 * This stream aggregator represents the time series tick window buffer. It exposes the data to other stream aggregators 
 * (similar to {@link module:qm~StreamAggr_TimeSeriesWindow}). It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the last value added in it's buffer.
@@ -363,11 +369,12 @@
 *    timestamp: 'TimeOfGraduation',
 *    value: 'Id',
 * };
-* var timeSeriesTick = base.store("Heat").addStreamAggr(tick);
+* var timeSeriesTick = base.store("Students").addStreamAggr(tick);
+* base.close();
 */
 
 /**
-* @typedef {module:qmStreamAggr} StreamAggr_MovingAverage
+* @typedef {module:qmStreamAggr} StreamAggregateMovingAverage
 * This stream aggregator represents the moving average window buffer. It calculates the moving average value of the connected stream aggregator values.
 * It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the average of the values in it's buffer window.
@@ -400,7 +407,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 24 * 60 * 60 * 1000
+*    winsize: 86400000
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
 *
@@ -412,10 +419,11 @@
 *    inAggr: 'TimeSeriesAggr'
 * };
 * var movingAverage = base.store("Heat").addStreamAggr(ma);
+* base.close();
 */
 
 /**
-* @typedef {module:qmStreamAggr} StreamAggr_EMA
+* @typedef {module:qmStreamAggr} StreamAggregateEMA
 * This stream aggregator represents the exponential moving average window buffer. It calculates the weighted moving average 
 * of the values in the connected stream aggregator, where the weights are exponentially decreasing.  It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the exponentional average of the values in it's buffer window.
@@ -455,7 +463,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 60 * 60 * 1000
+*    winsize: 3600000
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
 *
@@ -471,10 +479,11 @@
 *    initWindow: 2000
 * };
 * var expoMovingAverage = base.store("Heat").addStreamAggr(ema);
+* base.close();
 */
 
 /**
-* @typedef {module:qm.StreamAggr} StreamAggr_MovingVariance
+* @typedef {module:qm.StreamAggr} StreamAggregateMovingVariance
 * This stream aggregator represents the moving variance window buffer. It calculates the moving variance of the stream aggregator, that it's connected to. 
 * It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the variance of the values in it's buffer window.
@@ -507,7 +516,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 24 * 60 * 60 * 1000
+*    winsize: 86400000
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
 *
@@ -519,10 +528,11 @@
 *    inAggr: 'TimeSeriesAggr'
 * };
 * var varianceAggr = base.store("Heat").addStreamAggr(variance);
+* base.close();
 */
 
 /**
-* @typedef {module:qm.StreamAggr} StreamAggr_MovingCovariance
+* @typedef {module:qm.StreamAggr} StreamAggregateMovingCovariance
 * This stream aggregator represents the moving covariance window buffer. It calculates the moving covariance of the two stream aggregators, that it's connected to.
 * It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the covariance of the values in it's buffer window.
@@ -557,7 +567,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 24 * 60 * 60 * 1000
+*    winsize: 86400000
 * }; base.store("Heat").addStreamAggr(celcius);
 *
 * // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'WaterConsumption' field
@@ -568,7 +578,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'WaterConsumption',
-*    winsize: 24 * 60 * 60 * 1000
+*    winsize: 86400000
 * }; base.store("Heat").addStreamAggr(water);
 *
 * // add a covariance aggregator, that is connected with the 'CelciusAggr' and 'WaterAggr' stream aggregators
@@ -580,10 +590,11 @@
 *    inAggrY: 'WaterAggr'
 * };
 * var covarianceAggr = base.store("Heat").addStreamAggr(covariance);
+* base.close();
 */
 
 /**
-* @typedef {module:qm.StreamAggr} StreamAggr_MovingCorrelation
+* @typedef {module:qm.StreamAggr} StreamAggregateMovingCorrelation
 * This stream aggregator represents the moving covariance window buffer. It calculates the moving correlation of the three stream aggregators,
 * that it's connected to. It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloat} returns the correlation of the values in it's buffer window.
@@ -619,7 +630,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 24 * 60 * 60 * 1000
+*    winsize: 86400000
 * }; base.store("Heat").addStreamAggr(celcius);
 *
 * // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'WaterConsumption' field
@@ -630,7 +641,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'WaterConsumption',
-*    winsize: 24 * 60 * 60 * 1000
+*    winsize: 86400000
 * }; base.store("Heat").addStreamAggr(water);
 *
 * // add a covariance aggregator, that is connected with the 'CelciusAggr' and 'WaterAggr' aggregators
@@ -667,10 +678,11 @@
 *    inAggrVarY: 'waterVarAggr'
 * };
 * var correlation = base.store("Heat").addStreamAggr(corr);
+* base.close();
 */
 
 /**
-* @typedef {module:qm.StreamAggr} StreamAggr_Resampler
+* @typedef {module:qm.StreamAggr} StreamAggregateResampler
 * This stream aggregator represents the resampler window buffer. It creates new values that are interpolated by using the values from an existing store.
 * No methods are implemented for this aggregator. 
 * @property {string} name - The given name for the stream aggregator.
@@ -707,7 +719,7 @@
 *    }]
 * });
 * // create a new resampler stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
-* // and the timestamp from the 'Time' field. The interpolated values are stored in the 'interpolatedValues' store .
+* // and the timestamp from the 'Time' field. The interpolated values are stored in the 'interpolatedValues' store.
 * // The interpolation should be linear and the interval should be 2 seconds.
 * var res = {
 *    name: 'resamplerAggr',
@@ -720,13 +732,14 @@
 *        interpolator: 'linear'
 *    }],
 *    createStore: false,
-*    interval: 2 * 1000
+*    interval: 2000
 * };
 * var resampler = base.store("Heat").addStreamAggr(res);
+* base.close();
 */
 
 /**
-* @typedef {module:qm.StreamAggr} StreamAggr_Merger
+* @typedef {module:qm.StreamAggr} StreamAggregateMerger
 * This stream aggregator represents the merger aggregator. It merges records from two or more stores into a new store
 * depending on the timestamp. No methods are implemented for this aggregator.
 * <image src="pictures/merger.gif" alt="Merger Animation">
@@ -785,6 +798,7 @@
 *    ]
 * };
 * var merger = new qm.StreamAggr(base, mer);
+* base.close();
 */
 
 class TNodeJsSA : public node::ObjectWrap {
@@ -801,15 +815,6 @@ public:
 	TNodeJsSA(TWPt<TQm::TStreamAggr> _SA) : SA(_SA) { }
 	~TNodeJsSA() { }
 	// Node framework (constructor method)
-	//!- `sa = new qm.sa(base, paramJSON)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate.
-	//!- `sa = new qm.sa(base, paramJSON, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
-	//!- `sa = new qm.sa(base, paramJSON, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
-	//!- `sa = new qm.sa(base, funObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
-	//!- `sa = new qm.sa(base, funObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
-	//!- `sa = new qm.sa(base, funObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
-	//!- `sa = new qm.sa(base, ftrExtObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
-	//!- `sa = new qm.sa(base, ftrExtObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
-	//!- `sa = new qm.sa(base, ftrExtObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
 	JsDeclareFunction(New);
 public:
 	// C++ wrapped object
@@ -857,17 +862,19 @@ public:
 	//!- `fout = sa.save(fout)` -- executes save function given output stream `fout` as input. returns `fout`.
 	/**
 	* Saves the current state of the stream aggregator.
-	* @parameter {module:fs.FOut} fout - The output stream.
+	* @param {module:fs.FOut} fout - The output stream.
 	* @returns {module:fs.FOut} The output stream given as the parameter.
 	*/
+	//# exports.StreamAggr.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 	JsDeclareFunction(save);
 	
 	//!- `sa = sa.load(fin)` -- executes load function given input stream `fin` as input. returns self.
 	/**
 	* Loads the stream aggregator, that has been previously saved.
-	* @parameter {module:fs.FIn} fin - The input stream.
+	* @param {module:fs.FIn} fin - The input stream.
 	* @returns {module:qm.StreamAggr} Self.
 	*/
+	//# exports.StreamAggr.prototype.load = function (fin) { return Object.create(require('qminer').StreamAggr.prototype); }
 	JsDeclareFunction(load);
 	// IInt
 	//!- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
@@ -901,7 +908,7 @@ public:
 	*    store: 'Grades',
 	*    timestamp: 'Time',
 	*    value: 'Procents',
-	*    winsize: 365 * 24 * 60 * 60 * 1000 
+	*    winsize: 31536000000 
 	* };
 	* var timeSeries = base.store('Grades').addStreamAggr(ts);
 	* // create a new moving average stream aggregator that takes the values from the 
@@ -919,6 +926,7 @@ public:
 	* base.store("Grades").push({ Grade: 8, Procents: 70, Time: '2015-02-03T10:00:00.0' });
 	* // get the average grade procents by using the getFloat method
 	* var average = averageGrade.getFloat(); // returns 74 + 1/3
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getFloat = function () { return 0; };
 	JsDeclareFunction(getFloat);
@@ -951,7 +959,7 @@ public:
 	*    store: 'GameCollection',
 	*    timestamp: 'ReleaseDate',
 	*    value: 'Price',
-	*    winsize: 31 * 60 * 60 * 1000
+	*    winsize: 2678400000
 	* };
 	* var timeSeries = base.store('GameCollection').addStreamAggr(ts);
 	* // create a new sum stream aggregator
@@ -967,7 +975,8 @@ public:
 	* base.store('GameCollection').push({ GameName: 'Super Mario Bros.', Price: 100, ReleaseDate: '1985-09-13T00:00:00.0' });
 	* base.store('GameCollection').push({ GameName: 'The Legend of Zelda', Price: 90, ReleaseDate: '1986-02-21T00:00:00.0 '});
 	* // get the timestamp of the last bought game by using getTimestamp
-	* var date = priceSum.getTimestamp(); // returns 12153801600000 (the miliseconds since midnight 01.01.1601)
+	* var date = priceSum.getTimestamp(); // returns 12153801600000 (the miliseconds since 1601-01-01T00:00:00.0)
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getTimestamp = function () { return 0; };
 	JsDeclareFunction(getTimestamp);
@@ -1000,7 +1009,7 @@ public:
 	*    store: 'IceCreams',
 	*    timestamp: 'TimeOfConsumption',
 	*    value: 'Price',
-	*    winsize: 24 * 60 * 60 * 1000
+	*    winsize: 86400000
 	* };
 	* var icePrice = base.store('IceCreams').addStreamAggr(ts);
 	* // add some ice creams in the store
@@ -1009,7 +1018,7 @@ public:
 	* base.store('IceCreams').push({ Type: 'Stracciatella', Price: 5, TimeOfConsumption: '2015-07-21T21:05:00.0' });
 	* // get the number of ice creams consumed by using getFloatLength method
 	* var numberOfIceCreamsEaten = icePrice.getFloatLength(); // returns 3
-	* 
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getFloatLength = function () { return 0; };
 	JsDeclareFunction(getFloatLength);
@@ -1041,7 +1050,7 @@ public:
 	*    store: 'MusicSale',
 	*    timestamp: 'Time',
 	*    value: 'NumberOfAlbums',
-	*    winsize: 7 * 24 * 60 * 60 * 1000
+	*    winsize: 604800000
 	* };
 	* var weekSales = base.store('MusicSale').addStreamAggr(ts);
 	* // add some records in the store
@@ -1051,6 +1060,7 @@ public:
 	* base.store('MusicSale').push({ NumberOfAlbums: 45, Time: '2015-03-20T00:00:00.0' });
 	* // get the second value of the value vector 
 	* var albums = weekSales.getFloatAt(1); // returns 15
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getFloatAt = function (idx) { return 0; };
 	JsDeclareFunction(getFloatAt);
@@ -1081,7 +1091,7 @@ public:
 	*    store: 'Hospital',
 	*    timestamp: 'Date',
 	*    value: 'NumberOfPatients',
-	*    winsize: 7 * 24 * 60 * 60 * 1000
+	*    winsize: 604800000
 	* };
 	* var weekPatients = base.store('Hospital').addStreamAggr(ts);
 	* // add some records in the store
@@ -1091,6 +1101,7 @@ public:
 	* base.store('Hospital').push({ NumberOfPatients: 40, Date: '2015-05-23T00:00:00.0' });
 	* // get the values that are in the time series window buffer as a vector
 	* var values = weekPatients.getFloatVector(); // returns the vector [50, 56, 120, 40]
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getFloatVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getFloatVector);
@@ -1122,7 +1133,7 @@ public:
 	*    store: 'Medicine',
 	*    timestamp: 'Time',
 	*    value: 'NumberOfPills',
-	*    winsize: 7 * 24 * 60 * 60 * 1000
+	*    winsize: 604800000
 	* };
 	* var weekly = base.store('Medicine').addStreamAggr(ts);
 	* // add some records in the store
@@ -1135,6 +1146,7 @@ public:
 	* base.store('Medicine').push({ NumberOfPills: 4, Time: '2015-07-24T09:00:00.0' });
 	* // get the length of the timestamp vector
 	* var length = weekly.getTimestampLength(); // returns 7
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getTimestampLength = function () { return 0; };
 	JsDeclareFunction(getTimestampLength);
@@ -1166,7 +1178,7 @@ public:
 	*    store: 'Route66',
 	*    timestamp: 'Time',
 	*    value: 'NumberOfCars',
-	*    winsize: 24 * 60 * 60 * 1000
+	*    winsize: 86400000
 	* };
 	* var traffic = base.store('Route66').addStreamAggr(ts);
 	* // add some records in the store
@@ -1177,6 +1189,7 @@ public:
 	* base.store('Route66').push({ NumberOfCars: 110, Time: '2015-06-16T00:00:00.0' });
 	* // get the third timestamp in the buffer
 	* var time = traffic.getTimestampAt(2); // returns 13078864800000
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getTimestampAt = function (idx) { return 0; };
 	JsDeclareFunction(getTimestampAt);
@@ -1207,7 +1220,7 @@ public:
 	*    store: 'Signals',
 	*    timestamp: 'Time',
 	*    value: 'BeepLoudness',
-	*    winsize: 10 * 1000
+	*    winsize: 10000
 	* };
 	* var signalBeep = base.store('Signals').addStreamAggr(ts);
 	* // add some records to the store
@@ -1216,6 +1229,7 @@ public:
 	* base.store('Signals').push({ BeepLoudness: 20, Time: '2015-07-21T12:30:32.0' });
 	* // get the timestamp vector of signalBeep
 	* var vec = signalBeep.getTimestampVector(); // returns vector [13081955430000, 13081955431000, 13081955432000]
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getTimestampVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getTimestampVector);
@@ -1248,7 +1262,7 @@ public:
 	*    store: 'Marathon',
 	*    timestamp: 'Time',
 	*    value: 'Speed',
-	*    winsize: 10 * 60 * 1000
+	*    winsize: 600000
 	* };
 	* var sensor = base.store('Marathon').addStreamAggr(ts);
 	* // add some records to the store
@@ -1257,6 +1271,7 @@ public:
 	* base.store('Marathon').push({ Runner: 'Coco Chanelle', Speed: 13.7, Time: '2015-07-21T20:24:27.0' });
 	* // get the last value that got in the buffer
 	* var last = sensor.getInFloat(); // returns 13.7
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getInFloat = function () { return 0; };
 	JsDeclareFunction(getInFloat);
@@ -1288,7 +1303,7 @@ public:
 	*    store: 'F1',
 	*    timestamp: 'Time',
 	*    value: 'Speed',
-	*    winsize: 5 * 60 * 1000
+	*    winsize: 300000
 	* };
 	* var sensor = base.store('F1').addStreamAggr(ts);
 	* // add some records to the store
@@ -1297,6 +1312,7 @@ public:
 	* base.store('F1').push({ Driver: 'Mark Ham', Speed: 189.5, Time: '2015-07-19T09:38:43.0' });
 	* // get the last timestamp that was added in the window buffer
 	* var time = sensor.getInTimestamp(); // returns 13081772323000
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getInTimestamp = function () { return 0; };
 	JsDeclareFunction(getInTimestamp);
@@ -1328,7 +1344,7 @@ public:
 	*    store: 'F1',
 	*    timestamp: 'Time',
 	*    value: 'Speed',
-	*    winsize: 5 * 60 * 1000
+	*    winsize: 300000
 	* };
 	* var sensor = base.store('F1').addStreamAggr(ts);
 	* // add some records to the store
@@ -1339,6 +1355,7 @@ public:
 	* // get the values, that have got out of the window buffer.
 	* // because the window size is 5 seconds, the last value that have left the buffer is 152.8
 	* var left = sensor.getOutFloatVector(); // returns [152.8]
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getOutFloatVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getOutFloatVector);
@@ -1382,6 +1399,7 @@ public:
 	* base.store('Noise').push({ Decibels: 53, Time: '2015-07-21T14:43:01.2' });
 	* // get the timestamps that just left the window buffer by adding the last record
 	* var last = music.getOutTimestampVector(); // returns [13081963380000]
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getOutTimestampVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getOutTimestampVector);
@@ -1412,7 +1430,7 @@ public:
 	*    store: 'MusicSale',
 	*    timestamp: 'Time',
 	*    value: 'NumberOfAlbums',
-	*    winsize: 7 * 24 * 60 * 60 * 1000
+	*    winsize: 604800000
 	* };
 	* var weekSales = base.store('MusicSale').addStreamAggr(ts);
 	* // add some records in the store
@@ -1422,6 +1440,7 @@ public:
 	* base.store('MusicSale').push({ NumberOfAlbums: 45, Time: '2015-03-20T00:00:00.0' });
 	* // get the number of records in the window buffer
 	* var num = weekSales.getNumberOfRecords(); // returns 4
+	* base.close();
 	*/
 	//# exports.StreamAggr.prototype.getNumberOfRecords = function () { return 0; };
 	JsDeclareFunction(getNumberOfRecords);
@@ -1430,7 +1449,7 @@ public:
 	/**
 	* Returns the name of the stream aggregate.
 	*/
-	//# exports.StreamAggr.prototype.name = undefined;
+	//# exports.StreamAggr.prototype.name = "";
 	JsDeclareProperty(name);
 
 	//!- `objJSON = sa.val` -- same as sa.saveJson(-1)
@@ -1475,6 +1494,9 @@ private:
 	v8::Persistent<v8::Function> GetOutFltVFun;
 	v8::Persistent<v8::Function> GetOutTmMSecsVFun;
 	v8::Persistent<v8::Function> GetNFun;
+	v8::Persistent<v8::Function> GetOldestFltFun;
+	v8::Persistent<v8::Function> GetOldestTmMSecsFun;
+
 	// IFltVec
 	v8::Persistent<v8::Function> GetFltLenFun;
 	v8::Persistent<v8::Function> GetFltAtFun;
@@ -1526,6 +1548,9 @@ public:
 	void GetOutFltV(TFltV& ValV) const;
 	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
 	int GetN() const;
+	double GetOldestFlt() const;
+	uint64 GetOldestTmMSecs() const;
+
 	// IFltVec
 	int GetFltLen() const;
 	double GetFlt(const TInt& ElN) const; // GetFltAtFun

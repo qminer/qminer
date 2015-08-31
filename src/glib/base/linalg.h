@@ -8,6 +8,7 @@
 
 #ifndef LINALG_H
 #define LINALG_H
+
 ///////////////////////////////////////////////////////////////////////
 // Blas Support
 #ifdef BLAS
@@ -30,14 +31,9 @@
 	#endif
 #endif
 #include "base.h"
-//==========================================================
-// TODO remove
-//#ifdef BLAS
-//#include "lapacke.h"
-//#endif
-//==========================================================
 
-namespace TypeCheck{
+
+namespace TypeCheck {
 	template<typename T1>
 	struct is_float { static const bool value = false; };
 	template<>
@@ -54,62 +50,38 @@ namespace TypeCheck{
 	struct is_double<TNum<double> > { static const bool value = true; };
 
 	template<typename T1>
-	struct is_complex_float
-	{
-		static const bool value = false;
-	};
-
+	struct is_complex_float { static const bool value = false; };
 	template<>
-	struct is_complex_float< std::complex<float> >
-	{
-		static const bool value = true;
-	};
-
+	struct is_complex_float< std::complex<float> > { static const bool value = true; };
 	template<>
-	struct is_complex_float< TNum<std::complex<float>> >
-	{
-		static const bool value = true;
-	};
+	struct is_complex_float< TNum<std::complex<float> > > { static const bool value = true; };
 
 	template<typename T1>
-	struct is_complex_double
-	{
-		static const bool value = false;
-	};
-
+	struct is_complex_double { static const bool value = false; };
 	template<>
-	struct is_complex_double< std::complex<double> >
-	{
-		static const bool value = true;
-	};
-
+	struct is_complex_double< std::complex<double> > { static const bool value = true; };
 	template<>
-	struct is_complex_double< TNum<std::complex<double>> >
-	{
-		static const bool value = true;
-	};
+	struct is_complex_double< TNum<std::complex<double> > > { static const bool value = true; };
 }
+
+// the matrix dimension classificator for the (Dim parameter)
+enum TMatDim { 
+	mdCols = 1, 
+	mdRows = 2
+};
 
 ///////////////////////////////////////////////////////////////////////
 // forward declarations
 class TLinAlg;
+
 //////////////////////////////////////////////////////////////////////
-// Useful stuff (hopefully)
+// Miscellaneous linear algebra functions
 class TLAMisc {
 public:
 	//Sort double array
 #ifdef SCALAPACK 
 	template<class TSizeTy>
-	static void Sort(TVec<TFlt, TSizeTy> & Vec, TVec<TSizeTy, TSizeTy>& index, const TBool& decrease) {
-		if (index.Empty()){
-			TLAMisc::FillRange(Vec.Len(), index);
-		}
-		char* id = decrease ? "D" : "I";
-		TSizeTy n = Vec.Len();
-		TSizeTy info;
-		dlasrt2(id, &n, &Vec[0].Val, &index[0], &info);
-		//dlasrt2(id, n, d, key, info)
-	}
+	static void Sort(TVec<TFlt, TSizeTy> & Vec, TVec<TSizeTy, TSizeTy>& Index, const TBool& DecreseP);
 #endif
 	// Dumps vector to file so Excel can read it
 	static void SaveCsvTFltV(const TFltV& Vec, TSOut& SOut);
@@ -149,6 +121,7 @@ public:
 	static void PrintSpMat(const TVec<TIntFltKdV>& A, const TStr& MatrixNm);
 	// prints vector to screen
 	static void PrintTIntV(const TIntV& Vec, const TStr& VecNm);
+
 	// fills vector with random numbers
 	static void FillRnd(TFltV& Vec) { TRnd Rnd(0); FillRnd(Vec.Len(), Vec, Rnd); }
 	static void FillRnd(TFltV& Vec, TRnd& Rnd) { FillRnd(Vec.Len(), Vec, Rnd); }
@@ -167,18 +140,9 @@ public:
 	// set vector to range
 	static void FillRange(const int& Vals, TFltV& Vec);
 	static void FillRange(const int& Vals, TIntV& Vec);
-
 	template <class TVal, class TTSizeTyTy = int>
-	static void FillRangeS(const TTSizeTyTy& Vals, TVec<TVal, TTSizeTyTy>& Vec) {
-		//Added by Andrej
-		if (Vec.Len() != Vals){
-			Vec.Gen(Vals);
-		}
-		for (int i = 0; i < Vals; i++){
-			Vec[i] = i;
-		}
-	};
-	// sums elements in vector
+	static void FillRangeS(const TTSizeTyTy& Vals, TVec<TVal, TTSizeTyTy>& Vec);
+    // sums elements in vector
 	static int SumVec(const TIntV& Vec);
 	static double SumVec(const TFltV& Vec);
 	// converts full vector to sparse
@@ -201,74 +165,118 @@ public:
 	// returns the mean value of Vec.
 	static double Mean(const TFltV& Vec);
 	// returns the mean value along the dimension (Dim) of Mat. See Matlab documentation - mean().
-	static void Mean(const TFltVV& Mat, TFltV& Vec, const int& Dim = 1);
+	static void Mean(const TFltVV& Mat, TFltV& Vec, const TMatDim& Dim = TMatDim::mdCols);
 	// returns standard deviation. See Matlab documentation - std().
-	static void Std(const TFltVV& Mat, TFltV& Vec, const int& Flag = 0, const int& Dim = 1);
+	static void Std(const TFltVV& Mat, TFltV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
 	// returns the z-score for each element of X such that columns of X are centered to have mean 0 and scaled to have standard deviation 1.
-	static void ZScore(const TFltVV& Mat, TFltVV& Vec, const int& Flag = 0, const int& Dim = 1);
+	static void ZScore(const TFltVV& Mat, TFltVV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
 };
+
+#ifdef SCALAPACK 
+template<class TSizeTy>
+void TLAMisc::Sort(TVec<TFlt, TSizeTy> & Vec, TVec<TSizeTy, TSizeTy>& Index, const TBool& DecreseP) {
+    if (Index.Empty()) {
+        TLAMisc::FillRange(Vec.Len(), index);
+    }
+    char* id = DecreseP ? "D" : "I";
+    TSizeTy n = Vec.Len();
+    TSizeTy info;
+    dlasrt2(id, &n, &Vec[0].Val, &Index[0], &info);
+}
+#endif
+
+template <class TVal, class TTSizeTyTy>
+void TLAMisc::FillRangeS(const TTSizeTyTy& Vals, TVec<TVal, TTSizeTyTy>& Vec) {
+    //Added by Andrej
+    if (Vec.Len() != Vals){
+        Vec.Gen(Vals);
+    }
+    for (int i = 0; i < Vals; i++){
+        Vec[i] = i;
+    }
+};
+
 //////////////////////////////////////////////////////////////////////
 // Template-ised Sparse Operations
 template <class TKey, class TDat>
 class TSparseOps {
-private:
-	typedef TVec<TKeyDat<TKey, TDat> > TKeyDatV;
 public:
-	static void CoordinateCreateSparseColMatrix(const TVec<TKey>& RowIdxV, const TVec<TKey>& ColIdxV, const TVec<TDat>& ValV, TVec<TKeyDatV>& ColMatrix, const TKey& Cols) {
-		ColMatrix.Gen(Cols);
-		EAssert(RowIdxV.Len() == ColIdxV.Len() && RowIdxV.Len() == ValV.Len());
-		TKey Els = RowIdxV.Len();
-		for (TKey ElN = 0; ElN < Els; ElN++) {
-			ColMatrix[ColIdxV[ElN]].Add(TKeyDat<TKey, TDat>(RowIdxV[ElN], ValV[ElN]));
-		}
-		for (TKey ColN = 0; ColN < Cols; ColN++) {
-			ColMatrix[ColN].Sort();
-		}
-	}
-	static void SparseMerge(const TKeyDatV& SrcV1, const TKeyDatV& SrcV2, TKeyDatV& DstV) {
-		DstV.Clr();
-		const int Src1Len = SrcV1.Len();
-		const int Src2Len = SrcV2.Len();
-		int Src1N = 0, Src2N = 0;
-		while (Src1N < Src1Len && Src2N < Src2Len) {
-			if (SrcV1[Src1N].Key < SrcV2[Src2N].Key) {
-				DstV.Add(SrcV1[Src1N]); Src1N++;
-			}
-			else if (SrcV1[Src1N].Key > SrcV2[Src2N].Key) {
-				DstV.Add(SrcV2[Src2N]); Src2N++;
-			}
-			else {
-				DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, SrcV1[Src1N].Dat + SrcV2[Src2N].Dat));
-				Src1N++;  Src2N++;
-			}
-		}
-		while (Src1N < Src1Len) { DstV.Add(SrcV1[Src1N]); Src1N++; }
-		while (Src2N < Src2Len) { DstV.Add(SrcV2[Src2N]); Src2N++; }
-	}
-	static void SparseLinComb(const double& p, const TKeyDatV& SrcV1, const double& q, const TKeyDatV& SrcV2, TKeyDatV& DstV) {
-		DstV.Clr();
-		const int Src1Len = SrcV1.Len();
-		const int Src2Len = SrcV2.Len();
-		int Src1N = 0, Src2N = 0;
-		while (Src1N < Src1Len && Src2N < Src2Len) {
-			if (SrcV1[Src1N].Key < SrcV2[Src2N].Key) {
-				DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, p * SrcV1[Src1N].Dat)); Src1N++;
-			}
-			else if (SrcV1[Src1N].Key > SrcV2[Src2N].Key) {
-				DstV.Add(TKeyDat<TKey, TDat>(SrcV2[Src2N].Key, q * SrcV2[Src2N].Dat)); Src2N++;
-			}
-			else {
-				DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, p * SrcV1[Src1N].Dat + q * SrcV2[Src2N].Dat));
-				Src1N++;  Src2N++;
-			}
-		}
-		while (Src1N < Src1Len) { DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, p * SrcV1[Src1N].Dat)); Src1N++; }
-		while (Src2N < Src2Len) { DstV.Add(TKeyDat<TKey, TDat>(SrcV2[Src2N].Key, q * SrcV2[Src2N].Dat)); Src2N++; }
-	}
+    /// Transform sparse matrix from (row,col,val) triplets to a vector of sparse columns
+	static void CoordinateCreateSparseColMatrix(const TVec<TKey>& RowIdxV, const TVec<TKey>& ColIdxV,
+        const TVec<TDat>& ValV, TVec<TVec<TKeyDat<TKey, TDat> > >& ColMatrix, const TKey& Cols);
+    /// Merge given sparse vectors using +operator on KeyDat elements with same Key value
+	static void SparseMerge(const TVec<TKeyDat<TKey, TDat> >& SrcV1,
+        const TVec<TKeyDat<TKey, TDat> >& SrcV2, TVec<TKeyDat<TKey, TDat> >& DstV);
+    /// Construct sparse linear combination (DstV = p*SrcV1 + q*SrcV2)
+	static void SparseLinComb(const double& p, const TVec<TKeyDat<TKey, TDat> >& SrcV1,
+        const double& q, const TVec<TKeyDat<TKey, TDat> >& SrcV2,
+        TVec<TKeyDat<TKey, TDat> >& DstV);
 };
 
 typedef TSparseOps<TInt, TFlt> TSparseOpsIntFlt;
 
+template <class TKey, class TDat>
+void TSparseOps<TKey, TDat>::CoordinateCreateSparseColMatrix(const TVec<TKey>& RowIdxV, const TVec<TKey>& ColIdxV,
+        const TVec<TDat>& ValV, TVec<TVec<TKeyDat<TKey, TDat> > >& ColMatrix, const TKey& Cols) {
+
+    ColMatrix.Gen(Cols);
+    EAssert(RowIdxV.Len() == ColIdxV.Len() && RowIdxV.Len() == ValV.Len());
+    TKey Els = RowIdxV.Len();
+    for (TKey ElN = 0; ElN < Els; ElN++) {
+        ColMatrix[ColIdxV[ElN]].Add(TKeyDat<TKey, TDat>(RowIdxV[ElN], ValV[ElN]));
+    }
+    for (TKey ColN = 0; ColN < Cols; ColN++) {
+        ColMatrix[ColN].Sort();
+    }
+}
+
+template <class TKey, class TDat>
+void TSparseOps<TKey, TDat>::SparseMerge(const TVec<TKeyDat<TKey, TDat> >& SrcV1,
+        const TVec<TKeyDat<TKey, TDat> >& SrcV2, TVec<TKeyDat<TKey, TDat> >& DstV) {
+
+    DstV.Clr();
+    const int Src1Len = SrcV1.Len();
+    const int Src2Len = SrcV2.Len();
+    int Src1N = 0, Src2N = 0;
+    while (Src1N < Src1Len && Src2N < Src2Len) {
+        if (SrcV1[Src1N].Key < SrcV2[Src2N].Key) {
+            DstV.Add(SrcV1[Src1N]); Src1N++;
+        }
+        else if (SrcV1[Src1N].Key > SrcV2[Src2N].Key) {
+            DstV.Add(SrcV2[Src2N]); Src2N++;
+        }
+        else {
+            DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, SrcV1[Src1N].Dat + SrcV2[Src2N].Dat));
+            Src1N++;  Src2N++;
+        }
+    }
+    while (Src1N < Src1Len) { DstV.Add(SrcV1[Src1N]); Src1N++; }
+    while (Src2N < Src2Len) { DstV.Add(SrcV2[Src2N]); Src2N++; }
+}
+
+template <class TKey, class TDat>
+void TSparseOps<TKey, TDat>::SparseLinComb(const double& p, const TVec<TKeyDat<TKey, TDat> >& SrcV1,
+        const double& q, const TVec<TKeyDat<TKey, TDat> >& SrcV2, TVec<TKeyDat<TKey, TDat> >& DstV) {
+
+    DstV.Clr();
+    const int Src1Len = SrcV1.Len();
+    const int Src2Len = SrcV2.Len();
+    int Src1N = 0, Src2N = 0;
+    while (Src1N < Src1Len && Src2N < Src2Len) {
+        if (SrcV1[Src1N].Key < SrcV2[Src2N].Key) {
+            DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, p * SrcV1[Src1N].Dat)); Src1N++;
+        }
+        else if (SrcV1[Src1N].Key > SrcV2[Src2N].Key) {
+            DstV.Add(TKeyDat<TKey, TDat>(SrcV2[Src2N].Key, q * SrcV2[Src2N].Dat)); Src2N++;
+        }
+        else {
+            DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, p * SrcV1[Src1N].Dat + q * SrcV2[Src2N].Dat));
+            Src1N++;  Src2N++;
+        }
+    }
+    while (Src1N < Src1Len) { DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, p * SrcV1[Src1N].Dat)); Src1N++; }
+    while (Src2N < Src2Len) { DstV.Add(TKeyDat<TKey, TDat>(SrcV2[Src2N].Key, q * SrcV2[Src2N].Dat)); Src2N++; }
+}
 
 ///////////////////////////////////////////////////////////////////////
 /// Matrix. Class for matrix-vector and matrix-matrix operations
@@ -489,24 +497,35 @@ public:
 	void Save(TSOut& SOut) { SOut.Save(XRows); SOut.Save(YRows); SOut.Save(Samples); MeanX.Save(SOut); MeanY.Save(SOut); X.Save(SOut); Y.Save(SOut); }
 	void Load(TSIn& SIn) { SIn.Load(XRows); SIn.Load(YRows); SIn.Load(Samples); MeanX.Load(SIn); MeanY.Load(SIn); X.Load(SIn); Y.Load(SIn); }
 };
+
+///////////////////////////////////////////////////////////////////////
+// Basic Linear Algebra operations
 class TLinAlg {
 public:
+    /// Result = <x, y>
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static double DotProduct(const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y);
+    /// Result = <X(:,ColId), y>
 	inline static double DotProduct(const TVec<TFltV>& X, int ColId, const TFltV& y);
+    /// Result = <X[ColId], y>
 	inline static double DotProduct(const TVec<TIntFltKdV>& X, int ColId, const TFltV& y);
+    /// Result = <X(:,ColId), Y(:,ColId)>
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static double DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X,
 		int ColIdX, const TVVec<TType, TSizeTy, ColMajor>& Y, int ColIdY);
+    /// Result = <X(:,ColId), y>
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static double DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X,
-		int ColId, const TVec<TType, TSizeTy>& Vec);
+		int ColId, const TVec<TType, TSizeTy>& y);
+    /// Result = <x, y>
 	inline static double DotProduct(const TIntFltKdV& x, const TIntFltKdV& y);
+    /// Result = <x, y>
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static double DotProduct(const TVec<TType, TSizeTy>& x, const TVec<TIntFltKd>& y);
-	// <X(:,ColId),y> where only y is sparse
+    /// Result = <X(:,ColId), y>
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static double DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X, int ColId, const TIntFltKdV& y);
+
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void OuterProduct(const TVec<TType, TSizeTy>& x,
 		const TVec<TType, TSizeTy>& y, TVVec<TType, TSizeTy, ColMajor>& Z);
@@ -628,6 +647,9 @@ public:
 	// ||x|| (Euclidian), x is sparse
 	template<class TSizeTy = int>
 	inline static double Norm(const TVec<TIntFltKdV, TSizeTy>& x);
+	// ||X(:, ColId)|| (Euclidian), x is sparse
+	template<class TSizeTy = int>
+	inline static double Norm(const TVec<TIntFltKdV, TSizeTy>& x, const int& ColId);
 	// x := x / ||x||, x is sparse
 	template<class TSizeTy = int, TSizeTy>
 	inline static void Normalize(TVec<TIntFltKdV>& x);
@@ -804,8 +826,6 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-// Basic Linear Algebra Operations
 //////////////////////////////////////////////////////////////////////
 // Basic Linear Algebra Operations
 //class TLinAlg {
@@ -1607,6 +1627,11 @@ public:
 	template<class TSizeTy>
 	double TLinAlg::Norm(const TVec<TIntFltKdV, TSizeTy>& x) {
 		return sqrt(Norm2(x));
+	}
+	
+	template<class TSizeTy>
+	double TLinAlg::Norm(const TVec<TIntFltKdV, TSizeTy>& x, const int& ColId) {
+		return Norm(x[ColId]);		
 	}
 
 	// x := x / ||x||, x is sparse
@@ -3330,17 +3355,6 @@ template <typename TFunc>
 TVector TVector::Find(const TFunc& Func) const {
 	TVector Res; Find(Func, Res);
 	return Res;
-//	const int& Dim = Len();
-//
-//	TVector Res(IsColVector);
-//
-//	for (int i = 0; i < Dim; i++) {
-//		if (Func(Vec[i])) {
-//			Res.Vec.Add(i);
-//		}
-//	}
-//
-//	return Res;
 }
 
 template <typename TFunc, typename TRes>

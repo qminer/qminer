@@ -258,11 +258,13 @@ public:
 	void AddItem(const TItem& NewItem, const bool& NotifyCacheOnlyDelta = true);
 	void AddItemV(const TVec<TItem>& NewItemV);
 	void OverrideItems(const TVec<TItem>& NewItemV, int From, int Len);
+	/// Check if this itemset is empty
+	bool Empty() const { return GetItems() == 0; }
 	/// Get number of items (including child itemsets)
 	int GetItems() const { return TotalCnt; }
 	/// Get item at given index (including child itemsets)
 	const TItem& GetItem(const int& ItemN) const;
-
+    /// Append current item set with itmes from Src
 	void AppendItemSet(const TPt<TGixItemSet>& Src);
 	/// Get items into vector
 	void GetItemV(TVec<TItem>& _ItemV);
@@ -274,15 +276,11 @@ public:
 	void Def();
 	/// Pack/merge this itemset - just working buffer
 	void DefLocal();
-	/// Check if this itemset is empty
-	bool Empty() const { return GetItems() == 0; }
 
 	/// Flag if itemset is merged
 	bool IsMerged() const { return MergedP; }
 	/// Tests if current itemset is full and subsequent item should be pushed to children
 	bool IsFull() const { return (ItemV.Len() >= Gix->GetSplitLen()); }
-	/// Flag if itemset is empty
-	bool Empty() { return TotalCnt == 0; }
 
 	friend class TPt < TGixItemSet > ;
 	friend class TGix < TKey, TItem, TGixMerger > ;
@@ -783,9 +781,9 @@ private:
 	int SplitLenMax;
 
 	/// Internal member for holding statistics
-	TGixStats Stats;
+	mutable TGixStats Stats;
 	/// This method refreshes gix statistics
-	void RefreshStats();
+	void RefreshStats() const;
 
 public:
 	TGix(const TStr& Nm, const TStr& FPath = TStr(),
@@ -878,7 +876,7 @@ public:
 	uint64 GetMxMemUsed() const { return ItemSetCache.GetMxMemUsed(); }
 	bool IsCacheFull() const { return CacheFullP; }
 	void RefreshMemUsed();
-	void AddToNewCacheSizeInc(uint64 diff) const { NewCacheSizeInc += diff; }
+	void AddToNewCacheSizeInc(const uint64& Diff) const { NewCacheSizeInc += Diff; }
 
 
 	/// print statistics for index keys
@@ -888,10 +886,8 @@ public:
 	/// get blob stats
 	const TBlobBsStats& GetBlobStats() { return ItemSetBlobBs->GetStats(); }
 	/// get gix stats
-	const TGixStats& GetGixStats(bool do_refresh = true) {
-		if (do_refresh) RefreshStats();
-		return Stats;
-	}
+	const TGixStats& GetGixStats(const bool& RefreshP = true) const {
+		if (RefreshP) { RefreshStats(); } return Stats; }
 	/// reset blob stats
 	void ResetStats() { ItemSetBlobBs->ResetStats(); }
 
@@ -1177,7 +1173,7 @@ void TGix<TKey, TItem, TGixMerger>::SaveTxt(const TStr& FNm, const PGixKeyStr& K
 
 /// refreshes statistics for cache
 template <class TKey, class TItem, class TGixMerger>
-void TGix<TKey, TItem, TGixMerger>::RefreshStats() {
+void TGix<TKey, TItem, TGixMerger>::RefreshStats() const {
 	Stats.CacheAll = 0;
 	Stats.CacheDirty = 0;
 	Stats.CacheAllLoadedPerc = 0;

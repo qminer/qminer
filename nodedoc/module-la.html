@@ -209,7 +209,9 @@
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>// create four matrices and concatenate (2 block columns, 2 block rows)
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create four matrices and concatenate (2 block columns, 2 block rows)
 var la = require(&#x27;qminer&#x27;).la;
 var A = new la.Matrix([[1,2], [3,4]]);
 var B = new la.Matrix([[5,6], [7,8]]);
@@ -330,7 +332,9 @@ var mat = la.cat([[A,B], [C,D]]);
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>// create a new vector
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create a new vector
 var vec = new la.Vector([1, 2, 3]);
 // create a JavaScript array out of vec
 var arr = la.copyVecToArray(vec); // returns an array [1, 2, 3]</code></pre>
@@ -415,8 +419,10 @@ var arr = la.copyVecToArray(vec); // returns an array [1, 2, 3]</code></pre>
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
-var mat = new la.Matrix([[1,2], [2,0]]);
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create a dense matrix
+var mat = new la.Matrix([[1, 2], [2, 0]]);
 la.findMaxIdx(mat)
 // returns the array:
 // [1, 0]</code></pre>
@@ -501,7 +507,9 @@ la.findMaxIdx(mat)
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>// create a 3-dimensional vector with all entries set to 1.0
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create a 3-dimensional vector with all entries set to 1.0
 var vec = la.ones(3);</code></pre>
                 </div>
               </section>
@@ -547,14 +555,15 @@ var vec = la.ones(3);</code></pre>
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
 // construct two input matrices
 var X1 = new la.Matrix([[1,2], [2,0]]);
 var X2 = new la.Matrix([[1,0.5,0],[0,-0.5,-1]]);
 la.pdist2(X1, X2)
 // returns the matrix:
 // 4 6.5 10
-// 1 2.5 5 </code></pre>
+// 1 2.5 5</code></pre>
                 </div>
               </section>
               <section>
@@ -808,7 +817,8 @@ la.pdist2(X1, X2)
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
 var vec = la.rangeVec(1, 3);
 // returns the vector:
 // 1  2  3</code></pre>
@@ -1109,7 +1119,7 @@ var vec = la.rangeVec(1, 3);
               </dl>
               <h3 id="~matrixArg"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">matrixArg</span><small class="property-type">
             &nbsp;Object</small></h3>
-              <p>Matrix constructor parameter object</p>
+              <p>Matrix constructor parameter object.</p>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1190,102 +1200,6 @@ var vec = la.rangeVec(1, 3);
                         <p>SortResult.vec</p>
                       </td>
                       <td>
-                        <p><a href="module-la.BoolVector.html">module:la.BoolVector</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Sorted vector.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>SortResult.perm</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Permutation vector, where SortResult.vec[i] = unsortedVec[SortResult.perm[i]].</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
-            &nbsp;Object</small></h3>
-              <p>Sort with permutation output result</p>
-              <section>
-                <h4>Properties</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>SortResult.vec</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Sorted vector.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>SortResult.perm</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Permutation vector, where SortResult.vec[i] = unsortedVec[SortResult.perm[i]].</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
-            &nbsp;Object</small></h3>
-              <p>Sort with permutation output result</p>
-              <section>
-                <h4>Properties</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>SortResult.vec</p>
-                      </td>
-                      <td>
                         <p><a href="module-la.StrVector.html">module:la.StrVector</a></p>
                       </td>
                       <td>
@@ -1334,7 +1248,103 @@ var vec = la.rangeVec(1, 3);
                         <p>SortResult.vec</p>
                       </td>
                       <td>
+                        <p><a href="module-la.BoolVector.html">module:la.BoolVector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Sorted vector.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>SortResult.perm</p>
+                      </td>
+                      <td>
                         <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Permutation vector, where SortResult.vec[i] = unsortedVec[SortResult.perm[i]].</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <p>Sort with permutation output result</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>SortResult.vec</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Sorted vector.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>SortResult.perm</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Permutation vector, where SortResult.vec[i] = unsortedVec[SortResult.perm[i]].</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <p>Sort with permutation output result</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>SortResult.vec</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -1474,7 +1484,7 @@ var vec = la.rangeVec(1, 3);
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 5, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 28, 2015.
       </p>
     </div>
   </footer>

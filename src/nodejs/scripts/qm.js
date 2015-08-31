@@ -308,12 +308,12 @@ module.exports = exports = function (pathPrefix) {
     * are removed from the buffer and new records are stored in their place. For
     * adding and deleting a callback is called. Records are stored by their IDs.
     * @class
-    * @param {Object} [CircularRecordBufferParam] - Constructor parameters
-    * @param {module:qm.Store} CircularRecordBufferParam.store - Store for the records in the buffer.
-    * @param {number} CircularRecordBufferParam.size - Size of the buffer (number of records).
-    * @param {function} [CircularRecordBufferParam.onAdd] - Callback executed when new record is
+    * @param {Object} [param] - Constructor parameters
+    * @param {module:qm.Store} param.store - Store for the records in the buffer.
+    * @param {number} param.size - Size of the buffer (number of records).
+    * @param {function} [param.onAdd] - Callback executed when new record is
     * added to the buffer. Callback is give two parameters: record and instance of CircularRecordBuffer.
-    * @param {function} [CircularRecordBufferParam.onDelete] - Callback executed when record is removed
+    * @param {function} [param.onDelete] - Callback executed when record is removed
     * from the buffer. Callback is give two parameters: record and instance of CircularRecordBuffer.
     * @example
 	* // TODO

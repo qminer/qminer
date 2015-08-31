@@ -314,9 +314,7 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJso
 			// resolve access type
 			TFAccess FAccess = RdOnlyP ? faRdOnly : faUpdate;
 			// load base
-			TStrUInt64H StoreNmCacheSizeH;
-			Base = TQm::TStorage::LoadBase(DbFPath, FAccess,
-				IndexCacheSize, StoreCacheSize, StoreNmCacheSizeH);
+			Base = TQm::TStorage::LoadBase(DbFPath, FAccess, IndexCacheSize, StoreCacheSize);
 			// once the base is open we need to setup the custom record templates for each store
 			if (!TNodeJsQm::BaseFPathToId.IsKey(Base->GetFPath())) {
 				TUInt Keys = (uint)TNodeJsQm::BaseFPathToId.Len();
@@ -1078,7 +1076,7 @@ void TNodeJsStore::clear(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());
 		const int DelRecs = TNodeJsUtil::GetArgInt32(Args, 0, (int)JsStore->Store->GetRecs());
 
-		JsStore->Store->DeleteFirstNRecs(DelRecs);
+		JsStore->Store->DeleteFirstRecs(DelRecs);
 		Args.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsStore->Store->GetRecs()));
 		return;
 	}
@@ -1455,7 +1453,7 @@ void TNodeJsStore::first(v8::Local<v8::String> Name, const v8::PropertyCallbackI
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Self);
 
-	const uint64 FirstRecId = JsStore->Store->FirstRecId();
+	const uint64 FirstRecId = JsStore->Store->GetFirstRecId();
 	if (FirstRecId == TUInt64::Mx) {
 		Info.GetReturnValue().Set(v8::Null(Isolate));
 		return;
@@ -1472,7 +1470,7 @@ void TNodeJsStore::last(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Self);
 
-	const uint64 LastRecId = JsStore->Store->LastRecId();
+	const uint64 LastRecId = JsStore->Store->GetLastRecId();
 	if (LastRecId == TUInt64::Mx) {
 		Info.GetReturnValue().Set(v8::Null(Isolate));
 		return;
