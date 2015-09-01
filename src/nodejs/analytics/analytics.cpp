@@ -620,7 +620,6 @@ void TNodeJsSigmoid::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 	v8::HandleScope HandleScope(Isolate);
 
 	EAssertR(Args.Length() == 1, "Sigmoid.setParams: expects only 1 argument!");
-	TNodeJsSigmoid* JsModel = ObjectWrap::Unwrap<TNodeJsSigmoid>(Args.Holder());
 
 	if (TNodeJsUtil::IsArgJson(Args, 0)) {
 		Args.GetReturnValue().Set(Args.Holder());
