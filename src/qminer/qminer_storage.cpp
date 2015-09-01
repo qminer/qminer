@@ -2504,7 +2504,7 @@ TStr TStoreImpl::GetRecNm(const uint64& RecId) const {
 }
 
 uint64 TStoreImpl::GetRecId(const TStr& RecNm) const {
-	return (PrimaryStrIdH.IsKey(RecNm) ? PrimaryStrIdH.GetDat(RecNm) : TUInt64::Mx);
+	return (PrimaryStrIdH.IsKey(RecNm) ? PrimaryStrIdH.GetDat(RecNm).Val : TUInt64::Mx);
 }
 
 PStoreIter TStoreImpl::GetIter() const {
@@ -2515,12 +2515,12 @@ PStoreIter TStoreImpl::GetIter() const {
 }
 
 uint64 TStoreImpl::GetFirstRecId() const {
-	return Empty() ? TUInt64::Mx.Val : 
+	return Empty() ? TUInt64::Mx : 
 		(DataMemP ? DataMem.GetFirstValId() : DataCache.GetFirstValId());
 }
 
 uint64 TStoreImpl::GetLastRecId() const {
-	return Empty() ? TUInt64::Mx.Val : 
+	return Empty() ? TUInt64::Mx :
 		(DataMemP ? DataMem.GetLastValId() : DataCache.GetLastValId());
 }
 
