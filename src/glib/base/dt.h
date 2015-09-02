@@ -649,6 +649,10 @@ public:
   TStr GetSubStr(const int& BChN, const int& EChN) const;
   /// Get substring from BchN to the end of the string
   TStr GetSubStr(const int& BChN) const { return GetSubStr(BChN, Len()-1); }
+  /// safe version for getting substring from BchN to EchN
+  TStr GetSubStrSafe(const int& BChN, const int& EChN) const;
+  /// safe version for getting substring from BchN to EchN
+  TStr GetSubStrSafe(const int& BChN) const { return GetSubStrSafe(BChN, Len() - 1); }
   /// Insert a string Str into this string starting position BchN (not thread safe)
   void InsStr(const int& BChN, const TStr& Str);
   /// Delete all the occurrences of char Ch (not thread safe)
@@ -1272,6 +1276,8 @@ public:
   TUCh& operator=(const TUCh& UCh){Val=UCh.Val; return *this;}
   bool operator==(const TUCh& UCh) const {return Val==UCh.Val;}
   bool operator<(const TUCh& UCh) const {return Val<UCh.Val;}
+  TUCh& operator+=(const TUCh& UCh) { Val += UCh.Val; return *this; }
+  TUCh& operator-=(const TUCh& UCh) { Val -= UCh.Val; return *this; }
   uchar operator()() const {return Val;}
   int GetMemUsed() const {return sizeof(TUCh);}
 
@@ -1374,7 +1380,8 @@ public:
   TNum& operator--(){ --Val; return *this; } // prefix
   TNum operator++(int){ TNum oldVal = Val; Val++; return oldVal; } // postfix
   TNum operator--(int){ TNum oldVal = Val; Val--; return oldVal; } // postfix
-int GetMemUsed() const {return sizeof(TNum);}
+  
+  int GetMemUsed() const {return sizeof(TNum);}
 
   int GetPrimHashCd() const {return Val;}
   int GetSecHashCd() const {return Val/0x10;}
@@ -1495,7 +1502,7 @@ int GetMemUsed() const {return sizeof(TNum);}
 
   static uint GetRnd(const uint& Range=0){return Rnd.GetUniDevUInt(Range);}
 
-TStr GetStr() const {return TNum::GetStr(Val);}
+  TStr GetStr() const {return TNum::GetStr(Val);}
   static TStr GetStr(const uint& Val){
     char Bf[255]; sprintf(Bf, "%u", Val); return TStr(Bf);}
   static TStr GetStr(const TNum& UInt){
@@ -1537,8 +1544,8 @@ class TNum<int64>{
 public:
 	int64 Val;
 public:
-	static const TNum Mn;
-	static const TNum Mx;
+	static const int64 Mn;
+	static const int64 Mx;
 
 	TNum() : Val(0){}
 	TNum(const TNum& Int) : Val(Int.Val){}
@@ -1604,8 +1611,8 @@ class TNum<uint64>{
 public:
   uint64 Val;
 public:
-  static const TNum Mn;
-  static const TNum Mx;
+  static const uint64 Mn;
+  static const uint64 Mx;
 
   TNum() : Val(0){}
   TNum(const TNum& Int) : Val(Int.Val){}
