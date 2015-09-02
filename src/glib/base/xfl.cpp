@@ -259,6 +259,22 @@ bool TDir::GenDir(const TStr& FPathFNm){
   return CreateDirectory(FPathFNm.CStr(), NULL)!=0;
 }
 
+// create one or several directories specified in the FPathFNm
+// compared to the GenDir() that requires that all but the last folder are
+// existing, GenDirs() can generate several directories at once
+bool TDir::GenDirs(const TStr& FPathFNm) {
+	TStrV PartV; TDir::SplitPath(FPathFNm, PartV);
+	bool Ret = true;
+	TStr Path = "";
+	for (int N = 0; N < PartV.Len() && Ret == true; N++) {
+		Path += (N > 0) ? "/" : "";
+		Path += PartV[N];
+		if (!TDir::Exists(Path))
+			Ret = GenDir(Path);
+	}
+	return Ret;
+}
+
 bool TDir::DelDir(const TStr& FPathFNm){
   return RemoveDirectory(FPathFNm.CStr())!=0;
 }
@@ -347,6 +363,42 @@ void TDir::ListFiles(const TStr& DirNm, TStrV& FNmV) {
 #else
 	throw TExcept::New("TDir::ListFiles: Not implemented on Windows, please implement!");
 #endif
+}
+
+//////////////////////////////////////
+// TPath
+
+// create a full path by combining a directory name and a file or directory
+TStr TPath::Combine(const TStr& DirNm_, const TStr& _FileOrDirNm)
+{
+	const TStr DirNm = DirNm_.TrimRight("/").TrimRight("\\");
+	const TStr FileOrDirNm = _FileOrDirNm.TrimLeft("/").TrimLeft("\\");
+	return DirNm + "/" + FileOrDirNm;
+}
+
+// create a full path by combining several directory names 
+// by separating them using /
+TStr TPath::Combine(const TStrV& DirNmV)
+{
+	return TStr::GetStr(DirNmV, "/");
+}
+
+// return the directory part of the FileWithDir
+TStr TPath::GetDirName(const TStr& FileWithDir)
+{
+	TStrV PartV;
+	FileWithDir.SplitOnAllAnyCh("\\/", PartV, false);
+	TDir::SplitPath(FileWithDir, PartV);
+	if (PartV.Len() == 0)
+		return "";
+	PartV.DelLast();
+	return TStr::GetStr(PartV, "/");
+}
+
+// return the filename part of the FileWithDir
+TStr TPath::GetFileName(const TStr& FileWithDir)
+{
+	return TDir::GetFileName(FileWithDir);
 }
 
 //////////////////////////////////////
