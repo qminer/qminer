@@ -1088,7 +1088,7 @@ void TNodeJsRecLinReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		SOut = JsFOut->SOut;
 	}
 
-	Model->Model.Save(*SOut);
+	Model->Model->Save(*SOut);
 
 	// we return nothing currently, just close the stream if filename was used
 	if (TNodeJsUtil::IsArgStr(Args, 0)) {
