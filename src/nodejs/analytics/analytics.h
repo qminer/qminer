@@ -610,7 +610,7 @@ class TNodeJsStreamStory : public node::ObjectWrap, public TMc::TStreamStory::TC
 	friend class TNodeJsUtil;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	static const TStr GetClassId() { return "HMC"; }
+	static const TStr GetClassId() { return "_StreamStory"; }
 
 private:
 	const static double DEFAULT_DELTA_TM;

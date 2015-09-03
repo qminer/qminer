@@ -93,8 +93,9 @@
     "bindings": "~1.2.1",
     "deasync": "~0.1.0",
     "fast-csv": "^0.5.5",
-    "lazy": "^1.0.11",
-    "sget": "~0.1.5"
+    "readline": "^1.0.1",
+    "sget": "~0.1.5",
+    "streamifier": "^0.1.1"
   },
   "devDependencies": {
     "jsdoc": "^3.3.0-beta3",

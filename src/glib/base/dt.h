@@ -193,6 +193,29 @@ public:
 };
 
 /////////////////////////////////////////////////
+/// Thin Input-Memory. Used to present existing TMem as TSIn.
+/// It doesn't allocate or release any memory.
+class TThinMIn: public TSIn {
+private:
+	uchar* Bf;
+	int BfC, BfL;
+private:
+public:
+	TThinMIn(const TMem& Mem);
+	TThinMIn(const void* _Bf, const int& _BfL);
+
+	bool Eof() { return BfC == BfL; }
+	int Len() const { return BfL-BfC; }
+	char GetCh();
+	char PeekCh();
+	int GetBf(const void* LBf, const TSize& LBfL);
+	void Reset() { Cs = TCs(); BfC = 0; }
+	uchar* GetBfAddr() { return Bf; }
+	void MoveTo(int Offset);
+	bool GetNextLnBf(TChA& LnChA);
+};
+
+/////////////////////////////////////////////////
 // Output-Memory (TMem stored by reference)
 class TRefMemOut: public TSOut{
 private:

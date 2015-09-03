@@ -329,28 +329,25 @@ double TSpecFunc::GetPowerCoef(const TFltPrV& XValCntV, double MinX) {
   return 1.0 + NSamples / LnSum;
 }
 
-double TSpecFunc::StudentCdf(const double& TVal, const int& Df) {
-	const double AbsoluteTValue = abs(TVal);
-	const double x = AbsoluteTValue / sqrt(Df);
+double TSpecFunc::StudentCdf(const double& Val, const int& Df) {
+	const double x = TFlt::Abs(Val) / TMath::Sqrt(Df);
 	const double OnePlusSqX = 1 + x*x;
 
-	const int m = Df / 2;
-
+	const int Iters = Df / 2;
 	double u = 1, s = 0;
 
 	if ((Df & 1) == 0) { // if df is even
-
-		for (int i = 1; i <= m; ++i) {
+		for (int i = 1; i <= Iters; ++i) {
 			s += u;
-			u *= (1 - 1.0 / (2 * i)) / OnePlusSqX;
+			u *= (1.0 - 1.0 / (2 * i)) / OnePlusSqX;
 		}
 
-		return 0.5 - 0.5 * (x / sqrt(OnePlusSqX)) * s;
+		return 0.5 - 0.5 * (x / TMath::Sqrt(OnePlusSqX)) * s;
 	}
 	else { // if Df is odd
-		for (int j = 2; j < m + 2; ++j) {
+		for (int j = 2; j < Iters + 2; ++j) {
 			s += u;
-			u *= (1 - 1.0 / (2 * j - 1)) / OnePlusSqX;
+			u *= (1.0 - 1.0 / (2 * j - 1)) / OnePlusSqX;
 		}
 
 		return 0.5 - (x / OnePlusSqX * s + atan(x)) / TMath::Pi;

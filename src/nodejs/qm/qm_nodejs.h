@@ -865,7 +865,14 @@ private:
 	JsDeclareFunction(getStreamAggr);
 
 	//!- `strArr = base.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
-	JsDeclareFunction(getStreamAggrNames);	
+	JsDeclareFunction(getStreamAggrNames);
+
+	/**
+	 * Clears the store identified by the argument and removes it from its structures.
+	 *
+	 * @param {string} storeNm - name of the store
+	 */
+	JsDeclareFunction(deleteStore);
 	//!JSIMPLEMENT:src/qminer/qminer.js    
 };
 

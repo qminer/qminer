@@ -131,7 +131,11 @@ public:
   static double GetPowerCoef(const TFltV& XValV, double MinX=-1.0); // values (sampled from the distribution)
   static double GetPowerCoef(const TFltPrV& XValCntV, double MinX=-1.0); // (value, count) pairs
 
-  static double StudentCdf(const double& TVal, const int& Df);
+  // returns the value of the cumulative distribution function of the value specified be Val
+  // with Df degrees of freedom
+  static double StudentCdf(const double& Val, const int& Df);
+  // returns the value of the cumulative distribution function for a value 'Val' sampled from
+  // the normal distribution N(Mean, Std) with Df degrees of freedom
   static double StudentCdf(const double& Val, const double& Mean,
 	  const double& Std, const int& Df);
 };

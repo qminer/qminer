@@ -68,6 +68,7 @@ void TNodeJsFs::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_METHOD(exports, "mkdir", _mkdir);
     NODE_SET_METHOD(exports, "rmdir", _rmdir);
     NODE_SET_METHOD(exports, "listFile", _listFile);
+    NODE_SET_METHOD(exports, "readLines", _readLines);
 }
 
 void TNodeJsFs::openRead(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -228,6 +229,43 @@ void TNodeJsFs::listFile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         FNmArr->Set(v8::Integer::New(Isolate, FldN), v8::String::NewFromUtf8(Isolate, FNmV.GetVal(FldN).CStr()));
     }
     Args.GetReturnValue().Set(FNmArr);
+}
+
+void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() == 4, "TNodeJsFs::readLines: Invalid number of arguments!");
+
+    v8::Local<v8::Object> BuffObj = Args[0]->ToObject();
+	char* Buff = node::Buffer::Data(BuffObj);
+	size_t BuffLen = node::Buffer::Length(BuffObj);
+	TThinMIn SIn(Buff, BuffLen);
+
+//    v8::Handle<v8::Function> LineCallback = TNodeJsUtil::GetFldFun(Args[1]->ToObject(), "onLine");
+//    v8::Handle<v8::Function> EndCallback = TNodeJsUtil::GetFldFun(Args[1]->ToObject(), "onEnd");
+//    v8::Handle<v8::Function> ErrCallback = TNodeJsUtil::GetFldFun(Args[1]->ToObject(), "onError");
+
+    v8::Handle<v8::Function> LineCallback = TNodeJsUtil::GetArgFun(Args, 1);//TNodeJsUtil::GetFldFun(Args[1]->ToObject(), "onLine");
+	v8::Handle<v8::Function> EndCallback = TNodeJsUtil::GetArgFun(Args, 2);//TNodeJsUtil::GetFldFun(Args[1]->ToObject(), "onEnd");
+	v8::Handle<v8::Function> ErrCallback = TNodeJsUtil::GetArgFun(Args, 3);//TNodeJsUtil::GetFldFun(Args[1]->ToObject(), "onError");
+
+    TStr LineStr;
+    while (SIn.GetNextLn(LineStr)) {
+    	bool ContinueLoop = true;
+
+    	try {
+    		v8::Local<v8::String> LineV8Str = v8::String::NewFromUtf8(Isolate, LineStr.CStr());
+    		ContinueLoop = TNodeJsUtil::ExecuteBool(LineCallback, LineV8Str);
+    	} catch (const PExcept& Except) {
+    		TNodeJsUtil::ExecuteVoid(ErrCallback);
+    	}
+
+    	if (!ContinueLoop) { break; }
+    }
+
+    TNodeJsUtil::ExecuteVoid(EndCallback);
+    Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
 ///////////////////////////////

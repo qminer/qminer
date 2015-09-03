@@ -229,6 +229,15 @@ bool TNodeJsUtil::IsArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 	return Val->IsObject();
 }
 
+v8::Handle<v8::Function> TNodeJsUtil::GetArgFun(const v8::FunctionCallbackInfo<v8::Value>& Args,
+		const int& ArgN) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(IsArgFun(Args, ArgN), "The specified argument is not a function!");
+	return v8::Handle<v8::Function>::Cast(Args[ArgN]);
+}
+
 bool TNodeJsUtil::GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -428,6 +437,45 @@ bool TNodeJsUtil::IsFldClass(v8::Local<v8::Object> Obj, const TStr& FldNm, const
 	return ClassStr.EqI(ClassId);
 }
 
+bool TNodeJsUtil::IsFldFun(v8::Local<v8::Object> Obj, const TStr& FldNm) {
+	if (!IsObjFld(Obj, FldNm)) { return false; }
+
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+
+	return FldVal->IsFunction();
+}
+
+PJsonVal TNodeJsUtil::GetFldJson(v8::Local<v8::Object> Obj, const TStr& FldNm) {
+	return GetObjJson(GetFldObj(Obj, FldNm));
+}
+
+v8::Local<v8::Object> TNodeJsUtil::GetFldObj(v8::Local<v8::Object> Obj, const TStr& FldNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(IsObjFld(Obj, FldNm), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is missing!");
+	v8::Handle<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+	EAssertR(FldVal->IsObject(), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is not an object");
+	v8::Handle<v8::Object> FldObj = v8::Handle<v8::Object>::Cast(FldVal);
+
+	return FldObj;
+}
+
+v8::Local<v8::Function> TNodeJsUtil::GetFldFun(v8::Local<v8::Object> Obj, const TStr& FldNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(IsFldFun(Obj, FldNm), "The field is not a function!");
+
+	v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+	v8::Local<v8::Function> RetFun = v8::Handle<v8::Function>::Cast(FldVal);
+
+	return RetFun;
+}
+
 double TNodeJsUtil::ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -454,6 +502,14 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& Ar
 		TryCatch.ReThrow();
 		return;
 	}
+}
+
+void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Handle<v8::Value> ArgV[0] = {};
+	ExecuteVoid(Fun, 0, ArgV);
 }
 
 v8::Local<v8::Value> TNodeJsUtil::V8JsonToV8Str(const v8::Handle<v8::Value>& Json) {
