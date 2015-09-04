@@ -790,6 +790,7 @@ module.exports = exports = function (pathPrefix) {
         var k = param.k == undefined ? 2 : param.k;
         var verbose = param.verbose == undefined ? false : param.verbose;
         var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
+		var fitStart = param.fitStart == undefined ? undefined : param.fitStart;
 
         // Model
         var C = undefined;
@@ -856,6 +857,7 @@ module.exports = exports = function (pathPrefix) {
             k = param.k == undefined ? k : param.k;
             verbose = param.verbose == undefined ? verbose : param.verbose;
             fitIdx = param.fitIdx == undefined ? fitIdx : param.fitIdx;
+            fitStart = param.fitStart == undefined ? undefined : param.fitStart;
         }
 
         /**
@@ -890,19 +892,27 @@ module.exports = exports = function (pathPrefix) {
         this.fit = function (X) {
             // select random k columns of X, returns a dense C++ matrix
             var selectCols = function (X, k) {
-                var idx;
-                if (fitIdx == undefined) {
-                    idx = la.randi(X.cols, k);
-                } else {
-                    assert(fitIdx.length == k, "Error: fitIdx is not of length k!");
-                    assert(Math.max.apply(Math, fitIdx) < X.cols, "Error: fitIdx contains index greater than number of columns in matrix. Index out of range!");
-                    idx = fitIdx;
-                }
-                var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
-                for (var i = 0; i < idx.length; i++) {
-                    var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
-                    idxMat.push(spVec);
-                }
+                if (fitStart) {
+                    var existing_model = fitStart.getModel();
+                    assert(existing_model.C.cols == k, "Error: fitStart.C.cols is not of length k!");
+					var result = {};
+					result.C = existing_model.C;
+					result.idx = la.randi(X.cols, k); // this assignment is irrelevant, really
+					return result;
+				}
+				var idx;
+				if (fitIdx == undefined) {
+					idx = la.randi(X.cols, k);
+				} else {
+					assert(fitIdx.length == k, "Error: fitIdx is not of length k!");
+					assert(Math.max.apply(Math, fitIdx) < X.cols, "Error: fitIdx contains index greater than number of columns in matrix. Index out of range!");
+					idx = fitIdx;
+				}
+				var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
+				for (var i = 0; i < idx.length; i++) {
+					var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
+					idxMat.push(spVec);
+				}
                 var C = X.multiply(idxMat);
                 var result = {};
                 result.C = C;
