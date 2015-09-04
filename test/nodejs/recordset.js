@@ -375,6 +375,25 @@ describe('Record Set Tests', function () {
             assert.equal(recSet2.length, 1);
             assert.equal(recSet2[0].Name, "Blaz Fortuna");
         })
+        it.skip('should throw exception due to invalid field name', function () {
+            recSet2.filterByField("ZBLJ", "Blaz Fortuna");
+        })
+        it('should keep only the "Blaz Fortuna" record, search by min-max', function () {
+            var xrs = recSet2.filterByField("Name", "Blaz", "Bz");
+            assert.equal(xrs.length, 1);
+            assert.equal(xrs[0].Name, "Blaz Fortuna");
+        })
+        it('should keep all records record, search by min-max', function () {
+            var xrs = recSet3.filterByField("Player", "Aa", "Zz");
+            assert.equal(xrs.length, 3);
+            assert.equal(xrs[0].Player, "Goran Dragic");
+            assert.equal(xrs[1].Player, "Michael Jordan");
+            assert.equal(xrs[2].Player, "Marko Milic");
+        })
+        it('should return empty recordset, search by min-max', function () {
+            var xrs = recSet2.filterByField("Name", "Aa", "Ab");
+            assert.equal(xrs.length, 0);
+        })
         it('should keep only the "Every Day" record', function () {
             recSet.filterByField("Rating", 5.5, 5.7);
             assert.equal(recSet.length, 1);
