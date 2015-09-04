@@ -1456,8 +1456,8 @@ module.exports = exports = function (pathPrefix) {
     		obsFtrSpace = new qm.FeatureSpace(opts.base, opts.obsFields);
     		controlFtrSpace = new qm.FeatureSpace(opts.base, opts.contrFields);
     	}
-    	else if (opts.hmcFile != null) {
-    		var fin = new fs.FIn(opts.hmcFile);
+    	else if (opts.fname != null) {
+    		var fin = new fs.FIn(opts.fname);
     		mc = new exports._StreamStory(fin);
     		obsFtrSpace = new qm.FeatureSpace(opts.base, fin);
     		controlFtrSpace = new qm.FeatureSpace(opts.base, fin);
