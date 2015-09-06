@@ -673,9 +673,9 @@ public:
   /// Get substring from the character after last occurrence of SplitCh till the end
   TStr RightOfLast(const char& SplitCh) const;
   /// Remove the StartStr if it occurs at the beginning of the string
-  TStr TrimLeft(const TStr& StartStr) const { return StartsWith(StartStr) ? GetSubStr(StartStr.Len()) : TStr(*this); }
+  TStr TrimLeft(const TStr& StartStr) const { return StartsWith(StartStr) ? GetSubStrSafe(StartStr.Len()) : TStr(*this); }
   /// Remove the EndStr if it occurs at the end of the string
-  TStr TrimRight(const TStr& EndStr) const { return EndsWith(EndStr) ? GetSubStr(0, Len() - EndStr.Len() - 1) : TStr(*this); }
+  TStr TrimRight(const TStr& EndStr) const { return EndsWith(EndStr) ? GetSubStrSafe(0, Len() - EndStr.Len() - 1) : TStr(*this); }
 
   /// Puts the contents to the left of LeftOfChN (exclusive) into LStr and the 
   /// contents on the right of RightOfChN into RStr (exclusive)
