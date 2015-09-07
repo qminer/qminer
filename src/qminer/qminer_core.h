@@ -1140,15 +1140,41 @@ private:
 	/// Field according to which we are sorting
 	TInt FieldId;
 	/// String value
-	const TStr& StrVal;
+    const TStr& StrVal;
 public:
 	TRecFilterByFieldStr(const TWPt<TStore>& _Store, const int& _FieldId, 
-		const TStr& _StrVal): Store(_Store), FieldId(_FieldId), StrVal(_StrVal) { }
+        const TStr& _StrVal) : 
+        Store(_Store), FieldId(_FieldId), StrVal(_StrVal) { }
 	
 	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-		const TStr RecVal = Store->GetFieldStr(RecIdWgt.Key, FieldId);
-		return StrVal == RecVal;
+        const TStr RecVal = Store->GetFieldStr(RecIdWgt.Key, FieldId);
+        return StrVal == RecVal;
 	}
+};
+
+///////////////////////////////
+/// Record Filter by String Field. 
+class TRecFilterByFieldStrMinMax {
+private:
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// String value - min
+    const TStr& StrValMin;
+    /// String value - max
+    const TStr& StrValMax;
+    /// Check is exact match with StrVal, otherwise do min-max
+    bool CheckExact;
+public:
+    TRecFilterByFieldStrMinMax(const TWPt<TStore>& _Store, const int& _FieldId,
+        const TStr& _StrVal, const TStr& _StrValMax) :
+        Store(_Store), FieldId(_FieldId), StrValMin(_StrVal), StrValMax(_StrValMax) {}
+
+    bool operator()(const TUInt64IntKd& RecIdWgt) const {
+        const TStr RecVal = Store->GetFieldStr(RecIdWgt.Key, FieldId);
+        return (StrValMin <= RecVal) && (RecVal <= StrValMax);
+    }
 };
 
 ///////////////////////////////
@@ -1348,7 +1374,9 @@ public:
 	/// Filter records to keep only the ones with values of a given field within given range
 	void FilterByFieldFlt(const int& FieldId, const double& MinVal, const double& MaxVal);
 	/// Filter records to keep only the ones with values of a given field equal to `FldVal'
-	void FilterByFieldStr(const int& FieldId, const TStr& FldVal);
+    void FilterByFieldStr(const int& FieldId, const TStr& FldVal);
+    /// Filter records to keep only the ones with values of a given field between `FldValMin' and `FldValMax' (both inclusive)
+    void FilterByFieldStrMinMax(const int& FieldId, const TStr& FldValMin, const TStr& FldValMax);
 	/// Filter records to keep only the ones with values of a given field present in `ValSet'
 	void FilterByFieldStrSet(const int& FieldId, const TStrSet& ValSet);
 	/// Filter records to keep only the ones with values of a given field within given range
