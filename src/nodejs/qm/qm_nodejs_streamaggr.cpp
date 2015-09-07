@@ -50,6 +50,7 @@ void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 	// Properties 
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "name"), _name);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "val"), _val);
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
 
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
@@ -534,6 +535,15 @@ void TNodeJsSA::val(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Self);
 	Info.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsSA->SA->SaveJson(-1)));
+}
+
+void TNodeJsSA::init(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Object> Self = Info.Holder();
+	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Self);
+	Info.GetReturnValue().Set(JsSA->SA->IsInit());
 }
 
 ///////////////////////////////

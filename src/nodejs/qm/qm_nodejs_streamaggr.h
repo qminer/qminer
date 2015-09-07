@@ -1419,19 +1419,23 @@ public:
 	//# exports.StreamAggr.prototype.getNumberOfRecords = function () { return 0; };
 	JsDeclareFunction(getNumberOfRecords);
 
-	//!- `str = sa.name` -- returns the name (unique) of the stream aggregate
 	/**
 	* Returns the name of the stream aggregate.
 	*/
 	//# exports.StreamAggr.prototype.name = "";
 	JsDeclareProperty(name);
 
-	//!- `objJSON = sa.val` -- same as sa.saveJson(-1)
 	/**
 	* Returns the JSON object of the stream aggregate. Same as the method saveJson.
 	*/
 	//# exports.StreamAggr.prototype.val = undefined;
 	JsDeclareProperty(val);
+
+    /**
+	* Returns true when the stream aggregate has enough data to initialize its internal state.
+	*/
+	//# exports.StreamAggr.prototype.init = false;
+	JsDeclareProperty(init);
 };
 
 ///////////////////////////////
