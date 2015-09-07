@@ -11,7 +11,6 @@
 
 var fs = require('fs');
 var readline = require('readline');
-var streamifier = require('streamifier');
 
 exports.isObject = function (arg) {
     if (arg) {
