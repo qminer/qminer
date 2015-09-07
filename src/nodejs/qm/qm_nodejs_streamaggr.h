@@ -820,10 +820,6 @@ public:
 	// C++ wrapped object
 	TWPt<TQm::TStreamAggr> SA;
 
-	//! 
-	//! **Functions and properties:**
-	//! 	
-	//!- `sa = sa.onAdd(rec)` -- executes onAdd function given an input record `rec` and returns self
 	/**
 	* Executes the function when a new record is put in store.
 	* @param {module:qm.Record} rec - The record given to the stream aggregator.
@@ -832,7 +828,6 @@ public:
 	//# exports.StreamAggr.prototype.onAdd = function (rec) { return Object.create(require('qminer').StreamAggr.prototype); };
 	JsDeclareFunction(onAdd);
 
-	//!- `sa = sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` and returns self
 	/**
 	* Executes the function when a record in the store is updated.
 	* @param {module:qmRecord} rec - The updated record given to the stream aggregator.
@@ -841,7 +836,6 @@ public:
 	//# exports.StreamAggr.prototype.onUpdate = function (rec) { return Object.create(require('qminer').StreamAggr.prototype); };
 	JsDeclareFunction(onUpdate);
 
-	//!- `sa = sa.onDelete(rec)` -- executes onDelete function given an input record `rec` and returns self
 	/**
 	* Executes the function when a record in the store is deleted.
 	* @param {module:qm.Record} rec - The deleted record given to the stream aggregator.
@@ -850,7 +844,6 @@ public:
 	//# exports.StreamAggr.prototype.onDelete = function (rec) { return Object.create(require('qminer').StreamAggr.prototype); };
 	JsDeclareFunction(onDelete);
 	
-	//!- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
 	/**
 	* When executed it return a JSON object as defined by the user.
 	* @param {number} [limit] - The meaning is specific to each type of stream aggregator.
@@ -859,7 +852,6 @@ public:
 	//# exports.StreamAggr.prototype.saveJson = function (limit) {};
 	JsDeclareFunction(saveJson);
 
-	//!- `fout = sa.save(fout)` -- executes save function given output stream `fout` as input. returns `fout`.
 	/**
 	* Saves the current state of the stream aggregator.
 	* @param {module:fs.FOut} fout - The output stream.
@@ -868,7 +860,6 @@ public:
 	//# exports.StreamAggr.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 	JsDeclareFunction(save);
 	
-	//!- `sa = sa.load(fin)` -- executes load function given input stream `fin` as input. returns self.
 	/**
 	* Loads the stream aggregator, that has been previously saved.
 	* @param {module:fs.FIn} fin - The input stream.
@@ -876,12 +867,11 @@ public:
 	*/
 	//# exports.StreamAggr.prototype.load = function (fin) { return Object.create(require('qminer').StreamAggr.prototype); }
 	JsDeclareFunction(load);
+
 	// IInt
 	//!- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
 	JsDeclareFunction(getInteger);
 
-	// IFlt
-	//!- `num = sa.getFlt()` -- returns a number if sa implements the interface IFlt
 	/**
 	* Returns the value of the specific stream aggregator. For return values see {@link module:qm~StreamAggregators}.
 	* @returns {number} The value of the stream aggregator.
@@ -931,8 +921,6 @@ public:
 	//# exports.StreamAggr.prototype.getFloat = function () { return 0; };
 	JsDeclareFunction(getFloat);
 
-	// ITm
-	//!- `num = sa.getTm()` -- returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)
 	/**
 	* Returns the timestamp value of the newest record in buffer.
 	* @returns {number} The timestamp of the newest record. It represents the number of miliseconds between the record time and 01.01.1601 time: 00:00:00.0.
@@ -981,8 +969,6 @@ public:
 	//# exports.StreamAggr.prototype.getTimestamp = function () { return 0; };
 	JsDeclareFunction(getTimestamp);
 	
-	// IFltVec
-	//!- `num = sa.getFltLen()` -- returns a number (internal vector length) if sa implements the interface IFltVec.
 	/**
 	* Gets the length of the vector containing the values of the stream aggregator.
 	* @returns {number} The length of the vector.
@@ -1023,7 +1009,6 @@ public:
 	//# exports.StreamAggr.prototype.getFloatLength = function () { return 0; };
 	JsDeclareFunction(getFloatLength);
 
-	//!- `num = sa.getFltAt(idx)` -- returns a number (element at index) if sa implements the interface IFltVec.
 	/**
 	* Returns the value of the vector containing the values of the stream aggregator at a specific index.
 	* @param {number} idx - The index.
@@ -1065,7 +1050,6 @@ public:
 	//# exports.StreamAggr.prototype.getFloatAt = function (idx) { return 0; };
 	JsDeclareFunction(getFloatAt);
 	
-	//!- `vec = sa.getFltV()` -- returns a dense vector if sa implements the interface IFltVec.
 	/**
 	* Gets the whole vector of values of the stream aggregator.
 	* @returns {module:la.Vector} The vector containing the values of the buffer.
@@ -1106,8 +1090,6 @@ public:
 	//# exports.StreamAggr.prototype.getFloatVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getFloatVector);
 
-	// ITmVec
-	//!- `num = sa.getTmLen()` -- returns a number (timestamp vector length) if sa implements the interface ITmVec.
 	/**
 	* Gets the length of the timestamp vector of the stream aggregator.
 	* @returns {number} The length of the timestamp vector.
@@ -1151,7 +1133,6 @@ public:
 	//# exports.StreamAggr.prototype.getTimestampLength = function () { return 0; };
 	JsDeclareFunction(getTimestampLength);
 
-	//!- `num = sa.getTmAt(idx)` -- returns a number (windows timestamp at index) if sa implements the interface ITmVec.
 	/**
 	* Gets the timestamp from the timestamp vector of the stream aggregator at the specific index.
 	* @param {number} idx - The index.
@@ -1194,7 +1175,6 @@ public:
 	//# exports.StreamAggr.prototype.getTimestampAt = function (idx) { return 0; };
 	JsDeclareFunction(getTimestampAt);
 
-	//!- `vec = sa.getTmV()` -- returns a dense vector of windows timestamps if sa implements the interface ITmVec.
 	/**
 	* Gets the vector containing the timestamps of the stream aggregator.
 	* @returns {module:la.Vector} The vector containing the timestamps.
@@ -1234,8 +1214,6 @@ public:
 	//# exports.StreamAggr.prototype.getTimestampVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getTimestampVector);
 	
-	// IFltTmIO
-	//!- `num = sa.getInFlt()` -- returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.
 	/**
 	* Gets the value of the newest record added to the stream aggregator.
 	* @returns {number} The value of the newest record in the buffer.
@@ -1276,7 +1254,6 @@ public:
 	//# exports.StreamAggr.prototype.getInFloat = function () { return 0; };
 	JsDeclareFunction(getInFloat);
 
-	//!- `num = sa.getInTm()` -- returns a number (windows timestamp arriving in the buffer) if sa implements the interface IFltTmIO.
 	/**
 	* Gets the timestamp of the newest record added to the stream aggregator.
 	* @returns {number} The timestamp given as the number of miliseconds since 01.01.1601, time: 00:00:00.0.
@@ -1317,7 +1294,6 @@ public:
 	//# exports.StreamAggr.prototype.getInTimestamp = function () { return 0; };
 	JsDeclareFunction(getInTimestamp);
 	
-	//!- `vec = sa.getOutFltV()` -- returns a dense vector (values leaving the buffer) if sa implements the interface IFltTmIO.
 	/**
 	* Gets a vector containing the values that are leaving the stream aggregator.
 	* @returns {module:la.Vector} The vector containing the values that are leaving the buffer.
@@ -1360,7 +1336,6 @@ public:
 	//# exports.StreamAggr.prototype.getOutFloatVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getOutFloatVector);
 
-	//!- `vec = sa.getOutTmV()` -- returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.
 	/**
 	* Gets a vector containing the timestamps that are leaving the stream aggregator.
 	* @returns {module:la.Vector} The vector containing the leaving timestamps.
@@ -1404,7 +1379,6 @@ public:
 	//# exports.StreamAggr.prototype.getOutTimestampVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getOutTimestampVector);
 
-	//!- `num = sa.getN()` -- returns a number of records in the input buffer if sa implements the interface IFltTmIO.
 	/**
 	* Gets the number of records in the stream aggregator.
 	* @returns {number} The number of records in the buffer.
@@ -1465,8 +1439,6 @@ public:
 class TNodeJsStreamAggr :
 	public TQm::TStreamAggr,
 	public TQm::TStreamAggrOut::IInt,
-	//public TQm::TStreamAggrOut::IFlt,	
-	//public TQm::TStreamAggrOut::ITm,
 	public TQm::TStreamAggrOut::IFltTmIO,
 	public TQm::TStreamAggrOut::IFltVec,
 	public TQm::TStreamAggrOut::ITmVec,
@@ -1474,7 +1446,6 @@ class TNodeJsStreamAggr :
 	public TQm::TStreamAggrOut::INmInt,
 	// combinations
 	public TQm::TStreamAggrOut::IFltTm
-	//public TQm::TStreamAggrOut::IFltVecTm
 {
 private:	
 	// callbacks

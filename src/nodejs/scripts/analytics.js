@@ -207,7 +207,7 @@ module.exports = exports = function (pathPrefix) {
          * // create the vector for the decisionFunction
          * var test = new la.Vector([1, 2]);
          * // give the vector to the decision function
-         * var prediction = onevsall.predict(test); // returns the vector of scores 
+         * var prediction = onevsall.predict(test); // returns the vector of scores
          */
         this.decisionFunction = function(X) {
             // check what is our input
@@ -292,7 +292,7 @@ module.exports = exports = function (pathPrefix) {
          * var vector = new la.Vector([0, 0, 1, 1]);
          * // fit the model
          * onevsall.fit(matrix, vector);
-         */        
+         */
         this.fit = function(X, y) {
             models = [ ];
             // make model for each category
@@ -694,7 +694,7 @@ module.exports = exports = function (pathPrefix) {
             param = p;
 
             iter = param.iter == undefined ? iter : param.iter;
-            k = param.k == undefined ? k : param.iter; 
+            k = param.k == undefined ? k : param.iter;
         }
 
         /**
@@ -779,7 +779,7 @@ module.exports = exports = function (pathPrefix) {
     * var KMeans = new analytics.KMeans();
     * // create the matrix to be fitted
     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
-    * // create the model 
+    * // create the model
     * KMeans.fit(X);
     */
     exports.KMeans = function (param) {
