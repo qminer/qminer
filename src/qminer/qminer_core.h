@@ -1153,7 +1153,7 @@ public:
 };
 
 ///////////////////////////////
-/// Record Filter by String Field. 
+/// Record Filter by String Field Range.
 class TRecFilterByFieldStrMinMax {
 private:
     /// Store from which we are sorting the records 
@@ -1164,8 +1164,6 @@ private:
     const TStr& StrValMin;
     /// String value - max
     const TStr& StrValMax;
-    /// Check is exact match with StrVal, otherwise do min-max
-    bool CheckExact;
 public:
     TRecFilterByFieldStrMinMax(const TWPt<TStore>& _Store, const int& _FieldId,
         const TStr& _StrVal, const TStr& _StrValMax) :
