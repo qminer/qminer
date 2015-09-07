@@ -1613,10 +1613,11 @@ v8::Local<v8::Object> TNodeJsRec::NewInstance(TNodeJsRec* JsRec) {
 	QmAssertR(TNodeJsQm::BaseFPathToId.IsKey(Rec.GetStore()->GetBase()->GetFPath()),
         "TNodeJsRec::NewInstance: Base Id not found!");
 	uint BaseId = TNodeJsQm::BaseFPathToId.GetDat(Rec.GetStore()->GetBase()->GetFPath());
-	EAssertR(!BaseStoreIdConstructor[BaseId][Rec.GetStoreId()].IsEmpty(),
+	const uint StoreId = Rec.GetStoreId();
+	EAssertR(!BaseStoreIdConstructor[BaseId][StoreId].IsEmpty(),
         "TNodeJsRec::NewInstance: constructor is empty. Did you call TNodeJsRec::Init(exports)?");
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(
-        Isolate, BaseStoreIdConstructor[BaseId][Rec.GetStoreId()]);
+        Isolate, BaseStoreIdConstructor[BaseId][StoreId]);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 	JsRec->Wrap(Instance);
 	return HandleScope.Escape(Instance);
