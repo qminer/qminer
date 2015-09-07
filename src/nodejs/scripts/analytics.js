@@ -771,6 +771,8 @@ module.exports = exports = function (pathPrefix) {
     * @property {number} iter - The maximum number of iterations.
     * @property {number} k - The number of centroids.
     * @property {boolean} verbose - If false, the console output is supressed.
+    * @property {Array} fitIdx - Array of indexes that should be used as starting centroids. Optional.
+    * @property {model} fitStart - Model from another KMeans algorithm (obtained via getModel() method). Its centroids are used as starting centroids for this model. Optional.
     * @example
     * // import analytics and la modules
     * var analytics = require('qminer').analytics;
@@ -893,10 +895,9 @@ module.exports = exports = function (pathPrefix) {
             // select random k columns of X, returns a dense C++ matrix
             var selectCols = function (X, k) {
                 if (fitStart) {
-                    var existing_model = fitStart.getModel();
-                    assert(existing_model.C.cols == k, "Error: fitStart.C.cols is not of length k!");
+                    assert(fitStart.C.cols == k, "Error: fitStart.C.cols is not of length k!");
 					var result = {};
-					result.C = existing_model.C;
+					result.C = fitStart.C;
 					result.idx = la.randi(X.cols, k); // this assignment is irrelevant, really
 					return result;
 				}
