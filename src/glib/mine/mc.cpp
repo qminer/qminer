@@ -76,8 +76,10 @@ PStateIdentifier TStateIdentifier::Load(TSIn& SIn) {
 	}
 }
 
-void TStateIdentifier::Init(const TFullMatrix& X, const TFltVV& ControlFtrVV) {
+void TStateIdentifier::Init(TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV) {
 	EAssertR(Sample >= 0, "Cannot sample a negative number of instances!");
+
+	const TFullMatrix X(ObsFtrVV, true);	// TODO remove TFullMatrix
 
 	const int NInst = X.GetCols();
 
@@ -253,6 +255,8 @@ void TStateIdentifier::GetCentroidVV(TVec<TFltV>& CentroidVV) const {
 }
 
 void TStateIdentifier::GetControlCentroidVV(TStateFtrVV& StateFtrVV) const {
+//	if (ControlCentroidMat.Empty()) { return; }	// no control features
+
 	const int Cols = ControlCentroidMat.GetCols();
 	const int Rows = ControlCentroidMat.GetRows();
 
@@ -1621,6 +1625,7 @@ void TCtMChain::InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV,
 				const double Label = LabelV[i];
 				if (Label > 0) {
 					AllZero = false;
+					break;
 				}
 			}
 			EAssertR(!AllZero, "WTF!? How did a zero vector get here???");
@@ -2221,46 +2226,41 @@ PJsonVal TStreamStory::GetJson() const {
 	return Result;
 }
 
-void TStreamStory::Init(const TFullMatrix& ObservFtrMat, const TFullMatrix& ContrFtrMat,
-		const TUInt64V& RecTmV) {
-	TFltVV FtrVV;	CreateFtrVV(ObservFtrMat.GetMat(), ContrFtrMat.GetMat(), RecTmV, TBoolV(), FtrVV);
+void TStreamStory::Init(TFltVV& ObservFtrVV, TFltVV& ControlFtrVV, const TUInt64V& RecTmV) {
+	TFltVV FtrVV;	CreateFtrVV(ObservFtrVV, ControlFtrVV, RecTmV, TBoolV(), FtrVV);
 
-	TIntV AssignV;	InitClust(ObservFtrMat, FtrVV, AssignV);
+	TIntV AssignV;	InitClust(ObservFtrVV, FtrVV, AssignV);
 	InitMChain(FtrVV, AssignV, RecTmV, false, TBoolV());
 	InitHierarch();
-	InitStateAssist(ObservFtrMat);
+	InitStateAssist(ObservFtrVV);
 
-	FtrFactorV.Gen(ContrFtrMat.GetRows());
+	FtrFactorV.Gen(ControlFtrVV.GetRows());
 	for (int i = 0; i < FtrFactorV.Len(); i++) {
 		FtrFactorV[i] = 1;
 	}
 }
 
-void TStreamStory::Init(TFltVV& ObservFtrs, TFltVV& ControlFtrs, const TUInt64V& RecTmV) {
-	Init(TFullMatrix(ObservFtrs, true), TFullMatrix(ControlFtrs, true), RecTmV);
-}
-
-void TStreamStory::InitBatches(const TFullMatrix& ObservMat, const TFullMatrix& ContrFtrMat,
+void TStreamStory::InitBatches(TFltVV& ObservFtrVV, const TFltVV& ContrFtrVV,
 		const TUInt64V& RecTmV, const TBoolV& BatchEndV) {
 	CheckBatches(RecTmV, BatchEndV);
 
-	TFltVV FtrVV;	CreateFtrVV(ObservMat.GetMat(), ContrFtrMat.GetMat(), RecTmV, BatchEndV, FtrVV);
+	TFltVV FtrVV;	CreateFtrVV(ObservFtrVV, ContrFtrVV, RecTmV, BatchEndV, FtrVV);
 
-	TIntV AssignV;	InitClust(ObservMat, FtrVV, AssignV);
+	TIntV AssignV;	InitClust(ObservFtrVV, FtrVV, AssignV);
 	InitMChain(FtrVV, AssignV, RecTmV, true, BatchEndV);
 	InitHierarch();
-	InitStateAssist(ObservMat);
+	InitStateAssist(ObservFtrVV);
 
-	FtrFactorV.Gen(ContrFtrMat.GetRows());
+	FtrFactorV.Gen(ContrFtrVV.GetRows());
 	for (int i = 0; i < FtrFactorV.Len(); i++) {
 		FtrFactorV[i] = 1;
 	}
 }
 
-void TStreamStory::InitClust(const TFullMatrix& ObsMat, const TFltVV& FtrVV,
+void TStreamStory::InitClust(TFltVV& ObsFtrVV, const TFltVV& FtrVV,
 		TIntV& AssignV) {
-	StateIdentifier->Init(ObsMat, FtrVV);
-	StateIdentifier->Assign(ObsMat.GetMat(), AssignV);
+	StateIdentifier->Init(ObsFtrVV, FtrVV);
+	StateIdentifier->Assign(ObsFtrVV, AssignV);
 }
 
 void TStreamStory::InitMChain(const TFltVV& FtrVV, const TIntV& AssignV,
@@ -2278,8 +2278,8 @@ void TStreamStory::InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlMat
 	StateIdentifier->InitHistogram(ObsMat, FtrVV);
 }
 
-void TStreamStory::InitStateAssist(const TFullMatrix& X) {
-	StateAssist->Init(X, StateIdentifier, Hierarch);
+void TStreamStory::InitStateAssist(TFltVV& ObsFtrVV) {
+	StateAssist->Init(TFullMatrix(ObsFtrVV, true), StateIdentifier, Hierarch);
 }
 
 void TStreamStory::OnAddRec(const uint64& RecTm, const TFltV& ObsFtrV, const TFltV& ContrFtrV) {

@@ -81,7 +81,7 @@ public:
 	static PStateIdentifier Load(TSIn& SIn);
 
 	// performs the clustering
-	void Init(const TFullMatrix& ObsMat, const TFltVV& FtrVV);
+	void Init(TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV);
 	// initializes histograms for every feature
 	void InitHistogram(const TFltVV& ObsMat, const TFltVV& ControlFtrVV);
 
@@ -770,18 +770,17 @@ public:
 
 	// update methods
 	// initializes the model
-	void Init(const TFullMatrix& ObservMat, const TFullMatrix& ControlMat, const TUInt64V& RecTmV);
 	void Init(TFltVV& ObservVV, TFltVV& ControlVV, const TUInt64V& RecTmV);
-	void InitBatches(const TFullMatrix& ObservFtrs, const TFullMatrix& ControlFtrs,
+	void InitBatches(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV,
 			const TUInt64V& RecTmV, const TBoolV& BatchEndV);
-	void InitClust(const TFullMatrix& ObsMat, const TFltVV& FtrVV,
-			TIntV& AssignV);
+	void InitClust(TFltVV& ObsFtrVV, const TFltVV& FtrVV,
+			TIntV& AssignV);	// TODO add const
 	void InitMChain(const TFltVV& FtrVV, const TIntV& AssignV, const TUInt64V& RecTmV,
 			const bool IsBatchData, const TBoolV& EndBatchV);
 	void InitHierarch();
 	void InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlMat,
 			const TUInt64V& RecTmV, const TBoolV& BatchEndV);
-	void InitStateAssist(const TFullMatrix& X);
+	void InitStateAssist(TFltVV& ObsFtrVV);	// TODO add const
 
 	void OnAddRec(const uint64& RecTm, const TFltV& ObsFtrV, const TFltV& ContrFtrV);
 
