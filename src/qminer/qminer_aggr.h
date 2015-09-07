@@ -563,7 +563,7 @@ public:
 	void _Save(TSOut& SOut) const { Signal.Save(SOut); }
 
 	// did we finished initialization
-	bool isInit() const { return true; }
+	bool IsInit() const { return Signal.IsInit(); }
 	// current values
 	double GetFlt() const { return Signal.GetValue(); }
 	uint64 GetTmMSecs() const { return Signal.GetTmMSecs(); }
