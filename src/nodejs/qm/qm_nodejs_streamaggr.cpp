@@ -263,17 +263,10 @@ void TNodeJsSA::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	// unwrap
 	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
-	TWPt<TQm::TStreamAggr> SA = JsSA->SA;
-	// TODO
-	throw TQm::TQmExcept::New("sa.save not implemented yet!");
-	//PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
-	//JsSA->SA->_Save(*SOut);
-	//if (JsSA->SA->Type() == "javaScript") {
-	//	auto SA = dynamic_cast<TJsStreamAggr*>(JsSA->SA());
-	//	JsSA->Js->Execute(SA->SaveFun, Args[0]);
+    TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
 
-	//}
-	//return HandleScope.Close(Args[0]);
+    // save
+	JsSA->SA->SaveState(*JsFOut->SOut);
 
 	Args.GetReturnValue().Set(Args.Holder());
 }
@@ -281,18 +274,13 @@ void TNodeJsSA::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSA::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-
+    
 	// unwrap
 	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
-	TWPt<TQm::TStreamAggr> SA = JsSA->SA;
-	throw TQm::TQmExcept::New("sa.load not implemented yet!");
+    TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
 
-	//PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
-	//JsSA->SA->_Load(*SIn);
-	//if (JsSA->SA->Type() == "javaScript") {
-	//	auto SA = dynamic_cast<TJsStreamAggr*>(JsSA->SA());
-	//	JsSA->Js->Execute(SA->LoadFun, Args[0]);
-	//}
+    // save
+	JsSA->SA->LoadState(*JsFIn->SIn);
 
 	Args.GetReturnValue().Set(Args.Holder());
 }

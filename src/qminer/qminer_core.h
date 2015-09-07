@@ -2513,12 +2513,13 @@ public:
 	
 	/// Load stream aggregate from stream
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
-	/// Load stream aggregate state from stream
-	virtual void _Load(TSIn& SIn) { throw TQmExcept::New("TStreamAggr::_Load not implemented:" + GetAggrNm()); };
 	/// Save basic class of stream aggregate to stream
 	virtual void Save(TSOut& SOut) const;
+
+	/// Load stream aggregate state from stream
+	virtual void LoadState(TSIn& SIn);
 	/// Save state of stream aggregate to stream
-	virtual void _Save(TSOut& SOut) const { throw TQmExcept::New("TStreamAggr::_Save not implemented:" + GetAggrNm()); };
+	virtual void SaveState(TSOut& SOut) const;
 
 	/// Get aggregate name
 	const TStr& GetAggrNm() const { return AggrNm; }

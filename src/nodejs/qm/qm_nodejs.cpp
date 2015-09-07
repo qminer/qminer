@@ -426,6 +426,7 @@ TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>&
 	uint64 IndexCache = (uint64)Val->GetObjInt("indexCache", 1024) * (uint64)TInt::Mega;
 	uint64 StoreCache = (uint64)Val->GetObjInt("storeCache", 1024) * (uint64)TInt::Mega;
 
+    // load unicode
 	TStr UnicodeFNm = Val->GetObjStr("unicode", TQm::TEnv::QMinerFPath + "./UnicodeDef.Bin");
 	if (!TUnicodeDef::IsDef()) { TUnicodeDef::Load(UnicodeFNm); }
 	// Load Stopword Files
