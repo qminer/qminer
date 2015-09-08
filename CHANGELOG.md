@@ -1,5 +1,22 @@
 # QMiner Change Log
 
+### 4 Sep 2015
+
+**New version: 2.2.0**
+
+**non-breaking with new features**
+
+Features:
+
+- TPath with functions for editing file and path strings
+- Added compile flags to `qm.flags`
+- Added recset.FilterByFieldStr which takes two strings and keeps all that are between. Exposed in JS API
+
+Bug fixes:
+
+- TUInt64 now has Mx and Mn fields of type uint64
+- TInt64 now has Mx and Mn fields of type int64
+
 ### 28 Aug 2015
 
 **New version: 2.1.1**
