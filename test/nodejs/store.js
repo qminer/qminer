@@ -33,6 +33,7 @@ function EmptyStore() {
 
 
 describe('Empty Store Tests', function () {
+    this.timeout(10000);
 
     var table = undefined;
     beforeEach(function () {
@@ -169,6 +170,7 @@ function Store() {
 };
 
 describe('Store Tests', function () {
+    this.timeout(10000);
 
     var table = undefined;
     beforeEach(function () {
@@ -412,7 +414,7 @@ function TStore() {
 };
 
 describe("Two Store Tests", function () {
-
+    this.timeout(10000);
     var table = undefined;
     beforeEach(function () {
         table = new TStore();
@@ -773,6 +775,7 @@ describe("Two Store Tests", function () {
 // AddTrigger
 
 describe('AddTrigger Tests', function () {
+    this.timeout(10000);
 
     var table = undefined;
     beforeEach(function () {
@@ -845,6 +848,7 @@ describe('AddTrigger Tests', function () {
 // Query
 
 describe('Query Tests', function () {
+    this.timeout(10000);
 
     var table = undefined;
     beforeEach(function () {

@@ -229,18 +229,70 @@ void TRnd::SaveTxt(TOLx& Lx) const {
 }
 
 /////////////////////////////////////////////////
+/// Thin Input-Memory
+TThinMIn::TThinMIn(const TMemBase& Mem) :
+TSBase("Thin input memory"), TSIn("Thin input memory"), Bf(NULL), BfC(0), BfL(0) {
+
+	Bf = (uchar*)Mem.GetBf();
+	BfL = Mem.Len();
+}
+
+TThinMIn::TThinMIn(const void* _Bf, const int& _BfL) :
+TSBase("Thin input memory"), TSIn("Thin input memory"),
+Bf(NULL), BfC(0), BfL(_BfL) {
+
+	Bf = (uchar*)_Bf;
+}
+
+TThinMIn::TThinMIn(const TThinMIn& min) :
+TSBase("Thin input memory"), TSIn("Thin input memory") {
+	Bf = min.Bf;
+	BfL = min.BfL;
+	BfC = min.BfC;
+}
+
+char TThinMIn::GetCh() {
+	IAssertR(BfC<BfL, "Reading beyond the end of stream.");
+	return Bf[BfC++];
+}
+
+char TThinMIn::PeekCh() {
+	IAssertR(BfC<BfL, "Reading beyond the end of stream.");
+	return Bf[BfC];
+}
+
+int TThinMIn::GetBf(const void* LBf, const TSize& LBfL) {
+	IAssert(TSize(BfC + LBfL) <= TSize(BfL));
+	int LBfS = 0;
+	for (TSize LBfC = 0; LBfC<LBfL; LBfC++) {
+		LBfS += (((char*)LBf)[LBfC] = Bf[BfC++]);
+	}
+	return LBfS;
+}
+
+void TThinMIn::MoveTo(int Offset) {
+	IAssertR(Offset<BfL, "Reading beyond the end of stream.");
+	BfC = Offset;
+}
+
+bool TThinMIn::GetNextLnBf(TChA& LnChA) {
+	FailR("TMIn::GetNextLnBf: not implemented"); return false;
+}
+
+/////////////////////////////////////////////////
 // Memory
 void TMem::Resize(const int& _MxBfL){
   if (_MxBfL<=MxBfL){return;}
   else {if (MxBfL*2<_MxBfL){MxBfL=_MxBfL;} else {MxBfL*=2;}}
   char* NewBf=new char[MxBfL]; IAssert(NewBf!=NULL);
   if (BfL>0){memcpy(NewBf, Bf, BfL);}
-  if (Bf!=NULL){delete[] Bf;}
+  if (Bf!=NULL && Owner){delete[] Bf;}
+  Owner = true;
   Bf=NewBf;
 }
 
-TMem::TMem(const TStr& Str):
-  MxBfL(Str.Len()), BfL(MxBfL), Bf(NULL){
+TMem::TMem(const TStr& Str) : TMemBase() {
+	MxBfL = Str.Len(); BfL = MxBfL; Bf = NULL; Owner = true;
   if (MxBfL>0){
     Bf=new char[MxBfL];
     if (BfL>0){memcpy(Bf, Str.CStr(), BfL);}
@@ -358,50 +410,6 @@ bool TMemIn::GetNextLnBf(TChA& LnChA){
   // not implemented
   FailR(TStr::Fmt("TMemIn::GetNextLnBf: not implemented").CStr());
   return false;
-}
-
-///////////////////////////////
-/// Thin Input-Memory used within TStoreSerializator
-TThinMIn::TThinMIn(const TMem& Mem):
-        TSBase("Thin input memory"), TSIn("Thin input memory"), Bf(NULL), BfC(0), BfL(0) {
-
-    Bf = (uchar*)Mem.GetBf();
-    BfL = Mem.Len();
-}
-
-TThinMIn::TThinMIn(const void* _Bf, const int& _BfL):
-        TSBase("Thin input memory"), TSIn("Thin input memory"),
-        Bf(nullptr), BfC(0), BfL(_BfL) {
-
-    Bf = (uchar*)_Bf;
-}
-
-char TThinMIn::GetCh() {
-    EAssertR(BfC<BfL, "Reading beyond the end of stream.");
-    return Bf[BfC++];
-}
-
-char TThinMIn::PeekCh() {
-    EAssertR(BfC<BfL, "Reading beyond the end of stream.");
-    return Bf[BfC];
-}
-
-int TThinMIn::GetBf(const void* LBf, const TSize& LBfL) {
-    Assert(TSize(BfC+LBfL)<=TSize(BfL));
-    int LBfS=0;
-    for (TSize LBfC=0; LBfC<LBfL; LBfC++) {
-        LBfS+=(((char*)LBf)[LBfC]=Bf[BfC++]);
-    }
-    return LBfS;
-}
-
-void TThinMIn::MoveTo(int Offset) {
-    EAssertR(Offset<BfL, "Reading beyond the end of stream.");
-    BfC = Offset;
-}
-
-bool TThinMIn::GetNextLnBf(TChA& LnChA) {
-    FailR("TMIn::GetNextLnBf: not implemented"); return false;
 }
 
 /////////////////////////////////////////////////
@@ -1111,21 +1119,47 @@ TStr TStr::GetFromHex() const {
 
 TStr TStr::GetSubStr(const int& BChN, const int& EChN) const {
 	int StrLen = Len();
-	EAssertR(0 <= BChN && BChN <= EChN && EChN < StrLen, "TStr::GetSubStr index out of bounds");    
-    int Chs=EChN-BChN+1;
-    // initialize accordingly
-    char* Bf = nullptr;
-    if (Chs <= 0) { 
-        // create empty string
-		return TStr();		
-    } else if (Chs==StrLen){
-        // keep copy of everything
+	EAssertR(0 <= BChN && BChN <= EChN && EChN < StrLen, "TStr::GetSubStr index out of bounds");
+	int Chs = EChN - BChN + 1;
+	// initialize accordingly
+	char* Bf = nullptr;
+	if (Chs <= 0) {
+		// create empty string
+		return TStr();
+	}
+	else if (Chs == StrLen) {
+		// keep copy of everything
 		Bf = CloneCStr();//
-    } else {
-        // get copy of a substring
-        Bf = new char[Chs+1]; strncpy(Bf, CStr()+BChN, Chs); Bf[Chs]=0;
-    }
-    return WrapCStr(Bf);
+	}
+	else {
+		// get copy of a substring
+		Bf = new char[Chs + 1]; strncpy(Bf, CStr() + BChN, Chs); Bf[Chs] = 0;
+	}
+	return WrapCStr(Bf);
+}
+
+// safe version of GetSubStr(). 
+// Fixes BChN and EChN values that are outside of string's range
+// supports also negative indices (python like): 
+// GetSubStrSafe(0,-1) will return all but last char
+TStr TStr::GetSubStrSafe(const int& BChN, const int& EChN) const {
+	int StrLen = Len();
+	int StartN;
+	if (BChN <= -StrLen)
+		StartN = 0;
+	else if (BChN < 0)
+		StartN = StrLen + BChN;
+	else
+		StartN = BChN;
+	int EndN;
+	if (EChN < 0)
+		EndN = StrLen + EChN - 1;
+	else
+		EndN = EChN >= StrLen ? StrLen - 1 : EChN;
+
+	if (!(0 <= StartN && StartN <= EndN && EndN < StrLen))
+		return TStr();
+	return GetSubStr(StartN, EndN);
 }
 
 void TStr::InsStr(const int& BChN, const TStr& Str) {
@@ -2612,18 +2646,29 @@ bool TUInt::IsIpv6Str(const TStr& IpStr, const char& SplitCh) {
 	return true;
 }
 
+
+/////////////////////////////////////////////////
+// Signed-Integer-64Bit
+
+//#if defined (GLib_WIN)
+const int64 TInt64::Mn(INT64_MIN);
+const int64 TInt64::Mx(INT64_MAX);
+//#else
+
+//#endif
+
 /////////////////////////////////////////////////
 // Unsigned-Integer-64Bit
 
 #if defined (GLib_WIN)
-const TUInt64 TUInt64::Mn(uint64(0x0000000000000000i64));
-const TUInt64 TUInt64::Mx(uint64(0xFFFFFFFFFFFFFFFFi64));
+const uint64 TUInt64::Mn(uint64(0x0000000000000000i64));
+const uint64 TUInt64::Mx(uint64(0xFFFFFFFFFFFFFFFFi64));
 #elif defined (GLib_BCB)
-const TUInt64 TUInt64::Mn(0x0000000000000000i64);
-const TUInt64 TUInt64::Mx(0xFFFFFFFFFFFFFFFFi64);
+const uint64 TUInt64::Mn(0x0000000000000000i64);
+const uint64 TUInt64::Mx(0xFFFFFFFFFFFFFFFFi64);
 #else
-const TUInt64 TUInt64::Mn((uint64)0x0000000000000000LL);
-const TUInt64 TUInt64::Mx(0xFFFFFFFFFFFFFFFFLL);
+const uint64 TUInt64::Mn((uint64)0x0000000000000000LL);
+const uint64 TUInt64::Mx(0xFFFFFFFFFFFFFFFFLL);
 #endif
 
 void TUInt64::LoadXml(const PXmlTok& XmlTok, const TStr& Nm){

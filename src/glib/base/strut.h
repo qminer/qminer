@@ -11,6 +11,7 @@
 class TStrUtil {
 public:
 	static TStr GetStr(const TIntV& IntV, const TStr& DelimiterStr = ",");
+	static TStr GetStr(const TUInt64V& UInt64V, const TStr& DelimiterStr = ",");
 	static TStr GetStr(const TVec<TIntV>& IntIntV, const TStr& DelimiterStr = ",");
 	//Explicit 64 bit indexing
 	static TStr GetStr(const TVec<TNum<int64>, int64>& IntV, const TStr& DelimiterStr);

@@ -78,6 +78,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -101,7 +102,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>XTEST;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;XTEST;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\gtest;..\..\gtest\include;..\..\..\..\qminer;..\..\..\..\glib\base;..\..\..\..\glib\misc;..\..\..\..\glib\net;..\..\..\..\glib\mine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -138,8 +139,8 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\..\glib\base;..\..\..\..\glib\misc;..\..\..\..\glib\net;..\..\..\..\glib\mine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;XTEST;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\gtest;..\..\gtest\include;..\..\..\..\qminer;..\..\..\..\glib\base;..\..\..\..\glib\misc;..\..\..\..\glib\net;..\..\..\..\glib\mine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -158,14 +159,20 @@
     <ClCompile Include="..\..\..\..\qminer\qminer_ftr.cpp" />
     <ClCompile Include="..\..\..\..\qminer\qminer_gs.cpp" />
     <ClCompile Include="..\..\..\..\qminer\qminer_op.cpp" />
-    <ClCompile Include="..\..\..\..\qminer\qminer_snap.cpp" />
+    <ClCompile Include="..\..\..\..\qminer\qminer_pbs.cpp" />
     <ClCompile Include="..\..\..\..\qminer\qminer_srv.cpp" />
-    <ClCompile Include="pagedblob.cpp" />
     <ClCompile Include="WholeTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\glib\base\gix.h" />
-    <ClInclude Include="pagedblob.h" />
+    <ClInclude Include="..\..\..\..\glib\base\pgblob.h" />
+    <ClInclude Include="..\..\..\..\qminer\qminer_aggr.h" />
+    <ClInclude Include="..\..\..\..\qminer\qminer_core.h" />
+    <ClInclude Include="..\..\..\..\qminer\qminer_ftr.h" />
+    <ClInclude Include="..\..\..\..\qminer\qminer_gs.h" />
+    <ClInclude Include="..\..\..\..\qminer\qminer_op.h" />
+    <ClInclude Include="..\..\..\..\qminer\qminer_pbs.h" />
+    <ClInclude Include="..\..\..\..\qminer\qminer_srv.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GTest\GTest.vcxproj">

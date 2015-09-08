@@ -1,3 +1,6 @@
+#ifndef SIGNALPROC_H_
+#define SIGNALPROC_H_
+
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
@@ -7,6 +10,50 @@
  */
 
 namespace TSignalProc {
+
+
+/////////////////////////////////////////////////
+// Online Moving Average (M1))
+class TMaSimple {
+private:
+	TFlt Ma; // current computed MA value  
+	TUInt64 N;
+public:
+	TMaSimple() { Ma = 0; N = 0; };
+	TMaSimple(const PJsonVal& ParamVal) { TMaSimple(); };
+	TMaSimple(TSIn& SIn) : Ma(SIn), N(SIn) {}
+	// serialization
+	void Load(TSIn& SIn) { *this = TMaSimple(SIn); }
+	void Save(TSOut& SOut) const { Ma.Save(SOut); N.Save(SOut); }
+	void Update(const double& InVal) { Ma = Ma + (InVal - Ma) / ++N; }
+	double GetMa() const { return Ma; }
+	void Clr() { Ma = 0; N = 0; }
+};
+
+/////////////////////////////////////////////////
+// Online M2 (variance)
+class TVarSimple {
+private:
+	TFlt OldM;
+	TFlt NewM;
+	TFlt OldS;
+	TFlt NewS;
+	TUInt64 N;
+public:
+	TVarSimple() { OldM = NewM = OldS = NewS = 0.0; N = 0; }
+	TVarSimple(TSIn& SIn) : OldM(SIn), NewM(SIn), OldS(SIn), NewS(SIn), N(SIn) {}
+
+	// serialization
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
+	void Update(const double& InVal);
+	// current status	
+	uint64 GetN() const { return N; }
+	double GetMean() const { return N > 0 ? (double)NewM : 0.0; }
+	double GetStDev() const { return sqrt((double)GetVar()); }
+	double GetVar() const { return (N > 1 ? NewS / (N - 1) : 0.0); }
+	void Clr() { OldM = NewM = OldS = NewS = 0.0; N = 0; }
+};
 
 /////////////////////////////////////////////////
 // Online Moving Average (M1))
@@ -24,8 +71,9 @@ public:
 
 	void Update(const double& InVal, const uint64& InTmMSecs, 
         const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N);	
-	double GetMa() const { return Ma; }
+	double GetValue() const { return Ma; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
+	void Clr() { Ma = 0; TmMSecs = 0; }
 };
     
 /////////////////////////////////////////////////
@@ -45,7 +93,7 @@ public:
 
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
-	double GetSum() const { return Sum; }
+	double GetValue() const { return Sum; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
@@ -66,7 +114,7 @@ public:
 
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
-	double GetMin() const { return Min; }
+	double GetValue() const { return Min; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
@@ -87,7 +135,7 @@ public:
 
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
-	double GetMax() const { return Max; }
+	double GetValue() const { return Max; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
@@ -125,7 +173,7 @@ public:
 	void Update(const double& Val, const uint64& NewTmMSecs);
 	// current status
 	bool IsInit() const { return InitP; }
-	double GetEma() const { return Ema; }
+	double GetValue() const { return Ema; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
@@ -148,11 +196,12 @@ public:
 	void Update(const double& InVal, const uint64& InTmMSecs, 
         const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N);
 	// current status	
-	double GetM2() const {
+	double GetValue() const {
 		if (pNo > 1) { return M2 / (pNo - 1); }
 		else { return 0; }
 	}
 	uint64 GetTmMSecs() const { return TmMSecs; }
+	void Clr() { Ma = 0; M2 = 0; pNo = 1; TmMSecs = 0; }
 };
 
 /////////////////////////////////////////////////
@@ -587,17 +636,17 @@ private:
 	TRecLinReg(const TRecLinReg&& LinReg);
 	// load constructor
 	TRecLinReg(TSIn& SIn);
-public:
 	// default constructor
-	TRecLinReg(const int& Dim, const double& _RegFact = 1.0, const double& _ForgetFact=1.0);
+	TRecLinReg(const int& Dim, const double& _RegFact = 1.0, const double& _ForgetFact = 1.0);
+public:	
 	// new method
 	static PRecLinReg New(const int& Dim, const double& RegFact, const double& ForgetFact)
 			{ return new TRecLinReg(Dim, RegFact, ForgetFact); }
+	static PRecLinReg Load(TSIn& SIn);
 
 	virtual ~TRecLinReg() {}
 
-	void Save(TSOut& SOut) const;
-	static PRecLinReg Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;	
 
 	// assign operator
 	TRecLinReg& operator =(TRecLinReg LinReg);
@@ -619,3 +668,5 @@ public:
 };
 
 }
+
+#endif

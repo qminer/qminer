@@ -133,6 +133,11 @@
 	*/
  exports.FIn.prototype.readLine = function() { return ''; }
 /**
+     * Reads json that was serialized using `fs.FOut.writeJson`.
+     * @returns {Object} Json object
+     */
+ exports.FIn.prototype.readJson = function() { return {}; }
+/**
 	* @property {boolean} eof - True if end of file is detected.
 	*/
  exports.FIn.prototype.eof = false;
@@ -174,6 +179,12 @@
 	* @returns {module:fs.FOut} Self.
 	*/
  exports.FOut.prototype.writeLine = function(str) { return this; }
+/**
+     * Saves json object, which can be read by `fs.FIn.readJson`.
+     * @returns {Object} obj - Json object to write
+     * @returns {module:fs.FOut} Self.
+     */
+ exports.FOut.prototype.writeJson = function(obj) { return this; }
 /**
 	* Flushes the output stream
 	* @returns {module:fs.FOut} Self.

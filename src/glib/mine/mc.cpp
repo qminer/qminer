@@ -1451,11 +1451,26 @@ bool TCtMChain::PredictOccurenceTime(const TStateFtrVV& StateFtrVV, const TState
 
 void TCtMChain::GetStatDist(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
 		TFltV& StatDist) const {
-	GetStatDist(GetQMatrix(StateSetV, StateFtrVV), StatDist, Notify);
+	TFltV AllStatDist;	GetStatDist(GetQMatrix(StateFtrVV), AllStatDist, Notify);
 	if (HasHiddenState) {
-		StatDist.DelLast();
-		TLinAlg::MultiplyScalar(1 / TLinAlg::SumVec(StatDist), StatDist);
+		AllStatDist.DelLast();
+		TLinAlg::MultiplyScalar(1 / TLinAlg::SumVec(AllStatDist), AllStatDist);
 	}
+	StatDist.Gen(StateSetV.Len());
+	for (int StateSetN = 0; StateSetN < StateSetV.Len(); StateSetN++) {
+		const TIntV& StateSet = StateSetV[StateSetN];
+		double Sum = 0;
+		for (int StateN = 0; StateN < StateSet.Len(); StateN++) {
+			const int& StateId = StateSet[StateN];
+			Sum += AllStatDist[StateId];
+		}
+		StatDist[StateSetN] = Sum;
+	}
+//	GetStatDist(GetQMatrix(StateSetV, StateFtrVV), StatDist, Notify);
+//	if (HasHiddenState) {
+//		StatDist.DelLast();
+//		TLinAlg::MultiplyScalar(1 / TLinAlg::SumVec(StatDist), StatDist);
+//	}
 }
 
 void TCtMChain::GetStateSizeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltV& StateSizeV) const {

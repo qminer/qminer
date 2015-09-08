@@ -248,6 +248,13 @@ public:
 	*/
 	//# exports.FIn.prototype.readLine = function() { return ''; }
 	JsDeclareFunction(readLine);
+    
+    /**
+     * Reads json that was serialized using `fs.FOut.writeJson`.
+     * @returns {Object} Json object
+     */
+    //# exports.FIn.prototype.readJson = function() { return {}; }
+    JsDeclareFunction(readJson);
 	
 	/**
 	* @property {boolean} eof - True if end of file is detected.
@@ -320,6 +327,14 @@ public:
 	*/
 	//# exports.FOut.prototype.writeLine = function(str) { return this; }
     JsDeclareFunction(writeLine);
+    
+    /**
+     * Saves json object, which can be read by `fs.FIn.readJson`.
+     * @returns {Object} obj - Json object to write
+     * @returns {module:fs.FOut} Self.
+     */
+    //# exports.FOut.prototype.writeJson = function(obj) { return this; }
+    JsDeclareFunction(writeJson);
 
 	/**
 	* Flushes the output stream

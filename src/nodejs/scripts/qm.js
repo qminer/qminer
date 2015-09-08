@@ -1,33 +1,31 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 var nodefs = require('fs');
+var csv = require('fast-csv');
 var util = require('util');
-
 
 // typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'.
 // Empty argument is supported as well (the first binary that the bindings finds will be used)
 module.exports = exports = function (pathPrefix) {
     pathPrefix = pathPrefix || '';
-    
+
     var qm = require('bindings')(pathPrefix + '/qm.node');
     var fs = qm.fs;
-    var qmutil = require(__dirname + '/qm_util.js');
-    
+
     exports = qm;
     
     //==================================================================
     // STORE
     //==================================================================
-    
+
     exports.Store.prototype.addTrigger = function (trigger) {
-        // this == store instance: print //console.log(util.inspect(this, { colors: true })); 
         // name is automatically generated
-        // saveJson isn't needed    
+        // saveJson isn't needed
         var Callbacks = {
             onAdd: trigger.onAdd,
             saveJson: function (limit) { return {}; }
@@ -38,11 +36,10 @@ module.exports = exports = function (pathPrefix) {
     }
 
     exports.Store.prototype.addStreamAggr = function (params) {
-        // this == store instance: print //console.log(util.inspect(this, { colors: true })); 
         return new exports.StreamAggr(this.base, params, this.name);
     }
-    
-    exports.Store.prototype.inspect = function (depth) {        
+
+    exports.Store.prototype.inspect = function (depth) {
         var d = (depth == null) ? 0 : depth;
         return util.inspect(this, { depth: d, 'customInspect': false });
     }
@@ -50,8 +47,8 @@ module.exports = exports = function (pathPrefix) {
     //==================================================================
     // FEATURE SPACE
     //==================================================================
-    
-    //#- `qm.FeatureSpace.getSparseVectorFeatures(spVec)` -- Return array of feature 
+
+    //#- `qm.FeatureSpace.getSparseVectorFeatures(spVec)` -- Return array of feature
 	//#  names based on feature space `fsp` where the elements of a sparse feature
 	//#  vector `spVec` are non-zero.
     exports.FeatureSpace.prototype.getSparseVectorFeatures = function (spVec) {
@@ -63,7 +60,7 @@ module.exports = exports = function (pathPrefix) {
         }
         return cols;
     }
-    
+
     //==================================================================
     // EXPORTS
     //==================================================================
@@ -72,7 +69,7 @@ module.exports = exports = function (pathPrefix) {
     exports.load = function () {
         var _obj = {};
 
-        //#- `num = qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
+        //#- `num = qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName`
         //#   line by line, parsing each line as JSON and adding it as record to `store`.
         //#   When `limit != -1` only first first `limit` lines are loaded. Returns `num`:
         //#   the number of lines loaded.
@@ -104,7 +101,7 @@ module.exports = exports = function (pathPrefix) {
             return count;
         }
 
-        //#- `num = qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line, 
+        //#- `num = qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line,
         //#   parsing each line as JSON and adding it as record to `store`. Returns `num`:
         //#   the number of lines loaded.
         _obj.jsonFile = function (store, file) {
@@ -148,6 +145,8 @@ module.exports = exports = function (pathPrefix) {
 	// Forbids constructors that would crash node - these objects are factory constructed
 	exports.Store = forbidConstructor(exports.Store);
 	exports.RecSet = forbidConstructor(exports.RecSet);
+
+    //!ENDJSDOC
 
     return exports;
 }

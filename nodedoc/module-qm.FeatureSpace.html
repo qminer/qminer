@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
   <title>Class: FeatureSpace</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -25,9 +25,9 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">FeatureSpace</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-2254">qminerdoc.<wbr>js:2254</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-2357">qminerdoc.<wbr>js:2357</a></p>
             <div class="symbol-classdesc">
-              <p>Represents the feature space.</p>
+              <p>Represents the feature space. It contains any of the <a href="module-qm.html#~FeatureExtractors">module:qm~FeatureExtractors</a>.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -112,20 +112,18 @@
             </div>
           </section>
           <section>
-            <h2 id="FeatureSpace">new&nbsp;<span class="symbol-name">FeatureSpace</span><span class="signature"><span class="signature-params">(base, extractors)</span></span></h2>
+            <h2 id="FeatureSpace">new&nbsp;<span class="symbol-name">FeatureSpace</span><span class="signature"><span class="signature-params">(base, param)</span></span></h2>
             <p>Feature Space</p>
             <section>
               <h3>
-
             Example
-
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import qm module
 var qm = require(&#x27;qminer&#x27;);
 // construct a base with the store
 var base = new qm.Base({
-  mode: &quot;create&quot;,
+  mode: &quot;createClean&quot;,
   schema: {
     name: &quot;FtrSpace&quot;,
     fields: [
@@ -144,7 +142,8 @@ Store.push({ Value: 1.1, Category: &quot;b&quot;, Categories: [&quot;b&quot;, &q
 Store.push({ Value: 1.2, Category: &quot;c&quot;, Categories: [&quot;c&quot;, &quot;e&quot;] });
 Store.push({ Value: 1.3, Category: &quot;a&quot;, Categories: [&quot;a&quot;, &quot;q&quot;] });
 // create a feature space 
-var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;FtrSpace&quot;, field: &quot;Value&quot; });</code></pre>
+var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;FtrSpace&quot;, field: &quot;Value&quot; });
+base.close();</code></pre>
               </div>
             </section>
             <section>
@@ -175,16 +174,16 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;F
                   </tr>
                   <tr>
                     <td>
-                      <p>extractors</p>
+                      <p>param</p>
                     </td>
                     <td>
-                      <p>Array of Object</p>
+                      <p>(Array of Object or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
                     </td>
                     <td>
-                      <p>The extractors.</p>
+                      <p>Array with definiton of extractors or input stream.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -211,9 +210,7 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;F
               <p>Adds a new feature extractor to the feature space.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -222,11 +219,11 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;WeatherForcast&quot;,
+       name: &quot;WeatherForcast&quot;,
        fields: [
-           { type: &quot;Weather&quot;, type: &quot;string&quot; },
-           { type: &quot;Date&quot;, type: &quot;datetime&quot; },
-           { type: &quot;TemperatureDegrees&quot;, type: &quot;int&quot; }
+           { name: &quot;Weather&quot;, type: &quot;string&quot; },
+           { name: &quot;Date&quot;, type: &quot;datetime&quot; },
+           { name: &quot;TemperatureDegrees&quot;, type: &quot;int&quot; }
        ]
    }]
 });
@@ -241,7 +238,8 @@ base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;
 var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;WeatherForcast&quot;, field: &quot;TemperatureDegrees&quot; });
 // add a new feature extractor to the feature space
 // it adds the new feature extractor to the pre-existing feature extractors in the feature space
-ftr.addFeatureExtractor({ type: &quot;text&quot;, source: &quot;WeatherForcast&quot;, field: &quot;Weather&quot;, normalize: true, weight: &quot;tfidf&quot; });      </code></pre>
+ftr.addFeatureExtractor({ type: &quot;text&quot;, source: &quot;WeatherForcast&quot;, field: &quot;Weather&quot;, normalize: true, weight: &quot;tfidf&quot; });      
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -283,9 +281,7 @@ ftr.addFeatureExtractor({ type: &quot;text&quot;, source: &quot;WeatherForcast&q
               <p>Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -294,10 +290,10 @@ var qm = require(&quot;qminer&quot;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;Class&quot;,
+       name: &quot;Class&quot;,
        fields: [
-           { type: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
-           { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
+           { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+           { name: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
        ]
    }]
 });
@@ -311,10 +307,11 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;multinomial&quot;, source: &qu
 // create a feature matrix out of the records of the store by using the feature space
 // returns a sparse matrix equal to
 // 1  0  0  1
-// 0  1  1  1
+// 0  1  0  1
 // 0  0  1  0
 // 1  1  0  0
-var matrix = ftr.extractMatrix(base.store(&quot;Class&quot;).recs);</code></pre>
+var matrix = ftr.extractMatrix(base.store(&quot;Class&quot;).allRecords);
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -356,9 +353,7 @@ var matrix = ftr.extractMatrix(base.store(&quot;Class&quot;).recs);</code></pre>
               <p>Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -367,10 +362,10 @@ var qm = require(&quot;qminer&quot;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;Class&quot;,
+       name: &quot;Class&quot;,
        fields: [
-           { type: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
-           { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
+           { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+           { name: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
        ]
    }]
 });
@@ -384,7 +379,8 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;multinomial&quot;, source: &qu
 // create a sparse feature matrix out of the records of the store by using the feature space
 // returns a sparse matrix equal to 
 // [[(0, 1), (3, 1)], [(1, 1), (3, 1)], [(1, 1), (2, 1)], [(0, 1), (1, 1)]]
-var sparseMatrix = ftr.extractSparseMatrix(base.store(&quot;Class&quot;).recs);</code></pre>
+var sparseMatrix = ftr.extractSparseMatrix(base.store(&quot;Class&quot;).allRecords);
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -426,9 +422,7 @@ var sparseMatrix = ftr.extractSparseMatrix(base.store(&quot;Class&quot;).recs);<
               <p>Creates a sparse feature vector from the given record.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -437,10 +431,10 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;Class&quot;,
+       name: &quot;Class&quot;,
        fields: [
-           { type: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
-           { type: &quot;StudyGroup&quot;, type: &quot;string&quot; }
+           { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+           { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
        ]
    }]
 });
@@ -460,7 +454,8 @@ var ftr = new qm.FeatureSpace(base, [
 // get the sparse extractor vector for the first record in store
 // the sparse vector will be [(0, 1)] - uses only the categorical feature extractor. There are no
 // features in the text feature extractor.
-var vec = ftr.extractSparseVector(base.store(&quot;Class&quot;)[0]);</code></pre>
+var vec = ftr.extractSparseVector(base.store(&quot;Class&quot;)[0]);
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -502,9 +497,7 @@ var vec = ftr.extractSparseVector(base.store(&quot;Class&quot;)[0]);</code></pre
               <p>Creates a feature vector from the given record.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -513,10 +506,10 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;Class&quot;,
+       name: &quot;Class&quot;,
        fields: [
-           { type: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
-           { type: &quot;StudyGroup&quot;, type: &quot;string&quot; }
+           { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+           { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
        ]
    }]
 });
@@ -536,7 +529,8 @@ var ftr = new qm.FeatureSpace(base, [
 // get the extractor vector for the first record in store
 // the sparse vector will be [1, 0, 0, 0] - uses only the categorical feature extractor. There are no
 // features in the text feature extractor.
-var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]);</code></pre>
+var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]);
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -578,9 +572,7 @@ var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]);</code></pre>
               <p>Filters the vector to keep only the elements from the feature extractor.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -589,12 +581,12 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;Academics&quot;,
+       name: &quot;Academics&quot;,
        fields: [
-           { type: &quot;Name&quot;, type: &quot;string&quot; },
-           { type: &quot;Age&quot;, type: &quot;int&quot; },
-           { type: &quot;Gendre&quot;, type: &quot;string&quot; },
-           { type: &quot;Skills&quot;, type: &quot;string_v&quot; }
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;Age&quot;, type: &quot;int&quot; },
+           { name: &quot;Gendre&quot;, type: &quot;string&quot; },
+           { name: &quot;Skills&quot;, type: &quot;string_v&quot; }
        ]
    }]
 });
@@ -615,7 +607,8 @@ var spVec = new qm.la.SparseVector([[0, 40], [2, 1], [4, 1], [5, 1], [6, 1]]);
 // filter the elements from the second feature extractor
 var spVec2 = ftr.filter(spVec, 1); // returns sparse vector [[2, 1]]
 // filter the elements from the second feature extractor, without keeping the offset
-var spVec3 = ftr.filter(spVec, 1, false); // returns sparse vector [[1, 1]]</code></pre>
+var spVec3 = ftr.filter(spVec, 1, false); // returns sparse vector [[1, 1]]
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -688,9 +681,7 @@ var spVec3 = ftr.filter(spVec, 1, false); // returns sparse vector [[1, 1]]</cod
               <p>Gives the name of the feature at the given position.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -699,10 +690,10 @@ var qm = require(&quot;qminer&quot;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;Class&quot;,
+       name: &quot;Class&quot;,
        fields: [
-           { type: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
-           { type: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
+           { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+           { name: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
        ]
    }]
 });
@@ -719,9 +710,10 @@ var ftr = new qm.FeatureSpace(base, [
 // get the feature at position 2
 var feature = ftr.getFeature(2); // returns &quot;C&quot;, because the text extractor has no features at the moment
 // update the feature space with the records of the store; see the method updateRecords
-ftr.updateRecords(base.store(&quot;Class&quot;).recs);
+ftr.updateRecords(base.store(&quot;Class&quot;).allRecords);
 // get the feature at position 2
-var feature2 = ftr.getFeature(2); // returns &quot;magnitude&quot;</code></pre>
+var feature2 = ftr.getFeature(2); // returns &quot;magnitude&quot;
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -763,9 +755,7 @@ var feature2 = ftr.getFeature(2); // returns &quot;magnitude&quot;</code></pre>
               <p>Gives the name of feature extractor at given position.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -774,11 +764,11 @@ var qm = require(&quot;qminer&quot;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;People&quot;,
+       name: &quot;People&quot;,
        fields: [
-           { type: &quot;Name&quot;, type: &quot;string&quot; },
-           { type: &quot;Gendre&quot;, type: &quot;string&quot; },
-           { type: &quot;Age&quot;, type: &quot;int&quot; }
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;Gendre&quot;, type: &quot;string&quot; },
+           { name: &quot;Age&quot;, type: &quot;int&quot; }
        ]
    }]
 });
@@ -788,7 +778,8 @@ var ftr = new qm.FeatureSpace(base, [
    { type: &quot;categorical&quot;, source: &quot;People&quot;, field: &quot;Gendre&quot;, values: [&quot;Male&quot;, &quot;Female&quot;] }
 ]);
 // get the name of the feature extractor with index 1
-var extractorName = ftr.getFeatureExtractor(1); // returns &quot;Categorical[Gendre]&quot;</code></pre>
+var extractorName = ftr.getFeatureExtractor(1); // returns &quot;Categorical[Gendre]&quot;
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -830,9 +821,7 @@ var extractorName = ftr.getFeatureExtractor(1); // returns &quot;Categorical[Gen
               <p>Calculates the inverse of a single feature using a specific feature extractor.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -841,11 +830,11 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;TheWitcherSaga&quot;,
+       name: &quot;TheWitcherSaga&quot;,
        fields: [
-           { type: &quot;Title&quot;, type: &quot;string&quot; },
-           { type: &quot;YearOfRelease&quot;, type: &quot;int&quot; },
-           { type: &quot;EnglishEdition&quot;, type: &quot;bool&quot; }
+           { name: &quot;Title&quot;, type: &quot;string&quot; },
+           { name: &quot;YearOfRelease&quot;, type: &quot;int&quot; },
+           { name: &quot;EnglishEdition&quot;, type: &quot;bool&quot; }
        ]
    }]
 });
@@ -858,12 +847,13 @@ base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Lady of the Lake&quot
 base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Season of Storms&quot;, YearOfRelease: 2013, EnglishEdition: false });
 // create a feature space with the numeric feature extractor and update the feature space with the records in store
 // for update, look the method updateRecords in feature space
-var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;TheWitcherSaga&quot;, field: &quot;YearOfRelese&quot;, normalize: true });
-ftr.updateRecords(base.store(&quot;TheWitcherSaga&quot;).recs);
+var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;TheWitcherSaga&quot;, field: &quot;YearOfRelease&quot;, normalize: true });
+ftr.updateRecords(base.store(&quot;TheWitcherSaga&quot;).allRecords);
 // because of the numeric feature extractor having normalize: true and of the records update of feature space, 
 // the values are not equal to those of the records 
 // invert the value 0 using the numeric feature extractor
-var inverse = ftr.invertFeature(0, 0); // returns the value 1994</code></pre>
+var inverse = ftr.invertFeature(0, 0); // returns the value 1994
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -915,13 +905,11 @@ var inverse = ftr.invertFeature(0, 0); // returns the value 1994</code></pre>
                   <p><code>Object</code>&nbsp;The inverse of val using the feature extractor with index idx.</p>
                 </dd>
               </dl>
-              <h3 id="invertFeatureVector"><span class="symbol-name">invertFeatureVector</span><span class="signature"><span class="signature-params">(ftr)</span>&nbsp;&rarr; <span class="signature-returns"> module:qm.Vector</span></span></h3>
+              <h3 id="invertFeatureVector"><span class="symbol-name">invertFeatureVector</span><span class="signature"><span class="signature-params">(ftr)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Performs the inverse operation of ftrVec. Works only for numeric feature extractors.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -930,11 +918,11 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
-       type: &quot;TheWitcherSaga&quot;,
+       name: &quot;TheWitcherSaga&quot;,
        fields: [
-           { type: &quot;Title&quot;, type: &quot;string&quot; },
-           { type: &quot;YearOfRelease&quot;, type: &quot;int&quot; },
-           { type: &quot;EnglishEdition&quot;, type: &quot;bool&quot; }
+           { name: &quot;Title&quot;, type: &quot;string&quot; },
+           { name: &quot;YearOfRelease&quot;, type: &quot;int&quot; },
+           { name: &quot;EnglishEdition&quot;, type: &quot;bool&quot; }
        ]
    }]
 });
@@ -947,15 +935,16 @@ base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Lady of the Lake&quot
 base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Season of Storms&quot;, YearOfRelease: 2013, EnglishEdition: false });
 // create a feature space with the numeric feature extractor and update the feature space with the records in store
 // for update, look the method updateRecords in feature space
-var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;TheWitcherSaga&quot;, field: &quot;YearOfRelese&quot;, normalize: true });
-ftr.updateRecords(base.store(&quot;TheWitcherSaga&quot;).recs);
+var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;TheWitcherSaga&quot;, field: &quot;YearOfRelease&quot;, normalize: true });
+ftr.updateRecords(base.store(&quot;TheWitcherSaga&quot;).allRecords);
 // get a feature vector for the second record
 // because of the numeric feature extractor having normalize: true and of the records update of feature space, the values
 // are not equal to those of the records, i.e. the value 1995 is now 0.105263 
 var ftrVec = ftr.extractVector(base.store(&quot;TheWitcherSaga&quot;)[1]);
 // get the inverse of the feature vector
 // the function returns the values to their first value, i.e. 0.105263 returns to 1995
-var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]</code></pre>
+var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -975,7 +964,7 @@ var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]</code>
                         <p>ftr</p>
                       </td>
                       <td>
-                        <p>(module:qm.Vector or Array of Object)</p>
+                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or Array of Object)</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -990,7 +979,7 @@ var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]</code>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>module:qm.Vector</code>&nbsp;The inverse of ftr as vector.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The inverse of ftr as vector.</p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
@@ -1038,25 +1027,21 @@ var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]</code>
                 <br> For dateWindow feature extractor, it can update the start and the end of the window period to form the normalization.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
 var qm = require(&#x27;qminer&#x27;);
 // create a new base
 var base = new qm.Base({
-  mode: &quot;create&quot;,
+  mode: &quot;createClean&quot;,
   schema: {
     name: &quot;FtrSpace&quot;,
     fields: [
       { name: &quot;Value&quot;, type: &quot;float&quot; },
       { name: &quot;Category&quot;, type: &quot;string&quot; },
       { name: &quot;Categories&quot;, type: &quot;string_v&quot; },
-    ],
-    joins: [],
-    keys: []
+    ]
   }
 });
 // populate the store
@@ -1067,7 +1052,7 @@ Store.push({ Value: 1.2, Category: &quot;c&quot;, Categories: [&quot;c&quot;, &q
 Store.push({ Value: 1.3, Category: &quot;a&quot;, Categories: [&quot;a&quot;, &quot;q&quot;] });
 // create a new feature space
 var ftr = new qm.FeatureSpace(base, [
-  { type: &quot;numeric&quot;, source: &quot;FtrSpace&quot;, normalize: true, field: &quot;Values&quot; },
+  { type: &quot;numeric&quot;, source: &quot;FtrSpace&quot;, normalize: true, field: &quot;Value&quot; },
   { type: &quot;categorical&quot;, source: &quot;FtrSpace&quot;, field: &quot;Category&quot;, values: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;] },
   { type: &quot;multinomial&quot;, source: &quot;FtrSpace&quot;, field: &quot;Categories&quot;, normalize: true, values: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;q&quot;, &quot;w&quot;, &quot;e&quot;] }
 ]);
@@ -1078,7 +1063,8 @@ ftr.updateRecord(Store[2]);
 // get the feature vectors of these records
 ftr.extractVector(Store[0]); // returns the vector [0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
 ftr.extractVector(Store[1]); // returns the vector [1/2, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
-ftr.extractVector(Store[2]); // returns the vector [1, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]</code></pre>
+ftr.extractVector(Store[2]); // returns the vector [1, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1124,25 +1110,21 @@ ftr.extractVector(Store[2]); // returns the vector [1, 0, 0, 1, 0, 0, 1 / Math.s
                 <br> For dateWindow feature extractor, it can update the start and the end of the window period to form the normalization.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
 var qm = require(&#x27;qminer&#x27;);
 // create a new base
 var base = new qm.Base({
-  mode: &quot;create&quot;,
+  mode: &quot;createClean&quot;,
   schema: {
     name: &quot;FtrSpace&quot;,
     fields: [
       { name: &quot;Value&quot;, type: &quot;float&quot; },
       { name: &quot;Category&quot;, type: &quot;string&quot; },
       { name: &quot;Categories&quot;, type: &quot;string_v&quot; },
-    ],
-    joins: [],
-    keys: []
+    ]
   }
 });
 // populate the store
@@ -1153,7 +1135,7 @@ Store.push({ Value: 1.2, Category: &quot;c&quot;, Categories: [&quot;c&quot;, &q
 Store.push({ Value: 1.3, Category: &quot;a&quot;, Categories: [&quot;a&quot;, &quot;q&quot;] });
 // create a new feature space
 var ftr = new qm.FeatureSpace(base, [
-	  { type: &quot;numeric&quot;, source: &quot;FtrSpace&quot;, normalize: true, field: &quot;Values&quot; },
+    { type: &quot;numeric&quot;, source: &quot;FtrSpace&quot;, normalize: true, field: &quot;Value&quot; },
     { type: &quot;categorical&quot;, source: &quot;FtrSpace&quot;, field: &quot;Category&quot;, values: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;] },
     { type: &quot;multinomial&quot;, source: &quot;FtrSpace&quot;, field: &quot;Categories&quot;, normalize: true, values: [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;q&quot;, &quot;w&quot;, &quot;e&quot;] }
 ]);
@@ -1163,7 +1145,8 @@ ftr.updateRecords(Store.allRecords);
 ftr.extractVector(Store[0]); // returns the vector [0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
 ftr.extractVector(Store[1]); // returns the vector [1/3, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
 ftr.extractVector(Store[2]); // returns the vector [2/3, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
-ftr.extractVector(Store[3]); // returns the vector [1, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]</code></pre>
+ftr.extractVector(Store[3]); // returns the vector [1, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
+base.close();</code></pre>
                 </div>
               </section>
               <section>
@@ -1211,7 +1194,7 @@ ftr.extractVector(Store[3]); // returns the vector [1, 1, 0, 0, 1 / Math.sqrt(2)
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on July 9, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 28, 2015.
       </p>
     </div>
   </footer>
