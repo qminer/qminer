@@ -10,6 +10,7 @@
 
 
 #include <node.h>
+#include <node_buffer.h>
 #include <node_object_wrap.h>
 #include "base.h"
 #include "../nodeutil.h"
@@ -169,6 +170,17 @@ public:
 	*/
 	//# exports.listFile = function(dirName, fileExtension, recursive) { return ['']; }
     JsDeclareFunction(listFile);
+
+    /**
+     * Reads a buffer line by line and calls a callback for each line.
+     *
+     * @param {Buffer} buffer - the Node.js buffer
+     * @param {function} onLine - a callback that gets called on each line (for example: function (line) {})
+     * @param {function} onEnd - a callback that gets returned after all the lines have been read
+     * @param {function} onError - a callback that gets called if an error occurs
+     */
+    //# exports.readLines = function (buffer, onLine, onEnd, onError) {}
+    JsDeclareFunction(readLines);
 };
 
 ///////////////////////////////

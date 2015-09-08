@@ -662,12 +662,10 @@ void TNumericalStuff::DualLeastSquares(const TFltVV& A, const TFltV& b, const do
 }
 
 void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps) {
-#if defined(BLAS) && defined(LAPACKE)
+#ifdef LAPACKE
 	EAssertR(A.GetRows() == A.GetCols(), "A should be a square matrix to compute eigenvalues!");
 
 	TFltVV A1 = A;
-
-//    printf("input matrix:\n%s\n", TStrUtil::GetStr(A1, ", ", "%.7f").CStr());
 
     const int Dim = A1.GetRows();
 
@@ -699,9 +697,6 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
         }
     }
 
-//    printf("U:\n%s\n", TStrUtil::GetStr(U, ", ", "%.7f").CStr());
-//    printf("PermV:\n%s\n", TStrUtil::GetStr(PermV, ", ").CStr());
-
     // construct A from LU
     TLinAlg::Multiply(L, U, A1);
     // swap column i with column PermV[i]
@@ -718,20 +713,14 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
     // in the vector of ones: P*A = L*U => A*x = b <=> L*U*x = P*b = P*1 = 1
 	MKLfunctions::TriangularSolve(U, EigenV, OnesV);	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)
 
-//    printf("initial estimate (unnorm): %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
-
     Norm = TLinAlg::Normalize(EigenV);
 	EAssertR(Norm != 0, "Cannot normalize, norm is 0!");
-
-//	printf("initial estimate: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
 
     // iterate (A - Lambda*I)*x_n+1 = x_n until convergence
     do {
     	TempV = EigenV;
 
 		MKLfunctions::LUSolve(A1, EigenV, TempV);
-
-//        printf("solution vector: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
 
         // normalize
 //        Norm = TLinAlg::Normalize(EigenV);
@@ -745,11 +734,11 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
         Dist = TLinAlg::EuclDist(EigenV, TempV);
     } while (Dist > ConvergEps);
 #else
-    throw TExcept::New("Should include BLAS!!!");
+    throw TExcept::New("Should include LAPACKE!!!");
 #endif
 }
 
-#ifdef BLAS
+#ifdef LAPACKE
 
 void TNumericalStuff::LUStep(TFltVV& A, TIntV& Perm) {
 	Assert(A.GetRows() == A.GetCols());

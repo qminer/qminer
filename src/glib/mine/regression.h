@@ -34,6 +34,7 @@ public:
 	double Predict(const TFltV& x) const;
 
 	void GetWgtV(TFltV& WgtV) const;
+	bool Initialized() const { return !WgtV.Empty(); }
 private:
 	double PredictWithoutIntercept(const TFltV& x) const;
 };

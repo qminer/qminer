@@ -329,6 +329,36 @@ double TSpecFunc::GetPowerCoef(const TFltPrV& XValCntV, double MinX) {
   return 1.0 + NSamples / LnSum;
 }
 
+double TSpecFunc::StudentCdf(const double& Val, const int& Df) {
+	const double x = TFlt::Abs(Val) / TMath::Sqrt(Df);
+	const double OnePlusSqX = 1 + x*x;
+
+	const int Iters = Df / 2;
+	double u = 1, s = 0;
+
+	if ((Df & 1) == 0) { // if df is even
+		for (int i = 1; i <= Iters; ++i) {
+			s += u;
+			u *= (1.0 - 1.0 / (2 * i)) / OnePlusSqX;
+		}
+
+		return 0.5 - 0.5 * (x / TMath::Sqrt(OnePlusSqX)) * s;
+	}
+	else { // if Df is odd
+		for (int j = 2; j < Iters + 2; ++j) {
+			s += u;
+			u *= (1.0 - 1.0 / (2 * j - 1)) / OnePlusSqX;
+		}
+
+		return 0.5 - (x / OnePlusSqX * s + atan(x)) / TMath::Pi;
+	}
+}
+
+double TSpecFunc::StudentCdf(const double& Val, const double& Mean,
+		const double& Std, const int& Df) {
+	return StudentCdf((Val - Mean) / sqrt(Std / (Df + 1)), Df);
+}
+
 /////////////////////////////////////////////////
 // Statistical-Moments
 TMom::TMom(const TFltV& _ValV):

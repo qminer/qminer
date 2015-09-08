@@ -322,11 +322,11 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJso
 			TStrV FNmV;
 			TStrV FExtV;
 			TFFile::GetFNmV(DbFPath, FExtV, true, FNmV);
-			bool DirEmpty = FNmV.Len() == 0;
-			if (!DirEmpty) {
+			if (!FNmV.Empty()) {
 				// delete all files
 				for (int FileN = 0; FileN < FNmV.Len(); FileN++) {
-					TFile::Del(FNmV[FileN], true);
+					const TStr& FNm = FNmV[FileN];
+					TFile::Del(FNm, true);
 				}
 			}
 		}
@@ -336,8 +336,7 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJso
 			TStrV FNmV;
 			TStrV FExtV;
 			TFFile::GetFNmV(DbFPath, FExtV, true, FNmV);
-			bool DirEmpty = FNmV.Len() == 0;
-			if (!DirEmpty) {
+			if (!FNmV.Empty()) {
 				// if not empty and create was called
 				throw TQm::TQmExcept::New("new base(...): database folder not empty "
                     "and mode=create. Clear db folder or use mode=createClean!");
@@ -1686,13 +1685,22 @@ v8::Local<v8::Object> TNodeJsRec::NewInstance(TNodeJsRec* JsRec) {
 	// We need a hash table with move constructor/assignment
 	QmAssertR(TNodeJsQm::BaseFPathToId.IsKey(Rec.GetStore()->GetBase()->GetFPath()),
         "TNodeJsRec::NewInstance: Base Id not found!");
-	uint BaseId = TNodeJsQm::BaseFPathToId.GetDat(Rec.GetStore()->GetBase()->GetFPath());
-	EAssertR(!BaseStoreIdConstructor[BaseId][Rec.GetStoreId()].IsEmpty(),
+
+	const uint BaseId = TNodeJsQm::BaseFPathToId.GetDat(Rec.GetStore()->GetBase()->GetFPath());
+	const int StoreId = (int) Rec.GetStoreId();
+
+	EAssertR(!BaseStoreIdConstructor[BaseId][StoreId].IsEmpty(),
         "TNodeJsRec::NewInstance: constructor is empty. Did you call TNodeJsRec::Init(exports)?");
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(
-        Isolate, BaseStoreIdConstructor[BaseId][Rec.GetStoreId()]);
-	v8::Local<v8::Object> Instance = cons->NewInstance();
+
+	v8::Persistent<v8::Function>& PersCons = BaseStoreIdConstructor[BaseId][StoreId];
+	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(
+        Isolate, PersCons);
+
+	v8::Local<v8::Object> Instance = Cons->NewInstance();
+	const int IntenalFldCount = Instance->InternalFieldCount();
+	EAssertR(IntenalFldCount > 0, "TNodeJsRec::NewInstance: constructor has " + TInt::GetStr(IntenalFldCount) + " internal fields!");
 	JsRec->Wrap(Instance);
+
 	return HandleScope.Escape(Instance);
 }
 

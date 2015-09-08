@@ -823,6 +823,7 @@ public:
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void AssertOrtogonality(const TVVec<TType, TSizeTy, ColMajor>& Vecs, const double& Threshold);
 	inline static bool IsOrthonormal(const TFltVV& Vecs, const double& Threshold);
+	inline static bool IsZero(const TFltV& Vec);
 };
 
 
@@ -2243,10 +2244,17 @@ public:
 		TSizeTy m = A.GetRows();
 		TSizeTy n = A.GetCols();
 		//Can we multiply and store in y?
-		if (BlasTransposeFlagA)//A'*x n*m x m -> n
-			EAssert(x.Len() == m && y.Reserved() == n);
+		if (BlasTransposeFlagA) {//A'*x n*m x m -> n
+			EAssertR(x.Len() == m, "TLinAlg::Multiply: Invalid dimension of input vector!");
+			if (y.Reserved() != n) {	// TODO should I do this here?? Meybe if the length is > n it would also be OK??
+				y.Gen(n, n);
+			}
+		}
 		else{//A*x  m x n * n -> m
-			EAssert(x.Len() == n && y.Reserved() == m);
+			EAssertR(x.Len() == n, "TLinAlg::Multiply: Invalid dimension of input vector!");
+			if (y.Reserved() != m) {	// TODO should I do this here?? Meybe if the length is > m it would also be OK??
+				y.Gen(m, m);
+			}
 		}
 		TSizeTy lda = ColMajor ? m : n;
 		TSizeTy incx = /*ColMajor ? x.Len() :*/ 1;
@@ -2912,6 +2920,14 @@ public:
 		for (int i = 0; i < m; i++) { R(i, i) -= 1; }
 		return TLinAlg::Frob(R) < Threshold;
 	}
+
+	bool TLinAlg::IsZero(const TFltV& Vec) {
+		int Len = Vec.Len();
+		for (int i = 0; i < Len; i++) {
+			if (Vec[i] != 0.0) { return false; }
+		}
+		return true;
+	}
 //};
 
 
@@ -3087,7 +3103,7 @@ public:
     // the algorithms does modify A due to its use of LU decomposition
     static void GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps=1e-7);
 
-#ifdef BLAS
+#ifdef LAPACKE
     // LU midstep used for LUFactorization and LUSolve
     // (Warning: the matrix is overwritten in the process)
     static void LUStep(TFltVV& A, TIntV& PermV);

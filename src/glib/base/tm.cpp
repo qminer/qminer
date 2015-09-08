@@ -1009,7 +1009,7 @@ TStr TTm::GetHMSTColonDotStr(const bool& FullP, const bool& MSecP) const {
   if (FullP||((Sec!=0)||(MSec!=0))){
     ChA+=':'; ChA+=TInt::GetStr(Sec, "%02d");
     if ((MSecP)&&(FullP||(MSec!=0))){
-      ChA+='.'; ChA+=TInt::GetStr(MSec, "%d");
+      ChA+='.'; ChA+=TInt::GetStr(MSec, "%03d");
     }
   }
   return ChA;
@@ -1170,7 +1170,7 @@ TTm TTm::GetTmFromWebLogTimeStr(const TStr& TimeStr,
   if (MSecStr.Len() > 3) {
 	  MSecStr = MSecStr.GetSubStr(0, 2); 
   } else if (MSecStr.Len() == 1) {
-	  MSecStr += "00"; 
+	  MSecStr += "00";
   } else if (MSecStr.Len() == 2) {
 	  MSecStr += "0";
   }
