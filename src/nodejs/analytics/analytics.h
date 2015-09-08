@@ -173,9 +173,28 @@ public:
 	* Saves model to output file stream.
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} The Output stream.
-	*/
+	* @example
+	* // import the analytics and la modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* var qmfs = require('qminer').fs;
+	* // create a new SVC object
+	* var SVC = new analytics.SVC();
+	* // create the matrix containing the input features and the input vector for each matrix.
+	* var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);	
+	* // fit the model
+	* SVC.fit(matrix, vec);
+	* var fs = require('qminer').fs;
+	* // create output stream
+	* var fout = fs.openWrite('model.bin');
+	* // save SVC object (model and parameters) to output stream and close it
+	* SVC.save(fout);
+	* fout.close();
+	* // create input stream
+	* var fin = fs.openRead('tesi.bin');
+	* // create a SVC object that loads the model and parameters from input stream
+	* var SVC2 = new analytics.SVC(fin);	
 	//# exports.SVC.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
-
     /**
     * Sends vector through the model and returns the distance to the decision boundery.
     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
