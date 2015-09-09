@@ -119,6 +119,27 @@ void TLogNotify::OnStatus(const TStr& MsgStr) {
 		MsgStr.CStr()));
 }
 
+//////////////////////////////////////
+// Str-Notify
+void TStrNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr)
+{
+	if (Type == ntInfo) {
+		Log += MsgStr + "\n";
+	}
+	else {
+		TStr TypeStr = TNotify::GetTypeStr(Type, false);
+		Log += TypeStr + " " + MsgStr + "\n";
+	}
+}
+
+void TStrNotify::OnStatus(const TStr& MsgStr)
+{
+	Log += MsgStr;
+	// print '\n' if message not overlayed
+	if ((!MsgStr.Empty()) && (MsgStr.LastCh() != '\r'))
+		Log += "\n";
+}
+
 /////////////////////////////////////////////////
 // Exception
 TExcept::TOnExceptF TExcept::OnExceptF=NULL;

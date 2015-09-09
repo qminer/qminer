@@ -684,7 +684,7 @@ void TStore::GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const 
 
 uint64 TStore::GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const {
 	TTm Tm; GetFieldTm(RecId, FieldId, Tm);
-	return Tm.IsDef() ? TTm::GetMSecsFromTm(Tm) : TUInt64::Mx.Val;
+	return Tm.IsDef() ? TTm::GetMSecsFromTm(Tm) : TUInt64::Mx;
 }
 
 void TStore::GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const {
@@ -1716,7 +1716,7 @@ PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const int& JoinId) const {
 	} else if (JoinDesc.IsFieldJoin()) {
 		// do join using store field
 		const int JoinRecFieldId = JoinDesc.GetJoinRecFieldId();
-		const uint64 JoinRecId = IsFieldNull(JoinRecFieldId) ? TUInt64::Mx.Val : GetFieldUInt64(JoinRecFieldId);
+		const uint64 JoinRecId = IsFieldNull(JoinRecFieldId) ? TUInt64::Mx : GetFieldUInt64(JoinRecFieldId);
 		// get join weight
 		const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
 		const int JoinRecFq = IsFieldNull(JoinRecFieldId) ? 0 : GetFieldInt(JoinFqFieldId);
@@ -2039,6 +2039,14 @@ void TRecSet::FilterByFieldStr(const int& FieldId, const TStr& FldVal) {
 	QmAssertR(Desc.IsStr(), "Wrong field type, string expected");
 	// apply the filter
 	FilterBy(TRecFilterByFieldStr(Store, FieldId, FldVal));
+}
+
+void TRecSet::FilterByFieldStrMinMax(const int& FieldId, const TStr& FldVal, const TStr& FldValMax) {
+    // get store and field type
+    const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+    QmAssertR(Desc.IsStr(), "Wrong field type, string expected");
+    // apply the filter
+    FilterBy(TRecFilterByFieldStrMinMax(Store, FieldId, FldVal, FldValMax));
 }
 
 void TRecSet::FilterByFieldStrSet(const int& FieldId, const TStrSet& ValSet) {
@@ -2818,12 +2826,12 @@ void TQueryItem::ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
 			} else if (KeyNm == "$id") {
 				QmAssertR(KeyVal->IsNum(), "Query: unsupported $id value");
 				const uint64 _RecId = (uint64)KeyVal->GetInt();
-				const uint64 RecId = Store->IsRecId(_RecId) ? _RecId : TUInt64::Mx.Val;
+				const uint64 RecId = Store->IsRecId(_RecId) ? _RecId : TUInt64::Mx;
 				ItemV.Add(TQueryItem(Store, RecId));
 			} else if (KeyNm == "$name") {
 				QmAssertR(KeyVal->IsStr(), "Query: unsupported $name value");
 				TStr RecNm = KeyVal->GetStr();
-				const uint64 RecId = Store->IsRecNm(RecNm) ? Store->GetRecId(RecNm) : TUInt64::Mx.Val;
+				const uint64 RecId = Store->IsRecNm(RecNm) ? Store->GetRecId(RecNm) : TUInt64::Mx;
 				ItemV.Add(TQueryItem(Store, RecId));
 			} else if (KeyNm == "$join") {
 				// ignore
@@ -5116,7 +5124,7 @@ bool TBase::RestoreJSonDump(const TStr& DumpDir) {
 			TStr Line;
 			while (InRecs->GetNextLn(Line)) {
 				const PJsonVal Json = TJsonVal::GetValFromStr(Line);
-				const uint64 ExRecId = Json->IsObjKey("$id") ? (uint64)Json->GetObjNum("$id") : TUInt64::Mx.Val;
+				const uint64 ExRecId = Json->IsObjKey("$id") ? (uint64)Json->GetObjNum("$id") : TUInt64::Mx;
 				Json->DelObjKey("$id");
 				const uint64 RecId = Store->AddRec(Json);
 				OldToNewIdH.AddDat(ExRecId, RecId);

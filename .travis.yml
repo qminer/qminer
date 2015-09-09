@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-  - "0.12.3"
+  - "0.12.7"
 env:  
   - CXXFLAGS=-std=c++0x CXX=g++ CC=gcc  
   - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1

@@ -636,17 +636,17 @@ private:
 	TRecLinReg(const TRecLinReg&& LinReg);
 	// load constructor
 	TRecLinReg(TSIn& SIn);
-public:
 	// default constructor
-	TRecLinReg(const int& Dim, const double& _RegFact = 1.0, const double& _ForgetFact=1.0);
+	TRecLinReg(const int& Dim, const double& _RegFact = 1.0, const double& _ForgetFact = 1.0);
+public:	
 	// new method
 	static PRecLinReg New(const int& Dim, const double& RegFact, const double& ForgetFact)
 			{ return new TRecLinReg(Dim, RegFact, ForgetFact); }
+	static PRecLinReg Load(TSIn& SIn);
 
 	virtual ~TRecLinReg() {}
 
-	void Save(TSOut& SOut) const;
-	static PRecLinReg Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;	
 
 	// assign operator
 	TRecLinReg& operator =(TRecLinReg LinReg);

@@ -85,6 +85,7 @@ public:
   static TStr GetCurDir();
   static TStr GetExeDir();
   static bool GenDir(const TStr& FPathFNm);
+  static bool GenDirs(const TStr& FPathFNm);
   static bool DelDir(const TStr& FPathFNm);
   static bool DelNonEmptyDir(const TStr& FPathFNm);
   static bool Exists(const TStr& FPathFNm);
@@ -96,6 +97,18 @@ public:
 
   static void SplitPath(const TStr& FPathFNm, TStrV& PartV);
   static TStr GetFileName(const TStr& FileWithDir);
+};
+
+/////////////////////////////////////////////////
+// TPath
+// methods related to disk paths
+class TPath {
+public:
+	static TStr Combine(const TStr& DirNm, const TStr& FileOrDirNm);
+	static TStr Combine(const TStrV& DirNmV);
+	
+	static TStr GetDirName(const TStr& FileWithDir);
+	static TStr GetFileName(const TStr& FileWithDir);
 };
 
 /////////////////////////////////////////////////

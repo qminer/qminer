@@ -27,7 +27,7 @@ void TNodeJsQm::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_METHOD(exports, "verbosity", _verbosity);
 
     // Add properties
-    exports->SetAccessor(v8::String::NewFromUtf8(Isolate, "debug"), _debug);
+    exports->SetAccessor(v8::String::NewFromUtf8(Isolate, "flags"), _flags);
     
     // initialize QMiner environment
 	TQm::TEnv::Init();
@@ -172,14 +172,89 @@ void TNodeJsQm::verbosity(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TQm::TEnv::InitLogger(Verbosity, "std");
 }
 
-void TNodeJsQm::debug(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-    #ifdef NDEBUG
-        Info.GetReturnValue().Set(v8::Boolean::New(Isolate, false));
-    #else
-        Info.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
-    #endif
+
+	v8::Handle<v8::Object> JsObj = v8::Object::New(Isolate);
+
+#ifdef GLib_WIN
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "win")), v8::Boolean::New(Isolate, true));
+#else
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "win")), v8::Boolean::New(Isolate, false));
+#endif
+
+#ifdef GLib_LINUX
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "linux")), v8::Boolean::New(Isolate, true));
+#else
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "linux")), v8::Boolean::New(Isolate, false));
+#endif
+
+#ifdef GLib_MACOSX
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "darwin")), v8::Boolean::New(Isolate, true));
+#else
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "darwin")), v8::Boolean::New(Isolate, false));
+#endif
+
+#ifdef GLib_32Bit
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "x86")), v8::Boolean::New(Isolate, true));
+#else
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "x86")), v8::Boolean::New(Isolate, false));
+#endif
+
+#ifdef GLib_64Bit
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "x64")), v8::Boolean::New(Isolate, true));
+#else
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "x64")), v8::Boolean::New(Isolate, false));
+#endif
+
+#ifdef GLib_OPENMP
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "omp")), v8::Boolean::New(Isolate, true));
+#else
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "omp")), v8::Boolean::New(Isolate, false));
+#endif
+
+#ifdef NDEBUG
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "debug")), v8::Boolean::New(Isolate, false));
+#else
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "debug")), v8::Boolean::New(Isolate, true));
+#endif
+
+#ifdef GLib_GCC
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "gcc")), v8::Boolean::New(Isolate, true));
+#else
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "gcc")), v8::Boolean::New(Isolate, false));
+#endif
+
+#ifdef __clang__
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "clang")), v8::Boolean::New(Isolate, true));
+#else
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "clang")), v8::Boolean::New(Isolate, false));
+#endif
+
+	// By default the blas flags are false
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "blas")), v8::Boolean::New(Isolate, false));
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "blas_intel")), v8::Boolean::New(Isolate, false));
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "blas_amd")), v8::Boolean::New(Isolate, false));
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "blas_openblas")), v8::Boolean::New(Isolate, false));
+#ifdef BLAS
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "blas")), v8::Boolean::New(Isolate, true));
+	#ifdef INTEL
+		JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "blas_intel")), v8::Boolean::New(Isolate, true));
+	#elif AMD
+		JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "blas_amd")), v8::Boolean::New(Isolate, true));
+	#else // openblas
+		JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "blas_openblas")), v8::Boolean::New(Isolate, true));
+	#endif
+#endif
+
+#ifdef LAPACKE
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "lapacke")), v8::Boolean::New(Isolate, true));
+#else
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "lapacke")), v8::Boolean::New(Isolate, false));
+#endif
+
+	Info.GetReturnValue().Set(JsObj);    
 }
 
 ///////////////////////////////
@@ -2244,9 +2319,15 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
 		const int MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
 		JsRecSet->RecSet->FilterByFieldInt(FieldId, MnVal, MxVal);
 	}
-	else if (Desc.IsStr() && TNodeJsUtil::IsArgStr(Args, 1)) {
-		TStr StrVal = TNodeJsUtil::GetArgStr(Args, 1);
-		JsRecSet->RecSet->FilterByFieldStr(FieldId, StrVal);
+	else if (Desc.IsStr()) {
+        if (Args.Length() < 3 || !TNodeJsUtil::IsArgStr(Args, 2)) {
+            TStr StrVal = TNodeJsUtil::GetArgStr(Args, 1);
+            JsRecSet->RecSet->FilterByFieldStr(FieldId, StrVal);
+        } else {
+            TStr StrValMin = TNodeJsUtil::GetArgStr(Args, 1);
+            TStr StrValMax = TNodeJsUtil::GetArgStr(Args, 2);
+            JsRecSet->RecSet->FilterByFieldStrMinMax(FieldId, StrValMin, StrValMax);
+        }
 	}
 	else if (Desc.IsFlt()) {
 		const double MnVal = TNodeJsUtil::GetArgFlt(Args, 1);

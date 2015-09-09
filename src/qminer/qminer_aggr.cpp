@@ -1475,7 +1475,7 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec, const TInt& FieldMapIdx) {
 }
 
 void TStMerger::AddToBuff(const int& InterpIdx, const uint64 RecTm, const TFlt& Val) {
-	TUInt64 LastTm = Buff.Empty() ? TUInt64::Mn : Buff.GetNewest();
+	uint64 LastTm = Buff.Empty() ? TUInt64::Mn : Buff.GetNewest().Val;
 	QmAssertR(RecTm >= LastTm, "TStMerger::AddToBuff: Tried to merge past value!");
 
 	InterpV[InterpIdx]->AddPoint(Val, RecTm);
@@ -1557,7 +1557,7 @@ bool TStMerger::CanInterpolate() {
 
 void TStMerger::UpdateNextInterpTm() {
 	PrevInterpTm = NextInterpTm;
-	NextInterpTm = Buff.Len() > 1 ? Buff.GetOldest(1) : TUInt64::Mx;
+	NextInterpTm = Buff.Len() > 1 ? Buff.GetOldest(1).Val : TUInt64::Mx;
 
 	QmAssertR(PrevInterpTm <= NextInterpTm, "The previous interpolation time is greater than the current interpolation time current: " + TUInt64::GetStr(PrevInterpTm) + ", next: " + TUInt64::GetHexStr(NextInterpTm) + "TStMerger::UpdateNextInterpTm()");
 
