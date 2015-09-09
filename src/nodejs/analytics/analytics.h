@@ -1118,7 +1118,7 @@ private:
 
 /**
  * Logistic regression model. Uses Newtons method to compute the weights.
- * Before use: include BLAS library for matrix functions.
+ * <b>Before use: include BLAS library for matrix functions.</b>
  * @constructor
  * @param {(module:analytics~logisticRegParam|FIn)} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
  * @example
@@ -1202,8 +1202,8 @@ public:
 // Proportional Hazards Model
 /**
  * Proportional Hazards model with a constant hazard function.
- *
  * Uses Newtons method to compute the weights.
+ * <b>Before use: include BLAS library for matrix functions.</b>
  *
  * @constructor
  * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.

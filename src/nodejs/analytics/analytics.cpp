@@ -1126,7 +1126,7 @@ void TNodeJsLogReg::Init(v8::Handle<v8::Object> exports) {
 
 	// Add all methods, getters and setters here.
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _getParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);

@@ -71,7 +71,7 @@ describe('Logistic Regression Tests', function () {
         })
     });
 
-    describe.skip('SetParams Tests', function () {
+    describe('SetParams Tests', function () {
         it('should not throw an exception', function () {
             var logreg = new analytics.LogReg();
             assert.doesNotThrow(function () {
@@ -87,7 +87,7 @@ describe('Logistic Regression Tests', function () {
         })
     });
 
-    describe.skip('Fit Tests', function () {
+    describe('Fit Tests', function () {
         it('should not throw an exception', function () {
             var logreg = new analytics.LogReg();
             var mat = new la.Matrix([[1, 2], [1, -1]]);
