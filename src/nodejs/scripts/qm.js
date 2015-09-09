@@ -6,7 +6,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 var nodefs = require('fs');
-var csv = require('fast-csv');
 var util = require('util');
 
 // typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'.
@@ -43,7 +42,90 @@ module.exports = exports = function (pathPrefix) {
         var d = (depth == null) ? 0 : depth;
         return util.inspect(this, { depth: d, 'customInspect': false });
     }
+    
+    //==================================================================
+    // RECORD SET
+    //==================================================================
 
+    /**
+     * Stores the record set as a CSV file.
+     * 
+     * @param {Object} opts - arguments
+     * @property {String} opts.fname - name of the output file
+     * @property {Boolean} [opts.includeHeaders] - indicates wether to include the header in the first line
+     * @property {String} [opts.timestampType] - If set to 'ISO', datetime fields will be printed as ISO dates, otherwise as timestamps. Defaults to 'timestamp'.
+     */
+    exports.RecSet.prototype.saveCsv = function (opts) {
+    	if (opts == null || opts.fname == null) throw new Error('Missing parameter fname!');
+    	if (opts.includeHeaders == null) opts.includeHeaders = true;
+    	if (opts.timestampType == null) opts.timestampType = 'timestamp';
+    	
+    	// read field descriptions
+    	var fields = this.store.fields;
+    	var fieldDesc = [];
+    	for (var i = 0; i < fields.length; i++) {
+    		var desc = fields[i];
+    		var type = desc.type;
+    		
+    		if (type != 'float' && type != 'int' && type != 'bool' && type != 'datetime' &&
+    				type != 'string')
+    			throw new Error('Invalid field type: ' + type);
+    		if (desc.internal) continue;
+    		
+    		fieldDesc.push({name: desc.name, type: desc.type});
+    	}
+    	
+    	var nFields = fieldDesc.length;
+    	var useTimestamp = opts.timestampType != 'ISO';
+    	
+    	var fout = new fs.FOut(opts.fname);
+    	
+    	// write the headers
+    	if (opts.includeHeaders) {
+    		var headerLine = '';
+    		for (var i = 0; i < nFields; i++) {
+    			headerLine += fieldDesc[i].name;
+    			if (i < nFields - 1)
+    				headerLine += ',';
+    		}
+    		fout.writeLine(headerLine);
+    	}
+    	
+    	// write the lines
+    	var len = this.length;
+    	var recN = 0;
+    	this.each(function (rec) {
+    		var line = '';
+    		for (var i = 0; i < nFields; i++) {
+    			var fldVal = rec[fieldDesc[i].name];
+    			var type = fieldDesc[i].type;
+    			
+    			if (fldVal != null) {
+	    			if (type == 'float' || type == 'int' || type == 'bool') {
+	    				line += fldVal;
+	    			} else if (type == 'datetime') {
+	    				line += useTimestamp ? fldVal.getTime() : fldVal.toISOString();
+	    			} else if (type == 'string') {
+	    				line += '"' + fldVal + '"';
+	    			} else {
+	    				throw new Error('Invalid type of field: ' + type);
+	    			}
+    			}
+    			
+    			if (i < nFields - 1)
+    				line += ',';
+    		}
+    		
+    		if (recN++ < len - 1)
+    			fout.writeLine(line);
+    		else
+    			fout.write(line);
+    	});
+    	
+    	fout.flush();
+    	fout.close();
+    }
+    
     //==================================================================
     // FEATURE SPACE
     //==================================================================

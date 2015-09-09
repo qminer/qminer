@@ -580,7 +580,7 @@ public:
 	virtual PStoreIter BackwardIter() const { throw TQmExcept::New("Not implemented"); };
 	
 	/// Add new record provided as JSon
-	virtual uint64 AddRec(const PJsonVal& RecVal) = 0;
+	virtual uint64 AddRec(const PJsonVal& RecVal, const bool& TriggerEvents=true) = 0;
 	/// Update existing record with updates in provided JSon
 	virtual void UpdateRec(const uint64& RecId, const PJsonVal& RecVal) = 0;
 	

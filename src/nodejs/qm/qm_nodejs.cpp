@@ -876,8 +876,10 @@ void TNodeJsStore::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		// check we can write
 		QmAssertR(!Base->IsRdOnly(), "Base opened as read-only");
     
-		PJsonVal RecVal = TNodeJsUtil::GetArgJson(Args, 0);
-		const uint64 RecId = Store->AddRec(RecVal);
+		const PJsonVal RecVal = TNodeJsUtil::GetArgJson(Args, 0);
+		const bool TriggerEvents = TNodeJsUtil::GetArgBool(Args, 1, true);
+
+		const uint64 RecId = Store->AddRec(RecVal, TriggerEvents);
 
 		Args.GetReturnValue().Set(v8::Integer::NewFromUnsigned(Isolate, (uint32_t)RecId));
 	}

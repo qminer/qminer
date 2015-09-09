@@ -1376,6 +1376,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setStateName", _setStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "isTarget", _isTarget);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setTarget", _setTarget);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getTimeUnit", _getTimeUnit);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setControlFactor", _setControlFactor);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParam", _getParam);
@@ -1999,6 +2000,31 @@ void TNodeJsStreamStory::setTarget(const v8::FunctionCallbackInfo<v8::Value>& Ar
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
+
+void TNodeJsStreamStory::getTimeUnit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const uint64 TimeUnit = JsMChain->StreamStory->GetTimeUnit();
+
+	if (TimeUnit == TMc::TCtMChain::TU_SECOND) {
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "second"));
+	} else if (TimeUnit == TMc::TCtMChain::TU_MINUTE) {
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "minute"));
+	} else if (TimeUnit == TMc::TCtMChain::TU_HOUR) {
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "hour"));
+	} else if (TimeUnit == TMc::TCtMChain::TU_DAY) {
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "day"));
+	} else if (TimeUnit == TMc::TCtMChain::TU_MONTH) {
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "month"));
+	} else {
+		throw TExcept::New("Invalid time unit!", "TNodeJsStreamStory::getTimeUnit");
+	}
+}
+
+
 
 void TNodeJsStreamStory::setControlFactor(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();

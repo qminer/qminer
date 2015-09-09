@@ -80,6 +80,7 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 
 	// perform the algorithm
 	double Diff = TFlt::NInf;
+	double AbsDiff;
 	int k = 1;
 	do {
 		if (k % 10 == 0) {
@@ -116,7 +117,7 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 
 		// compute delta_w = H(w) \ (g(w))
 #ifdef LAPACKE
-		TNumericalStuff::LUSolve(H, DeltaWgtV, GradV);
+		TNumericalStuff::SVDSolve(H, DeltaWgtV, GradV, 1e-10);
 #else
 		throw TExcept::New("Should include LAPACKE!!");
 #endif
@@ -135,9 +136,8 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 		// the next iteration
 		Diff = TFlt::NInf;
 		for (int i = 0; i < NInst; i++) {
-			if (TFlt::Abs(PrevProbV[i] - ProbV[i]) > Diff) {
-				Diff = TFlt::Abs(PrevProbV[i] - ProbV[i]);
-			}
+			AbsDiff = TFlt::Abs(PrevProbV[i] - ProbV[i]);
+			if (AbsDiff > Diff) { Diff = AbsDiff; }
 
 			PrevProbV[i] = ProbV[i];
 		}
@@ -279,7 +279,7 @@ void TPropHazards::Fit(const TFltVV& _X, const TFltV& t, const double& Eps) {
 		}
 	}
 
-	printf("WgtV: %s\n", TStrUtil::GetStr(WgtV, ", ", "%.15f").CStr());
+//	printf("WgtV: %s\n", TStrUtil::GetStr(WgtV, ", ", "%.15f").CStr());
 
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged. Diff: %.5f", Diff);
 }

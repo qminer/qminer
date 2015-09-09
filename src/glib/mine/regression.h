@@ -22,7 +22,7 @@ private:
 
 public:
 	// default constructor, sets the regularization parameter
-	TLogReg(const double& Lambda=1, const bool IncludeIntercept=false, const bool Verbose=true);
+	TLogReg(const double& RegFact=1, const bool IncludeIntercept=false, const bool Verbose=true);
 	TLogReg(TSIn& SIn);
 
 	void Save(TSOut& SOut) const;

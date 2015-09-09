@@ -492,15 +492,12 @@ public:
 
 	// returns the number of states
 	int GetStates() const { return NStates; };
+	virtual const uint64& GetTimeUnit() const = 0;
 	// returns the ID of the current state
 	int GetCurrStateId() const { return CurrStateId; };
 
 	// returns true is the jump from OldStateId to NewStateId is considered anomalous
 	virtual bool IsAnomalousJump(const TFltV& FtrV, const int& NewStateId, const int& OldStateId) const = 0;
-
-//	virtual void CreateFtrV(const TFltV& ObsFtrV, const TFltV& PrevObsFtrV,
-//    		const TFltV& ContrFtrV, const TFltV& PrevContrFtrV, const uint64& RecTm,
-//			const uint64& PrevRecTm, TFltV& FtrV) const = 0;
 
 	// set params
 	double GetTimeHorizon() const { return TmHorizon; }
@@ -542,21 +539,32 @@ protected:
 
 class TBernoulliIntens {
 private:
+	static constexpr double MIN_PROB = 1e-5;
+
 	TLogReg LogReg;
 	double DeltaTm;
+	bool HasJumped;
 public:
 	TBernoulliIntens():
 		LogReg(0, true, false),
-		DeltaTm(0) {}
-	TBernoulliIntens(const double& _DeltaTm, const double& Lambda=0, const bool Verbose=false):
-		LogReg(Lambda, true, Verbose),
-		DeltaTm(_DeltaTm) {}
-	TBernoulliIntens(TSIn& SIn): LogReg(SIn), DeltaTm(TFlt(SIn)) {}
+		DeltaTm(0),
+		HasJumped(false) {}
+	TBernoulliIntens(const double& _DeltaTm, const double& RegFact, const bool& _HasJumped, const bool Verbose=false):
+		LogReg(RegFact, true, Verbose),
+		DeltaTm(_DeltaTm),
+		HasJumped(_HasJumped) {}
+	TBernoulliIntens(TSIn& SIn): LogReg(SIn), DeltaTm(TFlt(SIn)), HasJumped(TBool(SIn)) {}
 
-	void Save(TSOut& SOut) const { LogReg.Save(SOut); TFlt(DeltaTm).Save(SOut); }
+	void Save(TSOut& SOut) const { LogReg.Save(SOut); TFlt(DeltaTm).Save(SOut); TBool(HasJumped).Save(SOut); }
 	void Fit(const TFltVV& X, const TFltV& y, const double& Eps=1e-3) { LogReg.Fit(X, y, Eps); }
 	double Predict(const TFltV& x) const {
-		return LogReg.Predict(x) / DeltaTm;
+		double Prob = LogReg.Predict(x);
+
+		if (HasJumped && Prob < MIN_PROB) {
+			Prob = MIN_PROB;
+		}
+
+		return Prob / DeltaTm;
 	}
 };
 
@@ -571,19 +579,18 @@ class TCtMChain: public TMChain {
 	typedef TVVec<TFtrVV> TJumpFtrVVMat;
 	typedef TVVec<TJumpFtrMat> TJumpFtrMatMat;
 
-//	typedef TPropHazards TIntensModel;
 	typedef TBernoulliIntens TIntensModel;
 	typedef TVVec<TIntensModel> TIntensModelMat;
 public:
-	const static uint64 TU_SECOND;
-	const static uint64 TU_MINUTE;
-	const static uint64 TU_HOUR;
-	const static uint64 TU_DAY;
-	const static uint64 TU_MONTH;
+	static constexpr uint64 TU_SECOND = 1000;
+	static constexpr uint64 TU_MINUTE = TU_SECOND*60;
+	static constexpr uint64 TU_HOUR = TU_MINUTE*60;
+	static constexpr uint64 TU_DAY = TU_HOUR*24;
+	static constexpr uint64 TU_MONTH = uint64(365.25 * TU_DAY / 12);
 
 private:
-	const static double MIN_STAY_TM;
-	const static double HIDDEN_STATE_INTENSITY;
+	static constexpr double MIN_STAY_TM = 1e-2;
+	static constexpr double HIDDEN_STATE_INTENSITY = 1 / MIN_STAY_TM;
 
 	TIntensModelMat IntensModelMat;
 	// stores how many jump from the hidden state to the specified state occurred
@@ -641,6 +648,7 @@ public:
 	bool IsAnomalousJump(const TFltV& FtrV, const int& NewStateId, const int& OldStateId) const override;
 
 	int GetStates() const { return NStates; }
+	const uint64& GetTimeUnit() const { return TimeUnit; }
 
 protected:
 //	void InitStats(const int& NStates);
@@ -824,6 +832,7 @@ public:
 	void GetStateIdVAtHeight(const double& Height, TStateIdV& StateIdV) const;
 	// returns the number of states in the hierarchy
     int GetStates() const { return Hierarch->GetStates(); }
+    uint64 GetTimeUnit() const;
 
     // target methods
     bool IsTargetState(const int& StateId, const double& Height) const { return Hierarch->IsTarget(StateId, Height); }

@@ -1324,14 +1324,6 @@ void TMChain::GetFutureProbVOverTm(const TFullMatrix& PMat, const int& StateIdx,
 
 /////////////////////////////////////////////////////////////////
 // Continous time Markov Chain
-const uint64 TCtMChain::TU_SECOND = 1000;
-const uint64 TCtMChain::TU_MINUTE = TU_SECOND*60;
-const uint64 TCtMChain::TU_HOUR = TU_MINUTE*60;
-const uint64 TCtMChain::TU_DAY = TU_HOUR*24;
-const uint64 TCtMChain::TU_MONTH = uint64(365.25 * TU_DAY / 12);
-const double TCtMChain::MIN_STAY_TM = 1e-2;
-const double TCtMChain::HIDDEN_STATE_INTENSITY = 1 / MIN_STAY_TM;
-
 TCtMChain::TCtMChain(const uint64& _TimeUnit, const double& _DeltaTm, const bool& _Verbose):
 		TMChain(_Verbose),
 		IntensModelMat(),
@@ -1507,21 +1499,6 @@ bool TCtMChain::IsAnomalousJump(const TFltV& FtrV, const int& NewStateId, const 
 
 	return IntensV[NewStateId] / (-IntensV[OldStateId]) < 1e-3;
 }
-//
-//void TCtMChain::CreateFtrV(const TFltV& ObsFtrV, const TFltV& PrevObsFtrV,
-//    		const TFltV& ContrFtrV, const TFltV& PrevContrFtrV, const uint64& RecTm,
-//			const uint64& PrevRecTm, TFltV& FtrV) const {
-//	FtrV.Gen(ObsFtrV.Len() + ContrFtrV.Len());
-//	for (int i = 0; i < ContrFtrV.Len(); i++) {
-//		FtrV[i] = ContrFtrV[i];
-//	}
-//
-//	if (!PrevObsFtrV.Empty()) {
-//		for (int i = 0; i < ObsFtrV.Len(); i++) {
-//			FtrV[ContrFtrV.Len() + i] = RecTm - PrevRecTm == 0 ? 0 : (ObsFtrV[i] - PrevObsFtrV[i]) / (double(RecTm - PrevRecTm) / TimeUnit);
-//		}
-//	}
-//}
 
 void TCtMChain::AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool EndsBatch) {
 	EAssertR(HasHiddenState || !EndsBatch, "Cannot process batches with no hidden state!");
@@ -1559,7 +1536,7 @@ void TCtMChain::InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV,
 	TJumpFtrMatMat JumpFtrMatVV(NStates, NStates);	// stores the feature vectors
 
 	IntensModelMat.Gen(NStates, NStates);			// used to store the intensity models
-
+	TBoolVV HasJumpedV(NStates, NStates);
 	// I need to keep track of a NxN matrix of Poisson processes
 //	TUInt64VV PoisWaitTmVV(NStates, NStates);
 //	TIntVV PoisLastJumpTmNVV(NStates, NStates);
@@ -1585,6 +1562,10 @@ void TCtMChain::InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV,
 		for (int JumpStateId = 0; JumpStateId < NStates; JumpStateId++) {
 			JumpFtrVVMat(CurrStateId, JumpStateId).Add(FtrV);
 			LabelVMat[CurrStateId][JumpStateId].Add(JumpStateId == NextStateId ? DidJump : 0);
+		}
+
+		if (NextStateId != CurrStateId) {
+			HasJumpedV(CurrStateId, NextStateId) = true;
 		}
 	}
 
@@ -1620,7 +1601,7 @@ void TCtMChain::InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV,
 		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Regressing intensities for state %d", State1Id);
 
 		for (int State2Id = 0; State2Id < NStates; State2Id++) {
-			IntensModelMat.PutXY(State1Id, State2Id, TIntensModel(MeanSampleInterval, 1e-5, true));
+			IntensModelMat.PutXY(State1Id, State2Id, TIntensModel(MeanSampleInterval, 1e-3, HasJumpedV(State1Id, State2Id), true));
 
 			if (State1Id == State2Id) { continue; }
 
@@ -1635,15 +1616,15 @@ void TCtMChain::InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV,
 
 			//============================================================
 			// TODO delete me
-			bool AllZero = true;
+			int JumpN = 0;
 			for (int i = 0; i < LabelV.Len(); i++) {
 				const double Label = LabelV[i];
 				if (Label > 0) {
-					AllZero = false;
-					break;
+					JumpN++;
 				}
 			}
-			EAssertR(!AllZero, "WTF!? How did a zero vector get here???");
+			EAssertR(JumpN > 0, "WTF!? How did a zero vector get here???");
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d jumps from state %d to %d ...", JumpN, State1Id, State2Id);
 			//============================================================
 
 			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Fitting a regression model from state %d to %d", State1Id, State2Id);
@@ -1799,8 +1780,11 @@ void TCtMChain::GetHoldingTimeV(const TFullMatrix& QMat, TFltV& HoldingTmV) cons
 	const int Rows = QMat.GetRows();
 
 	HoldingTmV.Gen(Rows, Rows);
+
+	double Intens;
 	for (int i = 0; i < Rows; i++) {
-		HoldingTmV[i] = -1 / QMat(i,i);
+		Intens = -QMat(i,i);
+		HoldingTmV[i] = 1 / Intens;
 	}
 }
 
@@ -2462,6 +2446,10 @@ void TStreamStory::GetStateIdVAtHeight(const double& Height, TStateIdV& StateIdV
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "TStreamStory::TStreamStory::GetStateIdVAtHeight: Failed to fetch state IDs for height %.3f: %s", Height, Except->GetMsgStr().CStr());
 		throw Except;
 	}
+}
+
+uint64 TStreamStory::GetTimeUnit() const {
+	return MChain->GetTimeUnit();
 }
 
 void TStreamStory::SetTargetState(const int& StateId, const double& Height, const bool& IsTrg) {

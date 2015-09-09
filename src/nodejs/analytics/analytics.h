@@ -1450,6 +1450,13 @@ public:
 	JsDeclareFunction(setTarget);
 
 	/**
+	 * Returns the time unit used by this model.
+	 *
+	 * @returns {String} timeUnit
+	 */
+	JsDeclareFunction(getTimeUnit);
+
+	/**
 	 * Sets the factor of the specified control:
 	 *
 	 * @param {Number} ftrIdx - the index of the control feature

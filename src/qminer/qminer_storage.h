@@ -842,7 +842,7 @@ public:
 	PStoreIter BackwardIter() const;
 	
 	/// Add new record
-	uint64 AddRec(const PJsonVal& RecVal);
+	uint64 AddRec(const PJsonVal& RecVal, const bool& TriggerEvents=true) override;
 	/// Update existing record
 	void UpdateRec(const uint64& RecId, const PJsonVal& RecVal);
 
@@ -1044,7 +1044,7 @@ public:
     PStoreIter GetIter() const;
 
     /// Add new record
-    uint64 AddRec(const PJsonVal& RecVal);
+    uint64 AddRec(const PJsonVal& RecVal, const bool& TriggerEvents=true) override;
     /// Update existing record
     void UpdateRec(const uint64& RecId, const PJsonVal& RecVal);
 
