@@ -3141,6 +3141,7 @@ void TNodeJsFtrSpace::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "updateRecords", _updateRecords);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "extractSparseVector", _extractSparseVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "extractVector", _extractVector);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "extractFeature", _extractFeature);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "invertFeatureVector", _invertFeatureVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "invertFeature", _invertFeature);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "extractSparseMatrix", _extractSparseMatrix);
@@ -3397,6 +3398,27 @@ void TNodeJsFtrSpace::extractVector(const v8::FunctionCallbackInfo<v8::Value>& A
 		JsFtrSpace->FtrSpace->GetFullV(JsRec->Rec, FltV);
 
 		Args.GetReturnValue().Set(TNodeJsFltV::New(FltV));
+	}
+	catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::extractVector");
+	}
+}
+
+void TNodeJsFtrSpace::extractFeature(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 2, "TNodeJsFtrSpace::extractFeature: Should have 2 arguments!");
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+		const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 0);
+		const double Val = TNodeJsUtil::GetArgFlt(Args, 1);
+
+		// create feature vector, compute
+		double RetVal = JsFtrSpace->FtrSpace->GetSingleFtr(FtrExtN, Val);
+
+		Args.GetReturnValue().Set(v8::Number::New(Isolate, RetVal));
 	}
 	catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::extractVector");

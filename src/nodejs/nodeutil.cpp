@@ -448,6 +448,28 @@ bool TNodeJsUtil::IsFldFun(v8::Local<v8::Object> Obj, const TStr& FldNm) {
 	return FldVal->IsFunction();
 }
 
+bool TNodeJsUtil::IsFldInt(v8::Local<v8::Object> Obj, const TStr& FldNm) {
+	if (!IsObjFld(Obj, FldNm)) { return false; }
+
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+
+	return FldVal->IsInt32() || FldVal->IsUint32();
+}
+
+bool TNodeJsUtil::IsFldFlt(v8::Local<v8::Object> Obj, const TStr& FldNm) {
+	if (!IsObjFld(Obj, FldNm)) { return false; }
+
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+
+	return FldVal->IsNumber() || FldVal->IsNumberObject();
+}
+
 PJsonVal TNodeJsUtil::GetFldJson(v8::Local<v8::Object> Obj, const TStr& FldNm) {
 	return GetObjJson(GetFldObj(Obj, FldNm));
 }
@@ -474,6 +496,31 @@ v8::Local<v8::Function> TNodeJsUtil::GetFldFun(v8::Local<v8::Object> Obj, const 
 	v8::Local<v8::Function> RetFun = v8::Handle<v8::Function>::Cast(FldVal);
 
 	return RetFun;
+}
+
+int TNodeJsUtil::GetFldInt(v8::Local<v8::Object> Obj, const TStr& FldNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(IsFldInt(Obj, FldNm), "The field is not an integer!");
+
+	v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+
+	if (FldVal->IsInt32()) {
+		return FldVal->Int32Value();
+	} else {			// FldVal->IsUint32()
+		return FldVal->Uint32Value();
+	}
+}
+
+double TNodeJsUtil::GetFldFlt(v8::Local<v8::Object> Obj, const TStr& FldNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(IsFldFlt(Obj, FldNm), "The field is not an integer!");
+
+	v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+	return FldVal->NumberValue();
 }
 
 double TNodeJsUtil::ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg) {

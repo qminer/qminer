@@ -1690,9 +1690,17 @@ module.exports = exports = function (pathPrefix) {
 
     		return names;
     	}
+    	
+    	function getFtrCount(ftrSpace) {
+    		return ftrSpace.dims.length
+    	}
 
     	function getObsFtrCount() {
-			return obsFtrSpace.dims.length;
+    		return getFtrCount(obsFtrSpace);
+		}
+    	
+    	function getContrFtrCount() {
+    		return getFtrCount(controlFtrSpace);
 		}
 
     	function getObsFtrNames() {
@@ -1707,23 +1715,36 @@ module.exports = exports = function (pathPrefix) {
     		var observations = [];
     		var controls = [];
 
+    		var obsFtrCount = getObsFtrCount();
+    		
 			var coords = mc.fullCoords(stateId);
 			var obsFtrNames = getObsFtrNames();
 			var invObsCoords = obsFtrSpace.invertFeatureVector(coords);
 			for (var i = 0; i < invObsCoords.length; i++) {
-				observations.push({name: obsFtrNames[i], value: invObsCoords.at(i)});
+				observations.push({
+					name: obsFtrNames[i],
+					value: invObsCoords.at(i),
+					isControl: false,
+					bounds: getFtrBounds(i)
+				});
 			}
 
 			var controlCoords = mc.fullCoords(stateId, false);
 			var contrFtrNames = getControlFtrNames();
 			var invControlCoords = controlFtrSpace.invertFeatureVector(controlCoords);
 			for (var i = 0; i < invControlCoords.length; i++) {
-				controls.push({name: contrFtrNames[i], value: invControlCoords.at(i)});
+				controls.push({
+					name: contrFtrNames[i],
+					value: invControlCoords.at(i),
+					isControl: true,
+					bounds: getFtrBounds(i + obsFtrCount)
+				});
 			}
 
 			return {
 				observations: observations,
-				controls: controls
+				controls: controls,
+				isBottom: mc.isBottomState(stateId)
 			};
     	}
 
@@ -1732,6 +1753,23 @@ module.exports = exports = function (pathPrefix) {
     			return obsFtrSpace.invertFeatureVector(mc.fullCoords(stateId))[ftrIdx];
     		} else {
     			return controlFtrSpace.invertFeatureVector(mc.fullCoords(stateId, false))[ftrIdx - obsFtrSpace.dims.length];
+    		}
+    	}
+    	
+    	function getFtrBounds(ftrId) {
+    		var obsFtrCount = getObsFtrCount();
+    		var bounds = mc.getFtrBounds(ftrId);
+    		
+    		if (ftrId < obsFtrCount) {
+    			return {
+    				min: obsFtrSpace.invertFeature(ftrId, bounds.min),
+    				max: obsFtrSpace.invertFeature(ftrId, bounds.max)
+    			}
+    		} else {
+    			return {
+    				min: controlFtrSpace.invertFeature(ftrId - obsFtrCount, bounds.min),
+    				max: controlFtrSpace.invertFeature(ftrId - obsFtrCount, bounds.max)
+    			}
     		}
     	}
 
@@ -1843,11 +1881,45 @@ module.exports = exports = function (pathPrefix) {
     		pastStates: function (level, state, time) {
     			return mc.pastStates(level, state, time);
     		},
-
-    		getFtrNames: function () {
-    			return {
-    				observation: getObsFtrNames(),
-    				control: getControlFtrNames()
+    		
+    		getFtrDesc: function (ftrId) {
+    			var nObsFtrs = getObsFtrCount();
+    			
+    			if (ftrId == null) {
+    				var n = nObsFtrs + getContrFtrCount();
+    				
+    				var obsFtrs = [];
+        			var contrFtrs = [];
+    				
+    				for (var i = 0; i < n; i++) {
+    					var ftrDesc = that.getFtrDesc(i);
+    					
+    					if (i < nObsFtrs) {
+    						obsFtrs.push(ftrDesc);
+    					} else {
+    						contrFtrs.push(ftrDesc);
+    					}
+    				}
+    				
+    				return {
+        				observation: obsFtrs,
+        				control: contrFtrs
+        			}
+    			} 
+    			else {
+    				if (ftrId < nObsFtrs) {
+    					var ftrNames = getObsFtrNames();
+    					return {
+    						name: ftrNames[ftrId],
+    						bounds: getFtrBounds(ftrId)
+    					}
+    				} else {
+    					var ftrNames = getControlFtrNames();
+    					return {
+    						name: ftrNames[ftrId - nObsFtrs],
+    						bounds: getFtrBounds(ftrId)
+    					}
+    				}
     			}
     		},
 
@@ -1943,9 +2015,26 @@ module.exports = exports = function (pathPrefix) {
     			return result;
     		},
 
-    		setControl: function (ftrIdx, factor) {
-    			var controlFtrIdx = ftrIdx - obsFtrSpace.dims.length;
-    			mc.setControlFactor(controlFtrIdx, factor);
+    		setControlVal: function (opts) {
+    			if (opts.ftrId == null) throw new Error('Missing parameter ftrId!');
+    			var controlFtrId = opts.ftrId - getObsFtrCount();
+    			    			
+    			var params = {
+    				ftrId: opts.ftrId,
+    				val: controlFtrSpace.extractFeature(controlFtrId, opts.val)
+    			};
+    			
+    			if (opts.stateId != null) params.stateId = opts.stateId;
+    			
+    			mc.setControlVal(params);
+    		},
+    		
+    		resetControlVal: function (opts) {
+    			var params = {};
+    			if (opts.stateId != null) params.stateId = opts.stateId;
+    			if (opts.ftrId != null) params.ftrId = opts.ftrId;
+    			
+    			mc.resetControlVal(params);
     		}
     	};
 

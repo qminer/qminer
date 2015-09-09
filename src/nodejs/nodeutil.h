@@ -204,6 +204,10 @@ public:
     static bool IsFldClass(v8::Local<v8::Object> Obj, const TStr& FldNm, const TStr& ClassId);
     /// returns true if the field is a function
     static bool IsFldFun(v8::Local<v8::Object> Obj, const TStr& FldNm);
+    /// returns true if the field is an integer
+    static bool IsFldInt(v8::Local<v8::Object> Obj, const TStr& FldNm);
+    /// returns true if the field is a float
+    static bool IsFldFlt(v8::Local<v8::Object> Obj, const TStr& FldNm);
 
     /// extracts the field from the object 'Obj'
     template <class TClass>
@@ -214,6 +218,9 @@ public:
     static v8::Local<v8::Object> GetFldObj(v8::Local<v8::Object> Obj, const TStr& FldNm);
     /// extracts the field as a handle of a function
     static v8::Local<v8::Function> GetFldFun(v8::Local<v8::Object> Obj, const TStr& FldNm);
+
+    static int GetFldInt(v8::Local<v8::Object> Obj, const TStr& FldNm);
+    static double GetFldFlt(v8::Local<v8::Object> Obj, const TStr& FldNm);
 
     /// Executes the function with the specified argument and returns a double result.
     static double ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg);

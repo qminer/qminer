@@ -1351,6 +1351,13 @@ public:
 	JsDeclareFunction(histogram);
 
 	/**
+	 * Returns the lower and upper bound of the feature.
+	 *
+	 * @param {Integer} ftrId - id of the feature
+	 */
+	JsDeclareFunction(getFtrBounds);
+
+	/**
 	 * Returns an array of IDs of all the states on the specified height.
 	 *
 	 * @param {Number} height - the height
@@ -1449,6 +1456,8 @@ public:
 	 */
 	JsDeclareFunction(setTarget);
 
+	JsDeclareFunction(isBottomState);
+
 	/**
 	 * Returns the time unit used by this model.
 	 *
@@ -1459,10 +1468,14 @@ public:
 	/**
 	 * Sets the factor of the specified control:
 	 *
-	 * @param {Number} ftrIdx - the index of the control feature
-	 * @param {Number} factor
+	 * @param {Object} params - the parameters
+	 * @property {Number} [params.stateId] - id of the state, if not present, all the states will be set
+	 * @property {Number} params.ftrId - the index of the control feature
+	 * @property {Number} params.val - the value of the featuere
 	 */
-	JsDeclareFunction(setControlFactor);
+	JsDeclareFunction(setControlVal);
+
+	JsDeclareFunction(resetControlVal);
 
 	// parameters
 	//!- `hmc = hmc.getParams(params)` -- sets one or more parameters given

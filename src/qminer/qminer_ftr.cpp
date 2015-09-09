@@ -247,6 +247,11 @@ void TFtrSpace::GetFullV(const TRec& Rec, TFltV& FullV) const {
 	}    
 }
 
+double TFtrSpace::GetSingleFtr(const int& FtrExtN, const double& Val) const {
+	const PFtrExt& FtrExt = FtrExtV[FtrExtN];
+	return FtrExt->GetVal(Val);
+}
+
 void TFtrSpace::InvertFullV(const TFltV& FullV, TFltV& InvertV) const {
 	int Offset = 0;
 	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {

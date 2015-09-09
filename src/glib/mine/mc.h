@@ -63,6 +63,8 @@ protected:
   	THistStat ObsHistStat;		// stores histogram for every feature in every cluster
   	THistStat ControlHistStat;	// stores histogram for every feature in every cluster for the control matrix
 
+  	TVec<TFltV> StateContrFtrValVV;
+
   	double Sample;
 
   	bool Verbose;
@@ -118,12 +120,20 @@ public:
 
 	void GetHistogram(const int FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV) const;
 
-	int GetClusts() const { return CentroidMat.GetCols(); }
+	int GetStates() const { return CentroidMat.GetCols(); }
 	int GetDim() const { return CentroidMat.GetRows(); }
 	int GetControlDim() const { return ControlCentroidMat.GetRows(); }
 	const TFullMatrix& GetCentroidMat() const { return CentroidMat; }
 	void GetCentroidVV(TVec<TFltV>& CentroidVV) const;
 	void GetControlCentroidVV(TStateFtrVV& StateFtrVV) const;
+
+	// manual setting of control features
+	double GetControlFtr(const int& StateId, const int& FtrId, const double& DefaultVal) const;
+	void SetControlFtr(const int& StateId, const int& FtrId, const double& Val);
+	void ClearControlFtr(const int& StateId, const int& FtrId);
+	void ClearControlFtrVV();
+	bool IsControlFtrSet(const int& StateId, const int& FtrId) const;
+	bool IsAnyControlFtrSet() const;
 
 	// sets the log to verbose or none
 	void SetVerbose(const bool& Verbose);
@@ -150,6 +160,9 @@ private:
 	// returns the coordinates of the centroid with the specified ID
 	TVector GetCentroid(const int& CentroidId) const;
 	TVector GetControlCentroid(const int& CentroidId) const;
+
+	double GetControlFtr(const int& StateId, const int& FtrId) const;
+	void ClearControlFtrVV(const int& Dim);
 
 	static void InitHist(const TFltVV& InstanceMat, const TIntV& AssignV,
 			const TFltVV& FtrBinStartVV, const int& Clusts, const int& Bins,
@@ -719,6 +732,7 @@ public:
 	friend class TPt<TStateAssist>;
 private:
 	TVec<TLogReg> ClassifyV;
+	TFltPrV FtrBoundV;
 
 	TRnd Rnd;
 
@@ -731,7 +745,10 @@ public:
 
 	void Save(TSOut& SOut) const;
 
-	void Init(const TFullMatrix& X, const PStateIdentifier& Clust, const PHierarch& Hierarch);
+	void Init(TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const PStateIdentifier& Clust, const PHierarch& Hierarch);
+	void InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV);
+
+	const TFltPr& GetFtrBounds(const int& FtrId) const { return FtrBoundV[FtrId]; }
 
 	void GetSuggestFtrs(const int& StateId, TFltV& WgtV) const;
 };
@@ -749,8 +766,6 @@ private:
     PMChain MChain;
     PHierarch Hierarch;
     PStateAssist StateAssist;
-
-    TFltV FtrFactorV;
 
     TFltV PrevObsFtrV, PrevContrFtrV;
     uint64 PrevRecTm;
@@ -788,7 +803,7 @@ public:
 	void InitHierarch();
 	void InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlMat,
 			const TUInt64V& RecTmV, const TBoolV& BatchEndV);
-	void InitStateAssist(TFltVV& ObsFtrVV);	// TODO add const
+	void InitStateAssist(TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV);	// TODO add const
 
 	void OnAddRec(const uint64& RecTm, const TFltV& ObsFtrV, const TFltV& ContrFtrV);
 
@@ -838,9 +853,19 @@ public:
     bool IsTargetState(const int& StateId, const double& Height) const { return Hierarch->IsTarget(StateId, Height); }
     void SetTargetState(const int& StateId, const double& Height, const bool& IsTrg);
 
+    bool IsBottomState(const int& StateId) const;
+
     // sets the name of the specified state
     void SetStateNm(const int& StateId, const TStr& StateNm);
-    void SetControlFtrFactor(const int& ControlFtrIdx, const double& Factor);
+
+    // control features
+    void SetControlFtrVal(const int& StateId, const int& ContrFtrId, const double& Val);
+    void SetControlFtrsVal(const int& ContrFtrId, const double& Val);
+    void ResetControlFtrVal(const int& StateId, const int& FtrId);
+    void ResetControlFtrVals(const int& StateId);
+    void ResetControlFtrVals();
+
+    const TFltPr& GetFtrBounds(const int& FtrId) const;
     const TStr& GetStateNm(const int& StateId) const;
 
     // get/set parameters
