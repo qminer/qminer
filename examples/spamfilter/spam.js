@@ -19,9 +19,6 @@ var ftrText = new qm.FeatureSpace(base, {
     type: 'text', source: 'Messages', field: 'Text', normalize: true,
     weight: 'tfidf', tokenizer: { type: 'simple', stopwords: 'en' }
 });
-var ftrValue = new qm.FeatureSpace(base, {
-    type: 'numeric', source: 'Messages', field: 'Value'
-});
 // add values to store
 var fin = fs.openRead('./sandbox/test/messages.txt');
 var header = fin.readLine();
@@ -38,15 +35,10 @@ while (!fin.eof) {
 };
 // update the features
 ftrText.updateRecords(base.store('Messages').allRecords);
-ftrValue.updateRecords(base.store('Messages').allRecords);
 // get the feature matrix
 var X = ftrText.extractSparseMatrix(base.store('Messages').allRecords);
 // get the feature vector
-var y = new la.Vector();
-var valMatrix = ftrValue.extractMatrix(base.store('Messages').allRecords);
-for (var i = 0; i < valMatrix.cols; i++) {
-    y.push(valMatrix.at(0, i));
-}
+var y = base.store('Messages').getVector('Value');
 // create the SVC model
 var SVC = new analytics.SVC();
 SVC.fit(X, y);
@@ -59,3 +51,4 @@ var testFeatures = ftrText.extractVector(testText);
 // predict if testText is a spam
 var prediction = SVC.predict(testFeatures);
 console.log('The text is a ' + ((prediction == -1) ? 'spam' : 'regular') + ' message!');
+base.close();
