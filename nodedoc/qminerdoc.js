@@ -18,9 +18,9 @@
 	*/
  exports.verbosity = function (level) { }
 /**
-	* @property {boolean} debug - True if QMiner was compiled in debug mode, else false.
+	* @property {Object} flags - Returns an object with all compile flags
 	*/
- exports.debug = false;
+ exports.flags = {};
 /**
 * Base access modes.
 * @readonly

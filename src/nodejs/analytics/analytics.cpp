@@ -1274,6 +1274,8 @@ void TNodeJsPropHaz::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
@@ -1306,6 +1308,33 @@ TNodeJsPropHaz* TNodeJsPropHaz::NewFromArgs(const v8::FunctionCallbackInfo<v8::V
 					v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr())));
 		return nullptr;
 	}
+}
+
+void TNodeJsPropHaz::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsPropHaz* JsModel = ObjectWrap::Unwrap<TNodeJsPropHaz>(Args.Holder());
+	PJsonVal ParamVal = TJsonVal::NewObj();
+
+	ParamVal->AddToObj("lambda", JsModel->Model.getLambda());
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
+}
+
+void TNodeJsPropHaz::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
+	EAssertR(TNodeJsUtil::IsArgJson(Args, 0), "PropHaz.setParams: first argument should be a Javascript object!");
+
+	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+	TNodeJsPropHaz* JsModel = ObjectWrap::Unwrap<TNodeJsPropHaz>(Args.Holder());
+
+	if (ParamVal->IsObjKey("lambda")) { JsModel->Model.setLambda(ParamVal->GetObjNum("lambda")); }
+
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsPropHaz::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {

@@ -68,16 +68,19 @@
                     <dt><a href="module-analytics.PCA.html">PCA()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.RecLinReg.html">RecLinReg(param)</a></dt>
+                    <dt><a href="module-analytics.PropHazards.html">PropHazards()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.RidgeReg.html">RidgeReg([arg])</a></dt>
+                    <dt><a href="module-analytics.RecLinReg.html">RecLinReg(param)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.RidgeReg.html">RidgeReg([arg])</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.Sigmoid.html">Sigmoid([arg])</a></dt>
                     <dd>
                     </dd>
@@ -115,19 +118,22 @@
                     <dt><a href="module-analytics.html#~detectorParam">detectorParam</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.html#~hazardModelParam">hazardModelParam</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~logisticRegParam">logisticRegParam</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.html#~oneVsAllParam">oneVsAllParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~recLinearRegParam">recLinearRegParam</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~recLinearRegParam">recLinearRegParam</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~recLinRegModel">recLinRegModel</a></dt>
                     <dd>
                     </dd>
@@ -137,13 +143,13 @@
                     <dt><a href="module-analytics.html#~ridgeRegParam">ridgeRegParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~svcParam">svcParam</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~svcParam">svcParam</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~svmModel">svmModel</a></dt>
                     <dd>
                     </dd>
@@ -164,6 +170,7 @@
               <h3><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD</a></h3>
               <h3><a href="module-analytics.OneVsAll.html">OneVsAll</a></h3>
               <h3><a href="module-analytics.PCA.html">PCA</a></h3>
+              <h3><a href="module-analytics.PropHazards.html">PropHazards</a></h3>
               <h3><a href="module-analytics.RecLinReg.html">RecLinReg</a></h3>
               <h3><a href="module-analytics.RidgeReg.html">RidgeReg</a></h3>
               <h3><a href="module-analytics.Sigmoid.html">Sigmoid</a></h3>
@@ -251,6 +258,41 @@
                       <td>
                         <p>Number of most recent instances kept in the model.</p>
                         <p>Defaults to <code>100</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~hazardModelParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">hazardModelParam</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <p>The constructor parameters for the Proportional Hazards Model.</p>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>lambda</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The regularization parameter.</p>
+                        <p>Defaults to <code>0</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -845,7 +887,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 28, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on September 10, 2015.
       </p>
     </div>
   </footer>

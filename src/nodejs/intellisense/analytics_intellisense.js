@@ -846,7 +846,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 */
 /**
  * Logistic regression model. Uses Newtons method to compute the weights.
- * Before use: include BLAS library for matrix functions.
+ * <b>Before use: include BLAS library.</b>
  * @constructor
  * @param {(module:analytics~logisticRegParam|FIn)} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
  * @example
@@ -899,38 +899,56 @@ exports = {}; require.modules.qminer_analytics = exports;
 	 */
  exports.LogReg.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
- * Proportional Hazards model with a constant hazard function.
- *
+* @typedef {Object} hazardModelParam
+* The constructor parameters for the Proportional Hazards Model.
+* @property {number} [lambda = 0] - The regularization parameter.
+*/
+/**
+ * Proportional Hazards Model with a constant hazard function.
  * Uses Newtons method to compute the weights.
+ * <b>Before use: include BLAS library.</b>
  *
  * @constructor
- * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
- * @property {Number} [opts.lambda = 0] - the regularization parameter
+ * @property {module:analytics~hazardModelParam|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
  */
+ exports.PropHazards = function (opts) { return Object.create(require('qminer').analytics.PropHazards.prototype); }
+/**
+	* Gets the parameters of the model.
+	* @returns {module:analytics~hazardModelParam} The parameters of the model.
+	*/
+ exports.PropHazards.prototype.getParams = function () { return { lambda: 0.0 }; }
+/**
+	* Sets the parameters of the model.
+	* @param {module:analytics~hazardModelParam} params - The parameters given to the model.
+	* @returns {module:analytics.PropHazards} Self.
+	*/
+ exports.PropHazards.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.PropHazards.prototype); }
 /**
 	 * Fits a column matrix of feature vectors X onto the response variable y.
 	 *
-	 * @param {Matrix} X - the column matrix which stores the feature vectors.
-	 * @param {Vector} y - the response variable.
-	 * @param {Number} [eps] - the epsilon used for convergence
-	 * @returns {ExpReg} - returns itself
+	 * @param {module:la.Matrix} X - The column matrix which stores the feature vectors.
+	 * @param {module:la.Vector} y - The response variable.
+	 * @param {number} [eps] - The epsilon used for convergence.
+	 * @returns {module:analytics.PropHazards} Self.
 	 */
+ exports.PropHazards.prototype.fit = function(X, y, eps) { return Object.create(require('qminer').analytics.PropHazards.prototype); }
 /**
 	 * Returns the expected response for the provided feature vector.
 	 *
-	 * @param {Vector} x - the feature vector
-	 * @returns {Number} - the expected response
+	 * @param {module:la.Vector} x - The feature vector.
+	 * @returns {number} The expected response.
 	 */
+ exports.PropHazards.prototype.predict = function(x) { return 0.0; }
 /**
 	 * The models weights.
-	 *
-	 * @type {Vector}
 	 */
+ exports.PropHazards.prototype.weights = Object.create(require('qminer').la.Vector.prototype);
 /**
 	 * Saves the model into the output stream.
-	 *
-	 * @param {FOut} sout - the output stream
+	 * @param {module:fs.FOut} sout - The output stream.
+	 * @returns {module:fs.FOut} The output stream sout.
 	 */
+ exports.PropHazards.prototype.save = function(sout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
 	 * Fits the model onto the data. The data instances must be stored as column vectors in X, while their times
 	 * have to be stored in timeV. An optional parameter indicates wether the data provided is in

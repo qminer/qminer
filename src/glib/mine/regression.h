@@ -69,6 +69,9 @@ public:
 
 	void GetWgtV(TFltV& WgtV) const;
 
+	const double getLambda() { return Lambda; }
+	void setLambda(const double& _Lambda) { Lambda = _Lambda; }
+
 private:
 	void PredictInternal(const TFltVV& X, TFltV& IntensV) const;
 };

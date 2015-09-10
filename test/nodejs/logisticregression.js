@@ -87,14 +87,19 @@ describe('Logistic Regression Tests', function () {
         })
     });
 
-    describe('Fit Tests', function () {
-        it('should not throw an exception', function () {
-            var logreg = new analytics.LogReg();
-            var mat = new la.Matrix([[1, 2], [1, -1]]);
-            var vec = new la.Vector([3, 3]);
-            assert.doesNotThrow(function () {
-                logreg.fit(mat, vec);
-            });
-        })
-    })
+    // need openblas configurations for these tests
+    if (qm.flags.blas) {
+
+        describe('Fit Tests', function () {
+            it('should not throw an exception', function () {
+                var logreg = new analytics.LogReg();
+                var mat = new la.Matrix([[1, 2], [1, -1]]);
+                var vec = new la.Vector([3, 3]);
+                assert.doesNotThrow(function () {
+                    logreg.fit(mat, vec);
+                });
+            })
+        });
+    }
+
 })
