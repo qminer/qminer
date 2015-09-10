@@ -1850,7 +1850,6 @@ void TNodeJsStreamStory::getStateWgtV(const v8::FunctionCallbackInfo<v8::Value>&
 	TFltV WgtV;
 	JsMChain->StreamStory->GetStateWgtV(StateId, WgtV);
 
-
 	v8::Local<v8::Array> JsWgtV = v8::Array::New(Isolate, WgtV.Len());
 	for (int i = 0; i < WgtV.Len(); i++) {
 		JsWgtV->Set(i, v8::Number::New(Isolate, WgtV[i]));
@@ -1863,12 +1862,15 @@ void TNodeJsStreamStory::onStateChanged(const v8::FunctionCallbackInfo<v8::Value
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onStateChanged: First argument expected to be a function!");
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-	v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
-
-	JsMChain->StateChangedCallback.Reset(Isolate, Callback);
+	if (TNodeJsUtil::IsArgNull(Args, 0)) {
+		JsStreamStory->StateChangedCallback.Reset();
+	} else {
+		EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onStateChanged: First argument expected to be a function!");
+		v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+		JsStreamStory->StateChangedCallback.Reset(Isolate, Callback);
+	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -1877,12 +1879,15 @@ void TNodeJsStreamStory::onAnomaly(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onAnomaly: First argument expected to be a function!");
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-	v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
-
-	JsMChain->AnomalyCallback.Reset(Isolate, Callback);
+	if (TNodeJsUtil::IsArgNull(Args, 0)) {
+		JsStreamStory->AnomalyCallback.Reset();
+	} else {
+		EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onAnomaly: First argument expected to be a function!");
+		v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+		JsStreamStory->AnomalyCallback.Reset(Isolate, Callback);
+	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -1891,12 +1896,15 @@ void TNodeJsStreamStory::onOutlier(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onOutlier: First argument expected to be a function!");
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-	v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
-
-	JsMChain->OutlierCallback.Reset(Isolate, Callback);
+	if (TNodeJsUtil::IsArgNull(Args, 0)) {
+		JsStreamStory->OutlierCallback.Reset();
+	} else {
+		EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onOutlier: First argument expected to be a function!");
+		v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+		JsStreamStory->OutlierCallback.Reset(Isolate, Callback);
+	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -1905,12 +1913,15 @@ void TNodeJsStreamStory::onPrediction(const v8::FunctionCallbackInfo<v8::Value>&
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onPrediction: First argument expected to be a function!");
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-	v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
-
-	JsMChain->PredictionCallback.Reset(Isolate, Callback);
+	if (TNodeJsUtil::IsArgNull(Args, 0)) {
+		JsStreamStory->PredictionCallback.Reset();
+	} else {
+		EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onPrediction: First argument expected to be a function!");
+		v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+		JsStreamStory->PredictionCallback.Reset(Isolate, Callback);
+	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }

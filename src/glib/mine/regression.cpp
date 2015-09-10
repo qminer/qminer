@@ -117,7 +117,11 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 
 		// compute delta_w = H(w) \ (g(w))
 #ifdef LAPACKE
-		TNumericalStuff::SVDSolve(H, DeltaWgtV, GradV, 1e-10);
+		if (H.GetRows() == 1) {	// fix for a bug in SVD factorization
+			DeltaWgtV[0] = GradV[0] / H(0,0);
+		} else {
+			TNumericalStuff::SVDSolve(H, DeltaWgtV, GradV, 1e-10);
+		}
 #else
 		throw TExcept::New("Should include LAPACKE!!");
 #endif

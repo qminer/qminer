@@ -140,7 +140,9 @@ public:
 
     /// Checks if the class name of the underlying glib object matches the
     /// given string. the name is stored in an hidden variable "class"
-    static bool IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm) ;
+    static bool IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm);
+    /// returns true if the argument is null, undefined or not in the arguments at all
+    static bool IsArgNull(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if argument ArgN belongs to a given class
     static bool IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& ClassNm);
     /// Check if argument ArgN belongs to a given class

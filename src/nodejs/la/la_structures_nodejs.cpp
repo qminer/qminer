@@ -187,7 +187,7 @@ TNodeJsFltVV* TNodeJsFltVV::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
 					const bool GenRandom = TNodeJsUtil::GetArgBool(Args, 0, "random", false);
 					const int Cols = TNodeJsUtil::GetArgInt32(Args, 0, "cols");
 					const int Rows = TNodeJsUtil::GetArgInt32(Args, 0, "rows");
-					EAssert(Cols > 0 && Rows > 0);
+//					EAssert(Cols > 0 && Rows > 0);
 					Mat.Gen(Rows, Cols);
 					if (GenRandom) {
 						TLAMisc::FillRnd(Mat);

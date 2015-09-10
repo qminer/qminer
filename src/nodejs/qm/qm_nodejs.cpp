@@ -2644,7 +2644,7 @@ void TNodeJsRecSet::getVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TTm Tm;
 		for (int RecN = 0; RecN < Recs; RecN++) {
 			Store->GetFieldTm(RecSet()->GetRecId(RecN), FieldId, Tm);
-			ColV[RecN] = (double)TTm::GetMSecsFromTm(Tm);
+			ColV[RecN] = (double)TTm::GetMSecsFromTm(Tm);	// TODO is this correct?? Shouldn't it be UNIX timestamp???
 		}
 		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
 		return;
