@@ -839,70 +839,142 @@ exports = {}; require.modules.qminer_analytics = exports;
 	*/
  exports.RecLinReg.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
+* @typedef {Object} logisticRegParam
+* The Json constructor parameters for {@link module:analytics.LogReg}.
+* @property {number} [lambda=1] - The regularization parameter.
+* @property {boolean} [intercept=false] - Indicates wether to automatically include the intercept.
+*/
+/**
  * Logistic regression model. Uses Newtons method to compute the weights.
- *
+ * <b>Before use: include BLAS library.</b>
  * @constructor
- * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
- * @property {Number} [opts.lambda = 1] - the regularization parameter
- * @property {Boolean} [opts.intercept = false] - indicates wether to automatically include the intercept
+ * @param {(module:analytics~logisticRegParam|FIn)} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @example
+ * // import analytics module
+ * var analytics = require('qminer').analytics;
+ * // create the Logistic Regression model
+ * var logreg = new analytics.LogReg({ lambda: 2 });
  */
+ exports.LogReg = function (opts) { return Object.create(require('qminer').analytics.LogReg.prototype); }
+/**
+	* Gets the parameters.
+	* @returns {module:analytics~logisticRegParam} The parameters of the model.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create the Logistic Regression model
+	* var logreg = new analytics.LogReg({ lambda: 10 });
+	* // get the parameters of the model
+	* var param = logreg.getParams(); // returns { lambda: 10, intercept: false }
+	*/
+ exports.LogReg.prototype.getParams = function () { return { lambda: 1.0, intercept: false } };
+/**
+	* Set the parameters.
+	* @param {module:analytics~logisticRegParam} param - The new parameters.
+	* @returns {module:analytics.LogReg} Self. The parameters are updated.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a logistic regression model
+	* var logreg = new analytics.LogReg({ lambda: 10 });
+	* // set the parameters of the model
+	* logreg.setParams({ lambda: 1 });
+	*/
+ exports.LogReg.prototype.setParams = function () { return Object.create(require('qminer').analytics.LogReg.prototype); }
 /**
 	 * Fits a column matrix of feature vectors X onto the response variable y.
-	 *
-	 * @param {Matrix} X - the column matrix which stores the feature vectors.
-	 * @param {Vector} y - the response variable.
-	 * @param {Number} [eps] - the epsilon used for convergence
-	 * @returns {LogReg} - returns itself
+	 * @param {module:la.Matrix} X - the column matrix which stores the feature vectors.
+	 * @param {module:la.Vector} y - the response variable.
+	 * @param {number} [eps] - the epsilon used for convergence.
+	 * @returns {module:analytics.LogReg} Self.
 	 */
+ exports.LogReg.prototype.fit = function (X, y, eps) { return Object.create(require('qminer').analytics.LogReg.prototype); }
 /**
 	 * Returns the expected response for the provided feature vector.
-	 *
-	 * @param {Vector} x - the feature vector
-	 * @returns {Number} - the expected response
+	 * @param {module:la.Vector} x - the feature vector.
+	 * @returns {number} the expected response.
 	 */
+ exports.LogReg.prototype.predict = function (x) { return 0.0; } 
 /**
-	 * The models weights.
-	 *
-	 * @type {Vector}
+	 * Gives the weights of the model.
 	 */
+ exports.LogReg.prototype.weights = Object.create(require('qminer').analytics.LogReg.prototype);
 /**
 	 * Saves the model into the output stream.
-	 *
-	 * @param {FOut} sout - the output stream
+	 * @param {module:fs.FOut} fout - the output stream.
+	 * @returns {module:fs.FOut} The output stream fout. 
 	 */
+ exports.LogReg.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
- * Proportional Hazards model with a constant hazard function.
- *
+* @typedef {Object} hazardModelParam
+* The constructor parameters for the Proportional Hazards Model.
+* @property {number} [lambda = 0] - The regularization parameter.
+*/
+/**
+ * Proportional Hazards Model with a constant hazard function.
  * Uses Newtons method to compute the weights.
+ * <b>Before use: include BLAS library.</b>
  *
  * @constructor
- * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
- * @property {Number} [opts.lambda = 0] - the regularization parameter
+ * @property {module:analytics~hazardModelParam|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @example
+ * // import analytics module
+ * var analytics = require('qminer').analytics;
+ * // create a Proportional Hazard model
+ * var hazard = new analytics.PropHazards();
  */
+ exports.PropHazards = function (opts) { return Object.create(require('qminer').analytics.PropHazards.prototype); }
+/**
+	* Gets the parameters of the model.
+	* @returns {module:analytics~hazardModelParam} The parameters of the model.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a Proportional Hazard model
+	* var hazard = new analytics.PropHazards({ lambda: 5 });
+	* // get the parameters of the model
+	* var param = hazard.getParams();
+	*/
+ exports.PropHazards.prototype.getParams = function () { return { lambda: 0.0 }; }
+/**
+	* Sets the parameters of the model.
+	* @param {module:analytics~hazardModelParam} params - The parameters given to the model.
+	* @returns {module:analytics.PropHazards} Self.
+	* @example 
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a Proportional Hazard model
+	* var hazard = new analytics.PropHazards({ lambda: 5 });
+	* // set the parameters of the model
+	* hazard.setParams({ lambda: 10 });
+	*/
+ exports.PropHazards.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.PropHazards.prototype); }
 /**
 	 * Fits a column matrix of feature vectors X onto the response variable y.
 	 *
-	 * @param {Matrix} X - the column matrix which stores the feature vectors.
-	 * @param {Vector} y - the response variable.
-	 * @param {Number} [eps] - the epsilon used for convergence
-	 * @returns {ExpReg} - returns itself
+	 * @param {module:la.Matrix} X - The column matrix which stores the feature vectors.
+	 * @param {module:la.Vector} y - The response variable.
+	 * @param {number} [eps] - The epsilon used for convergence.
+	 * @returns {module:analytics.PropHazards} Self.
 	 */
+ exports.PropHazards.prototype.fit = function(X, y, eps) { return Object.create(require('qminer').analytics.PropHazards.prototype); }
 /**
 	 * Returns the expected response for the provided feature vector.
 	 *
-	 * @param {Vector} x - the feature vector
-	 * @returns {Number} - the expected response
+	 * @param {module:la.Vector} x - The feature vector.
+	 * @returns {number} The expected response.
 	 */
+ exports.PropHazards.prototype.predict = function(x) { return 0.0; }
 /**
 	 * The models weights.
-	 *
-	 * @type {Vector}
 	 */
+ exports.PropHazards.prototype.weights = Object.create(require('qminer').la.Vector.prototype);
 /**
 	 * Saves the model into the output stream.
-	 *
-	 * @param {FOut} sout - the output stream
+	 * @param {module:fs.FOut} sout - The output stream.
+	 * @returns {module:fs.FOut} The output stream sout.
 	 */
+ exports.PropHazards.prototype.save = function(sout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
 	 * Fits the model onto the data. The data instances must be stored as column vectors in X, while their times
 	 * have to be stored in timeV. An optional parameter indicates wether the data provided is in

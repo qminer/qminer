@@ -292,5 +292,5 @@ var getData = function () {
 getData();
 
 // creates the server listener, so that we know that it's connected
-http.listen(3000, '95.87.154.136');
-console.log('Server running at http://95.87.154.136:3000/');
+http.listen(3000, '127.0.0.1');
+console.log('Server running at http://localhost:3000/');

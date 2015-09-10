@@ -1,0 +1,7 @@
+{
+	"description":  "an example of usage of stream aggregates",
+    "dependencies": {
+        "express": "4.13.3",
+		"socket.io":  "1.3.6"
+    }
+}

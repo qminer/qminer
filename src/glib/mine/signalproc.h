@@ -665,6 +665,16 @@ public:
 	void GetCoeffs(TFltV& Coef) const;
 	// check if the coefficient vector contains NaN
 	bool HasNaN() const;
+
+	// set the forgetting factor
+	void setForgetFact(const double& _ForgetFact) { ForgetFact = _ForgetFact; }
+	// set the regularization
+	void setRegFact(const double& _RegFact) { RegFact = _RegFact; }
+	// set the dimensions
+	void setDim(const int& _Dim) {
+		P = TFullMatrix::Identity(_Dim) / RegFact;
+		Coeffs = TVector(_Dim, true);
+	}
 };
 
 }
