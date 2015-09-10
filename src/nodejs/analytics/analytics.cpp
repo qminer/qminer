@@ -120,7 +120,7 @@ void TNodeJsSvmModel::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         // get output stream from argumetns
         TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
         // save model
-		JsModel->Model.Save(*JsFOut->SOut);
+		JsModel->Save(*JsFOut->SOut);
 		// return output stream for convenience
 		Args.GetReturnValue().Set(Args[0]);
 	} catch (const PExcept& Except) {
