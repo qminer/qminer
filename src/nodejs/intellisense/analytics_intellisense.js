@@ -872,6 +872,13 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* Set the parameters.
 	* @param {module:analytics~logisticRegParam} param - The new parameters.
 	* @returns {module:analytics.LogReg} Self. The parameters are updated.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a logistic regression model
+	* var logreg = new analytics.LogReg({ lambda: 10 });
+	* // set the parameters of the model
+	* logreg.setParams({ lambda: 1 });
 	*/
  exports.LogReg.prototype.setParams = function () { return Object.create(require('qminer').analytics.LogReg.prototype); }
 /**
@@ -910,17 +917,36 @@ exports = {}; require.modules.qminer_analytics = exports;
  *
  * @constructor
  * @property {module:analytics~hazardModelParam|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @example
+ * // import analytics module
+ * var analytics = require('qminer').analytics;
+ * // create a Proportional Hazard model
+ * var hazard = new analytics.PropHazards();
  */
  exports.PropHazards = function (opts) { return Object.create(require('qminer').analytics.PropHazards.prototype); }
 /**
 	* Gets the parameters of the model.
 	* @returns {module:analytics~hazardModelParam} The parameters of the model.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a Proportional Hazard model
+	* var hazard = new analytics.PropHazards({ lambda: 5 });
+	* // get the parameters of the model
+	* var param = hazard.getParams();
 	*/
  exports.PropHazards.prototype.getParams = function () { return { lambda: 0.0 }; }
 /**
 	* Sets the parameters of the model.
 	* @param {module:analytics~hazardModelParam} params - The parameters given to the model.
 	* @returns {module:analytics.PropHazards} Self.
+	* @example 
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a Proportional Hazard model
+	* var hazard = new analytics.PropHazards({ lambda: 5 });
+	* // set the parameters of the model
+	* hazard.setParams({ lambda: 10 });
 	*/
  exports.PropHazards.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.PropHazards.prototype); }
 /**

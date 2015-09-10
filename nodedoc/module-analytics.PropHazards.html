@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">PropHazards</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-911">analyticsdoc.<wbr>js:911</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-923">analyticsdoc.<wbr>js:923</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -83,6 +83,17 @@
             <h2 id="PropHazards">new&nbsp;<span class="symbol-name">PropHazards</span><span class="signature"><span class="signature-params">()</span></span></h2>
             <p>Proportional Hazards Model with a constant hazard function. Uses Newtons method to compute the weights.
               <b>Before use: include BLAS library.</b></p>
+            <section>
+              <h3>
+            Example
+        </h3>
+              <div>
+                <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create a Proportional Hazard model
+var hazard = new analytics.PropHazards();</code></pre>
+              </div>
+            </section>
             <section>
               <h3>Property</h3>
               <table class="jsdoc-details-table">
@@ -192,6 +203,19 @@
               </dl>
               <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~hazardModelParam">module:analytics~hazardModelParam</a></span></span></h3>
               <p>Gets the parameters of the model.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create a Proportional Hazard model
+var hazard = new analytics.PropHazards({ lambda: 5 });
+// get the parameters of the model
+var param = hazard.getParams();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -274,6 +298,19 @@
               </dl>
               <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.PropHazards.html">module:analytics.PropHazards</a></span></span></h3>
               <p>Sets the parameters of the model.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create a Proportional Hazard model
+var hazard = new analytics.PropHazards({ lambda: 5 });
+// set the parameters of the model
+hazard.setParams({ lambda: 10 });</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">

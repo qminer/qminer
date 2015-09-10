@@ -71,7 +71,7 @@ describe('RecursiveLinearRegression Tests', function () {
             var linreg = new analytics.RecLinReg({ dim: 10, regFact: 2.0, forgetFact: 15.0 });
             linreg.setParams({ dim: 2, regFact: 1e-10 });
             var param = linreg.getParams();
-            assert.equal(param.dim, 10);
+            assert.equal(param.dim, 2);
             assert.eqtol(param.regFact, 1e-10);
             assert.eqtol(param.forgetFact, 15.0);
         })

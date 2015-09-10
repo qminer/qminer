@@ -1,6 +1,7 @@
 var assert = require('../../src/nodejs/scripts/assert.js');
-var analytics = require('qminer').analytics;
-var la = require('qminer').la;
+var qm = require('qminer');
+var analytics = qm.analytics;
+var la = qm.la;
 
 
 describe('Logistic Regression Tests', function () {

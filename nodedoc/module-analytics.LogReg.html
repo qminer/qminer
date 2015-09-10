@@ -299,6 +299,19 @@ var param = logreg.getParams(); // returns { lambda: 10, intercept: false }</cod
               <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(param)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.LogReg.html">module:analytics.LogReg</a></span></span></h3>
               <p>Set the parameters.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create a logistic regression model
+var logreg = new analytics.LogReg({ lambda: 10 });
+// set the parameters of the model
+logreg.setParams({ lambda: 1 });</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>
