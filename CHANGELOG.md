@@ -12,6 +12,7 @@ Bug fixes:
 - time series example fixed
 - TStr::TrimLeft could crash
 - active learning fixed
+
 Other:
 - SVC.save (unit test, example)
 - recursive linear reg tests and documentation
