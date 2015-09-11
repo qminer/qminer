@@ -1690,59 +1690,6 @@ void TCtMChain::InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV,
 	Notify->OnNotify(TNotifyType::ntInfo, "Done!");
 }
 
-TFullMatrix TCtMChain::GetQMatrix(const TStateFtrVV& StateFtrVV) const {
-	// compute the intensities
-	const int NStates = IntensModelMat.GetRows();
-
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Constructing Q matrix for %d states ...", NStates);
-
-	// Q-matrix: holds jump intensities
-	TFullMatrix QMatrix(NStates, NStates);
-	for (int RowN = 0; RowN < NStates; RowN++) {
-		if (IsHiddenStateId(RowN)) { continue; }
-
-		for (int ColN = 0; ColN < NStates; ColN++) {
-			if (ColN != RowN) {
-				const double Intens = IntensModelMat(RowN, ColN).Predict(StateFtrVV[RowN]);
-				EAssertR(Intens >= 0, "Intensity is less than 0!!!");
-				QMatrix(RowN, ColN) = Intens > 10000 ? 10000 : Intens;	// TODO fix
-			}
-		}
-
-		//==========================================================
-		// TODO remove
-		for (int ColN = 0; ColN < QMatrix.GetCols(); ColN++) {
-			printf("%.15f", QMatrix(RowN, ColN).Val);
-			if (ColN < QMatrix.GetCols()-1) {
-				printf(", ");
-			}
-		}
-		printf("\n");
-		//==========================================================
-
-		const double Q_ii = -QMatrix.RowSum(RowN);
-		EAssertR(Q_ii != 0, "Q_ii has a zero row!");
-		QMatrix(RowN,RowN) = Q_ii;
-	}
-
-	if (HasHiddenState) {
-		const int HiddenStateId = GetHiddenStateId();
-
-		for (int ColN = 0; ColN < NStates; ColN++) {
-			if (IsHiddenStateId(ColN)) { continue; }
-
-			const double Intens = HIDDEN_STATE_INTENSITY * HiddenStateJumpCountV[ColN];
-			QMatrix(HiddenStateId, ColN) = Intens;
-		}
-
-		const double Q_ii = -QMatrix.RowSum(HiddenStateId);
-		EAssertR(Q_ii != 0, "Q_ii has a zero row!");
-		QMatrix(HiddenStateId,HiddenStateId) = Q_ii;
-	}
-
-	return QMatrix;
-}
-
 TVector TCtMChain::GetStateIntensV(const int StateId, const TFltV& FtrV) const {
 	const int NStates = IntensModelMat.GetRows();
 
@@ -1758,6 +1705,61 @@ TVector TCtMChain::GetStateIntensV(const int StateId, const TFltV& FtrV) const {
 
 	IntensV[StateId] = -IntensV.Sum();
 	return IntensV;
+}
+
+TFullMatrix TCtMChain::GetQMatrix(const TStateFtrVV& StateFtrVV) const {
+	// compute the intensities
+	const int NStates = IntensModelMat.GetRows();
+
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Constructing Q matrix for %d states ...", NStates);
+
+	// Q-matrix: holds jump intensities
+	TFullMatrix QMatrix(NStates, NStates);
+	for (int State1Id = 0; State1Id < NStates; State1Id++) {
+		if (IsHiddenStateId(State1Id)) { continue; }
+
+		const TFltV& State1FtrV = StateFtrVV[State1Id];
+
+		for (int State2Id = 0; State2Id < NStates; State2Id++) {
+			if (State2Id != State1Id) {
+				const double Intens = IntensModelMat(State1Id, State2Id).Predict(State1FtrV);
+				EAssertR(Intens >= 0, "Intensity is less than 0!!!");
+				QMatrix(State1Id, State2Id) = Intens > 10000 ? 10000 : Intens;	// TODO fix
+			}
+		}
+
+//		//==========================================================
+//		// TODO remove
+//		for (int ColN = 0; ColN < QMatrix.GetCols(); ColN++) {
+//			printf("%.15f", QMatrix(State1Id, ColN).Val);
+//			if (ColN < QMatrix.GetCols()-1) {
+//				printf(", ");
+//			}
+//		}
+//		printf("\n");
+//		//==========================================================
+
+		const double Q_ii = -QMatrix.RowSum(State1Id);
+		EAssertR(Q_ii != 0, "Q_ii has a zero row!");
+		QMatrix(State1Id,State1Id) = Q_ii;
+	}
+
+	if (HasHiddenState) {
+		const int HiddenStateId = GetHiddenStateId();
+
+		for (int State2Id = 0; State2Id < NStates; State2Id++) {
+			if (IsHiddenStateId(State2Id)) { continue; }
+
+			const double Intens = HIDDEN_STATE_INTENSITY * HiddenStateJumpCountV[State2Id];
+			QMatrix(HiddenStateId, State2Id) = Intens;
+		}
+
+		const double Q_ii = -QMatrix.RowSum(HiddenStateId);
+		EAssertR(Q_ii != 0, "Q_ii has a zero row!");
+		QMatrix(HiddenStateId,HiddenStateId) = Q_ii;
+	}
+
+	return QMatrix;
 }
 
 TFullMatrix TCtMChain::GetQMatrix(const TStateSetV& InStateSetV, const TStateFtrVV& StateFtrVV) const {

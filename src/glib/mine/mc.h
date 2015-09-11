@@ -680,10 +680,10 @@ protected:
 	const TStr GetType() const override { return "continuous"; }
 
 private:
-	// returns the intensity matrix (Q-matrix)
-	TFullMatrix GetQMatrix(const TStateFtrVV& StateFtrVV) const;
 	TVector GetStateIntensV(const int StateId, const TFltV& FtrV) const;
 
+	// returns the intensity matrix (Q-matrix)
+	TFullMatrix GetQMatrix(const TStateFtrVV& StateFtrVV) const;
 	// returns a Q matrix for the joined states
 	TFullMatrix GetQMatrix(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const;
 	// returns a Q matrix for the joined states for the time reversal Markov chain
