@@ -236,8 +236,12 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() == 4, "TNodeJsFs::readLines: Invalid number of arguments!");
+    EAssertR(!TNodeJsUtil::IsArgNull(Args, 0), "TNodeJsFs::readLines: Buffer is null or undefined!");
 
     v8::Local<v8::Object> BuffObj = Args[0]->ToObject();
+
+    EAssertR(BuffObj->HasIndexedPropertiesInExternalArrayData(), "TNodeJsFs::readLines: argument is not a buffer!");
+
 	char* Buff = node::Buffer::Data(BuffObj);
 	size_t BuffLen = node::Buffer::Length(BuffObj);
 	TThinMIn SIn(Buff, BuffLen);

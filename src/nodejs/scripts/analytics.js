@@ -1663,6 +1663,7 @@ module.exports = exports = function (pathPrefix) {
 	    	var obsFtrSpace;
 	    	var controlFtrSpace;
 	    	var id;
+	    	var active = false;
 	
 	    	if (opts.base != null && opts.config != null) {
 	    		mc = new exports._StreamStory(opts.config);
@@ -1789,6 +1790,14 @@ module.exports = exports = function (pathPrefix) {
 	    		
 	    		setId: function (modelId) {
 	    			id = modelId;
+	    		},
+	    		
+	    		isActive: function () {
+	    			return active;
+	    		},
+	    		
+	    		setActive: function (act) {
+	    			active = act;
 	    		},
 	    		
 	    		/**
