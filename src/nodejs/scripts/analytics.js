@@ -1753,7 +1753,7 @@ module.exports = exports = function (pathPrefix) {
 				return {
 					observations: observations,
 					controls: controls,
-					isBottom: mc.isBottomState(stateId)
+					isBottom: mc.isLeaf(stateId)
 				};
 	    	}
 	
@@ -1990,6 +1990,7 @@ module.exports = exports = function (pathPrefix) {
 	    			var futureStates = mc.futureStates(height, stateId);
 	    			var pastStates = mc.pastStates(height, stateId);
 	    			var isTarget = mc.isTarget(stateId, height);
+	    			var isLeaf = mc.isLeaf(stateId);
 	    			var stateNm = mc.getStateName(stateId);
 	    			var wgts = mc.getStateWgtV(stateId);
 	
@@ -1999,6 +2000,7 @@ module.exports = exports = function (pathPrefix) {
 	    				id: stateId,
 	    				name: stateNm.length > 0 ? stateNm : null,
 	    				isTarget: isTarget,
+	    				isLeaf: isLeaf,
 	    				features: features,
 	    				futureStates: futureStates,
 	    				pastStates: pastStates,

@@ -374,6 +374,8 @@ public:
 	void SetTarget(const int& StateId, const double& Height);
 	void RemoveTarget(const int& StateId, const double& Height);
 
+	bool IsLeaf(const int& StateId) const;
+
 	const TIntFltPrSet& GetTargetStateIdSet() const { return TargetIdHeightSet; }
 
 	void SetVerbose(const bool& Verbose);
@@ -388,7 +390,6 @@ private:
 	double GetNearestHeight(const double& InHeight) const;
 
 	bool IsRoot(const int& StateId) const;
-	bool IsLeaf(const int& StateId) const;
 	bool IsOnHeight(const int& StateId, const double& Height) const;
 	bool IsBelowHeight(const int& StateId, const double& Height) const;
 	bool IsAboveHeight(const int& StateId, const double& Height) const;
@@ -853,7 +854,7 @@ public:
     bool IsTargetState(const int& StateId, const double& Height) const { return Hierarch->IsTarget(StateId, Height); }
     void SetTargetState(const int& StateId, const double& Height, const bool& IsTrg);
 
-    bool IsBottomState(const int& StateId) const;
+    bool IsLeaf(const int& StateId) const;
 
     // sets the name of the specified state
     void SetStateNm(const int& StateId, const TStr& StateNm);

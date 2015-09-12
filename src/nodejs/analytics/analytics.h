@@ -1456,7 +1456,12 @@ public:
 	 */
 	JsDeclareFunction(setTarget);
 
-	JsDeclareFunction(isBottomState);
+	/**
+	 * Returns true if the state defined by the ID is at the bottom of the hierarchy.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 */
+	JsDeclareFunction(isLeaf);
 
 	/**
 	 * Returns the time unit used by this model.

@@ -277,6 +277,8 @@ double TStateIdentifier::GetControlFtr(const int& StateId, const int& FtrId, con
 }
 
 void TStateIdentifier::SetControlFtr(const int& StateId, const int& FtrId, const double& Val) {
+	EAssertR(StateId < StateContrFtrValVV.Len(), "Invalid state ID when setting feature!");
+	EAssertR(FtrId < StateContrFtrValVV[StateId].Len(), "Invalid feature ID when setting feature!");
 	StateContrFtrValVV[StateId][FtrId] = Val;
 }
 
@@ -417,6 +419,8 @@ TVector TStateIdentifier::GetControlCentroid(const int& CentroidId) const {
 }
 
 double TStateIdentifier::GetControlFtr(const int& StateId, const int& FtrId) const {
+	EAssertR(StateId < StateContrFtrValVV.Len(), "Invalid state ID when fetching feature value!");
+	EAssertR(FtrId < StateContrFtrValVV[StateId].Len(), "Invalid feature ID when fetching feature value!");
 	return StateContrFtrValVV[StateId][FtrId];
 }
 
@@ -997,6 +1001,10 @@ void THierarch::RemoveTarget(const int& StateId, const double& Height) {
 	TargetIdHeightSet.DelKey(StateIdHeightPr);
 }
 
+bool THierarch::IsLeaf(const int& StateId) const {
+	return StateId < NLeafs;
+}
+
 void THierarch::SetVerbose(const bool& _Verbose) {
 	if (_Verbose != Verbose) {
 		Verbose = _Verbose;
@@ -1037,10 +1045,6 @@ double THierarch::GetNearestHeight(const double& InHeight) const {
 
 bool THierarch::IsRoot(const int& StateId) const {
 	return IsRoot(StateId, HierarchV);
-}
-
-bool THierarch::IsLeaf(const int& StateId) const {
-	return StateId < NLeafs;
 }
 
 bool THierarch::IsOnHeight(const int& StateId, const double& Height) const {
@@ -2554,8 +2558,8 @@ void TStreamStory::SetTargetState(const int& StateId, const double& Height, cons
 	}
 }
 
-bool TStreamStory::IsBottomState(const int& StateId) const {
-	return StateId < StateIdentifier->GetStates();
+bool TStreamStory::IsLeaf(const int& StateId) const {
+	return Hierarch->IsLeaf(StateId);
 }
 
 void TStreamStory::SetStateNm(const int& StateId, const TStr& StateNm) {

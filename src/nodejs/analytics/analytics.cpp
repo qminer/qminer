@@ -1377,7 +1377,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setStateName", _setStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "isTarget", _isTarget);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setTarget", _setTarget);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "isBottomState", _isBottomState);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "isLeaf", _isLeaf);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTimeUnit", _getTimeUnit);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setControlVal", _setControlVal);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "resetControlVal", _resetControlVal);
@@ -2033,18 +2033,14 @@ void TNodeJsStreamStory::setTarget(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
-void TNodeJsStreamStory::isBottomState(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamStory::isLeaf(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 1, "hmc.isBottomState: expects 1 arguments!");
-
 	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 
-	bool Result = JsMChain->StreamStory->IsBottomState(StateId);
-	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, Result));
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsMChain->StreamStory->IsLeaf(StateId)));
 }
 
 void TNodeJsStreamStory::getTimeUnit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
