@@ -1,5 +1,29 @@
 # QMiner Change Log
 
+### 11 Sep 2015
+
+**New version: 2.2.1**
+
+**non-breaking without new features**
+
+Bug fixes:
+- SVC save fixed
+- twitter example fixed
+- time series example fixed
+- TStr::TrimLeft could crash
+- active learning fixed
+
+Other:
+- SVC.save (unit test, example)
+- recursive linear reg tests and documentation
+- logistic regression API update, doc, example, tests
+- proportional hazards model API update, doc, example, tests
+- licenses updated
+- /src/qminer/gui folder deleted
+- examples/timeseriesPlot deleted
+- examples/updatingTimeseriesPlot deleted
+- src/nodejs/ run.js scripts removed
+
 ### 4 Sep 2015
 
 **New version: 2.2.0**
