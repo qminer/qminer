@@ -1694,7 +1694,13 @@ module.exports = exports = function (pathPrefix) {
 	
 	    		var dims = ftrSpace.dims;
 	    		for (var i = 0; i < dims.length; i++) {
-					names.push(ftrSpace.getFeature(i));
+	    			var ftrDesc = ftrSpace.getFeature(i);
+	    			var match = ftrDesc.match(/\[\w*\]$/)[0];	// remove Numeric[ ]
+					
+	    			if (match != null)
+	    				names.push(match.substring(1, match.length-1));
+	    			else
+	    				names.push(ftrDesc);
 				}
 	
 	    		return names;

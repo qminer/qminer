@@ -2607,10 +2607,11 @@ void TStreamStory::ResetControlFtrVals(const int& StateId) {
 }
 
 void TStreamStory::ResetControlFtrVals() {
-	const int States = StateIdentifier->GetStates();
-	for (int StateId = 0; StateId < States; StateId++) {
-		ResetControlFtrVals(StateId);
-	}
+	StateIdentifier->ClearControlFtrVV();
+}
+
+bool TStreamStory::IsAnyControlFtrSet() const {
+	return StateIdentifier->IsAnyControlFtrSet();
 }
 
 const TFltPr& TStreamStory::GetFtrBounds(const int& FtrId) const {

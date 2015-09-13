@@ -1482,6 +1482,13 @@ public:
 
 	JsDeclareFunction(resetControlVal);
 
+	/**
+	 * Returns true is any of the control parameters have been set in any of the states.
+	 *
+	 * @returns {Boolean}
+	 */
+	JsDeclareFunction(isAnyControlFtrSet);
+
 	// parameters
 	//!- `hmc = hmc.getParams(params)` -- sets one or more parameters given
 	//!- in the input argument `params` returns this

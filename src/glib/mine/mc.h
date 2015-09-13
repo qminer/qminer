@@ -865,6 +865,7 @@ public:
     void ResetControlFtrVal(const int& StateId, const int& FtrId);
     void ResetControlFtrVals(const int& StateId);
     void ResetControlFtrVals();
+    bool IsAnyControlFtrSet() const;
 
     const TFltPr& GetFtrBounds(const int& FtrId) const;
     const TStr& GetStateNm(const int& StateId) const;
