@@ -1685,7 +1685,7 @@ void TCtMChain::InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV,
 			//============================================================
 
 			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Fitting a regression model from state %d to %d", State1Id, State2Id);
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Class labels:\n%s", TStrUtil::GetStr(LabelV, ", ", "%.1f").CStr());
+//			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Class labels:\n%s", TStrUtil::GetStr(LabelV, ", ", "%.1f").CStr());
 
 			Model.Fit(JumpFtrVV, LabelV);
 		}
@@ -2186,7 +2186,6 @@ TStreamStory::TStreamStory():
 		MChain(nullptr),
 		Hierarch(nullptr),
 		StateAssist(nullptr),
-//		FtrFactorV(),
 		PrevObsFtrV(),
 		PrevContrFtrV(),
 		PrevRecTm(),
@@ -2200,7 +2199,6 @@ TStreamStory::TStreamStory(const PStateIdentifier& _StateIdentifier, const PMCha
 		MChain(_MChain),
 		Hierarch(_Hierarch),
 		StateAssist(new TStateAssist(_Verbose)),
-//		FtrFactorV(),
 		PrevObsFtrV(),
 		PrevContrFtrV(),
 		PrevRecTm(),
@@ -2214,7 +2212,6 @@ TStreamStory::TStreamStory(TSIn& SIn):
 	MChain(TMChain::Load(SIn)),
 	Hierarch(THierarch::Load(SIn)),
 	StateAssist(new TStateAssist(SIn)),
-//	FtrFactorV(SIn),
 	PrevObsFtrV(SIn),
 	PrevContrFtrV(SIn),
 	PrevRecTm(TUInt64(SIn)),
@@ -2232,7 +2229,6 @@ void TStreamStory::Save(TSOut& SOut) const {
 	MChain->Save(SOut);
 	Hierarch->Save(SOut);
 	StateAssist->Save(SOut);
-//	FtrFactorV.Save(SOut);
 	PrevObsFtrV.Save(SOut);
 	PrevContrFtrV.Save(SOut);
 	TUInt64(PrevRecTm).Save(SOut);
