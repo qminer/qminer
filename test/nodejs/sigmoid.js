@@ -184,4 +184,17 @@ describe('Sigmoid Tests', function () {
             assert(prediction[2] > 0.90);
         })
     });
+    describe('Serialization Tests', function () {
+        it('should serialize and deserialize', function () {
+            var sigmoid = new analytics.Sigmoid();
+            var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+            var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+            sigmoid.fit(X, y);
+            sigmoid.save(require('qminer').fs.openWrite('sigmoid_test.bin')).close();
+            var sigmoid2 = new analytics.Sigmoid(require('qminer').fs.openRead('sigmoid_test.bin'));
+            assert.deepEqual(sigmoid.getParams(), sigmoid2.getParams());
+            assert.eqtol(sigmoid.getModel().A, sigmoid2.getModel().A);
+            assert.eqtol(sigmoid.getModel().B, sigmoid2.getModel().B);
+        })
+    });
 });

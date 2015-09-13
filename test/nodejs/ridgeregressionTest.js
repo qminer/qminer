@@ -265,4 +265,16 @@ describe('Ridge Regression Tests', function () {
             });
         })
     });
+    describe('Serialization Tests', function () {
+        it('should serialize and deserialize', function () {
+            var RR = new analytics.RidgeReg();
+            var A = new la.Matrix([[1, 2], [1, -1]]);
+            var b = new la.Vector([3, 3]);
+            RR.fit(A, b);
+            RR.save(require('qminer').fs.openWrite('ridgereg_test.bin')).close();
+            var RR2 = new analytics.RidgeReg(require('qminer').fs.openRead('ridgereg_test.bin'));
+            assert.deepEqual(RR.getParams(), RR2.getParams());
+            assert.eqtol(RR.weights.minus(RR2.weights).norm(), 0, 1e-8);
+        })
+    });
 });

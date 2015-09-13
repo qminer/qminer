@@ -194,8 +194,10 @@ public:
 	* var fin = fs.openRead('tesi.bin');
 	* // create a SVC object that loads the model and parameters from input stream
 	* var SVC2 = new analytics.SVC(fin);	
+	*/
 	//# exports.SVC.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
-    /**
+    
+	/**
     * Sends vector through the model and returns the distance to the decision boundery.
     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
     * @returns {number | module:la.Vector} Distance:
@@ -772,7 +774,7 @@ public:
  * Nearest Neighbour Anomaly Detection 
  * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
  * @class
- * @param {module:analytics~detectorParam} [detectorParam] - Constructor parameters.
+ * @param {(module:analytics~detectorParam|module:fs.FIn)} [detectorParam] - Constructor parameters.
  * @example
  * // import modules
  * var analytics = require('qminer').analytics;
@@ -960,10 +962,6 @@ public:
 
 ///////////////////////////////
 // QMiner-JavaScript-Recursive-Linear-Regression
-//!
-//! ### Recursive Linear Regression model
-//!
-//! Holds online regression model.
 
 /**
 * @typedef {Object} recLinearRegParam
@@ -977,7 +975,7 @@ public:
 * Recursive Linear Regression
 * @classdesc Holds the Recursive Linear Regression model.
 * @class
-* @param {module:analytics~recLinearRegParam} param - The constructor parameter json object.
+* @param {(module:analytics~recLinearRegParam|module:fs.FIn)} param - The constructor parameter json object.
 * @example
 * // import analytics module
 * var analytics = require('qminer').analytics;
@@ -994,18 +992,9 @@ public:
 	static void Init(v8::Handle<v8::Object> exports);
 	static const TStr GetClassId() { return "RecLinReg"; }
 private:
-	//!
-	//! **Constructor:**
-	//!
-	//!- `recLinRegModel = new analytics.RecLinReg(fin)` -- constructs a recursive linear regression model by loading it from input stream `fin`
-	//!- `recLinRegModel = new analytics.RecLinReg(recLinRegParameters)` -- constructs a recursive linear regression using a JSON parameter object `recLinRegParameters, whose properties are `recLinRegParameters.dim` (dimensionality of feature space, e.g.
-	//!     `ftrSpace.dim`), `recLinRegParameters.forgetFact` (forgetting factor, default is 1.0) and `recLinRegParameters.regFact` 
-	//!     (regularization parameter to avoid over-fitting, default is 1.0).)
+
 	static TNodeJsRecLinReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
-	//!
-	//! **Functions and properties:**
-	//!
-    //!- `recLinRegModel = recLinRegModel.fit(vec, num)` -- updates the model using full vector `vec` and target number `num`as training data. Returns self.
+	
 	/**
 	* Creates a partial fit of the input.
 	* @param {module:la.Vector} vec - The input vector.
@@ -1045,8 +1034,6 @@ private:
 	//# exports.RecLinReg.prototype.fit = function (mat, vec) { return Object.create(require('qminer').analytics.RecLinReg.prototype); }
 	JsDeclareFunction(fit);
 
-    //!- `num = recLinRegModel.predict(vec)` -- sends vector `vec` through the
-    //!     model and returns the prediction as a real number `num`
 	/**
 	* Puts the vector through the model and returns the prediction as a real number.
 	* @param {module:la.Vector} vec - The vector needed to be predicted.
@@ -1085,8 +1072,6 @@ private:
 	//# exports.RecLinReg.prototype.setParams = function (param) { return Object.create(require('qminer').analytics.RecLinReg.prototype); }
 	JsDeclareFunction(setParams);
 
-	//!- `params = svmModel.getParams()` -- returns the parameters of this model as
-	//!- a Javascript object
 	/**
 	* Returns the parameters.
 	* @returns {module:analytics~recLinearRegParam} The parameters of the model.
@@ -1101,21 +1086,18 @@ private:
 	//# exports.RecLinReg.prototype.getParams = function () { return { dim: 0, regFact: 1.0, forgetFact: 1.0 }}
 	JsDeclareFunction(getParams);
 
-    //!- `vec = recLinRegModel.weights` -- weights of the linear model as a full vector `vec`
 	/**
 	* Gives the weights of the model.
 	*/
 	//# exports.RecLinReg.prototype.weights = Object.create(require('qminer').la.Vector);
 	JsDeclareProperty(weights);
 
-    //!- `num = recLinRegModel.dim` -- dimensionality of the feature space on which this model works
 	/**
 	* Gets the dimensionality of the model.
 	*/
 	//# exports.RecLinReg.prototype.dim = 0;
 	JsDeclareProperty(dim);
 
-	//!- `fout = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
 	/**
 	* Save model to provided output stream.
 	* @param {module:fs.FOut} fout - The output stream.
@@ -1128,6 +1110,9 @@ private:
 	PJsonVal GetParams() const;
 };
 
+/////////////////////////////////////////////
+// Logistic Regression
+
 /**
 * @typedef {Object} logisticRegParam
 * The Json constructor parameters for {@link module:analytics.LogReg}.
@@ -1139,7 +1124,7 @@ private:
  * Logistic regression model. Uses Newtons method to compute the weights.
  * <b>Before use: include BLAS library.</b>
  * @constructor
- * @param {(module:analytics~logisticRegParam|FIn)} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @param {(module:analytics~logisticRegParam|module:fs.FIn)} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
  * @example
  * // import analytics module
  * var analytics = require('qminer').analytics;
@@ -1212,7 +1197,7 @@ public:
 	/**
 	 * Gives the weights of the model.
 	 */
-	//# exports.LogReg.prototype.weights = Object.create(require('qminer').analytics.LogReg.prototype);
+	//# exports.LogReg.prototype.weights = Object.create(require('qminer').la.vector.prototype);
 	JsDeclareProperty(weights);
 
 	/**
@@ -1239,7 +1224,7 @@ public:
  * <b>Before use: include BLAS library.</b>
  *
  * @constructor
- * @property {module:analytics~hazardModelParam|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @property {module:analytics~hazardModelParam|module:fs.FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
  * @example
  * // import analytics module
  * var analytics = require('qminer').analytics;
@@ -1589,10 +1574,23 @@ private:
 
 ///////////////////////////////
 // QMiner-JavaScript-Neural-Networks
-//!
-//! ### Neural Network model
-//!
-//! Holds online/offline neural network model. This object is result of `analytics.newNNet`.
+
+/**
+* @typedef {Object} nnetParams
+* @property {module:la.IntVector} [layout] - The integer vector with the corresponding values of the number of neutrons. Default is the integer vector [1, 2 ,1].
+* @property {number} [learnRate = 0.1] - The learning rate.
+* @property {number} [momentum = 0.5] - The momentum of optimization.
+* @property {string} [tFuncHidden = 'tanHyper'] - The function.
+* @property {string} [tFuncOut = 'tanHyper'] - The function.
+*/
+
+/**
+* Neural Network Model
+* @classdesc Holds online/offline neural network model.
+* @class
+* @param {module:analytics~nnetParams|module:fs.FIn} [params] - The parameters for the construction of the model.
+*/
+//# exports.NNet = function (params) { return Object.create(require('qminer').analytics.NNet.prototype); }
 class TNodeJsNNet : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
@@ -1606,20 +1604,52 @@ public:
 	static void Init(v8::Handle<v8::Object> exports);
 	static const TStr GetClassId() { return "NNet"; }
 
-    //!- `NNet = NNet.fit(vec,vec)` -- fits the NNet model in online mode
-    //!- `NNet = NNet.fit(mat,mat)` -- fits the NNet model in batch mode
+	/**
+	* Get the parameters of the model.
+	* @returns {module:analytics~nnetParams} The constructor parameters.
+	*/
+	//# exports.NNet.prototype.getParams = function () { return { layout: Object.create(require('qminer').la.IntVector.prototype), learnRate: 0.0, momentum: 0.0, tFuncHidden: "", TFuncOut: "" }; }
+	JsDeclareFunction(getParams);
+
+	/**
+	* Sets the parameters of the model.
+	* @params {module:analytics~nnetParams} params - The given parameters.
+	* @returns {module:analytics.NNet} Self.
+	*/
+	//# exports.NNet.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.NNet.prototype); }
+	JsDeclareFunction(setParams);
+
+	/**
+	* Fits the model.
+	* @param {(module:la.Vector|module:la.Matrix)} input1 - The input vector or matrix.
+	* @param {(module:la.Vector|module:la.Matrix)} input2 - The input vector or matrix.
+	* <br> If input1 and input2 are both {@link module:la.Vector}, then the fitting is in online mode.
+	* <br> If input1 and input2 are both {@link module:la.Matrix}, then the fitting is in batch mode.
+	* @returns {module:analytics.NNet} Self.
+	*/
+	//# exports.NNet.prototype.fit = function (input1, input2) { return Object.create(require('qminer').analytics.NNet.prototype); }
 	JsDeclareFunction(fit);
-    //!- `vec = NNet.predict(vec)` -- sends vector `vec` through the
-    //!     model and returns the prediction as a vector `vec`
+	
+	/**
+	* Sends the vector through the model and get the prediction.
+	* @param {module:la.Vector} vec - The sent vector.
+	* @returns {number} The prediction of the vector vec.
+	*/
+	//# exports.NNet.prototype.predict = function (vec) { return 0.0; }
 	JsDeclareFunction(predict);
-	//!- `NNet.setLearnRate(num)` -- Sets the new learn rate for the network
-	JsDeclareFunction(setLearnRate);
-	//!- `NNet.save(fout)` -- Saves the model into the specified output stream.
+
+	/**
+	* Saves the model.
+	* @param {module:fs.FOut} fout - The output stream.
+	* @returns {module:fs.FOut} The output stream fout.
+	*/
+	//# exports.NNet.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); } 
 	JsDeclareFunction(save);
  private:
 	TSignalProc::TTFunc ExtractFuncFromString(const TStr& FuncString);
 };
 
+/////////////////////////////////////////////
 // QMiner-JavaScript-Tokenizer
 //!
 //! ### Tokenizer

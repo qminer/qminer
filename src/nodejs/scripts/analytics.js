@@ -798,7 +798,7 @@ module.exports = exports = function (pathPrefix) {
 
         /**
         * Permutes centroid with given mapping.
-        @param {object} mapping - object that contains the mappping. E.g. mapping[4]=2 means "map cluster 4 into cluster 2"
+        @param {object} mapping - object that contains the mapping. E.g. mapping[4]=2 means "map cluster 4 into cluster 2"
         */
         this.permuteCentroids = function (mapping) {
             var cl_count = C.cols;
@@ -817,8 +817,6 @@ module.exports = exports = function (pathPrefix) {
         }
         /**
         * Returns the model
-        * @returns {Object} The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data)
-        * Returns the model.
         * @returns {Object} The model object whose keys are: C (centroids) and idxv (cluster ids of the training data).
         * @example
         * // import modules
@@ -874,7 +872,7 @@ module.exports = exports = function (pathPrefix) {
         }
 
         /**
-        * Computes the centroids
+        * Computes the centroids.
         * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
         * @returns {module:analytics.KMeans} Self. It stores the info about the new model.
         * @example
@@ -984,7 +982,7 @@ module.exports = exports = function (pathPrefix) {
         };
 
         /**
-        * Returns an vector of cluster id assignments
+        * Returns an vector of cluster id assignments.
         * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
         * @returns {module:la.IntVector} Vector of cluster assignments.
         * @example
@@ -1041,8 +1039,9 @@ module.exports = exports = function (pathPrefix) {
             return D;
         }
 		/**
-        * Saves KMeans internal state into (binary) file
+        * Saves KMeans internal state into (binary) file.
         * @param {string} fname - Name of the file to write into.
+
         */
         this.save = function(fname){
 			if (!C) {

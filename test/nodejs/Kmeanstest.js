@@ -13,12 +13,6 @@ var assert = require("../../src/nodejs/scripts/assert.js");
 //Unit test for Kmeans
 
 describe("Kmeans test", function () {
-    beforeEach(function () {
-
-    });
-    afterEach(function () {
-
-    });
 
     describe("Constructor test", function () {
         it("should return empty parameter values", function () {
@@ -214,5 +208,17 @@ describe("Kmeans test", function () {
                 var transform = KMeans.transform(matrix);
             });
         });
+    });
+
+    describe.skip('Serialization Tests', function () {
+        it('should serialize and deserialize', function () {
+            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            KMeans.save(require('qminer').fs.openWrite('kmeans_test.bin')).close();
+            var KMeans2 = new analytics.SVC(require('qminer').fs.openRead('kmeans_test.bin'));
+            assert.deepEqual(KMeans.getParams(), KMeans2.getParams());
+            assert.eqtol(KMeans.getModel().C, KMeans2.getModel().C, 1e-8);
+        })
     });
 });

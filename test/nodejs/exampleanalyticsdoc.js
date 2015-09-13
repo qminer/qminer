@@ -76,8 +76,35 @@ it('should make test number 5', function () {
 
 });
 });
-describe("Sends vector through the model and returns the distance to the decision boundery.", function () {
+describe("Saves model to output file stream.", function () {
 it('should make test number 6', function () {
+ this.timeout(10000); 
+
+	 // import the analytics and la modules
+	 var analytics = require('qminer').analytics;
+	 var la = require('qminer').la;
+	 var qmfs = require('qminer').fs;
+	 // create a new SVC object
+	 var SVC = new analytics.SVC();
+	 // create the matrix containing the input features and the input vector for each matrix.
+	 var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);	
+	 // fit the model
+	 SVC.fit(matrix, vec);
+	 var fs = require('qminer').fs;
+	 // create output stream
+	 var fout = fs.openWrite('model.bin');
+	 // save SVC object (model and parameters) to output stream and close it
+	 SVC.save(fout);
+	 fout.close();
+	 // create input stream
+	 var fin = fs.openRead('tesi.bin');
+	 // create a SVC object that loads the model and parameters from input stream
+	 var SVC2 = new analytics.SVC(fin);	
+
+});
+});
+describe("Sends vector through the model and returns the distance to the decision boundery.", function () {
+it('should make test number 7', function () {
  this.timeout(10000); 
 
 	 // import the analytics and la modules
@@ -98,7 +125,7 @@ it('should make test number 6', function () {
 });
 });
 describe("Sends vector through the model and returns the prediction as a real number.", function () {
-it('should make test number 7', function () {
+it('should make test number 8', function () {
  this.timeout(10000); 
 
 	 // import the analytics and la modules
@@ -119,7 +146,7 @@ it('should make test number 7', function () {
 });
 });
 describe("Fits a SVM classification model, given column examples in a matrix and vector of targets.", function () {
-it('should make test number 8', function () {
+it('should make test number 9', function () {
  this.timeout(10000); 
 
 	 // import the analytics and la modules
@@ -136,7 +163,7 @@ it('should make test number 8', function () {
 });
 });
 describe("SVR", function () {
-it('should make test number 9', function () {
+it('should make test number 10', function () {
  this.timeout(10000); 
 
  // import module
@@ -159,7 +186,7 @@ it('should make test number 9', function () {
 });
 });
 describe("Returns the SVR parameters.", function () {
-it('should make test number 10', function () {
+it('should make test number 11', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -172,7 +199,7 @@ it('should make test number 10', function () {
 });
 });
 describe("Sets the SVR parameters.", function () {
-it('should make test number 11', function () {
+it('should make test number 12', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -185,7 +212,7 @@ it('should make test number 11', function () {
 });
 });
 describe("Sends vector through the model and returns the scalar product as a real number.", function () {
-it('should make test number 12', function () {
+it('should make test number 13', function () {
  this.timeout(10000); 
 
 	  // import the modules
@@ -205,7 +232,7 @@ it('should make test number 12', function () {
 });
 });
 describe("Sends vector through the model and returns the prediction as a real number.", function () {
-it('should make test number 13', function () {
+it('should make test number 14', function () {
  this.timeout(10000); 
 
 	 // import the modules
@@ -225,7 +252,7 @@ it('should make test number 13', function () {
 });
 });
 describe("fits an SVM regression model, given column examples in a matrix and vector of targets", function () {
-it('should make test number 14', function () {
+it('should make test number 15', function () {
  this.timeout(10000); 
 
 	 // import the modules
@@ -242,7 +269,7 @@ it('should make test number 14', function () {
 });
 });
 describe("Ridge regression. Minimizes: ||A' x - b||^2 + ||gamma x||^2", function () {
-it('should make test number 15', function () {
+it('should make test number 16', function () {
  this.timeout(10000); 
 
   // import modules
@@ -271,7 +298,7 @@ it('should make test number 15', function () {
 });
 });
 describe("Gets the parameters.", function () {
-it('should make test number 16', function () {
+it('should make test number 17', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -285,7 +312,7 @@ it('should make test number 16', function () {
 });
 });
 describe("Set the parameters.", function () {
-it('should make test number 17', function () {
+it('should make test number 18', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -298,7 +325,7 @@ it('should make test number 17', function () {
 });
 });
 describe("Fits a column matrix of feature vectors X onto the response variable y.", function () {
-it('should make test number 18', function () {
+it('should make test number 19', function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -312,28 +339,6 @@ it('should make test number 18', function () {
 	  // fit the model with X and y
 	  // the weights of the model are 2, 1
 	  regmod.fit(X, y);
-    
-});
-});
-describe("Returns the expected response for the provided feature vector.", function () {
-it('should make test number 19', function () {
- this.timeout(10000); 
-
-	  // import modules
-	  var analytics = require('qminer').analytics;
-	  var la = require('qminer').la;
-	  // create a new Ridge Regression object
-	  var regmod = new analytics.RidgeReg();
-	  // create the test matrix and vector
-	  var X = new la.Matrix([[1, 2], [1, -1]]);
-	  var y = new la.Vector([3, 3]);
-	  // fit the model with X and y
-	  regmod.fit(X, y);
-	  // create a new vector for the prediction
-	  var vec = new la.Vector([3, 4]);
-	  // create the prediction
-	  // returns the value 10
-	  var prediction = regmod.decisionFunction(vec);
     
 });
 });
@@ -355,12 +360,34 @@ it('should make test number 20', function () {
 	  var vec = new la.Vector([3, 4]);
 	  // create the prediction
 	  // returns the value 10
+	  var prediction = regmod.decisionFunction(vec);
+    
+});
+});
+describe("Returns the expected response for the provided feature vector.", function () {
+it('should make test number 21', function () {
+ this.timeout(10000); 
+
+	  // import modules
+	  var analytics = require('qminer').analytics;
+	  var la = require('qminer').la;
+	  // create a new Ridge Regression object
+	  var regmod = new analytics.RidgeReg();
+	  // create the test matrix and vector
+	  var X = new la.Matrix([[1, 2], [1, -1]]);
+	  var y = new la.Vector([3, 3]);
+	  // fit the model with X and y
+	  regmod.fit(X, y);
+	  // create a new vector for the prediction
+	  var vec = new la.Vector([3, 4]);
+	  // create the prediction
+	  // returns the value 10
 	  var prediction = regmod.predict(vec);
     
 });
 });
 describe("Sigmoid function (y = 1/[1 + exp[", function () {
-it('should make test number 21', function () {
+it('should make test number 22', function () {
  this.timeout(10000); 
 
   // import modules
@@ -381,7 +408,7 @@ it('should make test number 21', function () {
 });
 });
 describe("Get the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.", function () {
-it('should make test number 22', function () {
+it('should make test number 23', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -395,7 +422,7 @@ it('should make test number 22', function () {
 });
 });
 describe("Sets the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.", function () {
-it('should make test number 23', function () {
+it('should make test number 24', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -409,7 +436,7 @@ it('should make test number 23', function () {
 });
 });
 describe("Gets the model.", function () {
-it('should make test number 24', function () {
+it('should make test number 25', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -423,7 +450,7 @@ it('should make test number 24', function () {
 });
 });
 describe("Fits a column matrix of feature vectors X onto the response variable y.", function () {
-it('should make test number 25', function () {
+it('should make test number 26', function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -438,26 +465,6 @@ it('should make test number 25', function () {
 	  // changes the internal A and B values of the model 
 	  // (these values can be obtained with the getModel method)
 	  s.fit(X, y);
-    
-});
-});
-describe("Returns the expected response for the provided feature vector.", function () {
-it('should make test number 26', function () {
- this.timeout(10000); 
-
-	  // import modules
-	  var analytics = require('qminer').analytics;
-	  var la = require('qminer').la;
-	  // create the Sigmoid model
-	  var s = new analytics.Sigmoid();
-	  // create the predicted values and the binary labels
-	  var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
-	  var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
-	  // fit the model
-	  s.fit(X, y);
-	  // predict the probability of the value 0 on this model
-	  // returns 0.5
-	  var prediction = s.decisionFunction(0.5);
     
 });
 });
@@ -477,12 +484,32 @@ it('should make test number 27', function () {
 	  s.fit(X, y);
 	  // predict the probability of the value 0 on this model
 	  // returns 0.5
+	  var prediction = s.decisionFunction(0.5);
+    
+});
+});
+describe("Returns the expected response for the provided feature vector.", function () {
+it('should make test number 28', function () {
+ this.timeout(10000); 
+
+	  // import modules
+	  var analytics = require('qminer').analytics;
+	  var la = require('qminer').la;
+	  // create the Sigmoid model
+	  var s = new analytics.Sigmoid();
+	  // create the predicted values and the binary labels
+	  var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+	  var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+	  // fit the model
+	  s.fit(X, y);
+	  // predict the probability of the value 0 on this model
+	  // returns 0.5
 	  var prediction = s.predict(0.5);
     
 });
 });
 describe("Nearest Neighbour Anomaly Detection ", function () {
-it('should make test number 28', function () {
+it('should make test number 29', function () {
  this.timeout(10000); 
 
   // import modules
@@ -502,7 +529,7 @@ it('should make test number 28', function () {
 });
 });
 describe("Sets parameters.", function () {
-it('should make test number 29', function () {
+it('should make test number 30', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -515,7 +542,7 @@ it('should make test number 29', function () {
 });
 });
 describe("Returns parameters.", function () {
-it('should make test number 30', function () {
+it('should make test number 31', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -529,7 +556,7 @@ it('should make test number 30', function () {
 });
 });
 describe("Returns the model.", function () {
-it('should make test number 31', function () {
+it('should make test number 32', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -543,7 +570,7 @@ it('should make test number 31', function () {
 });
 });
 describe("Adds a new point (or points) to the known points and recomputes the threshold.", function () {
-it('should make test number 32', function () {
+it('should make test number 33', function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -563,7 +590,7 @@ it('should make test number 32', function () {
 });
 });
 describe("Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.", function () {
-it('should make test number 33', function () {
+it('should make test number 34', function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -579,7 +606,7 @@ it('should make test number 33', function () {
 });
 });
 describe("Compares the point to the known points and returns distance to the nearest one.", function () {
-it('should make test number 34', function () {
+it('should make test number 35', function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -599,7 +626,7 @@ it('should make test number 34', function () {
 });
 });
 describe("Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold).", function () {
-it('should make test number 35', function () {
+it('should make test number 36', function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -619,7 +646,7 @@ it('should make test number 35', function () {
 });
 });
 describe("Recursive Linear Regression", function () {
-it('should make test number 36', function () {
+it('should make test number 37', function () {
  this.timeout(10000); 
 
  // import analytics module
@@ -629,7 +656,7 @@ it('should make test number 36', function () {
 });
 });
 describe("Creates a partial fit of the input.", function () {
-it('should make test number 37', function () {
+it('should make test number 38', function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -645,7 +672,7 @@ it('should make test number 37', function () {
 });
 });
 describe("Creates a fit of the input.", function () {
-it('should make test number 38', function () {
+it('should make test number 39', function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -662,7 +689,7 @@ it('should make test number 38', function () {
 });
 });
 describe("Puts the vector through the model and returns the prediction as a real number.", function () {
-it('should make test number 39', function () {
+it('should make test number 40', function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -683,7 +710,7 @@ it('should make test number 39', function () {
 });
 });
 describe("Sets the parameters of the model.", function () {
-it('should make test number 40', function () {
+it('should make test number 41', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -696,7 +723,7 @@ it('should make test number 40', function () {
 });
 });
 describe("Returns the parameters.", function () {
-it('should make test number 41', function () {
+it('should make test number 42', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -709,7 +736,7 @@ it('should make test number 41', function () {
 });
 });
 describe("Logistic regression model. Uses Newtons method to compute the weights.", function () {
-it('should make test number 42', function () {
+it('should make test number 43', function () {
  this.timeout(10000); 
 
   // import analytics module
@@ -720,7 +747,7 @@ it('should make test number 42', function () {
 });
 });
 describe("Gets the parameters.", function () {
-it('should make test number 43', function () {
+it('should make test number 44', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -733,7 +760,7 @@ it('should make test number 43', function () {
 });
 });
 describe("Set the parameters.", function () {
-it('should make test number 44', function () {
+it('should make test number 45', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -746,7 +773,7 @@ it('should make test number 44', function () {
 });
 });
 describe("Proportional Hazards Model with a constant hazard function.", function () {
-it('should make test number 45', function () {
+it('should make test number 46', function () {
  this.timeout(10000); 
 
   // import analytics module
@@ -757,7 +784,7 @@ it('should make test number 45', function () {
 });
 });
 describe("Gets the parameters of the model.", function () {
-it('should make test number 46', function () {
+it('should make test number 47', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -770,7 +797,7 @@ it('should make test number 46', function () {
 });
 });
 describe("Sets the parameters of the model.", function () {
-it('should make test number 47', function () {
+it('should make test number 48', function () {
  this.timeout(10000); 
  
 	 // import analytics module
@@ -783,7 +810,7 @@ it('should make test number 47', function () {
 });
 });
 describe("Get the model.", function () {
-it('should make test number 48', function () {
+it('should make test number 49', function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -796,7 +823,7 @@ it('should make test number 48', function () {
 });
 });
 describe("Get the model.", function () {
-it('should make test number 49', function () {
+it('should make test number 50', function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -809,7 +836,7 @@ it('should make test number 49', function () {
 });
 });
 describe("Gets the model.", function () {
-it('should make test number 50', function () {
+it('should make test number 51', function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -822,7 +849,7 @@ it('should make test number 50', function () {
 });
 });
 describe("Gets Recursive Linear Regression model", function () {
-it('should make test number 51', function () {
+it('should make test number 52', function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -835,7 +862,7 @@ it('should make test number 51', function () {
 });
 });
 describe("@classdesc One vs. all model for multiclass prediction. Builds binary model", function () {
-it('should make test number 52', function () {
+it('should make test number 53', function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -846,7 +873,7 @@ it('should make test number 52', function () {
 });
 });
 describe("Gets the parameters.", function () {
-it('should make test number 53', function () {
+it('should make test number 54', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -861,7 +888,7 @@ it('should make test number 53', function () {
 });
 });
 describe("Sets the parameters.", function () {
-it('should make test number 54', function () {
+it('should make test number 55', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -874,7 +901,7 @@ it('should make test number 54', function () {
 });
 });
 describe("Apply all models to the given vector and returns a vector of scores, one for each category.", function () {
-it('should make test number 55', function () {
+it('should make test number 56', function () {
  this.timeout(10000); 
 
           // import modules
@@ -895,7 +922,7 @@ it('should make test number 55', function () {
 });
 });
 describe("Apply all models to the given vector and returns category with the highest score.", function () {
-it('should make test number 56', function () {
+it('should make test number 57', function () {
  this.timeout(10000); 
 
           // import modules
@@ -916,7 +943,7 @@ it('should make test number 56', function () {
 });
 });
 describe("Apply all models to the given vector and returns category with the highest score.", function () {
-it('should make test number 57', function () {
+it('should make test number 58', function () {
  this.timeout(10000); 
 
           // import modules
@@ -933,7 +960,7 @@ it('should make test number 57', function () {
 });
 });
 describe("@classdesc KMeans clustering", function () {
-it('should make test number 58', function () {
+it('should make test number 59', function () {
  this.timeout(10000); 
 
      // import analytics and la modules
@@ -949,7 +976,7 @@ it('should make test number 58', function () {
 });
 });
 describe("Returns the model", function () {
-it('should make test number 59', function () {
+it('should make test number 60', function () {
  this.timeout(10000); 
 
          // import modules
@@ -967,7 +994,7 @@ it('should make test number 59', function () {
 });
 });
 describe("Sets the parameters.", function () {
-it('should make test number 60', function () {
+it('should make test number 61', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -980,7 +1007,7 @@ it('should make test number 60', function () {
 });
 });
 describe("Returns the parameters.", function () {
-it('should make test number 61', function () {
+it('should make test number 62', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -992,8 +1019,8 @@ it('should make test number 61', function () {
        
 });
 });
-describe("Computes the centroids", function () {
-it('should make test number 62', function () {
+describe("Computes the centroids.", function () {
+it('should make test number 63', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1007,8 +1034,8 @@ it('should make test number 62', function () {
        
 });
 });
-describe("Returns an vector of cluster id assignments", function () {
-it('should make test number 63', function () {
+describe("Returns an vector of cluster id assignments.", function () {
+it('should make test number 64', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1027,7 +1054,7 @@ it('should make test number 63', function () {
 });
 });
 describe("Transforms the points to vectors of squared distances to centroids.", function () {
-it('should make test number 64', function () {
+it('should make test number 65', function () {
  this.timeout(10000); 
 
          // import modules

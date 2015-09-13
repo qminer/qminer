@@ -557,6 +557,8 @@ private:
         void CalcHiddenGradient(const TLayer& NextLayer);
         // Save the model
         void Save(TSOut& SOut);
+
+		const TTFunc& GetFunction() { return TFuncNm; }
     };
 
     /////////////////////////////////////////
@@ -615,8 +617,29 @@ public:
     void GetResults(TFltV& ResultV) const;
     // Set learn rate
     void SetLearnRate(const TFlt& NewLearnRate) { LearnRate = NewLearnRate; };
+	// set momentum
+	void SetMomentum(const TFlt& NewMomentum) { Momentum = NewMomentum; }
     // Save the model
     void Save(TSOut& SOut) const;
+
+	void GetLayout(TIntV& layout) {
+		layout.Gen(LayerV.Len());
+		for (int i = 0; i < LayerV.Len(); i++) {
+			layout[i] = LayerV[i].GetNeuronN();
+		}
+	}
+	TFlt GetLearnRate() { return LearnRate; }
+	TFlt GetMomentum() { return Momentum; }
+	TStr GetTFuncHidden() { 
+		TStr FuncHidden = GetFunction(LayerV[1].GetNeuron(0).GetFunction());
+		return FuncHidden;
+	};
+	TStr GetTFuncOut() {
+		TStr FuncOut = GetFunction(LayerV[LayerV.Len() - 1].GetNeuron(0).GetFunction());
+		return FuncOut;
+	}
+
+	TStr GetFunction(const TTFunc& Func);
 
 };
 

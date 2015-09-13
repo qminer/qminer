@@ -98,6 +98,27 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* Saves model to output file stream.
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} The Output stream.
+	* @example
+	* // import the analytics and la modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* var qmfs = require('qminer').fs;
+	* // create a new SVC object
+	* var SVC = new analytics.SVC();
+	* // create the matrix containing the input features and the input vector for each matrix.
+	* var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);	
+	* // fit the model
+	* SVC.fit(matrix, vec);
+	* var fs = require('qminer').fs;
+	* // create output stream
+	* var fout = fs.openWrite('model.bin');
+	* // save SVC object (model and parameters) to output stream and close it
+	* SVC.save(fout);
+	* fout.close();
+	* // create input stream
+	* var fin = fs.openRead('tesi.bin');
+	* // create a SVC object that loads the model and parameters from input stream
+	* var SVC2 = new analytics.SVC(fin);	
 	*/
  exports.SVC.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
@@ -583,7 +604,7 @@ exports = {}; require.modules.qminer_analytics = exports;
  * Nearest Neighbour Anomaly Detection 
  * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
  * @class
- * @param {module:analytics~detectorParam} [detectorParam] - Constructor parameters.
+ * @param {(module:analytics~detectorParam|module:fs.FIn)} [detectorParam] - Constructor parameters.
  * @example
  * // import modules
  * var analytics = require('qminer').analytics;
@@ -735,7 +756,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 * Recursive Linear Regression
 * @classdesc Holds the Recursive Linear Regression model.
 * @class
-* @param {module:analytics~recLinearRegParam} param - The constructor parameter json object.
+* @param {(module:analytics~recLinearRegParam|module:fs.FIn)} param - The constructor parameter json object.
 * @example
 * // import analytics module
 * var analytics = require('qminer').analytics;
@@ -848,7 +869,7 @@ exports = {}; require.modules.qminer_analytics = exports;
  * Logistic regression model. Uses Newtons method to compute the weights.
  * <b>Before use: include BLAS library.</b>
  * @constructor
- * @param {(module:analytics~logisticRegParam|FIn)} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @param {(module:analytics~logisticRegParam|module:fs.FIn)} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
  * @example
  * // import analytics module
  * var analytics = require('qminer').analytics;
@@ -898,7 +919,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 /**
 	 * Gives the weights of the model.
 	 */
- exports.LogReg.prototype.weights = Object.create(require('qminer').analytics.LogReg.prototype);
+ exports.LogReg.prototype.weights = Object.create(require('qminer').la.vector.prototype);
 /**
 	 * Saves the model into the output stream.
 	 * @param {module:fs.FOut} fout - the output stream.
@@ -916,7 +937,7 @@ exports = {}; require.modules.qminer_analytics = exports;
  * <b>Before use: include BLAS library.</b>
  *
  * @constructor
- * @property {module:analytics~hazardModelParam|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @property {module:analytics~hazardModelParam|module:fs.FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
  * @example
  * // import analytics module
  * var analytics = require('qminer').analytics;
@@ -1134,6 +1155,53 @@ exports = {}; require.modules.qminer_analytics = exports;
 	 *
 	 * @param {FOut} fout - the output stream
 	 */
+/**
+* @typedef {Object} nnetParams
+* @property {module:la.IntVector} [layout] - The integer vector with the corresponding values of the number of neutrons. Default is the integer vector [1, 2 ,1].
+* @property {number} [learnRate = 0.1] - The learning rate.
+* @property {number} [momentum = 0.5] - The momentum of optimization.
+* @property {string} [tFuncHidden = 'tanHyper'] - The function.
+* @property {string} [tFuncOut = 'tanHyper'] - The function.
+*/
+/**
+* Neural Network Model
+* @classdesc Holds online/offline neural network model.
+* @class
+* @param {module:analytics~nnetParams|module:fs.FIn} [params] - The parameters for the construction of the model.
+*/
+ exports.NNet = function (params) { return Object.create(require('qminer').analytics.NNet.prototype); }
+/**
+	* Get the parameters of the model.
+	* @returns {module:analytics~nnetParams} The constructor parameters.
+	*/
+ exports.NNet.prototype.getParams = function () { return { layout: Object.create(require('qminer').la.IntVector.prototype), learnRate: 0.0, momentum: 0.0, tFuncHidden: "", TFuncOut: "" }; }
+/**
+	* Sets the parameters of the model.
+	* @params {module:analytics~nnetParams} params - The given parameters.
+	* @returns {module:analytics.NNet} Self.
+	*/
+ exports.NNet.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.NNet.prototype); }
+/**
+	* Fits the model.
+	* @param {(module:la.Vector|module:la.Matrix)} input1 - The input vector or matrix.
+	* @param {(module:la.Vector|module:la.Matrix)} input2 - The input vector or matrix.
+	* <br> If input1 and input2 are both {@link module:la.Vector}, then the fitting is in online mode.
+	* <br> If input1 and input2 are both {@link module:la.Matrix}, then the fitting is in batch mode.
+	* @returns {module:analytics.NNet} Self.
+	*/
+ exports.NNet.prototype.fit = function (input1, input2) { return Object.create(require('qminer').analytics.NNet.prototype); }
+/**
+	* Sends the vector through the model and get the prediction.
+	* @param {module:la.Vector} vec - The sent vector.
+	* @returns {number} The prediction of the vector vec.
+	*/
+ exports.NNet.prototype.predict = function (vec) { return 0.0; }
+/**
+	* Saves the model.
+	* @param {module:fs.FOut} fout - The output stream.
+	* @returns {module:fs.FOut} The output stream fout.
+	*/
+ exports.NNet.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); } 
 
     exports.preprocessing = new function() {
         this.binarize = function (y, labelId) {
@@ -1911,7 +1979,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 
         /**
         * Permutes centroid with given mapping.
-        @param {object} mapping - object that contains the mappping. E.g. mapping[4]=2 means "map cluster 4 into cluster 2"
+        @param {object} mapping - object that contains the mapping. E.g. mapping[4]=2 means "map cluster 4 into cluster 2"
         */
         this.permuteCentroids = function (mapping) {
             var cl_count = C.cols;
@@ -1930,8 +1998,6 @@ exports = {}; require.modules.qminer_analytics = exports;
         }
         /**
         * Returns the model
-        * @returns {Object} The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data)
-        * Returns the model.
         * @returns {Object} The model object whose keys are: C (centroids) and idxv (cluster ids of the training data).
         * @example
         * // import modules
@@ -1987,7 +2053,7 @@ exports = {}; require.modules.qminer_analytics = exports;
         }
 
         /**
-        * Computes the centroids
+        * Computes the centroids.
         * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
         * @returns {module:analytics.KMeans} Self. It stores the info about the new model.
         * @example
@@ -2097,7 +2163,7 @@ exports = {}; require.modules.qminer_analytics = exports;
         };
 
         /**
-        * Returns an vector of cluster id assignments
+        * Returns an vector of cluster id assignments.
         * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
         * @returns {module:la.IntVector} Vector of cluster assignments.
         * @example
@@ -2154,8 +2220,9 @@ exports = {}; require.modules.qminer_analytics = exports;
             return D;
         }
 		/**
-        * Saves KMeans internal state into (binary) file
+        * Saves KMeans internal state into (binary) file.
         * @param {string} fname - Name of the file to write into.
+
         */
         this.save = function(fname){
 			if (!C) {
