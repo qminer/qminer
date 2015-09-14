@@ -565,8 +565,12 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Handle<v8::Value> ArgV[0] = {};
-	ExecuteVoid(Fun, 0, ArgV);
+  v8::TryCatch TryCatch;
+  Fun->Call(Isolate->GetCurrentContext()->Global(), 0, nullptr);
+  if (TryCatch.HasCaught()) {
+    TryCatch.ReThrow();
+    return;
+  }
 }
 
 v8::Local<v8::Value> TNodeJsUtil::V8JsonToV8Str(const v8::Handle<v8::Value>& Json) {
