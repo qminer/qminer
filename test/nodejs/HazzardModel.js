@@ -29,7 +29,7 @@ describe('HazardModel Tests', function () {
             var params = hazard.getParams();
             assert.equal(params.lambda, 2);
         })
-        it.skip('should throw an exception if any other object is given', function () {
+        it('should throw an exception if any other object is given', function () {
             assert.throws(function () {
                 var hazard = new analytics.PropHazards(10);
             });
@@ -103,6 +103,7 @@ describe('HazardModel Tests', function () {
         })
     });
 
+    // checks if openblas is used
     if (qm.flags.blas) {
 
         describe('Fit Tests', function () {

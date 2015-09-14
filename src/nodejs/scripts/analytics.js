@@ -783,18 +783,44 @@ module.exports = exports = function (pathPrefix) {
     * KMeans.fit(X);
     */
     exports.KMeans = function (param) {
-        param = param == undefined ? {} : param;
-
-        // Fit params
-        var iter = param.iter == undefined ? 100 : param.iter;
-        var k = param.k == undefined ? 2 : param.k;
-        var verbose = param.verbose == undefined ? false : param.verbose;
-        var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
 
         // Model
         var C = undefined;
         var idxv = undefined;
         var norC2 = undefined;
+        var iter = undefined;
+        var k = undefined;
+        var verbose = undefined;
+        var fitIdx = undefined;
+
+        if (param != undefined && param.constructor.name == 'FIn') {
+            C = new la.Matrix();
+            C.load(param);
+            norC2 = new la.Vector();
+            norC2.load(param);
+
+            var idxvtmp = new la.Vector();
+            idxvtmp.load(param);
+            idxv = idxvtmp; // make normal vector (?)
+
+            var params_vec = new la.Vector();
+            params_vec.load(param);
+            iter = params_vec[0];
+            k = params_vec[1];
+            verbose = (params_vec[2] != 0);
+            param = { iter: iter, k: k, verbose: verbose };
+
+        } else if (param == undefined || typeof param == 'object') {
+            param = param == undefined ? {} : param;
+            // Fit params
+            var iter = param.iter == undefined ? 100 : param.iter;
+            var k = param.k == undefined ? 2 : param.k;
+            var verbose = param.verbose == undefined ? false : param.verbose;
+            var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
+            param = { iter: iter, k: k, verbose: verbose };
+        } else {
+            throw "KMeans.constructor: parameter must be a JSON object or a fs.FIn!";
+        }
 
         /**
         * Permutes centroid with given mapping.
@@ -1040,10 +1066,10 @@ module.exports = exports = function (pathPrefix) {
         }
 		/**
         * Saves KMeans internal state into (binary) file.
-        * @param {string} fname - Name of the file to write into.
-
+        * @param {module:fs.FOut} arg - The output stream.
+        * @returns {module:fs.FOut} The output stream fout.
         */
-        this.save = function(fname){
+        this.save = function(arg){
 			if (!C) {
 				throw new Error("KMeans.save() - model not created yet");
 			}
@@ -1053,19 +1079,27 @@ module.exports = exports = function (pathPrefix) {
 			params_vec.push(k);
 			params_vec.push(verbose ? 1.0 : 0.0);
 
-			var xfs = qm.fs;
-			var fout = xfs.openWrite(fname);
-			C.save(fout);
-			norC2.save(fout);
-			(new la.Vector(idxv)).save(fout);
-			params_vec.save(fout);
-			fout.close();
-			fout = null;
+            if (typeof (arg) == 'string') {
+			    var xfs = qm.fs;
+			    var fout = xfs.openWrite(arg);
+			    C.save(fout);
+			    norC2.save(fout);
+			    (new la.Vector(idxv)).save(fout);
+			    params_vec.save(fout);
+			    fout.close();
+			    fout = null;
+            } else if (arg.constructor.name == 'FOut') {
+                C.save(arg);
+                norC2.save(arg);
+                (new la.Vector(idxv)).save(arg);
+                params_vec.save(arg);
+                return arg;
+            } else {
+                throw "KMeans.save: input must be fs.Fout";
+            }
+			
 		}
-		/**
-        * Loads KMeans internal state from (binary) file
-        * @param {string} fname - Name of the file to read from.
-        */
+
         this.load = function (fname) {
 		    var xfs = qm.fs;
 		    var fin = xfs.openRead(fname);

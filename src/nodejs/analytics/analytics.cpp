@@ -1312,25 +1312,19 @@ TNodeJsPropHaz* TNodeJsPropHaz::NewFromArgs(const v8::FunctionCallbackInfo<v8::V
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	try {
-		if (Args.Length() > 0 && TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {
-			// load the model from the input stream
-			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
-			return new TNodeJsPropHaz(TRegression::TPropHazards(*JsFIn->SIn));
-		}
-		else {
-			// parse the arguments
-			PJsonVal ArgJson = Args.Length() > 0 ? TNodeJsUtil::GetArgJson(Args, 0) : TJsonVal::NewObj();
-
-			const double Lambda = ArgJson->IsObjKey("lambda") ? ArgJson->GetObjNum("lambda") : 0;
-
-			return new TNodeJsPropHaz(TRegression::TPropHazards(Lambda));
-		}
+	if (Args.Length() > 0 && TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {
+		// load the model from the input stream
+		TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+		return new TNodeJsPropHaz(TRegression::TPropHazards(*JsFIn->SIn));
 	}
-	catch (const PExcept& Except) {
-		Isolate->ThrowException(v8::Exception::TypeError(
-			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr())));
-		return nullptr;
+	else if (Args.Length() == 0 || TNodeJsUtil::IsArgObj(Args, 0)) {
+		// parse the arguments
+		PJsonVal ArgJson = Args.Length() > 0 ? TNodeJsUtil::GetArgJson(Args, 0) : TJsonVal::NewObj();
+		const double Lambda = ArgJson->IsObjKey("lambda") ? ArgJson->GetObjNum("lambda") : 0;
+		return new TNodeJsPropHaz(TRegression::TPropHazards(Lambda));
+	}
+	else {
+		throw TExcept::New("new PropHazards: wrong arguments in constructor!");
 	}
 }
 
@@ -2383,7 +2377,6 @@ void TNodeJsNNet::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TNodeJsFltV* JsVecIn = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
 			TNodeJsFltV* JsVecTarget = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
 
-			// TODO: do some checking of dimensions etc..
 			// first get output values
 			Model->Model->FeedFwd(JsVecIn->Vec);
 
@@ -2393,14 +2386,17 @@ void TNodeJsNNet::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())){
 			TNodeJsFltVV* JsVVecIn = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 			TNodeJsFltVV* JsVVecTarget = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[1]->ToObject());
-			for (int Row = 0; Row < JsVVecIn->Mat.GetRows(); Row++){
+
+			EAssertR(JsVVecIn->Mat.GetCols() == JsVVecTarget->Mat.GetCols(), "NNet.fit: Column dimension not equal!");
+
+			for (int ColN = 0; ColN < JsVVecIn->Mat.GetCols(); ColN++){
 				TFltV InFltV;
-				JsVVecIn->Mat.GetRow(Row, InFltV);
+				JsVVecIn->Mat.GetCol(ColN, InFltV);
 				Model->Model->FeedFwd(InFltV);
 				// then check how we performed and learn
 				TFltV TargFltV;
-				JsVVecTarget->Mat.GetRow(Row, TargFltV);
-				if (Row == JsVVecIn->Mat.GetRows() - 1){
+				JsVVecTarget->Mat.GetCol(ColN, TargFltV);
+				if (ColN == JsVVecIn->Mat.GetCols() - 1){
 					Model->Model->BackProp(TargFltV);
 				}
 				else {
@@ -2410,7 +2406,7 @@ void TNodeJsNNet::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		}
 		else {
 			// TODO: throw an error
-			printf("NeuralNetwork.learn: The arguments must be a JsTFltV or JsTFltVV (js linalg full vector or matrix)");
+			printf("NeuralNetwork.fit: The arguments must be a JsTFltV or JsTFltVV (js linalg full vector or matrix)");
 		}
 		Args.GetReturnValue().Set(Args.Holder());
 	}
@@ -2490,14 +2486,15 @@ void TNodeJsNNet::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	}
 	if (ParamVal->IsObjKey("layout")) {
 		ParamVal->GetObjIntV("layout", LayoutV);
-	} else {
+	}
+	else {
 		Model->Model->GetLayout(LayoutV);
 	}
 	TFuncHiddenL = Model->ExtractFuncFromString(ParamVal->GetObjStr("tFuncHidden", Model->Model->GetTFuncHidden()));
 	TFuncOutL = Model->ExtractFuncFromString(ParamVal->GetObjStr("tFuncOut", Model->Model->GetTFuncOut()));
 
 	if (ParamVal->IsObjKey("layout") || ParamVal->IsObjKey("tFuncHidden") || ParamVal->IsObjKey("TFuncOut")) {
-		Model->Model = TSignalProc::TNNet::New(LayoutV, Model->Model->GetLearnRate(), Model->Model->GetMomentum(), 
+		Model->Model = TSignalProc::TNNet::New(LayoutV, Model->Model->GetLearnRate(), Model->Model->GetMomentum(),
 			TFuncHiddenL, TFuncOutL);
 	}
 

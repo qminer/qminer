@@ -625,7 +625,7 @@ public:
 	void GetLayout(TIntV& layout) {
 		layout.Gen(LayerV.Len());
 		for (int i = 0; i < LayerV.Len(); i++) {
-			layout[i] = LayerV[i].GetNeuronN();
+			layout[i] = LayerV[i].GetNeuronN() - 1;
 		}
 	}
 	TFlt GetLearnRate() { return LearnRate; }
@@ -638,9 +638,7 @@ public:
 		TStr FuncOut = GetFunction(LayerV[LayerV.Len() - 1].GetNeuron(0).GetFunction());
 		return FuncOut;
 	}
-
 	TStr GetFunction(const TTFunc& Func);
-
 };
 
 /////////////////////////////////////////

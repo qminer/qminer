@@ -86,8 +86,9 @@ it('should make test number 6', function () {
 	 var qmfs = require('qminer').fs;
 	 // create a new SVC object
 	 var SVC = new analytics.SVC();
-	 // create the matrix containing the input features and the input vector for each matrix.
+	 // create the matrix containing the input features and the input vector for each matrix column.
 	 var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);	
+	 var vec = new la.Vector([1, 0, -1, -2]);
 	 // fit the model
 	 SVC.fit(matrix, vec);
 	 var fs = require('qminer').fs;
@@ -97,7 +98,7 @@ it('should make test number 6', function () {
 	 SVC.save(fout);
 	 fout.close();
 	 // create input stream
-	 var fin = fs.openRead('tesi.bin');
+	 var fin = fs.openRead('model.bin');
 	 // create a SVC object that loads the model and parameters from input stream
 	 var SVC2 = new analytics.SVC(fin);	
 

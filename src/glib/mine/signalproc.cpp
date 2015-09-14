@@ -750,7 +750,7 @@ PNNet TNNet::Load(TSIn& SIn) {
 
 void TNNet::FeedFwd(const TFltV& InValV){
     // check if number of input values same as number of input neurons
-    Assert(InValV.Len() == LayerV[0].GetNeuronN() - 1);
+    EAssertR(InValV.Len() == LayerV[0].GetNeuronN() - 1, "InValV must be of equal length than the first layer!");
     // assign input values to input neurons
     for(int InputN = 0; InputN < InValV.Len(); ++InputN){
         LayerV[0].SetOutVal(InputN, InValV[InputN]);
@@ -770,6 +770,7 @@ void TNNet::BackProp(const TFltV& TargValV, const TBool& UpdateWeights){
     TLayer& OutputLayer = LayerV.Last();
     Error = 0.0;
 
+	EAssertR(TargValV.Len() == OutputLayer.GetNeuronN() - 1, "TargValV must be of equal length than the last layer!");
     for(int NeuronN = 0; NeuronN < OutputLayer.GetNeuronN() - 1; ++NeuronN){
         TFlt Delta = TargValV[NeuronN] - OutputLayer.GetOutVal(NeuronN);
         Error += Delta * Delta;
