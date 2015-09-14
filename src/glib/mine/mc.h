@@ -553,7 +553,7 @@ protected:
 
 class TBernoulliIntens {
 private:
-	static constexpr double MIN_PROB = 1e-5;
+	static const double MIN_PROB;
 
 	TLogReg LogReg;
 	double DeltaTm;
@@ -596,15 +596,16 @@ class TCtMChain: public TMChain {
 	typedef TBernoulliIntens TIntensModel;
 	typedef TVVec<TIntensModel> TIntensModelMat;
 public:
-	static constexpr uint64 TU_SECOND = 1000;
-	static constexpr uint64 TU_MINUTE = TU_SECOND*60;
-	static constexpr uint64 TU_HOUR = TU_MINUTE*60;
-	static constexpr uint64 TU_DAY = TU_HOUR*24;
-	static constexpr uint64 TU_MONTH = uint64(365.25 * TU_DAY / 12);
+	static const uint64 TU_SECOND;
+	static const uint64 TU_MINUTE;
+	static const uint64 TU_HOUR;
+	static const uint64 TU_DAY;
+	static const uint64 TU_MONTH;
 
 private:
-	static constexpr double MIN_STAY_TM = 1e-2;
-	static constexpr double HIDDEN_STATE_INTENSITY = 1 / MIN_STAY_TM;
+
+	static const double MIN_STAY_TM;
+	static const double HIDDEN_STATE_INTENSITY;
 
 	TIntensModelMat IntensModelMat;
 	// stores how many jump from the hidden state to the specified state occurred

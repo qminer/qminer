@@ -1380,7 +1380,20 @@ void TMChain::GetFutureProbVOverTm(const TFullMatrix& PMat, const int& StateIdx,
 }
 
 /////////////////////////////////////////////////////////////////
+// TBernoulliIntens
+const double TBernoulliIntens::MIN_PROB = 1e-5;
+
+/////////////////////////////////////////////////////////////////
 // Continous time Markov Chain
+const uint64 TCtMChain::TU_SECOND = 1000;
+const uint64 TCtMChain::TU_MINUTE = TU_SECOND*60;
+const uint64 TCtMChain::TU_HOUR = TU_MINUTE*60;
+const uint64 TCtMChain::TU_DAY = TU_HOUR*24;
+const uint64 TCtMChain::TU_MONTH = uint64(365.25 * TU_DAY / 12);
+
+const double TCtMChain::MIN_STAY_TM = 1e-2;
+const double TCtMChain::HIDDEN_STATE_INTENSITY = 1 / MIN_STAY_TM;
+
 TCtMChain::TCtMChain(const uint64& _TimeUnit, const double& _DeltaTm, const bool& _Verbose):
 		TMChain(_Verbose),
 		IntensModelMat(),
