@@ -83,7 +83,7 @@ it('should make test number 6', function () {
 	 // import the analytics and la modules
 	 var analytics = require('qminer').analytics;
 	 var la = require('qminer').la;
-	 var qmfs = require('qminer').fs;
+	 var fs = require('qminer').fs;
 	 // create a new SVC object
 	 var SVC = new analytics.SVC();
 	 // create the matrix containing the input features and the input vector for each matrix column.
@@ -91,14 +91,13 @@ it('should make test number 6', function () {
 	 var vec = new la.Vector([1, 0, -1, -2]);
 	 // fit the model
 	 SVC.fit(matrix, vec);
-	 var fs = require('qminer').fs;
 	 // create output stream
-	 var fout = fs.openWrite('model.bin');
+	 var fout = fs.openWrite('svc_example.bin');
 	 // save SVC object (model and parameters) to output stream and close it
 	 SVC.save(fout);
 	 fout.close();
 	 // create input stream
-	 var fin = fs.openRead('model.bin');
+	 var fin = fs.openRead('svc_example.bin');
 	 // create a SVC object that loads the model and parameters from input stream
 	 var SVC2 = new analytics.SVC(fin);	
 
@@ -212,8 +211,33 @@ it('should make test number 12', function () {
 
 });
 });
-describe("Sends vector through the model and returns the scalar product as a real number.", function () {
+describe("Saves model to output file stream.", function () {
 it('should make test number 13', function () {
+ this.timeout(10000); 
+
+	 // import the modules
+	 var analytics = require('qminer').analytics;
+	 var la = require('qminer').la;
+	 var fs = require('qminer').fs;
+	 // create a new SVR object
+	 var SVR = new analytics.SVR({ c: 10 });
+	 // create a matrix and vector for the model
+	 var matrix = new la.Matrix([[1, -1], [1, 1]]);
+	 var vector = new la.Vector([1, 1]);
+	 // create the model by fitting the values
+	 SVR.fit(matrix, vector);
+	 // save the model in a binary file
+	 var fout = fs.openWrite('svr_example.bin');
+	 SVR.save(fout);
+	 fout.close();
+	 // construct a SVR model by loading from the binary file
+	 var fin = fs.openRead('svr_example.bin');
+	 var SVR2 = new analytics.SVR()
+
+});
+});
+describe("Sends vector through the model and returns the scalar product as a real number.", function () {
+it('should make test number 14', function () {
  this.timeout(10000); 
 
 	  // import the modules
@@ -233,7 +257,7 @@ it('should make test number 13', function () {
 });
 });
 describe("Sends vector through the model and returns the prediction as a real number.", function () {
-it('should make test number 14', function () {
+it('should make test number 15', function () {
  this.timeout(10000); 
 
 	 // import the modules
@@ -253,7 +277,7 @@ it('should make test number 14', function () {
 });
 });
 describe("fits an SVM regression model, given column examples in a matrix and vector of targets", function () {
-it('should make test number 15', function () {
+it('should make test number 16', function () {
  this.timeout(10000); 
 
 	 // import the modules
@@ -270,7 +294,7 @@ it('should make test number 15', function () {
 });
 });
 describe("Ridge regression. Minimizes: ||A' x - b||^2 + ||gamma x||^2", function () {
-it('should make test number 16', function () {
+it('should make test number 17', function () {
  this.timeout(10000); 
 
   // import modules
@@ -299,7 +323,7 @@ it('should make test number 16', function () {
 });
 });
 describe("Gets the parameters.", function () {
-it('should make test number 17', function () {
+it('should make test number 18', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -313,7 +337,7 @@ it('should make test number 17', function () {
 });
 });
 describe("Set the parameters.", function () {
-it('should make test number 18', function () {
+it('should make test number 19', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -326,7 +350,7 @@ it('should make test number 18', function () {
 });
 });
 describe("Fits a column matrix of feature vectors X onto the response variable y.", function () {
-it('should make test number 19', function () {
+it('should make test number 20', function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -340,28 +364,6 @@ it('should make test number 19', function () {
 	  // fit the model with X and y
 	  // the weights of the model are 2, 1
 	  regmod.fit(X, y);
-    
-});
-});
-describe("Returns the expected response for the provided feature vector.", function () {
-it('should make test number 20', function () {
- this.timeout(10000); 
-
-	  // import modules
-	  var analytics = require('qminer').analytics;
-	  var la = require('qminer').la;
-	  // create a new Ridge Regression object
-	  var regmod = new analytics.RidgeReg();
-	  // create the test matrix and vector
-	  var X = new la.Matrix([[1, 2], [1, -1]]);
-	  var y = new la.Vector([3, 3]);
-	  // fit the model with X and y
-	  regmod.fit(X, y);
-	  // create a new vector for the prediction
-	  var vec = new la.Vector([3, 4]);
-	  // create the prediction
-	  // returns the value 10
-	  var prediction = regmod.decisionFunction(vec);
     
 });
 });
@@ -383,12 +385,59 @@ it('should make test number 21', function () {
 	  var vec = new la.Vector([3, 4]);
 	  // create the prediction
 	  // returns the value 10
+	  var prediction = regmod.decisionFunction(vec);
+    
+});
+});
+describe("Returns the expected response for the provided feature vector.", function () {
+it('should make test number 22', function () {
+ this.timeout(10000); 
+
+	  // import modules
+	  var analytics = require('qminer').analytics;
+	  var la = require('qminer').la;
+	  // create a new Ridge Regression object
+	  var regmod = new analytics.RidgeReg();
+	  // create the test matrix and vector
+	  var X = new la.Matrix([[1, 2], [1, -1]]);
+	  var y = new la.Vector([3, 3]);
+	  // fit the model with X and y
+	  regmod.fit(X, y);
+	  // create a new vector for the prediction
+	  var vec = new la.Vector([3, 4]);
+	  // create the prediction
+	  // returns the value 10
 	  var prediction = regmod.predict(vec);
     
 });
 });
+describe("Saves the model into the output stream.", function () {
+it('should make test number 23', function () {
+ this.timeout(10000); 
+
+	  // import modules
+	  var analytics = require('qminer').analytics;
+	  var la = require('qminer').la;
+	  var fs = require('qminer').fs;
+	  // create a new Ridge Regression object
+	  var regmod = new analytics.RidgeReg();
+	  // create the test matrix and vector
+	  var X = new la.Matrix([[1, 2], [1, -1]]);
+	  var y = new la.Vector([3, 3]);
+	  // fit the model with X and y
+	  regmod.fit(X, y);
+	  // create an output stream object and save the model
+	  var fout = fs.openWrite('regmod_example.bin');
+	  regmod.save(fout);
+	  fout.close();
+	  // create a new Ridge Regression model by loading the model
+	  var fin = fs.openRead('regmod_example.bin');
+	  var regmod2 = new analytics.RidgeReg(fin);
+    
+});
+});
 describe("Sigmoid function (y = 1/[1 + exp[", function () {
-it('should make test number 22', function () {
+it('should make test number 24', function () {
  this.timeout(10000); 
 
   // import modules
@@ -409,7 +458,7 @@ it('should make test number 22', function () {
 });
 });
 describe("Get the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.", function () {
-it('should make test number 23', function () {
+it('should make test number 25', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -423,7 +472,7 @@ it('should make test number 23', function () {
 });
 });
 describe("Sets the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.", function () {
-it('should make test number 24', function () {
+it('should make test number 26', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -437,7 +486,7 @@ it('should make test number 24', function () {
 });
 });
 describe("Gets the model.", function () {
-it('should make test number 25', function () {
+it('should make test number 27', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -451,7 +500,7 @@ it('should make test number 25', function () {
 });
 });
 describe("Fits a column matrix of feature vectors X onto the response variable y.", function () {
-it('should make test number 26', function () {
+it('should make test number 28', function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -470,7 +519,7 @@ it('should make test number 26', function () {
 });
 });
 describe("Returns the expected response for the provided feature vector.", function () {
-it('should make test number 27', function () {
+it('should make test number 29', function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -490,7 +539,7 @@ it('should make test number 27', function () {
 });
 });
 describe("Returns the expected response for the provided feature vector.", function () {
-it('should make test number 28', function () {
+it('should make test number 30', function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -509,8 +558,33 @@ it('should make test number 28', function () {
     
 });
 });
+describe("Saves the model into the output stream.", function () {
+it('should make test number 31', function () {
+ this.timeout(10000); 
+
+	  // import modules
+	  var analytics = require('qminer').analytics;
+	  var la = require('qminer').la;
+	  var fs = require('qminer').fs;
+	  // create the Sigmoid model
+	  var s = new analytics.Sigmoid();
+	  // create the predicted values and the binary labels
+	  var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+	  var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+	  // fit the model
+	  s.fit(X, y);
+	  // create an output stream object and save the model
+	  var fout = fs.openWrite('sigmoid_example.bin');
+	  s.save(fout);
+	  fout.close();
+	  // create a new Sigmoid model by loading the model
+	  var fin = fs.openRead('sigmoid_example.bin');
+	  var s2 = new analytics.Sigmoid(fin);
+    
+});
+});
 describe("Nearest Neighbour Anomaly Detection ", function () {
-it('should make test number 29', function () {
+it('should make test number 32', function () {
  this.timeout(10000); 
 
   // import modules
@@ -530,7 +604,7 @@ it('should make test number 29', function () {
 });
 });
 describe("Sets parameters.", function () {
-it('should make test number 30', function () {
+it('should make test number 33', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -543,7 +617,7 @@ it('should make test number 30', function () {
 });
 });
 describe("Returns parameters.", function () {
-it('should make test number 31', function () {
+it('should make test number 34', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -556,8 +630,32 @@ it('should make test number 31', function () {
 
 });
 });
+describe("Save model to provided output stream.", function () {
+it('should make test number 35', function () {
+ this.timeout(10000); 
+
+	  // import modules
+	  var analytics = require('qminer').analytics;
+	  var la = require('qminer').la;
+	  var fs = require('qminer').fs;
+	  // create a new NearestNeighborAD object
+	  var neighbor = new analytics.NearestNeighborAD();
+	  // create a new sparse matrix
+	  var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+	  // fit the model with the matrix
+	  neighbor.fit(matrix);
+	  // create an output stream object and save the model
+	  var fout = fs.openWrite('neighbor_example.bin');
+	  neighbor.save(fout);
+	  fout.close();
+	  // create a new Nearest Neighbor Anomaly model by loading the model
+	  var fin = fs.openRead('neighbor_example.bin');
+	  var neighbor2 = new analytics.NearestNeighborAD(fin);
+    
+});
+});
 describe("Returns the model.", function () {
-it('should make test number 32', function () {
+it('should make test number 36', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -571,7 +669,7 @@ it('should make test number 32', function () {
 });
 });
 describe("Adds a new point (or points) to the known points and recomputes the threshold.", function () {
-it('should make test number 33', function () {
+it('should make test number 37', function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -591,7 +689,7 @@ it('should make test number 33', function () {
 });
 });
 describe("Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.", function () {
-it('should make test number 34', function () {
+it('should make test number 38', function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -607,7 +705,7 @@ it('should make test number 34', function () {
 });
 });
 describe("Compares the point to the known points and returns distance to the nearest one.", function () {
-it('should make test number 35', function () {
+it('should make test number 39', function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -627,7 +725,7 @@ it('should make test number 35', function () {
 });
 });
 describe("Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold).", function () {
-it('should make test number 36', function () {
+it('should make test number 40', function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -647,7 +745,7 @@ it('should make test number 36', function () {
 });
 });
 describe("Recursive Linear Regression", function () {
-it('should make test number 37', function () {
+it('should make test number 41', function () {
  this.timeout(10000); 
 
  // import analytics module
@@ -657,7 +755,7 @@ it('should make test number 37', function () {
 });
 });
 describe("Creates a partial fit of the input.", function () {
-it('should make test number 38', function () {
+it('should make test number 42', function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -673,7 +771,7 @@ it('should make test number 38', function () {
 });
 });
 describe("Creates a fit of the input.", function () {
-it('should make test number 39', function () {
+it('should make test number 43', function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -690,7 +788,7 @@ it('should make test number 39', function () {
 });
 });
 describe("Puts the vector through the model and returns the prediction as a real number.", function () {
-it('should make test number 40', function () {
+it('should make test number 44', function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -711,7 +809,7 @@ it('should make test number 40', function () {
 });
 });
 describe("Sets the parameters of the model.", function () {
-it('should make test number 41', function () {
+it('should make test number 45', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -724,7 +822,7 @@ it('should make test number 41', function () {
 });
 });
 describe("Returns the parameters.", function () {
-it('should make test number 42', function () {
+it('should make test number 46', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -736,8 +834,33 @@ it('should make test number 42', function () {
 
 });
 });
+describe("Save model to provided output stream.", function () {
+it('should make test number 47', function () {
+ this.timeout(10000); 
+
+	 // import modules
+	 var analytics = require('qminer').analytics;
+	 var la = require('qminer').la;
+	 var fs = require('qminer').fs;
+	 // create the Recursive Linear Regression model
+	 var linreg = new analytics.RecLinReg({ dim: 2.0, recFact: 1e-10 });
+	 // create a new dense matrix and target vector
+	 var mat = new la.Matrix([[1, 2], [1, -1]]);
+	 var vec = new la.Vector([3, 3]);
+	 // fit the model with the matrix
+	 linreg.fit(mat, vec);
+	 // create an output stream object and save the model
+	 var fout = fs.openWrite('linreg_example.bin');
+	 linreg.save(fout);
+	 fout.close();
+	 // create a new Nearest Neighbor Anomaly model by loading the model
+	 var fin = fs.openRead('linreg_example.bin');
+	 var linreg2 = new analytics.RecLinReg(fin);
+
+});
+});
 describe("Logistic regression model. Uses Newtons method to compute the weights.", function () {
-it('should make test number 43', function () {
+it('should make test number 48', function () {
  this.timeout(10000); 
 
   // import analytics module
@@ -748,7 +871,7 @@ it('should make test number 43', function () {
 });
 });
 describe("Gets the parameters.", function () {
-it('should make test number 44', function () {
+it('should make test number 49', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -761,7 +884,7 @@ it('should make test number 44', function () {
 });
 });
 describe("Set the parameters.", function () {
-it('should make test number 45', function () {
+it('should make test number 50', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -773,8 +896,79 @@ it('should make test number 45', function () {
 
 });
 });
+describe("Fits a column matrix of feature vectors X onto the response variable y.", function () {
+it('should make test number 51', function () {
+ this.timeout(10000); 
+
+	  // import modules
+	  var analytics = require('qminer').analytics;
+	  var la = require('qminer').la;
+	  // create the logistic regression model
+	  var logreg = new analytics.LogReg();
+	  // create the input matrix and vector for fitting the model
+	  var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	  var vec = new la.Vector([1, 0, -1, -2]);
+	  // if openblas is used, fit the model
+	  if (require('qminer').flags.blas) {
+	      logreg.fit(mat, vec);
+	  }
+	
+});
+});
+describe("Returns the expected response for the provided feature vector.", function () {
+it('should make test number 52', function () {
+ this.timeout(10000); 
+
+	  // import modules
+	  var analytics = require('qminer').analytics;
+	  var la = require('qminer').la;
+	  // create the logistic regression model
+	  var logreg = new analytics.LogReg();
+	  // create the input matrix and vector for fitting the model
+	  var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	  var vec = new la.Vector([1, 0, -1, -2]);
+	  // if openblas is used
+	  if (require('qminer').flags.blas) {
+	      // fit the model
+	      logreg.fit(mat, vec);
+	      // create the vector for the prediction
+	      var test = new la.Vector([1, 1]);
+	      // get the prediction
+	      var prediction = logreg.predict(test);
+	  };
+	
+});
+});
+describe("Saves the model into the output stream.", function () {
+it('should make test number 53', function () {
+ this.timeout(10000); 
+
+	  // import modules
+	  var analytics = require('qminer').analytics;
+	  var la = require('qminer').la;
+	  var fs = require('qminer').fs;
+	  // create the logistic regression model
+	  var logreg = new analytics.LogReg();
+	  // create the input matrix and vector for fitting the model
+	  var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	  var vec = new la.Vector([1, 0, -1, -2]);
+	  // if openblas is used, fit the model
+	  if (require('qminer').flags.blas) {
+	      logreg.fit(mat, vec);
+	  };
+	  // create an output stream object and save the model
+	  var fout = fs.openWrite('logreg_example.bin');
+	  logreg.save(fout);
+	  fout.close();
+	  // create input stream
+	  var fin = fs.openRead('logreg_example.bin');
+	  // create a Logistic Regression object that loads the model and parameters from input stream
+	  var logreg2 = new analytics.LogReg(fin);
+	
+});
+});
 describe("Proportional Hazards Model with a constant hazard function.", function () {
-it('should make test number 46', function () {
+it('should make test number 54', function () {
  this.timeout(10000); 
 
   // import analytics module
@@ -785,7 +979,7 @@ it('should make test number 46', function () {
 });
 });
 describe("Gets the parameters of the model.", function () {
-it('should make test number 47', function () {
+it('should make test number 55', function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -798,7 +992,7 @@ it('should make test number 47', function () {
 });
 });
 describe("Sets the parameters of the model.", function () {
-it('should make test number 48', function () {
+it('should make test number 56', function () {
  this.timeout(10000); 
  
 	 // import analytics module
@@ -810,8 +1004,168 @@ it('should make test number 48', function () {
 
 });
 });
+describe("Fits a column matrix of feature vectors X onto the response variable y.", function () {
+it('should make test number 57', function () {
+ this.timeout(10000); 
+
+	  // import modules
+	  var analytics = require('qminer').analytics;
+	  var la = require('qminer').la;
+	  // create the Proportional Hazards model
+	  var hazards = new analytics.PropHazards();
+	  // create the input matrix and vector for fitting the model
+	  var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	  var vec = new la.Vector([1, 0, -1, -2]);
+	  // if openblas used, fit the model
+	  if (require('qminer').flags.blas) {
+	      hazards.fit(mat, vec);
+	  };
+	
+});
+});
+describe("Returns the expected response for the provided feature vector.", function () {
+it('should make test number 58', function () {
+ this.timeout(10000); 
+
+	  // import modules
+	  var analytics = require('qminer').analytics;
+	  var la = require('qminer').la;
+	  // create the Proportional Hazards model
+	  var hazards = new analytics.PropHazards();
+	  // create the input matrix and vector for fitting the model
+	  var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	  var vec = new la.Vector([1, 0, -1, -2]);
+	  // if openblas used
+	  if (require('qminer').flags.blas) {
+	      // fit the model
+	      hazards.fit(mat, vec);
+	      // create a vector for the prediction
+	      var test = new la.Vector([1, 0, -1, -2]);
+	      // predict the value
+	      var prediction = hazards.predict(test);
+	  };
+	
+});
+});
+describe("Saves the model into the output stream.", function () {
+it('should make test number 59', function () {
+ this.timeout(10000); 
+
+	  // import modules
+	  var analytics = require('qminer').analytics;
+	  var la = require('qminer').la;
+	  var fs = require('qminer').fs;
+	  // create the Proportional Hazards model
+	  var hazards = new analytics.PropHazards();
+	  // create the input matrix and vector for fitting the model
+	  var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	  var vec = new la.Vector([1, 0, -1, -2]);
+	  // if openblas used, fit the model
+	  if (require('qminer').flags.blas) {
+	      hazards.fit(mat, vec);
+	  };
+	  // create an output stream and save the model
+	  var fout = fs.openWrite('hazards_example.bin');
+	  hazards.save(fout);
+	  fout.close();
+	  // create input stream
+	  var fin = fs.openRead('hazards_example.bin');
+	  // create a Proportional Hazards object that loads the model and parameters from input stream
+	  var hazards2 = new analytics.PropHazards(fin);	
+	
+});
+});
+describe("Get the parameters of the model.", function () {
+it('should make test number 60', function () {
+ this.timeout(10000); 
+
+	 // import analytics module
+	 var analytics = require('qminer').analytics;
+	 // create a Neural Networks model
+	 var nnet = new analytics.NNet();
+	 // get the parameters
+	 var params = nnet.getParams();
+
+});
+});
+describe("Sets the parameters of the model.", function () {
+it('should make test number 61', function () {
+ this.timeout(10000); 
+
+	 // import analytics module
+	 var analytics = require('qminer').analytics;
+	 // create a Neural Networks model
+	 var nnet = new analytics.NNet();
+	 // set the parameters
+	 nnet.setParams({ learnRate: 1, momentum: 10, layout: [1, 4, 3] });
+
+});
+});
+describe("Fits the model.", function () {
+it('should make test number 62', function () {
+ this.timeout(10000); 
+
+	 // import modules
+	 var analytics = require('qminer').analytics;
+	 var la = require('qminer').la;
+	 // create a Neural Networks model
+	 var nnet = new analytics.NNet({ layout: [2, 3, 4] });
+	 // create the matrices for the fitting of the model
+	 var matIn = new la.Matrix([[1, 0], [0, 1]]);
+	 var matOut = new la.Matrix([[1, 1], [1, 2], [-1, 8], [-3, -3]]);
+	 // fit the model
+	 nnet.fit(matIn, matOut);
+
+});
+});
+describe("Sends the vector through the model and get the prediction.", function () {
+it('should make test number 63', function () {
+ this.timeout(10000); 
+
+	 // import modules
+	 var analytics = require('qminer').analytics;
+	 var la = require('qminer').la;
+	 // create a Neural Networks model
+	 var nnet = new analytics.NNet({ layout: [2, 3, 4] });
+	 // create the matrices for the fitting of the model
+	 var matIn = new la.Matrix([[1, 0], [0, 1]]);
+	 var matOut = new la.Matrix([[1, 1], [1, 2], [-1, 8], [-3, -3]]);
+	 // fit the model
+	 nnet.fit(matIn, matOut);
+	 // create the vector for the prediction
+	 var test = new la.Vector([1, 1]);
+	 // predict the value
+	 var prediction = nnet.predict(test);
+
+});
+});
+describe("Saves the model.", function () {
+it('should make test number 64', function () {
+ this.timeout(10000); 
+
+	 // import modules
+	 var analytics = require('qminer').analytics;
+	 var la = require('qminer').la;
+	 var fs = require('qminer').fs;
+	 // create a Neural Networks model
+	 var nnet = new analytics.NNet({ layout: [2, 3, 4] });
+	 // create the matrices for the fitting of the model
+	 var matIn = new la.Matrix([[1, 0], [0, 1]]);
+	 var matOut = new la.Matrix([[1, 1], [1, 2], [-1, 8], [-3, -3]]);
+	 // fit the model
+	 nnet.fit(matIn, matOut);
+	 // create an output stream object and save the model
+	 var fout = fs.openWrite('nnet_example.bin');
+	 nnet.save(fout);
+	 fout.close();
+	 // load the Neural Network model from the binary
+	 var fin = fs.openRead('nnet_example.bin');
+	 var nnet2 = new analytics.NNet(fin);
+
+});
+});
 describe("Get the model.", function () {
-it('should make test number 49', function () {
+it('should make test number 65', function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -824,7 +1178,7 @@ it('should make test number 49', function () {
 });
 });
 describe("Get the model.", function () {
-it('should make test number 50', function () {
+it('should make test number 66', function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -837,7 +1191,7 @@ it('should make test number 50', function () {
 });
 });
 describe("Gets the model.", function () {
-it('should make test number 51', function () {
+it('should make test number 67', function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -850,7 +1204,7 @@ it('should make test number 51', function () {
 });
 });
 describe("Gets Recursive Linear Regression model", function () {
-it('should make test number 52', function () {
+it('should make test number 68', function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -863,7 +1217,7 @@ it('should make test number 52', function () {
 });
 });
 describe("@classdesc One vs. all model for multiclass prediction. Builds binary model", function () {
-it('should make test number 53', function () {
+it('should make test number 69', function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -874,7 +1228,7 @@ it('should make test number 53', function () {
 });
 });
 describe("Gets the parameters.", function () {
-it('should make test number 54', function () {
+it('should make test number 70', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -889,7 +1243,7 @@ it('should make test number 54', function () {
 });
 });
 describe("Sets the parameters.", function () {
-it('should make test number 55', function () {
+it('should make test number 71', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -902,7 +1256,7 @@ it('should make test number 55', function () {
 });
 });
 describe("Apply all models to the given vector and returns a vector of scores, one for each category.", function () {
-it('should make test number 56', function () {
+it('should make test number 72', function () {
  this.timeout(10000); 
 
           // import modules
@@ -923,7 +1277,7 @@ it('should make test number 56', function () {
 });
 });
 describe("Apply all models to the given vector and returns category with the highest score.", function () {
-it('should make test number 57', function () {
+it('should make test number 73', function () {
  this.timeout(10000); 
 
           // import modules
@@ -944,7 +1298,7 @@ it('should make test number 57', function () {
 });
 });
 describe("Apply all models to the given vector and returns category with the highest score.", function () {
-it('should make test number 58', function () {
+it('should make test number 74', function () {
  this.timeout(10000); 
 
           // import modules
@@ -961,7 +1315,7 @@ it('should make test number 58', function () {
 });
 });
 describe("@classdesc KMeans clustering", function () {
-it('should make test number 59', function () {
+it('should make test number 75', function () {
  this.timeout(10000); 
 
      // import analytics and la modules
@@ -977,7 +1331,7 @@ it('should make test number 59', function () {
 });
 });
 describe("Returns the model", function () {
-it('should make test number 60', function () {
+it('should make test number 76', function () {
  this.timeout(10000); 
 
          // import modules
@@ -995,7 +1349,7 @@ it('should make test number 60', function () {
 });
 });
 describe("Sets the parameters.", function () {
-it('should make test number 61', function () {
+it('should make test number 77', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1008,7 +1362,7 @@ it('should make test number 61', function () {
 });
 });
 describe("Returns the parameters.", function () {
-it('should make test number 62', function () {
+it('should make test number 78', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1021,7 +1375,7 @@ it('should make test number 62', function () {
 });
 });
 describe("Computes the centroids.", function () {
-it('should make test number 63', function () {
+it('should make test number 79', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1036,7 +1390,7 @@ it('should make test number 63', function () {
 });
 });
 describe("Returns an vector of cluster id assignments.", function () {
-it('should make test number 64', function () {
+it('should make test number 80', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1055,7 +1409,7 @@ it('should make test number 64', function () {
 });
 });
 describe("Transforms the points to vectors of squared distances to centroids.", function () {
-it('should make test number 65', function () {
+it('should make test number 81', function () {
  this.timeout(10000); 
 
          // import modules

@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">LogReg</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-877">analyticsdoc.<wbr>js:877</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-970">analyticsdoc.<wbr>js:970</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -139,6 +139,25 @@ var logreg = new analytics.LogReg({ lambda: 2 });</code></pre>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X, y[, eps])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.LogReg.html">module:analytics.LogReg</a></span></span></h3>
               <p>Fits a column matrix of feature vectors X onto the response variable y.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create the logistic regression model
+var logreg = new analytics.LogReg();
+// create the input matrix and vector for fitting the model
+var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec = new la.Vector([1, 0, -1, -2]);
+// if openblas is used, fit the model
+if (require(&#x27;qminer&#x27;).flags.blas) {
+    logreg.fit(mat, vec);
+}</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -225,6 +244,30 @@ var param = logreg.getParams(); // returns { lambda: 10, intercept: false }</cod
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Returns the expected response for the provided feature vector.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create the logistic regression model
+var logreg = new analytics.LogReg();
+// create the input matrix and vector for fitting the model
+var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec = new la.Vector([1, 0, -1, -2]);
+// if openblas is used
+if (require(&#x27;qminer&#x27;).flags.blas) {
+    // fit the model
+    logreg.fit(mat, vec);
+    // create the vector for the prediction
+    var test = new la.Vector([1, 1]);
+    // get the prediction
+    var prediction = logreg.predict(test);
+};</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -261,6 +304,34 @@ var param = logreg.getParams(); // returns { lambda: 10, intercept: false }</cod
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
               <p>Saves the model into the output stream.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+var fs = require(&#x27;qminer&#x27;).fs;
+// create the logistic regression model
+var logreg = new analytics.LogReg();
+// create the input matrix and vector for fitting the model
+var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec = new la.Vector([1, 0, -1, -2]);
+// if openblas is used, fit the model
+if (require(&#x27;qminer&#x27;).flags.blas) {
+    logreg.fit(mat, vec);
+};
+// create an output stream object and save the model
+var fout = fs.openWrite(&#x27;logreg_example.bin&#x27;);
+logreg.save(fout);
+fout.close();
+// create input stream
+var fin = fs.openRead(&#x27;logreg_example.bin&#x27;);
+// create a Logistic Regression object that loads the model and parameters from input stream
+var logreg2 = new analytics.LogReg(fin);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -356,7 +427,7 @@ logreg.setParams({ lambda: 1 });</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on September 14, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on September 15, 2015.
       </p>
     </div>
   </footer>

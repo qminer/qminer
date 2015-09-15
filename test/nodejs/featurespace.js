@@ -56,18 +56,28 @@ describe('Feature Space Tests', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
             assert.notEqual(ftr, null);
         })
-        it.skip('should throw an exception, if feature extractor is not given', function () {
+        it('should throw an exception, if feature extractor is not given', function () {
             assert.throws(function () {
                 var ftr = new qm.FeatureSpace(base);
             })
             console.log("should be seen on screen: base");
         })
-        it.skip('should throw an exception, if only the feature extractor is given', function () {
+        it('should throw an exception, if only the feature extractor is given', function () {
             assert.throws(function () {
                 var ftr = new qm.FeatureSpace({ type: "numeric", source: "FtrSpaceTest", field: "Value" });
             })
         })
-        it.skip('should throw an exception, if no parameters are given', function () {
+        it('should throw an exception, if base is not a base', function () {
+            assert.throws(function () {
+                var ftr = new qm.FeatureSpace(10, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
+            })
+        })
+        it('should throw an exception, if json is not a json', function () {
+            assert.throws(function () {
+                var ftr = new qm.FeatureSpace(base, 10);
+            })
+        })
+        it('should throw an exception, if no parameters are given', function () {
             assert.throws(function () {
                 var ftr = new qm.FeatureSpace();
                 console.log("should be seen on screen: none");

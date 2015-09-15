@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">PropHazards</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-945">analyticsdoc.<wbr>js:945</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1091">analyticsdoc.<wbr>js:1091</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -139,6 +139,25 @@ var hazard = new analytics.PropHazards();</code></pre>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X, y[, eps])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.PropHazards.html">module:analytics.PropHazards</a></span></span></h3>
               <p>Fits a column matrix of feature vectors X onto the response variable y.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create the Proportional Hazards model
+var hazards = new analytics.PropHazards();
+// create the input matrix and vector for fitting the model
+var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec = new la.Vector([1, 0, -1, -2]);
+// if openblas used, fit the model
+if (require(&#x27;qminer&#x27;).flags.blas) {
+    hazards.fit(mat, vec);
+};</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -225,6 +244,30 @@ var param = hazard.getParams();</code></pre>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Returns the expected response for the provided feature vector.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create the Proportional Hazards model
+var hazards = new analytics.PropHazards();
+// create the input matrix and vector for fitting the model
+var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec = new la.Vector([1, 0, -1, -2]);
+// if openblas used
+if (require(&#x27;qminer&#x27;).flags.blas) {
+    // fit the model
+    hazards.fit(mat, vec);
+    // create a vector for the prediction
+    var test = new la.Vector([1, 0, -1, -2]);
+    // predict the value
+    var prediction = hazards.predict(test);
+};</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -261,6 +304,34 @@ var param = hazard.getParams();</code></pre>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(sout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
               <p>Saves the model into the output stream.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+var fs = require(&#x27;qminer&#x27;).fs;
+// create the Proportional Hazards model
+var hazards = new analytics.PropHazards();
+// create the input matrix and vector for fitting the model
+var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec = new la.Vector([1, 0, -1, -2]);
+// if openblas used, fit the model
+if (require(&#x27;qminer&#x27;).flags.blas) {
+    hazards.fit(mat, vec);
+};
+// create an output stream and save the model
+var fout = fs.openWrite(&#x27;hazards_example.bin&#x27;);
+hazards.save(fout);
+fout.close();
+// create input stream
+var fin = fs.openRead(&#x27;hazards_example.bin&#x27;);
+// create a Proportional Hazards object that loads the model and parameters from input stream
+var hazards2 = new analytics.PropHazards(fin);	</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -356,7 +427,7 @@ hazard.setParams({ lambda: 10 });</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on September 14, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on September 15, 2015.
       </p>
     </div>
   </footer>
