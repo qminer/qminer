@@ -664,6 +664,162 @@ module.exports = exports = function (pathPrefix) {
         this.desiredPrecisionThreshold = function (yTrue, yPred, desiredPrecision) {
             return new this.PredictionCurve(yTrue, yPred).desiredPrecision(desiredPrecision);
         };
+
+        // Online regression metrics used for evaluating online models
+        this.OnlineRegressionMetrics = new function () {
+
+            // Main object for online metrics model
+            function createOnlineMetric(updateCallback) {
+                var error = -1;
+                var calcError = new updateCallback();
+                // update function defined with callback function
+                this.update = function (yTrue, yPred, ref_num) {
+                    var yPred = yPred == null ? 0 : yPred;
+                    var ref_num = ref_num == null ? 0 : ref_num;
+
+                    error = calcError.update(yTrue, yPred);
+                }
+                // getter for error
+                this.getError = function () {
+                    return error;
+                }
+                return this;
+            }
+
+            //////////// MEAN ERROR (ME)
+            //#- `me = evaluation.newMeanError()` -- create new (online) mean error instance.
+            //#   - `me.update(yTrue, yPred)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+            //#   - `num = me.getError()` -- returns current error `num`
+            this.MeanError = function () {
+                function calcError() {
+                    this.sumErr = 0;
+                    this.count = 0;
+                    // update function
+                    this.update = function (yTrue, yPred) {
+                        var err = yTrue - yPred;
+                        this.sumErr += err;
+                        this.count++;
+                        var error = this.sumErr / this.count;
+                        return error;
+                    }
+                }
+                return new createOnlineMetric(calcError);
+            }
+
+            //////////// MEAN ABSOLUTE ERROR (MAE)
+            //#- `mae = evaluation.newMeanAbsoluteError()` -- create new (online) mean absolute error instance.
+            //#   - `mae.update(yTrue, yPred)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+            //#   - `num = mae.getError()` -- returns current error `num`
+            this.MeanAbsoluteError = function () {
+                function calcError() {
+                    this.sumErr = 0;
+                    this.count = 0;
+                    // update function
+                    this.update = function (yTrue, yPred) {
+                        var err = yTrue - yPred;
+                        this.sumErr += Math.abs(err);
+                        this.count++;
+                        var error = this.sumErr / this.count;
+                        return error;
+                    }
+                }
+                return new createOnlineMetric(calcError);
+            }
+
+            //////////// MEAN SQUARE ERROR (MSE)
+            //#- `mse = evaluation.newMeanSquareError()` -- create new (online) mean square error instance.
+            //#   - `mse.update(yTrue, yPred)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+            //#   - `num = mse.getError()` -- returns current error `num`
+            this.MeanSquareError = function () {
+                function calcError() {
+                    this.sumErr = 0;
+                    this.count = 0;
+                    // update function
+                    this.update = function (yTrue, yPred) {
+                        var err = yTrue - yPred;
+                        this.sumErr += (err * err);
+                        this.count++;
+                        var error = this.sumErr / this.count;
+                        return error;
+                    }
+                }
+                return new createOnlineMetric(calcError);
+            }
+
+            //////////// ROOT MEAN SQUARE ERROR (RMSE)
+            //#- `rmse = evaluation.newRootMeanSquareError()` -- create new (online) root mean square error instance.
+            //#   - `rmse.update(yTrue, yPred)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+            //#   - `num = rmse.getError()` -- returns current error `num`
+            this.RootMeanSquareError = function () {
+                function calcError() {
+                    this.sumErr = 0;
+                    this.count = 0;
+                    // update function
+                    this.update = function (yTrue, yPred) {
+                        var err = yTrue - yPred;
+                        this.sumErr += (err * err);
+                        this.count++;
+                        var error = this.sumErr / this.count;
+                        return Math.sqrt(error);
+                    }
+                }
+                return new createOnlineMetric(calcError);
+            }
+
+            //////////// MEAN ABSOLUTE PERCENTAGE ERROR (MAPE)
+            //#- `mape = evaluation.newMeanAbsolutePercentageError()` -- create new (online) mean absolute percentage error instance.
+            //#   - `mape.update(yTrue, yPred)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+            //#   - `num = mape.getError()` -- returns current error `num`
+            this.MeanAbsolutePercentageError = function () {
+                function calcError() {
+                    this.sumErr = 0;
+                    this.count = 0;
+                    // update function
+                    this.update = function (yTrue, yPred) {
+                        if (yTrue != 0) { // skip if yTrue is 0, otherwise we have devision by zero in the next step.
+                            var err = yTrue - yPred;
+                            this.sumErr += Math.abs(err / yTrue) * 100;
+                        }
+                        this.count++;
+                        var error = this.sumErr / this.count;
+                        return error;
+                    }
+                }
+                return new createOnlineMetric(calcError);
+            }
+
+            //////////// R SQUARED SCORE (R2)
+            //#- `r2 = evaluation.newRSquareScore()` -- create new (online) R Square instance. This statistic measures how successful the fit is in explaining the variation of the data. Best possible score is 1.0, lower values are worse.
+            //#   - `r2.update(num)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+            //#   - `num = rmse.getError()` -- returns current score `num`
+            this.R2Score = function () {
+                function calcError() {
+                    this.sst = 0;
+                    this.sse = 0;
+                    this.mean = 0;
+                    this.count = 0;
+                    this.sumTrue = 0;
+                    this.sumTrue2 = 0;
+                    // update function
+                    this.update = function (yTrue, yPred) {
+                        this.count++;
+                        this.sumTrue += yTrue;
+                        this.sumTrue2 += yTrue * yTrue;
+                        this.mean = this.sumTrue / this.count;
+                        //calculate R squared score 
+                        this.sse += (yTrue - yPred) * (yTrue - yPred);
+                        this.sst = this.sumTrue2 - this.count * this.mean * this.mean;
+                        if (this.sst == 0.0) {
+                            return (this.sse == 0.0) ? 1.0 : 0.0;
+                        }
+                        return 1 - this.sse / this.sst;
+                    }
+                }
+                return new createOnlineMetric(calcError);
+            }
+
+        }
+
     };
 
 
