@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">KMeans</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1895">analyticsdoc.<wbr>js:1895</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2222">analyticsdoc.<wbr>js:2222</a></p>
             <div class="symbol-classdesc">
               <p>KMeans clustering</p>
             </div>
@@ -51,22 +51,19 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.KMeans.html#load">load(fname)</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-analytics.KMeans.html#permuteCentroids">permuteCentroids(mapping)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.KMeans.html#predict">predict(A)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.KMeans.html#save">save(arg)</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.KMeans.html#save">save(fname)</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-analytics.KMeans.html#setParams">setParams(p)</a></dt>
                     <dd>
                     </dd>
@@ -160,7 +157,7 @@ KMeans.fit(X);</code></pre>
             <h2>Methods</h2>
             <section>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(A)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.KMeans.html">module:analytics.KMeans</a></span></span></h3>
-              <p>Computes the centroids</p>
+              <p>Computes the centroids.</p>
               <section>
                 <h4>
             Example
@@ -211,7 +208,7 @@ KMeans.fit(X);</code></pre>
                   <p><code><a href="module-analytics.KMeans.html">module:analytics.KMeans</a></code>&nbsp;Self. It stores the info about the new model.</p>
                 </dd>
               </dl>
-              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> (Object or Object)</span></span></h3>
+              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Returns the model</p>
               <section>
                 <h4>
@@ -233,9 +230,6 @@ var model = KMeans.getModel();</code></pre>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
-                <dd>
-                  <p><code>Object</code>&nbsp;The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data) Returns the model.</p>
-                </dd>
                 <dd>
                   <p><code>Object</code>&nbsp;The model object whose keys are: C (centroids) and idxv (cluster ids of the training data).</p>
                 </dd>
@@ -260,39 +254,6 @@ var json = KMeans.getParams();</code></pre>
                 <dd>
                   <p>Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed).</p>
                 </dd>
-              </dl>
-              <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(fname)</span></span></h3>
-              <p>Loads KMeans internal state from (binary) file</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>fname</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Name of the file to read from.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
               </dl>
               <h3 id="permuteCentroids"><span class="symbol-name">permuteCentroids</span><span class="signature"><span class="signature-params">(mapping)</span></span></h3>
               <p>Permutes centroid with given mapping.</p>
@@ -319,7 +280,7 @@ var json = KMeans.getParams();</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>object that contains the mappping. E.g. mapping[4]=2 means &quot;map cluster 4 into cluster 2&quot;</p>
+                        <p>object that contains the mapping. E.g. mapping[4]=2 means &quot;map cluster 4 into cluster 2&quot;</p>
                       </td>
                     </tr>
                   </tbody>
@@ -328,7 +289,7 @@ var json = KMeans.getParams();</code></pre>
               <dl class="dl-compact">
               </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(A)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.IntVector.html">module:la.IntVector</a></span></span></h3>
-              <p>Returns an vector of cluster id assignments</p>
+              <p>Returns an vector of cluster id assignments.</p>
               <section>
                 <h4>
             Example
@@ -383,8 +344,8 @@ var prediction = KMeans.predict(pred);</code></pre>
                   <p><code><a href="module-la.IntVector.html">module:la.IntVector</a></code>&nbsp;Vector of cluster assignments.</p>
                 </dd>
               </dl>
-              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fname)</span></span></h3>
-              <p>Saves KMeans internal state into (binary) file</p>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(arg)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Saves KMeans internal state into (binary) file.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -399,22 +360,26 @@ var prediction = KMeans.predict(pred);</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>fname</p>
+                        <p>arg</p>
                       </td>
                       <td>
-                        <p>string</p>
+                        <p><a href="module-fs.FOut.html">module:fs.FOut</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Name of the file to write into.</p>
+                        <p>The output stream.</p>
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </section>
               <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream fout.</p>
+                </dd>
               </dl>
               <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(p)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.KMeans.html">module:analytics.KMeans</a></span></span></h3>
               <p>Sets the parameters.</p>
@@ -537,7 +502,7 @@ KMeans.transform(matrix);</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on September 10, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on September 15, 2015.
       </p>
     </div>
   </footer>

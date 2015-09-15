@@ -100,7 +100,86 @@ describe('Logistic Regression Tests', function () {
                     logreg.fit(mat, vec);
                 });
             })
+            it('should fit the model with the values', function () {
+                var logreg = new analytics.LogReg();
+                var mat = new la.Matrix([[1, 1], [1, -1]]);
+                var vec = new la.Vector([3, 3]);
+                logreg.fit(mat, vec);
+                var weights = logreg.weights;
+                assert(weights[0] > 0);
+                assert(weights[1] == 0);
+            })
+            it('should throw an exception if matrix has more columns than length of vector', function () {
+                var logreg = new analytics.LogReg();
+                var mat = new la.Matrix([[1, 1, 1], [1, -1, -2]]);
+                var vec = new la.Vector([3, 3]);
+                assert.throws(function () {
+                    logreg.fit(mat, vec);
+                });
+            })
+            it('should throw an exception if matrix has fewer columns than length of vector', function () {
+                var logreg = new analytics.LogReg();
+                var mat = new la.Matrix([[1], [1]]);
+                var vec = new la.Vector([3, 3]);
+                assert.throws(function () {
+                    logreg.fit(mat, vec);
+                });
+            })
+        });
+
+        describe('Predict Tests', function () {
+            it('should not throw an exception', function () {
+                var logreg = new analytics.LogReg();
+                var mat = new la.Matrix([[1, 1], [1, -1]]);
+                var vec = new la.Vector([3, 3]);
+                logreg.fit(mat, vec);
+                var test = new la.Vector([1, 2]);
+                assert.doesNotThrow(function () {
+                    var prediction = logreg.predict(test);
+                });
+            })
+            it('should return the prediction', function () {
+                var logreg = new analytics.LogReg();
+                var mat = new la.Matrix([[1, 1], [1, -1]]);
+                var vec = new la.Vector([3, 3]);
+                logreg.fit(mat, vec);
+                var test = new la.Vector([1, 3]);
+                var prediction = logreg.predict(test);
+                assert.eqtol(prediction, 1);
+            })
+            it('should throw an exception if the given vector is longer than model', function () {
+                var logreg = new analytics.LogReg();
+                var mat = new la.Matrix([[1, 1], [1, -1]]);
+                var vec = new la.Vector([3, 3]);
+                logreg.fit(mat, vec);
+                var test = new la.Vector([1, 3, 2]);
+                assert.throws(function () {
+                    var prediction = logreg.predict(test);
+                });
+            })
+            it('should throw an excpetion if the given vector is shorter than model', function () {
+                var logreg = new analytics.LogReg();
+                var mat = new la.Matrix([[1, 1], [1, -1]]);
+                var vec = new la.Vector([3, 3]);
+                logreg.fit(mat, vec);
+                var test = new la.Vector([1]);
+                assert.throws(function () {
+                    var prediction = logreg.predict(test);
+                });
+            })
+        })
+
+        describe('Serialization Tests', function () {
+            it('should serialize and deserialize', function () {
+                var logreg = new analytics.LogReg();
+                var mat = new la.Matrix([[1, 1], [1, -1]]);
+                var vec = new la.Vector([3, 3]);
+                logreg.fit(mat, vec);
+                logreg.save(require('qminer').fs.openWrite('logreg_test.bin')).close();
+                var logreg2 = new analytics.LogReg(require('qminer').fs.openRead('logreg_test.bin'));
+                assert.deepEqual(logreg.getParams(), logreg2.getParams());
+                assert.eqtol(logreg.weights.minus(logreg2.weights).norm(), 0, 1e-8);
+            })
         });
     }
-
-})
+});

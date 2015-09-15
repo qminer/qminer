@@ -2907,7 +2907,7 @@ public:
 //#		concatenate: 'concatenate', 
 //#		/** Treat each case as a separate document. */
 //#		centroid: 'centroid', 
-//#		/** //TODO (Use the tokenizer option) */
+//#		/** Use the tokenizer option */
 //#		tokenized : 'tokenized'
 //# }
 

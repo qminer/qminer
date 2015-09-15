@@ -376,7 +376,9 @@ describe('Record Set Tests', function () {
             assert.equal(recSet2[0].Name, "Blaz Fortuna");
         })
         it.skip('should throw exception due to invalid field name', function () {
-            recSet2.filterByField("ZBLJ", "Blaz Fortuna");
+            assert.throws(function () {
+                recSet2.filterByField("ZBLJ", "Blaz Fortuna");
+            });
         })
         it('should keep only the "Blaz Fortuna" record, search by min-max', function () {
             var xrs = recSet2.filterByField("Name", "Blaz", "Bz");
