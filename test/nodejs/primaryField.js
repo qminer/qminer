@@ -5,7 +5,7 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
- 
+
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); // additional JS implementations
 var qm = require('qminer');
@@ -13,15 +13,19 @@ var qm = require('qminer');
 //describe('Primary field, old', function () {
 //	it('should survive', function () {
 
-qm.delLock();
-
-var backward = require('../../src/nodejs/scripts/backward.js');
-backward.addToProcess(process); // adds process.isArg function
+var verbose = false;
 
 describe('PrimaryField Tests', function () {
     it('should pass', function () {
-        console.log("PrimaryField", "Starting test of primary fields");
+        this.timeout(10000);
+        if (verbose) {
+            console.log("PrimaryField", "Starting test of primary fields");
+        }
 
+        qm.delLock();
+
+        var backward = require('../../src/nodejs/scripts/backward.js');
+        backward.addToProcess(process); // adds process.isArg function
 
         // only report failours
         assert.silent = !process.isArg("-verbose");
