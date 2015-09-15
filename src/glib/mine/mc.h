@@ -750,8 +750,7 @@ public:
 	void Init(TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const PStateIdentifier& Clust, const PHierarch& Hierarch);
 	void InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV);
 
-	const TFltPr& GetFtrBounds(const int& FtrId) const { return FtrBoundV[FtrId]; }
-
+	const TFltPr& GetFtrBounds(const int& FtrId) const;
 	void GetSuggestFtrs(const int& StateId, TFltV& WgtV) const;
 };
 

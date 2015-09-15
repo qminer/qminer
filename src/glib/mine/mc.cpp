@@ -273,7 +273,8 @@ void TStateIdentifier::GetControlCentroidVV(TStateFtrVV& StateFtrVV) const {
 }
 
 double TStateIdentifier::GetControlFtr(const int& StateId, const int& FtrId, const double& DefaultVal) const {
-	return IsControlFtrSet(StateId, FtrId) ? GetControlFtr(StateId, FtrId) : DefaultVal;
+	const bool IsSet = IsControlFtrSet(StateId, FtrId);
+	return IsSet ? GetControlFtr(StateId, FtrId) : DefaultVal;
 }
 
 void TStateIdentifier::SetControlFtr(const int& StateId, const int& FtrId, const double& Val) {
@@ -428,10 +429,10 @@ void TStateIdentifier::ClearControlFtrVV(const int& Dim) {
 	const int NStates = GetStates();
 
 	StateContrFtrValVV.Gen(NStates);
-	for (int i = 0; i < NStates; i++) {
-		StateContrFtrValVV[i].Gen(Dim);
-		for (int j = 0; j < Dim; j++) {
-			StateContrFtrValVV[i][j] = TFlt::PInf;
+	for (int StateId = 0; StateId < NStates; StateId++) {
+		StateContrFtrValVV[StateId].Gen(Dim);
+		for (int FtrId = 0; FtrId < Dim; FtrId++) {
+			StateContrFtrValVV[StateId][FtrId] = TFlt::PInf;
 		}
 	}
 }
@@ -2183,6 +2184,11 @@ void TStateAssist::InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrV
 
 		FtrBoundV[NObsFtrs + FtrN] = TFltPr(Min, Max);
 	}
+}
+
+const TFltPr& TStateAssist::GetFtrBounds(const int& FtrId) const {
+	EAssertR(FtrId < FtrBoundV.Len(), "TStateAssist::GetFtrBounds: invalid feature ID!");
+	return FtrBoundV[FtrId];
 }
 
 void TStateAssist::GetSuggestFtrs(const int& StateId, TFltV& WgtV) const {
