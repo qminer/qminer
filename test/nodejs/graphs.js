@@ -37,10 +37,7 @@ g.eachEdge(function(E){
 });
 
 var m = g.adjMat();
-console.log('Adjacency matrix:');
-m.print();
 
-console.log('Drawing graph to \'g.html\'');
 g.draw('g.html');
 
 })});

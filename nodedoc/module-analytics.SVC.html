@@ -106,7 +106,7 @@ var featureMatrix = new la.Matrix({ rows: 2, cols: 4, random: true });
 // classification targets for four examples
 var targets = new la.Vector([-1, -1, 1, 1]);
 // set up the classification model
-var SVC = new analytics.SVC({ verbose: true });
+var SVC = new analytics.SVC({ verbose: false });
 // train classifier
 SVC.fit(featureMatrix, targets);
 // set up a fake test vector

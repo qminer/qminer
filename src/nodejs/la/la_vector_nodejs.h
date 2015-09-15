@@ -1222,6 +1222,7 @@ void TNodeJsVec<TVal, TAux>::push(const v8::FunctionCallbackInfo<v8::Value>& Arg
 			v8::String::NewFromUtf8(Isolate, "Expected number, string or boolean")));
 	}
 	else {
+		
 		JsVec->Vec.Add(TAux::CastVal(Args[0]));
 		Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.Len()));
 	}

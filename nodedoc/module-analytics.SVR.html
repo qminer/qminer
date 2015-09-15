@@ -106,7 +106,7 @@ var featureMatrix = new la.Matrix({ rows: 2, cols: 4, random: true });
 // Regression targets for four examples
 var targets = new la.Vector([1.1, -2, 3, 4.2]);
 // Set up the regression model
-var SVR = new analytics.SVR({ verbose: true });
+var SVR = new analytics.SVR({ verbose: false });
 // Train regression
 SVR.fit(featureMatrix, targets);
 // Set up a fake test vector

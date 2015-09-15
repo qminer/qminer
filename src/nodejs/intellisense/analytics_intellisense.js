@@ -41,7 +41,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 * // classification targets for four examples
 * var targets = new la.Vector([-1, -1, 1, 1]);
 * // set up the classification model
-* var SVC = new analytics.SVC({ verbose: true });
+* var SVC = new analytics.SVC({ verbose: false });
 * // train classifier
 * SVC.fit(featureMatrix, targets);
 * // set up a fake test vector
@@ -214,7 +214,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 * // Regression targets for four examples
 * var targets = new la.Vector([1.1, -2, 3, 4.2]);
 * // Set up the regression model
-* var SVR = new analytics.SVR({ verbose: true });
+* var SVR = new analytics.SVR({ verbose: false });
 * // Train regression
 * SVR.fit(featureMatrix, targets);
 * // Set up a fake test vector
