@@ -32,7 +32,6 @@ public:
 	//# 
 	//#- `graph = snap.newUGraph()` -- generate an empty undirected graph
 private:
-	JsDeclareFunction(cmtyEvolution);
 	//static v8::Persistent<v8::Function> constructor;
 };
 
@@ -73,6 +72,7 @@ private:
 	JsDeclareFunction(adjMat);
 	JsDeclareFunction(dump);
 	JsDeclareFunction(components);
+        JsDeclareFunction(clusteringCoefficient)
 	JsDeclareFunction(renumber);
 	JsDeclareFunction(degreeCentrality);
 	JsDeclareFunction(load);
@@ -518,6 +518,14 @@ void TNodeJsGraph<T>::dump(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(Args.Holder());
 }
 
+template <class T>
+void TNodeJsGraph<T>::clusteringCoefficient(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
+	double Ccf = TSnap::GetClustCf(JsGraph->Graph);
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, Ccf));
+}
 
 template <class T>
 void TNodeJsGraph<T>::components(const v8::FunctionCallbackInfo<v8::Value>& Args) {
