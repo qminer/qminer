@@ -524,7 +524,7 @@
 	* var first = mat.getCol(0); // returns the first column of the sparse matrix
 	*/
  exports.SparseMatrix.prototype.getCol = function (colIdx) { return Object.create(require('qminer').la.SparseVector.prototype); }
-/** 
+/**
 	* Sets a column in sparse matrix.
 	* @param {number} colIdx - Column index (zero based).
 	* @param {module:la.SparseVector} spVec - The new column sparse vector.
