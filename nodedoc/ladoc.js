@@ -12,6 +12,26 @@
 * // import module, create a random matrix and a vector, multiply. find svd of the matrix
 */
 /**
+	* Computes the truncated SVD decomposition.
+	* @param {module:la.Matrix | matrix:la.SparseMatrix} mat - The matrix.
+	* @param {number} k - The number of singular vectors to be computed.
+	* @param {Object} [json] - The JSON object containing the properties iter and tol:
+	* @param {number} [json.iter = 100] - The number of iterations used for the algorithm.
+	* @param {number} [json.tol = 1e-6] - The tolerance number.
+	* @returns {Object} The JSON object svdRes which contains the decomposition matrices:
+	* <br>svdRes.U - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
+	* <br>svdRes.V - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
+	* <br>svdRes.s - The vector containing the singular values of the decomposition. Type {@link module:la.Vector}.
+	*/
+/**
+	* Computes the QR decomposition.
+	* @param {module:la.Matrix} mat - The matrix.
+	* @param {number} [tol = 1e-6] - The tolerance number.
+	* @returns {Object} A JSON object qrRes which contains the decomposition matrices:
+	* <br>qrRes.Q - The orthogonal dense matrix Q of the QR decomposition. Type {@link module:la.Matrix}.
+	* <br>qrRes.R - The upper triangular dense matrix R of the QR decomposition. Type {@link module:la.Matrix}.
+	*/
+/**
 * Matrix constructor parameter object.
 * @typedef {Object} matrixArg
 * @property  {number} matrixArg.rows - Number of rows.
