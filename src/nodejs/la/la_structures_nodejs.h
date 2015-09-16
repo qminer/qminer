@@ -955,6 +955,7 @@ public:
 	*/
 	//# exports.SparseMatrix.prototype.load = function (FIn) { return Object.create(require('qminer').fs.FIn.prototype); }
 	JsDeclareFunction(load);
+	
 	//!- `spMat2 = spMat.sign()` -- create a new sparse matrix `spMat2` whose elements are sign function applied to elements of `spMat`.
 	// (TODO) JsDeclareFunction(sign);
 	//!JSIMPLEMENT:src/qminer/spMat.js

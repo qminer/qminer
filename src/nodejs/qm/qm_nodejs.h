@@ -469,6 +469,7 @@ private:
 	*/
 	//# exports.Base.prototype.createStore = function (storeDef, storeSizeInMB) { return storeDef instanceof Array ? [Object.create(require('qminer').Store.prototype)] : Object.create(require('qminer').Store.prototype) ;}
 	JsDeclareFunction(createStore);
+
 	/**
 	* Creates a new store.
 	* @param {module:qm~QueryObject} query - query language JSON object	
@@ -477,12 +478,13 @@ private:
 	//# exports.Base.prototype.search = function (query) { return Object.create(require('qminer').RecordSet.prototype); }
 
 	JsDeclareFunction(search);   
+
 	/**
 	* Calls qminer garbage collector to remove records outside time windows.
 	*/
 	//# exports.Base.prototype.garbageCollect = function () { }
-
 	JsDeclareFunction(garbageCollect);
+
 	/**
 	* Calls qminer partial flush - base saves dirty data given some time-window.
 	* @param {number} window - Length of available time-window in msec. Default 500.
@@ -490,13 +492,13 @@ private:
 	//# exports.Base.prototype.partialFlush = function () { }
 
 	JsDeclareFunction(partialFlush);
+
 	/**
 	* Retrieves performance statistics for qminer.
 	*/
 	//# exports.Base.prototype.getStats = function () { }
 	JsDeclareFunction(getStats);
 
-	//!- `sa = base.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
 	/**
 	* Gets the stream aggregate of the given name.
 	* @param {string} saName - The name of the stream aggregate.
@@ -505,7 +507,6 @@ private:
 	//# exports.Base.prototype.getStreamAggr = function (saName) { return Object.create(require('qminer').StreamAggr.prototype); }
 	JsDeclareFunction(getStreamAggr);
 
-	//!- `strArr = base.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
 	/**
 	* Gets an array of the stream aggregate names in the base.
 	* @returns {Array.<string>} The array containing the stream aggregat names.
@@ -597,11 +598,7 @@ public:
 	static v8::Local<v8::Value> Field(const TQm::TRec& Rec, const int FieldId);
 	static v8::Local<v8::Value> Field(const TWPt<TQm::TStore>& Store, const uint64& RecId, const int FieldId);
 private:
-	//! 
-	//! **Functions and properties:**
-	//!
-	//!- `rec = store.recordByName(recName)` -- get record named `recName`;
-	//!     returns `null` when no such record exists
+	
 	/**
 	* Returns a record from the store.
 	* @param {string} recName - Record name.
@@ -632,9 +629,6 @@ private:
 	//# exports.Store.prototype.recordByName = function (recName) { return Object.create(require('qminer').Record.prototype); };
 	JsDeclareFunction(recordByName);
 
-	//!- `store = store.each(callback)` -- iterates through the store and executes the callback function `callback` on each record. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
-	//!  - `store.each(function (rec) { console.log(JSON.stringify(rec)); })`
-	//!  - `store.each(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
 	/**
 	* Executes a function on each record in store.
 	* @param {function} callback - Function to be executed. It takes two parameters:
@@ -667,9 +661,6 @@ private:
 	//# exports.Store.prototype.each = function (callback) { return Object.create(require('qminer').Store.prototype); }
 	JsDeclareFunction(each);
 
-	//!- `arr = store.map(callback)` -- iterates through the store, applies callback function `callback` to each record and returns new array with the callback outputs. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Examples:
-	//!  - `arr = store.map(function (rec) { return JSON.stringify(rec); })`
-	//!  - `arr = store.map(function (rec, idx) {  return JSON.stringify(rec) + ', ' + idx; })`
 	/**
 	* Creates an array of function outputs created from the store records.
 	* @param {function} callback - Function that generates the array. It takes two parameters:
@@ -702,7 +693,6 @@ private:
 	//# exports.Store.prototype.map = function (callback) {}
 	JsDeclareFunction(map);
 
-	//!- `recId = store.push(rec)` -- add record `rec` to the store and return its ID `recId`
 	/**
 	* Adds a record to the store.
 	* @param {Object} rec - The added record. The record must be a JSON object corresponding to the store schema.
@@ -738,7 +728,6 @@ private:
 	//# exports.Store.prototype.push = function (rec) { return 0; }
 	JsDeclareFunction(push);
 
-	//!- `rec = store.newRecord(recordJson)` -- creates new record `rec` by (JSON) value `recordJson` (not added to the store)
 	/**
 	* Creates a new record of given store. The record is not added to the store.
 	* @param {Object} json - A JSON value of the record.
@@ -767,7 +756,6 @@ private:
 	//# exports.Store.prototype.newRecord = function (json) { return Object.create(require('qminer').Record.prototype); };
 	JsDeclareFunction(newRecord);
 
-	//!- `rs = store.newRecordSet(idVec)` -- creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);
 	/**
 	* Creates a new record set out of the records in store.
 	* @param {module:la.IntVector} idVec - The integer vector containing the ids of selected records.
@@ -799,8 +787,6 @@ private:
 	//# exports.Store.prototype.newRecordSet = function (idVec) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(newRecordSet);
 
-	//!- `rs = store.sample(sampleSize)` -- create a record set containing a random 
-	//!     sample of `sampleSize` records
 	/**
 	* Creates a record set containing random records from store.
 	* @param {number} sampleSize - The size of the record set.
@@ -832,7 +818,6 @@ private:
 	//# exports.Store.prototype.sample = function (sampleSize) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(sample);
 
-	//!- `field = store.field(fieldName)` -- get details of field named `fieldName`
 	/**
 	* Gets the details of the selected field.
 	* @param {string} fieldName - The name of the field.
@@ -861,7 +846,6 @@ private:
 	//# exports.Store.prototype.field = function (fieldName) { return { id: 0, name:'', type:'', primary:'' }; }; 
 	JsDeclareFunction(field);
 
-	//!- `bool = store.isNumeric(fieldName)` -- returns true if the field is of numeric type
 	/**
 	* Checks if the field is of numeric type.
 	* @param {string} fieldName - The checked field.
@@ -889,7 +873,6 @@ private:
 	//# exports.Store.prototype.isNumeric = function (fieldName) { return true; };
 	JsDeclareFunction(isNumeric)
 
-	//!- `bool = store.isString(fieldName)` -- returns true if the field is of String type
 	/**
 	* Checks if the field is of string type.
 	* @param {string} fieldName - The checked field.
@@ -918,7 +901,6 @@ private:
 	//# exports.Store.prototype.isString = function (fieldName) { return true; }; 
 	JsDeclareFunction(isString)
 
-	//!- `bool = store.isDate(fieldName)` -- returns true if the field is of type Date
 	/**
 	* Checks if the field is of type Date.
 	* @param {string} fieldName - The checked field.
@@ -947,7 +929,6 @@ private:
 	//# exports.Store.prototype.isDate = function (fieldName) { return true; }
 	JsDeclareFunction(isDate)
 
-	//!- `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 	/**
 	* Returns the details of the selected key as a JSON object.
 	* @param {string} keyName - The selected key as a JSON object.
@@ -983,7 +964,6 @@ private:
 	////!- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 	//JsDeclareFunction(addTrigger); Deprecated - use new qm.sa(...) instead
 
-	//!- `sa = store.getStreamAggr(saName)` -- returns a stream aggregate `sa` whose name is `saName`
 	/**
 	* Returns the stream aggregate with the given name.
 	* @param {string} saName - The name of the stream aggregate.
@@ -992,7 +972,6 @@ private:
 	//# exports.Store.prototype.getStreamAggr = function (saName) { return Object.create(require('qminer').StreamAggr.prototype); }
 	JsDeclareFunction(getStreamAggr);
 
-	//!- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
 	/**
 	* Returns an array of the stream aggregates names connected to the store.
 	* @returns {Array.<string>} An array of stream aggregates names.
@@ -1000,7 +979,6 @@ private:
 	//# exports.Store.prototype.getStreamAggrNames = function () { return [""]; }
 	JsDeclareFunction(getStreamAggrNames);
 
-	//!- `objJSON = store.toJSON()` -- returns the store as a JSON
 	/**
 	* Returns the store as a JSON.
 	* @returns {Object} The store as a JSON.
@@ -1028,8 +1006,6 @@ private:
 	//# exports.Store.prototype.toJSON = function () { return { storeId:0, storeName:'', storeRecords:'', fields:[], keys:[], joins:[] }; };
 	JsDeclareFunction(toJSON);
 
-	//!- `store.clear()` -- deletes all records
-	//!- `len = store.clear(num)` -- deletes the first `num` records and returns new length `len`
 	/**
 	* Deletes the records in the store.
 	* @param {number} [num] - The number of deleted records. If the number is given, the first num records will be deleted.
@@ -1063,7 +1039,6 @@ private:
 	//# exports.Store.prototype.clear = function (num) { return 0; };
 	JsDeclareFunction(clear);
 
-	//!- `vec = store.getVector(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
 	/**
 	* Gives a vector containing the field value of each record.
 	* @param {string} fieldName - The field name. Field must be of one-dimensional type, e.g. int, float, string...
@@ -1093,7 +1068,6 @@ private:
 	//# exports.Store.prototype.getVector = function (fieldName) { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getVector);
 
-	//!- `mat = store.getMatrix(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
 	/**
 	* Gives a matrix containing the field values of each record.
 	* @param {string} fieldName - The field name. Field mustn't be of type string.
@@ -1128,8 +1102,6 @@ private:
 	//# exports.Store.prototype.getMatrix = function (fieldName) { return Object.create(require('qminer').la.Matrix.prototype); };
 	JsDeclareFunction(getMatrix);
 
-	//!- `val = store.cell(recId, fieldId)` -- if fieldId (int) corresponds to fieldName, this is equivalent to store[recId][fieldName]
-	//!- `val = store.cell(recId, fieldName)` -- equivalent to store[recId][fieldName]
 	/**
 	* Gives the field value of a specific record.
 	* @param {number} recId - The record id.
@@ -1161,77 +1133,66 @@ private:
 	//# exports.Store.prototype.cell = function (recId, fieldName) {};
 	JsDeclareFunction(cell);
 
-	//!- `str = store.name` -- name of the store
 	/**
 	* Gives the name of the store.
 	*/
 	//# exports.Store.prototype.name = "";
 	JsDeclareProperty(name);
 
-	//!- `bool = store.empty` -- `bool = true` when store is empty
 	/**
 	* Checks if the store is empty.
 	*/
 	//# exports.Store.prototype.empty = true;
 	JsDeclareProperty(empty);
 
-	//!- `len = store.length` -- number of records in the store
 	/**
 	* Gives the number of records.
 	*/
 	//# exports.Store.prototype.length = 0;
 	JsDeclareProperty(length);
 
-	//!- `rs = store.allRecords` -- create a record set containing all the records from the store
 	/**
 	* Creates a record set containing all the records from the store.
 	*/
 	//# exports.Store.prototype.allRecords = Object.create(require('qminer').RecordSet.prototype);
 	JsDeclareProperty(allRecords);
 
-	//!- `objArr = store.fields` -- array of all the field descriptor JSON objects
 	/**
 	* Gives an array of all field descriptor JSON objects.
 	*/
 	//# exports.Store.prototype.fields = undefinied;
 	JsDeclareProperty(fields);
 
-	//!- `objArr = store.joins` -- array of all the join names
 	/**
 	* Gives an array of all join descriptor JSON objects.
 	*/
 	//# exports.Store.prototype.joins = undefined;
 	JsDeclareProperty(joins);
 
-	//!- `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
 	/**
 	* Gives an array of all key descriptor JSON objects.
 	*/
 	//# exports.Store.prototype.keys = undefined;
 	JsDeclareProperty(keys);
 
-	//!- `rec = store.first` -- first record from the store
 	/**
 	* Returns the first record of the store.
 	*/
 	//# exports.Store.prototype.first = Object.create(require('qminer').Record.prototype);
 	JsDeclareProperty(first);
 
-	//!- `rec = store.last` -- last record from the store
 	/**
 	* Returns the last record of the store.
 	*/
 	//# exports.Store.prototype.last = Object.create(require('qminer').Record.prototype);
 	JsDeclareProperty(last);
 
-	//!- `iter = store.forwardIter` -- returns iterator for iterating over the store from start to end
 	/**
 	* Returns an iterator for iterating over the store from start to end.
 	*/
 	//# exports.Store.prototype.forwardIter = Object.create(require('qminer').Iterator.prototype);
 	JsDeclareProperty(forwardIter);
 
-	//!- `iter = store.backwardIter` -- returns iterator for iterating over the store from end to start
 	/**
 	* Returns an iterator for iterating over the store form end to start.
 	*/
@@ -1249,7 +1210,6 @@ private:
 	//# exports.Store.prototype.store = function (recId) { };
 	JsDeclIndexedProperty(indexId);	
 
-	//!- `base = store.base` -- get store base; 
 	/**
 	* Returns the base, in which the store is contained.
 	*/
@@ -1288,6 +1248,7 @@ public:
 	static v8::Local<v8::Object> NewInstance(TNodeJsRec* Obj);
 	
 private:
+
 	/**
 	* Clones the record.
 	* @returns {module:qm.Record} The clone of the record.
@@ -1316,6 +1277,7 @@ private:
 	*/
 	//# exports.Record.prototype.$clone = function () { return Object.create(require('qminer').Record.prototype); };
     JsDeclareFunction(clone);
+
     /**
      * Provide json version of record, useful when calling JSON.stringify
      *
@@ -1330,8 +1292,6 @@ private:
 	* @param {(module:qm.Record | number)} joinRecord - joined record or its ID
 	* @param {number} [joinFrequency=1] - frequency attached to the join
 	* @returns {module:qm.Record} Record.
-    * @example
-    * //TODO
 	*/
 	//# exports.Record.prototype.$addJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
 	JsDeclareFunction(addJoin);
@@ -1342,8 +1302,6 @@ private:
 	* @param {(module:qm.Record | number)} joinRecord - joined record or its ID
 	* @param {number} [joinFrequency=1] - frequency attached to the join
 	* @returns {module:qm.Record} Record.
-    * @example
-    * //TODO
 	*/
 	//# exports.Record.prototype.$delJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
 	JsDeclareFunction(delJoin);
@@ -1401,7 +1359,6 @@ private:
 	//# exports.Record.prototype.$fq = 0;
 	JsDeclareProperty(fq);
 
-	//!- `recStore = rec.$store` -- returns record store
 	/**
 	* Returns the store the record belongs to.
 	*/
@@ -1437,6 +1394,7 @@ public:
 	// C++ constructors
 	TNodeJsRecSet(const TQm::PRecSet& _RecSet, PNodeJsBaseWatcher& _Watcher) : RecSet(_RecSet), Watcher(_Watcher) {}
 private:
+
 	/**
 	* Creates a new instance of the record set.
 	* @returns {module:qm.RecordSet} A copy of the record set.
@@ -1742,7 +1700,6 @@ private:
 	//# exports.RecordSet.prototype.sortByField = function (fieldName, asc) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(sortByField);
 
-	//!- `rs = rs.sort(comparatorCallback)` -- sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Returns self.
 	/**
 	* Sorts the records according to the given callback function.
 	* @param {function} callback - The function used to sort the records. It takes two parameters:
@@ -1779,7 +1736,6 @@ private:
 	//# exports.RecordSet.prototype.sort = function (callback) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(sort);
 
-	//!- `rs = rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`. Returns self.
 	/**
 	* Keeps only records with ids between or equal two values.
 	* @param {number} [minId] - The minimum id.
@@ -1818,7 +1774,6 @@ private:
 	//# exports.RecordSet.prototype.filterById = function (minId, maxId) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(filterById);
 	
-	//!- `rs = rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`. Returns self.
 	/**
 	* Keeps only the records with weight between two values.
 	* @param {number} [minFq] - The minimum value.
@@ -1831,9 +1786,6 @@ private:
 	//# exports.RecordSet.prototype.filterByFq = function (minFq, maxFq) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(filterByFq);
 
-	//!- `rs = rs.filterByField(fieldName, minVal, maxVal)` -- keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Returns self.
-	//!- `rs = rs.filterByField(fieldName, minTm, maxTm)` -- keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Returns self.
-	//!- `rs = rs.filterByField(fieldName, str)` -- keeps only records with string value of field `fieldName` equal to `str`. Returns self.
 	/**
 	* Keeps only the records with a specific value of some field.
 	* @param {string} fieldName - The field by which the records will be filtered.
@@ -1875,7 +1827,6 @@ private:
 	//# exports.RecordSet.prototype.filterByField = function (fieldName, minVal, maxVal) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(filterByField);
 
-	//!- `rs = rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function. Returns self.
 	/**
 	* Keeps only the records that pass the callback function.
 	* @param {function} callback - The filter function. It takes one parameter and return a boolean object.
@@ -1907,7 +1858,6 @@ private:
 	//# exports.RecordSet.prototype.filter = function (callback) { return Object.create(require('qminer').RecordSet.prototype); }; 
 	JsDeclareFunction(filter);
 
-	//!- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more than 10. Result is an array of record sets. 
 	/**
 	* Splits the record set into smaller record sets.
 	* @param {function} callback - The splitter function. It takes two parameters (records) and returns a boolean object.
@@ -1947,7 +1897,6 @@ private:
 	//# exports.RecordSet.prototype.split = function (callback) {return [Object.create(require('qminer').RecordSet.prototype)]; };
 	JsDeclareFunction(split);
 
-	//!- `rs = rs.deleteRecords(rs2)` -- delete from `rs` records that are also in `rs2`. Returns self.
 	/**
 	* Deletes the records, that are also in the other record set.
 	* @param {module:qm.RecordSet} rs - The other record set.
@@ -1986,7 +1935,6 @@ private:
 	//# exports.RecordSet.prototype.deleteRecords = function (rs) { return Object.create(require('qminer').RecordSet.prototype); }; 
 	JsDeclareFunction(deleteRecords);
 
-	//!- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 	/**
 	* Returns the record set as a JSON.
 	* @returns {Object} The record set as a JSON.
@@ -2017,9 +1965,6 @@ private:
 	//# exports.RecordSet.prototype.toJSON = function () {};
 	JsDeclareFunction(toJSON);
 
-	//!- `rs = rs.each(callback)` -- iterates through the record set and executes the callback function `callback` on each element. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
-	//!  - `rs.each(function (rec) { console.log(JSON.stringify(rec)); })`
-	//!  - `rs.each(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
 	/**
 	* Executes a function on each record in record set.
 	* @param {function} callback - Function to be executed. It takes two parameters:
@@ -2053,9 +1998,6 @@ private:
 	//# exports.RecordSet.prototype.each = function (callback) { return Object.create(require('qminer').RecordSet.prototype); }
 	JsDeclareFunction(each);
 
-	//!- `arr = rs.map(callback)` -- iterates through the record set, applies callback function `callback` to each element and returns new array with the callback outputs. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Examples:
-	//!  - `arr = rs.map(function (rec) { return JSON.stringify(rec); })`
-	//!  - `arr = rs.map(function (rec, idx) {  return JSON.stringify(rec) + ', ' + idx; })`
 	/**
 	* Creates an array of function outputs created from the records in record set.
 	* @param {function} callback - Function that generates the array. It takes two parameters:
@@ -2089,7 +2031,6 @@ private:
 	//# exports.RecordSet.prototype.map = function (callback) { return [Object];  }
 	JsDeclareFunction(map);
 
-	//!- `rs3 = rs.setIntersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 	/**
 	* Creates the set intersection of two record sets.
 	* @param {module:qm.RecordSet} rs - The other record set.
@@ -2126,7 +2067,6 @@ private:
 	//# exports.RecordSet.prototype.setIntersect = function (rs) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(setIntersect);
 
-	//!- `rs3 = rs.setUnion(rs2)` -- returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 	/**
 	* Creates the set union of two record sets.
 	* @param {module:qm.RecordSet} rs - The other record set.
@@ -2162,7 +2102,6 @@ private:
 	//# exports.RecordSet.prototype.setUnion = function (rs) { return Object.create(require('qminer').RecordSet.prototype); };
 	JsDeclareFunction(setUnion);
 
-	//!- `rs3 = rs.setDiff(rs2)` -- returns the set difference (record set) `rs3`=`rs`\`rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
 	/**
 	* Creates the set difference between two record sets.
 	* @param {module:qm.RecordSet} rs - The other record set.
@@ -2201,7 +2140,6 @@ private:
 	//# exports.RecordSet.prototype.setDiff = function (rs) { return Object.create(require('qminer').RecordSet.prototype); }; 
 	JsDeclareFunction(setDiff);
 
-	//!- `vec = rs.getVector(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
 	/**
 	* Creates a vector containing the field values of records.
 	* @param {string} fieldName - The field from which to take the values. It's type must be one-dimensional, e.g. float, int, string,...
@@ -2236,7 +2174,6 @@ private:
 	//# exports.RecordSet.prototype.getVector = function (fieldName) { return Object.create(require('qminer').la.Vector.prototype); }; 
 	JsDeclareFunction(getVector);
 
-	//!- `vec = rs.getMatrix(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
 	/**
 	* Creates a vector containing the field values of records.
 	* @param {string} fieldName - The field from which to take the values. It's type must be numeric, e.g. float, int, float_v, num_sp_v,...
@@ -2273,28 +2210,24 @@ private:
 	//# exports.RecordSet.prototype.getMatrix = function (fieldName) { return Object.create(require('qminer').la.Matrix.prototype); };
 	JsDeclareFunction(getMatrix);
 	
-	//!- `storeName = rs.store` -- store of the records
 	/**
 	* Returns the store, where the records in the record set are stored.
 	*/
 	//# exports.RecordSet.prototype.store = Object.create(require('qminer').Store.prototype);
 	JsDeclareProperty(store);
 
-	//!- `len = rs.length` -- number of records in the set
 	/**
 	* Returns the number of records in record set.
 	*/
 	//# exports.RecordSet.prototype.length = 0;
 	JsDeclareProperty(length);
 
-	//!- `bool = rs.empty` -- `bool = true` when record set is empty
 	/**
 	* Checks if the record set is empty. If the record set is empty, then it returns true. Otherwise, it returns false.
 	*/
 	//# exports.RecordSet.prototype.empty = true;
 	JsDeclareProperty(empty);
 
-	//!- `bool =  rs.weighted` -- `bool = true` when records in the set are assigned weights
 	/**
 	* Checks if the record set is weighted. If the record set is weighted, then it returns true. Otherwise, it returns false.
 	*/
@@ -2783,7 +2716,6 @@ public:
 * // import qm module
 * var qm = require('qminer');
 */
-
 
 /**
 * @typedef {Object} FeatureExtractorJsfunc
