@@ -326,11 +326,17 @@ TFIn::~TFIn(){
   if (Bf!=NULL){delete[] Bf;}
 }
 
+// reads LBfL bytes into LBf
 int TFIn::GetBf(const void* LBf, const TSize& LBfL){
   int LBfS=0;
   if (TSize(BfC+LBfL)>TSize(BfL)){
     for (TSize LBfC=0; LBfC<LBfL; LBfC++){
-      if (BfC==BfL){FillBf();}
+      if (BfC==BfL){
+        FillBf();
+        // we tried to fill a buffer (that is used in the next statement).
+        // the available buffer BfL therefore has to be non-empty
+        EAssertR(BfL > 0, "Error reading file '" + GetSNm() + "'.");
+      }
       LBfS+=((char*)LBf)[LBfC]=Bf[BfC++];}
   } else {
     for (TSize LBfC=0; LBfC<LBfL; LBfC++){
