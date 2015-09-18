@@ -771,6 +771,8 @@ module.exports = exports = function (pathPrefix) {
     * @property {number} iter - The maximum number of iterations.
     * @property {number} k - The number of centroids.
     * @property {boolean} verbose - If false, the console output is supressed.
+    * @property {Array} fitIdx - Array of indexes that should be used as starting centroids. Optional.
+    * @property {model} fitStart - Model from another KMeans algorithm (obtained via getModel() method). Its centroids are used as starting centroids for this model. Optional.
     * @example
     * // import analytics and la modules
     * var analytics = require('qminer').analytics;
@@ -783,6 +785,13 @@ module.exports = exports = function (pathPrefix) {
     * KMeans.fit(X);
     */
     exports.KMeans = function (param) {
+
+        // Fit params
+        var iter = param.iter == undefined ? 100 : param.iter;
+        var k = param.k == undefined ? 2 : param.k;
+        var verbose = param.verbose == undefined ? false : param.verbose;
+        var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
+		var fitStart = param.fitStart == undefined ? undefined : param.fitStart;
 
         // Model
         var C = undefined;
@@ -880,6 +889,7 @@ module.exports = exports = function (pathPrefix) {
             k = param.k == undefined ? k : param.k;
             verbose = param.verbose == undefined ? verbose : param.verbose;
             fitIdx = param.fitIdx == undefined ? fitIdx : param.fitIdx;
+            fitStart = param.fitStart == undefined ? undefined : param.fitStart;
         }
 
         /**
@@ -914,19 +924,26 @@ module.exports = exports = function (pathPrefix) {
         this.fit = function (X) {
             // select random k columns of X, returns a dense C++ matrix
             var selectCols = function (X, k) {
-                var idx;
-                if (fitIdx == undefined) {
-                    idx = la.randi(X.cols, k);
-                } else {
-                    assert(fitIdx.length == k, "Error: fitIdx is not of length k!");
-                    assert(Math.max.apply(Math, fitIdx) < X.cols, "Error: fitIdx contains index greater than number of columns in matrix. Index out of range!");
-                    idx = fitIdx;
-                }
-                var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
-                for (var i = 0; i < idx.length; i++) {
-                    var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
-                    idxMat.push(spVec);
-                }
+                if (fitStart) {
+                    assert(fitStart.C.cols == k, "Error: fitStart.C.cols is not of length k!");
+					var result = {};
+					result.C = fitStart.C;
+					result.idx = la.randi(X.cols, k); // this assignment is irrelevant, really
+					return result;
+				}
+				var idx;
+				if (fitIdx == undefined) {
+					idx = la.randi(X.cols, k);
+				} else {
+					assert(fitIdx.length == k, "Error: fitIdx is not of length k!");
+					assert(Math.max.apply(Math, fitIdx) < X.cols, "Error: fitIdx contains index greater than number of columns in matrix. Index out of range!");
+					idx = fitIdx;
+				}
+				var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
+				for (var i = 0; i < idx.length; i++) {
+					var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
+					idxMat.push(spVec);
+				}
                 var C = X.multiply(idxMat);
                 var result = {};
                 result.C = C;
