@@ -787,11 +787,10 @@ module.exports = exports = function (pathPrefix) {
     exports.KMeans = function (param) {
 
         // Fit params
-        var iter = param.iter == undefined ? 100 : param.iter;
-        var k = param.k == undefined ? 2 : param.k;
-        var verbose = param.verbose == undefined ? false : param.verbose;
-        var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
-		var fitStart = param.fitStart == undefined ? undefined : param.fitStart;
+        // var iter = param.iter == undefined ? 100 : param.iter;
+        // var k = param.k == undefined ? 2 : param.k;
+        // var verbose = param.verbose == undefined ? false : param.verbose;
+        // var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
 
         // Model
         var C = undefined;
@@ -801,6 +800,7 @@ module.exports = exports = function (pathPrefix) {
         var k = undefined;
         var verbose = undefined;
         var fitIdx = undefined;
+        var fitStart;
 
         if (param != undefined && param.constructor.name == 'FIn') {
             C = new la.Matrix();
@@ -826,6 +826,7 @@ module.exports = exports = function (pathPrefix) {
             var k = param.k == undefined ? 2 : param.k;
             var verbose = param.verbose == undefined ? false : param.verbose;
             var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
+            var fitStart = param.fitStart == undefined ? undefined : param.fitStart;
             param = { iter: iter, k: k, verbose: verbose };
         } else {
             throw "KMeans.constructor: parameter must be a JSON object or a fs.FIn!";
