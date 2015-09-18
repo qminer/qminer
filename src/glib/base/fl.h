@@ -284,24 +284,27 @@ class TFIn: public TSIn{
 private:
   static const int MxBfL;
   TFileId FileId;
-  char* Bf;
-  int BfC, BfL;
-private:
-  void SetFPos(const int& FPos) const;
-  int GetFPos() const;
-  int GetFLen() const;
-  void FillBf();
-  int FindEol(int& BfN, bool& CrEnd);
-private:
+  char* Bf;		// buffer that was read from the disk and is (partially) usable for future GetBf calls
+  int BfC;		// index to the next data in Bf that we can use (0 <= BfC <= BfL)	
+  int BfL;		// the length of the buffer Bf (0 <= BfL <= MxBfL)
+
   TFIn();
   TFIn(const TFIn&);
   TFIn& operator=(const TFIn&);
+
+  void SetFPos(const int& FPos) const;
+  void FillBf();
+  int FindEol(int& BfN, bool& CrEnd);
+  
 public:
   TFIn(const TStr& FNm);
   TFIn(const TStr& FNm, bool& OpenedP, const bool IgnoreBOMIfExistsP = false);
   static PSIn New(const TStr& FNm);
   static PSIn New(const TStr& FNm, bool& OpenedP, const bool IgnoreBOMIfExistsP = false);
   ~TFIn();
+
+  int GetFPos() const;
+  int GetFLen() const;
 
   bool Eof(){
     if ((BfC==BfL)&&(BfL==MxBfL)){FillBf();}
