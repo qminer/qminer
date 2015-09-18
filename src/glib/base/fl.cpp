@@ -335,7 +335,7 @@ int TFIn::GetBf(const void* LBf, const TSize& LBfL){
         FillBf();
         // we tried to fill a buffer (that is used in the next statement).
         // the available buffer BfL therefore has to be non-empty
-        EAssertR(BfL > 0, "Error reading file '" + GetSNm() + "'.");
+        EAssertR(BfL > 0, "Unable to fill a buffer from " + GetSNm() + "'.");
       }
       LBfS+=((char*)LBf)[LBfC]=Bf[BfC++];}
   } else {
