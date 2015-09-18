@@ -1158,6 +1158,12 @@ TSizeTy TVec<TVal, TSizeTy>::AddV(const TVec<TVal, TSizeTy>& ValV){
 template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::AddSorted(const TVal& Val, const bool& Asc, const TSizeTy& _MxVals){
   AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
+  // if we have the max items to store and the new val is not relevant (the current worse is still better
+  // then the new val) then we can return without adding and deleting the item
+  if (_MxVals != -1 && Len() == _MxVals) {
+    if (Asc && ValT[Len()-1] < Val) return Len()-1;
+    else if (!Asc && ValT[Len()-1] > Val) return Len()-1;
+  }
   TSizeTy ValN=Add(Val);
   if (Asc){
     while ((ValN>0)&&(ValT[ValN]<ValT[ValN-1])){

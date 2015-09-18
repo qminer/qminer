@@ -13,18 +13,12 @@ var assert = require("../../src/nodejs/scripts/assert.js");
 //Unit test for Kmeans
 
 describe("Kmeans test", function () {
-    beforeEach(function () {
-
-    });
-    afterEach(function () {
-
-    });
 
     describe("Constructor test", function () {
         it("should return empty parameter values", function () {
             var KMeans = new analytics.KMeans();
             var params = KMeans.getParams();
-            assert.equal(Object.keys(params).length, 0);
+            assert.equal(Object.keys(params).length, 3);
         });
         it("should return parameter values", function () {
             var KMeans = new analytics.KMeans({ iter: 100, k: 2, verbose: false });
@@ -58,12 +52,6 @@ describe("Kmeans test", function () {
             assert.equal(params.k, 5);
             assert.equal(params.verbose, undefined);
         });
-        //Javascript tolerates Json key values that are not valid
-        it("should return the added key value", function () {
-            var KMeans = new analytics.KMeans({ alpha: false });
-            var params = KMeans.getParams();
-            assert.equal(params.alpha, false);
-        });
     });
     describe("Fit test", function () {
         it("should create the model", function () {
@@ -87,7 +75,6 @@ describe("Kmeans test", function () {
             var model = KMeans.getModel();
             assert.equal(model.C.cols, 3);
             assert.equal(model.idxv.length, 3);
-            assert.deepEqual(model.idxv, KMeans.getParams().fitIdx);
         });
         it("should return the correct centroids of the model", function () {
             var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
@@ -214,5 +201,19 @@ describe("Kmeans test", function () {
                 var transform = KMeans.transform(matrix);
             });
         });
+    });
+
+    describe('Serialization Tests', function () {
+        it('should serialize and deserialize', function () {
+            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            KMeans.save(require('qminer').fs.openWrite('kmeans_test.bin')).close();
+            var KMeans2 = new analytics.KMeans(require('qminer').fs.openRead('kmeans_test.bin'));
+            var params = KMeans.getParams();
+            var params2 = KMeans2.getParams();
+            assert.deepEqual(KMeans.getParams(), KMeans2.getParams());
+            assert.deepEqual(KMeans.getModel().C, KMeans2.getModel().C, 1e-8);
+        })
     });
 });

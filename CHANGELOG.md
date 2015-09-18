@@ -1,5 +1,47 @@
 # QMiner Change Log
 
+### 18 Sep 2015
+
+**New version: 2.3.0**
+
+**non-breaking with new features**
+
+Features:
+- KMeans can get seed centroids as parameters
+
+Bug fixes: 
+- TFIn reading buffer beyond EOF 
+- TVec::AddSorted made faster
+- Feature space constructor checkes parameters
+
+Other:
+- Cleaned and updated SNAP examples and documentation
+- Added required APIs, documentation and tests for logistic regression, proportional hazards and neural networks
+
+### 11 Sep 2015
+
+**New version: 2.2.1**
+
+**non-breaking without new features**
+
+Bug fixes:
+- SVC save fixed
+- twitter example fixed
+- time series example fixed
+- TStr::TrimLeft could crash
+- active learning fixed
+
+Other:
+- SVC.save (unit test, example)
+- recursive linear reg tests and documentation
+- logistic regression API update, doc, example, tests
+- proportional hazards model API update, doc, example, tests
+- licenses updated
+- /src/qminer/gui folder deleted
+- examples/timeseriesPlot deleted
+- examples/updatingTimeseriesPlot deleted
+- src/nodejs/ run.js scripts removed
+
 ### 4 Sep 2015
 
 **New version: 2.2.0**
