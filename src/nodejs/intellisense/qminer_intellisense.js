@@ -1048,8 +1048,6 @@ exports.datasets= require('qminer_datasets');
 	* @param {(module:qm.Record | number)} joinRecord - joined record or its ID
 	* @param {number} [joinFrequency=1] - frequency attached to the join
 	* @returns {module:qm.Record} Record.
-    * @example
-    * //TODO
 	*/
  exports.Record.prototype.$addJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
 /**
@@ -1058,8 +1056,6 @@ exports.datasets= require('qminer_datasets');
 	* @param {(module:qm.Record | number)} joinRecord - joined record or its ID
 	* @param {number} [joinFrequency=1] - frequency attached to the join
 	* @returns {module:qm.Record} Record.
-    * @example
-    * //TODO
 	*/
  exports.Record.prototype.$delJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
 /**
@@ -2315,7 +2311,7 @@ exports.datasets= require('qminer_datasets');
 		concatenate: 'concatenate', 
 		/** Treat each case as a separate document. */
 		centroid: 'centroid', 
-		/** //TODO (Use the tokenizer option) */
+		/** Use the tokenizer option */
 		tokenized : 'tokenized'
  }
 /**
