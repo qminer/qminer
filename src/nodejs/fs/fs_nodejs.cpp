@@ -358,6 +358,7 @@ void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
 
     // Add all prototype methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "write", _write);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "writeBinary", _writeBinary);
     NODE_SET_PROTOTYPE_METHOD(tpl, "writeLine", _writeLine);
     NODE_SET_PROTOTYPE_METHOD(tpl, "writeJson", _writeJson);
     NODE_SET_PROTOTYPE_METHOD(tpl, "flush", _flush);
@@ -428,6 +429,26 @@ void TNodeJsFOut::write(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     }
     
     Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsFOut::writeBinary(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	EAssertR(Args.Length() == 1, "Invalid number of arguments to fout.write()");
+	TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
+	EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
+	if (Args[0]->IsString()) {
+		JsFOut->SOut->Save(*v8::String::Utf8Value(Args[0]->ToString()));
+	} else if (Args[0]->IsNumber()) {
+		JsFOut->SOut->Save(Args[0]->NumberValue());
+	} else if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		PJsonVal JsonVal = TNodeJsUtil::GetArgJson(Args, 0);
+		JsonVal->Save(*JsFOut->SOut);
+	} else {
+		EFailR("Invalid type passed to fout.write() function.");
+	}
+
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsFOut::writeLine(const v8::FunctionCallbackInfo<v8::Value>& Args) {
