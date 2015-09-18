@@ -1,5 +1,23 @@
 # QMiner Change Log
 
+### 18 Sep 2015
+
+**New version: 2.3.0**
+
+**non-breaking with new features**
+
+Features:
+- KMeans can get seed centroids as parameters
+
+Bug fixes: 
+- TFIn reading buffer beyond EOF 
+- TVec::AddSorted made faster
+- Feature space constructor checkes parameters
+
+Other:
+- Cleaned and updated SNAP examples and documentation
+- Added required APIs, documentation and tests for logistic regression, proportional hazards and neural networks
+
 ### 11 Sep 2015
 
 **New version: 2.2.1**
