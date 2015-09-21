@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3.3.0-beta2">
   <meta charset="utf-8">
-  <title>Class: IntIntMap</title>
+  <title>Class: metrics</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -24,28 +24,47 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-ht.html">ht</a>.<wbr></small><span class="symbol-name">IntIntMap</span></h1>
-            <p class="source-link">Source: <a href="htdoc.js.html#source-line-417">htdoc.<wbr>js:417</a></p>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">metrics</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1542">analyticsdoc.<wbr>js:1542</a></p>
             <div class="symbol-classdesc">
-              <p>Used for storing key/data pairs, wrapps an efficient C++ implementation.</p>
+              <p>Classification and Regression metrics</p>
             </div>
             <dl class="dl-compact">
             </dl>
           </header>
           <section id="summary">
             <div class="summary-callout">
-              <h2 class="summary-callout-heading">Property</h2>
+              <h2 class="summary-callout-heading">Child classes</h2>
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-ht.IntIntMap.html#length">length</a></dt>
+                    <dt><a href="module-analytics.metrics_MeanAbsoluteError.html">MeanAbsoluteError()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.metrics_MeanAbsolutePercentageError.html">MeanAbsolutePercentageError()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.metrics_MeanError.html">MeanError()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.metrics_MeanSquareError.html">MeanSquareError()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
                 </div>
                 <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.metrics_R2Score.html">R2Score()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.metrics_RootMeanSquareError.html">RootMeanSquareError()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
                 </div>
               </div>
             </div>
@@ -54,39 +73,30 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-ht.IntIntMap.html#dat">dat(n)</a></dt>
+                    <dt><a href="module-analytics.metrics.html#meanAbsoluteError">meanAbsoluteError(yTrueVec, yPredVec)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-ht.IntIntMap.html#get">get(key)</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-ht.IntIntMap.html#hasKey">hasKey(key)</a></dt>
+                    <dt><a href="module-analytics.metrics.html#meanAbsolutePercentageError">meanAbsolutePercentageError(yTrueVec, yPredVec)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-ht.IntIntMap.html#key">key(n)</a></dt>
+                    <dt><a href="module-analytics.metrics.html#meanError">meanError(yTrueVec, yPredVec)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-ht.IntIntMap.html#load">load(fin)</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-ht.IntIntMap.html#put">put(key, data)</a></dt>
+                    <dt><a href="module-analytics.metrics.html#meanSquareError">meanSquareError(yTrueVec, yPredVec)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-ht.IntIntMap.html#save">save(fout)</a></dt>
+                    <dt><a href="module-analytics.metrics.html#r2Score">r2Score(yTrueVec, yPredVec)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-ht.IntIntMap.html#sortDat">sortDat([asc])</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-ht.IntIntMap.html#sortKey">sortKey([asc])</a></dt>
+                    <dt><a href="module-analytics.metrics.html#rootMeanSquareError">rootMeanSquareError(yTrueVec, yPredVec)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -95,262 +105,60 @@
             </div>
           </section>
           <section>
-            <h2 id="IntIntMap">new&nbsp;<span class="symbol-name">IntIntMap</span><span class="signature"><span class="signature-params">()</span></span></h2>
-            <p>Integer-Integer hashmap</p>
+            <h2 id="metrics">new&nbsp;<span class="symbol-name">metrics</span><span class="signature"><span class="signature-params">()</span></span></h2>
+            <p>Metrics</p>
             <section>
               <h3>
-            Example
+            Examples
         </h3>
               <div>
-                <pre class="prettyprint"><code>// create a new hashtable
-ht = require(&#x27;qminer&#x27;).ht;
-var h = new ht.IntIntMap();
-// Adding two key/dat pairs
-h.put(5, 10);
-h.put(15, 20);
-// Getting data
-h.hasKey(5); // returns true
-h.get(15); // returns 20
-h.key(1); // returns 15
-h.dat(1); // returns 20
-h.length; // returns 2	
-// Saving and loading:
-var fs = require(&#x27;qminer&#x27;).fs;
-fout = fs.openWrite(&#x27;map.dat&#x27;); // open write stream
-h.save(fout).close(); // save and close write stream
-var h2 = new ht.IntIntMap(); // new empty table
-var fin = fs.openRead(&#x27;map.dat&#x27;); // open read stream
-h2.load(fin); // load</code></pre>
+                <p>Batch regression example</p>
+                <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// true and predicted data
+var true_vals = [1, 2, 3, 4, 5];
+var pred_vals = [3, 4, 5, 6, 7];
+
+// use batch MAE method
+analytics.metrics.meanAbsoluteError(true_vals, pred_vals);</code></pre>
+              </div>
+              <div>
+                <p>Online regression example</p>
+                <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// true and predicted data
+var true_vals = [1, 2, 3, 4, 5];
+var pred_vals = [3, 4, 5, 6, 7];
+
+// create online MAE metric instance
+var mae = new analytics.metrics.MeanAbsoluteError();
+
+// simulate data flow
+for (var i in true_vals) {
+  // push new value
+  mae.push(true_vals[i], pred_vals[i]);
+}
+// get updated error
+mae.getError();</code></pre>
               </div>
             </section>
             <dl class="dl-compact">
             </dl>
           </section>
           <section>
-            <h2>Property</h2>
-            <section>
-              <h3 id="length"><span class="symbol-name">length</span></h3>
-              <section>
-                <h4>Property</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>length</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Number of key/dat pairs</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
+            <h2>Classes</h2>
+            <section id='members-links'>
+              <h3><a href="module-analytics.metrics_MeanAbsoluteError.html">MeanAbsoluteError</a></h3>
+              <h3><a href="module-analytics.metrics_MeanAbsolutePercentageError.html">MeanAbsolutePercentageError</a></h3>
+              <h3><a href="module-analytics.metrics_MeanError.html">MeanError</a></h3>
+              <h3><a href="module-analytics.metrics_MeanSquareError.html">MeanSquareError</a></h3>
+              <h3><a href="module-analytics.metrics_R2Score.html">R2Score</a></h3>
+              <h3><a href="module-analytics.metrics_RootMeanSquareError.html">RootMeanSquareError</a></h3>
             </section>
             <h2>Methods</h2>
             <section>
-              <h3 id="dat"><span class="symbol-name">dat</span><span class="signature"><span class="signature-params">(n)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>returns n-th dat</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>n</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Hashmap dat number. Should be between 0 and length-1</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>number</code>&nbsp;n-th data value.</p>
-                </dd>
-              </dl>
-              <h3 id="get"><span class="symbol-name">get</span><span class="signature"><span class="signature-params">(key)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Returns dat given key</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>key</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Hashmap key.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>number</code>&nbsp;Hashmap data.</p>
-                </dd>
-              </dl>
-              <h3 id="hasKey"><span class="symbol-name">hasKey</span><span class="signature"><span class="signature-params">(key)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
-              <p>returns true if the map has a given key</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>key</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Hashmap key.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>boolean</code>&nbsp;True if the map contains key.</p>
-                </dd>
-              </dl>
-              <h3 id="key"><span class="symbol-name">key</span><span class="signature"><span class="signature-params">(n)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>returns n-th key</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>n</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Hashmap key number. Should be between 0 and length-1.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>number</code>&nbsp;n-th key.</p>
-                </dd>
-              </dl>
-              <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(fin)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-ht.IntIntMap.html">module:ht.IntIntMap</a></span></span></h3>
-              <p>loads the hashtable from input stream</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>fin</p>
-                      </td>
-                      <td>
-                        <p><a href="module-fs.FIn.html">module:fs.FIn</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Input stream.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-ht.IntIntMap.html">module:ht.IntIntMap</a></code>&nbsp;Self.</p>
-                </dd>
-              </dl>
-              <h3 id="put"><span class="symbol-name">put</span><span class="signature"><span class="signature-params">(key, data)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-ht.IntIntMap.html">module:ht.IntIntMap</a></span></span></h3>
-              <p>add/update key-value pair</p>
+              <h3 id="meanAbsoluteError"><span class="symbol-name">meanAbsoluteError</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Mean absolute error (MAE) regression loss.</p>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -365,30 +173,30 @@ h2.load(fin); // load</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>key</p>
+                        <p>yTrueVec</p>
                       </td>
                       <td>
-                        <p>number</p>
+                        <p>(Array of number or <a href="module-la.Vector.html">module:la.Vector</a>)</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Hashmap key.</p>
+                        <p>ground truth values in <code>yTrueVec</code>.</p>
                       </td>
                     </tr>
                     <tr>
                       <td>
-                        <p>data</p>
+                        <p>yPredVec</p>
                       </td>
                       <td>
-                        <p>number</p>
+                        <p>(Array of number or <a href="module-la.Vector.html">module:la.Vector</a>)</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Hashmap data.</p>
+                        <p>estimated values in <code>yPredVec</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -397,13 +205,13 @@ h2.load(fin); // load</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-ht.IntIntMap.html">module:ht.IntIntMap</a></code>&nbsp;Self.</p>
+                  <p><code>number</code>&nbsp;Error value.</p>
                 </dd>
               </dl>
-              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>saves the hashtable to output stream</p>
+              <h3 id="meanAbsolutePercentageError"><span class="symbol-name">meanAbsolutePercentageError</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Mean absolute percentage error (MAPE) regression loss.</p>
               <section>
-                <h4>Parameter</h4>
+                <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -416,16 +224,30 @@ h2.load(fin); // load</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>fout</p>
+                        <p>yTrueVec</p>
                       </td>
                       <td>
-                        <p><a href="module-fs.FOut.html">module:fs.FOut</a></p>
+                        <p>(Array of number or <a href="module-la.Vector.html">module:la.Vector</a>)</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Output stream.</p>
+                        <p>ground truth values in <code>yTrueVec</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>yPredVec</p>
+                      </td>
+                      <td>
+                        <p>(Array of number or <a href="module-la.Vector.html">module:la.Vector</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>estimated values in <code>yPredVec</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -434,13 +256,13 @@ h2.load(fin); // load</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;fout.</p>
+                  <p><code>number</code>&nbsp;Error value.</p>
                 </dd>
               </dl>
-              <h3 id="sortDat"><span class="symbol-name">sortDat</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-ht.IntIntMap.html">module:ht.IntIntMap</a></span></span></h3>
-              <p>sorts by values</p>
+              <h3 id="meanError"><span class="symbol-name">meanError</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Mean error (ME) regression loss.</p>
               <section>
-                <h4>Parameter</h4>
+                <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -453,17 +275,30 @@ h2.load(fin); // load</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>asc</p>
+                        <p>yTrueVec</p>
                       </td>
                       <td>
-                        <p>boolean</p>
+                        <p>(Array of number or <a href="module-la.Vector.html">module:la.Vector</a>)</p>
                       </td>
                       <td>
-                        <p>Yes</p>
+                        <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Sort in ascending order?</p>
-                        <p>Defaults to <code>true</code>.</p>
+                        <p>ground truth values in <code>yTrueVec</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>yPredVec</p>
+                      </td>
+                      <td>
+                        <p>(Array of number or <a href="module-la.Vector.html">module:la.Vector</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>estimated values in <code>yPredVec</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -472,13 +307,13 @@ h2.load(fin); // load</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-ht.IntIntMap.html">module:ht.IntIntMap</a></code>&nbsp;Self.</p>
+                  <p><code>number</code>&nbsp;Error value.</p>
                 </dd>
               </dl>
-              <h3 id="sortKey"><span class="symbol-name">sortKey</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-ht.IntIntMap.html">module:ht.IntIntMap</a></span></span></h3>
-              <p>sorts by keys</p>
+              <h3 id="meanSquareError"><span class="symbol-name">meanSquareError</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Mean square error (MSE) regression loss.</p>
               <section>
-                <h4>Parameter</h4>
+                <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -491,17 +326,30 @@ h2.load(fin); // load</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>asc</p>
+                        <p>yTrueVec</p>
                       </td>
                       <td>
-                        <p>boolean</p>
+                        <p>(Array of number or <a href="module-la.Vector.html">module:la.Vector</a>)</p>
                       </td>
                       <td>
-                        <p>Yes</p>
+                        <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Sort in ascending order?</p>
-                        <p>Defaults to <code>true</code>.</p>
+                        <p>ground truth values in <code>yTrueVec</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>yPredVec</p>
+                      </td>
+                      <td>
+                        <p>(Array of number or <a href="module-la.Vector.html">module:la.Vector</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>estimated values in <code>yPredVec</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -510,7 +358,109 @@ h2.load(fin); // load</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-ht.IntIntMap.html">module:ht.IntIntMap</a></code>&nbsp;Self.</p>
+                  <p><code>number</code>&nbsp;Error value.</p>
+                </dd>
+              </dl>
+              <h3 id="r2Score"><span class="symbol-name">r2Score</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>R^2 (coefficient of determination) regression score.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>yTrueVec</p>
+                      </td>
+                      <td>
+                        <p>(Array of number or <a href="module-la.Vector.html">module:la.Vector</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>ground truth values in <code>yTrueVec</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>yPredVec</p>
+                      </td>
+                      <td>
+                        <p>(Array of number or <a href="module-la.Vector.html">module:la.Vector</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>estimated values in <code>yPredVec</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;Error value.</p>
+                </dd>
+              </dl>
+              <h3 id="rootMeanSquareError"><span class="symbol-name">rootMeanSquareError</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Root mean square (RMSE) error regression loss.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>yTrueVec</p>
+                      </td>
+                      <td>
+                        <p>(Array of number or <a href="module-la.Vector.html">module:la.Vector</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>ground truth values in <code>yTrueVec</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>yPredVec</p>
+                      </td>
+                      <td>
+                        <p>(Array of number or <a href="module-la.Vector.html">module:la.Vector</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>estimated values in <code>yPredVec</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;Error value.</p>
                 </dd>
               </dl>
             </section>

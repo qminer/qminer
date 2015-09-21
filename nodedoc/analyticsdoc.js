@@ -95,6 +95,27 @@
 	* Saves model to output file stream.
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} The Output stream.
+	* @example
+	* // import the analytics and la modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* var qmfs = require('qminer').fs;
+	* // create a new SVC object
+	* var SVC = new analytics.SVC();
+	* // create the matrix containing the input features and the input vector for each matrix.
+	* var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);	
+	* // fit the model
+	* SVC.fit(matrix, vec);
+	* var fs = require('qminer').fs;
+	* // create output stream
+	* var fout = fs.openWrite('model.bin');
+	* // save SVC object (model and parameters) to output stream and close it
+	* SVC.save(fout);
+	* fout.close();
+	* // create input stream
+	* var fin = fs.openRead('tesi.bin');
+	* // create a SVC object that loads the model and parameters from input stream
+	* var SVC2 = new analytics.SVC(fin);	
 	*/
  exports.SVC.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
@@ -1487,6 +1508,37 @@
         }
     }
 
+    /**
+    * Metrics
+    * @class
+    * @classdesc Classification and Regression metrics
+    * @example <caption>Batch regression example</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // true and predicted data
+    * var true_vals = [1, 2, 3, 4, 5];
+    * var pred_vals = [3, 4, 5, 6, 7];
+    *
+    * // use batch MAE method
+    * analytics.metrics.meanAbsoluteError(true_vals, pred_vals);
+    * @example <caption>Online regression example</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // true and predicted data
+    * var true_vals = [1, 2, 3, 4, 5];
+    * var pred_vals = [3, 4, 5, 6, 7];
+    *
+    * // create online MAE metric instance
+    * var mae = new analytics.metrics.MeanAbsoluteError();
+    *
+    * // simulate data flow
+    * for (var i in true_vals) {
+    *   // push new value
+    *   mae.push(true_vals[i], pred_vals[i]);
+    * }
+    * // get updated error
+    * mae.getError();
+    */
     exports.metrics = new function() {
         // For evaluating provided categories (precision, recall, F1).
         this.ClassificationScore  = function (yTrue, yPred) {
@@ -1774,6 +1826,319 @@
         this.desiredPrecisionThreshold = function (yTrue, yPred, desiredPrecision) {
             return new this.PredictionCurve(yTrue, yPred).desiredPrecision(desiredPrecision);
         };
+
+        ///////////////////////////////////////////////////
+        //////////// ONLINE REGRESSION METRICS ////////////
+        ///////////////////////////////////////////////////
+
+        // Online regression metrics used for evaluating online models
+
+        // Main object for online metrics model
+        function createOnlineMetric(updateCallback) {
+            var error = -1;
+            var calcError = new updateCallback();
+
+            // check if input types are of correct type
+            function checkPushParams() {
+                for (var i = 0, j = arguments.length; i < j; i++) {
+                    var argumentType = arguments[i].constructor.name;
+                    if (argumentType !== "Number") {
+                        throw new TypeError('input param ' + i + ' must be of type "Number", but is ' + argumentType + ' instead');
+                    }
+                }
+            }
+
+            // update function defined with callback function
+            this.push = function (yTrue, yPred, ref_num) {
+                // set default values of optional input parameters
+                var yPred = yPred == null ? 0 : yPred;
+                var ref_num = ref_num == null ? 0 : ref_num;
+
+                // check if input types are of correct type
+                checkPushParams(yTrue, yPred, ref_num);
+
+                // calculate the error with provided function from the callback function
+                error = calcError.update(yTrue, yPred);
+            }
+
+            // getter for error
+            this.getError = function () {
+                return error;
+            }
+            return this;
+        }
+
+        //////////// MEAN ERROR (ME)
+        //!- `me = evaluation.newMeanError()` -- create new (online) mean error instance.
+        //!   - `me.update(yTrue, yPred)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+        //!   - `num = me.getError()` -- returns current error `num`
+        /**
+        * MeanError
+        * @class
+        * @classdesc Online Mean Error (ME) instance 
+        * 
+        * //TODO: add methods .push() and .getError() to documentation
+        */
+        this.MeanError = function () {
+            function calcError() {
+                this.sumErr = 0;
+                this.count = 0;
+                // update function
+                this.update = function (yTrue, yPred) {
+                    var err = yTrue - yPred;
+                    this.sumErr += err;
+                    this.count++;
+                    var error = this.sumErr / this.count;
+                    return error;
+                }
+            }
+            return new createOnlineMetric(calcError);
+        }
+
+        //////////// MEAN ABSOLUTE ERROR (MAE)
+        //!- `mae = evaluation.newMeanAbsoluteError()` -- create new (online) mean absolute error instance.
+        //!   - `mae.update(yTrue, yPred)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+        //!   - `num = mae.getError()` -- returns current error `num`
+        /**
+        * MeanAbsoluteError
+        * @class
+        * @classdesc Online Mean Absolute Error (MAE) instance 
+        * 
+        * //TODO: add methods .push() and .getError() to documentation
+        */
+        this.MeanAbsoluteError = function () {
+            function calcError() {
+                this.sumErr = 0;
+                this.count = 0;
+                // update function
+                this.update = function (yTrue, yPred) {
+                    var err = yTrue - yPred;
+                    this.sumErr += Math.abs(err);
+                    this.count++;
+                    var error = this.sumErr / this.count;
+                    return error;
+                }
+            }
+            return new createOnlineMetric(calcError);
+        }
+
+        //////////// MEAN SQUARE ERROR (MSE)
+        //!- `mse = evaluation.newMeanSquareError()` -- create new (online) mean square error instance.
+        //!   - `mse.update(yTrue, yPred)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+        //!   - `num = mse.getError()` -- returns current error `num`
+        /**
+        * MeanSquareError
+        * @class
+        * @classdesc Online Mean Square Error (MSE) instance 
+        * 
+        * //TODO: add methods .push() and .getError() to documentation
+        */
+        this.MeanSquareError = function () {
+            function calcError() {
+                this.sumErr = 0;
+                this.count = 0;
+                // update function
+                this.update = function (yTrue, yPred) {
+                    var err = yTrue - yPred;
+                    this.sumErr += (err * err);
+                    this.count++;
+                    var error = this.sumErr / this.count;
+                    return error;
+                }
+            }
+            return new createOnlineMetric(calcError);
+        }
+
+        //////////// ROOT MEAN SQUARE ERROR (RMSE)
+        //!- `rmse = evaluation.newRootMeanSquareError()` -- create new (online) root mean square error instance.
+        //!   - `rmse.update(yTrue, yPred)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+        //!   - `num = rmse.getError()` -- returns current error `num`
+        /**
+        * RootMeanSquareError
+        * @class
+        * @classdesc Online Root Mean Square Error (RMSE) instance 
+        * 
+        * //TODO: add methods .push() and .getError() to documentation
+        */
+        this.RootMeanSquareError = function () {
+            function calcError() {
+                this.sumErr = 0;
+                this.count = 0;
+                // update function
+                this.update = function (yTrue, yPred) {
+                    var err = yTrue - yPred;
+                    this.sumErr += (err * err);
+                    this.count++;
+                    var error = this.sumErr / this.count;
+                    return Math.sqrt(error);
+                }
+            }
+            return new createOnlineMetric(calcError);
+        }
+
+        //////////// MEAN ABSOLUTE PERCENTAGE ERROR (MAPE)
+        //!- `mape = evaluation.newMeanAbsolutePercentageError()` -- create new (online) mean absolute percentage error instance.
+        //!   - `mape.update(yTrue, yPred)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+        //!   - `num = mape.getError()` -- returns current error `num`
+        /**
+        * MeanAbsolutePercentageError
+        * @class
+        * @classdesc Online Mean Absolute Percentage Error (MAPE) instance 
+        * 
+        * //TODO: add methods .push() and .getError() to documentation
+        */
+        this.MeanAbsolutePercentageError = function () {
+            function calcError() {
+                this.sumErr = 0;
+                this.count = 0;
+                // update function
+                this.update = function (yTrue, yPred) {
+                    if (yTrue != 0) { // skip if yTrue is 0, otherwise we have devision by zero in the next step.
+                        var err = yTrue - yPred;
+                        this.sumErr += Math.abs(err / yTrue) * 100;
+                    }
+                    this.count++;
+                    var error = this.sumErr / this.count;
+                    return error;
+                }
+            }
+            return new createOnlineMetric(calcError);
+        }
+
+        //////////// R SQUARED SCORE (R2)
+        //!- `r2 = evaluation.newRSquareScore()` -- create new (online) R Square instance. This statistic measures how successful the fit is in explaining the variation of the data. Best possible score is 1.0, lower values are worse.
+        //!   - `r2.update(num)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+        //!   - `num = rmse.getError()` -- returns current score `num`
+        /**
+        * R2
+        * @class
+        * @classdesc Online R Squared (R2) score instance 
+        * 
+        * //TODO: add methods .push() and .getError() to documentation
+        */
+        this.R2Score = function () {
+            function calcError() {
+                this.sst = 0;
+                this.sse = 0;
+                this.mean = 0;
+                this.count = 0;
+                this.sumTrue = 0;
+                this.sumTrue2 = 0;
+                // update function
+                this.update = function (yTrue, yPred) {
+                    this.count++;
+                    this.sumTrue += yTrue;
+                    this.sumTrue2 += yTrue * yTrue;
+                    this.mean = this.sumTrue / this.count;
+                    //calculate R squared score 
+                    this.sse += (yTrue - yPred) * (yTrue - yPred);
+                    this.sst = this.sumTrue2 - this.count * this.mean * this.mean;
+                    if (this.sst == 0.0) {
+                        return (this.sse == 0.0) ? 1.0 : 0.0;
+                    }
+                    return 1 - this.sse / this.sst;
+                }
+            }
+            return new createOnlineMetric(calcError);
+        }
+
+
+        //////////////////////////////////////////////////
+        //////////// BATCH REGRESSION METRICS ////////////
+        //////////////////////////////////////////////////
+
+        // function checks if input parameters are of appropriate type
+        function checkBatchParams() {
+            for (var i = 0, j = arguments.length; i < j; i++) {
+                var argumentType = arguments[i].constructor.name;
+                if (argumentType !== "Array" && argumentType !== "Vector") {
+                    throw new TypeError('input param ' + i + ' must be of type "Array" or "Vector", but is ' + argumentType + ' instead');
+                }
+            }
+        }
+
+        // calculate batch regression metrics
+        function calcBatchError(that, yTrueVec, yPredVec) {
+            // check input parameters
+            checkBatchParams(yTrueVec, yPredVec);
+            // calculate error with metric defined as callback functio
+            function calcErr(metric) {
+                // iterage over array of input data
+                for (var i = 0; i < yTrueVec.length; i++) {
+                    metric.push(yTrueVec[i], yPredVec[i]);
+                }
+                // return final error
+                return metric.getError()
+            }
+
+            // expose metrics which will be used in calcErr() to return error
+            this.ME = function () { return calcErr(new that.MeanError()) };
+            this.MAE = function () { return calcErr(new that.MeanAbsoluteError()) };
+            this.MSE = function () { return calcErr(new that.MeanSquareError()) };
+            this.RMSE = function () { return calcErr(new that.RootMeanSquareError()) };
+            this.MAPE = function () { return calcErr(new that.MeanAbsolutePercentageError()) };
+            this.R2 = function () { return calcErr(new that.R2Score()) };
+        };
+
+        /**
+        * Mean error (ME) regression loss.
+        * @param {Array<number> | module:la.Vector} yTrueVec - ground truth values in `yTrueVec`.
+        * @param {Array<number> | module:la.Vector} yPredVec - estimated values in `yPredVec`.
+        * @returns {number} Error value.
+        */
+        this.meanError = function (yTrueVec, yPredVec) {
+            return new calcBatchError(this, yTrueVec, yPredVec).ME()
+        }
+
+        /**
+        * Mean absolute error (MAE) regression loss.
+        * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+        * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
+        * @returns {number} Error value.
+        */
+        this.meanAbsoluteError = function (yTrueVec, yPredVec) {
+            return new calcBatchError(this, yTrueVec, yPredVec).MAE()
+        }
+
+        /**
+        * Mean square error (MSE) regression loss.
+        * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+        * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
+        * @returns {number} Error value.
+        */
+        this.meanSquareError = function (yTrueVec, yPredVec) {
+            return new calcBatchError(this, yTrueVec, yPredVec).MSE()
+        }
+
+        /**
+        * Root mean square (RMSE) error regression loss.
+        * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+        * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
+        * @returns {number} Error value.
+        */
+        this.rootMeanSquareError = function (yTrueVec, yPredVec) {
+            return new calcBatchError(this, yTrueVec, yPredVec).RMSE()
+        }
+
+        /**
+        * Mean absolute percentage error (MAPE) regression loss.
+        * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+        * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
+        * @returns {number} Error value.
+        */
+        this.meanAbsolutePercentageError = function (yTrueVec, yPredVec) {
+            return new calcBatchError(this, yTrueVec, yPredVec).MAPE()
+        }
+
+        /**
+        * R^2 (coefficient of determination) regression score.
+        * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+        * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
+        * @returns {number} Error value.
+        */
+        this.r2Score = function (yTrueVec, yPredVec) {
+            return new calcBatchError(this, yTrueVec, yPredVec).R2()
+        }
     };
 
 

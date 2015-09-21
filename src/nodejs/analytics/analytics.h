@@ -194,6 +194,7 @@ public:
 	* var fin = fs.openRead('tesi.bin');
 	* // create a SVC object that loads the model and parameters from input stream
 	* var SVC2 = new analytics.SVC(fin);	
+	*/
 	//# exports.SVC.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     /**
     * Sends vector through the model and returns the distance to the decision boundery.
