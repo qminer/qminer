@@ -789,7 +789,7 @@ module.exports = exports = function (pathPrefix) {
         var verbose = undefined;
         var fitIdx = undefined;
         var fitStart;
-        var medoids = undefined;
+        var medoids = new la.Vector();
 
         if (param != undefined && param.constructor.name == 'FIn') {
             C = new la.Matrix();
@@ -839,7 +839,7 @@ module.exports = exports = function (pathPrefix) {
             C = C_new;
             norC2 = la.square(C.colNorms());
             idxv = idxv_new;
-            if (medoids != undefined) {
+            if (medoids.length != 0) {
                 var medoids_new = new la.Vector(medoids);
                 for (var i = 0; i < medoids_new.length; i++) {
                     medoids_new[i] = mapping[medoids[i]]
@@ -1024,7 +1024,7 @@ module.exports = exports = function (pathPrefix) {
                 assert(recIds.length == X.cols);
                 var D = X.multiplyT(C).minus(ones_n.outer(norC2)).minus(norX2.outer(ones_k));
                 medoidIdx = la.findMaxIdx(D);
-                medoids = new la.IntVector(medoidIdx);
+                medoids = new la.Vector(medoidIdx);
                 for (var i = 0; i < medoids.length; i++) {
                     medoids[i] = recIds[medoidIdx[i]];
                 }
@@ -1150,8 +1150,9 @@ module.exports = exports = function (pathPrefix) {
 			    var fout = xfs.openWrite(arg);
 			    C.save(fout);
 			    norC2.save(fout);
-			    (new la.Vector(idxv)).save(fout);
+			    (new la.Vector(idxv)).save(fout);			    
 			    params_vec.save(fout);
+			    medoids.save(fout);
 			    fout.close();
 			    fout = null;
             } else if (arg.constructor.name == 'FOut') {
@@ -1159,6 +1160,7 @@ module.exports = exports = function (pathPrefix) {
                 norC2.save(arg);
                 (new la.Vector(idxv)).save(arg);
                 params_vec.save(arg);
+                medoids.save(arg);
                 return arg;
             } else {
                 throw "KMeans.save: input must be fs.Fout";
@@ -1181,6 +1183,8 @@ module.exports = exports = function (pathPrefix) {
 
 		    var params_vec = new la.Vector();
 		    params_vec.load(fin);
+		    medoids.load(fin);
+
 		    iter = params_vec[0];
 		    k = params_vec[1];
 		    verbose = (params_vec[2] != 0);
