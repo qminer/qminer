@@ -1061,22 +1061,24 @@ module.exports = exports = function (pathPrefix) {
         /**
         * @typedef KMeansExplanation
         * @type Object
-        * @property {module:la.IntVector} medoidIDs The IDs of the nearest medoids        
+        * @property {module:la.IntVector} medoidIDs The IDs of the nearest medoids
         */
 
         /**
-        * Returns the IDs of the nearest medoid for each example
+        * Returns the IDs of the nearest medoid for each example.
         * @param {(module:la.Matrix | module:la.SparseMatrix)} X - Matrix whose columns correspond to examples.
         * @returns {KMeansExplanation} Object containing the vector of medoid IDs.
         * @example
         * // import analytics module
         * var analytics = require('qminer').analytics;
+        * // import linear algebra module
+        * var la = require('qminer').la;
         * // create a new KMeans object
         * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
-        * // create a matrix to be fitted using the column IDs [0,1,2]
-        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]], [0,1,2]);
-        * // create the model with the matrix X
-        * KMeans.fit(X);
+        * // create a matrix to be fitted
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+        * // create the model with the matrix X using the column IDs [0,1,2]
+        * KMeans.fit(X, [0,1,2]);
         * // create the matrix of the prediction vectors
         * var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
         * // predict/explain - return the closest medoids
@@ -1150,7 +1152,7 @@ module.exports = exports = function (pathPrefix) {
 			    var fout = xfs.openWrite(arg);
 			    C.save(fout);
 			    norC2.save(fout);
-			    (new la.Vector(idxv)).save(fout);			    
+			    (new la.Vector(idxv)).save(fout);
 			    params_vec.save(fout);
 			    medoids.save(fout);
 			    fout.close();
@@ -1165,7 +1167,7 @@ module.exports = exports = function (pathPrefix) {
             } else {
                 throw "KMeans.save: input must be fs.Fout";
             }
-			
+
 		}
 
         this.load = function (fname) {
