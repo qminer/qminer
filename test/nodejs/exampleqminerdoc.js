@@ -1,5 +1,5 @@
 describe('example tests for the qminerdoc.js file', function () {
-describe("Qminer module.", function () {
+describe("Qminer module", function () {
 it('should make test number 1', function () {
  this.timeout(10000); 
  
@@ -7,7 +7,7 @@ it('should make test number 1', function () {
  var qm = require('qminer');
 });
 });
-describe("Store schema definition object", function () {
+describe("Store schema definition objec", function () {
 it('should make test number 2', function () {
  this.timeout(10000); 
 
@@ -23,7 +23,7 @@ it('should make test number 2', function () {
  base.close();
 });
 });
-describe("Store schema field definition object", function () {
+describe("Store schema field definition objec", function () {
 it('should make test number 3', function () {
  this.timeout(10000); 
 
@@ -57,7 +57,7 @@ it('should make test number 3', function () {
  base.close();
 });
 });
-describe("Store schema join definition object", function () {
+describe("Store schema join definition objec", function () {
 it('should make test number 4', function () {
  this.timeout(10000); 
 
@@ -104,7 +104,7 @@ it('should make test number 4', function () {
  base.close();
 });
 });
-describe("Store schema key definition object", function () {
+describe("Store schema key definition objec", function () {
 it('should make test number 5', function () {
  this.timeout(10000); 
 
@@ -134,7 +134,7 @@ it('should make test number 5', function () {
  base.close();
 });
 });
-describe("Stores can have a window, which is used by garbage collector to delete records once they", function () {
+describe("Stores can have a window, which is used by garbage collector to delete records once the", function () {
 it('should make test number 6', function () {
  this.timeout(10000); 
 
@@ -151,7 +151,7 @@ it('should make test number 6', function () {
  //base.close();
 });
 });
-describe("Base", function () {
+describe("Bas", function () {
 it('should make test number 7', function () {
  this.timeout(10000); 
 
@@ -162,7 +162,7 @@ it('should make test number 7', function () {
  base.close();
 });
 });
-describe("Returns the store with the specified name.", function () {
+describe("Returns the store with the specified name", function () {
 it('should make test number 8', function () {
  this.timeout(10000); 
 
@@ -194,7 +194,7 @@ it('should make test number 8', function () {
 	
 });
 });
-describe("Creates a new store.", function () {
+describe("Creates a new store", function () {
 it('should make test number 9', function () {
  this.timeout(10000); 
 
@@ -243,7 +243,7 @@ it('should make test number 9', function () {
 
 });
 });
-describe("Store (factory pattern result) ", function () {
+describe("Store (factory pattern result)", function () {
 it('should make test number 10', function () {
  this.timeout(10000); 
 
@@ -301,7 +301,7 @@ it('should make test number 10', function () {
  base.close();
 });
 });
-describe("Returns a record from the store.", function () {
+describe("Returns a record from the store", function () {
 it('should make test number 11', function () {
  this.timeout(10000); 
 
@@ -329,7 +329,7 @@ it('should make test number 11', function () {
 
 });
 });
-describe("Executes a function on each record in store.", function () {
+describe("Executes a function on each record in store", function () {
 it('should make test number 12', function () {
  this.timeout(10000); 
 
@@ -357,7 +357,7 @@ it('should make test number 12', function () {
 
 });
 });
-describe("Creates an array of function outputs created from the store records.", function () {
+describe("Creates an array of function outputs created from the store records", function () {
 it('should make test number 13', function () {
  this.timeout(10000); 
 
@@ -385,7 +385,7 @@ it('should make test number 13', function () {
 
 });
 });
-describe("Adds a record to the store.", function () {
+describe("Adds a record to the store", function () {
 it('should make test number 14', function () {
  this.timeout(10000); 
 
@@ -418,7 +418,7 @@ it('should make test number 14', function () {
 
 });
 });
-describe("Creates a new record of given store. The record is not added to the store.", function () {
+describe("Creates a new record of given store. The record is not added to the store", function () {
 it('should make test number 15', function () {
  this.timeout(10000); 
 
@@ -444,7 +444,7 @@ it('should make test number 15', function () {
 
 });
 });
-describe("Creates a new record set out of the records in store.", function () {
+describe("Creates a new record set out of the records in store", function () {
 it('should make test number 16', function () {
  this.timeout(10000); 
 
@@ -473,7 +473,7 @@ it('should make test number 16', function () {
 
 });
 });
-describe("Creates a record set containing random records from store.", function () {
+describe("Creates a record set containing random records from store", function () {
 it('should make test number 17', function () {
  this.timeout(10000); 
 
@@ -502,7 +502,7 @@ it('should make test number 17', function () {
 
 });
 });
-describe("Gets the details of the selected field.", function () {
+describe("Gets the details of the selected field", function () {
 it('should make test number 18', function () {
  this.timeout(10000); 
 
@@ -528,7 +528,7 @@ it('should make test number 18', function () {
 
 });
 });
-describe("Checks if the field is of numeric type.", function () {
+describe("Checks if the field is of numeric type", function () {
 it('should make test number 19', function () {
  this.timeout(10000); 
 
@@ -553,7 +553,7 @@ it('should make test number 19', function () {
 
 });
 });
-describe("Checks if the field is of string type.", function () {
+describe("Checks if the field is of string type", function () {
 it('should make test number 20', function () {
  this.timeout(10000); 
 
@@ -579,7 +579,7 @@ it('should make test number 20', function () {
 
 });
 });
-describe("Checks if the field is of type Date.", function () {
+describe("Checks if the field is of type Date", function () {
 it('should make test number 21', function () {
  this.timeout(10000); 
 
@@ -605,7 +605,7 @@ it('should make test number 21', function () {
 
 });
 });
-describe("Returns the details of the selected key as a JSON object.", function () {
+describe("Returns the details of the selected key as a JSON object", function () {
 it('should make test number 22', function () {
  this.timeout(10000); 
 
@@ -635,7 +635,7 @@ it('should make test number 22', function () {
 
 });
 });
-describe("Returns the store as a JSON.", function () {
+describe("Returns the store as a JSON", function () {
 it('should make test number 23', function () {
  this.timeout(10000); 
 
@@ -661,7 +661,7 @@ it('should make test number 23', function () {
 
 });
 });
-describe("Deletes the records in the store.", function () {
+describe("Deletes the records in the store", function () {
 it('should make test number 24', function () {
  this.timeout(10000); 
 
@@ -692,7 +692,7 @@ it('should make test number 24', function () {
 
 });
 });
-describe("Gives a vector containing the field value of each record.", function () {
+describe("Gives a vector containing the field value of each record", function () {
 it('should make test number 25', function () {
  this.timeout(10000); 
 
@@ -719,7 +719,7 @@ it('should make test number 25', function () {
 
 });
 });
-describe("Gives a matrix containing the field values of each record.", function () {
+describe("Gives a matrix containing the field values of each record", function () {
 it('should make test number 26', function () {
  this.timeout(10000); 
 
@@ -751,7 +751,7 @@ it('should make test number 26', function () {
 
 });
 });
-describe("Gives the field value of a specific record.", function () {
+describe("Gives the field value of a specific record", function () {
 it('should make test number 27', function () {
  this.timeout(10000); 
 
@@ -779,7 +779,7 @@ it('should make test number 27', function () {
 
 });
 });
-describe("Clones the record.", function () {
+describe("Clones the record", function () {
 it('should make test number 28', function () {
  this.timeout(10000); 
 
@@ -807,7 +807,7 @@ it('should make test number 28', function () {
 
 });
 });
-describe("Adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`", function () {
+describe("Adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency", function () {
 it('should make test number 29', function () {
  this.timeout(10000); 
 
@@ -815,7 +815,7 @@ it('should make test number 29', function () {
 
 });
 });
-describe("Deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`.", function () {
+describe("Deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`", function () {
 it('should make test number 30', function () {
  this.timeout(10000); 
 
@@ -823,7 +823,7 @@ it('should make test number 30', function () {
 
 });
 });
-describe("Creates a JSON version of the record.", function () {
+describe("Creates a JSON version of the record", function () {
 it('should make test number 31', function () {
  this.timeout(10000); 
 
@@ -852,7 +852,7 @@ it('should make test number 31', function () {
 
 });
 });
-describe("Creates a new instance of the record set.", function () {
+describe("Creates a new instance of the record set", function () {
 it('should make test number 32', function () {
  this.timeout(10000); 
 
@@ -883,7 +883,7 @@ it('should make test number 32', function () {
 
 });
 });
-describe("Creates a new record set out of the join attribute of records.", function () {
+describe("Creates a new record set out of the join attribute of records", function () {
 it('should make test number 33', function () {
  this.timeout(10000); 
 
@@ -928,7 +928,7 @@ it('should make test number 33', function () {
 
 });
 });
-describe("Truncates the first records.", function () {
+describe("Truncates the first records", function () {
 it('should make test number 34', function () {
  this.timeout(10000); 
 
@@ -962,7 +962,7 @@ it('should make test number 34', function () {
 
 });
 });
-describe("Creates a random sample of records of the record set.", function () {
+describe("Creates a random sample of records of the record set", function () {
 it('should make test number 35', function () {
  this.timeout(10000); 
 
@@ -992,7 +992,7 @@ it('should make test number 35', function () {
 
 });
 });
-describe("Shuffles the order of records in the record set.", function () {
+describe("Shuffles the order of records in the record set", function () {
 it('should make test number 36', function () {
  this.timeout(10000); 
 
@@ -1025,7 +1025,7 @@ it('should make test number 36', function () {
 
 });
 });
-describe("It reverses the record order.", function () {
+describe("It reverses the record order", function () {
 it('should make test number 37', function () {
  this.timeout(10000); 
 
@@ -1058,7 +1058,7 @@ it('should make test number 37', function () {
 
 });
 });
-describe("Sorts the records according to record id.", function () {
+describe("Sorts the records according to record id", function () {
 it('should make test number 38', function () {
  this.timeout(10000); 
 
@@ -1091,7 +1091,7 @@ it('should make test number 38', function () {
 
 });
 });
-describe("Sorts the records according to a specific record field.", function () {
+describe("Sorts the records according to a specific record field", function () {
 it('should make test number 39', function () {
  this.timeout(10000); 
 
@@ -1122,7 +1122,7 @@ it('should make test number 39', function () {
 
 });
 });
-describe("Sorts the records according to the given callback function.", function () {
+describe("Sorts the records according to the given callback function", function () {
 it('should make test number 40', function () {
  this.timeout(10000); 
 
@@ -1153,7 +1153,7 @@ it('should make test number 40', function () {
 
 });
 });
-describe("Keeps only records with ids between or equal two values.", function () {
+describe("Keeps only records with ids between or equal two values", function () {
 it('should make test number 41', function () {
  this.timeout(10000); 
 
@@ -1186,7 +1186,7 @@ it('should make test number 41', function () {
 
 });
 });
-describe("Keeps only the records with a specific value of some field.", function () {
+describe("Keeps only the records with a specific value of some field", function () {
 it('should make test number 42', function () {
  this.timeout(10000); 
 
@@ -1219,7 +1219,7 @@ it('should make test number 42', function () {
 
 });
 });
-describe("Keeps only the records that pass the callback function.", function () {
+describe("Keeps only the records that pass the callback function", function () {
 it('should make test number 43', function () {
  this.timeout(10000); 
 
@@ -1248,7 +1248,7 @@ it('should make test number 43', function () {
 
 });
 });
-describe("Splits the record set into smaller record sets.", function () {
+describe("Splits the record set into smaller record sets", function () {
 it('should make test number 44', function () {
  this.timeout(10000); 
 
@@ -1285,7 +1285,7 @@ it('should make test number 44', function () {
 
 });
 });
-describe("Deletes the records, that are also in the other record set.", function () {
+describe("Deletes the records, that are also in the other record set", function () {
 it('should make test number 45', function () {
  this.timeout(10000); 
 
@@ -1321,7 +1321,7 @@ it('should make test number 45', function () {
 
 });
 });
-describe("Returns the record set as a JSON.", function () {
+describe("Returns the record set as a JSON", function () {
 it('should make test number 46', function () {
  this.timeout(10000); 
 
@@ -1350,7 +1350,7 @@ it('should make test number 46', function () {
 
 });
 });
-describe("Executes a function on each record in record set.", function () {
+describe("Executes a function on each record in record set", function () {
 it('should make test number 47', function () {
  this.timeout(10000); 
 
@@ -1379,7 +1379,7 @@ it('should make test number 47', function () {
 
 });
 });
-describe("Creates an array of function outputs created from the records in record set.", function () {
+describe("Creates an array of function outputs created from the records in record set", function () {
 it('should make test number 48', function () {
  this.timeout(10000); 
 
@@ -1408,7 +1408,7 @@ it('should make test number 48', function () {
 
 });
 });
-describe("Creates the set intersection of two record sets.", function () {
+describe("Creates the set intersection of two record sets", function () {
 it('should make test number 49', function () {
  this.timeout(10000); 
 
@@ -1442,7 +1442,7 @@ it('should make test number 49', function () {
 
 });
 });
-describe("Creates the set union of two record sets.", function () {
+describe("Creates the set union of two record sets", function () {
 it('should make test number 50', function () {
  this.timeout(10000); 
 
@@ -1475,7 +1475,7 @@ it('should make test number 50', function () {
 
 });
 });
-describe("Creates the set difference between two record sets.", function () {
+describe("Creates the set difference between two record sets", function () {
 it('should make test number 51', function () {
  this.timeout(10000); 
 
@@ -1511,7 +1511,7 @@ it('should make test number 51', function () {
 
 });
 });
-describe("Creates a vector containing the field values of records.", function () {
+describe("Creates a vector containing the field values of records", function () {
 it('should make test number 52', function () {
  this.timeout(10000); 
 
@@ -1543,7 +1543,7 @@ it('should make test number 52', function () {
 
 });
 });
-describe("Creates a vector containing the field values of records.", function () {
+describe("Creates a vector containing the field values of records", function () {
 it('should make test number 53', function () {
  this.timeout(10000); 
 
@@ -1577,7 +1577,7 @@ it('should make test number 53', function () {
 
 });
 });
-describe("Store Iterator (factory pattern)", function () {
+describe("Store Iterator (factory pattern", function () {
 it('should make test number 54', function () {
  this.timeout(10000); 
 
@@ -1602,7 +1602,7 @@ it('should make test number 54', function () {
  base.close();
 });
 });
-describe("Moves to the next record.", function () {
+describe("Moves to the next record", function () {
 it('should make test number 55', function () {
  this.timeout(10000); 
 
@@ -1635,7 +1635,7 @@ it('should make test number 55', function () {
 
 });
 });
-describe("@typedef {Object} FeatureExtractorConstant", function () {
+describe("@typedef {Object} FeatureExtractorConstan", function () {
 it('should make test number 56', function () {
  this.timeout(10000); 
 
@@ -1653,7 +1653,7 @@ it('should make test number 56', function () {
  base.close();
 });
 });
-describe("@typedef {Object} FeatureExtractorRandom", function () {
+describe("@typedef {Object} FeatureExtractorRando", function () {
 it('should make test number 57', function () {
  this.timeout(10000); 
 
@@ -1671,7 +1671,7 @@ it('should make test number 57', function () {
  base.close();
 });
 });
-describe("@typedef {Object} FeatureExtractorNumeric", function () {
+describe("@typedef {Object} FeatureExtractorNumeri", function () {
 it('should make test number 58', function () {
  this.timeout(10000); 
 
@@ -1693,7 +1693,7 @@ it('should make test number 58', function () {
  base.close();
 });
 });
-describe("@typedef {Object} FeatureExtractorSparseVector", function () {
+describe("@typedef {Object} FeatureExtractorSparseVecto", function () {
 it('should make test number 59', function () {
  this.timeout(10000); 
 
@@ -1715,7 +1715,7 @@ it('should make test number 59', function () {
  base.close();
 });
 });
-describe("@typedef {Object} FeatureExtractorCategorical", function () {
+describe("@typedef {Object} FeatureExtractorCategorica", function () {
 it('should make test number 60', function () {
  this.timeout(10000); 
 
@@ -1738,7 +1738,7 @@ it('should make test number 60', function () {
  base.close();
 });
 });
-describe("@typedef {Object} FeatureExtractorMultinomial", function () {
+describe("@typedef {Object} FeatureExtractorMultinomia", function () {
 it('should make test number 61', function () {
  this.timeout(10000); 
 
@@ -1763,7 +1763,7 @@ it('should make test number 61', function () {
  base.close();
 });
 });
-describe("@typedef {Object} FeatureExtractorText", function () {
+describe("@typedef {Object} FeatureExtractorTex", function () {
 it('should make test number 62', function () {
  this.timeout(10000); 
 
@@ -1788,7 +1788,7 @@ it('should make test number 62', function () {
  base.close();
 });
 });
-describe("@typedef {Object} FeatureExtractorJoin", function () {
+describe("@typedef {Object} FeatureExtractorJoi", function () {
 it('should make test number 63', function () {
  this.timeout(10000); 
 
@@ -1796,14 +1796,14 @@ it('should make test number 63', function () {
  var qm = require('qminer');
 });
 });
-describe("@typedef {Object} FeatureExtractorPair", function () {
+describe("@typedef {Object} FeatureExtractorPai", function () {
 it('should make test number 64', function () {
  this.timeout(10000); 
 
  var qm = require('qminer');
 });
 });
-describe("@typedef {Object} FeatureExtractorDateWindow", function () {
+describe("@typedef {Object} FeatureExtractorDateWindo", function () {
 it('should make test number 65', function () {
  this.timeout(10000); 
 
@@ -1811,7 +1811,7 @@ it('should make test number 65', function () {
  var qm = require('qminer');
 });
 });
-describe("@typedef {Object} FeatureExtractorJsfunc", function () {
+describe("@typedef {Object} FeatureExtractorJsfun", function () {
 it('should make test number 66', function () {
  this.timeout(10000); 
 
@@ -1838,7 +1838,7 @@ it('should make test number 66', function () {
  base.close();
 });
 });
-describe("Feature Space", function () {
+describe("Feature Spac", function () {
 it('should make test number 67', function () {
  this.timeout(10000); 
 
@@ -1869,7 +1869,7 @@ it('should make test number 67', function () {
  base.close();
 });
 });
-describe("Adds a new feature extractor to the feature space.", function () {
+describe("Adds a new feature extractor to the feature space", function () {
 it('should make test number 68', function () {
  this.timeout(10000); 
 
@@ -1903,7 +1903,7 @@ it('should make test number 68', function () {
 
 });
 });
-describe("Updates the feature space definitions and extractors by adding one record.", function () {
+describe("Updates the feature space definitions and extractors by adding one record", function () {
 it('should make test number 69', function () {
  this.timeout(10000); 
 
@@ -1945,7 +1945,7 @@ it('should make test number 69', function () {
 
 });
 });
-describe("Updates the feature space definitions and extractors by adding all the records of a record set.", function () {
+describe("Updates the feature space definitions and extractors by adding all the records of a record set", function () {
 it('should make test number 70', function () {
  this.timeout(10000); 
 
@@ -1986,7 +1986,7 @@ it('should make test number 70', function () {
 
 });
 });
-describe("Creates a sparse feature vector from the given record.", function () {
+describe("Creates a sparse feature vector from the given record", function () {
 it('should make test number 71', function () {
  this.timeout(10000); 
 
@@ -2024,7 +2024,7 @@ it('should make test number 71', function () {
 
 });
 });
-describe("Creates a feature vector from the given record.", function () {
+describe("Creates a feature vector from the given record", function () {
 it('should make test number 72', function () {
  this.timeout(10000); 
 
@@ -2062,7 +2062,7 @@ it('should make test number 72', function () {
 
 });
 });
-describe("Performs the inverse operation of ftrVec. Works only for numeric feature extractors.", function () {
+describe("Performs the inverse operation of ftrVec. Works only for numeric feature extractors", function () {
 it('should make test number 73', function () {
  this.timeout(10000); 
 
@@ -2102,7 +2102,7 @@ it('should make test number 73', function () {
 
 });
 });
-describe("Calculates the inverse of a single feature using a specific feature extractor.", function () {
+describe("Calculates the inverse of a single feature using a specific feature extractor", function () {
 it('should make test number 74', function () {
  this.timeout(10000); 
 
@@ -2139,7 +2139,7 @@ it('should make test number 74', function () {
 
 });
 });
-describe("Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.", function () {
+describe("Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix", function () {
 it('should make test number 75', function () {
  this.timeout(10000); 
 
@@ -2171,7 +2171,7 @@ it('should make test number 75', function () {
 
 });
 });
-describe("Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.", function () {
+describe("Extracts the feature vectors from the recordset and returns them as columns of a dense matrix", function () {
 it('should make test number 76', function () {
  this.timeout(10000); 
 
@@ -2206,7 +2206,7 @@ it('should make test number 76', function () {
 
 });
 });
-describe("Gives the name of feature extractor at given position.", function () {
+describe("Gives the name of feature extractor at given position", function () {
 it('should make test number 77', function () {
  this.timeout(10000); 
 
@@ -2235,7 +2235,7 @@ it('should make test number 77', function () {
 
 });
 });
-describe("Gives the name of the feature at the given position.", function () {
+describe("Gives the name of the feature at the given position", function () {
 it('should make test number 78', function () {
  this.timeout(10000); 
 
@@ -2272,7 +2272,7 @@ it('should make test number 78', function () {
 
 });
 });
-describe("Filters the vector to keep only the elements from the feature extractor.", function () {
+describe("Filters the vector to keep only the elements from the feature extractor", function () {
 it('should make test number 79', function () {
  this.timeout(10000); 
 
@@ -2313,7 +2313,7 @@ it('should make test number 79', function () {
 
 });
 });
-describe("@classdesc Circular buffer for storing records. Size of buffer is defined at", function () {
+describe("@classdesc Circular buffer for storing records. Size of buffer is defined a", function () {
 it('should make test number 80', function () {
  this.timeout(10000); 
 
@@ -2321,7 +2321,7 @@ it('should make test number 80', function () {
    
 });
 });
-describe("Add new record to the buffer.", function () {
+describe("Add new record to the buffer", function () {
 it('should make test number 81', function () {
  this.timeout(10000); 
 
