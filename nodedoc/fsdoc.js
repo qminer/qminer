@@ -168,11 +168,17 @@
 	*/
  exports.FOut = function(fileName, append) {}	
 /**
-	* Writes a string
-	* @param {String} str - String to write
+	* Writes a string or number or a JSON object in human readable form
+	* @param {(String | Number | Object)} arg - Argument to write
 	* @returns {module:fs.FOut} Self.
 	*/
- exports.FOut.prototype.write = function(str) { return this; }
+ exports.FOut.prototype.write = function(arg) { return this; }
+/**
+	* Writes a string or number or a JSON object in binary form
+	* @param {(String | Number | Object)} str - Argument to write
+	* @returns {module:fs.FOut} Self.
+	*/
+ exports.FOut.prototype.writeBinary = function(arg) { return this; }
 /**
 	* Writes a string and adds a new line
 	* @param {String} str - String to write

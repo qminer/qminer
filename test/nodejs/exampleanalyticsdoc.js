@@ -1408,8 +1408,27 @@ it('should make test number 80', function () {
        
 });
 });
-describe("Transforms the points to vectors of squared distances to centroids.", function () {
+describe("Returns the IDs of the nearest medoid for each example", function () {
 it('should make test number 81', function () {
+ this.timeout(10000); 
+
+         // import analytics module
+         var analytics = require('qminer').analytics;
+         // create a new KMeans object
+         var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+         // create a matrix to be fitted using the column IDs [0,1,2]
+         var X = new la.Matrix([[1, -2, -1], [1, 1, -3]], [0,1,2]);
+         // create the model with the matrix X
+         KMeans.fit(X);
+         // create the matrix of the prediction vectors
+         var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
+         // predict/explain - return the closest medoids
+         var explanation = KMeans.explain(test);
+       
+});
+});
+describe("Transforms the points to vectors of squared distances to centroids.", function () {
+it('should make test number 82', function () {
  this.timeout(10000); 
 
          // import modules

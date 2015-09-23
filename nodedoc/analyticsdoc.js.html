@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
         <head>
-                <meta name="generator" content="JSDoc 3.3.2">
+                <meta name="generator" content="JSDoc 3">
                 <meta charset="utf-8">
                 <title>Source: analyticsdoc.js</title>
                 <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -1574,18 +1574,6 @@
     */
     exports.RecLinReg.prototype.getModel = function () { return { weights: this.weights } }
 
-    // var model = new OneVsAll({
-    //     model : analytics.SVC,
-    //     modelParam: { c: 10, j: 10, maxTime: 123 },
-    //     cats : 123
-    // });
-    //
-    // var X = featureSpace.extractSparseMatrix(recordSet);
-    // var y = store.getCol(&quot;label&quot;);
-    // model.fit(X, y);
-    //
-    // model.predict(featureSpace.extractSparseVector(record));
-
     /**
     * @typedef {Object} oneVsAllParam
     * The parameter given to the OneVsAll object. A Json object containing the parameter keys with values.
@@ -2238,6 +2226,8 @@
     * @property {number} iter - The maximum number of iterations.
     * @property {number} k - The number of centroids.
     * @property {boolean} verbose - If false, the console output is supressed.
+    * @property {Array} fitIdx - Array of indexes that should be used as starting centroids. Optional.
+    * @property {model} fitStart - Model from another KMeans algorithm (obtained via getModel() method). Its centroids are used as starting centroids for this model. Optional.
     * @example
     * // import analytics and la modules
     * var analytics = require(&#x27;qminer&#x27;).analytics;
@@ -2251,6 +2241,12 @@
     */
     exports.KMeans = function (param) {
 
+        // Fit params
+        // var iter = param.iter == undefined ? 100 : param.iter;
+        // var k = param.k == undefined ? 2 : param.k;
+        // var verbose = param.verbose == undefined ? false : param.verbose;
+        // var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
+
         // Model
         var C = undefined;
         var idxv = undefined;
@@ -2259,6 +2255,8 @@
         var k = undefined;
         var verbose = undefined;
         var fitIdx = undefined;
+        var fitStart;
+        var medoids = new la.Vector();
 
         if (param != undefined &amp;amp;&amp;amp; param.constructor.name == &#x27;FIn&#x27;) {
             C = new la.Matrix();
@@ -2284,6 +2282,7 @@
             var k = param.k == undefined ? 2 : param.k;
             var verbose = param.verbose == undefined ? false : param.verbose;
             var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
+            var fitStart = param.fitStart == undefined ? undefined : param.fitStart;
             param = { iter: iter, k: k, verbose: verbose };
         } else {
             throw &quot;KMeans.constructor: parameter must be a JSON object or a fs.FIn!&quot;;
@@ -2307,6 +2306,13 @@
             C = C_new;
             norC2 = la.square(C.colNorms());
             idxv = idxv_new;
+            if (medoids.length != 0) {
+                var medoids_new = new la.Vector(medoids);
+                for (var i = 0; i &amp;lt; medoids_new.length; i++) {
+                    medoids_new[i] = mapping[medoids[i]]
+                }
+                medoids = medoids_new;
+            }
         }
         /**
         * Returns the model
@@ -2347,6 +2353,7 @@
             k = param.k == undefined ? k : param.k;
             verbose = param.verbose == undefined ? verbose : param.verbose;
             fitIdx = param.fitIdx == undefined ? fitIdx : param.fitIdx;
+            fitStart = param.fitStart == undefined ? undefined : param.fitStart;
         }
 
         /**
@@ -2366,7 +2373,8 @@
 
         /**
         * Computes the centroids.
-        * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} X - Matrix whose columns correspond to examples.
+        * @param {module:la.IntVector} [recIds] - IDs of columns of X. The fit function stores the IDs of the medoids, which are used by the KMeans.explain function.
         * @returns {module:analytics.KMeans} Self. It stores the info about the new model.
         * @example
         * // import analytics module
@@ -2378,22 +2386,29 @@
         * // create the model with the matrix X
         * KMeans.fit(X);
         */
-        this.fit = function (X) {
+        this.fit = function (X, recIds) {
             // select random k columns of X, returns a dense C++ matrix
             var selectCols = function (X, k) {
-                var idx;
-                if (fitIdx == undefined) {
-                    idx = la.randi(X.cols, k);
-                } else {
-                    assert(fitIdx.length == k, &quot;Error: fitIdx is not of length k!&quot;);
-                    assert(Math.max.apply(Math, fitIdx) &amp;lt; X.cols, &quot;Error: fitIdx contains index greater than number of columns in matrix. Index out of range!&quot;);
-                    idx = fitIdx;
-                }
-                var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
-                for (var i = 0; i &amp;lt; idx.length; i++) {
-                    var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
-                    idxMat.push(spVec);
-                }
+                if (fitStart) {
+                    assert(fitStart.C.cols == k, &quot;Error: fitStart.C.cols is not of length k!&quot;);
+					var result = {};
+					result.C = fitStart.C;
+					result.idx = la.randi(X.cols, k); // this assignment is irrelevant, really
+					return result;
+				}
+				var idx;
+				if (fitIdx == undefined) {
+					idx = la.randi(X.cols, k);
+				} else {
+					assert(fitIdx.length == k, &quot;Error: fitIdx is not of length k!&quot;);
+					assert(Math.max.apply(Math, fitIdx) &amp;lt; X.cols, &quot;Error: fitIdx contains index greater than number of columns in matrix. Index out of range!&quot;);
+					idx = fitIdx;
+				}
+				var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
+				for (var i = 0; i &amp;lt; idx.length; i++) {
+					var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
+					idxMat.push(spVec);
+				}
                 var C = X.multiply(idxMat);
                 var result = {};
                 result.C = C;
@@ -2472,6 +2487,15 @@
                 w.toc(&quot;end&quot;);
             }
             norC2 = la.square(C.colNorms());
+            if (recIds != undefined) {
+                assert(recIds.length == X.cols);
+                var D = X.multiplyT(C).minus(ones_n.outer(norC2)).minus(norX2.outer(ones_k));
+                medoidIdx = la.findMaxIdx(D);
+                medoids = new la.Vector(medoidIdx);
+                for (var i = 0; i &amp;lt; medoids.length; i++) {
+                    medoids[i] = recIds[medoidIdx[i]];
+                }
+            }
         };
 
         /**
@@ -2498,6 +2522,48 @@
             var norX2 = la.square(X.colNorms());
             var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
             return la.findMaxIdx(D);
+        }
+
+
+        /**
+        * @typedef KMeansExplanation
+        * @type Object
+        * @property {module:la.IntVector} medoidIDs The IDs of the nearest medoids        
+        */
+
+        /**
+        * Returns the IDs of the nearest medoid for each example
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} X - Matrix whose columns correspond to examples.
+        * @returns {KMeansExplanation} Object containing the vector of medoid IDs.
+        * @example
+        * // import analytics module
+        * var analytics = require(&#x27;qminer&#x27;).analytics;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+        * // create a matrix to be fitted using the column IDs [0,1,2]
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]], [0,1,2]);
+        * // create the model with the matrix X
+        * KMeans.fit(X);
+        * // create the matrix of the prediction vectors
+        * var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
+        * // predict/explain - return the closest medoids
+        * var explanation = KMeans.explain(test);
+        */
+        this.explain = function (X) {
+            if (medoids == undefined) {
+                return { medoidIDs: null };
+            }
+            var ones_n = la.ones(X.cols).multiply(0.5);
+            var ones_k = la.ones(k).multiply(0.5);
+            var norX2 = la.square(X.colNorms());
+            var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+            var centroids = la.findMaxIdx(D);
+            var medoidIDs = new la.IntVector(centroids);
+            assert(medoids.length == k)
+            for (var i = 0; i &amp;lt; centroids.length; i++) {
+                medoidIDs[i] = medoids[centroids[i]];
+            }
+            return { medoidIDs: medoidIDs};
         }
 
         /**
@@ -2551,8 +2617,9 @@
 			    var fout = xfs.openWrite(arg);
 			    C.save(fout);
 			    norC2.save(fout);
-			    (new la.Vector(idxv)).save(fout);
+			    (new la.Vector(idxv)).save(fout);			    
 			    params_vec.save(fout);
+			    medoids.save(fout);
 			    fout.close();
 			    fout = null;
             } else if (arg.constructor.name == &#x27;FOut&#x27;) {
@@ -2560,6 +2627,7 @@
                 norC2.save(arg);
                 (new la.Vector(idxv)).save(arg);
                 params_vec.save(arg);
+                medoids.save(arg);
                 return arg;
             } else {
                 throw &quot;KMeans.save: input must be fs.Fout&quot;;
@@ -2582,6 +2650,8 @@
 
 		    var params_vec = new la.Vector();
 		    params_vec.load(fin);
+		    medoids.load(fin);
+
 		    iter = params_vec[0];
 		    k = params_vec[1];
 		    verbose = (params_vec[2] != 0);
@@ -2590,249 +2660,13 @@
 		}
     }
 
-    ///////////////////////////////
-    ////// code below not yet ported or verified for scikit
-    ///////////////////////////////
-
     function defarg(arg, defaultval) {
         return arg == undefined ? defaultval : arg;
     }
 
-    function createBatchModel(featureSpace, models) {
-        this.featureSpace = featureSpace;
-        this.models = models;
-        // get targets
-        this.target = [];
-        for (var cat in this.models) { this.target.push(cat); }
-        // serialize to stream
-        this.save = function (sout) {
-            // save list
-            sout.writeLine(this.models);
-            // save feature space
-            this.featureSpace.save(sout);
-            // save models
-            for (var cat in this.models) {
-                this.models[cat].model.save(sout);
-            }
-            return sout;
-        }
-
-        this.predict = function (record) {
-            var vec = this.featureSpace.extractSparseVector(record);
-            var result = {};
-            for (var cat in this.models) {
-                result[cat] = this.models[cat].model.predict(vec);
-            }
-            return result;
-        }
-
-        this.predictLabels = function (record) {
-            var result = this.predict(record);
-            var labels = [];
-            for (var cat in result) {
-                if (result[cat] &gt; 0.0) {
-                    labels.push(cat);
-                }
-            }
-            return labels;
-        }
-
-        this.predictTop = function (record) {
-            var result = this.predict(record);
-            var top = null;
-            for (var cat in result) {
-                if (top) {
-                    if (top.weight &gt; result[cat]) {
-                        top.category = cat;
-                        top.weight = result[cat];
-                    }
-                } else {
-                    top = { category: cat, weight: result[cat] }
-                }
-            }
-            return top.category;
-        }
-        return this;
-    }
-
-    //!- &#x60;batchModel = analytics.newBatchModel(rs, features, target)&#x60; -- learns a new batch model
-    //!     using record set &#x60;rs&#x60; as training data and &#x60;features&#x60;; &#x60;target&#x60; is
-    //!     a field descriptor JSON object for the records which we are trying to predict
-	//!     (obtained by calling store.field(&quot;Rating&quot;);
-    //!     if target field string or string vector, the result is a SVM classification model,
-    //!     and if target field is a float, the result is a SVM regression model; resulting
-    //!     model has the following functions:
-    //!   - &#x60;strArr = batchModel.target&#x60; -- array of categories for which we have models
-    //!   - &#x60;scoreArr = batchModel.predict(rec)&#x60; -- creates feature vector from record &#x60;rec&#x60;, sends it
-    //!     through the model and returns the result as a dictionary where labels are keys and scores (numbers) are values.
-    //!   - &#x60;labelArr = batchModel.predictLabels(rec)&#x60; -- creates feature vector from record &#x60;rec&#x60;,
-    //!     sends it through the model and returns the labels with positive weights as &#x60;labelArr&#x60;.
-    //!   - &#x60;labelStr = batchModel.predictTop(rec)&#x60; -- creates feature vector from record &#x60;rec&#x60;,
-    //!     sends it through the model and returns the top ranked label &#x60;labelStr&#x60;.
-    //!   - &#x60;batchModel.save(fout)&#x60; -- saves the model to &#x60;fout&#x60; output stream
-    exports.newBatchModel = function (records, features, target, limitCategories) {
-        console.log(&quot;newBatchModel&quot;, &quot;Start&quot;);
-        // prepare feature space
-        console.log(&quot;newBatchModel&quot;, &quot;  creating feature space&quot;);
-        var featureSpace = new qm.FeatureSpace(records.store.base, features);
-        // initialize features
-        featureSpace.updateRecords(records);
-        console.log(&quot;newBatchModel&quot;, &quot;  number of dimensions = &quot; + featureSpace.dim);
-        // prepare spare vectors
-        console.log(&quot;newBatchModel&quot;, &quot;  preparing feature vectors&quot;);
-        var sparseVecs = featureSpace.extractSparseMatrix(records);
-        // prepare target vectors
-        var targets = {};
-        // figure out if new category name, or update count
-        function initCats(categories, catName) {
-            if (categories[catName]) {
-                categories[catName].count++;
-            } else {
-                // check if we should ignore this category
-                if (limitCategories &amp;amp;&amp;amp; !qm_util.isInArray(limitCategories, catName)) { return; }
-                // check if we should ignore this category
-                categories[catName] = {
-                    name: catName,
-                    type: &quot;classification&quot;,
-                    count: 1,
-                    target: new la.Vector({ mxVals: records.length })
-                };
-            }
-        }
-        // initialize targets
-        console.log(&quot;newBatchModel&quot;, &quot;  preparing target vectors&quot;);
-        if (target.type === &quot;string_v&quot;) {
-            // get all possible values for the field
-            for (var i = 0; i &amp;lt; records.length; i++) {
-                var cats = records[i][target.name];
-                for (var j = 0; j &amp;lt; cats.length; j++) {
-                    initCats(targets, cats[j]);
-                }
-            }
-            // initialized with +1 or -1 for each category
-            for (var i = 0; i &amp;lt; records.length; i++) {
-                var cats = la.copyVecToArray(records[i][target.name]);
-                for (var cat in targets) {
-                    targets[cat].target.push(qm_util.isInArray(cats, cat) ? 1.0 : -1.0);
-                }
-            }
-        } else if (target.type === &quot;string&quot;) {
-            // get all possible values for the field
-            for (var i = 0; i &amp;lt; records.length; i++) {
-                var recCat = records[i][target.name];
-                initCats(targets, recCat);
-            }
-            // initialized with +1 or -1 for each category
-            for (var i = 0; i &amp;lt; records.length; i++) {
-                var recCat = records[i][target.name];
-                for (var cat in targets) {
-                    targets[cat].target.push((recCat === cat) ? 1.0 : -1.0);
-                }
-            }
-        } else if (target.type === &quot;float&quot;) {
-            // initialized with +1 or -1 for each category
-            targets[target.name] = {
-                name: target.name,
-                type: &quot;regression&quot;,
-                count: records.length,
-                target: new la.Vector({ mxVals: records.length })
-
-            };
-            for (var i = 0; i &amp;lt; records.length; i++) {
-                targets[target.name].target.push(records[i][target.name]);
-            }
-        }
-        // training model for each category
-        console.log(&quot;newBatchModel&quot;, &quot;  training SVM&quot;);
-        var models = {};
-        for (var cat in targets) {
-            if (targets[cat].count &gt;= 50) {
-                models[cat] = {
-                    name: targets[cat].name,
-                    type: targets[cat].type,
-                };
-                if (targets[cat].type === &quot;classification&quot;) {
-                    console.log(&quot;newBatchModel&quot;, &quot;    ... &quot; + cat + &quot; (classification)&quot;);
-                    models[cat].model = new exports.SVC({ c: 1, j: 10, batchSize: 10000, maxIterations: 100000, maxTime: 1800, minDiff: 0.001 });
-                    models[cat].model.fit(sparseVecs, targets[cat].target);
-                } else if (targets[cat].type === &quot;regression&quot;) {
-                    console.log(&quot;newBatchModel&quot;, &quot;    ... &quot; + cat + &quot; (regression)&quot;);
-                    models[cat].model = new exports.SVR({ c: 1, eps: 1e-2, batchSize: 10000, maxIterations: 100000, maxTime: 1800, minDiff: 0.001 });
-                    models[cat].model.fit(sparseVecs, targets[cat].target);
-                }
-            }
-        }
-        // done
-        console.log(&quot;newBatchModel&quot;, &quot;Done&quot;);
-        // we finished the constructor
-        return new createBatchModel(featureSpace, models);
-    };
-
-    //!- &#x60;batchModel = analytics.loadBatchModel(base, fin)&#x60; -- loads batch model frm input stream &#x60;fin&#x60;
-    exports.loadBatchModel = function (base, sin) {
-        var models = JSON.parse(sin.readLine());
-        var featureSpace = new qm.FeatureSpace(base, sin);
-        for (var cat in models) {
-            models[cat].model = new exports.SVC(sin);
-        }
-        // we finished the constructor
-        return new createBatchModel(featureSpace, models);
-    };
-
-	//!- &#x60;result = analytics.crossValidation(rs, features, target, folds)&#x60; -- creates a batch
-    //!     model for records from record set &#x60;rs&#x60; using &#x60;features; &#x60;target&#x60; is the
-    //!     target field and is assumed discrete; the result is a results object
-    //!     with the following API:
-    //!     - &#x60;result.target&#x60; -- an object with categories as keys and the following
-    //!       counts as members of these keys: &#x60;count&#x60;, &#x60;TP&#x60;, &#x60;TN&#x60;, &#x60;FP&#x60;, &#x60;FN&#x60;,
-    //!       &#x60;all()&#x60;, &#x60;precision()&#x60;, &#x60;recall()&#x60;, &#x60;accuracy()&#x60;.
-    //!     - &#x60;result.confusion&#x60; -- confusion matrix between categories
-    //!     - &#x60;result.report()&#x60; -- prints basic report on to the console
-    //!     - &#x60;result.reportCSV(fout)&#x60; -- prints CSV output to the &#x60;fout&#x60; output stream
-    exports.crossValidation = function (records, features, target, folds, limitCategories) {
-        // create empty folds
-        var fold = [];
-        for (var i = 0; i &amp;lt; folds; i++) {
-            fold.push(new la.IntVector());
-        }
-        // split records into folds
-        records.shuffle(1);
-        var fold_i = 0;
-        for (var i = 0; i &amp;lt; records.length; i++) {
-            fold[fold_i].push(records[i].$id);
-            fold_i++; if (fold_i &gt;= folds) { fold_i = 0; }
-        }
-        // do cross validation
-        var cfyRes = null;
-        for (var fold_i = 0; fold_i &amp;lt; folds; fold_i++) {
-            // prepare train and test record sets
-            var train = new la.IntVector();
-            var test = new la.IntVector();
-            for (var i = 0; i &amp;lt; folds; i++) {
-                if (i == fold_i) {
-                    test.pushV(fold[i]);
-                } else {
-                    train.pushV(fold[i]);
-                }
-            }
-            var trainRecs = records.store.newRecSet(train);
-            var testRecs = records.store.newRecSet(test);
-            console.log(&quot;Fold &quot; + fold_i + &quot;: &quot; + trainRecs.length + &quot; training and &quot; + testRecs.length + &quot; testing&quot;);
-            // create model for the fold
-            var model = exports.newBatchModel(trainRecs, features, target, limitCategories);
-            // prepare test counts for each target
-            if (!cfyRes) { cfyRes = new exports.ClassificationScore (model.target); }
-            // evaluate predictions
-            for (var i = 0; i &amp;lt; testRecs.length; i++) {
-                var correct = testRecs[i][target.name];
-                var predicted = model.predictLabels(testRecs[i]);
-                cfyRes.count(correct, predicted);
-            }
-            // report
-            cfyRes.report();
-        }
-        return cfyRes;
-    };
+    ///////////////////////////////
+    ////// code below not yet ported or verified for scikit
+    ///////////////////////////////
 
     //!- &#x60;alModel = analytics.newActiveLearner(query, qRecSet, fRecSet, ftrSpace, settings)&#x60; -- initializes the
     //!    active learning. The algorihm is run by calling &#x60;model.startLoop()&#x60;. The algorithm has two stages: query mode, where the algorithm suggests potential
@@ -3078,75 +2912,6 @@
         //this.saveLabeled
         //this.loadLabeled
     };
-
-
-	//////////// RIDGE REGRESSION
-	// solve a regularized least squares problem
-	//!- &#x60;ridgeRegressionModel = new analytics.RidgeRegression(kappa, dim, buffer)&#x60; -- solves a regularized ridge
-	//!  regression problem: min|X w - y|^2 + kappa |w|^2. The inputs to the algorithm are: &#x60;kappa&#x60;, the regularization parameter,
-	//!  &#x60;dim&#x60; the dimension of the model and (optional) parameter &#x60;buffer&#x60; (integer) which specifies
-	//!  the length of the window of tracked examples (useful in online mode). The model exposes the following functions:
-	exports.RidgeRegression = function (kappa, dim, buffer) {
-	    var X = [];
-	    var y = [];
-	    buffer = typeof buffer !== &#x27;undefined&#x27; ? buffer : -1;
-	    var w = new la.Vector({ &quot;vals&quot;: dim });
-	    //!   - &#x60;ridgeRegressionModel.add(vec, num)&#x60; -- adds a vector &#x60;vec&#x60; and target &#x60;num&#x60; (number) to the training set
-	    this.add = function (x, target) {
-	        X.push(x);
-	        y.push(target);
-	        if (buffer &gt; 0) {
-	            if (X.length &gt; buffer) {
-	                this.forget(X.length - buffer);
-	            }
-	        }
-	    };
-	    //!   - &#x60;ridgeRegressionModel.addupdate(vec, num)&#x60; -- adds a vector &#x60;vec&#x60; and target &#x60;num&#x60; (number) to the training set and retrains the model
-	    this.addupdate = function (x, target) {
-	        this.add(x, target);
-	        this.update();
-	    }
-	    //!   - &#x60;ridgeRegressionModel.forget(n)&#x60; -- deletes first &#x60;n&#x60; (integer) examples from the training set
-	    this.forget = function (ndeleted) {
-	        ndeleted = typeof ndeleted !== &#x27;undefined&#x27; ? ndeleted : 1;
-	        ndeleted = Math.min(X.length, ndeleted);
-	        X.splice(0, ndeleted);
-	        y.splice(0, ndeleted);
-	    };
-	    //!   - &#x60;ridgeRegressionModel.update()&#x60; -- recomputes the model
-	    this.update = function () {
-	        var A = this.getMatrix();
-	        var b = new la.Vector(y);
-	        w = this.compute(A, b);
-	    };
-	    //!   - &#x60;vec = ridgeRegressionModel.getModel()&#x60; -- returns the parameter vector &#x60;vec&#x60; (dense vector)
-	    this.getModel = function () {
-	        return w;
-	    };
-	    this.getMatrix = function () {
-	        if (X.length &gt; 0) {
-	            var A = new la.Matrix({ &quot;cols&quot;: X[0].length, &quot;rows&quot;: X.length });
-	            for (var i = 0; i &amp;lt; X.length; i++) {
-	                A.setRow(i, X[i]);
-	            }
-	            return A;
-	        }
-	    };
-	    //!   - &#x60;vec2 = ridgeRegressionModel.compute(mat, vec)&#x60; -- computes the model parameters &#x60;vec2&#x60;, given
-	    //!    a row training example matrix &#x60;mat&#x60; and target vector &#x60;vec&#x60; (dense vector). The vector &#x60;vec2&#x60; solves min_vec2 |mat&#x27; vec2 - vec|^2 + kappa |vec2|^2.
-	    //!   - &#x60;vec2 = ridgeRegressionModel.compute(spMat, vec)&#x60; -- computes the model parameters &#x60;vec2&#x60;, given
-	    //!    a row training example sparse matrix &#x60;spMat&#x60; and target vector &#x60;vec&#x60; (dense vector). The vector &#x60;vec2&#x60; solves min_vec2 |spMat&#x27; vec2 - vec|^2 + kappa |vec2|^2.
-	    this.compute = function (A, b) {
-	        var I = la.eye(A.cols);
-	        var coefs = (A.transpose().multiply(A).plus(I.multiply(kappa))).solve(A.transpose().multiply(b));
-	        return coefs;
-	    };
-	    //!   - &#x60;num = model.predict(vec)&#x60; -- predicts the target &#x60;num&#x60; (number), given feature vector &#x60;vec&#x60; based on the internal model parameters.
-	    this.predict = function (x) {
-	        return w.inner(x);
-	    };
-	};
-
 
     /**
      * StreamStory.
@@ -3460,13 +3225,13 @@
                                 <nav id="jsdoc-toc-nav" role="navigation"></nav>
                         </div>
                 </div>
-                    <footer id="jsdoc-footer" class="jsdoc-footer">
-                            <div id="jsdoc-footer-container">
-                                    <p>
-                                      Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on September 16, 2015.
-                                    </p>
-                            </div>
-                    </footer>
+                <footer id="jsdoc-footer" class="jsdoc-footer">
+                        <div id="jsdoc-footer-container">
+                                <p>
+                                  
+                                </p>
+                        </div>
+                </footer>
                 <script src="scripts/jquery.min.js"></script>
                 <script src="scripts/jquery.cookie.js"></script>
                 <script src="scripts/tree.jquery.js"></script>
