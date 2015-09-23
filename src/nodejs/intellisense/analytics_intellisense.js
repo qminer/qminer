@@ -1635,7 +1635,7 @@ exports = {}; require.modules.qminer_analytics = exports;
          * // create the vector for the decisionFunction
          * var test = new la.Vector([1, 2]);
          * // give the vector to the decision function
-         * var prediction = onevsall.predict(test); // returns the vector of scores 
+         * var prediction = onevsall.predict(test); // returns the vector of scores
          */
         this.decisionFunction = function(X) {
             // check what is our input
@@ -1720,7 +1720,7 @@ exports = {}; require.modules.qminer_analytics = exports;
          * var vector = new la.Vector([0, 0, 1, 1]);
          * // fit the model
          * onevsall.fit(matrix, vector);
-         */        
+         */
         this.fit = function(X, y) {
             models = [ ];
             // make model for each category
@@ -2122,7 +2122,7 @@ exports = {}; require.modules.qminer_analytics = exports;
             param = p;
 
             iter = param.iter == undefined ? iter : param.iter;
-            k = param.k == undefined ? k : param.iter; 
+            k = param.k == undefined ? k : param.iter;
         }
 
         /**
@@ -2209,7 +2209,7 @@ exports = {}; require.modules.qminer_analytics = exports;
     * var KMeans = new analytics.KMeans();
     * // create the matrix to be fitted
     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
-    * // create the model 
+    * // create the model
     * KMeans.fit(X);
     */
     exports.KMeans = function (param) {
@@ -2501,22 +2501,24 @@ exports = {}; require.modules.qminer_analytics = exports;
         /**
         * @typedef KMeansExplanation
         * @type Object
-        * @property {module:la.IntVector} medoidIDs The IDs of the nearest medoids        
+        * @property {module:la.IntVector} medoidIDs The IDs of the nearest medoids
         */
 
         /**
-        * Returns the IDs of the nearest medoid for each example
+        * Returns the IDs of the nearest medoid for each example.
         * @param {(module:la.Matrix | module:la.SparseMatrix)} X - Matrix whose columns correspond to examples.
         * @returns {KMeansExplanation} Object containing the vector of medoid IDs.
         * @example
         * // import analytics module
         * var analytics = require('qminer').analytics;
+        * // import linear algebra module
+        * var la = require('qminer').la;
         * // create a new KMeans object
         * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
-        * // create a matrix to be fitted using the column IDs [0,1,2]
-        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]], [0,1,2]);
-        * // create the model with the matrix X
-        * KMeans.fit(X);
+        * // create a matrix to be fitted
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+        * // create the model with the matrix X using the column IDs [0,1,2]
+        * KMeans.fit(X, [0,1,2]);
         * // create the matrix of the prediction vectors
         * var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
         * // predict/explain - return the closest medoids
@@ -2590,7 +2592,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 			    var fout = xfs.openWrite(arg);
 			    C.save(fout);
 			    norC2.save(fout);
-			    (new la.Vector(idxv)).save(fout);			    
+			    (new la.Vector(idxv)).save(fout);
 			    params_vec.save(fout);
 			    medoids.save(fout);
 			    fout.close();
@@ -2605,7 +2607,7 @@ exports = {}; require.modules.qminer_analytics = exports;
             } else {
                 throw "KMeans.save: input must be fs.Fout";
             }
-			
+
 		}
 
         this.load = function (fname) {

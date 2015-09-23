@@ -50,6 +50,7 @@ void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 	// Properties 
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "name"), _name);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "val"), _val);
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
 
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
@@ -262,17 +263,10 @@ void TNodeJsSA::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	// unwrap
 	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
-	TWPt<TQm::TStreamAggr> SA = JsSA->SA;
-	// TODO
-	throw TQm::TQmExcept::New("sa.save not implemented yet!");
-	//PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
-	//JsSA->SA->_Save(*SOut);
-	//if (JsSA->SA->Type() == "javaScript") {
-	//	auto SA = dynamic_cast<TJsStreamAggr*>(JsSA->SA());
-	//	JsSA->Js->Execute(SA->SaveFun, Args[0]);
+    TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
 
-	//}
-	//return HandleScope.Close(Args[0]);
+    // save
+	JsSA->SA->SaveState(*JsFOut->SOut);
 
 	Args.GetReturnValue().Set(Args.Holder());
 }
@@ -280,18 +274,13 @@ void TNodeJsSA::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSA::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-
+    
 	// unwrap
 	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
-	TWPt<TQm::TStreamAggr> SA = JsSA->SA;
-	throw TQm::TQmExcept::New("sa.load not implemented yet!");
+    TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
 
-	//PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
-	//JsSA->SA->_Load(*SIn);
-	//if (JsSA->SA->Type() == "javaScript") {
-	//	auto SA = dynamic_cast<TJsStreamAggr*>(JsSA->SA());
-	//	JsSA->Js->Execute(SA->LoadFun, Args[0]);
-	//}
+    // save
+	JsSA->SA->LoadState(*JsFIn->SIn);
 
 	Args.GetReturnValue().Set(Args.Holder());
 }
@@ -534,6 +523,15 @@ void TNodeJsSA::val(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Self);
 	Info.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsSA->SA->SaveJson(-1)));
+}
+
+void TNodeJsSA::init(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Object> Self = Info.Holder();
+	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Self);
+	Info.GetReturnValue().Set(JsSA->SA->IsInit());
 }
 
 ///////////////////////////////

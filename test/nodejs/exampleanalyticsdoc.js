@@ -1272,7 +1272,7 @@ it('should make test number 72', function () {
           // create the vector for the decisionFunction
           var test = new la.Vector([1, 2]);
           // give the vector to the decision function
-          var prediction = onevsall.predict(test); // returns the vector of scores 
+          var prediction = onevsall.predict(test); // returns the vector of scores
         
 });
 });
@@ -1325,7 +1325,7 @@ it('should make test number 75', function () {
      var KMeans = new analytics.KMeans();
      // create the matrix to be fitted
      var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
-     // create the model 
+     // create the model
      KMeans.fit(X);
    
 });
@@ -1408,18 +1408,20 @@ it('should make test number 80', function () {
        
 });
 });
-describe("Returns the IDs of the nearest medoid for each example", function () {
+describe("Returns the IDs of the nearest medoid for each example.", function () {
 it('should make test number 81', function () {
  this.timeout(10000); 
 
          // import analytics module
          var analytics = require('qminer').analytics;
+         // import linear algebra module
+         var la = require('qminer').la;
          // create a new KMeans object
          var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
-         // create a matrix to be fitted using the column IDs [0,1,2]
-         var X = new la.Matrix([[1, -2, -1], [1, 1, -3]], [0,1,2]);
-         // create the model with the matrix X
-         KMeans.fit(X);
+         // create a matrix to be fitted
+         var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+         // create the model with the matrix X using the column IDs [0,1,2]
+         KMeans.fit(X, [0,1,2]);
          // create the matrix of the prediction vectors
          var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
          // predict/explain - return the closest medoids

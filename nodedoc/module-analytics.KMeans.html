@@ -94,7 +94,7 @@ var la = require(&#x27;qminer&#x27;).la;
 var KMeans = new analytics.KMeans();
 // create the matrix to be fitted
 var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
-// create the model 
+// create the model
 KMeans.fit(X);</code></pre>
               </div>
             </section>
@@ -190,7 +190,7 @@ KMeans.fit(X);</code></pre>
             <h2>Methods</h2>
             <section>
               <h3 id="explain"><span class="symbol-name">explain</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> KMeansExplanation</span></span></h3>
-              <p>Returns the IDs of the nearest medoid for each example</p>
+              <p>Returns the IDs of the nearest medoid for each example.</p>
               <section>
                 <h4>
 
@@ -200,12 +200,14 @@ KMeans.fit(X);</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
+// import linear algebra module
+var la = require(&#x27;qminer&#x27;).la;
 // create a new KMeans object
 var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
-// create a matrix to be fitted using the column IDs [0,1,2]
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]], [0,1,2]);
-// create the model with the matrix X
-KMeans.fit(X);
+// create a matrix to be fitted
+var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+// create the model with the matrix X using the column IDs [0,1,2]
+KMeans.fit(X, [0,1,2]);
 // create the matrix of the prediction vectors
 var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
 // predict/explain - return the closest medoids

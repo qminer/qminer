@@ -211,14 +211,14 @@
                 <dt><a href="module-qm.html#~FeatureExtractors">FeatureExtractors</a></dt>
                 <dd>
                 </dd>
-                <dt><a href="module-qm.html#~FeatureExtractorSparseVector">FeatureExtractorSparseVector</a></dt>
-                <dd>
-                </dd>
         </dl>
 </div>
 
                     <div class="summary-column">
         <dl class="dl-summary-callout">
+                <dt><a href="module-qm.html#~FeatureExtractorSparseVector">FeatureExtractorSparseVector</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="module-qm.html#~FeatureExtractorText">FeatureExtractorText</a></dt>
                 <dd>
                 </dd>
@@ -243,16 +243,10 @@
                 <dt><a href="module-qm.html#~SchemaTimeWindowDefinition">SchemaTimeWindowDefinition</a></dt>
                 <dd>
                 </dd>
-                <dt><a href="module-qm.html#~StreamAggregateCount">StreamAggregateCount</a></dt>
-                <dd>
-                </dd>
                 <dt><a href="module-qm.html#~StreamAggregateEMA">StreamAggregateEMA</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~StreamAggregateMax">StreamAggregateMax</a></dt>
-                <dd>
-                </dd>
-                <dt><a href="module-qm.html#~StreamAggregateMerger">StreamAggregateMerger</a></dt>
                 <dd>
                 </dd>
         </dl>
@@ -260,6 +254,9 @@
 
                     <div class="summary-column">
         <dl class="dl-summary-callout">
+                <dt><a href="module-qm.html#~StreamAggregateMerger">StreamAggregateMerger</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="module-qm.html#~StreamAggregateMin">StreamAggregateMin</a></dt>
                 <dd>
                 </dd>
@@ -4126,127 +4123,6 @@ Window defined by parameter window, its value being the number of records to be 
         
     </dl>
 
-                <h3 id="~StreamAggregateCount"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateCount</span><small class="property-type">
-            &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-        <p>This stream aggregator represents the count moving window buffer. It counts the number of records in the
-stream aggregator, that it connects to. It implements the following methods:
-<br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the number of records in the it's buffer window. 
-<br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
-
-        <section>
-        <h4>
-            Example
-        </h4>
-                <div>
-    <pre class="prettyprint"><code>// import the qm modulevar qm = require(&#x27;qminer&#x27;);// create a base with a simple storevar base = new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Students&quot;,       fields: [           { name: &quot;Id&quot;, type: &quot;float&quot; },           { name: &quot;TimeOfGraduation&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series stream aggregator for the &#x27;Students&#x27; store, that takes the values from the &#x27;Id&#x27; field// and the timestamp from the &#x27;TimeOfGraduation&#x27; field. The size of the window should be 1 month.var timeser = {   name: &#x27;TimeSeriesAggr&#x27;,   type: &#x27;timeSeriesWinBuf&#x27;,   store: &#x27;Students&#x27;,   timestamp: &#x27;TimeOfGraduation&#x27;,   value: &#x27;Id&#x27;,   winsize: 2678400000 // 31 days in miliseconds};var timeSeries = base.store(&quot;Students&quot;).addStreamAggr(timeser);// add a count aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregatorvar co = {   name: &#x27;CountAggr&#x27;,   type: &#x27;winBufCount&#x27;,   store: &#x27;Students&#x27;,   inAggr: &#x27;TimeSeriesAggr&#x27;};var count = base.store(&quot;Students&quot;).addStreamAggr(co);base.close();</code></pre>
-</div>
-
-    </section>
-
-    
-        <section>
-        <h4>Properties</h4>
-            <table class="jsdoc-details-table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Optional</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-                <tr>
-        <td>
-            <p>name</p>
-        </td>
-        <td>
-                <p>string</p>
-        </td>
-        <td>
-                <p>&nbsp;</p>
-        </td>
-        <td>
-                <p>The given name of the stream aggregator.</p>
-        </td>
-</tr>
-
-                <tr>
-        <td>
-            <p>type</p>
-        </td>
-        <td>
-                <p>string</p>
-        </td>
-        <td>
-                <p>&nbsp;</p>
-        </td>
-        <td>
-                <p>The type of the stream aggregator. It must be equal to <b>'winBufCount'</b>.</p>
-        </td>
-</tr>
-
-                <tr>
-        <td>
-            <p>store</p>
-        </td>
-        <td>
-                <p>string</p>
-        </td>
-        <td>
-                <p>&nbsp;</p>
-        </td>
-        <td>
-                <p>The name of the store from which it takes the data.</p>
-        </td>
-</tr>
-
-                <tr>
-        <td>
-            <p>inAggr</p>
-        </td>
-        <td>
-                <p>string</p>
-        </td>
-        <td>
-                <p>&nbsp;</p>
-        </td>
-        <td>
-                <p>The name of the stream aggregator to which it connects and gets the data.</p>
-        </td>
-</tr>
-
-        </tbody>
-</table>
-
-    </section>
-
-
-    <dl class="dl-compact">
-        
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        
-        
-        
-        
-        
-    </dl>
-
                 <h3 id="~StreamAggregateEMA"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateEMA</span><small class="property-type">
             &nbsp;module:qmStreamAggr</small></h3>
         <p>This stream aggregator represents the exponential moving average window buffer. It calculates the weighted moving average 
@@ -5961,21 +5837,6 @@ It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.htm
         </td>
         <td>
                 <p>The time series type.</p>
-        </td>
-</tr>
-
-                <tr>
-        <td>
-            <p>count</p>
-        </td>
-        <td>
-                <p><a href="module-qm.html#~StreamAggregateCount">module:qm~StreamAggregateCount</a></p>
-        </td>
-        <td>
-                <p>&nbsp;</p>
-        </td>
-        <td>
-                <p>The count type.</p>
         </td>
 </tr>
 
