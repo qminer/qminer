@@ -4423,16 +4423,13 @@ TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& I
     // load stores
     InfoLog("Loading stores");
     // read store names from file
-    TFIn FIn(FPath + "StoreList.json");
-    TStr jsons;
-    FIn.GetNextLn(jsons);
-    PJsonVal json = TJsonVal::GetValFromStr(jsons);
-    QmAssert(!json->IsNull() && json->IsObjKey("stores"));
-    PJsonVal json_stores = json->GetObjKey("stores");
-    for (int i = 0; i < json_stores->GetArrVals(); i++) {
-        PJsonVal json_store = json_stores->GetArrVal(i);
-        TStr StoreNm = json_store->GetObjStr("name");
-        TStr StoreType = json_store->GetObjStr("type");
+    PJsonVal RootVal = TJsonVal::GetValFromStr(TStr::LoadTxt(FPath + "StoreList.json"));
+    QmAssert(!RootVal->IsNull() && RootVal->IsObjKey("stores"));
+    PJsonVal StoresVal = RootVal->GetObjKey("stores");
+    for (int i = 0; i < StoresVal->GetArrVals(); i++) {
+        PJsonVal StoreVal = StoresVal->GetArrVal(i);
+        TStr StoreNm = StoreVal->GetObjStr("name");
+        TStr StoreType = StoreVal->GetObjStr("type");
         InfoLog("  " + StoreNm);
         // get cache size for the store
         const uint64 StoreCacheSize = StoreNmCacheSizeH.IsKey(StoreNm) ?
@@ -4458,22 +4455,19 @@ void SaveBase(const TWPt<TBase>& Base) {
     if (Base->IsRdOnly()) {
         InfoLog("No saving of generic base necessary!");
     } else {
-        // Only need to save list of stores so we know what to load next time
-        // Everything else is saved automatically in destructor
+        // Saving list of stores so we know what to load next time
+        // Stores are saved automatically in destructor
         InfoLog("Saving list of stores ... ");
-        PJsonVal stores = TJsonVal::NewArr();
+        PJsonVal StoresVal = TJsonVal::NewArr();
         for (int StoreN = 0; StoreN < Base->GetStores(); StoreN++) {
-            PStore store_obj = Base->GetStoreByStoreN(StoreN);
-            PJsonVal store = TJsonVal::NewObj();
-            store->AddToObj("name", store_obj->GetStoreNm());
-            store->AddToObj("type", store_obj->GetStoreType());
-            stores->AddToArr(store);
+            PStore Store = Base->GetStoreByStoreN(StoreN);
+            PJsonVal StoreVal = TJsonVal::NewObj();
+            StoreVal->AddToObj("name", Store->GetStoreNm());
+            StoreVal->AddToObj("type", Store->GetStoreType());
+            StoresVal->AddToArr(StoreVal);
         }
-        PJsonVal root = TJsonVal::NewObj();
-        root->AddToObj("stores", stores);
-
-        TFOut FOut(Base->GetFPath() + "StoreList.json");
-        FOut.PutStr(TJsonVal::GetStrFromVal(root));
+        PJsonVal RootVal = TJsonVal::NewObj("stores", StoresVal);
+        RootVal->SaveStr().SaveTxt(Base->GetFPath() + "StoreList.json");
     }
 }
 

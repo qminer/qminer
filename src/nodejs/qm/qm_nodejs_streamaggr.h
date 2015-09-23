@@ -83,7 +83,6 @@
 * @typedef {module:qm.StreamAggr} StreamAggregators
 * Stream aggregator types.
 * @property {module:qm~StreamAggregateTimeSeriesWindow} timeSeries - The time series type.
-* @property {module:qm~StreamAggregateCount} count - The count type.
 * @property {module:qm~StreamAggregateSum} sum - The sum type.
 * @property {module:qm~StreamAggregateMin} min - The minimal type.
 * @property {module:qm~StreamAggregateMax} max - The maximal type.
@@ -134,55 +133,6 @@
 *    winsize: 2000
 * };
 * base.store("Heat").addStreamAggr(aggr); 
-* base.close();
-*/
-
-/**
-* @typedef {module:qm.StreamAggr} StreamAggregateCount
-* This stream aggregator represents the count moving window buffer. It counts the number of records in the
-* stream aggregator, that it connects to. It implements the following methods:
-* <br>{@link module:qm.StreamAggr#getFloat} returns the number of records in the it's buffer window. 
-* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
-* @property {string} name - The given name of the stream aggregator.
-* @property {string} type - The type of the stream aggregator. It must be equal to <b>'winBufCount'</b>.
-* @property {string} store - The name of the store from which it takes the data.
-* @property {string} inAggr - The name of the stream aggregator to which it connects and gets the data.
-* @example
-* // import the qm module
-* var qm = require('qminer');
-* // create a base with a simple store
-* var base = new qm.Base({
-*    mode: "createClean",
-*    schema: [
-*    {
-*        name: "Students",
-*        fields: [
-*            { name: "Id", type: "float" },
-*            { name: "TimeOfGraduation", type: "datetime" }
-*        ]
-*    }]
-* });
-*
-* // create a new time series stream aggregator for the 'Students' store, that takes the values from the 'Id' field
-* // and the timestamp from the 'TimeOfGraduation' field. The size of the window should be 1 month.
-* var timeser = {
-*    name: 'TimeSeriesAggr',
-*    type: 'timeSeriesWinBuf',
-*    store: 'Students',
-*    timestamp: 'TimeOfGraduation',
-*    value: 'Id',
-*    winsize: 2678400000 // 31 days in miliseconds
-* };
-* var timeSeries = base.store("Students").addStreamAggr(timeser);
-*
-* // add a count aggregator, that is connected with the 'TimeSeriesAggr' aggregator
-* var co = {
-*    name: 'CountAggr',
-*    type: 'winBufCount',
-*    store: 'Students',
-*    inAggr: 'TimeSeriesAggr'
-* };
-* var count = base.store("Students").addStreamAggr(co);
 * base.close();
 */
 
@@ -867,11 +817,11 @@ public:
 	*/
 	//# exports.StreamAggr.prototype.load = function (fin) { return Object.create(require('qminer').StreamAggr.prototype); }
 	JsDeclareFunction(load);
+
 	// IInt
 	//!- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
 	JsDeclareFunction(getInteger);
 
-	// IFlt
 	/**
 	* Returns the value of the specific stream aggregator. For return values see {@link module:qm~StreamAggregators}.
 	* @returns {number} The value of the stream aggregator.
@@ -921,7 +871,6 @@ public:
 	//# exports.StreamAggr.prototype.getFloat = function () { return 0; };
 	JsDeclareFunction(getFloat);
 
-	// ITm
 	/**
 	* Returns the timestamp value of the newest record in buffer.
 	* @returns {number} The timestamp of the newest record. It represents the number of miliseconds between the record time and 01.01.1601 time: 00:00:00.0.
@@ -970,7 +919,6 @@ public:
 	//# exports.StreamAggr.prototype.getTimestamp = function () { return 0; };
 	JsDeclareFunction(getTimestamp);
 	
-	// IFltVec
 	/**
 	* Gets the length of the vector containing the values of the stream aggregator.
 	* @returns {number} The length of the vector.
@@ -1092,7 +1040,6 @@ public:
 	//# exports.StreamAggr.prototype.getFloatVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getFloatVector);
 
-	// ITmVec
 	/**
 	* Gets the length of the timestamp vector of the stream aggregator.
 	* @returns {number} The length of the timestamp vector.
@@ -1217,7 +1164,6 @@ public:
 	//# exports.StreamAggr.prototype.getTimestampVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(getTimestampVector);
 	
-	// IFltTmIO
 	/**
 	* Gets the value of the newest record added to the stream aggregator.
 	* @returns {number} The value of the newest record in the buffer.
@@ -1434,6 +1380,12 @@ public:
 	*/
 	//# exports.StreamAggr.prototype.val = undefined;
 	JsDeclareProperty(val);
+
+    /**
+	* Returns true when the stream aggregate has enough data to initialize its internal state.
+	*/
+	//# exports.StreamAggr.prototype.init = false;
+	JsDeclareProperty(init);
 };
 
 ///////////////////////////////
@@ -1441,8 +1393,6 @@ public:
 class TNodeJsStreamAggr :
 	public TQm::TStreamAggr,
 	public TQm::TStreamAggrOut::IInt,
-	//public TQm::TStreamAggrOut::IFlt,	
-	//public TQm::TStreamAggrOut::ITm,
 	public TQm::TStreamAggrOut::IFltTmIO,
 	public TQm::TStreamAggrOut::IFltVec,
 	public TQm::TStreamAggrOut::ITmVec,
@@ -1450,7 +1400,6 @@ class TNodeJsStreamAggr :
 	public TQm::TStreamAggrOut::INmInt,
 	// combinations
 	public TQm::TStreamAggrOut::IFltTm
-	//public TQm::TStreamAggrOut::IFltVecTm
 {
 private:	
 	// callbacks

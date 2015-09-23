@@ -4392,10 +4392,8 @@ TFunRouter<PStreamAggr, TStreamAggr::TLoadF> TStreamAggr::LoadRouter;
 
 void TStreamAggr::Init() {
 	Register<TStreamAggrs::TRecBuffer>();
-	Register<TStreamAggrs::TCount>();
 	Register<TStreamAggrs::TTimeSeriesTick>();
-	Register<TStreamAggrs::TTimeSeriesWinBuf>();
-	Register<TStreamAggrs::TWinBufCount>();
+	Register<TStreamAggrs::TWinBuf>();
 	Register<TStreamAggrs::TWinBufSum>();
 	Register<TStreamAggrs::TWinBufMin>();
 	Register<TStreamAggrs::TWinBufMax>();
@@ -4435,6 +4433,14 @@ PStreamAggr TStreamAggr::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBas
 void TStreamAggr::Save(TSOut& SOut) const {
 	AggrNm.Save(SOut); Guid.Save(SOut);
 }
+
+void TStreamAggr::LoadState(TSIn& SIn) {
+    throw TQmExcept::New("TStreamAggr::_Load not implemented:" + GetAggrNm());
+};
+
+void TStreamAggr::SaveState(TSOut& SOut) const {
+    throw TQmExcept::New("TStreamAggr::_Save not implemented:" + GetAggrNm());
+};
 
 ///////////////////////////////
 // QMiner-Stream-Aggregator-Base
