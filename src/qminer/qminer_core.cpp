@@ -10,9 +10,6 @@
 #include "qminer_ftr.h"
 #include "qminer_aggr.h"
 
-// external dependecies
-#include <sphere.h>
-
 namespace TQm {
 
 ///////////////////////////////

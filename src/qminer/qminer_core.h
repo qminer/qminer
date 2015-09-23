@@ -11,7 +11,6 @@
 
 #include <base.h>
 #include <mine.h>
-#include <funrouter.h>
 
 namespace TQm {
 

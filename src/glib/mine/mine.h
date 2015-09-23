@@ -10,7 +10,9 @@
 #define mine_h
 
 #include <base.h>
-#include <funrouter.h>
+
+// index structures
+#include "sphere.h"
 
 // utilities
 #include "cfyres.h"
@@ -76,5 +78,6 @@
 
 // hoeffding trees 
 #include "hoeffding.h"
+
 
 #endif
