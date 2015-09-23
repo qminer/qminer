@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 var assert = require('../../src/nodejs/scripts/assert.js');
 var analytics = require('qminer').analytics;
 var la = require('qminer').la;
@@ -174,6 +182,19 @@ describe('Sigmoid Tests', function () {
             assert(prediction[0] < 0.10);
             assert.eqtol(prediction[1], 0.5);
             assert(prediction[2] > 0.90);
+        })
+    });
+    describe('Serialization Tests', function () {
+        it('should serialize and deserialize', function () {
+            var sigmoid = new analytics.Sigmoid();
+            var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+            var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+            sigmoid.fit(X, y);
+            sigmoid.save(require('qminer').fs.openWrite('sigmoid_test.bin')).close();
+            var sigmoid2 = new analytics.Sigmoid(require('qminer').fs.openRead('sigmoid_test.bin'));
+            assert.deepEqual(sigmoid.getParams(), sigmoid2.getParams());
+            assert.eqtol(sigmoid.getModel().A, sigmoid2.getModel().A);
+            assert.eqtol(sigmoid.getModel().B, sigmoid2.getModel().B);
         })
     });
 });

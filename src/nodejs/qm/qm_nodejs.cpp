@@ -3153,6 +3153,8 @@ TNodeJsFtrSpace* TNodeJsFtrSpace::NewFromArgs(const v8::FunctionCallbackInfo<v8:
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
+	EAssertR(Args.Length() == 2, "FeatureSpace.constructor: 2 parameters must be given!");
+	EAssertR(TNodeJsUtil::IsArgWrapObj<TNodeJsBase>(Args, 0), "FeatureSpace.constructor: first parameter must be Base!");
 	const TWPt<TQm::TBase>& Base = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args[0]->ToObject())->Base;
 
 	if (Args[1]->IsString() || TNodeJsUtil::IsArgWrapObj(Args, 1, TNodeJsFIn::GetClassId())) {
@@ -3213,6 +3215,8 @@ TNodeJsFtrSpace* TNodeJsFtrSpace::NewFromArgs(const v8::FunctionCallbackInfo<v8:
 				FtrExtV.Add(TQm::TFtrExt::New(Base, ParamVal->GetObjStr("type"), ParamVal));
 			}
 		}
+	} else {
+		throw TQm::TQmExcept::New("FeatureSpace.constructor: invalid parameters!");
 	}
 
 	// create feature space
@@ -3364,6 +3368,10 @@ void TNodeJsFtrSpace::extractSparseVector(const v8::FunctionCallbackInfo<v8::Val
 	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
 	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
 
+	for (int FtrN = 0; FtrN < JsFtrSpace->FtrSpace->GetFtrExts(); FtrN++) {
+		EAssertR(JsRec->Rec.GetStore()->GetStoreNm() == JsFtrSpace->FtrSpace->GetFtrExt(FtrN)->GetFtrStore()->GetStoreNm(), 
+			"FeatureSpace.extractSparseVector: record's and feature extractor's store/source must be the same!");
+	}
 	// create feature vector
 	TIntFltKdV SpV;
 	JsFtrSpace->FtrSpace->GetSpV(JsRec->Rec, SpV);
@@ -3382,6 +3390,11 @@ void TNodeJsFtrSpace::extractVector(const v8::FunctionCallbackInfo<v8::Value>& A
 	try {
 		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
 		TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+
+		for (int FtrN = 0; FtrN < JsFtrSpace->FtrSpace->GetFtrExts(); FtrN++) {
+			EAssertR(JsRec->Rec.GetStore()->GetStoreNm() == JsFtrSpace->FtrSpace->GetFtrExt(FtrN)->GetFtrStore()->GetStoreNm(),
+				"FeatureSpace.extractSparseVector: record's and feature extractor's store/source must be the same!");
+		}
 
 		// create feature vector, compute
 		TFltV FltV;

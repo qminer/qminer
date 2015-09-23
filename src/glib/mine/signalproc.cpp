@@ -697,14 +697,15 @@ TNNet::TLayer::TLayer(const TInt& NeuronsN, const TInt& OutputsN, const TTFunc& 
     // Add neurons to the layer, plus bias neuron
     for(int NeuronN = 0; NeuronN <= NeuronsN; ++NeuronN){
         NeuronV.Add(TNeuron(OutputsN, NeuronN, TransFunc));
-        printf("Made a neuron!");
+		// debugging
+        /*printf("Made a neuron!");
         printf(" Neuron N: %d", NeuronN);
         printf(" Neuron H: %d", NeuronV.Len());
-        printf("\n");
+        printf("\n");*/
     } 
     // Force the bias node's output value to 1.0
     NeuronV.Last().SetOutVal(1.0);
-    printf("\n");
+    //printf("\n");
 }
 TNNet::TLayer::TLayer(TSIn& SIn){
 	NeuronV.Load(SIn);
@@ -732,7 +733,8 @@ TNNet::TNNet(const TIntV& LayoutV, const TFlt& _LearnRate,
         TInt NeuronsN = LayoutV[LayerN];
         // Add a layer to the net
         LayerV.Add(TLayer(NeuronsN, OutputsN, TransFunc));
-        printf("LayerV.Len(): %d \n", LayerV.Len() );
+		//for debugging
+        //printf("LayerV.Len(): %d \n", LayerV.Len() );
     }
 }
 
@@ -748,7 +750,7 @@ PNNet TNNet::Load(TSIn& SIn) {
 
 void TNNet::FeedFwd(const TFltV& InValV){
     // check if number of input values same as number of input neurons
-    Assert(InValV.Len() == LayerV[0].GetNeuronN() - 1);
+    EAssertR(InValV.Len() == LayerV[0].GetNeuronN() - 1, "InValV must be of equal length than the first layer!");
     // assign input values to input neurons
     for(int InputN = 0; InputN < InValV.Len(); ++InputN){
         LayerV[0].SetOutVal(InputN, InValV[InputN]);
@@ -768,6 +770,7 @@ void TNNet::BackProp(const TFltV& TargValV, const TBool& UpdateWeights){
     TLayer& OutputLayer = LayerV.Last();
     Error = 0.0;
 
+	EAssertR(TargValV.Len() == OutputLayer.GetNeuronN() - 1, "TargValV must be of equal length than the last layer!");
     for(int NeuronN = 0; NeuronN < OutputLayer.GetNeuronN() - 1; ++NeuronN){
         TFlt Delta = TargValV[NeuronN] - OutputLayer.GetOutVal(NeuronN);
         Error += Delta * Delta;
@@ -818,6 +821,26 @@ void TNNet::Save(TSOut& SOut) const {
 	LearnRate.Save(SOut);
 	Momentum.Save(SOut);
 	LayerV.Save(SOut);
+}
+
+TStr TNNet::GetFunction(const TTFunc& FuncEnum) {
+	TStr FuncString;
+	if (FuncEnum == TSignalProc::TTFunc::tanHyper) {
+		FuncString = "tanHyper";
+	} else if (FuncEnum == TSignalProc::TTFunc::sigmoid) {
+		FuncString = "sigmoid";
+	} else if (FuncEnum == TSignalProc::TTFunc::fastTanh) {
+		FuncString = "fastTanh";
+	} else if (FuncEnum == TSignalProc::TTFunc::softPlus) {
+		FuncString = "softPlus";
+	} else if (FuncEnum == TSignalProc::TTFunc::fastSigmoid) {
+		FuncString = "fastSigmoid";
+	} else if (FuncEnum == TSignalProc::TTFunc::linear) {
+		FuncString = "linear";
+	} else {
+		throw TExcept::New("Unknown transfer function type " + FuncString);
+	}
+	return FuncString;
 }
 
 ///////////////////////////////////////////////////////////////////

@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 // JavaScript source code
 var la = require("qminer").la;
 var analytics = require("qminer").analytics;
@@ -6,12 +14,6 @@ var assert = require("../../src/nodejs/scripts/assert.js");
 //Unit test for SVR
 
 describe("SVR test", function () {
-    beforeEach(function () {
-
-    });
-    afterEach(function () {
-
-    });
 
     describe("Constructor test", function () {
         it("It should return a default constructor", function () {
@@ -464,6 +466,18 @@ describe("SVR test", function () {
             assert.throws(function () {
                 SVR.decisionFunction(matrix2);
             });
+        })
+    });
+    describe('Serialization Tests', function () {
+        it('should serialize and deserialize', function () {
+            var matrix = new la.Matrix([[1, -1], [0, 0]]);
+            var vec = new la.Vector([1, -1]);
+            var SVR = new analytics.SVR();
+            SVR.fit(matrix, vec);
+            SVR.save(require('qminer').fs.openWrite('svc_test.bin')).close();
+            var SVR2 = new analytics.SVR(require('qminer').fs.openRead('svc_test.bin'));
+            assert.deepEqual(SVR.getParams(), SVR2.getParams());
+            assert.eqtol(SVR.weights.minus(SVR2.weights).norm(), 0, 1e-8);
         })
     });
 })

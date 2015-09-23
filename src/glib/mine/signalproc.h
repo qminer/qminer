@@ -562,6 +562,8 @@ private:
         void CalcHiddenGradient(const TLayer& NextLayer);
         // Save the model
         void Save(TSOut& SOut);
+
+		const TTFunc& GetFunction() { return TFuncNm; }
     };
 
     /////////////////////////////////////////
@@ -620,9 +622,28 @@ public:
     void GetResults(TFltV& ResultV) const;
     // Set learn rate
     void SetLearnRate(const TFlt& NewLearnRate) { LearnRate = NewLearnRate; };
+	// set momentum
+	void SetMomentum(const TFlt& NewMomentum) { Momentum = NewMomentum; }
     // Save the model
     void Save(TSOut& SOut) const;
 
+	void GetLayout(TIntV& layout) {
+		layout.Gen(LayerV.Len());
+		for (int i = 0; i < LayerV.Len(); i++) {
+			layout[i] = LayerV[i].GetNeuronN() - 1;
+		}
+	}
+	TFlt GetLearnRate() { return LearnRate; }
+	TFlt GetMomentum() { return Momentum; }
+	TStr GetTFuncHidden() { 
+		TStr FuncHidden = GetFunction(LayerV[1].GetNeuron(0).GetFunction());
+		return FuncHidden;
+	};
+	TStr GetTFuncOut() {
+		TStr FuncOut = GetFunction(LayerV[LayerV.Len() - 1].GetNeuron(0).GetFunction());
+		return FuncOut;
+	}
+	TStr GetFunction(const TTFunc& Func);
 };
 
 /////////////////////////////////////////
@@ -670,6 +691,16 @@ public:
 	void GetCoeffs(TFltV& Coef) const;
 	// check if the coefficient vector contains NaN
 	bool HasNaN() const;
+
+	// set the forgetting factor
+	void setForgetFact(const double& _ForgetFact) { ForgetFact = _ForgetFact; }
+	// set the regularization
+	void setRegFact(const double& _RegFact) { RegFact = _RegFact; }
+	// set the dimensions
+	void setDim(const int& _Dim) {
+		P = TFullMatrix::Identity(_Dim) / RegFact;
+		Coeffs = TVector(_Dim, true);
+	}
 };
 
 }
