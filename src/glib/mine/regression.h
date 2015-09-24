@@ -69,7 +69,7 @@ public:
 
 	void GetWgtV(TFltV& WgtV) const;
 
-	const double getLambda() { return Lambda; }
+	double getLambda() const { return Lambda; }
 	void setLambda(const double& _Lambda) { Lambda = _Lambda; }
 
 private:

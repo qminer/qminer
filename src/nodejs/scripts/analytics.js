@@ -195,7 +195,7 @@ module.exports = exports = function (pathPrefix) {
          * // create the vector for the decisionFunction
          * var test = new la.Vector([1, 2]);
          * // give the vector to the decision function
-         * var prediction = onevsall.predict(test); // returns the vector of scores 
+         * var prediction = onevsall.predict(test); // returns the vector of scores
          */
         this.decisionFunction = function(X) {
             // check what is our input
@@ -280,7 +280,7 @@ module.exports = exports = function (pathPrefix) {
          * var vector = new la.Vector([0, 0, 1, 1]);
          * // fit the model
          * onevsall.fit(matrix, vector);
-         */        
+         */
         this.fit = function(X, y) {
             models = [ ];
             // make model for each category
@@ -682,7 +682,7 @@ module.exports = exports = function (pathPrefix) {
             param = p;
 
             iter = param.iter == undefined ? iter : param.iter;
-            k = param.k == undefined ? k : param.iter; 
+            k = param.k == undefined ? k : param.iter;
         }
 
         /**
@@ -769,7 +769,7 @@ module.exports = exports = function (pathPrefix) {
     * var KMeans = new analytics.KMeans();
     * // create the matrix to be fitted
     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
-    * // create the model 
+    * // create the model
     * KMeans.fit(X);
     */
     exports.KMeans = function (param) {
@@ -789,6 +789,7 @@ module.exports = exports = function (pathPrefix) {
         var verbose = undefined;
         var fitIdx = undefined;
         var fitStart;
+        var medoids = new la.Vector();
 
         if (param != undefined && param.constructor.name == 'FIn') {
             C = new la.Matrix();
@@ -838,6 +839,13 @@ module.exports = exports = function (pathPrefix) {
             C = C_new;
             norC2 = la.square(C.colNorms());
             idxv = idxv_new;
+            if (medoids.length != 0) {
+                var medoids_new = new la.Vector(medoids);
+                for (var i = 0; i < medoids_new.length; i++) {
+                    medoids_new[i] = mapping[medoids[i]]
+                }
+                medoids = medoids_new;
+            }
         }
         /**
         * Returns the model
@@ -898,7 +906,8 @@ module.exports = exports = function (pathPrefix) {
 
         /**
         * Computes the centroids.
-        * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} X - Matrix whose columns correspond to examples.
+        * @param {module:la.IntVector} [recIds] - IDs of columns of X. The fit function stores the IDs of the medoids, which are used by the KMeans.explain function.
         * @returns {module:analytics.KMeans} Self. It stores the info about the new model.
         * @example
         * // import analytics module
@@ -910,7 +919,7 @@ module.exports = exports = function (pathPrefix) {
         * // create the model with the matrix X
         * KMeans.fit(X);
         */
-        this.fit = function (X) {
+        this.fit = function (X, recIds) {
             // select random k columns of X, returns a dense C++ matrix
             var selectCols = function (X, k) {
                 if (fitStart) {
@@ -1011,6 +1020,15 @@ module.exports = exports = function (pathPrefix) {
                 w.toc("end");
             }
             norC2 = la.square(C.colNorms());
+            if (recIds != undefined) {
+                assert(recIds.length == X.cols);
+                var D = X.multiplyT(C).minus(ones_n.outer(norC2)).minus(norX2.outer(ones_k));
+                medoidIdx = la.findMaxIdx(D);
+                medoids = new la.Vector(medoidIdx);
+                for (var i = 0; i < medoids.length; i++) {
+                    medoids[i] = recIds[medoidIdx[i]];
+                }
+            }
         };
 
         /**
@@ -1037,6 +1055,50 @@ module.exports = exports = function (pathPrefix) {
             var norX2 = la.square(X.colNorms());
             var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
             return la.findMaxIdx(D);
+        }
+
+
+        /**
+        * @typedef KMeansExplanation
+        * @type Object
+        * @property {module:la.IntVector} medoidIDs The IDs of the nearest medoids
+        */
+
+        /**
+        * Returns the IDs of the nearest medoid for each example.
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} X - Matrix whose columns correspond to examples.
+        * @returns {KMeansExplanation} Object containing the vector of medoid IDs.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // import linear algebra module
+        * var la = require('qminer').la;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+        * // create a matrix to be fitted
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+        * // create the model with the matrix X using the column IDs [0,1,2]
+        * KMeans.fit(X, [0,1,2]);
+        * // create the matrix of the prediction vectors
+        * var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
+        * // predict/explain - return the closest medoids
+        * var explanation = KMeans.explain(test);
+        */
+        this.explain = function (X) {
+            if (medoids == undefined) {
+                return { medoidIDs: null };
+            }
+            var ones_n = la.ones(X.cols).multiply(0.5);
+            var ones_k = la.ones(k).multiply(0.5);
+            var norX2 = la.square(X.colNorms());
+            var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+            var centroids = la.findMaxIdx(D);
+            var medoidIDs = new la.IntVector(centroids);
+            assert(medoids.length == k)
+            for (var i = 0; i < centroids.length; i++) {
+                medoidIDs[i] = medoids[centroids[i]];
+            }
+            return { medoidIDs: medoidIDs};
         }
 
         /**
@@ -1092,6 +1154,7 @@ module.exports = exports = function (pathPrefix) {
 			    norC2.save(fout);
 			    (new la.Vector(idxv)).save(fout);
 			    params_vec.save(fout);
+			    medoids.save(fout);
 			    fout.close();
 			    fout = null;
             } else if (arg.constructor.name == 'FOut') {
@@ -1099,11 +1162,12 @@ module.exports = exports = function (pathPrefix) {
                 norC2.save(arg);
                 (new la.Vector(idxv)).save(arg);
                 params_vec.save(arg);
+                medoids.save(arg);
                 return arg;
             } else {
                 throw "KMeans.save: input must be fs.Fout";
             }
-			
+
 		}
 
         this.load = function (fname) {
@@ -1121,6 +1185,8 @@ module.exports = exports = function (pathPrefix) {
 
 		    var params_vec = new la.Vector();
 		    params_vec.load(fin);
+		    medoids.load(fin);
+
 		    iter = params_vec[0];
 		    k = params_vec[1];
 		    verbose = (params_vec[2] != 0);

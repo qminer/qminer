@@ -1,12 +1,12 @@
 describe('example tests for the ladoc_structures.js file', function () {
-describe("Linear algebra module.", function () {
+describe("Linear algebra module", function () {
 it('should make test number 1', function () {
  this.timeout(10000); 
 
  // import module, create a random matrix and a vector, multiply. find svd of the matrix
 });
 });
-describe("Matrix class", function () {
+describe("Matrix clas", function () {
 it('should make test number 2', function () {
  this.timeout(10000); 
 
@@ -18,7 +18,7 @@ it('should make test number 2', function () {
  var mat2 = new la.Matrix([[1, 7, 4], [-10, 0, 3]]); // creates a 2 x 3 matrix with the designated values
 });
 });
-describe("Sets an element or a block of matrix.", function () {
+describe("Sets an element or a block of matrix", function () {
 it('should make test number 3', function () {
  this.timeout(10000); 
 
@@ -35,7 +35,7 @@ it('should make test number 3', function () {
 
 });
 });
-describe("Right-hand side multiplication of matrix with parameter.", function () {
+describe("Right-hand side multiplication of matrix with parameter", function () {
 it('should make test number 4', function () {
  this.timeout(10000); 
 
@@ -50,7 +50,7 @@ it('should make test number 4', function () {
 
 });
 });
-describe("Matrix transpose and right-hand side multiplication of matrix with parameter.", function () {
+describe("Matrix transpose and right-hand side multiplication of matrix with parameter", function () {
 it('should make test number 5', function () {
  this.timeout(10000); 
 
@@ -65,7 +65,7 @@ it('should make test number 5', function () {
 
 });
 });
-describe("Addition of two matrices.", function () {
+describe("Addition of two matrices", function () {
 it('should make test number 6', function () {
  this.timeout(10000); 
 
@@ -82,7 +82,7 @@ it('should make test number 6', function () {
 
 });
 });
-describe("Substraction of two matrices.", function () {
+describe("Substraction of two matrices", function () {
 it('should make test number 7', function () {
  this.timeout(10000); 
 
@@ -99,7 +99,7 @@ it('should make test number 7', function () {
 
 });
 });
-describe("Transposes matrix.", function () {
+describe("Transposes matrix", function () {
 it('should make test number 8', function () {
  this.timeout(10000); 
 
@@ -115,7 +115,7 @@ it('should make test number 8', function () {
 
 });
 });
-describe("Solves the linear system.", function () {
+describe("Solves the linear system", function () {
 it('should make test number 9', function () {
  this.timeout(10000); 
 
@@ -130,7 +130,7 @@ it('should make test number 9', function () {
 
 });
 });
-describe("Returns the matrix as string.", function () {
+describe("Returns the matrix as string", function () {
 it('should make test number 10', function () {
  this.timeout(10000); 
 
@@ -143,7 +143,7 @@ it('should make test number 10', function () {
 
 });
 });
-describe("Sets the column of the matrix.", function () {
+describe("Sets the column of the matrix", function () {
 it('should make test number 11', function () {
  this.timeout(10000); 
 
@@ -162,7 +162,7 @@ it('should make test number 11', function () {
 
 });
 });
-describe("Sets the row of matrix.", function () {
+describe("Sets the row of matrix", function () {
 it('should make test number 12', function () {
  this.timeout(10000); 
 
@@ -181,7 +181,7 @@ it('should make test number 12', function () {
 
 });
 });
-describe("Returns the diagonal elements of matrix.", function () {
+describe("Returns the diagonal elements of matrix", function () {
 it('should make test number 13', function () {
  this.timeout(10000); 
 
@@ -194,7 +194,7 @@ it('should make test number 13', function () {
 
 });
 });
-describe("Saves the matrix as output stream.", function () {
+describe("Saves the matrix as output stream", function () {
 it('should make test number 14', function () {
  this.timeout(10000); 
 
@@ -210,7 +210,7 @@ it('should make test number 14', function () {
 
 });
 });
-describe("Loads the matrix from input stream.", function () {
+describe("Loads the matrix from input stream", function () {
 it('should make test number 15', function () {
  this.timeout(10000); 
 
@@ -226,7 +226,7 @@ it('should make test number 15', function () {
 
 });
 });
-describe("Sparse Vector", function () {
+describe("Sparse Vecto", function () {
 it('should make test number 16', function () {
  this.timeout(10000); 
 
@@ -238,7 +238,7 @@ it('should make test number 16', function () {
  var spVec2 = new la.SparseVector([[0, 1], [2, 3], [3, 6]], 5); // largest index (zero based) is 4
 });
 });
-describe("Returns an element of the sparse vector.", function () {
+describe("Returns an element of the sparse vector", function () {
 it('should make test number 17', function () {
  this.timeout(10000); 
 
@@ -251,7 +251,7 @@ it('should make test number 17', function () {
 
 });
 });
-describe("Puts a new element in sparse vector.", function () {
+describe("Puts a new element in sparse vector", function () {
 it('should make test number 18', function () {
  this.timeout(10000); 
 
@@ -264,7 +264,7 @@ it('should make test number 18', function () {
 
 });
 });
-describe("Returns the sum of all values in sparse vector.", function () {
+describe("Returns the sum of all values in sparse vector", function () {
 it('should make test number 19', function () {
  this.timeout(10000); 
 
@@ -277,7 +277,7 @@ it('should make test number 19', function () {
 
 });
 });
-describe("Returns the inner product of the parameter and the sparse vector.", function () {
+describe("Returns the inner product of the parameter and the sparse vector", function () {
 it('should make test number 20', function () {
  this.timeout(10000); 
 
@@ -291,7 +291,7 @@ it('should make test number 20', function () {
 
 });
 });
-describe("Multiplies the sparse vector with a scalar.", function () {
+describe("Multiplies the sparse vector with a scalar", function () {
 it('should make test number 21', function () {
  this.timeout(10000); 
 
@@ -304,7 +304,7 @@ it('should make test number 21', function () {
 
 });
 });
-describe("Returns the string representation.", function () {
+describe("Returns the string representation", function () {
 it('should make test number 22', function () {
  this.timeout(10000); 
 
@@ -317,7 +317,7 @@ it('should make test number 22', function () {
 
 });
 });
-describe("Sparse Matrix", function () {
+describe("Sparse Matri", function () {
 it('should make test number 23', function () {
  this.timeout(10000); 
 
@@ -329,7 +329,7 @@ it('should make test number 23', function () {
  var mat2 = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]], 3);
 });
 });
-describe("Returns an element of the sparse matrix at the given location.", function () {
+describe("Returns an element of the sparse matrix at the given location", function () {
 it('should make test number 24', function () {
  this.timeout(10000); 
 
@@ -342,7 +342,7 @@ it('should make test number 24', function () {
 
 });
 });
-describe("Puts an element in sparse matrix.", function () {
+describe("Puts an element in sparse matrix", function () {
 it('should make test number 25', function () {
  this.timeout(10000); 
 
@@ -355,7 +355,7 @@ it('should make test number 25', function () {
 
 });
 });
-describe("Returns the column of the sparse matrix.", function () {
+describe("Returns the column of the sparse matrix", function () {
 it('should make test number 26', function () {
  this.timeout(10000); 
 
@@ -368,7 +368,7 @@ it('should make test number 26', function () {
 
 });
 });
-describe("Sets a column in sparse matrix.", function () {
+describe("Sets a column in sparse matrix", function () {
 it('should make test number 27', function () {
  this.timeout(10000); 
 
@@ -383,7 +383,7 @@ it('should make test number 27', function () {
 
 });
 });
-describe("Attaches a column to the sparse matrix.", function () {
+describe("Attaches a column to the sparse matrix", function () {
 it('should make test number 28', function () {
  this.timeout(10000); 
 
@@ -403,7 +403,7 @@ it('should make test number 28', function () {
 
 });
 });
-describe("Returns the sum of two matrices.", function () {
+describe("Returns the sum of two matrices", function () {
 it('should make test number 29', function () {
  this.timeout(10000); 
 
@@ -422,7 +422,7 @@ it('should make test number 29', function () {
 
 });
 });
-describe("Returns the difference of two matrices.", function () {
+describe("Returns the difference of two matrices", function () {
 it('should make test number 30', function () {
  this.timeout(10000); 
 
@@ -441,7 +441,7 @@ it('should make test number 30', function () {
 
 });
 });
-describe("Returns the transposed sparse matrix.", function () {
+describe("Returns the transposed sparse matrix", function () {
 it('should make test number 31', function () {
  this.timeout(10000); 
 
@@ -457,7 +457,7 @@ it('should make test number 31', function () {
 
 });
 });
-describe("Prints sparse matrix on screen.", function () {
+describe("Prints sparse matrix on screen", function () {
 it('should make test number 32', function () {
  this.timeout(10000); 
 
@@ -475,7 +475,7 @@ it('should make test number 32', function () {
 
 });
 });
-describe("Saves the sparse matrix as output stream.", function () {
+describe("Saves the sparse matrix as output stream", function () {
 it('should make test number 33', function () {
  this.timeout(10000); 
 
@@ -491,7 +491,7 @@ it('should make test number 33', function () {
 
 });
 });
-describe("Loads the sparse matrix from input stream.", function () {
+describe("Loads the sparse matrix from input stream", function () {
 it('should make test number 34', function () {
  this.timeout(10000); 
 
@@ -507,7 +507,7 @@ it('should make test number 34', function () {
 
 });
 });
-describe("Returns a string displaying rows, columns and number of non-zero elements of sparse matrix.", function () {
+describe("Returns a string displaying rows, columns and number of non-zero elements of sparse matrix", function () {
 it('should make test number 35', function () {
  this.timeout(10000); 
 
@@ -520,7 +520,7 @@ it('should make test number 35', function () {
    
 });
 });
-describe("Prints the sparse vector on-screen.", function () {
+describe("Prints the sparse vector on-screen", function () {
 it('should make test number 36', function () {
  this.timeout(10000); 
 
@@ -533,7 +533,7 @@ it('should make test number 36', function () {
 
 });
 });
-describe("Prints the matrix on-screen.", function () {
+describe("Prints the matrix on-screen", function () {
 it('should make test number 37', function () {
  this.timeout(10000); 
 
@@ -549,7 +549,7 @@ it('should make test number 37', function () {
 
 });
 });
-describe("Prints the vector on-screen.", function () {
+describe("Prints the vector on-screen", function () {
 it('should make test number 38', function () {
  this.timeout(10000); 
 
@@ -564,7 +564,7 @@ it('should make test number 38', function () {
    
 });
 });
-describe("Copies the vector into a JavaScript array of numbers.", function () {
+describe("Copies the vector into a JavaScript array of numbers", function () {
 it('should make test number 39', function () {
  this.timeout(10000); 
 
@@ -577,7 +577,7 @@ it('should make test number 39', function () {
    
 });
 });
-describe("Copies the matrix into a JavaScript array of arrays of numbers.", function () {
+describe("Copies the matrix into a JavaScript array of arrays of numbers", function () {
 it('should make test number 40', function () {
  this.timeout(10000); 
 
@@ -590,7 +590,7 @@ it('should make test number 40', function () {
    
 });
 });
-describe("Copies the vector into a JavaScript array of numbers.", function () {
+describe("Copies the vector into a JavaScript array of numbers", function () {
 it('should make test number 41', function () {
  this.timeout(10000); 
 
@@ -603,7 +603,7 @@ it('should make test number 41', function () {
    
 });
 });
-describe("Returns a vector with all entries set to 1.0.", function () {
+describe("Returns a vector with all entries set to 1.0", function () {
 it('should make test number 42', function () {
  this.timeout(10000); 
 
@@ -614,7 +614,7 @@ it('should make test number 42', function () {
    
 });
 });
-describe("Constructs a matrix by concatenating a doubly-nested array of matrices.", function () {
+describe("Constructs a matrix by concatenating a doubly-nested array of matrices", function () {
 it('should make test number 43', function () {
  this.timeout(10000); 
 
@@ -635,7 +635,7 @@ it('should make test number 43', function () {
    
 });
 });
-describe("Generates an integer vector given range", function () {
+describe("Generates an integer vector given rang", function () {
 it('should make test number 44', function () {
  this.timeout(10000); 
 
@@ -647,7 +647,7 @@ it('should make test number 44', function () {
    
 });
 });
-describe("returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input.", function () {
+describe("returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input", function () {
 it('should make test number 45', function () {
  this.timeout(10000); 
 
@@ -661,7 +661,7 @@ it('should make test number 45', function () {
    
 });
 });
-describe("computes and returns the pairwise squared euclidean distances between columns of `X1` and `X2` (`mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2`).", function () {
+describe("computes and returns the pairwise squared euclidean distances between columns of `X1` and `X2` (`mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2`)", function () {
 it('should make test number 46', function () {
  this.timeout(10000); 
 

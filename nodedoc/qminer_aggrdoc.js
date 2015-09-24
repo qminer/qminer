@@ -71,7 +71,6 @@
 * @typedef {module:qm.StreamAggr} StreamAggregators
 * Stream aggregator types.
 * @property {module:qm~StreamAggregateTimeSeriesWindow} timeSeries - The time series type.
-* @property {module:qm~StreamAggregateCount} count - The count type.
 * @property {module:qm~StreamAggregateSum} sum - The sum type.
 * @property {module:qm~StreamAggregateMin} min - The minimal type.
 * @property {module:qm~StreamAggregateMax} max - The maximal type.
@@ -121,54 +120,6 @@
 *    winsize: 2000
 * };
 * base.store("Heat").addStreamAggr(aggr); 
-* base.close();
-*/
-/**
-* @typedef {module:qm.StreamAggr} StreamAggregateCount
-* This stream aggregator represents the count moving window buffer. It counts the number of records in the
-* stream aggregator, that it connects to. It implements the following methods:
-* <br>{@link module:qm.StreamAggr#getFloat} returns the number of records in the it's buffer window. 
-* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
-* @property {string} name - The given name of the stream aggregator.
-* @property {string} type - The type of the stream aggregator. It must be equal to <b>'winBufCount'</b>.
-* @property {string} store - The name of the store from which it takes the data.
-* @property {string} inAggr - The name of the stream aggregator to which it connects and gets the data.
-* @example
-* // import the qm module
-* var qm = require('qminer');
-* // create a base with a simple store
-* var base = new qm.Base({
-*    mode: "createClean",
-*    schema: [
-*    {
-*        name: "Students",
-*        fields: [
-*            { name: "Id", type: "float" },
-*            { name: "TimeOfGraduation", type: "datetime" }
-*        ]
-*    }]
-* });
-*
-* // create a new time series stream aggregator for the 'Students' store, that takes the values from the 'Id' field
-* // and the timestamp from the 'TimeOfGraduation' field. The size of the window should be 1 month.
-* var timeser = {
-*    name: 'TimeSeriesAggr',
-*    type: 'timeSeriesWinBuf',
-*    store: 'Students',
-*    timestamp: 'TimeOfGraduation',
-*    value: 'Id',
-*    winsize: 2678400000 // 31 days in miliseconds
-* };
-* var timeSeries = base.store("Students").addStreamAggr(timeser);
-*
-* // add a count aggregator, that is connected with the 'TimeSeriesAggr' aggregator
-* var co = {
-*    name: 'CountAggr',
-*    type: 'winBufCount',
-*    store: 'Students',
-*    inAggr: 'TimeSeriesAggr'
-* };
-* var count = base.store("Students").addStreamAggr(co);
 * base.close();
 */
 /**
@@ -1340,3 +1291,7 @@
 	* Returns the JSON object of the stream aggregate. Same as the method saveJson.
 	*/
  exports.StreamAggr.prototype.val = undefined;
+/**
+	* Returns true when the stream aggregate has enough data to initialize its internal state.
+	*/
+ exports.StreamAggr.prototype.init = false;
