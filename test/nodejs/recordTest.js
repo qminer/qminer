@@ -53,7 +53,9 @@ describe('Record Tests', function () {
             Str: "test",
             StrV: ["test1", "test2"],
             Bool: false,
-            Flt: 1.23
+            Flt: 1.23,
+			//Tm: "2015-06-01T00:00:00Z" // 1433116800000 in unix msec timestamp
+			Tm: 1433116800000 
         };
         // check addition
         assert.equal(RecordTest.push(rec), 0, "RecordTest.add");
@@ -65,6 +67,8 @@ describe('Record Tests', function () {
         assert.equal(recByRef.Str, "test", "recByRef.Str");
         assert.equal(recByRef.Bool, false, "recByRef.Bool");
         assert.equal(recByRef.Flt, 1.23, "recByRef.Flt");
+		console.log(recByRef.Tm);
+		assert.equal(recByRef.Tm, new Date(1433116800000), "recByRef.Tm");
 
         //recByRef
 
