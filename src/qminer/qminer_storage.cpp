@@ -921,10 +921,16 @@ void TRecSerializator::SetFixedJsonVal(char* Bf, const int& BfL,
 		break;
 	}
 	case oftTm: {
-		QmAssertR(JsonVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not string that represents DateTime.");
-		TStr TmStr = JsonVal->GetStr();
-		TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
-		SetFieldTm(Bf, BfL, FieldSerialDesc, Tm);
+		QmAssertR(JsonVal->IsStr() || JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not a number or a string that represents DateTime.");
+		if (JsonVal->IsStr()) {
+			TStr TmStr = JsonVal->GetStr();
+			TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
+			SetFieldTm(Bf, BfL, FieldSerialDesc, Tm);
+		} else {
+			uint64 WinMSecs = TTm::GetWinMSecsFromUnixMSecs((uint64)JsonVal->GetNum());
+			TTm Tm = TTm::GetTmFromMSecs(WinMSecs);
+			SetFieldTm(Bf, BfL, FieldSerialDesc, Tm);
+		}
 		break;
 	}
 	default:

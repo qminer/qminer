@@ -1308,7 +1308,7 @@ TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal) :
 			break;
 		}
 		case oftTm: {
-			QmAssertR(FieldVal->IsStr() || FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not number or string that represents DateTime.");
+			QmAssertR(FieldVal->IsStr() || FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not a number or a string that represents DateTime.");
 			if (FieldVal->IsStr()) {
 				TStr TmStr = FieldVal->GetStr();
 				TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
