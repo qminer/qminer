@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.2">
+  <meta name="generator" content="JSDoc 3">
   <meta charset="utf-8">
   <title>Factory class: Store</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -29,65 +29,6 @@
             <div class="symbol-description">
               <p>Store (factory pattern result)</p>
             </div>
-            <section>
-              <h2>
-            Example
-        </h2>
-              <div>
-                <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
-// factory based construction using base.createStore
-var base = qm.create(&#x27;qm.conf&#x27;, &quot;&quot;, true);
-base.createStore([{
-   name: &quot;People&quot;,
-   fields: [
-       { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
-       { name: &quot;Gender&quot;, type: &quot;string&quot;, shortstring: true },
-       { name: &quot;Age&quot;, type: &quot;int&quot; }
-   ],
-   joins: [
-       { name: &quot;ActedIn&quot;, type: &quot;index&quot;, store: &quot;Movies&quot;, inverse: &quot;Actor&quot; },
-       { name: &quot;Directed&quot;, type: &quot;index&quot;, store: &quot;Movies&quot;, inverse: &quot;Director&quot; }
-   ],
-   keys: [
-       { field: &quot;Name&quot;, type: &quot;text&quot; },
-       { field: &quot;Gender&quot;, type: &quot;value&quot; }
-   ]
-},
-{
-   name: &quot;Movies&quot;,
-   fields: [
-       { name: &quot;Title&quot;, type: &quot;string&quot;, primary: true },
-       { name: &quot;Plot&quot;, type: &quot;string&quot;, store: &quot;cache&quot; },
-       { name: &quot;Year&quot;, type: &quot;int&quot; },
-       { name: &quot;Rating&quot;, type: &quot;float&quot; },
-       { name: &quot;Genres&quot;, type: &quot;string_v&quot;, codebook: true }
-   ],
-   joins: [
-       { name: &quot;Actor&quot;, type: &quot;index&quot;, store: &quot;People&quot;, inverse: &quot;ActedIn&quot; },
-       { name: &quot;Director&quot;, type: &quot;index&quot;, store: &quot;People&quot;, inverse: &quot;Directed&quot; }
-   ],
-   keys: [
-       { field: &quot;Title&quot;, type: &quot;value&quot; },
-       { field: &quot;Plot&quot;, type: &quot;text&quot;, vocabulary: &quot;voc_01&quot; },
-       { field: &quot;Genres&quot;, type: &quot;value&quot; }
-   ]
-}]);
-base.close();
-// using the base constructor
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [{
-       name: &quot;Class&quot;,
-       fields: [
-           { name: &quot;Name&quot;, type: &quot;string&quot; },
-           { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
-       ]
-   }]
-});
-base.close();</code></pre>
-              </div>
-            </section>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -278,7 +219,9 @@ base.close();</code></pre>
               <p>Gives the field value of a specific record.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>//import qm module
@@ -357,7 +300,9 @@ base.close();</code></pre>
               <p>Deletes the records in the store.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -425,7 +370,9 @@ base.close();</code></pre>
               <p>Executes a function on each record in store.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -492,7 +439,9 @@ base.close();</code></pre>
               <p>Gets the details of the selected field.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -555,7 +504,9 @@ base.close();</code></pre>
               <p>Gives a matrix containing the field values of each record.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -669,7 +620,9 @@ base.close();</code></pre>
               <p>Gives a vector containing the field value of each record.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -733,7 +686,9 @@ base.close();</code></pre>
               <p>Checks if the field is of type Date.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -796,7 +751,9 @@ base.close();</code></pre>
               <p>Checks if the field is of numeric type.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -858,7 +815,9 @@ base.close();</code></pre>
               <p>Checks if the field is of string type.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -921,7 +880,9 @@ base.close();</code></pre>
               <p>Returns the details of the selected key as a JSON object.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -988,7 +949,9 @@ base.close();</code></pre>
               <p>Creates an array of function outputs created from the store records.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1055,7 +1018,9 @@ base.close();</code></pre>
               <p>Creates a new record of given store. The record is not added to the store.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1118,7 +1083,9 @@ base.close();</code></pre>
               <p>Creates a new record set out of the records in store.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1184,7 +1151,9 @@ base.close();</code></pre>
               <p>Adds a record to the store.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1254,7 +1223,9 @@ base.close();	</code></pre>
               <p>Returns a record from the store.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1319,7 +1290,9 @@ base.close();</code></pre>
               <p>Creates a record set containing random records from store.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1385,7 +1358,9 @@ base.close();</code></pre>
               <p>Returns the store as a JSON.</p>
               <section>
                 <h4>
+
             Example
+
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1425,7 +1400,7 @@ base.close();</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on September 23, 2015.
+        
       </p>
     </div>
   </footer>
