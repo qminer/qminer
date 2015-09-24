@@ -54,8 +54,7 @@ describe('Record Tests', function () {
             StrV: ["test1", "test2"],
             Bool: false,
             Flt: 1.23,
-			//Tm: "2015-06-01T00:00:00Z" // 1433116800000 in unix msec timestamp
-			Tm: 1433116800000 
+            Tm: 1433116800000 
         };
         // check addition
         assert.equal(RecordTest.push(rec), 0, "RecordTest.add");
@@ -67,7 +66,7 @@ describe('Record Tests', function () {
         assert.equal(recByRef.Str, "test", "recByRef.Str");
         assert.equal(recByRef.Bool, false, "recByRef.Bool");
         assert.equal(recByRef.Flt, 1.23, "recByRef.Flt");
-		assert.equal(recByRef.Tm.getTime(), 1433116800000, "recByRef.Tm");
+        assert.equal(recByRef.Tm.getTime(), 1433116800000, "recByRef.Tm");
 		
         //recByRef
 
@@ -82,10 +81,10 @@ describe('Record Tests', function () {
         assert.equal(recByRef.Bool, true, "recByRef.Bool");
         recByRef.Flt = 1.24;
         assert.equal(recByRef.Flt, 1.24, "recByRef.Flt");
-		recByRef.Tm = "2015-06-01T00:00:00Z";
-		assert.equal(recByRef.Tm.getTime(), 1433116800000, "recByRef.Tm");
-		recByRef.Tm = 1433116800000 + 5 * 60 * 1000; // +5 min
-		assert.equal(recByRef.Tm.getTime(), 1433116800000 + 5 * 60 * 1000, "recByRef.Tm");
+        recByRef.Tm = "2015-06-01T00:00:00Z";
+        assert.equal(recByRef.Tm.getTime(), 1433116800000, "recByRef.Tm");
+        recByRef.Tm = 1433116800000 + 5 * 60 * 1000; // +5 min
+        assert.equal(recByRef.Tm.getTime(), 1433116800000 + 5 * 60 * 1000, "recByRef.Tm");
 
         // check by value 
         var recByVal = RecordTest.newRecord(rec);
