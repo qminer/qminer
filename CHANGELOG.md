@@ -4,7 +4,7 @@
 
 **New version: 2.4.0**
 
-**non-breaking with new featuers and bug fixes**
+**non-breaking with new features and bug fixes**
 
 Features:
 - `record.setField`, `store.newRec` and `recset.filterByField` accept unix timestamp as input for datetime fields
@@ -13,7 +13,7 @@ Features:
 
 Bug fixes:
 - fixed memory leak when assigning emtpy TVec to another empty TVec
-- automatic removal of timestamp in generated javascript documentation (jsdoc) to avoid conflicts at mearing documentation
+- automatic removal of timestamp in generated javascript documentation (jsdoc) to avoid conflicts at merging documentation
 
 ### 18 Sep 2015
 
