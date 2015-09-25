@@ -946,8 +946,9 @@ public:
     JsDeclareFunction(getModel);
 
 	/**
-	* Adds a new point (or points) to the known points and recomputes the threshold.
-	* @param {(module:la.SparseVector | module:la.SparseMatrix)} X - Test example (vector input) or column examples (matrix input).
+	* Adds a new point to the known points and recomputes the threshold.
+	* @param {module:la.SparseVector} X - Test example (vector input)
+	* @param {number} recId - Integer record ID, used in NearestNeighborAD.explain
 	* @returns {module:analytics.NearestNeighborAD} Self. The model is updated.
 	* @example
 	* // import modules
@@ -970,6 +971,7 @@ public:
 	/**
 	* Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
 	* @param {module:la.SparseMatrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+	* @param {module:la.IntVector} [idVec] - An integer vector of IDs
 	* the model.
 	* @returns {module:analytics.NearestNeighborAD} Self. The model is set by the matrix A.
 	* @example
@@ -983,7 +985,7 @@ public:
 	* // fit the model with the matrix
 	* neighbor.fit(matrix);
 	*/
-    //# exports.NearestNeighborAD.prototype.fit = function(A) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
+    //# exports.NearestNeighborAD.prototype.fit = function(A, idVec) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
     JsDeclareFunction(fit);
 
     /**
@@ -1029,6 +1031,36 @@ public:
 	*/
     //# exports.NearestNeighborAD.prototype.predict = function(x) { return 0.0; }
     JsDeclareFunction(predict);
+
+	/**
+	* @typedef {Object} NearestNeighborADExplain
+	* A Json object used for interpreting the predictions of {@link module:analytics.NearestNeighborAD}.
+	* @param {number} nearestID - The ID of the nearest neighbor
+	* @param {Array<number>} featureIDs - the IDs of the features that contributed to the distance score
+	* @param {Array<number>} featureContributions - fractions of the contributions of each feature to the total distance (the scores sum to 1.0). The elements correspond to features in the array `featureIDs`
+	*/
+
+	/**
+	* Returns a JSON object that encodes the ID of the nearest neighbor and the features that contributed to the distance
+	* @param {module:la.SparseVector} x - Test vector.
+	* @returns {module:analytics~NearestNeighborADExplain} The explanation object
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD({rate:0.05, windowSize:3});
+	* // create a new sparse matrix
+	* var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+	* // fit the model with the matrix and provide a vector record IDs
+	* neighbor.fit(matrix, new la.IntVector([0,1,2]));
+	* // create a new sparse vector
+	* var vector = new la.SparseVector([[0, 4], [1, 0]]);
+	* // check if the vector is an anomaly
+	* var explanation = neighbor.explain(vector); // returns an explanation
+	*/
+	//# exports.NearestNeighborAD.prototype.explain = function(x) { return {}; }
+	JsDeclareFunction(explain);
 };
 
 ///////////////////////////////
