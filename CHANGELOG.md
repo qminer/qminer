@@ -2,7 +2,7 @@
 
 ### 25 Sep 2015
 
-**New version: 2.3.1**
+**New version: 2.4.0**
 
 **non-breaking with new featuers and bug fixes**
 
