@@ -1053,7 +1053,7 @@ public:
 	* // create a new sparse matrix
 	* var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 	* // fit the model with the matrix and provide a vector record IDs
-	* neighbor.fit(matrix, new la.IntVector([0,1,2]));
+	* neighbor.fit(matrix, new la.IntVector([3541,1112,4244]));
 	* // create a new sparse vector
 	* var vector = new la.SparseVector([[0, 4], [1, 0]]);
 	* // check if the vector is an anomaly

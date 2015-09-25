@@ -756,7 +756,7 @@ it('should make test number 41', function () {
 	 // create a new sparse matrix
 	 var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 	 // fit the model with the matrix and provide a vector record IDs
-	 neighbor.fit(matrix, new la.IntVector([0,1,2]));
+	 neighbor.fit(matrix, new la.IntVector([3541,1112,4244]));
 	 // create a new sparse vector
 	 var vector = new la.SparseVector([[0, 4], [1, 0]]);
 	 // check if the vector is an anomaly
@@ -1441,7 +1441,7 @@ it('should make test number 82', function () {
          // create a matrix to be fitted
          var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
          // create the model with the matrix X using the column IDs [0,1,2]
-         KMeans.fit(X, [0,1,2]);
+         KMeans.fit(X, [1234,1142,2355]);
          // create the matrix of the prediction vectors
          var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
          // predict/explain - return the closest medoids
