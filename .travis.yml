@@ -9,6 +9,7 @@ before_install:
   - sudo apt-get install -qq uuid-dev
   - sudo apt-get install build-essential
   - npm install -g mocha
+  - npm install -g mustache
 
   # clang setup
   - if [ "$CXX" = "clang++-3.6" ]; then sudo apt-add-repository --yes ppa:ubuntu-toolchain-r/test; fi
@@ -18,7 +19,7 @@ before_install:
   - if [ "$CXX" = "clang++-3.6" ]; then apt-cache search clang; fi
   - if [ "$CXX" = "clang++-3.6" ]; then sudo apt-get install -y clang-3.6; fi
 install:
-  - npm install --dev $NPMOPT
+  - npm install $NPMOPT
 script:
   - ./tools/genExampleTests.sh
   - ./test/nodejs/test.sh
