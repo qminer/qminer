@@ -8,6 +8,10 @@
 
 #include "mine.h"
 
+// index structures
+//#include "sphere.cpp"
+//#include "btree.cpp"
+
 // utilities
 #include "cfyres.cpp"
 

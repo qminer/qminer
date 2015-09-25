@@ -1952,8 +1952,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 			double UnixMSecs = Date->NumberValue();
 			// milliseconds from 1601-01-01T00:00:00Z
 			double WinMSecs = UnixMSecs + 11644473600000.0;
-			TTm Tm = TTm::GetTmFromMSecs((uint64)WinMSecs);
-			Rec.SetFieldTm(FieldId, Tm);
+			Rec.SetFieldTmMSecs(FieldId, (uint64)WinMSecs);
 		}
 		else if (Value->IsString()){
 			v8::String::Utf8Value Utf8(Value);

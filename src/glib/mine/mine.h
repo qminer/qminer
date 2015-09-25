@@ -13,6 +13,7 @@
 
 // index structures
 #include "sphere.h"
+#include "btree.h"
 
 // utilities
 #include "cfyres.h"

@@ -146,6 +146,7 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
 	// parse out key name, use field name as default
 	IndexKeyEx.KeyIndexName = IndexKeyVal->GetObjStr("name", IndexKeyEx.FieldName);
 	// get and parse key type
+
 	TStr KeyTypeStr = IndexKeyVal->GetObjStr("type");
 	if (KeyTypeStr == "value") {
 		IndexKeyEx.KeyType = oiktValue;
@@ -153,6 +154,8 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
 		IndexKeyEx.KeyType = oiktText;
 	} else if (KeyTypeStr == "location") {
 		IndexKeyEx.KeyType = oiktLocation;
+    } else if (KeyTypeStr == "linear") {
+        IndexKeyEx.KeyType = oiktLinear;
 	} else {
 		throw TQmExcept::New("Unknown key type " +  KeyTypeStr);
 	}
@@ -166,12 +169,21 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
 	} else if (FieldType == oftStrV && IndexKeyEx.IsValue()) {
 	} else if (FieldType == oftTm && IndexKeyEx.IsValue()) {
 	} else if (FieldType == oftFltPr && IndexKeyEx.IsLocation()) {
+    } else if (FieldType == oftInt && IndexKeyEx.IsLinear()) {
+    } else if (FieldType == oftUInt64 && IndexKeyEx.IsLinear()) {
+    } else if (FieldType == oftTm && IndexKeyEx.IsLinear()) {
+    } else if (FieldType == oftFlt && IndexKeyEx.IsLinear()) {
 	} else {
 		// not supported, lets complain about it...
 		throw TQmExcept::New("Indexing '" + KeyTypeStr + "' not supported for field " + IndexKeyEx.FieldName);
 	}
 	// get and parse sort type
 	if (IndexKeyVal->IsObjKey("sort")) {
+        // check if we can even handle sort for this key
+        if (!IndexKeyEx.IsValue()) {
+            throw TQmExcept::New("Sort only possible for keys of type 'value' and not " + KeyTypeStr);
+        }
+        // we can, parse out how we sort the values
 		TStr SortTypeStr = IndexKeyVal->GetObjStr("sort");
 		if (SortTypeStr == "string") {
 			IndexKeyEx.SortType = oikstByStr;
@@ -182,7 +194,18 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
 		} else {
 			throw TQmExcept::New("Unsupported sort type " + SortTypeStr);
 		}
-	} else {
+	} else if (IndexKeyEx.IsLinear()) {
+        // sort type depands on the field type, used by btree
+        if (FieldType == oftInt) {
+            IndexKeyEx.SortType = oikstAsInt;
+        } else if (FieldType == oftUInt64) {
+            IndexKeyEx.SortType = oikstAsUInt64;
+        } else if (FieldType == oftTm) {
+            IndexKeyEx.SortType = oikstAsTm;
+        } else if (FieldType == oftFlt) {
+            IndexKeyEx.SortType = oikstAsFlt;
+        }
+    } else {
 		IndexKeyEx.SortType = oikstUndef;
 	}
 	// parse out word vocabulary
@@ -1997,13 +2020,17 @@ void TRecIndexer::IndexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
 		TStrV StrV; Serializator.GetFieldStrV(RecMem, Key.FieldId, StrV);
 		Index->Index(Key.KeyId, StrV, RecId);
 	} else if (Key.FieldType == oftTm && Key.IsValue()) {
-		// time indexed as timestamp string, TODO: proper time indexing
+		// time indexed as timestamp string
 		const uint64 TmMSecs = Serializator.GetFieldTmMSecs(RecMem, Key.FieldId);
 		Index->Index(Key.KeyId, TUInt64::GetStr(TmMSecs), RecId);
 	} else if (Key.FieldType == oftFltPr && Key.IsLocation()) {
 		// index geo-location using geo-index
 		TFltPr FltPr = Serializator.GetFieldFltPr(RecMem, Key.FieldId);
 		Index->Index(Key.KeyId, FltPr, RecId);
+	} else if (Key.FieldType == oftInt && Key.IsLinear()) {
+		// index integar value using btree
+		const int Int = Serializator.GetFieldInt(RecMem, Key.FieldId);
+		Index->IndexLinear(Key.KeyId, Int, RecId);
 	} else {
 		ErrorLog(TStr::Fmt("[TFieldIndexer::IndexKey] Unsupported field and index type combination: %s[%s]: %s",
 			Key.FieldNm.CStr(), Key.FieldTypeStr.CStr(), Key.GetKeyType().CStr()));
@@ -2034,6 +2061,10 @@ void TRecIndexer::DeindexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
 		// index geo-location using geo-index
 		TFltPr FltPr = Serializator.GetFieldFltPr(RecMem, Key.FieldId);
 		Index->Delete(Key.KeyId, FltPr, RecId);
+	} else if (Key.FieldType == oftInt && Key.IsLinear()) {
+		// index integar value using btree
+		const int Int = Serializator.GetFieldInt(RecMem, Key.FieldId);
+		Index->DeleteLinear(Key.KeyId, Int, RecId);
 	} else {
 		ErrorLog(TStr::Fmt("[TFieldIndexer::DeindexKey] Unsupported field and index type combination: %s[%s]: %s",
 			Key.FieldNm.CStr(), Key.FieldTypeStr.CStr(), Key.GetKeyType().CStr()));
@@ -2079,7 +2110,14 @@ void TRecIndexer::UpdateKey(const TFieldIndexKey& Key, const TMemBase& OldRecMem
 		if (Index->LocEquals(Key.KeyId, OldFltPr, NewFltPr)) { return; }
 		Index->Delete(Key.KeyId, OldFltPr, RecId);
 		Index->Index(Key.KeyId, NewFltPr, RecId);
-	} else {
+	} else if (Key.FieldType == oftInt && Key.IsLinear()) {
+		// index integar value using btree
+		const int OldInt = Serializator.GetFieldInt(OldRecMem, Key.FieldId);
+		const int NewInt = Serializator.GetFieldInt(NewRecMem, Key.FieldId);
+        if (OldInt == NewInt) { return; }
+		Index->DeleteLinear(Key.KeyId, OldInt, RecId);
+		Index->IndexLinear(Key.KeyId, NewInt, RecId);
+    } else {
 		ErrorLog(TStr::Fmt("[TFieldIndexer::UpdateKey] Unsupported field and index type combination: %s[%s]: %s",
 			Key.FieldNm.CStr(), Key.FieldTypeStr.CStr(), Key.GetKeyType().CStr()));
 	}
