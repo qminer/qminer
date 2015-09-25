@@ -98,6 +98,7 @@
   },
   "devDependencies": {
     "jsdoc": "^3.3.0-beta3",
+    "mustache": "^1.1.0",
     "mocha": "^1.17.1"
   },
   "scripts": {

@@ -18,7 +18,7 @@ before_install:
   - if [ "$CXX" = "clang++-3.6" ]; then apt-cache search clang; fi
   - if [ "$CXX" = "clang++-3.6" ]; then sudo apt-get install -y clang-3.6; fi
 install:
-  - npm install $NPMOPT
+  - npm install --dev $NPMOPT
 script:
   - ./tools/genExampleTests.sh
   - ./test/nodejs/test.sh
