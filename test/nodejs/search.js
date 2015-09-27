@@ -69,6 +69,50 @@ describe('BTree Integer Search Tests', function () {
         })
     });
 
+    describe('Tests after serialization and deserialization', function () {
+        it('returns all elements >= 5', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5}});
+            assert.equal(result.length, 50);
+            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+        })
+        it('returns all elements <= 6', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: 6}});
+            assert.equal(result.length, 70);
+            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+        })
+        it('returns all elements >= 5 and <= 6', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5, $lt: 6}});
+            assert.equal(result.length, 20);
+            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+        })
+        it('returns all elements == 5', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: 5});
+            assert.equal(result.length, 10);
+            result.each(function (rec) { assert.equal(rec.Value == 5, true); });
+        })
+        it('returns all elements', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
+            assert.equal(result.length, 100);
+        })
+        it('returns no elements', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: -5});
+            assert.equal(result.length, 0);
+        })
+    });
+
     describe('Tests of base.search after deleting 50 records', function () {
         it('returns all elements >= 5', function () {
             store.clear(50);
@@ -205,6 +249,50 @@ describe('BTree UInt64 Search Tests', function () {
         })
     });
 
+    describe('Tests after serialization and deserialization', function () {
+        it('returns all elements >= 5', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5}});
+            assert.equal(result.length, 50);
+            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+        })
+        it('returns all elements <= 6', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: 6}});
+            assert.equal(result.length, 70);
+            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+        })
+        it('returns all elements >= 5 and <= 6', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5, $lt: 6}});
+            assert.equal(result.length, 20);
+            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+        })
+        it('returns all elements == 5', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: 5});
+            assert.equal(result.length, 10);
+            result.each(function (rec) { assert.equal(rec.Value == 5, true); });
+        })
+        it('returns all elements', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
+            assert.equal(result.length, 100);
+        })
+        it('returns no elements', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: -5});
+            assert.equal(result.length, 0);
+        })
+    });
+
     describe('Tests of base.search after deleting 50 records', function () {
         it('returns all elements >= 5', function () {
             store.clear(50);
@@ -336,6 +424,50 @@ describe('BTree Float Search Tests', function () {
             assert.equal(result.length, 100);
         })
         it('returns no elements', function () {
+            var result = base.search({ $from: 'BTreeSearchTest', Value: -5});
+            assert.equal(result.length, 0);
+        })
+    });
+
+    describe('Tests after serialization and deserialization', function () {
+        it('returns all elements >= 5', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5}});
+            assert.equal(result.length, 50);
+            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+        })
+        it('returns all elements <= 6', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: 6}});
+            assert.equal(result.length, 60);
+            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+        })
+        it('returns all elements >= 5 and <= 6', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5, $lt: 6}});
+            assert.equal(result.length, 10);
+            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+        })
+        it('returns all elements == 5.123', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: 5.123});
+            assert.equal(result.length, 10);
+            result.each(function (rec) { assert.equal(rec.Value == 5.123, true); });
+        })
+        it('returns all elements', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
+            var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
+            assert.equal(result.length, 100);
+        })
+        it('returns no elements', function () {
+            base.close();
+            base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: -5});
             assert.equal(result.length, 0);
         })
