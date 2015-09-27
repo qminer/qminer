@@ -307,7 +307,7 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal): StoreId(0), HasStoreIdP(fa
 		// parse size
 		PJsonVal WindowSize = StoreVal->GetObjKey("window");
 		QmAssertR(WindowSize->IsNum(), "Bad window size parameter.");
-		WndDesc.WindowSize = (uint64)WindowSize->GetInt();
+		WndDesc.WindowSize = WindowSize->GetUInt64();
 	} else if (StoreVal->IsObjKey("timeWindow")) {
 		// time-defined window, parse out details
 		WndDesc.WindowType = swtTime;
@@ -316,7 +316,7 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal): StoreId(0), HasStoreIdP(fa
 		QmAssertR(TimeWindow->IsObj(), "Bad timeWindow parameter.");
 		// get window duration
 		QmAssertR(TimeWindow->IsObjKey("duration"), "Missing duration parameter.");
-		uint64 WindowSize = (uint64)(TimeWindow->GetObjInt("duration"));
+		uint64 WindowSize = TimeWindow->GetObjUInt64("duration");
 		// get duration unit
 		TStr UnitStr = TimeWindow->GetObjStr("unit", "second");
 		// check we know of the unit
@@ -915,7 +915,7 @@ void TRecSerializator::SetFixedJsonVal(char* Bf, const int& BfL,
 		break;
 	case oftUInt64:
 		QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
-		SetFieldUInt64(Bf, BfL, FieldSerialDesc, (uint64)JsonVal->GetInt());
+		SetFieldUInt64(Bf, BfL, FieldSerialDesc, (uint64)JsonVal->GetUInt64());
 		break;
 	case oftStr:
 		// this string should be encoded using a codebook
@@ -2031,7 +2031,19 @@ void TRecIndexer::IndexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
 		// index integar value using btree
 		const int Int = Serializator.GetFieldInt(RecMem, Key.FieldId);
 		Index->IndexLinear(Key.KeyId, Int, RecId);
-	} else {
+	} else if (Key.FieldType == oftUInt64 && Key.IsLinear()) {
+		// index uint64 value using btree
+		const uint64 UInt64 = Serializator.GetFieldUInt64(RecMem, Key.FieldId);
+		Index->IndexLinear(Key.KeyId, UInt64, RecId);
+	} else if (Key.FieldType == oftTm && Key.IsLinear()) {
+		// index datetime value using btree
+		const uint64 TmMSecs = Serializator.GetFieldTmMSecs(RecMem, Key.FieldId);
+		Index->IndexLinear(Key.KeyId, TmMSecs, RecId);
+	} else if (Key.FieldType == oftFlt && Key.IsLinear()) {
+		// index float value using btree
+		const double Flt = Serializator.GetFieldFlt(RecMem, Key.FieldId);
+		Index->IndexLinear(Key.KeyId, Flt, RecId);
+    } else {
 		ErrorLog(TStr::Fmt("[TFieldIndexer::IndexKey] Unsupported field and index type combination: %s[%s]: %s",
 			Key.FieldNm.CStr(), Key.FieldTypeStr.CStr(), Key.GetKeyType().CStr()));
 	}
@@ -2065,6 +2077,18 @@ void TRecIndexer::DeindexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
 		// index integar value using btree
 		const int Int = Serializator.GetFieldInt(RecMem, Key.FieldId);
 		Index->DeleteLinear(Key.KeyId, Int, RecId);
+	} else if (Key.FieldType == oftUInt64 && Key.IsLinear()) {
+		// index uint64 value using btree
+		const uint64 UInt64 = Serializator.GetFieldUInt64(RecMem, Key.FieldId);
+		Index->DeleteLinear(Key.KeyId, UInt64, RecId);
+	} else if (Key.FieldType == oftTm && Key.IsLinear()) {
+		// index datetime value using btree
+		const uint64 TmMSecs = Serializator.GetFieldTmMSecs(RecMem, Key.FieldId);
+		Index->DeleteLinear(Key.KeyId, TmMSecs, RecId);
+    } else if (Key.FieldType == oftFlt && Key.IsLinear()) {
+		// index float value using btree
+		const double Flt = Serializator.GetFieldFlt(RecMem, Key.FieldId);
+		Index->DeleteLinear(Key.KeyId, Flt, RecId);
 	} else {
 		ErrorLog(TStr::Fmt("[TFieldIndexer::DeindexKey] Unsupported field and index type combination: %s[%s]: %s",
 			Key.FieldNm.CStr(), Key.FieldTypeStr.CStr(), Key.GetKeyType().CStr()));
@@ -2117,6 +2141,27 @@ void TRecIndexer::UpdateKey(const TFieldIndexKey& Key, const TMemBase& OldRecMem
         if (OldInt == NewInt) { return; }
 		Index->DeleteLinear(Key.KeyId, OldInt, RecId);
 		Index->IndexLinear(Key.KeyId, NewInt, RecId);
+	} else if (Key.FieldType == oftUInt64 && Key.IsLinear()) {
+		// index uint64 value using btree
+		const uint64 OldUInt64 = Serializator.GetFieldUInt64(OldRecMem, Key.FieldId);
+		const uint64 NewUInt64 = Serializator.GetFieldUInt64(NewRecMem, Key.FieldId);
+        if (OldUInt64 == NewUInt64) { return; }
+		Index->DeleteLinear(Key.KeyId, OldUInt64, RecId);
+		Index->IndexLinear(Key.KeyId, NewUInt64, RecId);
+	} else if (Key.FieldType == oftTm && Key.IsLinear()) {
+		// index datetime value using btree
+		const uint64 OldTmMSecs = Serializator.GetFieldTmMSecs(OldRecMem, Key.FieldId);
+		const uint64 NewTmMSecs = Serializator.GetFieldTmMSecs(NewRecMem, Key.FieldId);
+        if (OldTmMSecs == NewTmMSecs) { return; }
+		Index->DeleteLinear(Key.KeyId, OldTmMSecs, RecId);
+		Index->IndexLinear(Key.KeyId, NewTmMSecs, RecId);
+    } else if (Key.FieldType == oftFlt && Key.IsLinear()) {
+		// index float value using btree
+		const double OldFlt = Serializator.GetFieldFlt(OldRecMem, Key.FieldId);
+		const double NewFlt = Serializator.GetFieldFlt(NewRecMem, Key.FieldId);
+        if (OldFlt == NewFlt) { return; }
+		Index->DeleteLinear(Key.KeyId, OldFlt, RecId);
+		Index->IndexLinear(Key.KeyId, NewFlt, RecId);
     } else {
 		ErrorLog(TStr::Fmt("[TFieldIndexer::UpdateKey] Unsupported field and index type combination: %s[%s]: %s",
 			Key.FieldNm.CStr(), Key.FieldTypeStr.CStr(), Key.GetKeyType().CStr()));
@@ -2600,7 +2645,7 @@ uint64 TStoreImpl::AddRec(const PJsonVal& RecVal) {
 					PrimaryRecId = PrimaryIntIdH.GetDat(FieldVal);
 				}
 			} else if (PrimaryFieldType == oftUInt64) {
-				const uint64 FieldVal = RecVal->GetObjInt(PrimaryField);
+				const uint64 FieldVal = RecVal->GetObjUInt64(PrimaryField);
 				if (PrimaryUInt64IdH.IsKey(FieldVal)) {
 					PrimaryRecId = PrimaryUInt64IdH.GetDat(FieldVal);
 				}
@@ -3182,7 +3227,7 @@ uint64 TStorePbBlob::AddRec(const PJsonVal& RecVal) {// check if we are given re
                     PrimaryRecId = PrimaryIntIdH.GetDat(FieldVal);
                 }
             } else if (PrimaryFieldType == oftUInt64) {
-                const uint64 FieldVal = RecVal->GetObjInt(PrimaryField);
+                const uint64 FieldVal = RecVal->GetObjUInt64(PrimaryField);
                 if (PrimaryUInt64IdH.IsKey(FieldVal)) {
                     PrimaryRecId = PrimaryUInt64IdH.GetDat(FieldVal);
                 }

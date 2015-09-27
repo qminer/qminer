@@ -1034,7 +1034,7 @@ PJsonVal TStore::GetStoreJson(const TWPt<TBase>& Base) const {
 uint64 TStore::GetRecId(const PJsonVal& RecVal) const {
 	if (RecVal->IsObjKey("$id")) {
 		// parse out record id
-		return (uint64)RecVal->GetObjInt("$id");
+		return RecVal->GetObjUInt64("$id");
 	} else if (RecVal->IsObjKey("$name")) {
 		QmAssertR(HasRecNm(), "[TStore::GetRecId] $name passed to store without primary key");
 		// parse out record name
@@ -1265,7 +1265,7 @@ TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal) :
 		}
 		case oftUInt64:
 			QmAssertR(FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
-			SetFieldUInt64(FieldId, (uint64)FieldVal->GetInt());
+			SetFieldUInt64(FieldId, FieldVal->GetUInt64());
 			break;
 		case oftStr:
 			QmAssertR(FieldVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not string.");
@@ -1798,7 +1798,7 @@ PJsonVal TRec::GetJson(const TWPt<TBase>& Base, const bool& FieldsP,
 	}
 	// record name and id only if stored by reference
 	if (ByRefP && RecInfoP) {
-		RecVal->AddToObj("$id", (int)RecId);
+		RecVal->AddToObj("$id", (double)RecId);
 		// put name only when no fields displayed and one exists in the store
 		if (!FieldsP && Store->HasRecNm()) {
 			RecVal->AddToObj("$name", Store->GetRecNm(RecId));
@@ -2812,8 +2812,27 @@ TWPt<TStore> TQueryItem::ParseFrom(const TWPt<TBase>& Base, const PJsonVal& Json
 	return Base->GetStoreByStoreNm(StoreNm);
 }
 
+uint64 TQueryItem::ParseTm(const PJsonVal& JsonVal) {
+    if (JsonVal->IsStr()) {
+        // parse date as string
+        TStr TmStr = JsonVal->GetStr();
+        TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
+        QmAssertR(Tm.IsDef(), "Query: Unsupported time format, use ISO instead: " + TmStr);
+        return TTm::GetMSecsFromTm(Tm);
+    } else if (JsonVal->IsNum()) {
+        // parse date as unix time stamp in miliseconds
+        const double UnixMSecs = JsonVal->GetNum();
+        const double WinMSecs = UnixMSecs + 11644473600000.0;
+        return (uint64)WinMSecs;
+    } else {
+        // TODO: if you need annoter type to be supported when parsing time queries,
+        // feel free to implement it here :-)
+        throw TQmExcept::New("Query: Unsupported datetime value " + JsonVal->SaveStr());
+    }
+}
+
 void TQueryItem::ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
-	const PJsonVal& JsonVal, const bool& IgnoreOrP) {
+        const PJsonVal& JsonVal, const bool& IgnoreOrP) {
 
 	// go over other keys and create their corresponding items
 	for (int KeyN = 0; KeyN < JsonVal->GetObjKeys(); KeyN++) {
@@ -2842,7 +2861,7 @@ void TQueryItem::ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
 				ItemV.Add(TQueryItem(oqitNot, TQueryItem(Base, Store, KeyVal)));
 			} else if (KeyNm == "$id") {
 				QmAssertR(KeyVal->IsNum(), "Query: unsupported $id value");
-				const uint64 _RecId = (uint64)KeyVal->GetInt();
+				const uint64 _RecId = KeyVal->GetUInt64();
 				const uint64 RecId = Store->IsRecId(_RecId) ? _RecId : TUInt64::Mx;
 				ItemV.Add(TQueryItem(Store, RecId));
 			} else if (KeyNm == "$name") {
@@ -3041,34 +3060,42 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
         KeyId = Key.GetKeyId();
         // check if we have any border
         if (KeyVal->IsObj()) {
-            // key is index using btree, check field type
+            // key is index using btree, check field type and extract type-appropriate range
+            // by default range is always (-inf, inf), unless specified explicitly
             if (Key.IsSortAsInt()) {
-                // We have range query for integers
                 Type = oqitRangeInt;
-                // we have integers, default range is infinity
-                RangeIntMnMx = TIntPr(TInt::Mn, TInt::Mx);
-                // parse it out
-                if (KeyVal->IsObjKey("$gt")) {
-                    RangeIntMnMx.Val1 = KeyVal->GetObjInt("$gt");
-                } else {
-                    // no lower limit
-                    RangeIntMnMx.Val1 = TInt::Mn;
-                }
-                if (KeyVal->IsObjKey("$lt")) {
-                    RangeIntMnMx.Val2 = KeyVal->GetObjInt("$lt");
-                } else {
-                    // no upper limit
-                    RangeIntMnMx.Val2 = TInt::Mx;
-                }
+                RangeIntMnMx = TIntPr(KeyVal->GetObjInt("$gt", TInt::Mn), KeyVal->GetObjInt("$lt", TInt::Mx));
+            } else if (Key.IsSortAsUInt64()) {
+                Type = oqitRangeUInt64;
+                RangeUInt64MnMx = TUInt64Pr(KeyVal->GetObjUInt64("$gt", TUInt64::Mn), KeyVal->GetObjUInt64("$lt", TUInt64::Mx));
+            } else if (Key.IsSortAsTm()) {
+                Type = oqitRangeTm;
+                RangeUInt64MnMx = TUInt64Pr(TUInt64::Mn, TUInt64::Mx);
+                // check if we have lower bound
+                if (KeyVal->IsObjKey("$gt")) { RangeUInt64MnMx.Val1 = ParseTm(KeyVal->GetObjKey("$gt")); }
+                if (KeyVal->IsObjKey("$lt")) { RangeUInt64MnMx.Val2 = ParseTm(KeyVal->GetObjKey("$lt")); }
+            } else if (Key.IsSortAsFlt()) {
+                Type = oqitRangeFlt;
+                RangeFltMnMx = TFltPr(KeyVal->GetObjNum("$gt", TFlt::Mn), KeyVal->GetObjNum("$lt", TFlt::Mx));
             }
+        } else if (Key.IsSortAsTm() && (KeyVal->IsStr() || KeyVal->IsNum())) {
+            // we are given exact date time, make it a range query with both edges equal
+            Type = oqitRangeUInt64;
+            RangeUInt64MnMx.Val1 = RangeUInt64MnMx.Val2 = ParseTm(KeyVal);
         } else if (KeyVal->IsNum()) {
-            QmAssertR(Key.IsSortAsInt(), "Query: wrong key value for non-integer key " + KeyNm);
-            // We have range query for integers
-            Type = oqitRangeInt;
-            // we are given exact number
-            const int Val = KeyVal->GetInt();
-            RangeIntMnMx.Val1 = Val;
-            RangeIntMnMx.Val2 = Val;
+            QmAssertR(Key.IsSortAsInt() || Key.IsSortAsUInt64() || Key.IsSortAsFlt(),
+                "Query: wrong key value for non-integer key " + KeyNm);
+            // we are given exact number, make it a range query with both edges equal
+            if (Key.IsSortAsInt()) {
+                Type = oqitRangeInt;
+                RangeIntMnMx.Val1 = RangeIntMnMx.Val2 = KeyVal->GetInt();
+            } else if (Key.IsSortAsUInt64()) {
+                Type = oqitRangeUInt64;
+                RangeUInt64MnMx.Val1 = RangeUInt64MnMx.Val2 = KeyVal->GetUInt64();
+            } else if (Key.IsSortAsFlt()) {
+                Type = oqitRangeFlt;
+                RangeFltMnMx.Val1 = RangeFltMnMx.Val2 = KeyVal->GetNum();
+            }
         }
     } else {
 		throw TQmExcept::New("Query: Invalid key definition: '" + TJsonVal::GetStrFromVal(KeyVal) + "'");
@@ -3924,12 +3951,16 @@ TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access,
 	// initialize location index
 	TStr SphereFNm = IndexFPath + "Index.Geo";
 	if (TFile::Exists(SphereFNm) && Access != faCreate) {
-		TFIn SphereFIn(SphereFNm); GeoIndexH.Load(SphereFIn);
+		TFIn SphereFIn(SphereFNm);
+        GeoIndexH.Load(SphereFIn);
 	}
     // initialize btree index
     TStr BTreeFNm = IndexFPath + "Index.BTree";
    	if (TFile::Exists(BTreeFNm) && Access != faCreate) {
-        TFIn BTreeFIn(BTreeFNm); BTreeIndexIntH.Load(BTreeFIn);
+        TFIn BTreeFIn(BTreeFNm);
+        BTreeIndexIntH.Load(BTreeFIn);
+        BTreeIndexUInt64H.Load(BTreeFIn);
+        BTreeIndexFltH.Load(BTreeFIn);
     }
 	// initialize vocabularies
 	IndexVoc = _IndexVoc;
@@ -3941,10 +3972,18 @@ TIndex::~TIndex() {
 		Gix.Clr();
 		TEnv::Logger->OnStatus("Saving and closing inverted index - small");
 		GixSmall.Clr();
-		TEnv::Logger->OnStatus("Saving and closing location index");
-		{TFOut SphereFOut(IndexFPath + "Index.Geo"); GeoIndexH.Save(SphereFOut);}
-		TEnv::Logger->OnStatus("Saving and closing btree index");
-		{TFOut BTreeFOut(IndexFPath + "Index.BTree"); BTreeIndexIntH.Save(BTreeFOut);}
+		{
+            TEnv::Logger->OnStatus("Saving and closing location index");
+            TFOut SphereFOut(IndexFPath + "Index.Geo");
+            GeoIndexH.Save(SphereFOut);
+        }
+		{
+            TEnv::Logger->OnStatus("Saving and closing btree index");
+            TFOut BTreeFOut(IndexFPath + "Index.BTree");
+            BTreeIndexIntH.Save(BTreeFOut);
+            BTreeIndexUInt64H.Save(BTreeFOut);
+            BTreeIndexFltH.Save(BTreeFOut);
+        }
 		TEnv::Logger->OnStatus("Index closed");
 	} else {
 		TEnv::Logger->OnStatus("Index opened in read-only mode, no saving needed");
@@ -4237,6 +4276,14 @@ void TIndex::IndexLinear(const uint& StoreId, const TStr& KeyNm, const int& Val,
 	IndexLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
 }
 
+void TIndex::IndexLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId) {
+	IndexLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
+}
+
+void TIndex::IndexLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId) {
+	IndexLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
+}
+
 void TIndex::IndexLinear(const int& KeyId, const int& Val, const uint64& RecId) {
 	// we shouldn't modify read-only index
 	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
@@ -4246,7 +4293,35 @@ void TIndex::IndexLinear(const int& KeyId, const int& Val, const uint64& RecId) 
 	BTreeIndexIntH.GetDat(KeyId)->AddKey(Val, RecId);
 }
 
+
+void TIndex::IndexLinear(const int& KeyId, const uint64& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// if new key, create sphere first
+	if (!BTreeIndexUInt64H.IsKey(KeyId)) { BTreeIndexUInt64H.AddDat(KeyId, PBTreeIndexUInt64::New()); }
+	// index new location
+	BTreeIndexUInt64H.GetDat(KeyId)->AddKey(Val, RecId);
+}
+
+
+void TIndex::IndexLinear(const int& KeyId, const double& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// if new key, create sphere first
+	if (!BTreeIndexFltH.IsKey(KeyId)) { BTreeIndexFltH.AddDat(KeyId, PBTreeIndexFlt::New()); }
+	// index new location
+	BTreeIndexFltH.GetDat(KeyId)->AddKey(Val, RecId);
+}
+
 void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId) {
+	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
+}
+
+void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId) {
+	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
+}
+
+void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId) {
 	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
 }
 
@@ -4255,6 +4330,20 @@ void TIndex::DeleteLinear(const int& KeyId, const int& Val, const uint64& RecId)
 	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
 	// delete only if index exist 
 	if (BTreeIndexIntH.IsKey(KeyId)) { BTreeIndexIntH.GetDat(KeyId)->DelKey(Val, RecId); }
+}
+
+void TIndex::DeleteLinear(const int& KeyId, const uint64& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// delete only if index exist 
+	if (BTreeIndexUInt64H.IsKey(KeyId)) { BTreeIndexUInt64H.GetDat(KeyId)->DelKey(Val, RecId); }
+}
+
+void TIndex::DeleteLinear(const int& KeyId, const double& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// delete only if index exist 
+	if (BTreeIndexFltH.IsKey(KeyId)) { BTreeIndexFltH.GetDat(KeyId)->DelKey(Val, RecId); }
 }
 
 void TIndex::SearchAnd(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const {
@@ -4362,12 +4451,34 @@ PRecSet TIndex::SearchGeoNn(const TWPt<TBase>& Base, const int& KeyId,
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
 
-PRecSet TIndex::SearchLinearInt(const TWPt<TBase>& Base, const int& KeyId, const TIntPr& RangeMinMax) {
+PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TIntPr& RangeMinMax) {
 
 	TUInt64V RecIdV;
 	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
 	if (BTreeIndexIntH.IsKey(KeyId)) {
         BTreeIndexIntH.GetDat(KeyId)->SearchRange(RangeMinMax, RecIdV);
+        RecIdV.Sort();
+    }
+	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
+}
+
+PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUInt64Pr& RangeMinMax) {
+
+	TUInt64V RecIdV;
+	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
+	if (BTreeIndexUInt64H.IsKey(KeyId)) {
+        BTreeIndexUInt64H.GetDat(KeyId)->SearchRange(RangeMinMax, RecIdV);
+        RecIdV.Sort();
+    }
+	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
+}
+
+PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TFltPr& RangeMinMax) {
+
+	TUInt64V RecIdV;
+	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
+	if (BTreeIndexFltH.IsKey(KeyId)) {
+        BTreeIndexFltH.GetDat(KeyId)->SearchRange(RangeMinMax, RecIdV);
         RecIdV.Sort();
     }
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
@@ -4729,7 +4840,19 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
 		}
 	} else if (QueryItem.IsRangeInt()) {
         // must be handled by BTree linear index
-        PRecSet RecSet = Index->SearchLinearInt(this, QueryItem.GetKeyId(), QueryItem.GetRangeIntMinMax());
+        PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeIntMinMax());
+        return TPair<TBool, PRecSet>(false, RecSet);
+	} else if (QueryItem.IsRangeUInt64()) {
+        // must be handled by BTree linear index
+        PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeUInt64MinMax());
+        return TPair<TBool, PRecSet>(false, RecSet);
+	} else if (QueryItem.IsRangeTm()) {
+        // must be handled by BTree linear index
+        PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeUInt64MinMax());
+        return TPair<TBool, PRecSet>(false, RecSet);
+	} else if (QueryItem.IsRangeFlt()) {
+        // must be handled by BTree linear index
+        PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeFltMinMax());
         return TPair<TBool, PRecSet>(false, RecSet);
     } else if (QueryItem.IsJoin()) {
 		// special case when it's record passed by value

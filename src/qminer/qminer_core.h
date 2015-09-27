@@ -1915,6 +1915,8 @@ private:
 	TWPt<TStore> ParseJoin(const TWPt<TBase>& Base, const PJsonVal& JsonVal);
 	/// Parse store of query
 	TWPt<TStore> ParseFrom(const TWPt<TBase>& Base, const PJsonVal& JsonVal);
+    /// Parse date time values in queries
+    uint64 ParseTm(const PJsonVal& JsonVal);
 	/// Parse conditions keys
 	void ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
 		const PJsonVal& JsonVal, const bool& IgnoreOrP);
@@ -1988,6 +1990,12 @@ public:
 	bool IsGeo() const { return (Type == oqitGeo); }
 	/// Check query type
 	bool IsRangeInt() const { return (Type == oqitRangeInt); }
+	/// Check query type
+	bool IsRangeUInt64() const { return (Type == oqitRangeUInt64); }
+	/// Check query type
+	bool IsRangeTm() const { return (Type == oqitRangeTm); }
+	/// Check query type
+	bool IsRangeFlt() const { return (Type == oqitRangeFlt); }
 	/// Check query type
 	bool IsAnd() const { return (Type == oqitAnd); }
 	/// Check query type
@@ -2260,23 +2268,21 @@ public:
 	/// Delete record
 	void DelKey(const TVal& Val, const uint64& RecId);
 	/// Range query
-	void SearchRange(const TIntPr& RangeMinMax, TUInt64V& RecIdV) const;
+	void SearchRange(const TPair<TVal, TVal>& RangeMinMax, TUInt64V& RecIdV) const;
 };
 
 template <class TVal>
 void TBTreeIndex<TVal>::AddKey(const TVal& Val, const uint64& RecId) {
-//    printf("Add %d %d\n", (int)Val, (int)RecId);
     BTree.Add(TTreeVal(Val, RecId));
 }
 
 template <class TVal>
 void TBTreeIndex<TVal>::DelKey(const TVal& Val, const uint64& RecId) {
-//    printf("Del %d %d\n", (int)Val, (int)RecId);
     BTree.Del(TTreeVal(Val, RecId));
 }
 
 template <class TVal>
-void TBTreeIndex<TVal>::SearchRange(const TIntPr& RangeMinMax, TUInt64V& RecIdV) const {
+void TBTreeIndex<TVal>::SearchRange(const TPair<TVal, TVal>& RangeMinMax, TUInt64V& RecIdV) const {
 
     TVec<TTreeVal> ResValRecIdV;
     // execute query
@@ -2392,6 +2398,8 @@ public:
 
     // b-tree definitions
     typedef TPt<TBTreeIndex<TInt>> PBTreeIndexInt;
+    typedef TPt<TBTreeIndex<TUInt64>> PBTreeIndexUInt64;
+    typedef TPt<TBTreeIndex<TFlt>> PBTreeIndexFlt;
 
 private:    
 	/// Remember index location
@@ -2405,8 +2413,12 @@ private:
 
 	/// Location index (one for each key)
 	THash<TInt, PGeoIndex> GeoIndexH;
-    /// BTree index (one for each key)
+    /// BTree index for integers (one for each key)
     THash<TInt, PBTreeIndexInt> BTreeIndexIntH;
+    /// BTree index uint64 (one for each key)
+    THash<TInt, PBTreeIndexUInt64> BTreeIndexUInt64H;
+    /// BTree index for floats (one for each key)
+    THash<TInt, PBTreeIndexFlt> BTreeIndexFltH;
 
 	/// Index Vocabulary
 	PIndexVoc IndexVoc;
@@ -2535,11 +2547,28 @@ public:
     /// Add RecId to linear index under (Key, Val)
     void IndexLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId);
     /// Add RecId to linear index under (Key, Val)
+    void IndexLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId);
+    /// Add RecId to linear index under (Key, Val)
+    void IndexLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId);
+    /// Add RecId to linear index under (Key, Val)
     void IndexLinear(const int& KeyId, const int& Val, const uint64& RecId);
+    /// Add RecId to linear index under (Key, Val)
+    void IndexLinear(const int& KeyId, const uint64& Val, const uint64& RecId);
+    /// Add RecId to linear index under (Key, Val)
+    void IndexLinear(const int& KeyId, const double& Val, const uint64& RecId);
+
     /// Delete RecId from linear index under (Key, Val)
     void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId);
     /// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId);
+    /// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId);
+    /// Delete RecId from linear index under (Key, Val)
     void DeleteLinear(const int& KeyId, const int& Val, const uint64& RecId);
+    /// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const int& KeyId, const uint64& Val, const uint64& RecId);
+    /// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const int& KeyId, const double& Val, const uint64& RecId);
 
 	/// Check if index opened in read-only mode
 	bool IsReadOnly() const { return Access == faRdOnly; }
@@ -2557,8 +2586,12 @@ public:
 	PRecSet SearchGeoNn(const TWPt<TBase>& Base, const int& KeyId,
 		const TFltPr& Loc, const int& Limit) const;
     /// Do B-Tree linear search
-    PRecSet SearchLinearInt(const TWPt<TBase>& Base, const int& KeyId, const TIntPr& RangeMinMax);
-	/// Get records ids and counts that are joined with given RecId (via given join key)
+    PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TIntPr& RangeMinMax);
+    /// Do B-Tree linear search
+    PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUInt64Pr& RangeMinMax);
+    /// Do B-Tree linear search
+    PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TFltPr& RangeMinMax);
+    /// Get records ids and counts that are joined with given RecId (via given join key)
 	void GetJoinRecIdFqV(const int& JoinKeyId, const uint64& RecId, TUInt64IntKdV& JoinRecIdFqV) const;
 
 	/// Save debug statistics to a file
