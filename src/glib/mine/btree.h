@@ -898,7 +898,7 @@ protected:
 	{
 	private:
 		TCRef CRef;
-		friend PNodeWrapper;
+		friend class TPt<TNodeWrapper>;
 	public:
 		TNode node;
 		TNodeWrapper() { }
@@ -986,7 +986,7 @@ protected:
 	{
 	private:
 		TCRef CRef;
-		friend PNodeWrapper;
+		friend class TPt<TNodeWrapper>;
 	public:
 		TNodeId nodeId;
 		int checkedOut;
