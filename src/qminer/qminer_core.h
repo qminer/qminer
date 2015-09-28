@@ -11,7 +11,6 @@
 
 #include <base.h>
 #include <mine.h>
-#include <funrouter.h>
 
 namespace TQm {
 
@@ -883,6 +882,8 @@ public:
 	/// Set field value
 	void SetFieldTm(const int& FieldId, const TTm& Tm);
 	/// Set field value
+   	void SetFieldTmMSecs(const int& FieldId, const uint64& TmMSecs);
+	/// Set field value
 	void SetFieldNumSpV(const int& FieldId, const TIntFltKdV& NumSpV);
 	/// Set field value
 	void SetFieldBowSpV(const int& FieldId, const PBowSpV& BowSpV);
@@ -1506,17 +1507,24 @@ typedef enum {
 	oiktValue    = (1 << 0), ///< Index by exact value, using inverted index
 	oiktText     = (1 << 1), ///< Index as free text, using inverted index 
 	oiktLocation = (1 << 2), ///< Index as location. using geoindex 
+	oiktLinear   = (1 << 5), ///< Index as linarly ordered value using b-tree
 	oiktInternal = (1 << 3), ///< Index used internaly for joins, using inverted index
-	oiktSmall    = (1 << 4), ///< Index uses small Gix storage type
+	oiktSmall    = (1 << 4)  ///< Index uses small inverted index storage type
 } TIndexKeyType;
 
 ///////////////////////////////
 /// Index Key Sort Type
 typedef enum { 
-	oikstUndef = 0, 
-	oikstByStr = 1, ///< Sort lexicograficly as string
-	oikstById  = 2, ///< Sort by index word id
-	oikstByFlt = 3  ///< Sort as number
+	oikstUndef    = 0,
+    // for GIX sorting
+	oikstByStr    = 1, ///< Sort lexicograficly as string
+	oikstById     = 2, ///< Sort by index word id
+	oikstByFlt    = 3, ///< Sort as float
+    // for Linear BTree sorting
+	oikstAsInt    = 4, ///< Sort as integer
+	oikstAsUInt64 = 5, ///< Sort as uint64
+    oikstAsTm     = 6, ///< Sort as date-time
+	oikstAsFlt    = 7, ///< Sort as float
 } TIndexKeySortType;
 
 ///////////////////////////////
@@ -1548,15 +1556,8 @@ public:
 	TIndexKey(): StoreId(TUInt::Mx), KeyId(-1), KeyNm(""), 
 		WordVocId(-1), TypeFlags(oiktUndef), SortType(oikstUndef) {}
 	/// Create internal key, used for index joins
-	TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm, const bool& IsSmall) :
-		StoreId(_StoreId), KeyNm(_KeyNm), WordVocId(-1), TypeFlags(oiktInternal),
-		SortType(oikstUndef), JoinNm(_JoinNm) {
-		if (IsSmall) {
-			TypeFlags = (TIndexKeyType)(TypeFlags | oiktSmall);
-		}
-		TValidNm::AssertValidNm(KeyNm);
-	}
-	/// Create new key using given word vocabulary
+	TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm, const bool& IsSmall);
+    /// Create new key using given word vocabulary
 	TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const int& _WordVocId, 
 		const TIndexKeyType& _Type, const TIndexKeySortType& _SortType);
 	
@@ -1584,6 +1585,8 @@ public:
 	bool IsText() const { return ((TypeFlags & oiktText) != 0); }
 	/// Checks key type is location
 	bool IsLocation() const { return ((TypeFlags & oiktLocation) != 0); }
+	/// Checks key type is on linearly  ordered value using b-tree
+	bool IsLinear() const { return ((TypeFlags & oiktLinear) != 0); }
 	/// Checks key type is internal
 	bool IsInternal() const { return ((TypeFlags & oiktInternal) != 0); }
 	/// Get flag that instructs index to use small gix
@@ -1591,15 +1594,25 @@ public:
 
 	/// Get key sort type
 	TIndexKeySortType GetSortType() const { return SortType; }
-	/// Checks if key is sortable
-	bool IsSort() const { return SortType != oikstUndef; }
-	/// Checks if key is sortable lexicographically
+
+    /// Checks if key is sortable
+	bool IsGixSort() const { return IsSortByStr() || IsSortByFlt() || IsSortById(); }
+	/// Checks if key is sortable lexicographically (GIX)
 	bool IsSortByStr() const { return SortType == oikstByStr; }
-	/// Checks if key is sortable as number
+	/// Checks if key is sortable as number (GIX)
 	bool IsSortByFlt() const { return SortType == oikstByFlt; }
-	/// Checks if key is sortable by word id in the vocabulary
+	/// Checks if key is sortable by word id in the vocabulary (GIX)
 	bool IsSortById() const { return SortType == oikstById; }
-	
+
+    /// Check if key is sortable by integers (BTree)
+    bool IsSortAsInt() const { return SortType == oikstAsInt; }
+    /// Check if key is sortable by integers (BTree)
+    bool IsSortAsUInt64() const { return SortType == oikstAsUInt64; }
+    /// Check if key is sortable by integers (BTree)
+    bool IsSortAsTm() const { return SortType == oikstAsTm; }
+    /// Check if key is sortable by integers (BTree)
+    bool IsSortAsFlt() const { return SortType == oikstAsFlt; }
+
 	/// Checks if the key has assigned word vocabulary (e.g. locations and joins do not)
 	bool IsWordVoc() const { return WordVocId != -1; }
 	/// Get id of word vocabulary used by the key
@@ -1814,6 +1827,10 @@ typedef enum {
 	oqitLeafGix      = 1, ///< Leaf inverted index query
 	oqitLeafGixSmall = 10,///< Leaf inverted index query - for small items
 	oqitGeo          = 8, ///< Geoindex query
+    oqitRangeInt     = 11,///< Range BTree integer query
+    oqitRangeUInt64  = 12,///< Range BTree uint64 query
+    oqitRangeFlt     = 13,///< Range BTree float query
+    oqitRangeTm      = 14,///< Range BTree date-time query
 	oqitAnd          = 2, ///< AND between two or more queries
 	oqitOr           = 3, ///< OR between two or more queries
 	oqitNot          = 4, ///< NOT on current matching records
@@ -1824,7 +1841,7 @@ typedef enum {
 } TQueryItemType; 
 
 ///////////////////////////////
-/// Index Query Comparison Operators.
+/// Index Query Comparison Operators for GIX queries.
 /// Comparison operators that can be specified between a field and a value
 typedef enum { 
 	oqctUndef    = 0,
@@ -1832,7 +1849,7 @@ typedef enum {
 	oqctGreater  = 2, ///< Greater then (>)
 	oqctLess     = 3, ///< Less then (<)
 	oqctNotEqual = 4, ///< Not equal (!=)
-	oqctWildChar = 5  ///< Wildchar string matching (* for zero or more chars, ? for exactly one char)
+	oqctWildChar = 5 ///< Wildchar string matching (* for zero or more chars, ? for exactly one char)
 } TQueryCmpType;
 
 ////////////////////////////////
@@ -1859,12 +1876,18 @@ private:
 	TUInt64V WordIdV;
 	/// Comparison between field and value (for leaf node)
 	TQueryCmpType CmpType;
-	/// Geo. coordinates (for location query)
+	/// Geographic coordinates (for location query)
 	TFltPr Loc;
 	/// Radius of search space in meters (for location query)
 	TFlt LocRadius;
 	/// Number of nearest neighbors of search space (for location query)
 	TInt LocLimit;
+    /// Edge parameters for range integer query
+    TIntPr RangeIntMnMx;
+    /// Edge parameters for range uint64 query
+    TUInt64Pr RangeUInt64MnMx;
+    /// Edge parameters for range float query
+    TFltPr RangeFltMnMx;
 	/// List of subordinate query items.
 	/// Has exactly one element when NOT or JOIN node type
 	TQueryItemV ItemV;
@@ -1872,9 +1895,9 @@ private:
 	TInt JoinId;
 	/// Join sampling size (for join nodes). Value -1 means everything.
 	TInt SampleSize;
-	/// Record set which this query node returns
+	/// Record set which this query node returns (for qiven record set query)
 	PRecSet RecSet;
-	/// Record which this query node returns
+	/// Record which this query node returns (for given record query)
 	TRec Rec;
 	/// Store which this query node returns
 	TUInt StoreId;
@@ -1892,6 +1915,8 @@ private:
 	TWPt<TStore> ParseJoin(const TWPt<TBase>& Base, const PJsonVal& JsonVal);
 	/// Parse store of query
 	TWPt<TStore> ParseFrom(const TWPt<TBase>& Base, const PJsonVal& JsonVal);
+    /// Parse date time values in queries
+    uint64 ParseTm(const PJsonVal& JsonVal);
 	/// Parse conditions keys
 	void ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
 		const PJsonVal& JsonVal, const bool& IgnoreOrP);
@@ -1964,6 +1989,14 @@ public:
 	/// Check query type
 	bool IsGeo() const { return (Type == oqitGeo); }
 	/// Check query type
+	bool IsRangeInt() const { return (Type == oqitRangeInt); }
+	/// Check query type
+	bool IsRangeUInt64() const { return (Type == oqitRangeUInt64); }
+	/// Check query type
+	bool IsRangeTm() const { return (Type == oqitRangeTm); }
+	/// Check query type
+	bool IsRangeFlt() const { return (Type == oqitRangeFlt); }
+	/// Check query type
 	bool IsAnd() const { return (Type == oqitAnd); }
 	/// Check query type
 	bool IsOr() const { return (Type == oqitOr); }
@@ -2004,6 +2037,13 @@ public:
 	double GetLocRadius() const { return LocRadius; }
 	/// Get location query maximal number of neighbors (for location queries)
 	int GetLocLimit() const { return LocLimit; }
+    /// Get integer range
+    TIntPr GetRangeIntMinMax() const { return RangeIntMnMx; }
+    /// Get uint64 integer range
+    TUInt64Pr GetRangeUInt64MinMax() const { return RangeUInt64MnMx; }
+    /// Get float range
+    TFltPr GetRangeFltMinMax() const { return RangeFltMnMx; }
+
 	/// Get comparison type
 	TQueryCmpType GetCmpType() const { return CmpType; }
 	/// Check comparison type
@@ -2137,8 +2177,122 @@ typedef TPt<TQuery> PQuery;
 
 ///////////////////////////////
 // GeoIndex
-//   Implemented in core.cpp, to avoid external dependancy on sphere.h
 class TGeoIndex; typedef TPt<TGeoIndex> PGeoIndex;
+class TGeoIndex {
+private:
+	// smart-pointer
+	TCRef CRef;
+	friend class TPt<TGeoIndex>;
+
+	/// Location precision (1,000,000 ~~ one meter)
+	TFlt Precision;
+	/// Map from location to records
+	//TODO: Switch to GIX, maybe
+	THash<TIntPr, TUInt64V> LocRecIdH;
+	/// Location index
+	TSphereNn<TInt, double> SphereNn;
+
+	TIntPr GetLocId(const TFltPr& Loc) const;
+	void LocKeyIdToRecId(const TIntV& LocKeyIdV, const int& Limit, TUInt64V& AllRecIdV) const;
+	/// DEBUG: counts all the indexed records
+	int AllRecs() const;
+
+public:
+	/// Create new empty index
+	TGeoIndex(const double& _Precision) : Precision(_Precision),
+		SphereNn(TSphereNn<TInt, double>::EarthRadiusKm() * 1000.0) {}
+	/// Create new empty index
+	static PGeoIndex New(const double& Precision = 1000000.0) { return new TGeoIndex(Precision); }
+	/// Load existing index from stream
+	TGeoIndex(TSIn& SIn) : Precision(SIn), LocRecIdH(SIn), SphereNn(SIn) {}
+	/// Load existing index from stream
+	static PGeoIndex Load(TSIn& SIn) { return new TGeoIndex(SIn); }
+	/// Save index to stream
+	void Save(TSOut& SOut) { Precision.Save(SOut); LocRecIdH.Save(SOut); SphereNn.Save(SOut); }
+
+	/// Add new record
+	void AddKey(const TFltPr& Loc, const uint64& RecId);
+	/// Delete record
+	void DelKey(const TFltPr& Loc, const uint64& RecId);
+	/// Range query (in meters)
+	void SearchRange(const TFltPr& Loc, const double& Radius,
+		const int& Limit, TUInt64V& RecIdV) const;
+	/// Nearest neighbour query
+	void SearchNn(const TFltPr& Loc, const int& Limit, TUInt64V& RecIdV) const;
+
+	/// Tells if two locations identical based on Precision
+	bool LocEquals(const TFltPr& Loc1, const TFltPr& Loc2) const;
+};
+
+///////////////////////////////
+// B-Tree Index
+template <class TVal>
+class TBTreeIndex {
+private:
+	// smart-pointer
+	TCRef CRef;
+	friend class TPt<TBTreeIndex>;
+
+    /// We store values as (val, rec) pairs, which are sorted lexigraphically.
+    /// That ensures that values are sorted primarly by value, and for same value by record id
+    typedef TPair<TVal, TUInt64> TTreeVal;
+    /// Define store for internal nodes
+    typedef TBtree::TBtreeNodeMemStore<TTreeVal, TInt, TInt> TInternalStore;
+    /// Define store for external nodes
+    typedef TBtree::TBtreeNodeMemStore<TTreeVal, TVoid, TInt> TLeafStore;
+    /// Define btree with given stores and value type. Each leaf node has a vector of record ids
+    typedef TBtree::TBtreeOps<TTreeVal, TVoid, TCmp<TTreeVal>, TInt, TInternalStore, TLeafStore> TBtreeOps;
+
+    /// Internal store instance
+    TPt<TInternalStore> InternalStore;
+    /// Leaf store instance
+    TPt<TLeafStore> LeafStore;
+    /// BTree instance
+    TBtreeOps BTree;
+
+public:
+	/// Create new empty index
+	TBTreeIndex(): InternalStore(new TInternalStore), LeafStore(new TLeafStore),
+        BTree(InternalStore, LeafStore, 8, 64, false, false) { }
+	/// Create new empty index
+	static TPt<TBTreeIndex> New() { return new TBTreeIndex; }
+	/// Load existing index from stream
+	TBTreeIndex(TSIn& SIn): InternalStore(SIn), LeafStore(SIn), BTree(SIn, InternalStore, LeafStore) {  }
+	/// Load existing index from stream
+	static TPt<TBTreeIndex> Load(TSIn& SIn) { return new TBTreeIndex(SIn); }
+	/// Save index to stream
+	void Save(TSOut& SOut) { InternalStore.Save(SOut); LeafStore.Save(SOut); BTree.Save(SOut); }
+
+	/// Add new record
+	void AddKey(const TVal& Val, const uint64& RecId);
+	/// Delete record
+	void DelKey(const TVal& Val, const uint64& RecId);
+	/// Range query
+	void SearchRange(const TPair<TVal, TVal>& RangeMinMax, TUInt64V& RecIdV) const;
+};
+
+template <class TVal>
+void TBTreeIndex<TVal>::AddKey(const TVal& Val, const uint64& RecId) {
+    BTree.Add(TTreeVal(Val, RecId));
+}
+
+template <class TVal>
+void TBTreeIndex<TVal>::DelKey(const TVal& Val, const uint64& RecId) {
+    BTree.Del(TTreeVal(Val, RecId));
+}
+
+template <class TVal>
+void TBTreeIndex<TVal>::SearchRange(const TPair<TVal, TVal>& RangeMinMax, TUInt64V& RecIdV) const {
+
+    TVec<TTreeVal> ResValRecIdV;
+    // execute query
+    BTree.RangeQuery(TTreeVal(RangeMinMax.Val1, 0), TTreeVal(RangeMinMax.Val2, TUInt64::Mx), ResValRecIdV);
+    // parse out record ids
+    RecIdV.Gen(ResValRecIdV.Len(), 0);
+    for (int ResN = 0; ResN < ResValRecIdV.Len(); ResN++) {
+        RecIdV.Add(ResValRecIdV[ResN].Val2);
+    }
+}
 
 ///////////////////////////////
 /// Index
@@ -2242,6 +2396,11 @@ public:
 	typedef TPt<TQmGixExpItem> PQmGixExpItem;
 	typedef TPt<TQmGixExpItemSmall> PQmGixExpItemSmall;
 
+    // b-tree definitions
+    typedef TPt<TBTreeIndex<TInt>> PBTreeIndexInt;
+    typedef TPt<TBTreeIndex<TUInt64>> PBTreeIndexUInt64;
+    typedef TPt<TBTreeIndex<TFlt>> PBTreeIndexFlt;
+
 private:    
 	/// Remember index location
 	TStr IndexFPath;
@@ -2252,8 +2411,15 @@ private:
 	/// Inverted index - small
 	mutable PQmGixSmall GixSmall;
 
-	/// Location index
+	/// Location index (one for each key)
 	THash<TInt, PGeoIndex> GeoIndexH;
+    /// BTree index for integers (one for each key)
+    THash<TInt, PBTreeIndexInt> BTreeIndexIntH;
+    /// BTree index uint64 (one for each key)
+    THash<TInt, PBTreeIndexUInt64> BTreeIndexUInt64H;
+    /// BTree index for floats (one for each key)
+    THash<TInt, PBTreeIndexFlt> BTreeIndexFltH;
+
 	/// Index Vocabulary
 	PIndexVoc IndexVoc;
 	/// Inverted Index Default Merger
@@ -2378,6 +2544,32 @@ public:
 	/// Checks if two locations point to the same place
 	bool LocEquals(const int& KeyId, const TFltPr& Loc1, const TFltPr& Loc2) const;
 
+    /// Add RecId to linear index under (Key, Val)
+    void IndexLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId);
+    /// Add RecId to linear index under (Key, Val)
+    void IndexLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId);
+    /// Add RecId to linear index under (Key, Val)
+    void IndexLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId);
+    /// Add RecId to linear index under (Key, Val)
+    void IndexLinear(const int& KeyId, const int& Val, const uint64& RecId);
+    /// Add RecId to linear index under (Key, Val)
+    void IndexLinear(const int& KeyId, const uint64& Val, const uint64& RecId);
+    /// Add RecId to linear index under (Key, Val)
+    void IndexLinear(const int& KeyId, const double& Val, const uint64& RecId);
+
+    /// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId);
+    /// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId);
+    /// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId);
+    /// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const int& KeyId, const int& Val, const uint64& RecId);
+    /// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const int& KeyId, const uint64& Val, const uint64& RecId);
+    /// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const int& KeyId, const double& Val, const uint64& RecId);
+
 	/// Check if index opened in read-only mode
 	bool IsReadOnly() const { return Access == faRdOnly; }
 
@@ -2388,12 +2580,18 @@ public:
 	/// Search with special Merger (does not handle joins)
 	TPair<TBool, PRecSet> Search(const TWPt<TBase>& Base, const TQueryItem& QueryItem, const PQmGixExpMerger& Merger, const PQmGixExpMergerSmall& MergerSmall) const;
 	/// Do geo-location range (in meters) search
-	PRecSet SearchRange(const TWPt<TBase>& Base, const int& KeyId, 
+	PRecSet SearchGeoRange(const TWPt<TBase>& Base, const int& KeyId,
 		const TFltPr& Loc, const double& Radius, const int& Limit) const;
 	/// Do geo-location nearest-neighbor search
-	PRecSet SearchNn(const TWPt<TBase>& Base, const int& KeyId, 
+	PRecSet SearchGeoNn(const TWPt<TBase>& Base, const int& KeyId,
 		const TFltPr& Loc, const int& Limit) const;
-	/// Get records ids and counts that are joined with given RecId (via given join key)
+    /// Do B-Tree linear search
+    PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TIntPr& RangeMinMax);
+    /// Do B-Tree linear search
+    PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUInt64Pr& RangeMinMax);
+    /// Do B-Tree linear search
+    PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TFltPr& RangeMinMax);
+    /// Get records ids and counts that are joined with given RecId (via given join key)
 	void GetJoinRecIdFqV(const int& JoinKeyId, const uint64& RecId, TUInt64IntKdV& JoinRecIdFqV) const;
 
 	/// Save debug statistics to a file
