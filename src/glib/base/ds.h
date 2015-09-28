@@ -83,6 +83,7 @@ void GetSwitchedPrV(const TVec<TPair<TVal1, TVal2>, TSizeTy>& SrcPrV, TVec<TPair
   }
 }
 
+typedef TPair<TBool, TBool> TBoolPr;
 typedef TPair<TBool, TCh> TBoolChPr;
 typedef TPair<TBool, TFlt> TBoolFltPr;
 typedef TPair<TUCh, TInt> TUChIntPr;

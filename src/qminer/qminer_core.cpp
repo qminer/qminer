@@ -10,9 +10,6 @@
 #include "qminer_ftr.h"
 #include "qminer_aggr.h"
 
-// external dependecies
-#include <sphere.h>
-
 namespace TQm {
 
 ///////////////////////////////
@@ -979,7 +976,7 @@ PJsonVal TStore::GetStoreKeysJson(const TWPt<TBase>& Base) const {
 		KeyVal->AddToObj("keyValue", Key.IsValue());
 		KeyVal->AddToObj("keyText", Key.IsText());
 		KeyVal->AddToObj("keyLocation", Key.IsLocation());
-		if (Key.IsSort()) { KeyVal->AddToObj("sortBy", TStr(Key.IsSortById() ? "word-id" : "word-str")); }
+		if (Key.IsGixSort()) { KeyVal->AddToObj("sortBy", TStr(Key.IsSortById() ? "word-id" : "word-str")); }
 		PJsonVal WordVocVal = TJsonVal::NewObj();
 		if (Key.IsWordVoc()) {
 			WordVocVal->AddToObj("wordVocId", Key.GetWordVocId());
@@ -1037,7 +1034,7 @@ PJsonVal TStore::GetStoreJson(const TWPt<TBase>& Base) const {
 uint64 TStore::GetRecId(const PJsonVal& RecVal) const {
 	if (RecVal->IsObjKey("$id")) {
 		// parse out record id
-		return (uint64)RecVal->GetObjInt("$id");
+		return RecVal->GetObjUInt64("$id");
 	} else if (RecVal->IsObjKey("$name")) {
 		QmAssertR(HasRecNm(), "[TStore::GetRecId] $name passed to store without primary key");
 		// parse out record name
@@ -1201,7 +1198,7 @@ void TStore::PrintTypes(const TWPt<TBase>& Base, TSOut& SOut) const {
 		if (Key.IsValue()) { SOut.PutStr(" Value"); }
 		if (Key.IsText()) { SOut.PutStr(" Text"); }
 		if (Key.IsLocation()) { SOut.PutStr(" Location"); }
-		if (Key.IsSort()) { SOut.PutStr(Key.IsSortById() ? "SortByWordId" : "SortByWord"); }
+		if (Key.IsGixSort()) { SOut.PutStr(Key.IsSortById() ? "SortByWordId" : "SortByWord"); }
 		if (Key.IsWordVoc()) { SOut.PutStrFmt(" WordVoc(#values=%d)", IndexVoc->GetWords(KeyId)); }
 		SOut.PutStrLn("]");
 	}
@@ -1268,7 +1265,7 @@ TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal) :
 		}
 		case oftUInt64:
 			QmAssertR(FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
-			SetFieldUInt64(FieldId, (uint64)FieldVal->GetInt());
+			SetFieldUInt64(FieldId, FieldVal->GetUInt64());
 			break;
 		case oftStr:
 			QmAssertR(FieldVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not string.");
@@ -1666,6 +1663,16 @@ void TRec::SetFieldTm(const int& FieldId, const TTm& Tm) {
 	}
 }
 
+void TRec::SetFieldTmMSecs(const int& FieldId, const uint64& TmMSecs) {
+	if (IsByRef()) {
+		Store->SetFieldTmMSecs(RecId, FieldId, TmMSecs);
+	} else {
+		FieldIdPosH.AddDat(FieldId, RecVal.Len());
+		TUInt64(TmMSecs).Save(RecValOut);
+	}
+}
+
+
 void TRec::SetFieldNumSpV(const int& FieldId, const TIntFltKdV& NumSpV) {
 	if (IsByRef()) {
 		Store->SetFieldNumSpV(RecId, FieldId, NumSpV);
@@ -1797,7 +1804,7 @@ PJsonVal TRec::GetJson(const TWPt<TBase>& Base, const bool& FieldsP,
 	}
 	// record name and id only if stored by reference
 	if (ByRefP && RecInfoP) {
-		RecVal->AddToObj("$id", (int)RecId);
+		RecVal->AddToObj("$id", (double)RecId);
 		// put name only when no fields displayed and one exists in the store
 		if (!FieldsP && Store->HasRecNm()) {
 			RecVal->AddToObj("$name", Store->GetRecNm(RecId));
@@ -2291,6 +2298,16 @@ PJsonVal TRecSet::GetJson(const TWPt<TBase>& Base, const int& _MxHits, const int
 
 ///////////////////////////////
 // QMiner-Index-Key
+TIndexKey::TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm,
+    const bool& IsSmall): StoreId(_StoreId), KeyNm(_KeyNm), WordVocId(-1),
+    TypeFlags(oiktInternal), SortType(oikstUndef), JoinNm(_JoinNm) {
+
+    if (IsSmall) {
+        TypeFlags = (TIndexKeyType)(TypeFlags | oiktSmall);
+    }
+    TValidNm::AssertValidNm(KeyNm);
+}
+
 TIndexKey::TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const int& _WordVocId,
 	const TIndexKeyType& _Type, const TIndexKeySortType& _SortType) : StoreId(_StoreId),
 	KeyNm(_KeyNm), WordVocId(_WordVocId), TypeFlags(_Type), SortType(_SortType) {
@@ -2801,8 +2818,27 @@ TWPt<TStore> TQueryItem::ParseFrom(const TWPt<TBase>& Base, const PJsonVal& Json
 	return Base->GetStoreByStoreNm(StoreNm);
 }
 
+uint64 TQueryItem::ParseTm(const PJsonVal& JsonVal) {
+    if (JsonVal->IsStr()) {
+        // parse date as string
+        TStr TmStr = JsonVal->GetStr();
+        TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
+        QmAssertR(Tm.IsDef(), "Query: Unsupported time format, use ISO instead: " + TmStr);
+        return TTm::GetMSecsFromTm(Tm);
+    } else if (JsonVal->IsNum()) {
+        // parse date as unix time stamp in miliseconds
+        const double UnixMSecs = JsonVal->GetNum();
+        const double WinMSecs = UnixMSecs + 11644473600000.0;
+        return (uint64)WinMSecs;
+    } else {
+        // TODO: if you need annoter type to be supported when parsing time queries,
+        // feel free to implement it here :-)
+        throw TQmExcept::New("Query: Unsupported datetime value " + JsonVal->SaveStr());
+    }
+}
+
 void TQueryItem::ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
-	const PJsonVal& JsonVal, const bool& IgnoreOrP) {
+        const PJsonVal& JsonVal, const bool& IgnoreOrP) {
 
 	// go over other keys and create their corresponding items
 	for (int KeyN = 0; KeyN < JsonVal->GetObjKeys(); KeyN++) {
@@ -2831,7 +2867,7 @@ void TQueryItem::ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
 				ItemV.Add(TQueryItem(oqitNot, TQueryItem(Base, Store, KeyVal)));
 			} else if (KeyNm == "$id") {
 				QmAssertR(KeyVal->IsNum(), "Query: unsupported $id value");
-				const uint64 _RecId = (uint64)KeyVal->GetInt();
+				const uint64 _RecId = KeyVal->GetUInt64();
 				const uint64 RecId = Store->IsRecId(_RecId) ? _RecId : TUInt64::Mx;
 				ItemV.Add(TQueryItem(Store, RecId));
 			} else if (KeyNm == "$name") {
@@ -2852,7 +2888,7 @@ void TQueryItem::ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
 				throw TQmExcept::New("Query: unknown parameter " + KeyNm);
 			}
 		} else {
-			// gix query
+			// field query
 			ItemV.Add(TQueryItem(Base, Store, KeyNm, KeyVal));
 		}
 	}
@@ -2939,86 +2975,135 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
 	// check key exists for the specified store
 	TWPt<TIndexVoc> IndexVoc = Base->GetIndexVoc();
 	QmAssertR(IndexVoc->IsKeyNm(Store->GetStoreId(), KeyNm), "Query: unknown key " + KeyNm);
-	// first parse the value (to see if we are really leaf, or a masked AND query)
-	if (KeyVal->IsStr()) {
-		// parse the key
-		KeyId = IndexVoc->GetKeyId(Store->GetStoreId(), KeyNm);
-		// plain string, must be equal
-		Type = (IndexVoc->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix);
-		CmpType = oqctEqual;
-		ParseWordStr(KeyVal->GetStr(), IndexVoc);
-	} else if (KeyVal->IsObj()) {
-		// parse the key
-		// not plain string, check for operator
-		if (KeyVal->IsObjKey("$location")) {
-			KeyId = IndexVoc->GetKeyId(Store->GetStoreId(), KeyNm);
-			QmAssert(IndexVoc->GetKey(KeyId).IsLocation());
-			Type = oqitGeo;
-			// we have a location query, parse out location
-			PJsonVal LocVal = KeyVal->GetObjKey("$location");
-			QmAssertR(LocVal->IsArr(), "$location requires array with two coordinates");
-			QmAssertR(LocVal->GetArrVals() == 2, "$location requires array with two coordinates");
-			Loc.Val1 = LocVal->GetArrVal(0)->GetNum(); Loc.Val2 = LocVal->GetArrVal(1)->GetNum();
-			// default values for parameters
-			LocRadius = -1.0; LocLimit = 100;
-			// parase out additional parameters
-			if (KeyVal->IsObjKey("$radius")) {
-				PJsonVal RadiusVal = KeyVal->GetObjKey("$radius");
-				LocRadius = RadiusVal->GetNum();
-			}
-			if (KeyVal->IsObjKey("$limit")) {
-				PJsonVal RadiusVal = KeyVal->GetObjKey("$limit");
-				LocLimit = TFlt::Round(RadiusVal->GetNum());
-				if (LocLimit <= 0) { throw TQmExcept::New("Query: $limit must be greater then zero"); }
-			}
-		} else if (KeyVal->IsObjKey("$ne")) {
+    // get key and its type
+	const TIndexKey& Key = IndexVoc->GetKey(Store->GetStoreId(), KeyNm);
+    // check for possible types of queries
+    if (KeyVal->IsObj() && KeyVal->IsObjKey("$or")) {
+        // we are an OR query of multiple subqueries on the same key
+        PJsonVal ObjVals = KeyVal->GetObjKey("$or");
+        QmAssertR(ObjVals->IsArr(), "Query: $or as value requires an array of potential values");
+        Type = oqitOr;
+        for (int ValN = 0; ValN < ObjVals->GetArrVals(); ValN++) {
+            ItemV.Add(TQueryItem(Base, Store, KeyNm, ObjVals->GetArrVal(ValN)));
+        }
+    } else if (KeyVal->IsArr()) {
+        // we are an AND query of multiple subqueries on the same key
+        Type = oqitAnd;
+        for (int ValN = 0; ValN < KeyVal->GetArrVals(); ValN++) {
+            PJsonVal Val = KeyVal->GetArrVal(ValN);
+            // make sure we don't have nested arreys
+            QmAssertR(Val->IsStr() || Val->IsObj(),
+                "Query: Multiple conditions for a key must be string or object");
+            // handle each value
+            ItemV.Add(TQueryItem(Base, Store, KeyNm, Val));
+        }
+    } else if (Key.IsValue() || Key.IsText()) {
+        // we have a direct inverted index query
+        KeyId = Key.GetKeyId();
+        // check if normal or small gix
+        Type = Key.IsSmall() ? oqitLeafGixSmall : oqitLeafGix;
+        // check how it is phrased
+        if (KeyVal->IsStr()) {
+            // plain string, must be equal
+            CmpType = oqctEqual;
+            // get target word id(s)
+            ParseWordStr(KeyVal->GetStr(), IndexVoc);
+		} else if (KeyVal->IsObj() && KeyVal->IsObjKey("$ne")) {
+            // not-equal query
 			QmAssertR(KeyVal->GetObjKey("$ne")->IsStr(), "Query: $ne value must be string");
-			KeyId = IndexVoc->GetKeyId(Store->GetStoreId(), KeyNm);
-			Type = (IndexVoc->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix);
 			CmpType = oqctNotEqual;
+            // get target word id(s)
 			ParseWordStr(KeyVal->GetObjKey("$ne")->GetStr(), IndexVoc);
-		} else if (KeyVal->IsObjKey("$gt")) {
+		} else if (KeyVal->IsObj() && KeyVal->IsObjKey("$gt")) {
+            // greater-than query
 			QmAssertR(KeyVal->GetObjKey("$gt")->IsStr(), "Query: $gt value must be string");
-			KeyId = IndexVoc->GetKeyId(Store->GetStoreId(), KeyNm);
-			Type = (IndexVoc->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix);
 			CmpType = oqctGreater;
+            // identify all words that are greater
 			ParseWordStr(KeyVal->GetObjKey("$gt")->GetStr(), IndexVoc);
-		} else if (KeyVal->IsObjKey("$lt")) {
+		} else if (KeyVal->IsObj() && KeyVal->IsObjKey("$lt")) {
+            // less-than query
 			QmAssertR(KeyVal->GetObjKey("$lt")->IsStr(), "Query: $lt value must be string");
-			KeyId = IndexVoc->GetKeyId(Store->GetStoreId(), KeyNm);
-			Type = (IndexVoc->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix);
 			CmpType = oqctLess;
+            // identify all words that are smaller
 			ParseWordStr(KeyVal->GetObjKey("$lt")->GetStr(), IndexVoc);
-		} else if (KeyVal->IsObjKey("$or")) {
-			PJsonVal ObjVals = KeyVal->GetObjKey("$or");
-			QmAssertR(ObjVals->IsArr(), "Query: $or as value requires an array of potential values");
-			Type = oqitOr;
-			for (int ValN = 0; ValN < ObjVals->GetArrVals(); ValN++) {
-				ItemV.Add(TQueryItem(Base, Store, KeyNm, ObjVals->GetArrVal(ValN)));
-			}
-		} else if (KeyVal->IsObjKey("$wc")) {
-			QmAssertR(KeyVal->GetObjKey("$wc")->IsStr(), "Query: $wc value must be string");
-			KeyId = IndexVoc->GetKeyId(Store->GetStoreId(), KeyNm);
+		} else if (KeyVal->IsObj() && KeyVal->IsObjKey("$wc")) {
 			// wildchars interparted as or with all possibilities
-			Type = (IndexVoc->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix);
+			QmAssertR(KeyVal->GetObjKey("$wc")->IsStr(), "Query: $wc value must be string");
 			CmpType = oqctWildChar;
 			// identify possibilities
 			ParseWordStr(KeyVal->GetObjKey("$wc")->GetStr(), IndexVoc);
-		} else {
-			throw TQmExcept::New("Query: Invalid operator: '" + TJsonVal::GetStrFromVal(KeyVal) + "'");
+        } else {
+            throw TQmExcept::New("Query: Invalid key definition: '" + TJsonVal::GetStrFromVal(KeyVal) + "'");
+        }
+    } else if (Key.IsLocation()) {
+        // remember key id
+        KeyId = Key.GetKeyId();
+        if (KeyVal->IsObj() && KeyVal->IsObjKey("$location")) {
+            // we are hiting location index
+            Type = oqitGeo;
+            // we have a location query, parse out location
+            PJsonVal LocVal = KeyVal->GetObjKey("$location");
+            QmAssertR(LocVal->IsArr(), "$location requires array with two coordinates");
+            QmAssertR(LocVal->GetArrVals() == 2, "$location requires array with two coordinates");
+            Loc.Val1 = LocVal->GetArrVal(0)->GetNum(); Loc.Val2 = LocVal->GetArrVal(1)->GetNum();
+            // default values for parameters
+            LocRadius = -1.0; LocLimit = 100;
+            // parase out additional parameters
+            if (KeyVal->IsObjKey("$radius")) {
+                PJsonVal RadiusVal = KeyVal->GetObjKey("$radius");
+                LocRadius = RadiusVal->GetNum();
+            }
+            if (KeyVal->IsObjKey("$limit")) {
+                PJsonVal RadiusVal = KeyVal->GetObjKey("$limit");
+                LocLimit = TFlt::Round(RadiusVal->GetNum());
+                if (LocLimit <= 0) { throw TQmExcept::New("Query: $limit must be greater then zero"); }
+            }
+        } else {
+			throw TQmExcept::New("Query: invalid value for location key: '" + TJsonVal::GetStrFromVal(KeyVal) + "'");
 		}
-	} else if (KeyVal->IsArr()) {
-		// a vector of values => we are actually an AND query of multiple values for same key
-		Type = oqitAnd;
-		for (int ValN = 0; ValN < KeyVal->GetArrVals(); ValN++) {
-			PJsonVal Val = KeyVal->GetArrVal(ValN);
-			// make sure we don't have nested arreys
-			QmAssertR(Val->IsStr() || Val->IsObj(),
-				"Query: Multiple conditions for a key must be string or object");
-			// handle each value
-			ItemV.Add(TQueryItem(Base, Store, KeyNm, Val));
-		}
-	} else {
+    } else if (Key.IsLinear()) {
+        // remember key id
+        KeyId = Key.GetKeyId();
+        // check if we have any border
+        if (KeyVal->IsObj()) {
+            // key is index using btree, check field type and extract type-appropriate range
+            // by default range is always (-inf, inf), unless specified explicitly
+            if (Key.IsSortAsInt()) {
+                Type = oqitRangeInt;
+                RangeIntMnMx = TIntPr(KeyVal->GetObjInt("$gt", TInt::Mn), KeyVal->GetObjInt("$lt", TInt::Mx));
+            } else if (Key.IsSortAsUInt64()) {
+                Type = oqitRangeUInt64;
+                RangeUInt64MnMx = TUInt64Pr(KeyVal->GetObjUInt64("$gt", TUInt64::Mn), KeyVal->GetObjUInt64("$lt", TUInt64::Mx));
+            } else if (Key.IsSortAsTm()) {
+                Type = oqitRangeTm;
+                RangeUInt64MnMx = TUInt64Pr(TUInt64::Mn, TUInt64::Mx);
+                // check if we have lower bound
+                if (KeyVal->IsObjKey("$gt")) { RangeUInt64MnMx.Val1 = ParseTm(KeyVal->GetObjKey("$gt")); }
+                if (KeyVal->IsObjKey("$lt")) { RangeUInt64MnMx.Val2 = ParseTm(KeyVal->GetObjKey("$lt")); }
+            } else if (Key.IsSortAsFlt()) {
+                Type = oqitRangeFlt;
+                RangeFltMnMx = TFltPr(KeyVal->GetObjNum("$gt", TFlt::Mn), KeyVal->GetObjNum("$lt", TFlt::Mx));
+            }
+        } else if (Key.IsSortAsTm() && (KeyVal->IsStr() || KeyVal->IsNum())) {
+            // we are given exact date time, make it a range query with both edges equal
+            Type = oqitRangeUInt64;
+            RangeUInt64MnMx.Val1 = RangeUInt64MnMx.Val2 = ParseTm(KeyVal);
+        } else if (KeyVal->IsNum()) {
+            QmAssertR(Key.IsSortAsInt() || Key.IsSortAsUInt64() || Key.IsSortAsFlt(),
+                "Query: wrong key value for non-integer key " + KeyNm);
+            // we are given exact number, make it a range query with both edges equal
+            if (Key.IsSortAsInt()) {
+                Type = oqitRangeInt;
+                RangeIntMnMx.Val1 = RangeIntMnMx.Val2 = KeyVal->GetInt();
+            } else if (Key.IsSortAsUInt64()) {
+                Type = oqitRangeUInt64;
+                RangeUInt64MnMx.Val1 = RangeUInt64MnMx.Val2 = KeyVal->GetUInt64();
+            } else if (Key.IsSortAsFlt()) {
+                Type = oqitRangeFlt;
+                RangeFltMnMx.Val1 = RangeFltMnMx.Val2 = KeyVal->GetNum();
+            }
+        }
+    } else {
 		throw TQmExcept::New("Query: Invalid key definition: '" + TJsonVal::GetStrFromVal(KeyVal) + "'");
 	}
 	SetGixFlag();
@@ -3163,7 +3248,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& JoinNm, const int& _
 }
 
 uint TQueryItem::GetStoreId(const TWPt<TBase>& Base) const {
-	if (IsLeafGix() || IsLeafGixSmall() || IsGeo()) {
+	if (IsLeafGix() || IsLeafGixSmall() || IsGeo() || IsRange()) {
 		// when in the leaf, life is easy
 		return Base->GetIndexVoc()->GetKeyStoreId(KeyId);
 	} else if (IsRecSet()) {
@@ -3405,53 +3490,6 @@ bool TQuery::IsOk(const TWPt<TBase>& Base, TStr& MsgStr) const {
 
 ///////////////////////////////
 // GeoIndex
-class TGeoIndex {
-private:
-	// smart-pointer
-	TCRef CRef;
-	friend class TPt < TGeoIndex > ;
-
-	// location precision (1,000,000 ~~ one meter)
-	TFlt Precision;
-	// map from location to records
-	//TODO: Switch to GIX, maybe
-	THash<TIntPr, TUInt64V> LocRecIdH;
-	// location index
-	TSphereNn<TInt, double> SphereNn;
-
-	TIntPr GetLocId(const TFltPr& Loc) const;
-	void LocKeyIdToRecId(const TIntV& LocKeyIdV, const int& Limit, TUInt64V& AllRecIdV) const;
-	//DEBUG: counts all the indexed records
-	int AllRecs() const;
-
-public:
-	// create new empty index
-	TGeoIndex(const double& _Precision) : Precision(_Precision),
-		SphereNn(TSphereNn<TInt, double>::EarthRadiusKm() * 1000.0) {}
-	static PGeoIndex New(const double& Precision = 1000000.0) { return new TGeoIndex(Precision); }
-	// load existing index
-	TGeoIndex(TSIn& SIn) : Precision(SIn), LocRecIdH(SIn), SphereNn(SIn) {}
-	static PGeoIndex Load(TSIn& SIn) { return new TGeoIndex(SIn); }
-	static PGeoIndex LoadBin(const TStr& FNm) { TFIn FIn(FNm); return new TGeoIndex(FIn); }
-	// save index
-	void Save(TSOut& SOut) { Precision.Save(SOut); LocRecIdH.Save(SOut); SphereNn.Save(SOut); }
-	void SaveBin(const TStr& FNm) { TFOut FOut(FNm); Save(FOut); }
-
-	// add new record
-	void AddKey(const TFltPr& Loc, const uint64& RecId);
-	// delete record
-	void DelKey(const TFltPr& Loc, const uint64& RecId);
-	// range query (in meters)
-	void SearchRange(const TFltPr& Loc, const double& Radius,
-		const int& Limit, TUInt64V& RecIdV) const;
-	// (limit) nearest neighbour query
-	void SearchNn(const TFltPr& Loc, const int& Limit, TUInt64V& RecIdV) const;
-
-	// tells if two locations identical based on Precision
-	bool LocEquals(const TFltPr& Loc1, const TFltPr& Loc2) const;
-};
-
-
 TIntPr TGeoIndex::GetLocId(const TFltPr& Loc) const {
 	// round location coordinages to a meter precision
 	return TIntPr(TFlt::Round(Loc.Val1 * Precision), TFlt::Round(Loc.Val2 * Precision));
@@ -3919,8 +3957,17 @@ TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access,
 	// initialize location index
 	TStr SphereFNm = IndexFPath + "Index.Geo";
 	if (TFile::Exists(SphereFNm) && Access != faCreate) {
-		TFIn SphereFIn(SphereFNm); GeoIndexH.Load(SphereFIn);
+		TFIn SphereFIn(SphereFNm);
+        GeoIndexH.Load(SphereFIn);
 	}
+    // initialize btree index
+    TStr BTreeFNm = IndexFPath + "Index.BTree";
+   	if (TFile::Exists(BTreeFNm) && Access != faCreate) {
+        TFIn BTreeFIn(BTreeFNm);
+        BTreeIndexIntH.Load(BTreeFIn);
+        BTreeIndexUInt64H.Load(BTreeFIn);
+        BTreeIndexFltH.Load(BTreeFIn);
+    }
 	// initialize vocabularies
 	IndexVoc = _IndexVoc;
 }
@@ -3931,8 +3978,18 @@ TIndex::~TIndex() {
 		Gix.Clr();
 		TEnv::Logger->OnStatus("Saving and closing inverted index - small");
 		GixSmall.Clr();
-		TEnv::Logger->OnStatus("Saving and closing location index");
-		TFOut SphereFOut(IndexFPath + "Index.Geo"); GeoIndexH.Save(SphereFOut);
+		{
+            TEnv::Logger->OnStatus("Saving and closing location index");
+            TFOut SphereFOut(IndexFPath + "Index.Geo");
+            GeoIndexH.Save(SphereFOut);
+        }
+		{
+            TEnv::Logger->OnStatus("Saving and closing btree index");
+            TFOut BTreeFOut(IndexFPath + "Index.BTree");
+            BTreeIndexIntH.Save(BTreeFOut);
+            BTreeIndexUInt64H.Save(BTreeFOut);
+            BTreeIndexFltH.Save(BTreeFOut);
+        }
 		TEnv::Logger->OnStatus("Index closed");
 	} else {
 		TEnv::Logger->OnStatus("Index opened in read-only mode, no saving needed");
@@ -4221,6 +4278,80 @@ bool TIndex::LocEquals(const int& KeyId, const TFltPr& Loc1, const TFltPr& Loc2)
 	return GeoIndexH.IsKey(KeyId) ? GeoIndexH.GetDat(KeyId)->LocEquals(Loc1, Loc2) : false;
 }
 
+void TIndex::IndexLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId) {
+	IndexLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
+}
+
+void TIndex::IndexLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId) {
+	IndexLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
+}
+
+void TIndex::IndexLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId) {
+	IndexLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
+}
+
+void TIndex::IndexLinear(const int& KeyId, const int& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// if new key, create sphere first
+	if (!BTreeIndexIntH.IsKey(KeyId)) { BTreeIndexIntH.AddDat(KeyId, PBTreeIndexInt::New()); }
+	// index new location
+	BTreeIndexIntH.GetDat(KeyId)->AddKey(Val, RecId);
+}
+
+
+void TIndex::IndexLinear(const int& KeyId, const uint64& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// if new key, create sphere first
+	if (!BTreeIndexUInt64H.IsKey(KeyId)) { BTreeIndexUInt64H.AddDat(KeyId, PBTreeIndexUInt64::New()); }
+	// index new location
+	BTreeIndexUInt64H.GetDat(KeyId)->AddKey(Val, RecId);
+}
+
+
+void TIndex::IndexLinear(const int& KeyId, const double& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// if new key, create sphere first
+	if (!BTreeIndexFltH.IsKey(KeyId)) { BTreeIndexFltH.AddDat(KeyId, PBTreeIndexFlt::New()); }
+	// index new location
+	BTreeIndexFltH.GetDat(KeyId)->AddKey(Val, RecId);
+}
+
+void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId) {
+	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
+}
+
+void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId) {
+	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
+}
+
+void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId) {
+	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
+}
+
+void TIndex::DeleteLinear(const int& KeyId, const int& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// delete only if index exist 
+	if (BTreeIndexIntH.IsKey(KeyId)) { BTreeIndexIntH.GetDat(KeyId)->DelKey(Val, RecId); }
+}
+
+void TIndex::DeleteLinear(const int& KeyId, const uint64& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// delete only if index exist 
+	if (BTreeIndexUInt64H.IsKey(KeyId)) { BTreeIndexUInt64H.GetDat(KeyId)->DelKey(Val, RecId); }
+}
+
+void TIndex::DeleteLinear(const int& KeyId, const double& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// delete only if index exist 
+	if (BTreeIndexFltH.IsKey(KeyId)) { BTreeIndexFltH.GetDat(KeyId)->DelKey(Val, RecId); }
+}
+
 void TIndex::SearchAnd(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const {
 	// prepare the query
 	TVec<PQmGixExpItem> ExpItemV(KeyWordV.Len(), 0);
@@ -4247,7 +4378,6 @@ void TIndex::SearchAnd(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV
 }
 
 void TIndex::SearchOr(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const {
-		
 	// prepare the query
 	TVec<PQmGixExpItem> ExpItemV(KeyWordV.Len(), 0);
 	TVec<PQmGixExpItemSmall> ExpItemSmallV(KeyWordV.Len(), 0);
@@ -4309,7 +4439,7 @@ TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base, const TQueryItem& 
 	throw TQmExcept::New("Error in TIndex::Search - hybrid search is not supported.");
 }
 
-PRecSet TIndex::SearchRange(const TWPt<TBase>& Base, const int& KeyId,
+PRecSet TIndex::SearchGeoRange(const TWPt<TBase>& Base, const int& KeyId,
 		const TFltPr& Loc, const double& Radius, const int& Limit) const {
 
 	TUInt64V RecIdV;
@@ -4318,12 +4448,45 @@ PRecSet TIndex::SearchRange(const TWPt<TBase>& Base, const int& KeyId,
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
 
-PRecSet TIndex::SearchNn(const TWPt<TBase>& Base, const int& KeyId,
+PRecSet TIndex::SearchGeoNn(const TWPt<TBase>& Base, const int& KeyId,
 		const TFltPr& Loc, const int& Limit) const {
 
 	TUInt64V RecIdV;
 	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
 	if (GeoIndexH.IsKey(KeyId)) { GeoIndexH.GetDat(KeyId)->SearchNn(Loc, Limit, RecIdV); }
+	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
+}
+
+PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TIntPr& RangeMinMax) {
+
+	TUInt64V RecIdV;
+	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
+	if (BTreeIndexIntH.IsKey(KeyId)) {
+        BTreeIndexIntH.GetDat(KeyId)->SearchRange(RangeMinMax, RecIdV);
+        RecIdV.Sort();
+    }
+	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
+}
+
+PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUInt64Pr& RangeMinMax) {
+
+	TUInt64V RecIdV;
+	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
+	if (BTreeIndexUInt64H.IsKey(KeyId)) {
+        BTreeIndexUInt64H.GetDat(KeyId)->SearchRange(RangeMinMax, RecIdV);
+        RecIdV.Sort();
+    }
+	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
+}
+
+PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TFltPr& RangeMinMax) {
+
+	TUInt64V RecIdV;
+	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
+	if (BTreeIndexFltH.IsKey(KeyId)) {
+        BTreeIndexFltH.GetDat(KeyId)->SearchRange(RangeMinMax, RecIdV);
+        RecIdV.Sort();
+    }
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
 
@@ -4672,16 +4835,32 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
 	} else if (QueryItem.IsGeo()) {
 		if (QueryItem.IsLocRadius()) {
 			// must be handled by geo index
-			PRecSet RecSet = Index->SearchRange(this, QueryItem.GetKeyId(),
+			PRecSet RecSet = Index->SearchGeoRange(this, QueryItem.GetKeyId(),
 				QueryItem.GetLoc(), QueryItem.GetLocRadius(), QueryItem.GetLocLimit());
 			return TPair<TBool, PRecSet>(false, RecSet);
 		} else {
 			// must be handled by geo index
-			PRecSet RecSet = Index->SearchNn(this, QueryItem.GetKeyId(),
+			PRecSet RecSet = Index->SearchGeoNn(this, QueryItem.GetKeyId(),
 				QueryItem.GetLoc(), QueryItem.GetLocLimit());
 			return TPair<TBool, PRecSet>(false, RecSet);
 		}
-	} else if (QueryItem.IsJoin()) {
+	} else if (QueryItem.IsRangeInt()) {
+        // must be handled by BTree linear index
+        PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeIntMinMax());
+        return TPair<TBool, PRecSet>(false, RecSet);
+	} else if (QueryItem.IsRangeUInt64()) {
+        // must be handled by BTree linear index
+        PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeUInt64MinMax());
+        return TPair<TBool, PRecSet>(false, RecSet);
+	} else if (QueryItem.IsRangeTm()) {
+        // must be handled by BTree linear index
+        PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeUInt64MinMax());
+        return TPair<TBool, PRecSet>(false, RecSet);
+	} else if (QueryItem.IsRangeFlt()) {
+        // must be handled by BTree linear index
+        PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeFltMinMax());
+        return TPair<TBool, PRecSet>(false, RecSet);
+    } else if (QueryItem.IsJoin()) {
 		// special case when it's record passed by value
 		const TQueryItem& SubItem = QueryItem.GetItem(0);
 		if (SubItem.IsRec() && SubItem.GetRec().IsByVal()) {
