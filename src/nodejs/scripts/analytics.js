@@ -377,7 +377,6 @@ module.exports = exports = function (pathPrefix) {
         }
     }
 
-
     /**
     * Metrics
     * @namespace
@@ -410,9 +409,6 @@ module.exports = exports = function (pathPrefix) {
     * mae.getError();
     */
     exports.metrics = new function () {
-    // how to create a namespace: http://addyosmani.com/blog/essential-js-namespacing/
-    //exports.metrics = metrics = {};
-    //(function () {
         // For evaluating provided categories (precision, recall, F1).
         this.ClassificationScore = function (yTrue, yPred) {
             this.scores = {
@@ -908,7 +904,6 @@ module.exports = exports = function (pathPrefix) {
             return new createOnlineMetric(calcError);
         }
 
-
         //////////////////////////////////////////////////
         //////////// BATCH REGRESSION METRICS ////////////
         //////////////////////////////////////////////////
@@ -1006,8 +1001,6 @@ module.exports = exports = function (pathPrefix) {
             return new calcBatchError(this, yTrueVec, yPredVec).R2()
         }
     };
-    //}).apply(metrics) // Namespace injection technique.
-
 
     /**
     * @classdesc Principal components analysis
