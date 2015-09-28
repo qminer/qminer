@@ -21,7 +21,8 @@ describe('BTree Integer Search Tests', function () {
         base.createStore({
             'name': 'BTreeSearchTest',
             'fields': [
-              { 'name': 'Value', 'type': 'int' }
+              { 'name': 'Value', 'type': 'int' },
+              { 'name': 'ForSort', 'type': 'float' }
             ],
             'joins': [],
             'keys': [
@@ -30,7 +31,7 @@ describe('BTree Integer Search Tests', function () {
         });
         store = base.store('BTreeSearchTest');
         for (var i = 0; i < 100; i++) {
-            store.push({ Value: i % 10 });
+            store.push({ Value: i % 10, ForSort: Math.random() });
         }
     });
     afterEach(function () {
@@ -53,6 +54,15 @@ describe('BTree Integer Search Tests', function () {
             assert.equal(result.length, 20);
             result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
             result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+        })
+        it('returns all elements >= 5 and <= 6 and sort according to ForSort field', function () {
+            var result = base.search({ $from: 'BTreeSearchTest', $sort: {ForSort: 1}, Value: { $gt: 5, $lt: 6}});
+            assert.equal(result.length, 20);
+            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            for (var i = 1; i < result.length; i++) {
+                assert.equal(result[i-1].ForSort < result[i].ForSort, true);
+            }
         })
         it('returns all elements == 5', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: 5});
@@ -201,7 +211,8 @@ describe('BTree UInt64 Search Tests', function () {
         base.createStore({
             'name': 'BTreeSearchTest',
             'fields': [
-              { 'name': 'Value', 'type': 'uint64' }
+              { 'name': 'Value', 'type': 'uint64' },
+              { 'name': 'ForSort', 'type': 'float' }
             ],
             'joins': [],
             'keys': [
@@ -210,7 +221,7 @@ describe('BTree UInt64 Search Tests', function () {
         });
         store = base.store('BTreeSearchTest');
         for (var i = 0; i < 100; i++) {
-            store.push({ Value: i % 10 });
+            store.push({ Value: i % 10, ForSort: Math.random() });
         }
     });
     afterEach(function () {
@@ -233,6 +244,15 @@ describe('BTree UInt64 Search Tests', function () {
             assert.equal(result.length, 20);
             result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
             result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+        })
+        it('returns all elements >= 5 and <= 6 and sort according to ForSort field', function () {
+            var result = base.search({ $from: 'BTreeSearchTest', $sort: {ForSort: 1}, Value: { $gt: 5, $lt: 6}});
+            assert.equal(result.length, 20);
+            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            for (var i = 1; i < result.length; i++) {
+                assert.equal(result[i-1].ForSort < result[i].ForSort, true);
+            }
         })
         it('returns all elements == 5', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: 5});
@@ -381,7 +401,8 @@ describe('BTree Float Search Tests', function () {
         base.createStore({
             'name': 'BTreeSearchTest',
             'fields': [
-              { 'name': 'Value', 'type': 'float' }
+              { 'name': 'Value', 'type': 'float' },
+              { 'name': 'ForSort', 'type': 'float' }
             ],
             'joins': [],
             'keys': [
@@ -390,7 +411,7 @@ describe('BTree Float Search Tests', function () {
         });
         store = base.store('BTreeSearchTest');
         for (var i = 0; i < 100; i++) {
-            store.push({ Value: (i % 10) + 0.123 });
+            store.push({ Value: (i % 10) + 0.123, ForSort: Math.random() });
         }
     });
     afterEach(function () {
@@ -413,6 +434,15 @@ describe('BTree Float Search Tests', function () {
             assert.equal(result.length, 10);
             result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
             result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+        })
+        it('returns all elements >= 5 and <= 6 and sort according to ForSort field', function () {
+            var result = base.search({ $from: 'BTreeSearchTest', $sort: {ForSort: 1}, Value: { $gt: 5, $lt: 6}});
+            assert.equal(result.length, 10);
+            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            for (var i = 1; i < result.length; i++) {
+                assert.equal(result[i-1].ForSort < result[i].ForSort, true);
+            }
         })
         it('returns all elements == 5.123', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: 5.123});
@@ -561,7 +591,8 @@ describe('BTree DateTime Search Tests', function () {
         base.createStore({
             'name': 'BTreeSearchTest',
             'fields': [
-              { 'name': 'Value', 'type': 'datetime' }
+              { 'name': 'Value', 'type': 'datetime' },
+              { 'name': 'ForSort', 'type': 'float' }
             ],
             'joins': [],
             'keys': [
@@ -572,7 +603,7 @@ describe('BTree DateTime Search Tests', function () {
         var date = new Date('2015-09-27T00:00:00.000Z');
         for (var i = 0; i < 100; i++) {
             var _date = new Date(date.getTime() + (i % 10)*60*60*1000);
-            store.push({ Value: _date.toISOString() });
+            store.push({ Value: _date.toISOString(), ForSort: Math.random() });
         }
     });
     afterEach(function () {
@@ -597,6 +628,18 @@ describe('BTree DateTime Search Tests', function () {
             assert.equal(result.length, 20);
             result.each(function (rec) { assert.equal(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
             result.each(function (rec) { assert.equal(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
+        })
+        it('returns all elements >= 2015-09-27T05:00:00.000 and <= 2015-09-27T06:00:00.000Z and sort according to ForSort field', function () {
+            var result = base.search({
+                $from: 'BTreeSearchTest',
+                $sort: {ForSort: 1},
+                Value: { $gt: '2015-09-27T05:00:00.000Z', $lt: '2015-09-27T06:00:00.000Z'}});
+            assert.equal(result.length, 20);
+            result.each(function (rec) { assert.equal(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
+            result.each(function (rec) { assert.equal(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
+            for (var i = 1; i < result.length; i++) {
+                assert.equal(result[i-1].ForSort < result[i].ForSort, true);
+            }
         })
         it('returns all elements == 2015-09-27T05:00:00.000Z', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: '2015-09-27T05:00:00.000Z'});
