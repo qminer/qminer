@@ -2220,74 +2220,83 @@ void TUiHelper::InitStateCoordV(const PStateIdentifier& StateIdentifier,
 void TUiHelper::RefineStateCoordV(const PStateIdentifier& StateIdentifier,
 		const PHierarch& Hierarch, const PMChain& MChain) {
 	Notify->OnNotify(TNotifyType::ntInfo, "Refining node positions ...");
-	const int& NLeafs = Hierarch->GetLeafs();
 
-	const double CurrHeight = 0;
-
-	// construct state sets
-	TStateSetV StateSetV; TIntV StateIdV;
-	Hierarch->GetStateSetsAtHeight(CurrHeight, StateIdV, StateSetV);
-
-	TStateFtrVV StateFtrVV;	StateIdentifier->GetControlCentroidVV(StateFtrVV);
-	TFltV ProbV;	MChain->GetStatDist(StateSetV, StateFtrVV, ProbV);
-	TFltV RadiusV;	GetStateRadiusV(ProbV, RadiusV);
-
-	EAssertR(TFlt::Abs(1 - TLinAlg::SumVec(ProbV)) < 1e-3, "Got a bad static distribution that sums to " + TFlt(TLinAlg::SumVec(ProbV)).GetStr());
-
-	// increase the radius for visualization purposes
-	for (int i = 0; i < RadiusV.Len(); i++) {
-		RadiusV[i] *= INIT_RADIUS_FACTOR;
-	}
+	const TFltV& UniqueHeightV = Hierarch->GetUniqueHeightV();
 
 	TFltPr MoveDir;
+	TIntV ShuffleV;
 
-	TIntV ShuffleV(NLeafs);
-	for (int i = 0; i < StateIdV.Len(); i++) {
-		ShuffleV[i] = StateIdV[i];
-	}
-
+	bool Change;
 	int k = 0;
-	while (NodesOverlap(0, NLeafs-1, StateCoordV, RadiusV)) {
-		if (++k % 10 == 0) {
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Iteration %d: %d overlaps ...", k, CountOverlaps(0, NLeafs-1, StateCoordV, RadiusV));
-		}
+	do {
+		Change = false;
+		k++;
 
-		ShuffleV.Shuffle(Rnd);
+		for (int HeightN = 0; HeightN < UniqueHeightV.Len(); HeightN++) {
+			const double CurrHeight = UniqueHeightV[HeightN];
 
-		for (int i = 0; i < ShuffleV.Len()-1; i++) {
-			const int& State1Idx = ShuffleV[i];
-			const int& State1Id = StateIdV[State1Idx];
-			const double& RadiusI = RadiusV[State1Idx];
-			TFltPr& PosI = GetModStateCoords(State1Id);
+			// construct state sets
+			TStateSetV StateSetV; TIntV StateIdV;
+			Hierarch->GetStateSetsAtHeight(CurrHeight, StateIdV, StateSetV);
 
-			// move the node
-			for (int j = i+1; j < ShuffleV.Len(); j++) {
-				if (i == j) { continue; }
+			TStateFtrVV StateFtrVV;	StateIdentifier->GetControlCentroidVV(StateFtrVV);
+			TFltV ProbV;	MChain->GetStatDist(StateSetV, StateFtrVV, ProbV);
+			TFltV RadiusV;	GetStateRadiusV(ProbV, RadiusV);
 
-				const int& State2Idx = ShuffleV[j];
-				const int& State2Id = StateIdV[State2Idx];
-				const double& RadiusJ = RadiusV[State2Idx];
-				const TFltPr& PosJ = GetModStateCoords(State2Id);
+			EAssertR(TFlt::Abs(1 - TLinAlg::SumVec(ProbV)) < 1e-3, "Got a bad static distribution that sums to " + TFlt(TLinAlg::SumVec(ProbV)).GetStr());
 
-				const double Overlap = GetOverlap(PosI, PosJ,  RadiusI, RadiusJ);
-				if (Overlap > 0) {
-					GetMoveDir(PosI, PosJ, MoveDir);
-					MoveDir.Val1 *= STEP_FACTOR;
-					MoveDir.Val2 *= STEP_FACTOR;
-					PosI.Val1 += MoveDir.Val1;
-					PosI.Val2 += MoveDir.Val2;
+			// increase the radius for visualization purposes
+			for (int i = 0; i < RadiusV.Len(); i++) {
+				RadiusV[i] *= INIT_RADIUS_FACTOR;
+			}
+
+			ShuffleV.Gen(StateIdV.Len());
+			for (int i = 0; i < StateIdV.Len(); i++) {
+				ShuffleV[i] = i;
+			}
+
+			ShuffleV.Shuffle(Rnd);
+
+			for (int i = 0; i < ShuffleV.Len()-1; i++) {
+				const int& State1Idx = ShuffleV[i];
+				const int& State1Id = StateIdV[State1Idx];
+				const double& RadiusI = RadiusV[State1Idx];
+				TFltPr& PosI = GetModStateCoords(State1Id);
+
+				// move the node
+				for (int j = i+1; j < ShuffleV.Len(); j++) {
+					const int& State2Idx = ShuffleV[j];
+					const int& State2Id = StateIdV[State2Idx];
+					const double& RadiusJ = RadiusV[State2Idx];
+					const TFltPr& PosJ = GetModStateCoords(State2Id);
+
+					const double Overlap = GetOverlap(PosI, PosJ,  RadiusI, RadiusJ);
+					if (Overlap > 0) {
+						GetMoveDir(PosI, PosJ, MoveDir);
+						MoveDir.Val1 *= STEP_FACTOR;
+						MoveDir.Val2 *= STEP_FACTOR;
+						PosI.Val1 += MoveDir.Val1;
+						PosI.Val2 += MoveDir.Val2;
+						Change = true;
+					}
+				}
+			}
+
+			if (k % 10 == 0) {
+				Notify->OnNotifyFmt(TNotifyType::ntInfo, "Iteration %d, height %.4f, final overlaps ...", k, CurrHeight);
+				for (int i = 0; i < RadiusV.Len()-1; i++) {
+					const int& State1Id = StateIdV[i];
+
+					for (int j = i+1; j < RadiusV.Len(); j++) {
+						const int& State2Id = StateIdV[j];
+
+						const double Overlap = GetOverlap(StateCoordV[State1Id], StateCoordV[State2Id],  RadiusV[i], RadiusV[j]);
+						Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d -> %d, r1: %.4f, r2: %.4f, prob1: %.4f, prob2: %.4f, pos1: (%.4f,%.4f), pos2: (%.4f,%.4f) overlap %.4f", i, j, RadiusV[i].Val, RadiusV[j].Val, ProbV[i].Val, ProbV[j].Val, StateCoordV[i].Val1, StateCoordV[i].Val2, StateCoordV[j].Val1, StateCoordV[j].Val2, Overlap);
+					}
 				}
 			}
 		}
-	}
-
-	Notify->OnNotify(TNotifyType::ntInfo, "Final overlaps:");
-	for (int i = 0; i < NLeafs-1; i++) {
-		for (int j = i+1; j < NLeafs; j++) {
-			const double Overlap = GetOverlap(StateCoordV[i], StateCoordV[j],  RadiusV[i], RadiusV[j]);
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d -> %d, r1: %.4f, r2: %.4f, prob1: %.4f, prob2: %.4f, pos1: (%.4f,%.4f), pos2: (%.4f,%.4f) overlap %.4f", i, j, RadiusV[i].Val, RadiusV[j].Val, ProbV[i].Val, ProbV[j].Val, StateCoordV[i].Val1, StateCoordV[i].Val2, StateCoordV[j].Val1, StateCoordV[j].Val2, Overlap);
-		}
-	}
+	} while (Change);
 }
 
 //void TUiHelper::TransformToUnit() {
