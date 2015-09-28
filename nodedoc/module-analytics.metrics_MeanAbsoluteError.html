@@ -25,23 +25,107 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span></div><small><a href="module-analytics.html">analytics</a>.<wbr><a href="module-analytics.metrics.html">metrics</a>#<wbr></small><span class="symbol-name">MeanAbsoluteError</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1909">analyticsdoc.<wbr>js:1909</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1922">analyticsdoc.<wbr>js:1922</a></p>
             <div class="symbol-classdesc">
-              <p>Online Mean Absolute Error (MAE) instance </p>
-              <p>//TODO: add methods .push() and .getError() to documentation</p>
+              <p>Online Mean Absolute Error (MAE) instance</p>
             </div>
             <dl class="dl-compact">
             </dl>
           </header>
           <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.metrics_MeanAbsoluteError.html#getError">getError()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.metrics_MeanAbsoluteError.html#push">push(yTrue, yPred)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
           </section>
           <section>
             <h2 id="MeanAbsoluteError">new&nbsp;<span class="symbol-name">MeanAbsoluteError</span><span class="signature"><span class="signature-params">()</span></span></h2>
-            <p>MeanAbsoluteError</p>
+            <p>Create new (online) mean absolute error instance.</p>
             <dl class="dl-compact">
+              <dt>Extends</dt>
+              <dd><a href="module-analytics.metrics_createOnlineMetric.html">module:analytics.metrics#createOnlineMetric</a></dd>
             </dl>
           </section>
           <section>
+            <h2>Methods</h2>
+            <section>
+              <h3 id="getError"><span class="symbol-name">getError</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Returns error value.</p>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="module-analytics.metrics_createOnlineMetric.html#getError">module:analytics.metrics#createOnlineMetric#getError</a></dd>
+                <dt>Returns</dt>
+                <dd>
+                  <p>Error value.</p>
+                </dd>
+              </dl>
+              <h3 id="push"><span class="symbol-name">push</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span></span></h3>
+              <p>Updates metric with ground truth target value <code>yTrue</code> and estimated target value <code>yPred</code>.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>yTrue</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Ground truth (correct) target value.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>yPred</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Estimated target value.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="module-analytics.metrics_createOnlineMetric.html#push">module:analytics.metrics#createOnlineMetric#push</a></dd>
+              </dl>
+            </section>
           </section>
         </div>
       </div>
@@ -51,7 +135,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on September 21, 2015.
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on September 28, 2015.
       </p>
     </div>
   </footer>

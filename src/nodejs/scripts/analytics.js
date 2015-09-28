@@ -377,10 +377,11 @@ module.exports = exports = function (pathPrefix) {
         }
     }
 
+
     /**
     * Metrics
-    * @class
-    * @classdesc Classification and Regression metrics
+    * @namespace
+    * @desc Classification and regression metrics
     * @example <caption>Batch regression example</caption>
     * // import analytics module
     * var analytics = require('qminer').analytics;
@@ -408,9 +409,12 @@ module.exports = exports = function (pathPrefix) {
     * // get updated error
     * mae.getError();
     */
-    exports.metrics = new function() {
+    exports.metrics = new function () {
+    // how to create a namespace: http://addyosmani.com/blog/essential-js-namespacing/
+    //exports.metrics = metrics = {};
+    //(function () {
         // For evaluating provided categories (precision, recall, F1).
-        this.ClassificationScore  = function (yTrue, yPred) {
+        this.ClassificationScore = function (yTrue, yPred) {
             this.scores = {
                 count: 0, predictionCount: 0,
                 TP: 0, TN: 0, FP: 0, FN: 0,
@@ -456,19 +460,19 @@ module.exports = exports = function (pathPrefix) {
         };
 
         this.accuracyScore = function (yTrue, yPred) {
-            return new this.ClassificationScore (yTrue, yPred).scores.accuracy();
+            return new this.ClassificationScore(yTrue, yPred).scores.accuracy();
         };
 
         this.precisionScore = function (yTrue, yPred) {
-            return new this.ClassificationScore (yTrue, yPred).scores.precision();
+            return new this.ClassificationScore(yTrue, yPred).scores.precision();
         };
 
         this.recallScore = function (yTrue, yPred) {
-            return new this.ClassificationScore (yTrue, yPred).scores.recall();
+            return new this.ClassificationScore(yTrue, yPred).scores.recall();
         };
 
         this.f1Score = function (yTrue, yPred) {
-            return new this.ClassificationScore (yTrue, yPred).scores.accuracy();
+            return new this.ClassificationScore(yTrue, yPred).scores.accuracy();
         };
 
         // used for computing ROC curve and other related measures such as AUC;
@@ -476,11 +480,11 @@ module.exports = exports = function (pathPrefix) {
             // count of all examples
             this.length = 0;
             // count of all the positive and negative examples
-    		this.allPositives = 0;
-    		this.allNegatives = 0;
-    		// store of predictions and ground truths
-    		this.grounds = new la.Vector();
-    		this.predictions = new la.Vector();
+            this.allPositives = 0;
+            this.allNegatives = 0;
+            // store of predictions and ground truths
+            this.grounds = new la.Vector();
+            this.predictions = new la.Vector();
 
             // add new measurement with ground score (1 or -1) and predicted value
             this.push = function (ground, predict) {
@@ -504,55 +508,55 @@ module.exports = exports = function (pathPrefix) {
             }
 
             // get ROC parametrization sampled on `sample' points
-    		this.roc = function (sample) {
-    			// default sample size is 10
-    			sample = sample || 10;
-    			// sort according to predictions
-    			var perm = this.predictions.sortPerm(false);
-    			// maintaining the results as we go along
-    			var TP = 0, FP = 0, ROC = [[0, 0]];
-    			// for figuring out when to dump a new ROC sample
-    			var next = Math.floor(perm.perm.length / sample);
-    			// go over the sorted results
-    			for (var i = 0; i < perm.perm.length; i++) {
-    				// get the ground
-    				var ground = this.grounds[perm.perm[i]];
-    				// update TP/FP counts according to the ground
-    				if (ground > 0) { TP++ } else { FP++; }
-    				// see if time to do next save
-    				next = next - 1;
-    				if (next <= 0) {
-    					// add new datapoint to the curve
-    					ROC.push([FP/this.allNegatives, TP/this.allPositives]);
-    					// setup next timer
-    					next = Math.floor(perm.perm.length / sample);
-    				}
-    			}
-    			// add the last point
-    			ROC.push([1,1]);
-    			// return ROC
-    			return ROC;
-    		}
+            this.roc = function (sample) {
+                // default sample size is 10
+                sample = sample || 10;
+                // sort according to predictions
+                var perm = this.predictions.sortPerm(false);
+                // maintaining the results as we go along
+                var TP = 0, FP = 0, ROC = [[0, 0]];
+                // for figuring out when to dump a new ROC sample
+                var next = Math.floor(perm.perm.length / sample);
+                // go over the sorted results
+                for (var i = 0; i < perm.perm.length; i++) {
+                    // get the ground
+                    var ground = this.grounds[perm.perm[i]];
+                    // update TP/FP counts according to the ground
+                    if (ground > 0) { TP++ } else { FP++; }
+                    // see if time to do next save
+                    next = next - 1;
+                    if (next <= 0) {
+                        // add new datapoint to the curve
+                        ROC.push([FP / this.allNegatives, TP / this.allPositives]);
+                        // setup next timer
+                        next = Math.floor(perm.perm.length / sample);
+                    }
+                }
+                // add the last point
+                ROC.push([1, 1]);
+                // return ROC
+                return ROC;
+            }
 
             // get AUC of the current curve
-    		this.auc = function (sample) {
-    			// default sample size is 10
-    			sample = sample || 10;
-    	        // get the curve
-    	        var curve = this.curve(sample);
-    	        // compute the area
-    	        var result = 0;
-    	        for (var i = 1; i < curve.length; i++) {
-    	            // get edge points
-    	            var left = curve[i-1];
-    	            var right = curve[i];
-    	            // first the rectangle bellow
-    	            result = result + (right[0] - left[0]) * left[1];
-    	            // an then the triangle above
-    	            result = result + (right[0] - left[0]) * (right[1] - left[1]) / 2;
-    	        }
-    	        return result;
-    	    }
+            this.auc = function (sample) {
+                // default sample size is 10
+                sample = sample || 10;
+                // get the curve
+                var curve = this.curve(sample);
+                // compute the area
+                var result = 0;
+                for (var i = 1; i < curve.length; i++) {
+                    // get edge points
+                    var left = curve[i - 1];
+                    var right = curve[i];
+                    // first the rectangle bellow
+                    result = result + (right[0] - left[0]) * left[1];
+                    // an then the triangle above
+                    result = result + (right[0] - left[0]) * (right[1] - left[1]) / 2;
+                }
+                return result;
+            }
 
             this.evalPrecisionRecall = function (callback) {
                 // sort according to predictions
@@ -703,7 +707,16 @@ module.exports = exports = function (pathPrefix) {
         // Online regression metrics used for evaluating online models
 
         // Main object for online metrics model
-        function createOnlineMetric(updateCallback) {
+        /**
+        * createOnlineMetric
+        * @private
+        * @class
+        *
+        * This provides methods used for event handling. It's not meant to
+        * be used directly.
+        *
+        */
+        this.createOnlineMetric = function (updateCallback) {
             var error = -1;
             var calcError = new updateCallback();
 
@@ -717,36 +730,40 @@ module.exports = exports = function (pathPrefix) {
                 }
             }
 
-            // update function defined with callback function
+            /**
+             * Updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+             * @param {number} yTrue - Ground truth (correct) target value.
+             * @param {number} yPred - Estimated target value.
+             */
             this.push = function (yTrue, yPred, ref_num) {
                 // set default values of optional input parameters
                 var yPred = yPred == null ? 0 : yPred;
                 var ref_num = ref_num == null ? 0 : ref_num;
-
                 // check if input types are of correct type
                 checkPushParams(yTrue, yPred, ref_num);
-
                 // calculate the error with provided function from the callback function
                 error = calcError.update(yTrue, yPred);
             }
 
-            // getter for error
+            /**
+             * Returns error value.
+             * @returns {number} Error value.
+             */
             this.getError = function () {
                 return error;
             }
-            return this;
         }
 
-        //////////// MEAN ERROR (ME)
-        //!- `me = evaluation.newMeanError()` -- create new (online) mean error instance.
-        //!   - `me.update(yTrue, yPred)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
-        //!   - `num = me.getError()` -- returns current error `num`
+        // Hack: So that bellow methods can access createOnlineMetric function.
+        //       If createOnlineMetric is not public method (.this), documentation desent work.
+        var createOnlineMetric = this.createOnlineMetric;
+
+        // MEAN ERROR (ME)
         /**
-        * MeanError
+        * Create new (online) mean error instance.
         * @class
         * @classdesc Online Mean Error (ME) instance 
-        * 
-        * //TODO: add methods .push() and .getError() to documentation
+        * @extends module:analytics.metrics#createOnlineMetric
         */
         this.MeanError = function () {
             function calcError() {
@@ -762,18 +779,14 @@ module.exports = exports = function (pathPrefix) {
                 }
             }
             return new createOnlineMetric(calcError);
-        }
+        };
 
-        //////////// MEAN ABSOLUTE ERROR (MAE)
-        //!- `mae = evaluation.newMeanAbsoluteError()` -- create new (online) mean absolute error instance.
-        //!   - `mae.update(yTrue, yPred)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
-        //!   - `num = mae.getError()` -- returns current error `num`
+        // MEAN ABSOLUTE ERROR (MAE)
         /**
-        * MeanAbsoluteError
+        * Create new (online) mean absolute error instance.
         * @class
         * @classdesc Online Mean Absolute Error (MAE) instance 
-        * 
-        * //TODO: add methods .push() and .getError() to documentation
+        * @extends module:analytics.metrics#createOnlineMetric
         */
         this.MeanAbsoluteError = function () {
             function calcError() {
@@ -791,16 +804,12 @@ module.exports = exports = function (pathPrefix) {
             return new createOnlineMetric(calcError);
         }
 
-        //////////// MEAN SQUARE ERROR (MSE)
-        //!- `mse = evaluation.newMeanSquareError()` -- create new (online) mean square error instance.
-        //!   - `mse.update(yTrue, yPred)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
-        //!   - `num = mse.getError()` -- returns current error `num`
+        // MEAN SQUARE ERROR (MSE)
         /**
-        * MeanSquareError
+        * Create new (online) mean square error instance.
         * @class
         * @classdesc Online Mean Square Error (MSE) instance 
-        * 
-        * //TODO: add methods .push() and .getError() to documentation
+        * @extends module:analytics.metrics#createOnlineMetric
         */
         this.MeanSquareError = function () {
             function calcError() {
@@ -818,16 +827,12 @@ module.exports = exports = function (pathPrefix) {
             return new createOnlineMetric(calcError);
         }
 
-        //////////// ROOT MEAN SQUARE ERROR (RMSE)
-        //!- `rmse = evaluation.newRootMeanSquareError()` -- create new (online) root mean square error instance.
-        //!   - `rmse.update(yTrue, yPred)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
-        //!   - `num = rmse.getError()` -- returns current error `num`
+        // ROOT MEAN SQUARE ERROR (RMSE)
         /**
-        * RootMeanSquareError
+        * Create new (online) root mean square error instance.
         * @class
         * @classdesc Online Root Mean Square Error (RMSE) instance 
-        * 
-        * //TODO: add methods .push() and .getError() to documentation
+        * @extends module:analytics.metrics#createOnlineMetric
         */
         this.RootMeanSquareError = function () {
             function calcError() {
@@ -845,16 +850,12 @@ module.exports = exports = function (pathPrefix) {
             return new createOnlineMetric(calcError);
         }
 
-        //////////// MEAN ABSOLUTE PERCENTAGE ERROR (MAPE)
-        //!- `mape = evaluation.newMeanAbsolutePercentageError()` -- create new (online) mean absolute percentage error instance.
-        //!   - `mape.update(yTrue, yPred)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
-        //!   - `num = mape.getError()` -- returns current error `num`
+        // MEAN ABSOLUTE PERCENTAGE ERROR (MAPE)
         /**
-        * MeanAbsolutePercentageError
+        * Create new (online) mean absolute percentage error instance.
         * @class
         * @classdesc Online Mean Absolute Percentage Error (MAPE) instance 
-        * 
-        * //TODO: add methods .push() and .getError() to documentation
+        * @extends module:analytics.metrics#createOnlineMetric
         */
         this.MeanAbsolutePercentageError = function () {
             function calcError() {
@@ -874,16 +875,12 @@ module.exports = exports = function (pathPrefix) {
             return new createOnlineMetric(calcError);
         }
 
-        //////////// R SQUARED SCORE (R2)
-        //!- `r2 = evaluation.newRSquareScore()` -- create new (online) R Square instance. This statistic measures how successful the fit is in explaining the variation of the data. Best possible score is 1.0, lower values are worse.
-        //!   - `r2.update(num)` -- updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
-        //!   - `num = rmse.getError()` -- returns current score `num`
+        // R SQUARED SCORE (R2)
         /**
-        * R2
+        * Create new (online) R Square instance. This statistic measures how successful the fit is in explaining the variation of the data. Best possible score is 1.0, lower values are worse.
         * @class
         * @classdesc Online R Squared (R2) score instance 
-        * 
-        * //TODO: add methods .push() and .getError() to documentation
+        * @extends module:analytics.metrics#createOnlineMetric
         */
         this.R2Score = function () {
             function calcError() {
@@ -1009,6 +1006,7 @@ module.exports = exports = function (pathPrefix) {
             return new calcBatchError(this, yTrueVec, yPredVec).R2()
         }
     };
+    //}).apply(metrics) // Namespace injection technique.
 
 
     /**
