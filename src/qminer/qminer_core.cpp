@@ -3242,7 +3242,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& JoinNm, const int& _
 }
 
 uint TQueryItem::GetStoreId(const TWPt<TBase>& Base) const {
-	if (IsLeafGix() || IsLeafGixSmall() || IsGeo()) {
+	if (IsLeafGix() || IsLeafGixSmall() || IsGeo() || IsRange()) {
 		// when in the leaf, life is easy
 		return Base->GetIndexVoc()->GetKeyStoreId(KeyId);
 	} else if (IsRecSet()) {

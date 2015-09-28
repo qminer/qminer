@@ -1997,6 +1997,8 @@ public:
 	/// Check query type
 	bool IsRangeFlt() const { return (Type == oqitRangeFlt); }
 	/// Check query type
+	bool IsRange() const { return (IsRangeInt() || IsRangeUInt64() || IsRangeTm() || IsRangeFlt()); }
+	/// Check query type
 	bool IsAnd() const { return (Type == oqitAnd); }
 	/// Check query type
 	bool IsOr() const { return (Type == oqitOr); }
