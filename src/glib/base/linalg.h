@@ -612,6 +612,8 @@ public:
 	inline static void Convert(const TVec<TIntFltKdV>& A, TTriple<TIntV, TIntV, TFltV>&B);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void Sum(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TType, TSizeTy>& y, const int Dimension = 1);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double SumRow(const TVVec<TType, TSizeTy, ColMajor>& X, const int& RowN);
 	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
 	inline static void Sum(const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& X, TVec<TType, TSizeTy>& y, const int Dimension = 1);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
@@ -1457,6 +1459,18 @@ public:
 			}
 		}
 		else FailR("Dimension should be 1 or 2");
+	}
+
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::SumRow(const TVVec<TType, TSizeTy, ColMajor>& X, const int& RowN) {
+		EAssertR(RowN < X.GetRows(), "Row index exceeds the number of rows!");
+		const int Cols = X.GetCols();
+
+		double Sum = 0;
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			Sum += X(RowN, ColN);
+		}
+		return Sum;
 	}
 
 	// TEST

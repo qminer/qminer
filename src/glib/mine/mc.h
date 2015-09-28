@@ -34,6 +34,98 @@ public:
 	static TFullMatrix GetDist2(const TFullMatrix& X, const TFullMatrix& Y);
 };
 
+class TAvgLink {
+public:
+	static void JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& i,
+			const int& j);
+};
+
+class TCompleteLink {
+public:
+	static void JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& i,
+			const int& j);
+};
+
+class TSingleLink {
+public:
+	static void JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& i,
+			const int& j);
+};
+
+template <class TLink>
+class TAggClust {
+public:
+	static void MakeDendro(const TFullMatrix& X, TIntIntFltTrV& MergeV, const PNotify& Notify) {
+		const int NInst = X.GetCols();
+
+		Notify->OnNotifyFmt(TNotifyType::ntInfo, "%s\n", TStrUtil::GetStr(X.GetMat(), ", ", "%.3f").CStr());
+
+		TFullMatrix ClustDistMat = TEuclDist::GetDist2(X,X);
+		TVector ItemCountV = TVector::Ones(NInst);
+
+		for (int k = 0; k < NInst-1; k++) {
+			// find active <i,j> with minimum distance
+			int MnI = -1;
+			int MnJ = -1;
+			double MnDist = TFlt::PInf;
+
+			// find clusters with min distance
+			for (int i = 0; i < NInst; i++) {
+				if (ItemCountV[i] == 0.0) { continue; }
+
+				for (int j = i+1; j < NInst; j++) {
+					if (i == j || ItemCountV[j] == 0.0) { continue; }
+
+					if (ClustDistMat(i,j) < MnDist) {
+						MnDist = ClustDistMat(i,j);
+						MnI = i;
+						MnJ = j;
+					}
+				}
+			}
+
+			double Dist = sqrt(MnDist < 0 ? 0 : MnDist);
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Merging clusters %d, %d, distance: %.3f", MnI, MnJ, Dist);
+			// merge
+			MergeV.Add(TIntIntFltTr(MnI, MnJ, Dist));
+
+			TLink::JoinClusts(ClustDistMat, ItemCountV, MnI, MnJ);
+
+			// update counts
+			ItemCountV[MnI] = ItemCountV[MnI] + ItemCountV[MnJ];
+			ItemCountV[MnJ] = 0;
+		}
+	}
+};
+
+typedef TAggClust<TAvgLink> TAlAggClust;
+typedef TAggClust<TCompleteLink> TClAggClust;
+typedef TAggClust<TCompleteLink> TSlAggClust;
+
+//////////////////////////////////////////////////
+// Histogram class
+class THistogram {
+private:
+	TInt Bins;
+	TInt TotalCount;
+	TIntV CountV;
+	TFltV BinStartV;
+
+public:
+	THistogram();
+	THistogram(const int& NBins, const double& MnVal, const double& MxVal);
+	THistogram(TSIn& SIn);
+
+	void Save(TSOut& SOut) const;
+
+	void Update(const double& FtrVal);
+
+	const TFltV& GetBinStartV() const { return BinStartV; }
+	const TIntV& GetCountV() const { return CountV; }
+};
+
+//////////////////////////////////////////////////
+// State Identifier
 class TStateIdentifier;
 typedef TPt<TStateIdentifier> PStateIdentifier;
 class TStateIdentifier {
@@ -44,9 +136,9 @@ public:
 protected:
   	const static int MX_ITER;
 
-    typedef TPair<TUInt64, TUInt64V> TFtrHistStat;
-    typedef TVec<TFtrHistStat> TClustHistStat;
-    typedef TVec<TClustHistStat> THistStat;
+    typedef TVec<THistogram> TFtrHistV;
+    typedef TVec<TFtrHistV> TStateFtrHistVV;
+    typedef TVVec<TFtrHistV> THistMat;
 
   	TRnd Rnd;
   	// holds centroids as column vectors
@@ -57,11 +149,10 @@ protected:
   	// assigned to the centroid to the centroid
   	TUInt64FltPrV CentroidDistStatV;
 
-  	int NHistBins;				// the number of bins used in a histogram
-  	TFltVV ObsFtrBinStartVV;	// stores where each bin starts
-  	TFltVV ContrFtrBinStartVV;	// stores where each bin starts for the control matrix
-  	THistStat ObsHistStat;		// stores histogram for every feature in every cluster
-  	THistStat ControlHistStat;	// stores histogram for every feature in every cluster for the control matrix
+  	int NHistBins;					// the number of bins used in a histogram
+  	TStateFtrHistVV ObsHistVV;		// histograms of observation features
+  	TStateFtrHistVV ControlHistVV;	// histograms of control features
+  	THistMat TransHistMat;			// histograms of transitions
 
   	TVec<TFltV> StateContrFtrValVV;
 
@@ -85,7 +176,7 @@ public:
 	// performs the clustering
 	void Init(TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV);
 	// initializes histograms for every feature
-	void InitHistogram(const TFltVV& ObsMat, const TFltVV& ControlFtrVV);
+	void InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlFtrVV);
 
 	// assign methods
 	// assign instances to centroids
@@ -164,11 +255,12 @@ private:
 	double GetControlFtr(const int& StateId, const int& FtrId) const;
 	void ClearControlFtrVV(const int& Dim);
 
-	static void InitHist(const TFltVV& InstanceMat, const TIntV& AssignV,
-			const TFltVV& FtrBinStartVV, const int& Clusts, const int& Bins,
-			THistStat& HistStat);
-	static void InitFtrBinStartVV(const TFltVV& InstanceMat, const int& Bins,
-			TFltVV& FtrBinStartVV);
+	// histograms
+	void InitHists(const TFltVV& ObsFtrVV, const TFltVV& ConstFtrVV);
+	void UpdateTransitionHist(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
+			const TIntV& AssignV);
+	static void UpdateHist(const TFltVV& FtrVV, const TIntV& AssignV,
+			const int& States, TStateFtrHistVV& StateFtrHistVV);
 };
 
 ///////////////////////////////////////////
@@ -226,76 +318,8 @@ public:
 	static TFullMatrix Project(const TFullMatrix& X, const int& d=2);
 };
 
-class TAvgLink {
-public:
-	static void JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& i,
-			const int& j);
-};
-
-class TCompleteLink {
-public:
-	static void JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& i,
-			const int& j);
-};
-
-class TSingleLink {
-public:
-	static void JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& i,
-			const int& j);
-};
-
-template <class TLink>
-class TAggClust {
-public:
-	static void MakeDendro(const TFullMatrix& X, TIntIntFltTrV& MergeV, const PNotify& Notify) {
-		const int NInst = X.GetCols();
-
-		Notify->OnNotifyFmt(TNotifyType::ntInfo, "%s\n", TStrUtil::GetStr(X.GetMat(), ", ", "%.3f").CStr());
-
-//		TFullMatrix X1 = X;	// copy
-
-		TFullMatrix ClustDistMat = TEuclDist::GetDist2(X,X);
-		TVector ItemCountV = TVector::Ones(NInst);
-
-		for (int k = 0; k < NInst-1; k++) {
-			// find active <i,j> with minimum distance
-			int MnI = -1;
-			int MnJ = -1;
-			double MnDist = TFlt::PInf;
-
-			// find clusters with min distance
-			for (int i = 0; i < NInst; i++) {
-				if (ItemCountV[i] == 0.0) { continue; }
-
-				for (int j = i+1; j < NInst; j++) {
-					if (i == j || ItemCountV[j] == 0.0) { continue; }
-
-					if (ClustDistMat(i,j) < MnDist) {
-						MnDist = ClustDistMat(i,j);
-						MnI = i;
-						MnJ = j;
-					}
-				}
-			}
-
-			double Dist = sqrt(MnDist < 0 ? 0 : MnDist);
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Merging clusters %d, %d, distance: %.3f", MnI, MnJ, Dist);
-			// merge
-			MergeV.Add(TIntIntFltTr(MnI, MnJ, Dist));
-
-			TLink::JoinClusts(ClustDistMat, ItemCountV, MnI, MnJ);
-
-			// update counts
-			ItemCountV[MnI] = ItemCountV[MnI] + ItemCountV[MnJ];
-			ItemCountV[MnJ] = 0;
-		}
-	}
-};
-
-typedef TAggClust<TAvgLink> TAlAggClust;
-typedef TAggClust<TCompleteLink> TClAggClust;
-typedef TAggClust<TCompleteLink> TSlAggClust;
-
+////////////////////////////////////////////
+// Hierarchy modeler
 class THierarch;
 typedef TPt<THierarch> PHierarch;
 class THierarch {
@@ -316,7 +340,7 @@ private:
     int HistCacheSize;
     TVec<TStateIdV> PastStateIdV;	// TODO not optimal structure
 
-    TFltPrV StateCoordV;
+//    TFltPrV StateCoordV;
     // number of leaf states, these are stored in the first part of the hierarchy vector
     int NLeafs;
 
@@ -336,10 +360,11 @@ public:
 	// loads the model from the output stream
 	static PHierarch Load(TSIn& SIn);
 
-	void Init(const TFullMatrix& CentroidMat, const int& CurrLeafId);
+	void Init(const int& CurrLeafId, const PStateIdentifier& StateIdentifier);
 	void UpdateHistory(const int& CurrLeafId);
 
 	const TFltV& GetUniqueHeightV() const { return UniqueHeightV; }
+	const TIntV& GetHierarchV() const { return HierarchV; }
 
 	// return a list of state IDs and their heights
 	void GetStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
@@ -358,8 +383,9 @@ public:
 	void GetCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
 	void GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const;
 
-	// returns the coordinates of the specified state
-	const TFltPr& GetStateCoords(const int& StateId) const { return StateCoordV[StateId]; }
+	// for each state returns the number of leafs it's subtree has
+	void GetLeafSuccesorCountV(TIntV& LeafCountV) const;
+
 	// returns the total number of states in the hierarchy
 	int GetStates() const { return HierarchV.Len(); }
 	// returns the number of leafs in the hierarchy
@@ -402,10 +428,6 @@ private:
 	// returns the index of the oldest ancestor of the state
 	// this method is only used when initially building the hierarchy
 	int GetOldestAncestIdx(const int& StateIdx) const;
-	// for each state returns the number of leafs it's subtree has
-	void GetLeafSuccesorCountV(TIntV& LeafCountV) const;
-	// computes the coordinates (in 2D) of each state
-	void ComputeStateCoords(const TFullMatrix& CentroidMat, const int& NStates);
 
 	// static functions
 	static TInt& GetParentId(const int& StateId, TIntV& HierarchV) { return HierarchV[StateId]; }
@@ -495,10 +517,11 @@ public:
 
 	// static distribution
 	// returns the static distribution for the joined states
-	virtual void GetStatDist(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltV& StatDist) const = 0;
+	virtual void GetStatDist(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			TFltV& StatDist) const = 0;
 
 	// returns a vector of state sizes
-	virtual void GetStateSizeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltV& StateSizeV) const = 0;
+//	virtual void GetStateSizeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltV& StateSizeV) const = 0;
 	virtual TFullMatrix GetTransitionMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const = 0;
 	virtual TFullMatrix GetModel(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const = 0;
 
@@ -649,8 +672,8 @@ public:
 			TFltV& ProbV) const override;
 
 	// returns the size of each state used in the visualization
-	void GetStateSizeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			TFltV& StateSizeV) const override;
+//	void GetStateSizeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+//			TFltV& StateSizeV) const override;
 	TFullMatrix GetTransitionMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const override;
 	TFullMatrix GetJumpMatrix(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const;
 	TFullMatrix GetModel(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const override
@@ -666,7 +689,6 @@ public:
 	const uint64& GetTimeUnit() const { return TimeUnit; }
 
 protected:
-//	void InitStats(const int& NStates);
 	void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool EndsBatch) override;
 
 	// get future state probabilities for all the states for a fixed time in the future
@@ -678,14 +700,13 @@ protected:
 	void InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV, const TIntV& AssignV,
 			const TBoolV& EndBatchV) override;
 	// prints the statistics used to build the Q-matrix
-//	void PrintStats() const;
 	const TStr GetType() const override { return "continuous"; }
 
 private:
 	TVector GetStateIntensV(const int StateId, const TFltV& FtrV) const;
 
 	// returns the intensity matrix (Q-matrix)
-	TFullMatrix GetQMatrix(const TStateFtrVV& StateFtrVV) const;
+	void GetQMatrix(const TStateFtrVV& StateFtrVV, TFltVV& QMat) const;
 	// returns a Q matrix for the joined states
 	TFullMatrix GetQMatrix(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const;
 	// returns a Q matrix for the joined states for the time reversal Markov chain
@@ -699,21 +720,19 @@ private:
 
 	bool IsHiddenStateId(const int& StateId) const { return HasHiddenState && StateId == GetHiddenStateId(); }
 
-//	void UpdateIntensity(const int& FromStateId, const int& ToStateId, const double& Tm);
-
 	static void GetNextStateProbV(const TFullMatrix& QMat, const TStateIdV& StateIdV,
 			const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates,
 			const PNotify& Notify);
 
 	// returns the stationary distribution
-	static void GetStatDist(const TFullMatrix& QMat, TFltV& StatDistV, const PNotify& Notify);
+	static void GetStatDist(const TFltVV& QMat, TFltV& StatDistV, const PNotify& Notify);
 
-	static TFullMatrix GetProbMat(const TFullMatrix& QMat, const double& Dt);
+	static void GetProbMat(const TFltVV& QMat, const double& Dt, TFltVV& ProbV);
 
 	static TFullMatrix GetFutureProbMat(const TFullMatrix& QMat, const double& Tm,
 			const double& DeltaTm, const bool HasHiddenState=false);
 
-	static double PredictOccurenceTime(const TFullMatrix& QMat, const int& CurrStateIdx,
+	static double PredictOccurenceTime(const TFltVV& QMat, const int& CurrStateIdx,
 			const int& TargetStateIdx, const double& DeltaTm, const double& HorizonTm,
 			TFltV& TmV, TFltV& HitProbV);
 
@@ -721,6 +740,56 @@ private:
 	// when the process decides to jump the jump matrix describes to
 	// which state it will jump with which probability
 	static TFullMatrix GetJumpMatrix(const TFullMatrix& QMat);
+};
+
+/////////////////////////////////////////////////////////////////
+// UI helper
+class TUiHelper;
+typedef TPt<TUiHelper> PUiHelper;
+class TUiHelper {
+private:
+	TCRef CRef;
+public:
+	friend class TPt<TUiHelper>;
+private:
+	static const double STEP_FACTOR;
+	static const double INIT_RADIUS_FACTOR;
+	TFltPrV StateCoordV;
+
+	TRnd Rnd;
+
+	bool Verbose;
+	PNotify Notify;
+public:
+	TUiHelper(const int& RndSeed, const bool& Verbose);
+	TUiHelper(TSIn& SIn);
+
+	void Save(TSOut& SOut) const;
+
+	void Init(const PStateIdentifier& StateIdentifier, const PHierarch& Hierarch,
+			const PMChain& MChain);
+
+	const TFltPr& GetStateCoords(const int& StateId) const;
+	void GetStateRadiusV(const TFltV& ProbV, TFltV& SizeV) const;
+
+private:
+	TFltPr& GetModStateCoords(const int& StateId);
+
+	// computes the coordinates (in 2D) of each state
+	void InitStateCoordV(const PStateIdentifier& StateIdentifier,
+			const PHierarch& Hierarch);
+	void RefineStateCoordV(const PStateIdentifier& StateIdentifier,
+			const PHierarch& Hierarch, const PMChain& MChain);
+//	void TransformToUnit();
+
+	static double GetUIStateRaduis(const double& Prob);
+	static bool NodesOverlap(const int& StartId, const int& EndId, const TFltPrV& CoordV,
+			const TFltV& RaduisV);
+	static int CountOverlaps(const int& StartId, const int& EndId, const TFltPrV& CoordV,
+			const TFltV& RaduisV);
+	static double GetOverlap(const TFltPr& Pos1, const TFltPr& Pos2,
+			const double& Raduis1, const double& Raduis2);
+	static void GetMoveDir(const TFltPr& Pos1, const TFltPr& Pos2, TFltPr& Dir);
 };
 
 ////////////////////////////////////////////////
@@ -767,6 +836,7 @@ private:
     PMChain MChain;
     PHierarch Hierarch;
     PStateAssist StateAssist;
+    PUiHelper UiHelper;
 
     TFltV PrevObsFtrV, PrevContrFtrV;
     uint64 PrevRecTm;
