@@ -73,10 +73,11 @@ TNearestNeighbor::TNearestNeighbor(const double& Rate, const int& _WindowSize):
     Mat.Gen(WindowSize, 0);
     DistV.Gen(WindowSize, 0);
     DistColV.Gen(WindowSize, 0);
+	IDVec.Gen(WindowSize, 0);
 }
 
 TNearestNeighbor::TNearestNeighbor(TSIn& SIn): RateV(SIn), WindowSize(SIn), Mat(SIn),
-    DistV(SIn), DistColV(SIn), ThresholdV(SIn), InitVecs(SIn), NextCol(SIn) { }
+    DistV(SIn), DistColV(SIn), ThresholdV(SIn), InitVecs(SIn), NextCol(SIn), IDVec(SIn) { }
 
 void TNearestNeighbor::Save(TSOut& SOut) {
     RateV.Save(SOut);
@@ -87,12 +88,14 @@ void TNearestNeighbor::Save(TSOut& SOut) {
     ThresholdV.Save(SOut);
     InitVecs.Save(SOut);
     NextCol.Save(SOut);
+	IDVec.Save(SOut);
 }
 
-void TNearestNeighbor::PartialFit(const TIntFltKdV& Vec) {
+void TNearestNeighbor::PartialFit(const TIntFltKdV& Vec, const int& RecId) {
     if (InitVecs < WindowSize) {
         // not yet full, extend matrix and distance vectors
         Mat.Add(Vec);
+		IDVec.Add(RecId);
         // make sure we are very far from everything for update distance to kick in
         DistV.Add(TFlt::Mx); DistColV.Add(InitVecs);
         // update distance for new vector
@@ -106,6 +109,7 @@ void TNearestNeighbor::PartialFit(const TIntFltKdV& Vec) {
         Forget(NextCol);
         // overwrite
         Mat[NextCol] = Vec;
+		IDVec[NextCol] = RecId;
         DistV[NextCol] = TFlt::Mx;
         DistColV[NextCol] = NextCol;
         // update distance for overwriten vector
@@ -137,6 +141,35 @@ int TNearestNeighbor::Predict(const TIntFltKdV& Vec) const {
     while (Rate < RateV.Len() && Dist > ThresholdV[Rate]) { Rate++; }
     // we are done
     return Rate;
+}
+
+PJsonVal TNearestNeighbor::Explain(const TIntFltKdV& Vec) const {
+	// if not initialized, return null (JSON)
+	if (!IsInit()) { return TJsonVal::NewNull(); }
+	
+	double NearDist = TFlt::Mx;
+	int NearestColN = -1;
+	TIntFltKdV DiffV;
+	for (int ColN = 0; ColN < Mat.Len(); ColN++) {		
+		const double Dist = DecisionFunction(Vec);
+		if (Dist < NearDist) { NearDist = Dist; NearestColN = ColN; }
+	}
+	// set diff vector accordingly
+	TSparseOps<TInt, TFlt>::SparseLinComb(-1.0, Mat[NearestColN], 1.0, Vec, DiffV);
+	
+	PJsonVal Res = TJsonVal::NewObj();
+	Res->AddToObj("nearestID", IDVec[NearestColN]);
+	PJsonVal IDArr = TJsonVal::NewArr();
+	PJsonVal ContribArr = TJsonVal::NewArr();
+	for (int elN = 0; elN < DiffV.Len(); elN++) {				
+		IDArr->AddToArr(DiffV[elN].Key);
+		// square nonzero elements and divide by total squared distance
+		ContribArr->AddToArr(DiffV[elN].Dat * DiffV[elN].Dat / NearDist);
+	}
+	Res->AddToObj("featureIDs", IDArr);
+	Res->AddToObj("featureContributions", ContribArr);
+
+	return Res;
 }
 
 

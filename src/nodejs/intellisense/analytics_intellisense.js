@@ -744,8 +744,9 @@ exports = {}; require.modules.qminer_analytics = exports;
 	*/
  exports.NearestNeighborAD.prototype.getModel = function () { return { threshold: 0.0 }; }
 /**
-	* Adds a new point (or points) to the known points and recomputes the threshold.
-	* @param {(module:la.SparseVector | module:la.SparseMatrix)} X - Test example (vector input) or column examples (matrix input).
+	* Adds a new point to the known points and recomputes the threshold.
+	* @param {module:la.SparseVector} X - Test example (vector input)
+	* @param {number} recId - Integer record ID, used in NearestNeighborAD.explain
 	* @returns {module:analytics.NearestNeighborAD} Self. The model is updated.
 	* @example
 	* // import modules
@@ -766,6 +767,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 /**
 	* Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
 	* @param {module:la.SparseMatrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+	* @param {module:la.IntVector} [idVec] - An integer vector of IDs
 	* the model.
 	* @returns {module:analytics.NearestNeighborAD} Self. The model is set by the matrix A.
 	* @example
@@ -779,7 +781,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* // fit the model with the matrix
 	* neighbor.fit(matrix);
 	*/
- exports.NearestNeighborAD.prototype.fit = function(A) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
+ exports.NearestNeighborAD.prototype.fit = function(A, idVec) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
 /**
      * Compares the point to the known points and returns distance to the nearest one.
      * @param {module:la.Vector} x - Test vector.
@@ -820,6 +822,33 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* var prediction = neighbor.predict(vector); // returns 1
 	*/
  exports.NearestNeighborAD.prototype.predict = function(x) { return 0.0; }
+/**
+	* @typedef {Object} NearestNeighborADExplain
+	* A Json object used for interpreting the predictions of {@link module:analytics.NearestNeighborAD}.
+	* @param {number} nearestID - The ID of the nearest neighbor
+	* @param {Array<number>} featureIDs - the IDs of the features that contributed to the distance score
+	* @param {Array<number>} featureContributions - fractions of the contributions of each feature to the total distance (the scores sum to 1.0). The elements correspond to features in the array `featureIDs`
+	*/
+/**
+	* Returns a JSON object that encodes the ID of the nearest neighbor and the features that contributed to the distance
+	* @param {module:la.SparseVector} x - Test vector.
+	* @returns {module:analytics~NearestNeighborADExplain} The explanation object
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD({rate:0.05, windowSize:3});
+	* // create a new sparse matrix
+	* var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+	* // fit the model with the matrix and provide a vector record IDs
+	* neighbor.fit(matrix, new la.IntVector([3541,1112,4244]));
+	* // create a new sparse vector
+	* var vector = new la.SparseVector([[0, 4], [1, 0]]);
+	* // check if the vector is an anomaly
+	* var explanation = neighbor.explain(vector); // returns an explanation
+	*/
+ exports.NearestNeighborAD.prototype.explain = function(x) { return {}; }
 /**
 * @typedef {Object} recLinearRegParam
 * The constructor parameter for {@link module:analytics.RecLinReg}.
@@ -2497,17 +2526,18 @@ exports = {}; require.modules.qminer_analytics = exports;
             return la.findMaxIdx(D);
         }
 
-
         /**
         * @typedef KMeansExplanation
-        * @type Object
-        * @property {module:la.IntVector} medoidIDs The IDs of the nearest medoids
+        * @type {Object}
+        * @property {number} medoidID - The ID of the nearest medoids
+        * @property {module:la.IntVector} featureIDs - The IDs of features, sorted by contribution
+        * @property {module:la.Vector} featureContributions - Weights of each feature contribution (sum to 1.0)
         */
 
         /**
         * Returns the IDs of the nearest medoid for each example.
         * @param {(module:la.Matrix | module:la.SparseMatrix)} X - Matrix whose columns correspond to examples.
-        * @returns {KMeansExplanation} Object containing the vector of medoid IDs.
+        * @returns {Array.<KMeansExplanation>} Object containing the vector of medoid IDs.
         * @example
         * // import analytics module
         * var analytics = require('qminer').analytics;
@@ -2518,7 +2548,7 @@ exports = {}; require.modules.qminer_analytics = exports;
         * // create a matrix to be fitted
         * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
         * // create the model with the matrix X using the column IDs [0,1,2]
-        * KMeans.fit(X, [0,1,2]);
+        * KMeans.fit(X, [1234,1142,2355]);
         * // create the matrix of the prediction vectors
         * var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
         * // predict/explain - return the closest medoids
@@ -2534,11 +2564,35 @@ exports = {}; require.modules.qminer_analytics = exports;
             var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
             var centroids = la.findMaxIdx(D);
             var medoidIDs = new la.IntVector(centroids);
-            assert(medoids.length == k)
+            assert(medoids.length == k);
+            var result = [];
             for (var i = 0; i < centroids.length; i++) {
-                medoidIDs[i] = medoids[centroids[i]];
+                var explanation = featureContrib(X.getCol(i), C.getCol(centroids[i]));
+                result[i] = {
+                    medoidID: medoids[centroids[i]],
+                    featureIDs: explanation.featureIDs,
+                    featureContributions: explanation.featureContributions
+                }                
             }
-            return { medoidIDs: medoidIDs};
+            return result;
+        }
+                
+        /**
+        * Returns the weights and feature IDs that contributed to the distance between two vectors
+        * @param {(module:la.Vector | module:la.SparseVector)} x - Vector
+        * @param {(module:la.Vector | module:la.SparseVector)} y - Vector
+        * @returns {Object} Feature IDs and feature contributions
+        **/
+        function featureContrib(x, y) {
+            var fx = x.constructor.name == 'SparseVector' ? x.full() : x;
+            var fy = y.constructor.name == 'SparseVector' ? y.full() : y;
+            var diff = fx.minus(fy);
+            var nor2 = Math.pow(diff.norm(), 2);
+            for (var i = 0; i < diff.length; i++) {
+                diff[i] = Math.pow(diff[i], 2) / nor2;
+            }
+            var sorted = diff.sortPerm(false); // sort descending
+            return { featureIDs: sorted.perm, featureContributions: sorted.vec };
         }
 
         /**

@@ -78,7 +78,7 @@
                     <dt><a href="module-qm.Record.html#$delJoin">$delJoin(joinName, joinRecord[, joinFrequency])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Record.html#toJSON">toJSON([sysFields])</a></dt>
+                    <dt><a href="module-qm.Record.html#toJSON">toJSON([joinRecords][, joinRecordFields][, sysFields])</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -280,7 +280,7 @@ base.close();</code></pre>
                   <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>&nbsp;Record.</p>
                 </dd>
               </dl>
-              <h3 id="toJSON"><span class="symbol-name">toJSON</span><span class="signature"><span class="signature-params">([sysFields])</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <h3 id="toJSON"><span class="symbol-name">toJSON</span><span class="signature"><span class="signature-params">([joinRecords][, joinRecordFields][, sysFields])</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Creates a JSON version of the record.</p>
               <section>
                 <h4>
@@ -327,30 +327,32 @@ base.close();</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>&#8212;</p>
+                        <p>joinRecords</p>
                       </td>
                       <td>
                         <p>Boolean</p>
                       </td>
                       <td>
-                        <p>&nbsp;</p>
+                        <p>Yes</p>
                       </td>
                       <td>
-                        <p>???</p>
+                        <p>include joined records (only IDs)</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                     <tr>
                       <td>
-                        <p>&#8212;</p>
+                        <p>joinRecordFields</p>
                       </td>
                       <td>
                         <p>Boolean</p>
                       </td>
                       <td>
-                        <p>&nbsp;</p>
+                        <p>Yes</p>
                       </td>
                       <td>
-                        <p>???</p>
+                        <p>expand joined record fields</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                     <tr>
