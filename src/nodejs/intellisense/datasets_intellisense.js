@@ -18,7 +18,9 @@ exports = {}; require.modules.qminer_datasets = exports;
     *     if (err) throw err;
     *     console.log("\nSucessfully loaded database: " + store.name)
     *     console.log(JSON.stringify(store.first, null, 2));
-    * })
+    * });
+    * base.close();
+    * 
     * @example <caption>Synchronous loading</caption>
     * var qm = require('qminer');
     * var datasets = qm.datasets;
@@ -30,6 +32,7 @@ exports = {}; require.modules.qminer_datasets = exports;
     * var Iris = datasets.loadIrisSync(base);
     * console.log("\nSucessfully loaded database: " + Iris.name)
     * console.log(JSON.stringify(Iris.first, null, 2));
+    * base.close();
     */
 
     /**
