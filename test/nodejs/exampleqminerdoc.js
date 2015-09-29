@@ -257,7 +257,7 @@ it('should make test number 10', function () {
  // import qm module
  var qm = require('qminer');
  // factory based construction using base.createStore
- var base = qm.create('qm.conf', "", true);
+ var base = new qm.Base({ mode: 'createClean' });
  base.createStore([{
     name: "People",
     fields: [
@@ -294,6 +294,13 @@ it('should make test number 10', function () {
     ]
  }]);
  base.close();
+
+});
+it('should make test number 11', function () {
+ this.timeout(10000); 
+
+ // import qm module
+ var qm = require('qminer');
  // using the base constructor
  var base = new qm.Base({
     mode: "createClean",
@@ -310,7 +317,7 @@ it('should make test number 10', function () {
 });
 });
 describe("Returns a record from the store.", function () {
-it('should make test number 11', function () {
+it('should make test number 12', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -338,7 +345,7 @@ it('should make test number 11', function () {
 });
 });
 describe("Executes a function on each record in store.", function () {
-it('should make test number 12', function () {
+it('should make test number 13', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -366,7 +373,7 @@ it('should make test number 12', function () {
 });
 });
 describe("Creates an array of function outputs created from the store records.", function () {
-it('should make test number 13', function () {
+it('should make test number 14', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -394,7 +401,7 @@ it('should make test number 13', function () {
 });
 });
 describe("Adds a record to the store.", function () {
-it('should make test number 14', function () {
+it('should make test number 15', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -427,7 +434,7 @@ it('should make test number 14', function () {
 });
 });
 describe("Creates a new record of given store. The record is not added to the store.", function () {
-it('should make test number 15', function () {
+it('should make test number 16', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -453,7 +460,7 @@ it('should make test number 15', function () {
 });
 });
 describe("Creates a new record set out of the records in store.", function () {
-it('should make test number 16', function () {
+it('should make test number 17', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -482,7 +489,7 @@ it('should make test number 16', function () {
 });
 });
 describe("Creates a record set containing random records from store.", function () {
-it('should make test number 17', function () {
+it('should make test number 18', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -511,7 +518,7 @@ it('should make test number 17', function () {
 });
 });
 describe("Gets the details of the selected field.", function () {
-it('should make test number 18', function () {
+it('should make test number 19', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -537,7 +544,7 @@ it('should make test number 18', function () {
 });
 });
 describe("Checks if the field is of numeric type.", function () {
-it('should make test number 19', function () {
+it('should make test number 20', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -562,7 +569,7 @@ it('should make test number 19', function () {
 });
 });
 describe("Checks if the field is of string type.", function () {
-it('should make test number 20', function () {
+it('should make test number 21', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -588,7 +595,7 @@ it('should make test number 20', function () {
 });
 });
 describe("Checks if the field is of type Date.", function () {
-it('should make test number 21', function () {
+it('should make test number 22', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -614,7 +621,7 @@ it('should make test number 21', function () {
 });
 });
 describe("Returns the details of the selected key as a JSON object.", function () {
-it('should make test number 22', function () {
+it('should make test number 23', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -644,7 +651,7 @@ it('should make test number 22', function () {
 });
 });
 describe("Returns the store as a JSON.", function () {
-it('should make test number 23', function () {
+it('should make test number 24', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -670,7 +677,7 @@ it('should make test number 23', function () {
 });
 });
 describe("Deletes the records in the store.", function () {
-it('should make test number 24', function () {
+it('should make test number 25', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -701,7 +708,7 @@ it('should make test number 24', function () {
 });
 });
 describe("Gives a vector containing the field value of each record.", function () {
-it('should make test number 25', function () {
+it('should make test number 26', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -728,7 +735,7 @@ it('should make test number 25', function () {
 });
 });
 describe("Gives a matrix containing the field values of each record.", function () {
-it('should make test number 26', function () {
+it('should make test number 27', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -760,7 +767,7 @@ it('should make test number 26', function () {
 });
 });
 describe("Gives the field value of a specific record.", function () {
-it('should make test number 27', function () {
+it('should make test number 28', function () {
  this.timeout(10000); 
 
 	 //import qm module
@@ -788,7 +795,7 @@ it('should make test number 27', function () {
 });
 });
 describe("Clones the record.", function () {
-it('should make test number 28', function () {
+it('should make test number 29', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -816,7 +823,7 @@ it('should make test number 28', function () {
 });
 });
 describe("Creates a JSON version of the record.", function () {
-it('should make test number 29', function () {
+it('should make test number 30', function () {
  this.timeout(10000); 
 
      //TODO
@@ -861,7 +868,7 @@ it('should make test number 31', function () {
 });
 });
 describe("Creates a new instance of the record set.", function () {
-it('should make test number 30', function () {
+it('should make test number 31', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -892,7 +899,7 @@ it('should make test number 30', function () {
 });
 });
 describe("Creates a new record set out of the join attribute of records.", function () {
-it('should make test number 31', function () {
+it('should make test number 32', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -937,7 +944,7 @@ it('should make test number 31', function () {
 });
 });
 describe("Truncates the first records.", function () {
-it('should make test number 32', function () {
+it('should make test number 33', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -971,7 +978,7 @@ it('should make test number 32', function () {
 });
 });
 describe("Creates a random sample of records of the record set.", function () {
-it('should make test number 33', function () {
+it('should make test number 34', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1001,7 +1008,7 @@ it('should make test number 33', function () {
 });
 });
 describe("Shuffles the order of records in the record set.", function () {
-it('should make test number 34', function () {
+it('should make test number 35', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1034,7 +1041,7 @@ it('should make test number 34', function () {
 });
 });
 describe("It reverses the record order.", function () {
-it('should make test number 35', function () {
+it('should make test number 36', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1067,7 +1074,7 @@ it('should make test number 35', function () {
 });
 });
 describe("Sorts the records according to record id.", function () {
-it('should make test number 36', function () {
+it('should make test number 37', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1100,7 +1107,7 @@ it('should make test number 36', function () {
 });
 });
 describe("Sorts the records according to a specific record field.", function () {
-it('should make test number 37', function () {
+it('should make test number 38', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1131,7 +1138,7 @@ it('should make test number 37', function () {
 });
 });
 describe("Sorts the records according to the given callback function.", function () {
-it('should make test number 38', function () {
+it('should make test number 39', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1162,7 +1169,7 @@ it('should make test number 38', function () {
 });
 });
 describe("Keeps only records with ids between or equal two values.", function () {
-it('should make test number 39', function () {
+it('should make test number 40', function () {
  this.timeout(10000); 
 
 	 // import qm require
@@ -1195,7 +1202,7 @@ it('should make test number 39', function () {
 });
 });
 describe("Keeps only the records with a specific value of some field.", function () {
-it('should make test number 40', function () {
+it('should make test number 41', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1228,7 +1235,7 @@ it('should make test number 40', function () {
 });
 });
 describe("Keeps only the records that pass the callback function.", function () {
-it('should make test number 41', function () {
+it('should make test number 42', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1257,7 +1264,7 @@ it('should make test number 41', function () {
 });
 });
 describe("Splits the record set into smaller record sets.", function () {
-it('should make test number 42', function () {
+it('should make test number 43', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1294,7 +1301,7 @@ it('should make test number 42', function () {
 });
 });
 describe("Deletes the records, that are also in the other record set.", function () {
-it('should make test number 43', function () {
+it('should make test number 44', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1330,7 +1337,7 @@ it('should make test number 43', function () {
 });
 });
 describe("Returns the record set as a JSON.", function () {
-it('should make test number 44', function () {
+it('should make test number 45', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1359,7 +1366,7 @@ it('should make test number 44', function () {
 });
 });
 describe("Executes a function on each record in record set.", function () {
-it('should make test number 45', function () {
+it('should make test number 46', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1388,7 +1395,7 @@ it('should make test number 45', function () {
 });
 });
 describe("Creates an array of function outputs created from the records in record set.", function () {
-it('should make test number 46', function () {
+it('should make test number 47', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1417,7 +1424,7 @@ it('should make test number 46', function () {
 });
 });
 describe("Creates the set intersection of two record sets.", function () {
-it('should make test number 47', function () {
+it('should make test number 48', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1451,7 +1458,7 @@ it('should make test number 47', function () {
 });
 });
 describe("Creates the set union of two record sets.", function () {
-it('should make test number 48', function () {
+it('should make test number 49', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1484,7 +1491,7 @@ it('should make test number 48', function () {
 });
 });
 describe("Creates the set difference between two record sets.", function () {
-it('should make test number 49', function () {
+it('should make test number 50', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1520,7 +1527,7 @@ it('should make test number 49', function () {
 });
 });
 describe("Creates a vector containing the field values of records.", function () {
-it('should make test number 50', function () {
+it('should make test number 51', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1552,7 +1559,7 @@ it('should make test number 50', function () {
 });
 });
 describe("Creates a vector containing the field values of records.", function () {
-it('should make test number 51', function () {
+it('should make test number 52', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1586,7 +1593,7 @@ it('should make test number 51', function () {
 });
 });
 describe("Store Iterator (factory pattern)", function () {
-it('should make test number 52', function () {
+it('should make test number 53', function () {
  this.timeout(10000); 
 
  // import qm module
@@ -1612,7 +1619,7 @@ it('should make test number 52', function () {
 });
 });
 describe("Moves to the next record.", function () {
-it('should make test number 53', function () {
+it('should make test number 54', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1645,7 +1652,7 @@ it('should make test number 53', function () {
 });
 });
 describe("@typedef {Object} FeatureExtractorConstant", function () {
-it('should make test number 54', function () {
+it('should make test number 55', function () {
  this.timeout(10000); 
 
  var qm = require('qminer');
@@ -1664,7 +1671,7 @@ it('should make test number 54', function () {
 });
 });
 describe("@typedef {Object} FeatureExtractorRandom", function () {
-it('should make test number 55', function () {
+it('should make test number 56', function () {
  this.timeout(10000); 
 
  var qm = require('qminer');
@@ -1683,7 +1690,7 @@ it('should make test number 55', function () {
 });
 });
 describe("@typedef {Object} FeatureExtractorNumeric", function () {
-it('should make test number 56', function () {
+it('should make test number 57', function () {
  this.timeout(10000); 
 
  var qm = require('qminer');
@@ -1706,7 +1713,7 @@ it('should make test number 56', function () {
 });
 });
 describe("@typedef {Object} FeatureExtractorSparseVector", function () {
-it('should make test number 57', function () {
+it('should make test number 58', function () {
  this.timeout(10000); 
 
  var qm = require('qminer');
@@ -1729,7 +1736,7 @@ it('should make test number 57', function () {
 });
 });
 describe("@typedef {Object} FeatureExtractorCategorical", function () {
-it('should make test number 58', function () {
+it('should make test number 59', function () {
  this.timeout(10000); 
 
  var qm = require('qminer');
@@ -1753,7 +1760,7 @@ it('should make test number 58', function () {
 });
 });
 describe("@typedef {Object} FeatureExtractorMultinomial", function () {
-it('should make test number 59', function () {
+it('should make test number 60', function () {
  this.timeout(10000); 
 
  var qm = require('qminer');
@@ -1779,7 +1786,7 @@ it('should make test number 59', function () {
 });
 });
 describe("@typedef {Object} FeatureExtractorText", function () {
-it('should make test number 60', function () {
+it('should make test number 61', function () {
  this.timeout(10000); 
 
  var qm = require('qminer');
@@ -1805,7 +1812,7 @@ it('should make test number 60', function () {
 });
 });
 describe("@typedef {Object} FeatureExtractorJoin", function () {
-it('should make test number 61', function () {
+it('should make test number 62', function () {
  this.timeout(10000); 
 
  // import qm module
@@ -1814,7 +1821,7 @@ it('should make test number 61', function () {
 });
 });
 describe("@typedef {Object} FeatureExtractorPair", function () {
-it('should make test number 62', function () {
+it('should make test number 63', function () {
  this.timeout(10000); 
 
  var qm = require('qminer');
@@ -1822,7 +1829,7 @@ it('should make test number 62', function () {
 });
 });
 describe("@typedef {Object} FeatureExtractorDateWindow", function () {
-it('should make test number 63', function () {
+it('should make test number 64', function () {
  this.timeout(10000); 
 
  // import qm module
@@ -1831,7 +1838,7 @@ it('should make test number 63', function () {
 });
 });
 describe("@typedef {Object} FeatureExtractorJsfunc", function () {
-it('should make test number 64', function () {
+it('should make test number 65', function () {
  this.timeout(10000); 
 
  var qm = require('qminer');
@@ -1859,7 +1866,7 @@ it('should make test number 64', function () {
 });
 });
 describe("Feature Space", function () {
-it('should make test number 65', function () {
+it('should make test number 66', function () {
  this.timeout(10000); 
 
  // import qm module
@@ -1891,7 +1898,7 @@ it('should make test number 65', function () {
 });
 });
 describe("Adds a new feature extractor to the feature space.", function () {
-it('should make test number 66', function () {
+it('should make test number 67', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1925,7 +1932,7 @@ it('should make test number 66', function () {
 });
 });
 describe("Updates the feature space definitions and extractors by adding one record.", function () {
-it('should make test number 67', function () {
+it('should make test number 68', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1967,7 +1974,7 @@ it('should make test number 67', function () {
 });
 });
 describe("Updates the feature space definitions and extractors by adding all the records of a record set.", function () {
-it('should make test number 68', function () {
+it('should make test number 69', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2008,7 +2015,7 @@ it('should make test number 68', function () {
 });
 });
 describe("Creates a sparse feature vector from the given record.", function () {
-it('should make test number 69', function () {
+it('should make test number 70', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2046,7 +2053,7 @@ it('should make test number 69', function () {
 });
 });
 describe("Creates a feature vector from the given record.", function () {
-it('should make test number 70', function () {
+it('should make test number 71', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2084,7 +2091,7 @@ it('should make test number 70', function () {
 });
 });
 describe("Performs the inverse operation of ftrVec. Works only for numeric feature extractors.", function () {
-it('should make test number 71', function () {
+it('should make test number 72', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2124,7 +2131,7 @@ it('should make test number 71', function () {
 });
 });
 describe("Calculates the inverse of a single feature using a specific feature extractor.", function () {
-it('should make test number 72', function () {
+it('should make test number 73', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2161,7 +2168,7 @@ it('should make test number 72', function () {
 });
 });
 describe("Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.", function () {
-it('should make test number 73', function () {
+it('should make test number 74', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2193,7 +2200,7 @@ it('should make test number 73', function () {
 });
 });
 describe("Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.", function () {
-it('should make test number 74', function () {
+it('should make test number 75', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2228,7 +2235,7 @@ it('should make test number 74', function () {
 });
 });
 describe("Gives the name of feature extractor at given position.", function () {
-it('should make test number 75', function () {
+it('should make test number 76', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2257,7 +2264,7 @@ it('should make test number 75', function () {
 });
 });
 describe("Gives the name of the feature at the given position.", function () {
-it('should make test number 76', function () {
+it('should make test number 77', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2294,7 +2301,7 @@ it('should make test number 76', function () {
 });
 });
 describe("Filters the vector to keep only the elements from the feature extractor.", function () {
-it('should make test number 77', function () {
+it('should make test number 78', function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2335,7 +2342,7 @@ it('should make test number 77', function () {
 });
 });
 describe("@classdesc Circular buffer for storing records. Size of buffer is defined at", function () {
-it('should make test number 78', function () {
+it('should make test number 79', function () {
  this.timeout(10000); 
 
 	 // TODO
@@ -2343,7 +2350,7 @@ it('should make test number 78', function () {
 });
 });
 describe("Add new record to the buffer.", function () {
-it('should make test number 79', function () {
+it('should make test number 80', function () {
  this.timeout(10000); 
 
          // TODO

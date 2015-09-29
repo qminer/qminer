@@ -14,7 +14,9 @@ it('should make test number 1', function () {
          if (err) throw err;
          console.log("\nSucessfully loaded database: " + store.name)
          console.log(JSON.stringify(store.first, null, 2));
-     })
+     });
+     base.close();
+     
     
 });
 it('should make test number 2', function () {
@@ -30,6 +32,7 @@ it('should make test number 2', function () {
      var Iris = datasets.loadIrisSync(base);
      console.log("\nSucessfully loaded database: " + Iris.name)
      console.log(JSON.stringify(Iris.first, null, 2));
+     base.close();
     
 });
 });

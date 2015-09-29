@@ -1,5 +1,20 @@
 # QMiner Change Log
 
+### 25 Sep 2015
+
+**New version: 2.4.0**
+
+**non-breaking with new features and bug fixes**
+
+Features:
+- `record.setField`, `store.newRec` and `recset.filterByField` accept unix timestamp as input for datetime fields
+- `fout.writeBinary` writes binary serialization of JS strings, numbers or jsons to GLib output stream (`TFOut`)
+- k-means has explain method which returns medoid of the cluster new instance is assigned to
+
+Bug fixes:
+- fixed memory leak when assigning emtpy TVec to another empty TVec
+- automatic removal of timestamp in generated javascript documentation (jsdoc) to avoid conflicts at merging documentation
+
 ### 18 Sep 2015
 
 **New version: 2.3.0**

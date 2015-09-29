@@ -1305,10 +1305,16 @@ TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal) :
 			break;
 		}
 		case oftTm: {
-			QmAssertR(FieldVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not string that represents DateTime.");
-			TStr TmStr = FieldVal->GetStr();
-			TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
-			SetFieldTm(FieldId, Tm);
+			QmAssertR(FieldVal->IsStr() || FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not a number or a string that represents DateTime.");
+			if (FieldVal->IsStr()) {
+				TStr TmStr = FieldVal->GetStr();
+				TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
+				SetFieldTm(FieldId, Tm);
+			} else {
+				uint64 WinMSecs = TTm::GetWinMSecsFromUnixMSecs((uint64)FieldVal->GetNum());
+				TTm Tm = TTm::GetTmFromMSecs(WinMSecs);
+				SetFieldTm(FieldId, Tm);
+			}
 			break;
 		}
 		default:
