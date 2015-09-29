@@ -257,7 +257,7 @@ it('should make test number 10', function () {
  // import qm module
  var qm = require('qminer');
  // factory based construction using base.createStore
- var base = qm.create('qm.conf', "", true);
+ var base = new qm.Base({ mode: 'createClean' });
  base.createStore([{
     name: "People",
     fields: [

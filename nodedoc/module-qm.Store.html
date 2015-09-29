@@ -38,7 +38,7 @@
                 <pre class="prettyprint"><code>// import qm module
 var qm = require(&#x27;qminer&#x27;);
 // factory based construction using base.createStore
-var base = qm.create(&#x27;qm.conf&#x27;, &quot;&quot;, true);
+var base = new qm.Base({ mode: &#x27;createClean&#x27; });
 base.createStore([{
    name: &quot;People&quot;,
    fields: [
