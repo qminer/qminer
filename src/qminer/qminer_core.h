@@ -2653,7 +2653,7 @@ public:
 	/// @param QueryAggr Aggregate query details (e.g. type, parameters)
 	static PAggr New(const TWPt<TBase>& Base, const PRecSet& RecSet, const TQueryAggr& QueryAggr); 
 	virtual ~TAggr() { }
-
+    
 	/// Get aggreagte name
 	const TStr& GetAggrNm() const { return AggrNm; }
 	/// Serialize aggregate to readable JSon object

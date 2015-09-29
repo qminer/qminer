@@ -218,7 +218,8 @@ module.exports = exports = function (pathPrefix) {
     }
 
     exports.Store.prototype.addStreamAggr = function (params) {
-        return new exports.StreamAggr(this.base, params, this.name);
+        var newParams = params; newParams.store = this.name;
+        return new exports.StreamAggr(this.base, newParams, this.name);
     }
 
     exports.Store.prototype.inspect = function (depth) {
