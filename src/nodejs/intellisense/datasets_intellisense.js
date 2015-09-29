@@ -10,10 +10,8 @@ exports = {}; require.modules.qminer_datasets = exports;
     * var qm = require('qminer');
     * var datasets = qm.datasets;
     * 
-    * qm.delLock();
-    * qm.config('qm.conf', true, 8080, 1024);
-    *
-    * var base = qm.create('qm.conf', '', true);
+    * // Create clean base
+    * var base = new qm.Base({ mode: 'createClean' });
     *
     * // Load Iris dataset in async way
     * datasets.loadIris(base, function (err, store) {
@@ -25,10 +23,8 @@ exports = {}; require.modules.qminer_datasets = exports;
     * var qm = require('qminer');
     * var datasets = qm.datasets;
     * 
-    * qm.delLock();
-    * qm.config('qm.conf', true, 8080, 1024);
-    *
-    * var base = qm.create('qm.conf', '', true);
+    * // Create clean base
+    * var base = new qm.Base({ mode: 'createClean' });
     *
     * // Load Iris in sync way.
     * var Iris = datasets.loadIrisSync(base);
