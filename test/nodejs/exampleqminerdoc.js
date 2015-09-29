@@ -5,6 +5,7 @@ it('should make test number 1', function () {
  
  // import module
  var qm = require('qminer');
+
 });
 });
 describe("Store schema definition object", function () {
@@ -21,6 +22,7 @@ it('should make test number 2', function () {
      }]
  });
  base.close();
+
 });
 });
 describe("Store schema field definition object", function () {
@@ -55,6 +57,7 @@ it('should make test number 3', function () {
    Tokens: ['token1', 'token2'], 
    Vector: [[0,1], [1,1]]});
  base.close();
+
 });
 });
 describe("Store schema join definition object", function () {
@@ -102,6 +105,7 @@ it('should make test number 4', function () {
  //   'Broken Flowers'
  //   'Coffee and Cigarettes'
  base.close();
+
 });
 });
 describe("Store schema key definition object", function () {
@@ -132,6 +136,7 @@ it('should make test number 5', function () {
  // search based on text indexing
  base.search({$from : 'People', nameText: 'Smith'}); // Returns both records.
  base.close();
+
 });
 });
 describe("Stores can have a window, which is used by garbage collector to delete records once they", function () {
@@ -149,6 +154,7 @@ it('should make test number 6', function () {
  //  }
  //}]);
  //base.close();
+
 });
 });
 describe("Base", function () {
@@ -160,6 +166,7 @@ it('should make test number 7', function () {
  // using a constructor, in open mode
  var base = new qm.Base({mode: 'open'});
  base.close();
+
 });
 });
 describe("Returns the store with the specified name.", function () {
@@ -191,7 +198,7 @@ it('should make test number 8', function () {
 	  // get the "KwikEMart" store 
 	  var store = base.store("KwikEMart");	// returns the store with the name "KwikEMart"
 	  base.close();
-	
+	 
 });
 });
 describe("Creates a new store.", function () {
@@ -240,7 +247,7 @@ it('should make test number 9', function () {
 	    }
 	 ]);
 	 base.close();
-
+	
 });
 });
 describe("Store (factory pattern result) ", function () {
@@ -299,6 +306,7 @@ it('should make test number 10', function () {
     }]
  });
  base.close();
+
 });
 });
 describe("Returns a record from the store.", function () {
@@ -326,7 +334,7 @@ it('should make test number 11', function () {
 	 // get the record with the name "Magnitude"
 	 var record = base.store("Class").recordByName("Magnitude");
 	 base.close();
-
+	
 });
 });
 describe("Executes a function on each record in store.", function () {
@@ -354,7 +362,7 @@ it('should make test number 12', function () {
 	 // change the StudyGroup of all records of store Class to A
 	 base.store("Class").each(function (rec) { rec.StudyGroup = "A"; });	// all records in Class are now in study group A
 	 base.close();
-
+	
 });
 });
 describe("Creates an array of function outputs created from the store records.", function () {
@@ -382,7 +390,7 @@ it('should make test number 13', function () {
 	 // make an array of record names
 	 var arr = base.store("Class").map(function (rec) { return rec.Name; }); // returns an array ["Shirley", "Troy", "Chang", "Pierce"]
 	 base.close();
-
+	
 });
 });
 describe("Adds a record to the store.", function () {
@@ -415,7 +423,7 @@ it('should make test number 14', function () {
 	 // add a new supervillian to the Supervillians store
 	 base.store("Supervillians").push({ Name: "Lex Luthor", Superpowers: ["expert engineer", "genius-level intellect", "money"] }); // returns 0
 	 base.close();	
-
+	
 });
 });
 describe("Creates a new record of given store. The record is not added to the store.", function () {
@@ -441,7 +449,7 @@ it('should make test number 15', function () {
 	 // create a record of a planet (not added to the Planets store)
 	 var planet = base.store("Planets").newRecord({ Name: "Tatooine", Diameter: 10465, NearestStars: ["Tatoo 1", "Tatoo 2"] });
 	 base.close();
-
+	
 });
 });
 describe("Creates a new record set out of the records in store.", function () {
@@ -470,7 +478,7 @@ it('should make test number 16', function () {
 	 var intVec = new qm.la.IntVector([0, 1, 3]);
 	 var DCHeroes = base.store("Superheroes").newRecordSet(intVec);
 	 base.close();
-
+	
 });
 });
 describe("Creates a record set containing random records from store.", function () {
@@ -499,7 +507,7 @@ it('should make test number 17', function () {
 	 // create a sample record set containing 3 records
 	 var randomRecordSet = base.store("TVSeries").sample(3); // contains 3 random records from the TVSeries store
 	 base.close();
-
+	
 });
 });
 describe("Gets the details of the selected field.", function () {
@@ -525,7 +533,7 @@ it('should make test number 18', function () {
 	 // { id: 0, name: "Name", type: "string", primary: true }
 	 var details = base.store("People").field("Name");
 	 base.close();
-
+	
 });
 });
 describe("Checks if the field is of numeric type.", function () {
@@ -550,7 +558,7 @@ it('should make test number 19', function () {
 	 // check if the field "NumberOfEpisodes" is of numeric type
 	 var isNumberOfEpisodesNumeric = base.store("TVSeries").isNumeric("NumberOfEpisodes"); // returns true
 	 base.close();
-
+	
 });
 });
 describe("Checks if the field is of string type.", function () {
@@ -576,7 +584,7 @@ it('should make test number 20', function () {
 	 // check if the field "Age" is of string type
 	 var isAgeString = base.store("People").isString("Age"); // returns false
 	 base.close();
-
+	
 });
 });
 describe("Checks if the field is of type Date.", function () {
@@ -602,7 +610,7 @@ it('should make test number 21', function () {
 	 // check if the FirstPlayed field is of type Date
 	 var isFirstPlayedDate = base.store("BasketballPlayers").isDate("DateOfBirth"); // returns true
 	 base.close();
-
+	
 });
 });
 describe("Returns the details of the selected key as a JSON object.", function () {
@@ -632,7 +640,7 @@ it('should make test number 22', function () {
 	 // { fq: { length: 0 }, vocabulary: { length: 0 }, name: 'Continent', store: { name: 'Countries', ... }}
 	 var details = base.store("Countries").key("Continent");
 	 base.close();
-
+	
 });
 });
 describe("Returns the store as a JSON.", function () {
@@ -658,7 +666,7 @@ it('should make test number 23', function () {
 	 // { storeId: 0, storeName: 'FootballPlayers', storeRecords: 0, fields: [...], keys: [], joins: [] }
 	 var json = base.store("FootballPlayers").toJSON();
 	 base.close();
-
+	
 });
 });
 describe("Deletes the records in the store.", function () {
@@ -689,7 +697,7 @@ it('should make test number 24', function () {
 	 // delete all remaining records in TVStore
 	 base.store("TVSeries").clear();  // returns 0
 	 base.close();
-
+	
 });
 });
 describe("Gives a vector containing the field value of each record.", function () {
@@ -716,7 +724,7 @@ it('should make test number 25', function () {
 	 // get the vector of company names
 	 var companyNames = base.store("Companies").getVector("Name");	// returns a vector ["DC Comics", "DC Shoes", "21st Century Fox"]
 	 base.close();
-
+	
 });
 });
 describe("Gives a matrix containing the field values of each record.", function () {
@@ -748,7 +756,7 @@ it('should make test number 26', function () {
 	 // 48  44  48
 	 var matrix = base.store("ArcheryChampionship").getMatrix("ScorePerRound");
 	 base.close();
-
+	
 });
 });
 describe("Gives the field value of a specific record.", function () {
@@ -776,7 +784,7 @@ it('should make test number 27', function () {
 	 // get the field value of the second record for field "Type"
 	 var fieldValue = base.store("Festivals").cell(1, "Type"); // returns "movie"
 	 base.close();
-
+	
 });
 });
 describe("Clones the record.", function () {
@@ -804,7 +812,7 @@ it('should make test number 28', function () {
 	 // create a clone of the "Attack of the Clones" record
 	 var clone = base.store("StarWarsMovies")[0].$clone();
 	 base.close();
-
+	
 });
 });
 describe("Adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`", function () {
@@ -812,7 +820,7 @@ it('should make test number 29', function () {
  this.timeout(10000); 
 
      //TODO
-
+	
 });
 });
 describe("Deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`.", function () {
@@ -820,7 +828,7 @@ it('should make test number 30', function () {
  this.timeout(10000); 
 
      //TODO
-
+	
 });
 });
 describe("Creates a JSON version of the record.", function () {
@@ -849,7 +857,7 @@ it('should make test number 31', function () {
 	 // { '$id': 1, Name: 'Beyonce', ActiveSince: '1981-09-04T00:00:00', GreatestHits: ['Single Ladies (Put a Ring on It)'] }
 	 var json = base.store("Musicians").recordByName("Beyonce").toJSON();
 	 base.close();
-
+	
 });
 });
 describe("Creates a new instance of the record set.", function () {
@@ -880,7 +888,7 @@ it('should make test number 32', function () {
 	 // clone the record set of the "Philosophers" store
 	 var philosophers = recordSet.clone();
 	 base.close();
-
+	
 });
 });
 describe("Creates a new record set out of the join attribute of records.", function () {
@@ -925,7 +933,7 @@ it('should make test number 33', function () {
 	 // returns a record set containing only one record, which is "Robert Plant" or "Jimmy Page"
 	 var ledMember = base.store("Bands").allRecords.join("Members", 1);
 	 base.close();
-
+	
 });
 });
 describe("Truncates the first records.", function () {
@@ -959,7 +967,7 @@ it('should make test number 34', function () {
 	 // truncate the first 2 records in recordSet2, starting with "Emmanuel Levinas"
 	 recordSet2.trunc(2, 2); // returns self, containing only the 2 records ("Emmanuel Levinas", "Rene Descartes")
 	 base.close();
-
+	
 });
 });
 describe("Creates a random sample of records of the record set.", function () {
@@ -989,7 +997,7 @@ it('should make test number 35', function () {
 	 // create a sample record set of containing 3 records from the "Movies" store
 	 var sample = base.store("Movies").allRecords.sample(3);
 	 base.close();
-
+	
 });
 });
 describe("Shuffles the order of records in the record set.", function () {
@@ -1022,7 +1030,7 @@ it('should make test number 36', function () {
 	 // shuffle the records in the newly created record set. Use the number 100 as the seed for the shuffle
 	 recordSet.shuffle(100); // returns self, the records in the record set are shuffled
 	 base.close();
-
+	
 });
 });
 describe("It reverses the record order.", function () {
@@ -1055,7 +1063,7 @@ it('should make test number 37', function () {
 	 // reverse the record order in the record set
 	 recordSet.reverse(); // returns self, the records in the record set are in the reverse order
 	 base.close();
-
+	
 });
 });
 describe("Sorts the records according to record id.", function () {
@@ -1088,7 +1096,7 @@ it('should make test number 38', function () {
 	 // sort the records in the record set by their id in ascending order
 	 recordSet.sortById(1); // returns self, the records are sorted in ascending order
 	 base.close();
-
+	
 });
 });
 describe("Sorts the records according to a specific record field.", function () {
@@ -1119,7 +1127,7 @@ it('should make test number 39', function () {
 	 // sort the records by their "Title" field in ascending order 
 	 recordSet.sortByField("Title", true); // returns self, record are sorted by their "Title"
 	 base.close();
-
+	
 });
 });
 describe("Sorts the records according to the given callback function.", function () {
@@ -1150,7 +1158,7 @@ it('should make test number 40', function () {
 	 // sort the records by their number of episodes
 	 recordSet.sort(function (rec, rec2) { return rec.NumberOfEpisodes < rec2.NumberOfEpisodes; }); // returns self, records are sorted by the number of episodes
 	 base.close();
-
+	
 });
 });
 describe("Keeps only records with ids between or equal two values.", function () {
@@ -1183,7 +1191,7 @@ it('should make test number 41', function () {
 	 // from the record set keep the records with indeces between or equal 2 and 5
 	 recordSet.filterById(2, 5);
 	 base.close();
-
+	
 });
 });
 describe("Keeps only the records with a specific value of some field.", function () {
@@ -1216,7 +1224,7 @@ it('should make test number 42', function () {
 	 // filter only the records, where the weather is Mostly Cloudy
 	 recordSet.filterByField("Weather", "Mostly Cloudy"); // returns self, containing only the records, where the weather is "Mostly Cloudy"
 	 base.close();
-
+	
 });
 });
 describe("Keeps only the records that pass the callback function.", function () {
@@ -1245,7 +1253,7 @@ it('should make test number 43', function () {
 	 // filter the records: which archers have scored 48 points in the third round
 	 recordSet.filter(function (rec) { return rec.ScorePerRound[2] == 48; }); // keeps only the records, where the score of the third round is equal 48
 	 base.close();
-
+	
 });
 });
 describe("Splits the record set into smaller record sets.", function () {
@@ -1282,7 +1290,7 @@ it('should make test number 44', function () {
 	 // "Dobble" record
 	 var arr = recordSet.split(function (rec, rec2) { return rec.MinPlayers < rec2.MinPlayers; });
 	 base.close();
-
+	
 });
 });
 describe("Deletes the records, that are also in the other record set.", function () {
@@ -1318,7 +1326,7 @@ it('should make test number 45', function () {
 	 // delete the records in recordSet, that are also in fantasy
 	 recordSet.deleteRecords(fantasy); // returns self, containing only three records: "Douglas Adams", "Fyodor Dostoyevsky" and "Ivan Cankar"
 	 base.close();
-
+	
 });
 });
 describe("Returns the record set as a JSON.", function () {
@@ -1347,7 +1355,7 @@ it('should make test number 46', function () {
 	 // create a JSON object out of the record set
 	 var json = recordSet.toJSON();
 	 base.close();
-
+	
 });
 });
 describe("Executes a function on each record in record set.", function () {
@@ -1376,7 +1384,7 @@ it('should make test number 47', function () {
 	 // change the Name of all records into "Anonymous"
 	 recordSet.each(function (rec) { rec.Name = "Anonymous"; }); // returns self, all record's Name are "Anonymous"
 	 base.close();
-
+	
 });
 });
 describe("Creates an array of function outputs created from the records in record set.", function () {
@@ -1405,7 +1413,7 @@ it('should make test number 48', function () {
 	 // make an array of record Names
 	 var arr = recordSet.map(function (rec) { return rec.Name; }); // returns an array: ["Eric Sugar", "Jane Tokyo", "Mister Tea"]
 	 base.close();
-
+	
 });
 });
 describe("Creates the set intersection of two record sets.", function () {
@@ -1439,7 +1447,7 @@ it('should make test number 49', function () {
 	 // get the intersection of greaterSet and lesserSet
 	 var intersection = greaterSet.setIntersect(lesserSet); // returns a record set, containing the movies with lengths between 110 and 130
 	 base.close();
-
+	
 });
 });
 describe("Creates the set union of two record sets.", function () {
@@ -1472,7 +1480,7 @@ it('should make test number 50', function () {
 	 // get the union of lesserSet and greaterSet
 	 var union = lesserSet.setUnion(greaterSet); // returns a record set, which is the union of the two record sets
 	 base.close();
-
+	
 });
 });
 describe("Creates the set difference between two record sets.", function () {
@@ -1508,7 +1516,7 @@ it('should make test number 51', function () {
 	 // create a new record set containing the difference of recordSet and fantasy
 	 var difference = recordSet.setDiff(fantasy); // returns a record set, containing the records of Douglas Adams, Fyodor Dostoyevsky and Ivan Cankar
 	 base.close();
-
+	
 });
 });
 describe("Creates a vector containing the field values of records.", function () {
@@ -1540,7 +1548,7 @@ it('should make test number 52', function () {
 	 // the vector will look like [75, 574, 94, 11, 47]
 	 var vector = recordSet.getVector("NumberOfEpisodes");
 	 base.close();
-
+	
 });
 });
 describe("Creates a vector containing the field values of records.", function () {
@@ -1574,7 +1582,7 @@ it('should make test number 53', function () {
 	 // 48  44  48
 	 var matrix = recordSet.getMatrix("ScorePerRound");
 	 base.close();
-
+	
 });
 });
 describe("Store Iterator (factory pattern)", function () {
@@ -1600,6 +1608,7 @@ it('should make test number 54', function () {
  // factory based construction with forwardIter
  var iter = base.store("People").forwardIter;
  base.close();
+
 });
 });
 describe("Moves to the next record.", function () {
@@ -1632,7 +1641,7 @@ it('should make test number 55', function () {
 	 // go to the first record in the store
 	 iter.next(); // returns true
 	 base.close();
-
+	
 });
 });
 describe("@typedef {Object} FeatureExtractorConstant", function () {
@@ -1651,6 +1660,7 @@ it('should make test number 56', function () {
  // create a feature space containing the constant extractor, where the constant is equal 5
  var ftr = new qm.FeatureSpace(base, { type: "constant", source: "Person", const: 5 });
  base.close();
+
 });
 });
 describe("@typedef {Object} FeatureExtractorRandom", function () {
@@ -1669,6 +1679,7 @@ it('should make test number 57', function () {
  // create a feature space containing the random extractor
  var ftr = new qm.FeatureSpace(base, { type: "random", source: "Person" });
  base.close();
+
 });
 });
 describe("@typedef {Object} FeatureExtractorNumeric", function () {
@@ -1691,6 +1702,7 @@ it('should make test number 58', function () {
  // normalized, the values are taken from the field "Grade"
  var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "Class", normalize: true, field: "Grade" });
  base.close();
+
 });
 });
 describe("@typedef {Object} FeatureExtractorSparseVector", function () {
@@ -1713,6 +1725,7 @@ it('should make test number 59', function () {
  // normalized, the values are taken from the field "Grade"
  var ftr = new qm.FeatureSpace(base, { type: "num_sp_v", source: "Class", normalize: false, field: "Features" });
  base.close();
+
 });
 });
 describe("@typedef {Object} FeatureExtractorCategorical", function () {
@@ -1736,6 +1749,7 @@ it('should make test number 60', function () {
  // are taken from the field "StudyGroup": "A", "B", "C" and "D"
  var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "Class", field: "StudyGroup", values: ["A", "B", "C", "D"] });
  base.close();
+
 });
 });
 describe("@typedef {Object} FeatureExtractorMultinomial", function () {
@@ -1761,6 +1775,7 @@ it('should make test number 61', function () {
               type: "multinomial", source: "Class", field: "StudyGroups", normalize: true, values: ["A", "B", "C", "D", "E", "F"]
            });
  base.close();
+
 });
 });
 describe("@typedef {Object} FeatureExtractorText", function () {
@@ -1786,6 +1801,7 @@ it('should make test number 62', function () {
               tokenizer: { type: "simple", stopwords: "en"}
            });
  base.close();
+
 });
 });
 describe("@typedef {Object} FeatureExtractorJoin", function () {
@@ -1794,6 +1810,7 @@ it('should make test number 63', function () {
 
  // import qm module
  var qm = require('qminer');
+
 });
 });
 describe("@typedef {Object} FeatureExtractorPair", function () {
@@ -1801,6 +1818,7 @@ it('should make test number 64', function () {
  this.timeout(10000); 
 
  var qm = require('qminer');
+
 });
 });
 describe("@typedef {Object} FeatureExtractorDateWindow", function () {
@@ -1809,6 +1827,7 @@ it('should make test number 65', function () {
 
  // import qm module
  var qm = require('qminer');
+
 });
 });
 describe("@typedef {Object} FeatureExtractorJsfunc", function () {
@@ -1836,6 +1855,7 @@ it('should make test number 66', function () {
               fun: function (rec) { return rec.StudyGroups.length; }
            });
  base.close();
+
 });
 });
 describe("Feature Space", function () {
@@ -1867,6 +1887,7 @@ it('should make test number 67', function () {
  // create a feature space 
  var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpace", field: "Value" });
  base.close();
+
 });
 });
 describe("Adds a new feature extractor to the feature space.", function () {
@@ -1900,7 +1921,7 @@ it('should make test number 68', function () {
 	 // it adds the new feature extractor to the pre-existing feature extractors in the feature space
 	 ftr.addFeatureExtractor({ type: "text", source: "WeatherForcast", field: "Weather", normalize: true, weight: "tfidf" });      
 	 base.close();
-
+	
 });
 });
 describe("Updates the feature space definitions and extractors by adding one record.", function () {
@@ -1942,7 +1963,7 @@ it('should make test number 69', function () {
 	 ftr.extractVector(Store[1]); // returns the vector [1/2, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0]
 	 ftr.extractVector(Store[2]); // returns the vector [1, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
 	 base.close();
-
+	
 });
 });
 describe("Updates the feature space definitions and extractors by adding all the records of a record set.", function () {
@@ -1983,7 +2004,7 @@ it('should make test number 70', function () {
 	 ftr.extractVector(Store[2]); // returns the vector [2/3, 0, 0, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2)]
 	 ftr.extractVector(Store[3]); // returns the vector [1, 1, 0, 0, 1 / Math.sqrt(2), 0, 0, 1 / Math.sqrt(2), 0, 0]
 	 base.close();
-
+	
 });
 });
 describe("Creates a sparse feature vector from the given record.", function () {
@@ -2021,7 +2042,7 @@ it('should make test number 71', function () {
 	 // features in the text feature extractor.
 	 var vec = ftr.extractSparseVector(base.store("Class")[0]);
 	 base.close();
-
+	
 });
 });
 describe("Creates a feature vector from the given record.", function () {
@@ -2059,7 +2080,7 @@ it('should make test number 72', function () {
 	 // features in the text feature extractor.
 	 var vec = ftr.extractVector(base.store("Class")[0]);
 	 base.close();
-
+	
 });
 });
 describe("Performs the inverse operation of ftrVec. Works only for numeric feature extractors.", function () {
@@ -2099,7 +2120,7 @@ it('should make test number 73', function () {
 	 // the function returns the values to their first value, i.e. 0.105263 returns to 1995
 	 var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]
 	 base.close();
-
+	
 });
 });
 describe("Calculates the inverse of a single feature using a specific feature extractor.", function () {
@@ -2136,7 +2157,7 @@ it('should make test number 74', function () {
 	 // invert the value 0 using the numeric feature extractor
 	 var inverse = ftr.invertFeature(0, 0); // returns the value 1994
 	 base.close();
-
+	
 });
 });
 describe("Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.", function () {
@@ -2168,7 +2189,7 @@ it('should make test number 75', function () {
 	 // [[(0, 1), (3, 1)], [(1, 1), (3, 1)], [(1, 1), (2, 1)], [(0, 1), (1, 1)]]
 	 var sparseMatrix = ftr.extractSparseMatrix(base.store("Class").allRecords);
 	 base.close();
-
+	
 });
 });
 describe("Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.", function () {
@@ -2203,7 +2224,7 @@ it('should make test number 76', function () {
 	 // 1  1  0  0
 	 var matrix = ftr.extractMatrix(base.store("Class").allRecords);
 	 base.close();
-
+	
 });
 });
 describe("Gives the name of feature extractor at given position.", function () {
@@ -2232,7 +2253,7 @@ it('should make test number 77', function () {
 	 // get the name of the feature extractor with index 1
 	 var extractorName = ftr.getFeatureExtractor(1); // returns "Categorical[Gendre]"
 	 base.close();
-
+	
 });
 });
 describe("Gives the name of the feature at the given position.", function () {
@@ -2269,7 +2290,7 @@ it('should make test number 78', function () {
 	 // get the feature at position 2
 	 var feature2 = ftr.getFeature(2); // returns "magnitude"
 	 base.close();
-
+	
 });
 });
 describe("Filters the vector to keep only the elements from the feature extractor.", function () {
@@ -2310,7 +2331,7 @@ it('should make test number 79', function () {
 	 // filter the elements from the second feature extractor, without keeping the offset
 	 var spVec3 = ftr.filter(spVec, 1, false); // returns sparse vector [[1, 1]]
 	 base.close();
-
+	
 });
 });
 describe("@classdesc Circular buffer for storing records. Size of buffer is defined at", function () {
@@ -2318,7 +2339,7 @@ it('should make test number 80', function () {
  this.timeout(10000); 
 
 	 // TODO
-   
+    
 });
 });
 describe("Add new record to the buffer.", function () {
@@ -2326,7 +2347,7 @@ it('should make test number 81', function () {
  this.timeout(10000); 
 
          // TODO
-    
+    	
 });
 });
 
