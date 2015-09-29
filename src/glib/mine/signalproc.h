@@ -69,7 +69,8 @@ public:
 	void Load(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
-	void Update(const double& InVal, const uint64& InTmMSecs, 
+    bool IsInit() const { return (TmMSecs > 0); }
+	void Update(const double& InVal, const uint64& InTmMSecs,
         const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N);	
 	double GetValue() const { return Ma; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
@@ -91,6 +92,7 @@ public:
 	void Load(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
+    bool IsInit() const { return (TmMSecs > 0); }
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
 	double GetValue() const { return Sum; }
@@ -112,6 +114,7 @@ public:
 	void Load(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
+    bool IsInit() const { return (TmMSecs > 0); }
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
 	double GetValue() const { return Min; }
@@ -133,6 +136,7 @@ public:
 	void Load(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
+    bool IsInit() const { return (TmMSecs > 0); }
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
 	double GetValue() const { return Max; }
@@ -193,7 +197,8 @@ public:
 	void Load(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
-	void Update(const double& InVal, const uint64& InTmMSecs, 
+    bool IsInit() const { return (TmMSecs > 0); }
+	void Update(const double& InVal, const uint64& InTmMSecs,
         const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N);
 	// current status	
 	double GetValue() const {
@@ -557,6 +562,8 @@ private:
         void CalcHiddenGradient(const TLayer& NextLayer);
         // Save the model
         void Save(TSOut& SOut);
+
+		const TTFunc& GetFunction() { return TFuncNm; }
     };
 
     /////////////////////////////////////////
@@ -615,9 +622,28 @@ public:
     void GetResults(TFltV& ResultV) const;
     // Set learn rate
     void SetLearnRate(const TFlt& NewLearnRate) { LearnRate = NewLearnRate; };
+	// set momentum
+	void SetMomentum(const TFlt& NewMomentum) { Momentum = NewMomentum; }
     // Save the model
     void Save(TSOut& SOut) const;
 
+	void GetLayout(TIntV& layout) {
+		layout.Gen(LayerV.Len());
+		for (int i = 0; i < LayerV.Len(); i++) {
+			layout[i] = LayerV[i].GetNeuronN() - 1;
+		}
+	}
+	TFlt GetLearnRate() { return LearnRate; }
+	TFlt GetMomentum() { return Momentum; }
+	TStr GetTFuncHidden() { 
+		TStr FuncHidden = GetFunction(LayerV[1].GetNeuron(0).GetFunction());
+		return FuncHidden;
+	};
+	TStr GetTFuncOut() {
+		TStr FuncOut = GetFunction(LayerV[LayerV.Len() - 1].GetNeuron(0).GetFunction());
+		return FuncOut;
+	}
+	TStr GetFunction(const TTFunc& Func);
 };
 
 /////////////////////////////////////////

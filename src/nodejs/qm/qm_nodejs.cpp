@@ -426,6 +426,7 @@ TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>&
 	uint64 IndexCache = (uint64)Val->GetObjInt("indexCache", 1024) * (uint64)TInt::Mega;
 	uint64 StoreCache = (uint64)Val->GetObjInt("storeCache", 1024) * (uint64)TInt::Mega;
 
+    // load unicode
 	TStr UnicodeFNm = Val->GetObjStr("unicode", TQm::TEnv::QMinerFPath + "./UnicodeDef.Bin");
 	if (!TUnicodeDef::IsDef()) { TUnicodeDef::Load(UnicodeFNm); }
 	// Load Stopword Files
@@ -1951,8 +1952,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 			double UnixMSecs = Date->NumberValue();
 			// milliseconds from 1601-01-01T00:00:00Z
 			double WinMSecs = UnixMSecs + 11644473600000.0;
-			TTm Tm = TTm::GetTmFromMSecs((uint64)WinMSecs);
-			Rec.SetFieldTm(FieldId, Tm);
+			Rec.SetFieldTmMSecs(FieldId, (uint64)WinMSecs);
 		}
 		else if (Value->IsString()){
 			v8::String::Utf8Value Utf8(Value);
@@ -3152,6 +3152,8 @@ TNodeJsFtrSpace* TNodeJsFtrSpace::NewFromArgs(const v8::FunctionCallbackInfo<v8:
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
+	EAssertR(Args.Length() == 2, "FeatureSpace.constructor: 2 parameters must be given!");
+	EAssertR(TNodeJsUtil::IsArgWrapObj<TNodeJsBase>(Args, 0), "FeatureSpace.constructor: first parameter must be Base!");
 	const TWPt<TQm::TBase>& Base = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args[0]->ToObject())->Base;
 
 	if (Args[1]->IsString() || TNodeJsUtil::IsArgWrapObj(Args, 1, TNodeJsFIn::GetClassId())) {
@@ -3212,6 +3214,8 @@ TNodeJsFtrSpace* TNodeJsFtrSpace::NewFromArgs(const v8::FunctionCallbackInfo<v8:
 				FtrExtV.Add(TQm::TFtrExt::New(Base, ParamVal->GetObjStr("type"), ParamVal));
 			}
 		}
+	} else {
+		throw TQm::TQmExcept::New("FeatureSpace.constructor: invalid parameters!");
 	}
 
 	// create feature space
@@ -3363,6 +3367,10 @@ void TNodeJsFtrSpace::extractSparseVector(const v8::FunctionCallbackInfo<v8::Val
 	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
 	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
 
+	for (int FtrN = 0; FtrN < JsFtrSpace->FtrSpace->GetFtrExts(); FtrN++) {
+		EAssertR(JsRec->Rec.GetStore()->GetStoreNm() == JsFtrSpace->FtrSpace->GetFtrExt(FtrN)->GetFtrStore()->GetStoreNm(), 
+			"FeatureSpace.extractSparseVector: record's and feature extractor's store/source must be the same!");
+	}
 	// create feature vector
 	TIntFltKdV SpV;
 	JsFtrSpace->FtrSpace->GetSpV(JsRec->Rec, SpV);
@@ -3381,6 +3389,11 @@ void TNodeJsFtrSpace::extractVector(const v8::FunctionCallbackInfo<v8::Value>& A
 	try {
 		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
 		TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+
+		for (int FtrN = 0; FtrN < JsFtrSpace->FtrSpace->GetFtrExts(); FtrN++) {
+			EAssertR(JsRec->Rec.GetStore()->GetStoreNm() == JsFtrSpace->FtrSpace->GetFtrExt(FtrN)->GetFtrStore()->GetStoreNm(),
+				"FeatureSpace.extractSparseVector: record's and feature extractor's store/source must be the same!");
+		}
 
 		// create feature vector, compute
 		TFltV FltV;

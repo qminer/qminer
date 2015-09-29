@@ -1,4 +1,4 @@
-/**
+/**g1.eachEdge(function (E) { console.log("("+E.srcId+","+E.dstId+")"});
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
  * 
@@ -20,19 +20,22 @@
 #include "../la/la_nodejs.h"
 #include "Snap.h"
 
-///////////////////////////////
-// NodeJs-Qminer-Snap
-// XXX: Current implementation doesn't support all documented properties! 
-
+/**
+* Snap module.
+* @module snap
+* @example
+* // TODO
+*/
 class TNodeJsSnap : public node::ObjectWrap {
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	//# 
-	//# **Functions and properties:**
-	//# 
-	//#- `graph = snap.newUGraph()` -- generate an empty undirected graph
+        // **Functions and properties:**
+        // 
+        // - `ugraph = new snap.UndirectedGraph` - returns undirected graph.
+        // - `dgraph = new snap.DirectedGraph` - returns directed graph.
+        // - `dmgraph = new snap.DirectedMultigraph` - returns directed multigraph.
+  
 private:
-	JsDeclareFunction(cmtyEvolution);
 	//static v8::Persistent<v8::Function> constructor;
 };
 
@@ -57,23 +60,257 @@ public:
 	//# **Functions and properties:**
 	JsDeclareFunction(New);
 private:
+        /**
+        * Adds a node to the graph.
+        * @param {int} X - id of new edge
+        * @example
+        * // import the analytics and la modules
+        * var snap = require('qminer').snap;
+        * // create a new UndirectedGraph object
+        * var graph = new snap.UnidrectedGraph;
+        * // add a node to the graph
+        * graph.addNode(1);
+        */
 	JsDeclareFunction(addNode);
+        /**
+        * Adds an edge to the graph.
+        * @param {int} X - id of the first node
+        * @param {int} Y - id of the second node
+        * @example
+        * // import the analytics and la modules
+        * var snap = require('qminer').snap;
+        * // create a new UndirectedGraph object
+        * var graph = new snap.UnidrectedGraph;
+        * // add the first node to the graph
+        * graph.addNode(1);
+        * // add the second node to the graph
+        * graph.addNode(2);
+        * // add an edge
+        * graph.addEdge(1,2);
+        */
 	JsDeclareFunction(addEdge);
+        /**
+        * Deletes a node of the graph.
+        * @param {int} X - id of the node
+        * @example
+        * // delete an edge
+        * graph.delNode(1,2);
+        */
 	JsDeclareFunction(delNode);
+        /**
+        * Deletes an edge of the graph.
+        * @param {int} X - id of the first node
+        * @param {int} Y - id of the second node
+        * @example
+        * // delete an edge
+        * graph.delEdge(1,2);
+        */
 	JsDeclareFunction(delEdge);
+        /**
+        * Checks if node exists
+        * @param {int} X - id of the node
+        * @returns {boolean} true|false.
+        * @example
+        * // check if node with id 1 exists in the graph
+        * graph.isNode(1);
+        */
 	JsDeclareFunction(isNode);
+        /**
+        * Checks if an edge exists
+        * @param {int} X - id of the first node
+        * @param {int} Y - id of the second node
+        * @returns {boolean} true|false.
+        * @example
+        * // check if edge (1,2) exists in the graph
+        * graph.isEdge(1,2);
+        */
 	JsDeclareFunction(isEdge);
+        /**
+        * Returns number of nodes in the graph
+        * @returns {int} N.
+        * @example
+        * // returns number of nodes in a graph
+        * N = graph.nodes
+        */
 	JsDeclareProperty(nodes);
+        /**
+        * Returns number of edges in the graph
+        * @returns {int} E.
+        * @example
+        * // returns number of edges in a graph
+        * E = graph.edges
+        */
 	JsDeclareProperty(edges);
+        /**
+        * Returns a node
+        * @param {int} Id - Id of a node.
+        * @returns {module:snap.UnidirectedGraph.Node} Node.
+        * @example
+        * // import the analytics and la modules
+        * var snap = require('qminer').snap;
+        * // create a new UndirectedGraph object
+        * var graph = new snap.UnidrectedGraph;
+        * // add the first node to the graph
+        * graph.addNode(1);
+        * // get a node of a graph
+        * var node = graph.node(1);
+        */
 	JsDeclareFunction(node);
-	JsDeclareFunction(firstNode);
-	JsDeclareFunction(lastNode);
-	JsDeclareFunction(eachNode);
+	/**
+        * Returns the first node of a graph
+        * @returns {module:snap.UnidirectedGraph.Node} Node.
+        * @example
+        * // import the analytics and la modules
+        * var snap = require('qminer').snap;
+        * // create a new UndirectedGraph object
+        * var graph = new snap.UnidrectedGraph;
+        * // add the first node to the graph
+        * graph.addNode(1);
+        * // get a node of a graph
+        * var node = graph.firstNode();
+        */
+        JsDeclareFunction(firstNode);
+	/**
+        * Returns the last node of a graph
+        * @returns {module:snap.UnidirectedGraph.Node} Node.
+        * @example
+        * // import the analytics and la modules
+        * var snap = require('qminer').snap;
+        * // create a new UndirectedGraph object
+        * var graph = new snap.UnidrectedGraph;
+        * // add the first node to the graph
+        * graph.addNode(1);
+        * // get a node of a graph
+        * var node = graph.lastNode();
+        */
+        JsDeclareFunction(lastNode);
+	/**
+        * Iteratses nodes of a graph
+        * @returns {module:snap.UnidirectedGraph} Self.
+        * @example
+        * // import the snap module
+        * var snap = require('qminer').snap;
+        * // create a new UndirectedGraph object
+        * var graph = new snap.UnidrectedGraph;
+        * // add two nodes to the graph
+        * graph.addNode(1);
+        * graph.addNode(2);
+        * // iterate nodes of the graph and print ids
+        * g1.eachNode(function (N) { console.log("id: " + N.id});
+        */
+        JsDeclareFunction(eachNode);
+        /**
+        * Iterates edges of a graph
+        * @returns {module:snap.UnidirectedGraph} Self.
+        * @example
+        * // import the snap module
+        * var snap = require('qminer').snap;
+        * // create a new UndirectedGraph object
+        * var graph = new snap.UnidrectedGraph;
+        * // add three nodes and two edges to the graph
+        * graph.addNode(1);
+        * graph.addNode(2);
+        * graph.addNode(3);
+        * graph.addEdge(1,2);
+        * graph.addEdge(1,3);
+        * // iterate edegs of the graph and print edges
+        * g1.eachEdge(function (E) { console.log("("+E.srcId+","+E.dstId+")")});
+        */
 	JsDeclareFunction(eachEdge);
+        /**
+        * Returns graph adjecency matrix.
+        * @returns {module:la.sparseMatrix} SpMat.
+        * @example
+        * // import the snap module
+        * var snap = require('qminer').snap;
+        * // create a new UndirectedGraph object
+        * var graph = new snap.UnidrectedGraph;
+        * // add three nodes and two edges to the graph
+        * graph.addNode(1);
+        * graph.addNode(2);
+        * graph.addNode(3);
+        * graph.addEdge(1,2);
+        * graph.addEdge(1,3);
+        * // returns adjecency matrix of the graph
+        * mat = graph.adjMat()
+        */
 	JsDeclareFunction(adjMat);
+        /**
+        * Dumps the graph to a file or the screen.
+        * @param {string} Path - Path to the file
+        * @returns {module:snap.UnidirectedGraph} Self.
+        * @example
+        * // import the snap module
+        * var snap = require('qminer').snap;
+        * // create a new UndirectedGraph object
+        * var graph = new snap.UnidrectedGraph;
+        * // add three nodes and two edges to the graph
+        * graph.addNode(1);
+        * graph.addNode(2);
+        * graph.addNode(3);
+        * graph.addEdge(1,2);
+        * graph.addEdge(1,3);
+        * // returns adjecency matrix of the graph
+        * graph.dump()
+        */
 	JsDeclareFunction(dump);
+        /**
+        * Returns connected components of a graph
+        * @returns {module:la.sparseMatrix} SpMat. 
+        * @example
+        * // import the snap module
+        * var snap = require('qminer').snap;
+        * // create a new UndirectedGraph object
+        * var graph = new snap.UnidrectedGraph;
+        * // add three nodes and two edges to the graph
+        * graph.addNode(1);
+        * graph.addNode(2);
+        * graph.addNode(3);
+        * graph.addEdge(1,2);
+        * graph.addEdge(1,3);
+        * // returns connected components of a graph in for of sparse matrix
+        * ccm = graph.components()
+        */ 
 	JsDeclareFunction(components);
+        /**
+        * Returns clustering coeficient of a graph
+        * @returns {double} Ccf. 
+        * @example
+        * // import the snap module
+        * var snap = require('qminer').snap;
+        * // create a new UndirectedGraph object
+        * var graph = new snap.UnidrectedGraph;
+        * // add three nodes and two edges to the graph
+        * graph.addNode(1);
+        * graph.addNode(2);
+        * graph.addNode(3);
+        * graph.addEdge(1,2);
+        * graph.addEdge(1,3);
+        * graph.addEdge(2,3);
+        * // returns clustering coefficient of a graph
+        * ccf = graph.clusteringCoefficient()
+        */
+        JsDeclareFunction(clusteringCoefficient)
 	JsDeclareFunction(renumber);
+        /**
+        * Returns degree centrality of a node in graph
+        * @param {inr} NodeId
+        * @returns {int} DegCentrality. 
+        * @example
+        * // import the snap module
+        * var snap = require('qminer').snap;
+        * // create a new UndirectedGraph object
+        * var graph = new snap.UnidrectedGraph;
+        * // add three nodes and two edges to the graph
+        * graph.addNode(1);
+        * graph.addNode(2);
+        * graph.addNode(3);
+        * graph.addEdge(1,2);
+        * graph.addEdge(1,3);
+        * graph.addEdge(2,3);
+        * // returns degree centrality of the node with id 1 in the graph
+        * dgc = graph.degreeCentrality(1)
+        */
 	JsDeclareFunction(degreeCentrality);
 	JsDeclareFunction(load);
 	JsDeclareFunction(save);
@@ -518,6 +755,14 @@ void TNodeJsGraph<T>::dump(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(Args.Holder());
 }
 
+template <class T>
+void TNodeJsGraph<T>::clusteringCoefficient(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
+	double Ccf = TSnap::GetClustCf(JsGraph->Graph);
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, Ccf));
+}
 
 template <class T>
 void TNodeJsGraph<T>::components(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -560,18 +805,15 @@ template <class T>
 void TNodeJsGraph<T>::degreeCentrality(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-
-	/*
-	double ReturnCentrality = 0;
-
-	if (ArgsLen == 2) {
-	TNodeJsGraph<TUNGraph>* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph<TUNGraph>>(Args, 0);
-	PUNGraph graph = JsGraph->Graph();
-	int NodeId = Args[1]->ToNumber();
-	ReturnCentrality = TSnap::GetDegreeCentr(graph, NodeId);
+        /*
+	double Dgc = 0;
+	if (ArgsLen == 1) {
+                TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
+		int NodeId = TNodeJsUtil::GetArgInt32(Args, 0);
+                Dgc = TSnap::GetDegreeCentr(JsGraph->Graph, NodeId);
 	}
-
-	Args.GetReturnValue().Set(v8::Number::New(ReturnCentrality));*/
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, Dgc));
+        */
 }
 
 

@@ -1036,20 +1036,11 @@ exports.datasets= require('qminer_datasets');
 	*/
  exports.Record.prototype.$clone = function () { return Object.create(require('qminer').Record.prototype); };
 /**
-     * Provide json version of record, useful when calling JSON.stringify
-     *
-     * @param {Boolean} - ???
-     * @param {Boolean} - ???
-     * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
-     */
-/**
 	* Adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`
 	* @param {string} joinName - join name
 	* @param {(module:qm.Record | number)} joinRecord - joined record or its ID
 	* @param {number} [joinFrequency=1] - frequency attached to the join
 	* @returns {module:qm.Record} Record.
-    * @example
-    * //TODO
 	*/
  exports.Record.prototype.$addJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
 /**
@@ -1058,15 +1049,13 @@ exports.datasets= require('qminer_datasets');
 	* @param {(module:qm.Record | number)} joinRecord - joined record or its ID
 	* @param {number} [joinFrequency=1] - frequency attached to the join
 	* @returns {module:qm.Record} Record.
-    * @example
-    * //TODO
 	*/
  exports.Record.prototype.$delJoin = function (joinName, joinRecord, joinFrequency) { return Object.create(require('qminer').Record.prototype); }
 /**
 	* Creates a JSON version of the record.
 	*
-    * @param {Boolean} - ???
-    * @param {Boolean} - ???
+    * @param {Boolean} [joinRecords=false] - include joined records (only IDs)
+    * @param {Boolean} [joinRecordFields=false] - expand joined record fields
     * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
 	* @returns {Object} The JSON version of the record.
 	*
@@ -2315,7 +2304,7 @@ exports.datasets= require('qminer_datasets');
 		concatenate: 'concatenate', 
 		/** Treat each case as a separate document. */
 		centroid: 'centroid', 
-		/** //TODO (Use the tokenizer option) */
+		/** Use the tokenizer option */
 		tokenized : 'tokenized'
  }
 /**

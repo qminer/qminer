@@ -8,15 +8,6 @@
 #ifndef PGBLOB_H
 #define PGBLOB_H
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include <bd.h>
-#include <base.h>
-#include <mine.h>
-
-
 //////////////////////////////////////////////////////////////////
 // Foward declarations
 class TPgBlobPgPt;

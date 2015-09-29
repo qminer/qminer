@@ -560,12 +560,11 @@ void TWebPgFetchPersist::Load(TSIn& SIn)
 			Notify->OnStatus("TWebPgFetchPersist.Load. Unrecognized exception while loading a url.");
 		}
 	}
+	Notify->OnStatusFmt("TWebPgFetchPersist.Load. Loaded %d pending outgoing web requests from disk", Count);
 }
 
 void TWebPgFetchPersist::Save(TSOut& SOut) const
 {
-	if (ConnFIdToEventH.Len() > 0)
-		Notify->OnStatusFmt("TWebPgFetchPersist.Save. Saving %d pending web requests to disk...", ConnFIdToEventH.Len());
 	// serialize requests in the queue
 	for (int KeyId = ConnFIdToEventH.FFirstKeyId(); ConnFIdToEventH.FNextKeyId(KeyId);) {
 		const int FId = ConnFIdToEventH.GetKey(KeyId);
@@ -578,8 +577,7 @@ void TWebPgFetchPersist::Save(TSOut& SOut) const
 		Item->Val.Val2->Save(SOut);;
 		Item = Item->Next();
 	}
-	if (ConnFIdToEventH.Len() > 0)
-		Notify->OnStatusFmt("TWebPgFetchPersist.Save. Saved %d requests to the disk.", ConnFIdToEventH.Len());
+	TNotify::StdNotify->OnStatusFmt("TWebPgFetchPersist.Save. Saved %d pending outgoing web requests to the disk.", WaitFIdUrlPrL.Len() + ConnFIdToEventH.Len());
 }
 
 void TWebPgFetchPersist::ReportError(const TStr& MsgStr) 

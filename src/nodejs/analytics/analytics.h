@@ -107,7 +107,7 @@ private:
 * // classification targets for four examples
 * var targets = new la.Vector([-1, -1, 1, 1]);
 * // set up the classification model
-* var SVC = new analytics.SVC({ verbose: true });
+* var SVC = new analytics.SVC({ verbose: false });
 * // train classifier
 * SVC.fit(featureMatrix, targets);
 * // set up a fake test vector
@@ -177,26 +177,27 @@ public:
 	* // import the analytics and la modules
 	* var analytics = require('qminer').analytics;
 	* var la = require('qminer').la;
-	* var qmfs = require('qminer').fs;
+	* var fs = require('qminer').fs;
 	* // create a new SVC object
 	* var SVC = new analytics.SVC();
-	* // create the matrix containing the input features and the input vector for each matrix.
+	* // create the matrix containing the input features and the input vector for each matrix column.
 	* var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);	
+	* var vec = new la.Vector([1, 0, -1, -2]);
 	* // fit the model
 	* SVC.fit(matrix, vec);
-	* var fs = require('qminer').fs;
 	* // create output stream
-	* var fout = fs.openWrite('model.bin');
+	* var fout = fs.openWrite('svc_example.bin');
 	* // save SVC object (model and parameters) to output stream and close it
 	* SVC.save(fout);
 	* fout.close();
 	* // create input stream
-	* var fin = fs.openRead('tesi.bin');
+	* var fin = fs.openRead('svc_example.bin');
 	* // create a SVC object that loads the model and parameters from input stream
 	* var SVC2 = new analytics.SVC(fin);	
 	*/
 	//# exports.SVC.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
-    /**
+    
+	/**
     * Sends vector through the model and returns the distance to the decision boundery.
     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
     * @returns {number | module:la.Vector} Distance:
@@ -298,7 +299,7 @@ public:
 * // Regression targets for four examples
 * var targets = new la.Vector([1.1, -2, 3, 4.2]);
 * // Set up the regression model
-* var SVR = new analytics.SVR({ verbose: true });
+* var SVR = new analytics.SVR({ verbose: false });
 * // Train regression
 * SVR.fit(featureMatrix, targets);
 * // Set up a fake test vector
@@ -350,6 +351,25 @@ public:
 	* Saves model to output file stream.
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} Output stream.
+	* @example
+	* // import the modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* var fs = require('qminer').fs;
+	* // create a new SVR object
+	* var SVR = new analytics.SVR({ c: 10 });
+	* // create a matrix and vector for the model
+	* var matrix = new la.Matrix([[1, -1], [1, 1]]);
+	* var vector = new la.Vector([1, 1]);
+	* // create the model by fitting the values
+	* SVR.fit(matrix, vector);
+	* // save the model in a binary file
+	* var fout = fs.openWrite('svr_example.bin');
+	* SVR.save(fout);
+	* fout.close();
+	* // construct a SVR model by loading from the binary file
+	* var fin = fs.openRead('svr_example.bin');
+	* var SVR2 = new analytics.SVR()
 	*/
 	//# exports.SVR.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 
@@ -590,6 +610,25 @@ public:
      *
      * @param {module:fs.FOut} fout - Output stream.
 	 * @returns {module:fs.FOut} THe output stream fout.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * var fs = require('qminer').fs;
+	 * // create a new Ridge Regression object
+	 * var regmod = new analytics.RidgeReg();
+	 * // create the test matrix and vector
+	 * var X = new la.Matrix([[1, 2], [1, -1]]);
+	 * var y = new la.Vector([3, 3]);
+	 * // fit the model with X and y
+	 * regmod.fit(X, y);
+	 * // create an output stream object and save the model
+	 * var fout = fs.openWrite('regmod_example.bin');
+	 * regmod.save(fout);
+	 * fout.close();
+	 * // create a new Ridge Regression model by loading the model
+	 * var fin = fs.openRead('regmod_example.bin');
+	 * var regmod2 = new analytics.RidgeReg(fin);
      */
     //# exports.RidgeReg.prototype.save = function(fout) { Object.create(require('qminer').fs.FOut.prototype); };
     JsDeclareFunction(save);
@@ -754,6 +793,25 @@ public:
      *
      * @param {module:fs.FOut} fout - Output stream.
 	 * @returns {module:fs.FOut} The output stream fout.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * var fs = require('qminer').fs;
+	 * // create the Sigmoid model
+	 * var s = new analytics.Sigmoid();
+	 * // create the predicted values and the binary labels
+	 * var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+	 * var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+	 * // fit the model
+	 * s.fit(X, y);
+	 * // create an output stream object and save the model
+	 * var fout = fs.openWrite('sigmoid_example.bin');
+	 * s.save(fout);
+	 * fout.close();
+	 * // create a new Sigmoid model by loading the model
+	 * var fin = fs.openRead('sigmoid_example.bin');
+	 * var s2 = new analytics.Sigmoid(fin);
      */
     //# exports.Sigmoid.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); };
     JsDeclareFunction(save);
@@ -773,7 +831,7 @@ public:
  * Nearest Neighbour Anomaly Detection 
  * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
  * @class
- * @param {module:analytics~detectorParam} [detectorParam] - Constructor parameters.
+ * @param {(module:analytics~detectorParam|module:fs.FIn)} [detectorParam] - Constructor parameters.
  * @example
  * // import modules
  * var analytics = require('qminer').analytics;
@@ -848,6 +906,24 @@ public:
      * Save model to provided output stream.
      * @param {module:fs.FOut} fout - The output stream.
      * @returns {module:fs.FOut} Provided output stream fout.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * var fs = require('qminer').fs;
+	 * // create a new NearestNeighborAD object
+	 * var neighbor = new analytics.NearestNeighborAD();
+	 * // create a new sparse matrix
+	 * var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+	 * // fit the model with the matrix
+	 * neighbor.fit(matrix);
+	 * // create an output stream object and save the model
+	 * var fout = fs.openWrite('neighbor_example.bin');
+	 * neighbor.save(fout);
+	 * fout.close();
+	 * // create a new Nearest Neighbor Anomaly model by loading the model
+	 * var fin = fs.openRead('neighbor_example.bin');
+	 * var neighbor2 = new analytics.NearestNeighborAD(fin);
      */
     //# exports.NearestNeighborAD.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
@@ -870,8 +946,9 @@ public:
     JsDeclareFunction(getModel);
 
 	/**
-	* Adds a new point (or points) to the known points and recomputes the threshold.
-	* @param {(module:la.SparseVector | module:la.SparseMatrix)} X - Test example (vector input) or column examples (matrix input).
+	* Adds a new point to the known points and recomputes the threshold.
+	* @param {module:la.SparseVector} X - Test example (vector input)
+	* @param {number} recId - Integer record ID, used in NearestNeighborAD.explain
 	* @returns {module:analytics.NearestNeighborAD} Self. The model is updated.
 	* @example
 	* // import modules
@@ -894,6 +971,7 @@ public:
 	/**
 	* Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
 	* @param {module:la.SparseMatrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+	* @param {module:la.IntVector} [idVec] - An integer vector of IDs
 	* the model.
 	* @returns {module:analytics.NearestNeighborAD} Self. The model is set by the matrix A.
 	* @example
@@ -907,7 +985,7 @@ public:
 	* // fit the model with the matrix
 	* neighbor.fit(matrix);
 	*/
-    //# exports.NearestNeighborAD.prototype.fit = function(A) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
+    //# exports.NearestNeighborAD.prototype.fit = function(A, idVec) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
     JsDeclareFunction(fit);
 
     /**
@@ -953,6 +1031,36 @@ public:
 	*/
     //# exports.NearestNeighborAD.prototype.predict = function(x) { return 0.0; }
     JsDeclareFunction(predict);
+
+	/**
+	* @typedef {Object} NearestNeighborADExplain
+	* A Json object used for interpreting the predictions of {@link module:analytics.NearestNeighborAD}.
+	* @param {number} nearestID - The ID of the nearest neighbor
+	* @param {Array<number>} featureIDs - the IDs of the features that contributed to the distance score
+	* @param {Array<number>} featureContributions - fractions of the contributions of each feature to the total distance (the scores sum to 1.0). The elements correspond to features in the array `featureIDs`
+	*/
+
+	/**
+	* Returns a JSON object that encodes the ID of the nearest neighbor and the features that contributed to the distance
+	* @param {module:la.SparseVector} x - Test vector.
+	* @returns {module:analytics~NearestNeighborADExplain} The explanation object
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD({rate:0.05, windowSize:3});
+	* // create a new sparse matrix
+	* var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+	* // fit the model with the matrix and provide a vector record IDs
+	* neighbor.fit(matrix, new la.IntVector([3541,1112,4244]));
+	* // create a new sparse vector
+	* var vector = new la.SparseVector([[0, 4], [1, 0]]);
+	* // check if the vector is an anomaly
+	* var explanation = neighbor.explain(vector); // returns an explanation
+	*/
+	//# exports.NearestNeighborAD.prototype.explain = function(x) { return {}; }
+	JsDeclareFunction(explain);
 };
 
 ///////////////////////////////
@@ -961,10 +1069,6 @@ public:
 
 ///////////////////////////////
 // QMiner-JavaScript-Recursive-Linear-Regression
-//!
-//! ### Recursive Linear Regression model
-//!
-//! Holds online regression model.
 
 /**
 * @typedef {Object} recLinearRegParam
@@ -978,7 +1082,7 @@ public:
 * Recursive Linear Regression
 * @classdesc Holds the Recursive Linear Regression model.
 * @class
-* @param {module:analytics~recLinearRegParam} param - The constructor parameter json object.
+* @param {(module:analytics~recLinearRegParam|module:fs.FIn)} param - The constructor parameter json object.
 * @example
 * // import analytics module
 * var analytics = require('qminer').analytics;
@@ -995,18 +1099,9 @@ public:
 	static void Init(v8::Handle<v8::Object> exports);
 	static const TStr GetClassId() { return "RecLinReg"; }
 private:
-	//!
-	//! **Constructor:**
-	//!
-	//!- `recLinRegModel = new analytics.RecLinReg(fin)` -- constructs a recursive linear regression model by loading it from input stream `fin`
-	//!- `recLinRegModel = new analytics.RecLinReg(recLinRegParameters)` -- constructs a recursive linear regression using a JSON parameter object `recLinRegParameters, whose properties are `recLinRegParameters.dim` (dimensionality of feature space, e.g.
-	//!     `ftrSpace.dim`), `recLinRegParameters.forgetFact` (forgetting factor, default is 1.0) and `recLinRegParameters.regFact` 
-	//!     (regularization parameter to avoid over-fitting, default is 1.0).)
+
 	static TNodeJsRecLinReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
-	//!
-	//! **Functions and properties:**
-	//!
-    //!- `recLinRegModel = recLinRegModel.fit(vec, num)` -- updates the model using full vector `vec` and target number `num`as training data. Returns self.
+	
 	/**
 	* Creates a partial fit of the input.
 	* @param {module:la.Vector} vec - The input vector.
@@ -1046,8 +1141,6 @@ private:
 	//# exports.RecLinReg.prototype.fit = function (mat, vec) { return Object.create(require('qminer').analytics.RecLinReg.prototype); }
 	JsDeclareFunction(fit);
 
-    //!- `num = recLinRegModel.predict(vec)` -- sends vector `vec` through the
-    //!     model and returns the prediction as a real number `num`
 	/**
 	* Puts the vector through the model and returns the prediction as a real number.
 	* @param {module:la.Vector} vec - The vector needed to be predicted.
@@ -1086,8 +1179,6 @@ private:
 	//# exports.RecLinReg.prototype.setParams = function (param) { return Object.create(require('qminer').analytics.RecLinReg.prototype); }
 	JsDeclareFunction(setParams);
 
-	//!- `params = svmModel.getParams()` -- returns the parameters of this model as
-	//!- a Javascript object
 	/**
 	* Returns the parameters.
 	* @returns {module:analytics~recLinearRegParam} The parameters of the model.
@@ -1102,25 +1193,41 @@ private:
 	//# exports.RecLinReg.prototype.getParams = function () { return { dim: 0, regFact: 1.0, forgetFact: 1.0 }}
 	JsDeclareFunction(getParams);
 
-    //!- `vec = recLinRegModel.weights` -- weights of the linear model as a full vector `vec`
 	/**
 	* Gives the weights of the model.
 	*/
 	//# exports.RecLinReg.prototype.weights = Object.create(require('qminer').la.Vector);
 	JsDeclareProperty(weights);
 
-    //!- `num = recLinRegModel.dim` -- dimensionality of the feature space on which this model works
 	/**
 	* Gets the dimensionality of the model.
 	*/
 	//# exports.RecLinReg.prototype.dim = 0;
 	JsDeclareProperty(dim);
 
-	//!- `fout = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
 	/**
 	* Save model to provided output stream.
 	* @param {module:fs.FOut} fout - The output stream.
 	* @returns {module:fs.FOut} Provided output stream fout.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* var fs = require('qminer').fs;
+	* // create the Recursive Linear Regression model
+	* var linreg = new analytics.RecLinReg({ dim: 2.0, recFact: 1e-10 });
+	* // create a new dense matrix and target vector
+	* var mat = new la.Matrix([[1, 2], [1, -1]]);
+	* var vec = new la.Vector([3, 3]);
+	* // fit the model with the matrix
+	* linreg.fit(mat, vec);
+	* // create an output stream object and save the model
+	* var fout = fs.openWrite('linreg_example.bin');
+	* linreg.save(fout);
+	* fout.close();
+	* // create a new Nearest Neighbor Anomaly model by loading the model
+	* var fin = fs.openRead('linreg_example.bin');
+	* var linreg2 = new analytics.RecLinReg(fin);
 	*/
 	//# exports.RecLinReg.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 	JsDeclareFunction(save);
@@ -1128,6 +1235,9 @@ private:
 private:
 	PJsonVal GetParams() const;
 };
+
+/////////////////////////////////////////////
+// Logistic Regression
 
 /**
 * @typedef {Object} logisticRegParam
@@ -1140,7 +1250,7 @@ private:
  * Logistic regression model. Uses Newtons method to compute the weights.
  * <b>Before use: include BLAS library.</b>
  * @constructor
- * @param {(module:analytics~logisticRegParam|FIn)} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @param {(module:analytics~logisticRegParam|module:fs.FIn)} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
  * @example
  * // import analytics module
  * var analytics = require('qminer').analytics;
@@ -1198,6 +1308,19 @@ public:
 	 * @param {module:la.Vector} y - the response variable.
 	 * @param {number} [eps] - the epsilon used for convergence.
 	 * @returns {module:analytics.LogReg} Self.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the logistic regression model
+	 * var logreg = new analytics.LogReg();
+	 * // create the input matrix and vector for fitting the model
+	 * var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	 * var vec = new la.Vector([1, 0, -1, -2]);
+	 * // if openblas is used, fit the model
+	 * if (require('qminer').flags.blas) {
+	 *     logreg.fit(mat, vec);
+	 * }
 	 */
 	//# exports.LogReg.prototype.fit = function (X, y, eps) { return Object.create(require('qminer').analytics.LogReg.prototype); }
 	JsDeclareFunction(fit);
@@ -1206,6 +1329,24 @@ public:
 	 * Returns the expected response for the provided feature vector.
 	 * @param {module:la.Vector} x - the feature vector.
 	 * @returns {number} the expected response.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the logistic regression model
+	 * var logreg = new analytics.LogReg();
+	 * // create the input matrix and vector for fitting the model
+	 * var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	 * var vec = new la.Vector([1, 0, -1, -2]);
+	 * // if openblas is used
+	 * if (require('qminer').flags.blas) {
+	 *     // fit the model
+	 *     logreg.fit(mat, vec);
+	 *     // create the vector for the prediction
+	 *     var test = new la.Vector([1, 1]);
+	 *     // get the prediction
+	 *     var prediction = logreg.predict(test);
+	 * };
 	 */
 	//# exports.LogReg.prototype.predict = function (x) { return 0.0; } 
 	JsDeclareFunction(predict);
@@ -1213,13 +1354,35 @@ public:
 	/**
 	 * Gives the weights of the model.
 	 */
-	//# exports.LogReg.prototype.weights = Object.create(require('qminer').analytics.LogReg.prototype);
+	//# exports.LogReg.prototype.weights = Object.create(require('qminer').la.vector.prototype);
 	JsDeclareProperty(weights);
 
 	/**
 	 * Saves the model into the output stream.
 	 * @param {module:fs.FOut} fout - the output stream.
-	 * @returns {module:fs.FOut} The output stream fout. 
+	 * @returns {module:fs.FOut} The output stream fout.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * var fs = require('qminer').fs;
+	 * // create the logistic regression model
+	 * var logreg = new analytics.LogReg();
+	 * // create the input matrix and vector for fitting the model
+	 * var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	 * var vec = new la.Vector([1, 0, -1, -2]);
+	 * // if openblas is used, fit the model
+	 * if (require('qminer').flags.blas) {
+	 *     logreg.fit(mat, vec);
+	 * };
+	 * // create an output stream object and save the model
+	 * var fout = fs.openWrite('logreg_example.bin');
+	 * logreg.save(fout);
+	 * fout.close();
+	 * // create input stream
+	 * var fin = fs.openRead('logreg_example.bin');
+	 * // create a Logistic Regression object that loads the model and parameters from input stream
+	 * var logreg2 = new analytics.LogReg(fin);
 	 */
 	//# exports.LogReg.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 	JsDeclareFunction(save);
@@ -1240,7 +1403,7 @@ public:
  * <b>Before use: include BLAS library.</b>
  *
  * @constructor
- * @property {module:analytics~hazardModelParam|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @property {module:analytics~hazardModelParam|module:fs.FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
  * @example
  * // import analytics module
  * var analytics = require('qminer').analytics;
@@ -1300,6 +1463,19 @@ public:
 	 * @param {module:la.Vector} y - The response variable.
 	 * @param {number} [eps] - The epsilon used for convergence.
 	 * @returns {module:analytics.PropHazards} Self.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the Proportional Hazards model
+	 * var hazards = new analytics.PropHazards();
+	 * // create the input matrix and vector for fitting the model
+	 * var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	 * var vec = new la.Vector([1, 0, -1, -2]);
+	 * // if openblas used, fit the model
+	 * if (require('qminer').flags.blas) {
+	 *     hazards.fit(mat, vec);
+	 * };
 	 */
 	//# exports.PropHazards.prototype.fit = function(X, y, eps) { return Object.create(require('qminer').analytics.PropHazards.prototype); }
 	JsDeclareFunction(fit);
@@ -1309,6 +1485,24 @@ public:
 	 *
 	 * @param {module:la.Vector} x - The feature vector.
 	 * @returns {number} The expected response.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the Proportional Hazards model
+	 * var hazards = new analytics.PropHazards();
+	 * // create the input matrix and vector for fitting the model
+	 * var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	 * var vec = new la.Vector([1, 0, -1, -2]);
+	 * // if openblas used
+	 * if (require('qminer').flags.blas) {
+	 *     // fit the model
+	 *     hazards.fit(mat, vec);
+	 *     // create a vector for the prediction
+	 *     var test = new la.Vector([1, 0, -1, -2]);
+	 *     // predict the value
+	 *     var prediction = hazards.predict(test);
+	 * };
 	 */
 	//# exports.PropHazards.prototype.predict = function(x) { return 0.0; }
 	JsDeclareFunction(predict);
@@ -1323,6 +1517,28 @@ public:
 	 * Saves the model into the output stream.
 	 * @param {module:fs.FOut} sout - The output stream.
 	 * @returns {module:fs.FOut} The output stream sout.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * var fs = require('qminer').fs;
+	 * // create the Proportional Hazards model
+	 * var hazards = new analytics.PropHazards();
+	 * // create the input matrix and vector for fitting the model
+	 * var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	 * var vec = new la.Vector([1, 0, -1, -2]);
+	 * // if openblas used, fit the model
+	 * if (require('qminer').flags.blas) {
+	 *     hazards.fit(mat, vec);
+	 * };
+	 * // create an output stream and save the model
+	 * var fout = fs.openWrite('hazards_example.bin');
+	 * hazards.save(fout);
+	 * fout.close();
+	 * // create input stream
+	 * var fin = fs.openRead('hazards_example.bin');
+	 * // create a Proportional Hazards object that loads the model and parameters from input stream
+	 * var hazards2 = new analytics.PropHazards(fin);	
 	 */
 	//# exports.PropHazards.prototype.save = function(sout) { return Object.create(require('qminer').fs.FOut.prototype); }
 	JsDeclareFunction(save);
@@ -1590,10 +1806,23 @@ private:
 
 ///////////////////////////////
 // QMiner-JavaScript-Neural-Networks
-//!
-//! ### Neural Network model
-//!
-//! Holds online/offline neural network model. This object is result of `analytics.newNNet`.
+
+/**
+* @typedef {Object} nnetParams
+* @property {module:la.IntVector} [layout] - The integer vector with the corresponding values of the number of neutrons. Default is the integer vector [1, 2 ,1].
+* @property {number} [learnRate = 0.1] - The learning rate.
+* @property {number} [momentum = 0.5] - The momentum of optimization.
+* @property {string} [tFuncHidden = 'tanHyper'] - The function.
+* @property {string} [tFuncOut = 'tanHyper'] - The function.
+*/
+
+/**
+* Neural Network Model
+* @classdesc Holds online/offline neural network model.
+* @class
+* @param {module:analytics~nnetParams|module:fs.FIn} [params] - The parameters for the construction of the model.
+*/
+//# exports.NNet = function (params) { return Object.create(require('qminer').analytics.NNet.prototype); }
 class TNodeJsNNet : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
@@ -1607,20 +1836,111 @@ public:
 	static void Init(v8::Handle<v8::Object> exports);
 	static const TStr GetClassId() { return "NNet"; }
 
-    //!- `NNet = NNet.fit(vec,vec)` -- fits the NNet model in online mode
-    //!- `NNet = NNet.fit(mat,mat)` -- fits the NNet model in batch mode
+	/**
+	* Get the parameters of the model.
+	* @returns {module:analytics~nnetParams} The constructor parameters.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a Neural Networks model
+	* var nnet = new analytics.NNet();
+	* // get the parameters
+	* var params = nnet.getParams();
+	*/
+	//# exports.NNet.prototype.getParams = function () { return { layout: Object.create(require('qminer').la.IntVector.prototype), learnRate: 0.0, momentum: 0.0, tFuncHidden: "", TFuncOut: "" }; }
+	JsDeclareFunction(getParams);
+
+	/**
+	* Sets the parameters of the model.
+	* @params {module:analytics~nnetParams} params - The given parameters.
+	* @returns {module:analytics.NNet} Self.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a Neural Networks model
+	* var nnet = new analytics.NNet();
+	* // set the parameters
+	* nnet.setParams({ learnRate: 1, momentum: 10, layout: [1, 4, 3] });
+	*/
+	//# exports.NNet.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.NNet.prototype); }
+	JsDeclareFunction(setParams);
+
+	/**
+	* Fits the model.
+	* @param {(module:la.Vector|module:la.Matrix)} input1 - The input vector or matrix.
+	* @param {(module:la.Vector|module:la.Matrix)} input2 - The input vector or matrix.
+	* <br> If input1 and input2 are both {@link module:la.Vector}, then the fitting is in online mode.
+	* <br> If input1 and input2 are both {@link module:la.Matrix}, then the fitting is in batch mode.
+	* @returns {module:analytics.NNet} Self.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a Neural Networks model
+	* var nnet = new analytics.NNet({ layout: [2, 3, 4] });
+	* // create the matrices for the fitting of the model
+	* var matIn = new la.Matrix([[1, 0], [0, 1]]);
+	* var matOut = new la.Matrix([[1, 1], [1, 2], [-1, 8], [-3, -3]]);
+	* // fit the model
+	* nnet.fit(matIn, matOut);
+	*/
+	//# exports.NNet.prototype.fit = function (input1, input2) { return Object.create(require('qminer').analytics.NNet.prototype); }
 	JsDeclareFunction(fit);
-    //!- `vec = NNet.predict(vec)` -- sends vector `vec` through the
-    //!     model and returns the prediction as a vector `vec`
+	
+	/**
+	* Sends the vector through the model and get the prediction.
+	* @param {module:la.Vector} vec - The sent vector.
+	* @returns {number} The prediction of the vector vec.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a Neural Networks model
+	* var nnet = new analytics.NNet({ layout: [2, 3, 4] });
+	* // create the matrices for the fitting of the model
+	* var matIn = new la.Matrix([[1, 0], [0, 1]]);
+	* var matOut = new la.Matrix([[1, 1], [1, 2], [-1, 8], [-3, -3]]);
+	* // fit the model
+	* nnet.fit(matIn, matOut);
+	* // create the vector for the prediction
+	* var test = new la.Vector([1, 1]);
+	* // predict the value
+	* var prediction = nnet.predict(test);
+	*/
+	//# exports.NNet.prototype.predict = function (vec) { return 0.0; }
 	JsDeclareFunction(predict);
-	//!- `NNet.setLearnRate(num)` -- Sets the new learn rate for the network
-	JsDeclareFunction(setLearnRate);
-	//!- `NNet.save(fout)` -- Saves the model into the specified output stream.
+
+	/**
+	* Saves the model.
+	* @param {module:fs.FOut} fout - The output stream.
+	* @returns {module:fs.FOut} The output stream fout.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* var fs = require('qminer').fs;
+	* // create a Neural Networks model
+	* var nnet = new analytics.NNet({ layout: [2, 3, 4] });
+	* // create the matrices for the fitting of the model
+	* var matIn = new la.Matrix([[1, 0], [0, 1]]);
+	* var matOut = new la.Matrix([[1, 1], [1, 2], [-1, 8], [-3, -3]]);
+	* // fit the model
+	* nnet.fit(matIn, matOut);
+	* // create an output stream object and save the model
+	* var fout = fs.openWrite('nnet_example.bin');
+	* nnet.save(fout);
+	* fout.close();
+	* // load the Neural Network model from the binary
+	* var fin = fs.openRead('nnet_example.bin');
+	* var nnet2 = new analytics.NNet(fin);
+	*/
+	//# exports.NNet.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); } 
 	JsDeclareFunction(save);
  private:
 	TSignalProc::TTFunc ExtractFuncFromString(const TStr& FuncString);
 };
 
+/////////////////////////////////////////////
 // QMiner-JavaScript-Tokenizer
 //!
 //! ### Tokenizer

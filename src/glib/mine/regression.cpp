@@ -192,6 +192,7 @@ void TPropHazards::Save(TSOut& SOut) const {
 }
 
 void TPropHazards::Fit(const TFltVV& _X, const TFltV& t, const double& Eps) {
+	EAssertR(_X.GetCols() == t.Len(), "PropHazards.fit: Number of columns must be equal to length of vector!");
 	const int NInst = _X.GetCols();
 	const int Dim = _X.GetRows() + 1;
 
@@ -290,7 +291,7 @@ void TPropHazards::Fit(const TFltVV& _X, const TFltV& t, const double& Eps) {
 		}
 	}
 
-	printf("WgtV: %s\n", TStrUtil::GetStr(WgtV, ", ", "%.15f").CStr());
+	//printf("WgtV: %s\n", TStrUtil::GetStr(WgtV, ", ", "%.15f").CStr());
 
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged. Diff: %.5f", Diff);
 }
