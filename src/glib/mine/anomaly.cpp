@@ -151,7 +151,7 @@ PJsonVal TNearestNeighbor::Explain(const TIntFltKdV& Vec) const {
 	int NearestColN = -1;
 	TIntFltKdV DiffV;
 	for (int ColN = 0; ColN < Mat.Len(); ColN++) {		
-		const double Dist = DecisionFunction(Vec);
+		const double Dist = TLinAlg::Norm2(Vec) - 2 * TLinAlg::DotProduct(Vec, Mat[ColN]) + TLinAlg::Norm2(Mat[ColN]);
 		if (Dist < NearDist) { NearDist = Dist; NearestColN = ColN; }
 	}
 	// set diff vector accordingly
