@@ -175,13 +175,13 @@ describe("Kmeans test", function () {
         it("should return the predictions of the matrix", function () {
             var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
-            KMeans.fit(X, [1,2,3]);
+            KMeans.fit(X, [341,422,122]);
             var matrix = new la.Matrix([[-1, 2, 1], [0, 1, -3]]);
             var explanation = KMeans.explain(matrix);
             debugger
-            assert.equal(explanation.medoidIDs[0], 2);
-            assert.equal(explanation.medoidIDs[1], 1);
-            assert.equal(explanation.medoidIDs[2], 3);
+            assert.equal(explanation[0].medoidID, 422);
+            assert.equal(explanation[1].medoidID, 341);
+            assert.equal(explanation[2].medoidID, 122);
         });
         it("should throw an exception if the matrix columns do not match record ids", function () {
             var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });

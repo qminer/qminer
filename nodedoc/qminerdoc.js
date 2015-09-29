@@ -1026,13 +1026,6 @@
 	*/
  exports.Record.prototype.$clone = function () { return Object.create(require('qminer').Record.prototype); };
 /**
-     * Provide json version of record, useful when calling JSON.stringify
-     *
-     * @param {Boolean} - ???
-     * @param {Boolean} - ???
-     * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
-     */
-/**
 	* Adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`
 	* @param {string} joinName - join name
 	* @param {(module:qm.Record | number)} joinRecord - joined record or its ID
@@ -1051,8 +1044,8 @@
 /**
 	* Creates a JSON version of the record.
 	*
-    * @param {Boolean} - ???
-    * @param {Boolean} - ???
+    * @param {Boolean} [joinRecords=false] - include joined records (only IDs)
+    * @param {Boolean} [joinRecordFields=false] - expand joined record fields
     * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
 	* @returns {Object} The JSON version of the record.
 	*

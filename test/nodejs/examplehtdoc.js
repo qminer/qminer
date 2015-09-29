@@ -1,5 +1,5 @@
 describe('example tests for the htdoc.js file', function () {
-describe("String-string hashmap", function () {
+describe("String-string hashmap ", function () {
 it('should make test number 1', function () {
  this.timeout(10000); 
 
@@ -25,7 +25,7 @@ it('should make test number 1', function () {
 
 });
 });
-describe("String-Integer hashmap", function () {
+describe("String-Integer hashmap ", function () {
 it('should make test number 2', function () {
  this.timeout(10000); 
 
@@ -51,7 +51,7 @@ it('should make test number 2', function () {
 
 });
 });
-describe("String-Float hashmap", function () {
+describe("String-Float hashmap ", function () {
 it('should make test number 3', function () {
  this.timeout(10000); 
 
@@ -77,7 +77,7 @@ it('should make test number 3', function () {
 
 });
 });
-describe("Int-string hashmap", function () {
+describe("Int-string hashmap ", function () {
 it('should make test number 4', function () {
  this.timeout(10000); 
 
@@ -103,7 +103,7 @@ it('should make test number 4', function () {
 
 });
 });
-describe("Integer-Integer hashmap", function () {
+describe("Integer-Integer hashmap ", function () {
 it('should make test number 5', function () {
  this.timeout(10000); 
 
@@ -129,7 +129,7 @@ it('should make test number 5', function () {
 
 });
 });
-describe("Integer-Float hashmap", function () {
+describe("Integer-Float hashmap ", function () {
 it('should make test number 6', function () {
  this.timeout(10000); 
 

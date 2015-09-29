@@ -753,8 +753,10 @@ void TNodeJsNNAnomalies::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getModel", _getModel);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "decisionFunction", _decisionFunction);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);	
+	NODE_SET_PROTOTYPE_METHOD(tpl, "explain", _explain);
+	
 
 	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
 }
@@ -859,11 +861,13 @@ void TNodeJsNNAnomalies::partialFit(const v8::FunctionCallbackInfo<v8::Value>& A
 	// unwrap
 	TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
 	// check arguments
-	EAssertR(Args.Length() == 1, "NearestNeighborAD.partialFit: expects at 1 argument!");
+	EAssertR(Args.Length() <= 2, "NearestNeighborAD.partialFit: expects at 1 or 2 arguments!");
 	// get the arguments
 	TNodeJsSpVec* SpVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpVec>(Args, 0);
-	// fit model
-	JsModel->Model.PartialFit(SpVec->Vec);
+	
+	int RecId = TNodeJsUtil::GetArgInt32(Args, 1, -1);
+	JsModel->Model.PartialFit(SpVec->Vec, RecId);
+	
 	// return self
 	Args.GetReturnValue().Set(Args.Holder());
 }
@@ -874,13 +878,26 @@ void TNodeJsNNAnomalies::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// unwrap
 	TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
 	// check arguments
-	EAssertR(Args.Length() == 1, "NearestNeighborAD.fit: expects 1 argument!");
+	EAssertR(Args.Length() == 1
+		|| ((Args.Length() == 2) && (TNodeJsUtil::IsArgWrapObj<TNodeJsIntV>(Args, 1))),
+		"NearestNeighborAD.fit: expects 1 or 2 arguments, the second optional argument must be of type IntVector from la submodule!");
+	
 	// get the arguments
 	TNodeJsSpMat* SpMat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0);
 	// fit model
-	for (const TIntFltKdV& Vec : SpMat->Mat) {
-		JsModel->Model.PartialFit(Vec);
+
+	if (Args.Length() == 2) {
+		TNodeJsIntV* IntVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsIntV>(Args, 1);
+		EAssertR(SpMat->Mat.Len() == IntVec->Vec.Len(), "NearestNeighborAD.fit: number of columns of args[0] must match the number of elements of args[1]");
+		for (int elN = 0; elN < SpMat->Mat.Len(); elN++) {
+			JsModel->Model.PartialFit(SpMat->Mat[elN], IntVec->Vec[elN]);
+		}
+	} else {
+		for (int elN = 0; elN < SpMat->Mat.Len(); elN++) {
+			JsModel->Model.PartialFit(SpMat->Mat[elN]);
+		}
 	}
+
 	// return self
 	Args.GetReturnValue().Set(Args.Holder());
 }
@@ -911,6 +928,20 @@ void TNodeJsNNAnomalies::predict(const v8::FunctionCallbackInfo<v8::Value>& Args
 	const int Result = JsModel->Model.Predict(SpVec->Vec);
 	// return result
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+}
+
+void TNodeJsNNAnomalies::explain(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+	// check arguments
+	EAssertR(Args.Length() == 1, "NearestNeighborAD.predict: expects 1 argument!");
+	// get the arguments
+	TNodeJsSpVec* SpVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpVec>(Args, 0);
+	PJsonVal Explanation = JsModel->Model.Explain(SpVec->Vec);
+	// return result
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Explanation));
 }
 
 ////////////////////////////////////////////////
