@@ -389,7 +389,7 @@
  exports.Base.prototype.getStreamAggrNames = function () { return [""]; }
 /**
 * Store (factory pattern result) 
-* @namespace
+* @class
 * @example <caption>Creating a store with createStore function</caption>
 * // import qm module
 * var qm = require('qminer');
@@ -998,7 +998,7 @@
  exports.Store.prototype.base = Object.create(require('qminer').Base.prototype);
 /**
 * Record (factory pattern). The records are used for storing data in {@link module:qm.Store}.
-* @namespace
+* @class
 */
  exports.Record = function () {}; 
 /**
@@ -1095,7 +1095,7 @@
  exports.Record.prototype.store = Object.create('qminer').Store.prototype;
 /**
 * Record Set (factory pattern). The Record Set is a set of records.
-* @namespace
+* @class
 */
  exports.RecordSet = function () {}
 /**
@@ -1881,7 +1881,7 @@
  exports.RecordSet.prototype.weighted = true;
 /**
 * Store Iterator (factory pattern)
-* @namespace
+* @class
 * @example
 * // import qm module
 * qm = require('qminer');

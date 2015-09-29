@@ -522,7 +522,7 @@ private:
 
 /**
 * Store (factory pattern result) 
-* @namespace
+* @class
 * @example <caption>Creating a store with createStore function</caption>
 * // import qm module
 * var qm = require('qminer');
@@ -1226,7 +1226,7 @@ private:
 
 /**
 * Record (factory pattern). The records are used for storing data in {@link module:qm.Store}.
-* @namespace
+* @class
 */
 //# exports.Record = function () {}; 
 class TNodeJsRec: public node::ObjectWrap {
@@ -1370,7 +1370,7 @@ private:
 
 /**
 * Record Set (factory pattern). The Record Set is a set of records.
-* @namespace
+* @class
 */
 //# exports.RecordSet = function () {}
 class TNodeJsRecSet: public node::ObjectWrap {
@@ -2237,7 +2237,7 @@ private:
 // NodeJs QMiner Store Iterator
 /**
 * Store Iterator (factory pattern)
-* @namespace
+* @class
 * @example
 * // import qm module
 * qm = require('qminer');
