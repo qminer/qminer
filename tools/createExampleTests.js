@@ -12,9 +12,7 @@ if (hfile != 0) {
 var JSFiles = [];
 for (var i = 0; i < fileNames.length; i++) {
     if (fileNames[i].indexOf(".js") != -1 && fileNames[i].indexOf(".html") == -1) {
-        if (fileNames[i].indexOf("datasets") == -1) {
-            JSFiles.push(fileNames[i]);
-        }
+        JSFiles.push(fileNames[i]);
     }
 }
 
@@ -36,7 +34,7 @@ for (var i = 0; i < JSFiles.length; i++) {
     fout.write("describe('example tests for the " + JSFiles[i] + " file', function () {\n");
 
     var hstr = fs.readFileSync(hfile + JSFiles[i], 'ascii');
-    // get the rows between * @example and */ - getting the example code
+    // get the rows between * @example and @example or */ - getting the example code
     var regex = /(\/\*\*([\s\S]*?)\*\/)/g;
     var count = 0;
     while ((match = regex.exec(hstr)) != null) {
@@ -66,15 +64,30 @@ for (var i = 0; i < JSFiles.length; i++) {
         // if it has the example
         var exampleIdx = str.indexOf('@example');
         if (exampleIdx != -1) {
-            count += 1;
             // write the description
             fout.write('describe("' + describe + '", function () {\n');
             // create the it block/test
-            str = str.slice(exampleIdx);
-            str = str.replace(/(\*)/g, '');
-            str = str.slice(8, str.length - 2);
-            fout.write(constructIt(str, count));
-            // end the description block
+			str = str.slice(exampleIdx);
+			examples = str.split('@example');
+			for (var ExpN = 0; ExpN < examples.length; ExpN++) {
+				var example = examples[ExpN];
+				//console.log(example);
+				if (example == '') { continue; }
+				if (example.indexOf('</caption>') != -1) { 
+					example = example.slice(example.indexOf('</caption>') + 10);
+				}
+				count += 1;
+				example = example.replace(/(\*)/g, '');
+				if (example.indexOf('*/') != -1) { example = example.slice(0, example.length - 2);}
+				else { example = example.slice(0, example.length - 1); }
+				fout.write(constructIt(example, count));
+			}
+            // str = str.slice(exampleIdx);
+            // str = str.replace(/(\*)/g, '');
+            // str = str.slice(8, str.length - 2);
+            // fout.write(constructIt(str, count));
+            
+			// end the description block
             fout.write("});\n");
         }
     }

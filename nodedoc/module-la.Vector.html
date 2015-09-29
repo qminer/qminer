@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
   <title>Class: Vector</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -168,9 +168,7 @@
             <p>Vector - array of doubles</p>
             <section>
               <h3>
-
             Example
-
         </h3>
               <div>
                 <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
@@ -269,9 +267,7 @@ var vec2 = new la.Vector([1, 2, 3]);</code></pre>
               <p>Returns the cosine between the two vectors.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
@@ -370,9 +366,7 @@ var num = x.cosine(y); // returns 0</code></pre>
               <p>Loads the vector from input stream (binary deserialization).</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
@@ -425,9 +419,7 @@ vec.load(fin);</code></pre>
               <p>Loads the vector from input stream (ascii deserialization).</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
@@ -570,9 +562,7 @@ vec.loadascii(fin);</code></pre>
               <p>Creates a dense matrix A by multiplying two vectors x and y: A = x y^T.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
@@ -659,9 +649,7 @@ var A = x.outer(y); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]</cod
               <p>Prints the vector on-screen.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
@@ -805,9 +793,7 @@ vec.print();</code></pre>
               <p>Saves the vector as output stream (binary serialization).</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
@@ -860,9 +846,7 @@ vec.save(fout).close();</code></pre>
               <p>Saves the vector as output stream (ascii serialization).</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
@@ -923,9 +907,7 @@ vec.saveascii(fout).close();</code></pre>
               <p>Sorts the vector (in place operation).</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
@@ -980,9 +962,7 @@ vec.sort(function(arg1, arg2) { return Math.abs(arg1) - Math.abs(arg2); }); // s
               <p>Sorts the vector and returns the sorted vector as well as the permutation</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
@@ -1049,9 +1029,7 @@ result.perm; // permutation index vector</code></pre>
               <p>Changes the vector by removing and adding elements.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
@@ -1174,9 +1152,7 @@ vec.splice(1, 2, 4, 5)// returns vector [1, 4, 5]</code></pre>
               <p>Copies the vector into a JavaScript array of numbers.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
@@ -1205,9 +1181,7 @@ var arr = vec.toArray(); // returns an array [1, 2, 3]</code></pre>
               <p>Returns the vector as string.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
@@ -1227,9 +1201,7 @@ vec.toString(); // returns &#x27;1, 2, 3&#x27;</code></pre>
               <p>Deletes elements with sprecific index or more.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
@@ -1322,7 +1294,7 @@ vec.trunc(1); // returns vector [1]</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on September 29, 2015.
       </p>
     </div>
   </footer>

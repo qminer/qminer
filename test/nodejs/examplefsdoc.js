@@ -14,6 +14,7 @@ it('should make test number 1', function () {
  var fin = fs.openRead('file.txt');
  // read a line
  var str = fin.readLine();
+
 });
 });
 describe("Input file stream.", function () {
@@ -26,7 +27,7 @@ it('should make test number 2', function () {
 	 var fin = new fs.FIn('file.txt');
 	 // read a line
 	 var str = fin.readLine();
-
+	
 });
 });
 describe("Output file stream.", function () {
@@ -41,7 +42,7 @@ it('should make test number 3', function () {
 	 fout.writeLine('example text');
 	 // close
 	 fout.close();
-
+	
 });
 });
 

@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3">
+  <meta name="generator" content="JSDoc 3.3.2">
   <meta charset="utf-8">
   <title>Module: la</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -29,6 +29,14 @@
             <div class="symbol-description">
               <p>Linear algebra module.</p>
             </div>
+            <section>
+              <h2>
+            Example
+        </h2>
+              <div>
+                <pre class="prettyprint"><code>// import module, create a random matrix and a vector, multiply. find svd of the matrix</code></pre>
+              </div>
+            </section>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -198,9 +206,7 @@
               <p>Constructs a matrix by concatenating a doubly-nested array of matrices.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
@@ -323,9 +329,7 @@ var mat = la.cat([[A,B], [C,D]]);
               <p>Copies the vector into a JavaScript array of numbers.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
@@ -412,9 +416,7 @@ var arr = la.copyVecToArray(vec); // returns an array [1, 2, 3]</code></pre>
               <p>returns a JS array of indices <code>idxArray</code> that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
@@ -502,9 +504,7 @@ la.findMaxIdx(mat)
               <p>Returns a vector with all entries set to 1.0.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
@@ -552,9 +552,7 @@ var vec = la.ones(3);</code></pre>
               <p>computes and returns the pairwise squared euclidean distances between columns of <code>X1</code> and <code>X2</code> (<code>mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2</code>).</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
@@ -816,9 +814,7 @@ la.pdist2(X1, X2)
               <p>Generates an integer vector given range</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
@@ -1122,7 +1118,6 @@ var vec = la.rangeVec(1, 3);
                 </dd>
               </dl>
               <h3 id="~matrixArg"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">matrixArg</span><small class="property-type">
-
             &nbsp;Object</small></h3>
               <p>Matrix constructor parameter object.</p>
               <section>
@@ -1186,7 +1181,6 @@ var vec = la.rangeVec(1, 3);
               <dl class="dl-compact">
               </dl>
               <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
-
             &nbsp;Object</small></h3>
               <p>Sort with permutation output result</p>
               <section>
@@ -1235,7 +1229,6 @@ var vec = la.rangeVec(1, 3);
               <dl class="dl-compact">
               </dl>
               <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
-
             &nbsp;Object</small></h3>
               <p>Sort with permutation output result</p>
               <section>
@@ -1284,7 +1277,6 @@ var vec = la.rangeVec(1, 3);
               <dl class="dl-compact">
               </dl>
               <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
-
             &nbsp;Object</small></h3>
               <p>Sort with permutation output result</p>
               <section>
@@ -1333,7 +1325,6 @@ var vec = la.rangeVec(1, 3);
               <dl class="dl-compact">
               </dl>
               <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
-
             &nbsp;Object</small></h3>
               <p>Sort with permutation output result</p>
               <section>
@@ -1493,7 +1484,7 @@ var vec = la.rangeVec(1, 3);
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on September 29, 2015.
       </p>
     </div>
   </footer>

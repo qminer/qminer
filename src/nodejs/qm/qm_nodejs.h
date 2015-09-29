@@ -523,7 +523,7 @@ private:
 /**
 * Store (factory pattern result) 
 * @namespace
-* @example
+* @example <caption>Creating a store with createStore function</caption>
 * // import qm module
 * var qm = require('qminer');
 * // factory based construction using base.createStore
@@ -564,6 +564,9 @@ private:
 *    ]
 * }]);
 * base.close();
+* @example <caption>Creating store with schema in base constructor</caption>
+* // import qm module
+* var qm = require('qminer');
 * // using the base constructor
 * var base = new qm.Base({
 *    mode: "createClean",

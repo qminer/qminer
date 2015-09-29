@@ -22,7 +22,7 @@ it('should make test number 1', function () {
 	 var h2 = new ht.StrStrMap(); // new empty table
 	 var fin = fs.openRead('map.dat'); // open read stream
 	 h2.load(fin); // load
-
+	
 });
 });
 describe("String-Integer hashmap ", function () {
@@ -48,7 +48,7 @@ it('should make test number 2', function () {
 	 var h2 = new ht.StrIntMap(); // new empty table
 	 var fin = fs.openRead('map.dat'); // open read stream
 	 h2.load(fin); // load
-
+	
 });
 });
 describe("String-Float hashmap ", function () {
@@ -74,7 +74,7 @@ it('should make test number 3', function () {
 	 var h2 = new ht.StrFltMap(); // new empty table
 	 var fin = fs.openRead('map.dat'); // open read stream
 	 h2.load(fin); // load
-
+	
 });
 });
 describe("Int-string hashmap ", function () {
@@ -100,7 +100,7 @@ it('should make test number 4', function () {
 	 var h2 = new ht.IntStrMap(); // new empty table
 	 var fin = fs.openRead('map.dat'); // open read stream
 	 h2.load(fin); // load
-
+	
 });
 });
 describe("Integer-Integer hashmap ", function () {
@@ -126,7 +126,7 @@ it('should make test number 5', function () {
 	 var h2 = new ht.IntIntMap(); // new empty table
 	 var fin = fs.openRead('map.dat'); // open read stream
 	 h2.load(fin); // load
-
+	
 });
 });
 describe("Integer-Float hashmap ", function () {
@@ -152,7 +152,7 @@ it('should make test number 6', function () {
 	 var h2 = new ht.IntFltMap(); // new empty table
 	 var fin = fs.openRead('map.dat'); // open read stream
 	 h2.load(fin); // load
-
+	
 });
 });
 

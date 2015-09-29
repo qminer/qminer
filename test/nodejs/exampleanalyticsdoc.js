@@ -4,7 +4,7 @@ it('should make test number 1', function () {
  this.timeout(10000); 
 
   // import module, load dataset, create model, evaluate model
-
+ 
 });
 });
 describe("SVC", function () {
@@ -28,6 +28,7 @@ it('should make test number 2', function () {
  var test = new la.Vector([1.1, -0.5]);
  // predict the target value
  var prediction = SVC.predict(test);
+
 });
 });
 describe("Returns the SVC parameters.", function () {
@@ -41,7 +42,7 @@ it('should make test number 3', function () {
 	 // get the parameters of the SVC model
 	 // returns { algorithm: 'SGD' c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true }
 	 var json = SVC.getParams(); 
-
+	
 });
 });
 describe("Sets the SVC parameters.", function () {
@@ -54,7 +55,7 @@ it('should make test number 4', function () {
 	 var SVC = new analytics.SVC();
 	 // change the parameters of the SVC with the json { j: 5, maxIterations: 12000, minDIff: 1e-10 }
 	 SVC.setParams({ j: 5, maxIterations: 12000, minDiff: 1e-10 }); // returns self
-
+	
 });
 });
 describe("Gets the vector of coefficients of the linear model.", function () {
@@ -73,7 +74,7 @@ it('should make test number 5', function () {
 	 SVC.fit(matrix, vec);
 	 // get the weights
 	 var weights = SVC.weights; // returns the coefficients of the normal vector of the hyperplane gained from the model: [1, 1]
-
+	
 });
 });
 describe("Saves model to output file stream.", function () {
@@ -100,7 +101,7 @@ it('should make test number 6', function () {
 	 var fin = fs.openRead('svc_example.bin');
 	 // create a SVC object that loads the model and parameters from input stream
 	 var SVC2 = new analytics.SVC(fin);	
-
+	
 });
 });
 describe("Sends vector through the model and returns the distance to the decision boundery.", function () {
@@ -121,7 +122,7 @@ it('should make test number 7', function () {
 	 var vec2 = new la.Vector([2, 3]);
 	 // use the decisionFunction to get the distance of vec2 from the model
 	 var distance = SVC.decisionFunction(vec2); // returns something close to 5
-
+	
 });
 });
 describe("Sends vector through the model and returns the prediction as a real number.", function () {
@@ -142,7 +143,7 @@ it('should make test number 8', function () {
 	 var vec2 = new la.Vector([3, 5]);
 	 // predict the vector
 	 var prediction = SVC.predict(vec2); // returns 1
-
+	
 });
 });
 describe("Fits a SVM classification model, given column examples in a matrix and vector of targets.", function () {
@@ -159,7 +160,7 @@ it('should make test number 9', function () {
 	 var vec = new la.Vector([1, 1, -1, -1]);
 	 // fit the model
 	 SVC.fit(matrix, vec); // creates a model, where the hyperplane has the normal semi-equal to [1, 1]
-
+	
 });
 });
 describe("SVR", function () {
@@ -183,6 +184,7 @@ it('should make test number 10', function () {
  var test = new la.Vector([1.1, -0.8]);
  // Predict the target value
  var prediction = SVR.predict(test);
+
 });
 });
 describe("Returns the SVR parameters.", function () {
@@ -195,7 +197,7 @@ it('should make test number 11', function () {
 	 var SVR = new analytics.SVR({ c: 10, eps: 1e-10, maxTime: 12000, verbose: true });
 	 // get the parameters of SVR
 	 var params = SVR.getParams();
-
+	
 });
 });
 describe("Sets the SVR parameters.", function () {
@@ -208,7 +210,7 @@ it('should make test number 12', function () {
 	 var SVR = new analytics.SVR();
 	 // set the parameters of the SVR object
 	 SVR.setParams({ c: 10, maxTime: 12000 });
-
+	
 });
 });
 describe("Saves model to output file stream.", function () {
@@ -233,7 +235,7 @@ it('should make test number 13', function () {
 	 // construct a SVR model by loading from the binary file
 	 var fin = fs.openRead('svr_example.bin');
 	 var SVR2 = new analytics.SVR()
-
+	
 });
 });
 describe("Sends vector through the model and returns the scalar product as a real number.", function () {
@@ -253,7 +255,7 @@ it('should make test number 14', function () {
 	  // get the distance between the model and the given vector
 	  var vec2 = new la.Vector([-5, 1]);
 	  var distance = SVR.decisionFunction(vec2);
-    
+     
 });
 });
 describe("Sends vector through the model and returns the prediction as a real number.", function () {
@@ -273,7 +275,7 @@ it('should make test number 15', function () {
 	 // predict the value of the given vector
 	 var vec2 = new la.Vector([-5, 1]);
 	 var prediction = SVR.predict(vec2);
-
+	
 });
 });
 describe("fits an SVM regression model, given column examples in a matrix and vector of targets", function () {
@@ -290,7 +292,7 @@ it('should make test number 16', function () {
 	 var vector = new la.Vector([1, 1]);
 	 // create the model by fitting the values
 	 SVR.fit(matrix, vector);
-
+	
 });
 });
 describe("Ridge regression. Minimizes: ||A' x - b||^2 + ||gamma x||^2", function () {
@@ -319,7 +321,7 @@ it('should make test number 17', function () {
   regmod.weights.print();
   // cosine between the true and the estimated model should be close to 1 if the fit succeeded
   console.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w));
-
+ 
 });
 });
 describe("Gets the parameters.", function () {
@@ -333,7 +335,7 @@ it('should make test number 18', function () {
 	 // get the parameters
 	 // returns a json object { gamma: 5 }
 	 var param = regmod.getParams();
-
+	
 });
 });
 describe("Set the parameters.", function () {
@@ -346,7 +348,7 @@ it('should make test number 19', function () {
 	 var regmod = new analytics.RidgeReg({ gamma: 5 });
 	 // set the parameters of the object
 	 var param = regmod.setParams({ gamma: 10 });
-
+	
 });
 });
 describe("Fits a column matrix of feature vectors X onto the response variable y.", function () {
@@ -364,7 +366,7 @@ it('should make test number 20', function () {
 	  // fit the model with X and y
 	  // the weights of the model are 2, 1
 	  regmod.fit(X, y);
-    
+     
 });
 });
 describe("Returns the expected response for the provided feature vector.", function () {
@@ -386,7 +388,7 @@ it('should make test number 21', function () {
 	  // create the prediction
 	  // returns the value 10
 	  var prediction = regmod.decisionFunction(vec);
-    
+     
 });
 });
 describe("Returns the expected response for the provided feature vector.", function () {
@@ -408,7 +410,7 @@ it('should make test number 22', function () {
 	  // create the prediction
 	  // returns the value 10
 	  var prediction = regmod.predict(vec);
-    
+     
 });
 });
 describe("Saves the model into the output stream.", function () {
@@ -433,7 +435,7 @@ it('should make test number 23', function () {
 	  // create a new Ridge Regression model by loading the model
 	  var fin = fs.openRead('regmod_example.bin');
 	  var regmod2 = new analytics.RidgeReg(fin);
-    
+     
 });
 });
 describe("Sigmoid function (y = 1/[1 + exp[", function () {
@@ -454,7 +456,7 @@ it('should make test number 24', function () {
   // get predictions
   var pred1 = sigmoid.predict(1.2);
   var pred2 = sigmoid.predict(-1.2);
-
+ 
 });
 });
 describe("Get the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.", function () {
@@ -468,7 +470,7 @@ it('should make test number 25', function () {
 	 // get the parameters
 	 // returns an empty Json object
 	 var param = s.getParams();
-
+	
 });
 });
 describe("Sets the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.", function () {
@@ -482,7 +484,7 @@ it('should make test number 26', function () {
 	 // set the parameters 
 	 // doesn't change the model
 	 s.setParams({});
-
+	
 });
 });
 describe("Gets the model.", function () {
@@ -496,7 +498,7 @@ it('should make test number 27', function () {
 	 // get the model parameters
 	 // returns a Json object { A: 0, B: 0 }
 	 var model = s.getModel();
-
+	
 });
 });
 describe("Fits a column matrix of feature vectors X onto the response variable y.", function () {
@@ -515,7 +517,7 @@ it('should make test number 28', function () {
 	  // changes the internal A and B values of the model 
 	  // (these values can be obtained with the getModel method)
 	  s.fit(X, y);
-    
+     
 });
 });
 describe("Returns the expected response for the provided feature vector.", function () {
@@ -535,7 +537,7 @@ it('should make test number 29', function () {
 	  // predict the probability of the value 0 on this model
 	  // returns 0.5
 	  var prediction = s.decisionFunction(0.5);
-    
+     
 });
 });
 describe("Returns the expected response for the provided feature vector.", function () {
@@ -555,7 +557,7 @@ it('should make test number 30', function () {
 	  // predict the probability of the value 0 on this model
 	  // returns 0.5
 	  var prediction = s.predict(0.5);
-    
+     
 });
 });
 describe("Saves the model into the output stream.", function () {
@@ -580,7 +582,7 @@ it('should make test number 31', function () {
 	  // create a new Sigmoid model by loading the model
 	  var fin = fs.openRead('sigmoid_example.bin');
 	  var s2 = new analytics.Sigmoid(fin);
-    
+     
 });
 });
 describe("Nearest Neighbour Anomaly Detection ", function () {
@@ -600,7 +602,7 @@ it('should make test number 32', function () {
   var vector = new la.SparseVector([[0, 4], [1, 0]]);
   // predict if the vector is an anomaly or not
   var prediction = neighbor.predict(vector);
-
+ 
 });
 });
 describe("Sets parameters.", function () {
@@ -613,7 +615,7 @@ it('should make test number 33', function () {
 	 var neighbor = new analytics.NearestNeighborAD();
 	 // set it's parameters to rate: 0.1
 	 neighbor.setParams({ rate: 0.1 });
-
+	
 });
 });
 describe("Returns parameters.", function () {
@@ -627,7 +629,7 @@ it('should make test number 34', function () {
 	 // get the parameters of the object
 	 // returns a json object { rate: 0.05 }
 	 var params = neighbor.getParams();
-
+	
 });
 });
 describe("Save model to provided output stream.", function () {
@@ -651,7 +653,7 @@ it('should make test number 35', function () {
 	  // create a new Nearest Neighbor Anomaly model by loading the model
 	  var fin = fs.openRead('neighbor_example.bin');
 	  var neighbor2 = new analytics.NearestNeighborAD(fin);
-    
+     
 });
 });
 describe("Returns the model.", function () {
@@ -665,7 +667,7 @@ it('should make test number 36', function () {
 	 // get the model of the object
 	 // returns a json object { rate: 0.1, window: 0 }
 	 var model = neighbor.getModel();
-
+	
 });
 });
 describe("Adds a new point (or points) to the known points and recomputes the threshold.", function () {
@@ -685,7 +687,7 @@ it('should make test number 37', function () {
 	 var vector = new la.SparseVector([[0, 2], [1, 5]]);
 	 // update the model with the vector
 	 neighbor.partialFit(vector);
-
+	
 });
 });
 describe("Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.", function () {
@@ -701,7 +703,7 @@ it('should make test number 38', function () {
 	 var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 	 // fit the model with the matrix
 	 neighbor.fit(matrix);
-
+	
 });
 });
 describe("Compares the point to the known points and returns distance to the nearest one.", function () {
@@ -721,7 +723,7 @@ it('should make test number 39', function () {
 	  var vector = new la.SparseVector([[0, 4], [1, 0]]);
 	  // get the distance of the vector from the model
 	  var prediction = neighbor.decisionFunction(vector); // returns 1
-	
+	 
 });
 });
 describe("Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold).", function () {
@@ -741,7 +743,7 @@ it('should make test number 40', function () {
 	 var vector = new la.SparseVector([[0, 4], [1, 0]]);
 	 // check if the vector is an anomaly
 	 var prediction = neighbor.predict(vector); // returns 1
-
+	
 });
 });
 describe("Recursive Linear Regression", function () {
@@ -752,6 +754,7 @@ it('should make test number 41', function () {
  var analytics = require('qminer').analytics;
  // create the recursive linear regression model holder
  var linreg = new analytics.RecLinReg({ dim: 10, regFact: 1.0, forgetFact: 1.0 });
+
 });
 });
 describe("Creates a partial fit of the input.", function () {
@@ -767,7 +770,7 @@ it('should make test number 42', function () {
 	 var vec = new la.Vector([1, 2, 3]);
 	 // fit the model with the vector
 	 linreg.partialFit(vec, 6);
-
+	
 });
 });
 describe("Creates a fit of the input.", function () {
@@ -784,7 +787,7 @@ it('should make test number 43', function () {
 	 var vec = new la.Vector([3, 5, -1]);
 	 // fit the model with the matrix
 	 linreg.fit(mat, vec);
-
+	
 });
 });
 describe("Puts the vector through the model and returns the prediction as a real number.", function () {
@@ -805,7 +808,7 @@ it('should make test number 44', function () {
 	 var pred = new la.Vector([1, 1]);
 	 // predict the value of the vector
 	 var prediction = linreg.predict(pred); // returns something close to 3.0
-
+	
 });
 });
 describe("Sets the parameters of the model.", function () {
@@ -818,7 +821,7 @@ it('should make test number 45', function () {
 	 var linreg = new analytics.RecLinReg({ dim: 10 });
 	 // set the parameters of the model
 	 linreg.setParams({ dim: 3, recFact: 1e2, forgetFact: 0.5 });
-
+	
 });
 });
 describe("Returns the parameters.", function () {
@@ -831,7 +834,7 @@ it('should make test number 46', function () {
 	 var linreg = new analytics.RecLinReg({ dim: 10 });
 	 // get the parameters of the model
 	 var params = linreg.getParams(); // returns { dim: 10, recFact: 1.0, forgetFact: 1.0 }
-
+	
 });
 });
 describe("Save model to provided output stream.", function () {
@@ -856,7 +859,7 @@ it('should make test number 47', function () {
 	 // create a new Nearest Neighbor Anomaly model by loading the model
 	 var fin = fs.openRead('linreg_example.bin');
 	 var linreg2 = new analytics.RecLinReg(fin);
-
+	
 });
 });
 describe("Logistic regression model. Uses Newtons method to compute the weights.", function () {
@@ -867,7 +870,7 @@ it('should make test number 48', function () {
   var analytics = require('qminer').analytics;
   // create the Logistic Regression model
   var logreg = new analytics.LogReg({ lambda: 2 });
-
+ 
 });
 });
 describe("Gets the parameters.", function () {
@@ -880,7 +883,7 @@ it('should make test number 49', function () {
 	 var logreg = new analytics.LogReg({ lambda: 10 });
 	 // get the parameters of the model
 	 var param = logreg.getParams(); // returns { lambda: 10, intercept: false }
-
+	
 });
 });
 describe("Set the parameters.", function () {
@@ -893,7 +896,7 @@ it('should make test number 50', function () {
 	 var logreg = new analytics.LogReg({ lambda: 10 });
 	 // set the parameters of the model
 	 logreg.setParams({ lambda: 1 });
-
+	
 });
 });
 describe("Fits a column matrix of feature vectors X onto the response variable y.", function () {
@@ -912,7 +915,7 @@ it('should make test number 51', function () {
 	  if (require('qminer').flags.blas) {
 	      logreg.fit(mat, vec);
 	  }
-	
+	 
 });
 });
 describe("Returns the expected response for the provided feature vector.", function () {
@@ -936,7 +939,7 @@ it('should make test number 52', function () {
 	      // get the prediction
 	      var prediction = logreg.predict(test);
 	  };
-	
+	 
 });
 });
 describe("Saves the model into the output stream.", function () {
@@ -964,7 +967,7 @@ it('should make test number 53', function () {
 	  var fin = fs.openRead('logreg_example.bin');
 	  // create a Logistic Regression object that loads the model and parameters from input stream
 	  var logreg2 = new analytics.LogReg(fin);
-	
+	 
 });
 });
 describe("Proportional Hazards Model with a constant hazard function.", function () {
@@ -975,7 +978,7 @@ it('should make test number 54', function () {
   var analytics = require('qminer').analytics;
   // create a Proportional Hazard model
   var hazard = new analytics.PropHazards();
-
+ 
 });
 });
 describe("Gets the parameters of the model.", function () {
@@ -988,7 +991,7 @@ it('should make test number 55', function () {
 	 var hazard = new analytics.PropHazards({ lambda: 5 });
 	 // get the parameters of the model
 	 var param = hazard.getParams();
-
+	
 });
 });
 describe("Sets the parameters of the model.", function () {
@@ -1001,7 +1004,7 @@ it('should make test number 56', function () {
 	 var hazard = new analytics.PropHazards({ lambda: 5 });
 	 // set the parameters of the model
 	 hazard.setParams({ lambda: 10 });
-
+	
 });
 });
 describe("Fits a column matrix of feature vectors X onto the response variable y.", function () {
@@ -1020,7 +1023,7 @@ it('should make test number 57', function () {
 	  if (require('qminer').flags.blas) {
 	      hazards.fit(mat, vec);
 	  };
-	
+	 
 });
 });
 describe("Returns the expected response for the provided feature vector.", function () {
@@ -1044,7 +1047,7 @@ it('should make test number 58', function () {
 	      // predict the value
 	      var prediction = hazards.predict(test);
 	  };
-	
+	 
 });
 });
 describe("Saves the model into the output stream.", function () {
@@ -1072,7 +1075,7 @@ it('should make test number 59', function () {
 	  var fin = fs.openRead('hazards_example.bin');
 	  // create a Proportional Hazards object that loads the model and parameters from input stream
 	  var hazards2 = new analytics.PropHazards(fin);	
-	
+	 
 });
 });
 describe("Get the parameters of the model.", function () {
@@ -1085,7 +1088,7 @@ it('should make test number 60', function () {
 	 var nnet = new analytics.NNet();
 	 // get the parameters
 	 var params = nnet.getParams();
-
+	
 });
 });
 describe("Sets the parameters of the model.", function () {
@@ -1098,7 +1101,7 @@ it('should make test number 61', function () {
 	 var nnet = new analytics.NNet();
 	 // set the parameters
 	 nnet.setParams({ learnRate: 1, momentum: 10, layout: [1, 4, 3] });
-
+	
 });
 });
 describe("Fits the model.", function () {
@@ -1115,7 +1118,7 @@ it('should make test number 62', function () {
 	 var matOut = new la.Matrix([[1, 1], [1, 2], [-1, 8], [-3, -3]]);
 	 // fit the model
 	 nnet.fit(matIn, matOut);
-
+	
 });
 });
 describe("Sends the vector through the model and get the prediction.", function () {
@@ -1136,7 +1139,7 @@ it('should make test number 63', function () {
 	 var test = new la.Vector([1, 1]);
 	 // predict the value
 	 var prediction = nnet.predict(test);
-
+	
 });
 });
 describe("Saves the model.", function () {
@@ -1161,7 +1164,7 @@ it('should make test number 64', function () {
 	 // load the Neural Network model from the binary
 	 var fin = fs.openRead('nnet_example.bin');
 	 var nnet2 = new analytics.NNet(fin);
-
+	
 });
 });
 describe("Get the model.", function () {
@@ -1174,7 +1177,7 @@ it('should make test number 65', function () {
      var SVC = new analytics.SVC();
      // get the properties of the model
      var model = SVC.getModel(); // returns { weight: new require('qminer').la.Vector(); }
-
+	
 });
 });
 describe("Get the model.", function () {
@@ -1187,7 +1190,7 @@ it('should make test number 66', function () {
      var SVR = new analytics.SVR();
      // get the properties of the model
      var model = SVR.getModel(); // returns { weights: new require('qminer').la.Vector(); }
-
+	
 });
 });
 describe("Gets the model.", function () {
@@ -1200,7 +1203,7 @@ it('should make test number 67', function () {
      var regmod = new analytics.RidgeReg();
      // get the model
      var model = regmod.getModel(); // returns { weights: new require('qminer').la.Vector(); }
-   
+    
 });
 });
 describe("Gets Recursive Linear Regression model", function () {
@@ -1213,7 +1216,7 @@ it('should make test number 68', function () {
      var linreg = new analytics.RecLinReg({ dim: 10 });
      // get the model
      var model = linreg.getModel(); // returns { weights: new require('qminer').la.Vector(); }
-   
+    
 });
 });
 describe("@classdesc One vs. all model for multiclass prediction. Builds binary model", function () {
@@ -1224,7 +1227,7 @@ it('should make test number 69', function () {
      var analytics = require('qminer').analytics;
      // create a new OneVsAll object with the model analytics.SVC
      var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
-   
+    
 });
 });
 describe("Gets the parameters.", function () {
@@ -1239,7 +1242,7 @@ it('should make test number 70', function () {
          // returns the JSon object
          // { model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2, models: [] }
          var params = onevsall.getParams();
-       
+        
 });
 });
 describe("Sets the parameters.", function () {
@@ -1252,7 +1255,7 @@ it('should make test number 71', function () {
          var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
          // set the parameters
          var params = onevsall.setParams({ model: analytics.SVR, modelParam: { c: 12, maxTime: 10000}, cats: 3, verbose: true });
-       
+        
 });
 });
 describe("Apply all models to the given vector and returns a vector of scores, one for each category.", function () {
@@ -1273,7 +1276,7 @@ it('should make test number 72', function () {
           var test = new la.Vector([1, 2]);
           // give the vector to the decision function
           var prediction = onevsall.predict(test); // returns the vector of scores
-        
+         
 });
 });
 describe("Apply all models to the given vector and returns category with the highest score.", function () {
@@ -1294,7 +1297,7 @@ it('should make test number 73', function () {
           var test = new la.Vector([1, 2]);
           // get the prediction of the vector
           var prediction = onevsall.predict(test); // returns 0
-        
+         
 });
 });
 describe("Apply all models to the given vector and returns category with the highest score.", function () {
@@ -1311,7 +1314,7 @@ it('should make test number 74', function () {
           var vector = new la.Vector([0, 0, 1, 1]);
           // fit the model
           onevsall.fit(matrix, vector);
-        
+         
 });
 });
 describe("@classdesc KMeans clustering", function () {
@@ -1327,7 +1330,7 @@ it('should make test number 75', function () {
      var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
      // create the model
      KMeans.fit(X);
-   
+    
 });
 });
 describe("Returns the model", function () {
@@ -1345,7 +1348,7 @@ it('should make test number 76', function () {
          KMeans.fit(X);
          // get the model
          var model = KMeans.getModel();
-       
+        
 });
 });
 describe("Sets the parameters.", function () {
@@ -1358,7 +1361,7 @@ it('should make test number 77', function () {
          var KMeans = new analytics.KMeans();
          // change the parameters of the KMeans object
          KMeans.setParams({ iter: 1000, k: 5 });
-       
+        
 });
 });
 describe("Returns the parameters.", function () {
@@ -1371,7 +1374,7 @@ it('should make test number 78', function () {
          var KMeans = new analytics.KMeans({ iter: 1000, k: 5 });
          // get the parameters
          var json = KMeans.getParams();
-       
+        
 });
 });
 describe("Computes the centroids.", function () {
@@ -1386,7 +1389,7 @@ it('should make test number 79', function () {
          var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
          // create the model with the matrix X
          KMeans.fit(X);
-       
+        
 });
 });
 describe("Returns an vector of cluster id assignments.", function () {
@@ -1405,7 +1408,7 @@ it('should make test number 80', function () {
          var pred = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
          // predict the values
          var prediction = KMeans.predict(pred);
-       
+        
 });
 });
 describe("Returns the IDs of the nearest medoid for each example.", function () {
@@ -1426,7 +1429,7 @@ it('should make test number 81', function () {
          var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
          // predict/explain - return the closest medoids
          var explanation = KMeans.explain(test);
-       
+        
 });
 });
 describe("Transforms the points to vectors of squared distances to centroids.", function () {
@@ -1450,7 +1453,7 @@ it('should make test number 82', function () {
          //   1    20
          //  10     1
          KMeans.transform(matrix);
-       
+        
 });
 });
 
