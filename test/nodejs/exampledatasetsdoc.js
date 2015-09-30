@@ -1,6 +1,6 @@
 describe('example tests for the datasetsdoc.js file', function () {
-describe("Datasets module includes some standard toy datasets. In addition, this module also includes various", function () {
-it('should make test number 1', function () {
+describe("Datasets module includes some standard toy datasets. In addition, this module also includes various, number 1", function () {
+it("should make test number 1", function () {
  this.timeout(10000); 
 
      var qm = require('qminer');
@@ -14,11 +14,14 @@ it('should make test number 1', function () {
          if (err) throw err;
          console.log("\nSucessfully loaded database: " + store.name)
          console.log(JSON.stringify(store.first, null, 2));
-     	 base.close();
+         base.close();
      });
+     
     
 });
-it('should make test number 2', function () {
+});
+describe("Datasets module includes some standard toy datasets. In addition, this module also includes various, number 2", function () {
+it("should make test number 2", function () {
  this.timeout(10000); 
 
      var qm = require('qminer');
