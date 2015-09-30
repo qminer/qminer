@@ -826,22 +826,6 @@ describe("Creates a JSON version of the record.", function () {
 it('should make test number 30', function () {
  this.timeout(10000); 
 
-     //TODO
-	
-});
-});
-describe("Deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`.", function () {
-it('should make test number 30', function () {
- this.timeout(10000); 
-
-     //TODO
-	
-});
-});
-describe("Creates a JSON version of the record.", function () {
-it('should make test number 31', function () {
- this.timeout(10000); 
-
 	 // import qm module
 	 var qm = require('qminer');
 	 // create a new base containing one store

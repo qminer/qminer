@@ -28,8 +28,8 @@ module.exports = exports = function (pathPrefix) {
     *     if (err) throw err;
     *     console.log("\nSucessfully loaded database: " + store.name)
     *     console.log(JSON.stringify(store.first, null, 2));
+    *     base.close();
     * });
-    * base.close();
     * 
     * @example <caption>Synchronous loading</caption>
     * var qm = require('qminer');

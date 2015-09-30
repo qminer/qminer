@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta name="generator" content="JSDoc 3">
   <meta charset="utf-8">
   <title>Module: analytics</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -58,6 +58,9 @@
                     <dt><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD([detectorParam])</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.NNet.html">NNet([params])</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
@@ -74,13 +77,13 @@
                     <dt><a href="module-analytics.RecLinReg.html">RecLinReg(param)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.RidgeReg.html">RidgeReg([arg])</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.RidgeReg.html">RidgeReg([arg])</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-analytics.Sigmoid.html">Sigmoid([arg])</a></dt>
                     <dd>
                     </dd>
@@ -111,22 +114,6 @@
               </div>
             </div>
             <div class="summary-callout">
-              <h2 class="summary-callout-heading">Property</h2>
-              <div class="summary-content">
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.html#.preprocessing">preprocessing</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                </div>
-                <div class="summary-column">
-                </div>
-              </div>
-            </div>
-            <div class="summary-callout">
               <h2 class="summary-callout-heading">Abstract types</h2>
               <div class="summary-content">
                 <div class="summary-column">
@@ -137,16 +124,25 @@
                     <dt><a href="module-analytics.html#~hazardModelParam">hazardModelParam</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.html#~KMeansExplanation">KMeansExplanation</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~logisticRegParam">logisticRegParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~oneVsAllParam">oneVsAllParam</a></dt>
+                    <dt><a href="module-analytics.html#~NearestNeighborADExplain">NearestNeighborADExplain</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~nnetParams">nnetParams</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.html#~oneVsAllParam">oneVsAllParam</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~recLinearRegParam">recLinearRegParam</a></dt>
                     <dd>
                     </dd>
@@ -156,13 +152,13 @@
                     <dt><a href="module-analytics.html#~ridgeRegModel">ridgeRegModel</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~ridgeRegParam">ridgeRegParam</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~ridgeRegParam">ridgeRegParam</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~svcParam">svcParam</a></dt>
                     <dd>
                     </dd>
@@ -184,6 +180,7 @@
               <h3><a href="module-analytics.KMeans.html">KMeans</a></h3>
               <h3><a href="module-analytics.LogReg.html">LogReg</a></h3>
               <h3><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD</a></h3>
+              <h3><a href="module-analytics.NNet.html">NNet</a></h3>
               <h3><a href="module-analytics.OneVsAll.html">OneVsAll</a></h3>
               <h3><a href="module-analytics.PCA.html">PCA</a></h3>
               <h3><a href="module-analytics.PropHazards.html">PropHazards</a></h3>
@@ -196,42 +193,6 @@
             <h2>Namespace</h2>
             <section id='members-links'>
               <h3><a href="module-analytics-metrics.html">metrics</a></h3>
-            </section>
-            <h2>Property</h2>
-            <section>
-              <h3 id=".preprocessing"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">preprocessing</span></h3>
-              <p>Saves the model to the output stream.</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>fout</p>
-                      </td>
-                      <td>
-                        <p>FOut</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>the output stream</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
             </section>
             <h2>Abstract types</h2>
             <section>
@@ -320,6 +281,67 @@
               </section>
               <dl class="dl-compact">
               </dl>
+              <h3 id="~KMeansExplanation"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">KMeansExplanation</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>medoidID</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The ID of the nearest medoids</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>featureIDs</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The IDs of features, sorted by contribution</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>featureContributions</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Weights of each feature contribution (sum to 1.0)</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="~logisticRegParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">logisticRegParam</span><small class="property-type">
             &nbsp;Object</small></h3>
               <p>The Json constructor parameters for <a href="module-analytics.LogReg.html">module:analytics.LogReg</a>.</p>
@@ -363,6 +385,161 @@
                       <td>
                         <p>Indicates wether to automatically include the intercept.</p>
                         <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~NearestNeighborADExplain"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">NearestNeighborADExplain</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <p>A Json object used for interpreting the predictions of <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a>.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>nearestID</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The ID of the nearest neighbor</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>featureIDs</p>
+                      </td>
+                      <td>
+                        <p>Array of number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>the IDs of the features that contributed to the distance score</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>featureContributions</p>
+                      </td>
+                      <td>
+                        <p>Array of number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>fractions of the contributions of each feature to the total distance (the scores sum to 1.0). The elements correspond to features in the array <code>featureIDs</code></p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~nnetParams"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">nnetParams</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>layout</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The integer vector with the corresponding values of the number of neutrons. Default is the integer vector [1, 2 ,1].</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>learnRate</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The learning rate.</p>
+                        <p>Defaults to <code>0.1</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>momentum</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The momentum of optimization.</p>
+                        <p>Defaults to <code>0.5</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>tFuncHidden</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The function.</p>
+                        <p>Defaults to <code>'tanHyper'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>tFuncOut</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The function.</p>
+                        <p>Defaults to <code>'tanHyper'</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -907,7 +1084,7 @@
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on September 29, 2015.
+        
       </p>
     </div>
   </footer>
