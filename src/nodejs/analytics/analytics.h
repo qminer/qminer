@@ -1350,6 +1350,8 @@ public:
 	 */
 	JsDeclareFunction(histogram);
 
+	JsDeclareFunction(transitionHistogram);
+
 	/**
 	 * Returns the lower and upper bound of the feature.
 	 *
@@ -1439,6 +1441,13 @@ public:
 	JsDeclareFunction(setStateName);
 
 	/**
+	 * Sets the name of the state.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 */
+	JsDeclareFunction(clearStateName);
+
+	/**
 	 * Returns true if the state is a target on the specified height.
 	 *
 	 * @param {Number} stateId - Id of the state
@@ -1513,6 +1522,9 @@ public:
 private:
 	void SetParams(const PJsonVal& ParamVal);
 	void InitCallbacks();
+
+	static void WrapHistogram(const v8::FunctionCallbackInfo<v8::Value>& Args,
+			const TFltV& BinStartV, const TFltV& ProbV);
 };
 
 ///////////////////////////////

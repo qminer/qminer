@@ -782,6 +782,11 @@ public:
   TSizeTy SearchBack(const TVal& Val) const;
   /// Returns the starting position of vector \c ValV. ##TVec::SearchVForw
   TSizeTy SearchVForw(const TVec<TVal, TSizeTy>& ValV, const TSizeTy& BValN=0) const;
+  /// Returns the indexes of all the occurences of the element
+  void FindAll(const TVal& Val, TVec<TInt, TSizeTy>& IdxV) const;
+  /// Returns the indexes of all the elements that match the criteria
+  template <typename TFun>
+  void FindAllSatisfy(const TFun& Fun, TVec<TInt, TSizeTy>& IdxV) const;
 
   /// Checks whether element \c Val is a member of the vector.
   bool IsIn(const TVal& Val) const {return SearchForw(Val)!=-1;}
@@ -1652,6 +1657,33 @@ TSizeTy TVec<TVal, TSizeTy>::SearchVForw(const TVec<TVal, TSizeTy>& ValV, const 
 }
 
 template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::FindAll(const TVal& Val, TVec<TInt, TSizeTy>& IdxV) const {
+  const int Dim = Len();
+  TSizeTy Count = 0;
+  for (TSizeTy ValN = 0; ValN < Dim; ValN++) {
+    if (ValT[ValN] == Val) { Count++; }
+  }
+  IdxV.Gen(Count, 0);
+  for (TSizeTy ValN = 0; ValN < Dim; ValN++) {
+    if (ValT[ValN] == Val) { IdxV.Add(ValT[ValN]); }
+  }
+}
+
+template <class TVal, class TSizeTy>
+template <typename TFun>
+void TVec<TVal, TSizeTy>::FindAllSatisfy(const TFun& Fun, TVec<TInt, TSizeTy>& IdxV) const {
+  const int Dim = Len();
+  TSizeTy Count = 0;
+  for (TSizeTy ValN = 0; ValN < Dim; ValN++) {
+	if (Fun(ValT[ValN])) { Count++; }
+  }
+  IdxV.Gen(Count, 0);
+  for (TSizeTy ValN = 0; ValN < Dim; ValN++) {
+	if (Fun(ValT[ValN])) { IdxV.Add(ValT[ValN]); }
+  }
+}
+
+template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::GetMxValN() const {
   if (Vals==0){return -1;}
   TSizeTy MxValN=0;
@@ -2500,6 +2532,8 @@ public:
 
   void SetRow(const TSizeTy& RowN, const TVec<TVal, TSizeTy>& Vec);
   void SetCol(const TSizeTy& ColN, const TVec<TVal, TSizeTy>& Vec);
+
+  void AddCol(const TVec<TVal, TSizeTy>& Col) { AddYDim();	SetCol(GetCols()-1, Col); }
 
   void SwapX(const TSizeTy& X1, const TSizeTy& X2);
   void SwapY(const TSizeTy& Y1, const TSizeTy& Y2);

@@ -934,6 +934,29 @@ void TNumericalStuff::TriangularSolve(TFltVV& A, TFltV& x, TFltV& b,
 }
 
 #endif
+
+
+
+///////////////////////////////////////////////////////////////////////
+// LA Util
+void TLAUtil::SubMat(const TFltVV& Mat, const int& StartRow, const int& EndRow,
+			const int& StartCol, const int& EndCol, TFltVV& SubMat) {
+
+	EAssert(StartRow >= 0 && StartCol >= 0);
+	EAssert(EndRow < Mat.GetRows() && EndCol < Mat.GetCols());
+
+	if (SubMat.GetRows() != EndRow - StartRow || SubMat.GetCols() != EndCol - StartCol) {
+		SubMat.Gen(EndRow - StartRow, EndCol - StartCol);
+	}
+
+	for (int i = StartRow; i < EndRow; i++) {
+		for (int j = StartCol; j < EndCol; j++) {
+			SubMat.PutXY(i - StartRow, j - StartCol, Mat(i,j));
+		}
+	}
+}
+
+
 ///////////////////////////////////////////////////////////////////////
 // Sparse-SVD
 void TSparseSVD::MultiplyATA(const TMatrix& Matrix,
@@ -2326,6 +2349,11 @@ TFullMatrix::TFullMatrix(TFltVV& _Mat, const bool _IsWrapper):
 		IsWrapper(_IsWrapper),
 		Mat(_IsWrapper ? &_Mat : new TFltVV(_Mat)) {}
 
+TFullMatrix::TFullMatrix(const TFltVV& _Mat):
+		TMatrix(),
+		IsWrapper(false),
+		Mat(new TFltVV(_Mat)) {}
+
 TFullMatrix::TFullMatrix(const TVector& Vec):
 		TMatrix(),
 		IsWrapper(false),
@@ -2480,7 +2508,7 @@ TFullMatrix TFullMatrix::GetT() const {
 	return Res;
 }
 
-TFullMatrix& TFullMatrix::AddCol(const TVector& Col) {
+TFullMatrix& TFullMatrix::AddCol(const TFltV& Col) {
 	const int Rows = GetRows();
 	const int LastColIdx = GetCols();
 
@@ -2492,6 +2520,10 @@ TFullMatrix& TFullMatrix::AddCol(const TVector& Col) {
 	}
 
 	return *this;
+}
+
+TFullMatrix& TFullMatrix::AddCol(const TVector& Col) {
+	return AddCol(Col.Vec);
 }
 
 TFullMatrix& TFullMatrix::AddCols(const TFullMatrix& ColMat) {

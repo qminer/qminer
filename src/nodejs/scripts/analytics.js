@@ -1654,7 +1654,10 @@ module.exports = exports = function (pathPrefix) {
 	     * @param {opts} HierarchMarkovParam - parameters. TODO typedef and describe
 	     */
 	    exports.StreamStory = function (opts) {
-	    	// constructor
+	    	//===================================================
+	    	// CONSTRUCTOR
+	    	//===================================================
+	    	
 	    	if (opts == null) throw 'Missing parameters!';
 	    	if (opts.base == null) throw 'Missing parameter base!';
 	
@@ -1689,6 +1692,11 @@ module.exports = exports = function (pathPrefix) {
 	    		throw new Error('Missing parameters (base and config) or fname!');
 	    	}
 	
+	    	//===================================================
+	    	// FEATURE HELPER FUNCTIONS
+	    	//===================================================
+	    	
+	    	
 	    	function getFtrNames(ftrSpace) {
 	    		var names = [];
 	
@@ -1787,7 +1795,32 @@ module.exports = exports = function (pathPrefix) {
 	    			}
 	    		}
 	    	}
+	    	
+	    	//===================================================
+	    	// HISTOGRAM
+	    	//===================================================
+	    	
+	    	
+	    	function toServerHistogram(hist, ftrId) {
+	    		var nObsFtrs = getObsFtrCount();
 	    		
+    			if (ftrId < nObsFtrs) {
+	    			for (var i = 0; i < hist.binStartV.length; i++) {
+	    				hist.binStartV[i] = obsFtrSpace.invertFeature(ftrId, hist.binStartV[i]);
+	    			}
+    			} else {
+    				for (var i = 0; i < hist.binStartV.length; i++) {
+	    				hist.binStartV[i] = controlFtrSpace.invertFeature(ftrId - nObsFtrs, hist.binStartV[i]);
+	    			}
+    			}
+
+    			return hist;
+	    	}
+	    	
+	    	//===================================================
+	    	// PUBLIC METHODS
+	    	//===================================================
+	    	
 	    	// public methods
 	    	var that = {
 	    		getId: function () {
@@ -2017,22 +2050,14 @@ module.exports = exports = function (pathPrefix) {
 	    		/**
 	    		 * Returns a histogram for the desired feature in the desired state.
 	    		 */
-	    		histogram: function (stateId, ftrIdx) {
-	    			var hist = mc.histogram(stateId, ftrIdx);
-	
-	    			var nObsFtrs = getObsFtrCount();
-	
-	    			if (ftrIdx < nObsFtrs) {
-		    			for (var i = 0; i < hist.binStartV.length; i++) {
-		    				hist.binStartV[i] = obsFtrSpace.invertFeature(ftrIdx, hist.binStartV[i]);
-		    			}
-	    			} else {
-	    				for (var i = 0; i < hist.binStartV.length; i++) {
-		    				hist.binStartV[i] = controlFtrSpace.invertFeature(ftrIdx - nObsFtrs, hist.binStartV[i]);
-		    			}
-	    			}
-	
-	    			return hist;
+	    		histogram: function (stateId, ftrId) {
+	    			var hist = mc.histogram(stateId, ftrId);
+	    			return toServerHistogram(hist, ftrId);
+	    		},
+	    		
+	    		transitionHistogram: function (sourceId, targetId, ftrId) {
+	    			var hist = mc.transitionHistogram(sourceId, targetId, ftrId);
+	    			return toServerHistogram(hist, ftrId);
 	    		},
 	
 	    		/**

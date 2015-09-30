@@ -11,12 +11,10 @@ namespace TMc {
 using namespace TRegression;
 
 namespace {
-
 	typedef TIntV TStateIdV;
 	typedef TIntSet TStateIdSet;
 	typedef TVec<TIntV> TStateSetV;
 	typedef TVec<TFltV> TStateFtrVV;
-
 }
 
 //////////////////////////////////////////////////////
@@ -26,12 +24,14 @@ public:
 	// returns a matrix D of distances between elements of X to elements of Y
 	// X and Y are assumed to have column vectors
 	// D_ij is the distance between x_i and y_j
-	static TFullMatrix GetDist(const TFullMatrix& X, const TFullMatrix& Y)
-		{ return GetDist2(X, Y).Sqrt(); }
+	static void GetDist(const TFltVV& X, const TFltVV& Y, TFltVV& D);
 	// returns a matrix D of squared distances between elements of X to elements of Y
 	// X and Y are assumed to have column vectors
 	// D_ij is the distance between x_i and y_j
-	static TFullMatrix GetDist2(const TFullMatrix& X, const TFullMatrix& Y);
+	static void GetDist2(const TFltVV& X, const TFltVV& Y, TFltVV& D);
+
+	static void GetDist2(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
+			const TFltV& NormY2, TFltVV& D);
 };
 
 class TAvgLink {
@@ -55,13 +55,15 @@ public:
 template <class TLink>
 class TAggClust {
 public:
-	static void MakeDendro(const TFullMatrix& X, TIntIntFltTrV& MergeV, const PNotify& Notify) {
+	static void MakeDendro(const TFltVV& X, TIntIntFltTrV& MergeV, const PNotify& Notify) {
 		const int NInst = X.GetCols();
 
-		Notify->OnNotifyFmt(TNotifyType::ntInfo, "%s\n", TStrUtil::GetStr(X.GetMat(), ", ", "%.3f").CStr());
+		Notify->OnNotifyFmt(TNotifyType::ntInfo, "%s\n", TStrUtil::GetStr(X, ", ", "%.3f").CStr());
 
-		TFullMatrix ClustDistMat = TEuclDist::GetDist2(X,X);
+		TFltVV ClustDistVV;	TEuclDist::GetDist2(X,X, ClustDistVV);
 		TVector ItemCountV = TVector::Ones(NInst);
+
+		TFullMatrix ClustDistMat(ClustDistVV, true);	// TODO remove TFullMatrix
 
 		for (int k = 0; k < NInst-1; k++) {
 			// find active <i,j> with minimum distance
@@ -107,7 +109,7 @@ typedef TAggClust<TCompleteLink> TSlAggClust;
 class THistogram {
 private:
 	TInt Bins;
-	TInt TotalCount;
+	TInt64 TotalCount;
 	TIntV CountV;
 	TFltV BinStartV;
 
@@ -122,6 +124,10 @@ public:
 
 	const TFltV& GetBinStartV() const { return BinStartV; }
 	const TIntV& GetCountV() const { return CountV; }
+	const TInt64& GetTotalCount() const { return TotalCount; }
+
+
+	bool Empty() const { return TotalCount == 0; }
 };
 
 //////////////////////////////////////////////////
@@ -142,8 +148,8 @@ protected:
 
   	TRnd Rnd;
   	// holds centroids as column vectors
-  	TFullMatrix CentroidMat;
-  	TFullMatrix ControlCentroidMat;
+  	TFltVV CentroidMat;
+  	TFltVV ControlCentroidMat;
   	// holds pairs <n,sum> where n is the number of points assigned to the
   	// centroid at index i and sum is the sum of distances of all the points
   	// assigned to the centroid to the centroid
@@ -181,22 +187,21 @@ public:
 	// assign methods
 	// assign instances to centroids
 	int Assign(const TFltV& Inst) const;
-	int Assign(const TVector& Inst) const;
 
 	// assign instances to centroids, instances should be in the columns of the matrix
-	TVector Assign(const TFltVV& InstMat) const;
+//	TVector Assign(const TFltVV& FtrVV, TIntV& AssignV) const;
 	void Assign(const TFltVV& InstMat, TIntV& AssignV) const;
 
 	// distance methods
 	// returns a matrix D with the distance to all the centroids
 	// D_ij is the distance between centroid i and instance j
 	// points should be represented as columns of X
-	TFullMatrix GetDistMat(const TFltVV& X) const;
+	void GetDistMat(const TFltVV& X, TFltVV& DistMat) const;
 	// Returns a vector y containing the distance to all the
 	// centroids. The input vector x should be a column vector
 	void GetCentroidDistV(const TFltV& x, TFltV& DistV) const;
 	// returns the distance from the cluster centroid to the point
-	double GetDist(const int& CentroidId, const TVector& Pt) const;
+	double GetDist(const int& CentroidId, const TFltV& Pt) const;
 
 	// returns the coordinates of a "joined" centroid
 	TVector GetJoinedCentroid(const TIntV& CentroidIdV) const;
@@ -209,12 +214,14 @@ public:
 	// returns the number of points in the cluster
 	uint64 GetClustSize(const int& ClustId) const;
 
-	void GetHistogram(const int FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV) const;
+	void GetHistogram(const int& FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV) const;
+	void GetTransitionHistogram(const int& FtrId, const TIntV& SourceStateSet,
+			const TIntV& TargetStateSet, TFltV& BinStartV, TFltV& ProbV) const;
 
 	int GetStates() const { return CentroidMat.GetCols(); }
 	int GetDim() const { return CentroidMat.GetRows(); }
 	int GetControlDim() const { return ControlCentroidMat.GetRows(); }
-	const TFullMatrix& GetCentroidMat() const { return CentroidMat; }
+	const TFltVV& GetCentroidMat() const { return CentroidMat; }
 	void GetCentroidVV(TVec<TFltV>& CentroidVV) const;
 	void GetControlCentroidVV(TStateFtrVV& StateFtrVV) const;
 
@@ -231,17 +238,19 @@ public:
 
 protected:
 	// Applies the algorithm. Instances should be in the columns of X.
-	virtual void Apply(const TFullMatrix& X, const int& MaxIter=10000) = 0;
-	TVector Assign(const TFltVV& X, const TVector& NormX2, const TVector& NormC2,
-			const TVector& OnesN, const TVector& OnesK) const;
+	virtual void Apply(const TFltVV& X, const int& MaxIter=10000) = 0;
+	void Assign(const TFltVV& X, const TFltV& NormX2, const TFltV& NormC2,
+			TIntV& AssignV) const;
 	// returns a matrix of squared distances
-	TFullMatrix GetDistMat2(const TFltVV& X, const TVector& NormX2, const TVector& NormC2,
-			const TVector& OnesN, const TVector& OnesK) const;
+	void GetDistMat2(const TFltVV& X, const TFltV& NormX2, const TFltV& NormC2,
+			TFltVV& DistMat) const;
 
 	// used during initialization
-	TFullMatrix SelectInitCentroids(const TFullMatrix& X, const int& NCentroids, TVector& AssignIdxV);
-	void UpdateCentroids(const TFullMatrix& X, const TVector& AssignIdxV);
-	void InitStatistics(const TFullMatrix& X, const TVector& AssignV);
+	void SelectInitCentroids(const TFltVV& X, const int& NCentroids,
+			TFltVV& CentroidFtrVV, TIntV& AssignV);
+	// can still optimize
+	void UpdateCentroids(const TFltVV& X, const TIntV& AssignIdxV, const TFltV& OnesN);
+	void InitStatistics(const TFltVV& X, const TIntV& AssignV);
 
 	// returns the type of this clustering
 	virtual const TStr GetType() const = 0;
@@ -249,8 +258,8 @@ protected:
 private:
 	void InitControlCentroids(const TFltVV& X,  const TFltVV& ControlFtrVV);
 	// returns the coordinates of the centroid with the specified ID
-	TVector GetCentroid(const int& CentroidId) const;
-	TVector GetControlCentroid(const int& CentroidId) const;
+	void GetCentroid(const int& StateId, TFltV& FtrV) const;
+	void GetControlCentroid(const int& StateId, TFltV& FtrV) const;
 
 	double GetControlFtr(const int& StateId, const int& FtrId) const;
 	void ClearControlFtrVV(const int& Dim);
@@ -279,7 +288,7 @@ public:
 
 	// Applies the algorithm. Instances should be in the columns of X. AssignV contains indexes of the cluster
 	// the point is assigned to
-	void Apply(const TFullMatrix& X, const int& MaxIter);
+	void Apply(const TFltVV& X, const int& MaxIter);
 
 protected:
 	const TStr GetType() const { return "kmeans"; }
@@ -305,7 +314,7 @@ public:
 
 	// Applies the algorithm. Instances should be in the columns of X. AssignV contains indexes of the cluster
 	// the point is assigned to
-	void Apply(const TFullMatrix& X, const int& MaxIter);
+	void Apply(const TFltVV& X, const int& MaxIter);
 
 protected:
 	const TStr GetType() const { return "dpmeans"; }
@@ -900,7 +909,10 @@ public:
 
 	void GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const;
 
+	// histograms
 	void GetHistogram(const int& StateId, const int& FtrId, TFltV& BinStartV, TFltV& ProbV) const;
+	void GetTransitionHistogram(const int& SourceId, const int& TargetId, const int& FtrId,
+			TFltV& BinStartV, TFltV& ProbV) const;
 
 	void GetStateWgtV(const int& StateId, TFltV& WgtV) const;
 

@@ -10,13 +10,36 @@ using namespace TMc;
 
 //////////////////////////////////////////////////////
 // Distance measures
-TFullMatrix TEuclDist::GetDist2(const TFullMatrix& X, const TFullMatrix& Y) {
-	const TVector OnesX = TVector::Ones(X.GetCols(), true);
-	const TVector OnesY = TVector::Ones(Y.GetCols(), false);
-	const TVector NormX2 = X.ColNorm2V().Transpose();
-	const TVector NormY2 = Y.ColNorm2V();
+void TEuclDist::GetDist(const TFltVV& X, const TFltVV& Y, TFltVV& D) {
+	GetDist2(X, Y, D);
+	for (int RowN = 0; RowN < D.GetRows(); RowN++) {
+		for (int ColN = 0; ColN < D.GetCols(); ColN++) {
+			D.PutXY(RowN, ColN, TMath::Sqrt(D(RowN, ColN)));
+		}
+	}
+}
 
-	return (NormX2 * OnesY) - (X*2).MulT(Y) + (OnesX * NormY2);
+void TEuclDist::GetDist2(const TFltVV& X, const TFltVV& Y, TFltVV& D) {
+	TFltV NormX2;	TLinAlg::GetColNorm2V(X, NormX2);
+	TFltV NormY2;	TLinAlg::GetColNorm2V(Y, NormY2);
+
+	GetDist2(X, Y, NormX2, NormY2, D);
+}
+
+void TEuclDist::GetDist2(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
+		const TFltV& NormY2, TFltVV& D) {
+	//	return (NormX2 * OnesY) - (X*2).MulT(Y) + (OnesX * NormY2);
+	// 1) X'Y
+	TLinAlg::MultiplyT(X, Y, D);
+	// 2) (NormX2 * OnesY) - (X*2).MulT(Y) + (OnesX * NormY2)
+	const int Rows = D.GetRows();
+	const int Cols = D.GetCols();
+
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			D.PutXY(RowN, ColN, NormX2[RowN] - 2*D(RowN, ColN) + NormY2[ColN]);
+		}
+	}
 }
 
 //////////////////////////////////////////////////
@@ -29,7 +52,7 @@ THistogram::THistogram():
 
 THistogram::THistogram(const int& NBins, const double& MnVal, const double& MxVal):
 		Bins(NBins),
-		TotalCount(0),
+		TotalCount(),
 		CountV(NBins+2),
 		BinStartV(NBins+1) {
 
@@ -63,6 +86,7 @@ void THistogram::Update(const double& FtrVal) {
 		}
 	}
 	CountV[BinN]++;
+	TotalCount++;
 }
 
 
@@ -128,14 +152,12 @@ PStateIdentifier TStateIdentifier::Load(TSIn& SIn) {
 void TStateIdentifier::Init(TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV) {
 	EAssertR(Sample >= 0, "Cannot sample a negative number of instances!");
 
-	const TFullMatrix X(ObsFtrVV, true);	// TODO remove TFullMatrix
-
-	const int NInst = X.GetCols();
+	const int NInst = ObsFtrVV.GetCols();
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Clustering ...");
 
 	if (Sample == 1) {
-		Apply(X, MX_ITER);
+		Apply(ObsFtrVV, MX_ITER);
 	} else {
 		const int NSamples = Sample < 1 ? (int)ceil(NInst*Sample) : TMath::Mn(NInst, int(Sample));
 
@@ -149,11 +171,11 @@ void TStateIdentifier::Init(TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV) {
 		SampleV.Shuffle(Rnd);
 		SampleV.Trunc(NSamples);
 
-		Apply(X(TVector::Range(X.GetRows()), SampleV), MX_ITER);
+		Apply(TFullMatrix(ObsFtrVV, true)(TVector::Range(ObsFtrVV.GetRows()), SampleV).GetMat(), MX_ITER);	// TODO remove TFullMatrix
 	}
 
-	InitControlCentroids(X.GetMat(), ControlFtrVV);
-	InitHistograms(X.GetMat(), ControlFtrVV);
+	InitControlCentroids(ObsFtrVV, ControlFtrVV);
+	InitHistograms(ObsFtrVV, ControlFtrVV);
 	ClearControlFtrVV(ControlFtrVV.GetRows());
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Done.");
@@ -164,10 +186,7 @@ void TStateIdentifier::InitHistograms(const TFltVV& ObsFtrVV, const TFltVV& Cont
 
 	const int NClusts = GetStates();
 
-	const TIntV AssignV = Assign(ObsFtrVV).GetIntVec();
-
-//	InitFtrBinStartVV(ObsFtrVV, NHistBins, ObsFtrBinStartVV);
-//	InitFtrBinStartVV(ControlFtrVV, NHistBins, ContrFtrBinStartVV);
+	TIntV AssignV;	Assign(ObsFtrVV, AssignV);
 
 	InitHists(ObsFtrVV, ContrFtrVV);
 
@@ -181,32 +200,28 @@ int TStateIdentifier::Assign(const TFltV& x) const {
 	return TLAMisc::GetMinIdx(DistV);
 }
 
-int TStateIdentifier::Assign(const TVector& x) const {
-	return Assign(x.Vec);
+
+void TStateIdentifier::Assign(const TFltVV& FtrVV, TIntV& AssignV) const {
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Assigning %d instances ...", FtrVV.GetCols());
+
+	TFltV NormX2;	TLinAlg::GetColNorm2V(FtrVV, NormX2);
+	TFltV NormC2;	TLinAlg::GetColNorm2V(CentroidMat, NormC2);
+
+	Assign(FtrVV, NormX2, NormC2, AssignV);
 }
 
-TVector TStateIdentifier::Assign(const TFltVV& X) const {
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Assigning %d instances ...", X.GetCols());
+void TStateIdentifier::GetDistMat(const TFltVV& FtrVV, TFltVV& DistMat) const {
+	TFltV NormX2;	TLinAlg::GetColNorm2V(FtrVV, NormX2);
+	TFltV NormC2;	TLinAlg::GetColNorm2V(CentroidMat, NormC2);
 
-	const TVector OnesN = TVector::Ones(X.GetCols(), false);
-	const TVector OnesK = TVector::Ones(GetStates(), true);
-	TVector NormX2(X.GetCols(), false);	TLinAlg::GetColNorm2V(X, NormX2.Vec);//XMat.ColNorm2V();
-	const TVector NormC2 = CentroidMat.ColNorm2V().Transpose();
+	GetDistMat2(FtrVV, NormX2, NormC2, DistMat);
 
-	return Assign(X, NormX2, NormC2, OnesN, OnesK);
-}
-
-void TStateIdentifier::Assign(const TFltVV& InstMat, TIntV& AssignV) const {
-	AssignV = Assign(InstMat).GetIntVec();
-}
-
-TFullMatrix TStateIdentifier::GetDistMat(const TFltVV& X) const {
-	const TVector OnesN = TVector::Ones(X.GetCols(), false);
-	const TVector OnesK = TVector::Ones(GetStates(), true);
-	TVector NormX2(X.GetCols(), false);	TLinAlg::GetColNorm2V(X, NormX2.Vec);//X.ColNorm2V();
-	const TVector NormC2 = CentroidMat.ColNorm2V().Transpose();
-
-	return GetDistMat2(X, NormX2, NormC2, OnesN, OnesK).Sqrt();
+	// compute the square root of each element
+	for (int RowN = 0; RowN < DistMat.GetRows(); RowN++) {
+		for (int ColN = 0; ColN < DistMat.GetCols(); ColN++) {
+			DistMat.PutXY(RowN, ColN, TMath::Sqrt(DistMat(RowN, ColN)));
+		}
+	}
 }
 
 void TStateIdentifier::GetCentroidDistV(const TFltV& x, TFltV& DistV) const {
@@ -215,10 +230,10 @@ void TStateIdentifier::GetCentroidDistV(const TFltV& x, TFltV& DistV) const {
 	const double NormX2 = TLinAlg::Norm2(x);
 
 	// 2) Result <- CentroidMat.ColNorm2V()
-	TLinAlg::GetColNorm2V(CentroidMat.GetMat(), DistV);
+	TLinAlg::GetColNorm2V(CentroidMat, DistV);
 
-	// 3) 2*x*C
-	TFltV xC;	TLinAlg::MultiplyT(CentroidMat.GetMat(), x, xC);
+	// 3) x*C
+	TFltV xC;	TLinAlg::MultiplyT(CentroidMat, x, xC);
 
 	// 4) <- Result = Result - 2*x*C + ones(clusts, 1)*|x|^2
 	for (int i = 0; i < DistV.Len(); i++) {
@@ -227,19 +242,30 @@ void TStateIdentifier::GetCentroidDistV(const TFltV& x, TFltV& DistV) const {
 	}
 }
 
-double TStateIdentifier::GetDist(const int& CentroidIdx, const TVector& Pt) const {
-	return CentroidMat.GetCol(CentroidIdx).EuclDist(Pt);
+double TStateIdentifier::GetDist(const int& ClustN, const TFltV& Pt) const {
+	TFltV FtrV;	CentroidMat.GetCol(ClustN, FtrV);
+	return TLinAlg::EuclDist(FtrV, Pt);
+//	return CentroidMat.GetCol(CentroidIdx).EuclDist(Pt);
 }
 
 TVector TStateIdentifier::GetJoinedCentroid(const TIntV& CentroidIdV) const {
+	const int Dim = GetDim();
+
 	TVector Result(GetDim());
+
+	TFltV FtrV;
 
 	double TotalSize = 0;
 	for (int i = 0; i < CentroidIdV.Len(); i++) {
 		const int CentroidIdx = CentroidIdV[i];
 		const uint64 CentroidSize = GetClustSize(CentroidIdx);
 
-		Result += GetCentroid(CentroidIdx)*(double)CentroidSize;
+		GetCentroid(CentroidIdx, FtrV);
+
+		for (int FtrN = 0; FtrN < Dim; FtrN++) {
+			Result[FtrN] += FtrV[FtrN] * CentroidSize;
+		}
+
 		TotalSize += CentroidSize;
 	}
 
@@ -247,14 +273,23 @@ TVector TStateIdentifier::GetJoinedCentroid(const TIntV& CentroidIdV) const {
 }
 
 TVector TStateIdentifier::GetJoinedControlCentroid(const TIntV& CentroidIdV) const {
-	TVector Result(GetControlDim());
+	const int Dim = GetControlDim();
+
+	TVector Result(Dim);
+
+	TFltV FtrV;
 
 	double TotalSize = 0;
 	for (int i = 0; i < CentroidIdV.Len(); i++) {
 		const int CentroidIdx = CentroidIdV[i];
 		const uint64 CentroidSize = GetClustSize(CentroidIdx);
 
-		Result += GetControlCentroid(CentroidIdx)*(double)CentroidSize;
+		GetControlCentroid(CentroidIdx, FtrV);
+
+		for (int FtrN = 0; FtrN < Dim; FtrN++) {
+			Result[FtrN] += FtrV[FtrN] * CentroidSize;
+		}
+
 		TotalSize += CentroidSize;
 	}
 
@@ -270,14 +305,16 @@ uint64 TStateIdentifier::GetClustSize(const int& ClustIdx) const {
 	return CentroidDistStatV[ClustIdx].Val1;
 }
 
-void TStateIdentifier::GetHistogram(const int FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV) const {
+void TStateIdentifier::GetHistogram(const int& FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV) const {
+	EAssertR(FtrId < GetDim() + GetControlDim(), "Invalid feature ID: " + TInt::GetStr(FtrId));
+
 	BinV.Gen(NHistBins+2);
-	BinStartV.Clr();
 
 	const int FtrN = FtrId < GetDim() ? FtrId : FtrId - GetDim();
 	const TStateFtrHistVV& StateIdFtrIdHistVV = FtrId < GetDim() ? ObsHistVV : ControlHistVV;
 
 	// go through all the features and extract the bin start vectors
+
 	BinStartV = StateIdFtrIdHistVV[0][FtrN].GetBinStartV();
 
 	for (int i = 0; i < StateSet.Len(); i++) {
@@ -291,6 +328,41 @@ void TStateIdentifier::GetHistogram(const int FtrId, const TIntV& StateSet, TFlt
 	}
 
 	TLinAlg::NormalizeL1(BinV);
+}
+
+void TStateIdentifier::GetTransitionHistogram(const int& FtrId, const TIntV& SourceStateSet,
+		const TIntV& TargetStateSet, TFltV& BinStartV, TFltV& ProbV) const {
+	EAssertR(FtrId < GetDim() + GetControlDim(), "Invalid feature ID: " + TInt::GetStr(FtrId));
+
+	ProbV.Gen(NHistBins+2);
+	BinStartV.Clr();
+
+	for (int SourceN = 0; SourceN < SourceStateSet.Len(); SourceN++) {
+		const int& SourceId = SourceStateSet[SourceN];
+
+		for (int TargetN = 0; TargetN < TargetStateSet.Len(); TargetN++) {
+			const int& TargetId = TargetStateSet[TargetN];
+
+			const TFtrHistV& FtrIdHistV = TransHistMat(SourceId, TargetId);
+			EAssertR(FtrId < FtrIdHistV.Len(), "Invalid feature ID: " + TInt::GetHexStr(FtrId));
+			const THistogram& Hist = FtrIdHistV[FtrId];
+
+			if (Hist.Empty()) { continue; }
+
+			const TIntV& CountV = Hist.GetCountV();
+			for (int i = 0; i < CountV.Len(); i++) {
+				ProbV[i] += (double) CountV[i];
+			}
+
+			// initialize the bin start vector if not already
+			// try to think of anything better than lazy initialization
+			if (BinStartV.Empty()) {
+				BinStartV = Hist.GetBinStartV();
+			}
+		}
+	}
+
+	TLinAlg::NormalizeL1(ProbV);
 }
 
 void TStateIdentifier::GetCentroidVV(TVec<TFltV>& CentroidVV) const {
@@ -362,76 +434,93 @@ void TStateIdentifier::SetVerbose(const bool& _Verbose) {
 	}
 }
 
-TVector TStateIdentifier::Assign(const TFltVV& X, const TVector& NormX2, const TVector& NormC2, const TVector& OnesN, const TVector& OnesK) const {
-	return GetDistMat2(X, NormX2, CentroidMat.ColNorm2V().Transpose(), OnesN, OnesK).GetColMinIdxV();
+void TStateIdentifier::Assign(const TFltVV& X, const TFltV& NormX2, const TFltV& NormC2,
+		TIntV& AssignV) const {
+//	return GetDistMat2(X, NormX2, CentroidMat.ColNorm2V().Transpose(), OnesN, OnesK).GetColMinIdxV();
+	TFltVV DistVV;	GetDistMat2(X, NormX2, NormC2, DistVV);
+	TLinAlg::GetColMinIdxV(DistVV, AssignV);
 }
 
-TFullMatrix TStateIdentifier::GetDistMat2(const TFltVV& X, const TVector& NormX2, const TVector& NormC2, const TVector& OnesN, const TVector& OnesK) const {
-	return (NormC2 * OnesN) - (CentroidMat*2).MulT(X) + (OnesK * NormX2);
+void TStateIdentifier::GetDistMat2(const TFltVV& X, const TFltV& NormX2, const TFltV& NormC2,
+		TFltVV& D) const {
+	TEuclDist::GetDist2(CentroidMat, X, NormC2, NormX2, D);
 }
 
-TFullMatrix TStateIdentifier::SelectInitCentroids(const TFullMatrix& X, const int& NCentroids, TVector& AssignIdxV) {
+void TStateIdentifier::SelectInitCentroids(const TFltVV& X, const int& K, TFltVV& CentroidFtrVV,
+		TIntV& AssignV) {
+	const int Dim = X.GetRows();
 	const int NInst = X.GetCols();
-	const int NAttrs = X.GetRows();
 
-	EAssertR(NInst >= NCentroids, "TStateIdentifier::SelectInitCentroids: The number of initial centroids should be less than the number of data points!");
+	EAssertR(NInst >= K, "TStateIdentifier::SelectInitCentroids: The number of initial centroids should be less than the number of data points!");
 
-	AssignIdxV = TVector(NCentroids);
+	AssignV.Gen(K);
 
 	// generate k random elements
-	TVector PermV = TVector::Range(NInst);
-	for (int i = 0; i < NCentroids; i++) {
+	TFltV PermV(NInst);	TLAUtil::Range(NInst, PermV);
+	double Temp;
+	for (int i = 0; i < K; i++) {
 		const int SwapIdx = Rnd.GetUniDevInt(i, NInst-1);
 
 		// swap
-		double Temp = PermV[SwapIdx];
+		Temp = PermV[SwapIdx];
 		PermV[SwapIdx] = PermV[i];
 		PermV[i] = Temp;
 
-		AssignIdxV[i] = PermV[i];
+		AssignV[i] = PermV[i];
 	}
 
-	return X(TVector::Range(NAttrs), AssignIdxV);
+	// construct the centroid matrix
+	CentroidFtrVV.Gen(Dim, K);
+	for (int i = 0; i < K; i++) {
+		const int ColN = AssignV[i];
+		for (int RowN = 0; RowN < Dim; RowN++) {
+			CentroidFtrVV.PutXY(RowN, i, X(RowN, ColN));
+		}
+	}
 }
 
-void TStateIdentifier::UpdateCentroids(const TFullMatrix& X, const TVector& AssignIdxV) {
-	const int NInst = X.GetCols();
+void TStateIdentifier::UpdateCentroids(const TFltVV& FtrVV, const TIntV& AssignIdxV, const TFltV& OnesN) {
+	const int NInst = FtrVV.GetCols();
 	const int K = CentroidMat.GetCols();
 
-	// 1. create a sparse matrix (coordinate representation) that encodes the closest centroids
-	TVector OnesN = TVector::Ones(NInst, false);
-
-	TIntV RangeV(NInst, 0);
-	for (int i = 0; i < NInst; i++) { RangeV.Add(i); }
-
+	// I. create a sparse matrix (coordinate representation) that encodes the closest centroids
+	TIntV RangeV(NInst);	TLAUtil::Range(NInst, RangeV);
 	// create a matrix
 	TSparseColMatrix AssignIdxMat(NInst, K);
-	TSparseOps<TInt,TFlt>::CoordinateCreateSparseColMatrix(RangeV, AssignIdxV.GetIntVec(), OnesN.GetVec(), AssignIdxMat.ColSpVV, K);
+	TSparseOps<TInt,TFlt>::CoordinateCreateSparseColMatrix(RangeV, AssignIdxV, OnesN, AssignIdxMat.ColSpVV, K);
 
-	// 2. compute the number of points that belong to each centroid, invert
-	TVector ColSumInvV(K, false);	AssignIdxMat.MultiplyT(OnesN.GetVec(), ColSumInvV.Vec);
+	// II. compute the number of points that belong to each centroid, invert
+	TFltV ColSumInvV(K);	AssignIdxMat.MultiplyT(OnesN, ColSumInvV);
 	// invert
-	ColSumInvV.Map([](TFlt Val) { return 1.0 / (1.0 + Val); });
+	for (int i = 0; i < K; i++) {
+		ColSumInvV[i] = 1.0 / (ColSumInvV[i] + 1.0);
+	}
 
-	// 3. compute the centroids
-	TSparseColMatrix ColSumDiag(K, K);	TLAMisc::Diag(ColSumInvV.GetVec(), ColSumDiag.ColSpVV);
-	CentroidMat = ((X * AssignIdxMat) + CentroidMat) * ColSumDiag;
+	// III. compute the centroids
+	// compute: CentroidMat = ((FtrVV * AssignIdxMat) + CentroidMat) * ColSumDiag;
+	TSparseColMatrix ColSumDiag(K, K);	TLAMisc::Diag(ColSumInvV, ColSumDiag.ColSpVV);
+	TFltVV TempDxKV;
+	// 1) FtrVV * AssignIdxMat
+	TLinAlg::Multiply(FtrVV, AssignIdxMat.ColSpVV, TempDxKV);
+	// 2) (FtrVV * AssignIdxMat) + CentroidMat
+	TLinAlg::LinComb(1, TempDxKV, 1, CentroidMat, TempDxKV);
+	// 3) ((FtrVV * AssignIdxMat) + CentroidMat) * ColSumDiag
+	TLinAlg::Multiply(TempDxKV, ColSumDiag.ColSpVV, CentroidMat);
 }
 
-void TStateIdentifier::InitStatistics(const TFullMatrix& X, const TVector& AssignV) {
+void TStateIdentifier::InitStatistics(const TFltVV& X, const TIntV& AssignV) {
 	const int K = GetStates();
-	TFullMatrix DistMat = GetDistMat(X.GetMat());
+	TFltVV DistMat;	GetDistMat(X, DistMat);
 
 	TVector OnesDim = TVector::Ones(X.GetRows());
 
 	CentroidDistStatV.Gen(K,K);
-	for (int i = 0; i < K; i++) {
-		const TFlt CurrClustIdx = i;
-		TVector VCellIdxV = AssignV.Find([=](TFlt Val) { return Val == CurrClustIdx; });
-		TVector Di = DistMat(i, VCellIdxV);
+	for (int ClustN = 0; ClustN < K; ClustN++) {
+		TIntV VCellIdxV;	AssignV.FindAll(ClustN, VCellIdxV);
+		TVector Di = TFullMatrix(DistMat, true)(ClustN, VCellIdxV);	// TODO remove TFullMatrix
 
-		CentroidDistStatV[i].Val1 = VCellIdxV.Len();
-		CentroidDistStatV[i].Val2 = Di.Sum();
+		CentroidDistStatV[ClustN].Val1 = VCellIdxV.Len();
+		CentroidDistStatV[ClustN].Val2 = Di.Sum();
 	}
 }
 
@@ -440,7 +529,7 @@ void TStateIdentifier::InitControlCentroids(const TFltVV& ObsMat,  const TFltVV&
 	const int Dim = ControlFtrVV.GetRows();
 	const int NInst = ControlFtrVV.GetCols();
 
-	ControlCentroidMat = TFullMatrix(Dim, NCentroids);
+	ControlCentroidMat.Gen(Dim, NCentroids);
 	TUInt64V CountV(NCentroids);
 
 	TIntV AssignV;	Assign(ObsMat, AssignV);
@@ -456,12 +545,14 @@ void TStateIdentifier::InitControlCentroids(const TFltVV& ObsMat,  const TFltVV&
 	}
 }
 
-TVector TStateIdentifier::GetCentroid(const int& CentroidId) const {
-	return CentroidMat.GetCol(CentroidId);
+void TStateIdentifier::GetCentroid(const int& StateId, TFltV& FtrV) const {
+	EAssert(0 <= StateId && StateId < CentroidMat.GetCols());
+	CentroidMat.GetCol(StateId, FtrV);
 }
 
-TVector TStateIdentifier::GetControlCentroid(const int& CentroidId) const {
-	return ControlCentroidMat.GetCol(CentroidId);
+void TStateIdentifier::GetControlCentroid(const int& StateId, TFltV& FtrV) const {
+	EAssert(0 <= StateId && StateId < ControlCentroidMat.GetCols());
+	ControlCentroidMat.GetCol(StateId, FtrV);
 }
 
 double TStateIdentifier::GetControlFtr(const int& StateId, const int& FtrId) const {
@@ -547,6 +638,8 @@ void TStateIdentifier::UpdateTransitionHist(const TFltVV& ObsFtrVV, const TFltVV
 
 	EAssertR(NInst > 0, "Cannot fit a model to 0 instances!");
 
+	TFltV FtrV;
+
 	int CurrState, PrevState = AssignV[0];
 	for (int InstN = 0; InstN < NInst; InstN++) {
 		CurrState = AssignV[InstN];
@@ -554,18 +647,19 @@ void TStateIdentifier::UpdateTransitionHist(const TFltVV& ObsFtrVV, const TFltVV
 		if (CurrState != PrevState) {	// we have just jumped
 			// get the features of the previous time step
 			const int JumpInst = InstN-1;
+			TFtrHistV& FtrIdHistV = TransHistMat(PrevState, CurrState);
 
-			TFltV FtrV;
 			ObsFtrVV.GetCol(JumpInst, FtrV);
-
 			for (int FtrN = 0; FtrN < FtrV.Len(); FtrN++) {
-				TransHistMat(PrevState, CurrState)[FtrN].Update(ObsFtrVV(FtrN, JumpInst));
+				FtrIdHistV[FtrN].Update(ObsFtrVV(FtrN, JumpInst));
 			}
 
 			ContrFtrVV.GetCol(JumpInst, FtrV);
 			for (int FtrN = 0; FtrN < FtrV.Len(); FtrN++) {
-				TransHistMat(PrevState, CurrState)[ObsFtrVV.GetRows() + FtrN].Update(ContrFtrVV(FtrN, JumpInst));
+				FtrIdHistV[GetDim() + FtrN].Update(ContrFtrVV(FtrN, JumpInst));
 			}
+
+			PrevState = CurrState;
 		}
 	}
 }
@@ -575,31 +669,6 @@ void TStateIdentifier::UpdateHist(const TFltVV& FtrVV, const TIntV& AssignV,
 
 	const int NInst = FtrVV.GetCols();
 	const int Dim = FtrVV.GetRows();
-
-//	// initialize the histograms
-//	StateFtrHistVV.Gen(States);
-//
-//	for (int StateId = 0; StateId < States; StateId++) {
-//		StateFtrHistVV[StateId].Gen(Dim);
-//	}
-//
-//	// find the min and max value of each feature
-//	double MnVal, MxVal;
-//	for (int FtrN = 0; FtrN < Dim; FtrN++) {
-//		// find min and max value
-//		MnVal = TFlt::Mx;
-//		MxVal = TFlt::Mn;
-//
-//		for (int InstN = 0; InstN < NInst; InstN++) {
-//			if (FtrVV(FtrN, InstN) < MnVal) { MnVal = FtrVV(FtrN, InstN); }
-//			if (FtrVV(FtrN, InstN) > MxVal) { MxVal = FtrVV(FtrN, InstN); }
-//		}
-//
-//		// go through all the histograms and initialize them
-//		for (int StateId = 0; StateId < States; StateId++) {
-//			StateFtrHistVV[StateId].SetVal(FtrN, THistogram(Bins, MnVal, MxVal));
-//		}
-//	}
 
 	// update the histograms
 	for (int InstN = 0; InstN < NInst; InstN++) {
@@ -631,7 +700,7 @@ void TFullKMeans::Save(TSOut& SOut) const {
 	K.Save(SOut);
 }
 
-void TFullKMeans::Apply(const TFullMatrix& X, const int& MaxIter) {
+void TFullKMeans::Apply(const TFltVV& X, const int& MaxIter) {
 	EAssertR(K <= X.GetRows(), "Matrix should have more rows then k!");
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Executing KMeans ...");
@@ -639,23 +708,27 @@ void TFullKMeans::Apply(const TFullMatrix& X, const int& MaxIter) {
 	const int NInst = X.GetCols();
 
 	// select initial centroids
-	TVector AssignIdxV;
-	TVector OldAssignIdxV;
-	CentroidMat = SelectInitCentroids(X, K, OldAssignIdxV);
+	TIntV AssignIdxV, OldAssignIdxV;
+	TIntV* AssignIdxVPtr = &AssignIdxV;
+	TIntV* OldAssignIdxVPtr = &OldAssignIdxV;
+	TIntV* Temp;
 
-	// pointers so we don't copy
-	TVector* AssignIdxVPtr = &AssignIdxV;
-	TVector* OldAssignIdxVPtr = &OldAssignIdxV;
+	SelectInitCentroids(X, K, CentroidMat, OldAssignIdxV);
 
-	const TVector OnesN = TVector::Ones(NInst, false);
-	const TVector OnesK = TVector::Ones(K, true);
+	// constant reused variables
+	TFltV OnesN;	TLAUtil::Ones(NInst, OnesN);
+	TFltV NormX2;	TLinAlg::GetColNorm2V(X, NormX2);
 
-	const TVector NormX2 = X.ColNorm2V();
+	// reused variables
+	TFltV CentroidColNorm2V;		// (dimension k)
+	TFltVV ClustDistVV(K, NInst);
 
 	for (int i = 0; i < MaxIter; i++) {
 		if (i % 10000 == 0) { Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d", i); }
 
-		*AssignIdxVPtr = Assign(X.GetMat(), NormX2, CentroidMat.ColNorm2V().Transpose(), OnesN, OnesK);
+		// get the distance of each of the points to each of the centroids
+		TLinAlg::GetColNorm2V(CentroidMat, CentroidColNorm2V);
+		GetDistMat2(X, NormX2, CentroidColNorm2V, ClustDistVV);
 
 		if (*AssignIdxVPtr == *OldAssignIdxVPtr) {
 			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged at iteration: %d", i);
@@ -663,10 +736,10 @@ void TFullKMeans::Apply(const TFullMatrix& X, const int& MaxIter) {
 		}
 
 		// recompute the means
-		UpdateCentroids(X, *AssignIdxVPtr);
+		UpdateCentroids(X, *AssignIdxVPtr, OnesN);
 
 		// swap old and new assign vectors
-		TVector* Temp = AssignIdxVPtr;
+		Temp = AssignIdxVPtr;
 		AssignIdxVPtr = OldAssignIdxVPtr;
 		OldAssignIdxVPtr = Temp;
 	}
@@ -700,7 +773,7 @@ void TDpMeans::Save(TSOut& SOut) const {
 	MaxClusts.Save(SOut);
 }
 
-void TDpMeans::Apply(const TFullMatrix& X, const int& MaxIter) {
+void TDpMeans::Apply(const TFltVV& X, const int& MaxIter) {
 	EAssertR(X.GetRows() > 0, "The input matrix doesn't have any features!");
 	EAssertR(MinClusts <= X.GetCols(), "Matrix should have more rows then the min number of clusters!");
 	EAssertR(MinClusts <= MaxClusts, "Minimum number of cluster should be less than the maximum.");
@@ -708,46 +781,51 @@ void TDpMeans::Apply(const TFullMatrix& X, const int& MaxIter) {
 	Notify->OnNotify(TNotifyType::ntInfo, "Executing DPMeans ...");
 
 	const int NInst = X.GetCols();
-
 	const double LambdaSq = Lambda*Lambda;
 
+	// assignment vectors and their pointers, so we don't copy
+	TIntV AssignIdxV, OldAssignIdxV;
+	TIntV* AssignIdxVPtr = &AssignIdxV;
+	TIntV* OldAssignIdxVPtr = &OldAssignIdxV;
+	TIntV* Temp;
+
 	// select initial centroids
-	TVector AssignIdxV;
-	TVector OldAssignIdxV;
-	CentroidMat = SelectInitCentroids(X, MinClusts, OldAssignIdxV);
+	SelectInitCentroids(X, MinClusts, CentroidMat, OldAssignIdxV);
 
-	// pointers so we don't copy
-	TVector* AssignIdxVPtr = &AssignIdxV;
-	TVector* OldAssignIdxVPtr = &OldAssignIdxV;
+	// const variables, reused throughtout the procedure
+	TFltV OnesN;	TLAUtil::Ones(NInst, OnesN);
+	TFltV NormX2;	TLinAlg::GetColNorm2V(X, NormX2);
 
-	const TVector OnesN = TVector::Ones(NInst, false);
-	const TVector NormX2 = X.ColNorm2V();
-
-	TVector OnesK = TVector::Ones(GetStates(), true);
+	// temporary reused variables
+	TFltV NormC2;							// (dimension k)
+	TFltV FtrV;								// (dimension d)
+	TFltV MinClustDistV;					// (dimension n)
+	TFltVV ClustDistVV(GetStates(), NInst);	// (dimension k x n)
 
 	int i = 0;
 	while (i++ < MaxIter) {
 		if (i % 10 == 0) { Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d", i); }
 
 		// add new centroids and compute the distance matrix
-		TFullMatrix D = GetDistMat2(X.GetMat(), NormX2, CentroidMat.ColNorm2V().Transpose(), OnesN, OnesK);
+		TLinAlg::GetColNorm2V(CentroidMat, NormC2);
+		GetDistMat2(X, NormX2, NormC2, ClustDistVV);
 
 		// assign
-		*AssignIdxVPtr = D.GetColMinIdxV();
+		TLinAlg::GetColMinIdxV(ClustDistVV, *AssignIdxVPtr);
 
 		// check if we need to increase the number of clusters
 		if (GetStates() < MaxClusts) {
-			TVector CentrDistV = D.GetColMinV();
-			TVector MinIdxV = D.GetColMinIdxV();
+			TLinAlg::GetColMinV(ClustDistVV, MinClustDistV);
 
-			int NewCentrIdx = CentrDistV.GetMaxIdx();
-			double MaxDist = CentrDistV[NewCentrIdx];
+			const int NewCentrIdx = TLAUtil::GetMaxIdx(MinClustDistV);
+			const double MaxDist = MinClustDistV[NewCentrIdx];
 
 			if (MaxDist > LambdaSq) {
-				CentroidMat.AddCol(X.GetCol(NewCentrIdx));
-				OnesK = TVector::Ones(GetStates(), true);
+				X.GetCol(NewCentrIdx, FtrV);
+//				CentroidMat.AddCol(FtrV);
+				CentroidMat.AddCol(FtrV);
+				ClustDistVV.AddXDim();
 				(*AssignIdxVPtr)[NewCentrIdx] = GetStates()-1;
-
 				Notify->OnNotifyFmt(TNotifyType::ntInfo, "Max distance to centroid: %.3f, number of clusters: %d ...", sqrt(MaxDist), GetStates());
 			}
 		}
@@ -759,10 +837,10 @@ void TDpMeans::Apply(const TFullMatrix& X, const int& MaxIter) {
 		}
 
 		// recompute the means
-		UpdateCentroids(X, *AssignIdxVPtr);
+		UpdateCentroids(X, *AssignIdxVPtr, OnesN);
 
 		// swap old and new assign vectors
-		TVector* Temp = AssignIdxVPtr;
+		Temp = AssignIdxVPtr;
 		AssignIdxVPtr = OldAssignIdxVPtr;
 		OldAssignIdxVPtr = Temp;
 	}
@@ -885,7 +963,7 @@ PHierarch THierarch::Load(TSIn& SIn) {
 }
 
 void THierarch::Init(const int& CurrLeafId, const PStateIdentifier& StateIdentifier) {
-	const TFullMatrix& CentroidMat = StateIdentifier->GetCentroidMat();
+	const TFltVV& CentroidMat = StateIdentifier->GetCentroidMat();
 
 	ClrFlds();
 
@@ -2181,11 +2259,11 @@ void TUiHelper::InitStateCoordV(const PStateIdentifier& StateIdentifier,
 
 	const int NStates = Hierarch->GetStates();
 	const int NLeafs = Hierarch->GetLeafs();
-	const TFullMatrix& CentroidMat = StateIdentifier->GetCentroidMat();
+	const TFltVV& CentroidMat = StateIdentifier->GetCentroidMat();
 
 	StateCoordV.Gen(NStates, NStates);
 
-	TFullMatrix CoordMat = TEuclMds::Project(CentroidMat, 2);
+	TFullMatrix CoordMat = TEuclMds::Project(TFullMatrix(CentroidMat), 2);	// TODO remove TFullMatrix
 	for (int ColIdx = 0; ColIdx < CoordMat.GetCols(); ColIdx++) {
 		StateCoordV[ColIdx].Val1 = CoordMat(0, ColIdx);
 		StateCoordV[ColIdx].Val2 = CoordMat(1, ColIdx);
@@ -2387,7 +2465,7 @@ void TStateAssist::Init(TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const PState
 
 	// get all the heights from the hierarchy
 	TIntFltPrV StateIdHeightPrV;	Hierarch->GetStateIdHeightPrV(StateIdHeightPrV);
-	TVector AssignV = Clust->Assign(X.GetMat());
+	TIntV AssignV;	Clust->Assign(ObsFtrVV, AssignV);
 
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Computing state assist, total states %d ...", StateIdHeightPrV.Len());
 
@@ -2409,8 +2487,8 @@ void TStateAssist::Init(TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const PState
 
 		const TIntSet TargetStateSet(StateSetV[StateIdx]);
 
-		TIntV TargetIdxV;	AssignV.Find([&](const TFlt& StateId) { return TargetStateSet.IsKey(int(StateId)); }, TargetIdxV);
-		TIntV NonTargetIdxV;	AssignV.Find([&](const TFlt& StateId) { return !TargetStateSet.IsKey(int(StateId)); }, NonTargetIdxV);
+		TIntV TargetIdxV;		AssignV.FindAllSatisfy([&](const TInt& StateId) { return TargetStateSet.IsKey(StateId); }, TargetIdxV);
+		TIntV NonTargetIdxV;	AssignV.FindAllSatisfy([&](const TInt& StateId) { return !TargetStateSet.IsKey(StateId); }, NonTargetIdxV);
 
 		if (TargetIdxV.Len() == 0 || NonTargetIdxV.Len() == 0) continue;
 
@@ -2794,6 +2872,19 @@ void TStreamStory::GetHistogram(const int& StateId, const int& FtrId, TFltV& Bin
 		StateIdentifier->GetHistogram(FtrId, LeafV, BinStartV, ProbV);
 	} catch (const PExcept& Except) {
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetHistogram: Failed to fetch histogram: %s", Except->GetMsgStr().CStr());
+		throw Except;
+	}
+}
+
+void TStreamStory::GetTransitionHistogram(const int& SourceId, const int& TargetId, const int& FtrId,
+		TFltV& BinStartV, TFltV& ProbV) const {
+	try {
+		TIntV SourceLeafV, TargetLeafV;
+		Hierarch->GetLeafDescendantV(SourceId, SourceLeafV);
+		Hierarch->GetLeafDescendantV(TargetId, TargetLeafV);
+		StateIdentifier->GetTransitionHistogram(FtrId, SourceLeafV, TargetLeafV, BinStartV, ProbV);
+	} catch (const PExcept& Except) {
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetTransitionHistogram: Failed to fetch histogram: %s", Except->GetMsgStr().CStr());
 		throw Except;
 	}
 }

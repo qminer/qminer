@@ -2341,6 +2341,7 @@ public:
 	// C = A' * B
 	template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, TVVec<TType, TSizeTy, ColMajor>& C) {
+		if (C.Empty()) { C.Gen(A.GetCols(), B.GetCols()); }
 		EAssert(A.GetCols() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetRows() == B.GetRows());
 #ifdef BLAS
 		TLinAlg::Multiply(A, B, C, TLinAlgBlasTranspose::TRANS, TLinAlgBlasTranspose::NOTRANS);
@@ -3153,6 +3154,48 @@ public:
 #endif
 };
 
+class TLAUtil {
+public:
+	// generates a vector of ones with dimension dim
+	template <class TVal, class TSizeTy>
+	static void Ones(const int& Dim, TVec<TVal, TSizeTy>& OnesV) {
+		if (OnesV.Len() != Dim) { OnesV.Gen(Dim); }
+
+		for (int i = 0; i < Dim; i++) {
+			OnesV[i] = 1;
+		}
+	}
+
+	// generates a vector with i on index i
+	template <class TVal, class TSizeTy>
+	static void Range(const int& Dim, TVec<TVal, TSizeTy>& RangeV) {
+		if (RangeV.Len() != Dim) { RangeV.Gen(Dim); }
+		for (int i = 0; i < Dim; i++) {
+			RangeV[i] = i;
+		}
+	}
+
+	// returns a sub matrix of the input matrix in range [StartRow, EndRow) x [StartCol, EndCol)
+	static void SubMat(const TFltVV& Mat, const int& StartRow, const int& EndRow,
+			const int& StartCol, const int& EndCol, TFltVV& SubMat);
+
+	template <class TVal, class TSizeTy>
+	static TSizeTy GetMaxIdx(const TVec<TVal, TSizeTy>& Vec) {
+		if (Vec.Empty()) { return -1; }
+
+		TSizeTy MxIdx = 0;
+		TVal MxVal = Vec[0];
+		for (TSizeTy i = 1; i < Vec.Len(); i++ ) {
+			if (Vec[i] > MxVal) {
+				MxVal = Vec[i];
+				MxIdx = i;
+			}
+		}
+
+		return MxIdx;
+	}
+};
+
 ///////////////////////////////////////////////////////////////////////
 // Sparse-SVD
 //   Calculates singular-value-decompositon for sparse matrixes.
@@ -3417,7 +3460,8 @@ public:
 	TFullMatrix(const int& Rows, const int& Cols);
 	// matrix from TFltVV, if IsWrapper is set to true then the
 	// underlying matrix will not be deleted
-	TFullMatrix(TFltVV& Mat, const bool IsWrapper = false);
+	TFullMatrix(TFltVV& Mat, const bool IsWrapper);
+	TFullMatrix(const TFltVV& Mat);
 	// matrix from vector
 	TFullMatrix(const TVector& Vec);
 	// copy constructor
@@ -3480,6 +3524,7 @@ public:
 	// returns true if the matrix is empty
 	bool Empty() const { return Mat->Empty(); }
 
+	TFullMatrix& AddCol(const TFltV& Col);
 	TFullMatrix& AddCol(const TVector& Col);
 	TFullMatrix& AddCols(const TFullMatrix& Cols);
 

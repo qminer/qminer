@@ -1362,6 +1362,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "currState", _currState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fullCoords", _fullCoords);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "histogram", _histogram);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "transitionHistogram", _transitionHistogram);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getFtrBounds", _getFtrBounds);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "stateIds", _stateIds);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateWgtV", _getStateWgtV);
@@ -1375,6 +1376,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "rebuildHistograms", _rebuildHistograms);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateName", _getStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setStateName", _setStateName);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "clearStateName", _clearStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "isTarget", _isTarget);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setTarget", _setTarget);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "isLeaf", _isLeaf);
@@ -1773,30 +1775,32 @@ void TNodeJsStreamStory::histogram(const v8::FunctionCallbackInfo<v8::Value>& Ar
 
 	EAssertR(Args.Length() == 2, "hmc.histogram: expects 2 arguments!");
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 	const int FtrId = TNodeJsUtil::GetArgInt32(Args, 1);
 
 	TFltV BinStartV, ProbV;
-	JsMChain->StreamStory->GetHistogram(StateId, FtrId, BinStartV, ProbV);
+	JsStreamStory->StreamStory->GetHistogram(StateId, FtrId, BinStartV, ProbV);
+	WrapHistogram(Args, BinStartV, ProbV);
+}
 
-	v8::Local<v8::Object> Result = v8::Object::New(Isolate);
-	v8::Local<v8::Array> BinStartJsV = v8::Array::New(Isolate, BinStartV.Len());
-	v8::Local<v8::Array> ProbJsV = v8::Array::New(Isolate, ProbV.Len());
+void TNodeJsStreamStory::transitionHistogram(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
 
-	for (int i = 0; i < BinStartV.Len(); i++) {
-		BinStartJsV->Set(i, v8::Number::New(Isolate, BinStartV[i]));
-	}
+	EAssertR(Args.Length() == 3, "ss.transitionHistogram: expects 3 arguments!");
 
-	for (int i = 0; i < ProbV.Len(); i++) {
-		ProbJsV->Set(i, v8::Number::New(Isolate, ProbV[i]));
-	}
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	Result->Set(v8::String::NewFromUtf8(Isolate, "binStartV"), BinStartJsV);
-	Result->Set(v8::String::NewFromUtf8(Isolate, "probs"), ProbJsV);
+	const int SourceId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const int TargetId = TNodeJsUtil::GetArgInt32(Args, 1);
+	const int FtrId = TNodeJsUtil::GetArgInt32(Args, 2);
 
-	Args.GetReturnValue().Set(Result);
+	TFltV BinStartV, ProbV;
+
+	JsStreamStory->StreamStory->GetTransitionHistogram(SourceId, TargetId, FtrId, BinStartV, ProbV);
+	WrapHistogram(Args, BinStartV, ProbV);
 }
 
 void TNodeJsStreamStory::getFtrBounds(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1931,9 +1935,8 @@ void TNodeJsStreamStory::rebuildHierarchy(const v8::FunctionCallbackInfo<v8::Val
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-
-	JsMChain->StreamStory->InitHierarch();
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	JsStreamStory->StreamStory->InitHierarch();
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -1944,7 +1947,7 @@ void TNodeJsStreamStory::rebuildHistograms(const v8::FunctionCallbackInfo<v8::Va
 
 	EAssertR(Args.Length() == 1, "hmc.rebuildHistograms: expects 1 argument!");
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 	v8::Local<v8::Object> ArgObj = Args[0]->ToObject();
 
 	EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "observations", TNodeJsFltVV::GetClassId()), "Missing field observations!");
@@ -1964,9 +1967,9 @@ void TNodeJsStreamStory::rebuildHistograms(const v8::FunctionCallbackInfo<v8::Va
 		EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "batchV", TNodeJsBoolV::GetClassId()), "Invalid class of field batchV!");
 		const TNodeJsBoolV* BatchEndJsV = TNodeJsUtil::GetUnwrapFld<TNodeJsBoolV>(ArgObj, "batchV");
 		const TBoolV& BatchEndV = BatchEndJsV->Vec;
-		JsMChain->StreamStory->InitHistograms(JsObsFtrVV->Mat, JsControlFtrVV->Mat, RecTmV, BatchEndV);
+		JsStreamStory->StreamStory->InitHistograms(JsObsFtrVV->Mat, JsControlFtrVV->Mat, RecTmV, BatchEndV);
 	} else {
-		JsMChain->StreamStory->InitHistograms(JsObsFtrVV->Mat, JsControlFtrVV->Mat, RecTmV, TBoolV());
+		JsStreamStory->StreamStory->InitHistograms(JsObsFtrVV->Mat, JsControlFtrVV->Mat, RecTmV, TBoolV());
 	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
@@ -1976,12 +1979,12 @@ void TNodeJsStreamStory::getStateName(const v8::FunctionCallbackInfo<v8::Value>&
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 1, "hmc.getStateName: expects 1 argument!");
+	EAssertR(Args.Length() == 1, "ss.getStateName: expects 1 argument!");
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
-	const TStr& StateNm = JsMChain->StreamStory->GetStateNm(StateId);
+	const TStr& StateNm = JsStreamStory->StreamStory->GetStateNm(StateId);
 
 	Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, StateNm.CStr()));
 }
@@ -1990,7 +1993,7 @@ void TNodeJsStreamStory::setStateName(const v8::FunctionCallbackInfo<v8::Value>&
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 2, "hmc.setStateName: expects 2 arguments!");
+	EAssertR(Args.Length() == 2, "ss.setStateName: expects 2 arguments!");
 
 	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
@@ -2002,18 +2005,32 @@ void TNodeJsStreamStory::setStateName(const v8::FunctionCallbackInfo<v8::Value>&
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
+void TNodeJsStreamStory::clearStateName(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "ss.clearStateName: expects 1 argument!");
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	JsStreamStory->StreamStory->SetStateNm(StateId, "");
+
+	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
 void TNodeJsStreamStory::isTarget(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	EAssertR(Args.Length() == 2, "hmc.setStateName: expects 2 arguments!");
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 	const double Height = TNodeJsUtil::GetArgFlt(Args, 1);
 
-	bool Result = JsMChain->StreamStory->IsTargetState(StateId, Height);
+	bool Result = JsStreamStory->StreamStory->IsTargetState(StateId, Height);
 	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, Result));
 }
 
@@ -2023,13 +2040,13 @@ void TNodeJsStreamStory::setTarget(const v8::FunctionCallbackInfo<v8::Value>& Ar
 
 	EAssertR(Args.Length() == 3, "hmc.setStateName: expects 2 arguments!");
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 	const double Height = TNodeJsUtil::GetArgFlt(Args, 1);
 	const bool IsTarget = TNodeJsUtil::GetArgBool(Args, 2);
 
-	JsMChain->StreamStory->SetTargetState(StateId, Height, IsTarget);
+	JsStreamStory->StreamStory->SetTargetState(StateId, Height, IsTarget);
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -2038,19 +2055,19 @@ void TNodeJsStreamStory::isLeaf(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 
-	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsMChain->StreamStory->IsLeaf(StateId)));
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsStreamStory->StreamStory->IsLeaf(StateId)));
 }
 
 void TNodeJsStreamStory::getTimeUnit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	const uint64 TimeUnit = JsMChain->StreamStory->GetTimeUnit();
+	const uint64 TimeUnit = JsStreamStory->StreamStory->GetTimeUnit();
 
 	if (TimeUnit == TMc::TCtMChain::TU_SECOND) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "second"));
@@ -2275,6 +2292,29 @@ void TNodeJsStreamStory::SetParams(const PJsonVal& ParamVal) {
 
 void TNodeJsStreamStory::InitCallbacks() {
 	StreamStory->SetCallback(this);
+}
+
+void TNodeJsStreamStory::WrapHistogram(const v8::FunctionCallbackInfo<v8::Value>& Args,
+		const TFltV& BinStartV, const TFltV& ProbV) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Object> Result = v8::Object::New(Isolate);
+	v8::Local<v8::Array> BinStartJsV = v8::Array::New(Isolate, BinStartV.Len());
+	v8::Local<v8::Array> ProbJsV = v8::Array::New(Isolate, ProbV.Len());
+
+	for (int i = 0; i < BinStartV.Len(); i++) {
+		BinStartJsV->Set(i, v8::Number::New(Isolate, BinStartV[i]));
+	}
+
+	for (int i = 0; i < ProbV.Len(); i++) {
+		ProbJsV->Set(i, v8::Number::New(Isolate, ProbV[i]));
+	}
+
+	Result->Set(v8::String::NewFromUtf8(Isolate, "binStartV"), BinStartJsV);
+	Result->Set(v8::String::NewFromUtf8(Isolate, "probs"), ProbJsV);
+
+	Args.GetReturnValue().Set(Result);
 }
 
 
