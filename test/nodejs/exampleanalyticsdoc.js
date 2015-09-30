@@ -1,14 +1,14 @@
 describe('example tests for the analyticsdoc.js file', function () {
-describe("Analytics module.", function () {
-it('should make test number 1', function () {
+describe("Analytics module., number 1", function () {
+it("should make test number 1", function () {
  this.timeout(10000); 
 
   // import module, load dataset, create model, evaluate model
  
 });
 });
-describe("SVC", function () {
-it('should make test number 2', function () {
+describe("SVC, number 2", function () {
+it("should make test number 2", function () {
  this.timeout(10000); 
 
  // import modules
@@ -31,8 +31,8 @@ it('should make test number 2', function () {
 
 });
 });
-describe("Returns the SVC parameters.", function () {
-it('should make test number 3', function () {
+describe("Returns the SVC parameters., number 3", function () {
+it("should make test number 3", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -45,8 +45,8 @@ it('should make test number 3', function () {
 	
 });
 });
-describe("Sets the SVC parameters.", function () {
-it('should make test number 4', function () {
+describe("Sets the SVC parameters., number 4", function () {
+it("should make test number 4", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -58,8 +58,8 @@ it('should make test number 4', function () {
 	
 });
 });
-describe("Gets the vector of coefficients of the linear model.", function () {
-it('should make test number 5', function () {
+describe("Gets the vector of coefficients of the linear model., number 5", function () {
+it("should make test number 5", function () {
  this.timeout(10000); 
  
 	 // import the analytics and la modules
@@ -77,8 +77,8 @@ it('should make test number 5', function () {
 	
 });
 });
-describe("Saves model to output file stream.", function () {
-it('should make test number 6', function () {
+describe("Saves model to output file stream., number 6", function () {
+it("should make test number 6", function () {
  this.timeout(10000); 
 
 	 // import the analytics and la modules
@@ -104,8 +104,8 @@ it('should make test number 6', function () {
 	
 });
 });
-describe("Sends vector through the model and returns the distance to the decision boundery.", function () {
-it('should make test number 7', function () {
+describe("Sends vector through the model and returns the distance to the decision boundery., number 7", function () {
+it("should make test number 7", function () {
  this.timeout(10000); 
 
 	 // import the analytics and la modules
@@ -125,8 +125,8 @@ it('should make test number 7', function () {
 	
 });
 });
-describe("Sends vector through the model and returns the prediction as a real number.", function () {
-it('should make test number 8', function () {
+describe("Sends vector through the model and returns the prediction as a real number., number 8", function () {
+it("should make test number 8", function () {
  this.timeout(10000); 
 
 	 // import the analytics and la modules
@@ -146,8 +146,8 @@ it('should make test number 8', function () {
 	
 });
 });
-describe("Fits a SVM classification model, given column examples in a matrix and vector of targets.", function () {
-it('should make test number 9', function () {
+describe("Fits a SVM classification model, given column examples in a matrix and vector of targets., number 9", function () {
+it("should make test number 9", function () {
  this.timeout(10000); 
 
 	 // import the analytics and la modules
@@ -163,8 +163,8 @@ it('should make test number 9', function () {
 	
 });
 });
-describe("SVR", function () {
-it('should make test number 10', function () {
+describe("SVR, number 10", function () {
+it("should make test number 10", function () {
  this.timeout(10000); 
 
  // import module
@@ -187,8 +187,8 @@ it('should make test number 10', function () {
 
 });
 });
-describe("Returns the SVR parameters.", function () {
-it('should make test number 11', function () {
+describe("Returns the SVR parameters., number 11", function () {
+it("should make test number 11", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -200,8 +200,8 @@ it('should make test number 11', function () {
 	
 });
 });
-describe("Sets the SVR parameters.", function () {
-it('should make test number 12', function () {
+describe("Sets the SVR parameters., number 12", function () {
+it("should make test number 12", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -213,8 +213,8 @@ it('should make test number 12', function () {
 	
 });
 });
-describe("Saves model to output file stream.", function () {
-it('should make test number 13', function () {
+describe("Saves model to output file stream., number 13", function () {
+it("should make test number 13", function () {
  this.timeout(10000); 
 
 	 // import the modules
@@ -238,8 +238,8 @@ it('should make test number 13', function () {
 	
 });
 });
-describe("Sends vector through the model and returns the scalar product as a real number.", function () {
-it('should make test number 14', function () {
+describe("Sends vector through the model and returns the scalar product as a real number., number 14", function () {
+it("should make test number 14", function () {
  this.timeout(10000); 
 
 	  // import the modules
@@ -258,8 +258,8 @@ it('should make test number 14', function () {
      
 });
 });
-describe("Sends vector through the model and returns the prediction as a real number.", function () {
-it('should make test number 15', function () {
+describe("Sends vector through the model and returns the prediction as a real number., number 15", function () {
+it("should make test number 15", function () {
  this.timeout(10000); 
 
 	 // import the modules
@@ -278,8 +278,8 @@ it('should make test number 15', function () {
 	
 });
 });
-describe("fits an SVM regression model, given column examples in a matrix and vector of targets", function () {
-it('should make test number 16', function () {
+describe("fits an SVM regression model, given column examples in a matrix and vector of targets, number 16", function () {
+it("should make test number 16", function () {
  this.timeout(10000); 
 
 	 // import the modules
@@ -295,8 +295,8 @@ it('should make test number 16', function () {
 	
 });
 });
-describe("Ridge regression. Minimizes: ||A' x - b||^2 + ||gamma x||^2", function () {
-it('should make test number 17', function () {
+describe("Ridge regression. Minimizes: ||A' x - b||^2 + ||gamma x||^2, number 17", function () {
+it("should make test number 17", function () {
  this.timeout(10000); 
 
   // import modules
@@ -324,8 +324,8 @@ it('should make test number 17', function () {
  
 });
 });
-describe("Gets the parameters.", function () {
-it('should make test number 18', function () {
+describe("Gets the parameters., number 18", function () {
+it("should make test number 18", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -338,8 +338,8 @@ it('should make test number 18', function () {
 	
 });
 });
-describe("Set the parameters.", function () {
-it('should make test number 19', function () {
+describe("Set the parameters., number 19", function () {
+it("should make test number 19", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -351,8 +351,8 @@ it('should make test number 19', function () {
 	
 });
 });
-describe("Fits a column matrix of feature vectors X onto the response variable y.", function () {
-it('should make test number 20', function () {
+describe("Fits a column matrix of feature vectors X onto the response variable y., number 20", function () {
+it("should make test number 20", function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -369,8 +369,8 @@ it('should make test number 20', function () {
      
 });
 });
-describe("Returns the expected response for the provided feature vector.", function () {
-it('should make test number 21', function () {
+describe("Returns the expected response for the provided feature vector., number 21", function () {
+it("should make test number 21", function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -391,8 +391,8 @@ it('should make test number 21', function () {
      
 });
 });
-describe("Returns the expected response for the provided feature vector.", function () {
-it('should make test number 22', function () {
+describe("Returns the expected response for the provided feature vector., number 22", function () {
+it("should make test number 22", function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -413,8 +413,8 @@ it('should make test number 22', function () {
      
 });
 });
-describe("Saves the model into the output stream.", function () {
-it('should make test number 23', function () {
+describe("Saves the model into the output stream., number 23", function () {
+it("should make test number 23", function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -438,8 +438,8 @@ it('should make test number 23', function () {
      
 });
 });
-describe("Sigmoid function (y = 1/[1 + exp[", function () {
-it('should make test number 24', function () {
+describe("Sigmoid function (y = 1/[1 + exp[, number 24", function () {
+it("should make test number 24", function () {
  this.timeout(10000); 
 
   // import modules
@@ -459,8 +459,8 @@ it('should make test number 24', function () {
  
 });
 });
-describe("Get the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.", function () {
-it('should make test number 25', function () {
+describe("Get the parameters. It doesn't do anything, it's only for consistency for constructing pipeline., number 25", function () {
+it("should make test number 25", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -473,8 +473,8 @@ it('should make test number 25', function () {
 	
 });
 });
-describe("Sets the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.", function () {
-it('should make test number 26', function () {
+describe("Sets the parameters. It doesn't do anything, it's only for consistency for constructing pipeline., number 26", function () {
+it("should make test number 26", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -487,8 +487,8 @@ it('should make test number 26', function () {
 	
 });
 });
-describe("Gets the model.", function () {
-it('should make test number 27', function () {
+describe("Gets the model., number 27", function () {
+it("should make test number 27", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -501,8 +501,8 @@ it('should make test number 27', function () {
 	
 });
 });
-describe("Fits a column matrix of feature vectors X onto the response variable y.", function () {
-it('should make test number 28', function () {
+describe("Fits a column matrix of feature vectors X onto the response variable y., number 28", function () {
+it("should make test number 28", function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -520,8 +520,8 @@ it('should make test number 28', function () {
      
 });
 });
-describe("Returns the expected response for the provided feature vector.", function () {
-it('should make test number 29', function () {
+describe("Returns the expected response for the provided feature vector., number 29", function () {
+it("should make test number 29", function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -540,8 +540,8 @@ it('should make test number 29', function () {
      
 });
 });
-describe("Returns the expected response for the provided feature vector.", function () {
-it('should make test number 30', function () {
+describe("Returns the expected response for the provided feature vector., number 30", function () {
+it("should make test number 30", function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -560,8 +560,8 @@ it('should make test number 30', function () {
      
 });
 });
-describe("Saves the model into the output stream.", function () {
-it('should make test number 31', function () {
+describe("Saves the model into the output stream., number 31", function () {
+it("should make test number 31", function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -585,8 +585,8 @@ it('should make test number 31', function () {
      
 });
 });
-describe("Nearest Neighbour Anomaly Detection ", function () {
-it('should make test number 32', function () {
+describe("Nearest Neighbour Anomaly Detection , number 32", function () {
+it("should make test number 32", function () {
  this.timeout(10000); 
 
   // import modules
@@ -605,8 +605,8 @@ it('should make test number 32', function () {
  
 });
 });
-describe("Sets parameters.", function () {
-it('should make test number 33', function () {
+describe("Sets parameters., number 33", function () {
+it("should make test number 33", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -618,8 +618,8 @@ it('should make test number 33', function () {
 	
 });
 });
-describe("Returns parameters.", function () {
-it('should make test number 34', function () {
+describe("Returns parameters., number 34", function () {
+it("should make test number 34", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -632,8 +632,8 @@ it('should make test number 34', function () {
 	
 });
 });
-describe("Save model to provided output stream.", function () {
-it('should make test number 35', function () {
+describe("Save model to provided output stream., number 35", function () {
+it("should make test number 35", function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -656,8 +656,8 @@ it('should make test number 35', function () {
      
 });
 });
-describe("Returns the model.", function () {
-it('should make test number 36', function () {
+describe("Returns the model., number 36", function () {
+it("should make test number 36", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -670,8 +670,8 @@ it('should make test number 36', function () {
 	
 });
 });
-describe("Adds a new point to the known points and recomputes the threshold.", function () {
-it('should make test number 37', function () {
+describe("Adds a new point to the known points and recomputes the threshold., number 37", function () {
+it("should make test number 37", function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -690,8 +690,8 @@ it('should make test number 37', function () {
 	
 });
 });
-describe("Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.", function () {
-it('should make test number 38', function () {
+describe("Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter., number 38", function () {
+it("should make test number 38", function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -706,8 +706,8 @@ it('should make test number 38', function () {
 	
 });
 });
-describe("Compares the point to the known points and returns distance to the nearest one.", function () {
-it('should make test number 39', function () {
+describe("Compares the point to the known points and returns distance to the nearest one., number 39", function () {
+it("should make test number 39", function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -726,8 +726,8 @@ it('should make test number 39', function () {
 	 
 });
 });
-describe("Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold).", function () {
-it('should make test number 40', function () {
+describe("Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold)., number 40", function () {
+it("should make test number 40", function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -746,8 +746,8 @@ it('should make test number 40', function () {
 	
 });
 });
-describe("Returns a JSON object that encodes the ID of the nearest neighbor and the features that contributed to the distance", function () {
-it('should make test number 41', function () {
+describe("Returns a JSON object that encodes the ID of the nearest neighbor and the features that contributed to the distance, number 41", function () {
+it("should make test number 41", function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -766,8 +766,8 @@ it('should make test number 41', function () {
 	
 });
 });
-describe("Recursive Linear Regression", function () {
-it('should make test number 42', function () {
+describe("Recursive Linear Regression, number 42", function () {
+it("should make test number 42", function () {
  this.timeout(10000); 
 
  // import analytics module
@@ -777,8 +777,8 @@ it('should make test number 42', function () {
 
 });
 });
-describe("Creates a partial fit of the input.", function () {
-it('should make test number 43', function () {
+describe("Creates a partial fit of the input., number 43", function () {
+it("should make test number 43", function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -793,8 +793,8 @@ it('should make test number 43', function () {
 	
 });
 });
-describe("Creates a fit of the input.", function () {
-it('should make test number 44', function () {
+describe("Creates a fit of the input., number 44", function () {
+it("should make test number 44", function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -810,8 +810,8 @@ it('should make test number 44', function () {
 	
 });
 });
-describe("Puts the vector through the model and returns the prediction as a real number.", function () {
-it('should make test number 45', function () {
+describe("Puts the vector through the model and returns the prediction as a real number., number 45", function () {
+it("should make test number 45", function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -831,8 +831,8 @@ it('should make test number 45', function () {
 	
 });
 });
-describe("Sets the parameters of the model.", function () {
-it('should make test number 46', function () {
+describe("Sets the parameters of the model., number 46", function () {
+it("should make test number 46", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -844,8 +844,8 @@ it('should make test number 46', function () {
 	
 });
 });
-describe("Returns the parameters.", function () {
-it('should make test number 47', function () {
+describe("Returns the parameters., number 47", function () {
+it("should make test number 47", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -857,8 +857,8 @@ it('should make test number 47', function () {
 	
 });
 });
-describe("Save model to provided output stream.", function () {
-it('should make test number 48', function () {
+describe("Save model to provided output stream., number 48", function () {
+it("should make test number 48", function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -882,8 +882,8 @@ it('should make test number 48', function () {
 	
 });
 });
-describe("Logistic regression model. Uses Newtons method to compute the weights.", function () {
-it('should make test number 49', function () {
+describe("Logistic regression model. Uses Newtons method to compute the weights., number 49", function () {
+it("should make test number 49", function () {
  this.timeout(10000); 
 
   // import analytics module
@@ -893,8 +893,8 @@ it('should make test number 49', function () {
  
 });
 });
-describe("Gets the parameters.", function () {
-it('should make test number 50', function () {
+describe("Gets the parameters., number 50", function () {
+it("should make test number 50", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -906,8 +906,8 @@ it('should make test number 50', function () {
 	
 });
 });
-describe("Set the parameters.", function () {
-it('should make test number 51', function () {
+describe("Set the parameters., number 51", function () {
+it("should make test number 51", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -919,8 +919,8 @@ it('should make test number 51', function () {
 	
 });
 });
-describe("Fits a column matrix of feature vectors X onto the response variable y.", function () {
-it('should make test number 52', function () {
+describe("Fits a column matrix of feature vectors X onto the response variable y., number 52", function () {
+it("should make test number 52", function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -938,8 +938,8 @@ it('should make test number 52', function () {
 	 
 });
 });
-describe("Returns the expected response for the provided feature vector.", function () {
-it('should make test number 53', function () {
+describe("Returns the expected response for the provided feature vector., number 53", function () {
+it("should make test number 53", function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -962,8 +962,8 @@ it('should make test number 53', function () {
 	 
 });
 });
-describe("Saves the model into the output stream.", function () {
-it('should make test number 54', function () {
+describe("Saves the model into the output stream., number 54", function () {
+it("should make test number 54", function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -990,8 +990,8 @@ it('should make test number 54', function () {
 	 
 });
 });
-describe("Proportional Hazards Model with a constant hazard function.", function () {
-it('should make test number 55', function () {
+describe("Proportional Hazards Model with a constant hazard function., number 55", function () {
+it("should make test number 55", function () {
  this.timeout(10000); 
 
   // import analytics module
@@ -1001,8 +1001,8 @@ it('should make test number 55', function () {
  
 });
 });
-describe("Gets the parameters of the model.", function () {
-it('should make test number 56', function () {
+describe("Gets the parameters of the model., number 56", function () {
+it("should make test number 56", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -1014,8 +1014,8 @@ it('should make test number 56', function () {
 	
 });
 });
-describe("Sets the parameters of the model.", function () {
-it('should make test number 57', function () {
+describe("Sets the parameters of the model., number 57", function () {
+it("should make test number 57", function () {
  this.timeout(10000); 
  
 	 // import analytics module
@@ -1027,8 +1027,8 @@ it('should make test number 57', function () {
 	
 });
 });
-describe("Fits a column matrix of feature vectors X onto the response variable y.", function () {
-it('should make test number 58', function () {
+describe("Fits a column matrix of feature vectors X onto the response variable y., number 58", function () {
+it("should make test number 58", function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -1046,8 +1046,8 @@ it('should make test number 58', function () {
 	 
 });
 });
-describe("Returns the expected response for the provided feature vector.", function () {
-it('should make test number 59', function () {
+describe("Returns the expected response for the provided feature vector., number 59", function () {
+it("should make test number 59", function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -1070,8 +1070,8 @@ it('should make test number 59', function () {
 	 
 });
 });
-describe("Saves the model into the output stream.", function () {
-it('should make test number 60', function () {
+describe("Saves the model into the output stream., number 60", function () {
+it("should make test number 60", function () {
  this.timeout(10000); 
 
 	  // import modules
@@ -1098,8 +1098,8 @@ it('should make test number 60', function () {
 	 
 });
 });
-describe("Get the parameters of the model.", function () {
-it('should make test number 61', function () {
+describe("Get the parameters of the model., number 61", function () {
+it("should make test number 61", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -1111,8 +1111,8 @@ it('should make test number 61', function () {
 	
 });
 });
-describe("Sets the parameters of the model.", function () {
-it('should make test number 62', function () {
+describe("Sets the parameters of the model., number 62", function () {
+it("should make test number 62", function () {
  this.timeout(10000); 
 
 	 // import analytics module
@@ -1124,8 +1124,8 @@ it('should make test number 62', function () {
 	
 });
 });
-describe("Fits the model.", function () {
-it('should make test number 63', function () {
+describe("Fits the model., number 63", function () {
+it("should make test number 63", function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -1141,8 +1141,8 @@ it('should make test number 63', function () {
 	
 });
 });
-describe("Sends the vector through the model and get the prediction.", function () {
-it('should make test number 64', function () {
+describe("Sends the vector through the model and get the prediction., number 64", function () {
+it("should make test number 64", function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -1162,8 +1162,8 @@ it('should make test number 64', function () {
 	
 });
 });
-describe("Saves the model.", function () {
-it('should make test number 65', function () {
+describe("Saves the model., number 65", function () {
+it("should make test number 65", function () {
  this.timeout(10000); 
 
 	 // import modules
@@ -1187,8 +1187,8 @@ it('should make test number 65', function () {
 	
 });
 });
-describe("Get the model.", function () {
-it('should make test number 66', function () {
+describe("Get the model., number 66", function () {
+it("should make test number 66", function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -1200,8 +1200,8 @@ it('should make test number 66', function () {
 	
 });
 });
-describe("Get the model.", function () {
-it('should make test number 67', function () {
+describe("Get the model., number 67", function () {
+it("should make test number 67", function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -1213,8 +1213,8 @@ it('should make test number 67', function () {
 	
 });
 });
-describe("Gets the model.", function () {
-it('should make test number 68', function () {
+describe("Gets the model., number 68", function () {
+it("should make test number 68", function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -1226,8 +1226,8 @@ it('should make test number 68', function () {
     
 });
 });
-describe("Gets Recursive Linear Regression model", function () {
-it('should make test number 69', function () {
+describe("Gets Recursive Linear Regression model, number 69", function () {
+it("should make test number 69", function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -1239,8 +1239,8 @@ it('should make test number 69', function () {
     
 });
 });
-describe("@classdesc One vs. all model for multiclass prediction. Builds binary model", function () {
-it('should make test number 70', function () {
+describe("@classdesc One vs. all model for multiclass prediction. Builds binary model, number 70", function () {
+it("should make test number 70", function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -1250,8 +1250,8 @@ it('should make test number 70', function () {
     
 });
 });
-describe("Gets the parameters.", function () {
-it('should make test number 71', function () {
+describe("Gets the parameters., number 71", function () {
+it("should make test number 71", function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1265,8 +1265,8 @@ it('should make test number 71', function () {
         
 });
 });
-describe("Sets the parameters.", function () {
-it('should make test number 72', function () {
+describe("Sets the parameters., number 72", function () {
+it("should make test number 72", function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1278,8 +1278,8 @@ it('should make test number 72', function () {
         
 });
 });
-describe("Apply all models to the given vector and returns a vector of scores, one for each category.", function () {
-it('should make test number 73', function () {
+describe("Apply all models to the given vector and returns a vector of scores, one for each category., number 73", function () {
+it("should make test number 73", function () {
  this.timeout(10000); 
 
           // import modules
@@ -1299,8 +1299,8 @@ it('should make test number 73', function () {
          
 });
 });
-describe("Apply all models to the given vector and returns category with the highest score.", function () {
-it('should make test number 74', function () {
+describe("Apply all models to the given vector and returns category with the highest score., number 74", function () {
+it("should make test number 74", function () {
  this.timeout(10000); 
 
           // import modules
@@ -1320,8 +1320,8 @@ it('should make test number 74', function () {
          
 });
 });
-describe("Apply all models to the given vector and returns category with the highest score.", function () {
-it('should make test number 75', function () {
+describe("Apply all models to the given vector and returns category with the highest score., number 75", function () {
+it("should make test number 75", function () {
  this.timeout(10000); 
 
           // import modules
@@ -1337,8 +1337,8 @@ it('should make test number 75', function () {
          
 });
 });
-describe("Metrics", function () {
-it('should make test number 76', function () {
+describe("Metrics, number 76", function () {
+it("should make test number 76", function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -1351,7 +1351,9 @@ it('should make test number 76', function () {
      analytics.metrics.meanAbsoluteError(true_vals, pred_vals);
     
 });
-it('should make test number 77', function () {
+});
+describe("Metrics, number 77", function () {
+it("should make test number 77", function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -1373,8 +1375,8 @@ it('should make test number 77', function () {
     
 });
 });
-describe("@classdesc KMeans clustering", function () {
-it('should make test number 78', function () {
+describe("@classdesc KMeans clustering, number 78", function () {
+it("should make test number 78", function () {
  this.timeout(10000); 
 
      // import analytics and la modules
@@ -1389,8 +1391,8 @@ it('should make test number 78', function () {
     
 });
 });
-describe("Returns the model", function () {
-it('should make test number 79', function () {
+describe("Returns the model, number 79", function () {
+it("should make test number 79", function () {
  this.timeout(10000); 
 
          // import modules
@@ -1407,8 +1409,8 @@ it('should make test number 79', function () {
         
 });
 });
-describe("Sets the parameters.", function () {
-it('should make test number 80', function () {
+describe("Sets the parameters., number 80", function () {
+it("should make test number 80", function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1420,8 +1422,8 @@ it('should make test number 80', function () {
         
 });
 });
-describe("Returns the parameters.", function () {
-it('should make test number 81', function () {
+describe("Returns the parameters., number 81", function () {
+it("should make test number 81", function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1433,8 +1435,8 @@ it('should make test number 81', function () {
         
 });
 });
-describe("Computes the centroids.", function () {
-it('should make test number 82', function () {
+describe("Computes the centroids., number 82", function () {
+it("should make test number 82", function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1448,8 +1450,8 @@ it('should make test number 82', function () {
         
 });
 });
-describe("Returns an vector of cluster id assignments.", function () {
-it('should make test number 83', function () {
+describe("Returns an vector of cluster id assignments., number 83", function () {
+it("should make test number 83", function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1467,8 +1469,8 @@ it('should make test number 83', function () {
         
 });
 });
-describe("Returns the IDs of the nearest medoid for each example.", function () {
-it('should make test number 84', function () {
+describe("Returns the IDs of the nearest medoid for each example., number 84", function () {
+it("should make test number 84", function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1488,8 +1490,8 @@ it('should make test number 84', function () {
         
 });
 });
-describe("Transforms the points to vectors of squared distances to centroids.", function () {
-it('should make test number 85', function () {
+describe("Transforms the points to vectors of squared distances to centroids., number 85", function () {
+it("should make test number 85", function () {
  this.timeout(10000); 
 
          // import modules

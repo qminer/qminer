@@ -17,9 +17,9 @@ for (var i = 0; i < fileNames.length; i++) {
 }
 
 // constructs the it('should something', function () { ... }) test
-var constructIt = function (str, i) {
-    var test = "it('should make test number " + i + "', function () {\n this.timeout(10000); \n";
-    test += str + "\n});\n";
+var constructIt = function (describe, str, i) {
+    var test = 'describe("'+ describe + ', number ' + i +'", function () {\nit("should make test number ' + i + '", function () {\n this.timeout(10000); \n';
+    test += str + "\n});\n});\n";
     return test;
 }
 
@@ -64,8 +64,6 @@ for (var i = 0; i < JSFiles.length; i++) {
         // if it has the example
         var exampleIdx = str.indexOf('@example');
         if (exampleIdx != -1) {
-            // write the description
-            fout.write('describe("' + describe + '", function () {\n');
             // create the it block/test
 			str = str.slice(exampleIdx);
 			examples = str.split('@example');
@@ -80,15 +78,12 @@ for (var i = 0; i < JSFiles.length; i++) {
 				example = example.replace(/(\*)/g, '');
 				if (example.indexOf('*/') != -1) { example = example.slice(0, example.length - 2);}
 				else { example = example.slice(0, example.length - 1); }
-				fout.write(constructIt(example, count));
+				fout.write(constructIt(describe, example, count));
 			}
             // str = str.slice(exampleIdx);
             // str = str.replace(/(\*)/g, '');
             // str = str.slice(8, str.length - 2);
             // fout.write(constructIt(str, count));
-            
-			// end the description block
-            fout.write("});\n");
         }
     }
     fout.write("\n});\n");
