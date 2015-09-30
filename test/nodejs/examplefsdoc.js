@@ -1,6 +1,6 @@
 describe('example tests for the fsdoc.js file', function () {
-describe("File-system module.", function () {
-it('should make test number 1', function () {
+describe("File-system module., number 1", function () {
+it("should make test number 1", function () {
  this.timeout(10000); 
 
  // import module
@@ -17,8 +17,8 @@ it('should make test number 1', function () {
 
 });
 });
-describe("Input file stream.", function () {
-it('should make test number 2', function () {
+describe("Input file stream., number 2", function () {
+it("should make test number 2", function () {
  this.timeout(10000); 
 
 	 // import module
@@ -30,8 +30,8 @@ it('should make test number 2', function () {
 	
 });
 });
-describe("Output file stream.", function () {
-it('should make test number 3', function () {
+describe("Output file stream., number 3", function () {
+it("should make test number 3", function () {
  this.timeout(10000); 
 
 	 // import module

@@ -46,8 +46,8 @@ datasets.loadIris(base, function (err, store) {
     if (err) throw err;
     console.log(&quot;\nSucessfully loaded database: &quot; + store.name)
     console.log(JSON.stringify(store.first, null, 2));
-});
-base.close();</code></pre>
+    base.close();
+});</code></pre>
               </div>
               <div>
                 <p>Synchronous loading</p>

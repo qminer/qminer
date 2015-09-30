@@ -46,8 +46,8 @@
     *     if (err) throw err;
     *     console.log(&quot;\nSucessfully loaded database: &quot; + store.name)
     *     console.log(JSON.stringify(store.first, null, 2));
+    *     base.close();
     * });
-    * base.close();
     * 
     * @example &amp;lt;caption&gt;Synchronous loading&amp;lt;/caption&gt;
     * var qm = require(&#x27;qminer&#x27;);
