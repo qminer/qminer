@@ -29,6 +29,41 @@
             <div class="symbol-description">
               <p>Datasets module includes some standard toy datasets. In addition, this module also includes various random sample generators that can be used to build artificial datasets of controlled size and complexity.</p>
             </div>
+            <section>
+              <h2>
+            Examples
+        </h2>
+              <div>
+                <p>Asynchronous loading</p>
+                <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+var datasets = qm.datasets;
+
+// Create clean base
+var base = new qm.Base({ mode: &#x27;createClean&#x27; });
+
+// Load Iris dataset in async way
+datasets.loadIris(base, function (err, store) {
+    if (err) throw err;
+    console.log(&quot;\nSucessfully loaded database: &quot; + store.name)
+    console.log(JSON.stringify(store.first, null, 2));
+    base.close();
+});</code></pre>
+              </div>
+              <div>
+                <p>Synchronous loading</p>
+                <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+var datasets = qm.datasets;
+
+// Create clean base
+var base = new qm.Base({ mode: &#x27;createClean&#x27; });
+
+// Load Iris in sync way.
+var Iris = datasets.loadIrisSync(base);
+console.log(&quot;\nSucessfully loaded database: &quot; + Iris.name)
+console.log(JSON.stringify(Iris.first, null, 2));
+base.close();</code></pre>
+              </div>
+            </section>
             <dl class="dl-compact">
             </dl>
           </header>

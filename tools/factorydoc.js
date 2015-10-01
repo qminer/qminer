@@ -12,9 +12,7 @@ if (htmlfile != '') {
 }
 
 // replace the namespace into factory class
-htmlstr = htmlstr.replace('Namespaces', 'Factory classes');
-htmlstr = htmlstr.replace('Namespace', 'Factory class');
-htmlstr = htmlstr.replace('namespace', 'factory class');
+htmlstr = htmlstr.replace('new&nbsp;', '');
 
 // write the new html
 var fout = fs.createWriteStream(htmlfile);

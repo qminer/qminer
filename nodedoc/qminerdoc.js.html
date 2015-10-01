@@ -419,12 +419,12 @@
  exports.Base.prototype.getStreamAggrNames = function () { return [&quot;&quot;]; }
 /**
 * Store (factory pattern result) 
-* @namespace
-* @example
+* @class
+* @example &amp;lt;caption&gt;Creating a store with createStore function&amp;lt;/caption&gt;
 * // import qm module
 * var qm = require(&#x27;qminer&#x27;);
 * // factory based construction using base.createStore
-* var base = qm.create(&#x27;qm.conf&#x27;, &quot;&quot;, true);
+* var base = new qm.Base({ mode: &#x27;createClean&#x27; });
 * base.createStore([{
 *    name: &quot;People&quot;,
 *    fields: [
@@ -461,6 +461,9 @@
 *    ]
 * }]);
 * base.close();
+* @example &amp;lt;caption&gt;Creating store with schema in base constructor&amp;lt;/caption&gt;
+* // import qm module
+* var qm = require(&#x27;qminer&#x27;);
 * // using the base constructor
 * var base = new qm.Base({
 *    mode: &quot;createClean&quot;,
@@ -1025,7 +1028,7 @@
  exports.Store.prototype.base = Object.create(require(&#x27;qminer&#x27;).Base.prototype);
 /**
 * Record (factory pattern). The records are used for storing data in {@link module:qm.Store}.
-* @namespace
+* @class
 */
  exports.Record = function () {}; 
 /**
@@ -1122,7 +1125,7 @@
  exports.Record.prototype.store = Object.create(&#x27;qminer&#x27;).Store.prototype;
 /**
 * Record Set (factory pattern). The Record Set is a set of records.
-* @namespace
+* @class
 */
  exports.RecordSet = function () {}
 /**
@@ -1908,7 +1911,7 @@
  exports.RecordSet.prototype.weighted = true;
 /**
 * Store Iterator (factory pattern)
-* @namespace
+* @class
 * @example
 * // import qm module
 * qm = require(&#x27;qminer&#x27;);
@@ -3328,13 +3331,13 @@
                                 <nav id="jsdoc-toc-nav" role="navigation"></nav>
                         </div>
                 </div>
-                <footer id="jsdoc-footer" class="jsdoc-footer">
-                        <div id="jsdoc-footer-container">
-                                <p>
-                                  
-                                </p>
-                        </div>
-                </footer>
+                    <footer id="jsdoc-footer" class="jsdoc-footer">
+                            <div id="jsdoc-footer-container">
+                                    <p>
+                                      
+                                    </p>
+                            </div>
+                    </footer>
                 <script src="scripts/jquery.min.js"></script>
                 <script src="scripts/jquery.cookie.js"></script>
                 <script src="scripts/tree.jquery.js"></script>
