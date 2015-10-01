@@ -2334,28 +2334,54 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
             JsRecSet->RecSet->FilterByFieldStrMinMax(FieldId, StrValMin, StrValMax);
         }
 	}
-	else if (Desc.IsFlt()) {
-		const double MnVal = TNodeJsUtil::GetArgFlt(Args, 1);
-		const double MxVal = TNodeJsUtil::GetArgFlt(Args, 2);
+    else if (Desc.IsFlt()) {
+        double MnVal = TFlt::Mn;
+        double MxVal = TFlt::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = TNodeJsUtil::GetArgFlt(Args, 1);
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = TNodeJsUtil::GetArgFlt(Args, 2);
+        }
 		JsRecSet->RecSet->FilterByFieldFlt(FieldId, MnVal, MxVal);
-	} else if (Desc.IsUInt64()) {
-		const uint64 MnVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 1));
-		const uint64 MxVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2));
+    } else if (Desc.IsUInt64()) {
+        uint64 MnVal = TUInt64::Mn;
+        uint64 MxVal = TUInt64::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 1));
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2));
+        }
+		//const uint64 MnVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 1));
+		//const uint64 MxVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2));
 		JsRecSet->RecSet->FilterByFieldTm(FieldId, MnVal, MxVal);
 	}
-	else if (Desc.IsTm()) {
-		const TStr MnTmStr = TNodeJsUtil::GetArgStr(Args, 1);
-		const uint64 MnTmMSecs = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(MnTmStr, '-', ':', '.', 'T'));
+    else if (Desc.IsTm()) {
+        uint64 MnTmMSecs = TUInt64::Mn;
+        uint64 MxTmMSecs = TUInt64::Mx;
+            
+        if (TNodeJsUtil::IsArgNull(Args, 1)) {
+            // nothing, default value is ok
+        } else if (TNodeJsUtil::IsArgStr(Args, 1)) {
+            const TStr MnTmStr = TNodeJsUtil::GetArgStr(Args, 1);
+            MnTmMSecs = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(MnTmStr, '-', ':', '.', 'T'));
+        } else if (TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnTmMSecs = TTm::GetWinMSecsFromUnixMSecs(static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 1)));
+        }
+
 		if (Args.Length() >= 3) {
 			// we have upper limit
-			const TStr MxTmStr = TNodeJsUtil::GetArgStr(Args, 2);
-			const uint64 MxTmMSecs = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(MxTmStr, '-', ':', '.', 'T'));
-			JsRecSet->RecSet->FilterByFieldTm(FieldId, MnTmMSecs, MxTmMSecs);
+            if (TNodeJsUtil::IsArgNull(Args, 2)) {
+                // nothing, default value is ok
+            } else if (TNodeJsUtil::IsArgStr(Args, 2)) {
+                const TStr MxTmStr = TNodeJsUtil::GetArgStr(Args, 2);
+                MxTmMSecs = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(MxTmStr, '-', ':', '.', 'T'));
+            } else if (TNodeJsUtil::IsArgFlt(Args, 2)) {
+                MxTmMSecs = TTm::GetWinMSecsFromUnixMSecs(static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2)));
+            }			
 		}
-		else {
-			// we do not have upper limit
-			JsRecSet->RecSet->FilterByFieldTm(FieldId, MnTmMSecs, TUInt64::Mx);
-		}
+        JsRecSet->RecSet->FilterByFieldTm(FieldId, MnTmMSecs, MxTmMSecs);
 	}
 	else {
 		throw TQm::TQmExcept::New("Unsupported filed type for record set filtering: " + Desc.GetFieldTypeStr());
