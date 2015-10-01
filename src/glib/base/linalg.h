@@ -1889,16 +1889,17 @@ public:
 	// y := A * x
 	template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TType, TSizeTy>& x, TVec<TType, TSizeTy>& y) {
+		if (y.Empty()) { y.Gen(A.GetRows()); }
+		EAssert(A.GetCols() == x.Len() && A.GetRows() == y.Len());
 #ifdef BLAS
 		TLinAlg::Multiply(A, x, y, TLinAlgBlasTranspose::NOTRANS, 1.0, 0.0);
 #else
-		if (y.Empty()) y.Gen(A.GetRows());
-		EAssert(A.GetCols() == x.Len() && A.GetRows() == y.Len());
 		int n = A.GetRows(), m = A.GetCols();
 		for (int i = 0; i < n; i++) {
 			y[i] = 0.0;
-			for (int j = 0; j < m; j++)
+			for (int j = 0; j < m; j++) {
 				y[i] += A(i, j) * x[j];
+            }
 		}
 #endif
 	}
@@ -2300,7 +2301,6 @@ public:
 #ifdef BLAS
 		TLinAlg::Multiply(A, B, C, TLinAlgBlasTranspose::NOTRANS, TLinAlgBlasTranspose::NOTRANS);
 #else
-		EAssert(A.GetRows() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetCols() == B.GetRows());
 		TSizeTy n = C.GetRows(), m = C.GetCols(), l = A.GetCols();
 		for (TSizeTy i = 0; i < n; i++) {
 			for (TSizeTy j = 0; j < m; j++) {

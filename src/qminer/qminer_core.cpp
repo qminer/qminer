@@ -4589,9 +4589,7 @@ TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal) :
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TWPt<TStreamAggrBase> _SABase, TSIn& SIn) :
 	Base(_Base), AggrNm(SIn), Guid(SIn) {}
 
-PStreamAggr TStreamAggr::New(const TWPt<TBase>& Base,
-	const TStr& TypeNm, const PJsonVal& ParamVal) {
-
+PStreamAggr TStreamAggr::New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal) {
 	return NewRouter.Fun(TypeNm)(Base, ParamVal);
 }
 

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -20,12 +20,12 @@ void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
 	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "StreamAggr"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-	// Add all methods, getters and setters here.   
+	// Add all methods, getters and setters here.
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onAdd", _onAdd);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onUpdate", _onUpdate);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onDelete", _onDelete);
@@ -47,7 +47,7 @@ void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getOutTimestampVector", _getOutTimestampVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getNumberOfRecords", _getNumberOfRecords);
 
-	// Properties 
+	// Properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "name"), _name);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "val"), _val);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
@@ -74,8 +74,9 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	if (Args.Length() == 0) { return; } // 
-	EAssertR(!constructor.IsEmpty(), "TNodeJsSA::New: constructor is empty. Did you call TNodeJsSA::Init(exports); in this module's init function?");
+	if (Args.Length() == 0) { return; } //
+	EAssertR(!constructor.IsEmpty(), "TNodeJsSA::New: constructor is empty."
+        "Did you call TNodeJsSA::Init(exports); in this module's init function?");
 
 	QmAssertR(Args.Length() <= 3 && Args.Length() >= 2, "stream aggregator constructor expects at least two parameters");
 	QmAssertR(Args[0]->IsObject() && Args[1]->IsObject(), "stream aggregator constructor expects first two arguments as objects");
@@ -99,7 +100,8 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		}
 		else if (TypeNm == "ftrext") {
 			TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", "");
-			QmAssertR(Args[1]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, "featureSpace")), "addStreamAggr: featureSpace property missing!");
+			QmAssertR(Args[1]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, "featureSpace")),
+                "addStreamAggr: featureSpace property missing!");
 			// we need a name, if not give just generate one
 			if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
 			throw TQm::TQmExcept::New("ftrext stream aggr not implemented yet! (needs feature space implementation)");
@@ -274,7 +276,7 @@ void TNodeJsSA::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSA::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-    
+
 	// unwrap
 	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
     TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
@@ -582,19 +584,19 @@ TNodeJsStreamAggr::TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm
 		QmAssert(_GetInt->IsFunction());
 		GetIntFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInt));
 	}
-	// IFlt 
+	// IFlt
 	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFlt"))) {
 		v8::Handle<v8::Value> _GetFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFlt"));
 		QmAssert(_GetFlt->IsFunction());
 		GetFltFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFlt));
 	}
-	// ITm 
+	// ITm
 	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getTm"))) {
 		v8::Handle<v8::Value> _GetTm = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getTm"));
 		QmAssert(_GetTm->IsFunction());
 		GetTmMSecsFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetTm));
 	}
-	// IFltTmIO 
+	// IFltTmIO
 	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInFlt"))) {
 		v8::Handle<v8::Value> _GetInFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInFlt"));
 		QmAssert(_GetInFlt->IsFunction());
@@ -647,7 +649,7 @@ TNodeJsStreamAggr::TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm
 		QmAssert(_GetFltV->IsFunction());
 		GetFltVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFltV));
 	}
-	// INmFlt 
+	// INmFlt
 	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "isNmFlt"))) {
 		v8::Handle<v8::Value> _IsNmFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "isNmFlt"));
 		QmAssert(_IsNmFlt->IsFunction());
@@ -689,11 +691,11 @@ TNodeJsStreamAggr::~TNodeJsStreamAggr() {
 	SaveJsonFun.Reset();
 
 	GetIntFun.Reset();
-	// IFlt 
+	// IFlt
 	GetFltFun.Reset();
-	// ITm 
+	// ITm
 	GetTmMSecsFun.Reset();
-	// IFltTmIO 
+	// IFltTmIO
 	GetInFltFun.Reset();
 	GetInTmMSecsFun.Reset();
 	GetOutFltVFun.Reset();
@@ -709,7 +711,7 @@ TNodeJsStreamAggr::~TNodeJsStreamAggr() {
 	GetTmLenFun.Reset();
 	GetTmAtFun.Reset();
 	GetTmVFun.Reset();
-	// INmFlt 
+	// INmFlt
 	IsNmFltFun.Reset();
 	GetNmFltFun.Reset();
 	GetNmFltVFun.Reset();
@@ -790,7 +792,7 @@ PJsonVal TNodeJsStreamAggr::SaveJson(const int& Limit) const {
 		v8::TryCatch TryCatch;
 		v8::Local<v8::Value> ReturnVal = Callback->Call(GlobalContext, Argc, ArgV);
 		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();	
+			TryCatch.ReThrow();
 			return TJsonVal::NewObj();
 		}
 		QmAssertR(ReturnVal->IsObject(), "Stream aggr JS callback: saveJson didn't return an object.");
@@ -830,7 +832,7 @@ int TNodeJsStreamAggr::GetInt() const {
 		if (TryCatch.HasCaught()) {
 			TryCatch.ReThrow();
 			return 0;
-		}		
+		}
 		QmAssertR(RetVal->IsInt32(), "TNodeJsStreamAggr, name: " + GetAggrNm() + ", getInt(): Return type expected to be int32");
 		return RetVal->Int32Value();
 	}
@@ -838,7 +840,7 @@ int TNodeJsStreamAggr::GetInt() const {
 		throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", getInt() callback is empty!");
 	}
 }
-// IFlt 
+// IFlt
 double TNodeJsStreamAggr::GetFlt() const {
 	if (!GetFltFun.IsEmpty()) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -851,7 +853,7 @@ double TNodeJsStreamAggr::GetFlt() const {
 		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
 		if (TryCatch.HasCaught()) {
 			TryCatch.ReThrow();
-			return 0.0;			
+			return 0.0;
 		}
 		QmAssertR(RetVal->IsNumber(), "TNodeJsStreamAggr, name: " + GetAggrNm() + ", getFlt(): Return type expected to be int32");
 		return RetVal->NumberValue();
@@ -860,7 +862,7 @@ double TNodeJsStreamAggr::GetFlt() const {
 		throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", getFlt() callback is empty!");
 	}
 }
-// ITm 
+// ITm
 uint64 TNodeJsStreamAggr::GetTmMSecs() const {
 	if (!GetTmMSecsFun.IsEmpty()) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -882,7 +884,7 @@ uint64 TNodeJsStreamAggr::GetTmMSecs() const {
 		throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", getTm() callback is empty!");
 	}
 }
-// IFltTmIO 
+// IFltTmIO
 double TNodeJsStreamAggr::GetInFlt() const {
 	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetInFlt not implemented");
 }
@@ -925,7 +927,7 @@ uint64 TNodeJsStreamAggr::GetTm(const TInt& ElN) const {
 void TNodeJsStreamAggr::GetTmV(TUInt64V& TmMSecsV) const {
 	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetTmV not implemented");
 }
-// INmFlt 
+// INmFlt
 bool TNodeJsStreamAggr::IsNmFlt(const TStr& Nm) const {
 	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", IsNmFlt not implemented");
 }

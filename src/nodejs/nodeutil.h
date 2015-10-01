@@ -146,6 +146,8 @@ public:
     /// Check if argument ArgN belongs to a given class
     template <class TClass>
     static bool IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+    /// Check if argument ArgN is null
+    static bool IsArgNull(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN of type v8::Function
     static bool IsArgFun(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN of type v8::Object

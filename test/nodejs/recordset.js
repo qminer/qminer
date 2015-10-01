@@ -55,6 +55,13 @@ function TStore() {
             { "name": "Player", "type": "string", "primary": true },
             { "name": "Score", "type": "float_v" }
         ]
+    },
+    {
+        "name": "TestStore",
+        "fields": [
+            { "name": "Name", "type": "string", "primary": true },
+            { "name": "Tm", "type": "datetime" }
+        ]
     }]);
     // adding two persons
     this.base.store("People").push({ "Name": "Carolina Fortuna", "Gender": "Female", $fq: 5 });
@@ -72,6 +79,10 @@ function TStore() {
     this.base.store("Basketball").push({ "Player": "Michael Jordan", "Score": [90, 100, 95] });
     this.base.store("Basketball").push({ "Player": "Marko Milic", "Score": [50, 10, 10, 12] });
 
+    this.base.store("TestStore").push({ "Name": "Goran Dragic", "Tm": "2015-06-01T00:00:00" });
+	this.base.store("TestStore").push({ "Name": "Michael Jordan", "Tm": "2015-06-01T00:00:01" });
+	this.base.store("TestStore").push({ "Name": "Marko Milic", "Tm": "2015-06-01T00:00:05" });
+	
     this.close = function () {
         this.base.close();
     }
@@ -83,7 +94,7 @@ function TStore() {
 describe('Record Set Tests', function () {
 
     var table;
-    var recSet, recSet2, recSet3, recSet4;
+    var recSet, recSet2, recSet3, recSet4, recSet5;
     beforeEach(function (done) {
     	this.timeout(5000);
         table = new TStore();
@@ -91,6 +102,7 @@ describe('Record Set Tests', function () {
         recSet2 = table.base.store("People").allRecords;
         recSet3 = table.base.store("Basketball").allRecords;
         recSet4 = table.base.store("Movies").recordByName("Every Day").RatedBy;
+		recSet5 = table.base.store("TestStore").allRecords;
         done();
     });
     afterEach(function (done) {
@@ -406,10 +418,33 @@ describe('Record Set Tests', function () {
                 recSet2.filterByField("Name", 100, 120);
             })
         })
-        it('should throw an exception, if a parameter is missing', function () {
-            assert.throws(function () {
-                recSet.filterByField("Rating", 5.5);
-            })
+        it('should handle request if the second parameter is missing - float', function () {
+            recSet.filterByField("Rating", 5.5);
+            assert.equal(recSet.length, 2);
+        })
+        it('should handle request if the second parameter is null - float', function () {
+            recSet.filterByField("Rating", 5.5, null);
+            assert.equal(recSet.length, 2);
+        })
+        it('should handle request if the first parameter is null - float', function () {
+            recSet.filterByField("Rating", null, 5.5);
+            assert.equal(recSet.length, 0);
+        })
+        it('should handle request - datetime', function () {
+            recSet5.filterByField("Tm", "2015-06-01T00:00:01", "2015-06-01T00:00:02");
+            assert.equal(recSet5.length, 1);
+        })
+        it('should handle request if the second parameter is missing - datetime', function () {
+            recSet5.filterByField("Tm", "2015-06-01T00:00:01");
+            assert.equal(recSet5.length, 2);
+        })
+        it('should handle request if the second parameter is null - datetime', function () {
+            recSet5.filterByField("Tm", "2015-06-01T00:00:01", null);
+            assert.equal(recSet5.length, 2);
+        })
+        it('should handle request if the first parameter is null - datetime', function () {
+            recSet5.filterByField("Tm", null, "2015-06-01T00:00:01");
+            assert.equal(recSet5.length, 2);
         })
         it('should throw an exception, if the field is not given', function () {
             assert.throws(function () {

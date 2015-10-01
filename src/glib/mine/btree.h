@@ -943,7 +943,7 @@ public:
 		Assert(nodeId >= 0); Assert(nodeId < nodes.Len());
 		Assert(! nodes[nodeId].Empty());
 //		TNodeWrapper &w = *nodes[nodeId];
-		Assert(*nodes[nodeId] == &w.node);
+//		Assert(*nodes[nodeId] == &w.node);
 	}
 
 	void Clr() {

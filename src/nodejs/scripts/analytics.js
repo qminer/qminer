@@ -1057,17 +1057,18 @@ module.exports = exports = function (pathPrefix) {
             return la.findMaxIdx(D);
         }
 
-
         /**
         * @typedef KMeansExplanation
-        * @type Object
-        * @property {module:la.IntVector} medoidIDs The IDs of the nearest medoids
+        * @type {Object}
+        * @property {number} medoidID - The ID of the nearest medoids
+        * @property {module:la.IntVector} featureIDs - The IDs of features, sorted by contribution
+        * @property {module:la.Vector} featureContributions - Weights of each feature contribution (sum to 1.0)
         */
 
         /**
         * Returns the IDs of the nearest medoid for each example.
         * @param {(module:la.Matrix | module:la.SparseMatrix)} X - Matrix whose columns correspond to examples.
-        * @returns {KMeansExplanation} Object containing the vector of medoid IDs.
+        * @returns {Array.<KMeansExplanation>} Object containing the vector of medoid IDs.
         * @example
         * // import analytics module
         * var analytics = require('qminer').analytics;
@@ -1078,7 +1079,7 @@ module.exports = exports = function (pathPrefix) {
         * // create a matrix to be fitted
         * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
         * // create the model with the matrix X using the column IDs [0,1,2]
-        * KMeans.fit(X, [0,1,2]);
+        * KMeans.fit(X, [1234,1142,2355]);
         * // create the matrix of the prediction vectors
         * var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
         * // predict/explain - return the closest medoids
@@ -1094,11 +1095,35 @@ module.exports = exports = function (pathPrefix) {
             var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
             var centroids = la.findMaxIdx(D);
             var medoidIDs = new la.IntVector(centroids);
-            assert(medoids.length == k)
+            assert(medoids.length == k);
+            var result = [];
             for (var i = 0; i < centroids.length; i++) {
-                medoidIDs[i] = medoids[centroids[i]];
+                var explanation = featureContrib(X.getCol(i), C.getCol(centroids[i]));
+                result[i] = {
+                    medoidID: medoids[centroids[i]],
+                    featureIDs: explanation.featureIDs,
+                    featureContributions: explanation.featureContributions
+                }                
             }
-            return { medoidIDs: medoidIDs};
+            return result;
+        }
+                
+        /**
+        * Returns the weights and feature IDs that contributed to the distance between two vectors
+        * @param {(module:la.Vector | module:la.SparseVector)} x - Vector
+        * @param {(module:la.Vector | module:la.SparseVector)} y - Vector
+        * @returns {Object} Feature IDs and feature contributions
+        **/
+        function featureContrib(x, y) {
+            var fx = x.constructor.name == 'SparseVector' ? x.full() : x;
+            var fy = y.constructor.name == 'SparseVector' ? y.full() : y;
+            var diff = fx.minus(fy);
+            var nor2 = Math.pow(diff.norm(), 2);
+            for (var i = 0; i < diff.length; i++) {
+                diff[i] = Math.pow(diff[i], 2) / nor2;
+            }
+            var sorted = diff.sortPerm(false); // sort descending
+            return { featureIDs: sorted.perm, featureContributions: sorted.vec };
         }
 
         /**

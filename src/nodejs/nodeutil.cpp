@@ -169,6 +169,16 @@ bool TNodeJsUtil::IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, 
     return ClassStr.EqI(ClassNm);
 }
 
+bool TNodeJsUtil::IsArgNull(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN).CStr());
+
+    v8::Handle<v8::Value> Val = Args[ArgN];
+    return Val->IsNull();
+}
+
 bool TNodeJsUtil::IsArgFun(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);

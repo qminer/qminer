@@ -106,13 +106,16 @@
                     <dt><a href="module-analytics.html#~logisticRegParam">logisticRegParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~nnetParams">nnetParams</a></dt>
+                    <dt><a href="module-analytics.html#~NearestNeighborADExplain">NearestNeighborADExplain</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~nnetParams">nnetParams</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~oneVsAllParam">oneVsAllParam</a></dt>
                     <dd>
                     </dd>
@@ -125,13 +128,13 @@
                     <dt><a href="module-analytics.html#~ridgeRegModel">ridgeRegModel</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~ridgeRegParam">ridgeRegParam</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~ridgeRegParam">ridgeRegParam</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~svcParam">svcParam</a></dt>
                     <dd>
                     </dd>
@@ -256,7 +259,7 @@
 
             &nbsp;Object</small></h3>
               <section>
-                <h4>Property</h4>
+                <h4>Properties</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -269,7 +272,21 @@
                   <tbody>
                     <tr>
                       <td>
-                        <p>medoidIDs</p>
+                        <p>medoidID</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The ID of the nearest medoids</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>featureIDs</p>
                       </td>
                       <td>
                         <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
@@ -278,7 +295,21 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The IDs of the nearest medoids</p>
+                        <p>The IDs of features, sorted by contribution</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>featureContributions</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Weights of each feature contribution (sum to 1.0)</p>
                       </td>
                     </tr>
                   </tbody>
@@ -330,6 +361,69 @@
                       <td>
                         <p>Indicates wether to automatically include the intercept.</p>
                         <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~NearestNeighborADExplain"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">NearestNeighborADExplain</span><small class="property-type">
+
+            &nbsp;Object</small></h3>
+              <p>A Json object used for interpreting the predictions of <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a>.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>nearestID</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The ID of the nearest neighbor</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>featureIDs</p>
+                      </td>
+                      <td>
+                        <p>Array of number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>the IDs of the features that contributed to the distance score</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>featureContributions</p>
+                      </td>
+                      <td>
+                        <p>Array of number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>fractions of the contributions of each feature to the total distance (the scores sum to 1.0). The elements correspond to features in the array <code>featureIDs</code></p>
                       </td>
                     </tr>
                   </tbody>
