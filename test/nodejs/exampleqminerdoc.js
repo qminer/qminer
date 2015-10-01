@@ -250,7 +250,7 @@ it("should make test number 9", function () {
 	
 });
 });
-describe("Store (factory pattern result) , number 10", function () {
+describe("Stores are containers of records. , number 10", function () {
 it("should make test number 10", function () {
  this.timeout(10000); 
 
@@ -297,7 +297,7 @@ it("should make test number 10", function () {
 
 });
 });
-describe("Store (factory pattern result) , number 11", function () {
+describe("Stores are containers of records. , number 11", function () {
 it("should make test number 11", function () {
  this.timeout(10000); 
 
@@ -1578,7 +1578,7 @@ it("should make test number 52", function () {
 	
 });
 });
-describe("Store Iterator (factory pattern), number 53", function () {
+describe("Store Iterators allows you to iterate through the records in the store., number 53", function () {
 it("should make test number 53", function () {
  this.timeout(10000); 
 

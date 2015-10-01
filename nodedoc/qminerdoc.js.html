@@ -418,7 +418,10 @@
 	*/
  exports.Base.prototype.getStreamAggrNames = function () { return [&quot;&quot;]; }
 /**
-* Store (factory pattern result) 
+* Stores are containers of records. 
+* &amp;lt;b&gt;Factory pattern:&amp;lt;/b&gt; this class cannot be construced using the new keyword. This class is constructed when 
+* calling a specific method or attribute, e.g. constructing the {@link module:qm.Base} using schema or with the 
+* {@link module:qm.Base#createStore}.
 * @class
 * @example &amp;lt;caption&gt;Creating a store with createStore function&amp;lt;/caption&gt;
 * // import qm module
@@ -1027,7 +1030,11 @@
 	*/
  exports.Store.prototype.base = Object.create(require(&#x27;qminer&#x27;).Base.prototype);
 /**
-* Record (factory pattern). The records are used for storing data in {@link module:qm.Store}.
+* Records are used for storing data 
+* in {@link module:qm.Store}.
+* &amp;lt;b&gt;Factory pattern&amp;lt;/b&gt;: this class cannot be construced using the new keyword. This class is constructed
+* when calling a specific method or attribute, e.g. using {@link module:qm.Store#push} to create a new record in 
+* the store or {@link module:qm.Store#newRecord} to create a new record, that is not saved in the store.
 * @class
 */
  exports.Record = function () {}; 
@@ -1124,7 +1131,10 @@
 	*/
  exports.Record.prototype.store = Object.create(&#x27;qminer&#x27;).Store.prototype;
 /**
-* Record Set (factory pattern). The Record Set is a set of records.
+* Record Set is a set of records.
+* &amp;lt;b&gt;Factory pattern&amp;lt;/b&gt;: this class cannot be construced using the new keyword. This class is constructed
+* when calling a specific method or attribute, e.g. using {@link module:qm.Store#allRecords} to get all the records
+* in the store as a record set.
 * @class
 */
  exports.RecordSet = function () {}
@@ -1910,7 +1920,9 @@
 	*/
  exports.RecordSet.prototype.weighted = true;
 /**
-* Store Iterator (factory pattern)
+* Store Iterators allows you to iterate through the records in the store.
+* &amp;lt;b&gt;Factory pattern&amp;lt;/b&gt;: this class cannot be construced using the new keyword. It is constructed by calling
+* a specific method or attribute, e.g. calling {@link module:qm.Store#forwardIter} to construct the Iterator.
 * @class
 * @example
 * // import qm module

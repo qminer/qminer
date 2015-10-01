@@ -388,7 +388,10 @@
 	*/
  exports.Base.prototype.getStreamAggrNames = function () { return [""]; }
 /**
-* Store (factory pattern result) 
+* Stores are containers of records. 
+* <b>Factory pattern:</b> this class cannot be construced using the new keyword. This class is constructed when 
+* calling a specific method or attribute, e.g. constructing the {@link module:qm.Base} using schema or with the 
+* {@link module:qm.Base#createStore}.
 * @class
 * @example <caption>Creating a store with createStore function</caption>
 * // import qm module
@@ -997,7 +1000,11 @@
 	*/
  exports.Store.prototype.base = Object.create(require('qminer').Base.prototype);
 /**
-* Record (factory pattern). The records are used for storing data in {@link module:qm.Store}.
+* Records are used for storing data 
+* in {@link module:qm.Store}.
+* <b>Factory pattern</b>: this class cannot be construced using the new keyword. This class is constructed
+* when calling a specific method or attribute, e.g. using {@link module:qm.Store#push} to create a new record in 
+* the store or {@link module:qm.Store#newRecord} to create a new record, that is not saved in the store.
 * @class
 */
  exports.Record = function () {}; 
@@ -1094,7 +1101,10 @@
 	*/
  exports.Record.prototype.store = Object.create('qminer').Store.prototype;
 /**
-* Record Set (factory pattern). The Record Set is a set of records.
+* Record Set is a set of records.
+* <b>Factory pattern</b>: this class cannot be construced using the new keyword. This class is constructed
+* when calling a specific method or attribute, e.g. using {@link module:qm.Store#allRecords} to get all the records
+* in the store as a record set.
 * @class
 */
  exports.RecordSet = function () {}
@@ -1880,7 +1890,9 @@
 	*/
  exports.RecordSet.prototype.weighted = true;
 /**
-* Store Iterator (factory pattern)
+* Store Iterators allows you to iterate through the records in the store.
+* <b>Factory pattern</b>: this class cannot be construced using the new keyword. It is constructed by calling
+* a specific method or attribute, e.g. calling {@link module:qm.Store#forwardIter} to construct the Iterator.
 * @class
 * @example
 * // import qm module
