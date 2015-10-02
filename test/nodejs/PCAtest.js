@@ -28,7 +28,7 @@ describe("PCA test", function () {
         it("should return default values of parameters", function () {
             var pca = new analytics.PCA();
             var params = pca.getParams();
-            assert.equal(params.iter, undefined);
+            assert.equal(params.iter, 100);
             assert.equal(params.k, undefined);
         });
         it("should return values of parameters", function () {
@@ -41,7 +41,7 @@ describe("PCA test", function () {
             var pca = new analytics.PCA({iter: 30, alpha: 3});
             var params = pca.getParams();
             assert.equal(params.iter, 30);
-            assert.equal(params.alpha, 3);
+            assert.equal(params.alpha, undefined);
         });
         it("should return empty model parameters", function () {
             var pca = new analytics.PCA();
@@ -82,19 +82,136 @@ describe("PCA test", function () {
                 pca.fit(matrix);
             });
         });
-        it.skip("should return the model parameters after using fit", function () {
+        it("should return the model parameters after using fit", function () {
             var pca = new analytics.PCA();
             var matrix = new la.Matrix([[0, 1], [-1, 0]]);
             pca.fit(matrix);
             var model = pca.getModel();
             assert.eqtol(model.lambda[0], 1);
             assert.eqtol(model.lambda[1], 0);
-            assert.eqtol(model.mu[0], -0.5);
-            assert.eqtol(model.mu[1], 0.5);
-            //assert.eqtol(model.P.at(0, 0), 0.707106781186547);
-            //assert.eqtol(model.P.at(1, 0), -0.707106781186547);
-            assert.eqtol(model.P.at(0, 1), 0);
-            assert.eqtol(model.P.at(1, 1), 0);
+            assert.eqtol(model.mu[0], 0.5);
+            assert.eqtol(model.mu[1], -0.5);
+            assert(model.P.at(0, 0) > 0);
+            assert(model.P.at(1, 0) >= 0);
+            assert(model.P.at(0, 1) > 0);
+            assert(model.P.at(1, 1) < 0);
+        });
+        it("should return the model parameters of fit, second example", function () {
+            var pca = new analytics.PCA();
+            var matrix = new la.Matrix([[3, 5], [-2, 1]]);
+            pca.fit(matrix);
+            var model = pca.getModel();
+            assert.eqtol(model.lambda[0], 6.5);
+            assert.eqtol(model.lambda[1], 0);
+            assert.eqtol(model.mu[0], 4);
+            assert.eqtol(model.mu[1], -0.5);
+            assert(model.P.at(0, 0) > 0);
+            assert(model.P.at(1, 0) > 0);
+            assert(model.P.at(0, 1) > 0);
+            assert(model.P.at(1, 1) < 0);
+        });
+    });
+    describe("Transform testing", function () {
+        it("should not throw an exception using transform on model", function () {
+            var pca = new analytics.PCA();
+            var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+            assert.throws(function () {
+                pca.transform(matrix);
+            });
+        });
+        it("should return a result using transform with matrix", function () {
+            var pca = new analytics.PCA();
+            var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+            pca.fit(matrix);
+            var model = pca.getModel();
+            var tran = pca.transform(matrix);
+            assert(tran.at(0, 0) < 0);
+            assert(tran.at(0, 1) > 0);
+            assert(tran.at(1, 0) > 0);
+            assert(tran.at(1, 1) < 0);
+        });
+        it("should return a result using transform with vector", function () {
+            var pca = new analytics.PCA();
+            var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+            pca.fit(matrix);
+            var vec = new la.Vector([0, -1]);
+            var tran = pca.transform(vec);
+            assert(tran.at(0, 0) < 0);
+            assert(tran.at(1, 0) > 0);
+        });
+        it("should throw and exception because matrix dimensions don't match", function () {
+            var pca = new analytics.PCA();
+            var matrix = new la.Matrix([[0, 1], [-1, 0], [2, -1]]);
+            pca.fit(matrix);
+            var newMatrix = new la.Matrix([[0, 1, 4], [-1, 0, 0]]);
+            var model = pca.getModel();
+            assert.throws(function () {
+                pca.transform(newMatrix);
+            });
+        });
+    });
+    describe("inverseTransform testing", function () {
+        it("should not throw an exception using inverseTransform on model", function () {
+            var pca = new analytics.PCA();
+            var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+            assert.throws(function () {
+                pca.inverseTransform(matrix);
+            });
+        });
+        it("should return a result using inverseTransform with matrix", function () {
+            var pca = new analytics.PCA();
+            var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+            pca.fit(matrix);
+            var model = pca.getModel();
+            var tran = pca.inverseTransform(matrix);
+            assert(tran.at(0, 0) < 0);
+            assert(tran.at(0, 1) > 0);
+            assert(tran.at(1, 0) > 0);
+            assert(tran.at(1, 1) > 0);
+        });
+        it("should return a result using inverseTransform with vector", function () {
+            var pca = new analytics.PCA();
+            var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+            pca.fit(matrix);
+            var vec = new la.Vector([0, -1]);
+            var tran = pca.inverseTransform(vec);
+            assert(tran.at(0, 0) < 0);
+            assert(tran.at(1, 0) > 0);
+        });
+        it("should return a result using inverseTransform, second example", function () {
+            var pca = new analytics.PCA();
+            var matrix = new la.Matrix([[0], [-1]]);
+            pca.fit(matrix);
+            var model = pca.getModel();
+            var tran = pca.inverseTransform(matrix);
+            assert(tran.at(0,0) > 0);
+            assert(tran.at(1,0) < 0);
+        });
+        it("should throw and exception because matrix dimensions don't match", function () {
+            var pca = new analytics.PCA();
+            var matrix = new la.Matrix([[0, 1], [-1, 0], [2, -1]]);
+            pca.fit(matrix);
+            var newMatrix = new la.Matrix([[0, 1, 4], [-1, 0, 0]]);            
+            var model = pca.getModel();
+            assert.throws(function () {
+                pca.inverseTransform(newMatrix);
+            });
+        });
+    });
+    describe("Save and load test", function () {
+        it("should serialize and deserialize the model", function () {
+            var pca = new analytics.PCA({k: 1});
+            var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+            pca.fit(matrix);
+            var model = pca.getModel();
+            var tran = pca.transform(matrix);
+            pca.save(require('qminer').fs.openWrite('pca_test.bin')).close();
+            var pca2 = new analytics.PCA(require('qminer').fs.openRead('pca_test.bin'));
+            var model2 = pca2.getModel();
+            assert.deepEqual(pca.getParams(), pca2.getParams());
+            assert.eqtol(model.mu.minus(model2.mu).norm(), 0);
+            assert.eqtol(model.lambda.minus(model2.lambda).norm(), 0);
+            assert.eqtol(model.P.minus(model2.P).frob(), 0);
         });
     });
 });

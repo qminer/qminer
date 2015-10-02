@@ -660,12 +660,33 @@ module.exports = exports = function (pathPrefix) {
     * @class
     */
     exports.PCA = function (param) {
-        param = param == undefined ? {} : param;
+        var iter, k;
+        this.P = undefined;
+        this.mu = undefined;
+        this.lambda = undefined;
+        var count = 1;
+        if (param != undefined && param.constructor.name == 'FIn') {
+            this.P = new la.Matrix();
+            this.P.load(param);
+            this.mu = new la.Vector();
+            this.mu.load(param);
+            this.lambda = new la.Vector();
+            this.lambda.load(param);
+            var params_vec = new la.Vector();
+            params_vec.load(param);
+            iter = params_vec[0];
+            k = params_vec[1];
+            param = { iter: iter, k: k };
+        } else if (param == undefined || typeof param == 'object') {
+            param = param == undefined ? {} : param;
 
-        // Fit params
-        var iter = param.iter == undefined ? 100 : param.iter;
-        var k = param.k; // can be undefined
-
+            // Fit params
+            var iter = param.iter == undefined ? 100 : param.iter;
+            var k = param.k; // can be undefined
+            param = { iter: iter, k: k };
+        } else {
+            throw "PCA.constructor: parameter must be a JSON object or a fs.FIn!";
+        }
         /**
         * Returns the model
         * @returns {Object} The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)
@@ -673,6 +694,32 @@ module.exports = exports = function (pathPrefix) {
         this.getModel = function () {
             return { P: this.P, mu: this.mu, lambda: this.lambda };
         }
+
+        /**
+        * Saves the model.
+        * @param {module:fs.FOut} fout - The output stream.
+        * @returns {module:fs.FOut} The given output stream fout.
+        */
+        this.save = function (fout) {
+            if (!this.P) {
+                throw new Error("PCA.save() - model not created yet");
+            }
+
+            var params_vec = new la.Vector();
+            params_vec.push(iter);
+            params_vec.push(k);
+            
+            if (fout.constructor.name == 'FOut') {
+                this.P.save(fout);
+                this.mu.save(fout);
+                this.lambda.save(fout);
+                params_vec.save(fout);
+                return fout;
+            } else {
+                throw "PCA.save: input must be fs.FOut";
+            }
+        }
+        
 
         /**
         * Sets parameters
