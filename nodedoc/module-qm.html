@@ -23,7 +23,7 @@
                                 <div id="jsdoc-content-container">
                                         <div id="jsdoc-main" role="main">
                     <header class="page-header">
-        <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>        <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-8">qminerdoc.<wbr>js:8</a></p>
+        <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>        <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-8">qminer_aggrdoc.<wbr>js:8</a></p>
             <div class="symbol-description">
                     <p>Qminer module.</p>
 
@@ -105,7 +105,7 @@
                 <dt><a href="module-qm.html#.flags">flags</a></dt>
                 <dd>
                 </dd>
-                <dt><a href="module-qm.html#~baseModes">baseModes</a></dt>
+                <dt><a href="module-qm.html#~BaseModes">BaseModes</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~FeatureMode">FeatureMode</a></dt>
@@ -136,7 +136,7 @@
                 <dt><a href="module-qm.html#~FeatureWeight">FeatureWeight</a></dt>
                 <dd>
                 </dd>
-                <dt><a href="module-qm.html#~fieldTypes">fieldTypes</a></dt>
+                <dt><a href="module-qm.html#~FieldTypes">FieldTypes</a></dt>
                 <dd>
                 </dd>
         </dl>
@@ -173,6 +173,9 @@
                     <div class="summary-column">
         <dl class="dl-summary-callout">
                 <dt><a href="module-qm.html#~BaseConstructorParam">BaseConstructorParam</a></dt>
+                <dd>
+                </dd>
+                <dt><a href="module-qm.html#~baseLoadCSVParam">baseLoadCSVParam</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~FeatureExtractorCategorical">FeatureExtractorCategorical</a></dt>
@@ -243,14 +246,14 @@
                 <dt><a href="module-qm.html#~StreamAggregateMax">StreamAggregateMax</a></dt>
                 <dd>
                 </dd>
+                <dt><a href="module-qm.html#~StreamAggregateMerger">StreamAggregateMerger</a></dt>
+                <dd>
+                </dd>
         </dl>
 </div>
 
                     <div class="summary-column">
         <dl class="dl-summary-callout">
-                <dt><a href="module-qm.html#~StreamAggregateMerger">StreamAggregateMerger</a></dt>
-                <dd>
-                </dd>
                 <dt><a href="module-qm.html#~StreamAggregateMin">StreamAggregateMin</a></dt>
                 <dd>
                 </dd>
@@ -393,7 +396,7 @@
         
     </dl>
 
-                <h3 id="~baseModes"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">baseModes</span><small class="property-type">
+                <h3 id="~BaseModes"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">BaseModes</span><small class="property-type">
             &nbsp;string</small></h3>
         <p>Base access modes.</p>
 
@@ -1127,7 +1130,7 @@ feature store are the same)</p>
         
     </dl>
 
-                <h3 id="~fieldTypes"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">fieldTypes</span><small class="property-type">
+                <h3 id="~FieldTypes"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FieldTypes</span><small class="property-type">
             &nbsp;string</small></h3>
         <p>Field types.</p>
 
@@ -1423,7 +1426,7 @@ feature store are the same)</p>
             <p>BaseConstructorParam.mode</p>
         </td>
         <td>
-                <p><a href="module-qm.html#~baseModes">module:qm~baseModes</a></p>
+                <p><a href="module-qm.html#~BaseModes">module:qm~BaseModes</a></p>
         </td>
         <td>
                 <p>Yes</p>
@@ -1549,6 +1552,132 @@ feature store are the same)</p>
         
     </dl>
 
+                <h3 id="~baseLoadCSVParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">baseLoadCSVParam</span><small class="property-type">
+            &nbsp;object</small></h3>
+        <p>The parameter given to <a href="module-qm.Base.html#loadCSV">module:qm.Base#loadCSV</a>.</p>
+
+    
+    
+        <section>
+        <h4>Properties</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>baseLoadCSVParam.file</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the input file.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>baseLoadCSVParam.store</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>Name of the store which will be created.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>baseLoadCSVParam.base</p>
+        </td>
+        <td>
+                <p><a href="module-qm.Base.html">module:qm.Base</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>QMiner base object that creates the store.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>baseLoadCSVParam.delimiter</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>Optional delimiter.</p>
+                <p>Defaults to <code>','</code>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>baseLoadCSVParam.quote</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>Optional character to escape values that contain a delimiter.</p>
+                <p>Defaults to <code>'"'</code>.</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+
+    <dl class="dl-compact">
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+    </dl>
+
                 <h3 id="~FeatureExtractorCategorical"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorCategorical</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>The feature extractor of type 'categorical'.</p>
@@ -1578,7 +1707,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>type</p>
+            <p>FeatureExtractorCategorical.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -1593,7 +1722,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>values</p>
+            <p>FeatureExtractorCategorical.values</p>
         </td>
         <td>
                 <p>Array of Object</p>
@@ -1608,7 +1737,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>hashDimension</p>
+            <p>FeatureExtractorCategorical.hashDimension</p>
         </td>
         <td>
                 <p>number</p>
@@ -1623,7 +1752,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>field</p>
+            <p>FeatureExtractorCategorical.field</p>
         </td>
         <td>
                 <p>string</p>
@@ -1638,7 +1767,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>source</p>
+            <p>FeatureExtractorCategorical.source</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
@@ -1711,7 +1840,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>type</p>
+            <p>FeatureExtractorConstant.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -1726,7 +1855,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>const</p>
+            <p>FeatureExtractorConstant.const</p>
         </td>
         <td>
                 <p>number</p>
@@ -1742,7 +1871,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>source</p>
+            <p>FeatureExtractorConstant.source</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
@@ -1815,7 +1944,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>type</p>
+            <p>FeatureExtractorDateWindow.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -1830,7 +1959,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>unit</p>
+            <p>FeatureExtractorDateWindow.unit</p>
         </td>
         <td>
                 <p>string</p>
@@ -1847,7 +1976,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>window</p>
+            <p>FeatureExtractorDateWindow.window</p>
         </td>
         <td>
                 <p>number</p>
@@ -1863,7 +1992,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>normalize</p>
+            <p>FeatureExtractorDateWindow.normalize</p>
         </td>
         <td>
                 <p>boolean</p>
@@ -1879,7 +2008,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>start</p>
+            <p>FeatureExtractorDateWindow.start</p>
         </td>
         <td>
                 <p>number</p>
@@ -1894,7 +2023,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>end</p>
+            <p>FeatureExtractorDateWindow.end</p>
         </td>
         <td>
                 <p>number</p>
@@ -1909,7 +2038,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>source</p>
+            <p>FeatureExtractorDateWindow.source</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
@@ -1982,7 +2111,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>type</p>
+            <p>FeatureExtractorJoin.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -1997,7 +2126,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>bucketSize</p>
+            <p>FeatureExtractorJoin.bucketSize</p>
         </td>
         <td>
                 <p>number</p>
@@ -2013,7 +2142,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>source</p>
+            <p>FeatureExtractorJoin.source</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
@@ -2086,7 +2215,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>type</p>
+            <p>FeatureExtractorJsfunc.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -2101,7 +2230,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>name</p>
+            <p>FeatureExtractorJsfunc.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -2116,7 +2245,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>fun</p>
+            <p>FeatureExtractorJsfunc.fun</p>
         </td>
         <td>
                 <p>function()</p>
@@ -2131,7 +2260,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>dim</p>
+            <p>FeatureExtractorJsfunc.dim</p>
         </td>
         <td>
                 <p>number</p>
@@ -2147,7 +2276,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>source</p>
+            <p>FeatureExtractorJsfunc.source</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
@@ -2220,7 +2349,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>type</p>
+            <p>FeatureExtractorMultinomial.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -2235,7 +2364,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>normalize</p>
+            <p>FeatureExtractorMultinomial.normalize</p>
         </td>
         <td>
                 <p>boolean</p>
@@ -2251,7 +2380,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>values</p>
+            <p>FeatureExtractorMultinomial.values</p>
         </td>
         <td>
                 <p>Array of Object</p>
@@ -2266,7 +2395,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>hashDimension</p>
+            <p>FeatureExtractorMultinomial.hashDimension</p>
         </td>
         <td>
                 <p>number</p>
@@ -2281,7 +2410,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>datetime</p>
+            <p>FeatureExtractorMultinomial.datetime</p>
         </td>
         <td>
                 <p>Object</p>
@@ -2298,7 +2427,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>field</p>
+            <p>FeatureExtractorMultinomial.field</p>
         </td>
         <td>
                 <p>string</p>
@@ -2313,7 +2442,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>source</p>
+            <p>FeatureExtractorMultinomial.source</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
@@ -2386,7 +2515,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>type</p>
+            <p>FeatureExtractorNumeric.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -2401,7 +2530,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>normalize</p>
+            <p>FeatureExtractorNumeric.normalize</p>
         </td>
         <td>
                 <p>boolean</p>
@@ -2417,7 +2546,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>min</p>
+            <p>FeatureExtractorNumeric.min</p>
         </td>
         <td>
                 <p>number</p>
@@ -2432,7 +2561,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>max</p>
+            <p>FeatureExtractorNumeric.max</p>
         </td>
         <td>
                 <p>number</p>
@@ -2447,7 +2576,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>field</p>
+            <p>FeatureExtractorNumeric.field</p>
         </td>
         <td>
                 <p>string</p>
@@ -2462,7 +2591,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>source</p>
+            <p>FeatureExtractorNumeric.source</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
@@ -2535,7 +2664,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>type</p>
+            <p>FeatureExtractorPair.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -2550,7 +2679,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>first</p>
+            <p>FeatureExtractorPair.first</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureExtractors">module:qm~FeatureExtractors</a></p>
@@ -2565,7 +2694,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>second</p>
+            <p>FeatureExtractorPair.second</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureExtractors">module:qm~FeatureExtractors</a></p>
@@ -2580,7 +2709,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>source</p>
+            <p>FeatureExtractorPair.source</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
@@ -2653,7 +2782,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>type</p>
+            <p>FeatureExtractorRandom.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -2668,7 +2797,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>seed</p>
+            <p>FeatureExtractorRandom.seed</p>
         </td>
         <td>
                 <p>number</p>
@@ -2684,7 +2813,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>source</p>
+            <p>FeatureExtractorRandom.source</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
@@ -2971,7 +3100,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>type</p>
+            <p>FeatureExtractorSparseVector.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -2986,7 +3115,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>dimension</p>
+            <p>FeatureExtractorSparseVector.dimension</p>
         </td>
         <td>
                 <p>number</p>
@@ -3002,7 +3131,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>normalize</p>
+            <p>FeatureExtractorSparseVector.normalize</p>
         </td>
         <td>
                 <p>boolean</p>
@@ -3018,7 +3147,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>field</p>
+            <p>FeatureExtractorSparseVector.field</p>
         </td>
         <td>
                 <p>string</p>
@@ -3033,7 +3162,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>source</p>
+            <p>FeatureExtractorSparseVector.source</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
@@ -3106,7 +3235,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>type</p>
+            <p>FeatureExtractorText.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -3121,7 +3250,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>normalize</p>
+            <p>FeatureExtractorText.normalize</p>
         </td>
         <td>
                 <p>boolean</p>
@@ -3137,7 +3266,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>weight</p>
+            <p>FeatureExtractorText.weight</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureWeight">module:qm~FeatureWeight</a></p>
@@ -3153,7 +3282,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>hashDimension</p>
+            <p>FeatureExtractorText.hashDimension</p>
         </td>
         <td>
                 <p>number</p>
@@ -3168,7 +3297,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>field</p>
+            <p>FeatureExtractorText.field</p>
         </td>
         <td>
                 <p>string</p>
@@ -3183,7 +3312,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>tokenizer</p>
+            <p>FeatureExtractorText.tokenizer</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureTokenizer">module:qm~FeatureTokenizer</a></p>
@@ -3198,7 +3327,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>mode</p>
+            <p>FeatureExtractorText.mode</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureMode">module:qm~FeatureMode</a></p>
@@ -3213,7 +3342,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>stream</p>
+            <p>FeatureExtractorText.stream</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureStream">module:qm~FeatureStream</a></p>
@@ -3228,7 +3357,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>source</p>
+            <p>FeatureExtractorText.source</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureSource">module:qm~FeatureSource</a></p>
@@ -3292,7 +3421,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>store</p>
+            <p>FeatureSource.store</p>
         </td>
         <td>
                 <p>string</p>
@@ -3356,7 +3485,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>type</p>
+            <p>FeatureTokenizer.type</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureTokenizerType">module:qm~FeatureTokenizerType</a></p>
@@ -3372,7 +3501,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>stopwords</p>
+            <p>FeatureTokenizer.stopwords</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureTokenizerStopwords">module:qm~FeatureTokenizerStopwords</a></p>
@@ -3388,7 +3517,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>stemmer</p>
+            <p>FeatureTokenizer.stemmer</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~FeatureTokenizerStemmer">module:qm~FeatureTokenizerStemmer</a></p>
@@ -3404,7 +3533,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>uppercase</p>
+            <p>FeatureTokenizer.uppercase</p>
         </td>
         <td>
                 <p>boolean</p>
@@ -3478,7 +3607,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>name</p>
+            <p>SchemaDefinition.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -3493,7 +3622,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>fields</p>
+            <p>SchemaDefinition.fields</p>
         </td>
         <td>
                 <p>Array of <a href="module-qm.html#~SchemaFieldDefinition">module:qm~SchemaFieldDefinition</a></p>
@@ -3508,7 +3637,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>joins</p>
+            <p>SchemaDefinition.joins</p>
         </td>
         <td>
                 <p>Array of <a href="module-qm.html#~SchemaJoinDefinition">module:qm~SchemaJoinDefinition</a></p>
@@ -3524,7 +3653,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>keys</p>
+            <p>SchemaDefinition.keys</p>
         </td>
         <td>
                 <p>Array of <a href="module-qm.html#~SchemaKeyDefinition">module:qm~SchemaKeyDefinition</a></p>
@@ -3540,7 +3669,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>timeWindow</p>
+            <p>SchemaDefinition.timeWindow</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~SchemaTimeWindowDefinition">module:qm~SchemaTimeWindowDefinition</a></p>
@@ -3613,7 +3742,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>name</p>
+            <p>SchemaFieldDefinition.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -3628,10 +3757,10 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>type</p>
+            <p>SchemaFieldDefinition.type</p>
         </td>
         <td>
-                <p><a href="module-qm.html#~fieldTypes">module:qm~fieldTypes</a></p>
+                <p><a href="module-qm.html#~FieldTypes">module:qm~FieldTypes</a></p>
         </td>
         <td>
                 <p>&nbsp;</p>
@@ -3643,7 +3772,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>primary</p>
+            <p>SchemaFieldDefinition.primary</p>
         </td>
         <td>
                 <p>boolean</p>
@@ -3659,7 +3788,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>null</p>
+            <p>SchemaFieldDefinition.null</p>
         </td>
         <td>
                 <p>boolean</p>
@@ -3675,7 +3804,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>store</p>
+            <p>SchemaFieldDefinition.store</p>
         </td>
         <td>
                 <p>string</p>
@@ -3691,7 +3820,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>default</p>
+            <p>SchemaFieldDefinition.default</p>
         </td>
         <td>
                 <p>Object</p>
@@ -3706,7 +3835,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>codebook</p>
+            <p>SchemaFieldDefinition.codebook</p>
         </td>
         <td>
                 <p>boolean</p>
@@ -3722,7 +3851,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>shortstring</p>
+            <p>SchemaFieldDefinition.shortstring</p>
         </td>
         <td>
                 <p>boolean</p>
@@ -3796,7 +3925,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>name</p>
+            <p>SchemaJoinDefinition.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -3811,7 +3940,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>type</p>
+            <p>SchemaJoinDefinition.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -3828,7 +3957,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>store</p>
+            <p>SchemaJoinDefinition.store</p>
         </td>
         <td>
                 <p>string</p>
@@ -3901,7 +4030,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>field</p>
+            <p>SchemaKeyDefinition.field</p>
         </td>
         <td>
                 <p>string</p>
@@ -3916,7 +4045,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>type</p>
+            <p>SchemaKeyDefinition.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -3935,7 +4064,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>name</p>
+            <p>SchemaKeyDefinition.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -3950,7 +4079,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>vocabulary</p>
+            <p>SchemaKeyDefinition.vocabulary</p>
         </td>
         <td>
                 <p>string</p>
@@ -3965,7 +4094,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>tokenize</p>
+            <p>SchemaKeyDefinition.tokenize</p>
         </td>
         <td>
                 <p>string</p>
@@ -4040,7 +4169,7 @@ Window defined by parameter window, its value being the number of records to be 
         <tbody>
                 <tr>
         <td>
-            <p>duration</p>
+            <p>SchemaTimeWindowDefinition.duration</p>
         </td>
         <td>
                 <p>number</p>
@@ -4055,7 +4184,7 @@ Window defined by parameter window, its value being the number of records to be 
 
                 <tr>
         <td>
-            <p>unit</p>
+            <p>SchemaTimeWindowDefinition.unit</p>
         </td>
         <td>
                 <p>string</p>
@@ -4070,7 +4199,7 @@ Window defined by parameter window, its value being the number of records to be 
 
                 <tr>
         <td>
-            <p>field</p>
+            <p>SchemaTimeWindowDefinition.field</p>
         </td>
         <td>
                 <p>string</p>
@@ -4146,7 +4275,7 @@ of the values in the connected stream aggregator, where the weights are exponent
         <tbody>
                 <tr>
         <td>
-            <p>name</p>
+            <p>StreamAggregateEMA.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -4161,7 +4290,7 @@ of the values in the connected stream aggregator, where the weights are exponent
 
                 <tr>
         <td>
-            <p>type</p>
+            <p>StreamAggregateEMA.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -4176,7 +4305,7 @@ of the values in the connected stream aggregator, where the weights are exponent
 
                 <tr>
         <td>
-            <p>store</p>
+            <p>StreamAggregateEMA.store</p>
         </td>
         <td>
                 <p>string</p>
@@ -4191,7 +4320,7 @@ of the values in the connected stream aggregator, where the weights are exponent
 
                 <tr>
         <td>
-            <p>inAggr</p>
+            <p>StreamAggregateEMA.inAggr</p>
         </td>
         <td>
                 <p>string</p>
@@ -4207,7 +4336,7 @@ It <b>cannot</b> connect to the module:qm~StreamAggr_TimeSeriesWindow.</p>
 
                 <tr>
         <td>
-            <p>emaType</p>
+            <p>StreamAggregateEMA.emaType</p>
         </td>
         <td>
                 <p>string</p>
@@ -4225,7 +4354,7 @@ It <b>cannot</b> connect to the module:qm~StreamAggr_TimeSeriesWindow.</p>
 
                 <tr>
         <td>
-            <p>interval</p>
+            <p>StreamAggregateEMA.interval</p>
         </td>
         <td>
                 <p>number</p>
@@ -4240,7 +4369,7 @@ It <b>cannot</b> connect to the module:qm~StreamAggr_TimeSeriesWindow.</p>
 
                 <tr>
         <td>
-            <p>initWindow</p>
+            <p>StreamAggregateEMA.initWindow</p>
         </td>
         <td>
                 <p>number</p>
@@ -4316,7 +4445,7 @@ It implements the following methods:
         <tbody>
                 <tr>
         <td>
-            <p>name</p>
+            <p>StreamAggregateMax.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -4331,7 +4460,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>type</p>
+            <p>StreamAggregateMax.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -4346,7 +4475,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>store</p>
+            <p>StreamAggregateMax.store</p>
         </td>
         <td>
                 <p>string</p>
@@ -4361,7 +4490,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>inAggr</p>
+            <p>StreamAggregateMax.inAggr</p>
         </td>
         <td>
                 <p>string</p>
@@ -4436,7 +4565,7 @@ depending on the timestamp. No methods are implemented for this aggregator.</p>
         <tbody>
                 <tr>
         <td>
-            <p>name</p>
+            <p>StreamAggregateMerger.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -4451,7 +4580,7 @@ depending on the timestamp. No methods are implemented for this aggregator.</p>
 
                 <tr>
         <td>
-            <p>type</p>
+            <p>StreamAggregateMerger.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -4466,7 +4595,7 @@ depending on the timestamp. No methods are implemented for this aggregator.</p>
 
                 <tr>
         <td>
-            <p>outStore</p>
+            <p>StreamAggregateMerger.outStore</p>
         </td>
         <td>
                 <p>string</p>
@@ -4481,7 +4610,7 @@ depending on the timestamp. No methods are implemented for this aggregator.</p>
 
                 <tr>
         <td>
-            <p>createStore</p>
+            <p>StreamAggregateMerger.createStore</p>
         </td>
         <td>
                 <p>boolean</p>
@@ -4496,7 +4625,7 @@ depending on the timestamp. No methods are implemented for this aggregator.</p>
 
                 <tr>
         <td>
-            <p>timestamp</p>
+            <p>StreamAggregateMerger.timestamp</p>
         </td>
         <td>
                 <p>string</p>
@@ -4511,7 +4640,7 @@ depending on the timestamp. No methods are implemented for this aggregator.</p>
 
                 <tr>
         <td>
-            <p>fields</p>
+            <p>StreamAggregateMerger.fields</p>
         </td>
         <td>
                 <p>Array of Object</p>
@@ -4592,7 +4721,7 @@ It implements the following methods:
         <tbody>
                 <tr>
         <td>
-            <p>name</p>
+            <p>StreamAggregateMin.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -4607,7 +4736,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>type</p>
+            <p>StreamAggregateMin.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -4622,7 +4751,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>store</p>
+            <p>StreamAggregateMin.store</p>
         </td>
         <td>
                 <p>string</p>
@@ -4637,7 +4766,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>inAggr</p>
+            <p>StreamAggregateMin.inAggr</p>
         </td>
         <td>
                 <p>string</p>
@@ -4713,7 +4842,7 @@ It implements the following methods:
         <tbody>
                 <tr>
         <td>
-            <p>name</p>
+            <p>StreamAggregateMovingAverage.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -4728,7 +4857,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>type</p>
+            <p>StreamAggregateMovingAverage.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -4743,7 +4872,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>store</p>
+            <p>StreamAggregateMovingAverage.store</p>
         </td>
         <td>
                 <p>string</p>
@@ -4758,7 +4887,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>inAggr</p>
+            <p>StreamAggregateMovingAverage.inAggr</p>
         </td>
         <td>
                 <p>string</p>
@@ -4834,7 +4963,7 @@ that it's connected to. It implements the following methods:
         <tbody>
                 <tr>
         <td>
-            <p>name</p>
+            <p>StreamAggregateMovingCorrelation.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -4849,7 +4978,7 @@ that it's connected to. It implements the following methods:
 
                 <tr>
         <td>
-            <p>type</p>
+            <p>StreamAggregateMovingCorrelation.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -4864,7 +4993,7 @@ that it's connected to. It implements the following methods:
 
                 <tr>
         <td>
-            <p>store</p>
+            <p>StreamAggregateMovingCorrelation.store</p>
         </td>
         <td>
                 <p>string</p>
@@ -4879,7 +5008,7 @@ that it's connected to. It implements the following methods:
 
                 <tr>
         <td>
-            <p>inAggrCov</p>
+            <p>StreamAggregateMovingCorrelation.inAggrCov</p>
         </td>
         <td>
                 <p>string</p>
@@ -4894,7 +5023,7 @@ that it's connected to. It implements the following methods:
 
                 <tr>
         <td>
-            <p>inAggrVarX</p>
+            <p>StreamAggregateMovingCorrelation.inAggrVarX</p>
         </td>
         <td>
                 <p>string</p>
@@ -4909,7 +5038,7 @@ that it's connected to. It implements the following methods:
 
                 <tr>
         <td>
-            <p>inAggrVarY</p>
+            <p>StreamAggregateMovingCorrelation.inAggrVarY</p>
         </td>
         <td>
                 <p>string</p>
@@ -4985,7 +5114,7 @@ It implements the following methods:
         <tbody>
                 <tr>
         <td>
-            <p>name</p>
+            <p>StreamAggregateMovingCovariance.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -5000,7 +5129,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>type</p>
+            <p>StreamAggregateMovingCovariance.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -5015,7 +5144,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>store</p>
+            <p>StreamAggregateMovingCovariance.store</p>
         </td>
         <td>
                 <p>string</p>
@@ -5030,7 +5159,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>inAggrX</p>
+            <p>StreamAggregateMovingCovariance.inAggrX</p>
         </td>
         <td>
                 <p>string</p>
@@ -5045,7 +5174,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>inAggrY</p>
+            <p>StreamAggregateMovingCovariance.inAggrY</p>
         </td>
         <td>
                 <p>string</p>
@@ -5121,7 +5250,7 @@ It implements the following methods:
         <tbody>
                 <tr>
         <td>
-            <p>name</p>
+            <p>StreamAggregateMovingVariance.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -5136,7 +5265,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>type</p>
+            <p>StreamAggregateMovingVariance.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -5151,7 +5280,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>store</p>
+            <p>StreamAggregateMovingVariance.store</p>
         </td>
         <td>
                 <p>string</p>
@@ -5166,7 +5295,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>inAggr</p>
+            <p>StreamAggregateMovingVariance.inAggr</p>
         </td>
         <td>
                 <p>string</p>
@@ -5240,7 +5369,7 @@ No methods are implemented for this aggregator.</p>
         <tbody>
                 <tr>
         <td>
-            <p>name</p>
+            <p>StreamAggregateResampler.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -5255,7 +5384,7 @@ No methods are implemented for this aggregator.</p>
 
                 <tr>
         <td>
-            <p>type</p>
+            <p>StreamAggregateResampler.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -5270,7 +5399,7 @@ No methods are implemented for this aggregator.</p>
 
                 <tr>
         <td>
-            <p>store</p>
+            <p>StreamAggregateResampler.store</p>
         </td>
         <td>
                 <p>string</p>
@@ -5285,7 +5414,7 @@ No methods are implemented for this aggregator.</p>
 
                 <tr>
         <td>
-            <p>outStore</p>
+            <p>StreamAggregateResampler.outStore</p>
         </td>
         <td>
                 <p>string</p>
@@ -5300,7 +5429,7 @@ No methods are implemented for this aggregator.</p>
 
                 <tr>
         <td>
-            <p>timestamp</p>
+            <p>StreamAggregateResampler.timestamp</p>
         </td>
         <td>
                 <p>string</p>
@@ -5315,7 +5444,7 @@ No methods are implemented for this aggregator.</p>
 
                 <tr>
         <td>
-            <p>fields</p>
+            <p>StreamAggregateResampler.fields</p>
         </td>
         <td>
                 <p>Object</p>
@@ -5333,7 +5462,7 @@ No methods are implemented for this aggregator.</p>
 
                 <tr>
         <td>
-            <p>createStore</p>
+            <p>StreamAggregateResampler.createStore</p>
         </td>
         <td>
                 <p>boolean</p>
@@ -5348,7 +5477,7 @@ No methods are implemented for this aggregator.</p>
 
                 <tr>
         <td>
-            <p>interval</p>
+            <p>StreamAggregateResampler.interval</p>
         </td>
         <td>
                 <p>number</p>
@@ -5424,7 +5553,7 @@ It implements the following methods:
         <tbody>
                 <tr>
         <td>
-            <p>name</p>
+            <p>StreamAggregateSum.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -5439,7 +5568,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>type</p>
+            <p>StreamAggregateSum.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -5454,7 +5583,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>store</p>
+            <p>StreamAggregateSum.store</p>
         </td>
         <td>
                 <p>string</p>
@@ -5469,7 +5598,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>inAggr</p>
+            <p>StreamAggregateSum.inAggr</p>
         </td>
         <td>
                 <p>string</p>
@@ -5545,7 +5674,7 @@ It implements the following methods:
         <tbody>
                 <tr>
         <td>
-            <p>name</p>
+            <p>StreamAggregateTimeSeriesTick.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -5560,7 +5689,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>type</p>
+            <p>StreamAggregateTimeSeriesTick.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -5575,7 +5704,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>store</p>
+            <p>StreamAggregateTimeSeriesTick.store</p>
         </td>
         <td>
                 <p>string</p>
@@ -5590,7 +5719,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>value</p>
+            <p>StreamAggregateTimeSeriesTick.value</p>
         </td>
         <td>
                 <p>string</p>
@@ -5605,7 +5734,7 @@ It implements the following methods:
 
                 <tr>
         <td>
-            <p>timestamp</p>
+            <p>StreamAggregateTimeSeriesTick.timestamp</p>
         </td>
         <td>
                 <p>string</p>
@@ -5679,7 +5808,7 @@ It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.htm
         <tbody>
                 <tr>
         <td>
-            <p>name</p>
+            <p>StreamAggregateTimeSeriesWindow.name</p>
         </td>
         <td>
                 <p>string</p>
@@ -5694,7 +5823,7 @@ It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.htm
 
                 <tr>
         <td>
-            <p>type</p>
+            <p>StreamAggregateTimeSeriesWindow.type</p>
         </td>
         <td>
                 <p>string</p>
@@ -5709,7 +5838,7 @@ It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.htm
 
                 <tr>
         <td>
-            <p>store</p>
+            <p>StreamAggregateTimeSeriesWindow.store</p>
         </td>
         <td>
                 <p>string</p>
@@ -5724,7 +5853,7 @@ It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.htm
 
                 <tr>
         <td>
-            <p>timestamp</p>
+            <p>StreamAggregateTimeSeriesWindow.timestamp</p>
         </td>
         <td>
                 <p>string</p>
@@ -5739,7 +5868,7 @@ It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.htm
 
                 <tr>
         <td>
-            <p>value</p>
+            <p>StreamAggregateTimeSeriesWindow.value</p>
         </td>
         <td>
                 <p>string</p>
@@ -5754,7 +5883,7 @@ It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.htm
 
                 <tr>
         <td>
-            <p>winsize</p>
+            <p>StreamAggregateTimeSeriesWindow.winsize</p>
         </td>
         <td>
                 <p>number</p>
