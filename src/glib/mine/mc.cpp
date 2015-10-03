@@ -384,7 +384,8 @@ void TStateIdentifier::GetControlCentroidVV(TStateFtrVV& StateFtrVV) const {
 	for (int StateId = 0; StateId < Cols; StateId++) {
 		StateFtrVV[StateId].Gen(Rows);
 		for (int FtrId = 0; FtrId < Rows; FtrId++) {
-			StateFtrVV[StateId][FtrId] = GetControlFtr(StateId, FtrId, ControlCentroidMat(FtrId, StateId));
+			const double& FtrVal = GetControlFtr(StateId, FtrId, ControlCentroidMat(FtrId, StateId));
+			StateFtrVV[StateId][FtrId] = FtrVal;
 		}
 	}
 }
@@ -479,15 +480,14 @@ void TStateIdentifier::SelectInitCentroids(const TFltVV& X, const int& K, TFltVV
 	}
 }
 
-void TStateIdentifier::UpdateCentroids(const TFltVV& FtrVV, const TIntV& AssignIdxV, const TFltV& OnesN) {
+void TStateIdentifier::UpdateCentroids(const TFltVV& FtrVV, const TIntV& AssignIdxV,
+		const TFltV& OnesN, const TIntV& RangeN) {
 	const int NInst = FtrVV.GetCols();
 	const int K = CentroidMat.GetCols();
 
 	// I. create a sparse matrix (coordinate representation) that encodes the closest centroids
-	TIntV RangeV(NInst);	TLAUtil::Range(NInst, RangeV);
-	// create a matrix
 	TSparseColMatrix AssignIdxMat(NInst, K);
-	TSparseOps<TInt,TFlt>::CoordinateCreateSparseColMatrix(RangeV, AssignIdxV, OnesN, AssignIdxMat.ColSpVV, K);
+	TSparseOps<TInt,TFlt>::CoordinateCreateSparseColMatrix(RangeN, AssignIdxV, OnesN, AssignIdxMat.ColSpVV, K);
 
 	// II. compute the number of points that belong to each centroid, invert
 	TFltV ColSumInvV(K);	AssignIdxMat.MultiplyT(OnesN, ColSumInvV);
@@ -716,8 +716,9 @@ void TFullKMeans::Apply(const TFltVV& X, const int& MaxIter) {
 	SelectInitCentroids(X, K, CentroidMat, OldAssignIdxV);
 
 	// constant reused variables
-	TFltV OnesN;	TLAUtil::Ones(NInst, OnesN);
-	TFltV NormX2;	TLinAlg::GetColNorm2V(X, NormX2);
+	TFltV OnesN;			TLAUtil::Ones(NInst, OnesN);
+	TFltV NormX2;			TLinAlg::GetColNorm2V(X, NormX2);
+	TIntV RangeN(NInst);	TLAUtil::Range(NInst, RangeN);
 
 	// reused variables
 	TFltV CentroidColNorm2V;		// (dimension k)
@@ -736,7 +737,7 @@ void TFullKMeans::Apply(const TFltVV& X, const int& MaxIter) {
 		}
 
 		// recompute the means
-		UpdateCentroids(X, *AssignIdxVPtr, OnesN);
+		UpdateCentroids(X, *AssignIdxVPtr, OnesN, RangeN);
 
 		// swap old and new assign vectors
 		Temp = AssignIdxVPtr;
@@ -793,8 +794,9 @@ void TDpMeans::Apply(const TFltVV& X, const int& MaxIter) {
 	SelectInitCentroids(X, MinClusts, CentroidMat, OldAssignIdxV);
 
 	// const variables, reused throughtout the procedure
-	TFltV OnesN;	TLAUtil::Ones(NInst, OnesN);
-	TFltV NormX2;	TLinAlg::GetColNorm2V(X, NormX2);
+	TFltV OnesN;			TLAUtil::Ones(NInst, OnesN);
+	TFltV NormX2;			TLinAlg::GetColNorm2V(X, NormX2);
+	TIntV RangeN(NInst);	TLAUtil::Range(NInst, RangeN);
 
 	// temporary reused variables
 	TFltV NormC2;							// (dimension k)
@@ -837,7 +839,7 @@ void TDpMeans::Apply(const TFltVV& X, const int& MaxIter) {
 		}
 
 		// recompute the means
-		UpdateCentroids(X, *AssignIdxVPtr, OnesN);
+		UpdateCentroids(X, *AssignIdxVPtr, OnesN, RangeN);
 
 		// swap old and new assign vectors
 		Temp = AssignIdxVPtr;
@@ -1872,7 +1874,7 @@ void TCtMChain::GetQMatrix(const TStateFtrVV& StateFtrVV, TFltVV& QMat) const {
 	// compute the intensities
 	const int NStates = IntensModelMat.GetRows();
 
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Constructing Q matrix for %d states ...", NStates);
+//	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Constructing Q matrix for %d states ...", NStates);
 
 	// Q-matrix: holds jump intensities
 	QMat.Gen(NStates, NStates);
@@ -1880,6 +1882,8 @@ void TCtMChain::GetQMatrix(const TStateFtrVV& StateFtrVV, TFltVV& QMat) const {
 		if (IsHiddenStateId(State1Id)) { continue; }
 
 		const TFltV& State1FtrV = StateFtrVV[State1Id];
+
+		printf("State %d, ftrV: %s\n", State1Id, TStrUtil::GetStr(State1FtrV, ", ", "%.6f").CStr());	// TODO remove
 
 		for (int State2Id = 0; State2Id < NStates; State2Id++) {
 			if (State2Id != State1Id) {
@@ -1911,7 +1915,7 @@ void TCtMChain::GetQMatrix(const TStateFtrVV& StateFtrVV, TFltVV& QMat) const {
 }
 
 TFullMatrix TCtMChain::GetQMatrix(const TStateSetV& InStateSetV, const TStateFtrVV& StateFtrVV) const {
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Computing joined Q matrix for %d states ...", InStateSetV.Len());
+//	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Computing joined Q matrix for %d states ...", InStateSetV.Len());
 
 	TStateSetV StateSetV(InStateSetV);
 
@@ -2030,7 +2034,7 @@ void TCtMChain::GetNextStateProbV(const TFullMatrix& QMat, const TStateIdV& Stat
 }
 
 void TCtMChain::GetStatDist(const TFltVV& QMat, TFltV& ProbV, const PNotify& Notify) {
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Computing static distribution of %d states ...", QMat.GetRows());
+//	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Computing static distribution of %d states ...", QMat.GetRows());
 	const int Dim = QMat.GetRows();
 	// returns the stationary distribution
 	// pi*Q = 0
@@ -2360,7 +2364,7 @@ void TUiHelper::RefineStateCoordV(const PStateIdentifier& StateIdentifier,
 				}
 			}
 
-			if (k % 10 == 0) {
+			if (k % 1000 == 0) {
 				Notify->OnNotifyFmt(TNotifyType::ntInfo, "Iteration %d, height %.4f, final overlaps ...", k, CurrHeight);
 				for (int i = 0; i < RadiusV.Len()-1; i++) {
 					const int& State1Id = StateIdV[i];

@@ -249,7 +249,8 @@ protected:
 	void SelectInitCentroids(const TFltVV& X, const int& NCentroids,
 			TFltVV& CentroidFtrVV, TIntV& AssignV);
 	// can still optimize
-	void UpdateCentroids(const TFltVV& X, const TIntV& AssignIdxV, const TFltV& OnesN);
+	void UpdateCentroids(const TFltVV& X, const TIntV& AssignIdxV, const TFltV& OnesN,
+			const TIntV& RangeN);
 	void InitStatistics(const TFltVV& X, const TIntV& AssignV);
 
 	// returns the type of this clustering
