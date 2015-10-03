@@ -94,6 +94,7 @@
 * @property {module:qm~StreamAggregateMovingCorrelation} cor - The moving correlation type.
 * @property {module:qm~StreamAggregateResampler} res - The resampler type.
 * @property {module:qm~StreamAggregateMerger} mer - The merger type.
+* @property {module:qm~StreamAggregateHistogram} hist - The online histogram type.
 */
 
 /**
@@ -751,24 +752,95 @@
 * base.close();
 */
 
+/**
+* @typedef {module:qm.StreamAggr} StreamAggregateHistogram
+* This stream aggregator represents an online histogram. It can connect to a buffered aggregate (such as {@link module:qm~StreamAggregateTimeSeriesWindow})
+* or a time series (such as {@link module:qm~StreamAggregateEMA}).
+* The aggregate defines an ordered set of points p(0), ..., p(n) that define n bins. Infinites at both ends are allowed.
+* A new measurement is tested for inclusion in the left-closed right-opened intervals [p(i), p(i+1)) and the corresponding
+* bin counter is increased for the appropriate bin (or decreased if the point is outgoing from the buffer).
+
+* It implements the following methods:
+* <br>{@link module:qm.StreamAggr#getFloatLength} returns the number of bins.
+* <br>{@link module:qm.StreamAggr#getFloatAt} returns the count for a bin index.
+* <br>{@link module:qm.StreamAggr#getFloatVector} returns the vector of counts, the length is equal to the number of bins.
+
+* @property {string} name - The given name of the stream aggregator.
+* @property {string} type - The type for the stream aggregator. It must be equal to <b>'onlineHistogram'</b>.
+* @property {string} store - The name of the store from which it takes the data.
+* @property {string} inAggr - The name of the stream aggregator to which it connects and gets data.
+* @property {number} lowerBound - The lowest non-infinite bin point.
+* @property {number} upperBound - The highest non-infinite bin point.
+* @property {number} [bins=5] - The number of bins bounded by `lowerBound` and `upperBound`.
+* @property {boolean} [addNegInf=false] - Include a bin [-Inf, lowerBound].
+* @property {boolean} [addPosInf=false] - Include a bin [upperBound, Inf].
+
+* @example
+* // import the qm module
+* var qm = require('qminer');
+* // create a base with a simple store
+* var base = new qm.Base({
+*    mode: "createClean",
+*    schema: [
+*    {
+*        name: "Heat",
+*        fields: [
+*            { name: "Celcius", type: "float" },
+*            { name: "Time", type: "datetime" }
+*        ]
+*    }]
+* });
+*
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // and the timestamp from the 'Time' field. The size of the window is 1 day.
+* var timeser = {
+*    name: 'TimeSeriesBuffer',
+*    type: 'timeSeriesWinBuf',
+*    store: 'Heat',
+*    timestamp: 'Time',
+*    value: 'Celcius',
+*    winsize: 86400000 // one day in miliseconds
+* };
+* var timeSeries = base.store("Heat").addStreamAggr(timeser);
+*
+* // add a histogram aggregator, that is connected with the 'TimeSeriesAggr' aggregator
+* var aggrJson = {
+*    name: 'Histogram',
+*    type: 'onlineHistogram',
+*    store: 'Heat',
+*    inAggr: 'TimeSeriesBuffer',
+*    lowerBound: 0,
+*    upperBound: 10,
+*    bins: 5,
+*    addNegInf: false,
+*    addPosInf: false
+* };
+* var hist = base.store("Heat").addStreamAggr(aggrJson);
+* base.close();
+*/
+
 class TNodeJsSA : public node::ObjectWrap {
+	friend class TNodeJsUtil;
 private:
 	// Node framework
-	static v8::Persistent<v8::Function> constructor;
+	static v8::Persistent<v8::Function> Constructor;
 public:
 	// Node framework
-	static void Init(v8::Handle<v8::Object> exports);
-	// Wrapping C++ object
-	static v8::Local<v8::Object> New(TWPt<TQm::TStreamAggr> _SA);
+	static void Init(v8::Handle<v8::Object> Exports);
+	static const TStr GetClassId() { return "StreamAggr"; }
+
+	// C++ wrapped object
+	TWPt<TQm::TStreamAggr> SA;
+
 	// C++ constructors
 	TNodeJsSA() { }
 	TNodeJsSA(TWPt<TQm::TStreamAggr> _SA) : SA(_SA) { }
 	~TNodeJsSA() { }
-	// Node framework (constructor method)
-	JsDeclareFunction(New);
+
+
+	static TNodeJsSA* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 public:
-	// C++ wrapped object
-	TWPt<TQm::TStreamAggr> SA;
+
 
 	/**
 	* Executes the function when a new record is put in store.

@@ -1675,6 +1675,7 @@ TStrV TCompositional::ItEma(const TWPt<TQm::TBase>& Base,
 	}       
 	return ItEmaNames;
 }
+
 TStrV TCompositional::ItEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 	// Get arguments from ParamVal
 	TInt NumIter = ParamVal->GetObjInt("numIter", 1);
@@ -1687,7 +1688,46 @@ TStrV TCompositional::ItEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
             Base->GetStoreByStoreNm(InStoreNm)->GetStoreId());
 	return TCompositional::ItEma(Base, NumIter, TmInterval, 
         TSignalProc::etLinear, InitMinMSecs, InAggrNm, Prefix, SABase);
-};
+}
+
+void TOnlineHistogram::OnAddRec(const TRec& Rec) {
+	if (BufferedP) {
+		Model.Increment(InAggrValBuffer->GetInFlt());
+		TFltV ForgetV;
+		InAggrValBuffer->GetOutFltV(ForgetV);
+		for (int ElN = 0; ElN < ForgetV.Len(); ElN++) {
+			Model.Decrement(ForgetV[ElN]);
+		}
+	} else {
+		Model.Increment(InAggrVal->GetFlt());
+	}
+}
+
+TOnlineHistogram::TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
+		TStreamAggr(Base, ParamVal), Model(ParamVal) {
+	// All that has to be done here is to check that the input stream aggregate 
+	// is valid and store some shortucts so we do not need to perform dynamic casts
+	// elsewhere
+
+	// Get input aggregate store and aggregate name. Store is needed because the aggregate names are unique within stores only (two stores can have two different stream aggregates with the same name)
+	QmAssertR(ParamVal->IsObjKey("store") && ParamVal->IsObjKey("inAggr"), "TOnlineHistogram: missing 'store' and 'inAggr' keys!");
+	TStr InStoreNm = ParamVal->GetObjStr("store");
+	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+	// Get input stream aggregate
+	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+
+	// Cast the input as a stream aggregate
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(InAggr != NULL, "Stream aggregate does not exist: " + InAggrNm);
+	// Cast the input as a time series stream aggregate
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTm*>(_InAggr());
+	// Cast the input as a time series stream aggregate as a time series buffer
+	InAggrValBuffer = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
+	// Check if at least one is OK
+	QmAssertR(InAggrVal != NULL || InAggrValBuffer != NULL, "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+
+	BufferedP = (InAggrValBuffer != NULL);
+}
 
 } // TAggrs namespace
 

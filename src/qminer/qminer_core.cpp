@@ -4573,6 +4573,7 @@ void TStreamAggr::Init() {
 	Register<TStreamAggrs::TCorr>();
 	Register<TStreamAggrs::TStMerger>();
 	Register<TStreamAggrs::TResampler>();
+	Register<TStreamAggrs::TOnlineHistogram>();
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm) :
@@ -4581,7 +4582,7 @@ TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm) :
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal) :
-	Base(_Base), AggrNm(ParamVal->GetObjStr("name")), Guid(TGuid::GenGuid()) {
+Base(_Base), AggrNm(ParamVal->IsObjKey("name") ? ParamVal->GetObjStr("name") : "sa" + TGuid::GenGuid().GetHex()), Guid(TGuid::GenGuid()) {
 	TValidNm::AssertValidNm(AggrNm);
 }
 

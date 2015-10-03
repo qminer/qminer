@@ -587,7 +587,7 @@ void TNodeJsBase::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	const TStr AggrNm = TNodeJsUtil::GetArgStr(Args, 0);
 	if (JsBase->Base->IsStreamAggr(AggrNm)) {
 		TQm::PStreamAggr StreamAggr = JsBase->Base->GetStreamAggr(AggrNm);
-		Args.GetReturnValue().Set(TNodeJsSA::New(StreamAggr));
+		Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSA>(new TNodeJsSA(StreamAggr)));
 	}
 }
 
@@ -1089,7 +1089,7 @@ void TNodeJsStore::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 		if (Base->IsStreamAggr(StoreId, AggrNm)) {
 			TQm::PStreamAggr StreamAggr = Base->GetStreamAggr(StoreId, AggrNm);
-			Args.GetReturnValue().Set(TNodeJsSA::New(StreamAggr));
+			Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSA>(new TNodeJsSA(StreamAggr)));
 		}
 		else {
 			Args.GetReturnValue().Set(v8::Null(Isolate));

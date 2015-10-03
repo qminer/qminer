@@ -2902,3 +2902,145 @@ describe('Merger Tests', function () {
         })
     });
 });
+
+describe('Online Histogram Tests', function () {    
+    this.timeout(10000);
+
+    var base = undefined;
+    var store = undefined;
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'Function',
+                fields: [
+                    { name: 'Time', type: 'datetime' },
+                    { name: 'Value', type: 'float' },
+                ]
+            }]
+        });
+        store = base.store('Function');
+
+        var aggrBufJson = {
+            name: 'TimeSeriesWindowAggr',
+            type: 'timeSeriesWinBuf',
+            store: 'Function',
+            timestamp: 'Time',
+            value: 'Value',
+            winsize: 2000
+        }; store.addStreamAggr(aggrBufJson);
+
+        var aggrTickJson = {
+            name: 'TickAggr',
+            type: 'timeSeriesTick',
+            store: 'Function',
+            timestamp: 'Time',
+            value: 'Value',
+        }; store.addStreamAggr(aggrTickJson);
+
+    });
+    afterEach(function () {
+        base.close();
+    });
+    describe('Updating Tests', function () {
+        it('should throw an exception if a key-value is not given', function () {
+            var aggrJson = {
+                name: 'Histogram',
+                type: 'onlineHistogram',
+                inAggr: 'TimeSeriesWindowAggr',
+                lowerBound: 0,
+                upperBound: 10,
+                bins: 5,
+                addNegInf: false,
+                addPosInf: false
+            }
+            //assert.throws(function () {
+            //    var copyJson = JSON.parse(JSON.stringify(aggrJson));
+            //    delete copyJson.type;
+            //    var aggr = store.addStreamAggr(copyJson);
+            //}, /TypeError/);
+            assert.throws(function () {
+                var copyJson = JSON.parse(JSON.stringify(aggrJson));
+                delete copyJson.inAggr;
+                var aggr = store.addStreamAggr(copyJson);
+            }, /TypeError/);
+            assert.throws(function () {
+                var copyJson = JSON.parse(JSON.stringify(aggrJson));
+                delete copyJson.lowerBound;
+                var aggr = store.addStreamAggr(copyJson);
+            }, /TypeError/);
+            assert.throws(function () {
+                var copyJson = JSON.parse(JSON.stringify(aggrJson));
+                delete copyJson.upperBound;
+                var aggr = store.addStreamAggr(copyJson);
+            }, /TypeError/);
+            var copyJson = JSON.parse(JSON.stringify(aggrJson));
+            
+            delete copyJson.name;
+            delete copyJson.bins;
+            delete copyJson.addNegInf;
+            delete copyJson.addPosInf;
+            var aggr = store.addStreamAggr(copyJson);
+            assert(aggr != undefined);
+        });
+    });
+    describe('Updating Tests', function () {
+        it('should create an online buffered histogram', function () {
+            var aggrJson = {
+                name: 'Histogram',
+                type: 'onlineHistogram',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr',
+                lowerBound: 0,
+                upperBound: 10,
+                bins: 5,
+                addNegInf: false,
+                addPosInf: false
+            };
+            var aggr = store.addStreamAggr(aggrJson);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: -1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 0 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:38.4', Value: 10 });
+
+            assert.equal(aggr.saveJson().counts[0], 0);
+            assert.equal(aggr.saveJson().counts[1], 0);
+            assert.equal(aggr.saveJson().counts[2], 0);
+            assert.equal(aggr.saveJson().counts[3], 0);
+            assert.equal(aggr.saveJson().counts[4], 1);
+        });
+        it('should create an online histogram', function () {
+            var aggrJson = {
+                name: 'Histogram',
+                type: 'onlineHistogram',
+                store: 'Function',
+                inAggr: 'TickAggr',
+                lowerBound: 0,
+                upperBound: 10,
+                bins: 5,
+                addNegInf: false,
+                addPosInf: false
+            };
+            var aggr = store.addStreamAggr(aggrJson);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: -1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 0 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:38.4', Value: 10 });
+            
+            assert.equal(aggr.saveJson().counts[0], 1);
+            assert.equal(aggr.saveJson().counts[1], 1);
+            assert.equal(aggr.saveJson().counts[2], 2);
+            assert.equal(aggr.saveJson().counts[3], 0);
+            assert.equal(aggr.saveJson().counts[4], 1);
+
+            // check that the interface is OK 
+            assert(aggr.getFloatLength() == 5);
+            assert(aggr.getFloatAt(2) == 2);
+            assert(aggr.getFloatVector()[4] == 1);
+        });        
+    });
+});
