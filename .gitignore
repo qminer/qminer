@@ -128,3 +128,6 @@ binding-1.gyp
 /test/nodejs/tmpclfile2
 /test/nodejs/recordset_plain.js
 /test/nodejs/file.txt
+
+/examples/streamaggregate/node_modules
+

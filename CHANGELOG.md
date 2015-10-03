@@ -1,5 +1,27 @@
 # QMiner Change Log
 
+### 2 Oct 2015
+
+**New version: 2.5.0**
+
+**non-breaking with new features and bug fixes**
+
+Features:
+- added BTree index for efficient numeric range searches. Supported data types: int, float, uint64, datatime
+- Regression error metrics: batch and online metrics
+- Recordset.filterByField - Added support for null values for numerics and datetime. Also, added support for datetime-filtering via string or uint64 (Unix msec-epoch).
+
+Bug fixes:
+
+Other:
+- Unit tests and documentation for NNet
+- Code cleanup
+- Documentation generation fixes and enhancements
+
+TODO:
+- analytics unit tests, examples and documentation: classification metrics, preprocessing, ThresholdModel, active learning, tokenizer
+- port online kmeans and perceptron
+
 ### 25 Sep 2015
 
 **New version: 2.4.0**

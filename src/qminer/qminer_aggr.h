@@ -875,6 +875,52 @@ public:
 
 };
 
+///////////////////////////////
+/// Histogram stream aggregate
+/// Updates a histogram model, connects to a time series stream aggregate (such as TEma)
+/// that implements TStreamAggrOut::IFltTm or a buffered aggregate that implements
+/// TStreamAggrOut::IFltTmIO
+class TOnlineHistogram : public TStreamAggr, public TStreamAggrOut::IFltVec {
+private:
+	TSignalProc::TOnlineHistogram Model;
+
+	// Input aggregate: only one aggregate is expected on input, these just
+	// provide access to different interfaces for convenience 
+	TStreamAggr* InAggr;
+	TStreamAggrOut::IFltTm* InAggrVal; // can be NULL if the input is a buffered aggregate (IFltTmIO)
+	TStreamAggrOut::IFltTmIO* InAggrValBuffer; // can be NULL if the input is a time series aggregate (IFltTm)
+	
+	TBool BufferedP; ///< is InAggrValBuffer not NULL?
+
+protected:
+	/// Triggered when a record is added
+	void OnAddRec(const TRec& Rec);
+	/// JSON constructor
+	TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+	/// JSON constructor
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new TOnlineHistogram(Base, ParamVal); }
+
+	/// did we finish initialization
+	bool IsInit() const { return Model.IsInit(); }
+
+	/// serilization to JSon
+	PJsonVal SaveJson(const int& Limit) const { return Model.SaveJson(); }
+
+	/// stream aggregator type name 
+	static TStr GetType() { return "onlineHistogram"; }
+	/// stream aggregator type name 
+	TStr Type() const { return GetType(); }
+
+	/// returns the number of bins 
+	int GetFltLen() const { return Model.GetBins(); }
+	/// returns frequencies in a given bin
+	double GetFlt(const TInt& ElN) const { return Model.GetCountN(ElN); }
+	/// returns the vector of frequencies
+	void GetFltV(TFltV& ValV) const { Model.GetCountV(ValV); }
+};
+
+
 /////////////////////////////
 // Moving Window Buffer Sum
 template <>

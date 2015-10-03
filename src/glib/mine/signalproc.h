@@ -703,6 +703,57 @@ public:
 	}
 };
 
+
+/////////////////////////////////////////////////
+/// Online histogram
+///    Given a sequence of points b_1, ...,b_n
+///    the class represents a frequency histogram for each interval [b_i, b_i+1)
+///    The intervals are open on the right, except for the last interval [b_n-1 b_n]
+///    The count data can be incremented or decremented, so we can work in an online
+///    setting.
+class TOnlineHistogram {
+private:
+	TFltV Counts; ///< Number of occurrences
+	TFltV Bounds; ///< Interval bounds (Bounds.Len() == Counts.Len() + 1)
+private:
+	TOnlineHistogram() { };
+	void Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf);
+public:	
+	/// Constructs given bin parameters
+	TOnlineHistogram(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf) { Init(LBound, UBound, Bins, AddNegInf, AddPosInf); }
+	/// Constructs given JSON arguments
+	TOnlineHistogram(const PJsonVal& ParamVal);
+	/// Constructs from stream
+	TOnlineHistogram(TSIn& SIn) : Counts(SIn), Bounds(SIn) {}
+
+	/// Loads the model from stream
+	void Load(TSIn& SIn) { *this = TOnlineHistogram(SIn); }
+	/// Saves the model to stream
+	void Save(TSOut& SOut) const { Counts.Save(SOut); Bounds.Save(SOut); }
+	/// Finds the bin index given val, returns -1 if not found
+	int FindBin(const double& Val) const;
+	/// Increments the number of occurrences of values that fall within the same bin as Val
+	void Increment(const double& Val);
+	/// Decrements the number of occurrences of values that fall within the same bin as Val
+	void Decrement(const double& Val);
+	/// Returns the number of occurrences of values that fall within the same bin as Val
+	double GetCount(const double& Val) const;
+	/// Returns the number of bins
+	int GetBins() const { return Counts.Len(); }
+	/// Copies the count vector
+	void GetCountV(TFltV& Vec) const { Vec = Counts; }
+	/// Returns an element of count vector given index
+	double GetCountN(const int& CountN) const { return Counts[CountN]; }
+	/// Has the model beeen initialized?
+	bool IsInit() const {	return Counts.Len() > 0 && Bounds.Len() > 0; }
+	/// Clears the model
+	void Clr() { Counts.Clr(); Bounds.Clr(); }
+	/// Prints the model
+	void Print() const;
+	/// Returns a JSON representation of the model
+	PJsonVal SaveJson() const;
+};
+
 }
 
 #endif

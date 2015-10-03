@@ -1831,294 +1831,632 @@
         }
     }
 
-    exports.metrics = new function() {
-        // For evaluating provided categories (precision, recall, F1).
-        this.ClassificationScore  = function (yTrue, yPred) {
-            this.scores = {
-                count: 0, predictionCount: 0,
-                TP: 0, TN: 0, FP: 0, FN: 0,
-                all: function () { return this.TP + this.FP + this.TN + this.FN; },
-                precision: function () { return (this.FP == 0) ? 1 : this.TP / (this.TP + this.FP); },
-                recall: function () { return this.TP / (this.TP + this.FN); },
-                f1: function () { return 2 * this.precision() * this.recall() / (this.precision() + this.recall()); },
-                accuracy: function () { return (this.TP + this.TN) / this.all(); }
-            };
 
-            // adds prediction to the current statistics. `correct` corresponds to the correct
-            // label(s), `predicted` correspond to predicted lable(s). Labels can be either integers
-            // or integer array (when there are zero or more then one lables).
-            this.push = function (correct, predicted) {
-                var catCorrect = (correct > 0);
-                var catPredicted = (predicted > 0);
-                // update counts for correct categories
-                if (catCorrect) { this.scores.count++; }
-                // update counts for how many times category was predicted
-                if (catPredicted) { this.scores.predictionCount++; }
-                // update true/false positive/negative count
-                if (catCorrect && catPredicted) {
-                    // both predicted and correct say true
-                    this.scores.TP++;
-                } else if (catCorrect) {
-                    // this was only correct but not predicted
-                    this.scores.FN++;
-                } else if (catPredicted) {
-                    // this was only predicted but not correct
-                    this.scores.FP++;
-                } else {
-                    // both predicted and correct say false
-                    this.scores.TN++;
-                }
-            };
+    /**
+    * Metrics
+    * @namespace
+    * @desc Classification and regression metrics
+    * @example <caption>Batch regression example</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // true and predicted data
+    * var true_vals = [1, 2, 3, 4, 5];
+    * var pred_vals = [3, 4, 5, 6, 7];
+    *
+    * // use batch MAE method
+    * analytics.metrics.meanAbsoluteError(true_vals, pred_vals);
+    * @example <caption>Online regression example</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // true and predicted data
+    * var true_vals = [1, 2, 3, 4, 5];
+    * var pred_vals = [3, 4, 5, 6, 7];
+    *
+    * // create online MAE metric instance
+    * var mae = new analytics.metrics.MeanAbsoluteError();
+    *
+    * // simulate data flow
+    * for (var i in true_vals) {
+    *   // push new value
+    *   mae.push(true_vals[i], pred_vals[i]);
+    * }
+    * // get updated error
+    * mae.getError();
+    */
+    var metrics = metrics || {};
+    // namespacing: http://addyosmani.com/blog/essential-js-namespacing/
 
-            // initialize if we are passed the data
-            if (arguments.length >= 2) {
-                for (var i = 0; i < yTrue.length; i++) {
-                    this.push(yTrue[i], yPred[i]);
-                }
+    // For evaluating provided categories (precision, recall, F1).
+    metrics.ClassificationScore = function (yTrue, yPred) {
+        this.scores = {
+            count: 0, predictionCount: 0,
+            TP: 0, TN: 0, FP: 0, FN: 0,
+            all: function () { return this.TP + this.FP + this.TN + this.FN; },
+            precision: function () { return (this.FP == 0) ? 1 : this.TP / (this.TP + this.FP); },
+            recall: function () { return this.TP / (this.TP + this.FN); },
+            f1: function () { return 2 * this.precision() * this.recall() / (this.precision() + this.recall()); },
+            accuracy: function () { return (this.TP + this.TN) / this.all(); }
+        };
+
+        // adds prediction to the current statistics. `correct` corresponds to the correct
+        // label(s), `predicted` correspond to predicted lable(s). Labels can be either integers
+        // or integer array (when there are zero or more then one lables).
+        this.push = function (correct, predicted) {
+            var catCorrect = (correct > 0);
+            var catPredicted = (predicted > 0);
+            // update counts for correct categories
+            if (catCorrect) { this.scores.count++; }
+            // update counts for how many times category was predicted
+            if (catPredicted) { this.scores.predictionCount++; }
+            // update true/false positive/negative count
+            if (catCorrect && catPredicted) {
+                // both predicted and correct say true
+                this.scores.TP++;
+            } else if (catCorrect) {
+                // this was only correct but not predicted
+                this.scores.FN++;
+            } else if (catPredicted) {
+                // this was only predicted but not correct
+                this.scores.FP++;
+            } else {
+                // both predicted and correct say false
+                this.scores.TN++;
             }
         };
 
-        this.accuracyScore = function (yTrue, yPred) {
-            return new this.ClassificationScore (yTrue, yPred).scores.accuracy();
-        };
-
-        this.precisionScore = function (yTrue, yPred) {
-            return new this.ClassificationScore (yTrue, yPred).scores.precision();
-        };
-
-        this.recallScore = function (yTrue, yPred) {
-            return new this.ClassificationScore (yTrue, yPred).scores.recall();
-        };
-
-        this.f1Score = function (yTrue, yPred) {
-            return new this.ClassificationScore (yTrue, yPred).scores.accuracy();
-        };
-
-        // used for computing ROC curve and other related measures such as AUC;
-        this.PredictionCurve = function (yTrue, yPred) {
-            // count of all examples
-            this.length = 0;
-            // count of all the positive and negative examples
-    		this.allPositives = 0;
-    		this.allNegatives = 0;
-    		// store of predictions and ground truths
-    		this.grounds = new la.Vector();
-    		this.predictions = new la.Vector();
-
-            // add new measurement with ground score (1 or -1) and predicted value
-            this.push = function (ground, predict) {
-                // remember the scores
-                this.grounds.push(ground)
-                this.predictions.push(predict);
-                // update counts
-                this.length++;
-                if (ground > 0) {
-                    this.allPositives++;
-                } else {
-                    this.allNegatives++;
-                }
-            };
-
-            // initialize if we are given data
-            if (arguments.length >= 2) {
-                for (var i = 0; i < yTrue.length; i++) {
-                    this.push(yTrue[i], yPred[i]);
-                }
+        // initialize if we are passed the data
+        if (arguments.length >= 2) {
+            for (var i = 0; i < yTrue.length; i++) {
+                this.push(yTrue[i], yPred[i]);
             }
-
-            // get ROC parametrization sampled on `sample' points
-    		this.roc = function (sample) {
-    			// default sample size is 10
-    			sample = sample || 10;
-    			// sort according to predictions
-    			var perm = this.predictions.sortPerm(false);
-    			// maintaining the results as we go along
-    			var TP = 0, FP = 0, ROC = [[0, 0]];
-    			// for figuring out when to dump a new ROC sample
-    			var next = Math.floor(perm.perm.length / sample);
-    			// go over the sorted results
-    			for (var i = 0; i < perm.perm.length; i++) {
-    				// get the ground
-    				var ground = this.grounds[perm.perm[i]];
-    				// update TP/FP counts according to the ground
-    				if (ground > 0) { TP++ } else { FP++; }
-    				// see if time to do next save
-    				next = next - 1;
-    				if (next <= 0) {
-    					// add new datapoint to the curve
-    					ROC.push([FP/this.allNegatives, TP/this.allPositives]);
-    					// setup next timer
-    					next = Math.floor(perm.perm.length / sample);
-    				}
-    			}
-    			// add the last point
-    			ROC.push([1,1]);
-    			// return ROC
-    			return ROC;
-    		}
-
-            // get AUC of the current curve
-    		this.auc = function (sample) {
-    			// default sample size is 10
-    			sample = sample || 10;
-    	        // get the curve
-    	        var curve = this.curve(sample);
-    	        // compute the area
-    	        var result = 0;
-    	        for (var i = 1; i < curve.length; i++) {
-    	            // get edge points
-    	            var left = curve[i-1];
-    	            var right = curve[i];
-    	            // first the rectangle bellow
-    	            result = result + (right[0] - left[0]) * left[1];
-    	            // an then the triangle above
-    	            result = result + (right[0] - left[0]) * (right[1] - left[1]) / 2;
-    	        }
-    	        return result;
-    	    }
-
-            this.evalPrecisionRecall = function (callback) {
-                // sort according to predictions
-                var perm = this.predictions.sortPerm(false);
-                // maintaining the results as we go along
-                var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
-                // go over the sorted results
-                for (var i = 0; i < perm.perm.length; i++) {
-                    // get the ground
-                    var ground = this.grounds[perm.perm[i]];
-                    // update TP/FP counts according to the ground
-                    if (ground > 0) { TP++; FN--; } else { FP++; TN--; }
-                    // do the update
-                    if ((TP + FP) > 0 && (TP + FN) > 0 && TP > 0) {
-                        // compute current precision and recall
-                        var precision = TP / (TP + FP);
-                        var recall = TP / (TP + FN);
-                        // see if we need to update current bep
-                        callback.update(ground, perm.vec[i], precision, recall);
-                    }
-                }
-                return callback.finish();
-            }
-
-            // get precision recall curve sampled on `sample' points
-            this.precisionRecallCurve = function (sample) {
-                return this.evalPrecisionRecall(new function (sample, length) {
-                    // default sample size is 10
-                    this.sample = sample || 10;
-                    // curve
-                    this.curve = [[0, 1]];
-                    // for figuring out when to dump a new ROC sample
-                    this.next = Math.floor(length / (this.sample));
-                    this.counter = this.next;
-                    console.log(length, this.sample, this.next);
-                    // keep last value
-                    this.precision = 0; this.recall = 0;
-                    // handlers
-                    this.update = function (yTrue, yPred, precision, recall) {
-                        this.counter = this.counter - 1;
-                        if (this.counter <= 0) {
-                            // add to the curve
-                            this.curve.push([recall, precision]);
-                            // setup next timer
-                            this.counter = this.next;
-                        }
-                        // always remember last value
-                        this.precision = precision; this.recall = recall;
-                    }
-                    this.finish = function () {
-                        // add the last point
-                        this.curve.push([this.recall, this.precision]);
-                        return this.curve;
-                    }
-                }(sample, this.length));
-            };
-
-            // get break-even point, the value where precision and recall intersect
-            this.breakEvenPoint = function () {
-                return this.evalPrecisionRecall(new function () {
-                    this.minDiff = 1.0; this.bep = -1.0;
-                    this.update = function (yTrue, yPred, precision, recall) {
-                        var diff = Math.abs(precision - recall);
-                        if (diff < minDiff) { minDiff = diff; bep = (precision + recall) / 2; }
-                    }
-                    this.finish = function () { return this.bep; }
-                }());
-            }
-
-            // gets threshold for prediction score, which results in the highest F1
-            this.bestF1 = function () {
-                return this.evalPrecisionRecall(new function () {
-                    this.maxF1 = 0.0; this.threshold = 0.0;
-                    this.update = function (yTrue, yPred, precision, recall) {
-                        var f1 = 2 * precision * recall / (precision + recall);
-                        if (f1 > this.maxF1) {
-                            this.maxF1 = f1;
-                            this.threshold = yPred;
-                        }
-                    }
-                    this.finish = function () { return this.threshold; }
-                }());
-            }
-
-            // gets threshold for prediction score, nearest to specified recall
-            this.desiredRecall = function (desiredRecall) {
-                return this.evalPrecisionRecall(new function () {
-                    this.recallDiff = 1.0; this.threshold = 0.0;
-                    this.update = function (yTrue, yPred, precision, recall) {
-                        var diff = Math.abs(desiredRecall - recall);
-                        if (diff < this.recallDiff) {
-                            this.recallDiff = diff;
-                            this.threshold = yPred;
-                        }
-                    }
-                    this.finish = function () { return this.threshold; }
-                }());
-            }
-
-            // gets threshold for prediction score, nearest to specified recall
-            this.desiredPrecision = function (desiredPrecision) {
-                return this.evalPrecisionRecall(new function () {
-                    this.precisionDiff = 1.0; this.threshold = 0.0;
-                    this.update = function (yTrue, yPred, precision, recall) {
-                        var diff = Math.abs(desiredPrecision - precision);
-                        if (diff < this.precisionDiff) {
-                            this.precisionDiff = diff;
-                            this.threshold = yPred;
-                        }
-                    }
-                    this.finish = function () { return this.threshold; }
-                }());
-            }
-        };
-
-        this.rocCurve = function (yTrue, yPred, sample) {
-            return new this.PredictionCurve(yTrue, yPred).roc(sample);
-        };
-
-        this.rocAucScore = function (yTrue, yPred, sample) {
-            return new this.PredictionCurve(yTrue, yPred).roc(sample);
-        };
-
-        this.precisionRecallCurve = function (yTrue, yPred, sample) {
-            return new this.PredictionCurve(yTrue, yPred).precisionRecallCurve(sample);
-        };
-
-        this.breakEventPointScore = function (yTrue, yPred) {
-            return new this.PredictionCurve(yTrue, yPred).breakEvenPoint();
-        };
-
-        this.bestF1Threshold = function (yTrue, yPred) {
-            return new this.PredictionCurve(yTrue, yPred).bestF1();
-        };
-
-        this.desiredRecallThreshold = function (yTrue, yPred, desiredRecall) {
-            return new this.PredictionCurve(yTrue, yPred).desiredRecall(desiredRecall);
-        };
-
-        this.desiredPrecisionThreshold = function (yTrue, yPred, desiredPrecision) {
-            return new this.PredictionCurve(yTrue, yPred).desiredPrecision(desiredPrecision);
-        };
+        }
     };
+
+    metrics.accuracyScore = function (yTrue, yPred) {
+        return new metrics.ClassificationScore(yTrue, yPred).scores.accuracy();
+    };
+
+    metrics.precisionScore = function (yTrue, yPred) {
+        return new metrics.ClassificationScore(yTrue, yPred).scores.precision();
+    };
+
+    metrics.recallScore = function (yTrue, yPred) {
+        return new metrics.ClassificationScore(yTrue, yPred).scores.recall();
+    };
+
+    metrics.f1Score = function (yTrue, yPred) {
+        return new metrics.ClassificationScore(yTrue, yPred).scores.accuracy();
+    };
+
+    // used for computing ROC curve and other related measures such as AUC;
+    metrics.PredictionCurve = function (yTrue, yPred) {
+        // count of all examples
+        this.length = 0;
+        // count of all the positive and negative examples
+        this.allPositives = 0;
+        this.allNegatives = 0;
+        // store of predictions and ground truths
+        this.grounds = new la.Vector();
+        this.predictions = new la.Vector();
+
+        // add new measurement with ground score (1 or -1) and predicted value
+        this.push = function (ground, predict) {
+            // remember the scores
+            this.grounds.push(ground)
+            this.predictions.push(predict);
+            // update counts
+            this.length++;
+            if (ground > 0) {
+                this.allPositives++;
+            } else {
+                this.allNegatives++;
+            }
+        };
+
+        // initialize if we are given data
+        if (arguments.length >= 2) {
+            for (var i = 0; i < yTrue.length; i++) {
+                this.push(yTrue[i], yPred[i]);
+            }
+        }
+
+        // get ROC parametrization sampled on `sample' points
+        this.roc = function (sample) {
+            // default sample size is 10
+            sample = sample || 10;
+            // sort according to predictions
+            var perm = this.predictions.sortPerm(false);
+            // maintaining the results as we go along
+            var TP = 0, FP = 0, ROC = [[0, 0]];
+            // for figuring out when to dump a new ROC sample
+            var next = Math.floor(perm.perm.length / sample);
+            // go over the sorted results
+            for (var i = 0; i < perm.perm.length; i++) {
+                // get the ground
+                var ground = this.grounds[perm.perm[i]];
+                // update TP/FP counts according to the ground
+                if (ground > 0) { TP++ } else { FP++; }
+                // see if time to do next save
+                next = next - 1;
+                if (next <= 0) {
+                    // add new datapoint to the curve
+                    ROC.push([FP / this.allNegatives, TP / this.allPositives]);
+                    // setup next timer
+                    next = Math.floor(perm.perm.length / sample);
+                }
+            }
+            // add the last point
+            ROC.push([1, 1]);
+            // return ROC
+            return ROC;
+        }
+
+        // get AUC of the current curve
+        this.auc = function (sample) {
+            // default sample size is 10
+            sample = sample || 10;
+            // get the curve
+            var curve = this.curve(sample);
+            // compute the area
+            var result = 0;
+            for (var i = 1; i < curve.length; i++) {
+                // get edge points
+                var left = curve[i - 1];
+                var right = curve[i];
+                // first the rectangle bellow
+                result = result + (right[0] - left[0]) * left[1];
+                // an then the triangle above
+                result = result + (right[0] - left[0]) * (right[1] - left[1]) / 2;
+            }
+            return result;
+        }
+
+        this.evalPrecisionRecall = function (callback) {
+            // sort according to predictions
+            var perm = this.predictions.sortPerm(false);
+            // maintaining the results as we go along
+            var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
+            // go over the sorted results
+            for (var i = 0; i < perm.perm.length; i++) {
+                // get the ground
+                var ground = this.grounds[perm.perm[i]];
+                // update TP/FP counts according to the ground
+                if (ground > 0) { TP++; FN--; } else { FP++; TN--; }
+                // do the update
+                if ((TP + FP) > 0 && (TP + FN) > 0 && TP > 0) {
+                    // compute current precision and recall
+                    var precision = TP / (TP + FP);
+                    var recall = TP / (TP + FN);
+                    // see if we need to update current bep
+                    callback.update(ground, perm.vec[i], precision, recall);
+                }
+            }
+            return callback.finish();
+        }
+
+        // get precision recall curve sampled on `sample' points
+        this.precisionRecallCurve = function (sample) {
+            return this.evalPrecisionRecall(new function (sample, length) {
+                // default sample size is 10
+                this.sample = sample || 10;
+                // curve
+                this.curve = [[0, 1]];
+                // for figuring out when to dump a new ROC sample
+                this.next = Math.floor(length / (this.sample));
+                this.counter = this.next;
+                console.log(length, this.sample, this.next);
+                // keep last value
+                this.precision = 0; this.recall = 0;
+                // handlers
+                this.update = function (yTrue, yPred, precision, recall) {
+                    this.counter = this.counter - 1;
+                    if (this.counter <= 0) {
+                        // add to the curve
+                        this.curve.push([recall, precision]);
+                        // setup next timer
+                        this.counter = this.next;
+                    }
+                    // always remember last value
+                    this.precision = precision; this.recall = recall;
+                }
+                this.finish = function () {
+                    // add the last point
+                    this.curve.push([this.recall, this.precision]);
+                    return this.curve;
+                }
+            }(sample, this.length));
+        };
+
+        // get break-even point, the value where precision and recall intersect
+        this.breakEvenPoint = function () {
+            return this.evalPrecisionRecall(new function () {
+                this.minDiff = 1.0; this.bep = -1.0;
+                this.update = function (yTrue, yPred, precision, recall) {
+                    var diff = Math.abs(precision - recall);
+                    if (diff < minDiff) { minDiff = diff; bep = (precision + recall) / 2; }
+                }
+                this.finish = function () { return this.bep; }
+            }());
+        }
+
+        // gets threshold for prediction score, which results in the highest F1
+        this.bestF1 = function () {
+            return this.evalPrecisionRecall(new function () {
+                this.maxF1 = 0.0; this.threshold = 0.0;
+                this.update = function (yTrue, yPred, precision, recall) {
+                    var f1 = 2 * precision * recall / (precision + recall);
+                    if (f1 > this.maxF1) {
+                        this.maxF1 = f1;
+                        this.threshold = yPred;
+                    }
+                }
+                this.finish = function () { return this.threshold; }
+            }());
+        }
+
+        // gets threshold for prediction score, nearest to specified recall
+        this.desiredRecall = function (desiredRecall) {
+            return this.evalPrecisionRecall(new function () {
+                this.recallDiff = 1.0; this.threshold = 0.0;
+                this.update = function (yTrue, yPred, precision, recall) {
+                    var diff = Math.abs(desiredRecall - recall);
+                    if (diff < this.recallDiff) {
+                        this.recallDiff = diff;
+                        this.threshold = yPred;
+                    }
+                }
+                this.finish = function () { return this.threshold; }
+            }());
+        }
+
+        // gets threshold for prediction score, nearest to specified recall
+        this.desiredPrecision = function (desiredPrecision) {
+            return this.evalPrecisionRecall(new function () {
+                this.precisionDiff = 1.0; this.threshold = 0.0;
+                this.update = function (yTrue, yPred, precision, recall) {
+                    var diff = Math.abs(desiredPrecision - precision);
+                    if (diff < this.precisionDiff) {
+                        this.precisionDiff = diff;
+                        this.threshold = yPred;
+                    }
+                }
+                this.finish = function () { return this.threshold; }
+            }());
+        }
+    };
+
+    metrics.rocCurve = function (yTrue, yPred, sample) {
+        return new metrics.PredictionCurve(yTrue, yPred).roc(sample);
+    };
+
+    metrics.rocAucScore = function (yTrue, yPred, sample) {
+        return new metrics.PredictionCurve(yTrue, yPred).roc(sample);
+    };
+
+    metrics.precisionRecallCurve = function (yTrue, yPred, sample) {
+        return new metrics.PredictionCurve(yTrue, yPred).precisionRecallCurve(sample);
+    };
+
+    metrics.breakEventPointScore = function (yTrue, yPred) {
+        return new metrics.PredictionCurve(yTrue, yPred).breakEvenPoint();
+    };
+
+    metrics.bestF1Threshold = function (yTrue, yPred) {
+        return new metrics.PredictionCurve(yTrue, yPred).bestF1();
+    };
+
+    metrics.desiredRecallThreshold = function (yTrue, yPred, desiredRecall) {
+        return new metrics.PredictionCurve(yTrue, yPred).desiredRecall(desiredRecall);
+    };
+
+    metrics.desiredPrecisionThreshold = function (yTrue, yPred, desiredPrecision) {
+        return new metrics.PredictionCurve(yTrue, yPred).desiredPrecision(desiredPrecision);
+    };
+
+    ///////////////////////////////////////////////////
+    //////////// ONLINE REGRESSION METRICS ////////////
+    ///////////////////////////////////////////////////
+
+    // Online regression metrics used for evaluating online models
+
+    // Main object for online metrics model
+    /**
+    * createOnlineMetric
+    * @private
+    * @class
+    *
+    * This provides methods used for event handling. It's not meant to
+    * be used directly.
+    *
+    */
+    function createOnlineMetric (updateCallback) {
+        var error = -1;
+        var calcError = new updateCallback();
+
+        // check if input types are of correct type
+        function checkPushParams() {
+            for (var i = 0, j = arguments.length; i < j; i++) {
+                var argumentType = arguments[i].constructor.name;
+                if (argumentType !== "Number") {
+                    throw new TypeError('input param ' + i + ' must be of type "Number", but is ' + argumentType + ' instead');
+                }
+            }
+        }
+
+        /**
+        * Updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+        * @param {number} yTrue - Ground truth (correct) target value.
+        * @param {number} yPred - Estimated target value.
+        */
+        this.push = function (yTrue, yPred, ref_num) {
+            // set default values of optional input parameters
+            var yPred = yPred == null ? 0 : yPred;
+            var ref_num = ref_num == null ? 0 : ref_num;
+            // check if input types are of correct type
+            checkPushParams(yTrue, yPred, ref_num);
+            // calculate the error with provided function from the callback function
+            error = calcError.update(yTrue, yPred);
+        }
+
+        /**
+        * Returns error value.
+        * @returns {number} Error value.
+        */
+        this.getError = function () {
+            return error;
+        }
+    }
+
+    // MEAN ERROR (ME)
+    /**
+    * Create new (online) mean error instance.
+    * @class
+    * @classdesc Online Mean Error (ME) instance 
+    * @extends module:analytics~createOnlineMetric
+    */
+    metrics.MeanError = function () {
+        function calcError() {
+            this.sumErr = 0;
+            this.count = 0;
+            // update function
+            this.update = function (yTrue, yPred) {
+                var err = yTrue - yPred;
+                this.sumErr += err;
+                this.count++;
+                var error = this.sumErr / this.count;
+                return error;
+            }
+        }
+        return new createOnlineMetric(calcError);
+    };
+
+    // MEAN ABSOLUTE ERROR (MAE)
+    /**
+    * Create new (online) mean absolute error instance.
+    * @class
+    * @classdesc Online Mean Absolute Error (MAE) instance 
+    * @extends module:analytics~createOnlineMetric
+    */
+    metrics.MeanAbsoluteError = function () {
+        function calcError() {
+            this.sumErr = 0;
+            this.count = 0;
+            // update function
+            this.update = function (yTrue, yPred) {
+                var err = yTrue - yPred;
+                this.sumErr += Math.abs(err);
+                this.count++;
+                var error = this.sumErr / this.count;
+                return error;
+            }
+        }
+        return new createOnlineMetric(calcError);
+    }
+
+    // MEAN SQUARE ERROR (MSE)
+    /**
+    * Create new (online) mean square error instance.
+    * @class
+    * @classdesc Online Mean Square Error (MSE) instance 
+    * @extends module:analytics~createOnlineMetric
+    */
+    metrics.MeanSquareError = function () {
+        function calcError() {
+            this.sumErr = 0;
+            this.count = 0;
+            // update function
+            this.update = function (yTrue, yPred) {
+                var err = yTrue - yPred;
+                this.sumErr += (err * err);
+                this.count++;
+                var error = this.sumErr / this.count;
+                return error;
+            }
+        }
+        return new createOnlineMetric(calcError);
+    }
+
+    // ROOT MEAN SQUARE ERROR (RMSE)
+    /**
+    * Create new (online) root mean square error instance.
+    * @class
+    * @classdesc Online Root Mean Square Error (RMSE) instance 
+    * @extends module:analytics~createOnlineMetric
+    */
+    metrics.RootMeanSquareError = function () {
+        function calcError() {
+            this.sumErr = 0;
+            this.count = 0;
+            // update function
+            this.update = function (yTrue, yPred) {
+                var err = yTrue - yPred;
+                this.sumErr += (err * err);
+                this.count++;
+                var error = this.sumErr / this.count;
+                return Math.sqrt(error);
+            }
+        }
+        return new createOnlineMetric(calcError);
+    }
+
+    // MEAN ABSOLUTE PERCENTAGE ERROR (MAPE)
+    /**
+    * Create new (online) mean absolute percentage error instance.
+    * @class
+    * @classdesc Online Mean Absolute Percentage Error (MAPE) instance 
+    * @extends module:analytics~createOnlineMetric
+    */
+    metrics.MeanAbsolutePercentageError = function () {
+        function calcError() {
+            this.sumErr = 0;
+            this.count = 0;
+            // update function
+            this.update = function (yTrue, yPred) {
+                if (yTrue != 0) { // skip if yTrue is 0, otherwise we have devision by zero in the next step.
+                    var err = yTrue - yPred;
+                    this.sumErr += Math.abs(err / yTrue) * 100;
+                }
+                this.count++;
+                var error = this.sumErr / this.count;
+                return error;
+            }
+        }
+        return new createOnlineMetric(calcError);
+    }
+
+    // R SQUARED SCORE (R2)
+    /**
+    * Create new (online) R Square instance. This statistic measures how successful the fit is in explaining the variation of the data. Best possible score is 1.0, lower values are worse.
+    * @class
+    * @classdesc Online R Squared (R2) score instance 
+    * @extends module:analytics~createOnlineMetric
+    */
+    metrics.R2Score = function () {
+        function calcError() {
+            this.sst = 0;
+            this.sse = 0;
+            this.mean = 0;
+            this.count = 0;
+            this.sumTrue = 0;
+            this.sumTrue2 = 0;
+            // update function
+            this.update = function (yTrue, yPred) {
+                this.count++;
+                this.sumTrue += yTrue;
+                this.sumTrue2 += yTrue * yTrue;
+                this.mean = this.sumTrue / this.count;
+                //calculate R squared score 
+                this.sse += (yTrue - yPred) * (yTrue - yPred);
+                this.sst = this.sumTrue2 - this.count * this.mean * this.mean;
+                if (this.sst == 0.0) {
+                    return (this.sse == 0.0) ? 1.0 : 0.0;
+                }
+                return 1 - this.sse / this.sst;
+            }
+        }
+        return new createOnlineMetric(calcError);
+    }
+
+    //////////////////////////////////////////////////
+    //////////// BATCH REGRESSION METRICS ////////////
+    //////////////////////////////////////////////////
+
+    // function checks if input parameters are of appropriate type
+    function checkBatchParams() {
+        for (var i = 0, j = arguments.length; i < j; i++) {
+            var argumentType = arguments[i].constructor.name;
+            if (argumentType !== "Array" && argumentType !== "Vector") {
+                throw new TypeError('input param ' + i + ' must be of type "Array" or "Vector", but is ' + argumentType + ' instead');
+            }
+        }
+    }
+
+    // calculate batch regression metrics
+    function calcBatchError(yTrueVec, yPredVec) {
+        // check input parameters
+        checkBatchParams(yTrueVec, yPredVec);
+        // calculate error with metric defined as callback functio
+        function calcErr(metric) {
+            // iterage over array of input data
+            for (var i = 0; i < yTrueVec.length; i++) {
+                metric.push(yTrueVec[i], yPredVec[i]);
+            }
+            // return final error
+            return metric.getError()
+        }
+
+        // expose metrics which will be used in calcErr() to return error
+        this.ME = function () { return calcErr(new metrics.MeanError()) };
+        this.MAE = function () { return calcErr(new metrics.MeanAbsoluteError()) };
+        this.MSE = function () { return calcErr(new metrics.MeanSquareError()) };
+        this.RMSE = function () { return calcErr(new metrics.RootMeanSquareError()) };
+        this.MAPE = function () { return calcErr(new metrics.MeanAbsolutePercentageError()) };
+        this.R2 = function () { return calcErr(new metrics.R2Score()) };
+    };
+
+    /**
+    * Mean error (ME) regression loss.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
+    * @returns {number} Error value.
+    */
+    metrics.meanError = function (yTrueVec, yPredVec) {
+        return new calcBatchError(yTrueVec, yPredVec).ME()
+    }
+
+    /**
+    * Mean absolute error (MAE) regression loss.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
+    * @returns {number} Error value.
+    */
+    metrics.meanAbsoluteError = function (yTrueVec, yPredVec) {
+        return new calcBatchError(yTrueVec, yPredVec).MAE()
+    }
+
+    /**
+    * Mean square error (MSE) regression loss.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
+    * @returns {number} Error value.
+    */
+    metrics.meanSquareError = function (yTrueVec, yPredVec) {
+        return new calcBatchError(yTrueVec, yPredVec).MSE()
+    }
+
+    /**
+    * Root mean square (RMSE) error regression loss.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
+    * @returns {number} Error value.
+    */
+    metrics.rootMeanSquareError = function (yTrueVec, yPredVec) {
+        return new calcBatchError(yTrueVec, yPredVec).RMSE()
+    }
+
+    /**
+    * Mean absolute percentage error (MAPE) regression loss.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
+    * @returns {number} Error value.
+    */
+    metrics.meanAbsolutePercentageError = function (yTrueVec, yPredVec) {
+        return new calcBatchError(yTrueVec, yPredVec).MAPE()
+    }
+
+    /**
+    * R^2 (coefficient of determination) regression score.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
+    * @returns {number} Error value.
+    */
+    metrics.r2Score = function (yTrueVec, yPredVec) {
+        return new calcBatchError(yTrueVec, yPredVec).R2()
+    }
+
+    // Exports metrics namespace
+    exports.metrics = metrics;
+
 
 
     /**

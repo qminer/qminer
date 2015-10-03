@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3">
   <meta charset="utf-8">
-  <title>Factory class: RecordSet</title>
+  <title>Class: RecordSet</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -24,11 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">factory class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">RecordSet</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1097">qminerdoc.<wbr>js:1097</a></p>
-            <div class="symbol-description">
-              <p>Record Set (factory pattern). The Record Set is a set of records.</p>
-            </div>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">RecordSet</span></h1>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1110">qminerdoc.<wbr>js:1110</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -145,6 +142,14 @@
             </div>
           </section>
           <section>
+            <h2 id="RecordSet"><span class="symbol-name">RecordSet</span><span class="signature"><span class="signature-params">()</span></span></h2>
+            <p>Record Set is a set of records.
+              <b>Factory pattern</b>: this class cannot be construced using the new keyword. This class is constructed when calling a specific method or attribute, e.g. using <a href="module-qm.Store.html#allRecords">module:qm.Store#allRecords</a> to
+              get all the records in the store as a record set.</p>
+            <dl class="dl-compact">
+            </dl>
+          </section>
+          <section>
             <h2>Properties</h2>
             <section>
               <h3 id="empty"><span class="symbol-name">empty</span></h3>
@@ -170,9 +175,7 @@
               <p>Creates a new instance of the record set.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -211,9 +214,7 @@ base.close();</code></pre>
               <p>Deletes the records, that are also in the other record set.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -286,9 +287,7 @@ base.close();</code></pre>
               <p>Executes a function on each record in record set.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -356,9 +355,7 @@ base.close();</code></pre>
               <p>Keeps only the records that pass the callback function.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -424,9 +421,7 @@ base.close();</code></pre>
               <p>Keeps only the records with a specific value of some field.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -528,9 +523,7 @@ base.close();</code></pre>
               <p>Keeps only records with ids between or equal two values.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm require
@@ -616,9 +609,7 @@ base.close();</code></pre>
               <p>Creates a vector containing the field values of records.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -689,9 +680,7 @@ base.close();</code></pre>
               <p>Creates a vector containing the field values of records.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -760,9 +749,7 @@ base.close();</code></pre>
               <p>Creates a new record set out of the join attribute of records.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -858,9 +845,7 @@ base.close();</code></pre>
               <p>Creates an array of function outputs created from the records in record set.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -928,9 +913,7 @@ base.close();</code></pre>
               <p>It reverses the record order.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -971,9 +954,7 @@ base.close();</code></pre>
               <p>Creates a random sample of records of the record set.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1040,9 +1021,7 @@ base.close();</code></pre>
               <p>Creates the set difference between two record sets.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1115,9 +1094,7 @@ base.close();</code></pre>
               <p>Creates the set intersection of two record sets.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1188,9 +1165,7 @@ base.close();</code></pre>
               <p>Creates the set union of two record sets.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1260,9 +1235,7 @@ base.close();</code></pre>
               <p>Shuffles the order of records in the record set.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1332,9 +1305,7 @@ base.close();</code></pre>
               <p>Sorts the records according to the given callback function.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1405,9 +1376,7 @@ base.close();</code></pre>
               <p>Sorts the records according to a specific record field.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1490,9 +1459,7 @@ base.close();</code></pre>
               <p>Sorts the records according to record id.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1563,9 +1530,7 @@ base.close();</code></pre>
               <p>Splits the record set into smaller record sets.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1639,9 +1604,7 @@ base.close();</code></pre>
               <p>Returns the record set as a JSON.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
@@ -1678,9 +1641,7 @@ base.close();</code></pre>
               <p>Truncates the first records.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
