@@ -980,17 +980,17 @@ int TOnlineHistogram::FindBin(const double& Val) const {
 
 void TOnlineHistogram::Increment(const double& Val) {
 	int Idx = FindBin(Val);
-	if (Idx >= 0) { Counts[FindBin(Val)]++; }
+	if (Idx >= 0) { Counts[Idx]++; }
 }
 
 void TOnlineHistogram::Decrement(const double& Val) {
 	int Idx = FindBin(Val);
-	if (Idx >= 0) { Counts[FindBin(Val)]--; }
+	if (Idx >= 0) { Counts[Idx]--; }
 }
 
 double TOnlineHistogram::GetCount(const double& Val) const {
 	int Idx = FindBin(Val);
-	return Idx >= 0 ? Counts[FindBin(Val)] : 0;
+	return Idx >= 0 ? (double)Counts[Idx] : 0.0;
 }
 
 void TOnlineHistogram::Print() const {
