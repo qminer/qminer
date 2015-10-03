@@ -1883,7 +1883,7 @@ void TCtMChain::GetQMatrix(const TStateFtrVV& StateFtrVV, TFltVV& QMat) const {
 
 		const TFltV& State1FtrV = StateFtrVV[State1Id];
 
-		printf("State %d, ftrV: %s\n", State1Id, TStrUtil::GetStr(State1FtrV, ", ", "%.6f").CStr());	// TODO remove
+//		printf("State %d, ftrV: %s\n", State1Id, TStrUtil::GetStr(State1FtrV, ", ", "%.6f").CStr());	// TODO remove
 
 		for (int State2Id = 0; State2Id < NStates; State2Id++) {
 			if (State2Id != State1Id) {
