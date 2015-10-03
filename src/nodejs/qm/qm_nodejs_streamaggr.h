@@ -94,6 +94,7 @@
 * @property {module:qm~StreamAggregateMovingCorrelation} cor - The moving correlation type.
 * @property {module:qm~StreamAggregateResampler} res - The resampler type.
 * @property {module:qm~StreamAggregateMerger} mer - The merger type.
+* @property {module:qm~StreamAggregateHistogram} hist - The online histogram type.
 */
 
 /**
@@ -753,9 +754,10 @@
 
 /**
 * @typedef {module:qm.StreamAggr} StreamAggregateHistogram
-* This stream aggregator represents an online histogram. It can connect to a buffered aggregate (such as `timeSeriesWinBuf`) or a time series (such as `ema`).
-* The aggregate defines an ordered set of points p_0, ..., p_n that define n bins. Infinites at both ends are allowed.
-* A new measurement is tested for inclusion in the left-closed right-opened intervals [p_i, p_{i+1}) and the corresponding
+* This stream aggregator represents an online histogram. It can connect to a buffered aggregate (such as {@link module:qm~StreamAggregateTimeSeriesWindow})
+* or a time series (such as {@link module:qm~StreamAggregateEMA}).
+* The aggregate defines an ordered set of points p(0), ..., p(n) that define n bins. Infinites at both ends are allowed.
+* A new measurement is tested for inclusion in the left-closed right-opened intervals [p(i), p(i+1)) and the corresponding
 * bin counter is increased for the appropriate bin (or decreased if the point is outgoing from the buffer).
 
 * It implements the following methods:
