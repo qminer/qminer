@@ -996,7 +996,7 @@ double TOnlineHistogram::GetCount(const double& Val) const {
 void TOnlineHistogram::Print() const {
 	printf("Histogram:\n");
 	for (int BinN = 0; BinN < Counts.Len(); BinN++) {
-		printf("%g [%g, %g]\n", Counts[BinN], Bounds[BinN], Bounds[BinN + 1]);
+		printf("%g [%g, %g]\n", Counts[BinN].Val, Bounds[BinN].Val, Bounds[BinN + 1].Val);
 	}
 }
 

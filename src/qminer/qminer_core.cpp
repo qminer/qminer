@@ -4557,7 +4557,6 @@ PAggr TAggr::New(const TWPt<TBase>& Base, const PRecSet& RecSet, const TQueryAgg
 ///////////////////////////////
 // QMiner-Stream-Aggregator
 TFunRouter<PStreamAggr, TStreamAggr::TNewF> TStreamAggr::NewRouter;
-TFunRouter<PStreamAggr, TStreamAggr::TLoadF> TStreamAggr::LoadRouter;
 
 void TStreamAggr::Init() {
 	Register<TStreamAggrs::TRecBuffer>();
@@ -4571,14 +4570,9 @@ void TStreamAggr::Init() {
 	Register<TStreamAggrs::TVar>();
 	Register<TStreamAggrs::TCov>();
 	Register<TStreamAggrs::TCorr>();
-	Register<TStreamAggrs::TStMerger>();
+	Register<TStreamAggrs::TMerger>();
 	Register<TStreamAggrs::TResampler>();
 	Register<TStreamAggrs::TOnlineHistogram>();
-}
-
-TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm) :
-	Base(_Base), AggrNm(_AggrNm), Guid(TGuid::GenGuid()) {
-	TValidNm::AssertValidNm(AggrNm);
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal) :
@@ -4586,20 +4580,8 @@ Base(_Base), AggrNm(ParamVal->IsObjKey("name") ? ParamVal->GetObjStr("name") : "
 	TValidNm::AssertValidNm(AggrNm);
 }
 
-// TODO: Possible bug - SABase not used here ... Check!
-TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TWPt<TStreamAggrBase> _SABase, TSIn& SIn) :
-	Base(_Base), AggrNm(SIn), Guid(SIn) {}
-
 PStreamAggr TStreamAggr::New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal) {
 	return NewRouter.Fun(TypeNm)(Base, ParamVal);
-}
-
-PStreamAggr TStreamAggr::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
-	TStr TypeNm(SIn); return LoadRouter.Fun(TypeNm)(Base, SABase, SIn);
-}
-
-void TStreamAggr::Save(TSOut& SOut) const {
-	AggrNm.Save(SOut); Guid.Save(SOut);
 }
 
 void TStreamAggr::LoadState(TSIn& SIn) {
@@ -4612,28 +4594,8 @@ void TStreamAggr::SaveState(TSOut& SOut) const {
 
 ///////////////////////////////
 // QMiner-Stream-Aggregator-Base
-TStreamAggrBase::TStreamAggrBase(const TWPt<TBase>& Base, TSIn& SIn) {
-	const int StreamAggrs = TInt(SIn);
-	for (int StreamAggrN = 0; StreamAggrN < StreamAggrs; StreamAggrN++) {
-		PStreamAggr StreamAggr = TStreamAggr::Load(Base, this, SIn);
-		AddStreamAggr(StreamAggr);
-	}
-}
-
 PStreamAggrBase TStreamAggrBase::New() {
 	return new TStreamAggrBase;
-}
-
-PStreamAggrBase TStreamAggrBase::Load(const TWPt<TBase>& Base, TSIn& SIn) {
-	return new TStreamAggrBase(Base, SIn);
-}
-
-void TStreamAggrBase::Save(TSOut& SOut) const {
-	TInt(StreamAggrH.Len()).Save(SOut);
-	int KeyId = StreamAggrH.FFirstKeyId();
-	while (StreamAggrH.FNextKeyId(KeyId)) {
-		StreamAggrH[KeyId]->Save(SOut);
-	}
 }
 
 bool TStreamAggrBase::Empty() const {
@@ -4770,36 +4732,6 @@ TBase::~TBase() {
 		IndexVoc->Save(IndexVocFOut);
 	} else {
 		TEnv::Logger->OnStatus("No saving of qminer base neccessary!");
-	}
-}
-
-void TBase::SaveStreamAggrBaseV(TSOut& SOut) {
-	// get number of stream aggregate bases
-	int StreamAggrBases = 0;
-	for (int StoreId = 0; StoreId < StreamAggrBaseV.Len(); StoreId++) {
-		if (!StreamAggrBaseV[StoreId].Empty()) { StreamAggrBases++; }
-	}
-	// save number of aggregate bases
-	TInt(StreamAggrBases).Save(SOut);
-	// save each aggregate base
-	for (int StoreId = 0; StoreId < StreamAggrBaseV.Len(); StoreId++) {
-		if (!StreamAggrBaseV[StoreId].Empty()) {
-			TUInt(StoreId).Save(SOut);
-			StreamAggrBaseV[StoreId]->Save(SOut);
-		}
-	}
-}
-
-void TBase::LoadStreamAggrBaseV(TSIn& SIn) {
-	const int StreamAggrBases = TInt(SIn);
-	for (int StreamAggrBaseN = 0; StreamAggrBaseN < StreamAggrBases; StreamAggrBaseN++) {
-		const uint StoreId = TUInt(SIn);
-		// load stream aggregate base
-		PStreamAggrBase StreamAggrBase = TStreamAggrBase::Load(this, SIn);
-		// create trigger for the aggregate base
-		GetStoreByStoreId(StoreId)->AddTrigger(TStreamAggrTrigger::New(StreamAggrBase));
-		// remember the aggregate base for the store
-		StreamAggrBaseV[StoreId] = StreamAggrBase;
 	}
 }
 
@@ -5074,7 +5006,13 @@ const PStreamAggr& TBase::GetStreamAggr(const uint& StoreId, const TStr& StreamA
 }
 
 const PStreamAggr& TBase::GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const {
-	return StoreNm.Empty() ? GetStreamAggr(StreamAggrNm) : GetStreamAggrBase(GetStoreByStoreNm(StoreNm)->GetStoreId())->GetStreamAggr(StreamAggrNm);
+    if (StoreNm.Empty()) {
+        return GetStreamAggr(StreamAggrNm);
+    } else {
+        TWPt<TStore> Store = GetStoreByStoreNm(StoreNm);
+        PStreamAggrBase SABase = GetStreamAggrBase(Store->GetStoreId());
+        return SABase->GetStreamAggr(StreamAggrNm);
+    }
 }
 
 const PStreamAggr& TBase::GetStreamAggr(const TStr& StreamAggrNm) const {
