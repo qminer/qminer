@@ -3359,18 +3359,15 @@ void TNodeJsFtrSpace::updateRecord(const v8::FunctionCallbackInfo<v8::Value>& Ar
 
 	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
 
-	try {
-		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-		TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
 
-		// update with new records
-		JsFtrSpace->FtrSpace->Update(JsRec->Rec);
+	//QmAssertR(TNodeJsUtil::IsArgWrapObj<TNodeJsRec>(Args, 0), "TNodeJsFtrSpace::updateRecord Arg[0] is not a record object!");
+	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
 
-		Args.GetReturnValue().Set(Args.Holder());
-	}
-	catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::updateRecord");
-	}
+	// update with new records
+	JsFtrSpace->FtrSpace->Update(JsRec->Rec);
+
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsFtrSpace::updateRecords(const v8::FunctionCallbackInfo<v8::Value>& Args) {
