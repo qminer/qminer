@@ -2040,7 +2040,7 @@ void TNodeJsRecSet::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortById", _sortById);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortByFq", _sortByFq);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortByField", _sortByField);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "sort", sort);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sort", _sort);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "filterById", _filterById);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "filterByFq", _filterByFq);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "filterByField", _filterByField);
@@ -2935,10 +2935,10 @@ bool TJsRecPairFilter::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64In
 	v8::Local<v8::Value> ArgV[Argc] = { JsRec1, JsRec2 };
 	v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
 	if (TryCatch.HasCaught()) {
-		TryCatch.ReThrow();
-		return false;
+		v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+		throw TQm::TQmExcept::New("Javascript exception from callback triggered in TJsRecPairFilter::operator() :" + TStr(*Msg));
 	}
-	QmAssertR(ReturnVal->IsBoolean() || ReturnVal->IsNumber(), "Comparator callback must return a boolean!");
+	QmAssertR(!ReturnVal.IsEmpty() && (ReturnVal->IsBoolean() || ReturnVal->IsNumber()), "Comparator callback must return a boolean!");
 	return ReturnVal->IsBoolean() ? ReturnVal->BooleanValue() : ReturnVal->NumberValue() < 0;
 }
 
@@ -3361,7 +3361,6 @@ void TNodeJsFtrSpace::updateRecord(const v8::FunctionCallbackInfo<v8::Value>& Ar
 
 	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
 
-	//QmAssertR(TNodeJsUtil::IsArgWrapObj<TNodeJsRec>(Args, 0), "TNodeJsFtrSpace::updateRecord Arg[0] is not a record object!");
 	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
 
 	// update with new records
