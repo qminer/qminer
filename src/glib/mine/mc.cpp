@@ -2006,7 +2006,7 @@ void TCtMChain::GetNextStateProbV(const TFullMatrix& QMat, const TStateIdV& Stat
 
 	EAssertR(StateIdx >= 0, "TCtMChain::GetNextStateProbV: Could not find target state!");
 
-	Notify->OnNotify(TNotifyType::ntInfo, "Fetching future states ...");
+//	Notify->OnNotify(TNotifyType::ntInfo, "Fetching future states ...");
 
 	const TFullMatrix JumpMat = GetJumpMatrix(QMat);
 	const TVector ProbVec = JumpMat.GetRow(StateIdx);

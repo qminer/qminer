@@ -1658,8 +1658,8 @@ module.exports = exports = function (pathPrefix) {
 	    	// CONSTRUCTOR
 	    	//===================================================
 	    	
-	    	if (opts == null) throw 'Missing parameters!';
-	    	if (opts.base == null) throw 'Missing parameter base!';
+	    	if (opts == null) throw new Error('Missing parameters!');
+	    	if (opts.base == null) throw new Error('Missing parameter base!');
 	
 	    	// create model and feature space
 	    	var mc;

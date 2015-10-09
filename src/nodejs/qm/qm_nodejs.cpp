@@ -280,6 +280,7 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 
 	// Add all methods, getters and setters here.   
 	NODE_SET_PROTOTYPE_METHOD(tpl, "close", _close);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "isClosed", _isClosed);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "store", _store);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStoreList", _getStoreList);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "createStore", _createStore);
@@ -448,6 +449,24 @@ void TNodeJsBase::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		JsBase->Base.Del();
 		JsBase->Base.Clr();
 	}
+}
+
+void TNodeJsBase::isClosed(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// unwrap
+	TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+
+	// check the watcher if we have closed the base
+	bool IsClosed = JsBase->Watcher->IsClosed();
+
+	if (!IsClosed) {
+		// check if the base itself is closed
+		IsClosed = !JsBase->Base->IsInit();
+	}
+
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, IsClosed));
 }
 
 void TNodeJsBase::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {

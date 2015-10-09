@@ -330,6 +330,7 @@ public:
 	static TPt<TNodeJsBaseWatcher> New() { return new TNodeJsBaseWatcher; }
 	void AssertOpen() { EAssertR(OpenP, "Base is closed!"); }
 	void Close() { OpenP = false; }
+	bool IsClosed() const { return !OpenP; }
 };
 typedef TPt<TNodeJsBaseWatcher> PNodeJsBaseWatcher;
 
@@ -376,6 +377,13 @@ private:
 	*/
 	//# exports.Base.prototype.close = function () { return null; }
 	JsDeclareFunction(close);
+
+	/**
+	* Closes the database.
+	* @returns {null}
+	*/
+	//# exports.Base.prototype.close = function () { return null; }
+	JsDeclareFunction(isClosed);
 
 	/**
 	 * Returns the store with the specified name.
