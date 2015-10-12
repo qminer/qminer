@@ -659,58 +659,55 @@ public:
 	// returns the most likely next states excluding the current state
 	void GetNextStateProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
 			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
-			const int& NFutStates) const override;
+			const int& NFutStates) const;
 	// returns the most likely previous states excluding the current state
 	void GetPrevStateProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
 			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
-			const int& NFutStates) const override;
+			const int& NFutStates) const;
 
 	void GetProbVOverTm(const double& Height, const int& StateId, const double& StartTm,
 			const double EndTm, const double& DeltaTm, const TStateSetV& StateSetV,
 			const TStateFtrVV& StateFtrVV, const TStateIdV& StateIdV, TVec<TFltV>& FutProbVV,
-			TVec<TFltV>& PastProbVV) const override;
+			TVec<TFltV>& PastProbVV) const;
 
 	// approximates the probability of jumping into the target state in the prespecified
 	// time horizon
 	bool PredictOccurenceTime(const TStateFtrVV& StateFtrVV, const TStateSetV& StateSetV,
 			const TStateIdV& StateIdV, const int& CurrStateId, const int& TargetStateId,
-			double& Prob, TFltV& ProbV, TFltV& TmV) const override;
+			double& Prob, TFltV& ProbV, TFltV& TmV) const;
 
 	// continuous time Markov chain stuff
 	// returns the stationary distribution of the stohastic process
 	void GetStatDist(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			TFltV& ProbV) const override;
+			TFltV& ProbV) const;
 
-	// returns the size of each state used in the visualization
-//	void GetStateSizeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-//			TFltV& StateSizeV) const override;
-	TFullMatrix GetTransitionMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const override;
+	TFullMatrix GetTransitionMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const;
 	TFullMatrix GetJumpMatrix(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const;
-	TFullMatrix GetModel(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const override
+	TFullMatrix GetModel(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const
 		{ return GetQMatrix(StateSetV, StateFtrVV); }
 
 	void GetHoldingTimeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			TFltV& HoldingTmV) const override;
+			TFltV& HoldingTmV) const;
 
 	// returns true if the jump from OldStateId to NewStateId has a low enough probability
-	bool IsAnomalousJump(const TFltV& FtrV, const int& NewStateId, const int& OldStateId) const override;
+	bool IsAnomalousJump(const TFltV& FtrV, const int& NewStateId, const int& OldStateId) const;
 
 	int GetStates() const { return NStates; }
 	const uint64& GetTimeUnit() const { return TimeUnit; }
 
 protected:
-	void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool EndsBatch) override;
+	void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool EndsBatch);
 
 	// get future state probabilities for all the states for a fixed time in the future
 	TFullMatrix GetFutureProbMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			const double& Tm) const override;
+			const double& Tm) const;
 	TFullMatrix GetPastProbMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			const double& Tm) const override;
+			const double& Tm) const;
 
 	void InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV, const TIntV& AssignV,
-			const TBoolV& EndBatchV) override;
+			const TBoolV& EndBatchV);
 	// prints the statistics used to build the Q-matrix
-	const TStr GetType() const override { return "continuous"; }
+	const TStr GetType() const { return "continuous"; }
 
 private:
 	TVector GetStateIntensV(const int StateId, const TFltV& FtrV) const;
