@@ -69,7 +69,8 @@ public:
 	void Load(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
-	void Update(const double& InVal, const uint64& InTmMSecs, 
+    bool IsInit() const { return (TmMSecs > 0); }
+	void Update(const double& InVal, const uint64& InTmMSecs,
         const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N);	
 	double GetValue() const { return Ma; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
@@ -91,6 +92,7 @@ public:
 	void Load(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
+    bool IsInit() const { return (TmMSecs > 0); }
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
 	double GetValue() const { return Sum; }
@@ -112,6 +114,7 @@ public:
 	void Load(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
+    bool IsInit() const { return (TmMSecs > 0); }
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
 	double GetValue() const { return Min; }
@@ -133,6 +136,7 @@ public:
 	void Load(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
+    bool IsInit() const { return (TmMSecs > 0); }
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
 	double GetValue() const { return Max; }
@@ -193,7 +197,8 @@ public:
 	void Load(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
-	void Update(const double& InVal, const uint64& InTmMSecs, 
+    bool IsInit() const { return (TmMSecs > 0); }
+	void Update(const double& InVal, const uint64& InTmMSecs,
         const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N);
 	// current status	
 	double GetValue() const {
@@ -557,6 +562,8 @@ private:
         void CalcHiddenGradient(const TLayer& NextLayer);
         // Save the model
         void Save(TSOut& SOut);
+
+		const TTFunc& GetFunction() { return TFuncNm; }
     };
 
     /////////////////////////////////////////
@@ -615,9 +622,28 @@ public:
     void GetResults(TFltV& ResultV) const;
     // Set learn rate
     void SetLearnRate(const TFlt& NewLearnRate) { LearnRate = NewLearnRate; };
+	// set momentum
+	void SetMomentum(const TFlt& NewMomentum) { Momentum = NewMomentum; }
     // Save the model
     void Save(TSOut& SOut) const;
 
+	void GetLayout(TIntV& layout) {
+		layout.Gen(LayerV.Len());
+		for (int i = 0; i < LayerV.Len(); i++) {
+			layout[i] = LayerV[i].GetNeuronN() - 1;
+		}
+	}
+	TFlt GetLearnRate() { return LearnRate; }
+	TFlt GetMomentum() { return Momentum; }
+	TStr GetTFuncHidden() { 
+		TStr FuncHidden = GetFunction(LayerV[1].GetNeuron(0).GetFunction());
+		return FuncHidden;
+	};
+	TStr GetTFuncOut() {
+		TStr FuncOut = GetFunction(LayerV[LayerV.Len() - 1].GetNeuron(0).GetFunction());
+		return FuncOut;
+	}
+	TStr GetFunction(const TTFunc& Func);
 };
 
 /////////////////////////////////////////
@@ -665,6 +691,67 @@ public:
 	void GetCoeffs(TFltV& Coef) const;
 	// check if the coefficient vector contains NaN
 	bool HasNaN() const;
+
+	// set the forgetting factor
+	void setForgetFact(const double& _ForgetFact) { ForgetFact = _ForgetFact; }
+	// set the regularization
+	void setRegFact(const double& _RegFact) { RegFact = _RegFact; }
+	// set the dimensions
+	void setDim(const int& _Dim) {
+		P = TFullMatrix::Identity(_Dim) / RegFact;
+		Coeffs = TVector(_Dim, true);
+	}
+};
+
+
+/////////////////////////////////////////////////
+/// Online histogram
+///    Given a sequence of points b_1, ...,b_n
+///    the class represents a frequency histogram for each interval [b_i, b_i+1)
+///    The intervals are open on the right, except for the last interval [b_n-1 b_n]
+///    The count data can be incremented or decremented, so we can work in an online
+///    setting.
+class TOnlineHistogram {
+private:
+	TFltV Counts; ///< Number of occurrences
+	TFltV Bounds; ///< Interval bounds (Bounds.Len() == Counts.Len() + 1)
+private:
+	TOnlineHistogram() { };
+	void Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf);
+public:	
+	/// Constructs given bin parameters
+	TOnlineHistogram(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf) { Init(LBound, UBound, Bins, AddNegInf, AddPosInf); }
+	/// Constructs given JSON arguments
+	TOnlineHistogram(const PJsonVal& ParamVal);
+	/// Constructs from stream
+	TOnlineHistogram(TSIn& SIn) : Counts(SIn), Bounds(SIn) {}
+
+	/// Loads the model from stream
+	void Load(TSIn& SIn) { *this = TOnlineHistogram(SIn); }
+	/// Saves the model to stream
+	void Save(TSOut& SOut) const { Counts.Save(SOut); Bounds.Save(SOut); }
+	/// Finds the bin index given val, returns -1 if not found
+	int FindBin(const double& Val) const;
+	/// Increments the number of occurrences of values that fall within the same bin as Val
+	void Increment(const double& Val);
+	/// Decrements the number of occurrences of values that fall within the same bin as Val
+	void Decrement(const double& Val);
+	/// Returns the number of occurrences of values that fall within the same bin as Val
+	double GetCount(const double& Val) const;
+	/// Returns the number of bins
+	int GetBins() const { return Counts.Len(); }
+	/// Copies the count vector
+	void GetCountV(TFltV& Vec) const { Vec = Counts; }
+	/// Returns an element of count vector given index
+	double GetCountN(const int& CountN) const { return Counts[CountN]; }
+	/// Has the model beeen initialized?
+	bool IsInit() const {	return Counts.Len() > 0 && Bounds.Len() > 0; }
+	/// Clears the model
+	void Clr() { Counts.Clr(); Bounds.Clr(); }
+	/// Prints the model
+	void Print() const;
+	/// Returns a JSON representation of the model
+	PJsonVal SaveJson() const;
 };
 
 }

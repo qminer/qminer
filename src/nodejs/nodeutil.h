@@ -141,13 +141,17 @@ public:
     /// Checks if the class name of the underlying glib object matches the
     /// given string. the name is stored in an hidden variable "class"
     static bool IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm);
-    /// returns true if the argument is null, undefined or not in the arguments at all
-    static bool IsArgNull(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if argument ArgN belongs to a given class
     static bool IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& ClassNm);
     /// Check if argument ArgN belongs to a given class
     template <class TClass>
     static bool IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+    /// Check if argument ArgN is null
+    static bool IsArgNull(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+    /// returns true if the argument is undefined or not in the arguments at all
+	static bool IsArgUndef(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+	/// returns true if the argument is null, undefined or not in the arguments at all
+	static bool IsArgNullOrUndef(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN of type v8::Function
     static bool IsArgFun(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN of type v8::Object
@@ -273,10 +277,10 @@ public:
 
 	/// Used for unwrapping objects that depend on TBase being valid
 	template <class TClass>
-	static TClass* UnwrapCheckWatcher(v8::Handle<v8::Object> handle);
+	static TClass* UnwrapCheckWatcher(v8::Handle<v8::Object> Arg);
 
 	template <class TClass>
-	static TClass* Unwrap(v8::Handle<v8::Object> handle) { return node::ObjectWrap::Unwrap<TClass>(handle); }
+	static TClass* Unwrap(v8::Handle<v8::Object> Arg) { return node::ObjectWrap::Unwrap<TClass>(Arg); }
 	
 };
 
@@ -395,8 +399,9 @@ bool TNodeJsUtil::ExecuteBool(const v8::Handle<v8::Function>& Fun, const v8::Loc
 }
 
 template <class TClass>
-TClass* TNodeJsUtil::UnwrapCheckWatcher(v8::Handle<v8::Object> handle) {
-	TClass* Obj = node::ObjectWrap::Unwrap<TClass>(handle);
+TClass* TNodeJsUtil::UnwrapCheckWatcher(v8::Handle<v8::Object> Arg) {
+	EAssertR(IsClass(Arg, TClass::GetClassId()), "Object is not a wrapped `" + TClass::GetClassId() + "` class");
+	TClass* Obj = node::ObjectWrap::Unwrap<TClass>(Arg);
 	Obj->Watcher->AssertOpen();
 	return Obj;
 }

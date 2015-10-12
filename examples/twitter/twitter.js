@@ -3,7 +3,7 @@
 // communication graphs based on sets of twitter messages (twitter specific)
 
 // Import libraries
-var qm = require('../../index.js');
+var qm = require('qminer');
 var analytics = qm.analytics;
 var fs = qm.fs;
 
@@ -20,7 +20,7 @@ qm.load.jsonFile(Tweets, tweetsFile);
 
 console.log("number of records: " + Tweets.length);
 // Select all tweets
-var recSet = Tweets.recs;
+var recSet = Tweets.allRecords;
 
 // Active learning settings: start svm when 2 positive and 2 negative examples are provided
 var nPos = 2; var nNeg = 2; //active learning query mode
@@ -58,7 +58,7 @@ if (buildFtrSpace) {
 } else {
     // Load the feature space
     var fin = fs.openRead("./sandbox/twitter/fs.dat");
-    ftrSpace = analytics.loadFeatureSpace(fin);
+    ftrSpace = new qm.FeatureSpace(base, fin);
 }
 
 // Learn a model of relevant tweets 
@@ -117,10 +117,3 @@ recSet2.filter(function (rec) { return rec.Date.getTime() > tm.getTime() })
 
 // Print the record set length
 console.log("recSet1.length: " + recSet1.length + ", recSet2.length: " + recSet2.length);
-
-// Build two communication graph snapshots based on the two record sets. Users represent graph nodes. A user "a" is linked to user "b" if "a" authored a tweet that contained the keyword @"b".
-// Each node is assigned a sentiment (majority sentiment based on all the tweets authored by the node)
-// Build the first graph and save it in DOT format (implemented in C++ as a qminer aggregate)
-var u1 = recSet1.aggr({ name: "tgraph1", dotName: "tesi1", type: "twitterGraph", fName: "./sandbox/twitter/graph1.gv" });
-// Build the second graph (based on the second record set) and filter the nodes that were not present in the first graph, finally save it in DOT format
-var u2 = recSet2.aggr({ name: "tgraph2", dotName: "tesi2", type: "twitterGraph", fName: "./sandbox/twitter/graph2.gv", userVec: u1 });

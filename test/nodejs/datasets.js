@@ -11,9 +11,6 @@ var qm = require('qminer');
 var assert = require('assert')
 var datasets = qm.datasets;
 
-qm.delLock();
-qm.config('qm.conf', true, 8080, 1024);
-
 describe('qm.datasets', function () {
 
     describe('#describe()', function () {
@@ -30,7 +27,7 @@ describe('qm.datasets', function () {
 
         // Create base and load data before tests
         before(function () {
-            base = qm.create('qm.conf', '', true);
+            base = new qm.Base({ mode: 'createClean' });
             Iris = datasets.loadIrisSync(base);
         });
 
@@ -59,7 +56,7 @@ describe('qm.datasets', function () {
 
         // Reload base, and wait for store to be loaded.
         before(function (done) {
-            base = qm.create('qm.conf', '', true);
+            base = new qm.Base({ mode: 'createClean' });
 
             datasets.loadIris(base, function (err, store) {
                 if (err) throw err;

@@ -24,11 +24,12 @@ node appendIntellisense ../nodedoc/qminerdoc.js ../src/nodejs/intellisense/qmine
 
 call jsdoc --template ../node_modules/jsdoc-baseline ../nodedoc/htdoc.js ../nodedoc/fsdoc.js ../nodedoc/analyticsdoc.js  ../nodedoc/ladoc.js ../nodedoc/qminerdoc.js ../nodedoc/statdoc.js ../nodedoc/datasetsdoc.js ../nodedoc/qminer_aggrdoc.js -d ../nodedoc 
 
-node factorydoc.js ../nodedoc/module-qm.html
 node factorydoc.js ../nodedoc/module-qm.Iterator.html
 node factorydoc.js ../nodedoc/module-qm.Record.html
 node factorydoc.js ../nodedoc/module-qm.RecordSet.html
 node factorydoc.js ../nodedoc/module-qm.Store.html
+
+node removeTimestamp.js ../nodedoc
 
 xcopy "pictures" "..\nodedoc\pictures\" /S/E/Y
 

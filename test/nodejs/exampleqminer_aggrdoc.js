@@ -1,14 +1,15 @@
 describe('example tests for the qminer_aggrdoc.js file', function () {
-describe("Qminer module.", function () {
-it('should make test number 1', function () {
+describe("Qminer module., number 1", function () {
+it("should make test number 1", function () {
  this.timeout(10000); 
 
  // import module
  var qm = require('qminer');
+
 });
 });
-describe("Stream Aggregate", function () {
-it('should make test number 2', function () {
+describe("Stream Aggregate, number 2", function () {
+it("should make test number 2", function () {
  this.timeout(10000); 
 
  // import qm module
@@ -55,10 +56,11 @@ it('should make test number 2', function () {
  }
  var sa = base.store("Laser").addStreamAggr(wavelength);
  base.close();
+
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesWindow", function () {
-it('should make test number 3', function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesWindow, number 3", function () {
+it("should make test number 3", function () {
  this.timeout(10000); 
  
  // import the qm module
@@ -88,52 +90,11 @@ it('should make test number 3', function () {
  };
  base.store("Heat").addStreamAggr(aggr); 
  base.close();
-});
-});
-describe("@typedef {module:qm.StreamAggr} StreamAggregateCount", function () {
-it('should make test number 4', function () {
- this.timeout(10000); 
 
- // import the qm module
- var qm = require('qminer');
- // create a base with a simple store
- var base = new qm.Base({
-    mode: "createClean",
-    schema: [
-    {
-        name: "Students",
-        fields: [
-            { name: "Id", type: "float" },
-            { name: "TimeOfGraduation", type: "datetime" }
-        ]
-    }]
- });
-
- // create a new time series stream aggregator for the 'Students' store, that takes the values from the 'Id' field
- // and the timestamp from the 'TimeOfGraduation' field. The size of the window should be 1 month.
- var timeser = {
-    name: 'TimeSeriesAggr',
-    type: 'timeSeriesWinBuf',
-    store: 'Students',
-    timestamp: 'TimeOfGraduation',
-    value: 'Id',
-    winsize: 2678400000 // 31 days in miliseconds
- };
- var timeSeries = base.store("Students").addStreamAggr(timeser);
-
- // add a count aggregator, that is connected with the 'TimeSeriesAggr' aggregator
- var co = {
-    name: 'CountAggr',
-    type: 'winBufCount',
-    store: 'Students',
-    inAggr: 'TimeSeriesAggr'
- };
- var count = base.store("Students").addStreamAggr(co);
- base.close();
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateSum", function () {
-it('should make test number 5', function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateSum, number 4", function () {
+it("should make test number 4", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -172,10 +133,11 @@ it('should make test number 5', function () {
  };
  var sumAggr = base.store("Income").addStreamAggr(sum);
  base.close();
+
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMin", function () {
-it('should make test number 6', function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMin, number 5", function () {
+it("should make test number 5", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -214,10 +176,11 @@ it('should make test number 6', function () {
  };
  var minimal = base.store("Heat").addStreamAggr(min);
  base.close();
+
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMax", function () {
-it('should make test number 7', function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMax, number 6", function () {
+it("should make test number 6", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -256,10 +219,11 @@ it('should make test number 7', function () {
  };
  var maximal = base.store("Heat").addStreamAggr(max);
  base.close();
+
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesTick", function () {
-it('should make test number 8', function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesTick, number 7", function () {
+it("should make test number 7", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -288,10 +252,11 @@ it('should make test number 8', function () {
  };
  var timeSeriesTick = base.store("Students").addStreamAggr(tick);
  base.close();
+
 });
 });
-describe("@typedef {module:qmStreamAggr} StreamAggregateMovingAverage", function () {
-it('should make test number 9', function () {
+describe("@typedef {module:qmStreamAggr} StreamAggregateMovingAverage, number 8", function () {
+it("should make test number 8", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -330,10 +295,11 @@ it('should make test number 9', function () {
  };
  var movingAverage = base.store("Heat").addStreamAggr(ma);
  base.close();
+
 });
 });
-describe("@typedef {module:qmStreamAggr} StreamAggregateEMA", function () {
-it('should make test number 10', function () {
+describe("@typedef {module:qmStreamAggr} StreamAggregateEMA, number 9", function () {
+it("should make test number 9", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -376,10 +342,11 @@ it('should make test number 10', function () {
  };
  var expoMovingAverage = base.store("Heat").addStreamAggr(ema);
  base.close();
+
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingVariance", function () {
-it('should make test number 11', function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingVariance, number 10", function () {
+it("should make test number 10", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -418,10 +385,11 @@ it('should make test number 11', function () {
  };
  var varianceAggr = base.store("Heat").addStreamAggr(variance);
  base.close();
+
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingCovariance", function () {
-it('should make test number 12', function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingCovariance, number 11", function () {
+it("should make test number 11", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -472,10 +440,11 @@ it('should make test number 12', function () {
  };
  var covarianceAggr = base.store("Heat").addStreamAggr(covariance);
  base.close();
+
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingCorrelation", function () {
-it('should make test number 13', function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingCorrelation, number 12", function () {
+it("should make test number 12", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -551,10 +520,11 @@ it('should make test number 13', function () {
  };
  var correlation = base.store("Heat").addStreamAggr(corr);
  base.close();
+
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateResampler", function () {
-it('should make test number 14', function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateResampler, number 13", function () {
+it("should make test number 13", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -596,10 +566,11 @@ it('should make test number 14', function () {
  };
  var resampler = base.store("Heat").addStreamAggr(res);
  base.close();
+
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMerger", function () {
-it('should make test number 15', function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMerger, number 14", function () {
+it("should make test number 14", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -646,10 +617,59 @@ it('should make test number 15', function () {
  };
  var merger = new qm.StreamAggr(base, mer);
  base.close();
+
 });
 });
-describe("Returns the value of the specific stream aggregator. For return values see {@link module:qm~StreamAggregators}.", function () {
-it('should make test number 16', function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateHistogram, number 15", function () {
+it("should make test number 15", function () {
+ this.timeout(10000); 
+
+ // import the qm module
+ var qm = require('qminer');
+ // create a base with a simple store
+ var base = new qm.Base({
+    mode: "createClean",
+    schema: [
+    {
+        name: "Heat",
+        fields: [
+            { name: "Celcius", type: "float" },
+            { name: "Time", type: "datetime" }
+        ]
+    }]
+ });
+
+ // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+ // and the timestamp from the 'Time' field. The size of the window is 1 day.
+ var timeser = {
+    name: 'TimeSeriesBuffer',
+    type: 'timeSeriesWinBuf',
+    store: 'Heat',
+    timestamp: 'Time',
+    value: 'Celcius',
+    winsize: 86400000 // one day in miliseconds
+ };
+ var timeSeries = base.store("Heat").addStreamAggr(timeser);
+
+ // add a histogram aggregator, that is connected with the 'TimeSeriesAggr' aggregator
+ var aggrJson = {
+    name: 'Histogram',
+    type: 'onlineHistogram',
+    store: 'Heat',
+    inAggr: 'TimeSeriesBuffer',
+    lowerBound: 0,
+    upperBound: 10,
+    bins: 5,
+    addNegInf: false,
+    addPosInf: false
+ };
+ var hist = base.store("Heat").addStreamAggr(aggrJson);
+ base.close();
+
+});
+});
+describe("Returns the value of the specific stream aggregator. For return values see {@link module:qm~StreamAggregators}., number 16", function () {
+it("should make test number 16", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -693,11 +713,11 @@ it('should make test number 16', function () {
 	 // get the average grade procents by using the getFloat method
 	 var average = averageGrade.getFloat(); // returns 74 + 1/3
 	 base.close();
-
+	
 });
 });
-describe("Returns the timestamp value of the newest record in buffer.", function () {
-it('should make test number 17', function () {
+describe("Returns the timestamp value of the newest record in buffer., number 17", function () {
+it("should make test number 17", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -740,11 +760,11 @@ it('should make test number 17', function () {
 	 // get the timestamp of the last bought game by using getTimestamp
 	 var date = priceSum.getTimestamp(); // returns 12153801600000 (the miliseconds since 1601-01-01T00:00:00.0)
 	 base.close();
-
+	
 });
 });
-describe("Gets the length of the vector containing the values of the stream aggregator.", function () {
-it('should make test number 18', function () {
+describe("Gets the length of the vector containing the values of the stream aggregator., number 18", function () {
+it("should make test number 18", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -779,11 +799,11 @@ it('should make test number 18', function () {
 	 // get the number of ice creams consumed by using getFloatLength method
 	 var numberOfIceCreamsEaten = icePrice.getFloatLength(); // returns 3
 	 base.close();
-
+	
 });
 });
-describe("Returns the value of the vector containing the values of the stream aggregator at a specific index.", function () {
-it('should make test number 19', function () {
+describe("Returns the value of the vector containing the values of the stream aggregator at a specific index., number 19", function () {
+it("should make test number 19", function () {
  this.timeout(10000); 
  
 	 // import qm module
@@ -818,11 +838,11 @@ it('should make test number 19', function () {
 	 // get the second value of the value vector 
 	 var albums = weekSales.getFloatAt(1); // returns 15
 	 base.close();
-
+	
 });
 });
-describe("Gets the whole vector of values of the stream aggregator.", function () {
-it('should make test number 20', function () {
+describe("Gets the whole vector of values of the stream aggregator., number 20", function () {
+it("should make test number 20", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -857,11 +877,11 @@ it('should make test number 20', function () {
 	 // get the values that are in the time series window buffer as a vector
 	 var values = weekPatients.getFloatVector(); // returns the vector [50, 56, 120, 40]
 	 base.close();
-
+	
 });
 });
-describe("Gets the length of the timestamp vector of the stream aggregator.", function () {
-it('should make test number 21', function () {
+describe("Gets the length of the timestamp vector of the stream aggregator., number 21", function () {
+it("should make test number 21", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -899,11 +919,11 @@ it('should make test number 21', function () {
 	 // get the length of the timestamp vector
 	 var length = weekly.getTimestampLength(); // returns 7
 	 base.close();
-
+	
 });
 });
-describe("Gets the timestamp from the timestamp vector of the stream aggregator at the specific index.", function () {
-it('should make test number 22', function () {
+describe("Gets the timestamp from the timestamp vector of the stream aggregator at the specific index., number 22", function () {
+it("should make test number 22", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -939,11 +959,11 @@ it('should make test number 22', function () {
 	 // get the third timestamp in the buffer
 	 var time = traffic.getTimestampAt(2); // returns 13078864800000
 	 base.close();
-
+	
 });
 });
-describe("Gets the vector containing the timestamps of the stream aggregator.", function () {
-it('should make test number 23', function () {
+describe("Gets the vector containing the timestamps of the stream aggregator., number 23", function () {
+it("should make test number 23", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -977,11 +997,11 @@ it('should make test number 23', function () {
 	 // get the timestamp vector of signalBeep
 	 var vec = signalBeep.getTimestampVector(); // returns vector [13081955430000, 13081955431000, 13081955432000]
 	 base.close();
-
+	
 });
 });
-describe("Gets the value of the newest record added to the stream aggregator.", function () {
-it('should make test number 24', function () {
+describe("Gets the value of the newest record added to the stream aggregator., number 24", function () {
+it("should make test number 24", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1016,11 +1036,11 @@ it('should make test number 24', function () {
 	 // get the last value that got in the buffer
 	 var last = sensor.getInFloat(); // returns 13.7
 	 base.close();
-
+	
 });
 });
-describe("Gets the timestamp of the newest record added to the stream aggregator.", function () {
-it('should make test number 25', function () {
+describe("Gets the timestamp of the newest record added to the stream aggregator., number 25", function () {
+it("should make test number 25", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1055,11 +1075,11 @@ it('should make test number 25', function () {
 	 // get the last timestamp that was added in the window buffer
 	 var time = sensor.getInTimestamp(); // returns 13081772323000
 	 base.close();
-
+	
 });
 });
-describe("Gets a vector containing the values that are leaving the stream aggregator.", function () {
-it('should make test number 26', function () {
+describe("Gets a vector containing the values that are leaving the stream aggregator., number 26", function () {
+it("should make test number 26", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1096,11 +1116,11 @@ it('should make test number 26', function () {
 	 // because the window size is 5 seconds, the last value that have left the buffer is 152.8
 	 var left = sensor.getOutFloatVector(); // returns [152.8]
 	 base.close();
-
+	
 });
 });
-describe("Gets a vector containing the timestamps that are leaving the stream aggregator.", function () {
-it('should make test number 27', function () {
+describe("Gets a vector containing the timestamps that are leaving the stream aggregator., number 27", function () {
+it("should make test number 27", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1138,11 +1158,11 @@ it('should make test number 27', function () {
 	 // get the timestamps that just left the window buffer by adding the last record
 	 var last = music.getOutTimestampVector(); // returns [13081963380000]
 	 base.close();
-
+	
 });
 });
-describe("Gets the number of records in the stream aggregator.", function () {
-it('should make test number 28', function () {
+describe("Gets the number of records in the stream aggregator., number 28", function () {
+it("should make test number 28", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1177,7 +1197,7 @@ it('should make test number 28', function () {
 	 // get the number of records in the window buffer
 	 var num = weekSales.getNumberOfRecords(); // returns 4
 	 base.close();
-
+	
 });
 });
 

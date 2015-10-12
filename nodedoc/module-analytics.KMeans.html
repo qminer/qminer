@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.2">
+  <meta name="generator" content="JSDoc 3">
   <meta charset="utf-8">
   <title>Class: KMeans</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">KMeans</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1823">analyticsdoc.<wbr>js:1823</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2579">analyticsdoc.<wbr>js:2579</a></p>
             <div class="symbol-classdesc">
               <p>KMeans clustering</p>
             </div>
@@ -38,7 +38,10 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.KMeans.html#fit">fit(A)</a></dt>
+                    <dt><a href="module-analytics.KMeans.html#explain">explain(X)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.KMeans.html#fit">fit(X[, recIds])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.KMeans.html#getModel">getModel()</a></dt>
@@ -51,26 +54,26 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.KMeans.html#load">load(fname)</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-analytics.KMeans.html#permuteCentroids">permuteCentroids(mapping)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.KMeans.html#predict">predict(A)</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.KMeans.html#save">save(fname)</a></dt>
+                    <dt><a href="module-analytics.KMeans.html#save">save(arg)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.KMeans.html#setParams">setParams(p)</a></dt>
                     <dd>
                     </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
                     <dt><a href="module-analytics.KMeans.html#transform">transform(A)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.KMeans.html#~featureContrib">featureContrib(x, y)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -92,7 +95,7 @@ var la = require(&#x27;qminer&#x27;).la;
 var KMeans = new analytics.KMeans();
 // create the matrix to be fitted
 var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
-// create the model 
+// create the model
 KMeans.fit(X);</code></pre>
               </div>
             </section>
@@ -150,6 +153,34 @@ KMeans.fit(X);</code></pre>
                       <p>If false, the console output is supressed.</p>
                     </td>
                   </tr>
+                  <tr>
+                    <td>
+                      <p>fitIdx</p>
+                    </td>
+                    <td>
+                      <p>Array</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>Array of indexes that should be used as starting centroids. Optional.</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p>fitStart</p>
+                    </td>
+                    <td>
+                      <p>model</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>Model from another KMeans algorithm (obtained via getModel() method). Its centroids are used as starting centroids for this model. Optional.</p>
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </section>
@@ -159,8 +190,8 @@ KMeans.fit(X);</code></pre>
           <section>
             <h2>Methods</h2>
             <section>
-              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(A)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.KMeans.html">module:analytics.KMeans</a></span></span></h3>
-              <p>Computes the centroids</p>
+              <h3 id="explain"><span class="symbol-name">explain</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> Array of KMeansExplanation</span></span></h3>
+              <p>Returns the IDs of the nearest medoid for each example.</p>
               <section>
                 <h4>
             Example
@@ -168,12 +199,18 @@ KMeans.fit(X);</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
+// import linear algebra module
+var la = require(&#x27;qminer&#x27;).la;
 // create a new KMeans object
 var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
 // create a matrix to be fitted
 var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
-// create the model with the matrix X
-KMeans.fit(X);</code></pre>
+// create the model with the matrix X using the column IDs [0,1,2]
+KMeans.fit(X, [1234,1142,2355]);
+// create the matrix of the prediction vectors
+var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
+// predict/explain - return the closest medoids
+var explanation = KMeans.explain(test);</code></pre>
                 </div>
               </section>
               <section>
@@ -190,7 +227,7 @@ KMeans.fit(X);</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>A</p>
+                        <p>X</p>
                       </td>
                       <td>
                         <p>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
@@ -208,10 +245,76 @@ KMeans.fit(X);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
+                  <p><code>Array of KMeansExplanation</code>&nbsp;Object containing the vector of medoid IDs.</p>
+                </dd>
+              </dl>
+              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X[, recIds])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.KMeans.html">module:analytics.KMeans</a></span></span></h3>
+              <p>Computes the centroids.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create a new KMeans object
+var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+// create a matrix to be fitted
+var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+// create the model with the matrix X
+KMeans.fit(X);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>X</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Matrix whose columns correspond to examples.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>recIds</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>IDs of columns of X. The fit function stores the IDs of the medoids, which are used by the KMeans.explain function.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
                   <p><code><a href="module-analytics.KMeans.html">module:analytics.KMeans</a></code>&nbsp;Self. It stores the info about the new model.</p>
                 </dd>
               </dl>
-              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> (Object or Object)</span></span></h3>
+              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Returns the model</p>
               <section>
                 <h4>
@@ -233,9 +336,6 @@ var model = KMeans.getModel();</code></pre>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
-                <dd>
-                  <p><code>Object</code>&nbsp;The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data) Returns the model.</p>
-                </dd>
                 <dd>
                   <p><code>Object</code>&nbsp;The model object whose keys are: C (centroids) and idxv (cluster ids of the training data).</p>
                 </dd>
@@ -260,39 +360,6 @@ var json = KMeans.getParams();</code></pre>
                 <dd>
                   <p>Object whose keys are: k (number of centroids), iter (maximum iterations) and verbose (if false, console output is supressed).</p>
                 </dd>
-              </dl>
-              <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(fname)</span></span></h3>
-              <p>Loads KMeans internal state from (binary) file</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>fname</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Name of the file to read from.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
               </dl>
               <h3 id="permuteCentroids"><span class="symbol-name">permuteCentroids</span><span class="signature"><span class="signature-params">(mapping)</span></span></h3>
               <p>Permutes centroid with given mapping.</p>
@@ -319,7 +386,7 @@ var json = KMeans.getParams();</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>object that contains the mappping. E.g. mapping[4]=2 means &quot;map cluster 4 into cluster 2&quot;</p>
+                        <p>object that contains the mapping. E.g. mapping[4]=2 means &quot;map cluster 4 into cluster 2&quot;</p>
                       </td>
                     </tr>
                   </tbody>
@@ -328,7 +395,7 @@ var json = KMeans.getParams();</code></pre>
               <dl class="dl-compact">
               </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(A)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.IntVector.html">module:la.IntVector</a></span></span></h3>
-              <p>Returns an vector of cluster id assignments</p>
+              <p>Returns an vector of cluster id assignments.</p>
               <section>
                 <h4>
             Example
@@ -383,8 +450,8 @@ var prediction = KMeans.predict(pred);</code></pre>
                   <p><code><a href="module-la.IntVector.html">module:la.IntVector</a></code>&nbsp;Vector of cluster assignments.</p>
                 </dd>
               </dl>
-              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fname)</span></span></h3>
-              <p>Saves KMeans internal state into (binary) file</p>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(arg)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Saves KMeans internal state into (binary) file.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -399,22 +466,26 @@ var prediction = KMeans.predict(pred);</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>fname</p>
+                        <p>arg</p>
                       </td>
                       <td>
-                        <p>string</p>
+                        <p><a href="module-fs.FOut.html">module:fs.FOut</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Name of the file to write into.</p>
+                        <p>The output stream.</p>
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </section>
               <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream fout.</p>
+                </dd>
               </dl>
               <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(p)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.KMeans.html">module:analytics.KMeans</a></span></span></h3>
               <p>Sets the parameters.</p>
@@ -527,6 +598,57 @@ KMeans.transform(matrix);</code></pre>
                   <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;Matrix where each column represents the squared distances to the centroid vectors.</p>
                 </dd>
               </dl>
+              <h3 id="~featureContrib"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">featureContrib</span><span class="signature"><span class="signature-params">(x, y)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Returns the weights and feature IDs that contributed to the distance between two vectors</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>x</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Vector</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>y</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Vector</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;Feature IDs and feature contributions</p>
+                </dd>
+              </dl>
             </section>
           </section>
         </div>
@@ -537,7 +659,7 @@ KMeans.transform(matrix);</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 28, 2015.
+        
       </p>
     </div>
   </footer>

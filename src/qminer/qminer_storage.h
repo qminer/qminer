@@ -69,8 +69,10 @@ public:
 	bool IsText() const { return (KeyType & oiktText) > 0; }
 	/// Is indexed as geo-location
 	bool IsLocation() const { return (KeyType & oiktLocation) > 0; }
-	// get index type
-	TStr GetKeyType() const { return IsValue() ? "value" : IsText() ? "text" : "location"; }
+	/// Checks key type is on linearly  ordered value using b-tree
+	bool IsLinear() const { return (KeyType & oiktLinear) > 0; }
+	/// Get index type as string (value, text, location, linear)
+	TStr GetKeyType() const { return IsValue() ? "value" : IsText() ? "text" : IsLocation() ? "location" : "linear"; }
 
 	/// Key sortable as string
 	bool IsByStr() const { return SortType == oikstByStr; }
@@ -655,9 +657,11 @@ private:
 		bool IsText() const { return (KeyType & oiktText) > 0; }
 		/// Is indexed as geo-location
 		bool IsLocation() const { return (KeyType & oiktLocation) > 0; }
-		// get index type
-		TStr GetKeyType() const { return IsValue() ? "value" : IsText() ? "text" : "location"; }
-	};    
+        /// Checks key type is on linearly  ordered value using b-tree
+        bool IsLinear() const { return (KeyType & oiktLinear) > 0; }
+        /// Get index type as string (value, text, location, linear)
+        TStr GetKeyType() const { return IsValue() ? "value" : IsText() ? "text" : IsLocation() ? "location" : "linear"; }
+	};
 	
 private:
 	/// Index shortcut

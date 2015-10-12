@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 var assert = require('../../src/nodejs/scripts/assert.js');
 var analytics = require('qminer').analytics;
 var la = require('qminer').la;
@@ -255,6 +263,18 @@ describe('Ridge Regression Tests', function () {
             assert.throws(function () {
                 var prediction = RR.predict(vec);
             });
+        })
+    });
+    describe('Serialization Tests', function () {
+        it('should serialize and deserialize', function () {
+            var RR = new analytics.RidgeReg();
+            var A = new la.Matrix([[1, 2], [1, -1]]);
+            var b = new la.Vector([3, 3]);
+            RR.fit(A, b);
+            RR.save(require('qminer').fs.openWrite('ridgereg_test.bin')).close();
+            var RR2 = new analytics.RidgeReg(require('qminer').fs.openRead('ridgereg_test.bin'));
+            assert.deepEqual(RR.getParams(), RR2.getParams());
+            assert.eqtol(RR.weights.minus(RR2.weights).norm(), 0, 1e-8);
         })
     });
 });

@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 
 var assert = require('../../src/nodejs/scripts/assert.js');
 var analytics = require('qminer').analytics;
@@ -69,10 +77,10 @@ describe('RecursiveLinearRegression Tests', function () {
         })
         it('should change some of the parameters', function () {
             var linreg = new analytics.RecLinReg({ dim: 10, regFact: 2.0, forgetFact: 15.0 });
-            linreg.setParams({ dim: 2 });
+            linreg.setParams({ dim: 2, regFact: 1e-10 });
             var param = linreg.getParams();
             assert.equal(param.dim, 2);
-            assert.eqtol(param.regFact, 2.0);
+            assert.eqtol(param.regFact, 1e-10);
             assert.eqtol(param.forgetFact, 15.0);
         })
         it('should throw an exception if there are no parameters', function () {
@@ -240,6 +248,18 @@ describe('RecursiveLinearRegression Tests', function () {
                 linreg.predict();
             });
         })
-    })
+    });
+    describe('Serialization Tests', function () {
+        it('should serialize and deserialize', function () {
+            var linreg = new analytics.RecLinReg({ dim: 2, regFact: 1e-10, forgetFact: 1.0 });
+            var X = new la.Matrix([[1, 2], [1, -1]]);
+            var y = new la.Vector([3, 3]);
+            linreg.fit(X, y);
+            linreg.save(require('qminer').fs.openWrite('reclinreg_test.bin')).close();
+            var linreg2 = new analytics.RecLinReg(require('qminer').fs.openRead('reclinreg_test.bin'));
+            assert.deepEqual(linreg.getParams(), linreg2.getParams());
+            assert.eqtol(linreg.weights.minus(linreg2.weights).norm(), 0, 1e-8);
+        })
+    });
 
 })

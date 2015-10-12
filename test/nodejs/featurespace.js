@@ -56,18 +56,28 @@ describe('Feature Space Tests', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
             assert.notEqual(ftr, null);
         })
-        it.skip('should throw an exception, if feature extractor is not given', function () {
+        it('should throw an exception, if feature extractor is not given', function () {
             assert.throws(function () {
                 var ftr = new qm.FeatureSpace(base);
             })
             console.log("should be seen on screen: base");
         })
-        it.skip('should throw an exception, if only the feature extractor is given', function () {
+        it('should throw an exception, if only the feature extractor is given', function () {
             assert.throws(function () {
                 var ftr = new qm.FeatureSpace({ type: "numeric", source: "FtrSpaceTest", field: "Value" });
             })
         })
-        it.skip('should throw an exception, if no parameters are given', function () {
+        it('should throw an exception, if base is not a base', function () {
+            assert.throws(function () {
+                var ftr = new qm.FeatureSpace(10, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
+            })
+        })
+        it('should throw an exception, if json is not a json', function () {
+            assert.throws(function () {
+                var ftr = new qm.FeatureSpace(base, 10);
+            })
+        })
+        it('should throw an exception, if no parameters are given', function () {
             assert.throws(function () {
                 var ftr = new qm.FeatureSpace();
                 console.log("should be seen on screen: none");
@@ -224,8 +234,10 @@ describe('Feature Space Tests', function () {
             assert.equal(vec.length, 0);
         })
         it.skip('should return a vector for the first record in store: dateWindow', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "dateWindow", source: "FtrSpaceTest", field: "Date", window: 3, unit: "12hours" });
+            var ftr = new qm.FeatureSpace(base, { type: "dateWindow", source: "FtrSpaceTest", field: "Date", window: 1, unit: "12hours" });
+            console.log('Here!');
             var vec = ftr.extractVector(Store[0]);
+            console.log('There!');
             console.log(vec);
             vec.print();
         })
@@ -283,7 +295,7 @@ describe('Feature Space Tests', function () {
                 var vec = ftr.extractVector();
             })
         })
-        it.skip('should throw an exception, if the parameter is not a record of type store', function () {
+        it('should throw an exception, if the parameter is not a record of type store', function () {
             base.createStore({
                 "name": "Mobile",
                 "fields": [
@@ -294,7 +306,7 @@ describe('Feature Space Tests', function () {
                 "joins": [],
                 "keys": []
             });
-            base.store('Mobile').add({ TeaMobile: 10, AvtoMobile: "car", PerpetumMobile: ["more", "cars"] });
+            base.store('Mobile').push({ TeaMobile: 10, AvtoMobile: "car", PerpetumMobile: ["more", "cars"] });
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
             assert.throws(function () {
                 ftr.extractVector(base.store('Mobile')[0]);
@@ -337,7 +349,7 @@ describe('Feature Space Tests', function () {
             assert.equal(vec.at(3), 1);
         })
         it.skip('should return a sparse vector for the first record in store: text', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", field: "Text", ngrams: [1, 4] });
+            var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", field: "Text" });
             var vec = ftr.extractSparseVector(Store[0]);
             assert.equal(vec.dim, 0);
         })
@@ -350,9 +362,6 @@ describe('Feature Space Tests', function () {
 
             var vec = ftr.extractSparseVector(Store[0]);
             assert.equal(vec.dim, 0);
-        })
-        it.skip('should return a sparse vector for the first record in store: dateWindow', function () {
-
         })
         it('should return a sparse vector for the first record in store: jsfunc', function () {
             var ftr = new qm.FeatureSpace(base, {
@@ -407,7 +416,7 @@ describe('Feature Space Tests', function () {
                 var vec = ftr.extractSparseVector();
             })
         })
-        it.skip('should throw an exception, if the parameter is not a record of type store', function () {
+        it('should throw an exception, if the parameter is not a record of type store', function () {
             base.createStore({
                 "name": "Mobile",
                 "fields": [
@@ -418,7 +427,7 @@ describe('Feature Space Tests', function () {
                 "joins": [],
                 "keys": []
             });
-            base.store('Mobile').add({ TeaMobile: 10, AvtoMobile: "car", PerpetumMobile: ["more", "cars"] });
+            base.store('Mobile').push({ TeaMobile: 10, AvtoMobile: "car", PerpetumMobile: ["more", "cars"] });
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
             assert.throws(function () {
                 ftr.extractSparseVector(base.store('Mobile')[0]);
@@ -535,9 +544,6 @@ describe('Feature Space Tests', function () {
                 var vec = ftr.invertFeatureVector(ftrVec);
             })
         })
-        it.skip('should throw an exception for extractor type: dateWindow', function () {
-
-        })
         it('should throw an exception for extractor type: jsfunc', function () {
             var ftr = new qm.FeatureSpace(base, {
                 type: "jsfunc", source: "FtrSpaceTest", name: "TestFunc", dim: 1,
@@ -626,7 +632,7 @@ describe('Feature Space Tests', function () {
                 var vec = ftr.invertFeature(0, { "one": 1 });
             });
         })
-        it.skip('should throw an exception for extractor type: pair', function () {
+        it('should throw an exception for extractor type: pair', function () {
             var ftr = new qm.FeatureSpace(base, {
                 type: "pair", source: "FtrSpaceTest",
                 first: { type: "numeric", source: "FtrSpaceTest", field: "Value" },
@@ -636,7 +642,7 @@ describe('Feature Space Tests', function () {
                 var vec = ftr.invertFeature(0, [10, [0, 1, 0]]);
             })
         })
-        it.skip('should throw an exception for extractor type: pair (numeric, constant)', function () {
+        it('should throw an exception for extractor type: pair (numeric, constant)', function () {
             var ftr = new qm.FeatureSpace(base, {
                 type: "pair", source: "FtrSpaceTest",
                 first: { type: "numeric", source: "FtrSpaceTest", field: "Value" },
@@ -645,9 +651,6 @@ describe('Feature Space Tests', function () {
             assert.throws(function () {
                 var vec = ftr.invertFeature(0, [10, [0, 1, 0]]);
             })
-        })
-        it.skip('should throw an exception for extractor type: dateWindow', function () {
-
         })
         it('should throw an exception for extractor type: jsfunc', function () {
             var ftr = new qm.FeatureSpace(base, {
@@ -821,9 +824,6 @@ describe('Feature Space Tests', function () {
                 var type = ftr.getFeature(0);
             });
         })
-        it.skip('should return the name of the features of extractor type: dateWindow', function () {
-
-        })
         it('should reutrn the name of the feature of extractor type: jsfunc', function () {
             var ftr = new qm.FeatureSpace(base, {
                 type: "jsfunc", source: "FtrSpaceTest", name: "TestFunc", dim: 1,
@@ -984,24 +984,6 @@ describe('Feature Space Tests', function () {
             assert.equal(out_vec.at(3), 1);
             assert.equal(out_vec.at(4), 0);
             assert.equal(out_vec.at(5), 0);
-        })
-        it.skip('should return only the features of a sparse vector for extractor type: text', function () {
-
-        })
-        it.skip('should return only the features of a dense vector for extractor type: text', function () {
-
-        })
-        it.skip('should return only the features of a sparse vector for extractor type: pair', function () {
-
-        })
-        it.skip('should return only the features of a dense vector for extractor type: pair', function () {
-
-        })
-        it.skip('should return only the features of a sparse vector for extractor type: dateWindow', function () {
-
-        })
-        it.skip('should return only the features of a dense vector for extractor type: dateWindow', function () {
-
         })
         it('should return only the features of a sparse vector for extractor type: text', function () {
             var ftr = new qm.FeatureSpace(base, {
@@ -1281,12 +1263,6 @@ describe('Feature Space Tests', function () {
             assert.equal(ftr.extractVector(Store[12]).at(1), 1);
 
             //ftr.extractVector(Store[13]); // C++ exception
-        })
-        it.skip('should update the feature space with a new record: pair', function () {
-
-        })
-        it.skip('should update the feature space with a new record: dateWindow', function () {
-
         })
         it('should update the feature space with a new record: jsfunc', function () {
             var ftr = new qm.FeatureSpace(base, {
@@ -1825,9 +1801,6 @@ describe('Feature Space Tests', function () {
             ftr.updateRecords(rs);
 
             assert.equal(ftr.extractVector(Store[0]).length, 4);
-        })
-        it.skip('should update the feature space by adding the whole store: multinomial, datetime', function () {
-
         })
         it('should update the feature space by adding the whole store: jsfunc', function () {
             var ftr = new qm.FeatureSpace(base, {

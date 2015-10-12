@@ -1,5 +1,84 @@
 # QMiner Change Log
 
+### 2 Oct 2015
+
+**New version: 2.5.0**
+
+**non-breaking with new features and bug fixes**
+
+Features:
+- added BTree index for efficient numeric range searches. Supported data types: int, float, uint64, datatime
+- Regression error metrics: batch and online metrics
+- Recordset.filterByField - Added support for null values for numerics and datetime. Also, added support for datetime-filtering via string or uint64 (Unix msec-epoch).
+
+Bug fixes:
+
+Other:
+- Unit tests and documentation for NNet
+- Code cleanup
+- Documentation generation fixes and enhancements
+
+TODO:
+- analytics unit tests, examples and documentation: classification metrics, preprocessing, ThresholdModel, active learning, tokenizer
+- port online kmeans and perceptron
+
+### 25 Sep 2015
+
+**New version: 2.4.0**
+
+**non-breaking with new features and bug fixes**
+
+Features:
+- `record.setField`, `store.newRec` and `recset.filterByField` accept unix timestamp as input for datetime fields
+- `fout.writeBinary` writes binary serialization of JS strings, numbers or jsons to GLib output stream (`TFOut`)
+- k-means has explain method which returns medoid of the cluster new instance is assigned to
+
+Bug fixes:
+- fixed memory leak when assigning emtpy TVec to another empty TVec
+- automatic removal of timestamp in generated javascript documentation (jsdoc) to avoid conflicts at merging documentation
+
+### 18 Sep 2015
+
+**New version: 2.3.0**
+
+**non-breaking with new features**
+
+Features:
+- KMeans can get seed centroids as parameters
+
+Bug fixes: 
+- TFIn reading buffer beyond EOF 
+- TVec::AddSorted made faster
+- Feature space constructor checkes parameters
+
+Other:
+- Cleaned and updated SNAP examples and documentation
+- Added required APIs, documentation and tests for logistic regression, proportional hazards and neural networks
+
+### 11 Sep 2015
+
+**New version: 2.2.1**
+
+**non-breaking without new features**
+
+Bug fixes:
+- SVC save fixed
+- twitter example fixed
+- time series example fixed
+- TStr::TrimLeft could crash
+- active learning fixed
+
+Other:
+- SVC.save (unit test, example)
+- recursive linear reg tests and documentation
+- logistic regression API update, doc, example, tests
+- proportional hazards model API update, doc, example, tests
+- licenses updated
+- /src/qminer/gui folder deleted
+- examples/timeseriesPlot deleted
+- examples/updatingTimeseriesPlot deleted
+- src/nodejs/ run.js scripts removed
+
 ### 4 Sep 2015
 
 **New version: 2.2.0**

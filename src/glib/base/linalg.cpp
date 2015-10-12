@@ -1974,10 +1974,16 @@ int TLAMisc::GetMinIdx(const TFltV& Vec) {
 	 int Rows = Mat.GetRows();
 	 int Cols = Mat.GetCols();
 	 if (Dim == TMatDim::mdCols) {
+		 if (Res.Len() != Cols) {
+			 Res.Gen(Cols);
+		 }
 		 TFltV Vec(Rows);
 		 Vec.PutAll(1.0 / Rows);
 		 TLinAlg::MultiplyT(Mat, Vec, Res);
 	 } else if (Dim == TMatDim::mdRows) {
+		 if (Res.Len() != Rows) {
+			 Res.Gen(Rows);
+		 }
 		 TFltV Vec(Cols);
 		 Vec.PutAll(1.0 / Cols);
 		 TLinAlg::Multiply(Mat, Vec, Res);

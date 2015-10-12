@@ -27,7 +27,7 @@ void TNodeJsStat::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	
 	EAssertR(Args.Length() != 0, "Error using stat.mean function. Not enough input arguments.");
 	EAssertR(Args[0]->IsObject() && (TNodeJsUtil::IsClass(Args[0]->ToObject(), TNodeJsFltV::GetClassId().CStr()) || TNodeJsUtil::IsClass(Args[0]->ToObject(), TNodeJsFltVV::GetClassId())), 
-		"Error using stat.std function. First argument should be la.vector or  la.matrix.");
+		"Error using stat.std function. First argument should be la.vector or la.matrix.");
 	
 	// Dim parameter
 	int Dim = TNodeJsUtil::GetArgInt32(Args, 1, 1); // Default dim is 1

@@ -426,6 +426,7 @@ TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>&
 	uint64 IndexCache = (uint64)Val->GetObjInt("indexCache", 1024) * (uint64)TInt::Mega;
 	uint64 StoreCache = (uint64)Val->GetObjInt("storeCache", 1024) * (uint64)TInt::Mega;
 
+    // load unicode
 	TStr UnicodeFNm = Val->GetObjStr("unicode", TQm::TEnv::QMinerFPath + "./UnicodeDef.Bin");
 	if (!TUnicodeDef::IsDef()) { TUnicodeDef::Load(UnicodeFNm); }
 	// Load Stopword Files
@@ -604,7 +605,7 @@ void TNodeJsBase::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	const TStr AggrNm = TNodeJsUtil::GetArgStr(Args, 0);
 	if (JsBase->Base->IsStreamAggr(AggrNm)) {
 		TQm::PStreamAggr StreamAggr = JsBase->Base->GetStreamAggr(AggrNm);
-		Args.GetReturnValue().Set(TNodeJsSA::New(StreamAggr));
+		Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSA>(new TNodeJsSA(StreamAggr)));
 	}
 }
 
@@ -1108,7 +1109,7 @@ void TNodeJsStore::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 		if (Base->IsStreamAggr(StoreId, AggrNm)) {
 			TQm::PStreamAggr StreamAggr = Base->GetStreamAggr(StoreId, AggrNm);
-			Args.GetReturnValue().Set(TNodeJsSA::New(StreamAggr));
+			Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSA>(new TNodeJsSA(StreamAggr)));
 		}
 		else {
 			Args.GetReturnValue().Set(v8::Null(Isolate));
@@ -1973,20 +1974,24 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 		}
 	}
 	else if (Desc.IsTm()) {
-		QmAssertR(Value->IsObject() || Value->IsString(), "Field " + FieldNm + " not object or string");
-		if (Value->IsDate()){
-			v8::Handle<v8::Date> Date = v8::Handle<v8::Date>::Cast(Value);
-			// milliseconds from 1970-01-01T00:00:00Z, which is 11644473600 seconds after Windows file time start
-			double UnixMSecs = Date->NumberValue();
+		QmAssertR(Value->IsObject() || Value->IsString() || Value->IsNumber(), "Field " + FieldNm + " not object or string");
+		if (Value->IsDate() || Value->IsNumber()) {
+			double UnixMSecs;
+			if (Value->IsDate()) {
+				v8::Handle<v8::Date> Date = v8::Handle<v8::Date>::Cast(Value);
+				// milliseconds from 1970-01-01T00:00:00Z, which is 11644473600 seconds after Windows file time start
+				UnixMSecs = Date->NumberValue();
+			} else {
+				UnixMSecs = Value->NumberValue();
+			}			
 			// milliseconds from 1601-01-01T00:00:00Z
 			double WinMSecs = UnixMSecs + 11644473600000.0;
-			TTm Tm = TTm::GetTmFromMSecs((uint64)WinMSecs);
-			Rec.SetFieldTm(FieldId, Tm);
+			Rec.SetFieldTmMSecs(FieldId, (uint64)WinMSecs);
 		}
 		else if (Value->IsString()){
 			v8::String::Utf8Value Utf8(Value);
 			Rec.SetFieldTm(FieldId, TTm::GetTmFromWebLogDateTimeStr(TStr(*Utf8), '-', ':', '.', 'T'));
-		}
+		} 
 		else {
 			throw TQm::TQmExcept::New("Field + " + FieldNm + " expects a javascript Date() "
                 "object or a Weblog datetime formatted string (example: \"2012-12-31T00:00:05.100\")");
@@ -2064,7 +2069,7 @@ void TNodeJsRecSet::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortById", _sortById);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortByFq", _sortByFq);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortByField", _sortByField);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "sort", sort);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sort", _sort);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "filterById", _filterById);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "filterByFq", _filterByFq);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "filterByField", _filterByField);
@@ -2358,24 +2363,54 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
             JsRecSet->RecSet->FilterByFieldStrMinMax(FieldId, StrValMin, StrValMax);
         }
 	}
-	else if (Desc.IsFlt()) {
-		const double MnVal = TNodeJsUtil::GetArgFlt(Args, 1);
-		const double MxVal = TNodeJsUtil::GetArgFlt(Args, 2);
+    else if (Desc.IsFlt()) {
+        double MnVal = TFlt::Mn;
+        double MxVal = TFlt::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = TNodeJsUtil::GetArgFlt(Args, 1);
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = TNodeJsUtil::GetArgFlt(Args, 2);
+        }
 		JsRecSet->RecSet->FilterByFieldFlt(FieldId, MnVal, MxVal);
+    } else if (Desc.IsUInt64()) {
+        uint64 MnVal = TUInt64::Mn;
+        uint64 MxVal = TUInt64::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 1));
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2));
+        }
+		//const uint64 MnVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 1));
+		//const uint64 MxVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2));
+		JsRecSet->RecSet->FilterByFieldTm(FieldId, MnVal, MxVal);
 	}
-	else if (Desc.IsTm()) {
-		const TStr MnTmStr = TNodeJsUtil::GetArgStr(Args, 1);
-		const uint64 MnTmMSecs = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(MnTmStr, '-', ':', '.', 'T'));
+    else if (Desc.IsTm()) {
+        uint64 MnTmMSecs = TUInt64::Mn;
+        uint64 MxTmMSecs = TUInt64::Mx;
+            
+        if (TNodeJsUtil::IsArgNull(Args, 1)) {
+            // nothing, default value is ok
+        } else if (TNodeJsUtil::IsArgStr(Args, 1)) {
+            const TStr MnTmStr = TNodeJsUtil::GetArgStr(Args, 1);
+            MnTmMSecs = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(MnTmStr, '-', ':', '.', 'T'));
+        } else if (TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnTmMSecs = TTm::GetWinMSecsFromUnixMSecs(static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 1)));
+        }
+
 		if (Args.Length() >= 3) {
 			// we have upper limit
-			const TStr MxTmStr = TNodeJsUtil::GetArgStr(Args, 2);
-			const uint64 MxTmMSecs = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(MxTmStr, '-', ':', '.', 'T'));
-			JsRecSet->RecSet->FilterByFieldTm(FieldId, MnTmMSecs, MxTmMSecs);
+            if (TNodeJsUtil::IsArgNull(Args, 2)) {
+                // nothing, default value is ok
+            } else if (TNodeJsUtil::IsArgStr(Args, 2)) {
+                const TStr MxTmStr = TNodeJsUtil::GetArgStr(Args, 2);
+                MxTmMSecs = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(MxTmStr, '-', ':', '.', 'T'));
+            } else if (TNodeJsUtil::IsArgFlt(Args, 2)) {
+                MxTmMSecs = TTm::GetWinMSecsFromUnixMSecs(static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2)));
+            }			
 		}
-		else {
-			// we do not have upper limit
-			JsRecSet->RecSet->FilterByFieldTm(FieldId, MnTmMSecs, TUInt64::Mx);
-		}
+        JsRecSet->RecSet->FilterByFieldTm(FieldId, MnTmMSecs, MxTmMSecs);
 	}
 	else {
 		throw TQm::TQmExcept::New("Unsupported filed type for record set filtering: " + Desc.GetFieldTypeStr());
@@ -2929,10 +2964,10 @@ bool TJsRecPairFilter::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64In
 	v8::Local<v8::Value> ArgV[Argc] = { JsRec1, JsRec2 };
 	v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
 	if (TryCatch.HasCaught()) {
-		TryCatch.ReThrow();
-		return false;
+		v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+		throw TQm::TQmExcept::New("Javascript exception from callback triggered in TJsRecPairFilter::operator() :" + TStr(*Msg));
 	}
-	QmAssertR(ReturnVal->IsBoolean() || ReturnVal->IsNumber(), "Comparator callback must return a boolean!");
+	QmAssertR(!ReturnVal.IsEmpty() && (ReturnVal->IsBoolean() || ReturnVal->IsNumber()), "Comparator callback must return a boolean!");
 	return ReturnVal->IsBoolean() ? ReturnVal->BooleanValue() : ReturnVal->NumberValue() < 0;
 }
 
@@ -3182,6 +3217,8 @@ TNodeJsFtrSpace* TNodeJsFtrSpace::NewFromArgs(const v8::FunctionCallbackInfo<v8:
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
+	EAssertR(Args.Length() == 2, "FeatureSpace.constructor: 2 parameters must be given!");
+	EAssertR(TNodeJsUtil::IsArgWrapObj<TNodeJsBase>(Args, 0), "FeatureSpace.constructor: first parameter must be Base!");
 	const TWPt<TQm::TBase>& Base = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args[0]->ToObject())->Base;
 
 	if (Args[1]->IsString() || TNodeJsUtil::IsArgWrapObj(Args, 1, TNodeJsFIn::GetClassId())) {
@@ -3242,6 +3279,8 @@ TNodeJsFtrSpace* TNodeJsFtrSpace::NewFromArgs(const v8::FunctionCallbackInfo<v8:
 				FtrExtV.Add(TQm::TFtrExt::New(Base, ParamVal->GetObjStr("type"), ParamVal));
 			}
 		}
+	} else {
+		throw TQm::TQmExcept::New("FeatureSpace.constructor: invalid parameters!");
 	}
 
 	// create feature space
@@ -3350,18 +3389,14 @@ void TNodeJsFtrSpace::updateRecord(const v8::FunctionCallbackInfo<v8::Value>& Ar
 
 	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
 
-	try {
-		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-		TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
 
-		// update with new records
-		JsFtrSpace->FtrSpace->Update(JsRec->Rec);
+	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
 
-		Args.GetReturnValue().Set(Args.Holder());
-	}
-	catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::updateRecord");
-	}
+	// update with new records
+	JsFtrSpace->FtrSpace->Update(JsRec->Rec);
+
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsFtrSpace::updateRecords(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -3393,6 +3428,10 @@ void TNodeJsFtrSpace::extractSparseVector(const v8::FunctionCallbackInfo<v8::Val
 	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
 	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
 
+	for (int FtrN = 0; FtrN < JsFtrSpace->FtrSpace->GetFtrExts(); FtrN++) {
+		EAssertR(JsRec->Rec.GetStore()->GetStoreNm() == JsFtrSpace->FtrSpace->GetFtrExt(FtrN)->GetFtrStore()->GetStoreNm(), 
+			"FeatureSpace.extractSparseVector: record's and feature extractor's store/source must be the same!");
+	}
 	// create feature vector
 	TIntFltKdV SpV;
 	JsFtrSpace->FtrSpace->GetSpV(JsRec->Rec, SpV);
@@ -3411,6 +3450,11 @@ void TNodeJsFtrSpace::extractVector(const v8::FunctionCallbackInfo<v8::Value>& A
 	try {
 		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
 		TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+
+		for (int FtrN = 0; FtrN < JsFtrSpace->FtrSpace->GetFtrExts(); FtrN++) {
+			EAssertR(JsRec->Rec.GetStore()->GetStoreNm() == JsFtrSpace->FtrSpace->GetFtrExt(FtrN)->GetFtrStore()->GetStoreNm(),
+				"FeatureSpace.extractSparseVector: record's and feature extractor's store/source must be the same!");
+		}
 
 		// create feature vector, compute
 		TFltV FltV;

@@ -283,7 +283,6 @@ void TPropHazards::Fit(const TFltVV& _X, const TFltV& t, const double& Eps) {
 		}
 	}
 
-//	printf("WgtV: %s\n", TStrUtil::GetStr(WgtV, ", ", "%.15f").CStr());
 
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged. Diff: %.5f", Diff);
 }

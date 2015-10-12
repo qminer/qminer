@@ -697,14 +697,15 @@ TNNet::TLayer::TLayer(const TInt& NeuronsN, const TInt& OutputsN, const TTFunc& 
     // Add neurons to the layer, plus bias neuron
     for(int NeuronN = 0; NeuronN <= NeuronsN; ++NeuronN){
         NeuronV.Add(TNeuron(OutputsN, NeuronN, TransFunc));
-        printf("Made a neuron!");
+		// debugging
+        /*printf("Made a neuron!");
         printf(" Neuron N: %d", NeuronN);
         printf(" Neuron H: %d", NeuronV.Len());
-        printf("\n");
+        printf("\n");*/
     } 
     // Force the bias node's output value to 1.0
     NeuronV.Last().SetOutVal(1.0);
-    printf("\n");
+    //printf("\n");
 }
 TNNet::TLayer::TLayer(TSIn& SIn){
 	NeuronV.Load(SIn);
@@ -732,7 +733,8 @@ TNNet::TNNet(const TIntV& LayoutV, const TFlt& _LearnRate,
         TInt NeuronsN = LayoutV[LayerN];
         // Add a layer to the net
         LayerV.Add(TLayer(NeuronsN, OutputsN, TransFunc));
-        printf("LayerV.Len(): %d \n", LayerV.Len() );
+		//for debugging
+        //printf("LayerV.Len(): %d \n", LayerV.Len() );
     }
 }
 
@@ -748,7 +750,7 @@ PNNet TNNet::Load(TSIn& SIn) {
 
 void TNNet::FeedFwd(const TFltV& InValV){
     // check if number of input values same as number of input neurons
-    Assert(InValV.Len() == LayerV[0].GetNeuronN() - 1);
+    EAssertR(InValV.Len() == LayerV[0].GetNeuronN() - 1, "InValV must be of equal length than the first layer!");
     // assign input values to input neurons
     for(int InputN = 0; InputN < InValV.Len(); ++InputN){
         LayerV[0].SetOutVal(InputN, InValV[InputN]);
@@ -768,6 +770,7 @@ void TNNet::BackProp(const TFltV& TargValV, const TBool& UpdateWeights){
     TLayer& OutputLayer = LayerV.Last();
     Error = 0.0;
 
+	EAssertR(TargValV.Len() == OutputLayer.GetNeuronN() - 1, "TargValV must be of equal length than the last layer!");
     for(int NeuronN = 0; NeuronN < OutputLayer.GetNeuronN() - 1; ++NeuronN){
         TFlt Delta = TargValV[NeuronN] - OutputLayer.GetOutVal(NeuronN);
         Error += Delta * Delta;
@@ -818,6 +821,26 @@ void TNNet::Save(TSOut& SOut) const {
 	LearnRate.Save(SOut);
 	Momentum.Save(SOut);
 	LayerV.Save(SOut);
+}
+
+TStr TNNet::GetFunction(const TTFunc& FuncEnum) {
+	TStr FuncString;
+	if (FuncEnum == TSignalProc::TTFunc::tanHyper) {
+		FuncString = "tanHyper";
+	} else if (FuncEnum == TSignalProc::TTFunc::sigmoid) {
+		FuncString = "sigmoid";
+	} else if (FuncEnum == TSignalProc::TTFunc::fastTanh) {
+		FuncString = "fastTanh";
+	} else if (FuncEnum == TSignalProc::TTFunc::softPlus) {
+		FuncString = "softPlus";
+	} else if (FuncEnum == TSignalProc::TTFunc::fastSigmoid) {
+		FuncString = "fastSigmoid";
+	} else if (FuncEnum == TSignalProc::TTFunc::linear) {
+		FuncString = "linear";
+	} else {
+		throw TExcept::New("Unknown transfer function type " + FuncString);
+	}
+	return FuncString;
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -899,6 +922,96 @@ bool TRecLinReg::HasNaN() const {
 		}
 	}
 	return false;
+}
+
+
+void TOnlineHistogram::Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf) {
+	int TotalBins = Bins + (AddNegInf ? 1 : 0) + (AddPosInf ? 1 : 0);
+	Counts.Gen(TotalBins); // sets to zero
+	Bounds.Gen(TotalBins + 1, 0);
+	if (AddNegInf) { Bounds.Add(TFlt::NInf); }
+	for (int ElN = 0; ElN <= Bins; ElN++) {
+		Bounds.Add(LBound + ElN * (UBound - LBound) / Bins);
+	}
+	if (AddPosInf) { Bounds.Add(TFlt::PInf); }
+}
+
+TOnlineHistogram::TOnlineHistogram(const PJsonVal& ParamVal) {
+	EAssertR(ParamVal->IsObjKey("lowerBound"), "TOnlineHistogram: lowerBound key missing!");
+	EAssertR(ParamVal->IsObjKey("upperBound"), "TOnlineHistogram: upperBound key missing!");
+	// bounded lowest point
+	TFlt LBound = ParamVal->GetObjNum("lowerBound");
+	// bounded highest point
+	TFlt UBound = ParamVal->GetObjNum("upperBound");
+	EAssertR(LBound < UBound, "TOnlineHistogram: Lower bound should be smaller than upper bound");
+	// number of equal bins ? (not counting possibly infinite ones)
+	TInt Bins = ParamVal->GetObjInt("bins", 5);
+	EAssertR(Bins > 0, "TOnlineHistogram: Number of bins should be greater than 0");
+	// include infinities in the bounds?
+	TBool AddNegInf = ParamVal->GetObjBool("addNegInf", false);
+	TBool AddPosInf = ParamVal->GetObjBool("addPosInf", false);
+	
+	Init(LBound, UBound, Bins, AddNegInf, AddPosInf);
+};
+
+
+int TOnlineHistogram::FindBin(const double& Val) const {
+	int Bins = Bounds.Len() - 1;
+	int LBound = 0;
+	int UBound = Bins - 1;
+	
+	// out of bounds
+	if ((Val < Bounds[0]) || (Val > Bounds.Last())) { return -1; }
+	// the last bound is an exception: the interval is closed from the right
+	if (Val == Bounds.Last()) { return UBound; }
+
+	while (LBound <= UBound) {
+		int Idx = (LBound + UBound) / 2;
+		if ((Val >= Bounds[Idx]) && (Val < Bounds[Idx + 1])) { // value between
+			return Idx; 
+		} else if (Val < Bounds[Idx]) { // value on the left, move upper bound
+			UBound = Idx - 1;
+		} else { // Val > Bounds[Idx + 1]
+			LBound = Idx + 1;
+		}
+	}
+	return -1;
+}
+
+void TOnlineHistogram::Increment(const double& Val) {
+	int Idx = FindBin(Val);
+	if (Idx >= 0) { Counts[Idx]++; }
+}
+
+void TOnlineHistogram::Decrement(const double& Val) {
+	int Idx = FindBin(Val);
+	if (Idx >= 0) { Counts[Idx]--; }
+}
+
+double TOnlineHistogram::GetCount(const double& Val) const {
+	int Idx = FindBin(Val);
+	return Idx >= 0 ? (double)Counts[Idx] : 0.0;
+}
+
+void TOnlineHistogram::Print() const {
+	printf("Histogram:\n");
+	for (int BinN = 0; BinN < Counts.Len(); BinN++) {
+		printf("%g [%g, %g]\n", Counts[BinN].Val, Bounds[BinN].Val, Bounds[BinN + 1].Val);
+	}
+}
+
+PJsonVal TOnlineHistogram::SaveJson() const {
+	PJsonVal Result = TJsonVal::NewObj();
+	PJsonVal BoundsArr = TJsonVal::NewArr();
+	PJsonVal CountsArr = TJsonVal::NewArr();
+	for (int ElN = 0; ElN < Counts.Len(); ElN++) {
+		BoundsArr->AddToArr(Bounds[ElN]);
+		CountsArr->AddToArr(Counts[ElN]);
+	}
+	BoundsArr->AddToArr(Bounds.Last());
+	Result->AddToObj("bounds", BoundsArr);
+	Result->AddToObj("counts", CountsArr);
+	return Result;
 }
 
 }

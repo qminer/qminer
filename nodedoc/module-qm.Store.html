@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.2">
+  <meta name="generator" content="JSDoc 3">
   <meta charset="utf-8">
-  <title>Factory class: Store</title>
+  <title>Class: Store</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -24,70 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">factory class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Store</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-447">qminerdoc.<wbr>js:447</a></p>
-            <div class="symbol-description">
-              <p>Store (factory pattern result)</p>
-            </div>
-            <section>
-              <h2>
-            Example
-        </h2>
-              <div>
-                <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
-// factory based construction using base.createStore
-var base = qm.create(&#x27;qm.conf&#x27;, &quot;&quot;, true);
-base.createStore([{
-   name: &quot;People&quot;,
-   fields: [
-       { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
-       { name: &quot;Gender&quot;, type: &quot;string&quot;, shortstring: true },
-       { name: &quot;Age&quot;, type: &quot;int&quot; }
-   ],
-   joins: [
-       { name: &quot;ActedIn&quot;, type: &quot;index&quot;, store: &quot;Movies&quot;, inverse: &quot;Actor&quot; },
-       { name: &quot;Directed&quot;, type: &quot;index&quot;, store: &quot;Movies&quot;, inverse: &quot;Director&quot; }
-   ],
-   keys: [
-       { field: &quot;Name&quot;, type: &quot;text&quot; },
-       { field: &quot;Gender&quot;, type: &quot;value&quot; }
-   ]
-},
-{
-   name: &quot;Movies&quot;,
-   fields: [
-       { name: &quot;Title&quot;, type: &quot;string&quot;, primary: true },
-       { name: &quot;Plot&quot;, type: &quot;string&quot;, store: &quot;cache&quot; },
-       { name: &quot;Year&quot;, type: &quot;int&quot; },
-       { name: &quot;Rating&quot;, type: &quot;float&quot; },
-       { name: &quot;Genres&quot;, type: &quot;string_v&quot;, codebook: true }
-   ],
-   joins: [
-       { name: &quot;Actor&quot;, type: &quot;index&quot;, store: &quot;People&quot;, inverse: &quot;ActedIn&quot; },
-       { name: &quot;Director&quot;, type: &quot;index&quot;, store: &quot;People&quot;, inverse: &quot;Directed&quot; }
-   ],
-   keys: [
-       { field: &quot;Title&quot;, type: &quot;value&quot; },
-       { field: &quot;Plot&quot;, type: &quot;text&quot;, vocabulary: &quot;voc_01&quot; },
-       { field: &quot;Genres&quot;, type: &quot;value&quot; }
-   ]
-}]);
-base.close();
-// using the base constructor
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [{
-       name: &quot;Class&quot;,
-       fields: [
-           { name: &quot;Name&quot;, type: &quot;string&quot; },
-           { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
-       ]
-   }]
-});
-base.close();</code></pre>
-              </div>
-            </section>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Store</span></h1>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-453">qminerdoc.<wbr>js:453</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -219,6 +157,80 @@ base.close();</code></pre>
                 </div>
               </div>
             </div>
+          </section>
+          <section>
+            <h2 id="Store"><span class="symbol-name">Store</span><span class="signature"><span class="signature-params">()</span></span></h2>
+            <p>Stores are containers of records.
+              <b>Factory pattern:</b> this class cannot be construced using the new keyword. This class is constructed when calling a specific method or attribute, e.g. constructing the <a href="module-qm.Base.html">module:qm.Base</a> using schema or
+              with the
+              <a href="module-qm.Base.html#createStore">module:qm.Base#createStore</a>.</p>
+            <section>
+              <h3>
+            Examples
+        </h3>
+              <div>
+                <p>Creating a store with createStore function</p>
+                <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// factory based construction using base.createStore
+var base = new qm.Base({ mode: &#x27;createClean&#x27; });
+base.createStore([{
+   name: &quot;People&quot;,
+   fields: [
+       { name: &quot;Name&quot;, type: &quot;string&quot;, primary: true },
+       { name: &quot;Gender&quot;, type: &quot;string&quot;, shortstring: true },
+       { name: &quot;Age&quot;, type: &quot;int&quot; }
+   ],
+   joins: [
+       { name: &quot;ActedIn&quot;, type: &quot;index&quot;, store: &quot;Movies&quot;, inverse: &quot;Actor&quot; },
+       { name: &quot;Directed&quot;, type: &quot;index&quot;, store: &quot;Movies&quot;, inverse: &quot;Director&quot; }
+   ],
+   keys: [
+       { field: &quot;Name&quot;, type: &quot;text&quot; },
+       { field: &quot;Gender&quot;, type: &quot;value&quot; }
+   ]
+},
+{
+   name: &quot;Movies&quot;,
+   fields: [
+       { name: &quot;Title&quot;, type: &quot;string&quot;, primary: true },
+       { name: &quot;Plot&quot;, type: &quot;string&quot;, store: &quot;cache&quot; },
+       { name: &quot;Year&quot;, type: &quot;int&quot; },
+       { name: &quot;Rating&quot;, type: &quot;float&quot; },
+       { name: &quot;Genres&quot;, type: &quot;string_v&quot;, codebook: true }
+   ],
+   joins: [
+       { name: &quot;Actor&quot;, type: &quot;index&quot;, store: &quot;People&quot;, inverse: &quot;ActedIn&quot; },
+       { name: &quot;Director&quot;, type: &quot;index&quot;, store: &quot;People&quot;, inverse: &quot;Directed&quot; }
+   ],
+   keys: [
+       { field: &quot;Title&quot;, type: &quot;value&quot; },
+       { field: &quot;Plot&quot;, type: &quot;text&quot;, vocabulary: &quot;voc_01&quot; },
+       { field: &quot;Genres&quot;, type: &quot;value&quot; }
+   ]
+}]);
+base.close();</code></pre>
+              </div>
+              <div>
+                <p>Creating store with schema in base constructor</p>
+                <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// using the base constructor
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       name: &quot;Class&quot;,
+       fields: [
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
+       ]
+   }]
+});
+base.close();</code></pre>
+              </div>
+            </section>
+            <dl class="dl-compact">
+            </dl>
           </section>
           <section>
             <h2>Properties</h2>
@@ -1425,7 +1437,7 @@ base.close();</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 28, 2015.
+        
       </p>
     </div>
   </footer>

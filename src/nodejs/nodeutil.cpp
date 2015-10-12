@@ -155,16 +155,6 @@ bool TNodeJsUtil::IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm)
     return ObjClassStr == ClassNm;
 }
 
-bool TNodeJsUtil::IsArgNull(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-
-    if (Args.Length() <= ArgN) { return true; }
-
-    v8::Handle<v8::Value> Val = Args[ArgN];
-    return Val->IsUndefined() || Val->IsNull();
-}
-
 bool TNodeJsUtil::IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& ClassNm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -177,6 +167,30 @@ bool TNodeJsUtil::IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, 
     v8::Handle<v8::Object> Data = v8::Handle<v8::Object>::Cast(Val);
     TStr ClassStr = GetClass(Data);
     return ClassStr.EqI(ClassNm);
+}
+
+bool TNodeJsUtil::IsArgNull(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN).CStr());
+
+    v8::Handle<v8::Value> Val = Args[ArgN];
+    return Val->IsNull();
+}
+
+bool TNodeJsUtil::IsArgUndef(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    if (Args.Length() <= ArgN) { return true; }
+
+    v8::Handle<v8::Value> Val = Args[ArgN];
+    return Val->IsUndefined();
+}
+
+bool TNodeJsUtil::IsArgNullOrUndef(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+	return IsArgUndef(Args, ArgN) || IsArgNull(Args, ArgN);
 }
 
 bool TNodeJsUtil::IsArgFun(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
