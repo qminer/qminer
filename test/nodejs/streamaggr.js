@@ -1660,7 +1660,7 @@ describe('TimeSeriesTick Tests', function () {
                 value: 'Value',
             };
             var tick = store.addStreamAggr(aggr);
-            assert.equal(tick.val.Time, '1601-01-01T00:00:00.0');
+            assert.equal(tick.val.Time, '1601-01-01T00:00:00.000');
             assert.equal(tick.val.Val, 0);
         })
     })
@@ -1709,7 +1709,7 @@ describe('EMA Tests', function () {
                 initWindow: 1000
             };
             var ema = store.addStreamAggr(aggr);
-            assert.equal(ema.saveJson().Time, '1601-01-01T00:00:00.0');
+            assert.equal(new Date(ema.saveJson().Time).getTime(), new Date('1601-01-01T00:00:00.000').getTime());
             assert.equal(ema.saveJson().Val, 0);
         })
         it.skip('should throw an exception if some key values are missing', function () {

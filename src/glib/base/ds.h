@@ -2472,7 +2472,7 @@ public:
   bool Empty() const {return ValV.Len()==0;}
   void Clr(){XDim=0; YDim=0; ValV.Clr();}
   void Gen(const TSizeTy& _XDim, const TSizeTy& _YDim){
-	  Assert((_XDim >= 0) && (_YDim >= 0));
+	  EAssert((_XDim >= 0) && (_YDim >= 0));
 	  XDim = _XDim; YDim = _YDim;  ValV.Gen(XDim*YDim); ColMajor = colmajor;
   }
   TSizeTy GetXDim() const {return XDim;}
