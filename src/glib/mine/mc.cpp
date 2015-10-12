@@ -486,11 +486,12 @@ void TStateIdentifier::UpdateCentroids(const TFltVV& FtrVV, const TIntV& AssignI
 	const int K = CentroidMat.GetCols();
 
 	// I. create a sparse matrix (coordinate representation) that encodes the closest centroids
-	TSparseColMatrix AssignIdxMat(NInst, K);
-	TSparseOps<TInt,TFlt>::CoordinateCreateSparseColMatrix(RangeN, AssignIdxV, OnesN, AssignIdxMat.ColSpVV, K);
+//	TSparseColMatrix AssignIdxMat(NInst, K);
+	TVec<TIntFltKdV> AssignIdxSpVV(NInst);
+	TSparseOps<TInt,TFlt>::CoordinateCreateSparseColMatrix(RangeN, AssignIdxV, OnesN, AssignIdxSpVV, K);
 
 	// II. compute the number of points that belong to each centroid, invert
-	TFltV ColSumInvV(K);	AssignIdxMat.MultiplyT(OnesN, ColSumInvV);
+	TFltV ColSumInvV(K);	TLinAlg::MultiplyT(AssignIdxSpVV, OnesN, ColSumInvV);
 	// invert
 	for (int i = 0; i < K; i++) {
 		ColSumInvV[i] = 1.0 / (ColSumInvV[i] + 1.0);

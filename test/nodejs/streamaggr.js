@@ -1660,7 +1660,7 @@ describe('TimeSeriesTick Tests', function () {
                 value: 'Value',
             };
             var tick = store.addStreamAggr(aggr);
-            assert.equal(tick.val.Time, '1601-01-01T00:00:00.000');
+            assert.equal(new Date(tick.val.Time).getTime(), new Date('1601-01-01T00:00:00.000').getTime());
             assert.equal(tick.val.Val, 0);
         })
     })
