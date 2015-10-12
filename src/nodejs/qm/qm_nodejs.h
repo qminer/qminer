@@ -379,10 +379,9 @@ private:
 	JsDeclareFunction(close);
 
 	/**
-	* Closes the database.
-	* @returns {null}
+	* Checks if the base is closed.
+	* @returns {Boolean}
 	*/
-	//# exports.Base.prototype.close = function () { return null; }
 	JsDeclareFunction(isClosed);
 
 	/**
