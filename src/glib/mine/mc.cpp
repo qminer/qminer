@@ -1937,7 +1937,7 @@ void TUiHelper::Init(const PStateIdentifier& StateIdentifier, const PHierarch& H
 }
 
 const TFltPr& TUiHelper::GetStateCoords(const int& StateId) const {
-	EAssertR(0 <= StateId && StateId < StateCoordV.Len(), "Invalid state id: " + StateId);
+	EAssertR(0 <= StateId && StateId < StateCoordV.Len(), TStr::Fmt("Invalid state id: %d", StateId));
 	return StateCoordV[StateId];
 }
 
@@ -1949,7 +1949,7 @@ void TUiHelper::GetStateRadiusV(const TFltV& ProbV, TFltV& RadiusV) const {
 }
 
 TFltPr& TUiHelper::GetModStateCoords(const int& StateId) {
-	EAssertR(0 <= StateId && StateId < StateCoordV.Len(), "Invalid state id: " + StateId);
+	EAssertR(0 <= StateId && StateId < StateCoordV.Len(), TStr::Fmt("Invalid state id: %d", StateId));
 	return StateCoordV[StateId];
 }
 
