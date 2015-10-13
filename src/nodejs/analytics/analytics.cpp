@@ -1225,8 +1225,8 @@ void TNodeJsLogReg::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TNodeJsLogReg* JsModel = ObjectWrap::Unwrap<TNodeJsLogReg>(Args.Holder());
 	PJsonVal ParamVal = TJsonVal::NewObj();
 
-	ParamVal->AddToObj("lambda", JsModel->LogReg.getLambda());
-	ParamVal->AddToObj("intercept", JsModel->LogReg.getIntercept());
+	ParamVal->AddToObj("lambda", JsModel->LogReg.GetLambda());
+	ParamVal->AddToObj("intercept", JsModel->LogReg.GetIntercept());
 
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
 }
@@ -1241,8 +1241,8 @@ void TNodeJsLogReg::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 	TNodeJsLogReg* JsModel = ObjectWrap::Unwrap<TNodeJsLogReg>(Args.Holder());
 
-	if (ParamVal->IsObjKey("lambda")) { JsModel->LogReg.setLambda(ParamVal->GetObjNum("lambda")); }
-	if (ParamVal->IsObjKey("intercept")) { JsModel->LogReg.setIntercept(ParamVal->GetObjBool("intercept")); }
+	if (ParamVal->IsObjKey("lambda")) { JsModel->LogReg.SetLambda(ParamVal->GetObjNum("lambda")); }
+	if (ParamVal->IsObjKey("intercept")) { JsModel->LogReg.SetIntercept(ParamVal->GetObjBool("intercept")); }
 
 	Args.GetReturnValue().Set(Args.Holder());
 }
@@ -1366,7 +1366,7 @@ void TNodeJsPropHaz::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 	TNodeJsPropHaz* JsModel = ObjectWrap::Unwrap<TNodeJsPropHaz>(Args.Holder());
 	PJsonVal ParamVal = TJsonVal::NewObj();
 
-	ParamVal->AddToObj("lambda", JsModel->Model.getLambda());
+	ParamVal->AddToObj("lambda", JsModel->Model.GetLambda());
 
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
 }
@@ -1381,7 +1381,7 @@ void TNodeJsPropHaz::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 	TNodeJsPropHaz* JsModel = ObjectWrap::Unwrap<TNodeJsPropHaz>(Args.Holder());
 
-	if (ParamVal->IsObjKey("lambda")) { JsModel->Model.setLambda(ParamVal->GetObjNum("lambda")); }
+	if (ParamVal->IsObjKey("lambda")) { JsModel->Model.SetLambda(ParamVal->GetObjNum("lambda")); }
 
 	Args.GetReturnValue().Set(Args.Holder());
 }
@@ -1540,6 +1540,8 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 	} else {
 		const PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 
+		const TRnd Rnd(ParamVal->GetObjInt("rndseed", 0));
+
 		const int NPastStates = ParamVal->IsObjKey("pastStates") ? ParamVal->GetObjInt("pastStates") : 0;
 		const bool Verbose = ParamVal->IsObjKey("verbose") ? ParamVal->GetObjBool("verbose") : true;
 
@@ -1566,34 +1568,36 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 			throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TJsHierCtmc::TJsHierCtmc");
 		}
 
-		TMc::PMChain MChain = new TMc::TCtMChain(TimeUnit, DeltaTm, Verbose);
-
 		// clustering
-		TMc::PStateIdentifier Clust = NULL;
-
 		const TStr ClustAlg = ClustJson->GetObjStr("type");
 		const double Sample = ClustJson->IsObjKey("sample") ? ClustJson->GetObjNum("sample") : 1;
 		const int NHistBins = ClustJson->IsObjKey("histogramBins") ? ClustJson->GetObjInt("histogramBins") : 20;
 
+
+		TClustering::PDnsKMeans KMeans;
 		if (ClustAlg == "dpmeans") {
 			const double Lambda = ClustJson->GetObjNum("lambda");
 			const int MinClusts = ClustJson->IsObjKey("minClusts") ? ClustJson->GetObjInt("minClusts") : 1;
 			const int MxClusts = ClustJson->IsObjKey("maxClusts") ? ClustJson->GetObjInt("maxClusts") : TInt::Mx;
-			const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
-			Clust = new TMc::TDpMeans(NHistBins, Sample, Lambda, MinClusts, MxClusts, TRnd(RndSeed), Verbose);
+
+			KMeans = new TClustering::TDpMeans(Lambda, MinClusts, MxClusts, Rnd);
 		} else if (ClustAlg == "kmeans") {
 			const int K = ClustJson->GetObjInt("k");
-			const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
-			Clust = new TMc::TFullKMeans(NHistBins, Sample, K, TRnd(RndSeed), Verbose);
+
+			KMeans = new TClustering::TDnsKMeans(K, Rnd);
 		} else {
 			throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
 		}
 
+		// state identifier
+		TMc::PStateIdentifier StateIdentifier = new TMc::TStateIdentifier(KMeans, NHistBins, Sample, Rnd, Verbose);
+		// Markov chain
+		TMc::PMChain MChain = new TMc::TCtMChain(TimeUnit, DeltaTm, Verbose);
 		// create the model
 		TMc::PHierarch Hierarch = new TMc::THierarch(NPastStates + 1, Verbose);
 
 		// finish
-		TMc::PStreamStory StreamStory = new TMc::TStreamStory(Clust, MChain, Hierarch, Verbose);
+		TMc::PStreamStory StreamStory = new TMc::TStreamStory(StateIdentifier, MChain, Hierarch, Rnd, Verbose);
 
 		return new TNodeJsStreamStory(StreamStory);
 	}

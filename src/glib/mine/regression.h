@@ -36,11 +36,11 @@ public:
 	void GetWgtV(TFltV& WgtV) const;
 
 	// get functions
-	const double& getLambda() { return Lambda; }
-	const bool& getIntercept() { return IncludeIntercept; }
+	const double& GetLambda() { return Lambda; }
+	const bool& GetIntercept() { return IncludeIntercept; }
 	// set functions
-	void setLambda(const double& _Lambda) { Lambda = _Lambda; }
-	void setIntercept(const bool& _IncludeIntercept) { IncludeIntercept = _IncludeIntercept; }
+	void SetLambda(const double& _Lambda) { Lambda = _Lambda; }
+	void SetIntercept(const bool& _IncludeIntercept) { IncludeIntercept = _IncludeIntercept; }
 
 	bool Initialized() const { return !WgtV.Empty(); }
 private:
@@ -70,8 +70,8 @@ public:
 
 	void GetWgtV(TFltV& WgtV) const;
 
-	double getLambda() const { return Lambda; }
-	void setLambda(const double& _Lambda) { Lambda = _Lambda; }
+	double GetLambda() const { return Lambda; }
+	void SetLambda(const double& _Lambda) { Lambda = _Lambda; }
 
 private:
 	void PredictInternal(const TFltVV& X, TFltV& IntensV) const;

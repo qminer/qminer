@@ -9,6 +9,8 @@
 namespace TMc {
 
 using namespace TRegression;
+using namespace TDist;
+using namespace TClustering;
 
 namespace {
 	typedef TIntV TStateIdV;
@@ -16,23 +18,6 @@ namespace {
 	typedef TVec<TIntV> TStateSetV;
 	typedef TVec<TFltV> TStateFtrVV;
 }
-
-//////////////////////////////////////////////////////
-// Distance measures - eucledian distance
-class TEuclDist {
-public:
-	// returns a matrix D of distances between elements of X to elements of Y
-	// X and Y are assumed to have column vectors
-	// D_ij is the distance between x_i and y_j
-	static void GetDist(const TFltVV& X, const TFltVV& Y, TFltVV& D);
-	// returns a matrix D of squared distances between elements of X to elements of Y
-	// X and Y are assumed to have column vectors
-	// D_ij is the distance between x_i and y_j
-	static void GetDist2(const TFltVV& X, const TFltVV& Y, TFltVV& D);
-
-	static void GetDist2(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
-			const TFltV& NormY2, TFltVV& D);
-};
 
 class TAvgLink {
 public:
@@ -139,7 +124,7 @@ private:
   TCRef CRef;
 public:
   friend class TPt<TStateIdentifier>;
-protected:
+private:
   	const static int MX_ITER;
 
     typedef TVec<THistogram> TFtrHistV;
@@ -147,8 +132,10 @@ protected:
     typedef TVVec<TFtrHistV> THistMat;
 
   	TRnd Rnd;
+
+  	// clustering
+  	PDnsKMeans KMeans;
   	// holds centroids as column vectors
-  	TFltVV CentroidMat;
   	TFltVV ControlCentroidMat;
   	// holds pairs <n,sum> where n is the number of points assigned to the
   	// centroid at index i and sum is the sum of distances of all the points
@@ -167,17 +154,14 @@ protected:
   	bool Verbose;
   	PNotify Notify;
 
-  	TStateIdentifier(const int NHistBins, const double& Sample, const TRnd& Rnd=TRnd(0),
-  			const bool& Verbose=false);
-  	TStateIdentifier(TSIn& SIn);
+public:
+  	TStateIdentifier(const PDnsKMeans& KMeans, const int NHistBins, const double& Sample,
+			const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
+	TStateIdentifier(TSIn& SIn);
 
 	virtual ~TStateIdentifier() {}
-
-public:
 	// saves the model to the output stream
 	virtual void Save(TSOut& SOut) const;
-	// loads the model from the output stream
-	static PStateIdentifier Load(TSIn& SIn);
 
 	// performs the clustering
 	void Init(TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV);
@@ -189,14 +173,9 @@ public:
 	int Assign(const TFltV& Inst) const;
 
 	// assign instances to centroids, instances should be in the columns of the matrix
-//	TVector Assign(const TFltVV& FtrVV, TIntV& AssignV) const;
 	void Assign(const TFltVV& InstMat, TIntV& AssignV) const;
 
 	// distance methods
-	// returns a matrix D with the distance to all the centroids
-	// D_ij is the distance between centroid i and instance j
-	// points should be represented as columns of X
-	void GetDistMat(const TFltVV& X, TFltVV& DistMat) const;
 	// Returns a vector y containing the distance to all the
 	// centroids. The input vector x should be a column vector
 	void GetCentroidDistV(const TFltV& x, TFltV& DistV) const;
@@ -218,10 +197,10 @@ public:
 	void GetTransitionHistogram(const int& FtrId, const TIntV& SourceStateSet,
 			const TIntV& TargetStateSet, TFltV& BinStartV, TFltV& ProbV) const;
 
-	int GetStates() const { return CentroidMat.GetCols(); }
-	int GetDim() const { return CentroidMat.GetRows(); }
+	int GetStates() const { return KMeans->GetClusts(); }
+	int GetDim() const { return KMeans->GetDim(); }
 	int GetControlDim() const { return ControlCentroidMat.GetRows(); }
-	const TFltVV& GetCentroidMat() const { return CentroidMat; }
+	const TFltVV& GetCentroidMat() const { return KMeans->GetCentroidVV(); }
 	void GetCentroidVV(TVec<TFltV>& CentroidVV) const;
 	void GetControlCentroidVV(TStateFtrVV& StateFtrVV) const;
 
@@ -237,24 +216,8 @@ public:
 	void SetVerbose(const bool& Verbose);
 
 protected:
-	// Applies the algorithm. Instances should be in the columns of X.
-	virtual void Apply(const TFltVV& X, const int& MaxIter=10000) = 0;
-	void Assign(const TFltVV& X, const TFltV& NormX2, const TFltV& NormC2,
-			TIntV& AssignV) const;
-	// returns a matrix of squared distances
-	void GetDistMat2(const TFltVV& X, const TFltV& NormX2, const TFltV& NormC2,
-			TFltVV& DistMat) const;
-
 	// used during initialization
-	void SelectInitCentroids(const TFltVV& X, const int& NCentroids,
-			TFltVV& CentroidFtrVV, TIntV& AssignV);
-	// can still optimize
-	void UpdateCentroids(const TFltVV& X, const TIntV& AssignIdxV, const TFltV& OnesN,
-			const TIntV& RangeN);
-	void InitStatistics(const TFltVV& X, const TIntV& AssignV);
-
-	// returns the type of this clustering
-	virtual const TStr GetType() const = 0;
+	void InitStatistics(const TFltVV& X);
 
 private:
 	void InitControlCentroids(const TFltVV& X,  const TFltVV& ControlFtrVV);
@@ -271,54 +234,6 @@ private:
 			const TIntV& AssignV);
 	static void UpdateHist(const TFltVV& FtrVV, const TIntV& AssignV,
 			const int& States, TStateFtrHistVV& StateFtrHistVV);
-};
-
-///////////////////////////////////////////
-// K-Means
-class TFullKMeans: public TStateIdentifier {
-private:
-	TInt K;
-
-public:
-	TFullKMeans(const int& NHistBins, const double Sample, const int& K, const TRnd& Rnd=TRnd(0),
-			const bool& Verbose=false);
-	TFullKMeans(TSIn& SIn);
-
-	// saves the model to the output stream
-	void Save(TSOut& SOut) const;
-
-	// Applies the algorithm. Instances should be in the columns of X. AssignV contains indexes of the cluster
-	// the point is assigned to
-	void Apply(const TFltVV& X, const int& MaxIter);
-
-protected:
-	const TStr GetType() const { return "kmeans"; }
-};
-
-
-///////////////////////////////////////////
-// DPMeans
-class TDpMeans: public TStateIdentifier {
-private:
-	TFlt Lambda;
-	TInt MinClusts;
-	TInt MaxClusts;
-
-public:
-	TDpMeans(const int& NHistBins, const double& Sample, const TFlt& Lambda,
-			const TInt& MinClusts=1, const TInt& MaxClusts=TInt::Mx, const TRnd& Rnd=TRnd(0),
-			const bool& Verbose=false);
-	TDpMeans(TSIn& SIn);
-
-	// saves the model to the output stream
-	void Save(TSOut& SOut) const;
-
-	// Applies the algorithm. Instances should be in the columns of X. AssignV contains indexes of the cluster
-	// the point is assigned to
-	void Apply(const TFltVV& X, const int& MaxIter);
-
-protected:
-	const TStr GetType() const { return "dpmeans"; }
 };
 
 class TEuclMds {
@@ -768,7 +683,7 @@ private:
 	bool Verbose;
 	PNotify Notify;
 public:
-	TUiHelper(const int& RndSeed, const bool& Verbose);
+	TUiHelper(const TRnd& Rnd, const bool& Verbose);
 	TUiHelper(TSIn& SIn);
 
 	void Save(TSOut& SOut) const;
@@ -787,7 +702,6 @@ private:
 			const PHierarch& Hierarch);
 	void RefineStateCoordV(const PStateIdentifier& StateIdentifier,
 			const PHierarch& Hierarch, const PMChain& MChain);
-//	void TransformToUnit();
 
 	static double GetUIStateRaduis(const double& Prob);
 	static bool NodesOverlap(const int& StartId, const int& EndId, const TFltPrV& CoordV,
@@ -858,7 +772,7 @@ public:
     // constructors
     TStreamStory();
     TStreamStory(const PStateIdentifier& Clust, const PMChain& MChain, const PHierarch& Hierarch,
-    		const bool& Verbose=true);
+    		const TRnd& Rnd=TRnd(0), const bool& Verbose=true);
     TStreamStory(TSIn& SIn);
 
     ~TStreamStory() {}
