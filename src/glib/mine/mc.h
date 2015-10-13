@@ -240,7 +240,7 @@ class TEuclMds {
 public:
 	// projects the points stored in the column of X onto d
 	// dimensions
-	static TFullMatrix Project(const TFullMatrix& X, const int& d=2);
+	static void Project(const TFltVV& X, TFltVV& ProjVV, const int& d=2);
 };
 
 ////////////////////////////////////////////
@@ -447,8 +447,10 @@ public:
 
 	// returns a vector of state sizes
 //	virtual void GetStateSizeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltV& StateSizeV) const = 0;
-	virtual TFullMatrix GetTransitionMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const = 0;
-	virtual TFullMatrix GetModel(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const = 0;
+	virtual void GetTransitionVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			TFltVV& TransVV) const = 0;
+	virtual void GetModel(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			TFltVV& Mat) const = 0;
 
 	virtual void GetHoldingTimeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltV& HoldingTmV) const = 0;
 
@@ -484,13 +486,13 @@ protected:
 	virtual void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool EndsBatch) = 0;
 
 	// get future state probabilities for all the states for a fixed time in the future
-	virtual TFullMatrix GetFutureProbMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			const double& Tm) const = 0;
+	virtual void GetFutureProbVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			const double& Tm, TFltVV& ProbVV) const = 0;
 	// get [ast state probabilities for all the states for a fixed time in the past
-	virtual TFullMatrix GetPastProbMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			const double& Tm) const = 0;
+	virtual void GetPastProbVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			const double& Tm, TFltVV& ProbVV) const = 0;
 
-	static void GetFutureProbVOverTm(const TFullMatrix& PMat, const int& StateIdx,
+	static void GetFutureProbVOverTm(const TFltVV& PMat, const int& StateIdx,
 			const int& Steps, TVec<TFltV>& ProbVV, const PNotify& Notify,
 			const bool IncludeT0=true);
 
@@ -596,10 +598,10 @@ public:
 	void GetStatDist(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
 			TFltV& ProbV) const;
 
-	TFullMatrix GetTransitionMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const;
-	TFullMatrix GetJumpMatrix(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const;
-	TFullMatrix GetModel(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const
-		{ return GetQMatrix(StateSetV, StateFtrVV); }
+	void GetTransitionVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			TFltVV& TransVV) const;
+	void GetJumpVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltVV& JumpVV) const;
+	void GetModel(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltVV& QMat) const;
 
 	void GetHoldingTimeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
 			TFltV& HoldingTmV) const;
@@ -614,10 +616,10 @@ protected:
 	void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool EndsBatch);
 
 	// get future state probabilities for all the states for a fixed time in the future
-	TFullMatrix GetFutureProbMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			const double& Tm) const;
-	TFullMatrix GetPastProbMat(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			const double& Tm) const;
+	void GetFutureProbVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			const double& Tm, TFltVV& ProbVV) const;
+	void GetPastProbVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			const double& Tm, TFltVV& ProbVV) const;
 
 	void InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV, const TIntV& AssignV,
 			const TBoolV& EndBatchV);
@@ -630,19 +632,21 @@ private:
 	// returns the intensity matrix (Q-matrix)
 	void GetQMatrix(const TStateFtrVV& StateFtrVV, TFltVV& QMat) const;
 	// returns a Q matrix for the joined states
-	TFullMatrix GetQMatrix(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const;
+	void GetQMatrix(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			TFltVV& QMat) const;
 	// returns a Q matrix for the joined states for the time reversal Markov chain
-	TFullMatrix GetRevQMatrix(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV) const;
+	void GetRevQMatrix(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			TFltVV& RevQMat) const;
 
 	// returns a vector of holding times
 	// a holding time is the expected time that the process will stay in state i
 	// it is an exponential random variable of parameter -q_ii, so its expected value
 	// is -1/q_ii
-	void GetHoldingTimeV(const TFullMatrix& QMat, TFltV& HoldingTmV) const;
+	void GetHoldingTimeV(const TFltVV& QMat, TFltV& HoldingTmV) const;
 
 	bool IsHiddenStateId(const int& StateId) const { return HasHiddenState && StateId == GetHiddenStateId(); }
 
-	static void GetNextStateProbV(const TFullMatrix& QMat, const TStateIdV& StateIdV,
+	static void GetNextStateProbV(const TFltVV& QMat, const TStateIdV& StateIdV,
 			const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates,
 			const PNotify& Notify);
 
@@ -651,8 +655,8 @@ private:
 
 	static void GetProbMat(const TFltVV& QMat, const double& Dt, TFltVV& ProbV);
 
-	static TFullMatrix GetFutureProbMat(const TFullMatrix& QMat, const double& Tm,
-			const double& DeltaTm, const bool HasHiddenState=false);
+	static void GetFutureProbVV(const TFltVV& QMat, const double& Tm,
+			const double& DeltaTm, TFltVV& ProbVV, const bool HasHiddenState=false);
 
 	static double PredictOccurenceTime(const TFltVV& QMat, const int& CurrStateIdx,
 			const int& TargetStateIdx, const double& DeltaTm, const double& HorizonTm,
@@ -661,7 +665,7 @@ private:
 	// returns a jump matrix for the given transition rate matrix
 	// when the process decides to jump the jump matrix describes to
 	// which state it will jump with which probability
-	static TFullMatrix GetJumpMatrix(const TFullMatrix& QMat);
+	static void GetJumpMatrix(const TFltVV& QMat, TFltVV& JumpMat);
 };
 
 /////////////////////////////////////////////////////////////////

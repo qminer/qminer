@@ -43,7 +43,7 @@ public:
 
 	virtual ~TAbsKMeans() {}
 
-	void Save(TSOut& SOut) const;
+	virtual void Save(TSOut& SOut) const;
 	static PDnsKMeans Load(TSIn& SIn);
 
 	int GetClusts() const { return CentroidVV.GetCols(); }

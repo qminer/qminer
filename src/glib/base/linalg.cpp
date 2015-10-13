@@ -736,25 +736,6 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
 #endif
 }
 
-///////////////////////////////////////////////////////////////////////
-// LA Util
-void TLAUtil::SubMat(const TFltVV& Mat, const int& StartRow, const int& EndRow,
-			const int& StartCol, const int& EndCol, TFltVV& SubMat) {
-
-	EAssert(StartRow >= 0 && StartCol >= 0);
-	EAssert(EndRow < Mat.GetRows() && EndCol < Mat.GetCols());
-
-	if (SubMat.GetRows() != EndRow - StartRow || SubMat.GetCols() != EndCol - StartCol) {
-		SubMat.Gen(EndRow - StartRow, EndCol - StartCol);
-	}
-
-	for (int i = StartRow; i < EndRow; i++) {
-		for (int j = StartCol; j < EndCol; j++) {
-			SubMat.PutXY(i - StartRow, j - StartCol, Mat(i,j));
-		}
-	}
-}
-
 
 ///////////////////////////////////////////////////////////////////////
 // Sparse-SVD
@@ -2309,8 +2290,12 @@ void TFullMatrix::Transpose() {
 
 TFullMatrix TFullMatrix::GetT() const {
 	TFullMatrix Res(*this);      // copy
-	Res.Transpose();
+	GetT(Res.GetMat());
 	return Res;
+}
+
+void TFullMatrix::GetT(TFltVV& TransposedVV) const {
+	TLinAlg::Transpose(GetMat(), TransposedVV);
 }
 
 TFullMatrix& TFullMatrix::AddCol(const TFltV& Col) {

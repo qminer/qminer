@@ -1540,7 +1540,8 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 	} else {
 		const PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 
-		const TRnd Rnd(ParamVal->GetObjInt("rndseed", 0));
+		const int RndSeed = ParamVal->GetObjInt("rndseed", 0);
+		const TRnd Rnd(RndSeed);
 
 		const int NPastStates = ParamVal->IsObjKey("pastStates") ? ParamVal->GetObjInt("pastStates") : 0;
 		const bool Verbose = ParamVal->IsObjKey("verbose") ? ParamVal->GetObjBool("verbose") : true;

@@ -49,10 +49,12 @@ TAbsKMeans::TAbsKMeans(const TRnd& _Rnd):
 		Rnd(_Rnd) {}
 
 TAbsKMeans::TAbsKMeans(TSIn& SIn):
+		CentroidVV(SIn),
 		Rnd(SIn) {}
 
 void TAbsKMeans::Save(TSOut& SOut) const {
 	GetType().Save(SOut);
+	CentroidVV.Save(SOut);
 	Rnd.Save(SOut);
 }
 
@@ -227,20 +229,19 @@ void TDnsKMeans::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& N
 	TFltV OnesN;			TLAUtil::Ones(NInst, OnesN);
 	TFltV NormX2;			TLinAlg::GetColNorm2V(FtrVV, NormX2);
 	TIntV RangeN(NInst);	TLAUtil::Range(NInst, RangeN);
-	TFltV TempK(K);
-	TFltVV TempDxKV(Dim, K);
-	TVec<TIntFltKdV> TempKxKSpVV(K, K);
 
 	// reused variables
-	TFltV CentroidColNorm2V;		// (dimension k)
-	TFltVV ClustDistVV(K, NInst);
+	TFltVV ClustDistVV(K, NInst);		// (dimension k x n)
+	TFltV TempK(K);						// (dimension k)
+	TFltVV TempDxK(Dim, K);				// (dimension d x k)
+	TVec<TIntFltKdV> TempKxKSpVV(K);	// (dimension k x k)
 
 	for (int i = 0; i < MaxIter; i++) {
 		if (i % 10000 == 0) { Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d", i); }
 
 		// get the distance of each of the points to each of the centroids
-		TLinAlg::GetColNorm2V(CentroidVV, CentroidColNorm2V);
-		GetDistMat2(FtrVV, NormX2, CentroidColNorm2V, ClustDistVV);
+		TLinAlg::GetColNorm2V(CentroidVV, TempK);
+		GetDistMat2(FtrVV, NormX2, TempK, ClustDistVV);
 
 		if (*AssignIdxVPtr == *OldAssignIdxVPtr) {
 			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged at iteration: %d", i);
@@ -248,7 +249,7 @@ void TDnsKMeans::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& N
 		}
 
 		// recompute the means
-		UpdateCentroids(FtrVV, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxKV, TempKxKSpVV);
+		UpdateCentroids(FtrVV, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxK, TempKxKSpVV);
 
 		// swap old and new assign vectors
 		Temp = AssignIdxVPtr;
@@ -309,23 +310,23 @@ void TDpMeans::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& Not
 	TFltV OnesN;			TLAUtil::Ones(NInst, OnesN);
 	TFltV NormX2;			TLinAlg::GetColNorm2V(FtrVV, NormX2);
 	TIntV RangeN(NInst);	TLAUtil::Range(NInst, RangeN);
-	TFltV TempK(K);
-	TFltVV TempDxK(Dim, K);
-	TVec<TIntFltKdV> TempKxKSpVV(K);
+
 
 	// temporary reused variables
-	TFltV NormC2;							// (dimension k)
-	TFltV FtrV;								// (dimension d)
-	TFltV MinClustDistV;					// (dimension n)
-	TFltVV ClustDistVV(K, NInst);	// (dimension k x n)
+	TFltV FtrV;							// (dimension d)
+	TFltV MinClustDistV;				// (dimension n)
+	TFltVV ClustDistVV(K, NInst);		// (dimension k x n)
+	TFltV TempK(K);						// (dimension k)
+	TFltVV TempDxK(Dim, K);				// (dimension d x k)
+	TVec<TIntFltKdV> TempKxKSpVV(K);	// (dimension k x k)
 
 	int i = 0;
 	while (i++ < MaxIter) {
 		if (i % 10 == 0) { Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d", i); }
 
 		// add new centroids and compute the distance matrix
-		TLinAlg::GetColNorm2V(CentroidVV, NormC2);
-		GetDistMat2(FtrVV, NormX2, NormC2, ClustDistVV);
+		TLinAlg::GetColNorm2V(CentroidVV, TempK);
+		GetDistMat2(FtrVV, NormX2, TempK, ClustDistVV);
 
 		// assign
 		TLinAlg::GetColMinIdxV(ClustDistVV, *AssignIdxVPtr);

@@ -49,6 +49,7 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 	const int NInst = X.GetCols();
 	const int Dim = X.GetRows();
 	const int OrigDim = IncludeIntercept ? Dim-1 : Dim;
+	const TFlt SingEps = 1e-10;
 
 	// minimize the following objective function:
 	// L(w) = (sum(log(1 + exp(w*x_i)) - y_i*w*x_i) + lambda*beta*beta'/2) / m
@@ -120,7 +121,7 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 		if (H.GetRows() == 1) {	// fix for a bug in SVD factorization
 			DeltaWgtV[0] = GradV[0] / H(0,0);
 		} else {
-			MKLfunctions::SVDSolve(H, DeltaWgtV, GradV, 1e-10);
+			TLinAlg::SVDSolve(H, DeltaWgtV, GradV, SingEps);
 		}
 #else
 		throw TExcept::New("Should include LAPACKE!!");
@@ -199,6 +200,7 @@ void TPropHazards::Save(TSOut& SOut) const {
 void TPropHazards::Fit(const TFltVV& _X, const TFltV& t, const double& Eps) {
 	const int NInst = _X.GetCols();
 	const int Dim = _X.GetRows() + 1;
+	const TFlt SingEps = 1e-10;
 
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Fitting proportional hazards model on %d instances ...", NInst);
 
@@ -265,7 +267,11 @@ void TPropHazards::Fit(const TFltVV& _X, const TFltV& t, const double& Eps) {
 
 		// III) compute: delta_w = H \ grad
 #ifdef LAPACKE
-		TNumericalStuff::SVDSolve(H, DeltaWgtV, GradV, 1e-10);
+		if (H.GetRows() == 1) {	// fix for a bug in SVD factorization
+			DeltaWgtV[0] = GradV[0] / H(0,0);
+		} else {
+			TLinAlg::SVDSolve(H, DeltaWgtV, GradV, SingEps);
+		}
 #else
 		throw TExcept::New("Should include LAPACKE!!");
 #endif
