@@ -3116,31 +3116,8 @@ public:
 	// Computes the eigenvector of A belonging to the specified eigenvalue
     // uses the inverse iteration algorithm
     // the algorithms does modify A due to its use of LU decomposition
-    static void GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps=1e-7);
-//
-//#ifdef LAPACKE
-//    // LU midstep used for LUFactorization and LUSolve
-//    // (Warning: the matrix is overwritten in the process)
-//    static void LUStep(TFltVV& A, TIntV& PermV);
-//    // LUFactorization create the matrices L, U and vector of permutations P such that P*A = L*U.
-//    // The L is unit lower triangular matrix and U is an upper triangular matrix.
-//    // Vector P tell's us: column i is swapped with column P[i].
-//    static void LUFactorization(const TFltVV& A, TFltVV& L, TFltVV& U, TIntV& P);
-//    // Solves the system of linear equations A * x = b, where A is a matrix, x and b are vectors.
-//    // Solution is saved in x.
-//    static void LUSolve(const TFltVV& A, TFltV& x, const TFltV& b);
-//    // Solves the system of linear equations A * X = B, where A, X and B are matrices.
-//    // Solution is saved in X.
-//    static void LUSolve(const TFltVV& A, TFltVV& X, const TFltVV& B);
-//
-//    // solves the system A * x = b, where A is a triangular matrix, x and b are vectors.
-//    // The solution is saved in x.
-//    // UpperTriangFlag: if the matrix is upper triangular (true) or lower triangular (false).
-//    // DiagUnitFlag: if the matrix has ones on the diagonal (true) or not (false).
-//    static void TriangularSolve(TFltVV& A, TFltV& x, TFltV& b,
-//    		bool UpperTriangFlag = true, bool DiagonalUnitFlag = false);
-//
-//#endif
+    static void GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV,
+    		const double& ConvergEps=1e-7);
 };
 
 class TLAUtil {
