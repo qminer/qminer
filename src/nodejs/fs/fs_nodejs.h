@@ -174,7 +174,7 @@ public:
     /**
      * Reads a buffer line by line and calls a callback for each line.
      *
-     * @param {Buffer} buffer - the Node.js buffer
+     * @param {String|FIn|Buffer} buffer - name of the file, input stream of a Node.js buffer
      * @param {function} onLine - a callback that gets called on each line (for example: function (line) {})
      * @param {function} onEnd - a callback that gets returned after all the lines have been read
      * @param {function} onError - a callback that gets called if an error occurs
@@ -274,6 +274,18 @@ public:
 	*/
 	//# exports.FIn.prototype.readAll = function() { return ''; }
 	JsDeclareFunction(readAll);
+
+	/**
+	* Closes the input stream.
+	*/
+	//# exports.FIn.prototype.close = function() { return ''; }
+	JsDeclareFunction(close);
+
+	/**
+	* Checks if the input stream is closed.
+	*/
+	//# exports.FIn.prototype.isClosed = function() { return ''; }
+	JsDeclareFunction(isClosed);
 };
 
 

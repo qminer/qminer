@@ -21,6 +21,211 @@ module.exports = exports = function (pathPrefix) {
     //!STARTJSDOC
     
     //==================================================================
+    // BASE
+    //==================================================================
+
+    /**
+    * The parameter given to {@link module:qm.Base#loadCSV}.
+    * @typedef {object} baseLoadCSVParam
+    * @property {string} baseLoadCSVParam.file - The name of the input file.
+    * @property {string} baseLoadCSVParam.store - Name of the store which will be created.
+    * @property {module:qm.Base} baseLoadCSVParam.base - QMiner base object that creates the store.
+    * @property {string} [baseLoadCSVParam.delimiter = ','] - Optional delimiter.
+    * @property {string} [baseLoadCSVParam.quote = '"'] - Optional character to escape values that contain a delimiter.
+    */
+    exports.Base.prototype.loadCSV = function (opts, callback) {
+    	console.log('Loading CSV file ...');
+
+    	if (opts.delimiter == null) opts.delimiter = ',';
+    	if (opts.quote == null) opts.quote = '"';
+    	if (opts.ignoreFields == null) opts.ignoreFields = [];
+    	if (opts.file == null) throw new Error('Missing parameter file!');
+    	
+    	if (callback == null) callback = function (e) { if (e != null) console.log(e.stack); }
+    	
+    	try {
+    		var base = this;
+    		
+	    	var fname = opts.file;
+			var storeName = opts.store;
+	
+			var fieldTypes = null;
+			var store = null;
+			var buff = [];
+	
+			var ignoreFields = {};
+			for (var i = 0; i < opts.ignoreFields.length; i++)
+				ignoreFields[opts.ignoreFields] = null;
+			
+			// read the CSV file and fill the store
+			var headers = null;
+			
+			function transformLine(line) {
+				var transformed = {};
+				
+				for (var i = 0; i < line.length; i++) {
+					var header = headers[i];
+					var value = line[i];
+					
+					if (fieldTypes != null && fieldTypes[header] != null) {
+						transformed[header] = fieldTypes[header] == 'float' ? parseFloat(value) : value;
+					} else {
+						transformed[header] = (isNaN(value) || value.length == 0) ? value : parseFloat(value);
+					}
+				}
+				
+				return transformed;
+			}
+			
+    		function initFieldTypes(data) {
+    			if (fieldTypes == null) fieldTypes = {};
+
+    			for (var key in data) {
+//    				if (key in ignoreFields)
+//    					continue;
+
+    				var val = data[key];
+    				if (fieldTypes[key] == null) {
+    					if (val.length == 0)
+    						fieldTypes[key] = null;
+    					else if (isNaN(val))
+    						fieldTypes[key] = 'string';
+    					else
+    						fieldTypes[key] = 'float';
+
+    				}
+    			}
+    			
+    			if (fieldTypesInitialized())
+    				console.log('Fields initialized: ' + JSON.stringify(fieldTypes));
+    		}
+			
+    		function fieldTypesInitialized() {
+    			if (fieldTypes == null) return false;
+
+    			for (var key in fieldTypes) {
+//    				if (key in ignoreFields)
+//    					continue;
+
+    				if (fieldTypes[key] == null)
+    					return false;
+    			}
+
+    			return true;
+    		}
+			
+			function getUninitializedFlds() {
+    			var result = [];
+
+    			for (var key in fieldTypes) {
+//    				if (key in ignoreFields)
+//    					continue;
+
+    				if (fieldTypes[key] == null)
+    					result.push(key);
+    			}
+
+    			return result;
+    		}
+			
+			function createStore(rec) {
+    			try {
+	    			var storeDef = {
+	    				name: storeName,
+	    				fields: []
+	    			};
+
+	    			for (var fieldName in rec) {
+	    				storeDef.fields.push({
+							name: fieldName,
+							type: fieldTypes[fieldName],
+							"null": true,
+	    				});
+	    			}
+	    			
+	    			console.log('Creating store with definition ' + JSON.stringify(storeDef) + ' ...');
+
+	    			base.createStore(storeDef);
+	    			store = base.store(storeName);
+	    				    			
+	    			// insert all the record in the buffer into the store
+	    			buff.forEach(function (data) {
+	    				store.push(data);
+	    			});
+    			} catch (e) {
+					callback(e);
+    			}
+    		}
+			
+			var storeCreated = false;
+			var line = 0;
+			console.log('Saving CSV to store ' + storeName + ' ' + fname + ' ...');
+			
+			var fin = new fs.FIn(fname);
+			fs.readCsvLines(fin, {
+				onLine: function (lineArr) {					
+					try {						
+						if (line++ == 0) {	// the first line are the headers
+							headers = [];
+							for (var i = 0; i < lineArr.length; i++) {
+								headers.push(lineArr[i].replace(/\s+/g, '_').replace(/\.|%|\(|\)|\/|-|\+/g, '')) 	// remove invalid characters
+							}
+							console.log('Headers initialized: ' + JSON.stringify(headers));
+						}
+						else {
+							if (line % 1000 == 0)
+								console.log(line + '');
+							
+							var data = transformLine(lineArr);
+														
+							if (fieldTypes == null)
+								initFieldTypes(data);
+							
+							if (store == null && fieldTypesInitialized())
+								createStore(data);
+							else if (!fieldTypesInitialized())
+								initFieldTypes(data);
+							
+							if (store != null) {
+								store.push(data);
+							} else
+								buff.push(data);
+						}
+					} catch (e) {
+						console.log('Exception while reading CSV lines: ' + e.stack);
+						callback(e);
+					}
+				},
+				onEnd: function () {
+					// finished
+					console.log('Finished!');
+					
+					if (callback != null) {
+			   			if (!fieldTypesInitialized()) {
+				   			var fieldNames = getUninitializedFlds();
+				   			callback(new Error('Finished with uninitialized fields: ' +
+								JSON.stringify(fieldNames)) + ', add them to ignore list!');
+				   			return;
+				   		} else {
+				   			callback(undefined, store);
+				   		}
+			   		}
+				}
+			});	
+			
+			fin.close();
+    	} catch (e) {
+			callback(e);
+    	}
+    };
+    
+    /**
+     * Loads the store from a CSV file. 
+     * @param {module:qm~baseLoadCSVParam} opts - Options object.
+     * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
+     */
+    
+    //==================================================================
     // STORE
     //==================================================================
 
