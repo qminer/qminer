@@ -111,7 +111,8 @@ void TFtrExt::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     TIntFltKdV SpV; AddSpV(Rec, SpV, Offset);
     // add to full vector
     for (int SpN = 0; SpN < SpV.Len(); SpN++) {
-        FullV[SpV[SpN].Key] = SpV[SpN].Dat; }
+        FullV[SpV[SpN].Key] = SpV[SpN].Dat;
+    }
 }
 
 void TFtrExt::ExtractStrV(const TRec& FtrRec, TStrV& StrV) const { 
@@ -238,13 +239,19 @@ void TFtrSpace::GetSpV(const TRec& Rec, TIntFltKdV& SpV) const {
 	}
 }
 
-void TFtrSpace::GetFullV(const TRec& Rec, TFltV& FullV) const {
+void TFtrSpace::GetFullV(const TRec& Rec, TFltV& FullV, const int FtrN) const {
     // create empty full vector
-    FullV.Gen(GetDim()); FullV.PutAll(0.0);
 	int Offset = 0;
-	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
-		FtrExtV[FtrExtN]->AddFullV(Rec, FullV, Offset);
-	}    
+	if (FtrN < 0) {
+		FullV.Gen(GetDim()); FullV.PutAll(0.0);
+		for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
+			FtrExtV[FtrExtN]->AddFullV(Rec, FullV, Offset);
+		}
+	} else {
+		EAssert(FtrN < FtrExtV.Len());
+		FullV.Gen(FtrExtV[FtrN]->GetDim());
+		FtrExtV[FtrN]->AddFullV(Rec, FullV, Offset);
+	}
 }
 
 double TFtrSpace::GetSingleFtr(const int& FtrExtN, const double& Val) const {

@@ -165,7 +165,7 @@ public:
     /// Extract sparse feature vector from a record
 	void GetSpV(const TRec& Rec, TIntFltKdV& SpV) const;
     /// Extract full feature vector from a record
-    void GetFullV(const TRec& Rec, TFltV& FullV) const;
+    void GetFullV(const TRec& Rec, TFltV& FullV, const int FtrN=-1) const;
 	/// Extracting sparse feature vectors from a record set
 	void GetSpVV(const PRecSet& RecSet, TVec<TIntFltKdV>& SpVV) const;
 	/// Extracting full feature vectors from a record set

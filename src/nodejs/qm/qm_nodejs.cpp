@@ -3445,26 +3445,30 @@ void TNodeJsFtrSpace::extractVector(const v8::FunctionCallbackInfo<v8::Value>& A
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+	QmAssertR(Args.Length() == 1 || Args.Length() == 2, "Should have 1 or 2 arguments!");
 
-	try {
-		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-		TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
 
+	TFltV FltV;
+
+	if (Args.Length() == 1) {
 		for (int FtrN = 0; FtrN < JsFtrSpace->FtrSpace->GetFtrExts(); FtrN++) {
 			EAssertR(JsRec->Rec.GetStore()->GetStoreNm() == JsFtrSpace->FtrSpace->GetFtrExt(FtrN)->GetFtrStore()->GetStoreNm(),
 				"FeatureSpace.extractSparseVector: record's and feature extractor's store/source must be the same!");
 		}
 
 		// create feature vector, compute
-		TFltV FltV;
 		JsFtrSpace->FtrSpace->GetFullV(JsRec->Rec, FltV);
+	} else {
+		const int FtrN = TNodeJsUtil::GetArgInt32(Args, 1);
+		EAssertR(FtrN >= 0, "TNodeJsFtrSpace::extractVector: negative indices not allowed!");
+		EAssertR(JsRec->Rec.GetStore()->GetStoreNm() == JsFtrSpace->FtrSpace->GetFtrExt(FtrN)->GetFtrStore()->GetStoreNm(),
+				"FeatureSpace.extractSparseVector: record's and feature extractor's store/source must be the same!");
 
-		Args.GetReturnValue().Set(TNodeJsFltV::New(FltV));
+		JsFtrSpace->FtrSpace->GetFullV(JsRec->Rec, FltV, FtrN);
 	}
-	catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::extractVector");
-	}
+	Args.GetReturnValue().Set(TNodeJsFltV::New(FltV));
 }
 
 void TNodeJsFtrSpace::extractFeature(const v8::FunctionCallbackInfo<v8::Value>& Args) {
