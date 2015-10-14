@@ -872,6 +872,16 @@ describe('Query Tests', function () {
 //////////////////////////////////////////////////////////////////////////////
 // CSV
 describe('Load CSV tests', function () {
+	var fout = null;
+	var base = null;
+	
+	beforeEach(function () {
+		base = new qm.Base({ mode: 'createClean' });
+    });
+    afterEach(function () {
+    	base.close();
+    });
+	
 	describe('Creating load CSV test ...', function () {
 		it('should create a full store with correct types', function () {
 			// generate a CSV file
@@ -882,7 +892,7 @@ describe('Load CSV tests', function () {
 			
 			var n = 100;
 			
-			var fout = new fs.FOut('test.csv', false);
+			fout = new fs.FOut('test.csv', false);
 			fout.writeLine(headers.join(','));
 			for (var i = 0; i < n; i++) {
 				var lineStr = '';
@@ -906,7 +916,6 @@ describe('Load CSV tests', function () {
 			fout.close();
 			
 			// read the CSV file into a store
-			var base = new qm.Base({ mode: 'createClean' });
 			
 			base.loadCSV({file: 'test.csv', store: 'test'}, function (err, store) {
 				if (err != null) {
@@ -939,8 +948,6 @@ describe('Load CSV tests', function () {
 				
 				fs.del('test.csv');
 				assert(!fs.exists('test.csv'), 'The test CSV file could not be deleted!');
-				
-				base.close();
 			});
 		});
 	})
