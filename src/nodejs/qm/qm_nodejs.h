@@ -330,6 +330,7 @@ public:
 	static TPt<TNodeJsBaseWatcher> New() { return new TNodeJsBaseWatcher; }
 	void AssertOpen() { EAssertR(OpenP, "Base is closed!"); }
 	void Close() { OpenP = false; }
+	bool IsClosed() const { return !OpenP; }
 };
 typedef TPt<TNodeJsBaseWatcher> PNodeJsBaseWatcher;
 
@@ -376,6 +377,12 @@ private:
 	*/
 	//# exports.Base.prototype.close = function () { return null; }
 	JsDeclareFunction(close);
+
+	/**
+	* Checks if the base is closed.
+	* @returns {Boolean}
+	*/
+	JsDeclareFunction(isClosed);
 
 	/**
 	 * Returns the store with the specified name.
@@ -2467,6 +2474,7 @@ public:
 	void AddFullV(const TQm::TRec& Rec, TFltV& FullV, int& Offset) const;
 	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
 		throw TExcept::New("Not implemented yet!", "TJsFuncFtrExt::InvFullV"); }
+	double GetVal(const double& InVal) const { throw TExcept::New("Not implemented!"); }
 
 	// flat feature extraction
 	void ExtractFltV(const TQm::TRec& FtrRec, TFltV& FltV) const;
@@ -3147,6 +3155,14 @@ public:
 	*/
 	//# exports.FeatureSpace.prototype.extractVector = function (rec) { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(extractVector);
+
+	/**
+	 * Extracts a single feature using the feature extractor at index ftrIdx.
+	 *
+	 * @param {Integer} ftrIdx - index of the feature extractor
+	 * @param {Number} val - value to extract
+	 */
+	JsDeclareFunction(extractFeature);
     
 	/**
 	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.

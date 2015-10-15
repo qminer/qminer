@@ -383,13 +383,13 @@ describe('Time Series Window Buffer Tests', function () {
             var sa = store.addStreamAggr(aggr);
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
             var json = sa.saveJson();
-            assert.equal(json.Time, '2015-06-10T14:13:32.0');
+            assert.equal(new Date(json.Time).getTime(), new Date('2015-06-10T14:13:32.0').getTime());
             assert.equal(json.Val, 1);
 
             store.push({ Time: '2015-06-10T14:17:45.0', Value: 2 });
 
             json = sa.saveJson();
-            assert.equal(json.Time, '2015-06-10T14:17:45.0');
+            assert.equal(new Date(json.Time).getTime(), new Date('2015-06-10T14:17:45.0').getTime());
             assert.equal(json.Val, 2);
         })
     });
@@ -1357,7 +1357,7 @@ describe('MovingAverage Tests', function () {
             };
             var ma = store.addStreamAggr(aggr);
             assert.equal(ma.saveJson().Val, 0);
-            assert.equal(ma.saveJson().Time, '1601-01-01T00:00:00.0');
+            assert.equal(new Date(ma.saveJson().Time).getTime(), new Date('1601-01-01T00:00:00.0').getTime());
         })
         // unexpected node crash
         it.skip('should throw an exception if some key values are missing', function () {
@@ -1477,7 +1477,7 @@ describe('MovingAverage Tests', function () {
                 inAggr: 'TimeSeriesWindowAggr'
             };
             var ma = store.addStreamAggr(aggr);
-            assert.equal(ma.val.Time, '1601-01-01T00:00:00.0');
+            assert.equal(new Date(ma.val.Time).getTime(), new Date('1601-01-01T00:00:00.0').getTime());
             assert.equal(ma.val.Val, 0);
         })
     });
@@ -1514,7 +1514,7 @@ describe('TimeSeriesTick Tests', function () {
                 value: 'Value',
             };
             var tick = store.addStreamAggr(aggr);
-            assert.equal(tick.saveJson().Time, '1601-01-01T00:00:00.0');
+            assert.equal(new Date(tick.saveJson().Time).getTime(), new Date('1601-01-01T00:00:00.0').getTime());
             assert.equal(tick.saveJson().Val, 0);
         })
         it.skip('should throw an exeption if some key values are missing', function () {
@@ -1660,7 +1660,7 @@ describe('TimeSeriesTick Tests', function () {
                 value: 'Value',
             };
             var tick = store.addStreamAggr(aggr);
-            assert.equal(tick.val.Time, '1601-01-01T00:00:00.0');
+            assert.equal(new Date(tick.val.Time).getTime(), new Date('1601-01-01T00:00:00.000').getTime());
             assert.equal(tick.val.Val, 0);
         })
     })
@@ -1709,7 +1709,7 @@ describe('EMA Tests', function () {
                 initWindow: 1000
             };
             var ema = store.addStreamAggr(aggr);
-            assert.equal(ema.saveJson().Time, '1601-01-01T00:00:00.0');
+            assert.equal(new Date(ema.saveJson().Time).getTime(), new Date('1601-01-01T00:00:00.000').getTime());
             assert.equal(ema.saveJson().Val, 0);
         })
         it.skip('should throw an exception if some key values are missing', function () {
@@ -1884,7 +1884,7 @@ describe('EMA Tests', function () {
                 initWindow: 1000
             };
             var ema = store.addStreamAggr(aggr);
-            assert.equal(ema.val.Time, '1601-01-01T00:00:00.0');
+            assert.equal(new Date(ema.val.Time).getTime(), new Date('1601-01-01T00:00:00.0').getTime());
             assert.equal(ema.val.Val, 0);
         })
     });
@@ -1929,7 +1929,7 @@ describe('MovingVariance Tests', function () {
                 inAggr: 'TimeSeriesWindowAggr'
             };
             var variance = store.addStreamAggr(aggr);
-            assert.equal(variance.saveJson().Time, '1601-01-01T00:00:00.0');
+            assert.equal(new Date(variance.saveJson().Time).getTime(), new Date('1601-01-01T00:00:00.0').getTime());
             assert.equal(variance.saveJson().Val, 0);
         })
         it.skip('should throw an exception if a key value is missing', function () {
@@ -2064,7 +2064,7 @@ describe('MovingVariance Tests', function () {
                 inAggr: 'TimeSeriesWindowAggr'
             };
             var variance = store.addStreamAggr(aggr);
-            assert.equal(variance.val.Time, '1601-01-01T00:00:00.0');
+            assert.equal(new Date(variance.val.Time).getTime(), new Date('1601-01-01T00:00:00.0').getTime());
             assert.equal(variance.val.Val, 0);
         })
     });
@@ -2122,7 +2122,7 @@ describe('Covariance Tests', function () {
                 inAggrY: 'TimeSeries2'
             };
             var cov = store.addStreamAggr(aggr);
-            assert.equal(cov.saveJson().Time, '1601-01-01T00:00:00.0');
+            assert.equal(new Date(cov.saveJson().Time).getTime(), new Date('1601-01-01T00:00:00.0').getTime());
             //assert.equal(cov.saveJson().Val, null);
         })
         it.skip('should throw an exception if some key values are missing', function () {
@@ -2257,7 +2257,7 @@ describe('Covariance Tests', function () {
                 inAggrY: 'TimeSeries2'
             };
             var cov = store.addStreamAggr(aggr);
-            assert.equal(cov.val.Time, '1601-01-01T00:00:00.0');
+            assert.equal(new Date(cov.val.Time).getTime(), new Date('1601-01-01T00:00:00.0').getTime());
             assert.equal(cov.val.Val, 0);
         })
     });
@@ -2338,7 +2338,7 @@ describe('Correlation Tests', function () {
                 inAggrVarY: 'VarAggrY'
             };
             var corr = store.addStreamAggr(aggr);
-            assert.equal(corr.saveJson().Time, '1601-01-01T00:00:00.0');
+            assert.equal(new Date(corr.saveJson().Time).getTime(), new Date('1601-01-01T00:00:00.0').getTime());
         })
         // unexpected node crash
         it.skip('should throw an exception if a key-value is missing', function () {
@@ -2499,7 +2499,7 @@ describe('Correlation Tests', function () {
                 inAggrVarY: 'VarAggrY'
             };
             var corr = store.addStreamAggr(aggr);
-            assert.equal(corr.val.Time, '1601-01-01T00:00:00.0');
+            assert.equal(new Date(corr.val.Time).getTime(), new Date('1601-01-01T00:00:00.0').getTime());
             assert.equal(corr.val.Val, 0);
         })
     });

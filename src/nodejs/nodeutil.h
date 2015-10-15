@@ -140,7 +140,7 @@ public:
 
     /// Checks if the class name of the underlying glib object matches the
     /// given string. the name is stored in an hidden variable "class"
-    static bool IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm) ;
+    static bool IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm);
     /// Check if argument ArgN belongs to a given class
     static bool IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& ClassNm);
     /// Check if argument ArgN belongs to a given class
@@ -148,6 +148,10 @@ public:
     static bool IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if argument ArgN is null
     static bool IsArgNull(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+    /// returns true if the argument is undefined or not in the arguments at all
+	static bool IsArgUndef(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+	/// returns true if the argument is null, undefined or not in the arguments at all
+	static bool IsArgNullOrUndef(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN of type v8::Function
     static bool IsArgFun(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN of type v8::Object
@@ -161,6 +165,8 @@ public:
     /// Check if is argument ArgN is a JSON object
     static bool IsArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
 
+    /// Extracts argument ArgN as a function
+    static v8::Handle<v8::Function> GetArgFun(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Extract argument ArgN property as bool
     static bool GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Extract argument ArgN property as bool, and use DefVal in case when not present
@@ -202,10 +208,25 @@ public:
     /// returns true if the object contains a field with the specified name and
     /// that field has the provided ClassId
     static bool IsFldClass(v8::Local<v8::Object> Obj, const TStr& FldNm, const TStr& ClassId);
+    /// returns true if the field is a function
+    static bool IsFldFun(v8::Local<v8::Object> Obj, const TStr& FldNm);
+    /// returns true if the field is an integer
+    static bool IsFldInt(v8::Local<v8::Object> Obj, const TStr& FldNm);
+    /// returns true if the field is a float
+    static bool IsFldFlt(v8::Local<v8::Object> Obj, const TStr& FldNm);
 
     /// extracts the field from the object 'Obj'
     template <class TClass>
     static TClass* GetUnwrapFld(v8::Local<v8::Object> Obj, const TStr& FldNm);
+    /// extracts the field as a JSON object
+    static PJsonVal GetFldJson(v8::Local<v8::Object> Obj, const TStr& FldNm);
+    /// extracts the field as a handle, performs all the necessary checks
+    static v8::Local<v8::Object> GetFldObj(v8::Local<v8::Object> Obj, const TStr& FldNm);
+    /// extracts the field as a handle of a function
+    static v8::Local<v8::Function> GetFldFun(v8::Local<v8::Object> Obj, const TStr& FldNm);
+
+    static int GetFldInt(v8::Local<v8::Object> Obj, const TStr& FldNm);
+    static double GetFldFlt(v8::Local<v8::Object> Obj, const TStr& FldNm);
 
     /// Executes the function with the specified argument and returns a double result.
     static double ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg);
@@ -217,6 +238,11 @@ public:
 
     static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& ArgC,
     		v8::Handle<v8::Value> ArgV[]);
+
+    static void ExecuteVoid(const v8::Handle<v8::Function>& Fun);
+
+    template <class TVal>
+	static bool ExecuteBool(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg);
 
 	static uint64 GetJsTimestamp(const uint64& MSecs) { return TTm::GetUnixMSecsFromWinMSecs(MSecs); }
 	static uint64 GetCppTimestamp(const uint64& MSecs) { return TTm::GetWinMSecsFromUnixMSecs(MSecs); }
@@ -276,15 +302,14 @@ TClass* TNodeJsUtil::GetUnwrapFld(v8::Local<v8::Object> Obj, const TStr& FldNm) 
 	v8::HandleScope HandleScope(Isolate);
 
 	EAssertR(IsObjFld(Obj, FldNm), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is missing!");
-    v8::Handle<v8::Value> ValFld = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
-    
-    EAssertR(ValFld->IsObject(), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is not an object");
-    v8::Handle<v8::Object> ObjFld = ValFld->ToObject();
-    
-    EAssertR(IsClass(ObjFld, TClass::GetClassId()), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is not of type TClass");
+	v8::Handle<v8::Value> ValFld = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+
+	EAssertR(ValFld->IsObject(), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is not an object");
+	v8::Handle<v8::Object> ObjFld = ValFld->ToObject();
+
+	EAssertR(IsClass(ObjFld, TClass::GetClassId()), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is not of type TClass");
 	return node::ObjectWrap::Unwrap<TClass>(ObjFld);
 }
-
 
 template <class TClass>
 void TNodeJsUtil::_NewJs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -322,8 +347,11 @@ void TNodeJsUtil::_NewCpp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Args.GetReturnValue().Set(Instance);
 	}
 	catch (const PExcept& Except) {
-		Isolate->ThrowException(v8::Exception::TypeError(
-			v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call, ClassId: ") + TClass::GetClassId() + ":" + Except->GetMsgStr()).CStr())));
+		printf("%s\n", Except->GetMsgStr().CStr());
+		throw Except;
+//		Isolate->ThrowException(v8::Exception::TypeError(
+//			v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call, ClassId: ") + TClass::GetClassId() + ":" + Except->GetMsgStr()).CStr())));
+
 	}
 }
 
@@ -350,6 +378,24 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Loc
 		TryCatch.ReThrow();
 		return;
 	}
+}
+
+template <class TVal>
+bool TNodeJsUtil::ExecuteBool(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
+
+	v8::Handle<v8::Value> Argv[1] = { Arg };
+	v8::Local<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
+
+	if (TryCatch.HasCaught()) {
+		TryCatch.ReThrow();
+		throw TExcept::New("Exception while executing bool!", "TNodeJsUtil::ExecuteBool");
+	}
+
+	EAssertR(RetVal->IsBoolean(), "The return value is not a boolean!");
+	return RetVal->BooleanValue();
 }
 
 template <class TClass>
