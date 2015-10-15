@@ -14,7 +14,7 @@ var verbose = false;
 
 describe('Merger test, old', function () {
     it('should survive', function (done) {
-        this.timeout(10000);
+        this.timeout(30000);
         qm.delLock();
         var backward = require('../../src/nodejs/scripts/backward.js');
         backward.addToProcess(process); // adds process.isArg function

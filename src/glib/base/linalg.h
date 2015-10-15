@@ -172,6 +172,32 @@ public:
 	static void ZScore(const TFltVV& Mat, TFltVV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
 };
 
+#ifdef SCALAPACK 
+template<class TSizeTy>
+void TLAMisc::Sort(TVec<TFlt, TSizeTy> & Vec, TVec<TSizeTy, TSizeTy>& Index, const TBool& DecreseP) {
+    if (Index.Empty()) {
+        TLAMisc::FillRange(Vec.Len(), index);
+    }
+    char* id = DecreseP ? "D" : "I";
+    TSizeTy n = Vec.Len();
+    TSizeTy info;
+    dlasrt2(id, &n, &Vec[0].Val, &Index[0], &info);
+}
+#endif
+
+template <class TVal, class TTSizeTyTy>
+void TLAMisc::FillRangeS(const TTSizeTyTy& Vals, TVec<TVal, TTSizeTyTy>& Vec) {
+    //Added by Andrej
+    if (Vec.Len() != Vals){
+        Vec.Gen(Vals);
+    }
+    for (int i = 0; i < Vals; i++){
+        Vec[i] = i;
+    }
+};
+
+//////////////////////////////////////////////////////////////////////
+// Linear Algebra Utilities
 class TLAUtil {
 public:
 	// generates a vector of ones with dimension dim
@@ -266,30 +292,6 @@ public:
 			}
 		}
 	}
-};
-
-#ifdef SCALAPACK 
-template<class TSizeTy>
-void TLAMisc::Sort(TVec<TFlt, TSizeTy> & Vec, TVec<TSizeTy, TSizeTy>& Index, const TBool& DecreseP) {
-    if (Index.Empty()) {
-        TLAMisc::FillRange(Vec.Len(), index);
-    }
-    char* id = DecreseP ? "D" : "I";
-    TSizeTy n = Vec.Len();
-    TSizeTy info;
-    dlasrt2(id, &n, &Vec[0].Val, &Index[0], &info);
-}
-#endif
-
-template <class TVal, class TTSizeTyTy>
-void TLAMisc::FillRangeS(const TTSizeTyTy& Vals, TVec<TVal, TTSizeTyTy>& Vec) {
-    //Added by Andrej
-    if (Vec.Len() != Vals){
-        Vec.Gen(Vals);
-    }
-    for (int i = 0; i < Vals; i++){
-        Vec[i] = i;
-    }
 };
 
 //////////////////////////////////////////////////////////////////////
