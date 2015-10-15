@@ -252,7 +252,7 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     	char* Buff = node::Buffer::Data(BuffObj);
 		size_t BuffLen = node::Buffer::Length(BuffObj);
-		SIn = new TThinMIn(Buff, BuffLen);
+		SIn = new TThinMIn(Buff, (int)BuffLen);
     }
 
     v8::Handle<v8::Function> LineCallback = TNodeJsUtil::GetArgFun(Args, 1);//TNodeJsUtil::GetFldFun(Args[1]->ToObject(), "onLine");
@@ -266,7 +266,7 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     	try {
     		v8::Local<v8::String> LineV8Str = v8::String::NewFromUtf8(Isolate, LineStr.CStr());
     		ContinueLoop = TNodeJsUtil::ExecuteBool(LineCallback, LineV8Str);
-    	} catch (const PExcept& Except) {
+    	} catch (...) {
     		TNodeJsUtil::ExecuteVoid(ErrCallback);
     	}
 
