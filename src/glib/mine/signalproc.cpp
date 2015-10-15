@@ -438,7 +438,7 @@ void TBufferedInterpolator::AddPoint(const double& Val, const uint64& Tm) {
 	if (!Buff.Empty()) {
 		const TUInt64FltPr& LastRec = Buff.GetNewest();
 		EAssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val),
-            "New point has a timestamp lower then the last point in the buffer, or same with different values " + TTm::GetTmFromDateTimeInt(LastRec.Val1).GetStr() + " >= " + TTm::GetTmFromDateTimeInt(Tm).GetStr() + "!");
+            "New point has a timestamp lower then the last point in the buffer, or same with different values " + TTm::GetTmFromDateTimeInt((uint)LastRec.Val1).GetStr() + " >= " + TTm::GetTmFromDateTimeInt((uint)Tm).GetStr() + "!");
 	}
 
 	// add the new point

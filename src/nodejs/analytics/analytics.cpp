@@ -2389,7 +2389,7 @@ void TNodeJsStreamStory::OnPrediction(const uint64& RecTm, const int& CurrStateI
 		const int ArgC = 6;
 
 		v8::Handle<v8::Value> ArgV[ArgC] = {
-			v8::Date::New(Isolate, TTm::GetUnixMSecsFromWinMSecs(RecTm)),
+			v8::Date::New(Isolate, (double)TTm::GetUnixMSecsFromWinMSecs(RecTm)),
 			v8::Integer::New(Isolate, CurrStateId),
 			v8::Integer::New(Isolate, TargetStateId),
 			v8::Number::New(Isolate, Prob),
