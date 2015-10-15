@@ -1556,7 +1556,7 @@ class TNodeJsStreamStory : public node::ObjectWrap, public TMc::TStreamStory::TC
 	friend class TNodeJsUtil;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	static const TStr GetClassId() { return "HMC"; }
+	static const TStr GetClassId() { return "_StreamStory"; }
 
 private:
 	const static double DEFAULT_DELTA_TM;
@@ -1671,6 +1671,15 @@ public:
 	 */
 	JsDeclareFunction(histogram);
 
+	JsDeclareFunction(transitionHistogram);
+
+	/**
+	 * Returns the lower and upper bound of the feature.
+	 *
+	 * @param {Integer} ftrId - id of the feature
+	 */
+	JsDeclareFunction(getFtrBounds);
+
 	/**
 	 * Returns an array of IDs of all the states on the specified height.
 	 *
@@ -1753,6 +1762,13 @@ public:
 	JsDeclareFunction(setStateName);
 
 	/**
+	 * Sets the name of the state.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 */
+	JsDeclareFunction(clearStateName);
+
+	/**
 	 * Returns true if the state is a target on the specified height.
 	 *
 	 * @param {Number} stateId - Id of the state
@@ -1771,12 +1787,37 @@ public:
 	JsDeclareFunction(setTarget);
 
 	/**
+	 * Returns true if the state defined by the ID is at the bottom of the hierarchy.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 */
+	JsDeclareFunction(isLeaf);
+
+	/**
+	 * Returns the time unit used by this model.
+	 *
+	 * @returns {String} timeUnit
+	 */
+	JsDeclareFunction(getTimeUnit);
+
+	/**
 	 * Sets the factor of the specified control:
 	 *
-	 * @param {Number} ftrIdx - the index of the control feature
-	 * @param {Number} factor
+	 * @param {Object} params - the parameters
+	 * @property {Number} [params.stateId] - id of the state, if not present, all the states will be set
+	 * @property {Number} params.ftrId - the index of the control feature
+	 * @property {Number} params.val - the value of the featuere
 	 */
-	JsDeclareFunction(setControlFactor);
+	JsDeclareFunction(setControlVal);
+
+	JsDeclareFunction(resetControlVal);
+
+	/**
+	 * Returns true is any of the control parameters have been set in any of the states.
+	 *
+	 * @returns {Boolean}
+	 */
+	JsDeclareFunction(isAnyControlFtrSet);
 
 	// parameters
 	//!- `hmc = hmc.getParams(params)` -- sets one or more parameters given
@@ -1796,12 +1837,15 @@ public:
 	void OnStateChanged(const TIntFltPrV& StateIdHeightV);
 	void OnAnomaly(const TStr& AnomalyDesc);
 	void OnOutlier(const TFltV& FtrV);
-	void OnPrediction(const int& CurrStateId, const int& TargetStateId,
+	void OnPrediction(const uint64& RecTm, const int& CurrStateId, const int& TargetStateId,
 			const double& Prob, const TFltV& ProbV, const TFltV& TmV);
 
 private:
 	void SetParams(const PJsonVal& ParamVal);
 	void InitCallbacks();
+
+	static void WrapHistogram(const v8::FunctionCallbackInfo<v8::Value>& Args,
+			const TFltV& BinStartV, const TFltV& ProbV);
 };
 
 ///////////////////////////////

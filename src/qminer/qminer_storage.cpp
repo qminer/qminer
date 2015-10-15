@@ -2620,7 +2620,7 @@ PStoreIter TStoreImpl::BackwardIter() const {
 		TStoreIterVec::New(DataCache.GetLastValId(), DataCache.GetFirstValId(), false);
 }
 
-uint64 TStoreImpl::AddRec(const PJsonVal& RecVal) {
+uint64 TStoreImpl::AddRec(const PJsonVal& RecVal, const bool& TriggerEvents) {
 	// check if we are given reference to existing record
 	try {        
 		// parse out record id, if referred directly
@@ -2717,7 +2717,9 @@ uint64 TStoreImpl::AddRec(const PJsonVal& RecVal) {
 	// insert nested join records
 	AddJoinRec(RecId, RecVal);
 	// call add triggers
-	OnAdd(RecId);
+	if (TriggerEvents) {
+		OnAdd(RecId);
+	}
 	
 	// return record Id of the new record
 	return RecId;
@@ -3203,7 +3205,7 @@ PJsonVal TStoreImpl::GetStats() {
 }
 
 /// Add new record
-uint64 TStorePbBlob::AddRec(const PJsonVal& RecVal) {// check if we are given reference to existing record
+uint64 TStorePbBlob::AddRec(const PJsonVal& RecVal, const bool& TriggerEvents) {// check if we are given reference to existing record
     try {
         // parse out record id, if referred directly
         {
@@ -3302,7 +3304,9 @@ uint64 TStorePbBlob::AddRec(const PJsonVal& RecVal) {// check if we are given re
     // insert nested join records
     AddJoinRec(RecId, RecVal);
     // call add triggers
-    OnAdd(RecId);
+    if (TriggerEvents) {
+    	OnAdd(RecId);
+    }
 
     // return record Id of the new record
     return RecId;

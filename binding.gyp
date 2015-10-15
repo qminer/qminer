@@ -22,7 +22,7 @@
                     'NDEBUG'
                 ],
             }
-        },        
+        },
         'defines': [
             '<(LIN_ALG_BLAS)',
             '<(LIN_ALG_LAPACKE)',

@@ -49,6 +49,7 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 	const int NInst = X.GetCols();
 	const int Dim = X.GetRows();
 	const int OrigDim = IncludeIntercept ? Dim-1 : Dim;
+	const TFlt SingEps = 1e-10;
 
 	// minimize the following objective function:
 	// L(w) = (sum(log(1 + exp(w*x_i)) - y_i*w*x_i) + lambda*beta*beta'/2) / m
@@ -80,6 +81,7 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 
 	// perform the algorithm
 	double Diff = TFlt::NInf;
+	double AbsDiff;
 	int k = 1;
 	do {
 		if (k % 10 == 0) {
@@ -115,10 +117,14 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 		}
 
 		// compute delta_w = H(w) \ (g(w))
-#ifdef BLAS
-		TNumericalStuff::LUSolve(H, DeltaWgtV, GradV);
+#ifdef LAPACKE
+		if (H.GetRows() == 1) {	// fix for a bug in SVD factorization
+			DeltaWgtV[0] = GradV[0] / H(0,0);
+		} else {
+			TLinAlg::SVDSolve(H, DeltaWgtV, GradV, SingEps);
+		}
 #else
-		throw TExcept::New("Should include BLAS!!");
+		throw TExcept::New("Should include LAPACKE!!");
 #endif
 
 		if (TFlt::IsNan(TLinAlg::Norm(DeltaWgtV))) {
@@ -135,9 +141,8 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 		// the next iteration
 		Diff = TFlt::NInf;
 		for (int i = 0; i < NInst; i++) {
-			if (TFlt::Abs(PrevProbV[i] - ProbV[i]) > Diff) {
-				Diff = TFlt::Abs(PrevProbV[i] - ProbV[i]);
-			}
+			AbsDiff = TFlt::Abs(PrevProbV[i] - ProbV[i]);
+			if (AbsDiff > Diff) { Diff = AbsDiff; }
 
 			PrevProbV[i] = ProbV[i];
 		}
@@ -165,6 +170,7 @@ void TLogReg::GetWgtV(TFltV& _WgtV) const {
 }
 
 double TLogReg::PredictWithoutIntercept(const TFltV& x) const {
+	if (!Initialized()) { return 0; }
 	EAssertR(x.Len() == WgtV.Len(), "Dimension mismatch while predicting!");
 	return 1 / (1 + TMath::Power(TMath::E, -TLinAlg::DotProduct(WgtV, x)));
 }
@@ -192,12 +198,9 @@ void TPropHazards::Save(TSOut& SOut) const {
 }
 
 void TPropHazards::Fit(const TFltVV& _X, const TFltV& t, const double& Eps) {
-	EAssertR(_X.GetCols() == t.Len(), "PropHazards.fit: Number of columns must be equal to length of vector!");
 	const int NInst = _X.GetCols();
 	const int Dim = _X.GetRows() + 1;
-
-//	printf("X: %s\n", TStrUtil::GetStr(_X, ", ", "%.15f").CStr());
-//	printf("t: %s\n", TStrUtil::GetStr(t, ", ", "%.15f").CStr());
+	const TFlt SingEps = 1e-10;
 
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Fitting proportional hazards model on %d instances ...", NInst);
 
@@ -234,9 +237,6 @@ void TPropHazards::Fit(const TFltVV& _X, const TFltV& t, const double& Eps) {
 		// construct the intensity vector
 		PredictInternal(X, TempNInstV);
 
-//		printf("\n\n\n");
-//		printf("intens: %s\n\n", TStrUtil::GetStr(TempNInstV, ", ", "%.15f").CStr());
-
 		// I) construct the Hessian: X*W*X' + lambda*I
 		// prepare W and t .* intens - 1
 		for (int i = 0; i < NInst; i++) {
@@ -266,22 +266,20 @@ void TPropHazards::Fit(const TFltVV& _X, const TFltV& t, const double& Eps) {
 		}
 
 		// III) compute: delta_w = H \ grad
-#ifdef BLAS
-		TNumericalStuff::SVDSolve(H, DeltaWgtV, GradV, 1e-10);
+#ifdef LAPACKE
+		if (H.GetRows() == 1) {	// fix for a bug in SVD factorization
+			DeltaWgtV[0] = GradV[0] / H(0,0);
+		} else {
+			TLinAlg::SVDSolve(H, DeltaWgtV, GradV, SingEps);
+		}
 #else
-		throw TExcept::New("Should include BLAS!!");
+		throw TExcept::New("Should include LAPACKE!!");
 #endif
-//		printf("t .* intens - 1: %s\n", TStrUtil::GetStr(TempNInstV, ", ", "%.15f").CStr());
-//		printf("H: %s\n", TStrUtil::GetStr(H, ", ", "%.15f").CStr());
-//		printf("GradV: %s\n", TStrUtil::GetStr(GradV, ", ", "%.15f").CStr());
-//		printf("DeltaWgtV: %s\n", TStrUtil::GetStr(DeltaWgtV, ", ", "%.15f").CStr());
 
 		// IV) w <= w - delta_w
 		for (int i = 0; i < Dim; i++) {
 			WgtV[i] -= DeltaWgtV[i];
 		}
-
-//		printf("WgtV: %s\n", TStrUtil::GetStr(WgtV, ", ", "%.15f").CStr());
 
 		Diff = TLinAlg::Norm(DeltaWgtV);
 		EAssertR(!TFlt::IsNan(Diff), "nans in delta wgt vector!");
@@ -291,7 +289,6 @@ void TPropHazards::Fit(const TFltVV& _X, const TFltV& t, const double& Eps) {
 		}
 	}
 
-	//printf("WgtV: %s\n", TStrUtil::GetStr(WgtV, ", ", "%.15f").CStr());
 
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged. Diff: %.5f", Diff);
 }

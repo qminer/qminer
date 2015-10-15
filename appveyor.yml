@@ -25,7 +25,7 @@ install:
   - cd ..
   - cd test\nodejs
   - npm install -g mocha
-  - mocha *.js
+  - mocha --timeout 30000 *.js
 
 build: off
 test: off

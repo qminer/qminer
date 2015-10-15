@@ -438,7 +438,7 @@ void TBufferedInterpolator::AddPoint(const double& Val, const uint64& Tm) {
 	if (!Buff.Empty()) {
 		const TUInt64FltPr& LastRec = Buff.GetNewest();
 		EAssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val),
-            "New point has a timestamp lower then the last point in the buffer, or same with different values!");
+            "New point has a timestamp lower then the last point in the buffer, or same with different values " + TTm::GetTmFromDateTimeInt(LastRec.Val1).GetStr() + " >= " + TTm::GetTmFromDateTimeInt(Tm).GetStr() + "!");
 	}
 
 	// add the new point
@@ -996,7 +996,7 @@ double TOnlineHistogram::GetCount(const double& Val) const {
 void TOnlineHistogram::Print() const {
 	printf("Histogram:\n");
 	for (int BinN = 0; BinN < Counts.Len(); BinN++) {
-		printf("%g [%g, %g]\n", Counts[BinN], Bounds[BinN], Bounds[BinN + 1]);
+		printf("%g [%g, %g]\n", Counts[BinN].Val, Bounds[BinN].Val, Bounds[BinN + 1].Val);
 	}
 }
 
