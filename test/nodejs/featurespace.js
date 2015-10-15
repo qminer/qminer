@@ -186,9 +186,7 @@ describe('Feature Space Tests', function () {
             assert.equal(vec.length, 1);
             assert.ok(0 <= vec[0] <= 1.0);
         })
-        it('should return a vector for the first record in store: numeric', function () {
-        	this.timeout(10000);
-        	
+        it('should return a vector for the first record in store: numeric', function () {        	
         	var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
             var vec = ftr.extractVector(Store[0]);
             assert.equal(vec.length, 1);
