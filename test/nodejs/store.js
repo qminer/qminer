@@ -871,84 +871,84 @@ describe('Query Tests', function () {
 
 //////////////////////////////////////////////////////////////////////////////
 // CSV
-describe('Load CSV tests', function () {
-	var fout = null;
-	var base = null;
-	
-	beforeEach(function () {
-		base = new qm.Base({ mode: 'createClean' });
-    });
-    afterEach(function () {
-    	base.close();
-    });
-	
-	describe('Creating load CSV test ...', function () {
-		it('should create a full store with correct types', function () {
-			// generate a CSV file
-			var headers = ['A', 'B', 'C', 'D'];
-			var types = ['string', 'float', 'float', 'string'];
-			
-			var table = [];
-			
-			var n = 100;
-			
-			fout = new fs.FOut('test.csv', false);
-			fout.writeLine(headers.join(','));
-			for (var i = 0; i < n; i++) {
-				var lineStr = '';
-				var row = [];
-				for (var j = 0; j < headers.length; j++) {
-					if (types[j] == 'string') {
-						row.push(Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5));	// random string
-					} else {
-						row.push(i);
-					}
-				}
-				
-				table.push(row);
-				fout.write(row.join(','));
-				
-				if (i < n - 1)
-					fout.write('\n');
-			}
-			
-			fout.flush();
-			fout.close();
-			
-			// read the CSV file into a store
-			
-			base.loadCSV({file: 'test.csv', store: 'test'}, function (err, store) {
-				if (err != null) {
-					assert.fail(0, 0, 'Exception while loading CSV file! ' + err, ',');
-				} else {
-					assert(store != null, 'Store is not defined!');
-					
-					// check if the fields are correct
-					var fields = store.fields;
-					
-					assert.equal(fields.length, headers.length, 'Invalid number of fields generated!');
-					
-					for (var i = 0; i < fields.length; i++) {
-						var field = fields[i];
-						
-						assert.equal(field.name, headers[i], 'Invalid name of field!');
-						assert.equal(field.type, types[i], 'Invalid type of field!');
-					}
-										
-					// check if the values are correct
-					for (var i = 0; i < store.length; i++) {
-						var rec = store[i];
-						for (var j = 0; j < headers.length; j++) {
-							var val = rec[headers[j]];
-							
-							assert.equal(val, table[i][j], 'Value mismatch!');
-						}
-					}
-				}
-				
-				fs.del('test.csv');
-				assert(!fs.exists('test.csv'), 'The test CSV file could not be deleted!');
-			});
-		});
-	})
-});
+//describe('Load CSV tests', function () {
+//	var fout = null;
+//	var base = null;
+//	
+//	beforeEach(function () {
+//		base = new qm.Base({ mode: 'createClean' });
+//    });
+//    afterEach(function () {
+//    	base.close();
+//    });
+//	
+//	describe('Creating load CSV test ...', function () {
+//		it('should create a full store with correct types', function () {
+//			// generate a CSV file
+//			var headers = ['A', 'B', 'C', 'D'];
+//			var types = ['string', 'float', 'float', 'string'];
+//			
+//			var table = [];
+//			
+//			var n = 100;
+//			
+//			fout = new fs.FOut('test.csv', false);
+//			fout.writeLine(headers.join(','));
+//			for (var i = 0; i < n; i++) {
+//				var lineStr = '';
+//				var row = [];
+//				for (var j = 0; j < headers.length; j++) {
+//					if (types[j] == 'string') {
+//						row.push(Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5));	// random string
+//					} else {
+//						row.push(i);
+//					}
+//				}
+//				
+//				table.push(row);
+//				fout.write(row.join(','));
+//				
+//				if (i < n - 1)
+//					fout.write('\n');
+//			}
+//			
+//			fout.flush();
+//			fout.close();
+//			
+//			// read the CSV file into a store
+//			
+//			base.loadCSV({file: 'test.csv', store: 'test'}, function (err, store) {
+//				if (err != null) {
+//					assert.fail(0, 0, 'Exception while loading CSV file! ' + err, ',');
+//				} else {
+//					assert(store != null, 'Store is not defined!');
+//					
+//					// check if the fields are correct
+//					var fields = store.fields;
+//					
+//					assert.equal(fields.length, headers.length, 'Invalid number of fields generated!');
+//					
+//					for (var i = 0; i < fields.length; i++) {
+//						var field = fields[i];
+//						
+//						assert.equal(field.name, headers[i], 'Invalid name of field!');
+//						assert.equal(field.type, types[i], 'Invalid type of field!');
+//					}
+//										
+//					// check if the values are correct
+//					for (var i = 0; i < store.length; i++) {
+//						var rec = store[i];
+//						for (var j = 0; j < headers.length; j++) {
+//							var val = rec[headers[j]];
+//							
+//							assert.equal(val, table[i][j], 'Value mismatch!');
+//						}
+//					}
+//				}
+//				
+//				fs.del('test.csv');
+//				assert(!fs.exists('test.csv'), 'The test CSV file could not be deleted!');
+//			});
+//		});
+//	})
+//});
