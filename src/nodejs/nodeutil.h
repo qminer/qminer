@@ -251,10 +251,10 @@ public:
 
 	/// Used for unwrapping objects that depend on TBase being valid
 	template <class TClass>
-	static TClass* UnwrapCheckWatcher(v8::Handle<v8::Object> handle);
+	static TClass* UnwrapCheckWatcher(v8::Handle<v8::Object> Arg);
 
 	template <class TClass>
-	static TClass* Unwrap(v8::Handle<v8::Object> handle) { return node::ObjectWrap::Unwrap<TClass>(handle); }
+	static TClass* Unwrap(v8::Handle<v8::Object> Arg) { return node::ObjectWrap::Unwrap<TClass>(Arg); }
 	
 };
 
@@ -353,8 +353,9 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Loc
 }
 
 template <class TClass>
-TClass* TNodeJsUtil::UnwrapCheckWatcher(v8::Handle<v8::Object> handle) {
-	TClass* Obj = node::ObjectWrap::Unwrap<TClass>(handle);
+TClass* TNodeJsUtil::UnwrapCheckWatcher(v8::Handle<v8::Object> Arg) {
+	EAssertR(IsClass(Arg, TClass::GetClassId()), "Object is not a wrapped `" + TClass::GetClassId() + "` class");
+	TClass* Obj = node::ObjectWrap::Unwrap<TClass>(Arg);
 	Obj->Watcher->AssertOpen();
 	return Obj;
 }

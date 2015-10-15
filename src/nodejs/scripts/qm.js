@@ -26,18 +26,19 @@ module.exports = exports = function (pathPrefix) {
     //==================================================================
 
     /**
-     * Loads the store from a CSV file. The opts parameter must have the following format:
-     *
-     * {
-     * 		file: 'nameOfFile',		// the name of the input file.
-     * 		store: 'nameOfStore',	// name of the store which will be created
-     * 		base: base,				// QMiner base object that creates the store
-     * 		delimiter: ',',			// optional delimiter
-     * 		quote: '"'				// optional character to escape values that contain a delimiter
-     * }
-     *
-     * @param {object} opts - options object, explained in the description
-     * @param {function} [callback] - callback function, called on errors and when the procedure finishes
+    * The parameter given to {@link module:qm.Base#loadCSV}.
+    * @typedef {object} baseLoadCSVParam
+    * @property {string} baseLoadCSVParam.file - The name of the input file.
+    * @property {string} baseLoadCSVParam.store - Name of the store which will be created.
+    * @property {module:qm.Base} baseLoadCSVParam.base - QMiner base object that creates the store.
+    * @property {string} [baseLoadCSVParam.delimiter = ','] - Optional delimiter.
+    * @property {string} [baseLoadCSVParam.quote = '"'] - Optional character to escape values that contain a delimiter.
+    */
+
+    /**
+     * Loads the store from a CSV file. 
+     * @param {module:qm~baseLoadCSVParam} opts - Options object.
+     * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
      */
     exports.Base.prototype.loadCSV = function (opts, callback) {
     	console.log('Loading CSV file ...');
