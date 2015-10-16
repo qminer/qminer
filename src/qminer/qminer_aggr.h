@@ -536,7 +536,7 @@ public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
 	// did we finish initialization
-	bool IsInit() const { return true; }
+	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
 	// current values
 	double GetFlt() const { return Cov.GetCov(); }
 	uint64 GetTmMSecs() const { return Cov.GetTmMSecs(); }
@@ -589,7 +589,7 @@ public:
 	void Save(TSOut& SOut) const;
 
 	// did we finish initialization
-	bool IsInit() const { return true; }
+	bool IsInit() const { return  InAggrVarX->IsInit() && InAggrVarY->IsInit() && InAggrCov->IsInit(); }
 	// current values
 	double GetFlt() const { return Corr; }
 	uint64 GetTmMSecs() const { return 0; }
