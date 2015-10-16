@@ -950,7 +950,7 @@ void TRecSerializator::SetFixedJsonVal(char* Bf, const int& BfL,
 			TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
 			SetFieldTm(Bf, BfL, FieldSerialDesc, Tm);
 		} else {
-			uint64 WinMSecs = TTm::GetWinMSecsFromUnixMSecs((uint64)JsonVal->GetNum());
+			uint64 WinMSecs = TTm::GetWinMSecsFromUnixMSecs(JsonVal->GetInt64());
 			TTm Tm = TTm::GetTmFromMSecs(WinMSecs);
 			SetFieldTm(Bf, BfL, FieldSerialDesc, Tm);
 		}
@@ -2661,9 +2661,10 @@ uint64 TStoreImpl::AddRec(const PJsonVal& RecVal, const bool& TriggerEvents) {
 					PrimaryRecId = PrimaryFltIdH.GetDat(FieldVal);
 				}
 			} else if (PrimaryFieldType == oftTm) {
-				TStr TmStr = RecVal->GetObjStr(PrimaryField);
-				TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
-				const uint64 FieldVal = TTm::GetMSecsFromTm(Tm);
+				const uint64 FieldVal = RecVal->GetObjTmMSecs(PrimaryField);
+//				TStr TmStr = RecVal->GetObjStr(PrimaryField);
+//				TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
+//				const uint64 FieldVal = TTm::GetMSecsFromTm(Tm);
 				if (PrimaryTmMSecsIdH.IsKey(FieldVal)) {
 					PrimaryRecId = PrimaryTmMSecsIdH.GetDat(FieldVal);
 				}

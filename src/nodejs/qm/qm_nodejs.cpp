@@ -921,7 +921,7 @@ void TNodeJsStore::newRecord(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		Args.GetReturnValue().Set(
 			TNodeJsRec::NewInstance(new TNodeJsRec(JsStore->Watcher, Rec))
-			);
+		);
 
 	}
 	catch (const PExcept& Except) {
@@ -1975,27 +1975,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 	}
 	else if (Desc.IsTm()) {
 		QmAssertR(Value->IsObject() || Value->IsString() || Value->IsNumber(), "Field " + FieldNm + " not object or string");
-		if (Value->IsDate() || Value->IsNumber()) {
-			double UnixMSecs;
-			if (Value->IsDate()) {
-				v8::Handle<v8::Date> Date = v8::Handle<v8::Date>::Cast(Value);
-				// milliseconds from 1970-01-01T00:00:00Z, which is 11644473600 seconds after Windows file time start
-				UnixMSecs = Date->NumberValue();
-			} else {
-				UnixMSecs = Value->NumberValue();
-			}			
-			// milliseconds from 1601-01-01T00:00:00Z
-			double WinMSecs = UnixMSecs + 11644473600000.0;
-			Rec.SetFieldTmMSecs(FieldId, (uint64)WinMSecs);
-		}
-		else if (Value->IsString()){
-			v8::String::Utf8Value Utf8(Value);
-			Rec.SetFieldTm(FieldId, TTm::GetTmFromWebLogDateTimeStr(TStr(*Utf8), '-', ':', '.', 'T'));
-		} 
-		else {
-			throw TQm::TQmExcept::New("Field + " + FieldNm + " expects a javascript Date() "
-                "object or a Weblog datetime formatted string (example: \"2012-12-31T00:00:05.100\")");
-		}
+		Rec.SetFieldTmMSecs(FieldId, TNodeJsUtil::GetTmMSecs(Value));
 	}
 	else if (Desc.IsNumSpV()) {
 		// it can only be GLib sparse vector

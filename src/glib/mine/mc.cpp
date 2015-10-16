@@ -502,7 +502,8 @@ void TStateIdentifier::UpdateTransitionHist(const TFltVV& ObsFtrVV, const TFltVV
 
 	EAssertR(NInst > 0, "Cannot fit a model to 0 instances!");
 
-	TFltV FtrV;
+	const int ObsDim = ObsFtrVV.GetRows();
+	const int ContrDim = ContrFtrVV.GetRows();
 
 	int CurrState, PrevState = AssignV[0];
 	for (int InstN = 0; InstN < NInst; InstN++) {
@@ -513,13 +514,10 @@ void TStateIdentifier::UpdateTransitionHist(const TFltVV& ObsFtrVV, const TFltVV
 			const int JumpInst = InstN-1;
 			TFtrHistV& FtrIdHistV = TransHistMat(PrevState, CurrState);
 
-			ObsFtrVV.GetCol(JumpInst, FtrV);
-			for (int FtrN = 0; FtrN < FtrV.Len(); FtrN++) {
+			for (int FtrN = 0; FtrN < ObsDim; FtrN++) {
 				FtrIdHistV[FtrN].Update(ObsFtrVV(FtrN, JumpInst));
 			}
-
-			ContrFtrVV.GetCol(JumpInst, FtrV);
-			for (int FtrN = 0; FtrN < FtrV.Len(); FtrN++) {
+			for (int FtrN = 0; FtrN < ContrDim; FtrN++) {
 				FtrIdHistV[GetDim() + FtrN].Update(ContrFtrVV(FtrN, JumpInst));
 			}
 
@@ -2104,7 +2102,7 @@ void TUiHelper::RefineStateCoordV(const PStateIdentifier& StateIdentifier,
 				}
 			}
 
-			if (k % 1000 == 0) {
+			if (k % 100 == 0) {
 				Notify->OnNotifyFmt(TNotifyType::ntInfo, "Iteration %d, height %.4f, final overlaps ...", k, CurrHeight);
 				for (int i = 0; i < RadiusV.Len()-1; i++) {
 					const int& State1Id = StateIdV[i];
@@ -2120,20 +2118,6 @@ void TUiHelper::RefineStateCoordV(const PStateIdentifier& StateIdentifier,
 		}
 	} while (Change);
 }
-
-//void TUiHelper::TransformToUnit() {
-//	double MxX = TFlt::Mn, MxY = TFlt::Mn, MnX = TFlt::Mx, MnY = TFlt::Mx;
-//	for (int i = 0; i < StateCoordV.Len(); i++) {
-//		if (StateCoordV[i].Val1 > MxX) { MxX = StateCoordV[i].Val1; }
-//		if (StateCoordV[i].Val1 < MnX) { MnX = StateCoordV[i].Val1; }
-//		if (StateCoordV[i].Val2 > MxY) { MxY = StateCoordV[i].Val2; }
-//		if (StateCoordV[i].Val2 > MnY) { MnY = StateCoordV[i].Val2; }
-//	}
-//	for (int i = 0; i < StateCoordV.Len(); i++) {
-//		StateCoordV[i].Val1 = (StateCoordV[i].Val1 - MnX) / (MxX - MnX);
-//		StateCoordV[i].Val2 = (StateCoordV[i].Val2 - MnY) / (MxY - MnY);
-//	}
-//}
 
 double TUiHelper::GetUIStateRaduis(const double& Prob) {
 	// the probability is proportional to the area, so the raduis should
@@ -2202,10 +2186,11 @@ void TStateAssist::Save(TSOut& SOut) const {
 	TBool(Verbose).Save(SOut);
 }
 
-void TStateAssist::Init(TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const PStateIdentifier& Clust, const PHierarch& Hierarch) {
+void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
+		const PStateIdentifier& Clust, const PHierarch& Hierarch) {
 	InitFtrBounds(ObsFtrVV, ContrFtrVV);
 
-	const TFullMatrix X(ObsFtrVV, true);	// TODO change this to TFltVV and add const in the params
+	const int Dim = ObsFtrVV.GetRows();
 
 	// get all the heights from the hierarchy
 	TIntFltPrV StateIdHeightPrV;	Hierarch->GetStateIdHeightPrV(StateIdHeightPrV);
@@ -2225,46 +2210,76 @@ void TStateAssist::Init(TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const PState
 		TStateIdV StateIdV; TStateSetV StateSetV;
 		Hierarch->GetStateSetsAtHeight(Height, StateIdV, StateSetV);
 
-		const int StateIdx = StateIdV.SearchForw(StateId);
+		const int NStates = StateIdV.Len();
+		const int TrgStateIdx = StateIdV.SearchForw(StateId);
 
-		EAssertR(StateIdx >= 0, "Could not find the target state!");
+		TIntV TargetIdxV, NonTargetIdxV;
 
-		const TIntSet TargetStateSet(StateSetV[StateIdx]);
+		EAssertR(TrgStateIdx >= 0, "Could not find the target state!");
 
-		TIntV TargetIdxV;		AssignV.FindAllSatisfy([&](const TInt& StateId) { return TargetStateSet.IsKey(StateId); }, TargetIdxV);
-		TIntV NonTargetIdxV;	AssignV.FindAllSatisfy([&](const TInt& StateId) { return !TargetStateSet.IsKey(StateId); }, NonTargetIdxV);
+		TVec<TIntV> StateIdFtrIdxVV(NStates);
+
+		for (int StateN = 0; StateN < NStates; StateN++) {
+			const TIntSet StateSet(StateSetV[StateN]);
+			TIntV& StateFtrIdxV = StateIdFtrIdxVV[StateN];
+
+			AssignV.FindAllSatisfy([&](const TInt& Id) { return StateSet.IsKey(Id); }, StateFtrIdxV);
+
+			StateFtrIdxV.Shuffle(Rnd);
+		}
+
+		// while there are instances select one instance from each state
+		// so that we always get instances from all the states
+		bool AllEmpty;
+		do {
+			AllEmpty = true;
+
+			for (int StateN = 0; StateN < NStates; StateN++) {
+				TIntV& IdxV = StateIdFtrIdxVV[StateN];
+
+				if (IdxV.Empty()) { continue; }
+
+				if (StateN == TrgStateIdx) {
+					TargetIdxV.Add(IdxV.Last());
+				} else {
+					NonTargetIdxV.Add(IdxV.Last());
+				}
+
+				IdxV.DelLast();
+				AllEmpty = false;
+			}
+		} while (!AllEmpty);
+
+		// truncate the larger dataset
+		if (TargetIdxV.Len() > NonTargetIdxV.Len()) {
+			TargetIdxV.Trunc(NonTargetIdxV.Len());
+		} else if (NonTargetIdxV.Len() > TargetIdxV.Len()) {
+			NonTargetIdxV.Trunc(TargetIdxV.Len());
+		}
 
 		if (TargetIdxV.Len() == 0 || NonTargetIdxV.Len() == 0) continue;
 
-		// make the sets equally sized
-		if (NonTargetIdxV.Len() > TargetIdxV.Len()) {
-			NonTargetIdxV.Shuffle(Rnd);
-			NonTargetIdxV.Trunc(TargetIdxV.Len());
-		} else if (TargetIdxV.Len() > NonTargetIdxV.Len()) {
-			TargetIdxV.Shuffle(Rnd);
-			TargetIdxV.Trunc(NonTargetIdxV.Len());
-		}
+		// construct a feature matrix
+		TFltVV InstanceVV(Dim, TargetIdxV.Len() + NonTargetIdxV.Len());
+		TFltV y(TargetIdxV.Len() + NonTargetIdxV.Len());
+		for (int ColIdx = 0; ColIdx < TargetIdxV.Len(); ColIdx++) {
+			const TInt& TargetColN = TargetIdxV[ColIdx];
+			const TInt& NonTargetColN = NonTargetIdxV[ColIdx];
 
-		// get the instances
-		TFullMatrix PosInstMat = X(TVector::Range(X.GetRows()), TargetIdxV);
-		TFullMatrix NegInstMat = X(TVector::Range(X.GetRows()), NonTargetIdxV);
+			const int TargetColIdx = ColIdx;
+			const int NonTargetColIdx = TargetIdxV.Len() + ColIdx;
 
-		TFltVV InstanceMat(X.GetRows(), PosInstMat.GetCols() + NegInstMat.GetCols());
-		TFltV y(PosInstMat.GetCols() + NegInstMat.GetCols(), PosInstMat.GetCols() + NegInstMat.GetCols());
-		for (int ColIdx = 0; ColIdx < PosInstMat.GetCols(); ColIdx++) {
-			for (int RowIdx = 0; RowIdx < X.GetRows(); RowIdx++) {
-				InstanceMat(RowIdx, ColIdx) = PosInstMat(RowIdx, ColIdx);
+			for (int RowN = 0; RowN < Dim; RowN++) {
+				InstanceVV(RowN, TargetColIdx) = ObsFtrVV(RowN, TargetColN);
+				InstanceVV(RowN, NonTargetColIdx) = ObsFtrVV(RowN, NonTargetColN);
 			}
-			y[ColIdx] = 1;
-		}
-		for (int ColIdx = 0; ColIdx < NegInstMat.GetCols(); ColIdx++) {
-			for (int RowIdx = 0; RowIdx < X.GetRows(); RowIdx++) {
-				InstanceMat(RowIdx, PosInstMat.GetCols() + ColIdx) = NegInstMat(RowIdx, ColIdx);
-			}
-			y[PosInstMat.GetCols() + ColIdx] = 0;
+
+			y[TargetColIdx] = 1;
+			y[NonTargetColIdx] = 0;
 		}
 
-		ClassifyV.Last().Fit(InstanceMat, y);
+		// fit a model
+		ClassifyV.Last().Fit(InstanceVV, y);
 	}
 }
 

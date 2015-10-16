@@ -249,6 +249,22 @@ public:
 	}
 
 	template <class TType, class TSizeTy, bool ColMajor>
+	static void SubMat(const TVVec<TType, TSizeTy, ColMajor>& Mat, const TVec<TSizeTy, TSizeTy>& ColIdxV,
+			TVVec<TType, TSizeTy, ColMajor>& SubMat) {
+
+		if (SubMat.Empty()) { SubMat.Gen(Mat.GetRows(), ColIdxV.Len()); }
+		EAssert(SubMat.GetRows() == Mat.GetRows() && SubMat.GetCols() == ColIdxV.Len());
+
+		TVec<TType, TSizeTy> ColV;
+		for (TSizeTy i = 0; i < ColIdxV.Len(); i++) {
+			const TSizeTy& ColN = ColIdxV[i];
+			EAssert(0 <= ColN && ColN < Mat.GetCols());
+			Mat.GetCol(ColN, ColV);
+			SubMat.SetCol(i, ColV);
+		}
+	}
+
+	template <class TType, class TSizeTy, bool ColMajor>
 	static void GetRow(const TVVec<TType, TSizeTy, ColMajor>& Mat,
 			const TSizeTy& RowN, TVec<TType, TSizeTy>& RowV) {
 		EAssert(0 <= RowN && RowN < Mat.GetRows());
@@ -3142,8 +3158,7 @@ public:
 	template <class TType, class TSizeTy, bool ColMajor>
 	inline void TLinAlg::Pow(const TVVec<TType, TSizeTy, ColMajor>& Mat,
 			const int& k, TVVec<TType, TSizeTy, ColMajor>& PowVV) {
-		EAssertR(k >= 0, "TFullMatrix::operator ^: Negative powers not implemented!");
-		EAssertR(Mat.GetRows() == Mat.GetCols(), "TFullMatrix::operator ^: Can only compute powers of square matrices!");
+		EAssertR(Mat.GetRows() == Mat.GetCols(), "TLinAlg::Pow: Can only compute powers of square matrices!");
 
 		const TSizeTy Dim = Mat.GetRows();
 
@@ -3152,7 +3167,7 @@ public:
 		} else if (k < 0) {
 			TVVec<TType, TSizeTy, ColMajor> InverseVV;
 			TLinAlg::Inverse(Mat, InverseVV, TLinAlgInverseType::DECOMP_SVD);
-			Pow(InverseVV, k, PowVV);
+			Pow(InverseVV, -k, PowVV);
 		} else {
 			PowVV.Gen(Dim, Dim);
 
@@ -3161,7 +3176,10 @@ public:
 			// finishing the algorithm, the result will be in X
 
 			// X <- A
-			TVVec<TType, TSizeTy, ColMajor>* X = new TVVec<TType, TSizeTy, ColMajor>(Mat);	// temporary matrix
+			TVVec<TType, TSizeTy, ColMajor> TempMat(Mat);			// temporary matrix
+
+			// pointers, so swapping is faster
+			TVVec<TType, TSizeTy, ColMajor>* X = &TempMat;
 			TVVec<TType, TSizeTy, ColMajor>* X1 = &PowVV;			// use the space already available
 
 			// temporary variables
@@ -3192,15 +3210,10 @@ public:
 				}
 			}
 
-			if (&PowVV == X) {
-				// the values are already in the correct matrix
-				// only delete X1
-				delete X1;
-			} else {	// &PowVV == X1
+			if (&PowVV != X) {
 				// the values are in X, but we are returning X1
 				// copy X to PowVV
 				PowVV = *X;
-				delete X;
 			}
 		}
 	}
