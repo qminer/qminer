@@ -114,6 +114,26 @@ PJsonVal TJsonVal::NewArr(const TFltPr& FltPr) {
   return Val;
 }
 
+bool TJsonVal::IsTm() const {
+  try {
+    GetTm();
+    return true;
+  } catch (...) {
+    return false;
+  }
+}
+
+TTm TJsonVal::GetTm() const {
+  EAssert(IsStr() || IsNum());
+
+  if (IsStr()) {
+    const TStr& TmStr = GetStr();
+    return TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
+  } else {
+    return TTm::GetTmFromMSecs(TTm::GetWinMSecsFromUnixMSecs(GetInt64()));
+  }
+}
+
 void TJsonVal::GetArrNumV(TFltV& FltV) const {
     EAssert(IsArr());
     for (int FltN = 0; FltN < GetArrVals(); FltN++) {

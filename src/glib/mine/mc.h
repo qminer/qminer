@@ -741,7 +741,8 @@ public:
 
 	void Save(TSOut& SOut) const;
 
-	void Init(TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const PStateIdentifier& Clust, const PHierarch& Hierarch);
+	void Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const PStateIdentifier& Clust,
+			const PHierarch& Hierarch);
 	void InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV);
 
 	const TFltPr& GetFtrBounds(const int& FtrId) const;

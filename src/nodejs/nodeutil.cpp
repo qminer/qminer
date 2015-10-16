@@ -579,12 +579,31 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-  v8::TryCatch TryCatch;
-  Fun->Call(Isolate->GetCurrentContext()->Global(), 0, nullptr);
-  if (TryCatch.HasCaught()) {
-    TryCatch.ReThrow();
-    return;
-  }
+	v8::TryCatch TryCatch;
+	Fun->Call(Isolate->GetCurrentContext()->Global(), 0, nullptr);
+	if (TryCatch.HasCaught()) {
+		TryCatch.ReThrow();
+		return;
+	}
+}
+
+uint64 TNodeJsUtil::GetTmMSecs(v8::Local<v8::Value>& Value) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (Value->IsDate()) {
+		v8::Local<v8::Date> Date = v8::Handle<v8::Date>::Cast(Value);
+		return GetTmMSecs(Date);
+	}
+	else if (Value->IsString()) {
+		v8::String::Utf8Value Utf8(Value);
+		TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TStr(*Utf8), '-', ':', '.', 'T');
+		return TTm::GetMSecsFromTm(Tm);
+	}
+	else {
+		EAssertR(Value->IsNumber(), "Date is not in a representation of a string, date or number!");
+		return GetCppTimestamp(int64(Value->NumberValue()));
+	}
 }
 
 v8::Local<v8::Value> TNodeJsUtil::V8JsonToV8Str(const v8::Handle<v8::Value>& Json) {
@@ -628,4 +647,8 @@ PMem TNodeJsUtil::GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 	if (ExternalType != v8::ExternalArrayType::kExternalUint8Array) return TMem::New();
 	int Len = Obj->GetIndexedPropertiesExternalArrayDataLength();
 	return TMem::New(static_cast<char*>(Obj->GetIndexedPropertiesExternalArrayData()), Len);
+}
+
+uint64 TNodeJsUtil::GetTmMSecs(v8::Handle<v8::Date>& Date) {
+	return GetCppTimestamp(int64(Date->NumberValue()));
 }

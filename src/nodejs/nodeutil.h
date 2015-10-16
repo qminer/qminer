@@ -244,8 +244,15 @@ public:
     template <class TVal>
 	static bool ExecuteBool(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg);
 
-	static uint64 GetJsTimestamp(const uint64& MSecs) { return TTm::GetUnixMSecsFromWinMSecs(MSecs); }
-	static uint64 GetCppTimestamp(const uint64& MSecs) { return TTm::GetWinMSecsFromUnixMSecs(MSecs); }
+    /// converts a v8 value to a Win timestamp
+    static uint64 GetTmMSecs(v8::Local<v8::Value>& Value);
+	static int64 GetJsTimestamp(const uint64& MSecs) { return TTm::GetUnixMSecsFromWinMSecs(MSecs); }
+	static uint64 GetCppTimestamp(const int64& MSecs) { return TTm::GetWinMSecsFromUnixMSecs(MSecs); }
+
+	/// converts a vector of UNIX timestamps used by Node.js to internal C++ timestamps
+	template <class TType, class TSizeTy>
+	static void GetCppTmMSecsV(const TVec<TType, TSizeTy>& NodeJsTmMSecsV,
+			TVec<TUInt64, TSizeTy>& CppTmMSecs);
 
 	/// Throws and exception which can be caught in Javascript
 	static void ThrowJsException(v8::Isolate* Isolate, const PExcept& Except);
@@ -282,6 +289,12 @@ public:
 	template <class TClass>
 	static TClass* Unwrap(v8::Handle<v8::Object> Arg) { return node::ObjectWrap::Unwrap<TClass>(Arg); }
 	
+private:
+	/// returns the internal C++ windows timestamp from a double representation
+	/// of a UNIX timestamp
+	static uint64 GetTmMSecs(const double& UnixMSecs);
+	/// returns the internal C++ windows timestamp from a v8 date
+	static uint64 GetTmMSecs(v8::Handle<v8::Date>& Date);
 };
 
 template <class TClass>
@@ -309,6 +322,18 @@ TClass* TNodeJsUtil::GetUnwrapFld(v8::Local<v8::Object> Obj, const TStr& FldNm) 
 
 	EAssertR(IsClass(ObjFld, TClass::GetClassId()), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is not of type TClass");
 	return node::ObjectWrap::Unwrap<TClass>(ObjFld);
+}
+
+template <class TType, class TSizeTy>
+void TNodeJsUtil::GetCppTmMSecsV(const TVec<TType, TSizeTy>& NodeJsTmMSecsV,
+		TVec<TUInt64, TSizeTy>& CppTmMSecs) {
+	TSizeTy Len = NodeJsTmMSecsV.Len();
+
+	if (CppTmMSecs.Len() != Len) { CppTmMSecs.Gen(Len); }
+
+	for (TSizeTy i = 0; i < Len; i++) {
+		CppTmMSecs[i] = GetCppTimestamp(int64(NodeJsTmMSecsV[i]));
+	}
 }
 
 template <class TClass>
