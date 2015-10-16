@@ -1832,6 +1832,7 @@ module.exports = exports = function (pathPrefix) {
 	    	var controlFtrSpace;
 	    	var id;
 	    	var active = false;
+	    	var online = false;
 	
 	    	if (opts.base != null && opts.config != null) {
 	    		mc = new exports._StreamStory(opts.config);
@@ -2002,6 +2003,14 @@ module.exports = exports = function (pathPrefix) {
 	    		
 	    		setActive: function (act) {
 	    			active = act;
+	    		},
+	    		
+	    		isOnline: function () {
+	    			return online;
+	    		},
+	    		
+	    		setOnline: function (isOnline) {
+	    			online = isOnline;
 	    		},
 	    		
 	    		/**
