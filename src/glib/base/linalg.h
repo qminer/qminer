@@ -841,6 +841,28 @@ public:
 		// data used for factorization
 		int NumOfRows_Matrix = A.GetRows();
 		int NumOfCols_Matrix = A.GetCols();
+
+		// handle edge cases where the factorization is trivial. Double and float only!
+		if (NumOfRows_Matrix == 1) {
+			U.Gen(1, 1);
+			U(0, 0) = 1;
+			VT = A;
+			Sing.Gen(1);			
+			// normalize VT and set Sing[0] = oldnorm(VT)
+			TFltV& RawV = VT.Get1DVec();
+			Sing[0] = TLinAlg::Normalize(RawV);			
+			return;
+		} else if (NumOfCols_Matrix == 1) {
+			VT.Gen(1, 1);
+			VT(0, 0) = 1;
+			U = A;
+			Sing.Gen(1);
+			// normalize U and set Sing[0] = oldnorm(U)
+			TFltV& RawV = U.Get1DVec();
+			Sing[0] = TLinAlg::Normalize(RawV);
+			return;
+		}
+
 		int LeadingDimension_Matrix = NumOfCols_Matrix;
 		int Matrix_Layout = LAPACK_ROW_MAJOR;
 

@@ -49,7 +49,7 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 	const int NInst = X.GetCols();
 	const int Dim = X.GetRows();
 	const int OrigDim = IncludeIntercept ? Dim-1 : Dim;
-	
+	EAssertR(NInst == y.Len(), "TLogReg::Fit the number of instances in X.GetCols() and y.Len() do not match");
 	// minimize the following objective function:
 	// L(w) = (sum(log(1 + exp(w*x_i)) - y_i*w*x_i) + lambda*beta*beta'/2) / m
 	// using Newton-Raphson algorithm:
@@ -201,7 +201,7 @@ void TPropHazards::Save(TSOut& SOut) const {
 void TPropHazards::Fit(const TFltVV& _X, const TFltV& t, const double& Eps) {
 	const int NInst = _X.GetCols();
 	const int Dim = _X.GetRows() + 1;	
-
+	EAssertR(NInst == t.Len(), "TPropHazards::Fit the number of instances in X.GetCols() and t.Len() do not match");
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Fitting proportional hazards model on %d instances ...", NInst);
 
 	TFltVV X(_X.GetRows()+1, NInst);

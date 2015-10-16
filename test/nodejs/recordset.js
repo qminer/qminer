@@ -95,8 +95,7 @@ describe('Record Set Tests', function () {
 
     var table;
     var recSet, recSet2, recSet3, recSet4, recSet5;
-    beforeEach(function (done) {
-    	this.timeout(5000);
+    beforeEach(function (done) {    	
         table = new TStore();
         recSet = table.base.store("Movies").allRecords;
         recSet2 = table.base.store("People").allRecords;
@@ -106,8 +105,7 @@ describe('Record Set Tests', function () {
         done();
     });
     afterEach(function (done) {
-        table.close();
-        this.timeout(5000);
+        table.close();        
         done();
     });
 
