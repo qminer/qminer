@@ -355,7 +355,7 @@ void TNodeJsSA::getTimestampAt(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 	if (Aggr.Empty()) {
 		throw TQm::TQmExcept::New("TNodeJsSA::getTmAt : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
 	}
-
+	QmAssertR(JsSA->SA->IsInit(), "TNodeJsSA::getTmAt : stream aggregate '" + JsSA->SA->GetAggrNm() + "' is not initialized!");
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, (double)Aggr->GetTm(ElN)));
 }
 void TNodeJsSA::getTimestampVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
