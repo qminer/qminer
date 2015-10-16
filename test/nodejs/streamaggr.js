@@ -1755,21 +1755,6 @@ describe('EMA Tests', function () {
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 1 });
             store.push({ Time: '2015-06-10T14:13:34.0', Value: 0 });
             assert.equal(ema.getFloat(), 0);
-        })        
-        it.skip('should return the ema of the records in the buffer without initWindow', function () {
-            var aggr = {
-                name: 'EmaAggr',
-                type: 'ema',
-                store: 'Function',
-                inAggr: 'TickAggr',
-                emaType: 'previous',
-                interval: 3000,
-            };
-            var ema = store.addStreamAggr(aggr);
-            store.push({ Time: '2015-06-10T14:13:32.0', Value: 0 });
-            store.push({ Time: '2015-06-10T14:13:33.0', Value: 1 });
-            store.push({ Time: '2015-06-10T14:13:34.0', Value: 0 });
-            assert.equal(ema.getFloat(), 1);
         })
     });
     describe('GetTimestamp Tests', function () {
