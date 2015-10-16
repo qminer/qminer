@@ -635,7 +635,7 @@ public:
   TVal& GetVal(const TSizeTy& ValN){return operator[](ValN);}
   /// Sets the value of element at position \c ValN to \c Val.
   void SetVal(const TSizeTy& ValN, const TVal& Val){AssertR((0<=ValN)&&(ValN<Vals), GetXOutOfBoundsErrMsg(ValN)); ValT[ValN] = Val;}
-  /// Returns a vector on elements at positions <tt>BValN...EValN</tt>.
+  /// Returns a vector on elements at positions <tt>BValN...EValN</tt> (inclusive).
   void GetSubValV(const TSizeTy& BValN, const TSizeTy& EValN, TVec<TVal, TSizeTy>& ValV) const;
   /// Returns a vector on elements at positions <tt>BValN...EValN</tt> using memcpy.
   void GetSubValVMemCpy(const TSizeTy& _BValN, const TSizeTy& _EValN, TVec<TVal, TSizeTy>& SubValV) const;
@@ -2680,9 +2680,9 @@ void  TVVec<TVal, TSizeTy, colmajor>::DelY(const TSizeTy& Y){
 template <class TVal, class TSizeTy, bool colmajor>
 void TVVec<TVal, TSizeTy, colmajor>::GetRow(const TSizeTy& RowN, TVec<TVal, TSizeTy>& Vec) const {
 	EAssert((0 <= RowN) && (RowN<TSizeTy(XDim)));
-	Vec.Gen(GetCols(), 0);
+	if (Vec.Len() != GetCols()) { Vec.Gen(GetCols()); }
 	for (TSizeTy ColN = 0; ColN < YDim; ColN++) {
-		Vec.Add(At(RowN, ColN));
+		Vec[ColN] = At(RowN, ColN);
 	}
 }
 
@@ -2729,9 +2729,10 @@ void  TVVec<TVal, TSizeTy, colmajor>::GetRowSIter(const TSizeTy& RowN, TSIter<TV
 
 template <class TVal, class TSizeTy, bool colmajor>
 void  TVVec<TVal, TSizeTy, colmajor>::GetCol(const TSizeTy& ColN, TVec<TVal, TSizeTy>& Vec) const {
-	Vec.Gen(GetRows(), 0);
+	EAssert((0 <= ColN) && (ColN<TSizeTy(YDim)));
+	if (Vec.Len() != GetRows()) { Vec.Gen(GetRows()); }
 	for (TSizeTy RowN = 0; RowN < XDim; RowN++) {
-		Vec.Add(At(RowN, ColN));
+		Vec[RowN] = At(RowN, ColN);
 	}
 }
 
