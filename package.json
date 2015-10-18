@@ -95,15 +95,23 @@
     "deasync": "~0.1.0",
     "fast-csv": "^0.5.5",
     "readline": "^1.0.1",
-    "sget": "~0.1.5"
+    "sget": "~0.1.5",
+    "node-pre-gyp": "0.6.x"
   },
+  "bundledDependencies":["node-pre-gyp"],
   "devDependencies": {
     "jsdoc": "^3.3.0-beta3",
     "mustache": "^1.1.0",
     "mocha": "^1.17.1"
   },
   "scripts": {
+    "install": "node-pre-gyp install --fallback-to-build",
     "test": "./test/nodejs/test.sh"
+  },
+  "binary": {
+    "module_name": "qm",
+    "module_path": "./build/Release/",
+    "host": "https://dl.dropboxusercontent.com/u/48678508"
   },
   "keywords": [
     "addon",
