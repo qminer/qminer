@@ -102,7 +102,8 @@
   "devDependencies": {
     "jsdoc": "^3.3.0-beta3",
     "mustache": "^1.1.0",
-    "mocha": "^1.17.1"
+    "mocha": "^1.17.1",
+    "aws-sdk": "~2.0.0-rc.15"
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
@@ -111,7 +112,7 @@
   "binary": {
     "module_name": "qm",
     "module_path": "./build/Release/",
-    "host": "https://dl.dropboxusercontent.com/u/48678508"
+    "host": "https://s3.eu-central-1.amazonaws.com/testjanrupnik"
   },
   "keywords": [
     "addon",
