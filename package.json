@@ -109,7 +109,7 @@
     "test": "./test/nodejs/test.sh"
   },
   "binary": {
-    "module_name": "qminer",
+    "module_name": "qm",
     "module_path": "./build/Release/",
     "host": "https://dl.dropboxusercontent.com/u/48678508"
   },
