@@ -6,9 +6,9 @@ env:
   global:
     - secure: "hn1f9wk1yeAfEi2stmhVJJkaN/ryRiuvS0JVUYp33DFqXKjLaG73fHjHE7jSaEmlaHfEVIwiv/PgIUArHKrPaprL6JTXDNtMYQ2z+wEcz3RBEOXEWwXMQTGsRn0pwhEmsUxnIgPo7KPvGmE+N7TO+uAgJN5Mgh6UNf4XhT3xl78="
     - secure: "FbfKrGa1zn+29zDQAFGHuOccutiTjd1G8F+jVh9g/AFj1dCXZ0nFzK2rtQPjZltW5HE004KTK67o7/r1PmKzaPjJzLgTBUzMpUKzLsiDa6mVNMRsvSdIAdvwMiPsja4cVnx23eK+YDFxx4unADGfEQ1sAqNpPPwjPxZrA+65L8k="
-env:
-  - CXXFLAGS=-std=c++0x CXX=g++ CC=gcc
-  - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1
+  matrix:
+    - CXXFLAGS=-std=c++0x CXX=g++ CC=gcc
+    - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq uuid-dev
@@ -23,12 +23,17 @@ before_install:
   - if [ "$CXX" = "clang++-3.6" ]; then sudo apt-get update; fi
   - if [ "$CXX" = "clang++-3.6" ]; then apt-cache search clang; fi
   - if [ "$CXX" = "clang++-3.6" ]; then sudo apt-get install -y clang-3.6; fi
+  # figure out if we should publish
+  - PUBLISH_BINARY=false
+  # if we put [publish binary] in the commit message
+  - if test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then PUBLISH_BINARY=true; fi;
+
 install:
   - npm install --build-from-source $NPMOPT
 script:
   - ./tools/genExampleTests.sh
   - ./test/nodejs/test.sh
-  - ./node_modules/.bin/node-pre-gyp package publish
+  - if [ "$CXX" = "g++" ] && [[ $PUBLISH_BINARY == true ]]; then ./node_modules/.bin/node-pre-gyp package publish; fi
 os: linux
 notifications:
   email:  
