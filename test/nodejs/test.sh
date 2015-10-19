@@ -4,7 +4,7 @@ TEST_PATH_=`readlink -f $0`
 TEST_PATH=`dirname $TEST_PATH_`
 
 cd $TEST_PATH
-mocha *.js
+mocha --timeout 30000 *.js
 CODE=$?
 cd $CURRENT_PATH
 
