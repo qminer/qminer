@@ -2,7 +2,7 @@ QMiner [![Build Status](https://travis-ci.org/qminer/qminer.svg?branch=master)](
 ======
 
 QMiner is an analytics platform for large-scale real-time streams containing structured and
-unstructured data. It is designed to for scaling to millions of instances on high-end commodity 
+unstructured data. It is designed for scaling to millions of instances on high-end commodity 
 hardware, providing efficient storage, retrieval and analytics mechanisms with real-time response. 
 
 **[Main project homepage](http://qminer.ijs.si/)**
