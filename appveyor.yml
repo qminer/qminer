@@ -1,4 +1,8 @@
 environment:
+  node_pre_gyp_accessKeyId:
+    secure: jxPeHdKaFnYcMFAUkX+/lcUCKEha3yp5pxxMACxx/lM=
+  node_pre_gyp_secretAccessKey:
+    secure: 7nDsFrQjWQfhXAPESzf6JO+mslguRKGAPyZ5C4x6Sklcuv4E8/3gkGqoahJJKbZo
   matrix:
     - nodejs_version: 0.12.7
 
@@ -19,7 +23,8 @@ install:
   - if "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
   - if "%PLATFORM%" == "x86" SET PATH=C:\python27;%PATH%
   - npm install -g mustache
-  - npm install --verbose
+  - npm install --build-from-source --verbose
+  - node-pre-gyp package publish
   - cd tools
   - genExampleTests.bat
   - cd ..
