@@ -23,6 +23,8 @@ before_install:
   - if [ "$CXX" = "clang++-3.6" ]; then sudo apt-get update; fi
   - if [ "$CXX" = "clang++-3.6" ]; then apt-cache search clang; fi
   - if [ "$CXX" = "clang++-3.6" ]; then sudo apt-get install -y clang-3.6; fi
+  # get commit message
+  - COMMIT_MESSAGE=$(git show -s --format=%B $TRAVIS_COMMIT | tr -d '\n')
   # figure out if we should publish
   - PUBLISH_BINARY=false
   # if we put [publish binary] in the commit message
