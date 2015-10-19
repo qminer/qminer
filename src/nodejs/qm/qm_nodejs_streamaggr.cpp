@@ -125,36 +125,29 @@ TNodeJsSA* TNodeJsSA::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Arg
 		if (Args.Length() >= 3 && Args[2]->IsString()) {
 			ParamVal->AddToObj("store", TNodeJsUtil::GetArgStr(Args, 2));
 		}
-		// check if it's one stream aggregate or composition
-		if (TQm::TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
-			// we have a composition of aggregates, call code to assemble it
-			TQm::TStreamAggrs::TCompositional::Register(JsBase->Base, TypeNm, ParamVal);
-		} else {
-			// create new aggregate
-			StreamAggr = TQm::TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
-		}
+        // create new aggregate
+        StreamAggr = TQm::TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
 	}
-	
-	if (!TQm::TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
-		if (Args.Length() > 2) {
-			TStrV Stores(0);
-			if (Args[2]->IsString()) {
-				Stores.Add(TNodeJsUtil::GetArgStr(Args, 2));
-			}
-			if (Args[2]->IsArray()) {
-				PJsonVal StoresJson = TNodeJsUtil::GetArgJson(Args, 2);
-				QmAssertR(StoresJson->IsDef(), "stream aggr constructor : Args[2] should be a string (store name) or a string array (store names)");
-				StoresJson->GetArrStrV(Stores);
-			}
-			for (int StoreN = 0; StoreN < Stores.Len(); StoreN++) {
-				QmAssertR(JsBase->Base->IsStoreNm(Stores[StoreN]), "stream aggr constructor : Args[2] : store does not exist!");
-				JsBase->Base->AddStreamAggr(Stores[StoreN], StreamAggr);
-			}
-		} else {
-			JsBase->Base->AddStreamAggr(StreamAggr);
-		}
-	}
-	return new TNodeJsSA(StreamAggr);
+
+    // handle special case when we have more then one store to attach to (e.g. merger)
+    if (Args.Length() > 2) {
+        TStrV Stores(0);
+        if (Args[2]->IsString()) {
+            Stores.Add(TNodeJsUtil::GetArgStr(Args, 2));
+        } else if (Args[2]->IsArray()) {
+            PJsonVal StoresJson = TNodeJsUtil::GetArgJson(Args, 2);
+            QmAssertR(StoresJson->IsDef(), "stream aggr constructor : Args[2] should be a string (store name) or a string array (store names)");
+            StoresJson->GetArrStrV(Stores);
+        }
+        for (int StoreN = 0; StoreN < Stores.Len(); StoreN++) {
+            QmAssertR(JsBase->Base->IsStoreNm(Stores[StoreN]), "stream aggr constructor : Args[2] : store does not exist!");
+            JsBase->Base->AddStreamAggr(Stores[StoreN], StreamAggr);
+        }
+    } else {
+        JsBase->Base->AddStreamAggr(StreamAggr);
+    }
+
+    return new TNodeJsSA(StreamAggr);
 }
 
 void TNodeJsSA::onAdd(const v8::FunctionCallbackInfo<v8::Value>& Args) {

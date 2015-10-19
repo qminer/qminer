@@ -13,14 +13,14 @@ namespace TSignalProc {
 
 
 /////////////////////////////////////////////////
-// Online Moving Average (M1))
+// Online Moving Average
 class TMaSimple {
 private:
 	TFlt Ma; // current computed MA value  
 	TUInt64 N;
 public:
-	TMaSimple() { Ma = 0; N = 0; };
-	TMaSimple(const PJsonVal& ParamVal) { TMaSimple(); };
+	TMaSimple() { };
+	TMaSimple(const PJsonVal& ParamVal) { };
 	TMaSimple(TSIn& SIn) : Ma(SIn), N(SIn) {}
 	// serialization
 	void Load(TSIn& SIn) { *this = TMaSimple(SIn); }
@@ -40,8 +40,8 @@ private:
 	TFlt NewS;
 	TUInt64 N;
 public:
-	TVarSimple() { OldM = NewM = OldS = NewS = 0.0; N = 0; }
-	TVarSimple(TSIn& SIn) : OldM(SIn), NewM(SIn), OldS(SIn), NewS(SIn), N(SIn) {}
+	TVarSimple() { }
+	TVarSimple(TSIn& SIn): OldM(SIn), NewM(SIn), OldS(SIn), NewS(SIn), N(SIn) {}
 
 	// serialization
 	void Load(TSIn& SIn);
@@ -56,14 +56,14 @@ public:
 };
 
 /////////////////////////////////////////////////
-// Online Moving Average (M1))
+// Online Moving Average
 class TMa {
 private:	
     TFlt Ma; // current computed MA value 
 	TUInt64 TmMSecs; // timestamp of current MA	    
 public:
-	TMa() { Ma = 0; };	
-    TMa(const PJsonVal& ParamVal) { TMa(); };
+	TMa() { };
+    TMa(const PJsonVal& ParamVal) { };
 	TMa(TSIn& SIn);
 	// serialization
 	void Load(TSIn& SIn);
@@ -84,9 +84,9 @@ private:
 	TFlt Sum; // current computed SUM value 
 	TUInt64 TmMSecs; // timestamp of current MA	    
 public:
-	TSum() { Sum = 0; };
-	TSum(const PJsonVal& ParamVal) { TSum(); };
-	TSum(TSIn& SIn) : Sum(SIn), TmMSecs(SIn) { }
+	TSum() { };
+	TSum(const PJsonVal& ParamVal) { };
+	TSum(TSIn& SIn): Sum(SIn), TmMSecs(SIn) { }
 
 	// serialization
 	void Load(TSIn& SIn);
@@ -107,8 +107,8 @@ private:
 	TUInt64 TmMSecs; // timestamp of current MA	   
 	TFltUInt64PrV AllValV; // sorted vector of values	
 public:
-	TMin() { Min = TFlt::Mx; TmMSecs = 0; };
-	TMin(TSIn& SIn) : Min(SIn), TmMSecs(SIn), AllValV(SIn) { }
+	TMin(): Min(TFlt::Mx) { };
+	TMin(TSIn& SIn): Min(SIn), TmMSecs(SIn), AllValV(SIn) { }
 
 	// serialization
 	void Load(TSIn& SIn);
@@ -129,8 +129,8 @@ private:
 	TUInt64 TmMSecs; // timestamp of current MA	   
 	TFltUInt64PrV AllValV; // sorted vector of values	
 public:
-	TMax() { Max = TFlt::Mn; TmMSecs = 0; };
-	TMax(TSIn& SIn) : Max(SIn), TmMSecs(SIn), AllValV(SIn) { }
+	TMax(): Max(TFlt::Mn) { };
+	TMax(TSIn& SIn): Max(SIn), TmMSecs(SIn), AllValV(SIn) { }
 
 	// serialization
 	void Load(TSIn& SIn);
@@ -190,8 +190,8 @@ private:
 	TUInt64 TmMSecs; // timestamp of current WMA	
     TFlt pNo;
 public:
-	TVar() { Ma = 0; M2 = 0; pNo = 1; TmMSecs = 0;}	
-	TVar(TSIn& SIn) : Ma(SIn), M2(SIn), TmMSecs(SIn), pNo(SIn) { }
+	TVar(): pNo(1) { }
+	TVar(TSIn& SIn): Ma(SIn), M2(SIn), TmMSecs(SIn), pNo(SIn) { }
 
 	// serialization
 	void Load(TSIn& SIn);
@@ -201,10 +201,7 @@ public:
 	void Update(const double& InVal, const uint64& InTmMSecs,
         const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N);
 	// current status	
-	double GetValue() const {
-		if (pNo > 1) { return M2 / (pNo - 1); }
-		else { return 0; }
-	}
+	double GetValue() const { return (pNo > 1) ? (M2 / (pNo - 1)) : 0; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 	void Clr() { Ma = 0; M2 = 0; pNo = 1; TmMSecs = 0; }
 };
@@ -218,15 +215,12 @@ private:
 	TUInt64 TmMSecs; // timestamp of current WMA	
     TFlt pNo;
 public:
-	TCov() {  };	
+	TCov() { };
     TCov(const PJsonVal& ParamVal) { TCov(); };
 
 	void Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV, const int& N);	
-	double GetCov() const { 
-		if (pNo > 1) { return Cov / (pNo - 1); } 
-		else { return 0; }
-	}
+	double GetCov() const { return (pNo > 1) ? (Cov / (pNo - 1)) : 0; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
@@ -265,7 +259,8 @@ public:
     /// Number of elements at the moment
     int Len() const { return ValV.Len(); }
         
-	/// Get values from buffer (older values = larger index): example buffer = [x_(t-3) x_(t-2) x_(t-1) x_t] => GetVal(i) returns x_(t-1)
+	/// Get values from buffer (older values = larger index):
+    ///  example buffer = [x_(t-3) x_(t-2) x_(t-1) x_t] => GetVal(i) returns x_(t-1)
 	const TVal& GetVal(const int& ValN) const {
 		return ValV[(NextValN + BufferLen - 1 - ValN) % BufferLen]; }
     /// Get the oldest value
@@ -405,8 +400,6 @@ const TVal& TLinkedBuffer<TVal, TSizeTy>::GetNewest() const {
 	return Last->Val;
 }
 
-
-
 /////////////////////////////////////////
 // Time series interpolator interface
 class TInterpolator;
@@ -451,7 +444,6 @@ protected:
 public:
 	virtual void Save(TSOut& SOut) const;
 
-//	virtual void SetNextInterpTm(const uint64& Time);
 	void AddPoint(const double& Val, const uint64& Tm);
 };
 
