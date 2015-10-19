@@ -17,7 +17,6 @@ var verbose = false;
 
 describe('PrimaryField Tests', function () {
     it('should pass', function () {
-        this.timeout(10000);
         if (verbose) {
             console.log("PrimaryField", "Starting test of primary fields");
         }

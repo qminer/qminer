@@ -11,8 +11,6 @@ var assert = require('../../src/nodejs/scripts/assert.js');
 
 
 describe('Stream Aggregator Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
 
@@ -309,8 +307,6 @@ describe('Stream Aggregator Tests', function () {
 });
 
 describe('Time Series Window Buffer Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -464,7 +460,6 @@ describe('Time Series Window Buffer Tests', function () {
         })
     });
     describe('GetFloatAt Tests', function () {
-        this.timeout(10000);
         it('should return the value with the index 1', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
@@ -809,8 +804,6 @@ describe('Time Series Window Buffer Tests', function () {
 });
 
 describe('MovingWindowBufferSum Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -963,8 +956,6 @@ describe('MovingWindowBufferSum Tests', function () {
 });
 
 describe('MovingWindowBufferMin Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1133,8 +1124,6 @@ describe('MovingWindowBufferMin Tests', function () {
 });
 
 describe('MovingWindowBufferMax Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1300,8 +1289,6 @@ describe('MovingWindowBufferMax Tests', function () {
 });
 
 describe('MovingAverage Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1463,8 +1450,6 @@ describe('MovingAverage Tests', function () {
 });
 
 describe('TimeSeriesTick Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1644,8 +1629,6 @@ describe('TimeSeriesTick Tests', function () {
 })
 
 describe('EMA Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1851,8 +1834,6 @@ describe('EMA Tests', function () {
 });
 
 describe('MovingVariance Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -2029,8 +2010,6 @@ describe('MovingVariance Tests', function () {
 });
 
 describe('Covariance Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -2220,8 +2199,6 @@ describe('Covariance Tests', function () {
 });
 
 describe('Correlation Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -2461,8 +2438,6 @@ describe('Correlation Tests', function () {
 });
 
 describe('Resampler Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     var out = undefined;
@@ -2633,8 +2608,6 @@ describe('Resampler Tests', function () {
 });
 
 describe('Merger Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var strore = undefined;
     beforeEach(function () {
@@ -2858,8 +2831,6 @@ describe('Merger Tests', function () {
 });
 
 describe('Online Histogram Tests', function () {    
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {

@@ -95,8 +95,6 @@ describe('OneVsAll Tests', function () {
 
     describe('Fit Tests', function () {
         it('should not throw an exception', function () {
-            this.timeout(10000);
-
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
 
@@ -107,7 +105,6 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should set the models, dense matrix', function () {
-            this.timeout(10000);
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
 
@@ -119,7 +116,6 @@ describe('OneVsAll Tests', function () {
             assert.equal(param.models.length, 2);
         })
         it('should set the models, sparse matrix', function () {
-            this.timeout(10000);
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
 
@@ -132,7 +128,6 @@ describe('OneVsAll Tests', function () {
             assert.equal(param.models.length, 2);
         })
         it('should throw an exception if there are no parameters given', function () {
-            this.timeout(10000);
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
 
@@ -141,7 +136,6 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should throw an exception if only the matrix is given', function () {
-            this.timeout(10000);
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1, -3, -4], [2, 1, -3, -4, 2, 2]]);
@@ -154,7 +148,6 @@ describe('OneVsAll Tests', function () {
 
     describe('Predict Tests', function () {
         it('should not throw an exception, dense vector', function () {
-            this.timeout(10000);
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1, -3, -4], [2, 1, -3, -4, 2, 2]]);
@@ -167,7 +160,6 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should return the index of the cluster, where it the most fit, dense vector', function () {
-            this.timeout(10000);
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1, -3, -4], [2, 1, -3, -4, 2, 2]]);
@@ -180,7 +172,6 @@ describe('OneVsAll Tests', function () {
             assert.equal(prediction, 0);
         })
         it('should throw an exception if the dense vector is too long', function () {
-            this.timeout(10000);
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -193,7 +184,6 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should throw an exception if the dense vector is too short', function () {
-            this.timeout(10000);
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -207,7 +197,6 @@ describe('OneVsAll Tests', function () {
         })
 
         it('should not throw an exception, sparse vector', function () {
-            this.timeout(10000);
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1, -3, -4], [2, 1, -3, -4, 2, 2]]);
@@ -220,7 +209,6 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should return the index of the cluster, where it the most fit, sparse vector', function () {
-            this.timeout(10000);
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1, -3, -4], [2, 1, -3, -4, 2, 2]]);
@@ -234,7 +222,6 @@ describe('OneVsAll Tests', function () {
         })
 
         it('should not throw an exception, dense matrix', function () {
-            this.timeout(10000);
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -247,7 +234,6 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should return an integer vector containing the cluster indeces, dense matrix', function () {
-            this.timeout(10000);
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -261,7 +247,6 @@ describe('OneVsAll Tests', function () {
             assert.equal(prediction.at(1), 1);
         })
         it('should throw an exception if there are more rows than in the model, dense matrix', function () {
-            this.timeout(10000);
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -274,7 +259,7 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should throw an exception if there are less rows than in the model, dense matrix', function () {
-            this.timeout(10000);
+            
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -288,7 +273,7 @@ describe('OneVsAll Tests', function () {
         })
 
         it('should not throw an exception, sparse matrix', function () {
-            this.timeout(10000);
+            
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -301,7 +286,7 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should return an integer vector containing the cluster indeces, sparse matrix', function () {
-            this.timeout(10000);
+            
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -318,7 +303,7 @@ describe('OneVsAll Tests', function () {
 
     describe('DecisionFunction Tests', function () {
         it('should not throw an exception, dense vector', function () {
-            this.timeout(12000);
+            
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -331,7 +316,7 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should throw an exception if the vector is too long, dense vector', function () {
-            this.timeout(10000);
+            
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -344,7 +329,7 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should throw an exception if the vector is too short, dense vector', function () {
-            this.timeout(10000);
+            
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -358,7 +343,7 @@ describe('OneVsAll Tests', function () {
         })
 
         it('should not throw an exception, sparse vector', function () {
-            this.timeout(10000);
+            
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -372,7 +357,7 @@ describe('OneVsAll Tests', function () {
         })
 
         it('should not throw an exception, dense matrix', function () {
-            this.timeout(10000);
+            
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -385,7 +370,7 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should throw an exception if the number of rows are greater than the models', function () {
-            this.timeout(10000);
+            
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -398,7 +383,7 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should throw an exception if the number of rows are lesser than the models', function () {
-            this.timeout(10000);
+            
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -412,7 +397,7 @@ describe('OneVsAll Tests', function () {
         })
 
         it('should not throw exception, sparse matrix', function () {
-            this.timeout(10000);
+            
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
