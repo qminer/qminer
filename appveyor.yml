@@ -24,13 +24,14 @@ install:
   - if "%PLATFORM%" == "x86" SET PATH=C:\python27;%PATH%
   - npm install -g mustache
   - npm install --build-from-source --verbose
-  - node_modules\.bin\node-pre-gyp package publish
   - cd tools
   - genExampleTests.bat
   - cd ..
   - cd test\nodejs
   - npm install -g mocha
   - mocha --timeout 30000 *.js
+  - cd ..\..
+  - node_modules\.bin\node-pre-gyp package publish
 
 build: off
 test: off
