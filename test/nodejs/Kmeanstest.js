@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -50,7 +50,7 @@ describe("Kmeans test", function () {
             var params = KMeans.getParams();
             assert.equal(params.iter, 10);
             assert.equal(params.k, 5);
-            assert.equal(params.verbose, undefined);
+            assert.equal(params.verbose, false);
         });
     });
     describe("Fit test", function () {
@@ -160,8 +160,8 @@ describe("Kmeans test", function () {
             });
         });
     });
-    
-    
+
+
     describe("Explain Tests", function () {
         it("should not throw an exception", function () {
             var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
@@ -185,13 +185,13 @@ describe("Kmeans test", function () {
         });
         it("should throw an exception if the matrix columns do not match record ids", function () {
             var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
-            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);            
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             assert.throws(function () {
-            	KMeans.fit(X , [0, 1]);                
+            	KMeans.fit(X , [0, 1]);
             });
         });
     });
-    
+
     describe("Transform Tests", function () {
         it("should not throw an exception", function () {
             var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
