@@ -76,6 +76,6 @@ For more detailed installation check the following instructions:
 [QMiner](http://qminer.ijs.si/) is developed by [AILab](http://ailab.ijs.si/) at 
 [Jozef Stefan Institute](http://www.ijs.si/), [Quintelligence](http://quintelligence.com) and other contributors.
 
-Parts of the library were developed under [XLike](http://www.xlike.org/) and [Mobis](https://sites.google.com/site/mobiseuprojecteu/) FP7 projects and [Optimum](http://www.optimumproject.eu/) H2020 project.
+Parts of the library were developed under [XLike](http://www.xlike.org/) and [Mobis](https://sites.google.com/site/mobiseuprojecteu/) FP7 projects and [Optimum](http://www.optimumproject.eu/) H2020 project and [Sophocles](http://sophocles.eu/) H2020 project.
 
 Thanks to [Deleaker](http://deleaker.com) for supporting open-source projects.
