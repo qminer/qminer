@@ -111,7 +111,7 @@
   },
   "binary": {
     "module_name": "qm",
-    "module_path": "./binding/",
+    "module_path": "./out/Release",
     "host": "https://node-qminer-binary.s3.amazonaws.com"
   },
   "keywords": [
