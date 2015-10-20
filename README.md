@@ -2,7 +2,7 @@ QMiner [![Build Status](https://travis-ci.org/qminer/qminer.svg?branch=master)](
 ======
 
 QMiner is an analytics platform for large-scale real-time streams containing structured and
-unstructured data. It is designed to for scaling to millions of instances on high-end commodity 
+unstructured data. It is designed for scaling to millions of instances on high-end commodity 
 hardware, providing efficient storage, retrieval and analytics mechanisms with real-time response. 
 
 **[Main project homepage](http://qminer.ijs.si/)**
@@ -76,6 +76,6 @@ For more detailed installation check the following instructions:
 [QMiner](http://qminer.ijs.si/) is developed by [AILab](http://ailab.ijs.si/) at 
 [Jozef Stefan Institute](http://www.ijs.si/), [Quintelligence](http://quintelligence.com) and other contributors.
 
-Parts of the library were developed under [XLike](http://www.xlike.org/) and [Mobis](https://sites.google.com/site/mobiseuprojecteu/) FP7 projects and [Optimum](http://www.optimumproject.eu/) H2020 project.
+Parts of the library were developed under [XLike](http://www.xlike.org/) and [Mobis](https://sites.google.com/site/mobiseuprojecteu/) FP7 projects and [Optimum](http://www.optimumproject.eu/) H2020 project and [Sophocles](http://sophocles.eu/) H2020 project.
 
 Thanks to [Deleaker](http://deleaker.com) for supporting open-source projects.

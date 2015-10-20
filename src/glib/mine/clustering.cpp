@@ -169,7 +169,7 @@ void TAbsKMeans::SelectInitCentroids(const TFltVV& FtrVV, const int& K) {
 		PermV[SwapIdx] = PermV[i];
 		PermV[i] = Temp;
 
-		CentroidNV[i] = PermV[i];
+		CentroidNV[i] = (int) PermV[i];
 	}
 
 	// construct the centroid matrix
