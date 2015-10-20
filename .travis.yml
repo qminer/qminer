@@ -36,8 +36,8 @@ script:
   - ./tools/genExampleTests.sh
   - ./test/nodejs/test.sh
   - if [ "$CXX" = "g++" ] ; then echo gpp ok ; fi
-  - echo status pub && echo $PUBLISH_BINARY  
-  - if [ "$CXX" = "g++" ] && [[ $PUBLISH_BINARY == true ]]; then echo publishing && ./node_modules/.bin/node-pre-gyp package publish; fi
+  - echo status pub && echo $PUBLISH_BINARY && echo $TRAVIS_BRANCH && echo $TRAVIS_PULL_REQUEST
+  - if [ "$CXX" = "g++" ] && [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_BRANCH" = "master" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo publishing && ./node_modules/.bin/node-pre-gyp package publish; fi
 os: linux
 notifications:
   email:  
