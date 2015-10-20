@@ -790,7 +790,7 @@ public:
 
 	// update methods
 	// initializes the model
-	void Init(TFltVV& ObservVV, TFltVV& ControlVV, const TUInt64V& RecTmV);
+	void Init(TFltVV& ObservVV, const TFltVV& ControlVV, const TUInt64V& RecTmV);
 	void InitBatches(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV,
 			const TUInt64V& RecTmV, const TBoolV& BatchEndV);
 	void InitClust(TFltVV& ObsFtrVV, const TFltVV& FtrVV,

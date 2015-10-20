@@ -2468,7 +2468,7 @@ PJsonVal TStreamStory::GetJson() const {
 	return Result;
 }
 
-void TStreamStory::Init(TFltVV& ObservFtrVV, TFltVV& ControlFtrVV, const TUInt64V& RecTmV) {
+void TStreamStory::Init(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV, const TUInt64V& RecTmV) {
 	TFltVV FtrVV;	CreateFtrVV(ObservFtrVV, ControlFtrVV, RecTmV, TBoolV(), FtrVV);
 
 	TIntV AssignV;	InitClust(ObservFtrVV, FtrVV, AssignV);
