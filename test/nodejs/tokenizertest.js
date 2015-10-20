@@ -30,8 +30,8 @@ describe("Tokenizer tests", function () {
                 var tokenizer = new analytics.Tokenizer({ type: "html" });
             });
         });
-        it("should not throw an exception, type Html-Unicode", function () {
-            assert.doesNotThrow(function () {
+        it("should throw an exception, type Html-Unicode, because there is no base", function () {
+            assert.throws(function () {
                 var tokenizer = new analytics.Tokenizer({ type: "unicode" });
            });
         });
@@ -69,7 +69,7 @@ describe("Tokenizer tests", function () {
         });
         it("should return tokens using contractions with type Html", function () {
             var tokenizer = new analytics.Tokenizer({ type: "html" });
-            var string = "It's alright!";
+            var string = "It's alright.";
             var tokens = tokenizer.getTokens(string)
             assert.equal(tokens[0], "it");
             assert.equal(tokens[1], "s");
@@ -77,7 +77,7 @@ describe("Tokenizer tests", function () {
         });
         it("should return tokens ignoring extra punctuation", function () {
             var tokenizer = new analytics.Tokenizer({ type: "simple" });
-            var string = "It,./ is,) alright!!";
+            var string = "It, ./ is,) alright!!";
             var tokens = tokenizer.getTokens(string)
             assert.equal(tokens[0], "IT");
             assert.equal(tokens[1], "IS");
@@ -85,7 +85,7 @@ describe("Tokenizer tests", function () {
         });
         it("should return tokens ignoring extra punctuation using type Html", function () {
             var tokenizer = new analytics.Tokenizer({ type: "html" });
-            var string = "It,./ is,) alright!!";
+            var string = "It, ./ is,) alright!!";
             var tokens = tokenizer.getTokens(string)
             assert.equal(tokens[0], "it");
             assert.equal(tokens[1], "is");
