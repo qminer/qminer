@@ -75,8 +75,7 @@ protected:
 	void UpdateCentroids(const TFltVV& FtrVV, const TIntV& AssignIdxV, const TFltV& OnesN,
 			const TIntV& RangeN, TFltV& TempK, TFltVV& TempDxKV,
 			TVec<TIntFltKdV>& TempKxKSpVV);
-	void SelectInitCentroids(const TFltVV& FtrVV, const int& K,
-				TFltVV& CentroidFtrVV, TIntV& AssignV);
+	void SelectInitCentroids(const TFltVV& FtrVV, const int& K);
 
 	void Assign(const TFltVV& FtrVV, const TFltV& NormX2, const TFltV& NormC2,
 		TIntV& AssignV) const;
