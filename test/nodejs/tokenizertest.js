@@ -8,7 +8,6 @@
 
 // JavaScript source code
 var la = require("qminer").la;
-var qm = require('qminer');
 var analytics = require("qminer").analytics;
 var assert = require("../../src/nodejs/scripts/assert.js");
 //Unit test for tokenizer
@@ -40,7 +39,7 @@ describe("Tokenizer tests", function () {
     describe("getTokens test", function () {
         it("should not throw an exception using getTokens", function () {
             var tokenizer = new analytics.Tokenizer({ type: "simple" });
-            var string = "John Doe";
+            var string = "Sunny Day";
             assert.doesNotThrow(function () {
                 var tokens = tokenizer.getTokens(string);
             });
@@ -94,9 +93,9 @@ describe("Tokenizer tests", function () {
         });
         it("should throw an exception if input is not a string", function () {
             var tokenizer = new analytics.Tokenizer({ type: "simple" });
-            var array = new la.Vector([1, 2]);
+            var object = { type: "Fiat", model: 500, color: "white" };
             assert.throws(function () {
-                var tokens = tokenizer.getTokens(array);
+                var tokens = tokenizer.getTokens(object);
             });
         });
         it("should not throw an exception if input string is empty", function () {
