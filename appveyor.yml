@@ -34,7 +34,8 @@ install:
   - node_modules\.bin\node-pre-gyp package
   - SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
   - ECHO commit message %CM%
-  - if not "%CM%" == "%CM:[publish binary]=%" node_modules\.bin\node-pre-gyp publish
+  - ECHO %APPVEYOR_REPO_NAME%
+  - if not "%CM%" == "%CM:[publish binary]=%" if "%APPVEYOR_REPO_NAME%" == "qminer/qminer" node_modules\.bin\node-pre-gyp publish
 
 
 
