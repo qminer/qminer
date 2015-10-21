@@ -17,23 +17,26 @@ namespace {
 	typedef TIntSet TStateIdSet;
 	typedef TVec<TIntV> TStateSetV;
 	typedef TVec<TFltV> TStateFtrVV;
+
+	typedef TAbsKMeans TClust;
+	typedef PDnsKMeans PClust;
 }
 
 class TAvgLink {
 public:
-	static void JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& i,
+	static void JoinClusts(TFltVV& DistMat, const TIntV& ItemCountV, const int& i,
 			const int& j);
 };
 
 class TCompleteLink {
 public:
-	static void JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& i,
+	static void JoinClusts(TFltVV& DistMat, const TIntV& ItemCountV, const int& i,
 			const int& j);
 };
 
 class TSingleLink {
 public:
-	static void JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& i,
+	static void JoinClusts(TFltVV& DistMat, const TIntV& ItemCountV, const int& i,
 			const int& j);
 };
 
@@ -46,9 +49,9 @@ public:
 		Notify->OnNotifyFmt(TNotifyType::ntInfo, "%s\n", TStrUtil::GetStr(X, ", ", "%.3f").CStr());
 
 		TFltVV ClustDistVV;	TEuclDist::GetDist2(X,X, ClustDistVV);
-		TVector ItemCountV = TVector::Ones(NInst);
+		TIntV ItemCountV;	TLAUtil::Ones(NInst, ItemCountV);//TVector::Ones(NInst);
 
-		TFullMatrix ClustDistMat(ClustDistVV, true);	// TODO remove TFullMatrix
+//		TFullMatrix ClustDistMat(ClustDistVV, true);	// TODO remove TFullMatrix
 
 		for (int k = 0; k < NInst-1; k++) {
 			// find active <i,j> with minimum distance
@@ -58,13 +61,13 @@ public:
 
 			// find clusters with min distance
 			for (int i = 0; i < NInst; i++) {
-				if (ItemCountV[i] == 0.0) { continue; }
+				if (ItemCountV[i] == 0) { continue; }
 
 				for (int j = i+1; j < NInst; j++) {
-					if (i == j || ItemCountV[j] == 0.0) { continue; }
+					if (i == j || ItemCountV[j] == 0) { continue; }
 
-					if (ClustDistMat(i,j) < MnDist) {
-						MnDist = ClustDistMat(i,j);
+					if (ClustDistVV(i,j) < MnDist) {
+						MnDist = ClustDistVV(i,j);
 						MnI = i;
 						MnJ = j;
 					}
@@ -76,7 +79,7 @@ public:
 			// merge
 			MergeV.Add(TIntIntFltTr(MnI, MnJ, Dist));
 
-			TLink::JoinClusts(ClustDistMat, ItemCountV, MnI, MnJ);
+			TLink::JoinClusts(ClustDistVV, ItemCountV, MnI, MnJ);
 
 			// update counts
 			ItemCountV[MnI] = ItemCountV[MnI] + ItemCountV[MnJ];
@@ -134,7 +137,7 @@ private:
   	TRnd Rnd;
 
   	// clustering
-  	PDnsKMeans KMeans;
+  	PClust KMeans;
   	// holds centroids as column vectors
   	TFltVV ControlCentroidMat;
   	// holds pairs <n,sum> where n is the number of points assigned to the
@@ -155,7 +158,7 @@ private:
   	PNotify Notify;
 
 public:
-  	TStateIdentifier(const PDnsKMeans& KMeans, const int NHistBins, const double& Sample,
+  	TStateIdentifier(const PClust& KMeans, const int NHistBins, const double& Sample,
 			const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	TStateIdentifier(TSIn& SIn);
 
