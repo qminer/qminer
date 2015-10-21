@@ -587,7 +587,7 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun) {
 	}
 }
 
-uint64 TNodeJsUtil::GetTmMSecs(v8::Local<v8::Value>& Value) {
+uint64 TNodeJsUtil::GetTmMSecs(v8::Handle<v8::Value>& Value) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -604,6 +604,16 @@ uint64 TNodeJsUtil::GetTmMSecs(v8::Local<v8::Value>& Value) {
 		EAssertR(Value->IsNumber(), "Date is not in a representation of a string, date or number!");
 		return GetCppTimestamp(int64(Value->NumberValue()));
 	}
+}
+
+uint64 TNodeJsUtil::GetArgTmMSecs(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+   v8::HandleScope HandleScope(Isolate);
+
+   EAssert(!IsArgUndef(Args, ArgN));
+
+   v8::Handle<v8::Value> Val = Args[ArgN];
+   return GetTmMSecs(Val);
 }
 
 v8::Local<v8::Value> TNodeJsUtil::V8JsonToV8Str(const v8::Handle<v8::Value>& Json) {

@@ -1550,45 +1550,15 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 		const PJsonVal ClustJson = ParamVal->GetObjKey("clustering");
 
 		// transition modelling
-		const TStr TimeUnitStr = TransitionJson->GetObjStr("timeUnit");
+		const uint64 TimeUnit = GetTmUnit(TransitionJson->GetObjStr("timeUnit"));
 		const double DeltaTm = TransitionJson->IsObjKey("deltaTime") ?
 				TransitionJson->GetObjNum("deltaTime") : DEFAULT_DELTA_TM;
 
-		uint64 TimeUnit;
-		if (TimeUnitStr == "second") {
-			TimeUnit = TMc::TCtMChain::TU_SECOND;
-		} else if (TimeUnitStr == "minute") {
-			TimeUnit = TMc::TCtMChain::TU_MINUTE;
-		} else if (TimeUnitStr == "hour") {
-			TimeUnit = TMc::TCtMChain::TU_HOUR;
-		} else if (TimeUnitStr == "day") {
-			TimeUnit = TMc::TCtMChain::TU_DAY;
-		} else if (TimeUnitStr == "month") {
-			TimeUnit = TMc::TCtMChain::TU_MONTH;
-		} else {
-			throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TJsHierCtmc::TJsHierCtmc");
-		}
-
 		// clustering
-		const TStr ClustAlg = ClustJson->GetObjStr("type");
 		const double Sample = ClustJson->IsObjKey("sample") ? ClustJson->GetObjNum("sample") : 1;
 		const int NHistBins = ClustJson->IsObjKey("histogramBins") ? ClustJson->GetObjInt("histogramBins") : 20;
 
-
-		TClustering::PAbsKMeans<TDistance::TEuclDist> KMeans;
-		if (ClustAlg == "dpmeans") {
-			const double Lambda = ClustJson->GetObjNum("lambda");
-			const int MinClusts = ClustJson->IsObjKey("minClusts") ? ClustJson->GetObjInt("minClusts") : 1;
-			const int MxClusts = ClustJson->IsObjKey("maxClusts") ? ClustJson->GetObjInt("maxClusts") : TInt::Mx;
-
-			KMeans = new TClustering::TDpMeans<TDistance::TEuclDist>(Lambda, MinClusts, MxClusts, Rnd);
-		} else if (ClustAlg == "kmeans") {
-			const int K = ClustJson->GetObjInt("k");
-
-			KMeans = new TClustering::TDnsKMeans<TDistance::TEuclDist>(K, Rnd);
-		} else {
-			throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
-		}
+		const TClustering::PDnsKMeans KMeans = GetClust(ClustJson, Rnd);
 
 		// state identifier
 		TMc::PStateIdentifier StateIdentifier = new TMc::TStateIdentifier(KMeans, NHistBins, Sample, Rnd, Verbose);
@@ -1643,15 +1613,7 @@ void TNodeJsStreamStory::update(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 	TNodeJsFltV* JsObsFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
 	TNodeJsFltV* JsContrFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
-
-	uint64 RecTm;
-	if (Args[2]->IsDate()) {
-		// TODO
-		RecTm = 0;
-	} else {
-		// Args[1] is a timestamp (UNIX timestamp)
-		RecTm = TTm::GetWinMSecsFromUnixMSecs((uint64)TNodeJsUtil::GetArgFlt(Args, 2));
-	}
+	const uint64 RecTm = TNodeJsUtil::GetArgTmMSecs(Args, 2);//GetTmMSecs(Args[2]);
 
 	JsMChain->StreamStory->OnAddRec(RecTm, JsObsFtrV->Vec, JsContrFtrV->Vec);
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
@@ -2434,6 +2396,39 @@ void TNodeJsStreamStory::WrapHistogram(const v8::FunctionCallbackInfo<v8::Value>
 	Result->Set(v8::String::NewFromUtf8(Isolate, "probs"), ProbJsV);
 
 	Args.GetReturnValue().Set(Result);
+}
+
+uint64 TNodeJsStreamStory::GetTmUnit(const TStr& TimeUnitStr) {
+	if (TimeUnitStr == "second") {
+		return TMc::TCtMChain::TU_SECOND;
+	} else if (TimeUnitStr == "minute") {
+		return TMc::TCtMChain::TU_MINUTE;
+	} else if (TimeUnitStr == "hour") {
+		return TMc::TCtMChain::TU_HOUR;
+	} else if (TimeUnitStr == "day") {
+		return TMc::TCtMChain::TU_DAY;
+	} else if (TimeUnitStr == "month") {
+		return TMc::TCtMChain::TU_MONTH;
+	} else {
+		throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TNodeJsStreamStory::GetTmUnit");
+	}
+}
+
+TClustering::PDnsKMeans TNodeJsStreamStory::GetClust(const PJsonVal& ParamJson,
+		const TRnd& Rnd) {
+	const TStr& ClustAlg = ParamJson->GetObjStr("type");
+	if (ClustAlg == "dpmeans") {
+		const double Lambda = ParamJson->GetObjNum("lambda");
+		const int MinClusts = ParamJson->IsObjKey("minClusts") ? ParamJson->GetObjInt("minClusts") : 1;
+		const int MxClusts = ParamJson->IsObjKey("maxClusts") ? ParamJson->GetObjInt("maxClusts") : TInt::Mx;
+
+		return new TClustering::TDpMeans(Lambda, MinClusts, MxClusts, Rnd);
+	} else if (ClustAlg == "kmeans") {
+		const int K = ParamJson->GetObjInt("k");
+		return new TClustering::TDnsKMeans(K, Rnd);
+	} else {
+		throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
+	}
 }
 
 

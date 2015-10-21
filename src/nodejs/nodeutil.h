@@ -245,8 +245,9 @@ public:
 	static bool ExecuteBool(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg);
 
     /// converts a v8 value to a Win timestamp
-    static uint64 GetTmMSecs(v8::Local<v8::Value>& Value);
-	static int64 GetJsTimestamp(const uint64& MSecs) { return TTm::GetUnixMSecsFromWinMSecs(MSecs); }
+    static uint64 GetTmMSecs(v8::Handle<v8::Value>& Value);
+    static uint64 GetArgTmMSecs(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+    static int64 GetJsTimestamp(const uint64& MSecs) { return TTm::GetUnixMSecsFromWinMSecs(MSecs); }
 	static uint64 GetCppTimestamp(const int64& MSecs) { return TTm::GetWinMSecsFromUnixMSecs(MSecs); }
 
 	/// converts a vector of UNIX timestamps used by Node.js to internal C++ timestamps

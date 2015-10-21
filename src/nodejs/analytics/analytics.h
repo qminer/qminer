@@ -1846,6 +1846,8 @@ private:
 
 	static void WrapHistogram(const v8::FunctionCallbackInfo<v8::Value>& Args,
 			const TFltV& BinStartV, const TFltV& ProbV);
+	static uint64 GetTmUnit(const TStr& TmUnitStr);
+	static TClustering::PDnsKMeans GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);
 };
 
 ///////////////////////////////
