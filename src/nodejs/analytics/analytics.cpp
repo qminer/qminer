@@ -1575,17 +1575,17 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 		const int NHistBins = ClustJson->IsObjKey("histogramBins") ? ClustJson->GetObjInt("histogramBins") : 20;
 
 
-		TClustering::PDnsKMeans KMeans;
+		TClustering::PAbsKMeans<TDistance::TEuclDist> KMeans;
 		if (ClustAlg == "dpmeans") {
 			const double Lambda = ClustJson->GetObjNum("lambda");
 			const int MinClusts = ClustJson->IsObjKey("minClusts") ? ClustJson->GetObjInt("minClusts") : 1;
 			const int MxClusts = ClustJson->IsObjKey("maxClusts") ? ClustJson->GetObjInt("maxClusts") : TInt::Mx;
 
-			KMeans = new TClustering::TDpMeans(Lambda, MinClusts, MxClusts, Rnd);
+			KMeans = new TClustering::TDpMeans<TDistance::TEuclDist>(Lambda, MinClusts, MxClusts, Rnd);
 		} else if (ClustAlg == "kmeans") {
 			const int K = ClustJson->GetObjInt("k");
 
-			KMeans = new TClustering::TDnsKMeans(K, Rnd);
+			KMeans = new TClustering::TDnsKMeans<TDistance::TEuclDist>(K, Rnd);
 		} else {
 			throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
 		}
@@ -1596,7 +1596,6 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 		TMc::PMChain MChain = new TMc::TCtMChain(TimeUnit, DeltaTm, Verbose);
 		// create the model
 		TMc::PHierarch Hierarch = new TMc::THierarch(NPastStates + 1, Verbose);
-
 		// finish
 		TMc::PStreamStory StreamStory = new TMc::TStreamStory(StateIdentifier, MChain, Hierarch, Rnd, Verbose);
 

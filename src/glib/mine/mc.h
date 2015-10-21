@@ -9,7 +9,7 @@
 namespace TMc {
 
 using namespace TRegression;
-using namespace TDist;
+using namespace TDistance;
 using namespace TClustering;
 
 namespace {
@@ -17,6 +17,9 @@ namespace {
 	typedef TIntSet TStateIdSet;
 	typedef TVec<TIntV> TStateSetV;
 	typedef TVec<TFltV> TStateFtrVV;
+
+	typedef TAbsKMeans<TEuclDist> TClust;
+	typedef PAbsKMeans<TEuclDist> PClust;
 }
 
 class TAvgLink {
@@ -134,7 +137,7 @@ private:
   	TRnd Rnd;
 
   	// clustering
-  	PDnsKMeans KMeans;
+  	PClust KMeans;
   	// holds centroids as column vectors
   	TFltVV ControlCentroidMat;
   	// holds pairs <n,sum> where n is the number of points assigned to the
@@ -155,7 +158,7 @@ private:
   	PNotify Notify;
 
 public:
-  	TStateIdentifier(const PDnsKMeans& KMeans, const int NHistBins, const double& Sample,
+  	TStateIdentifier(const PClust& KMeans, const int NHistBins, const double& Sample,
 			const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	TStateIdentifier(TSIn& SIn);
 

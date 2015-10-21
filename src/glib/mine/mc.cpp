@@ -61,7 +61,7 @@ void THistogram::Update(const double& FtrVal) {
 // Abstract clustering
 const int TStateIdentifier::MX_ITER = 10000;
 
-TStateIdentifier::TStateIdentifier(const PDnsKMeans& _KMeans, const int _NHistBins,
+TStateIdentifier::TStateIdentifier(const PClust& _KMeans, const int _NHistBins,
 			const double& _Sample, const TRnd& _Rnd, const bool& _Verbose):
 		Rnd(_Rnd),
 		KMeans(_KMeans),
@@ -77,7 +77,7 @@ TStateIdentifier::TStateIdentifier(const PDnsKMeans& _KMeans, const int _NHistBi
 
 TStateIdentifier::TStateIdentifier(TSIn& SIn):
 	Rnd(SIn),
-	KMeans(TAbsKMeans::Load(SIn)),
+	KMeans(TClust::Load(SIn)),
 	ControlCentroidMat(SIn),
 	CentroidDistStatV(SIn),
 	NHistBins(TInt(SIn)),
