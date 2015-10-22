@@ -572,7 +572,8 @@ PJsonVal TNodeJsUtil::ExecuteJson(const v8::Handle<v8::Function>& Fun,
 	v8::Handle<v8::Value> ArgV[ArgC] = { Arg1, Arg2 };
 	v8::Handle<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 2, ArgV);
 	if (TryCatch.HasCaught()) {
-		throw TExcept::New("Exception while executin JSON!");
+		v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+		throw TExcept::New("Exception while executin JSON: " + TStr(*Msg));
 	}
 	return GetObjJson(RetVal);
 }
