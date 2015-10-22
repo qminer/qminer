@@ -11,9 +11,6 @@ before_install:
   - source ./.nvm/nvm.sh
   - nvm install $NODE_VERSION
   - nvm use $NODE_VERSION
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq uuid-dev
-  - sudo apt-get install build-essential
   - npm install -g mocha
   - npm install -g mustache
 
