@@ -26,6 +26,7 @@ before_install:
 
 install:
   - npm install --build-from-source --verbose
+
 script:
   - ./tools/mac_genExampleTests.sh
   - ./test/nodejs/mac_test.sh
