@@ -11,6 +11,7 @@ before_install:
   - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang
   - echo $(readlink $(which c++) -f)
   - which clang++
+  - readlink /usr/bin/clang++
   - clang -v
   - git clone https://github.com/creationix/nvm.git ./.nvm
   - source ./.nvm/nvm.sh
