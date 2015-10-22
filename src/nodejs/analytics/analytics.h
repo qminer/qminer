@@ -1612,16 +1612,6 @@ public:
 	 */
 	JsDeclareFunction(pastStates);
 
-//	/**
-//	 * Returns the probability distribution of past and future states over time.
-//	 *
-//	 * @param {Number} level - the level on which we want the distributions
-//	 * @param {Number} state - the state we are starting from
-//	 * @param {Number} dt - the time step (lower dt => more distributions will be returned)
-//	 * @returns {Array} - array of probability distributions over time
-//	 */
-//	JsDeclareFunction(probsOverTime);
-
 	/**
 	 * Returns the probability distribution of past and future states over time.
 	 *

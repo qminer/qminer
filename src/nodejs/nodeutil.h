@@ -231,7 +231,8 @@ public:
     /// Executes the function with the specified argument and returns a double result.
     static double ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg);
     /// Executes the function with the specified argument and returns an object as a JSON object.
-    static PJsonVal ExecuteJson(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg1, const v8::Local<v8::Object>& Arg2);
+    static PJsonVal ExecuteJson(const v8::Handle<v8::Function>& Fun,
+    		const v8::Local<v8::Object>& Arg1, const v8::Local<v8::Object>& Arg2);
     /// Executes the function with the specified argument
     template <class TVal>
 	static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg);
