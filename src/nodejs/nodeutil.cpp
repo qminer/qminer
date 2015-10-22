@@ -563,6 +563,20 @@ double TNodeJsUtil::ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Lo
 	return RetVal->NumberValue();
 }
 
+PJsonVal TNodeJsUtil::ExecuteJson(const v8::Handle<v8::Function>& Fun,
+		const v8::Local<v8::Object>& Arg1, const v8::Local<v8::Object>& Arg2) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
+	const int ArgC = 2;
+	v8::Handle<v8::Value> ArgV[ArgC] = { Arg1, Arg2 };
+	v8::Handle<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 2, ArgV);
+	if (TryCatch.HasCaught()) {
+		throw TExcept::New("Exception while executin JSON!");
+	}
+	return GetObjJson(RetVal);
+}
+
 void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& ArgC,
 		v8::Handle<v8::Value> ArgV[]) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();

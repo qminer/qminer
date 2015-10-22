@@ -663,7 +663,7 @@ private:
 
 	static double PredictOccurenceTime(const TFltVV& QMat, const int& CurrStateIdx,
 			const int& TargetStateIdx, const double& DeltaTm, const double& HorizonTm,
-			TFltV& TmV, TFltV& HitProbV);
+			const int& PdfBins, TFltV& TmV, TFltV& HitProbV);
 
 	// returns a jump matrix for the given transition rate matrix
 	// when the process decides to jump the jump matrix describes to

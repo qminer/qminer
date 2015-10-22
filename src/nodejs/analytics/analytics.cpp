@@ -1459,7 +1459,7 @@ void TNodeJsPropHaz::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model
-const double TNodeJsStreamStory::DEFAULT_DELTA_TM = 1e-3;
+const double TNodeJsStreamStory::DEFAULT_DELTA_TM = 1e-6;
 
 void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -1475,7 +1475,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "update", _update);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "futureStates", _futureStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "pastStates", _pastStates);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "probsOverTime", _probsOverTime);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "probsAtTime", _probsAtTime);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "histStates", _histStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "currState", _currState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fullCoords", _fullCoords);
@@ -1683,7 +1683,7 @@ void TNodeJsStreamStory::pastStates(const v8::FunctionCallbackInfo<v8::Value>& A
 	Args.GetReturnValue().Set(StateArr);
 }
 
-void TNodeJsStreamStory::probsOverTime(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamStory::probsAtTime(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
