@@ -1,5 +1,4 @@
-QMiner 
-
+QMiner
 ======
 
 Build status:
