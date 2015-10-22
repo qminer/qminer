@@ -5,7 +5,7 @@ TEST_PATH=$( cd $(dirname $0) ; pwd -P )
 # TEST_PATH=`dirname $TEST_PATH_`
 
 cd $TEST_PATH
-mocha *.js
+mocha --timeout 30000 *.js
 CODE=$?
 cd $CURRENT_PATH
 
