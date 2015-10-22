@@ -22,7 +22,7 @@ before_install:
   - if test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then PUBLISH_BINARY=true; fi;
 
 install:
-  - npm install --build-from-source
+  - npm install --build-from-source --verbose
 script:
   - ./tools/genExampleTests.sh
   - ./test/nodejs/mac_test.sh
