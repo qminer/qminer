@@ -1,5 +1,12 @@
-QMiner [![Build Status](https://travis-ci.org/qminer/qminer.svg?branch=master)](https://travis-ci.org/qminer/qminer)[![Build status](https://ci.appveyor.com/api/projects/status/3klwdwgr2aqavtr2?svg=true)](https://ci.appveyor.com/project/rupnikj/qminer-19v7t)
+QMiner 
+
 ======
+
+Build status:
+
+ - Linux: [![Build Status](https://travis-ci.org/qminer/qminer.svg?branch=master)](https://travis-ci.org/qminer/qminer)
+ - Mac: [![Build Status](https://travis-ci.org/qminer/qminer.svg?branch=osx-binaries)](https://travis-ci.org/qminer/qminer)
+ - Windows: [![Build status](https://ci.appveyor.com/api/projects/status/3klwdwgr2aqavtr2?svg=true)](https://ci.appveyor.com/project/rupnikj/qminer-19v7t)
 
 QMiner is an analytics platform for large-scale real-time streams containing structured and
 unstructured data. It is designed for scaling to millions of instances on high-end commodity 
