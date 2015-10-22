@@ -1,4 +1,5 @@
 language: objective-c
+osx_image: xcode6.4
 
 env:
   global:
@@ -8,7 +9,6 @@ env:
     - export NODE_VERSION="0.12"
 before_install:
   - brew update
-  - brew install --HEAD llvm --with-clang
   - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang
   - clang -v
   - git clone https://github.com/creationix/nvm.git ./.nvm
