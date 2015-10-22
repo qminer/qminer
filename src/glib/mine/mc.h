@@ -434,10 +434,13 @@ public:
 			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
 			const int& NFutStates) const = 0;
 
-	virtual void GetProbVOverTm(const double& Height, const int& StateId, const double& StartTm,
-			const double EndTm, const double& DeltaTm, const TStateSetV& StateSetV,
-			const TStateFtrVV& StateFtrVV, const TStateIdV& StateIdV, TVec<TFltV>& FutProbVV,
-			TVec<TFltV>& PastProbVV) const = 0;
+//	virtual void GetProbVOverTm(const double& Height, const int& StateId, const double& StartTm,
+//			const double EndTm, const double& DeltaTm, const TStateSetV& StateSetV,
+//			const TStateFtrVV& StateFtrVV, const TStateIdV& StateIdV, TVec<TFltV>& FutProbVV,
+//			TVec<TFltV>& PastProbVV) const = 0;
+	virtual void GetProbVAtTime(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			const TStateIdV& StateIdV, const int& StartStateId, const double& Tm,
+			TFltV& ProbV) const = 0;
 
 	virtual bool PredictOccurenceTime(const TStateFtrVV& StateFtrVV, const TStateSetV& StateSetV,
 			const TStateIdV& StateIdV, const int& CurrStateId, const int& TargetStateId,
@@ -585,10 +588,14 @@ public:
 			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
 			const int& NFutStates) const;
 
-	void GetProbVOverTm(const double& Height, const int& StateId, const double& StartTm,
-			const double EndTm, const double& DeltaTm, const TStateSetV& StateSetV,
-			const TStateFtrVV& StateFtrVV, const TStateIdV& StateIdV, TVec<TFltV>& FutProbVV,
-			TVec<TFltV>& PastProbVV) const;
+//	void GetProbVOverTm(const double& Height, const int& StateId, const double& StartTm,
+//			const double EndTm, const double& DeltaTm, const TStateSetV& StateSetV,
+//			const TStateFtrVV& StateFtrVV, const TStateIdV& StateIdV, TVec<TFltV>& FutProbVV,
+//			TVec<TFltV>& PastProbVV) const;
+
+	void GetProbVAtTime(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			const TStateIdV& StateIdV, const int& StartStateId, const double& Tm,
+			TFltV& ProbV) const;
 
 	// approximates the probability of jumping into the target state in the prespecified
 	// time horizon
@@ -656,14 +663,14 @@ private:
 	// returns the stationary distribution
 	static void GetStatDist(const TFltVV& QMat, TFltV& StatDistV, const PNotify& Notify);
 
-	static void GetProbMat(const TFltVV& QMat, const double& Dt, TFltVV& ProbV);
+	static void GetProbMat(const TFltVV& QMat, const double& Dt, TFltVV& ProbVV);
 
 	static void GetFutureProbVV(const TFltVV& QMat, const double& Tm,
 			const double& DeltaTm, TFltVV& ProbVV, const bool HasHiddenState=false);
 
 	static double PredictOccurenceTime(const TFltVV& QMat, const int& CurrStateIdx,
 			const int& TargetStateIdx, const double& DeltaTm, const double& HorizonTm,
-			TFltV& TmV, TFltV& HitProbV);
+			const int& PdfBins, TFltV& TmV, TFltV& HitProbV);
 
 	// returns a jump matrix for the given transition rate matrix
 	// when the process decides to jump the jump matrix describes to
@@ -823,9 +830,12 @@ public:
 	void GetPrevStateProbV(const double& Height, const int& StateId,
 			TIntFltPrV& StateIdProbV) const;
 
-	void GetProbVOverTm(const double& Height, const int& StateId, const double StartTm,
-			const double EndTm, const double& DeltaTm, TStateIdV& StateIdV,
-			TVec<TFltV>& FutProbV, TVec<TFltV>& PastProbV) const;
+//	void GetProbVOverTm(const double& Height, const int& StateId, const double StartTm,
+//			const double EndTm, const double& DeltaTm, TStateIdV& StateIdV,
+//			TVec<TFltV>& FutProbV, TVec<TFltV>& PastProbV) const;
+
+	void GetProbVAtTime(const int& StartStateId, const double& Level, const double& Time,
+			TIntV& StateIdV, TFltV& ProbV) const;
 
 	void GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const;
 
