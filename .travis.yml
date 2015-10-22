@@ -8,7 +8,7 @@ env:
     - export NODE_VERSION="0.12"
 before_install:
   - brew update
-  - brew install ossp-uuid
+  - brew install llvm --with-clang --with-asan --HEAD
   - git clone https://github.com/creationix/nvm.git ./.nvm
   - source ./.nvm/nvm.sh
   - nvm install $NODE_VERSION
