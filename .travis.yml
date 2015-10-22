@@ -9,8 +9,8 @@ env:
 before_install:
   - brew update
   - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang
-  - readlink $(which c++) -f
-  - readlink $(which clang++) -f
+  - echo $(readlink $(which c++) -f)
+  - echo $(readlink $(which clang++) -f)
   - git clone https://github.com/creationix/nvm.git ./.nvm
   - source ./.nvm/nvm.sh
   - nvm install $NODE_VERSION
