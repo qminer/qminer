@@ -8,7 +8,6 @@ env:
   matrix:
     - export NODE_VERSION="0.12"
 before_install:
-  - brew update
   - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang
   - clang -v
   - git clone https://github.com/creationix/nvm.git ./.nvm
