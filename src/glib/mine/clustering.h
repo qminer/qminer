@@ -31,7 +31,13 @@ namespace TClustering {
 
 ///////////////////////////////////////////
 // Abstract class that has methods needed be KMeans
-ClassTP(TAbsKMeans, PDnsKMeans)//{
+class TAbsKMeans;
+typedef TPt<TAbsKMeans> PDnsKMeans;
+class TAbsKMeans {
+private:
+  TCRef CRef;
+public:
+  friend class TPt<TAbsKMeans>;
 protected:
 	TFltVV CentroidVV;
 

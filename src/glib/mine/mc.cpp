@@ -61,7 +61,7 @@ void THistogram::Update(const double& FtrVal) {
 // Abstract clustering
 const int TStateIdentifier::MX_ITER = 10000;
 
-TStateIdentifier::TStateIdentifier(const PDnsKMeans& _KMeans, const int _NHistBins,
+TStateIdentifier::TStateIdentifier(const PClust& _KMeans, const int _NHistBins,
 			const double& _Sample, const TRnd& _Rnd, const bool& _Verbose):
 		Rnd(_Rnd),
 		KMeans(_KMeans),
@@ -77,7 +77,7 @@ TStateIdentifier::TStateIdentifier(const PDnsKMeans& _KMeans, const int _NHistBi
 
 TStateIdentifier::TStateIdentifier(TSIn& SIn):
 	Rnd(SIn),
-	KMeans(TAbsKMeans::Load(SIn)),
+	KMeans(TClust::Load(SIn)),
 	ControlCentroidMat(SIn),
 	CentroidDistStatV(SIn),
 	NHistBins(TInt(SIn)),
@@ -576,34 +576,34 @@ void TEuclMds::Project(const TFltVV& FtrVV, TFltVV& ProjVV, const int& d) {
 	X_d.GetT(ProjVV);
 }
 
-void TAvgLink::JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& MnI, const int& MnJ) {
-	TVector NewDistV(DistMat.GetRows(), false);
+void TAvgLink::JoinClusts(TFltVV& DistMat, const TIntV& ItemCountV, const int& MnI, const int& MnJ) {
+	TFltV NewDistV(DistMat.GetRows());
 	for (int i = 0; i < DistMat.GetRows(); i++) {
 		NewDistV[i] = (DistMat(MnI, i)*ItemCountV[MnI] + DistMat(MnJ, i)*ItemCountV[MnJ]) / (ItemCountV[MnI] + ItemCountV[MnJ]);
 	}
 
 	DistMat.SetRow(MnI, NewDistV);
-	DistMat.SetCol(MnI, NewDistV.Transpose());
+	DistMat.SetCol(MnI, NewDistV);
 }
 
-void TCompleteLink::JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& MnI, const int& MnJ) {
-	TVector NewDistV(DistMat.GetRows(), false);
+void TCompleteLink::JoinClusts(TFltVV& DistMat, const TIntV& ItemCountV, const int& MnI, const int& MnJ) {
+	TFltV NewDistV(DistMat.GetRows());
 	for (int i = 0; i < DistMat.GetRows(); i++) {
 		NewDistV[i] = TMath::Mx(DistMat(MnI, i), DistMat(MnJ, i));
 	}
 
 	DistMat.SetRow(MnI, NewDistV);
-	DistMat.SetCol(MnI, NewDistV.Transpose());
+	DistMat.SetCol(MnI, NewDistV);
 }
 
-void TSingleLink::JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& MnI, const int& MnJ) {
-	TVector NewDistV(DistMat.GetRows(), false);
+void TSingleLink::JoinClusts(TFltVV& DistMat, const TIntV& ItemCountV, const int& MnI, const int& MnJ) {
+	TFltV NewDistV(DistMat.GetRows());
 	for (int i = 0; i < DistMat.GetRows(); i++) {
 		NewDistV[i] = TMath::Mn(DistMat(MnI, i), DistMat(MnJ, i));
 	}
 
 	DistMat.SetRow(MnI, NewDistV);
-	DistMat.SetCol(MnI, NewDistV.Transpose());
+	DistMat.SetCol(MnI, NewDistV);
 }
 
 /////////////////////////////////////////////////////////////////

@@ -1,5 +1,28 @@
 # QMiner Change Log
 
+### 23 Oct 2015
+
+**New version: 3.0.0**
+
+**breaking with new features and bug fixes**
+
+Features:
+- On each release binaries for Windows, Linux and Mac OS are automatically prepared and uploaded to Amazon S3. `npm install qminer` no longer needs to compile from source. To force recompile use `npm install qminer --build-from-source`.
+- `TNodeJsUtil::GetArgTmMSecs` can extract time from javascript function argument (ISO String, Date or timestamp)
+
+Bug fixes:
+- Time stamps coming from Node.js now treated as signed integer
+- Cleanup code for indicators in signalproc.h 
+- Fixed serialization of KMeans in analytics.h (breaking)
+- Removed redundant constructors in stream aggregators (breaking)
+- Smaller release binaries on Linux (removed debug symbols)
+- KMeans in `clustering.h` did not update centroids, now it does
+- Tested and removed bugs in `metrics.ClassificationScore` and `metrics.PredictionCurves` in `analytics.js`.
+
+Other:
+- Increased timeout for tests, needed for slow runs on Travis or Appveyor CI
+- Documentation and tests for `metrics` in `analytics.js`.
+
 ### 16 Oct 2015
 
 **New version: 2.6.0 **
@@ -20,7 +43,7 @@ Features:
 Bug fixes:
 - Bad parameters when creating stream aggregates in Node.JS do not crash the whole process
 - Unwrapping has additional checks to prevent crashing
-- Sort does error and exception checking around JavaScript callbacks 
+- Sort does error and exception checking around JavaScript callbacks
 - TTm to ISO String fixed to always have 3 digits for milliseconds
 - Stemmer no longer crashes on strange parameters
 - SVD works on 1-dimensional inputs- Fixed confusions between C++ and JS timestamps. C++ side now consistently uses Windows timestamps (milliseconds from 1601-01-01) and JS uses milliseconds since 1970-01-01 (same as Date.getTime())
