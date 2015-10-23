@@ -1364,13 +1364,12 @@ void TChiSquare::OnAddRec(const TRec& Rec) {
     TFltV ValVX; InAggrValX->GetFltV(ValVX);        
     TFltV ValVY; InAggrValY->GetFltV(ValVY);
 	if (InAggrX->IsInit() && InAggrY->IsInit()) {
-		ChiSquare.Update(ValVX, ValVY);
+		ChiSquare.Update(ValVX, ValVY, ChiSquare.GetDof());
 	}
 }
 
 TChiSquare::TChiSquare(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), ChiSquare(ParamVal) {
     // parse out input aggregate
-    printf("traying to");
     TStr InStoreNmX = ParamVal->GetObjStr("storeX");
     TStr InStoreNmY = ParamVal->GetObjStr("storeY");
     printf("%s",InStoreNmX.CStr());
@@ -1396,7 +1395,8 @@ PStreamAggr TChiSquare::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 
 PJsonVal TChiSquare::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("Val", ChiSquare.GetP());
+	Val->AddToObj("P", ChiSquare.GetP());
+	Val->AddToObj("Chi2", ChiSquare.GetChi2());
 	Val->AddToObj("Time", TTm::GetTmFromMSecs(ChiSquare.GetTmMSecs()).GetWebLogDateTimeStr(true, "T"));
 	return Val;
 }

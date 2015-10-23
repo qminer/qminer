@@ -1014,17 +1014,33 @@ PJsonVal TOnlineHistogram::SaveJson() const {
 	return Result;
 }
 
-void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY){
-	P = 0.0;
-	for (int ValN = 0; ValN < OutValVX.Len(); ValN++) {
-		if (OutValVY[ValN] > 0) {
-			P += ((OutValVY[ValN]-OutValVX[ValN])*(OutValVY[ValN]-OutValVX[ValN]))/OutValVY[ValN];
-		}
-	}
+TChiSquare::TChiSquare(const PJsonVal& ParamVal) {
+	EAssertR(ParamVal->IsObjKey("degreesOfFreedom"), "TChiSquare: degreesOfFreedom key missing!");
+	// degrees of freedom
+	TFlt Dof = ParamVal->GetObjNum("degreesOfFreedom");
+	Init(Alpha, Dof);
+}
+
+void TChiSquare::Init(const double& _Alpha, const int& _Dof) {
+	Alpha = _Alpha;
+	DegreesOfFreedom = _Dof;
 }
 
 void TChiSquare::Print() const {
+	printf("Chi2 = %g", Chi2);
 	printf("P = %g", P);	
 }
+
+void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY, const int Dof) {
+	Chi2 = 0.0;	
+	for (int ValN = 0; ValN < OutValVX.Len(); ValN++) {
+		if (OutValVY[ValN] > 0) {
+			Chi2 += TMath::Sqr(OutValVX[ValN]-OutValVY[ValN])/OutValVX[ValN];
+		}
+	}
+	P = TSpecFunc::GammaQ(0.5*(Dof),0.5*(Chi2));
+}
+
+
 
 }

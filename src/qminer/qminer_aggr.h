@@ -757,7 +757,7 @@ public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	// did we finish initialization
 	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
-	// current values
+	// get current P value
 	double GetFlt() const { return ChiSquare.GetP(); }
 	// get time	
 	uint64 GetTmMSecs() const { return ChiSquare.GetTmMSecs(); }

@@ -749,15 +749,20 @@ public:
 /// Chi square
 class TChiSquare {
 private:	       
-	double P;
-	TUInt64 TmMSecs; // timestamp of current WMA	
-	TFlt pNo;
+	double Chi2, P, Alpha;
+	int DegreesOfFreedom;
+	TUInt64 TmMSecs; // timestamp of current WMA
 public:
 	TChiSquare() { };
-	TChiSquare(const PJsonVal& ParamVal) { TChiSquare(); };
-	void Update(const TFltV& OutValVX, const TFltV& OutValVY);
+	void Init(const double& _Alpha, const int& _Dof);
+	TChiSquare(const PJsonVal& ParamVal);
+	void Update(const TFltV& OutValVX, const TFltV& OutValVY, const int Dof);
+	/// Return Chi2 value
+	double GetChi2() const { return Chi2; }
 	/// Return P value
 	double GetP() const { return P; }
+	double GetDof() const {return DegreesOfFreedom;}
+	double GetAlpha() const {return Alpha;}
 	uint64 GetTmMSecs() const { return TmMSecs; }
 	/// Prints the model
 	void Print() const;
