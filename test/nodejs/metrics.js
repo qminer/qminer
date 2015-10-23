@@ -10,6 +10,84 @@ var assert = require('../../src/nodejs/scripts/assert.js');
 var qm = require('qminer');
 var analytics = qm.analytics;
 
+describe('Classification Metrics Tests', function () {
+
+    describe('Constructor Tests', function () {
+        it('should not throw an exception', function () {
+            assert.doesNotThrow(function () {
+                // ClassificationScore constructor tests
+                new analytics.metrics.ClassificationScore();
+                new analytics.metrics.ClassificationScore([1, 0], [0, 1]);
+                new analytics.metrics.ClassificationScore(new qm.la.Vector([1, 0]), new qm.la.Vector([0, 1]));
+                // PredictionCurve constructor tests
+                new analytics.metrics.PredictionCurve();
+                new analytics.metrics.PredictionCurve([1, 0], [0, 1]);
+                new analytics.metrics.PredictionCurve(new qm.la.Vector([1, 0]), new qm.la.Vector([0, 1]));
+            });
+        });
+    });
+
+    describe('Fuctions Tests', function () {
+        var true_lables = [0, 0, 0, 0, 0];
+        var pred_lables = [0, 0, 0, 0, 0];
+
+        var true_lables2 = [0, 1, 0, 0 ,1];
+        var pred_lables2 = [1, 0, 0, 1, 0];
+        
+        var true_lables3 = [0, 1, 0, 0 ,1];
+        var pred_lables3 = [0, 1, 0, 0 ,0];
+
+        describe('Acuracy Score', function () {
+            it('true_lables = [0, 0, 0, 0, 0], pred_lables = [0, 0, 0, 0, 0], AccuracyScore should be 1', function () {
+                assert.equal(1, analytics.metrics.accuracyScore(true_lables, pred_lables));
+            });
+            it('true_lables = [0, 1, 0, 0 ,1], pred_lables = [1, 0, 0, 1, 0], AccuracyScore should be 0.2', function () {
+                assert.equal(0.2, analytics.metrics.accuracyScore(true_lables2, pred_lables2));
+            });
+            it('true_lables = [0, 1, 0, 0 ,1], pred_lables = [0, 1, 0, 0, 0], AccuracyScore should be 0.8', function () {
+                assert.eqtol(0.8, analytics.metrics.accuracyScore(true_lables3, pred_lables3), 1e-2);
+            });
+        });
+
+        describe('Precision Score', function () {
+            it('true_lables = [0, 0, 0, 0, 0], pred_lables = [0, 0, 0, 0, 0], PrecisionScore should be 1', function () {
+                assert.equal(1, analytics.metrics.precisionScore(true_lables, pred_lables));
+            });
+            it('true_lables = [0, 1, 0, 0 ,1], pred_lables = [1, 0, 0, 1, 0], PrecisionScore should be 0', function () {
+                assert.equal(0, analytics.metrics.precisionScore(true_lables2, pred_lables2));
+            });
+            it('true_lables = [0, 1, 0, 0 ,1], pred_lables = [0, 1, 0, 0, 0], PrecisionScore should be 1', function () {
+                assert.equal(1, analytics.metrics.precisionScore(true_lables3, pred_lables3));
+            });
+        });
+
+        describe('Recall Score', function () {
+            it('true_lables = [0, 0, 0, 0, 0], pred_lables = [0, 0, 0, 0, 0], RecallScore should be 1', function () {
+                assert.equal(1, analytics.metrics.recallScore(true_lables, pred_lables));
+            });
+            it('true_lables = [0, 1, 0, 0 ,1], pred_lables = [1, 0, 0, 1, 0], RecallScore should be 0', function () {
+                assert.equal(0, analytics.metrics.recallScore(true_lables2, pred_lables2));
+            });
+            it('true_lables = [0, 1, 0, 0 ,1], pred_lables = [0, 1, 0, 0, 0], RecallScore should be 0.5', function () {
+                assert.eqtol(0.5, analytics.metrics.recallScore(true_lables3, pred_lables3), 1e-2);
+            });
+        });
+
+        describe('F1 Score', function () {
+            it('true_lables = [0, 0, 0, 0, 0], pred_lables = [0, 0, 0, 0, 0], F1 should be 1', function () {
+                assert.equal(1, analytics.metrics.f1Score(true_lables, pred_lables));
+            });
+            it('true_lables = [0, 1, 0, 0 ,1], pred_lables = [1, 0, 0, 1, 0], F1 should be 0', function () {
+                assert.equal(0, analytics.metrics.f1Score(true_lables2, pred_lables2));
+            });
+            it('true_lables = [0, 1, 0, 0 ,1], pred_lables = [0, 1, 0, 0, 0], F1 should be 0.66', function () {
+                assert.eqtol(0.66, analytics.metrics.f1Score(true_lables3, pred_lables3), 1e-2);
+            });
+        });
+
+    });
+});
+
 describe('Regression Metrics Tests', function () {
 
     describe('Constructor Tests', function () {
@@ -68,7 +146,7 @@ describe('Regression Metrics Tests', function () {
             assert.throws(function () { analytics.metrics.meanError([2, 2]) });
         })
     });
-    
+
     describe('Fuctions Tests', function () {
         var error = undefined;
 
@@ -87,7 +165,7 @@ describe('Regression Metrics Tests', function () {
             afterEach(function () {
                 error = undefined;
             });
-            
+
             // tests
             it('true_val=1, pred_val=1, ME should be 0', function () {
                 error.push(2, 2);
@@ -308,5 +386,5 @@ describe('Regression Metrics Tests', function () {
         });
 
     });
-    
+
 });
