@@ -2980,7 +2980,7 @@ describe('ChiSquare Tests', function () {
         // the store records results of throwing a dice
         // Since changes for each nomber are 1/6, the expacted values have uniform distribution
         // Field Observed records the actual values
-        var base = new qm.Base({
+        base = new qm.Base({
             mode: "createClean",
             schema: [
             {
@@ -3033,7 +3033,7 @@ describe('ChiSquare Tests', function () {
             addPosInf: false
         };
 
-        var hist1 = base.store("Dice").addStreamAggr(aggrJson);
+        hist1 = base.store("Dice").addStreamAggr(aggrJson);
 
         // add a histogram aggregator, that is connected with the 'TimeSeries2' aggregator
         var aggrJson = {
@@ -3048,7 +3048,7 @@ describe('ChiSquare Tests', function () {
             addPosInf: false
         };
 
-        var hist2 = base.store("Dice").addStreamAggr(aggrJson);
+        hist2 = base.store("Dice").addStreamAggr(aggrJson);
     });
     afterEach(function () {
         base.close();
