@@ -2971,8 +2971,10 @@ describe('Online Histogram Tests', function () {
 });
 
 describe('ChiSquare Tests', function () {
-var base = undefined;
+    var base = undefined;
     var store = undefined;
+    var hist1 = undefined;
+    var hist2 = undefined;
     beforeEach(function () {
         // create a base with a simple store
         // the store records results of throwing a dice
