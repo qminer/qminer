@@ -3062,6 +3062,7 @@ var base = undefined;
             inAggrX: 'Histogram1',
             inAggrY: 'Histogram2',
             degreesOfFreedom: 2
+        }
         var chi = store.addStreamAggr(aggr);
         
         // add some values
