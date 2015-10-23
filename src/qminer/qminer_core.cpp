@@ -4566,6 +4566,7 @@ void TStreamAggr::Init() {
 	Register<TStreamAggrs::TMerger>();
 	Register<TStreamAggrs::TResampler>();
 	Register<TStreamAggrs::TOnlineHistogram>();
+	Register<TStreamAggrs::TChiSquare>();
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal) :

@@ -1014,4 +1014,17 @@ PJsonVal TOnlineHistogram::SaveJson() const {
 	return Result;
 }
 
+void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY){
+	P = 0.0;
+	for (int ValN = 0; ValN < OutValVX.Len(); ValN++) {
+		if (OutValVY[ValN] > 0) {
+			P += ((OutValVY[ValN]-OutValVX[ValN])*(OutValVY[ValN]-OutValVX[ValN]))/OutValVY[ValN];
+		}
+	}
+}
+
+void TChiSquare::Print() const {
+	printf("P = %g", P);	
+}
+
 }
