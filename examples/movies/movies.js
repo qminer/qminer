@@ -1,7 +1,7 @@
 // import libraries
-var qm = require('../../indexRelease.js');
+var qm = require('qminer');
 var analytics = qm.analytics;
-var fs = require('../../indexRelease.js').fs;
+var fs = require('qminer').fs;
 
 var base = new qm.Base({ 
 	mode: "createClean",

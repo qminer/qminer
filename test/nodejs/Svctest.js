@@ -230,7 +230,6 @@ describe("SVC test", function () {
             assert.eqtol(model.weights[1], 0, 1e-2);
         })
         it('should forget the previous model', function () {
-            this.timeout(4000);
             var matrix = new la.Matrix([[0, 1, -1, 0], [1, 0, 0, -1]]);
             var vec = new la.Vector([1, 1, -1, -1]);
             var SVC = new analytics.SVC();

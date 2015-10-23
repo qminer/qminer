@@ -14,17 +14,26 @@
 ///////////////////////////////
 // NodeJs Stream Aggregator
 
-v8::Persistent<v8::Function> TNodeJsSA::constructor;
+v8::Persistent<v8::Function> TNodeJsSA::Constructor;
 
 void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "StreamAggr"));
-	// ObjectWrap uses the first internal field to store the wrapped pointer.
-	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+	// template for creating function from javascript using "new", uses _NewJs callback
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsSA>);
+	// child will have the same properties and methods, but a different callback: _NewCpp
+	v8::Local<v8::FunctionTemplate> child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsSA>);
+	child->Inherit(tpl);
 
+	child->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer
+	child->InstanceTemplate()->SetInternalFieldCount(1);
+
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+	
 	// Add all methods, getters and setters here.
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onAdd", _onAdd);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onUpdate", _onUpdate);
@@ -52,157 +61,93 @@ void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "val"), _val);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
 
-	// This has to be last, otherwise the properties won't show up on the object in JavaScript.
-	constructor.Reset(Isolate, tpl->GetFunction());
-	// So we can add stuff to the prototype in JS
-	exports->Set(v8::String::NewFromUtf8(Isolate, "StreamAggr"), tpl->GetFunction());
+	// This has to be last, otherwise the properties won't show up on the object in JavaScript	
+	// Constructor is used when creating the object from C++
+	Constructor.Reset(Isolate, child->GetFunction());
+	// we need to export the class for calling using "new FIn(...)"
+	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
+		tpl->GetFunction());
 }
-
-v8::Local<v8::Object> TNodeJsSA::New(TWPt<TQm::TStreamAggr> _SA) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::EscapableHandleScope HandleScope(Isolate);
-	EAssertR(!constructor.IsEmpty(), "TNodeJsSA::New: constructor is empty. Did you call TNodeJsSA::Init(exports); in this module's init function?");
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-	v8::Local<v8::Object> Instance = cons->NewInstance();
-
-	TNodeJsSA* JsSA = new TNodeJsSA(_SA);
-	JsSA->Wrap(Instance);
-	return HandleScope.Escape(Instance);
-}
-
-void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+TNodeJsSA* TNodeJsSA::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-
-	if (Args.Length() == 0) { return; } //
-	EAssertR(!constructor.IsEmpty(), "TNodeJsSA::New: constructor is empty."
-        "Did you call TNodeJsSA::Init(exports); in this module's init function?");
 
 	QmAssertR(Args.Length() <= 3 && Args.Length() >= 2, "stream aggregator constructor expects at least two parameters");
 	QmAssertR(Args[0]->IsObject() && Args[1]->IsObject(), "stream aggregator constructor expects first two arguments as objects");
 
-	// new sa(...)
-	if (Args.IsConstructCall()) {
-		TQm::PStreamAggr StreamAggr;
+	TQm::PStreamAggr StreamAggr;
 
-		TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args[0]->ToObject());
+	TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args[0]->ToObject());
 
-		// get aggregate type
-		TStr TypeNm = TNodeJsUtil::GetArgStr(Args, 1, "type", "javaScript");
+	// get aggregate type
+	TStr TypeNm = TNodeJsUtil::GetArgStr(Args, 1, "type", "javaScript");
 
-		if (TypeNm == "javaScript") {
-			// we have a javascript stream aggregate
-			TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", "");
-			// we need a name, if not give just generate one
-			if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
-			// create aggregate
-			StreamAggr = TNodeJsStreamAggr::New(JsBase->Base, AggrName, Args[1]->ToObject());
+	if (TypeNm == "javaScript") {
+		// we have a javascript stream aggregate
+		TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", "");
+		// we need a name, if not give just generate one
+		if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
+		// create aggregate
+		StreamAggr = TNodeJsStreamAggr::New(JsBase->Base, AggrName, Args[1]->ToObject());
+	} else if (TypeNm == "ftrext") {
+		TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", "");
+		QmAssertR(Args[1]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, "featureSpace")), "addStreamAggr: featureSpace property missing!");
+		// we need a name, if not give just generate one
+		if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
+		throw TQm::TQmExcept::New("ftrext stream aggr not implemented yet! (needs feature space implementation)");
+		// TODO
+		//TQm::PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args[1]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, "featureSpace")));
+		//StreamAggr = TStreamAggrs::TFtrExtAggr::New(JsBase->Base, AggrName, FtrSpace);
+	} else if (TypeNm == "stmerger") {
+		// create new aggregate
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
+		StreamAggr = TQm::TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
+		PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
+		TStrV InterpNmV;
+		QmAssertR(ParamVal->IsObjKey("fields"), "Missing argument 'fields'!");
+		// automatically register the aggregate for addRec callbacks
+		for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
+			PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
+			PJsonVal SourceVal = FieldVal->GetObjKey("source");
+			TStr StoreNm = "";
+			if (SourceVal->IsStr()) {
+				// we have just store name
+				StoreNm = SourceVal->GetStr();
+			} else if (SourceVal->IsObj()) {
+				// get store
+				StoreNm = SourceVal->GetObjStr("store");
+			}
+			JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), StreamAggr);
 		}
-		else if (TypeNm == "ftrext") {
-			TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", "");
-			QmAssertR(Args[1]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, "featureSpace")),
-                "addStreamAggr: featureSpace property missing!");
-			// we need a name, if not give just generate one
-			if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
-			throw TQm::TQmExcept::New("ftrext stream aggr not implemented yet! (needs feature space implementation)");
-			// TODO
-			//TQm::PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args[1]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, "featureSpace")));
-			//StreamAggr = TStreamAggrs::TFtrExtAggr::New(JsBase->Base, AggrName, FtrSpace);
+	} else {
+		// we have a GLib stream aggregate, translate parameters to PJsonVal
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
+		if (Args.Length() >= 3 && Args[2]->IsString()) {
+			ParamVal->AddToObj("store", TNodeJsUtil::GetArgStr(Args, 2));
 		}
-		else if (TypeNm == "stmerger") {
-			// create new aggregate
-			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
-			StreamAggr = TQm::TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
-			PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
-			TStrV InterpNmV;
-			QmAssertR(ParamVal->IsObjKey("fields"), "Missing argument 'fields'!");
-			// automatically register the aggregate for addRec callbacks
-			for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
-				PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
-				PJsonVal SourceVal = FieldVal->GetObjKey("source");
-				TStr StoreNm = "";
-				if (SourceVal->IsStr()) {
-					// we have just store name
-					StoreNm = SourceVal->GetStr();
-				}
-				else if (SourceVal->IsObj()) {
-					// get store
-					StoreNm = SourceVal->GetObjStr("store");
-				}
-				JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), StreamAggr);
-			}
-		}
-		else {
-			// we have a GLib stream aggregate, translate parameters to PJsonVal
-			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
-			if (Args.Length() >= 3 && Args[2]->IsString()) {
-				ParamVal->AddToObj("store", TNodeJsUtil::GetArgStr(Args, 2));
-			}
-			// check if it's one stream aggregate or composition
-			if (TQm::TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
-				// we have a composition of aggregates, call code to assemble it
-				TQm::TStreamAggrs::TCompositional::Register(JsBase->Base, TypeNm, ParamVal);
-			}
-			else {
-				// create new aggregate
-				StreamAggr = TQm::TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
-			}
-		}
-
-		if (!TQm::TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
-			if (Args.Length() > 2) {
-				TStrV Stores(0);
-				if (Args[2]->IsString()) {
-					Stores.Add(TNodeJsUtil::GetArgStr(Args, 2));
-				}
-				if (Args[2]->IsArray()) {
-					PJsonVal StoresJson = TNodeJsUtil::GetArgJson(Args, 2);
-					QmAssertR(StoresJson->IsDef(), "stream aggr constructor : Args[2] should be a string (store name) or a string array (store names)");
-					StoresJson->GetArrStrV(Stores);
-				}
-				for (int StoreN = 0; StoreN < Stores.Len(); StoreN++) {
-					QmAssertR(JsBase->Base->IsStoreNm(Stores[StoreN]), "stream aggr constructor : Args[2] : store does not exist!");
-					JsBase->Base->AddStreamAggr(Stores[StoreN], StreamAggr);
-				}
-			}
-			else {
-				JsBase->Base->AddStreamAggr(StreamAggr);
-			}
-			// non-compositional aggregates are returned
-			TNodeJsSA* JsSA = new TNodeJsSA(StreamAggr);
-			v8::Local<v8::Object> Instance = Args.This();
-			JsSA->Wrap(Instance);
-			Args.GetReturnValue().Set(Instance);
-			return;
-		}
-
+        // create new aggregate
+        StreamAggr = TQm::TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
 	}
-	// sa(...) -> calls new sa(...)
-	else {
-		if (Args.Length() == 2) {
-			const int Argc = 2;
-			v8::Local<v8::Value> Argv[Argc] = { Args[0], Args[1] };
-			v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-			v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
-			Args.GetReturnValue().Set(Instance);
-			return;
-		}
-		if (Args.Length() == 3) {
-			const int Argc = 3;
-			v8::Local<v8::Value> Argv[Argc] = { Args[0], Args[1], Args[2] };
-			v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-			v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
-			Args.GetReturnValue().Set(Instance);
-			return;
-		}
-		else {
-			// sa()->calls new sa()
-			v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-			v8::Local<v8::Object> Instance = cons->NewInstance();
-			Args.GetReturnValue().Set(Instance);
-			return;
-		}
-	}
+
+    // handle special case when we have more then one store to attach to (e.g. merger)
+    if (Args.Length() > 2) {
+        TStrV Stores(0);
+        if (Args[2]->IsString()) {
+            Stores.Add(TNodeJsUtil::GetArgStr(Args, 2));
+        } else if (Args[2]->IsArray()) {
+            PJsonVal StoresJson = TNodeJsUtil::GetArgJson(Args, 2);
+            QmAssertR(StoresJson->IsDef(), "stream aggr constructor : Args[2] should be a string (store name) or a string array (store names)");
+            StoresJson->GetArrStrV(Stores);
+        }
+        for (int StoreN = 0; StoreN < Stores.Len(); StoreN++) {
+            QmAssertR(JsBase->Base->IsStoreNm(Stores[StoreN]), "stream aggr constructor : Args[2] : store does not exist!");
+            JsBase->Base->AddStreamAggr(Stores[StoreN], StreamAggr);
+        }
+    } else {
+        JsBase->Base->AddStreamAggr(StreamAggr);
+    }
+
+    return new TNodeJsSA(StreamAggr);
 }
 
 void TNodeJsSA::onAdd(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -403,7 +348,7 @@ void TNodeJsSA::getTimestampAt(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 	if (Aggr.Empty()) {
 		throw TQm::TQmExcept::New("TNodeJsSA::getTmAt : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
 	}
-
+	QmAssertR(JsSA->SA->IsInit(), "TNodeJsSA::getTmAt : stream aggregate '" + JsSA->SA->GetAggrNm() + "' is not initialized!");
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, (double)Aggr->GetTm(ElN)));
 }
 void TNodeJsSA::getTimestampVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {

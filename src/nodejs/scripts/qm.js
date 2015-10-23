@@ -6,7 +6,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 var nodefs = require('fs');
-var csv = require('fast-csv');
 var util = require('util');
 
 // typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'.
@@ -18,55 +17,66 @@ module.exports = exports = function (pathPrefix) {
     var fs = qm.fs;
 
     exports = qm;
-
+    
     //!STARTJSDOC
-
+    
     //==================================================================
     // BASE
     //==================================================================
 
     /**
-     * Loads the store from a CSV file. The opts parameter must have the following format:
-     *
-     * {
-     * 		file: 'nameOfFile',		// the name of the input file.
-     * 		store: 'nameOfStore',	// name of the store which will be created
-     * 		base: base,				// QMiner base object that creates the store
-     * 		delimiter: ',',			// optional delimiter
-     * 		quote: '"'				// optional character to escape values that contain a delimiter
-     * }
-     *
-     * @param {object} opts - options object, explained in the description
-     * @param {function} [callback] - callback function, called on errors and when the procedure finishes
-     */
+    * The parameter given to {@link module:qm.Base#loadCSV}.
+    * @typedef {object} baseLoadCSVParam
+    * @property {string} baseLoadCSVParam.file - The name of the input file.
+    * @property {string} baseLoadCSVParam.store - Name of the store which will be created.
+    * @property {module:qm.Base} baseLoadCSVParam.base - QMiner base object that creates the store.
+    * @property {string} [baseLoadCSVParam.delimiter = ','] - Optional delimiter.
+    * @property {string} [baseLoadCSVParam.quote = '"'] - Optional character to escape values that contain a delimiter.
+    */
     exports.Base.prototype.loadCSV = function (opts, callback) {
     	console.log('Loading CSV file ...');
 
     	if (opts.delimiter == null) opts.delimiter = ',';
     	if (opts.quote == null) opts.quote = '"';
     	if (opts.ignoreFields == null) opts.ignoreFields = [];
-
+    	if (opts.file == null) throw new Error('Missing parameter file!');
+    	
+    	if (callback == null) callback = function (e) { if (e != null) console.log(e.stack); }
+    	
     	try {
-    		var fname = opts.file;
-    		var storeName = opts.store;
-    		var base = opts.base;
-
-    		var fieldTypes = null;
-    		var store = null;
-    		var buff = [];
-
-    		var ignoreFields = {};
-    		for (var i = 0; i < opts.ignoreFields.length; i++)
-    			ignoreFields[opts.ignoreFields] = null;
-
-    		var csvOpts = {
-    			headers: true,
-    			ignoreEmpty: true,
-    			delimiter: opts.delimiter,
-    			quote: opts.quote
-    		};
-
-    		// need to get the headers and columns types to actually create a store
+    		var base = this;
+    		
+	    	var fname = opts.file;
+			var storeName = opts.store;
+	
+			var fieldTypes = null;
+			var store = null;
+			var buff = [];
+	
+			var ignoreFields = {};
+			for (var i = 0; i < opts.ignoreFields.length; i++)
+				ignoreFields[opts.ignoreFields] = null;
+			
+			// read the CSV file and fill the store
+			var headers = null;
+			
+			function transformLine(line) {
+				var transformed = {};
+				
+				for (var i = 0; i < line.length; i++) {
+					var header = headers[i];
+					var value = line[i];
+					
+					if (fieldTypes != null && fieldTypes[header] != null) {
+						transformed[header] = fieldTypes[header] == 'float' ? parseFloat(value) : value;
+					} else {
+						transformed[header] = (isNaN(value) || value.length == 0) ? value : parseFloat(value);
+					}
+				}
+				
+				return transformed;
+			}
+			
     		function initFieldTypes(data) {
     			if (fieldTypes == null) fieldTypes = {};
 
@@ -85,8 +95,11 @@ module.exports = exports = function (pathPrefix) {
 
     				}
     			}
+    			
+    			if (fieldTypesInitialized())
+    				console.log('Fields initialized: ' + JSON.stringify(fieldTypes));
     		}
-
+			
     		function fieldTypesInitialized() {
     			if (fieldTypes == null) return false;
 
@@ -100,8 +113,8 @@ module.exports = exports = function (pathPrefix) {
 
     			return true;
     		}
-
-    		function getUninitializedFlds() {
+			
+			function getUninitializedFlds() {
     			var result = [];
 
     			for (var key in fieldTypes) {
@@ -114,8 +127,8 @@ module.exports = exports = function (pathPrefix) {
 
     			return result;
     		}
-
-    		function createStore(rec) {
+			
+			function createStore(rec) {
     			try {
 	    			var storeDef = {
 	    				name: storeName,
@@ -129,78 +142,89 @@ module.exports = exports = function (pathPrefix) {
 							"null": true,
 	    				});
 	    			}
+	    			
+	    			console.log('Creating store with definition ' + JSON.stringify(storeDef) + ' ...');
 
 	    			base.createStore(storeDef);
 	    			store = base.store(storeName);
-
+	    				    			
 	    			// insert all the record in the buffer into the store
 	    			buff.forEach(function (data) {
 	    				store.push(data);
-	    			})
+	    			});
     			} catch (e) {
-    				if (callback != null)
-    					callback(e);
+					callback(e);
     			}
     		}
-
-    		var storeCreated = false;
-    		var lines = 0;
-
-    		csv.fromPath(fname, csvOpts)
-    			.transform(function (data) {
-    				var transformed = {};
-
-    				for (var key in data) {
-    					if (key in ignoreFields)
-    						continue;
-
-    					var val = data[key];
-    					var transKey = key.replace(/\s+/g, '_')	// remove invalid characters
-    									  .replace(/\.|%|\(|\)|\/|-|\+/g, '');
-
-    					if (fieldTypes != null && fieldTypes[transKey] != null)
-    						transformed[transKey] = fieldTypes[transKey] == 'float' ? parseFloat(val) : val;
-    					else
-    						transformed[transKey] = (isNaN(val) || val.length == 0) ? val : parseFloat(val);
-    				}
-
-    				return transformed;
-    			})
-    		   	.on('data', function (data) {
-    		   		if (++lines % 10000 == 0)
-    		   			console.log(lines + '');
-
-    		   		if (fieldTypes == null)
-    		   			initFieldTypes(data);
-
-    		   		if (store == null && fieldTypesInitialized())
-    		   			createStore(data);
-    		   		else if (!fieldTypesInitialized())
-    		   			initFieldTypes(data);
-
-    		   		if (store != null)
-    		   			store.push(data);
-    		   		else
-    		   			buff.push(data);
-    		   	})
-    		   	.on('end', function () {
-    		   		if (callback != null) {
-    		   			if (!fieldTypesInitialized()) {
-        		   			var fieldNames = getUninitializedFlds();
-        		   			callback(new Error('Finished with uninitialized fields: ' +
+			
+			var storeCreated = false;
+			var line = 0;
+			console.log('Saving CSV to store ' + storeName + ' ' + fname + ' ...');
+			
+			var fin = new fs.FIn(fname);
+			fs.readCsvLines(fin, {
+				onLine: function (lineArr) {					
+					try {						
+						if (line++ == 0) {	// the first line are the headers
+							headers = [];
+							for (var i = 0; i < lineArr.length; i++) {
+								headers.push(lineArr[i].replace(/\s+/g, '_').replace(/\.|%|\(|\)|\/|-|\+/g, '')) 	// remove invalid characters
+							}
+							console.log('Headers initialized: ' + JSON.stringify(headers));
+						}
+						else {
+							if (line % 1000 == 0)
+								console.log(line + '');
+							
+							var data = transformLine(lineArr);
+														
+							if (fieldTypes == null)
+								initFieldTypes(data);
+							
+							if (store == null && fieldTypesInitialized())
+								createStore(data);
+							else if (!fieldTypesInitialized())
+								initFieldTypes(data);
+							
+							if (store != null) {
+								store.push(data);
+							} else
+								buff.push(data);
+						}
+					} catch (e) {
+						console.log('Exception while reading CSV lines: ' + e.stack);
+						callback(e);
+					}
+				},
+				onEnd: function () {
+					// finished
+					console.log('Finished!');
+					
+					if (callback != null) {
+			   			if (!fieldTypesInitialized()) {
+				   			var fieldNames = getUninitializedFlds();
+				   			callback(new Error('Finished with uninitialized fields: ' +
 								JSON.stringify(fieldNames)) + ', add them to ignore list!');
-        		   			return;
-        		   		} else {
-        		   			callback();
-        		   		}
-    		   		}
-    		   	});
+				   			return;
+				   		} else {
+				   			callback(undefined, store);
+				   		}
+			   		}
+				}
+			});	
+			
+			fin.close();
     	} catch (e) {
-    		if (callback != null)
-    			callback(e);
+			callback(e);
     	}
-    }
-
+    };
+    
+    /**
+     * Loads the store from a CSV file. 
+     * @param {module:qm~baseLoadCSVParam} opts - Options object.
+     * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
+     */
+    
     //==================================================================
     // STORE
     //==================================================================
@@ -232,71 +256,82 @@ module.exports = exports = function (pathPrefix) {
     //==================================================================
 
     /**
-     * Saves the record set into a CSV file specified in the opts parameter.
-     *
-     * @param {object} opts - The options parameter contains 2 fields.
-	 *      The first field 'opts.fname' specifies the output file.
-	 *      The second field 'opts.headers' specifies if headers should be included in the output file.
-     * @param {function} [callback] - The callback fired when the operation finishes.
+     * Stores the record set as a CSV file.
+     * 
+     * @param {Object} opts - arguments
+     * @property {String} opts.fname - name of the output file
+     * @property {Boolean} [opts.includeHeaders] - indicates wether to include the header in the first line
+     * @property {String} [opts.timestampType] - If set to 'ISO', datetime fields will be printed as ISO dates, otherwise as timestamps. Defaults to 'timestamp'.
      */
-    exports.RecSet.prototype.saveCSV = function (opts, callback) {
-    	// defaults
-    	if (opts.headers == null) { opts.headers = true; }
-
-    	try {
-    		console.log('Writing ' + this.length + ' lines to CSV file: ' + opts.fname + ' ...');
-
-    		// find out which columns to quote
-    		var store = this.store;
-    		var fields = store.fields;
-
-    		var quoteColumns = {};
-    		for (var i = 0; i < fields.length; i++) {
-    			var fldName = fields[i].name;
-    			quoteColumns[fldName] = store.isString(fldName) || store.isDate(fldName);
-    		}
-
-	    	// write to file
-	    	var out = nodefs.createWriteStream(opts.fname);
-	    	var csvOut = csv.createWriteStream({
-	    		headers: opts.headers,
-	    		quoteHeaders: true,
-	    		quoteColumns: quoteColumns
-	    	});
-
-	    	out.on('error', function (e) {
-	    		if (callback != null) {
-	    			callback(e);
-				}
-	    	});
-
-	    	out.on('finish', function () {
-	    		if (callback != null) {
-	    			callback();
-				}
-	    	});
-
-	    	csvOut.pipe(out);
-
-	    	this.each(function (rec, idx) {
-	    		try {
-		    		if (idx % 10000 == 0) {
-		    			console.log(idx);
-					}
-		    		csvOut.write(rec.toJSON());
-	    		} catch (e) {
-	    			if (callback != null) {
-	    				callback(e);
-					}
-	    		}
-	    	});
-
-	    	csvOut.end();
-    	} catch (e) {
-    		if (callback != null) {
-    			callback(e);
-			}
+    exports.RecSet.prototype.saveCsv = function (opts) {
+    	if (opts == null || opts.fname == null) throw new Error('Missing parameter fname!');
+    	if (opts.includeHeaders == null) opts.includeHeaders = true;
+    	if (opts.timestampType == null) opts.timestampType = 'timestamp';
+    	
+    	// read field descriptions
+    	var fields = this.store.fields;
+    	var fieldDesc = [];
+    	for (var i = 0; i < fields.length; i++) {
+    		var desc = fields[i];
+    		var type = desc.type;
+    		
+    		if (type != 'float' && type != 'int' && type != 'bool' && type != 'datetime' &&
+    				type != 'string')
+    			throw new Error('Invalid field type: ' + type);
+    		if (desc.internal) continue;
+    		
+    		fieldDesc.push({name: desc.name, type: desc.type});
     	}
+    	
+    	var nFields = fieldDesc.length;
+    	var useTimestamp = opts.timestampType != 'ISO';
+    	
+    	var fout = new fs.FOut(opts.fname);
+    	
+    	// write the headers
+    	if (opts.includeHeaders) {
+    		var headerLine = '';
+    		for (var i = 0; i < nFields; i++) {
+    			headerLine += fieldDesc[i].name;
+    			if (i < nFields - 1)
+    				headerLine += ',';
+    		}
+    		fout.writeLine(headerLine);
+    	}
+    	
+    	// write the lines
+    	var len = this.length;
+    	var recN = 0;
+    	this.each(function (rec) {
+    		var line = '';
+    		for (var i = 0; i < nFields; i++) {
+    			var fldVal = rec[fieldDesc[i].name];
+    			var type = fieldDesc[i].type;
+    			
+    			if (fldVal != null) {
+	    			if (type == 'float' || type == 'int' || type == 'bool') {
+	    				line += fldVal;
+	    			} else if (type == 'datetime') {
+	    				line += useTimestamp ? fldVal.getTime() : fldVal.toISOString();
+	    			} else if (type == 'string') {
+	    				line += '"' + fldVal + '"';
+	    			} else {
+	    				throw new Error('Invalid type of field: ' + type);
+	    			}
+    			}
+    			
+    			if (i < nFields - 1)
+    				line += ',';
+    		}
+    		
+    		if (recN++ < len - 1)
+    			fout.writeLine(line);
+    		else
+    			fout.write(line);
+    	});
+    	
+    	fout.flush();
+    	fout.close();
     }
 
     //==================================================================

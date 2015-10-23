@@ -13,33 +13,33 @@
 ////////////////////////////////////////////////////////
 // Support Vector Machine
 
-TNodeJsSvmModel::TNodeJsSvmModel(const PJsonVal& ParamVal) :
-Algorithm("SGD"),
-SvmCost(1.0),
-SvmUnbalance(1.0),
-SvmEps(0.1),
-SampleSize(1000),
-MxIter(10000),
-MxTime(1000 * 1),
-MnDiff(1e-6),
-Verbose(false),
-Notify(TNotify::NullNotify) {
+TNodeJsSvmModel::TNodeJsSvmModel(const PJsonVal& ParamVal):
+		Algorithm("SGD"),
+		SvmCost(1.0),
+		SvmUnbalance(1.0),
+		SvmEps(0.1),
+		SampleSize(1000),
+		MxIter(10000),
+		MxTime(1000*1),
+		MnDiff(1e-6),
+		Verbose(false),
+		Notify(TNotify::NullNotify) {
 
 	UpdateParams(ParamVal);
 }
 
-TNodeJsSvmModel::TNodeJsSvmModel(TSIn& SIn) :
-Algorithm(SIn),
-SvmCost(TFlt(SIn)),
-SvmUnbalance(TFlt(SIn)),
-SvmEps(TFlt(SIn)),
-SampleSize(TInt(SIn)),
-MxIter(TInt(SIn)),
-MxTime(TInt(SIn)),
-MnDiff(TFlt(SIn)),
-Verbose(TBool(SIn)),
-Notify(TNotify::NullNotify),
-Model(SIn) {
+TNodeJsSvmModel::TNodeJsSvmModel(TSIn& SIn):
+        Algorithm(SIn),
+        SvmCost(TFlt(SIn)),
+        SvmUnbalance(TFlt(SIn)),
+        SvmEps(TFlt(SIn)),
+        SampleSize(TInt(SIn)),
+        MxIter(TInt(SIn)),
+        MxTime(TInt(SIn)),
+        MnDiff(TFlt(SIn)),
+        Verbose(TBool(SIn)),
+        Notify(TNotify::NullNotify),
+        Model(SIn) {
 
 	if (Verbose) { Notify = TNotify::StdNotify; }
 }
@@ -946,8 +946,8 @@ void TNodeJsNNAnomalies::explain(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 ////////////////////////////////////////////////
 // QMiner-NodeJS-Recursive-Linear-Regression
-TNodeJsRecLinReg::TNodeJsRecLinReg(const TSignalProc::PRecLinReg& _Model) :
-Model(_Model) {}
+TNodeJsRecLinReg::TNodeJsRecLinReg(const TSignalProc::PRecLinReg& _Model):
+		Model(_Model) {}
 
 
 void TNodeJsRecLinReg::Init(v8::Handle<v8::Object> exports) {
@@ -1225,8 +1225,8 @@ void TNodeJsLogReg::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TNodeJsLogReg* JsModel = ObjectWrap::Unwrap<TNodeJsLogReg>(Args.Holder());
 	PJsonVal ParamVal = TJsonVal::NewObj();
 
-	ParamVal->AddToObj("lambda", JsModel->LogReg.getLambda());
-	ParamVal->AddToObj("intercept", JsModel->LogReg.getIntercept());
+	ParamVal->AddToObj("lambda", JsModel->LogReg.GetLambda());
+	ParamVal->AddToObj("intercept", JsModel->LogReg.GetIntercept());
 
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
 }
@@ -1241,8 +1241,8 @@ void TNodeJsLogReg::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 	TNodeJsLogReg* JsModel = ObjectWrap::Unwrap<TNodeJsLogReg>(Args.Holder());
 
-	if (ParamVal->IsObjKey("lambda")) { JsModel->LogReg.setLambda(ParamVal->GetObjNum("lambda")); }
-	if (ParamVal->IsObjKey("intercept")) { JsModel->LogReg.setIntercept(ParamVal->GetObjBool("intercept")); }
+	if (ParamVal->IsObjKey("lambda")) { JsModel->LogReg.SetLambda(ParamVal->GetObjNum("lambda")); }
+	if (ParamVal->IsObjKey("intercept")) { JsModel->LogReg.SetIntercept(ParamVal->GetObjBool("intercept")); }
 
 	Args.GetReturnValue().Set(Args.Holder());
 }
@@ -1366,7 +1366,7 @@ void TNodeJsPropHaz::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 	TNodeJsPropHaz* JsModel = ObjectWrap::Unwrap<TNodeJsPropHaz>(Args.Holder());
 	PJsonVal ParamVal = TJsonVal::NewObj();
 
-	ParamVal->AddToObj("lambda", JsModel->Model.getLambda());
+	ParamVal->AddToObj("lambda", JsModel->Model.GetLambda());
 
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
 }
@@ -1381,7 +1381,7 @@ void TNodeJsPropHaz::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 	TNodeJsPropHaz* JsModel = ObjectWrap::Unwrap<TNodeJsPropHaz>(Args.Holder());
 
-	if (ParamVal->IsObjKey("lambda")) { JsModel->Model.setLambda(ParamVal->GetObjNum("lambda")); }
+	if (ParamVal->IsObjKey("lambda")) { JsModel->Model.SetLambda(ParamVal->GetObjNum("lambda")); }
 
 	Args.GetReturnValue().Set(Args.Holder());
 }
@@ -1480,6 +1480,8 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "currState", _currState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fullCoords", _fullCoords);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "histogram", _histogram);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "transitionHistogram", _transitionHistogram);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getFtrBounds", _getFtrBounds);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "stateIds", _stateIds);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateWgtV", _getStateWgtV);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
@@ -1492,9 +1494,14 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "rebuildHistograms", _rebuildHistograms);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateName", _getStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setStateName", _setStateName);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "clearStateName", _clearStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "isTarget", _isTarget);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setTarget", _setTarget);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "setControlFactor", _setControlFactor);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "isLeaf", _isLeaf);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getTimeUnit", _getTimeUnit);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setControlVal", _setControlVal);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "resetControlVal", _resetControlVal);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "isAnyControlFtrSet", _isAnyControlFtrSet);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParam", _getParam);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
@@ -1503,13 +1510,13 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 		tpl->GetFunction());
 }
 
-TNodeJsStreamStory::TNodeJsStreamStory(const TMc::PStreamStory& _StreamStory) :
-StreamStory(_StreamStory) {
+TNodeJsStreamStory::TNodeJsStreamStory(const TMc::PStreamStory& _StreamStory):
+		StreamStory(_StreamStory) {
 	InitCallbacks();
 }
 
-TNodeJsStreamStory::TNodeJsStreamStory(PSIn& SIn) :
-StreamStory(new TMc::TStreamStory(*SIn)) {
+TNodeJsStreamStory::TNodeJsStreamStory(PSIn& SIn):
+		StreamStory(new TMc::TStreamStory(*SIn)) {
 	InitCallbacks();
 }
 
@@ -1526,13 +1533,15 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {
 		// load from file
 		PSIn SIn = TNodeJsUtil::IsArgStr(Args, 0) ?
-			TFIn::New(TNodeJsUtil::GetArgStr(Args, 0)) :
-			TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0)->SIn;
+				TFIn::New(TNodeJsUtil::GetArgStr(Args, 0)) :
+				TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0)->SIn;
 
 		return new TNodeJsStreamStory(SIn);
-	}
-	else {
+	} else {
 		const PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+
+		const int RndSeed = ParamVal->GetObjInt("rndseed", 0);
+		const TRnd Rnd(RndSeed);
 
 		const int NPastStates = ParamVal->IsObjKey("pastStates") ? ParamVal->GetObjInt("pastStates") : 0;
 		const bool Verbose = ParamVal->IsObjKey("verbose") ? ParamVal->GetObjBool("verbose") : true;
@@ -1541,60 +1550,24 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 		const PJsonVal ClustJson = ParamVal->GetObjKey("clustering");
 
 		// transition modelling
-		const TStr TimeUnitStr = TransitionJson->GetObjStr("timeUnit");
+		const uint64 TimeUnit = GetTmUnit(TransitionJson->GetObjStr("timeUnit"));
 		const double DeltaTm = TransitionJson->IsObjKey("deltaTime") ?
-			TransitionJson->GetObjNum("deltaTime") : DEFAULT_DELTA_TM;
-
-		uint64 TimeUnit;
-		if (TimeUnitStr == "second") {
-			TimeUnit = TMc::TCtMChain::TU_SECOND;
-		}
-		else if (TimeUnitStr == "minute") {
-			TimeUnit = TMc::TCtMChain::TU_MINUTE;
-		}
-		else if (TimeUnitStr == "hour") {
-			TimeUnit = TMc::TCtMChain::TU_HOUR;
-		}
-		else if (TimeUnitStr == "day") {
-			TimeUnit = TMc::TCtMChain::TU_DAY;
-		}
-		else if (TimeUnitStr == "month") {
-			TimeUnit = TMc::TCtMChain::TU_MONTH;
-		}
-		else {
-			throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TJsHierCtmc::TJsHierCtmc");
-		}
-
-		TMc::PMChain MChain = new TMc::TCtMChain(TimeUnit, DeltaTm, Verbose);
+				TransitionJson->GetObjNum("deltaTime") : DEFAULT_DELTA_TM;
 
 		// clustering
-		TMc::PStateIdentifier Clust = NULL;
-
-		const TStr ClustAlg = ClustJson->GetObjStr("type");
 		const double Sample = ClustJson->IsObjKey("sample") ? ClustJson->GetObjNum("sample") : 1;
 		const int NHistBins = ClustJson->IsObjKey("histogramBins") ? ClustJson->GetObjInt("histogramBins") : 20;
 
-		if (ClustAlg == "dpmeans") {
-			const double Lambda = ClustJson->GetObjNum("lambda");
-			const int MinClusts = ClustJson->IsObjKey("minClusts") ? ClustJson->GetObjInt("minClusts") : 1;
-			const int MxClusts = ClustJson->IsObjKey("maxClusts") ? ClustJson->GetObjInt("maxClusts") : TInt::Mx;
-			const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
-			Clust = new TMc::TDpMeans(NHistBins, Sample, Lambda, MinClusts, MxClusts, TRnd(RndSeed), Verbose);
-		}
-		else if (ClustAlg == "kmeans") {
-			const int K = ClustJson->GetObjInt("k");
-			const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
-			Clust = new TMc::TFullKMeans(NHistBins, Sample, K, TRnd(RndSeed), Verbose);
-		}
-		else {
-			throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
-		}
+		const TClustering::PDnsKMeans KMeans = GetClust(ClustJson, Rnd);
 
+		// state identifier
+		TMc::PStateIdentifier StateIdentifier = new TMc::TStateIdentifier(KMeans, NHistBins, Sample, Rnd, Verbose);
+		// Markov chain
+		TMc::PMChain MChain = new TMc::TCtMChain(TimeUnit, DeltaTm, Verbose);
 		// create the model
 		TMc::PHierarch Hierarch = new TMc::THierarch(NPastStates + 1, Verbose);
-
 		// finish
-		TMc::PStreamStory StreamStory = new TMc::TStreamStory(Clust, MChain, Hierarch, Verbose);
+		TMc::PStreamStory StreamStory = new TMc::TStreamStory(StateIdentifier, MChain, Hierarch, Rnd, Verbose);
 
 		return new TNodeJsStreamStory(StreamStory);
 	}
@@ -1617,18 +1590,14 @@ void TNodeJsStreamStory::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TNodeJsFltVV* JsControlFtrs = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(ArgObj, "controls");
 	TNodeJsFltV* JsRecTmV = TNodeJsUtil::GetUnwrapFld<TNodeJsFltV>(ArgObj, "times");
 
-	TUInt64V RecTmV(JsRecTmV->Vec.Len(), 0);
-	for (int i = 0; i < JsRecTmV->Vec.Len(); i++) {
-		RecTmV.Add(TNodeJsUtil::GetCppTimestamp((uint64)JsRecTmV->Vec[i]));
-	}
+	TUInt64V RecTmV;	TNodeJsUtil::GetCppTmMSecsV(JsRecTmV->Vec, RecTmV);
 
 	if (!TNodeJsUtil::IsFldNull(ArgObj, "batchV")) {
 		EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "batchV", TNodeJsBoolV::GetClassId()), "Invalid class of field batchV!");
 		const TNodeJsBoolV* BatchEndJsV = TNodeJsUtil::GetUnwrapFld<TNodeJsBoolV>(ArgObj, "batchV");
 		const TBoolV& BatchEndV = BatchEndJsV->Vec;
 		JsMChain->StreamStory->InitBatches(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV, BatchEndV);
-	}
-	else {
+	} else {
 		JsMChain->StreamStory->Init(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV);
 	}
 
@@ -1644,16 +1613,7 @@ void TNodeJsStreamStory::update(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 	TNodeJsFltV* JsObsFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
 	TNodeJsFltV* JsContrFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
-
-	uint64 RecTm;
-	if (Args[2]->IsDate()) {
-		// TODO
-		RecTm = 0;
-	}
-	else {
-		// Args[1] is a timestamp (UNIX timestamp)
-		RecTm = TTm::GetWinMSecsFromUnixMSecs((uint64)TNodeJsUtil::GetArgFlt(Args, 2));
-	}
+	const uint64 RecTm = TNodeJsUtil::GetArgTmMSecs(Args, 2);//GetTmMSecs(Args[2]);
 
 	JsMChain->StreamStory->OnAddRec(RecTm, JsObsFtrV->Vec, JsContrFtrV->Vec);
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
@@ -1743,7 +1703,7 @@ void TNodeJsStreamStory::probsOverTime(const v8::FunctionCallbackInfo<v8::Value>
 
 	double Tm = -DeltaTm*PastProbV.Len();
 	for (int i = 0; i < PastProbV.Len(); i++) {
-		const TFltV& ProbV = PastProbV[PastProbV.Len() - 1 - i];
+		const TFltV& ProbV = PastProbV[PastProbV.Len()-1-i];
 
 		v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
 		v8::Local<v8::Array> ProbArr = v8::Array::New(Isolate, FutProbV[0].Len());
@@ -1832,7 +1792,7 @@ void TNodeJsStreamStory::getTransitionModel(const v8::FunctionCallbackInfo<v8::V
 		PJsonVal RowJson = TJsonVal::NewArr();
 
 		for (int j = 0; j < Mat.GetCols(); j++) {
-			RowJson->AddToArr(Mat(i, j));
+			RowJson->AddToArr(Mat(i,j));
 		}
 
 		MatJson->AddToArr(RowJson);
@@ -1855,8 +1815,7 @@ void TNodeJsStreamStory::currState(const v8::FunctionCallbackInfo<v8::Value>& Ar
 		StateObj->Set(v8::String::NewFromUtf8(Isolate, "id"), v8::Integer::New(Isolate, CurrStateId));
 
 		Args.GetReturnValue().Set(StateObj);
-	}
-	else {
+	} else {
 		TIntFltPrV StateIdHeightPrV;	JsMChain->StreamStory->GetCurrStateAncestry(StateIdHeightPrV);
 
 		v8::Local<v8::Array> AncestryArr = v8::Array::New(Isolate, StateIdHeightPrV.Len());
@@ -1897,28 +1856,48 @@ void TNodeJsStreamStory::histogram(const v8::FunctionCallbackInfo<v8::Value>& Ar
 
 	EAssertR(Args.Length() == 2, "hmc.histogram: expects 2 arguments!");
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 	const int FtrId = TNodeJsUtil::GetArgInt32(Args, 1);
 
 	TFltV BinStartV, ProbV;
-	JsMChain->StreamStory->GetHistogram(StateId, FtrId, BinStartV, ProbV);
+	JsStreamStory->StreamStory->GetHistogram(StateId, FtrId, BinStartV, ProbV);
+	WrapHistogram(Args, BinStartV, ProbV);
+}
+
+void TNodeJsStreamStory::transitionHistogram(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 3, "ss.transitionHistogram: expects 3 arguments!");
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int SourceId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const int TargetId = TNodeJsUtil::GetArgInt32(Args, 1);
+	const int FtrId = TNodeJsUtil::GetArgInt32(Args, 2);
+
+	TFltV BinStartV, ProbV;
+
+	JsStreamStory->StreamStory->GetTransitionHistogram(SourceId, TargetId, FtrId, BinStartV, ProbV);
+	WrapHistogram(Args, BinStartV, ProbV);
+}
+
+void TNodeJsStreamStory::getFtrBounds(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "hmc.getFtrBounds: expects 1 argument!");
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int FtrId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const TFltPr FtrBounds = JsStreamStory->StreamStory->GetFtrBounds(FtrId);
 
 	v8::Local<v8::Object> Result = v8::Object::New(Isolate);
-	v8::Local<v8::Array> BinStartJsV = v8::Array::New(Isolate, BinStartV.Len());
-	v8::Local<v8::Array> ProbJsV = v8::Array::New(Isolate, ProbV.Len());
-
-	for (int i = 0; i < BinStartV.Len(); i++) {
-		BinStartJsV->Set(i, v8::Number::New(Isolate, BinStartV[i]));
-	}
-
-	for (int i = 0; i < ProbV.Len(); i++) {
-		ProbJsV->Set(i, v8::Number::New(Isolate, ProbV[i]));
-	}
-
-	Result->Set(v8::String::NewFromUtf8(Isolate, "binStartV"), BinStartJsV);
-	Result->Set(v8::String::NewFromUtf8(Isolate, "probs"), ProbJsV);
+	Result->Set(v8::String::NewFromUtf8(Isolate, "min"), v8::Number::New(Isolate, FtrBounds.Val1.Val));
+	Result->Set(v8::String::NewFromUtf8(Isolate, "max"), v8::Number::New(Isolate, FtrBounds.Val2.Val));
 
 	Args.GetReturnValue().Set(Result);
 }
@@ -1957,7 +1936,6 @@ void TNodeJsStreamStory::getStateWgtV(const v8::FunctionCallbackInfo<v8::Value>&
 	TFltV WgtV;
 	JsMChain->StreamStory->GetStateWgtV(StateId, WgtV);
 
-
 	v8::Local<v8::Array> JsWgtV = v8::Array::New(Isolate, WgtV.Len());
 	for (int i = 0; i < WgtV.Len(); i++) {
 		JsWgtV->Set(i, v8::Number::New(Isolate, WgtV[i]));
@@ -1970,12 +1948,15 @@ void TNodeJsStreamStory::onStateChanged(const v8::FunctionCallbackInfo<v8::Value
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onStateChanged: First argument expected to be a function!");
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-	v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
-
-	JsMChain->StateChangedCallback.Reset(Isolate, Callback);
+	if (TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
+		JsStreamStory->StateChangedCallback.Reset();
+	} else {
+		EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onStateChanged: First argument expected to be a function!");
+		v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+		JsStreamStory->StateChangedCallback.Reset(Isolate, Callback);
+	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -1984,12 +1965,15 @@ void TNodeJsStreamStory::onAnomaly(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onAnomaly: First argument expected to be a function!");
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-	v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
-
-	JsMChain->AnomalyCallback.Reset(Isolate, Callback);
+	if (TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
+		JsStreamStory->AnomalyCallback.Reset();
+	} else {
+		EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onAnomaly: First argument expected to be a function!");
+		v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+		JsStreamStory->AnomalyCallback.Reset(Isolate, Callback);
+	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -1998,12 +1982,15 @@ void TNodeJsStreamStory::onOutlier(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onOutlier: First argument expected to be a function!");
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-	v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
-
-	JsMChain->OutlierCallback.Reset(Isolate, Callback);
+	if (TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
+		JsStreamStory->OutlierCallback.Reset();
+	} else {
+		EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onOutlier: First argument expected to be a function!");
+		v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+		JsStreamStory->OutlierCallback.Reset(Isolate, Callback);
+	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -2012,12 +1999,15 @@ void TNodeJsStreamStory::onPrediction(const v8::FunctionCallbackInfo<v8::Value>&
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onPrediction: First argument expected to be a function!");
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-	v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
-
-	JsMChain->PredictionCallback.Reset(Isolate, Callback);
+	if (TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
+		JsStreamStory->PredictionCallback.Reset();
+	} else {
+		EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onPrediction: First argument expected to be a function!");
+		v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+		JsStreamStory->PredictionCallback.Reset(Isolate, Callback);
+	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -2026,9 +2016,8 @@ void TNodeJsStreamStory::rebuildHierarchy(const v8::FunctionCallbackInfo<v8::Val
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-
-	JsMChain->StreamStory->InitHierarch();
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	JsStreamStory->StreamStory->InitHierarch();
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -2039,7 +2028,7 @@ void TNodeJsStreamStory::rebuildHistograms(const v8::FunctionCallbackInfo<v8::Va
 
 	EAssertR(Args.Length() == 1, "hmc.rebuildHistograms: expects 1 argument!");
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 	v8::Local<v8::Object> ArgObj = Args[0]->ToObject();
 
 	EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "observations", TNodeJsFltVV::GetClassId()), "Missing field observations!");
@@ -2059,10 +2048,9 @@ void TNodeJsStreamStory::rebuildHistograms(const v8::FunctionCallbackInfo<v8::Va
 		EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "batchV", TNodeJsBoolV::GetClassId()), "Invalid class of field batchV!");
 		const TNodeJsBoolV* BatchEndJsV = TNodeJsUtil::GetUnwrapFld<TNodeJsBoolV>(ArgObj, "batchV");
 		const TBoolV& BatchEndV = BatchEndJsV->Vec;
-		JsMChain->StreamStory->InitHistograms(JsObsFtrVV->Mat, JsControlFtrVV->Mat, RecTmV, BatchEndV);
-	}
-	else {
-		JsMChain->StreamStory->InitHistograms(JsObsFtrVV->Mat, JsControlFtrVV->Mat, RecTmV, TBoolV());
+		JsStreamStory->StreamStory->InitHistograms(JsObsFtrVV->Mat, JsControlFtrVV->Mat, RecTmV, BatchEndV);
+	} else {
+		JsStreamStory->StreamStory->InitHistograms(JsObsFtrVV->Mat, JsControlFtrVV->Mat, RecTmV, TBoolV());
 	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
@@ -2072,12 +2060,12 @@ void TNodeJsStreamStory::getStateName(const v8::FunctionCallbackInfo<v8::Value>&
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 1, "hmc.getStateName: expects 1 argument!");
+	EAssertR(Args.Length() == 1, "ss.getStateName: expects 1 argument!");
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
-	const TStr& StateNm = JsMChain->StreamStory->GetStateNm(StateId);
+	const TStr& StateNm = JsStreamStory->StreamStory->GetStateNm(StateId);
 
 	Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, StateNm.CStr()));
 }
@@ -2086,7 +2074,7 @@ void TNodeJsStreamStory::setStateName(const v8::FunctionCallbackInfo<v8::Value>&
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 2, "hmc.setStateName: expects 2 arguments!");
+	EAssertR(Args.Length() == 2, "ss.setStateName: expects 2 arguments!");
 
 	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
@@ -2098,18 +2086,32 @@ void TNodeJsStreamStory::setStateName(const v8::FunctionCallbackInfo<v8::Value>&
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
+void TNodeJsStreamStory::clearStateName(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "ss.clearStateName: expects 1 argument!");
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	JsStreamStory->StreamStory->SetStateNm(StateId, "");
+
+	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
 void TNodeJsStreamStory::isTarget(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	EAssertR(Args.Length() == 2, "hmc.setStateName: expects 2 arguments!");
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 	const double Height = TNodeJsUtil::GetArgFlt(Args, 1);
 
-	bool Result = JsMChain->StreamStory->IsTargetState(StateId, Height);
+	bool Result = JsStreamStory->StreamStory->IsTargetState(StateId, Height);
 	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, Result));
 }
 
@@ -2119,31 +2121,104 @@ void TNodeJsStreamStory::setTarget(const v8::FunctionCallbackInfo<v8::Value>& Ar
 
 	EAssertR(Args.Length() == 3, "hmc.setStateName: expects 2 arguments!");
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 	const double Height = TNodeJsUtil::GetArgFlt(Args, 1);
 	const bool IsTarget = TNodeJsUtil::GetArgBool(Args, 2);
 
-	JsMChain->StreamStory->SetTargetState(StateId, Height, IsTarget);
+	JsStreamStory->StreamStory->SetTargetState(StateId, Height, IsTarget);
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
-void TNodeJsStreamStory::setControlFactor(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamStory::isLeaf(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 2, "hmc.setControlFactor: expects 2 arguments!");
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsStreamStory->StreamStory->IsLeaf(StateId)));
+}
 
-	const int FtrIdx = TNodeJsUtil::GetArgInt32(Args, 0);
-	const double Factor = TNodeJsUtil::GetArgFlt(Args, 1);
+void TNodeJsStreamStory::getTimeUnit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
 
-	JsMChain->StreamStory->SetControlFtrFactor(FtrIdx, Factor);
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const uint64 TimeUnit = JsStreamStory->StreamStory->GetTimeUnit();
+
+	if (TimeUnit == TMc::TCtMChain::TU_SECOND) {
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "second"));
+	} else if (TimeUnit == TMc::TCtMChain::TU_MINUTE) {
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "minute"));
+	} else if (TimeUnit == TMc::TCtMChain::TU_HOUR) {
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "hour"));
+	} else if (TimeUnit == TMc::TCtMChain::TU_DAY) {
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "day"));
+	} else if (TimeUnit == TMc::TCtMChain::TU_MONTH) {
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "month"));
+	} else {
+		throw TExcept::New("Invalid time unit!", "TNodeJsStreamStory::getTimeUnit");
+	}
+}
+
+
+
+void TNodeJsStreamStory::setControlVal(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "TNodeJsStreamStory::setControlVal: expecting 1 argument!");
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	v8::Local<v8::Object> ArgsObj = Args[0]->ToObject();
+
+	const int FtrId = TNodeJsUtil::GetFldInt(ArgsObj, "ftrId");
+	const double Val = TNodeJsUtil::GetFldFlt(ArgsObj, "val");
+
+	if (TNodeJsUtil::IsFldInt(ArgsObj, "stateId")) {
+		const int StateId = TNodeJsUtil::GetFldInt(ArgsObj, "stateId");
+		JsStreamStory->StreamStory->SetControlFtrVal(StateId, FtrId, Val);
+	} else {
+		JsStreamStory->StreamStory->SetControlFtrsVal(FtrId, Val);
+	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsStreamStory::resetControlVal(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "TNodeJsStreamStory::setControlVal: expecting 1 argument!");
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	v8::Local<v8::Object> ArgsObj = Args[0]->ToObject();
+
+	if (TNodeJsUtil::IsFldInt(ArgsObj, "stateId")) {
+		const int StateId = TNodeJsUtil::GetFldInt(ArgsObj, "stateId");
+		if (TNodeJsUtil::IsFldInt(ArgsObj, "ftrId")) {
+			const int FtrId = TNodeJsUtil::GetFldInt(ArgsObj, "ftrId");
+			JsStreamStory->StreamStory->ResetControlFtrVal(StateId, FtrId);
+		} else {
+			JsStreamStory->StreamStory->ResetControlFtrVals(StateId);
+		}
+	} else {
+		JsStreamStory->StreamStory->ResetControlFtrVals();
+	}
+
+	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsStreamStory::isAnyControlFtrSet(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsStreamStory->StreamStory->IsAnyControlFtrSet()));
 }
 
 void TNodeJsStreamStory::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -2172,16 +2247,13 @@ void TNodeJsStreamStory::getParam(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	if (ParamNm == "verbose") {
 		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsMChain->StreamStory->IsVerbose()));
 		return;
-	}
-	else if (ParamNm == "predictionThreshold") {
+	} else if (ParamNm == "predictionThreshold") {
 		Args.GetReturnValue().Set(v8::Number::New(Isolate, JsMChain->StreamStory->GetPredictionThreshold()));
 		return;
-	}
-	else if (ParamNm == "timeHorizon") {
+	} else if (ParamNm == "timeHorizon") {
 		Args.GetReturnValue().Set(v8::Number::New(Isolate, JsMChain->StreamStory->GetTimeHorizon()));
 		return;
-	}
-	else if (ParamNm == "pdfBins") {
+	} else if (ParamNm == "pdfBins") {
 		Args.GetReturnValue().Set(v8::Integer::New(Isolate, JsMChain->StreamStory->GetPdfBins()));
 		return;
 	}
@@ -2198,8 +2270,7 @@ void TNodeJsStreamStory::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	PSOut SOut;
 	if (TNodeJsUtil::IsArgStr(Args, 0)) {
 		SOut = TFOut::New(TNodeJsUtil::GetArgStr(Args, 0), false);
-	}
-	else {
+	} else {
 		TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
 		SOut = JsFOut->SOut;
 	}
@@ -2209,8 +2280,7 @@ void TNodeJsStreamStory::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// we return nothing currently, just close the stream if filename was used
 	if (TNodeJsUtil::IsArgStr(Args, 0)) {
 		SOut.Clr();
-	}
-	else {
+	} else {
 		// return output stream for convenience
 		Args.GetReturnValue().Set(Args[0]);
 	}
@@ -2258,15 +2328,11 @@ void TNodeJsStreamStory::OnOutlier(const TFltV& FtrV) {
 	}
 }
 
-void TNodeJsStreamStory::OnPrediction(const int& CurrStateId, const int& TargetStateId,
-	const double& Prob, const TFltV& ProbV, const TFltV& TmV) {
+void TNodeJsStreamStory::OnPrediction(const uint64& RecTm, const int& CurrStateId, const int& TargetStateId,
+		const double& Prob, const TFltV& ProbV, const TFltV& TmV) {
 	if (!PredictionCallback.IsEmpty()) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
-
-		const int ArgC = 5;
-
-		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, PredictionCallback);
 
 		v8::Local<v8::Array> JsProbV = v8::Array::New(Isolate, ProbV.Len());
 		v8::Local<v8::Array> JsTmV = v8::Array::New(Isolate, TmV.Len());
@@ -2278,7 +2344,10 @@ void TNodeJsStreamStory::OnPrediction(const int& CurrStateId, const int& TargetS
 			JsTmV->Set(i, v8::Number::New(Isolate, TmV[i]));
 		}
 
+		const int ArgC = 6;
+
 		v8::Handle<v8::Value> ArgV[ArgC] = {
+			v8::Date::New(Isolate, (double)TTm::GetUnixMSecsFromWinMSecs(RecTm)),
 			v8::Integer::New(Isolate, CurrStateId),
 			v8::Integer::New(Isolate, TargetStateId),
 			v8::Number::New(Isolate, Prob),
@@ -2286,6 +2355,7 @@ void TNodeJsStreamStory::OnPrediction(const int& CurrStateId, const int& TargetS
 			JsTmV
 		};
 
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, PredictionCallback);
 		TNodeJsUtil::ExecuteVoid(Callback, ArgC, ArgV);
 	}
 }
@@ -2303,6 +2373,62 @@ void TNodeJsStreamStory::SetParams(const PJsonVal& ParamVal) {
 
 void TNodeJsStreamStory::InitCallbacks() {
 	StreamStory->SetCallback(this);
+}
+
+void TNodeJsStreamStory::WrapHistogram(const v8::FunctionCallbackInfo<v8::Value>& Args,
+		const TFltV& BinStartV, const TFltV& ProbV) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Object> Result = v8::Object::New(Isolate);
+	v8::Local<v8::Array> BinStartJsV = v8::Array::New(Isolate, BinStartV.Len());
+	v8::Local<v8::Array> ProbJsV = v8::Array::New(Isolate, ProbV.Len());
+
+	for (int i = 0; i < BinStartV.Len(); i++) {
+		BinStartJsV->Set(i, v8::Number::New(Isolate, BinStartV[i]));
+	}
+
+	for (int i = 0; i < ProbV.Len(); i++) {
+		ProbJsV->Set(i, v8::Number::New(Isolate, ProbV[i]));
+	}
+
+	Result->Set(v8::String::NewFromUtf8(Isolate, "binStartV"), BinStartJsV);
+	Result->Set(v8::String::NewFromUtf8(Isolate, "probs"), ProbJsV);
+
+	Args.GetReturnValue().Set(Result);
+}
+
+uint64 TNodeJsStreamStory::GetTmUnit(const TStr& TimeUnitStr) {
+	if (TimeUnitStr == "second") {
+		return TMc::TCtMChain::TU_SECOND;
+	} else if (TimeUnitStr == "minute") {
+		return TMc::TCtMChain::TU_MINUTE;
+	} else if (TimeUnitStr == "hour") {
+		return TMc::TCtMChain::TU_HOUR;
+	} else if (TimeUnitStr == "day") {
+		return TMc::TCtMChain::TU_DAY;
+	} else if (TimeUnitStr == "month") {
+		return TMc::TCtMChain::TU_MONTH;
+	} else {
+		throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TNodeJsStreamStory::GetTmUnit");
+	}
+}
+
+TClustering::PDnsKMeans TNodeJsStreamStory::GetClust(const PJsonVal& ParamJson,
+		const TRnd& Rnd) {
+	const TStr& ClustAlg = ParamJson->GetObjStr("type");
+	if (ClustAlg == "dpmeans") {
+		const double Lambda = ParamJson->GetObjNum("lambda");
+		const int MinClusts = ParamJson->IsObjKey("minClusts") ? ParamJson->GetObjInt("minClusts") : 1;
+		const int MxClusts = ParamJson->IsObjKey("maxClusts") ? ParamJson->GetObjInt("maxClusts") : TInt::Mx;
+
+		return new TClustering::TDpMeans(Lambda, MinClusts, MxClusts, Rnd);
+	} else if (ClustAlg == "kmeans") {
+		const int K = ParamJson->GetObjInt("k");
+		return new TClustering::TDnsKMeans(K, Rnd);
+	} else {
+		throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
+	}
 }
 
 

@@ -22,7 +22,7 @@
                     'NDEBUG'
                 ],
             }
-        },        
+        },
         'defines': [
             '<(LIN_ALG_BLAS)',
             '<(LIN_ALG_LAPACKE)',
@@ -45,10 +45,10 @@
             # operating system specific parameters
             ['OS == "linux"', {
                 'libraries': [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ],
-                 # GCC flags
+                # GCC flags
                 'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
                 'cflags_cc': [ '-std=c++0x', '-frtti', '-fexceptions' ],
-                'cflags': [ '-g', '-fexceptions', '-frtti', '-Wall', '-Wno-deprecated-declarations', '-fopenmp' ],
+                'cflags': [ '-Wno-deprecated-declarations', '-fopenmp' ]
             }],
             ['OS == "win"', {
                 'msbuild_toolset': 'v120',
@@ -210,6 +210,16 @@
                 'src/glib/misc/',
                 '<(LIN_ALG_INCLUDE)'
             ],
+        },
+        {
+            # needed for publishing binaries with node-pre-gyp
+            'target_name': 'action_after_build',
+            'type': 'none',
+            'dependencies': [ '<(module_name)' ],
+            'copies': [{
+                'files': [ '<(PRODUCT_DIR)/<(module_name).node' ],
+                'destination': '<(module_path)'
+            }]
         }
     ]
 }

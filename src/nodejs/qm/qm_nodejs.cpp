@@ -280,6 +280,7 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 
 	// Add all methods, getters and setters here.   
 	NODE_SET_PROTOTYPE_METHOD(tpl, "close", _close);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "isClosed", _isClosed);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "store", _store);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStoreList", _getStoreList);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "createStore", _createStore);
@@ -322,11 +323,11 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJso
 			TStrV FNmV;
 			TStrV FExtV;
 			TFFile::GetFNmV(DbFPath, FExtV, true, FNmV);
-			bool DirEmpty = FNmV.Len() == 0;
-			if (!DirEmpty) {
+			if (!FNmV.Empty()) {
 				// delete all files
 				for (int FileN = 0; FileN < FNmV.Len(); FileN++) {
-					TFile::Del(FNmV[FileN], true);
+					const TStr& FNm = FNmV[FileN];
+					TFile::Del(FNm, true);
 				}
 			}
 		}
@@ -336,8 +337,7 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJso
 			TStrV FNmV;
 			TStrV FExtV;
 			TFFile::GetFNmV(DbFPath, FExtV, true, FNmV);
-			bool DirEmpty = FNmV.Len() == 0;
-			if (!DirEmpty) {
+			if (!FNmV.Empty()) {
 				// if not empty and create was called
 				throw TQm::TQmExcept::New("new base(...): database folder not empty "
                     "and mode=create. Clear db folder or use mode=createClean!");
@@ -450,6 +450,24 @@ void TNodeJsBase::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		JsBase->Base.Del();
 		JsBase->Base.Clr();
 	}
+}
+
+void TNodeJsBase::isClosed(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// unwrap
+	TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+
+	// check the watcher if we have closed the base
+	bool IsClosed = JsBase->Watcher->IsClosed();
+
+	if (!IsClosed) {
+		// check if the base itself is closed
+		IsClosed = !JsBase->Base->IsInit();
+	}
+
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, IsClosed));
 }
 
 void TNodeJsBase::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -587,7 +605,7 @@ void TNodeJsBase::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	const TStr AggrNm = TNodeJsUtil::GetArgStr(Args, 0);
 	if (JsBase->Base->IsStreamAggr(AggrNm)) {
 		TQm::PStreamAggr StreamAggr = JsBase->Base->GetStreamAggr(AggrNm);
-		Args.GetReturnValue().Set(TNodeJsSA::New(StreamAggr));
+		Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSA>(new TNodeJsSA(StreamAggr)));
 	}
 }
 
@@ -878,8 +896,10 @@ void TNodeJsStore::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		// check we can write
 		QmAssertR(!Base->IsRdOnly(), "Base opened as read-only");
     
-		PJsonVal RecVal = TNodeJsUtil::GetArgJson(Args, 0);
-		const uint64 RecId = Store->AddRec(RecVal);
+		const PJsonVal RecVal = TNodeJsUtil::GetArgJson(Args, 0);
+		const bool TriggerEvents = TNodeJsUtil::GetArgBool(Args, 1, true);
+
+		const uint64 RecId = Store->AddRec(RecVal, TriggerEvents);
 
 		Args.GetReturnValue().Set(v8::Integer::NewFromUnsigned(Isolate, (uint32_t)RecId));
 	}
@@ -901,7 +921,7 @@ void TNodeJsStore::newRecord(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		Args.GetReturnValue().Set(
 			TNodeJsRec::NewInstance(new TNodeJsRec(JsStore->Watcher, Rec))
-			);
+		);
 
 	}
 	catch (const PExcept& Except) {
@@ -1089,7 +1109,7 @@ void TNodeJsStore::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 		if (Base->IsStreamAggr(StoreId, AggrNm)) {
 			TQm::PStreamAggr StreamAggr = Base->GetStreamAggr(StoreId, AggrNm);
-			Args.GetReturnValue().Set(TNodeJsSA::New(StreamAggr));
+			Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSA>(new TNodeJsSA(StreamAggr)));
 		}
 		else {
 			Args.GetReturnValue().Set(v8::Null(Isolate));
@@ -1687,13 +1707,22 @@ v8::Local<v8::Object> TNodeJsRec::NewInstance(TNodeJsRec* JsRec) {
 	// We need a hash table with move constructor/assignment
 	QmAssertR(TNodeJsQm::BaseFPathToId.IsKey(Rec.GetStore()->GetBase()->GetFPath()),
         "TNodeJsRec::NewInstance: Base Id not found!");
-	uint BaseId = TNodeJsQm::BaseFPathToId.GetDat(Rec.GetStore()->GetBase()->GetFPath());
-	EAssertR(!BaseStoreIdConstructor[BaseId][Rec.GetStoreId()].IsEmpty(),
+
+	const uint BaseId = TNodeJsQm::BaseFPathToId.GetDat(Rec.GetStore()->GetBase()->GetFPath());
+	const int StoreId = (int) Rec.GetStoreId();
+
+	EAssertR(!BaseStoreIdConstructor[BaseId][StoreId].IsEmpty(),
         "TNodeJsRec::NewInstance: constructor is empty. Did you call TNodeJsRec::Init(exports)?");
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(
-        Isolate, BaseStoreIdConstructor[BaseId][Rec.GetStoreId()]);
-	v8::Local<v8::Object> Instance = cons->NewInstance();
+
+	v8::Persistent<v8::Function>& PersCons = BaseStoreIdConstructor[BaseId][StoreId];
+	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(
+        Isolate, PersCons);
+
+	v8::Local<v8::Object> Instance = Cons->NewInstance();
+	const int IntenalFldCount = Instance->InternalFieldCount();
+	EAssertR(IntenalFldCount > 0, "TNodeJsRec::NewInstance: constructor has " + TInt::GetStr(IntenalFldCount) + " internal fields!");
 	JsRec->Wrap(Instance);
+
 	return HandleScope.Escape(Instance);
 }
 
@@ -1946,27 +1975,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 	}
 	else if (Desc.IsTm()) {
 		QmAssertR(Value->IsObject() || Value->IsString() || Value->IsNumber(), "Field " + FieldNm + " not object or string");
-		if (Value->IsDate() || Value->IsNumber()) {
-			double UnixMSecs;
-			if (Value->IsDate()) {
-				v8::Handle<v8::Date> Date = v8::Handle<v8::Date>::Cast(Value);
-				// milliseconds from 1970-01-01T00:00:00Z, which is 11644473600 seconds after Windows file time start
-				UnixMSecs = Date->NumberValue();
-			} else {
-				UnixMSecs = Value->NumberValue();
-			}			
-			// milliseconds from 1601-01-01T00:00:00Z
-			double WinMSecs = UnixMSecs + 11644473600000.0;
-			Rec.SetFieldTmMSecs(FieldId, (uint64)WinMSecs);
-		}
-		else if (Value->IsString()){
-			v8::String::Utf8Value Utf8(Value);
-			Rec.SetFieldTm(FieldId, TTm::GetTmFromWebLogDateTimeStr(TStr(*Utf8), '-', ':', '.', 'T'));
-		} 
-		else {
-			throw TQm::TQmExcept::New("Field + " + FieldNm + " expects a javascript Date() "
-                "object or a Weblog datetime formatted string (example: \"2012-12-31T00:00:05.100\")");
-		}
+		Rec.SetFieldTmMSecs(FieldId, TNodeJsUtil::GetTmMSecs(Value));
 	}
 	else if (Desc.IsNumSpV()) {
 		// it can only be GLib sparse vector
@@ -2040,7 +2049,7 @@ void TNodeJsRecSet::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortById", _sortById);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortByFq", _sortByFq);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortByField", _sortByField);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "sort", sort);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sort", _sort);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "filterById", _filterById);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "filterByFq", _filterByFq);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "filterByField", _filterByField);
@@ -2669,7 +2678,7 @@ void TNodeJsRecSet::getVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TTm Tm;
 		for (int RecN = 0; RecN < Recs; RecN++) {
 			Store->GetFieldTm(RecSet()->GetRecId(RecN), FieldId, Tm);
-			ColV[RecN] = (double)TTm::GetMSecsFromTm(Tm);
+			ColV[RecN] = (double)TTm::GetMSecsFromTm(Tm);	// TODO is this correct?? Shouldn't it be UNIX timestamp???
 		}
 		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
 		return;
@@ -2935,10 +2944,10 @@ bool TJsRecPairFilter::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64In
 	v8::Local<v8::Value> ArgV[Argc] = { JsRec1, JsRec2 };
 	v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
 	if (TryCatch.HasCaught()) {
-		TryCatch.ReThrow();
-		return false;
+		v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+		throw TQm::TQmExcept::New("Javascript exception from callback triggered in TJsRecPairFilter::operator() :" + TStr(*Msg));
 	}
-	QmAssertR(ReturnVal->IsBoolean() || ReturnVal->IsNumber(), "Comparator callback must return a boolean!");
+	QmAssertR(!ReturnVal.IsEmpty() && (ReturnVal->IsBoolean() || ReturnVal->IsNumber()), "Comparator callback must return a boolean!");
 	return ReturnVal->IsBoolean() ? ReturnVal->BooleanValue() : ReturnVal->NumberValue() < 0;
 }
 
@@ -3166,6 +3175,7 @@ void TNodeJsFtrSpace::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "updateRecords", _updateRecords);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "extractSparseVector", _extractSparseVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "extractVector", _extractVector);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "extractFeature", _extractFeature);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "invertFeatureVector", _invertFeatureVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "invertFeature", _invertFeature);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "extractSparseMatrix", _extractSparseMatrix);
@@ -3359,18 +3369,14 @@ void TNodeJsFtrSpace::updateRecord(const v8::FunctionCallbackInfo<v8::Value>& Ar
 
 	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
 
-	try {
-		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-		TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
 
-		// update with new records
-		JsFtrSpace->FtrSpace->Update(JsRec->Rec);
+	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
 
-		Args.GetReturnValue().Set(Args.Holder());
-	}
-	catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::updateRecord");
-	}
+	// update with new records
+	JsFtrSpace->FtrSpace->Update(JsRec->Rec);
+
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsFtrSpace::updateRecords(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -3419,22 +3425,47 @@ void TNodeJsFtrSpace::extractVector(const v8::FunctionCallbackInfo<v8::Value>& A
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+	QmAssertR(Args.Length() == 1 || Args.Length() == 2, "Should have 1 or 2 arguments!");
 
-	try {
-		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-		TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
 
+	TFltV FltV;
+
+	if (Args.Length() == 1) {
 		for (int FtrN = 0; FtrN < JsFtrSpace->FtrSpace->GetFtrExts(); FtrN++) {
 			EAssertR(JsRec->Rec.GetStore()->GetStoreNm() == JsFtrSpace->FtrSpace->GetFtrExt(FtrN)->GetFtrStore()->GetStoreNm(),
 				"FeatureSpace.extractSparseVector: record's and feature extractor's store/source must be the same!");
 		}
 
 		// create feature vector, compute
-		TFltV FltV;
 		JsFtrSpace->FtrSpace->GetFullV(JsRec->Rec, FltV);
+	} else {
+		const int FtrN = TNodeJsUtil::GetArgInt32(Args, 1);
+		EAssertR(FtrN >= 0, "TNodeJsFtrSpace::extractVector: negative indices not allowed!");
+		EAssertR(JsRec->Rec.GetStore()->GetStoreNm() == JsFtrSpace->FtrSpace->GetFtrExt(FtrN)->GetFtrStore()->GetStoreNm(),
+				"FeatureSpace.extractSparseVector: record's and feature extractor's store/source must be the same!");
 
-		Args.GetReturnValue().Set(TNodeJsFltV::New(FltV));
+		JsFtrSpace->FtrSpace->GetFullV(JsRec->Rec, FltV, FtrN);
+	}
+	Args.GetReturnValue().Set(TNodeJsFltV::New(FltV));
+}
+
+void TNodeJsFtrSpace::extractFeature(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 2, "TNodeJsFtrSpace::extractFeature: Should have 2 arguments!");
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+		const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 0);
+		const double Val = TNodeJsUtil::GetArgFlt(Args, 1);
+
+		// create feature vector, compute
+		double RetVal = JsFtrSpace->FtrSpace->GetSingleFtr(FtrExtN, Val);
+
+		Args.GetReturnValue().Set(v8::Number::New(Isolate, RetVal));
 	}
 	catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::extractVector");

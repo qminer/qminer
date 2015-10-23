@@ -1,5 +1,54 @@
 # QMiner Change Log
 
+### 16 Oct 2015
+
+**New version: 2.6.0 **
+
+**non-breaking with new features and bug fixes**
+
+Features:
+- Online histogram in `signalproc.h`, which can inc/dec bing counts
+- Histogram stream aggregate which can attach to tick (no forgetting) or window (forgetting)
+- `FindAll` and `FindAllSatisfy` added to `TVec` to get all IDs of occurrences of (a) given value, or (b) values that satisfy given function
+- `TSpecFunc::StudentCdf` student cumulative density functions
+- New cluster methods in `clustering.h`: K-Means, DP-Means
+- Hierarchical Markov Chain in `mc.h` working on continuous time
+- `fs.readLines(fin, onLine, onEnd, onError)` which iterates over file/inputs stream/node buffer and executes callback for each line
+- `Base.isClosed()`, returns true if base closed
+- Helper functions in `TNodeJsUtil` for checking if argument is undefined, getting function from argument and getting function, int and float from V8 object
+
+Bug fixes:
+- Bad parameters when creating stream aggregates in Node.JS do not crash the whole process
+- Unwrapping has additional checks to prevent crashing
+- Sort does error and exception checking around JavaScript callbacks 
+- TTm to ISO String fixed to always have 3 digits for milliseconds
+- Stemmer no longer crashes on strange parameters
+- SVD works on 1-dimensional inputs- Fixed confusions between C++ and JS timestamps. C++ side now consistently uses Windows timestamps (milliseconds from 1601-01-01) and JS uses milliseconds since 1970-01-01 (same as Date.getTime())
+- No more skipped tests for stream aggregates and resolved associated issues.
+- Issues closed: 197, 196, 189, 188, 183, 192, 230, 198
+
+Other:
+- Improved documentation for base schemas, record sets, etc. 
+
+### 2 Oct 2015
+
+**New version: 2.5.0**
+
+**non-breaking with new features and bug fixes**
+
+Features:
+- added BTree index for efficient numeric range searches. Supported data types: int, float, uint64, datatime
+- Regression error metrics: batch and online metrics
+- Recordset.filterByField - Added support for null values for numerics and datetime. Also, added support for datetime-filtering via string or uint64 (Unix msec-epoch).
+
+Bug fixes:
+
+Other:
+- Unit tests and documentation for NNet
+- Code cleanup
+- Documentation generation fixes and enhancements
+
+
 ### 25 Sep 2015
 
 **New version: 2.4.0**
@@ -14,6 +63,7 @@ Features:
 Bug fixes:
 - fixed memory leak when assigning emtpy TVec to another empty TVec
 - automatic removal of timestamp in generated javascript documentation (jsdoc) to avoid conflicts at merging documentation
+
 
 ### 18 Sep 2015
 
@@ -32,6 +82,7 @@ Bug fixes:
 Other:
 - Cleaned and updated SNAP examples and documentation
 - Added required APIs, documentation and tests for logistic regression, proportional hazards and neural networks
+
 
 ### 11 Sep 2015
 
@@ -56,6 +107,7 @@ Other:
 - examples/timeseriesPlot deleted
 - examples/updatingTimeseriesPlot deleted
 - src/nodejs/ run.js scripts removed
+
 
 ### 4 Sep 2015
 

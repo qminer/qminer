@@ -438,7 +438,7 @@ void TBufferedInterpolator::AddPoint(const double& Val, const uint64& Tm) {
 	if (!Buff.Empty()) {
 		const TUInt64FltPr& LastRec = Buff.GetNewest();
 		EAssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val),
-            "New point has a timestamp lower then the last point in the buffer, or same with different values!");
+            "New point has a timestamp lower then the last point in the buffer, or same with different values " + TTm::GetTmFromDateTimeInt((uint)LastRec.Val1).GetStr() + " >= " + TTm::GetTmFromDateTimeInt((uint)Tm).GetStr() + "!");
 	}
 
 	// add the new point
@@ -922,6 +922,96 @@ bool TRecLinReg::HasNaN() const {
 		}
 	}
 	return false;
+}
+
+
+void TOnlineHistogram::Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf) {
+	int TotalBins = Bins + (AddNegInf ? 1 : 0) + (AddPosInf ? 1 : 0);
+	Counts.Gen(TotalBins); // sets to zero
+	Bounds.Gen(TotalBins + 1, 0);
+	if (AddNegInf) { Bounds.Add(TFlt::NInf); }
+	for (int ElN = 0; ElN <= Bins; ElN++) {
+		Bounds.Add(LBound + ElN * (UBound - LBound) / Bins);
+	}
+	if (AddPosInf) { Bounds.Add(TFlt::PInf); }
+}
+
+TOnlineHistogram::TOnlineHistogram(const PJsonVal& ParamVal) {
+	EAssertR(ParamVal->IsObjKey("lowerBound"), "TOnlineHistogram: lowerBound key missing!");
+	EAssertR(ParamVal->IsObjKey("upperBound"), "TOnlineHistogram: upperBound key missing!");
+	// bounded lowest point
+	TFlt LBound = ParamVal->GetObjNum("lowerBound");
+	// bounded highest point
+	TFlt UBound = ParamVal->GetObjNum("upperBound");
+	EAssertR(LBound < UBound, "TOnlineHistogram: Lower bound should be smaller than upper bound");
+	// number of equal bins ? (not counting possibly infinite ones)
+	TInt Bins = ParamVal->GetObjInt("bins", 5);
+	EAssertR(Bins > 0, "TOnlineHistogram: Number of bins should be greater than 0");
+	// include infinities in the bounds?
+	TBool AddNegInf = ParamVal->GetObjBool("addNegInf", false);
+	TBool AddPosInf = ParamVal->GetObjBool("addPosInf", false);
+	
+	Init(LBound, UBound, Bins, AddNegInf, AddPosInf);
+};
+
+
+int TOnlineHistogram::FindBin(const double& Val) const {
+	int Bins = Bounds.Len() - 1;
+	int LBound = 0;
+	int UBound = Bins - 1;
+	
+	// out of bounds
+	if ((Val < Bounds[0]) || (Val > Bounds.Last())) { return -1; }
+	// the last bound is an exception: the interval is closed from the right
+	if (Val == Bounds.Last()) { return UBound; }
+
+	while (LBound <= UBound) {
+		int Idx = (LBound + UBound) / 2;
+		if ((Val >= Bounds[Idx]) && (Val < Bounds[Idx + 1])) { // value between
+			return Idx; 
+		} else if (Val < Bounds[Idx]) { // value on the left, move upper bound
+			UBound = Idx - 1;
+		} else { // Val > Bounds[Idx + 1]
+			LBound = Idx + 1;
+		}
+	}
+	return -1;
+}
+
+void TOnlineHistogram::Increment(const double& Val) {
+	int Idx = FindBin(Val);
+	if (Idx >= 0) { Counts[Idx]++; }
+}
+
+void TOnlineHistogram::Decrement(const double& Val) {
+	int Idx = FindBin(Val);
+	if (Idx >= 0) { Counts[Idx]--; }
+}
+
+double TOnlineHistogram::GetCount(const double& Val) const {
+	int Idx = FindBin(Val);
+	return Idx >= 0 ? (double)Counts[Idx] : 0.0;
+}
+
+void TOnlineHistogram::Print() const {
+	printf("Histogram:\n");
+	for (int BinN = 0; BinN < Counts.Len(); BinN++) {
+		printf("%g [%g, %g]\n", Counts[BinN].Val, Bounds[BinN].Val, Bounds[BinN + 1].Val);
+	}
+}
+
+PJsonVal TOnlineHistogram::SaveJson() const {
+	PJsonVal Result = TJsonVal::NewObj();
+	PJsonVal BoundsArr = TJsonVal::NewArr();
+	PJsonVal CountsArr = TJsonVal::NewArr();
+	for (int ElN = 0; ElN < Counts.Len(); ElN++) {
+		BoundsArr->AddToArr(Bounds[ElN]);
+		CountsArr->AddToArr(Counts[ElN]);
+	}
+	BoundsArr->AddToArr(Bounds.Last());
+	Result->AddToObj("bounds", BoundsArr);
+	Result->AddToObj("counts", CountsArr);
+	return Result;
 }
 
 }
