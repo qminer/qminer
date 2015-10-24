@@ -1,1 +1,2 @@
-.travis.yml merge=ours 
+.travis.yml merge=ours
+.appveyor.yml merge=ours 
