@@ -1341,6 +1341,45 @@ describe("Metrics, number 76", function () {
 it("should make test number 76", function () {
  this.timeout(10000); 
 
+     // import metrics module
+     var analytics = require('qminer').analytics;
+     
+     // true and predicted lables
+     var true_lables = [0, 1, 0, 0, 1];
+     var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+     
+     // compute ROC curve
+     var roc = analytics.metrics.rocCurve(true_lables, pred_prob); 
+    
+});
+});
+describe("Metrics, number 77", function () {
+it("should make test number 77", function () {
+ this.timeout(10000); 
+
+     // import analytics module
+     var analytics = require('qminer').analytics;
+     // true and predicted lables
+     var true_lables = [0, 1, 0, 0, 1];
+     var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+    
+     // create predictionCurve instance
+     var predictionCurve = new analytics.metrics.PredictionCurve();
+    
+     // simulate data flow
+     for (var i in true_lables) {
+        // push new value
+        predictionCurve.push(true_lables[i], pred_prob[i]);
+    }
+    
+     var roc = predictionCurve.roc(); // get ROC
+    
+});
+});
+describe("Metrics, number 78", function () {
+it("should make test number 78", function () {
+ this.timeout(10000); 
+
      // import analytics module
      var analytics = require('qminer').analytics;
      // true and predicted data
@@ -1352,8 +1391,8 @@ it("should make test number 76", function () {
     
 });
 });
-describe("Metrics, number 77", function () {
-it("should make test number 77", function () {
+describe("Metrics, number 79", function () {
+it("should make test number 79", function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -1375,8 +1414,66 @@ it("should make test number 77", function () {
     
 });
 });
-describe("@classdesc KMeans clustering, number 78", function () {
-it("should make test number 78", function () {
+describe("Class implements several prediction curve measures (ROC, AOC, Precision-Recall, ...), number 80", function () {
+it("should make test number 80", function () {
+ this.timeout(10000); 
+
+     // import metrics module
+     var metrics = require('qminer').analytics.metrics;
+    
+     // true and predicted lables
+     var true_lables = [0, 1, 0, 0, 1];
+     var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+    
+     // create predictionCurve instance
+     var predictionCurve = new metrics.PredictionCurve();
+    
+     // simulate data flow
+     for (var i in true_lables) {
+        // push new value
+        predictionCurve.push(true_lables[i], pred_prob[i]);
+    }
+    
+     var roc = predictionCurve.roc(); // get ROC
+     var auc = predictionCurve.auc(); // get AUC
+     var pr = predictionCurve.precisionRecallCurve() // get precision-recall curve
+    
+});
+});
+describe("Get ROC parametrization sampled on `sample` points, number 81", function () {
+it("should make test number 81", function () {
+ this.timeout(10000); 
+
+     // import metrics module
+     var metrics = require('qminer').analytics.metrics;
+     
+     // true and predicted lables
+     var true_lables = [0, 1, 0, 0, 1];
+     var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+     
+     // compute ROC curve
+     var roc = metrics.rocCurve(true_lables, pred_prob); // output: [ [ 0, 0 ], [0, 0.5], [[ 0.34, 1 ],], [ 0.67, 0 ], [ 1, 1 ] ]
+    
+});
+});
+describe("Get AUC of the current curve, number 82", function () {
+it("should make test number 82", function () {
+ this.timeout(10000); 
+
+     // import metrics module
+     var metrics = require('qminer').analytics.metrics;
+     
+     // true and predicted lables
+     var true_lables = [0, 1, 0, 0, 1];
+     var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+     
+     // compute ROC curve
+     var auc = metrics.rocAucScore(true_lables, pred_prob); // output: 0.92
+    
+});
+});
+describe("@classdesc KMeans clustering, number 83", function () {
+it("should make test number 83", function () {
  this.timeout(10000); 
 
      // import analytics and la modules
@@ -1391,8 +1488,8 @@ it("should make test number 78", function () {
     
 });
 });
-describe("Returns the model, number 79", function () {
-it("should make test number 79", function () {
+describe("Returns the model, number 84", function () {
+it("should make test number 84", function () {
  this.timeout(10000); 
 
          // import modules
@@ -1409,8 +1506,8 @@ it("should make test number 79", function () {
         
 });
 });
-describe("Sets the parameters., number 80", function () {
-it("should make test number 80", function () {
+describe("Sets the parameters., number 85", function () {
+it("should make test number 85", function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1422,8 +1519,8 @@ it("should make test number 80", function () {
         
 });
 });
-describe("Returns the parameters., number 81", function () {
-it("should make test number 81", function () {
+describe("Returns the parameters., number 86", function () {
+it("should make test number 86", function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1435,8 +1532,8 @@ it("should make test number 81", function () {
         
 });
 });
-describe("Computes the centroids., number 82", function () {
-it("should make test number 82", function () {
+describe("Computes the centroids., number 87", function () {
+it("should make test number 87", function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1450,8 +1547,8 @@ it("should make test number 82", function () {
         
 });
 });
-describe("Returns an vector of cluster id assignments., number 83", function () {
-it("should make test number 83", function () {
+describe("Returns an vector of cluster id assignments., number 88", function () {
+it("should make test number 88", function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1469,8 +1566,8 @@ it("should make test number 83", function () {
         
 });
 });
-describe("Returns the IDs of the nearest medoid for each example., number 84", function () {
-it("should make test number 84", function () {
+describe("Returns the IDs of the nearest medoid for each example., number 89", function () {
+it("should make test number 89", function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1490,8 +1587,8 @@ it("should make test number 84", function () {
         
 });
 });
-describe("Transforms the points to vectors of squared distances to centroids., number 85", function () {
-it("should make test number 85", function () {
+describe("Transforms the points to vectors of squared distances to centroids., number 90", function () {
+it("should make test number 90", function () {
  this.timeout(10000); 
 
          // import modules
