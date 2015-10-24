@@ -131,3 +131,4 @@ binding-1.gyp
 
 /examples/streamaggregate/node_modules
 
+.appveyor.yml
