@@ -31,7 +31,7 @@ script:
   - ./tools/mac_genExampleTests.sh
   - ./test/nodejs/mac_test.sh
   - echo status pub && echo $PUBLISH_BINARY && echo $TRAVIS_REPO_SLUG && echo $TRAVIS_PULL_REQUEST
-  - if [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_REPO_SLUG" = "qminer/qminer" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo publishing && ./node_modules/.bin/node-pre-gyp package publish; fi
+  - if [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_REPO_SLUG" = "qminer/qminer" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo publishing && ./node_modules/.bin/node-pre-gyp package unpublish publish; fi
 
 notifications:
   email:  
