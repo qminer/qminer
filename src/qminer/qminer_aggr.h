@@ -786,6 +786,122 @@ inline TStr TWinBuffer<TSignalProc::TVar>::GetType() { return "variance"; }
 
 } // TStreamAggrs namespace
 
+
+namespace TVikTest {
+
+	// forward declarations
+	class TSlottedHistogram;
+	typedef TPt<TSlottedHistogram> PSlottedHistogram;
+
+	///////////////////////////////
+	/// Helper object to maintain distribution statistics in time-slots.
+	class TSlottedHistogram {
+	private:
+		// smart-pointer
+		TCRef CRef;
+		friend class TPt<TSlottedHistogram>;
+	protected:
+		/// Period length in miliseconds
+		TUInt64 PeriodLen;
+		/// Slot granularity in miliseconds
+		TUInt64 SlotGran;
+		/// Data storage, index is truncated timestamp, data is counter
+		TVec<TStrIntPrV> Dat;
+	protected:
+		/// Constructor, reserves appropriate internal storage
+		TSlottedHistogram(const uint64 Period, const uint64 Slot);
+		/// Given timestamp calculate index
+		int GetIdx(const uint64 Ts) { return (Ts % PeriodLen) / SlotGran; };
+		/// Add given record to storage
+		void Add(TVec<TStrIntPrV>& Dest, const TStr& Val, const int Idx, bool DoSubtract = false);
+		/// Add given record to child storage
+		void AddChild(TStrIntPrV& Dest, const TStr& Val, const int Idx, bool DoSubtract = false);
+	public:
+		/// Create new instance based on provided JSon parameters
+		static PSlottedHistogram New(const uint64 Period, const uint64 Slot) { return new TSlottedHistogram(Period, Slot); }
+		/// Virtual destructor!
+		virtual ~TSlottedHistogram() { }
+
+		/// Load stream aggregate state from stream
+		void LoadState(TSIn& SIn);
+		/// Save state of stream aggregate to stream
+		void SaveState(TSOut& SOut) const;
+
+		/// Add new data to statistics
+		void Add(const uint64& Ts, const TStr& Val);
+
+		/// Provide statistics
+		void GetStats(const uint64 TsMin, const uint64 TsMax, TStrIntPrV& Dest);
+	};
+
+//// forward declarations
+//class TDiscrTmWndCntr;
+//typedef TPt<TDiscrTmWndCntr> PDiscrTmWndCntr;
+//
+/////////////////////////////////
+///// Helper object to maintain distribution statistics.
+//class TDiscrTmWndCntr {
+//private:
+//	// smart-pointer
+//	TCRef CRef;
+//	friend class TPt<TDiscrTmWndCntr>;
+//
+//protected:
+//	/// Name of the field that contains discrete value
+//	TStr FldVal;
+//	/// Name of the field that contains timestamp value
+//	TStr FldTs;
+//	/// ID of the field that contains discrete value
+//	TInt FldValId;
+//	/// ID of the field that contains timestamp value
+//	TInt FldTsId;
+//	/// Period length in miliseconds
+//	TUInt64 PeriodLen;
+//	/// Window length in miliseconds
+//	TUInt64 WndLen;
+//	/// Slot granularity in miliseconds
+//	TUInt64 SlotGran;
+//	/// Data storage, index is truncated timestamp, data is counter
+//	TVec<TStrIntPrV> Dat;
+//	/// Data in window 
+//	TVec<TStrIntPrV> DatWnd;
+//	/// Data in window in raw form
+//	TLst<TStrTmPr> DatWndRaw;
+//protected:
+//	/// Create new instance from JSon parameters
+//	TDiscrTmWndCntr(const PJsonVal& ParamVal);
+//	/// Given timestamp calculate index
+//	int GetIdx(const TTm& Tm) {
+//		return (TTm::GetMSecsFromTm(Tm) % PeriodLen) % SlotGran;
+//	};
+//	/// Calculate window-start point
+//	TTm GetTmMin(const TTm& Tm) const;
+//	/// Add given record to storage
+//	void Add(TVec<TStrIntPrV>& Dest, const TStr& Val, const int Idx, bool DoSubtract = false);
+//	/// Add given record to child storage
+//	void AddChild(TStrIntPrV& Dest, const TStr& Val, const int Idx, bool DoSubtract = false);
+//public:
+//	/// Create new instance based on provided JSon parameters
+//	static PDiscrTmWndCntr New(const PJsonVal& ParamVal) { return new TDiscrTmWndCntr(ParamVal); }
+//	/// Virtual destructor!
+//	virtual ~TDiscrTmWndCntr() { }
+//
+//	/// Load stream aggregate state from stream
+//	void LoadState(TSIn& SIn);
+//	/// Save state of stream aggregate to stream
+//	void SaveState(TSOut& SOut) const;
+//
+//	/// Add new record to statistics
+//	void AddRec(const TRec& Rec);
+//	/// Add new recordset to statistics
+//	void AddRecs(const TRecSet& Recs);
+//
+//	/// Provide diff statistics
+//	PJsonVal GetJson();
+//};
+
+}
+
 } // namespace
 
 #endif

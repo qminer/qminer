@@ -1360,4 +1360,257 @@ TOnlineHistogram::TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& Para
 
 } // TAggrs namespace
 
+/////////////////////////////////////////////////////////
+
+namespace TVikTest {
+
+	/// Constructor, reserves appropriate internal storage
+	TSlottedHistogram::TSlottedHistogram(const uint64 Period, const uint64 Slot) {
+		PeriodLen = Period;
+		SlotGran = Slot;
+		Dat.Gen(Period / Slot);
+	}
+
+	/// Load stream aggregate state from stream
+	void TSlottedHistogram::LoadState(TSIn& SIn) {
+		PeriodLen.Load(SIn);
+		SlotGran.Load(SIn);
+		Dat.Load(SIn);
+	}
+
+	/// Save state of stream aggregate to stream
+	void TSlottedHistogram::SaveState(TSOut& SOut) const {
+		PeriodLen.Save(SOut);
+		SlotGran.Save(SOut);
+		Dat.Save(SOut);
+	}
+
+	/// Add given record to storage
+	void TSlottedHistogram::Add(TVec<TStrIntPrV>& Dest, const TStr& Val, int Idx, bool DoSubtract) {
+		TStrIntPrV& DestItem = Dest[Idx];
+		AddChild(DestItem, Val, Idx, DoSubtract);
+	}
+
+	/// Add given record to child storage
+	void TSlottedHistogram::AddChild(TStrIntPrV& Dest, const TStr& Val, int Idx, bool DoSubtract) {
+		bool Found = false;
+		for (int i = 0; i < Dest.Len(); i++) {
+			if (Dest[i].Val1 == Val) {
+				Dest[i].Val2 += (DoSubtract ? -1 : 1);
+				Found = true;
+				break;
+			}
+		}
+		if (!Found && !DoSubtract) {
+			TStrIntPr Rec(Val, 1);
+			Dest.Add(Rec);
+		}
+	}
+
+	/// Add new data to statistics
+	void TSlottedHistogram::Add(const uint64& Ts, const TStr& Val) {
+		int Idx = GetIdx(Ts);
+		TStrIntPrV& DestItem = Dat[Idx];
+		AddChild(DestItem, Val, Idx, false);
+	}
+
+
+	/// Provide statistics
+	void TSlottedHistogram::GetStats(const uint64 TsMin, const uint64 TsMax, TStrIntPrV& Dest) {
+		EAssertR(TsMax > TsMin, "Invalid period query in TSlottedHistogram. TsMax <= TsMin");
+		EAssertR(TsMax - PeriodLen < TsMin, "Invalid period query in TSlottedHistogram. TsMax - period >= TsMin");
+		Dest.Clr();
+
+		for (uint64 i = TsMin; i < TsMax; i += SlotGran) {
+			int Idx = GetIdx(i);
+			const TStrIntPrV& Curr = Dat[Idx];
+			for (int j = 0; j < Curr.Len(); j++) {
+				const TStr Val = Curr[j].Val1;
+				const int Cnt = Curr[j].Val2;
+				bool Found = false;
+				for (int k = 0; k < Dest.Len(); k++) {
+					if (Dest[k].Val1 == Val) {
+						Dest[k].Val2 += Cnt;
+						Found = true;
+						break;
+					}
+				}
+				if (!Found) {
+					TStrIntPr Rec(Val, Cnt);
+					Dest.Add(Rec);
+				}
+			}
+		}
+	}
+
+//
+//TDiscrTmWndCntr::TDiscrTmWndCntr(const PJsonVal& ParamVal) {
+//	EAssert(ParamVal->IsObj());
+//	EAssert(ParamVal->IsObjKey("field_value"));
+//	EAssert(ParamVal->IsObjKey("field_ts"));
+//	EAssert(ParamVal->IsObjKey("period"));
+//	EAssert(ParamVal->IsObjKey("window"));
+//	EAssert(ParamVal->IsObjKey("granularity"));
+//
+//	FldVal = ParamVal->GetObjStr("field_value");
+//	FldTs = ParamVal->GetObjStr("field_ts");
+//	PeriodLen = ParamVal->GetObjUInt64("period");
+//	WndLen = ParamVal->GetObjUInt64("window");
+//	SlotGran = ParamVal->GetObjUInt64("granularity");
+//}
+//
+///// Load stream aggregate state from stream
+//void TDiscrTmWndCntr::LoadState(TSIn& SIn) {
+//	FldVal.Load(SIn);
+//	FldTs.Load(SIn);
+//	PeriodLen.Load(SIn);
+//	WndLen.Load(SIn);
+//	SlotGran.Load(SIn);
+//	Dat.Load(SIn);
+//	FldTsId = -1;
+//	FldValId = -1;
+//}
+//
+///// Save state of stream aggregate to stream
+//void TDiscrTmWndCntr::SaveState(TSOut& SOut) const {
+//	FldVal.Save(SOut);
+//	FldTs.Save(SOut);
+//	PeriodLen.Save(SOut);
+//	WndLen.Save(SOut);
+//	SlotGran.Save(SOut);
+//	Dat.Save(SOut);
+//}
+//
+///// Add given record to storage
+//void TDiscrTmWndCntr::Add(TVec<TStrIntPrV>& Dest, const TStr& Val, int Idx, bool DoSubtract) {
+//	TStrIntPrV& DestItem = Dest[Idx];
+//	AddChild(DestItem, Val, Idx, DoSubtract);
+//}
+//
+///// Add given record to child storage
+//void TDiscrTmWndCntr::AddChild(TStrIntPrV& Dest, const TStr& Val, int Idx, bool DoSubtract) {
+//	bool Found = false;
+//	for (int i = 0; i < Dest.Len(); i++) {
+//		if (Dest[i].Val1 == Val) {
+//			Dest[i].Val2 += (DoSubtract ? -1 : 1);
+//			Found = true;
+//			break;
+//		}
+//	}
+//	if (!Found && !DoSubtract) {
+//		TStrIntPr Rec(Val, 1);
+//		Dest.Add(Rec);
+//	}
+//}
+//
+///// Calculate window-start point
+//TTm TDiscrTmWndCntr::GetTmMin(const TTm& Tm) const {
+//	TTm TmMin(Tm);
+//	TmMin.SubTime(0, 0, 0, WndLen);
+//	return TmMin;
+//}
+//
+///// Add new record to statistics
+//void TDiscrTmWndCntr::AddRec(const TRec& Rec) {
+//	if (FldValId < 0) {
+//		PStore Store = Rec.GetStore();
+//		FldValId = Store->GetFieldId(FldVal);
+//		FldTsId = Store->GetFieldId(FldTs);
+//	}
+//	TTm Tm;
+//	Rec.GetFieldTm(FldTsId, Tm);
+//	TStr Val = Rec.GetFieldStr(FldValId); 
+//	int Idx = GetIdx(Tm);
+//	
+//	// move data from window to main
+//	TTm TmMin = GetTmMin(Tm);
+//	while (DatWndRaw.Len() > 0) {
+//		const TStrTmPr& WndRec = DatWndRaw.FirstVal();
+//		if (WndRec.Val2 > TmMin) { 
+//			break; 
+//		}
+//		int IdxTmp = GetIdx(WndRec.Val2);
+//		Add(Dat, WndRec.Val1, IdxTmp);
+//		Add(DatWnd, WndRec.Val1, IdxTmp, true);
+//		DatWndRaw.DelFirst();
+//	}
+//	
+//	// add new record to window
+//	TStrTmPr LstRec(Val, Tm);
+//	DatWndRaw.AddBack(LstRec);
+//	Add(DatWnd, Val, Idx);
+//}
+//
+///// Add new recordset to statistics
+//void TDiscrTmWndCntr::AddRecs(const TRecSet& Recs) {
+//	for (int i = 0; i < Recs.GetRecs(); i++) {
+//		AddRec(Recs.GetRec(i));
+//	}
+//}
+//
+///// Provide diff statistics
+//PJsonVal TDiscrTmWndCntr::GetJson() {
+//	TTm Tm = TTm::GetCurLocTm();
+//	TTm TmMin = GetTmMin(Tm);
+//
+//	int Idx = GetIdx(Tm);
+//	int IdxMin = GetIdx(TmMin);
+//	
+//	TStrIntPrV WndH;
+//	TStrIntPrV DatH;
+//	if (IdxMin > Idx) {
+//		Idx += DatH.Len();
+//	}
+//	for (int i = IdxMin; i < Idx; i++) {
+//		int ii = i % DatH.Len();
+//		const TStrIntPrV& DatWndItem = DatWnd[ii];
+//		for (int j = 0; j < DatWndItem.Len(); j++) {
+//			AddChild(WndH, DatWndItem[j].Val1, DatWndItem[j].Val2);
+//		}
+//		const TStrIntPrV& DatItem = Dat[ii];
+//		for (int j = 0; j < DatItem.Len(); j++) {
+//			AddChild(DatH, DatItem[j].Val1, DatItem[j].Val2);
+//		}
+//	}
+//	
+//	int SumWnd = 0;
+//	for (int i = 0; i < WndH.Len(); i++) {
+//		SumWnd += WndH[i].Val2;
+//	}
+//
+//	PJsonVal Current = TJsonVal::NewArr();
+//	for (int i = 0; i < WndH.Len(); i++) {
+//		PJsonVal Rec = TJsonVal::NewObj();
+//		Rec->AddToObj("val", WndH[i].Val1);
+//		Rec->AddToObj("cnt", WndH[i].Val2);
+//		Rec->AddToObj("ratio", WndH[i].Val2 / SumWnd);
+//		Current->AddToArr(Rec);
+//	}
+//
+//	double SumDat = 0;
+//	for (int i = 0; i < DatH.Len(); i++) {
+//		SumDat += DatH[i].Val2;
+//	}
+//
+//	PJsonVal Historical = TJsonVal::NewArr();
+//	for (int i = 0; i < DatH.Len(); i++) {
+//		PJsonVal Rec = TJsonVal::NewObj();
+//		Rec->AddToObj("val", DatH[i].Val1);
+//		Rec->AddToObj("cnt", DatH[i].Val2);
+//		Rec->AddToObj("ratio", DatH[i].Val2 / SumDat);
+//		Historical->AddToArr(Rec);
+//	}
+//	
+//	PJsonVal Sums = TJsonVal::NewObj();
+//	Sums->AddToObj("historical", SumDat);
+//	Sums->AddToObj("current", SumWnd);
+//
+//	PJsonVal Res = TJsonVal::NewObj();
+//	Res->AddToObj("historical", Historical);
+//	Res->AddToObj("current", Current);
+//	Res->AddToObj(Sums);
+//	return Res;
+//}
+
+}
 } // TQm namespace
