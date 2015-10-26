@@ -19,6 +19,8 @@
 #include <windows.h>
 
 #include "gtest/gtest.h"
+#include <qminer.h>
+
 
 ////////////////////////////////////////////////////////////////////////
 // typedefs
@@ -87,11 +89,9 @@ void TMyGixDefMerger::Union(TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV) co
 		const TMyItem& Val2 = JoinV.GetVal(ValN2);
 		if (Val1 < Val2) {
 			ResV.Add(Val1); ValN1++;
-		}
-		else if (Val1 > Val2) {
+		} else if (Val1 > Val2) {
 			ResV.Add(Val2); ValN2++;
-		}
-		else {
+		} else {
 			ResV.Add(TMyItem(Val1.Key, Val1.Dat + Val2.Dat));
 			ValN1++;
 			ValN2++;
@@ -113,11 +113,9 @@ void TMyGixDefMerger::Intrs(TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV) co
 		const TMyItem& Val2 = JoinV.GetVal(ValN2);
 		if (Val1 < Val2) {
 			ValN1++;
-		}
-		else if (Val1 > Val2) {
+		} else if (Val1 > Val2) {
 			ValN2++;
-		}
-		else {
+		} else {
 			ResV.Add(TMyItem(Val1.Key, Val1.Dat + Val2.Dat));
 			ValN1++;
 			ValN2++;
@@ -140,8 +138,7 @@ void TMyGixDefMerger::Merge(TVec<TMyItem>& ItemV, bool IsLocal) const {
 		if (ItemV[ItemN] != ItemV[ItemN - 1]) {
 			LastItemN++;
 			ItemV[LastItemN] = ItemV[ItemN];
-		}
-		else {
+		} else {
 			ItemV[LastItemN].Dat += ItemV[ItemN].Dat;
 		}
 		ZeroP = (ItemV[LastItemN].Dat <= 0) || ZeroP;
@@ -155,8 +152,7 @@ void TMyGixDefMerger::Merge(TVec<TMyItem>& ItemV, bool IsLocal) const {
 			if (Item.Dat > 0 || (IsLocal && Item.Dat < 0)) {
 				ItemV[LastItemN] = Item;
 				LastItemN++;
-			}
-			else if (Item.Dat < 0) {
+			} else if (Item.Dat < 0) {
 				printf("Warning: negative item count %d:%d!\n", (int)Item.Key, (int)Item.Dat);
 			}
 		}
@@ -169,6 +165,601 @@ void TMyGixDefMerger::Merge(TVec<TMyItem>& ItemV, bool IsLocal) const {
 // source classes (wrapped in XTEST preprocessor directive)
 class XTest {
 public:
+
+	//////////////////////////////////////////////////////////////////////////////////////
+	// TInMemStorage
+
+	static void TInMemStorage_Simple1() {
+		TStr Fn = "data\\in_mem_storage";
+		TStr tmp;
+		{
+			TQm::TStorage::TInMemStorage storage(Fn);
+			TMem mem;
+			mem.AddBf(&storage, 4);
+			tmp = mem.GetHexStr();
+			auto res1 = storage.AddVal(mem);
+			EXPECT_TRUE(res1 == 0); // offset of new record
+			auto blob_stats = storage.GetBlobStorage()->GetStats();
+			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
+		}
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate);
+			EXPECT_EQ(storage.ValV.Len(), 1);
+			EXPECT_EQ(storage.DirtyV.Len(), 1);
+			EXPECT_EQ(storage.DirtyV[0], TQm::TStorage::isdfClean); // loaded and clean
+			TMem mem;
+			storage.GetVal(0, mem);
+			EXPECT_EQ(mem.GetHexStr(), tmp);
+		}
+	}
+
+	static void TInMemStorage_Lazy1() {
+		TStr Fn = "data\\in_mem_storage";
+		TStr tmp;
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, 1000);
+			TMem mem;
+			mem.AddBf(&storage, 4);
+			tmp = mem.GetHexStr();
+			auto res1 = storage.AddVal(mem);
+			EXPECT_TRUE(res1 == 0); // offset of new record
+			auto blob_stats = storage.GetBlobStorage()->GetStats();
+			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
+		}
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
+			EXPECT_EQ(storage.ValV.Len(), 1);
+			EXPECT_EQ(storage.DirtyV.Len(), 1);
+			EXPECT_EQ(storage.DirtyV[0], TQm::TStorage::isdfNotLoaded); // not loaded yet
+			TMem mem;
+			storage.GetVal(0, mem);
+			EXPECT_EQ(mem.GetHexStr(), tmp);
+		}
+	}
+
+	static void TInMemStorage_Complex1() {
+		TStr Fn = "data\\in_mem_storage";
+		TStr tmp;
+		int cnt = 20;
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, 1000);
+			for (int i = 0; i < cnt; i++) {
+				TMem mem;
+				mem.AddBf(&storage, i % 4);
+				tmp = mem.GetHexStr();
+				auto res1 = storage.AddVal(mem);
+			}
+			auto blob_stats = storage.GetBlobStorage()->GetStats();
+			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
+		}
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate);
+			EXPECT_EQ(storage.ValV.Len(), cnt);
+			auto blob_stats = storage.GetBlobStorage()->GetStats();
+			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
+
+			for (int i = 0; i < cnt; i++) {
+				TMem mem;
+				mem.AddBf(&storage, i % 4);
+				tmp = mem.GetHexStr();
+				auto res1 = storage.AddVal(mem);
+			}
+
+			blob_stats = storage.GetBlobStorage()->GetStats();
+			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
+			EXPECT_EQ(storage.ValV.Len(), 2 * cnt);
+		}
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
+			EXPECT_EQ(storage.ValV.Len(), 2 * cnt);
+		}
+	}
+
+	static void TInMemStorage_LoadAll1() {
+		TStr Fn = "data\\in_mem_storage";
+		TStr tmp;
+		int cnt = 20;
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, 1000);
+			for (int i = 0; i < cnt; i++) {
+				TMem mem;
+				mem.AddBf(&storage, i % 4);
+				tmp = mem.GetHexStr();
+				auto res1 = storage.AddVal(mem);
+			}
+			auto blob_stats = storage.GetBlobStorage()->GetStats();
+			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
+		}
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
+
+			int loaded_cnt = 0;
+			for (int i = 0; i < storage.ValV.Len(); i++) {
+				if (storage.DirtyV[i] != TQm::TStorage::isdfNotLoaded) { // if loaded
+					loaded_cnt++;
+				}
+			}
+			EXPECT_EQ(loaded_cnt, 0);
+
+			storage.LoadAll();
+
+			loaded_cnt = 0;
+			for (int i = 0; i < storage.ValV.Len(); i++) {
+				if (storage.DirtyV[i] != TQm::TStorage::isdfNotLoaded) { // if loaded
+					loaded_cnt++;
+				}
+			}
+			EXPECT_EQ(loaded_cnt, storage.ValV.Len());
+		}
+	}
+
+	static void TInMemStorage_LoadAll2() {
+		TStr Fn = "data\\in_mem_storage";
+		int cnt = 20;
+		int block = 5;
+		TVec<TStr> temp;
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, block);
+			for (int i = 0; i < cnt; i++) {
+				TMem mem;
+				mem.AddBf(&storage, i % 4);
+				TStr x = mem.GetHexStr();
+				//printf("++++%d [%s]\n", i, x.CStr());
+				temp.Add(x);
+				auto res1 = storage.AddVal(mem);
+			}
+			auto blob_stats = storage.GetBlobStorage()->GetStats();
+			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
+		}
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
+
+			int loaded_cnt = 0;
+			for (int i = 0; i < storage.ValV.Len(); i++) {
+				if (storage.DirtyV[i] != TQm::TStorage::isdfNotLoaded) { // if loaded
+					loaded_cnt++;
+				}
+			}
+			EXPECT_EQ(loaded_cnt, 0);
+
+			storage.LoadAll();
+
+			loaded_cnt = 0;
+			for (int i = 0; i < storage.ValV.Len(); i++) {
+				ASSERT_TRUE(storage.DirtyV[i] == TQm::TStorage::isdfClean);
+				loaded_cnt++;
+				//printf("****[%s] * [%s]\n", temp[i].CStr(), storage.ValV[i].GetHexStr().CStr());
+				EXPECT_EQ(temp[i], storage.ValV[i].GetHexStr());
+			}
+			EXPECT_EQ(loaded_cnt, storage.ValV.Len());
+		}
+	}
+
+	static void TInMemStorage_Delete1() {
+		TStr Fn = "data\\in_mem_storage";
+		int cnt = 20;
+		int block = 5;
+		TVec<TStr> temp;
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, block);
+			for (int i = 0; i < cnt; i++) {
+				TMem mem;
+				mem.AddBf(&storage, i % 4);
+				TStr x = mem.GetHexStr();
+				temp.Add(x);
+				auto res1 = storage.AddVal(mem);
+			}
+			auto blob_stats = storage.GetBlobStorage()->GetStats();
+			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
+		}
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
+			storage.LoadAll();
+
+			// delete 7 values in one chunk
+			storage.DelVals(7);
+			EXPECT_EQ(15, storage.ValV.Len()); // first block was removed
+			EXPECT_EQ(5, storage.FirstValOffsetMem);
+			EXPECT_EQ(2, storage.FirstValOffset);
+			EXPECT_EQ(7, storage.GetFirstValId());
+			EXPECT_EQ(19, storage.GetLastValId());
+			EXPECT_EQ(13, storage.Len());
+			EXPECT_EQ(false, storage.IsValId(4));
+			EXPECT_EQ(true, storage.IsValId(7));
+			EXPECT_EQ(true, storage.IsValId(19));
+			EXPECT_EQ(false, storage.IsValId(20));
+		}
+	}
+
+	static void TInMemStorage_Delete2() {
+		TStr Fn = "data\\in_mem_storage";
+		int cnt = 20;
+		int block = 5;
+		TVec<TStr> temp;
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, block);
+			for (int i = 0; i < cnt; i++) {
+				TMem mem;
+				mem.AddBf(&storage, i % 4);
+				TStr x = mem.GetHexStr();
+				temp.Add(x);
+				auto res1 = storage.AddVal(mem);
+			}
+			auto blob_stats = storage.GetBlobStorage()->GetStats();
+			EXPECT_TRUE(blob_stats.PutsNew == 0); // no data should be saved yet
+		}
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
+			storage.LoadAll();
+
+			// delete 7 values, one by one
+			for (int i = 0; i < 7; i++) {
+				storage.DelVals(1);
+			}
+			EXPECT_EQ(15, storage.ValV.Len()); // first block was removed
+			EXPECT_EQ(5, storage.FirstValOffsetMem);
+			EXPECT_EQ(2, storage.FirstValOffset);
+			EXPECT_EQ(7, storage.GetFirstValId());
+			EXPECT_EQ(19, storage.GetLastValId());
+			EXPECT_EQ(13, storage.Len());
+			EXPECT_EQ(false, storage.IsValId(4));
+			EXPECT_EQ(true, storage.IsValId(7));
+			EXPECT_EQ(true, storage.IsValId(19));
+			EXPECT_EQ(false, storage.IsValId(20));
+		}
+	}
+
+	static void TInMemStorage_SetVal() {
+		TStr Fn = "data\\in_mem_storage";
+		int cnt = 20;
+		int block = 5;
+		int target_id = 9;
+		TVec<TStr> temp;
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, block);
+			for (int i = 0; i < cnt; i++) {
+				TMem mem;
+				mem.AddBf(&storage, i % 4);
+				TStr x = mem.GetHexStr();
+				temp.Add(x);
+				auto res1 = storage.AddVal(mem);
+			}
+
+			EXPECT_EQ(TQm::TStorage::isdfNew, storage.DirtyV[target_id]);
+
+			// update 
+			TMem mem;
+			mem.AddBf(&storage, 6);
+			storage.SetVal(target_id, mem);
+
+			EXPECT_EQ(TQm::TStorage::isdfNew, storage.DirtyV[target_id]);
+		}
+		{
+			TQm::TStorage::TInMemStorage storage(Fn, faUpdate, true);
+			storage.LoadAll();
+
+			EXPECT_EQ(TQm::TStorage::isdfClean, storage.DirtyV[target_id]);
+
+			// update 
+			TMem mem;
+			mem.AddBf(&storage, 8);
+			storage.SetVal(target_id, mem);
+
+			EXPECT_EQ(TQm::TStorage::isdfDirty, storage.DirtyV[target_id]);
+		}
+	}
+
+	/////////////////////////////////////////////////////////////////////////////
+	// TPgBlob tests
+
+	/////////////////////////////////////
+
+	static void TPgBlob_Complex1() {
+		auto Base = TPgBlob::Create("data\\xyz");
+		TPgBlobPgPt Pt;
+		char* BfPt;
+		Base->CreateNewPage(Pt, &BfPt);
+		EXPECT_EQ(Pt.GetFIx(), 0);
+		EXPECT_EQ(Pt.GetPg(), 0);
+		Base->CreateNewPage(Pt, &BfPt);
+		EXPECT_EQ(Pt.GetFIx(), 0);
+		EXPECT_EQ(Pt.GetPg(), 1);
+	}
+
+	static void TPgBlob_Page_Init() {
+		char* bf = new char[PAGE_SIZE];
+
+		TPgBlob::InitPageP(bf);
+		auto header = (TPgBlob::TPgHeader*)bf;
+
+		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->IsDirty(), true); // new page is not saved yet
+		EXPECT_EQ(header->IsLock(), false);
+		EXPECT_EQ(header->ItemCount, 0);
+		EXPECT_EQ(header->OffsetFreeStart, 10);
+		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE);
+
+		delete[] bf;
+	}
+
+	static void TPgBlob_Page_AddInt() {
+		char* bf = new char[PAGE_SIZE];
+		int data = 8765;
+
+		TPgBlob::InitPageP(bf);
+
+		// add value
+		auto res = TPgBlob::AddItem(bf, (char*)&data, sizeof(int));
+		EXPECT_EQ(res, 0);
+
+		// check internal state
+		auto header = (TPgBlob::TPgHeader*)bf;
+		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->IsDirty(), true);
+		EXPECT_EQ(header->IsLock(), false);
+		EXPECT_EQ(header->ItemCount, 1);
+		EXPECT_EQ(header->OffsetFreeStart, 10 + 4); // item record
+		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 4);
+
+		// retrieve value
+		auto rec = TPgBlob::GetItemRec(bf, res);
+		int* b = (int*)(bf + rec->Offset);
+		EXPECT_EQ(*b, data);
+
+		delete[] bf;
+	}
+
+	static void TPgBlob_Page_AddDouble() {
+		char* bf = new char[PAGE_SIZE];
+		double data = 8765.4321;
+
+		TPgBlob::InitPageP(bf);
+
+		// add value
+		auto res = TPgBlob::AddItem(bf, (char*)&data, sizeof(double));
+		EXPECT_EQ(res, 0);
+
+		// check internal state
+		auto header = (TPgBlob::TPgHeader*)bf;
+		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->IsDirty(), true);
+		EXPECT_EQ(header->IsLock(), false);
+		EXPECT_EQ(header->ItemCount, 1);
+		EXPECT_EQ(header->OffsetFreeStart, 10 + 4); // item record
+		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 8);
+
+		// retrieve value
+		auto rec = TPgBlob::GetItemRec(bf, res);
+		double* b = (double*)(bf + rec->Offset);
+		EXPECT_EQ(*b, data);
+
+		delete[] bf;
+	}
+
+	static void TPgBlob_Page_AddIntSeveral() {
+		char* bf = new char[PAGE_SIZE];
+		int data1 = 8765;
+		int data2 = 77;
+		int data3 = 91826;
+
+		TPgBlob::InitPageP(bf);
+
+		// add value
+		auto res1 = TPgBlob::AddItem(bf, (char*)&data1, sizeof(int));
+		auto res2 = TPgBlob::AddItem(bf, (char*)&data2, sizeof(int));
+		auto res3 = TPgBlob::AddItem(bf, (char*)&data3, sizeof(int));
+		EXPECT_EQ(res1, 0);
+		EXPECT_EQ(res2, 1);
+		EXPECT_EQ(res3, 2);
+
+		// check internal state
+		auto header = (TPgBlob::TPgHeader*)bf;
+		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->IsDirty(), true);
+		EXPECT_EQ(header->IsLock(), false);
+		EXPECT_EQ(header->ItemCount, 3);
+		EXPECT_EQ(header->OffsetFreeStart, 10 + 3 * 4); // item record
+		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 3 * 4);
+
+		// retrieve values
+		auto rec1 = TPgBlob::GetItemRec(bf, res1);
+		int* b1 = (int*)(bf + rec1->Offset);
+		EXPECT_EQ(*b1, data1);
+		auto rec2 = TPgBlob::GetItemRec(bf, res2);
+		int* b2 = (int*)(bf + rec2->Offset);
+		EXPECT_EQ(*b2, data2);
+		auto rec3 = TPgBlob::GetItemRec(bf, res3);
+		int* b3 = (int*)(bf + rec3->Offset);
+		EXPECT_EQ(*b3, data3);
+
+		delete[] bf;
+	}
+
+	static void TPgBlob_Page_AddIntMany() {
+		char* bf = new char[PAGE_SIZE];
+		int data1 = 5;
+
+		TPgBlob::InitPageP(bf);
+
+		// add values
+		for (int i = 0; i < 1000; i++) {
+			TPgBlob::AddItem(bf, (char*)&data1, sizeof(int));
+			data1 += 3;
+		}
+
+		// check internal state
+		auto header = (TPgBlob::TPgHeader*)bf;
+		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->IsDirty(), true);
+		EXPECT_EQ(header->IsLock(), false);
+		EXPECT_EQ(header->ItemCount, 1000);
+		EXPECT_EQ(header->OffsetFreeStart, 10 + 1000 * 4); // item record
+		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 1000 * 4);
+
+		// retrieve values
+		data1 = 5;
+		for (int i = 0; i < 1000; i++) {
+			auto rec1 = TPgBlob::GetItemRec(bf, i);
+			int* b1 = (int*)(bf + rec1->Offset);
+			EXPECT_EQ(*b1, data1);
+			data1 += 3;
+		}
+
+		delete[] bf;
+	}
+
+	static void TPgBlob_Page_AddIntSeveralDelete() {
+		char* bf = new char[PAGE_SIZE];
+		int data1 = 8765;
+		int data2 = 77;
+		int data3 = 91826;
+
+		TPgBlob::InitPageP(bf);
+
+		// add value
+		auto res1 = TPgBlob::AddItem(bf, (char*)&data1, sizeof(int));
+		auto res2 = TPgBlob::AddItem(bf, (char*)&data2, sizeof(int));
+		auto res3 = TPgBlob::AddItem(bf, (char*)&data3, sizeof(int));
+
+		TPgBlob::DeleteItem(bf, res2);
+
+		// check internal state
+		auto header = (TPgBlob::TPgHeader*)bf;
+		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->IsDirty(), true);
+		EXPECT_EQ(header->IsLock(), false);
+		EXPECT_EQ(header->ItemCount, 3);
+		EXPECT_EQ(header->OffsetFreeStart, 10 + 3 * 4); // 3 items
+		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 2 * 4); // 2 actually contain data
+
+															 // retrieve values
+		auto rec1 = TPgBlob::GetItemRec(bf, res1);
+		int* b1 = (int*)(bf + rec1->Offset);
+		EXPECT_EQ(*b1, data1);
+		auto rec3 = TPgBlob::GetItemRec(bf, res3);
+		int* b3 = (int*)(bf + rec3->Offset);
+		EXPECT_EQ(*b3, data3);
+
+		delete[] bf;
+	}
+
+	static void TPgBlob_Page_AddIntSeveralDelete2() {
+		char* bf = new char[PAGE_SIZE];
+		int data1 = 8765;
+		int data2 = 77;
+		int data3 = 91826;
+
+		TPgBlob::InitPageP(bf);
+
+		// add value
+		auto res1 = TPgBlob::AddItem(bf, (char*)&data1, sizeof(int));
+		auto res2 = TPgBlob::AddItem(bf, (char*)&data2, sizeof(int));
+		auto res3 = TPgBlob::AddItem(bf, (char*)&data3, sizeof(int));
+
+		TPgBlob::DeleteItem(bf, res1);
+
+		// check internal state
+		auto header = (TPgBlob::TPgHeader*)bf;
+		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->IsDirty(), true);
+		EXPECT_EQ(header->IsLock(), false);
+		EXPECT_EQ(header->ItemCount, 3);
+		EXPECT_EQ(header->OffsetFreeStart, 10 + 3 * 4); // 3 items
+		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 2 * 4); // 2 actually contain data
+
+															 // retrieve values
+		auto rec2 = TPgBlob::GetItemRec(bf, res2);
+		int* b2 = (int*)(bf + rec2->Offset);
+		EXPECT_EQ(*b2, data2);
+		auto rec3 = TPgBlob::GetItemRec(bf, res3);
+		int* b3 = (int*)(bf + rec3->Offset);
+		EXPECT_EQ(*b3, data3);
+
+		delete[] bf;
+	}
+	
+	static void TPgBlob_AddBf1() {
+
+		double d1 = 65.43;
+		double d2 = 111234.7;
+		int i1 = 89;
+		TFlt tmp = 0;
+		TInt tmp3 = 0;
+
+		TPgBlob pb("data/pb", TFAccess::faCreate, 4194304);
+		auto p1 = pb.Put((char*)&d1, sizeof(double));
+		auto p2 = pb.Put((char*)&d2, sizeof(double));
+
+		EXPECT_EQ(p1.GetFIx(), 0);
+		EXPECT_EQ(p1.GetPg(), 0);
+		EXPECT_EQ(p1.GetIIx(), 0);
+
+		EXPECT_EQ(p2.GetFIx(), 0);
+		EXPECT_EQ(p2.GetPg(), 0);
+		EXPECT_EQ(p2.GetIIx(), 1);
+
+		auto sin1 = pb.Get(p1);
+		tmp.Load(sin1);
+		EXPECT_EQ(tmp, d1);
+
+		auto sin2 = pb.Get(p2);
+		tmp.Load(sin2);
+		EXPECT_EQ(tmp, d2);
+
+		// now insert int instead of double
+		p1 = pb.Put((char*)&i1, sizeof(int), p1);
+
+		EXPECT_EQ(p1.GetFIx(), 0);
+		EXPECT_EQ(p1.GetPg(), 0);
+		EXPECT_EQ(p1.GetIIx(), 0);
+
+		EXPECT_EQ(p2.GetFIx(), 0);
+		EXPECT_EQ(p2.GetPg(), 0);
+		EXPECT_EQ(p2.GetIIx(), 1);
+
+		auto sin3 = pb.Get(p1);
+		tmp3.Load(sin3);
+		EXPECT_EQ(tmp3, i1);
+
+		auto sin4 = pb.Get(p2);
+		tmp.Load(sin4);
+		EXPECT_EQ(tmp, d2);
+
+		// peek into internal structure and check state
+		auto pg_item = (TPgBlob::TPgBlobPageItem*)
+			(pb.GetPageBf(0) + sizeof(TPgBlob::TPgHeader));
+		EXPECT_EQ(pg_item->Len, 4);
+		EXPECT_EQ(pg_item->Offset, 8180);
+		pg_item++;
+		EXPECT_EQ(pg_item->Len, 8);
+		EXPECT_EQ(pg_item->Offset, 8184);
+	}
+
+	//////////////
+
+	static void TBinTreeMaxVals_Add1() {
+		TBinTreeMaxVals Vals;
+		TPgBlobPgPt Pt(0, 0);
+		Vals.Add(4, Pt);
+		Vals.Add(3, Pt);
+		EXPECT_EQ(Vals.GetIndexOfMax(), 0);
+		Vals.Add(1, Pt);
+		Vals.Add(6, Pt);
+		EXPECT_EQ(Vals.GetIndexOfMax(), 3);
+		Vals.Add(1, Pt);
+		Vals.Add(5, Pt);
+		EXPECT_EQ(Vals.GetIndexOfMax(), 3);
+		Vals.Add(8, Pt);
+		Vals.Add(5, Pt);
+		EXPECT_EQ(Vals.GetIndexOfMax(), 6);
+		Vals.Change(6, 2);
+		EXPECT_EQ(Vals.GetIndexOfMax(), 3);
+		Vals.Change(3, 3);
+		EXPECT_EQ(Vals.GetIndexOfMax(), 5);
+	}
+
+	/////////////////////////////////////////////////////////////////////////////
+	// TGix tests
 
 	static void Test_Simple_1() {
 		TMyGix gix("Test1", "data", faCreate, 10000, 100);
@@ -470,8 +1061,7 @@ public:
 					gix.AddItem(key, TMyItem(doc_counter, 1));
 				}
 				doc_counter++;
-			}
-			else {
+			} else {
 				// perform search in gix
 				int w = rnd.GetUniDevInt(0, total_words);
 				auto key = TMyKey(w, w);
@@ -782,11 +1372,9 @@ public:
 		for (int i = 0; i < all; i++) {
 			if (i == to_delete) {
 				continue;
-			}
-			else if (i < to_delete) {
+			} else if (i < to_delete) {
 				ASSERT_TRUE(itemset->GetItem(i).Key == i);
-			}
-			else if (i > to_delete) {
+			} else if (i > to_delete) {
 				ASSERT_TRUE(itemset->GetItem(i - 1).Key == i);
 			}
 		}
@@ -1027,109 +1615,186 @@ protected:
 	}
 
 };
-//TEST(testTGix, Simple10) { XTest::Test_Simple_1(); }
-//TEST(testTGix, Simple200) { XTest::Test_Simple_220(); }
-//TEST(testTGix, Simple220Unsorted) { XTest::Test_Simple_220_Unsorted(); }
-//TEST(testTGix, Merge220Into50) { XTest::Test_Merge_220_Into_50(); }
-//TEST(testTGix, Merge220Into120) { XTest::Test_Merge_220_Into_120(); }
-//TEST(testTGix, Merge22000Into50) { XTest::Test_Merge_22000_Into_50(); }
-//TEST(testTGix, Delete1) { XTest::Test_Delete_1(); }
-//TEST(testTGix, Delete20) { XTest::Test_Delete_20(); }
-//TEST(testTGix, Delete20And1) { XTest::Test_Delete_20And1(); }
-//TEST(testTGix, Delete120) { XTest::Test_Delete_120(); }
-//TEST(testTGix, Delete120And1) { XTest::Test_Delete_120And1(); }
-//TEST(testTGix, Delete120And110) { XTest::Test_Delete_120And110(); }
-//TEST(testTGix, Delete22000And1000) { XTest::Test_Delete_22000And1000(); }
-//TEST(testTGix, QuasiDelete120And1And2) { XTest::Test_QuasiDelete_120And1And2(); }
-//TEST(testTGix, QuasiDelete120And20) { XTest::Test_QuasiDelete_120And20(); }
-//TEST(testTGix, QuasiDelete22000And1000) { XTest::Test_QuasiDelete_22000And1000(); }
-//TEST(testTGix, ReadOnlyAfterCrash) { XTest::Test_ReadOnlyAfterCrash(); }
+
+TEST(testTInMemStorage, Simple1) { XTest::TInMemStorage_Simple1(); }
+TEST(testTInMemStorage, Lazy1) { XTest::TInMemStorage_Lazy1(); }
+TEST(testTInMemStorage, Complex1) { XTest::TInMemStorage_Complex1(); }
+TEST(testTInMemStorage, LoadAll1) { XTest::TInMemStorage_LoadAll1(); }
+TEST(testTInMemStorage, LoadAll2) { XTest::TInMemStorage_LoadAll2(); }
+TEST(testTInMemStorage, Delete1) { XTest::TInMemStorage_Delete1(); }
+TEST(testTInMemStorage, Delete2) { XTest::TInMemStorage_Delete2(); }
+TEST(testTInMemStorage, SetVal) { XTest::TInMemStorage_SetVal(); }
+//TEST(testTInMemStorage, PerfTest) { XTest::TInMemStorage_PerfTest(); }
+
+TEST(testTPgBlob, Simple) { XTest::TPgBlob_Complex1(); }
+TEST(testTPgBlob, PageInit) { XTest::TPgBlob_Page_Init(); }
+TEST(testTPgBlob, PageAddInt) { XTest::TPgBlob_Page_AddInt(); }
+TEST(testTPgBlob, PageAddIntMany) { XTest::TPgBlob_Page_AddIntMany(); }
+TEST(testTPgBlob, PageAddDouble) { XTest::TPgBlob_Page_AddDouble(); }
+TEST(testTPgBlob, PageAddIntSeveral) { XTest::TPgBlob_Page_AddIntSeveral(); }
+TEST(testTPgBlob, PageAddIntSeveralDelete) { XTest::TPgBlob_Page_AddIntSeveralDelete(); }
+TEST(testTPgBlob, PageAddIntSeveralDelete2) { XTest::TPgBlob_Page_AddIntSeveralDelete2(); }
+TEST(testTPgBlob, AddBf1) { XTest::TPgBlob_AddBf1(); }
+TEST(TBinTreeMaxVals, Add1) { XTest::TBinTreeMaxVals_Add1(); }
+
+TEST_F(testTGix, Simple10) { XTest::Test_Simple_1(); }
+TEST_F(testTGix, Simple200) { XTest::Test_Simple_220(); }
+TEST_F(testTGix, Simple220Unsorted) { XTest::Test_Simple_220_Unsorted(); }
+TEST_F(testTGix, Merge220Into50) { XTest::Test_Merge_220_Into_50(); }
+TEST_F(testTGix, Merge220Into120) { XTest::Test_Merge_220_Into_120(); }
+TEST_F(testTGix, Merge22000Into50) { XTest::Test_Merge_22000_Into_50(); }
+TEST_F(testTGix, Delete1) { XTest::Test_Delete_1(); }
+TEST_F(testTGix, Delete20) { XTest::Test_Delete_20(); }
+TEST_F(testTGix, Delete20And1) { XTest::Test_Delete_20And1(); }
+TEST_F(testTGix, Delete120) { XTest::Test_Delete_120(); }
+TEST_F(testTGix, Delete120And1) { XTest::Test_Delete_120And1(); }
+TEST_F(testTGix, Delete120And110) { XTest::Test_Delete_120And110(); }
+TEST_F(testTGix, Delete22000And1000) { XTest::Test_Delete_22000And1000(); }
+TEST_F(testTGix, QuasiDelete120And1And2) { XTest::Test_QuasiDelete_120And1And2(); }
+TEST_F(testTGix, QuasiDelete120And20) { XTest::Test_QuasiDelete_120And20(); }
+TEST_F(testTGix, QuasiDelete22000And1000) { XTest::Test_QuasiDelete_22000And1000(); }
 
 //////////////////////////////////////////////////////////////////////////
+// Tests of online variance calculator
 
-TEST_F(testTGix, AddRemove) {
-	try {
+TEST(testNumericFeatureAggr, TVar) {
+	TSignalProc::TVarSimple Var;
 
-		TStr Nm = "Test1";
-		TStr DataDir = "data";
-		// create index and add single item
-		TMyGix gix(Nm, DataDir, faCreate, 10000, 100);
+	Var.Update(1);
+	Var.Update(2);
+	Var.Update(3);
 
-		auto key = TIntUInt64Pr(1, 1);
-		TMyItem item(7234, 1);
+	EXPECT_EQ(Var.GetMean(), 2);
+	EXPECT_EQ(Var.GetVar(), 1);
 
-		gix.AddItem(key, item);
-		gix.DelItem(key, item);
+	Var.Update(4);
+	Var.Update(5);
+	Var.Update(6);
+	Var.Update(7);
+	Var.Update(8);
+	Var.Update(9);
+	Var.Update(10);
 
-		ASSERT_EQ(gix.GetKeys(), 1);
-		{
-			auto itemset = gix.GetItemSet(key);
-			itemset->Def();
-			ASSERT_EQ(itemset->Empty(), true);
-		}
-		gix.PartialFlush(1000 * 1000);
-		ASSERT_EQ(gix.GetKeys(), 0);
-	} catch (PExcept& Except) {
-		printf("Error: %s", Except->GetStr());
-		throw Except;
-	}
+	EXPECT_EQ(Var.GetMean(), 5.5);
+	EXPECT_EQ(round(1000000 * Var.GetVar()), 9166667);
 }
 
-//////////////////////////////////////////////////////////////////////////
+TEST(testTFtrGen, TNumeric) {
+	TFtrGen::TNumeric Num(true, true);
 
-TEST_F(testTGix, AddRemoveBatch) {
-	TStr Nm = "Test1";
-	TStr Path = "data";
-	int loops = 100;
-	int items = 19;
+	Num.Update(1);
+	Num.Update(2);
+	Num.Update(3);
 
-	// create index and add items
-	{
-		TMyGix gix(Nm, Path, faCreate, 10000, 100);
+	EXPECT_EQ(Num.GetFtr(2), 0);
+	EXPECT_EQ(Num.GetFtr(3), 1);
+	EXPECT_EQ(Num.GetFtr(1), -1);
+}
 
-		for (int i = 0; i < loops; i++) {
-			auto key = TIntUInt64Pr(i, 1);
-			for (int j = 0; j < items; j++) {
-				TMyItem item(j, 1);
-				gix.AddItem(key, item);
-			}
-		}
-		ASSERT_EQ(gix.GetKeys(), loops);
-	}
-	{
-		TMyGix gix(Nm, Path, faUpdate, 10000, 100);
 
-		int deleted_itemsets = gix.GetKeys();
+//////////////////////////////////////////////////
 
-		for (int i = 0; i < loops; i++) {
-			auto key = TIntUInt64Pr(i, 1);
-			for (int j = 0; j < items; j++) {
-				TMyItem item(j, 1);
-				// here stale itemsets are removed from cache and already get deleted!
-				gix.DelItem(key, item);
-			}
-		}
+TEST(testTBlobBs, Simple10) {
 
-		// detect how many itemsets were deleted already due to cache eviction
-		deleted_itemsets -= gix.GetKeys();
+	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+	auto p1 = blobbs->PutBlob("0123456789"); // length 10
 
-		for (int i = 0; i < loops; i++) {
-			auto key = TIntUInt64Pr(i, 1);
-			auto itemset = gix.GetItemSet(key);
-			if (itemset.Empty() || itemset->Empty()) {
-				deleted_itemsets--;
-			}
-			else {
-				itemset->Def();
-				ASSERT_EQ(itemset->Empty(), true);
-			}
-		}
+	auto stats = blobbs->GetStats();
+	EXPECT_EQ(stats.AllocCount, 1);
+	EXPECT_EQ(stats.AllocSize, 10);
+	EXPECT_EQ(stats.AllocUnusedSize, 0);
+	EXPECT_EQ(stats.AllocUsedSize, 10);
+	EXPECT_EQ(stats.ReleasedCount, 0);
+	EXPECT_EQ(stats.ReleasedSize, 0);
+}
 
-		// missing-keys count must match deleted-keys count
-		ASSERT_EQ(deleted_itemsets, 0);
+TEST(testTBlobBs, Simple7) {
+	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+	auto p1 = blobbs->PutBlob("0123456"); // length 7
 
-		gix.PartialFlush(1000 * 1000);
+	auto stats = blobbs->GetStats();
+	EXPECT_EQ(stats.AllocCount, 1);
+	EXPECT_EQ(stats.AllocSize, 8);
+	EXPECT_EQ(stats.AllocUnusedSize, 1);
+	EXPECT_EQ(stats.AllocUsedSize, 7);
+	EXPECT_EQ(stats.ReleasedCount, 0);
+	EXPECT_EQ(stats.ReleasedSize, 0);
+}
 
-		ASSERT_EQ(gix.GetKeys(), 0);
-	}
+TEST(testTBlobBs, Medium12) {
+	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+	auto p1 = blobbs->PutBlob("0123456"); // length 7
+	auto p2 = blobbs->PutBlob("0123456789012"); // length 13
+
+	auto stats = blobbs->GetStats();
+	EXPECT_EQ(stats.AllocCount, 2);
+	EXPECT_EQ(stats.AllocSize, 24);
+	EXPECT_EQ(stats.AllocUnusedSize, 4);
+	EXPECT_EQ(stats.AllocUsedSize, 20);
+	EXPECT_EQ(stats.ReleasedCount, 0);
+	EXPECT_EQ(stats.ReleasedSize, 0);
+}
+
+TEST(testTBlobBs, Simple7Del) {
+	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+	auto p1 = blobbs->PutBlob("0123456"); // length 7
+	blobbs->DelBlob(p1);
+
+	auto stats = blobbs->GetStats();
+	EXPECT_EQ(stats.AllocCount, 0);
+	EXPECT_EQ(stats.AllocSize, 0);
+	EXPECT_EQ(stats.AllocUnusedSize, 0);
+	EXPECT_EQ(stats.AllocUsedSize, 0);
+	EXPECT_EQ(stats.ReleasedCount, 1);
+	EXPECT_EQ(stats.ReleasedSize, 8);
+}
+
+TEST(testTBlobBs, Medium12Del) {
+	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+	auto p1 = blobbs->PutBlob("0123456"); // length 7
+	auto p2 = blobbs->PutBlob("0123456789012"); // length 13
+	blobbs->DelBlob(p1);
+	blobbs->DelBlob(p2);
+
+	auto stats = blobbs->GetStats();
+	EXPECT_EQ(stats.AllocCount, 0);
+	EXPECT_EQ(stats.AllocSize, 0);
+	EXPECT_EQ(stats.AllocUnusedSize, 0);
+	EXPECT_EQ(stats.AllocUsedSize, 0);
+	EXPECT_EQ(stats.ReleasedCount, 2);
+	EXPECT_EQ(stats.ReleasedSize, 24);
+}
+
+TEST(testTBlobBs, Medium12DelPut) {
+	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+	auto p1 = blobbs->PutBlob("0123456"); // length 7
+	auto p2 = blobbs->PutBlob("0123456789012"); // length 13
+	blobbs->DelBlob(p1);
+	blobbs->DelBlob(p2);
+	auto p3 = blobbs->PutBlob("0123456"); // length 7
+
+	auto stats = blobbs->GetStats();
+	EXPECT_EQ(stats.AllocCount, 1);
+	EXPECT_EQ(stats.AllocSize, 8);
+	EXPECT_EQ(stats.AllocUnusedSize, 1);
+	EXPECT_EQ(stats.AllocUsedSize, 7);
+	EXPECT_EQ(stats.ReleasedCount, 1);
+	EXPECT_EQ(stats.ReleasedSize, 16);
+}
+
+TEST(testTBlobBs, Medium12DelPut2) {
+	auto blobbs = TMBlobBs::New("data\\blobbs_test", faCreate);
+	auto p1 = blobbs->PutBlob("0123456"); // length 7
+	auto p2 = blobbs->PutBlob("0123456789012"); // length 13
+	blobbs->DelBlob(p1);
+	blobbs->DelBlob(p2);
+	auto p3 = blobbs->PutBlob("0123456789012345678"); // length 19
+
+	auto stats = blobbs->GetStats();
+	EXPECT_EQ(stats.AllocCount, 1);
+	EXPECT_EQ(stats.AllocSize, 20);
+	EXPECT_EQ(stats.AllocUnusedSize, 1);
+	EXPECT_EQ(stats.AllocUsedSize, 19);
+	EXPECT_EQ(stats.ReleasedCount, 2);
+	EXPECT_EQ(stats.ReleasedSize, 24);
 }

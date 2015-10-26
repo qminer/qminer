@@ -1420,8 +1420,8 @@ namespace TVikTest {
 		EAssertR(TsMax > TsMin, "Invalid period query in TSlottedHistogram. TsMax <= TsMin");
 		EAssertR(TsMax - PeriodLen < TsMin, "Invalid period query in TSlottedHistogram. TsMax - period >= TsMin");
 		Dest.Clr();
-
-		for (uint64 i = TsMin; i < TsMax; i += SlotGran) {
+		uint64 TsMax2 = TsMax + SlotGran; // this way we always include slot for current timestamp
+		for (uint64 i = TsMin; i < TsMax2; i += SlotGran) {
 			int Idx = GetIdx(i);
 			const TStrIntPrV& Curr = Dat[Idx];
 			for (int j = 0; j < Curr.Len(); j++) {

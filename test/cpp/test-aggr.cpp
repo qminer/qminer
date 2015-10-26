@@ -19,13 +19,9 @@
 #endif
 #endif
 
-
-
-
-
+///////////////////////////////////////////////////////////////////////////////
 
 TEST(TSlottedHistogramTest, Simple) {
-
 	try {
 		TQm::TVikTest::PSlottedHistogram obj = TQm::TVikTest::TSlottedHistogram::New(20, 2);
 
@@ -44,6 +40,13 @@ TEST(TSlottedHistogramTest, Simple) {
 		ASSERT_EQ(Stats[0].Val2, 1);
 		ASSERT_EQ(Stats[1].Val1, "b");
 		ASSERT_EQ(Stats[1].Val2, 1);
+
+		obj->GetStats(45, 47, Stats);
+
+		ASSERT_EQ(Stats.Len(), 1);
+		ASSERT_EQ(Stats[0].Val1, "a");
+		ASSERT_EQ(Stats[0].Val2, 1);
+
 	} catch (PExcept& Except) {
 		printf("Error: %s", Except->GetStr());
 		throw Except;
