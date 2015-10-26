@@ -1459,7 +1459,7 @@ void TNodeJsPropHaz::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model
-const double TNodeJsStreamStory::DEFAULT_DELTA_TM = 1e-3;
+const double TNodeJsStreamStory::DEFAULT_DELTA_TM = 1e-6;
 
 void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -1475,7 +1475,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "update", _update);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "futureStates", _futureStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "pastStates", _pastStates);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "probsOverTime", _probsOverTime);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "probsAtTime", _probsAtTime);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "histStates", _histStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "currState", _currState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fullCoords", _fullCoords);
@@ -1683,72 +1683,31 @@ void TNodeJsStreamStory::pastStates(const v8::FunctionCallbackInfo<v8::Value>& A
 	Args.GetReturnValue().Set(StateArr);
 }
 
-void TNodeJsStreamStory::probsOverTime(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamStory::probsAtTime(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	const double Level = TNodeJsUtil::GetArgFlt(Args, 0);
-	const int StartState = TNodeJsUtil::GetArgInt32(Args, 1);
-	const double StartTm = TNodeJsUtil::GetArgFlt(Args, 2);
-	const double EndTm = TNodeJsUtil::GetArgFlt(Args, 3);
-	const double DeltaTm = TNodeJsUtil::GetArgFlt(Args, 4);
+	const int StartStateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const double Level = TNodeJsUtil::GetArgFlt(Args, 1);
+	const double Time = TNodeJsUtil::GetArgFlt(Args, 2);
 
-	TVec<TFltV> FutProbV, PastProbV;
-	TIntV StateIdV;
-	JsMChain->StreamStory->GetProbVOverTm(Level, StartState, StartTm, EndTm, DeltaTm, StateIdV, FutProbV, PastProbV);
+	TIntV StateIdV; TFltV ProbV;
+	JsStreamStory->StreamStory->GetProbVAtTime(StartStateId, Level, Time, StateIdV, ProbV);
 
-	v8::Local<v8::Array> TimeArr = v8::Array::New(Isolate, FutProbV.Len() + PastProbV.Len());
-
-	double Tm = -DeltaTm*PastProbV.Len();
-	for (int i = 0; i < PastProbV.Len(); i++) {
-		const TFltV& ProbV = PastProbV[PastProbV.Len()-1-i];
+	v8::Local<v8::Array> Result = v8::Array::New(Isolate, StateIdV.Len());
+	for (int i = 0; i < StateIdV.Len(); i++) {
+		const int& StateId = StateIdV[i];
+		const double Prob = ProbV[i];
 
 		v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
-		v8::Local<v8::Array> ProbArr = v8::Array::New(Isolate, FutProbV[0].Len());
-
-		for (int j = 0; j < ProbV.Len(); j++) {
-			v8::Local<v8::Object> ProbObj = v8::Object::New(Isolate);
-
-			ProbObj->Set(v8::String::NewFromUtf8(Isolate, "stateId"), v8::Integer::New(Isolate, StateIdV[j]));
-			ProbObj->Set(v8::String::NewFromUtf8(Isolate, "prob"), v8::Number::New(Isolate, ProbV[j]));
-
-			ProbArr->Set(j, ProbObj);
-		}
-
-		StateObj->Set(v8::String::NewFromUtf8(Isolate, "time"), v8::Number::New(Isolate, Tm));
-		StateObj->Set(v8::String::NewFromUtf8(Isolate, "probs"), ProbArr);
-
-		TimeArr->Set(i, StateObj);
-
-		Tm += DeltaTm;
+		StateObj->Set(v8::String::NewFromUtf8(Isolate, "stateId"), v8::Integer::New(Isolate, StateId));
+		StateObj->Set(v8::String::NewFromUtf8(Isolate, "prob"), v8::Number::New(Isolate, Prob));
+		Result->Set(i, StateObj);
 	}
 
-	for (int i = 0; i < FutProbV.Len(); i++) {
-		const TFltV& ProbV = FutProbV[i];
-
-		v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
-		v8::Local<v8::Array> ProbArr = v8::Array::New(Isolate, FutProbV[0].Len());
-
-		for (int j = 0; j < ProbV.Len(); j++) {
-			v8::Local<v8::Object> ProbObj = v8::Object::New(Isolate);
-
-			ProbObj->Set(v8::String::NewFromUtf8(Isolate, "stateId"), v8::Integer::New(Isolate, StateIdV[j]));
-			ProbObj->Set(v8::String::NewFromUtf8(Isolate, "prob"), v8::Number::New(Isolate, ProbV[j]));
-
-			ProbArr->Set(j, ProbObj);
-		}
-
-		StateObj->Set(v8::String::NewFromUtf8(Isolate, "time"), v8::Number::New(Isolate, Tm));
-		StateObj->Set(v8::String::NewFromUtf8(Isolate, "probs"), ProbArr);
-
-		TimeArr->Set(PastProbV.Len() + i, StateObj);
-
-		Tm += DeltaTm;
-	}
-
-	Args.GetReturnValue().Set(TimeArr);
+	Args.GetReturnValue().Set(Result);
 }
 
 void TNodeJsStreamStory::histStates(const v8::FunctionCallbackInfo<v8::Value>& Args) {
