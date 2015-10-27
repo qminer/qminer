@@ -2946,6 +2946,39 @@ public:
     JsDeclareFunction(save);
 
 	/**
+	* Clears the feature space.
+	* @returns {module:qm.FeatureSpace} Self. 
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        name: "Runners",
+	*        fields: [
+	*            { name: "ID", type: "int", primary: true },
+	*            { name: "Name", type: "string" },
+	*            { name: "BestTime", type: "float" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the "Runners" store
+	* base.store("Runners").push({ ID: 110020, Name: "Eric Ericsson", BestTime: 134.33 });
+	* base.store("Runners").push({ ID: 123307, Name: "Fred Friedrich", BestTime: 101.11 });
+	* base.store("Runners").push({ ID: 767201, Name: "Appel Banana", BestTime: 1034.56 });
+	* // create a feature space
+	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "Runners", field: "BestTime" });
+	* // update the feature space
+	* ftr.updateRecords(base.store("Runners").allRecords);
+	* // clear the feature space (return the feature space to it's default values)
+	* ftr.clear();
+	* base.close();
+	*/
+	//# exports.FeatureSpace.prototype.clear = function () { return Object.create(require('qminer').FeatureSpace.prototype); };
+	JsDeclareFunction(clear);
+
+	/**
 	* Adds a new feature extractor to the feature space.
 	* @param {Object} obj - The added feature extractor. It must be given as a JSON object.
 	* @returns {module:qm.FeatureSpace} Self.

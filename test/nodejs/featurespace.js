@@ -1901,4 +1901,19 @@ describe('Feature Space Tests', function () {
             assert.eqtol(mat.at(2, 10), 1);
         })
     });
+
+    describe('Clear Tests', function () {
+        it('should clear the feature space (text) to its default values', function () {
+            var ftr = new qm.FeatureSpace(base, {
+                type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
+                tokenizer: { type: "simple", stopwords: "none", stemmer: true }
+            });
+            assert.equal(ftr.dim, 0);
+            ftr.updateRecords(base.store("FtrSpaceTest").allRecords);
+            assert.equal(ftr.dim > 0, true);
+            ftr.clear();
+            assert.equal(ftr.dim, 0);
+
+        })
+    })
 })

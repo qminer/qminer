@@ -198,6 +198,7 @@ void TFtrSpace::Clr() {
 	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
 		FtrExtV[FtrExtN]->Clr();
 	}
+	Init();
 }
 
 bool TFtrSpace::Update(const TRec& Rec) {

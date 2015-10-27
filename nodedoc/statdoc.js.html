@@ -71,6 +71,19 @@
 	* &amp;lt;br&gt;zscoreResult.Z - A vector of z-scores has mean 0 and variance 1.
 	*/
  exports.zscoreResult = function (mat, flag, dim) { return {sigma:&#x27;&#x27;, mu:&#x27;&#x27;, Z:&#x27;&#x27;}; }
+/**
+	* function studentCdf calculates Student&#x27;s t cumulative distribution function (PDF integral from -inf to t)
+	* function studentCdf returns &#x27;Alpha&#x27; as in the p-value of a Student t-test
+	* If you already have a t-value than the studentCdf function has 2 inputs: t-value and degrees of freedom
+	* @param {number} TVal - The t-value value of the sample you want to calculate the p-value for
+	* @param {number} Df - Degrees of freedom for the sample (if your sample is big n than degrees of freedom in n-1)
+	* If you don&#x27;t have the t-value than studentCdf function has 4 inputs: Value, Mean, Standard deviation and degrees of freedom
+	* @param {number} Val - The average value of the sample you want to calculate the p-value for
+	* @param {number} Mean - The mean value of the sample you want to calculate the p-value for
+	* @param {number} Std - The sample standard deviation of the sample you want to calculate the p-value for
+	* @param {number} Df - Degrees of freedom for the sample (if your sample is n big then degrees of freedom in n-1)
+	* @returns {Alpha}
+	*/
 </code></pre>
           </article>
         </div>

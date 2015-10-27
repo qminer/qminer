@@ -3170,6 +3170,7 @@ void TNodeJsFtrSpace::Init(v8::Handle<v8::Object> exports) {
 
 	// Add all methods, getters and setters here.
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "clear", _clear);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "addFeatureExtractor", _addFeatureExtractor);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "updateRecord", _updateRecord);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "updateRecords", _updateRecords);
@@ -3327,6 +3328,21 @@ void TNodeJsFtrSpace::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::save");
 	}
 }
+
+void TNodeJsFtrSpace::clear(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 0, "Should get no argument!");
+
+	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+
+	// clears the feature space
+	JsFtrSpace->FtrSpace->Clr();
+
+	Args.GetReturnValue().Set(Args.Holder());
+}
+
 
 void TNodeJsFtrSpace::addFeatureExtractor(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
