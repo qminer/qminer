@@ -216,7 +216,8 @@ private:
 	TFlt pNo;
 public:
 	TCov() { };
-	TCov(const PJsonVal& ParamVal) { TCov(); };
+    TCov(const PJsonVal& ParamVal) { };
+
 	void Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV, const int& N);	
 	double GetCov() const { return (pNo > 1) ? (Cov / (pNo - 1)) : 0; }
