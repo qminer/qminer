@@ -35,7 +35,7 @@ public:
 	* @param {Object} [json] - The JSON object containing the properties iter and tol:
 	* @param {number} [json.iter = 100] - The number of iterations used for the algorithm.
 	* @param {number} [json.tol = 1e-6] - The tolerance number.
-	* @returns {Object} The JSON object svdRes which contains the decomposition matrices:
+	* @returns {Object} The JSON object svdRes which contains the SVD decomposition U*S*V^T matrices:
 	* <br>svdRes.U - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
 	* <br>svdRes.V - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
 	* <br>svdRes.s - The vector containing the singular values of the decomposition. Type {@link module:la.Vector}.
