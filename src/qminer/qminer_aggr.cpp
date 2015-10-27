@@ -1559,5 +1559,62 @@ void TOnlineSlottedHistogram::SaveState(TSOut& SOut) const {
 	Model->SaveState(SOut);
 };
 
+///////////////////////////////
+/// Histogram-difference stream aggregate
+
+/// constructor
+THistogramDiff::THistogramDiff(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+	// parse out input aggregate
+	TStr InStoreNmX = ParamVal->GetObjStr("storeX");
+	TStr InStoreNmY = ParamVal->GetObjStr("storeY");
+	printf("%s", InStoreNmX.CStr());
+	TStr InAggrNmX = ParamVal->GetObjStr("inAggrX");
+	TStr InAggrNmY = ParamVal->GetObjStr("inAggrY");
+	PStreamAggr _InAggrX = Base->GetStreamAggr(InStoreNmX, InAggrNmX);
+	PStreamAggr _InAggrY = Base->GetStreamAggr(InStoreNmY, InAggrNmY);
+
+	InAggrX = dynamic_cast<TStreamAggr*>(_InAggrX());
+	QmAssertR(!InAggrX.Empty(), "Stream aggregate does not exist: " + InAggrNmX);
+	InAggrValX = dynamic_cast<TStreamAggrOut::IFltVec*>(_InAggrX());
+	QmAssertR(!InAggrValX.Empty(), "Stream aggregate does not implement IFltVec interface: " + InAggrNmX);
+
+	InAggrY = dynamic_cast<TStreamAggr*>(_InAggrY());
+	QmAssertR(!InAggrY.Empty(), "Stream aggregate does not exist: " + InAggrNmY);
+	InAggrValY = dynamic_cast<TStreamAggrOut::IFltVec*>(_InAggrY());
+	QmAssertR(!InAggrValY.Empty(), "Stream aggregate does not implement IFltVec interface: " + InAggrNmY);
+}
+
+/// factory method
+PStreamAggr THistogramDiff::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+	return new THistogramDiff(Base, ParamVal);
+}
+
+/// returns the vector of frequencies
+void THistogramDiff::GetFltV(TFltV& ValV) const {
+	TFltV ValV1, ValV2;
+	InAggrValX->GetFltV(ValV1);
+	InAggrValY->GetFltV(ValV2);
+	for (int i = 0; i < ValV1.Len(); i++) {
+		ValV.Add(ValV1[i] - ValV2[i]);
+	}
+}
+
+/// serialization to JSon
+PJsonVal THistogramDiff::SaveJson(const int& Limit) const {
+	PJsonVal Res = TJsonVal::NewObj();
+	Res->AddToObj("name", GetAggrNm());
+	Res->AddToObj("aggr1", InAggrX->SaveJson(Limit));
+	Res->AddToObj("aggr2", InAggrY->SaveJson(Limit));
+
+	TFltV ValV;
+	GetFltV(ValV);
+	PJsonVal CountsArr = TJsonVal::NewArr();
+	for (int ElN = 0; ElN < ValV.Len(); ElN++) {
+		CountsArr->AddToArr(ValV[ElN]);
+	}
+	Res->AddToObj("diff", CountsArr);
+	return Res;
+}
+
 } // TStreamAggrs namespace
 } // TQm namespace

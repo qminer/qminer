@@ -914,6 +914,41 @@ public:
 	/// returns the vector of frequencies
 	void GetFltV(TFltV& ValV) const { Model->GetStats(LastTm - WndLen, LastTm, ValV); }
 };
+
+
+///////////////////////////////
+/// Histogram-difference stream aggregate.
+/// Provides difference in distributions, connects to an online histogram stream aggregate
+/// that implements TStreamAggrOut::IFltVec
+class THistogramDiff : public TStreamAggr, public TStreamAggrOut::IFltVec {
+private:
+	// input
+	TWPt<TStreamAggr> InAggrX, InAggrY;
+	TWPt<TStreamAggrOut::IFltVec> InAggrValX, InAggrValY;
+	// indicator
+	TSignalProc::TChiSquare ChiSquare;
+
+protected:
+	void OnAddRec(const TRec& Rec) {} // do nothing
+	THistogramDiff(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	// did we finish initialization
+	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
+	
+	/// returns the number of bins 
+	int GetFltLen() const { return InAggrValX->GetFltLen(); }
+	/// returns frequencies in a given bin
+	double GetFlt(const TInt& ElN) const { return InAggrValX->GetFlt(ElN) - InAggrValY->GetFlt(ElN); }
+	/// returns the vector of frequencies
+	void GetFltV(TFltV& ValV) const;
+	/// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+	/// stream aggregator type name 
+	static TStr GetType() { return "onlineHistogramDiff"; }
+	/// stream aggregator type name 
+	TStr Type() const { return GetType(); }
+};
 } // TStreamAggrs namespace
 } // TQm namespace
 
