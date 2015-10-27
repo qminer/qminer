@@ -1559,17 +1559,12 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 		const int NHistBins = ClustJson->IsObjKey("histogramBins") ? ClustJson->GetObjInt("histogramBins") : 20;
 
 		const TClustering::PDnsKMeans KMeans = GetClust(ClustJson, Rnd);
+		const TMc::PStateIdentifier StateIdentifier = new TMc::TStateIdentifier(KMeans, NHistBins, Sample, Rnd, Verbose);
+		const TMc::PTransitionModeler MChain = new TMc::TCtModeler(TimeUnit, DeltaTm, Verbose);
+		const TMc::PHierarch Hierarch = new TMc::THierarch(NPastStates + 1, Verbose);
 
-		// state identifier
-		TMc::PStateIdentifier StateIdentifier = new TMc::TStateIdentifier(KMeans, NHistBins, Sample, Rnd, Verbose);
-		// Markov chain
-		TMc::PMChain MChain = new TMc::TCtMChain(TimeUnit, DeltaTm, Verbose);
-		// create the model
-		TMc::PHierarch Hierarch = new TMc::THierarch(NPastStates + 1, Verbose);
 		// finish
-		TMc::PStreamStory StreamStory = new TMc::TStreamStory(StateIdentifier, MChain, Hierarch, Rnd, Verbose);
-
-		return new TNodeJsStreamStory(StreamStory);
+		return new TNodeJsStreamStory(new TMc::TStreamStory(StateIdentifier, MChain, Hierarch, Rnd, Verbose));
 	}
 }
 
@@ -2109,15 +2104,15 @@ void TNodeJsStreamStory::getTimeUnit(const v8::FunctionCallbackInfo<v8::Value>& 
 
 	const uint64 TimeUnit = JsStreamStory->StreamStory->GetTimeUnit();
 
-	if (TimeUnit == TMc::TCtMChain::TU_SECOND) {
+	if (TimeUnit == TMc::TCtModeler::TU_SECOND) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "second"));
-	} else if (TimeUnit == TMc::TCtMChain::TU_MINUTE) {
+	} else if (TimeUnit == TMc::TCtModeler::TU_MINUTE) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "minute"));
-	} else if (TimeUnit == TMc::TCtMChain::TU_HOUR) {
+	} else if (TimeUnit == TMc::TCtModeler::TU_HOUR) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "hour"));
-	} else if (TimeUnit == TMc::TCtMChain::TU_DAY) {
+	} else if (TimeUnit == TMc::TCtModeler::TU_DAY) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "day"));
-	} else if (TimeUnit == TMc::TCtMChain::TU_MONTH) {
+	} else if (TimeUnit == TMc::TCtModeler::TU_MONTH) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "month"));
 	} else {
 		throw TExcept::New("Invalid time unit!", "TNodeJsStreamStory::getTimeUnit");
@@ -2359,15 +2354,15 @@ void TNodeJsStreamStory::WrapHistogram(const v8::FunctionCallbackInfo<v8::Value>
 
 uint64 TNodeJsStreamStory::GetTmUnit(const TStr& TimeUnitStr) {
 	if (TimeUnitStr == "second") {
-		return TMc::TCtMChain::TU_SECOND;
+		return TMc::TCtModeler::TU_SECOND;
 	} else if (TimeUnitStr == "minute") {
-		return TMc::TCtMChain::TU_MINUTE;
+		return TMc::TCtModeler::TU_MINUTE;
 	} else if (TimeUnitStr == "hour") {
-		return TMc::TCtMChain::TU_HOUR;
+		return TMc::TCtModeler::TU_HOUR;
 	} else if (TimeUnitStr == "day") {
-		return TMc::TCtMChain::TU_DAY;
+		return TMc::TCtModeler::TU_DAY;
 	} else if (TimeUnitStr == "month") {
-		return TMc::TCtMChain::TU_MONTH;
+		return TMc::TCtModeler::TU_MONTH;
 	} else {
 		throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TNodeJsStreamStory::GetTmUnit");
 	}
