@@ -353,8 +353,8 @@ public:
   static TTm GetTmFromDateTimeInt(const uint& DateTimeInt);
   static TSecTm GetSecTmFromDateTimeInt(const uint& DateTimeInt);
 
-  static uint64 GetWinMSecsFromUnixMSecs(const uint64& UnixMSecs) { return UnixMSecs + 11644473600000ULL; }
-  static uint64 GetUnixMSecsFromWinMSecs(const uint64& WinMSecs) { return WinMSecs - 11644473600000ULL; }
+  static uint64 GetWinMSecsFromUnixMSecs(const int64& UnixMSecs) { return uint64(UnixMSecs + 11644473600000LL); }
+  static int64 GetUnixMSecsFromWinMSecs(const uint64& WinMSecs) { return int64(WinMSecs) - 11644473600000LL; }
 };
 typedef TVec<TTm> TTmV;
 typedef TPair<TTm, TStr> TTmStrPr;

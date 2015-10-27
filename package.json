@@ -1,6 +1,6 @@
 {
   "name": "qminer",
-  "version": "2.4.0",
+  "version": "3.0.0",
   "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
   "license": "BSD-2-Clause-FreeBSD",
   "author": "Blaz Fortuna <blaz@blazfortuna.com>",
@@ -92,17 +92,29 @@
   },
   "dependencies": {
     "bindings": "~1.2.1",
+    "deasync": "~0.1.0",
     "fast-csv": "^0.5.5",
+    "readline": "^1.0.1",
     "sget": "~0.1.5",
-    "deasync": "~0.1.0"
+    "node-pre-gyp": "0.6.x"
   },
+  "bundledDependencies": [
+    "node-pre-gyp"
+  ],
   "devDependencies": {
     "jsdoc": "^3.3.0-beta3",
     "mustache": "^1.1.0",
-    "mocha": "^1.17.1"
+    "mocha": "^1.17.1",
+    "aws-sdk": "~2.0.0-rc.15"
   },
   "scripts": {
+    "install": "node-pre-gyp install --fallback-to-build",
     "test": "./test/nodejs/test.sh"
+  },
+  "binary": {
+    "module_name": "qm",
+    "module_path": "./out/Release",
+    "host": "https://node-qminer-binary.s3.amazonaws.com"
   },
   "keywords": [
     "addon",

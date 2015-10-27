@@ -579,7 +579,7 @@ public:
 	virtual PStoreIter BackwardIter() const { throw TQmExcept::New("Not implemented"); };
 	
 	/// Add new record provided as JSon
-	virtual uint64 AddRec(const PJsonVal& RecVal) = 0;
+	virtual uint64 AddRec(const PJsonVal& RecVal, const bool& TriggerEvents=true) = 0;
 	/// Update existing record with updates in provided JSon
 	virtual void UpdateRec(const uint64& RecId, const PJsonVal& RecVal) = 0;
 	
@@ -2674,17 +2674,12 @@ private:
 	typedef PStreamAggr (*TNewF)(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	/// Stream aggregate New constructor router
 	static TFunRouter<PStreamAggr, TNewF> NewRouter;   
-	/// Load constructor delegate
-	typedef PStreamAggr(*TLoadF)(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
-	/// Stream aggregate Load constructor router
-	static TFunRouter<PStreamAggr, TLoadF> LoadRouter;
 public:
 	/// Register default stream aggregates
 	static void Init();
 	/// Register new stream aggregate
 	template <class TObj> static void Register() { 
 		NewRouter.Register(TObj::GetType(), TObj::New);
-		LoadRouter.Register(TObj::GetType(), TObj::Load);
 	}
 	
 protected:
@@ -2693,16 +2688,14 @@ protected:
 	/// Stream aggreagte name
 	const TStr AggrNm;
 
-	/// Each trigger has a unique internal ID
+	/// Each stream aggregate has a unique internal ID
 	TStr Guid;
 protected:
-	/// Create new stream aggregate
-	TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm);
+	/// Create new stream aggregate from JSon parameters
+	TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): AggrNm(_AggrNm) { }
 	/// Create new stream aggregate from JSon parameters
 	TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal);       
-	/// Load basic class of stream aggregate
-	TStreamAggr(const TWPt<TBase>& _Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
-	
+
 	/// Get pointer to QMiner base
 	const TWPt<TBase>& GetBase() const { return Base; }
 public:
@@ -2710,11 +2703,6 @@ public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal);
 	/// Virtual destructor!
 	virtual ~TStreamAggr() { }
-	
-	/// Load stream aggregate from stream
-	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
-	/// Save basic class of stream aggregate to stream
-	virtual void Save(TSOut& SOut) const;
 
 	/// Load stream aggregate state from stream
 	virtual void LoadState(TSIn& SIn);
@@ -2825,14 +2813,10 @@ private:
 	// stream aggregates
 	THash<TStr, PStreamAggr> StreamAggrH;
 
-	// create emptyp base
+	// create empty base
 	TStreamAggrBase() { }
-	// serialization
-	TStreamAggrBase(const TWPt<TBase>& Base, TSIn& SIn);
 public:
 	static PStreamAggrBase New();
-	static PStreamAggrBase Load(const TWPt<TBase>& Base, TSIn& SIn);
-	void Save(TSOut& SOut) const;
 
 	// managament
 	bool Empty() const;
@@ -2905,11 +2889,7 @@ private:
 	TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize, const int& SplitLen);
 public:
 	~TBase();
-private:
-	// serialization
-	void SaveStreamAggrBaseV(TSOut& SOut);
-	void LoadStreamAggrBaseV(TSIn& SIn);
-	
+private:	
 	// searching
 	PRecSet Invert(const PRecSet& RecSet, const TIndex::PQmGixExpMerger& Merger);
 	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall, const TQueryGixUsedType& ParentGixFlag);

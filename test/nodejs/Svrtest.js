@@ -140,7 +140,6 @@ describe("SVR test", function () {
             assert.equal(SVRjSon.verbose, false);
         })
         it("should throw an exception if the argument is not Json", function () {
-            this.timeout(4000);
             var SVR = new analytics.SVR();
             assert.throws(function () {
                 SVR.setParams(1);
@@ -232,7 +231,6 @@ describe("SVR test", function () {
             });
         })
         it('should forget the previous model', function () {
-            this.timeout(4000);
             var matrix = new la.Matrix([[1, -1], [1, 1]]);
             var vector = new la.Vector([1, 1]);
             var SVR = new analytics.SVR({ c: 100 });

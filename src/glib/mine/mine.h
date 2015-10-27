@@ -55,6 +55,7 @@
 // clustering
 #include "kmpp.h"
 #include "hac.h"
+#include "clustering.h"
 
 // Markov Chains
 #include "mc.h"

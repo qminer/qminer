@@ -243,10 +243,10 @@
                 <dt><a href="module-qm.html#~StreamAggregateEMA">StreamAggregateEMA</a></dt>
                 <dd>
                 </dd>
-                <dt><a href="module-qm.html#~StreamAggregateMax">StreamAggregateMax</a></dt>
+                <dt><a href="module-qm.html#~StreamAggregateHistogram">StreamAggregateHistogram</a></dt>
                 <dd>
                 </dd>
-                <dt><a href="module-qm.html#~StreamAggregateMerger">StreamAggregateMerger</a></dt>
+                <dt><a href="module-qm.html#~StreamAggregateMax">StreamAggregateMax</a></dt>
                 <dd>
                 </dd>
         </dl>
@@ -254,6 +254,9 @@
 
                     <div class="summary-column">
         <dl class="dl-summary-callout">
+                <dt><a href="module-qm.html#~StreamAggregateMerger">StreamAggregateMerger</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="module-qm.html#~StreamAggregateMin">StreamAggregateMin</a></dt>
                 <dd>
                 </dd>
@@ -4413,6 +4416,210 @@ It <b>cannot</b> connect to the module:qm~StreamAggr_TimeSeriesWindow.</p>
         
     </dl>
 
+                <h3 id="~StreamAggregateHistogram"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateHistogram</span><small class="property-type">
+            &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+        <p>This stream aggregator represents an online histogram. It can connect to a buffered aggregate (such as <a href="module-qm.html#~StreamAggregateTimeSeriesWindow">module:qm~StreamAggregateTimeSeriesWindow</a>)
+or a time series (such as <a href="module-qm.html#~StreamAggregateEMA">module:qm~StreamAggregateEMA</a>).
+The aggregate defines an ordered set of points p(0), ..., p(n) that define n bins. Infinites at both ends are allowed.
+A new measurement is tested for inclusion in the left-closed right-opened intervals [p(i), p(i+1)) and the corresponding
+bin counter is increased for the appropriate bin (or decreased if the point is outgoing from the buffer).
+It implements the following methods:
+<br><a href="module-qm.StreamAggr.html#getFloatLength">module:qm.StreamAggr#getFloatLength</a> returns the number of bins.
+<br><a href="module-qm.StreamAggr.html#getFloatAt">module:qm.StreamAggr#getFloatAt</a> returns the count for a bin index.
+<br><a href="module-qm.StreamAggr.html#getFloatVector">module:qm.StreamAggr#getFloatVector</a> returns the vector of counts, the length is equal to the number of bins.</p>
+
+        <section>
+        <h4>
+            Example
+        </h4>
+                <div>
+    <pre class="prettyprint"><code>// import the qm modulevar qm = require(&#x27;qminer&#x27;);// create a base with a simple storevar base = new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Heat&quot;,       fields: [           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.var timeser = {   name: &#x27;TimeSeriesBuffer&#x27;,   type: &#x27;timeSeriesWinBuf&#x27;,   store: &#x27;Heat&#x27;,   timestamp: &#x27;Time&#x27;,   value: &#x27;Celcius&#x27;,   winsize: 86400000 // one day in miliseconds};var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);// add a histogram aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregatorvar aggrJson = {   name: &#x27;Histogram&#x27;,   type: &#x27;onlineHistogram&#x27;,   store: &#x27;Heat&#x27;,   inAggr: &#x27;TimeSeriesBuffer&#x27;,   lowerBound: 0,   upperBound: 10,   bins: 5,   addNegInf: false,   addPosInf: false};var hist = base.store(&quot;Heat&quot;).addStreamAggr(aggrJson);base.close();</code></pre>
+</div>
+
+    </section>
+
+    
+        <section>
+        <h4>Properties</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>name</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The given name of the stream aggregator.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>type</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The type for the stream aggregator. It must be equal to <b>'onlineHistogram'</b>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>store</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the store from which it takes the data.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>inAggr</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the stream aggregator to which it connects and gets data.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>lowerBound</p>
+        </td>
+        <td>
+                <p>number</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The lowest non-infinite bin point.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>upperBound</p>
+        </td>
+        <td>
+                <p>number</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The highest non-infinite bin point.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>bins</p>
+        </td>
+        <td>
+                <p>number</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>The number of bins bounded by <code>lowerBound</code> and <code>upperBound</code>.</p>
+                <p>Defaults to <code>5</code>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>addNegInf</p>
+        </td>
+        <td>
+                <p>boolean</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>Include a bin [-Inf, lowerBound].</p>
+                <p>Defaults to <code>false</code>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>addPosInf</p>
+        </td>
+        <td>
+                <p>boolean</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>Include a bin [upperBound, Inf].</p>
+                <p>Defaults to <code>false</code>.</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+
+    <dl class="dl-compact">
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+    </dl>
+
                 <h3 id="~StreamAggregateMax"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateMax</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents the maximum moving window buffer. It monitors the maximal value in the connected stream aggregator. 
@@ -6122,6 +6329,21 @@ It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.htm
         </td>
         <td>
                 <p>The merger type.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>hist</p>
+        </td>
+        <td>
+                <p><a href="module-qm.html#~StreamAggregateHistogram">module:qm~StreamAggregateHistogram</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The online histogram type.</p>
         </td>
 </tr>
 

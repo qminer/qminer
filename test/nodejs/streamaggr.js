@@ -11,8 +11,6 @@ var assert = require('../../src/nodejs/scripts/assert.js');
 
 
 describe('Stream Aggregator Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
 
@@ -194,9 +192,8 @@ describe('Stream Aggregator Tests', function () {
 
             //aggr.onAdd({ Name: "John", Gendre: "Male" }); // doesn't digest a JSON record
             assert.equal(aggr.saveJson().val, 4);
-        })
-        // unexpectively exits node
-        it.skip('should throw an exception if the onAdd function is not defined', function () {
+        })        
+        it('should throw an exception if the onAdd function is not defined', function () {
             assert.throws(function () {
                 var aggr = new qm.StreamAggr(base, new function () {
                     var length = 0;
@@ -232,7 +229,7 @@ describe('Stream Aggregator Tests', function () {
             assert.equal(aggr.saveJson().val, 1);
         })
         // unexpectively exits node
-        it.skip('should throw an exception if the onAdd function is not defined with the onUpdate', function () {
+        it('should throw an exception if the onAdd function is not defined with the onUpdate', function () {
             assert.throws(function () {
                 var aggr = new qm.StreamAggr(base, new function () {
                     var type = null;
@@ -310,8 +307,6 @@ describe('Stream Aggregator Tests', function () {
 });
 
 describe('Time Series Window Buffer Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -345,7 +340,7 @@ describe('Time Series Window Buffer Tests', function () {
             assert.equal(sa.init, false);
         })
         // unexpected node exit
-        it.skip('should throw an exception if the keys timestamp and value are missing', function () {
+        it('should throw an exception if the keys timestamp and value are missing', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -355,20 +350,7 @@ describe('Time Series Window Buffer Tests', function () {
             assert.throws(function () {
                 var sa = store.addStreamAggr(aggr);
             });
-        })
-        // unexpected node exit
-        it.skip('should throw an exception if the key store is missing', function () {
-            var aggr = {
-                name: 'TimeSeriesWindowAggr',
-                type: 'timeSeriesWinBuf',
-                timestamp: 'Time',
-                value: 'Value',
-                winsize: 2000
-            };
-            assert.throws(function () {
-                var sa = store.addStreamAggr(aggr);
-            })
-        })
+        })        
     });
     describe('Adding Records Tests', function () {
         it('should update the time and value of the stream aggregate', function () {
@@ -383,13 +365,13 @@ describe('Time Series Window Buffer Tests', function () {
             var sa = store.addStreamAggr(aggr);
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
             var json = sa.saveJson();
-            assert.equal(json.Time, '2015-06-10T14:13:32.0');
+            assert.equal(new Date(json.Time).getTime(), new Date('2015-06-10T14:13:32.0').getTime());
             assert.equal(json.Val, 1);
 
             store.push({ Time: '2015-06-10T14:17:45.0', Value: 2 });
 
             json = sa.saveJson();
-            assert.equal(json.Time, '2015-06-10T14:17:45.0');
+            assert.equal(new Date(json.Time).getTime(), new Date('2015-06-10T14:17:45.0').getTime());
             assert.equal(json.Val, 2);
         })
     });
@@ -478,7 +460,6 @@ describe('Time Series Window Buffer Tests', function () {
         })
     });
     describe('GetFloatAt Tests', function () {
-        this.timeout(10000);
         it('should return the value with the index 1', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
@@ -587,7 +568,7 @@ describe('Time Series Window Buffer Tests', function () {
             assert.equal(sa.getTimestampAt(1) - 11644473600000, new Date('2015-06-10T14:13:33.0').getTime());
         })
         // throws a C++ exception
-        it.skip('should throw an exception for an empty vector', function () {
+        it('should throw an exception for an empty vector', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -823,8 +804,6 @@ describe('Time Series Window Buffer Tests', function () {
 });
 
 describe('MovingWindowBufferSum Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -963,7 +942,7 @@ describe('MovingWindowBufferSum Tests', function () {
             var suma = store.addStreamAggr(aggr);
             assert.equal(suma.name, 'SumaAggr');
         })
-        it.skip('should return the JSON object of the suma aggregate', function () {
+        it('should return the JSON object of the suma aggregate', function () {
             var aggr = {
                 name: 'SumaAggr',
                 type: 'winBufSum',
@@ -971,15 +950,12 @@ describe('MovingWindowBufferSum Tests', function () {
                 inAggr: 'TimeSeriesWindowAggr'
             };
             var suma = store.addStreamAggr(aggr);
-            assert.equal(suma.val.Time, '1601-01-01T00:00:00.0');
-            assert.equal(suma.val.Val, 0);
+            assert.equal(suma.init, false);
         })
     });
 });
 
 describe('MovingWindowBufferMin Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1019,9 +995,8 @@ describe('MovingWindowBufferMin Tests', function () {
             };
             var min = store.addStreamAggr(aggr);
             assert.equal(min.init, false);
-        })
-        // unexpected node crash
-        it.skip('should throw an exception if a key value is missing', function () {
+        })        
+        it('should throw an exception if a key value is missing', function () {
             var aggr = {
                 name: 'MinAggr',
                 type: 'winBufMin',
@@ -1135,7 +1110,7 @@ describe('MovingWindowBufferMin Tests', function () {
             var min = store.addStreamAggr(aggr);
             assert.equal(min.name, 'MinAggr');
         })
-        it.skip('should return the JSON object of the aggregator', function () {
+        it('should return the JSON object of the aggregator', function () {
             var aggr = {
                 name: 'MinAggr',
                 type: 'winBufMin',
@@ -1143,15 +1118,12 @@ describe('MovingWindowBufferMin Tests', function () {
                 inAggr: 'TimeSeriesWindowAggr'
             };
             var min = store.addStreamAggr(aggr);
-            assert.equal(min.val.Time, '1601-01-01T00:00:00.0');
-            assert.notEqual(min.val.Val, 0);
+            assert.equal(min.init, false);
         })
     });
 });
 
 describe('MovingWindowBufferMax Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1192,7 +1164,7 @@ describe('MovingWindowBufferMax Tests', function () {
             assert.equal(max.init, false);
         })
         // unexpexted node crash
-        it.skip('should throw an exception if some key values are missing', function () {
+        it('should throw an exception if some key values are missing', function () {
             var aggr = {
                 name: 'MaxAggr',
                 type: 'winBufMax',
@@ -1303,7 +1275,7 @@ describe('MovingWindowBufferMax Tests', function () {
             var max = store.addStreamAggr(aggr);
             assert.equal(max.name, 'MaxAggr');
         })
-        it.skip('should return the JSON object of the aggregator', function () {
+        it('should return the JSON object of the aggregator', function () {
             var aggr = {
                 name: 'MaxAggr',
                 type: 'winBufMax',
@@ -1311,15 +1283,12 @@ describe('MovingWindowBufferMax Tests', function () {
                 inAggr: 'TimeSeriesWindowAggr'
             };
             var max = store.addStreamAggr(aggr);
-            assert.equal(max.val.Time, '2014-01-01T00:00:00.0');
-            assert.notEqual(max.val.Val, 0);
+            assert.equal(max.init, false);            
         })
     });
 });
 
 describe('MovingAverage Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1356,11 +1325,9 @@ describe('MovingAverage Tests', function () {
                 inAggr: 'TimeSeriesWindowAggr'
             };
             var ma = store.addStreamAggr(aggr);
-            assert.equal(ma.saveJson().Val, 0);
-            assert.equal(ma.saveJson().Time, '1601-01-01T00:00:00.0');
-        })
-        // unexpected node crash
-        it.skip('should throw an exception if some key values are missing', function () {
+            assert.equal(ma.init, false);
+        })        
+        it('should throw an exception if some key values are missing', function () {
             var aggr = {
                 name: 'AverageAggr',
                 type: 'ma',
@@ -1477,15 +1444,12 @@ describe('MovingAverage Tests', function () {
                 inAggr: 'TimeSeriesWindowAggr'
             };
             var ma = store.addStreamAggr(aggr);
-            assert.equal(ma.val.Time, '1601-01-01T00:00:00.0');
-            assert.equal(ma.val.Val, 0);
+            assert.equal(ma.init, false);
         })
     });
 });
 
 describe('TimeSeriesTick Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1514,10 +1478,9 @@ describe('TimeSeriesTick Tests', function () {
                 value: 'Value',
             };
             var tick = store.addStreamAggr(aggr);
-            assert.equal(tick.saveJson().Time, '1601-01-01T00:00:00.0');
-            assert.equal(tick.saveJson().Val, 0);
+            assert.equal(tick.init, false);
         })
-        it.skip('should throw an exeption if some key values are missing', function () {
+        it('should throw an exeption if some key values are missing', function () {
             var aggr = {
                 name: 'TickAggr',
                 type: 'timeSeriesTick',
@@ -1660,15 +1623,12 @@ describe('TimeSeriesTick Tests', function () {
                 value: 'Value',
             };
             var tick = store.addStreamAggr(aggr);
-            assert.equal(tick.val.Time, '1601-01-01T00:00:00.0');
-            assert.equal(tick.val.Val, 0);
+            assert.equal(tick.init, false);
         })
     })
 })
 
 describe('EMA Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1709,10 +1669,9 @@ describe('EMA Tests', function () {
                 initWindow: 1000
             };
             var ema = store.addStreamAggr(aggr);
-            assert.equal(ema.saveJson().Time, '1601-01-01T00:00:00.0');
-            assert.equal(ema.saveJson().Val, 0);
+            assert.equal(ema.init, false);
         })
-        it.skip('should throw an exception if some key values are missing', function () {
+        it('should throw an exception if some key values are missing', function () {
             var aggr = {
                 name: 'EmaAggr',
                 type: 'ema',
@@ -1764,7 +1723,7 @@ describe('EMA Tests', function () {
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
             assert.equal(ema.getFloat(), 1);
         })
-        it.skip('should return the ema of the records in the buffer with initWindow', function () {
+        it('should return the ema of the records in the buffer with initWindow', function () {
             var aggr = {
                 name: 'EmaAggr',
                 type: 'ema',
@@ -1779,21 +1738,6 @@ describe('EMA Tests', function () {
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 1 });
             store.push({ Time: '2015-06-10T14:13:34.0', Value: 0 });
             assert.equal(ema.getFloat(), 0);
-        })
-        it.skip('should return the ema of the records in the buffer without initWindow', function () {
-            var aggr = {
-                name: 'EmaAggr',
-                type: 'ema',
-                store: 'Function',
-                inAggr: 'TickAggr',
-                emaType: 'previous',
-                interval: 3000,
-            };
-            var ema = store.addStreamAggr(aggr);
-            store.push({ Time: '2015-06-10T14:13:32.0', Value: 0 });
-            store.push({ Time: '2015-06-10T14:13:33.0', Value: 1 });
-            store.push({ Time: '2015-06-10T14:13:34.0', Value: 0 });
-            assert.equal(ema.getFloat(), 1);
         })
     });
     describe('GetTimestamp Tests', function () {
@@ -1873,7 +1817,7 @@ describe('EMA Tests', function () {
             var ema = store.addStreamAggr(aggr);
             assert.equal(ema.name, 'EmaAggr');
         })
-        it('should return the JSON object of the aggregator', function () {
+        it('should check that the aggregate is not initialized', function () {
             var aggr = {
                 name: 'EmaAggr',
                 type: 'ema',
@@ -1883,16 +1827,13 @@ describe('EMA Tests', function () {
                 interval: 3000,
                 initWindow: 1000
             };
-            var ema = store.addStreamAggr(aggr);
-            assert.equal(ema.val.Time, '1601-01-01T00:00:00.0');
-            assert.equal(ema.val.Val, 0);
+            var ema = store.addStreamAggr(aggr); 
+            assert.equal(ema.init, false);                
         })
     });
 });
 
 describe('MovingVariance Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1929,10 +1870,9 @@ describe('MovingVariance Tests', function () {
                 inAggr: 'TimeSeriesWindowAggr'
             };
             var variance = store.addStreamAggr(aggr);
-            assert.equal(variance.saveJson().Time, '1601-01-01T00:00:00.0');
-            assert.equal(variance.saveJson().Val, 0);
+            assert.equal(variance.init, false);
         })
-        it.skip('should throw an exception if a key value is missing', function () {
+        it('should throw an exception if a key value is missing', function () {
             var aggr = {
                 name: 'VarAggr',
                 type: 'variance',
@@ -2064,15 +2004,12 @@ describe('MovingVariance Tests', function () {
                 inAggr: 'TimeSeriesWindowAggr'
             };
             var variance = store.addStreamAggr(aggr);
-            assert.equal(variance.val.Time, '1601-01-01T00:00:00.0');
-            assert.equal(variance.val.Val, 0);
+            assert.equal(variance.init, false);
         })
     });
 });
 
 describe('Covariance Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -2122,10 +2059,9 @@ describe('Covariance Tests', function () {
                 inAggrY: 'TimeSeries2'
             };
             var cov = store.addStreamAggr(aggr);
-            assert.equal(cov.saveJson().Time, '1601-01-01T00:00:00.0');
-            //assert.equal(cov.saveJson().Val, null);
+            assert.equal(cov.init, false);
         })
-        it.skip('should throw an exception if some key values are missing', function () {
+        it('should throw an exception if some key values are missing', function () {
             var aggr = {
                 name: 'CovAggr',
                 type: 'covariance',
@@ -2257,15 +2193,12 @@ describe('Covariance Tests', function () {
                 inAggrY: 'TimeSeries2'
             };
             var cov = store.addStreamAggr(aggr);
-            assert.equal(cov.val.Time, '1601-01-01T00:00:00.0');
-            assert.equal(cov.val.Val, 0);
+            assert.equal(cov.init, false);
         })
     });
 });
 
 describe('Correlation Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -2338,10 +2271,10 @@ describe('Correlation Tests', function () {
                 inAggrVarY: 'VarAggrY'
             };
             var corr = store.addStreamAggr(aggr);
-            assert.equal(corr.saveJson().Time, '1601-01-01T00:00:00.0');
+            assert.equal(corr.init, false);
         })
         // unexpected node crash
-        it.skip('should throw an exception if a key-value is missing', function () {
+        it('should throw an exception if a key-value is missing', function () {
             var aggr = {
                 name: 'CorrAggr',
                 type: 'correlation',
@@ -2499,15 +2432,12 @@ describe('Correlation Tests', function () {
                 inAggrVarY: 'VarAggrY'
             };
             var corr = store.addStreamAggr(aggr);
-            assert.equal(corr.val.Time, '1601-01-01T00:00:00.0');
-            assert.equal(corr.val.Val, 0);
+            assert.equal(corr.init, false);
         })
     });
 });
 
 describe('Resampler Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var store = undefined;
     var out = undefined;
@@ -2555,7 +2485,7 @@ describe('Resampler Tests', function () {
             assert.equal(res.name, 'ResAggr');
         })
         // unexpected node crash
-        it.skip('should throw an exception if a key-value is missing in the json', function () {
+        it('should throw an exception if a key-value is missing in the json', function () {
             var aggr = {
                 name: 'ResAggr',
                 store: 'Function',
@@ -2678,8 +2608,6 @@ describe('Resampler Tests', function () {
 });
 
 describe('Merger Tests', function () {
-    this.timeout(10000);
-
     var base = undefined;
     var strore = undefined;
     beforeEach(function () {
@@ -2728,9 +2656,8 @@ describe('Merger Tests', function () {
             };
             var merger = new qm.StreamAggr(base, aggr);
             assert.equal(merger.name, 'MergerAggr');
-        })
-        // unexpected node crash
-        it.skip('should throw an exception if a key-value is not given', function () {
+        })        
+        it('should throw an exception if a key-value is not given', function () {
             var aggr = {
                 name: 'MergerAggr',
                 type: 'stmerger',
@@ -2902,3 +2829,281 @@ describe('Merger Tests', function () {
         })
     });
 });
+
+describe('Online Histogram Tests', function () {    
+    var base = undefined;
+    var store = undefined;
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'Function',
+                fields: [
+                    { name: 'Time', type: 'datetime' },
+                    { name: 'Value', type: 'float' },
+                ]
+            }]
+        });
+        store = base.store('Function');
+
+        var aggrBufJson = {
+            name: 'TimeSeriesWindowAggr',
+            type: 'timeSeriesWinBuf',
+            store: 'Function',
+            timestamp: 'Time',
+            value: 'Value',
+            winsize: 2000
+        }; store.addStreamAggr(aggrBufJson);
+
+        var aggrTickJson = {
+            name: 'TickAggr',
+            type: 'timeSeriesTick',
+            store: 'Function',
+            timestamp: 'Time',
+            value: 'Value',
+        }; store.addStreamAggr(aggrTickJson);
+
+    });
+    afterEach(function () {
+        base.close();
+    });
+    describe('Updating Tests', function () {
+        it('should throw an exception if a key-value is not given', function () {
+            var aggrJson = {
+                name: 'Histogram',
+                type: 'onlineHistogram',
+                inAggr: 'TimeSeriesWindowAggr',
+                lowerBound: 0,
+                upperBound: 10,
+                bins: 5,
+                addNegInf: false,
+                addPosInf: false
+            }
+            //assert.throws(function () {
+            //    var copyJson = JSON.parse(JSON.stringify(aggrJson));
+            //    delete copyJson.type;
+            //    var aggr = store.addStreamAggr(copyJson);
+            //}, /TypeError/);
+            assert.throws(function () {
+                var copyJson = JSON.parse(JSON.stringify(aggrJson));
+                delete copyJson.inAggr;
+                var aggr = store.addStreamAggr(copyJson);
+            }, /TypeError/);
+            assert.throws(function () {
+                var copyJson = JSON.parse(JSON.stringify(aggrJson));
+                delete copyJson.lowerBound;
+                var aggr = store.addStreamAggr(copyJson);
+            }, /TypeError/);
+            assert.throws(function () {
+                var copyJson = JSON.parse(JSON.stringify(aggrJson));
+                delete copyJson.upperBound;
+                var aggr = store.addStreamAggr(copyJson);
+            }, /TypeError/);
+            var copyJson = JSON.parse(JSON.stringify(aggrJson));
+            
+            delete copyJson.name;
+            delete copyJson.bins;
+            delete copyJson.addNegInf;
+            delete copyJson.addPosInf;
+            var aggr = store.addStreamAggr(copyJson);
+            assert(aggr != undefined);
+        });
+    });
+    describe('Updating Tests', function () {
+        it('should create an online buffered histogram', function () {
+            var aggrJson = {
+                name: 'Histogram',
+                type: 'onlineHistogram',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr',
+                lowerBound: 0,
+                upperBound: 10,
+                bins: 5,
+                addNegInf: false,
+                addPosInf: false
+            };
+            var aggr = store.addStreamAggr(aggrJson);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: -1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 0 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:38.4', Value: 10 });
+
+            assert.equal(aggr.saveJson().counts[0], 0);
+            assert.equal(aggr.saveJson().counts[1], 0);
+            assert.equal(aggr.saveJson().counts[2], 0);
+            assert.equal(aggr.saveJson().counts[3], 0);
+            assert.equal(aggr.saveJson().counts[4], 1);
+        });
+        it('should create an online histogram', function () {
+            var aggrJson = {
+                name: 'Histogram',
+                type: 'onlineHistogram',
+                store: 'Function',
+                inAggr: 'TickAggr',
+                lowerBound: 0,
+                upperBound: 10,
+                bins: 5,
+                addNegInf: false,
+                addPosInf: false
+            };
+            var aggr = store.addStreamAggr(aggrJson);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: -1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 0 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:38.4', Value: 10 });
+            
+            assert.equal(aggr.saveJson().counts[0], 1);
+            assert.equal(aggr.saveJson().counts[1], 1);
+            assert.equal(aggr.saveJson().counts[2], 2);
+            assert.equal(aggr.saveJson().counts[3], 0);
+            assert.equal(aggr.saveJson().counts[4], 1);
+
+            // check that the interface is OK 
+            assert(aggr.getFloatLength() == 5);
+            assert(aggr.getFloatAt(2) == 2);
+            assert(aggr.getFloatVector()[4] == 1);
+        });        
+    });
+});
+
+describe('ChiSquare Tests', function () {
+    var base = undefined;
+    var store = undefined;
+    var hist1 = undefined;
+    var hist2 = undefined;
+    beforeEach(function () {
+        // create a base with a simple store
+        // the store records results of throwing a dice
+        // Since changes for each nomber are 1/6, the expacted values have uniform distribution
+        // Field Observed records the actual values
+        base = new qm.Base({
+            mode: "createClean",
+            schema: [
+            {
+                name: "Dice",
+                fields: [
+                    { name: "Expected", type: "float" },
+                    { name: "Observed", type: "float" },
+                    { name: "Time", type: "datetime" }
+                ]
+            }]
+        }); 
+        store = base.store('Dice');
+
+        // create a new time series stream aggregator for the 'Dice' store, that takes the expected values of throwing a dice
+        // and the timestamp from the 'Time' field. The size of the window is 1 day.
+        var timeser = {
+            name: 'TimeSeries1',
+            type: 'timeSeriesWinBuf',
+            store: 'Dice',
+            timestamp: 'Time',
+            value: 'Expected',
+            winsize: 86400000 // one day in miliseconds
+        };
+
+        var timeSeries1 = base.store("Dice").addStreamAggr(timeser);
+
+        // create a new time series stream aggregator for the 'Dice' store, that takes the actual values of throwing a dice
+        // and the timestamp from the 'Time' field. The size of the window is 1 day.
+        timeser = {
+            name: 'TimeSeries2',
+            type: 'timeSeriesWinBuf',
+            store: 'Dice',
+            timestamp: 'Time',
+            value: 'Observed',
+            winsize: 86400000 // one day in miliseconds
+        };
+
+        var timeSeries2 = base.store("Dice").addStreamAggr(timeser);
+
+        // add a histogram aggregator, that is connected with the 'TimeSeries1' aggregator
+        var aggrJson = {
+            name: 'Histogram1',
+            type: 'onlineHistogram',
+            store: 'Dice',
+            inAggr: 'TimeSeries1',
+            lowerBound: 1,
+            upperBound: 6,
+            bins: 6,
+            addNegInf: false,
+            addPosInf: false
+        };
+
+        hist1 = base.store("Dice").addStreamAggr(aggrJson);
+
+        // add a histogram aggregator, that is connected with the 'TimeSeries2' aggregator
+        var aggrJson = {
+            name: 'Histogram2',
+            type: 'onlineHistogram',
+            store: 'Dice',
+            inAggr: 'TimeSeries2',
+            lowerBound: 1,
+            upperBound: 6,
+            bins: 6,
+            addNegInf: false,
+            addPosInf: false
+        };
+
+        hist2 = base.store("Dice").addStreamAggr(aggrJson);
+    });
+    afterEach(function () {
+        base.close();
+    }); 
+    it('should create an chi square test aggregator', function () {
+        
+        // add ChiSquare aggregator that connects with Histogram1 with expected values and Histogram2 with actual values
+        aggr = {
+            name: 'ChiAggr',
+            type: 'chiSquare',
+            storeX: 'Dice',
+            storeY: 'Dice',
+            inAggrX: 'Histogram1',
+            inAggrY: 'Histogram2',
+            degreesOfFreedom: 2
+        }
+        var chi = store.addStreamAggr(aggr);
+        
+        // add some values
+        // simulating throwing a dice
+        store.push({ Time: '2015-06-10T14:13:30.0', Expected: 1, Observed: 1 });
+        store.push({ Time: '2015-06-10T14:13:31.0', Expected: 2, Observed: 2 });
+        store.push({ Time: '2015-06-10T14:13:32.0', Expected: 3, Observed: 3 });
+        store.push({ Time: '2015-06-10T14:13:33.0', Expected: 4, Observed: 4 });
+        store.push({ Time: '2015-06-10T14:13:34.0', Expected: 5, Observed: 5 });
+        store.push({ Time: '2015-06-10T14:13:35.0', Expected: 6, Observed: 5 });
+
+        store.push({ Time: '2015-06-10T14:13:41.0', Expected: 1, Observed: 5 });
+        store.push({ Time: '2015-06-10T14:13:41.0', Expected: 2, Observed: 5 });
+        store.push({ Time: '2015-06-10T14:13:42.0', Expected: 3, Observed: 5 });
+        store.push({ Time: '2015-06-10T14:13:43.0', Expected: 4, Observed: 5 });
+        store.push({ Time: '2015-06-10T14:13:44.0', Expected: 5, Observed: 6 });
+        store.push({ Time: '2015-06-10T14:13:45.0', Expected: 6, Observed: 6 });
+
+        store.push({ Time: '2015-06-10T14:13:50.0', Expected: 1, Observed: 6 });
+        store.push({ Time: '2015-06-10T14:13:51.0', Expected: 2, Observed: 6 });
+        store.push({ Time: '2015-06-10T14:13:52.0', Expected: 3, Observed: 6 });
+        store.push({ Time: '2015-06-10T14:13:53.0', Expected: 4, Observed: 6 });
+        store.push({ Time: '2015-06-10T14:13:54.0', Expected: 5, Observed: 6 });
+        store.push({ Time: '2015-06-10T14:13:55.0', Expected: 6, Observed: 6 });
+
+        // show distribution for expected values
+        console.log(hist1);
+
+        // show distribution for observed values
+        console.log(hist2);
+
+        // show the P-value. A small P value is evidence that the data are not sampled from the distribution you expected.
+        // If P-value is smaller than some expected value (e.g. 0.005), then the null null hypothesis fails.
+        console.log("P = " + chi.getFloat());
+
+        // print out the aggregator
+        console.log(chi);
+    });    
+    
+});
+
+

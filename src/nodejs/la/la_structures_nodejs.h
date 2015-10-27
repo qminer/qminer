@@ -98,9 +98,6 @@ public:
 public:
 	TNodeJsFltVV() { }
 	TNodeJsFltVV(const TFltVV& _Mat) : Mat(_Mat) { }
-public:
-	JsDeclareFunction(New);
-
 private:
 	/**
 	* Returns an element of matrix.
