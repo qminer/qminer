@@ -21,31 +21,63 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-TEST(TSlottedHistogramTest, Simple) {
+TEST(TSlottedHistogramTest, Simple1) {
 	try {
-		TQm::TVikTest::PSlottedHistogram obj = TQm::TVikTest::TSlottedHistogram::New(20, 2);
+		TQm::TStreamAggrs::PSlottedHistogram obj = TQm::TStreamAggrs::TSlottedHistogram::New(20, 2, 3);
 
-		obj->Add(1, "a");
-		obj->Add(7, "a");
-		obj->Add(12, "b");
-		obj->Add(18, "a");
-		obj->Add(22, "b");
-		obj->Add(38, "a");
+		obj->Add(1, 0); // slot 0
+		obj->Add(7, 0); // slot 3
+		obj->Add(12, 1); // slot 6
+		obj->Add(18, 0); // slot 9
+		obj->Add(22, 1); // slot 1
+		obj->Add(38, 0); // slot 9
 
-		TStrIntPrV Stats;
-		obj->GetStats(41, 45, Stats);
-
-		ASSERT_EQ(Stats.Len(), 2);
-		ASSERT_EQ(Stats[0].Val1, "a");
-		ASSERT_EQ(Stats[0].Val2, 1);
-		ASSERT_EQ(Stats[1].Val1, "b");
-		ASSERT_EQ(Stats[1].Val2, 1);
+		TFltV Stats;
+		obj->GetStats(41, 45, Stats); // slots from 0 to 2 inclusive
+		
+		ASSERT_EQ(Stats.Len(), 3);
+		ASSERT_EQ(Stats[0], 1.0);
+		ASSERT_EQ(Stats[1], 1.0);
+		ASSERT_EQ(Stats[2], 0.0);
 
 		obj->GetStats(45, 47, Stats);
 
-		ASSERT_EQ(Stats.Len(), 1);
-		ASSERT_EQ(Stats[0].Val1, "a");
-		ASSERT_EQ(Stats[0].Val2, 1);
+		ASSERT_EQ(Stats.Len(), 3);
+		ASSERT_EQ(Stats[0], 1.0);
+		ASSERT_EQ(Stats[1], 0.0);
+		ASSERT_EQ(Stats[2], 0.0);
+
+	} catch (PExcept& Except) {
+		printf("Error: %s", Except->GetStr());
+		throw Except;
+	}
+}
+
+TEST(TSlottedHistogramTest, Simple2) {
+	try {
+		TQm::TStreamAggrs::PSlottedHistogram obj = TQm::TStreamAggrs::TSlottedHistogram::New(20, 5, 3);
+
+		obj->Add(1, 0); // slot 0
+		obj->Add(7, 0); // slot 1
+		obj->Add(12, 1); // slot 2
+		obj->Add(18, 0); // slot 3
+		obj->Add(22, 1); // slot 0
+		obj->Add(38, 0); // slot 3
+
+		TFltV Stats;
+		obj->GetStats(41, 45, Stats); // slots from 0 to 1 inclusive
+
+		ASSERT_EQ(Stats.Len(), 3);
+		ASSERT_EQ(Stats[0], 2.0);
+		ASSERT_EQ(Stats[1], 1.0);
+		ASSERT_EQ(Stats[2], 0.0);
+
+		obj->GetStats(45, 47, Stats); // slots from 1 to 1 inclusive
+
+		ASSERT_EQ(Stats.Len(), 3);
+		ASSERT_EQ(Stats[0], 1.0);
+		ASSERT_EQ(Stats[1], 0.0);
+		ASSERT_EQ(Stats[2], 0.0);
 
 	} catch (PExcept& Except) {
 		printf("Error: %s", Except->GetStr());
