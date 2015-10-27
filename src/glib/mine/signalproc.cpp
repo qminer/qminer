@@ -438,7 +438,7 @@ void TBufferedInterpolator::AddPoint(const double& Val, const uint64& Tm) {
 	if (!Buff.Empty()) {
 		const TUInt64FltPr& LastRec = Buff.GetNewest();
 		EAssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val),
-            "New point has a timestamp lower then the last point in the buffer, or same with different values!");
+            "New point has a timestamp lower then the last point in the buffer, or same with different values " + TTm::GetTmFromDateTimeInt((uint)LastRec.Val1).GetStr() + " >= " + TTm::GetTmFromDateTimeInt((uint)Tm).GetStr() + "!");
 	}
 
 	// add the new point
@@ -1013,5 +1013,34 @@ PJsonVal TOnlineHistogram::SaveJson() const {
 	Result->AddToObj("counts", CountsArr);
 	return Result;
 }
+
+TChiSquare::TChiSquare(const PJsonVal& ParamVal) {
+	EAssertR(ParamVal->IsObjKey("degreesOfFreedom"), "TChiSquare: degreesOfFreedom key missing!");
+	// degrees of freedom
+	TFlt Dof = ParamVal->GetObjNum("degreesOfFreedom");
+	Init(Alpha, Dof);
+}
+
+void TChiSquare::Init(const double& _Alpha, const int& _Dof) {
+	Alpha = _Alpha;
+	DegreesOfFreedom = _Dof;
+}
+
+void TChiSquare::Print() const {
+	printf("Chi2 = %g", Chi2);
+	printf("P = %g", P);	
+}
+
+void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY, const int Dof) {
+	Chi2 = 0.0;	
+	for (int ValN = 0; ValN < OutValVX.Len(); ValN++) {
+		if (OutValVY[ValN] > 0) {
+			Chi2 += TMath::Sqr(OutValVX[ValN]-OutValVY[ValN])/OutValVX[ValN];
+		}
+	}
+	P = TSpecFunc::GammaQ(0.5*(Dof),0.5*(Chi2));
+}
+
+
 
 }

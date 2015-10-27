@@ -96,6 +96,7 @@ public:
 	/// Inverts features from the given feature vector. The features must start
 	/// at the given offset. Increases the offset by its dimension
 	virtual void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const = 0;
+	virtual double GetVal(const double& InVal) const = 0;
 
 	// for more strait-forward feature extraction (i.e. used by basic aggregators)
 	// attaches values to the given vector, keeps what is in there already
@@ -164,7 +165,7 @@ public:
     /// Extract sparse feature vector from a record
 	void GetSpV(const TRec& Rec, TIntFltKdV& SpV) const;
     /// Extract full feature vector from a record
-    void GetFullV(const TRec& Rec, TFltV& FullV) const;
+    void GetFullV(const TRec& Rec, TFltV& FullV, const int FtrN=-1) const;
 	/// Extracting sparse feature vectors from a record set
 	void GetSpVV(const PRecSet& RecSet, TVec<TIntFltKdV>& SpVV) const;
 	/// Extracting full feature vectors from a record set
@@ -175,6 +176,9 @@ public:
 	void GetCentroidSpV(const PRecSet& RecSet, TIntFltKdV& CentroidSpV, const bool& NormalizeP = true) const;
 	/// Compute full centroid of a given record set
 	void GetCentroidV(const PRecSet& RecSet, TFltV& CentroidV, const bool& NormalizeP = true) const;
+	/// extracts a single feature
+	double GetSingleFtr(const int& FtrExtN, const double& Val) const;
+
 	/// Returns the inverse operation on the feature vector
 	void InvertFullV(const TFltV& FullV, TFltV& InvertV) const;
 	/// returns the inverse operation on a single feature
@@ -235,6 +239,7 @@ public:
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+	double GetVal(const double& InVal) const { return Constant; }
 
 	// flat feature extraction
 	void ExtractFltV(const TRec& FtrRec, TFltV& FltV) const;
@@ -273,6 +278,7 @@ public:
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+	double GetVal(const double& InVal) const { return Rnd.GetUniDev(); }
 
 	// flat feature extraction
 	void ExtractFltV(const TRec& FtrRec, TFltV& FltV) const;
@@ -313,7 +319,7 @@ public:
     static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
     void Save(TSOut& SOut) const;   
     
-	TStr GetNm() const { return "Numeric[" + GetFtrStore()->GetFieldNm(FieldId) + "]"; };
+	TStr GetNm() const;
 	int GetDim() const { return 1; }
 	TStr GetFtr(const int& FtrN) const { return GetNm(); }
 
@@ -324,6 +330,7 @@ public:
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+	double GetVal(const double& InVal) const { return FtrGen.GetFtr(InVal); }
 
 	// flat feature extraction
 	void ExtractFltV(const TRec& Rec, TFltV& FltV) const;
@@ -377,6 +384,7 @@ public:
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+	double GetVal(const double& InVal) const { throw TExcept::New("Not implemented!"); }
 
     // feature extractor type name 
     static TStr GetType() { return "num_sp_v"; }   
@@ -425,6 +433,7 @@ public:
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+	double GetVal(const double& InVal) const { throw TExcept::New("Not implemented!"); }
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -481,6 +490,7 @@ public:
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+	double GetVal(const double& InVal) const { throw TExcept::New("Not implemented!"); }
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -563,6 +573,7 @@ public:
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+	double GetVal(const double& InVal) const { throw TExcept::New("Not implemented!"); }
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -609,6 +620,7 @@ public:
 	//void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+	double GetVal(const double& InVal) const { throw TExcept::New("Not implemented!"); }
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -661,6 +673,7 @@ public:
 	//void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+	double GetVal(const double& InVal) const { throw TExcept::New("Not implemented!"); }
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& FtrRec, TStrV& StrV) const;
@@ -716,6 +729,7 @@ public:
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+	double GetVal(const double& InVal) const { throw TExcept::New("Not implemented!"); }
 
     // feature extractor type name 
     static TStr GetType() { return "dateWindow"; }

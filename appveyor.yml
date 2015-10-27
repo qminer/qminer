@@ -1,4 +1,8 @@
 environment:
+  node_pre_gyp_accessKeyId:
+    secure: jxPeHdKaFnYcMFAUkX+/lcUCKEha3yp5pxxMACxx/lM=
+  node_pre_gyp_secretAccessKey:
+    secure: 7nDsFrQjWQfhXAPESzf6JO+mslguRKGAPyZ5C4x6Sklcuv4E8/3gkGqoahJJKbZo
   matrix:
     - nodejs_version: 0.12.7
 
@@ -19,13 +23,21 @@ install:
   - if "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
   - if "%PLATFORM%" == "x86" SET PATH=C:\python27;%PATH%
   - npm install -g mustache
-  - npm install --verbose
+  - npm install --build-from-source --verbose
   - cd tools
   - genExampleTests.bat
   - cd ..
   - cd test\nodejs
   - npm install -g mocha
-  - mocha *.js
+  - mocha --timeout 30000 *.js
+  - cd ..\..
+  - node_modules\.bin\node-pre-gyp package
+  - SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
+  - ECHO commit message %CM%
+  - ECHO %APPVEYOR_REPO_NAME%
+  - if not "%CM%" == "%CM:[publish binary]=%" if "%APPVEYOR_REPO_NAME%" == "qminer/qminer" if not defined APPVEYOR_PULL_REQUEST_NUMBER  node_modules\.bin\node-pre-gyp unpublish publish
+
+
 
 build: off
 test: off

@@ -95,8 +95,7 @@ describe('Record Set Tests', function () {
 
     var table;
     var recSet, recSet2, recSet3, recSet4, recSet5;
-    beforeEach(function (done) {
-    	this.timeout(5000);
+    beforeEach(function (done) {    	
         table = new TStore();
         recSet = table.base.store("Movies").allRecords;
         recSet2 = table.base.store("People").allRecords;
@@ -106,8 +105,7 @@ describe('Record Set Tests', function () {
         done();
     });
     afterEach(function (done) {
-        table.close();
-        this.timeout(5000);
+        table.close();        
         done();
     });
 
@@ -333,12 +331,12 @@ describe('Record Set Tests', function () {
             assert.equal(recSet[0].Title, "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on");
             assert.equal(recSet[1].Title, "Every Day");
         })
-        it.skip('should throw an exception, if the function is incomplete', function () {
+        it('should throw an exception, if the function is incomplete', function () {
             assert.throws(function () {
                 recSet.sort(function (rec, rec2) { });
             })
         })
-        it.skip('should throw an exception, if no parameter is given', function () {
+        it('should throw an exception, if no parameter is given', function () {
             assert.throws(function () {
                 recSet.sort();
             })

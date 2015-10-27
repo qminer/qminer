@@ -950,7 +950,7 @@ void TRecSerializator::SetFixedJsonVal(char* Bf, const int& BfL,
 			TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
 			SetFieldTm(Bf, BfL, FieldSerialDesc, Tm);
 		} else {
-			uint64 WinMSecs = TTm::GetWinMSecsFromUnixMSecs((uint64)JsonVal->GetNum());
+			uint64 WinMSecs = TTm::GetWinMSecsFromUnixMSecs(JsonVal->GetInt64());
 			TTm Tm = TTm::GetTmFromMSecs(WinMSecs);
 			SetFieldTm(Bf, BfL, FieldSerialDesc, Tm);
 		}
@@ -2620,7 +2620,7 @@ PStoreIter TStoreImpl::BackwardIter() const {
 		TStoreIterVec::New(DataCache.GetLastValId(), DataCache.GetFirstValId(), false);
 }
 
-uint64 TStoreImpl::AddRec(const PJsonVal& RecVal) {
+uint64 TStoreImpl::AddRec(const PJsonVal& RecVal, const bool& TriggerEvents) {
 	// check if we are given reference to existing record
 	try {        
 		// parse out record id, if referred directly
@@ -2661,9 +2661,10 @@ uint64 TStoreImpl::AddRec(const PJsonVal& RecVal) {
 					PrimaryRecId = PrimaryFltIdH.GetDat(FieldVal);
 				}
 			} else if (PrimaryFieldType == oftTm) {
-				TStr TmStr = RecVal->GetObjStr(PrimaryField);
-				TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
-				const uint64 FieldVal = TTm::GetMSecsFromTm(Tm);
+				const uint64 FieldVal = RecVal->GetObjTmMSecs(PrimaryField);
+//				TStr TmStr = RecVal->GetObjStr(PrimaryField);
+//				TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
+//				const uint64 FieldVal = TTm::GetMSecsFromTm(Tm);
 				if (PrimaryTmMSecsIdH.IsKey(FieldVal)) {
 					PrimaryRecId = PrimaryTmMSecsIdH.GetDat(FieldVal);
 				}
@@ -2717,7 +2718,9 @@ uint64 TStoreImpl::AddRec(const PJsonVal& RecVal) {
 	// insert nested join records
 	AddJoinRec(RecId, RecVal);
 	// call add triggers
-	OnAdd(RecId);
+	if (TriggerEvents) {
+		OnAdd(RecId);
+	}
 	
 	// return record Id of the new record
 	return RecId;
@@ -3203,7 +3206,7 @@ PJsonVal TStoreImpl::GetStats() {
 }
 
 /// Add new record
-uint64 TStorePbBlob::AddRec(const PJsonVal& RecVal) {// check if we are given reference to existing record
+uint64 TStorePbBlob::AddRec(const PJsonVal& RecVal, const bool& TriggerEvents) {// check if we are given reference to existing record
     try {
         // parse out record id, if referred directly
         {
@@ -3302,7 +3305,9 @@ uint64 TStorePbBlob::AddRec(const PJsonVal& RecVal) {// check if we are given re
     // insert nested join records
     AddJoinRec(RecId, RecVal);
     // call add triggers
-    OnAdd(RecId);
+    if (TriggerEvents) {
+    	OnAdd(RecId);
+    }
 
     // return record Id of the new record
     return RecId;
