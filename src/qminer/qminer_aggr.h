@@ -738,6 +738,37 @@ public:
 	void GetFltV(TFltV& ValV) const { Model.GetCountV(ValV); }
 };
 
+///////////////////////////////
+/// Chi square stream aggregate.
+/// Updates a chi square model, connects to an online histogram stream aggregate
+/// that implements TStreamAggrOut::IFltVec
+class TChiSquare : public TStreamAggr, public TStreamAggrOut::IFltTm {
+private:
+	// input
+	TWPt<TStreamAggr> InAggrX, InAggrY;
+	TWPt<TStreamAggrOut::IFltVec> InAggrValX, InAggrValY;	    
+	// indicator
+	TSignalProc::TChiSquare ChiSquare;
+
+protected:
+	void OnAddRec(const TRec& Rec);
+	TChiSquare(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:    
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	// did we finish initialization
+	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
+	// get current P value
+	double GetFlt() const { return ChiSquare.GetP(); }
+	// get time	
+	uint64 GetTmMSecs() const { return ChiSquare.GetTmMSecs(); }
+	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggrX->GetAggrNm()); 
+        InAggrNmV.Add(InAggrY->GetAggrNm());}
+	// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+	// stream aggregator type name 
+	static TStr GetType() { return "chiSquare"; } 
+	TStr Type() const { return GetType(); }
+};
 
 /////////////////////////////
 // Moving Window Buffer Sum

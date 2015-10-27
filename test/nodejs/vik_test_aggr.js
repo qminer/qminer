@@ -127,7 +127,7 @@ describe("Viktor test aggregates", function () {
 			store: 'Dice',
 			timestamp: 'Time',
 			value: 'Expected',
-			winsize: 24 * 60 * 60 * 1000 // 2 hours
+			winsize: 24 * 60 * 60 * 1000 // 1 day
 		};
 
 		var timeSeries1 = base.store("Dice").addStreamAggr(timeser);
