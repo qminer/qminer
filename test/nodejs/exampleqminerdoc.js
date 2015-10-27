@@ -1883,8 +1883,40 @@ it("should make test number 66", function () {
 
 });
 });
-describe("Adds a new feature extractor to the feature space., number 67", function () {
+describe("Clears the feature space., number 67", function () {
 it("should make test number 67", function () {
+ this.timeout(10000); 
+
+	 // import qm module
+	 var qm = require('qminer');
+	 // create a new base containing one store
+	 var base = new qm.Base({
+	    mode: "createClean",
+	    schema: [{
+	        name: "Runners",
+	        fields: [
+	            { name: "ID", type: "int", primary: true },
+	            { name: "Name", type: "string" },
+	            { name: "BestTime", type: "float" }
+	        ]
+	    }]
+	 });
+	 // put some records in the "Runners" store
+	 base.store("Runners").push({ ID: 110020, Name: "Eric Ericsson", BestTime: 134.33 });
+	 base.store("Runners").push({ ID: 123307, Name: "Fred Friedrich", BestTime: 101.11 });
+	 base.store("Runners").push({ ID: 767201, Name: "Appel Banana", BestTime: 1034.56 });
+	 // create a feature space
+	 var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "Runners", field: "BestTime" });
+	 // update the feature space
+	 ftr.updateRecords(base.store("Runners").allRecords);
+	 // clear the feature space (return the feature space to it's default values)
+	 ftr.clear();
+	 base.close();
+	
+});
+});
+describe("Adds a new feature extractor to the feature space., number 68", function () {
+it("should make test number 68", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1917,8 +1949,8 @@ it("should make test number 67", function () {
 	
 });
 });
-describe("Updates the feature space definitions and extractors by adding one record., number 68", function () {
-it("should make test number 68", function () {
+describe("Updates the feature space definitions and extractors by adding one record., number 69", function () {
+it("should make test number 69", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1959,8 +1991,8 @@ it("should make test number 68", function () {
 	
 });
 });
-describe("Updates the feature space definitions and extractors by adding all the records of a record set., number 69", function () {
-it("should make test number 69", function () {
+describe("Updates the feature space definitions and extractors by adding all the records of a record set., number 70", function () {
+it("should make test number 70", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2000,8 +2032,8 @@ it("should make test number 69", function () {
 	
 });
 });
-describe("Creates a sparse feature vector from the given record., number 70", function () {
-it("should make test number 70", function () {
+describe("Creates a sparse feature vector from the given record., number 71", function () {
+it("should make test number 71", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2038,8 +2070,8 @@ it("should make test number 70", function () {
 	
 });
 });
-describe("Creates a feature vector from the given record., number 71", function () {
-it("should make test number 71", function () {
+describe("Creates a feature vector from the given record., number 72", function () {
+it("should make test number 72", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2076,8 +2108,8 @@ it("should make test number 71", function () {
 	
 });
 });
-describe("Performs the inverse operation of ftrVec. Works only for numeric feature extractors., number 72", function () {
-it("should make test number 72", function () {
+describe("Performs the inverse operation of ftrVec. Works only for numeric feature extractors., number 73", function () {
+it("should make test number 73", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2116,8 +2148,8 @@ it("should make test number 72", function () {
 	
 });
 });
-describe("Calculates the inverse of a single feature using a specific feature extractor., number 73", function () {
-it("should make test number 73", function () {
+describe("Calculates the inverse of a single feature using a specific feature extractor., number 74", function () {
+it("should make test number 74", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2153,8 +2185,8 @@ it("should make test number 73", function () {
 	
 });
 });
-describe("Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix., number 74", function () {
-it("should make test number 74", function () {
+describe("Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix., number 75", function () {
+it("should make test number 75", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2185,8 +2217,8 @@ it("should make test number 74", function () {
 	
 });
 });
-describe("Extracts the feature vectors from the recordset and returns them as columns of a dense matrix., number 75", function () {
-it("should make test number 75", function () {
+describe("Extracts the feature vectors from the recordset and returns them as columns of a dense matrix., number 76", function () {
+it("should make test number 76", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2220,8 +2252,8 @@ it("should make test number 75", function () {
 	
 });
 });
-describe("Gives the name of feature extractor at given position., number 76", function () {
-it("should make test number 76", function () {
+describe("Gives the name of feature extractor at given position., number 77", function () {
+it("should make test number 77", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2249,8 +2281,8 @@ it("should make test number 76", function () {
 	
 });
 });
-describe("Gives the name of the feature at the given position., number 77", function () {
-it("should make test number 77", function () {
+describe("Gives the name of the feature at the given position., number 78", function () {
+it("should make test number 78", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2286,8 +2318,8 @@ it("should make test number 77", function () {
 	
 });
 });
-describe("Filters the vector to keep only the elements from the feature extractor., number 78", function () {
-it("should make test number 78", function () {
+describe("Filters the vector to keep only the elements from the feature extractor., number 79", function () {
+it("should make test number 79", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -2327,16 +2359,16 @@ it("should make test number 78", function () {
 	
 });
 });
-describe("@classdesc Circular buffer for storing records. Size of buffer is defined at, number 79", function () {
-it("should make test number 79", function () {
+describe("@classdesc Circular buffer for storing records. Size of buffer is defined at, number 80", function () {
+it("should make test number 80", function () {
  this.timeout(10000); 
 
 	 // TODO
     
 });
 });
-describe("Add new record to the buffer., number 80", function () {
-it("should make test number 80", function () {
+describe("Add new record to the buffer., number 81", function () {
+it("should make test number 81", function () {
  this.timeout(10000); 
 
          // TODO

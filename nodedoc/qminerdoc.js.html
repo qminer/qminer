@@ -2410,6 +2410,32 @@
 /**
 	* Clears the feature space.
 	* @returns {module:qm.FeatureSpace} Self. 
+	* @example
+	* // import qm module
+	* var qm = require(&#x27;qminer&#x27;);
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: &quot;createClean&quot;,
+	*    schema: [{
+	*        name: &quot;Runners&quot;,
+	*        fields: [
+	*            { name: &quot;ID&quot;, type: &quot;int&quot;, primary: true },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
+	*            { name: &quot;BestTime&quot;, type: &quot;float&quot; }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the &quot;Runners&quot; store
+	* base.store(&quot;Runners&quot;).push({ ID: 110020, Name: &quot;Eric Ericsson&quot;, BestTime: 134.33 });
+	* base.store(&quot;Runners&quot;).push({ ID: 123307, Name: &quot;Fred Friedrich&quot;, BestTime: 101.11 });
+	* base.store(&quot;Runners&quot;).push({ ID: 767201, Name: &quot;Appel Banana&quot;, BestTime: 1034.56 });
+	* // create a feature space
+	* var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Runners&quot;, field: &quot;BestTime&quot; });
+	* // update the feature space
+	* ftr.updateRecords(base.store(&quot;Runners&quot;).allRecords);
+	* // clear the feature space (return the feature space to it&#x27;s default values)
+	* ftr.clear();
+	* base.close();
 	*/
  exports.FeatureSpace.prototype.clear = function () { return Object.create(require(&#x27;qminer&#x27;).FeatureSpace.prototype); };
 /**

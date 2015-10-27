@@ -26,6 +26,7 @@ exports = {}; require.modules.qminer_la = exports;
 	* <br>svdRes.V - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
 	* <br>svdRes.s - The vector containing the singular values of the decomposition. Type {@link module:la.Vector}.
 	*/
+ exports.prototype.svd = function (mat, k, json) { return { U: Object.create(require('qminer').la.Matrix.prototype), V: Object.create(require('qminer').la.Matrix.prototype), s: Object.create(require('qminer').la.Vector.prototype) } }
 /**
 	* Computes the QR decomposition.
 	* @param {module:la.Matrix} mat - The matrix.
@@ -34,6 +35,7 @@ exports = {}; require.modules.qminer_la = exports;
 	* <br>qrRes.Q - The orthogonal dense matrix Q of the QR decomposition. Type {@link module:la.Matrix}.
 	* <br>qrRes.R - The upper triangular dense matrix R of the QR decomposition. Type {@link module:la.Matrix}.
 	*/
+ exports.prototype.qr = function (mat, tol) { return { Q: Object.create(require('qminer').la.Matrix.prototype), R: Object.create(require('qminer').la.Matrix.prototype) } }
 /**
 * Matrix constructor parameter object.
 * @typedef {Object} matrixArg
