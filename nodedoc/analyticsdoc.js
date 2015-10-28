@@ -1253,10 +1253,10 @@
 /**
 	 * Returns the probability distribution of past and future states over time.
 	 *
-	 * @param {Number} level - the level on which we want the distributions
-	 * @param {Number} state - the state we are starting from
-	 * @param {Number} dt - the time step (lower dt => more distributions will be returned)
-	 * @returns {Array} - array of probability distributions over time
+	 * @param {Number} stateId - ID if the starting state
+	 * @param {Number} height - the hieght
+	 * @param {Number} time - the time at which we want the probabilities
+	 * @returns {Array} - array of state ids and their probabilities
 	 */
 /**
 	 * Returns information about previous states.
@@ -1294,6 +1294,11 @@
 	 * @param {Number} stateId - the ID of the state
 	 * @param {Number} ftrId - the ID of the feature
 	 * @returns {Array} - the histogram
+	 */
+/**
+	 * Returns the lower and upper bound of the feature.
+	 *
+	 * @param {Integer} ftrId - id of the feature
 	 */
 /**
 	 * Returns an array of IDs of all the states on the specified height.
@@ -1357,6 +1362,11 @@
 	 * @param {String} name - name of the state
 	 */
 /**
+	 * Sets the name of the state.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 */
+/**
 	 * Returns true if the state is a target on the specified height.
 	 *
 	 * @param {Number} stateId - Id of the state
@@ -1371,10 +1381,27 @@
 	 * @param {Boolean} isTarget - set target on/off
 	 */
 /**
+	 * Returns true if the state defined by the ID is at the bottom of the hierarchy.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 */
+/**
+	 * Returns the time unit used by this model.
+	 *
+	 * @returns {String} timeUnit
+	 */
+/**
 	 * Sets the factor of the specified control:
 	 *
-	 * @param {Number} ftrIdx - the index of the control feature
-	 * @param {Number} factor
+	 * @param {Object} params - the parameters
+	 * @property {Number} [params.stateId] - id of the state, if not present, all the states will be set
+	 * @property {Number} params.ftrId - the index of the control feature
+	 * @property {Number} params.val - the value of the featuere
+	 */
+/**
+	 * Returns true is any of the control parameters have been set in any of the states.
+	 *
+	 * @returns {Boolean}
 	 */
 /**
 	 * Saves the model to the output stream.
@@ -2870,42 +2897,34 @@
         var k = undefined;
         var verbose = undefined;
         var fitIdx = undefined;
-        var fitStart;
+        var fitStart = undefined;
         var medoids = new la.Vector();
 
-        if (param != undefined && param.constructor.name == 'FIn') {
-            C = new la.Matrix();
-            C.load(param);
-            norC2 = new la.Vector();
-            norC2.load(param);
-
-            var idxvtmp = new la.Vector();
-            idxvtmp.load(param);
-            idxv = idxvtmp; // make normal vector (?)
-
-            var params_vec = new la.Vector();
-            params_vec.load(param);
-            iter = params_vec[0];
-            k = params_vec[1];
-            verbose = (params_vec[2] != 0);
-            param = { iter: iter, k: k, verbose: verbose };
-
-        } else if (param == undefined || typeof param == 'object') {
+        if (param != undefined && param instanceof fs.FIn) {
+		    C = new la.Matrix(); C.load(param);
+		    norC2 = new la.Vector(); norC2.load(param);
+		    idxv = new la.IntVector(); idxv.load(param);
+		    var fin_params = param.readJson();
+		    iter = fin_params.iter;
+		    k = fin_params.k;
+		    verbose = fin_params.verbose;
+		    medoids.load(param);
+	    } else if (param == undefined || typeof param == 'object') {
             param = param == undefined ? {} : param;
             // Fit params
-            var iter = param.iter == undefined ? 100 : param.iter;
-            var k = param.k == undefined ? 2 : param.k;
-            var verbose = param.verbose == undefined ? false : param.verbose;
-            var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
-            var fitStart = param.fitStart == undefined ? undefined : param.fitStart;
-            param = { iter: iter, k: k, verbose: verbose };
+            iter = (param.iter == undefined) ? 100 : param.iter;
+            k = (param.k == undefined) ? 2 : param.k;
+            verbose = (param.verbose == undefined) ? false : param.verbose;
+            fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
+            fitStart = param.fitStart == undefined ? undefined : param.fitStart;
         } else {
             throw "KMeans.constructor: parameter must be a JSON object or a fs.FIn!";
         }
+        param = { iter: iter, k: k, verbose: verbose };
 
         /**
         * Permutes centroid with given mapping.
-        @param {object} mapping - object that contains the mapping. E.g. mapping[4]=2 means "map cluster 4 into cluster 2"
+        * @param {object} mapping - object that contains the mapping. E.g. mapping[4]=2 means "map cluster 4 into cluster 2"
         */
         this.permuteCentroids = function (mapping) {
             var cl_count = C.cols;
@@ -2983,7 +3002,7 @@
         * var json = KMeans.getParams();
         */
         this.getParams = function () {
-            return param;
+            return  { iter: iter, k: k, verbose: verbose }
         }
 
         /**
@@ -3078,7 +3097,7 @@
                 norC2 = la.square(C.colNorms());
                 //D =  full(C'* X) - norC2' * (0.5* ones(1, n)) - (0.5 * ones(k,1) )* norX2';
                 var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
-                idxv = la.findMaxIdx(D);
+                idxv = new la.IntVector(la.findMaxIdx(D));
 
                 if (verbose) {
                     var energy = 0.0;
@@ -3095,7 +3114,7 @@
                     }
                     break;
                 }
-                idxvOld = idxv.slice();
+                idxvOld = new la.IntVector(idxv);
                 C = getCentroids(X, idxv, C); //drag
             }
             if (verbose) {
@@ -3185,11 +3204,11 @@
                     medoidID: medoids[centroids[i]],
                     featureIDs: explanation.featureIDs,
                     featureContributions: explanation.featureContributions
-                }                
+                }
             }
             return result;
         }
-                
+
         /**
         * Returns the weights and feature IDs that contributed to the distance between two vectors
         * @param {(module:la.Vector | module:la.SparseVector)} x - Vector
@@ -3244,61 +3263,23 @@
         * @param {module:fs.FOut} arg - The output stream.
         * @returns {module:fs.FOut} The output stream fout.
         */
-        this.save = function(arg){
-			if (!C) {
-				throw new Error("KMeans.save() - model not created yet");
-			}
-
-			var params_vec = new la.Vector();
-			params_vec.push(iter);
-			params_vec.push(k);
-			params_vec.push(verbose ? 1.0 : 0.0);
-
-            if (typeof (arg) == 'string') {
-			    var xfs = qm.fs;
-			    var fout = xfs.openWrite(arg);
-			    C.save(fout);
-			    norC2.save(fout);
-			    (new la.Vector(idxv)).save(fout);
-			    params_vec.save(fout);
-			    medoids.save(fout);
-			    fout.close();
-			    fout = null;
-            } else if (arg.constructor.name == 'FOut') {
-                C.save(arg);
-                norC2.save(arg);
-                (new la.Vector(idxv)).save(arg);
-                params_vec.save(arg);
-                medoids.save(arg);
-                return arg;
-            } else {
-                throw "KMeans.save: input must be fs.Fout";
-            }
-
-		}
-
-        this.load = function (fname) {
-		    var xfs = qm.fs;
-		    var fin = xfs.openRead(fname);
-
-		    C = new la.Matrix();
-		    C.load(fin);
-		    norC2 = new la.Vector();
-		    norC2.load(fin);
-
-		    var idxvtmp = new la.Vector();
-		    idxvtmp.load(fin);
-		    idxv = idxvtmp; // make normal vector (?)
-
-		    var params_vec = new la.Vector();
-		    params_vec.load(fin);
-		    medoids.load(fin);
-
-		    iter = params_vec[0];
-		    k = params_vec[1];
-		    verbose = (params_vec[2] != 0);
-
-		    fin = null;
+        this.save = function (fout) {
+			if (!C) { throw new Error("KMeans.save() - model not created yet"); }
+			C.save(fout);
+            norC2.save(fout);
+            idxv.save(fout);
+            console.log({
+				iter: iter,
+				k: k,
+				verbose: verbose
+			});
+            fout.writeJson({
+				iter: iter,
+				k: k,
+				verbose: verbose
+			});
+			medoids.save(fout);
+            return fout;
 		}
     }
 
@@ -3555,308 +3536,505 @@
         //this.loadLabeled
     };
 
-    /**
-     * StreamStory.
-     * @class
-     * @param {opts} HierarchMarkovParam - parameters. TODO typedef and describe
-     */
-    exports.HierarchMarkov = function (opts) {
-    	// constructor
-    	if (opts == null) throw 'Missing parameters!';
-    	if (opts.base == null) throw 'Missing parameter base!';
 
-    	// create model and feature space
-    	var mc;
-    	var obsFtrSpace;
-    	var controlFtrSpace;
-
-    	if (opts.hmcConfig != null && opts.obsFields != null &&
-    			opts.contrFields != null && opts.base != null) {
-
-    		mc = opts.sequenceEndV != null ? new exports.HMC(opts.hmcConfig, opts.sequenceEndV) : new exports.HMC(opts.hmcConfig);
-
-    		obsFtrSpace = new qm.FeatureSpace(opts.base, opts.obsFields);
-    		controlFtrSpace = new qm.FeatureSpace(opts.base, opts.contrFields);
-    	}
-    	else if (opts.hmcFile != null) {
-    		var fin = new fs.FIn(opts.hmcFile);
-    		mc = new exports.HMC(fin);
-    		obsFtrSpace = new qm.FeatureSpace(opts.base, fin);
-    		controlFtrSpace = new qm.FeatureSpace(opts.base, fin);
-    	}
-    	else {
-    		throw 'Parameters missing: ' + JSON.stringify(opts);
-    	}
-
-    	function getFtrNames(ftrSpace) {
-    		var names = [];
-
-    		var dims = ftrSpace.dims;
-    		for (var i = 0; i < dims.length; i++) {
-				names.push(ftrSpace.getFeature(i));
+	{
+	    /**
+	     * StreamStory.
+	     * @class
+	     * @param {opts} HierarchMarkovParam - parameters. TODO typedef and describe
+	     */
+	    exports.StreamStory = function (opts) {
+	    	//===================================================
+	    	// CONSTRUCTOR
+	    	//===================================================
+	    	
+	    	if (opts == null) throw new Error('Missing parameters!');
+	    	if (opts.base == null) throw new Error('Missing parameter base!');
+	
+	    	// create model and feature space
+	    	var mc;
+	    	var base = opts.base;
+	    	var obsFtrSpace;
+	    	var controlFtrSpace;
+	    	var id;
+	    	var active = false;
+	    	var online = false;
+	
+	    	if (opts.base != null && opts.config != null) {
+	    		mc = new exports._StreamStory(opts.config);
+	    		if (opts.obsFields != null && opts.contrFields != null) {
+		    		obsFtrSpace = new qm.FeatureSpace(opts.base, opts.obsFields);
+		    		controlFtrSpace = new qm.FeatureSpace(opts.base, opts.contrFields);
+	    		}
+	    		else if (opts.obsFtrSpace != null && opts.controlFtrSpace != null) {
+	    			obsFtrSpace = opts.obsFtrSpace;
+	    			controlFtrSpace = opts.controlFtrSpace;
+	    		}
+	    		else {
+	    			throw new Error('Missing feature space configuration!');
+	    		}
+	    	}
+	    	else if (opts.fname != null) {
+	    		console.log('Loading StreamStory from: ' + opts.fname);
+	    		var fin = new fs.FIn(opts.fname);
+	    		mc = new exports._StreamStory(fin);
+	    		console.log('Loading feature spaces ...');
+	    		obsFtrSpace = new qm.FeatureSpace(base, fin);
+	    		controlFtrSpace = new qm.FeatureSpace(base, fin);
+	    		console.log('Loaded!');
+	    	}
+	    	else {
+	    		throw new Error('Missing parameters (base and config) or fname!');
+	    	}
+	
+	    	//===================================================
+	    	// FEATURE HELPER FUNCTIONS
+	    	//===================================================
+	    	
+	    	
+	    	function getFtrNames(ftrSpace) {
+	    		var names = [];
+	
+	    		var dims = ftrSpace.dims;
+	    		for (var i = 0; i < dims.length; i++) {
+	    			var ftrDesc = ftrSpace.getFeature(i);
+	    			var match = ftrDesc.match(/\[\w*\]$/)[0];	// remove Numeric[ ]
+					
+	    			if (match != null)
+	    				names.push(match.substring(1, match.length-1));
+	    			else
+	    				names.push(ftrDesc);
+				}
+	
+	    		return names;
+	    	}
+	    	
+	    	function getFtrCount(ftrSpace) {
+	    		return ftrSpace.dims.length
+	    	}
+	
+	    	function getObsFtrCount() {
+	    		return getFtrCount(obsFtrSpace);
 			}
-
-    		return names;
-    	}
-
-    	function getObsFtrCount() {
-			return obsFtrSpace.dims.length;
-		}
-
-    	function getObsFtrNames() {
-    		return getFtrNames(obsFtrSpace);
-    	}
-
-    	function getControlFtrNames() {
-    		return getFtrNames(controlFtrSpace);
-    	}
-
-    	function getFtrDescriptions(stateId) {
-    		var observations = [];
-    		var controls = [];
-
-			var coords = mc.fullCoords(stateId);
-			var obsFtrNames = getObsFtrNames();
-			var invObsCoords = obsFtrSpace.invertFeatureVector(coords);
-			for (var i = 0; i < invObsCoords.length; i++) {
-				observations.push({name: obsFtrNames[i], value: invObsCoords.at(i)});
+	    	
+	    	function getContrFtrCount() {
+	    		return getFtrCount(controlFtrSpace);
 			}
-
-			var controlCoords = mc.fullCoords(stateId, false);
-			var contrFtrNames = getControlFtrNames();
-			var invControlCoords = controlFtrSpace.invertFeatureVector(controlCoords);
-			for (var i = 0; i < invControlCoords.length; i++) {
-				controls.push({name: contrFtrNames[i], value: invControlCoords.at(i)});
-			}
-
-			return {
-				observations: observations,
-				controls: controls
-			};
-    	}
-
-    	function getFtrCoord(stateId, ftrIdx) {
-    		if (ftrIdx < obsFtrSpace.dims.length) {
-    			return obsFtrSpace.invertFeatureVector(mc.fullCoords(stateId))[ftrIdx];
-    		} else {
-    			return controlFtrSpace.invertFeatureVector(mc.fullCoords(stateId, false))[ftrIdx - obsFtrSpace.dims.length];
-    		}
-    	}
-
-    	// public methods
-    	var that = {
-    		/**
-    		 * Creates a new model out of the record set.
-    		 */
-    		fit: function (opts) {
-    			var recSet = opts.recSet;
-    			var batchEndV = opts.batchEndV;
-    			var timeField = opts.timeField;
-
-    			log.info('Updating feature space ...');
-    			obsFtrSpace.updateRecords(recSet);
-    			controlFtrSpace.updateRecords(recSet);
-
-    			var obsColMat = obsFtrSpace.extractMatrix(recSet);
-    			var contrColMat = controlFtrSpace.extractMatrix(recSet);
-    			var timeV = recSet.getVector(timeField);
-
-    			log.info('Creating model ...');
-    			mc.fit({
-    				observations: obsColMat,
-    				controls: contrColMat,
-    				times: timeV,
-    				batchV: batchEndV
-    			});
-    			log.info('Done!');
-
-    			return that;
-    		},
-
-    		/**
-    		 * Adds a new record. Doesn't update the models statistics.
-    		 */
-    		update: function (rec) {
-    			if (rec == null) return;
-
-    			var obsFtrVec = obsFtrSpace.extractVector(rec);
-    			var contFtrVec = controlFtrSpace.extractVector(rec);
-    			var timestamp = rec.time.getTime();
-
-    			mc.update(obsFtrVec, contFtrVec, timestamp);
-    		},
-
-    		/**
-    		 * Saves the feature space and model into the specified files.
-    		 */
-    		save: function (mcFName) {
-    			try {
-    				console.log('Saving Markov chain ...');
-
-    				var fout = new fs.FOut(mcFName);
-
-	    			mc.save(fout);
-	    			obsFtrSpace.save(fout);
-	    			controlFtrSpace.save(fout);
-
-	    			fout.flush();
-	    			fout.close();
-
-	    			console.log('Done!');
-    			} catch (e) {
-    				console.log('Failed to save the model!!' + e.message);
-    			}
-    		},
-
-    		/**
-    		 * Returns the state used in the visualization.
-    		 */
-    		getVizState: function () {
-    			log.debug('Fetching visualization ...');
-    			return mc.toJSON();
-    		},
-
-    		/**
-    		 * Returns the hierarchical Markov chain model.
-    		 */
-    		getModel: function () {
-    			return mc;
-    		},
-
-    		/**
-    		 * Returns the feature space.
-    		 */
-    		getFtrSpace: function () {
-    			return { observations: obsFtrSpace, controls: controlFtrSpace };
-    		},
-
-    		/**
-    		 * Returns the current state at the specified height. If the height is not specified it
-    		 * returns the current states through the hierarchy.
-    		 */
-    		currState: function (height) {
-    			return mc.currState(height);
-    		},
-
-    		/**
-    		 * Returns the most likely future states.
-    		 */
-    		futureStates: function (level, state, time) {
-    			return mc.futureStates(level, state, time);
-    		},
-
-    		/**
-    		 * Returns the most likely future states.
-    		 */
-    		pastStates: function (level, state, time) {
-    			return mc.pastStates(level, state, time);
-    		},
-
-    		getFtrNames: function () {
-    			return {
-    				observation: getObsFtrNames(),
-    				control: getControlFtrNames()
-    			}
-    		},
-
-    		/**
-    		 * Returns state details as a Javascript object.
-    		 */
-    		stateDetails: function (stateId, height) {
-    			var futureStates = mc.futureStates(height, stateId);
-    			var pastStates = mc.pastStates(height, stateId);
-    			var isTarget = mc.isTarget(stateId, height);
-    			var stateNm = mc.getStateName(stateId);
-    			var wgts = mc.getStateWgtV(stateId);
-
-    			var features = getFtrDescriptions(stateId);
-
-    			return {
-    				id: stateId,
-    				name: stateNm.length > 0 ? stateNm : null,
-    				isTarget: isTarget,
-    				features: features,
-    				futureStates: futureStates,
-    				pastStates: pastStates,
-    				featureWeights: wgts
-    			};
-    		},
-
-    		/**
-    		 * Returns a histogram for the desired feature in the desired state.
-    		 */
-    		histogram: function (stateId, ftrIdx) {
-    			var hist = mc.histogram(stateId, ftrIdx);
-
-    			var nObsFtrs = getObsFtrCount();
-
-    			if (ftrIdx < nObsFtrs) {
+	
+	    	function getObsFtrNames() {
+	    		return getFtrNames(obsFtrSpace);
+	    	}
+	
+	    	function getControlFtrNames() {
+	    		return getFtrNames(controlFtrSpace);
+	    	}
+	
+	    	function getFtrDescriptions(stateId) {
+	    		var observations = [];
+	    		var controls = [];
+	
+	    		var obsFtrCount = getObsFtrCount();
+	    		
+				var coords = mc.fullCoords(stateId);
+				var obsFtrNames = getObsFtrNames();
+				var invObsCoords = obsFtrSpace.invertFeatureVector(coords);
+				for (var i = 0; i < invObsCoords.length; i++) {
+					observations.push({
+						name: obsFtrNames[i],
+						value: invObsCoords.at(i),
+						isControl: false,
+						bounds: getFtrBounds(i)
+					});
+				}
+	
+				var controlCoords = mc.fullCoords(stateId, false);
+				var contrFtrNames = getControlFtrNames();
+				var invControlCoords = controlFtrSpace.invertFeatureVector(controlCoords);
+				for (var i = 0; i < invControlCoords.length; i++) {
+					controls.push({
+						name: contrFtrNames[i],
+						value: invControlCoords.at(i),
+						isControl: true,
+						bounds: getFtrBounds(i + obsFtrCount)
+					});
+				}
+	
+				return {
+					observations: observations,
+					controls: controls,
+					isBottom: mc.isLeaf(stateId)
+				};
+	    	}
+	
+	    	function getFtrCoord(stateId, ftrIdx) {
+	    		if (ftrIdx < obsFtrSpace.dims.length) {
+	    			return obsFtrSpace.invertFeatureVector(mc.fullCoords(stateId))[ftrIdx];
+	    		} else {
+	    			return controlFtrSpace.invertFeatureVector(mc.fullCoords(stateId, false))[ftrIdx - obsFtrSpace.dims.length];
+	    		}
+	    	}
+	    	
+	    	function getFtrBounds(ftrId) {
+	    		var obsFtrCount = getObsFtrCount();
+	    		var bounds = mc.getFtrBounds(ftrId);
+	    		
+	    		if (ftrId < obsFtrCount) {
+	    			return {
+	    				min: obsFtrSpace.invertFeature(ftrId, bounds.min),
+	    				max: obsFtrSpace.invertFeature(ftrId, bounds.max)
+	    			}
+	    		} else {
+	    			return {
+	    				min: controlFtrSpace.invertFeature(ftrId - obsFtrCount, bounds.min),
+	    				max: controlFtrSpace.invertFeature(ftrId - obsFtrCount, bounds.max)
+	    			}
+	    		}
+	    	}
+	    	
+	    	//===================================================
+	    	// HISTOGRAM
+	    	//===================================================
+	    	
+	    	
+	    	function toServerHistogram(hist, ftrId) {
+	    		var nObsFtrs = getObsFtrCount();
+	    		
+    			if (ftrId < nObsFtrs) {
 	    			for (var i = 0; i < hist.binStartV.length; i++) {
-	    				hist.binStartV[i] = obsFtrSpace.invertFeature(ftrIdx, hist.binStartV[i]);
+	    				hist.binStartV[i] = obsFtrSpace.invertFeature(ftrId, hist.binStartV[i]);
 	    			}
     			} else {
     				for (var i = 0; i < hist.binStartV.length; i++) {
-	    				hist.binStartV[i] = controlFtrSpace.invertFeature(ftrIdx - nObsFtrs, hist.binStartV[i]);
+	    				hist.binStartV[i] = controlFtrSpace.invertFeature(ftrId - nObsFtrs, hist.binStartV[i]);
 	    			}
     			}
 
     			return hist;
-    		},
-
-    		/**
-    		 * Callback when the current state changes.
-    		 */
-    		onStateChanged: function (callback) {
-    			mc.onStateChanged(callback);
-    		},
-
-    		/**
-    		 * Callback when an anomaly is detected.
-    		 */
-    		onAnomaly: function (callback) {
-    			mc.onAnomaly(callback);
-    		},
-
-    		onOutlier: function (callback) {
-    			mc.onOutlier(function (ftrV) {
-    				var invFtrV = obsFtrSpace.invertFeatureVector(ftrV);
-
-    				var features = [];
-    				for (var i = 0; i < invFtrV.length; i++) {
-    					features.push({name: obsFtrSpace.getFeature(i), value: invFtrV.at(i)});
-    				}
-
-    				callback(features);
-    			});
-    		},
-
-    		onPrediction: function (callback) {
-    			mc.onPrediction(callback);
-    		},
-
-    		/**
-    		 * Returns the distribution of features accross the states on the
-    		 * specified height.
-    		 */
-    		getFtrDist: function (height, ftrIdx) {
-    			var stateIds = mc.stateIds(height);
-
-    			var result = [];
-    			for (var i = 0; i < stateIds.length; i++) {
-    				var stateId = stateIds[i];
-    				var coord = getFtrCoord(stateId, ftrIdx);
-    				result.push({ state: stateId, value: coord });
-    			}
-
-    			return result;
-    		},
-
-    		setControl: function (ftrIdx, factor) {
-    			var controlFtrIdx = ftrIdx - obsFtrSpace.dims.length;
-    			mc.setControlFactor(controlFtrIdx, factor);
-    		}
-    	};
-
-    	return that;
-    };
+	    	}
+	    	
+	    	//===================================================
+	    	// PUBLIC METHODS
+	    	//===================================================
+	    	
+	    	// public methods
+	    	var that = {
+	    		getId: function () {
+	    			return id;
+	    		},
+	    		
+	    		setId: function (modelId) {
+	    			id = modelId;
+	    		},
+	    		
+	    		isActive: function () {
+	    			return active;
+	    		},
+	    		
+	    		setActive: function (act) {
+	    			active = act;
+	    		},
+	    		
+	    		isOnline: function () {
+	    			return online;
+	    		},
+	    		
+	    		setOnline: function (isOnline) {
+	    			online = isOnline;
+	    		},
+	    		
+	    		/**
+	    		 * Creates a new model out of the record set.
+	    		 */
+	    		fit: function (opts) {
+	    			if (opts.recSet == null && opts.recV == null) 
+	    				throw new Error('StreamStory.fit: missing parameters recSet or recV');
+	    			
+	    			var batchEndV = opts.batchEndV;
+	    			var timeField = opts.timeField;
+	    			
+	    			var obsColMat;
+	    			var contrColMat;
+	    			var timeV;
+	    			
+	    			if (opts.recV != null) {
+	    				var recV = opts.recV;
+	    				var nInst = recV.length;
+	    				
+	    				log.info('Updating feature spaces ...');
+	    				for (var i = 0; i < nInst; i++) {
+	    					var rec = recV[i];
+	    					obsFtrSpace.updateRecord(rec);
+							controlFtrSpace.updateRecord(rec);
+	    				}
+	    				
+	    				obsColMat = new la.Matrix({rows: obsFtrSpace.dim, cols: nInst});
+	    				contrColMat = new la.Matrix({rows: controlFtrSpace.dim, cols: nInst});
+	    				timeV = new la.Vector({ vals: nInst });
+	    				
+	    				for (var i = 0; i < nInst; i++) {
+	    					var rec = recV[i];
+	    					var obsFtrV = obsFtrSpace.extractVector(rec);
+	    					var contrFtrV = controlFtrSpace.extractVector(rec);
+	    					var time = rec[timeField].getTime();
+	    					
+	    					obsColMat.setCol(i, obsFtrV);
+	    					contrColMat.setCol(i, contrFtrV);
+	    					timeV[i] = time;
+	    				}
+	    			} else {
+	    				var recSet = opts.recSet;
+	    				
+	    				log.info('Updating feature spaces ...');
+	    				obsFtrSpace.updateRecords(recSet);
+		    			controlFtrSpace.updateRecords(recSet);
+		    			
+		    			obsColMat = obsFtrSpace.extractMatrix(recSet);
+		    			contrColMat = controlFtrSpace.extractMatrix(recSet);
+		    			timeV = recSet.getVector(timeField);
+	    			}
+	
+	    			log.info('Creating model ...');
+	    			mc.fit({
+	    				observations: obsColMat,
+	    				controls: contrColMat,
+	    				times: timeV,
+	    				batchV: batchEndV
+	    			});
+	    			log.info('Done!');
+	
+	    			return that;
+	    		},
+	
+	    		/**
+	    		 * Adds a new record. Doesn't update the models statistics.
+	    		 */
+	    		update: function (rec) {
+	    			if (rec == null) return;
+	
+	    			var obsFtrVec = obsFtrSpace.extractVector(rec);
+	    			var contFtrVec = controlFtrSpace.extractVector(rec);
+	    			var timestamp = rec.time.getTime();
+	
+	    			mc.update(obsFtrVec, contFtrVec, timestamp);
+	    		},
+	
+	    		/**
+	    		 * Saves the feature space and model into the specified files.
+	    		 */
+	    		save: function (mcFName) {
+	    			try {
+	    				console.log('Saving Markov chain ...');
+	
+	    				var fout = new fs.FOut(mcFName);
+	
+		    			mc.save(fout);
+		    			obsFtrSpace.save(fout);
+		    			controlFtrSpace.save(fout);
+	
+		    			fout.flush();
+		    			fout.close();
+	
+		    			console.log('Done!');
+	    			} catch (e) {
+	    				console.log('Failed to save the model!!' + e.message);
+	    			}
+	    		},
+	
+	    		/**
+	    		 * Returns the state used in the visualization.
+	    		 */
+	    		getVizState: function () {
+	    			log.debug('Fetching visualization ...');
+	    			return mc.toJSON();
+	    		},
+	
+	    		/**
+	    		 * Returns the hierarchical Markov chain model.
+	    		 */
+	    		getModel: function () {
+	    			return mc;
+	    		},
+	
+	    		/**
+	    		 * Returns the feature space.
+	    		 */
+	    		getFtrSpace: function () {
+	    			return { observations: obsFtrSpace, controls: controlFtrSpace };
+	    		},
+	
+	    		/**
+	    		 * Returns the current state at the specified height. If the height is not specified it
+	    		 * returns the current states through the hierarchy.
+	    		 */
+	    		currState: function (height) {
+	    			return mc.currState(height);
+	    		},
+	
+	    		/**
+	    		 * Returns the most likely future states.
+	    		 */
+	    		futureStates: function (level, state, time) {
+	    			return mc.futureStates(level, state, time);
+	    		},
+	
+	    		/**
+	    		 * Returns the most likely future states.
+	    		 */
+	    		pastStates: function (level, state, time) {
+	    			return mc.pastStates(level, state, time);
+	    		},
+	    		
+	    		getFtrDesc: function (ftrId) {
+	    			var nObsFtrs = getObsFtrCount();
+	    			
+	    			if (ftrId == null) {
+	    				var n = nObsFtrs + getContrFtrCount();
+	    				
+	    				var obsFtrs = [];
+	        			var contrFtrs = [];
+	    				
+	    				for (var i = 0; i < n; i++) {
+	    					var ftrDesc = that.getFtrDesc(i);
+	    					
+	    					if (i < nObsFtrs) {
+	    						obsFtrs.push(ftrDesc);
+	    					} else {
+	    						contrFtrs.push(ftrDesc);
+	    					}
+	    				}
+	    				
+	    				return {
+	        				observation: obsFtrs,
+	        				control: contrFtrs
+	        			}
+	    			} 
+	    			else {
+	    				if (ftrId < nObsFtrs) {
+	    					var ftrNames = getObsFtrNames();
+	    					return {
+	    						name: ftrNames[ftrId],
+	    						bounds: getFtrBounds(ftrId)
+	    					}
+	    				} else {
+	    					var ftrNames = getControlFtrNames();
+	    					return {
+	    						name: ftrNames[ftrId - nObsFtrs],
+	    						bounds: getFtrBounds(ftrId)
+	    					}
+	    				}
+	    			}
+	    		},
+	
+	    		/**
+	    		 * Returns state details as a Javascript object.
+	    		 */
+	    		stateDetails: function (stateId, height) {
+	    			var futureStates = mc.futureStates(height, stateId);
+	    			var pastStates = mc.pastStates(height, stateId);
+	    			var isTarget = mc.isTarget(stateId, height);
+	    			var isLeaf = mc.isLeaf(stateId);
+	    			var stateNm = mc.getStateName(stateId);
+	    			var wgts = mc.getStateWgtV(stateId);
+	
+	    			var features = getFtrDescriptions(stateId);
+	
+	    			return {
+	    				id: stateId,
+	    				name: stateNm.length > 0 ? stateNm : null,
+	    				isTarget: isTarget,
+	    				isLeaf: isLeaf,
+	    				features: features,
+	    				futureStates: futureStates,
+	    				pastStates: pastStates,
+	    				featureWeights: wgts
+	    			};
+	    		},
+	
+	    		/**
+	    		 * Returns a histogram for the desired feature in the desired state.
+	    		 */
+	    		histogram: function (stateId, ftrId) {
+	    			var hist = mc.histogram(stateId, ftrId);
+	    			return toServerHistogram(hist, ftrId);
+	    		},
+	    		
+	    		transitionHistogram: function (sourceId, targetId, ftrId) {
+	    			var hist = mc.transitionHistogram(sourceId, targetId, ftrId);
+	    			return toServerHistogram(hist, ftrId);
+	    		},
+	
+	    		/**
+	    		 * Callback when the current state changes.
+	    		 */
+	    		onStateChanged: function (callback) {
+	    			mc.onStateChanged(callback);
+	    		},
+	
+	    		/**
+	    		 * Callback when an anomaly is detected.
+	    		 */
+	    		onAnomaly: function (callback) {
+	    			mc.onAnomaly(callback);
+	    		},
+	
+	    		onOutlier: function (callback) {
+	    			mc.onOutlier(function (ftrV) {
+	    				var invFtrV = obsFtrSpace.invertFeatureVector(ftrV);
+	
+	    				var features = [];
+	    				for (var i = 0; i < invFtrV.length; i++) {
+	    					features.push({name: obsFtrSpace.getFeature(i), value: invFtrV.at(i)});
+	    				}
+	
+	    				callback(features);
+	    			});
+	    		},
+	
+	    		onPrediction: function (callback) {
+	    			mc.onPrediction(callback);
+	    		},
+	
+	    		/**
+	    		 * Returns the distribution of features accross the states on the
+	    		 * specified height.
+	    		 */
+	    		getFtrDist: function (height, ftrIdx) {
+	    			var stateIds = mc.stateIds(height);
+	
+	    			var result = [];
+	    			for (var i = 0; i < stateIds.length; i++) {
+	    				var stateId = stateIds[i];
+	    				var coord = getFtrCoord(stateId, ftrIdx);
+	    				result.push({ state: stateId, value: coord });
+	    			}
+	
+	    			return result;
+	    		},
+	
+	    		setControlVal: function (opts) {
+	    			if (opts.ftrId == null) throw new Error('Missing parameter ftrId!');
+	    			var controlFtrId = opts.ftrId - getObsFtrCount();
+	    			    			
+	    			var params = {
+	    				ftrId: opts.ftrId,
+	    				val: controlFtrSpace.extractFeature(controlFtrId, opts.val)
+	    			};
+	    			
+	    			if (opts.stateId != null) params.stateId = opts.stateId;
+	    			
+	    			mc.setControlVal(params);
+	    		},
+	    		
+	    		resetControlVal: function (opts) {
+	    			var params = {};
+	    			if (opts.stateId != null) params.stateId = opts.stateId;
+	    			if (opts.ftrId != null) params.ftrId = opts.ftrId;
+	    			
+	    			mc.resetControlVal(params);
+	    		}
+	    	};
+	
+	    	return that;
+	    };
+	}
     
