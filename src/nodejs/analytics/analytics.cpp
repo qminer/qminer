@@ -274,7 +274,6 @@ void TNodeJsSvmModel::ClrModel() {
 
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Classification
-v8::Persistent<v8::Function> TNodeJsSVC::constructor;
 
 void TNodeJsSVC::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -359,7 +358,6 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Regression
-v8::Persistent<v8::Function> TNodeJsSVR::constructor;
 
 void TNodeJsSVR::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
