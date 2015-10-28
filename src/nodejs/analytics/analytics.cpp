@@ -295,7 +295,6 @@ void TNodeJsSVC::Init(v8::Handle<v8::Object> exports) {
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
 
-	constructor.Reset(Isolate, tpl->GetFunction());
 	exports->Set(v8::String::NewFromUtf8(Isolate, "SVC"), tpl->GetFunction());
 }
 
@@ -379,7 +378,6 @@ void TNodeJsSVR::Init(v8::Handle<v8::Object> exports) {
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
 
-	constructor.Reset(Isolate, tpl->GetFunction());
 	exports->Set(v8::String::NewFromUtf8(Isolate, "SVR"), tpl->GetFunction());
 }
 
