@@ -5,11 +5,21 @@ cd %TEST_PATH%
 
 call npm install -g mocha
 call mocha --timeout 3000 *.js
+if errorlevel 1 (
+   echo Failure Reason Given is %errorlevel%
+   cd %CURRENT_PATH%
+   exit /b %errorlevel%
+)
 
 SET EXAMPLES_PATH=.\..\..\examples\streamaggregate
 cd %EXAMPLES_PATH%
 
 call npm install
 call npm test
+if errorlevel 1 (
+   echo Failure Reason Given is %errorlevel%
+   cd %CURRENT_PATH%
+   exit /b %errorlevel%
+)
 
 cd %CURRENT_PATH%
