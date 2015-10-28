@@ -131,6 +131,7 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(Tpl, "colMaxIdx", _colMaxIdx);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "getCol", _getCol);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "setCol", _setCol);
+	NODE_SET_PROTOTYPE_METHOD(Tpl, "getColSubmatrix", _getColSubmatrix);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "getRow", _getRow);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "setRow", _setRow);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "diag", _diag);
@@ -607,6 +608,25 @@ void TNodeJsFltVV::setCol(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     }
 
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsFltVV::getColSubmatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsIntV::GetClassId().CStr()),
+		"Matrix.getColSubmatrix: The first argument must be a TIntV (js linalg full int vector)");
+
+	TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+	TNodeJsVec<TInt, TAuxIntV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
+
+	EAssertR(JsVecArg->Vec.GetMxVal() < JsMat->Mat.GetCols(),
+		"Matrix.getColSubmatrix: The maximum value of the integer vector must be less than number of columns in matrix!");
+
+	TFltVV Result;
+	TLAUtil::SubMat(JsMat->Mat, JsVecArg->Vec, Result);
+
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
 }
 
 void TNodeJsFltVV::getRow(const v8::FunctionCallbackInfo<v8::Value>& Args) {

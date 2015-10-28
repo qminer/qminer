@@ -350,6 +350,14 @@ private:
 	JsDeclareFunction(setCol);
 
 	/**
+	* Gets the submatrix from the column ids.
+	* @param {module:la.IntVector} intVec - The vector containing the column ids.
+	* @returns {module:la.Matrix} The submatrix containing the the columns of the original matrix.
+	*/
+	//# exports.Matrix.prototype.setColSubmatrix = function (intVec) { return Object.create(require('qminer').la.Matrix.prototype); }
+	JsDeclareFunction(getColSubmatrix);
+
+	/**
 	* Returns the corresponding row of matrix as vector.
 	* @param {number} rowIdx - Row index (zero based).
 	* @returns {module:la.Vector} The rowIdx-th row of matrix.
