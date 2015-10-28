@@ -841,7 +841,7 @@ protected:
 	/// Constructor, reserves appropriate internal storage
 	TSlottedHistogram(const uint64 _Period, const uint64 _Slot, const int _Bins);
 	/// Given timestamp calculate index
-	int GetIdx(const uint64 Ts) { return (Ts % PeriodLen) / SlotGran; };
+	int GetIdx(const uint64 Ts) { return (int)((Ts % PeriodLen) / SlotGran); };
 public:
 	/// Create new instance based on provided JSon parameters
 	static PSlottedHistogram New(const uint64 Period, const uint64 Slot, const int Bins) { return new TSlottedHistogram(Period, Slot, Bins); }

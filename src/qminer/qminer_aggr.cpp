@@ -1410,7 +1410,7 @@ TSlottedHistogram::TSlottedHistogram(const uint64 _Period, const uint64 _Slot, c
 	SlotGran = _Slot;
 	Bins = _Bins;
 	uint64 Slots = PeriodLen / SlotGran;
-	Dat.Gen(Slots);
+	Dat.Gen((int)Slots);
 	for (int i = 0; i < Dat.Len(); i++) {
 		Dat[i] = TSignalProc::TOnlineHistogram(0, Bins, Bins, false, false);
 	}
@@ -1471,7 +1471,7 @@ void TSlottedHistogram::GetStats(const uint64 TsMin, const uint64 TsMax, TFltV& 
 void TOnlineSlottedHistogram::OnAddRec(const TRec& Rec) {
 	if (BufferedP) {
 		LastTm = InAggrValBuffer->GetInTmMSecs();
-		Model->Add(InAggrValBuffer->GetInTmMSecs(), InAggrValBuffer->GetInFlt());
+		Model->Add(InAggrValBuffer->GetInTmMSecs(), (int)InAggrValBuffer->GetInFlt());
 		TFltV ForgetV;
 		TUInt64V ForgetTmV;
 		InAggrValBuffer->GetOutFltV(ForgetV);
@@ -1481,7 +1481,7 @@ void TOnlineSlottedHistogram::OnAddRec(const TRec& Rec) {
 		}
 	} else {
 		LastTm = InAggrVal->GetTmMSecs();
-		Model->Add(InAggrVal->GetTmMSecs(), InAggrVal->GetFlt());
+		Model->Add(InAggrVal->GetTmMSecs(), (int)InAggrVal->GetFlt());
 	}
 }
 

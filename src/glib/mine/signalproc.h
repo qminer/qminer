@@ -763,7 +763,7 @@ public:
 	double GetChi2() const { return Chi2; }
 	/// Return P value
 	double GetP() const { return P; }
-	double GetDof() const {return DegreesOfFreedom;}
+	int GetDof() const {return DegreesOfFreedom;}
 	double GetAlpha() const {return Alpha;}
 	uint64 GetTmMSecs() const { return TmMSecs; }
 	/// Prints the model
