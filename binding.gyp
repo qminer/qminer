@@ -147,12 +147,14 @@
                 'src/third_party/Snap/snap-adv',
                 'src/third_party/Snap/snap-exp',
                 'src/third_party/Snap/qlib-core',
+                'src/third_party/libsvm',
                 '<(LIN_ALG_INCLUDE)'
             ],
             'dependencies': [
+                'libsvm',
                 'glib',
                 'snap_lib',
-                'qminer'
+                'qminer',
             ],
         },
         {
@@ -209,6 +211,18 @@
                 'src/glib/mine/',
                 'src/glib/misc/',
                 '<(LIN_ALG_INCLUDE)'
+            ],
+        },
+        {
+            # libsvm
+            'target_name': 'libsvm',
+            'type': 'static_library',
+            'sources': [
+                'src/third_party/libsvm/svm.h',
+                'src/third_party/libsvm/svm.cpp'
+            ],
+            'include_dirs': [
+                'src/third_party/libsvm/'
             ],
         },
         {
