@@ -1206,13 +1206,16 @@ void TMChain::GetFutureProbVOverTm(const TFltVV& PMat, const int& StateIdx,
 
 	const int Dim = PMat.GetRows();
 
-	TFltVV* X = new TFltVV(Dim, Dim);
-	TFltVV* X1 = new TFltVV(Dim, Dim);
+	TFltVV X(Dim, Dim);
+	TFltVV X1(Dim, Dim);
+
+	TFltVV* XPtr = &X;
+	TFltVV* X1Ptr = &X1;
 
 	TFltV ProbV;
 
-	TLAUtil::Identity(PMat.GetRows(), *X);
-	TLAUtil::GetRow(*X, StateIdx, ProbV);
+	TLAUtil::Identity(PMat.GetRows(), *XPtr);
+	TLAUtil::GetRow(*XPtr, StateIdx, ProbV);
 
 	if (IncludeT0) {
 		ProbVV.Add(ProbV);
@@ -1226,13 +1229,13 @@ void TMChain::GetFutureProbVOverTm(const TFltVV& PMat, const int& StateIdx,
 			Notify->OnNotifyFmt(TNotifyType::ntInfo, "steps: %d", i);
 		}
 		// increase time
-		TLinAlg::Multiply(*X, PMat, *X1);
+		TLinAlg::Multiply(*XPtr, PMat, *X1Ptr);
 
-		TempVV = X1;
-		X1 = X;
-		X = TempVV;
+		TempVV = X1Ptr;
+		X1Ptr = XPtr;
+		XPtr = TempVV;
 
-		TLAUtil::GetRow(*X, StateIdx, ProbV);
+		TLAUtil::GetRow(*XPtr, StateIdx, ProbV);
 
 		// normalize to minimize the error
 		Sum = TLinAlg::SumVec(ProbV);
@@ -1243,9 +1246,6 @@ void TMChain::GetFutureProbVOverTm(const TFltVV& PMat, const int& StateIdx,
 		// add to result
 		ProbVV.Add(ProbV);
 	}
-
-	delete X;
-	delete X1;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -1322,26 +1322,55 @@ void TCtMChain::GetPrevStateProbV(const TStateSetV& StateSetV, const TStateFtrVV
 	}
 }
 
-void TCtMChain::GetProbVOverTm(const double& Height, const int& StateId,
-		const double& StartTm, const double EndTm, const double& DeltaTm,
-		const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-		const TStateIdV& StateIdV, TVec<TFltV>& FutProbVV, TVec<TFltV>& PastProbVV) const {
+//void TCtMChain::GetProbVOverTm(const double& Height, const int& StateId,
+//		const double& StartTm, const double EndTm, const double& DeltaTm,
+//		const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+//		const TStateIdV& StateIdV, TVec<TFltV>& FutProbVV, TVec<TFltV>& PastProbVV) const {
+//
+//	const int StateIdx = StateIdV.SearchForw(StateId);
+//
+//	EAssertR(StateIdx >= 0, "Could not find target state!");
+//	EAssertR(StartTm <= 0 && EndTm >= 0, "The start and end times should include the current time!");
+//
+//	const int FutureSteps = (int)ceil(EndTm / DeltaTm);
+//	TFltVV FutProbMat;	GetFutureProbVV(StateSetV, StateFtrVV, DeltaTm, FutProbMat);
+//
+//	GetFutureProbVOverTm(FutProbMat, StateIdx, FutureSteps, FutProbVV, Notify);
+//
+//	if (StartTm < 0) {
+//		const int PastSteps = (int)ceil(-StartTm / DeltaTm);
+//		TFltVV PastProbMat;	GetPastProbVV(StateSetV, StateFtrVV, DeltaTm, PastProbMat);
+//		GetFutureProbVOverTm(PastProbMat, StateIdx, PastSteps, PastProbVV, Notify, false);
+//	}
+//}
 
-	const int StateIdx = StateIdV.SearchForw(StateId);
+void TCtMChain::GetProbVAtTime(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+		const TStateIdV& StateIdV, const int& StartStateId, const double& Tm,
+		TFltV& ProbV) const {
 
+	const int StateIdx = StateIdV.SearchForw(StartStateId);
 	EAssertR(StateIdx >= 0, "Could not find target state!");
-	EAssertR(StartTm <= 0 && EndTm >= 0, "The start and end times should include the current time!");
 
-	const int FutureSteps = (int)ceil(EndTm / DeltaTm);
-	TFltVV FutProbMat;	GetFutureProbVV(StateSetV, StateFtrVV, DeltaTm, FutProbMat);
+	const double StepsFlt = Tm / DeltaTm;
+	int Steps;
 
-	GetFutureProbVOverTm(FutProbMat, StateIdx, FutureSteps, FutProbVV, Notify);
+	TFltVV QMat, PMat, ProbVV;
 
-	if (StartTm < 0) {
-		const int PastSteps = (int)ceil(-StartTm / DeltaTm);
-		TFltVV PastProbMat;	GetPastProbVV(StateSetV, StateFtrVV, DeltaTm, PastProbMat);
-		GetFutureProbVOverTm(PastProbMat, StateIdx, PastSteps, PastProbVV, Notify, false);
+	if (Tm >= 0) {
+		GetQMatrix(StateSetV, StateFtrVV, QMat);
+		Steps = int(ceil(StepsFlt));
+	} else {
+		GetRevQMatrix(StateSetV, StateFtrVV, QMat);
+		Steps = int(ceil(-StepsFlt));
 	}
+
+	// get a probability matrix
+	GetProbMat(QMat, DeltaTm, PMat);
+	// solve the differential equation and store it back
+	// into Q (to save space)
+	TLinAlg::Pow(PMat, Steps, ProbVV);
+	// return the result
+	ProbVV.GetRow(StateIdx, ProbV);
 }
 
 bool TCtMChain::PredictOccurenceTime(const TStateFtrVV& StateFtrVV, const TStateSetV& StateSetV,
@@ -1359,7 +1388,7 @@ bool TCtMChain::PredictOccurenceTime(const TStateFtrVV& StateFtrVV, const TState
 	EAssertR(TargetStateIdx >= 0, "Could not find the start state!");
 
 	Prob = PredictOccurenceTime(QMat, CurrStateIdx, TargetStateIdx,
-			DeltaTm, TmHorizon, TmV, ProbV);
+			DeltaTm, TmHorizon, PdfBins, TmV, ProbV);
 
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Will reach state %d from state %d with prob: %.4f in time %.4f", CurrStateId, TargetStateId, Prob, TmHorizon);
 
@@ -1828,19 +1857,19 @@ void TCtMChain::GetFutureProbVV(const TFltVV& QMat, const double& Tm,
 	const int Steps = (int) ceil(Tm / Dt);
 
 	TFltVV ProbMat;	GetProbMat(QMat, Dt, ProbMat);
-	TFltVV CorrProbMat(Dim, Dim);
+	TFltVV CurrProbMat(Dim, Dim);
 
 	// the probabilities from state i to the hidden state should now go from i to i
 	if (HasHiddenState) {
 		const int Dim = ProbMat.GetRows()-1;
 
-		TLAUtil::SubMat(ProbMat, 0, Dim, 0, Dim, CorrProbMat);
+		TLAUtil::SubMat(ProbMat, 0, Dim, 0, Dim, CurrProbMat);
 		for (int RowIdx = 0; RowIdx < Dim; RowIdx++) {
 			const double HiddenProb = ProbMat(RowIdx, Dim);
-			CorrProbMat(RowIdx, RowIdx) += HiddenProb;
+			CurrProbMat(RowIdx, RowIdx) += HiddenProb;
 		}
 
-		ProbMat = CorrProbMat;
+		ProbMat = CurrProbMat;
 	}
 
 	TLinAlg::Pow(ProbMat, Steps, ProbVV);
@@ -1848,12 +1877,30 @@ void TCtMChain::GetFutureProbVV(const TFltVV& QMat, const double& Tm,
 
 double TCtMChain::PredictOccurenceTime(const TFltVV& QMat, const int& CurrStateIdx,
 			const int& TargetStateIdx, const double& DeltaTm, const double& HorizonTm,
-			TFltV& TmV, TFltV& HitProbV) {
+			const int& PdfBins, TFltV& TmV, TFltV& HitProbV) {
 
 	const int Dim = QMat.GetRows();
-	const int OutputSize = (int)ceil(HorizonTm / DeltaTm) + 1;
 
 	TFltVV PMat;	GetProbMat(QMat, DeltaTm, PMat);
+
+	//=======================================================
+
+	double TmStep = HorizonTm / PdfBins;
+	TFltVV StepPMat;
+	if (TmStep > 2*DeltaTm) {
+		const int Pow = int(ceil(TmStep / DeltaTm));
+		TLinAlg::Pow(PMat, Pow, StepPMat);
+	} else {
+		StepPMat = PMat;
+		TmStep = DeltaTm;
+	}
+
+	//=======================================================
+
+	//=======================================================
+//	const int OutputSize = (int) ceil(HorizonTm / DeltaTm) + 1;
+	const int OutputSize = (int) ceil(HorizonTm / TmStep) + 1;
+	//=======================================================
 
 	TFltVV CurrProbMat(Dim, Dim);
 	TFltVV TempCurrProbMat(Dim, Dim);
@@ -1880,11 +1927,17 @@ double TCtMChain::PredictOccurenceTime(const TFltVV& QMat, const int& CurrStateI
 	double CumReturnProb, HitProb, ReturnProb, Prob;
 
 	int n = 1;
-	double CurrTm = DeltaTm;
+	//==============================================
+//	double CurrTm = DeltaTm;
+	double CurrTm = TmStep;
+	//==============================================
 
-	while (CurrTm < HorizonTm) {
+	while (CurrTm <= HorizonTm) {
 		// P(nh) <- P((n-1)h)*P(h)
-		TLinAlg::Multiply(CurrProbMat, PMat, TempCurrProbMat);
+		//=====================================================
+//		TLinAlg::Multiply(CurrProbMat, PMat, TempCurrProbMat);
+		TLinAlg::Multiply(CurrProbMat, StepPMat, TempCurrProbMat);
+		//=====================================================
 		std::swap(CurrProbMat, TempCurrProbMat);
 
 		ReturnProb = CurrProbMat(TargetStateIdx, TargetStateIdx);
@@ -1900,7 +1953,10 @@ double TCtMChain::PredictOccurenceTime(const TFltVV& QMat, const int& CurrStateI
 
 		EAssertR(!TFlt::IsNan(Prob), "The probability of reachig the target state is nan!");
 
-		HitProb = Prob - CumReturnProb*DeltaTm;
+		//=====================================================
+//		HitProb = Prob - CumReturnProb*DeltaTm;
+		HitProb = Prob - CumReturnProb*TmStep;
+		//=====================================================
 		EAssertR(!TFlt::IsNan(HitProb), "The HitProb is nan!");
 
 		CumHitProb += HitProb;
@@ -1908,12 +1964,19 @@ double TCtMChain::PredictOccurenceTime(const TFltVV& QMat, const int& CurrStateI
 		TmV[n] = CurrTm;
 
 //		printf("Prob %.4f, CumReturnProb %.4f, HitProb: %.4f, CumHitProb %.4f\n", Prob, CumReturnProb*DeltaTm, HitProb, CumHitProb * DeltaTm);
+//		printf("Prob %.4f, CumReturnProb %.4f, HitProb: %.4f, CumHitProb %.4f\n", Prob, CumReturnProb*TmStep, HitProb, CumHitProb * TmStep);
 
 		n++;
-		CurrTm += DeltaTm;
+		//=====================================================
+//		CurrTm += DeltaTm;
+		CurrTm += TmStep;
+		//=====================================================
 	}
 
-	return CumHitProb * DeltaTm;
+	//=====================================================
+//	return CumHitProb * DeltaTm;
+	return CumHitProb * TmStep;
+	//=====================================================
 }
 
 void TCtMChain::GetJumpMatrix(const TFltVV& QMat, TFltVV& JumpMat) {
@@ -2597,20 +2660,33 @@ void TStreamStory::GetPrevStateProbV(const double& Height, const int& StateId, T
 		GetStatsAtHeight(Height, StateSetV, StateIdV, StateFtrVV);
 		MChain->GetPrevStateProbV(StateSetV, StateFtrVV, StateIdV, StateId, StateIdProbV, StateIdV.Len()-1);
 	} catch (const PExcept& Except) {
-		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetPrevStateProbV: Failed to compute future state probabilities: %s", Except->GetMsgStr().CStr());
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "TStreamStory::GetPrevStateProbV: Failed to compute future state probabilities: %s", Except->GetMsgStr().CStr());
 		throw Except;
 	}
 }
 
-void TStreamStory::GetProbVOverTm(const double& Height, const int& StateId, const double StartTm, const double EndTm, const double& DeltaTm, TStateIdV& StateIdV, TVec<TFltV>& FutProbV, TVec<TFltV>& PastProbV) const {
+//void TStreamStory::GetProbVOverTm(const double& Height, const int& StateId, const double StartTm, const double EndTm, const double& DeltaTm, TStateIdV& StateIdV, TVec<TFltV>& FutProbV, TVec<TFltV>& PastProbV) const {
+//	try {
+//		TStateSetV StateSetV;
+//		TStateFtrVV StateFtrVV;
+//
+//		GetStatsAtHeight(Height, StateSetV, StateIdV, StateFtrVV);
+//		MChain->GetProbVOverTm(Height, StateId, StartTm, EndTm, DeltaTm, StateSetV, StateFtrVV, StateIdV, FutProbV, PastProbV);
+//	} catch (const PExcept& Except) {
+//		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetPrevStateProbV: Failed to compute future state probabilities: %s", Except->GetMsgStr().CStr());
+//		throw Except;
+//	}
+//}
+
+void TStreamStory::GetProbVAtTime(const int& StartStateId, const double& Height, const double& Time,
+		TIntV& StateIdV, TFltV& ProbV) const {
 	try {
 		TStateSetV StateSetV;
 		TStateFtrVV StateFtrVV;
-
 		GetStatsAtHeight(Height, StateSetV, StateIdV, StateFtrVV);
-		MChain->GetProbVOverTm(Height, StateId, StartTm, EndTm, DeltaTm, StateSetV, StateFtrVV, StateIdV, FutProbV, PastProbV);
+		MChain->GetProbVAtTime(StateSetV, StateFtrVV, StateIdV, StartStateId, Time, ProbV);
 	} catch (const PExcept& Except) {
-		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetPrevStateProbV: Failed to compute future state probabilities: %s", Except->GetMsgStr().CStr());
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "TStreamStory::GetProbVAtTime: Failed to compute probabilities: %s", Except->GetMsgStr().CStr());
 		throw Except;
 	}
 }
@@ -2619,7 +2695,7 @@ void TStreamStory::GetHistStateIdV(const double& Height, TStateIdV& StateIdV) co
 	try {
 		Hierarch->GetHistStateIdV(Height, StateIdV);
 	} catch (const PExcept& Except) {
-		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetHistStateIdV: Failed to compute fetch historical states: %s", Except->GetMsgStr().CStr());
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "TStreamStory::GetHistStateIdV: Failed to compute fetch historical states: %s", Except->GetMsgStr().CStr());
 		throw Except;
 	}
 }

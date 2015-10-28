@@ -2574,8 +2574,6 @@ void TFullMatrix::NormalizeRowsL1() {
 	const int Rows = GetRows();
 	const int Cols = GetCols();
 
-	printf("%s\n", TStrUtil::GetStr(*Mat, ", ", "%.3f").CStr());	// TODO remove
-
 	for (int RowIdx = 0; RowIdx < Rows; RowIdx++) {
 		const double Norm = RowNormL1(RowIdx);
 		for (int ColIdx = 0; ColIdx < Cols; ColIdx++) {

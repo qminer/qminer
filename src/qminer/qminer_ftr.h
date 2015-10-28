@@ -319,7 +319,7 @@ public:
     static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
     void Save(TSOut& SOut) const;   
     
-	TStr GetNm() const { return "Numeric[" + GetFtrStore()->GetFieldNm(FieldId) + "]"; };
+	TStr GetNm() const;
 	int GetDim() const { return 1; }
 	TStr GetFtr(const int& FtrN) const { return GetNm(); }
 

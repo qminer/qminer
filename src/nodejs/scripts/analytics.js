@@ -2060,6 +2060,7 @@ module.exports = exports = function (pathPrefix) {
 	
 	    	// create model and feature space
 	    	var mc;
+	    	var base = opts.base;
 	    	var obsFtrSpace;
 	    	var controlFtrSpace;
 	    	var id;
@@ -2081,10 +2082,13 @@ module.exports = exports = function (pathPrefix) {
 	    		}
 	    	}
 	    	else if (opts.fname != null) {
+	    		console.log('Loading StreamStory from: ' + opts.fname);
 	    		var fin = new fs.FIn(opts.fname);
 	    		mc = new exports._StreamStory(fin);
-	    		obsFtrSpace = new qm.FeatureSpace(opts.base, fin);
-	    		controlFtrSpace = new qm.FeatureSpace(opts.base, fin);
+	    		console.log('Loading feature spaces ...');
+	    		obsFtrSpace = new qm.FeatureSpace(base, fin);
+	    		controlFtrSpace = new qm.FeatureSpace(base, fin);
+	    		console.log('Loaded!');
 	    	}
 	    	else {
 	    		throw new Error('Missing parameters (base and config) or fname!');

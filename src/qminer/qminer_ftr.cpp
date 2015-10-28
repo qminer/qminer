@@ -619,6 +619,12 @@ void TNumeric::Save(TSOut& SOut) const {
     FieldDesc.Save(SOut);
 }
 
+TStr TNumeric::GetNm() const {
+	const TWPt<TStore>& Store = GetFtrStore();
+	const TStr& FieldNm = Store->GetFieldNm(FieldId);
+	return TStr::Fmt("Numeric[%s]", FieldNm.CStr());
+}
+
 bool TNumeric::Update(const TRec& Rec) {
     FtrGen.Update(GetVal(Rec));
     return false;
