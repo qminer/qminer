@@ -706,16 +706,18 @@ class TOnlineHistogram {
 private:
 	TFltV Counts; ///< Number of occurrences
 	TFltV Bounds; ///< Interval bounds (Bounds.Len() == Counts.Len() + 1)
-private:
-	TOnlineHistogram() { };
-	void Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf);
 public:	
+	/// Constructs uninitialized object
+	TOnlineHistogram() {};
 	/// Constructs given bin parameters
 	TOnlineHistogram(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf) { Init(LBound, UBound, Bins, AddNegInf, AddPosInf); }
 	/// Constructs given JSON arguments
 	TOnlineHistogram(const PJsonVal& ParamVal);
 	/// Constructs from stream
 	TOnlineHistogram(TSIn& SIn) : Counts(SIn), Bounds(SIn) {}
+
+	/// Initializes the object, resets current content is present
+	void Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf);
 
 	/// Loads the model from stream
 	void Load(TSIn& SIn) { *this = TOnlineHistogram(SIn); }
