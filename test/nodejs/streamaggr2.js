@@ -140,7 +140,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 				type: 'onlineSlottedHistogram',
 				store: 'Rpm',
 				inAggr: 'TimeSeries1',
-				period: 7 * 24 * 60 * 60 * 1000, // 1 day
+				period: 7 * 24 * 60 * 60 * 1000, // 1 week
 				window: 2 * 60 * 60 * 1000, // 2h
 				bins: 5, // 5 possible clusters
 				granularity: 5 * 60 * 1000  // 5 min
