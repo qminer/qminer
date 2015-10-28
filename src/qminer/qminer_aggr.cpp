@@ -1358,6 +1358,49 @@ TOnlineHistogram::TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& Para
 	BufferedP = (InAggrValBuffer != NULL);
 }
 
+///////////////////////////////
+/// Chi square stream aggregate
+void TChiSquare::OnAddRec(const TRec& Rec) {
+    TFltV ValVX; InAggrValX->GetFltV(ValVX);        
+    TFltV ValVY; InAggrValY->GetFltV(ValVY);
+	if (InAggrX->IsInit() && InAggrY->IsInit()) {
+		ChiSquare.Update(ValVX, ValVY, ChiSquare.GetDof());
+	}
+}
+
+TChiSquare::TChiSquare(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), ChiSquare(ParamVal) {
+    // parse out input aggregate
+    TStr InStoreNmX = ParamVal->GetObjStr("storeX");
+    TStr InStoreNmY = ParamVal->GetObjStr("storeY");
+    printf("%s",InStoreNmX.CStr());
+    TStr InAggrNmX = ParamVal->GetObjStr("inAggrX");
+    TStr InAggrNmY = ParamVal->GetObjStr("inAggrY");
+    PStreamAggr _InAggrX = Base->GetStreamAggr(InStoreNmX, InAggrNmX);
+    PStreamAggr _InAggrY = Base->GetStreamAggr(InStoreNmY, InAggrNmY);
+    
+    InAggrX = dynamic_cast<TStreamAggr*>(_InAggrX());
+    QmAssertR(!InAggrX.Empty(), "Stream aggregate does not exist: " + InAggrNmX);
+	InAggrValX = dynamic_cast<TStreamAggrOut::IFltVec*>(_InAggrX());
+    QmAssertR(!InAggrValX.Empty(), "Stream aggregate does not implement IFltVec interface: " + InAggrNmX);
+    
+    InAggrY = dynamic_cast<TStreamAggr*>(_InAggrY());
+    QmAssertR(!InAggrY.Empty(), "Stream aggregate does not exist: " + InAggrNmY);
+	InAggrValY = dynamic_cast<TStreamAggrOut::IFltVec*>(_InAggrY());
+    QmAssertR(!InAggrValY.Empty(), "Stream aggregate does not implement IFltVec interface: " + InAggrNmY);
+}
+
+PStreamAggr TChiSquare::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TChiSquare(Base, ParamVal);
+}
+
+PJsonVal TChiSquare::SaveJson(const int& Limit) const {
+	PJsonVal Val = TJsonVal::NewObj();
+	Val->AddToObj("P", ChiSquare.GetP());
+	Val->AddToObj("Chi2", ChiSquare.GetChi2());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(ChiSquare.GetTmMSecs()).GetWebLogDateTimeStr(true, "T"));
+	return Val;
+}
+
 } // TAggrs namespace
 
 } // TQm namespace

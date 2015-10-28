@@ -1405,6 +1405,18 @@ void TLAMisc::SaveMatlabTFltIntKdV(const TIntFltKdV& SpV, const int& ColN, TSOut
     }
 }
 
+void TLAMisc::SaveMatlabSpMat(const TVec<TIntFltKdV>& SpMat, TSOut& SOut) {
+	int Cols = SpMat.Len();
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		int Els = SpMat[ColN].Len();
+		for (int ElN = 0; ElN < Els; ElN++) {
+			SOut.PutStrLn(SpMat[ColN][ElN].Key.GetStr() + " " + TInt::GetStr(ColN) + " " + TStr::Fmt("%.17g", SpMat[ColN][ElN].Dat.Val));
+		}
+	}
+	SOut.Flush();
+}
+
+
 void TLAMisc::SaveMatlabSpMat(const TTriple<TIntV, TIntV,TFltV>& SpMat, TSOut& SOut) {
 	int Len = SpMat.Val1.Len();
 	for (int ElN = 0; ElN < Len; ElN++) {
@@ -2561,8 +2573,6 @@ double TFullMatrix::RowNormL1(const int& RowIdx) const {
 void TFullMatrix::NormalizeRowsL1() {
 	const int Rows = GetRows();
 	const int Cols = GetCols();
-
-	printf("%s\n", TStrUtil::GetStr(*Mat, ", ", "%.3f").CStr());	// TODO remove
 
 	for (int RowIdx = 0; RowIdx < Rows; RowIdx++) {
 		const double Norm = RowNormL1(RowIdx);

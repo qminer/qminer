@@ -210,14 +210,13 @@ public:
 // Online M2(X,Y) (covariance)
 class TCov {
 private:	
-    TFlt MaX, MaY; // current computed MA value        
-    TFlt Cov;
+	TFlt MaX, MaY; // current computed MA value        
+	TFlt Cov;
 	TUInt64 TmMSecs; // timestamp of current WMA	
-    TFlt pNo;
+	TFlt pNo;
 public:
 	TCov() { };
-    TCov(const PJsonVal& ParamVal) { TCov(); };
-
+	TCov(const PJsonVal& ParamVal) { TCov(); };
 	void Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV, const int& N);	
 	double GetCov() const { return (pNo > 1) ? (Cov / (pNo - 1)) : 0; }
@@ -744,6 +743,29 @@ public:
 	void Print() const;
 	/// Returns a JSON representation of the model
 	PJsonVal SaveJson() const;
+};
+
+/////////////////////////////////////////////////
+/// Chi square
+class TChiSquare {
+private:	       
+	double Chi2, P, Alpha;
+	int DegreesOfFreedom;
+	TUInt64 TmMSecs; // timestamp of current WMA
+public:
+	TChiSquare() { };
+	void Init(const double& _Alpha, const int& _Dof);
+	TChiSquare(const PJsonVal& ParamVal);
+	void Update(const TFltV& OutValVX, const TFltV& OutValVY, const int Dof);
+	/// Return Chi2 value
+	double GetChi2() const { return Chi2; }
+	/// Return P value
+	double GetP() const { return P; }
+	double GetDof() const {return DegreesOfFreedom;}
+	double GetAlpha() const {return Alpha;}
+	uint64 GetTmMSecs() const { return TmMSecs; }
+	/// Prints the model
+	void Print() const;
 };
 
 }
