@@ -218,8 +218,8 @@
             'target_name': 'libsvm',
             'type': 'static_library',
             'sources': [
-                'src/third_party/libsvm/svm.h',
-                'src/third_party/libsvm/svm.cpp'
+                'src/third_party/libsvm/libsvm.h',
+                'src/third_party/libsvm/libsvm.cpp'
             ],
             'include_dirs': [
                 'src/third_party/libsvm/'
