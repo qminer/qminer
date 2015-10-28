@@ -20,10 +20,17 @@ describe('Streamaggregate example test', function () {
 	    	.expect(200, done);
 	});
 	
+	it('testing fail', function (done) {
+		request(server)
+      		.get('/foo/bar')
+    		.expect(200, done);
+	})
+		
 	// test server
   	it('should repond 404 to everything else', function (done) {
     	request(server)
       		.get('/foo/bar')
     		.expect(404, done);
 	});
+
 });
