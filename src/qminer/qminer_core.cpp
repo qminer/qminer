@@ -4568,6 +4568,7 @@ void TStreamAggr::Init() {
 	Register<TStreamAggrs::TOnlineHistogram>();
 	Register<TStreamAggrs::TChiSquare>();
 	Register<TStreamAggrs::TOnlineSlottedHistogram>();
+	Register<TStreamAggrs::THistogramDiff>();
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal) :
