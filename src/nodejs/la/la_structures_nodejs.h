@@ -921,6 +921,7 @@ public:
 	/**
 	* Saves the sparse matrix as output stream.
 	* @param {module:fs.FOut} fout - Output stream.
+	* @param {boolean} [saveMatlab=false] - If true, saves using matlab three column text format. Otherwise, saves using binary format.
 	* @returns {module:fs.FOut} The output stream fout.
 	* @example
 	* // import the modules
@@ -933,7 +934,7 @@ public:
 	* // save matrix and close write stream
 	* mat.save(fout).close();
 	*/
-	//# exports.SparseMatrix.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+	//# exports.SparseMatrix.prototype.save = function (fout, saveMatlab) { return Object.create(require('qminer').fs.FOut.prototype); }
 	JsDeclareFunction(save);
 
 	/**
