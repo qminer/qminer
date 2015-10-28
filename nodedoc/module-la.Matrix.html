@@ -77,19 +77,22 @@
                     <dt><a href="module-la.Matrix.html#getCol">getCol(colIdx)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-la.Matrix.html#getColSubmatrix">getColSubmatrix(intVec)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-la.Matrix.html#getRow">getRow(rowIdx)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-la.Matrix.html#load">load(fin)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-la.Matrix.html#minus">minus(mat)</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-la.Matrix.html#minus">minus(mat)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-la.Matrix.html#multiply">multiply(arg)</a></dt>
                     <dd>
                     </dd>
@@ -114,13 +117,13 @@
                     <dt><a href="module-la.Matrix.html#rowNorms">rowNorms()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-la.Matrix.html#save">save(fout)</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-la.Matrix.html#save">save(fout)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-la.Matrix.html#setCol">setCol(colIdx, vec)</a></dt>
                     <dd>
                     </dd>
@@ -383,6 +386,43 @@ var vec = mat.diag(); // returns a vector [1, 8, 0]</code></pre>
                 <dt>Returns</dt>
                 <dd>
                   <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The colIdx-th column of matrix.</p>
+                </dd>
+              </dl>
+              <h3 id="getColSubmatrix"><span class="symbol-name">getColSubmatrix</span><span class="signature"><span class="signature-params">(intVec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <p>Gets the submatrix from the column ids.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>intVec</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The vector containing the column ids.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;The submatrix containing the the columns of the original matrix.</p>
                 </dd>
               </dl>
               <h3 id="getRow"><span class="symbol-name">getRow</span><span class="signature"><span class="signature-params">(rowIdx)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>

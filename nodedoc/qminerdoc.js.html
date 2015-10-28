@@ -2923,6 +2923,12 @@
     * @property {string} [BaseLoadCSVParam.delimiter = &#x27;,&#x27;] - Optional delimiter.
     * @property {string} [BaseLoadCSVParam.quote = &#x27;&quot;&#x27;] - Optional character to escape values that contain a delimiter.
     */
+
+    /**
+     * Loads the store from a CSV file.
+     * @param {module:qm~baseLoadCSVParam} opts - Options object.
+     * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
+     */
     exports.Base.prototype.loadCSV = function (opts, callback) {
     	console.log(&#x27;Loading CSV file ...&#x27;);
 
@@ -3141,6 +3147,32 @@
         return util.inspect(this, { depth: d, &#x27;customInspect&#x27;: false });
     }
 
+    // loading data into stores
+    /**
+     * Load given file line by line, parse each line to JSON and push it to the store.
+     *
+     * @param {String} file - Name of the json line file
+     * @param {Number} [limit] - Maximal number of records to load from file
+     */
+    exports.Store.prototype.loadJson = function (file, limit) {
+        var fin = fs.openRead(file);
+        var count = 0;
+        while (!fin.eof) {
+            var line = fin.readLine();
+            if (line == &quot;&quot;) { continue; }
+            try {
+                var rec = JSON.parse(line);
+                this.push(rec);
+                // count, GC and report
+                count++;
+                if (limit != undefined &amp;amp;&amp;amp; count == limit) { break; }
+            } catch (err) {
+                console.log(&quot;Error parsing [&quot; + line + &quot;]: &quot; + err)
+            }
+        }
+        return count;
+    }
+
     //==================================================================
     // RECORD SET
     //==================================================================
@@ -3331,52 +3363,6 @@
     //==================================================================
     // EXPORTS
     //==================================================================
-
-    // loading data into stores
-    exports.load = function () {
-        var _obj = {};
-
-        //#- &#x60;num = qm.load.jsonFileLimit(store, fileName, limit)&#x60; -- load file &#x60;fileName&#x60;
-        //#   line by line, parsing each line as JSON and adding it as record to &#x60;store&#x60;.
-        //#   When &#x60;limit != -1&#x60; only first first &#x60;limit&#x60; lines are loaded. Returns &#x60;num&#x60;:
-        //#   the number of lines loaded.
-        _obj.jsonFileLimit = function (store, file, limit) {
-            var fin = fs.openRead(file);
-            var count = 0;
-            while (!fin.eof) {
-                var line = fin.readLine();
-                if (line == &quot;&quot;) { continue; }
-                try {
-                    var rec = JSON.parse(line);
-                    store.push(rec);
-                    // count, GC and report
-                    count++;
-                    if (count % 1000 == 0) {
-                        store.base.garbageCollect();
-                    }
-                    if (count % 10000 == 0) {
-                        console.log(&quot;  &quot; + count + &quot; records&quot;);
-                    }
-                    if (count == limit) {
-                        break;
-                    }
-                } catch (err) {
-                    console.log(&quot;Error parsing [&quot; + line + &quot;]: &quot; + err)
-                }
-            }
-            console.log(&quot;Loaded &quot; + count + &quot; records to &quot; + store.name);
-            return count;
-        }
-
-        //#- &#x60;num = qm.load.jsonFile(store, fileName)&#x60; -- load file &#x60;fileName&#x60; line by line,
-        //#   parsing each line as JSON and adding it as record to &#x60;store&#x60;. Returns &#x60;num&#x60;:
-        //#   the number of lines loaded.
-        _obj.jsonFile = function (store, file) {
-            return _obj.jsonFileLimit(store, file, -1);
-        }
-
-        return _obj;
-    }();
 
     exports.delLock = function () {
         if (nodefs.existsSync(&#x27;lock&#x27;)) {

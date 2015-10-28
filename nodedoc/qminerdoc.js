@@ -2893,6 +2893,12 @@
     * @property {string} [BaseLoadCSVParam.delimiter = ','] - Optional delimiter.
     * @property {string} [BaseLoadCSVParam.quote = '"'] - Optional character to escape values that contain a delimiter.
     */
+
+    /**
+     * Loads the store from a CSV file.
+     * @param {module:qm~baseLoadCSVParam} opts - Options object.
+     * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
+     */
     exports.Base.prototype.loadCSV = function (opts, callback) {
     	console.log('Loading CSV file ...');
 
@@ -3111,6 +3117,32 @@
         return util.inspect(this, { depth: d, 'customInspect': false });
     }
 
+    // loading data into stores
+    /**
+     * Load given file line by line, parse each line to JSON and push it to the store.
+     *
+     * @param {String} file - Name of the json line file
+     * @param {Number} [limit] - Maximal number of records to load from file
+     */
+    exports.Store.prototype.loadJson = function (file, limit) {
+        var fin = fs.openRead(file);
+        var count = 0;
+        while (!fin.eof) {
+            var line = fin.readLine();
+            if (line == "") { continue; }
+            try {
+                var rec = JSON.parse(line);
+                this.push(rec);
+                // count, GC and report
+                count++;
+                if (limit != undefined && count == limit) { break; }
+            } catch (err) {
+                console.log("Error parsing [" + line + "]: " + err)
+            }
+        }
+        return count;
+    }
+
     //==================================================================
     // RECORD SET
     //==================================================================
@@ -3301,52 +3333,6 @@
     //==================================================================
     // EXPORTS
     //==================================================================
-
-    // loading data into stores
-    exports.load = function () {
-        var _obj = {};
-
-        //#- `num = qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName`
-        //#   line by line, parsing each line as JSON and adding it as record to `store`.
-        //#   When `limit != -1` only first first `limit` lines are loaded. Returns `num`:
-        //#   the number of lines loaded.
-        _obj.jsonFileLimit = function (store, file, limit) {
-            var fin = fs.openRead(file);
-            var count = 0;
-            while (!fin.eof) {
-                var line = fin.readLine();
-                if (line == "") { continue; }
-                try {
-                    var rec = JSON.parse(line);
-                    store.push(rec);
-                    // count, GC and report
-                    count++;
-                    if (count % 1000 == 0) {
-                        store.base.garbageCollect();
-                    }
-                    if (count % 10000 == 0) {
-                        console.log("  " + count + " records");
-                    }
-                    if (count == limit) {
-                        break;
-                    }
-                } catch (err) {
-                    console.log("Error parsing [" + line + "]: " + err)
-                }
-            }
-            console.log("Loaded " + count + " records to " + store.name);
-            return count;
-        }
-
-        //#- `num = qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line,
-        //#   parsing each line as JSON and adding it as record to `store`. Returns `num`:
-        //#   the number of lines loaded.
-        _obj.jsonFile = function (store, file) {
-            return _obj.jsonFileLimit(store, file, -1);
-        }
-
-        return _obj;
-    }();
 
     exports.delLock = function () {
         if (nodefs.existsSync('lock')) {

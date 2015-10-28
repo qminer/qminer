@@ -270,6 +270,12 @@ exports = {}; require.modules.qminer_la = exports;
 	*/
  exports.Matrix.prototype.setCol = function (colIdx, vec) { return Object.create(require('qminer').la.Matrix.prototype); }
 /**
+	* Gets the submatrix from the column ids.
+	* @param {module:la.IntVector} intVec - The vector containing the column ids.
+	* @returns {module:la.Matrix} The submatrix containing the the columns of the original matrix.
+	*/
+ exports.Matrix.prototype.getColSubmatrix = function (intVec) { return Object.create(require('qminer').la.Matrix.prototype); }
+/**
 	* Returns the corresponding row of matrix as vector.
 	* @param {number} rowIdx - Row index (zero based).
 	* @returns {module:la.Vector} The rowIdx-th row of matrix.
@@ -683,6 +689,7 @@ exports = {}; require.modules.qminer_la = exports;
 /**
 	* Saves the sparse matrix as output stream.
 	* @param {module:fs.FOut} fout - Output stream.
+	* @param {boolean} [saveMatlab=false] - If true, saves using matlab three column text format. Otherwise, saves using binary format.
 	* @returns {module:fs.FOut} The output stream fout.
 	* @example
 	* // import the modules
@@ -695,7 +702,7 @@ exports = {}; require.modules.qminer_la = exports;
 	* // save matrix and close write stream
 	* mat.save(fout).close();
 	*/
- exports.SparseMatrix.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+ exports.SparseMatrix.prototype.save = function (fout, saveMatlab) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
 	* Loads the sparse matrix from input stream.
 	* @param {module:fs.FIn} fin - Input stream.

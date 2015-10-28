@@ -354,7 +354,7 @@ private:
 	* @param {module:la.IntVector} intVec - The vector containing the column ids.
 	* @returns {module:la.Matrix} The submatrix containing the the columns of the original matrix.
 	*/
-	//# exports.Matrix.prototype.setColSubmatrix = function (intVec) { return Object.create(require('qminer').la.Matrix.prototype); }
+	//# exports.Matrix.prototype.getColSubmatrix = function (intVec) { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(getColSubmatrix);
 
 	/**
