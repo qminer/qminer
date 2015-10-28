@@ -867,7 +867,7 @@
 *    store: 'Heat',
 *    timestamp: 'Time',
 *    value: 'Celcius',
-*    winsize: 4 * 7 * 24 * 60 * 60 * 1000 // 4 weeks
+*    winsize: 2419200000 // 4 weeks
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
 *
@@ -878,10 +878,10 @@
 *    type: 'onlineSlottedHistogram',
 *    store: 'Heat',
 *    inAggr: 'TimeSeriesBuffer',
-*    period: 7 * 24 * 60 * 60 * 1000, // 1 week
-*    window: 2 * 60 * 60 * 1000, // 2h
+*    period: 604800000, // 1 week
+*    window: 7200000, // 2h
 *    bins: 5, // 5 possible clusters
-*    granularity: 5 * 60 * 1000  // 5 min
+*    granularity: 300000  // 5 min
 * };
 * var hist = base.store("Heat").addStreamAggr(aggrJson);
 * base.close();
@@ -929,7 +929,7 @@
 * 	store: 'Rpm',
 * 	timestamp: 'Time',
 * 	value: 'ClusterId',
-* 	winsize: 2 * 60 * 60 * 1000 // 2 hours
+* 	winsize: 7200000 // 2 hours
 * };
 * var timeSeries1 = base.store("Rpm").addStreamAggr(timeser1);
 * 
@@ -955,7 +955,7 @@
 * 	store: 'Rpm',
 * 	timestamp: 'Time',
 * 	value: 'ClusterId',
-* 	winsize: 6 * 60 * 60 * 1000 // 6 hours
+* 	winsize: 21600000 // 6 hours
 * };
 * var timeSeries2 = base.store("Rpm").addStreamAggr(timeser2);
 * 
