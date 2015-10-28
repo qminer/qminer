@@ -1410,7 +1410,7 @@ void TLAMisc::SaveMatlabSpMat(const TVec<TIntFltKdV>& SpMat, TSOut& SOut) {
 	for (int ColN = 0; ColN < Cols; ColN++) {
 		int Els = SpMat[ColN].Len();
 		for (int ElN = 0; ElN < Els; ElN++) {
-			SOut.PutStrLn(SpMat[ColN][ElN].Key.GetStr() + " " + TInt::GetStr(ColN) + " " + SpMat[ColN][ElN].Dat.GetStr());
+			SOut.PutStrLn(SpMat[ColN][ElN].Key.GetStr() + " " + TInt::GetStr(ColN) + " " + TStr::Fmt("%.17g", SpMat[ColN][ElN].Dat.GetStr()));
 		}
 	}
 	SOut.Flush();
