@@ -350,7 +350,7 @@ describe('Feature Space Tests', function () {
             var vec = ftr.extractSparseVector(Store[0]);
             assert.equal(vec.dim, 0);
         })
-        it.skip('should return a sparse vector for the first record in store: pair', function () {
+        it('should return a sparse vector for the first record in store: pair', function () {
             var ftr = new qm.FeatureSpace(base, {
                 type: "pair", source: "FtrSpaceTest",
                 first: { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
