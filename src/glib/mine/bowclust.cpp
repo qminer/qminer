@@ -1685,9 +1685,11 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 
 			CentroidIdV.Add(Cent1Id);
 
+			printf("Generated initial centorid, now generating others ...\n");
+
 			// for each data point x compute S(x), the similarity between x and the nearest center
 			// that has already been chosen until InitParam centers have been found
-			while (CentroidIdV.Len() < InitParam) {
+			while (CentroidIdV.Len() < InitParam && CentroidIdV.Len() < AllDIdV.Len()) {
 				const int RemDocs = AllDIdV.Len();
 				DWgtV.Gen(RemDocs, 0);
 
@@ -1717,6 +1719,8 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 				// probability distribution where a point x is chosen with probability
 				// proportional to S(x)^2
 
+				printf("Computing norm ...");
+
 				// normalize the weights
 				double NormL1 = TLinAlg::NormL1(DWgtV);
 				if (NormL1 == 0) {
@@ -1732,6 +1736,8 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 
 					continue;
 				}
+
+				printf("Normalizing ...");
 
 				// everything is OK => go on
 				TLinAlg::NormalizeL1(DWgtV);
@@ -1751,6 +1757,8 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 				const int NewCentId = AllDIdV[NewCentIdx];
 				CentroidIdV.Add(NewCentId);	AllDIdV.Del(NewCentIdx);
 			}
+
+			printf("Constructing results ...");
 
 			// place the results into DIdVV
 			for (int i = 0; i < InitParam; i++) {
