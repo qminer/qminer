@@ -1750,7 +1750,7 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 				// pick the new centroid
 				do {
 					WgtSum += DWgtV[++DIdx];
-				} while (WgtSum <= RndVal);
+				} while (DIdVV < DWgtV.Len() && WgtSum <= RndVal);
 
 				// create a new centroid
 				const int NewCentIdx = DIdx;
