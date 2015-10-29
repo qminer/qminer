@@ -96,6 +96,8 @@ public:
 	/// Inverts features from the given feature vector. The features must start
 	/// at the given offset. Increases the offset by its dimension
 	virtual void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const = 0;
+
+    // deprecated, to be removed
 	virtual double GetVal(const double& InVal) const = 0;
 
 	// for more strait-forward feature extraction (i.e. used by basic aggregators)
@@ -163,20 +165,21 @@ public:
 	/// Update feature extractors given a set of records
 	bool Update(const PRecSet& RecSet);
     /// Extract sparse feature vector from a record
-	void GetSpV(const TRec& Rec, TIntFltKdV& SpV) const;
+	void GetSpV(const TRec& Rec, TIntFltKdV& SpV, const int& FtrExtN = -1) const;
     /// Extract full feature vector from a record
-    void GetFullV(const TRec& Rec, TFltV& FullV, const int FtrN=-1) const;
+    void GetFullV(const TRec& Rec, TFltV& FullV, const int& FtrExtN = -1) const;
 	/// Extracting sparse feature vectors from a record set
-	void GetSpVV(const PRecSet& RecSet, TVec<TIntFltKdV>& SpVV) const;
+	void GetSpVV(const PRecSet& RecSet, TVec<TIntFltKdV>& SpVV, const int& FtrExtN = -1) const;
 	/// Extracting full feature vectors from a record set
-	void GetFullVV(const PRecSet& RecSet, TVec<TFltV>& FullVV) const;
+	void GetFullVV(const PRecSet& RecSet, TVec<TFltV>& FullVV, const int& FtrExtN = -1) const;
 	/// Extracting full feature vectors (columns) from a record set
-	void GetFullVV(const PRecSet& RecSet, TFltVV& FullVV) const;
+	void GetFullVV(const PRecSet& RecSet, TFltVV& FullVV, const int& FtrExtN = -1) const;
 	/// Compute sparse centroid of a given record set
 	void GetCentroidSpV(const PRecSet& RecSet, TIntFltKdV& CentroidSpV, const bool& NormalizeP = true) const;
 	/// Compute full centroid of a given record set
 	void GetCentroidV(const PRecSet& RecSet, TFltV& CentroidV, const bool& NormalizeP = true) const;
-	/// extracts a single feature
+
+	/// extracts a single feature (deprecated)
 	double GetSingleFtr(const int& FtrExtN, const double& Val) const;
 
 	/// Returns the inverse operation on the feature vector
@@ -201,6 +204,8 @@ public:
     int GetMnFtrN(const int& FtrExtN) const;
     /// End dimension +1 for the FtrExtN-th feature extractor
     int GetMxFtrN(const int& FtrExtN) const;
+	/// Check if the given store is one of the allowed start stores
+	bool IsStartStore(const uint& StoreId) const;
 
 	/// Prepares an empty bow and registers all the features
 	PBowDocBs MakeBowDocBs(const PRecSet& FtrRecSet);
