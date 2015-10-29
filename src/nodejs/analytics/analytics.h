@@ -118,7 +118,6 @@ private:
 //# exports.SVC = function(arg) { return Object.create(require('qminer').analytics.SVC.prototype); };
 
 class TNodeJsSVC : public TNodeJsSvmModel {
-	static v8::Persistent <v8::Function> constructor;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
 
@@ -310,7 +309,6 @@ public:
 //# exports.SVR = function(arg) { return Object.create(require('qminer').analytics.SVR.prototype); };
 
 class TNodeJsSVR : public TNodeJsSvmModel {
-	static v8::Persistent <v8::Function> constructor;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
     

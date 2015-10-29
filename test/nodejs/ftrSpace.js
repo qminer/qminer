@@ -24,7 +24,6 @@ describe('Feature Space Tests, old', function() {
 	});
 
 	it('should survive', function() {
-		console.log("FtrSpace", "Testing feature space serialization/deserilization/by value");
 
 		// only report failours
 		assert.silent = !process.isArg("-verbose");
@@ -164,7 +163,6 @@ describe('Feature Space Tests, old', function() {
 			for (var i = 0; i < Store.length; i++) {
 				var rec = Store[i];
 				var vec = ftrSpace.extractVector(rec);
-				console.log(vec.toString());
 			}
 		}
 
@@ -173,12 +171,9 @@ describe('Feature Space Tests, old', function() {
 				var rec = Store[i];
 				var vec1 = ftrSpace1.extractVector(rec);
 				var vec2 = ftrSpace2.extractVector(rec);
-				console.log("Diff: " + vec1.minus(vec2).norm());
 
 			}
 		}
-
-		console.log("Prepare feature space");
 
 		var ftrSpace1 = new qm.FeatureSpace(base, [
 			//{ type: "random", source: "FtrSpaceTestOld", seed: 1 },

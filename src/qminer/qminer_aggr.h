@@ -738,6 +738,37 @@ public:
 	void GetFltV(TFltV& ValV) const { Model.GetCountV(ValV); }
 };
 
+///////////////////////////////
+/// Chi square stream aggregate.
+/// Updates a chi square model, connects to an online histogram stream aggregate
+/// that implements TStreamAggrOut::IFltVec
+class TChiSquare : public TStreamAggr, public TStreamAggrOut::IFltTm {
+private:
+	// input
+	TWPt<TStreamAggr> InAggrX, InAggrY;
+	TWPt<TStreamAggrOut::IFltVec> InAggrValX, InAggrValY;	    
+	// indicator
+	TSignalProc::TChiSquare ChiSquare;
+
+protected:
+	void OnAddRec(const TRec& Rec);
+	TChiSquare(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:    
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	// did we finish initialization
+	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
+	// get current P value
+	double GetFlt() const { return ChiSquare.GetP(); }
+	// get time	
+	uint64 GetTmMSecs() const { return ChiSquare.GetTmMSecs(); }
+	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggrX->GetAggrNm()); 
+        InAggrNmV.Add(InAggrY->GetAggrNm());}
+	// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+	// stream aggregator type name 
+	static TStr GetType() { return "chiSquare"; } 
+	TStr Type() const { return GetType(); }
+};
 
 /////////////////////////////
 // Moving Window Buffer Sum
@@ -784,8 +815,143 @@ inline void TWinBuffer<TSignalProc::TVar>::OnAddRec(const TRec& Rec) {
 template <>
 inline TStr TWinBuffer<TSignalProc::TVar>::GetType() { return "variance"; }
 
-} // TStreamAggrs namespace
 
-} // namespace
+
+// forward declarations
+class TSlottedHistogram;
+typedef TPt<TSlottedHistogram> PSlottedHistogram;
+
+///////////////////////////////
+/// Helper object to maintain distribution statistics in time-slots.
+class TSlottedHistogram {
+private:
+	// smart-pointer
+	TCRef CRef;
+	friend class TPt<TSlottedHistogram>;
+protected:
+	/// Period length in miliseconds
+	TUInt64 PeriodLen;
+	/// Slot granularity in miliseconds
+	TUInt64 SlotGran;
+	/// Number of bins
+	TInt Bins;
+	/// Data storage, index is truncated timestamp, data is histogram
+	TVec<TSignalProc::TOnlineHistogram> Dat;
+protected:
+	/// Constructor, reserves appropriate internal storage
+	TSlottedHistogram(const uint64 _Period, const uint64 _Slot, const int _Bins);
+	/// Given timestamp calculate index
+	int GetIdx(const uint64 Ts) { return (int)((Ts % PeriodLen) / SlotGran); };
+public:
+	/// Create new instance based on provided JSon parameters
+	static PSlottedHistogram New(const uint64 Period, const uint64 Slot, const int Bins) { return new TSlottedHistogram(Period, Slot, Bins); }
+	/// Virtual destructor!
+	virtual ~TSlottedHistogram() { }
+
+	/// Load stream aggregate state from stream
+	void LoadState(TSIn& SIn);
+	/// Save state of stream aggregate to stream
+	void SaveState(TSOut& SOut) const;
+
+	/// Add new data to statistics
+	void Add(const uint64& Ts, const TInt& Val);
+	/// Remove data from statistics
+	void Remove(const uint64& Ts, const TInt& Val);
+
+	/// Provide statistics
+	void GetStats(const uint64 TsMin, const uint64 TsMax, TFltV& Dest);
+	/// Gets number of bins
+	int GetBins() { return Dat.Len(); }
+};
+
+///////////////////////////////
+/// Histogram stream aggregate.
+/// Updates a histogram model, connects to a time series stream aggregate (such as TEma)
+/// that implements TStreamAggrOut::IFltTm or a buffered aggregate that implements
+/// TStreamAggrOut::IFltTmIO
+class TOnlineSlottedHistogram : public TStreamAggr, public TStreamAggrOut::IFltVec {
+private:
+	PSlottedHistogram Model;
+
+	// Input aggregate: only one aggregate is expected on input, these just
+	// provide access to different interfaces for convenience 
+	TStreamAggr* InAggr;
+	TStreamAggrOut::IFltTm* InAggrVal; // can be NULL if the input is a buffered aggregate (IFltTmIO)
+	TStreamAggrOut::IFltTmIO* InAggrValBuffer; // can be NULL if the input is a time series aggregate (IFltTm)
+
+	TBool BufferedP; ///< is InAggrValBuffer not NULL?
+	/// Last entered timestamp in msec
+	TUInt64 LastTm;
+	/// Window length in msec
+	TUInt64 WndLen;
+
+protected:
+	/// Triggered when a record is added
+	void OnAddRec(const TRec& Rec);
+	/// JSON constructor
+	TOnlineSlottedHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+	/// JSON constructor
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new TOnlineSlottedHistogram(Base, ParamVal); }
+
+	/// did we finish initialization
+	bool IsInit() const { return true; }
+	void LoadState(TSIn& SIn);
+	void SaveState(TSOut& SOut) const;
+
+	/// serilization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+
+	/// stream aggregator type name 
+	static TStr GetType() { return "onlineSlottedHistogram"; }
+	/// stream aggregator type name 
+	TStr Type() const { return GetType(); }
+
+	/// returns the number of bins 
+	int GetFltLen() const { return Model->GetBins(); }
+	/// returns frequencies in a given bin
+	double GetFlt(const TInt& ElN) const;
+	/// returns the vector of frequencies
+	void GetFltV(TFltV& ValV) const { Model->GetStats(LastTm - WndLen, LastTm, ValV); }
+};
+
+
+///////////////////////////////
+/// Vector-difference stream aggregate.
+/// Provides difference of two vector, usually distributions, 
+/// connects to an online stream aggregates
+/// that implement TStreamAggrOut::IFltVec
+class TVecDiff : public TStreamAggr, public TStreamAggrOut::IFltVec {
+private:
+	// input
+	TWPt<TStreamAggr> InAggrX, InAggrY;
+	TWPt<TStreamAggrOut::IFltVec> InAggrValX, InAggrValY;
+	// indicator
+	TSignalProc::TChiSquare ChiSquare;
+
+protected:
+	void OnAddRec(const TRec& Rec) {} // do nothing
+	TVecDiff(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	// did we finish initialization
+	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
+	
+	/// returns the number of bins 
+	int GetFltLen() const { return InAggrValX->GetFltLen(); }
+	/// returns frequencies in a given bin
+	double GetFlt(const TInt& ElN) const { return InAggrValX->GetFlt(ElN) - InAggrValY->GetFlt(ElN); }
+	/// returns the vector of frequencies
+	void GetFltV(TFltV& ValV) const;
+	/// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+	/// stream aggregator type name 
+	static TStr GetType() { return "onlineVecDiff"; }
+	/// stream aggregator type name 
+	TStr Type() const { return GetType(); }
+};
+} // TStreamAggrs namespace
+} // TQm namespace
+
 
 #endif

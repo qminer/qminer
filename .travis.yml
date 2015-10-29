@@ -24,7 +24,7 @@ before_install:
   - if [ "$CXX" = "clang++-3.6" ]; then apt-cache search clang; fi
   - if [ "$CXX" = "clang++-3.6" ]; then sudo apt-get install -y clang-3.6; fi
   # get commit message
-  - COMMIT_MESSAGE=$(git show -s --format=%B $TRAVIS_COMMIT | tr -d '\n')
+  - COMMIT_MESSAGE=$(git show -s --pretty=oneline $TRAVIS_COMMIT | tr -d '\n')
   # figure out if we should publish
   - PUBLISH_BINARY=false
   # if we put [publish binary] in the commit message
@@ -36,8 +36,8 @@ script:
   - ./tools/genExampleTests.sh
   - ./test/nodejs/test.sh
   - if [ "$CXX" = "g++" ] ; then echo gpp ok ; fi
-  - echo status pub && echo $PUBLISH_BINARY  
-  - if [ "$CXX" = "g++" ] && [[ $PUBLISH_BINARY == true ]]; then echo publishing && ./node_modules/.bin/node-pre-gyp package publish; fi
+  - echo status pub && echo $PUBLISH_BINARY && echo $TRAVIS_REPO_SLUG && echo $TRAVIS_PULL_REQUEST
+  - if [ "$CXX" = "g++" ] && [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_REPO_SLUG" = "qminer/qminer" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo publishing && ./node_modules/.bin/node-pre-gyp package unpublish publish; fi
 os: linux
 notifications:
   email:  

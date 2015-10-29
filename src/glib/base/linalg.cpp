@@ -74,6 +74,16 @@ void TSparseColMatrix::PMultiplyT(const TFltVV& B, TFltVV& Result) const {
 	TLinAlg::MultiplyT(ColSpVV, B, Result);
 }
 
+void TSparseColMatrix::Init() {
+    ColN = ColSpVV.Len();
+    for (int Col = 0; Col < ColN; Col++) {
+        if (ColSpVV[Col].Empty()) { continue; }
+        if (ColSpVV[Col].Last().Key >= RowN) {
+            RowN = ColSpVV[Col].Last().Key + 1;
+        }
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////
 // Sparse-Row-Matrix
 TSparseRowMatrix::TSparseRowMatrix(const TStr& MatlabMatrixFNm) {
@@ -85,8 +95,8 @@ TSparseRowMatrix::TSparseRowMatrix(const TStr& MatlabMatrixFNm) {
      if (fscanf(F, "%d %d %f\n", &row, &col, &val) == 3) {
        EAssert(row > 0 && col > 0);
        MtxV.Add(TTriple<TInt, TInt, TSFlt>(row, col, val));
-       RowN = TMath::Mx(RowN, row);
-       ColN = TMath::Mx(ColN, col);
+       RowN = TMath::Mx(RowN.Val, row);
+       ColN = TMath::Mx(ColN.Val, col);
      }
    }
    fclose(F);
@@ -142,6 +152,16 @@ void TSparseRowMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {
         int len = RowV.Len(); Result[j] = 0.0;
         for (int i = 0; i < len; i++) {
             Result[j] += RowV[i].Dat * Vec[RowV[i].Key];
+        }
+    }
+}
+
+void TSparseRowMatrix::Init() {
+    RowN = RowSpVV.Len();
+    for (int Row = 0; Row < RowN; Row++) {
+        if (RowSpVV[Row].Empty()) { continue; }
+        if (RowSpVV[Row].Last().Key >= ColN) {
+            ColN = RowSpVV[Row].Last().Key + 1;
         }
     }
 }
@@ -1404,6 +1424,18 @@ void TLAMisc::SaveMatlabTFltIntKdV(const TIntFltKdV& SpV, const int& ColN, TSOut
         SOut.PutStrLn(TStr::Fmt("%d %d %g", SpV[ValN].Key+1, ColN+1, SpV[ValN].Dat()));
     }
 }
+
+void TLAMisc::SaveMatlabSpMat(const TVec<TIntFltKdV>& SpMat, TSOut& SOut) {
+	int Cols = SpMat.Len();
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		int Els = SpMat[ColN].Len();
+		for (int ElN = 0; ElN < Els; ElN++) {
+			SOut.PutStrLn(SpMat[ColN][ElN].Key.GetStr() + " " + TInt::GetStr(ColN) + " " + TStr::Fmt("%.17g", SpMat[ColN][ElN].Dat.Val));
+		}
+	}
+	SOut.Flush();
+}
+
 
 void TLAMisc::SaveMatlabSpMat(const TTriple<TIntV, TIntV,TFltV>& SpMat, TSOut& SOut) {
 	int Len = SpMat.Val1.Len();

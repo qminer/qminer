@@ -1,9 +1,13 @@
-QMiner [![Build Status](https://travis-ci.org/qminer/qminer.svg?branch=master)](https://travis-ci.org/qminer/qminer)[![Build status](https://ci.appveyor.com/api/projects/status/3klwdwgr2aqavtr2?svg=true)](https://ci.appveyor.com/project/rupnikj/qminer-19v7t)
+QMiner
 ======
+
+| Linux | Mac | Windows |
+| -------- | --- | ---  |
+| [![Build Status](https://travis-ci.org/qminer/qminer.svg?branch=master)](https://travis-ci.org/qminer/qminer) | [![Build Status](https://travis-ci.org/qminer/qminer.svg?branch=osx-binaries)](https://travis-ci.org/qminer/qminer) | [![Build status](https://ci.appveyor.com/api/projects/status/3klwdwgr2aqavtr2?svg=true)](https://ci.appveyor.com/project/rupnikj/qminer-19v7t) |
 
 QMiner is an analytics platform for large-scale real-time streams containing structured and
 unstructured data. It is designed for scaling to millions of instances on high-end commodity 
-hardware, providing efficient storage, retrieval and analytics mechanisms with real-time response. 
+hardware, providing efficient storage, retrieval and analytics mechanisms with real-time response.
 
 **[Main project homepage](http://qminer.ijs.si/)**
 
@@ -63,10 +67,10 @@ For more detailed installation check the following instructions:
 
 + [Examples](https://github.com/qminer/qminer/wiki/Example)
 + [Architecture](https://github.com/qminer/qminer/wiki/Architecture)
-+ [JavaScript API](https://rawgit.com/rupnikj/qminer/master/nodedoc/index.html)
-  + [`qm` module](https://rawgit.com/rupnikj/qminer/master/nodedoc/module-qm.html)
-  + [`la` module](https://rawgit.com/rupnikj/qminer/master/nodedoc/module-la.html)
-  + [`analytics` module](https://rawgit.com/rupnikj/qminer/master/nodedoc/module-analytics.html)
++ [JavaScript API](https://rawgit.com/qminer/qminer/master/nodedoc/index.html)
+  + [`qm` module](https://rawgit.com/qminer/qminer/master/nodedoc/module-qm.html)
+  + [`la` module](https://rawgit.com/qminer/qminer/master/nodedoc/module-la.html)
+  + [`analytics` module](https://rawgit.com/qminer/qminer/master/nodedoc/module-analytics.html)
 + [C++ Documentation](http://agava.ijs.si/~blazf/qminer/)
 + [Roadmap](https://github.com/qminer/qminer/wiki/Roadmap)
 + [History](https://github.com/qminer/qminer/wiki/History)
