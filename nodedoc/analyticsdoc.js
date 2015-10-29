@@ -1253,10 +1253,10 @@
 /**
 	 * Returns the probability distribution of past and future states over time.
 	 *
-	 * @param {Number} level - the level on which we want the distributions
-	 * @param {Number} state - the state we are starting from
-	 * @param {Number} dt - the time step (lower dt => more distributions will be returned)
-	 * @returns {Array} - array of probability distributions over time
+	 * @param {Number} stateId - ID if the starting state
+	 * @param {Number} height - the hieght
+	 * @param {Number} time - the time at which we want the probabilities
+	 * @returns {Array} - array of state ids and their probabilities
 	 */
 /**
 	 * Returns information about previous states.
@@ -1294,6 +1294,11 @@
 	 * @param {Number} stateId - the ID of the state
 	 * @param {Number} ftrId - the ID of the feature
 	 * @returns {Array} - the histogram
+	 */
+/**
+	 * Returns the lower and upper bound of the feature.
+	 *
+	 * @param {Integer} ftrId - id of the feature
 	 */
 /**
 	 * Returns an array of IDs of all the states on the specified height.
@@ -1357,6 +1362,11 @@
 	 * @param {String} name - name of the state
 	 */
 /**
+	 * Sets the name of the state.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 */
+/**
 	 * Returns true if the state is a target on the specified height.
 	 *
 	 * @param {Number} stateId - Id of the state
@@ -1371,10 +1381,27 @@
 	 * @param {Boolean} isTarget - set target on/off
 	 */
 /**
+	 * Returns true if the state defined by the ID is at the bottom of the hierarchy.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 */
+/**
+	 * Returns the time unit used by this model.
+	 *
+	 * @returns {String} timeUnit
+	 */
+/**
 	 * Sets the factor of the specified control:
 	 *
-	 * @param {Number} ftrIdx - the index of the control feature
-	 * @param {Number} factor
+	 * @param {Object} params - the parameters
+	 * @property {Number} [params.stateId] - id of the state, if not present, all the states will be set
+	 * @property {Number} params.ftrId - the index of the control feature
+	 * @property {Number} params.val - the value of the featuere
+	 */
+/**
+	 * Returns true is any of the control parameters have been set in any of the states.
+	 *
+	 * @returns {Boolean}
 	 */
 /**
 	 * Saves the model to the output stream.
@@ -1488,23 +1515,75 @@
 	*/
  exports.NNet.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); } 
 
-    exports.preprocessing = new function() {
-        this.binarize = function (y, labelId) {
+
+    ///////////////////////////////////////////////////
+    /////////////   DATA PREPROCESSING   //////////////
+    ///////////////////////////////////////////////////
+
+    /**
+    * Preprocessing
+    * @namespace
+    * @desc Preprocessing functions for preparing labels in formats accepted
+    * by learning moduls in qm.analytics.
+    */
+    var preprocessing = preprocessing || {};
+    // namespacing: http://addyosmani.com/blog/essential-js-namespacing/
+
+    /**
+    * Transforming arrays with labels to vector appropriate for binary classifiers.
+    * @class
+    * @classdesc
+    * Transform given array of labels into binary vector with different
+    * numeric value for elements when label matches specified label and
+    * for other elements. By default, these values are +1 for matching
+    * labels, and -1 for the rest.
+    * @param {Array} y - labels
+    * @param {(string | number)} positiveLabel - positive label
+    * @param {number} [positiveId = 1] - value when matching positive label
+    * @param {number} [negativeId = -1] - value when not matching positive label
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create binarizer with 'b' as positive label
+    * var binarizer = new analytics.preprocessing.Binarizer('b');
+    * // get vector with binarized labels
+    * var bins = binarizer.transform(['a','b','a','c']);
+    */
+    preprocessing.Binarizer = function (positiveLabel, positiveId, negativeId) {
+        if (positiveLabel == undefined) { throw "Binarizer needs positive label"; }
+
+        this.positiveLabel = positiveLabel;
+        this.positiveId = (positiveId == undefined) ? 1 : positiveId;
+        this.negativeId = (negativeId == undefined) ? -1 : negativeId;
+
+        this.fit = function () {
+            // do nothing
+        }
+
+        /**
+        * Transform given array of labels to binary numeric vector.
+        * @param {(Array<number> | Array<string> | module:la.Vector | module:la.StrVector)} y - labels
+        * @return {modul:la.Vector} binarized vector
+        */
+        this.transform = function (y) {
             var target = new la.Vector();
             for (var i = 0; i < y.length; i++) {
-                target.push(y[i] === labelId ? 1 : -1);
-            }
-            return target;
-        };
-
-        this.applyModel = function (model, X) {
-            var target = new la.Vector();
-            for (var i = 0; i < X.cols; i++) {
-                target.push(model.decisionFunction(X[i]));
+                target.push(y[i] === this.positiveLabel ? this.positiveId : this.negativeId);
             }
             return target;
         }
     };
+
+    preprocessing.applyModel = function (model, X) {
+        var target = new la.Vector();
+        for (var i = 0; i < X.cols; i++) {
+            target.push(model.decisionFunction(X[i]));
+        }
+        return target;
+    }
+
+    // Exports preprocessing namespace
+    exports.preprocessing = preprocessing;
 
     /**
     * SVM model.
@@ -1755,7 +1834,11 @@
                     console.log("Fitting label", (cat + 1), "/", cats);
                 };
                 // prepare targert vector for current category
-                var target = exports.preprocessing.binarize(y, cat);
+                var target = (y instanceof la.Matrix) ?
+                    // we have a special bianary vector for each category, make it into -1/+1
+                    (new exports.preprocessing.Binarizer(1)).transform(y.getRow(cat)) :
+                    // we have a vector with label for each element, get out -1/+1 vector
+                    (new exports.preprocessing.Binarizer(cat)).transform(y);
                 // get the model
                 var catModel = new model(modelParam);
                 models.push(catModel.fit(X, target));
@@ -1836,6 +1919,33 @@
     * Metrics
     * @namespace
     * @desc Classification and regression metrics
+    * @example <caption>Batch classification example</caption>
+    * // import metrics module
+    * var analytics = require('qminer').analytics;
+    *
+    * // true and predicted lables
+    * var true_lables = [0, 1, 0, 0, 1];
+    * var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+    *
+    * // compute ROC curve
+    * var roc = analytics.metrics.rocCurve(true_lables, pred_prob);
+    * @example <caption>Online classification example</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // true and predicted lables
+    * var true_lables = [0, 1, 0, 0, 1];
+    * var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+    *
+    * // create predictionCurve instance
+    * var predictionCurve = new analytics.metrics.PredictionCurve();
+    *
+    * // simulate data flow
+    * for (var i in true_lables) {
+    *    // push new value
+    *    predictionCurve.push(true_lables[i], pred_prob[i]);
+    *}
+    *
+    * var roc = predictionCurve.roc(); // get ROC
     * @example <caption>Batch regression example</caption>
     * // import analytics module
     * var analytics = require('qminer').analytics;
@@ -1866,21 +1976,49 @@
     var metrics = metrics || {};
     // namespacing: http://addyosmani.com/blog/essential-js-namespacing/
 
-    // For evaluating provided categories (precision, recall, F1).
+    ///////////////////////////////////////////////////
+    ///////////// CLASSIFICATION METRICS //////////////
+    ///////////////////////////////////////////////////
+
+    /**
+    * For evaluating provided categories from binary? classifiers.
+    * @class
+    * @classdesc Class implements several classification measures (precision, recall, F1, accuracy)
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lable(s)
+    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lable(s)
+    */
     metrics.ClassificationScore = function (yTrue, yPred) {
+        /**
+        * Returns `Object` containing different classification measures
+        * @returns {Object} scores - Object with different classification socres
+        * @returns {number} scores.count - Count
+        * @returns {number} scores.TP - Number of true positives
+        * @returns {number} scores.TN - Number of true negative
+        * @returns {number} scores.FP - Number of false positives
+        * @returns {number} scores.FN - Number of false positives
+        * @returns {number} scores.all - Number of all results
+        * @returns {number} scores.accuracy - Accuracy score. Formula: (tp + tn) / (tp + fp + fn + tn)
+        * @returns {number} scores.precision - Precision score. Formula: tp / (tp + fp)
+        * @returns {number} scores.recall - Recall score. Formula: tp / (tp + fn)
+        * @returns {number} scores.f1 - F1 score. Formula:  2 * (precision * recall) / (precision + recall)
+        */
         this.scores = {
             count: 0, predictionCount: 0,
             TP: 0, TN: 0, FP: 0, FN: 0,
             all: function () { return this.TP + this.FP + this.TN + this.FN; },
             precision: function () { return (this.FP == 0) ? 1 : this.TP / (this.TP + this.FP); },
-            recall: function () { return this.TP / (this.TP + this.FN); },
-            f1: function () { return 2 * this.precision() * this.recall() / (this.precision() + this.recall()); },
+            recall: function () { return (this.FN == 0) ? 1 : this.TP / (this.TP + this.FN); },
+            f1: function () { return ((this.precision() + this.recall()) == 0) ? 0 :
+                2 * this.precision() * this.recall() / (this.precision() + this.recall()); },
             accuracy: function () { return (this.TP + this.TN) / this.all(); }
         };
 
-        // adds prediction to the current statistics. `correct` corresponds to the correct
-        // label(s), `predicted` correspond to predicted lable(s). Labels can be either integers
-        // or integer array (when there are zero or more then one lables).
+        /**
+        * Adds prediction to the current statistics. Labels can be either integers
+        * or integer array (when there are zero or more then one lables).
+        * @param {number} correct - Correct lable.
+        * @param {number} predicted - Predicted lable.
+        */
         this.push = function (correct, predicted) {
             var catCorrect = (correct > 0);
             var catPredicted = (predicted > 0);
@@ -1910,36 +2048,137 @@
                 this.push(yTrue[i], yPred[i]);
             }
         }
+
+        // check if input parameters are of correct type and binary
+        for (var i = 0; i < arguments.length; i++) {
+            // check type
+            var argumentType = arguments[i].constructor.name;
+            if (argumentType !== "Array" && argumentType !== "Vector") {
+                throw new TypeError('input param must be of type "Array" or "Vector", but is ' + argumentType + ' instead');
+            }
+            // check if binary
+            for (var j = 0; j < arguments[i].length; j++) {
+                if (arguments[i][j] !== 0 && arguments[i][j] !== 1) {
+                    throw new TypeError('input values must be binary (0 or 1)');
+                }
+            }
+        }
     };
 
+    /**
+    * Accuracy score is the proportion of true results (both true positives and true negatives)
+    * among the total number of cases examined.
+    * Formula: (tp + tn) / (tp + fp + fn + tn).
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables
+    * @returns {number} Accuracy value
+    */
     metrics.accuracyScore = function (yTrue, yPred) {
         return new metrics.ClassificationScore(yTrue, yPred).scores.accuracy();
     };
 
+    /**
+    * Precision score is defined as the proportion of the true positives against all the
+    * positive results (both true positives and false positives).
+    * Formula: tp / (tp + fp).
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables
+    * @returns {number} Precission score
+    */
     metrics.precisionScore = function (yTrue, yPred) {
         return new metrics.ClassificationScore(yTrue, yPred).scores.precision();
     };
 
+    /**
+    * Recall score is intuitively the ability of the classifier to find all the positive samples.
+    * Formula: tp / (tp + fn).
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables
+    * @returns {number} Recall score
+    */
     metrics.recallScore = function (yTrue, yPred) {
         return new metrics.ClassificationScore(yTrue, yPred).scores.recall();
     };
 
+    /**
+    * The F1 score can be interpreted as a weighted average of the precision and recall, where
+    * an F1 score reaches its best value at 1 and worst score at 0. The relative contribution of
+    * precision and recall to the F1 score are equal.
+    * Formula: 2 * (precision * recall) / (precision + recall)
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables
+    * @returns {number} F1 score
+    */
     metrics.f1Score = function (yTrue, yPred) {
-        return new metrics.ClassificationScore(yTrue, yPred).scores.accuracy();
+        return new metrics.ClassificationScore(yTrue, yPred).scores.f1();
     };
 
-    // used for computing ROC curve and other related measures such as AUC;
+    /**
+    * Class implements several prediction curve measures (ROC, AOC, Precision-Recall, ...)
+    * @class
+    * @classdesc used for computing ROC curve and other related measures such as AUC
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lable(s) of binary classification in range {-1, 1} or {0, 1}.
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @example
+    * // import metrics module
+    * var metrics = require('qminer').analytics.metrics;
+    *
+    * // true and predicted lables
+    * var true_lables = [0, 1, 0, 0, 1];
+    * var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+    *
+    * // create predictionCurve instance
+    * var predictionCurve = new metrics.PredictionCurve();
+    *
+    * // simulate data flow
+    * for (var i in true_lables) {
+    *    // push new value
+    *    predictionCurve.push(true_lables[i], pred_prob[i]);
+    *}
+    *
+    * var roc = predictionCurve.roc(); // get ROC
+    * var auc = predictionCurve.auc(); // get AUC
+    * var pr = predictionCurve.precisionRecallCurve() // get precision-recall curve
+    */
     metrics.PredictionCurve = function (yTrue, yPred) {
-        // count of all examples
+        /**
+        * Count of all examples
+        * @name module:analytics~metrics.PredictionCurve#length
+        * @type number
+        */
         this.length = 0;
-        // count of all the positive and negative examples
+        /**
+        * Count of all positive examples
+        * @name module:analytics~metrics.PredictionCurve#allPositives
+        * @type number
+        */
         this.allPositives = 0;
+        /**
+        * Count of all negative examples
+        * @name module:analytics~metrics.PredictionCurve#allNegatives
+        * @type number
+        */
         this.allNegatives = 0;
         // store of predictions and ground truths
+        /**
+        * Store of ground truths
+        * @name module:analytics~metrics.PredictionCurve#grounds
+        * @type module:la.Vector
+        */
         this.grounds = new la.Vector();
+        /**
+        * Store of predictions
+        * @name module:analytics~metrics.PredictionCurve#predictions
+        * @type module:la.Vector
+        */
         this.predictions = new la.Vector();
 
-        // add new measurement with ground score (1 or -1) and predicted value
+        /**
+        * Add new measurement with ground score (1 or -1) and predicted value
+        * or integer array (when there are zero or more then one lables).
+        * @param {number} ground - Correct lable.
+        * @param {number} predicted - Estimated probabilities.
+        */
         this.push = function (ground, predict) {
             // remember the scores
             this.grounds.push(ground)
@@ -1960,7 +2199,20 @@
             }
         }
 
-        // get ROC parametrization sampled on `sample' points
+        // check if input parameters are of correct type and binary
+        for (var i = 0; i < arguments.length; i++) {
+            // check type
+            var argumentType = arguments[i].constructor.name;
+            if (argumentType !== "Array" && argumentType !== "Vector") {
+                throw new TypeError('input param must be of type "Array" or "Vector", but is ' + argumentType + ' instead');
+            }
+        }
+
+        /**
+        * Get  Receiver Operating Characteristic (ROC) parametrization sampled on `sample` points
+        * @param {number} [sample=10] - Desired number of samples in output
+        * @returns {module:la.Matrix} A matrix with increasing false and true positive rates
+        */
         this.roc = function (sample) {
             // default sample size is 10
             sample = sample || 10;
@@ -1968,21 +2220,38 @@
             var perm = this.predictions.sortPerm(false);
             // maintaining the results as we go along
             var TP = 0, FP = 0, ROC = [[0, 0]];
+
+            // check input samples
+            if (this.allNegatives == 0) throw new Error('No positive samples in yTrue, true positive value should be meaningless.');
+            if (this.allNegatives == this.length) throw new Error('No negative samples in yTrue, false positive value should be meaningless.');
+
             // for figuring out when to dump a new ROC sample
-            var next = Math.floor(perm.perm.length / sample);
+            var unique = 1;
+            for (var i = 1; i < perm.perm.length; i++) {
+                if (Math.abs(perm.vec[i] - perm.vec[i - 1]) > 1e-8) {
+                    unique++;
+                }
+            }
+
+            var next = Math.floor(unique / sample);
+
             // go over the sorted results
             for (var i = 0; i < perm.perm.length; i++) {
                 // get the ground
                 var ground = this.grounds[perm.perm[i]];
                 // update TP/FP counts according to the ground
                 if (ground > 0) { TP++ } else { FP++; }
+
                 // see if time to do next save
-                next = next - 1;
-                if (next <= 0) {
+                if ((i < perm.perm.length - 1) && (Math.abs(perm.vec[i] - perm.vec[i + 1]) > 1e-8)) {
+                    next = next - 1;
+                }
+
+                if (next < 0) {
                     // add new datapoint to the curve
                     ROC.push([FP / this.allNegatives, TP / this.allPositives]);
                     // setup next timer
-                    next = Math.floor(perm.perm.length / sample);
+                    next = Math.floor(unique / sample);
                 }
             }
             // add the last point
@@ -1991,12 +2260,16 @@
             return ROC;
         }
 
-        // get AUC of the current curve
+        /**
+        * Get Area Under the Curve (AUC) of the current curve
+        * @param {number} [sample=10] - Desired number of samples in output
+        * @returns {number} Area under ROC curve
+        */
         this.auc = function (sample) {
             // default sample size is 10
             sample = sample || 10;
             // get the curve
-            var curve = this.curve(sample);
+            var curve = this.roc(sample);
             // compute the area
             var result = 0;
             for (var i = 1; i < curve.length; i++) {
@@ -2011,6 +2284,11 @@
             return result;
         }
 
+        /**
+        * evalPrecisionRecall
+        * @private
+        * @param {callback} callback
+        */
         this.evalPrecisionRecall = function (callback) {
             // sort according to predictions
             var perm = this.predictions.sortPerm(false);
@@ -2034,7 +2312,11 @@
             return callback.finish();
         }
 
-        // get precision recall curve sampled on `sample' points
+        /**
+        * Get precision recall curve sampled on `sample` points
+        * @param {number} [sample=10] - Desired number of samples in output
+        * @returns {module:la.Matrix} Precision-recall pairs.
+        */
         this.precisionRecallCurve = function (sample) {
             return this.evalPrecisionRecall(new function (sample, length) {
                 // default sample size is 10
@@ -2044,7 +2326,7 @@
                 // for figuring out when to dump a new ROC sample
                 this.next = Math.floor(length / (this.sample));
                 this.counter = this.next;
-                console.log(length, this.sample, this.next);
+                //console.log(length, this.sample, this.next);
                 // keep last value
                 this.precision = 0; this.recall = 0;
                 // handlers
@@ -2067,19 +2349,25 @@
             }(sample, this.length));
         };
 
-        // get break-even point, the value where precision and recall intersect
+        /**
+        * Get break-even point, the value where precision and recall intersect
+        * @returns {number} Break-even point.
+        */
         this.breakEvenPoint = function () {
             return this.evalPrecisionRecall(new function () {
                 this.minDiff = 1.0; this.bep = -1.0;
                 this.update = function (yTrue, yPred, precision, recall) {
                     var diff = Math.abs(precision - recall);
-                    if (diff < minDiff) { minDiff = diff; bep = (precision + recall) / 2; }
+                    if (diff < this.minDiff) { this.minDiff = diff; bep = (precision + recall) / 2; }
                 }
                 this.finish = function () { return this.bep; }
             }());
         }
 
-        // gets threshold for prediction score, which results in the highest F1
+        /**
+        * Gets threshold for prediction score, which results in the highest F1
+        * @returns {number} Threshold with highest F1 score.
+        */
         this.bestF1 = function () {
             return this.evalPrecisionRecall(new function () {
                 this.maxF1 = 0.0; this.threshold = 0.0;
@@ -2094,7 +2382,11 @@
             }());
         }
 
-        // gets threshold for prediction score, nearest to specified recall
+        /**
+        * Gets threshold for prediction score, nearest to specified recall
+        * @param {number} desiredRecall - Desired recall score.
+        * @returns {number} recal score threshold - Threshold for recall score, nearest to specified `recall`
+        */
         this.desiredRecall = function (desiredRecall) {
             return this.evalPrecisionRecall(new function () {
                 this.recallDiff = 1.0; this.threshold = 0.0;
@@ -2109,7 +2401,11 @@
             }());
         }
 
-        // gets threshold for prediction score, nearest to specified recall
+        /**
+        * Gets threshold for prediction score, nearest to specified precision
+        * @param {number} desiredPrecision - Desired precision score.
+        * @returns {number} Threshold for prediction score, nearest to specified `precision`
+        */
         this.desiredPrecision = function (desiredPrecision) {
             return this.evalPrecisionRecall(new function () {
                 this.precisionDiff = 1.0; this.threshold = 0.0;
@@ -2125,30 +2421,97 @@
         }
     };
 
+    /**
+    * Get ROC parametrization sampled on `sample` points
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @param {number} [sample=10] - Desired number of samples in output
+    * @returns {module:la.Matrix} A matrix with increasing false and true positive rates
+    * @example
+    * // import metrics module
+    * var metrics = require('qminer').analytics.metrics;
+    *
+    * // true and predicted lables
+    * var true_lables = [0, 1, 0, 0, 1];
+    * var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+    *
+    * // compute ROC curve
+    * var roc = metrics.rocCurve(true_lables, pred_prob); // output: [ [ 0, 0 ], [0, 0.5], [[ 0.34, 1 ],], [ 0.67, 0 ], [ 1, 1 ] ]
+    */
     metrics.rocCurve = function (yTrue, yPred, sample) {
         return new metrics.PredictionCurve(yTrue, yPred).roc(sample);
     };
 
+    /**
+    * Get AUC of the current curve
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @param {number} [sample=10] - Desired number of samples in output
+    * @returns {number} Area under ROC curve
+    * @example
+    * // import metrics module
+    * var metrics = require('qminer').analytics.metrics;
+    *
+    * // true and predicted lables
+    * var true_lables = [0, 1, 0, 0, 1];
+    * var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+    *
+    * // compute ROC curve
+    * var auc = metrics.rocAucScore(true_lables, pred_prob); // output: 0.92
+    */
     metrics.rocAucScore = function (yTrue, yPred, sample) {
-        return new metrics.PredictionCurve(yTrue, yPred).roc(sample);
+        return new metrics.PredictionCurve(yTrue, yPred).auc(sample);
     };
 
+    /**
+    * Get precision recall curve sampled on `sample` points
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @param {number} [sample=10] - Desired number of samples in output
+    * @returns {module:la.Matrix} Precision-recall pairs
+    */
     metrics.precisionRecallCurve = function (yTrue, yPred, sample) {
         return new metrics.PredictionCurve(yTrue, yPred).precisionRecallCurve(sample);
     };
 
+    /**
+    * Get break-even point, the value where precision and recall intersect
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @returns {number} Break-even point score
+    */
     metrics.breakEventPointScore = function (yTrue, yPred) {
         return new metrics.PredictionCurve(yTrue, yPred).breakEvenPoint();
     };
 
+    /**
+    * Gets threshold for prediction score, which results in the highest F1
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @returns {number} Threshold with highest F1 score
+    */
     metrics.bestF1Threshold = function (yTrue, yPred) {
         return new metrics.PredictionCurve(yTrue, yPred).bestF1();
     };
 
+    /**
+    * Gets threshold for recall score, nearest to specified recall
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @param {number} desiredRecall - Desired recall score.
+    * @returns {number} Threshold for recall score, nearest to specified `recall`
+    */
     metrics.desiredRecallThreshold = function (yTrue, yPred, desiredRecall) {
         return new metrics.PredictionCurve(yTrue, yPred).desiredRecall(desiredRecall);
     };
 
+    /**
+    * Gets threshold for prediction score, nearest to specified precision
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @param {number} desiredPrecision - Desired precision score.
+    * @returns {number} Threshold for prediction score, nearest to specified `precision`
+    */
     metrics.desiredPrecisionThreshold = function (yTrue, yPred, desiredPrecision) {
         return new metrics.PredictionCurve(yTrue, yPred).desiredPrecision(desiredPrecision);
     };
@@ -2185,8 +2548,8 @@
 
         /**
         * Updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
-        * @param {number} yTrue - Ground truth (correct) target value.
-        * @param {number} yPred - Estimated target value.
+        * @param {number} yTrue - Ground truth (correct) target value
+        * @param {number} yPred - Estimated target value
         */
         this.push = function (yTrue, yPred, ref_num) {
             // set default values of optional input parameters
@@ -2200,7 +2563,7 @@
 
         /**
         * Returns error value.
-        * @returns {number} Error value.
+        * @returns {number} Error value
         */
         this.getError = function () {
             return error;
@@ -2211,7 +2574,7 @@
     /**
     * Create new (online) mean error instance.
     * @class
-    * @classdesc Online Mean Error (ME) instance 
+    * @classdesc Online Mean Error (ME) instance
     * @extends module:analytics~createOnlineMetric
     */
     metrics.MeanError = function () {
@@ -2234,7 +2597,7 @@
     /**
     * Create new (online) mean absolute error instance.
     * @class
-    * @classdesc Online Mean Absolute Error (MAE) instance 
+    * @classdesc Online Mean Absolute Error (MAE) instance
     * @extends module:analytics~createOnlineMetric
     */
     metrics.MeanAbsoluteError = function () {
@@ -2257,7 +2620,7 @@
     /**
     * Create new (online) mean square error instance.
     * @class
-    * @classdesc Online Mean Square Error (MSE) instance 
+    * @classdesc Online Mean Square Error (MSE) instance
     * @extends module:analytics~createOnlineMetric
     */
     metrics.MeanSquareError = function () {
@@ -2280,7 +2643,7 @@
     /**
     * Create new (online) root mean square error instance.
     * @class
-    * @classdesc Online Root Mean Square Error (RMSE) instance 
+    * @classdesc Online Root Mean Square Error (RMSE) instance
     * @extends module:analytics~createOnlineMetric
     */
     metrics.RootMeanSquareError = function () {
@@ -2303,7 +2666,7 @@
     /**
     * Create new (online) mean absolute percentage error instance.
     * @class
-    * @classdesc Online Mean Absolute Percentage Error (MAPE) instance 
+    * @classdesc Online Mean Absolute Percentage Error (MAPE) instance
     * @extends module:analytics~createOnlineMetric
     */
     metrics.MeanAbsolutePercentageError = function () {
@@ -2328,7 +2691,7 @@
     /**
     * Create new (online) R Square instance. This statistic measures how successful the fit is in explaining the variation of the data. Best possible score is 1.0, lower values are worse.
     * @class
-    * @classdesc Online R Squared (R2) score instance 
+    * @classdesc Online R Squared (R2) score instance
     * @extends module:analytics~createOnlineMetric
     */
     metrics.R2Score = function () {
@@ -2345,7 +2708,7 @@
                 this.sumTrue += yTrue;
                 this.sumTrue2 += yTrue * yTrue;
                 this.mean = this.sumTrue / this.count;
-                //calculate R squared score 
+                //calculate R squared score
                 this.sse += (yTrue - yPred) * (yTrue - yPred);
                 this.sst = this.sumTrue2 - this.count * this.mean * this.mean;
                 if (this.sst == 0.0) {
@@ -2396,9 +2759,9 @@
 
     /**
     * Mean error (ME) regression loss.
-    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
-    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
-    * @returns {number} Error value.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
+    * @returns {number} Error value
     */
     metrics.meanError = function (yTrueVec, yPredVec) {
         return new calcBatchError(yTrueVec, yPredVec).ME()
@@ -2406,9 +2769,9 @@
 
     /**
     * Mean absolute error (MAE) regression loss.
-    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
-    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
-    * @returns {number} Error value.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
+    * @returns {number} Error value
     */
     metrics.meanAbsoluteError = function (yTrueVec, yPredVec) {
         return new calcBatchError(yTrueVec, yPredVec).MAE()
@@ -2416,9 +2779,9 @@
 
     /**
     * Mean square error (MSE) regression loss.
-    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
-    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
-    * @returns {number} Error value.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
+    * @returns {number} Error value
     */
     metrics.meanSquareError = function (yTrueVec, yPredVec) {
         return new calcBatchError(yTrueVec, yPredVec).MSE()
@@ -2426,9 +2789,9 @@
 
     /**
     * Root mean square (RMSE) error regression loss.
-    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
-    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
-    * @returns {number} Error value.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
+    * @returns {number} Error value
     */
     metrics.rootMeanSquareError = function (yTrueVec, yPredVec) {
         return new calcBatchError(yTrueVec, yPredVec).RMSE()
@@ -2436,9 +2799,9 @@
 
     /**
     * Mean absolute percentage error (MAPE) regression loss.
-    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
-    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
-    * @returns {number} Error value.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
+    * @returns {number} Error value
     */
     metrics.meanAbsolutePercentageError = function (yTrueVec, yPredVec) {
         return new calcBatchError(yTrueVec, yPredVec).MAPE()
@@ -2446,9 +2809,9 @@
 
     /**
     * R^2 (coefficient of determination) regression score.
-    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
-    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
-    * @returns {number} Error value.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
+    * @returns {number} Error value
     */
     metrics.r2Score = function (yTrueVec, yPredVec) {
         return new calcBatchError(yTrueVec, yPredVec).R2()
@@ -2456,8 +2819,6 @@
 
     // Exports metrics namespace
     exports.metrics = metrics;
-
-
 
     /**
     * @classdesc Principal components analysis
@@ -2592,42 +2953,34 @@
         var k = undefined;
         var verbose = undefined;
         var fitIdx = undefined;
-        var fitStart;
+        var fitStart = undefined;
         var medoids = new la.Vector();
 
-        if (param != undefined && param.constructor.name == 'FIn') {
-            C = new la.Matrix();
-            C.load(param);
-            norC2 = new la.Vector();
-            norC2.load(param);
-
-            var idxvtmp = new la.Vector();
-            idxvtmp.load(param);
-            idxv = idxvtmp; // make normal vector (?)
-
-            var params_vec = new la.Vector();
-            params_vec.load(param);
-            iter = params_vec[0];
-            k = params_vec[1];
-            verbose = (params_vec[2] != 0);
-            param = { iter: iter, k: k, verbose: verbose };
-
-        } else if (param == undefined || typeof param == 'object') {
+        if (param != undefined && param instanceof fs.FIn) {
+		    C = new la.Matrix(); C.load(param);
+		    norC2 = new la.Vector(); norC2.load(param);
+		    idxv = new la.IntVector(); idxv.load(param);
+		    var fin_params = param.readJson();
+		    iter = fin_params.iter;
+		    k = fin_params.k;
+		    verbose = fin_params.verbose;
+		    medoids.load(param);
+	    } else if (param == undefined || typeof param == 'object') {
             param = param == undefined ? {} : param;
             // Fit params
-            var iter = param.iter == undefined ? 100 : param.iter;
-            var k = param.k == undefined ? 2 : param.k;
-            var verbose = param.verbose == undefined ? false : param.verbose;
-            var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
-            var fitStart = param.fitStart == undefined ? undefined : param.fitStart;
-            param = { iter: iter, k: k, verbose: verbose };
+            iter = (param.iter == undefined) ? 100 : param.iter;
+            k = (param.k == undefined) ? 2 : param.k;
+            verbose = (param.verbose == undefined) ? false : param.verbose;
+            fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
+            fitStart = param.fitStart == undefined ? undefined : param.fitStart;
         } else {
             throw "KMeans.constructor: parameter must be a JSON object or a fs.FIn!";
         }
+        param = { iter: iter, k: k, verbose: verbose };
 
         /**
         * Permutes centroid with given mapping.
-        @param {object} mapping - object that contains the mapping. E.g. mapping[4]=2 means "map cluster 4 into cluster 2"
+        * @param {object} mapping - object that contains the mapping. E.g. mapping[4]=2 means "map cluster 4 into cluster 2"
         */
         this.permuteCentroids = function (mapping) {
             var cl_count = C.cols;
@@ -2705,7 +3058,7 @@
         * var json = KMeans.getParams();
         */
         this.getParams = function () {
-            return param;
+            return  { iter: iter, k: k, verbose: verbose }
         }
 
         /**
@@ -2800,7 +3153,7 @@
                 norC2 = la.square(C.colNorms());
                 //D =  full(C'* X) - norC2' * (0.5* ones(1, n)) - (0.5 * ones(k,1) )* norX2';
                 var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
-                idxv = la.findMaxIdx(D);
+                idxv = new la.IntVector(la.findMaxIdx(D));
 
                 if (verbose) {
                     var energy = 0.0;
@@ -2817,7 +3170,7 @@
                     }
                     break;
                 }
-                idxvOld = idxv.slice();
+                idxvOld = new la.IntVector(idxv);
                 C = getCentroids(X, idxv, C); //drag
             }
             if (verbose) {
@@ -2907,11 +3260,11 @@
                     medoidID: medoids[centroids[i]],
                     featureIDs: explanation.featureIDs,
                     featureContributions: explanation.featureContributions
-                }                
+                }
             }
             return result;
         }
-                
+
         /**
         * Returns the weights and feature IDs that contributed to the distance between two vectors
         * @param {(module:la.Vector | module:la.SparseVector)} x - Vector
@@ -2966,61 +3319,23 @@
         * @param {module:fs.FOut} arg - The output stream.
         * @returns {module:fs.FOut} The output stream fout.
         */
-        this.save = function(arg){
-			if (!C) {
-				throw new Error("KMeans.save() - model not created yet");
-			}
-
-			var params_vec = new la.Vector();
-			params_vec.push(iter);
-			params_vec.push(k);
-			params_vec.push(verbose ? 1.0 : 0.0);
-
-            if (typeof (arg) == 'string') {
-			    var xfs = qm.fs;
-			    var fout = xfs.openWrite(arg);
-			    C.save(fout);
-			    norC2.save(fout);
-			    (new la.Vector(idxv)).save(fout);
-			    params_vec.save(fout);
-			    medoids.save(fout);
-			    fout.close();
-			    fout = null;
-            } else if (arg.constructor.name == 'FOut') {
-                C.save(arg);
-                norC2.save(arg);
-                (new la.Vector(idxv)).save(arg);
-                params_vec.save(arg);
-                medoids.save(arg);
-                return arg;
-            } else {
-                throw "KMeans.save: input must be fs.Fout";
-            }
-
-		}
-
-        this.load = function (fname) {
-		    var xfs = qm.fs;
-		    var fin = xfs.openRead(fname);
-
-		    C = new la.Matrix();
-		    C.load(fin);
-		    norC2 = new la.Vector();
-		    norC2.load(fin);
-
-		    var idxvtmp = new la.Vector();
-		    idxvtmp.load(fin);
-		    idxv = idxvtmp; // make normal vector (?)
-
-		    var params_vec = new la.Vector();
-		    params_vec.load(fin);
-		    medoids.load(fin);
-
-		    iter = params_vec[0];
-		    k = params_vec[1];
-		    verbose = (params_vec[2] != 0);
-
-		    fin = null;
+        this.save = function (fout) {
+			if (!C) { throw new Error("KMeans.save() - model not created yet"); }
+			C.save(fout);
+            norC2.save(fout);
+            idxv.save(fout);
+            console.log({
+				iter: iter,
+				k: k,
+				verbose: verbose
+			});
+            fout.writeJson({
+				iter: iter,
+				k: k,
+				verbose: verbose
+			});
+			medoids.save(fout);
+            return fout;
 		}
     }
 
@@ -3277,308 +3592,505 @@
         //this.loadLabeled
     };
 
-    /**
-     * StreamStory.
-     * @class
-     * @param {opts} HierarchMarkovParam - parameters. TODO typedef and describe
-     */
-    exports.HierarchMarkov = function (opts) {
-    	// constructor
-    	if (opts == null) throw 'Missing parameters!';
-    	if (opts.base == null) throw 'Missing parameter base!';
 
-    	// create model and feature space
-    	var mc;
-    	var obsFtrSpace;
-    	var controlFtrSpace;
+	{
+	    /**
+	     * StreamStory.
+	     * @class
+	     * @param {opts} HierarchMarkovParam - parameters. TODO typedef and describe
+	     */
+	    exports.StreamStory = function (opts) {
+	    	//===================================================
+	    	// CONSTRUCTOR
+	    	//===================================================
 
-    	if (opts.hmcConfig != null && opts.obsFields != null &&
-    			opts.contrFields != null && opts.base != null) {
+	    	if (opts == null) throw new Error('Missing parameters!');
+	    	if (opts.base == null) throw new Error('Missing parameter base!');
 
-    		mc = opts.sequenceEndV != null ? new exports.HMC(opts.hmcConfig, opts.sequenceEndV) : new exports.HMC(opts.hmcConfig);
+	    	// create model and feature space
+	    	var mc;
+	    	var base = opts.base;
+	    	var obsFtrSpace;
+	    	var controlFtrSpace;
+	    	var id;
+	    	var active = false;
+	    	var online = false;
 
-    		obsFtrSpace = new qm.FeatureSpace(opts.base, opts.obsFields);
-    		controlFtrSpace = new qm.FeatureSpace(opts.base, opts.contrFields);
-    	}
-    	else if (opts.hmcFile != null) {
-    		var fin = new fs.FIn(opts.hmcFile);
-    		mc = new exports.HMC(fin);
-    		obsFtrSpace = new qm.FeatureSpace(opts.base, fin);
-    		controlFtrSpace = new qm.FeatureSpace(opts.base, fin);
-    	}
-    	else {
-    		throw 'Parameters missing: ' + JSON.stringify(opts);
-    	}
+	    	if (opts.base != null && opts.config != null) {
+	    		mc = new exports._StreamStory(opts.config);
+	    		if (opts.obsFields != null && opts.contrFields != null) {
+		    		obsFtrSpace = new qm.FeatureSpace(opts.base, opts.obsFields);
+		    		controlFtrSpace = new qm.FeatureSpace(opts.base, opts.contrFields);
+	    		}
+	    		else if (opts.obsFtrSpace != null && opts.controlFtrSpace != null) {
+	    			obsFtrSpace = opts.obsFtrSpace;
+	    			controlFtrSpace = opts.controlFtrSpace;
+	    		}
+	    		else {
+	    			throw new Error('Missing feature space configuration!');
+	    		}
+	    	}
+	    	else if (opts.fname != null) {
+	    		console.log('Loading StreamStory from: ' + opts.fname);
+	    		var fin = new fs.FIn(opts.fname);
+	    		mc = new exports._StreamStory(fin);
+	    		console.log('Loading feature spaces ...');
+	    		obsFtrSpace = new qm.FeatureSpace(base, fin);
+	    		controlFtrSpace = new qm.FeatureSpace(base, fin);
+	    		console.log('Loaded!');
+	    	}
+	    	else {
+	    		throw new Error('Missing parameters (base and config) or fname!');
+	    	}
 
-    	function getFtrNames(ftrSpace) {
-    		var names = [];
+	    	//===================================================
+	    	// FEATURE HELPER FUNCTIONS
+	    	//===================================================
 
-    		var dims = ftrSpace.dims;
-    		for (var i = 0; i < dims.length; i++) {
-				names.push(ftrSpace.getFeature(i));
+
+	    	function getFtrNames(ftrSpace) {
+	    		var names = [];
+
+	    		var dims = ftrSpace.dims;
+	    		for (var i = 0; i < dims.length; i++) {
+	    			var ftrDesc = ftrSpace.getFeature(i);
+	    			var match = ftrDesc.match(/\[\w*\]$/)[0];	// remove Numeric[ ]
+
+	    			if (match != null)
+	    				names.push(match.substring(1, match.length-1));
+	    			else
+	    				names.push(ftrDesc);
+				}
+
+	    		return names;
+	    	}
+
+	    	function getFtrCount(ftrSpace) {
+	    		return ftrSpace.dims.length
+	    	}
+
+	    	function getObsFtrCount() {
+	    		return getFtrCount(obsFtrSpace);
 			}
 
-    		return names;
-    	}
-
-    	function getObsFtrCount() {
-			return obsFtrSpace.dims.length;
-		}
-
-    	function getObsFtrNames() {
-    		return getFtrNames(obsFtrSpace);
-    	}
-
-    	function getControlFtrNames() {
-    		return getFtrNames(controlFtrSpace);
-    	}
-
-    	function getFtrDescriptions(stateId) {
-    		var observations = [];
-    		var controls = [];
-
-			var coords = mc.fullCoords(stateId);
-			var obsFtrNames = getObsFtrNames();
-			var invObsCoords = obsFtrSpace.invertFeatureVector(coords);
-			for (var i = 0; i < invObsCoords.length; i++) {
-				observations.push({name: obsFtrNames[i], value: invObsCoords.at(i)});
+	    	function getContrFtrCount() {
+	    		return getFtrCount(controlFtrSpace);
 			}
 
-			var controlCoords = mc.fullCoords(stateId, false);
-			var contrFtrNames = getControlFtrNames();
-			var invControlCoords = controlFtrSpace.invertFeatureVector(controlCoords);
-			for (var i = 0; i < invControlCoords.length; i++) {
-				controls.push({name: contrFtrNames[i], value: invControlCoords.at(i)});
-			}
+	    	function getObsFtrNames() {
+	    		return getFtrNames(obsFtrSpace);
+	    	}
 
-			return {
-				observations: observations,
-				controls: controls
-			};
-    	}
+	    	function getControlFtrNames() {
+	    		return getFtrNames(controlFtrSpace);
+	    	}
 
-    	function getFtrCoord(stateId, ftrIdx) {
-    		if (ftrIdx < obsFtrSpace.dims.length) {
-    			return obsFtrSpace.invertFeatureVector(mc.fullCoords(stateId))[ftrIdx];
-    		} else {
-    			return controlFtrSpace.invertFeatureVector(mc.fullCoords(stateId, false))[ftrIdx - obsFtrSpace.dims.length];
-    		}
-    	}
+	    	function getFtrDescriptions(stateId) {
+	    		var observations = [];
+	    		var controls = [];
 
-    	// public methods
-    	var that = {
-    		/**
-    		 * Creates a new model out of the record set.
-    		 */
-    		fit: function (opts) {
-    			var recSet = opts.recSet;
-    			var batchEndV = opts.batchEndV;
-    			var timeField = opts.timeField;
+	    		var obsFtrCount = getObsFtrCount();
 
-    			log.info('Updating feature space ...');
-    			obsFtrSpace.updateRecords(recSet);
-    			controlFtrSpace.updateRecords(recSet);
+				var coords = mc.fullCoords(stateId);
+				var obsFtrNames = getObsFtrNames();
+				var invObsCoords = obsFtrSpace.invertFeatureVector(coords);
+				for (var i = 0; i < invObsCoords.length; i++) {
+					observations.push({
+						name: obsFtrNames[i],
+						value: invObsCoords.at(i),
+						isControl: false,
+						bounds: getFtrBounds(i)
+					});
+				}
 
-    			var obsColMat = obsFtrSpace.extractMatrix(recSet);
-    			var contrColMat = controlFtrSpace.extractMatrix(recSet);
-    			var timeV = recSet.getVector(timeField);
+				var controlCoords = mc.fullCoords(stateId, false);
+				var contrFtrNames = getControlFtrNames();
+				var invControlCoords = controlFtrSpace.invertFeatureVector(controlCoords);
+				for (var i = 0; i < invControlCoords.length; i++) {
+					controls.push({
+						name: contrFtrNames[i],
+						value: invControlCoords.at(i),
+						isControl: true,
+						bounds: getFtrBounds(i + obsFtrCount)
+					});
+				}
 
-    			log.info('Creating model ...');
-    			mc.fit({
-    				observations: obsColMat,
-    				controls: contrColMat,
-    				times: timeV,
-    				batchV: batchEndV
-    			});
-    			log.info('Done!');
+				return {
+					observations: observations,
+					controls: controls,
+					isBottom: mc.isLeaf(stateId)
+				};
+	    	}
 
-    			return that;
-    		},
+	    	function getFtrCoord(stateId, ftrIdx) {
+	    		if (ftrIdx < obsFtrSpace.dims.length) {
+	    			return obsFtrSpace.invertFeatureVector(mc.fullCoords(stateId))[ftrIdx];
+	    		} else {
+	    			return controlFtrSpace.invertFeatureVector(mc.fullCoords(stateId, false))[ftrIdx - obsFtrSpace.dims.length];
+	    		}
+	    	}
 
-    		/**
-    		 * Adds a new record. Doesn't update the models statistics.
-    		 */
-    		update: function (rec) {
-    			if (rec == null) return;
+	    	function getFtrBounds(ftrId) {
+	    		var obsFtrCount = getObsFtrCount();
+	    		var bounds = mc.getFtrBounds(ftrId);
 
-    			var obsFtrVec = obsFtrSpace.extractVector(rec);
-    			var contFtrVec = controlFtrSpace.extractVector(rec);
-    			var timestamp = rec.time.getTime();
+	    		if (ftrId < obsFtrCount) {
+	    			return {
+	    				min: obsFtrSpace.invertFeature(ftrId, bounds.min),
+	    				max: obsFtrSpace.invertFeature(ftrId, bounds.max)
+	    			}
+	    		} else {
+	    			return {
+	    				min: controlFtrSpace.invertFeature(ftrId - obsFtrCount, bounds.min),
+	    				max: controlFtrSpace.invertFeature(ftrId - obsFtrCount, bounds.max)
+	    			}
+	    		}
+	    	}
 
-    			mc.update(obsFtrVec, contFtrVec, timestamp);
-    		},
+	    	//===================================================
+	    	// HISTOGRAM
+	    	//===================================================
 
-    		/**
-    		 * Saves the feature space and model into the specified files.
-    		 */
-    		save: function (mcFName) {
-    			try {
-    				console.log('Saving Markov chain ...');
 
-    				var fout = new fs.FOut(mcFName);
+	    	function toServerHistogram(hist, ftrId) {
+	    		var nObsFtrs = getObsFtrCount();
 
-	    			mc.save(fout);
-	    			obsFtrSpace.save(fout);
-	    			controlFtrSpace.save(fout);
-
-	    			fout.flush();
-	    			fout.close();
-
-	    			console.log('Done!');
-    			} catch (e) {
-    				console.log('Failed to save the model!!' + e.message);
-    			}
-    		},
-
-    		/**
-    		 * Returns the state used in the visualization.
-    		 */
-    		getVizState: function () {
-    			log.debug('Fetching visualization ...');
-    			return mc.toJSON();
-    		},
-
-    		/**
-    		 * Returns the hierarchical Markov chain model.
-    		 */
-    		getModel: function () {
-    			return mc;
-    		},
-
-    		/**
-    		 * Returns the feature space.
-    		 */
-    		getFtrSpace: function () {
-    			return { observations: obsFtrSpace, controls: controlFtrSpace };
-    		},
-
-    		/**
-    		 * Returns the current state at the specified height. If the height is not specified it
-    		 * returns the current states through the hierarchy.
-    		 */
-    		currState: function (height) {
-    			return mc.currState(height);
-    		},
-
-    		/**
-    		 * Returns the most likely future states.
-    		 */
-    		futureStates: function (level, state, time) {
-    			return mc.futureStates(level, state, time);
-    		},
-
-    		/**
-    		 * Returns the most likely future states.
-    		 */
-    		pastStates: function (level, state, time) {
-    			return mc.pastStates(level, state, time);
-    		},
-
-    		getFtrNames: function () {
-    			return {
-    				observation: getObsFtrNames(),
-    				control: getControlFtrNames()
-    			}
-    		},
-
-    		/**
-    		 * Returns state details as a Javascript object.
-    		 */
-    		stateDetails: function (stateId, height) {
-    			var futureStates = mc.futureStates(height, stateId);
-    			var pastStates = mc.pastStates(height, stateId);
-    			var isTarget = mc.isTarget(stateId, height);
-    			var stateNm = mc.getStateName(stateId);
-    			var wgts = mc.getStateWgtV(stateId);
-
-    			var features = getFtrDescriptions(stateId);
-
-    			return {
-    				id: stateId,
-    				name: stateNm.length > 0 ? stateNm : null,
-    				isTarget: isTarget,
-    				features: features,
-    				futureStates: futureStates,
-    				pastStates: pastStates,
-    				featureWeights: wgts
-    			};
-    		},
-
-    		/**
-    		 * Returns a histogram for the desired feature in the desired state.
-    		 */
-    		histogram: function (stateId, ftrIdx) {
-    			var hist = mc.histogram(stateId, ftrIdx);
-
-    			var nObsFtrs = getObsFtrCount();
-
-    			if (ftrIdx < nObsFtrs) {
+    			if (ftrId < nObsFtrs) {
 	    			for (var i = 0; i < hist.binStartV.length; i++) {
-	    				hist.binStartV[i] = obsFtrSpace.invertFeature(ftrIdx, hist.binStartV[i]);
+	    				hist.binStartV[i] = obsFtrSpace.invertFeature(ftrId, hist.binStartV[i]);
 	    			}
     			} else {
     				for (var i = 0; i < hist.binStartV.length; i++) {
-	    				hist.binStartV[i] = controlFtrSpace.invertFeature(ftrIdx - nObsFtrs, hist.binStartV[i]);
+	    				hist.binStartV[i] = controlFtrSpace.invertFeature(ftrId - nObsFtrs, hist.binStartV[i]);
 	    			}
     			}
 
     			return hist;
-    		},
+	    	}
 
-    		/**
-    		 * Callback when the current state changes.
-    		 */
-    		onStateChanged: function (callback) {
-    			mc.onStateChanged(callback);
-    		},
+	    	//===================================================
+	    	// PUBLIC METHODS
+	    	//===================================================
 
-    		/**
-    		 * Callback when an anomaly is detected.
-    		 */
-    		onAnomaly: function (callback) {
-    			mc.onAnomaly(callback);
-    		},
+	    	// public methods
+	    	var that = {
+	    		getId: function () {
+	    			return id;
+	    		},
 
-    		onOutlier: function (callback) {
-    			mc.onOutlier(function (ftrV) {
-    				var invFtrV = obsFtrSpace.invertFeatureVector(ftrV);
+	    		setId: function (modelId) {
+	    			id = modelId;
+	    		},
 
-    				var features = [];
-    				for (var i = 0; i < invFtrV.length; i++) {
-    					features.push({name: obsFtrSpace.getFeature(i), value: invFtrV.at(i)});
-    				}
+	    		isActive: function () {
+	    			return active;
+	    		},
 
-    				callback(features);
-    			});
-    		},
+	    		setActive: function (act) {
+	    			active = act;
+	    		},
 
-    		onPrediction: function (callback) {
-    			mc.onPrediction(callback);
-    		},
+	    		isOnline: function () {
+	    			return online;
+	    		},
 
-    		/**
-    		 * Returns the distribution of features accross the states on the
-    		 * specified height.
-    		 */
-    		getFtrDist: function (height, ftrIdx) {
-    			var stateIds = mc.stateIds(height);
+	    		setOnline: function (isOnline) {
+	    			online = isOnline;
+	    		},
 
-    			var result = [];
-    			for (var i = 0; i < stateIds.length; i++) {
-    				var stateId = stateIds[i];
-    				var coord = getFtrCoord(stateId, ftrIdx);
-    				result.push({ state: stateId, value: coord });
-    			}
+	    		/**
+	    		 * Creates a new model out of the record set.
+	    		 */
+	    		fit: function (opts) {
+	    			if (opts.recSet == null && opts.recV == null)
+	    				throw new Error('StreamStory.fit: missing parameters recSet or recV');
 
-    			return result;
-    		},
+	    			var batchEndV = opts.batchEndV;
+	    			var timeField = opts.timeField;
 
-    		setControl: function (ftrIdx, factor) {
-    			var controlFtrIdx = ftrIdx - obsFtrSpace.dims.length;
-    			mc.setControlFactor(controlFtrIdx, factor);
-    		}
-    	};
+	    			var obsColMat;
+	    			var contrColMat;
+	    			var timeV;
 
-    	return that;
-    };
+	    			if (opts.recV != null) {
+	    				var recV = opts.recV;
+	    				var nInst = recV.length;
+
+	    				log.info('Updating feature spaces ...');
+	    				for (var i = 0; i < nInst; i++) {
+	    					var rec = recV[i];
+	    					obsFtrSpace.updateRecord(rec);
+							controlFtrSpace.updateRecord(rec);
+	    				}
+
+	    				obsColMat = new la.Matrix({rows: obsFtrSpace.dim, cols: nInst});
+	    				contrColMat = new la.Matrix({rows: controlFtrSpace.dim, cols: nInst});
+	    				timeV = new la.Vector({ vals: nInst });
+
+	    				for (var i = 0; i < nInst; i++) {
+	    					var rec = recV[i];
+	    					var obsFtrV = obsFtrSpace.extractVector(rec);
+	    					var contrFtrV = controlFtrSpace.extractVector(rec);
+	    					var time = rec[timeField].getTime();
+
+	    					obsColMat.setCol(i, obsFtrV);
+	    					contrColMat.setCol(i, contrFtrV);
+	    					timeV[i] = time;
+	    				}
+	    			} else {
+	    				var recSet = opts.recSet;
+
+	    				log.info('Updating feature spaces ...');
+	    				obsFtrSpace.updateRecords(recSet);
+		    			controlFtrSpace.updateRecords(recSet);
+
+		    			obsColMat = obsFtrSpace.extractMatrix(recSet);
+		    			contrColMat = controlFtrSpace.extractMatrix(recSet);
+		    			timeV = recSet.getVector(timeField);
+	    			}
+
+	    			log.info('Creating model ...');
+	    			mc.fit({
+	    				observations: obsColMat,
+	    				controls: contrColMat,
+	    				times: timeV,
+	    				batchV: batchEndV
+	    			});
+	    			log.info('Done!');
+
+	    			return that;
+	    		},
+
+	    		/**
+	    		 * Adds a new record. Doesn't update the models statistics.
+	    		 */
+	    		update: function (rec) {
+	    			if (rec == null) return;
+
+	    			var obsFtrVec = obsFtrSpace.extractVector(rec);
+	    			var contFtrVec = controlFtrSpace.extractVector(rec);
+	    			var timestamp = rec.time.getTime();
+
+	    			mc.update(obsFtrVec, contFtrVec, timestamp);
+	    		},
+
+	    		/**
+	    		 * Saves the feature space and model into the specified files.
+	    		 */
+	    		save: function (mcFName) {
+	    			try {
+	    				console.log('Saving Markov chain ...');
+
+	    				var fout = new fs.FOut(mcFName);
+
+		    			mc.save(fout);
+		    			obsFtrSpace.save(fout);
+		    			controlFtrSpace.save(fout);
+
+		    			fout.flush();
+		    			fout.close();
+
+		    			console.log('Done!');
+	    			} catch (e) {
+	    				console.log('Failed to save the model!!' + e.message);
+	    			}
+	    		},
+
+	    		/**
+	    		 * Returns the state used in the visualization.
+	    		 */
+	    		getVizState: function () {
+	    			log.debug('Fetching visualization ...');
+	    			return mc.toJSON();
+	    		},
+
+	    		/**
+	    		 * Returns the hierarchical Markov chain model.
+	    		 */
+	    		getModel: function () {
+	    			return mc;
+	    		},
+
+	    		/**
+	    		 * Returns the feature space.
+	    		 */
+	    		getFtrSpace: function () {
+	    			return { observations: obsFtrSpace, controls: controlFtrSpace };
+	    		},
+
+	    		/**
+	    		 * Returns the current state at the specified height. If the height is not specified it
+	    		 * returns the current states through the hierarchy.
+	    		 */
+	    		currState: function (height) {
+	    			return mc.currState(height);
+	    		},
+
+	    		/**
+	    		 * Returns the most likely future states.
+	    		 */
+	    		futureStates: function (level, state, time) {
+	    			return mc.futureStates(level, state, time);
+	    		},
+
+	    		/**
+	    		 * Returns the most likely future states.
+	    		 */
+	    		pastStates: function (level, state, time) {
+	    			return mc.pastStates(level, state, time);
+	    		},
+
+	    		getFtrDesc: function (ftrId) {
+	    			var nObsFtrs = getObsFtrCount();
+
+	    			if (ftrId == null) {
+	    				var n = nObsFtrs + getContrFtrCount();
+
+	    				var obsFtrs = [];
+	        			var contrFtrs = [];
+
+	    				for (var i = 0; i < n; i++) {
+	    					var ftrDesc = that.getFtrDesc(i);
+
+	    					if (i < nObsFtrs) {
+	    						obsFtrs.push(ftrDesc);
+	    					} else {
+	    						contrFtrs.push(ftrDesc);
+	    					}
+	    				}
+
+	    				return {
+	        				observation: obsFtrs,
+	        				control: contrFtrs
+	        			}
+	    			}
+	    			else {
+	    				if (ftrId < nObsFtrs) {
+	    					var ftrNames = getObsFtrNames();
+	    					return {
+	    						name: ftrNames[ftrId],
+	    						bounds: getFtrBounds(ftrId)
+	    					}
+	    				} else {
+	    					var ftrNames = getControlFtrNames();
+	    					return {
+	    						name: ftrNames[ftrId - nObsFtrs],
+	    						bounds: getFtrBounds(ftrId)
+	    					}
+	    				}
+	    			}
+	    		},
+
+	    		/**
+	    		 * Returns state details as a Javascript object.
+	    		 */
+	    		stateDetails: function (stateId, height) {
+	    			var futureStates = mc.futureStates(height, stateId);
+	    			var pastStates = mc.pastStates(height, stateId);
+	    			var isTarget = mc.isTarget(stateId, height);
+	    			var isLeaf = mc.isLeaf(stateId);
+	    			var stateNm = mc.getStateName(stateId);
+	    			var wgts = mc.getStateWgtV(stateId);
+
+	    			var features = getFtrDescriptions(stateId);
+
+	    			return {
+	    				id: stateId,
+	    				name: stateNm.length > 0 ? stateNm : null,
+	    				isTarget: isTarget,
+	    				isLeaf: isLeaf,
+	    				features: features,
+	    				futureStates: futureStates,
+	    				pastStates: pastStates,
+	    				featureWeights: wgts
+	    			};
+	    		},
+
+	    		/**
+	    		 * Returns a histogram for the desired feature in the desired state.
+	    		 */
+	    		histogram: function (stateId, ftrId) {
+	    			var hist = mc.histogram(stateId, ftrId);
+	    			return toServerHistogram(hist, ftrId);
+	    		},
+
+	    		transitionHistogram: function (sourceId, targetId, ftrId) {
+	    			var hist = mc.transitionHistogram(sourceId, targetId, ftrId);
+	    			return toServerHistogram(hist, ftrId);
+	    		},
+
+	    		/**
+	    		 * Callback when the current state changes.
+	    		 */
+	    		onStateChanged: function (callback) {
+	    			mc.onStateChanged(callback);
+	    		},
+
+	    		/**
+	    		 * Callback when an anomaly is detected.
+	    		 */
+	    		onAnomaly: function (callback) {
+	    			mc.onAnomaly(callback);
+	    		},
+
+	    		onOutlier: function (callback) {
+	    			mc.onOutlier(function (ftrV) {
+	    				var invFtrV = obsFtrSpace.invertFeatureVector(ftrV);
+
+	    				var features = [];
+	    				for (var i = 0; i < invFtrV.length; i++) {
+	    					features.push({name: obsFtrSpace.getFeature(i), value: invFtrV.at(i)});
+	    				}
+
+	    				callback(features);
+	    			});
+	    		},
+
+	    		onPrediction: function (callback) {
+	    			mc.onPrediction(callback);
+	    		},
+
+	    		/**
+	    		 * Returns the distribution of features accross the states on the
+	    		 * specified height.
+	    		 */
+	    		getFtrDist: function (height, ftrIdx) {
+	    			var stateIds = mc.stateIds(height);
+
+	    			var result = [];
+	    			for (var i = 0; i < stateIds.length; i++) {
+	    				var stateId = stateIds[i];
+	    				var coord = getFtrCoord(stateId, ftrIdx);
+	    				result.push({ state: stateId, value: coord });
+	    			}
+
+	    			return result;
+	    		},
+
+	    		setControlVal: function (opts) {
+	    			if (opts.ftrId == null) throw new Error('Missing parameter ftrId!');
+	    			var controlFtrId = opts.ftrId - getObsFtrCount();
+
+	    			var params = {
+	    				ftrId: opts.ftrId,
+	    				val: controlFtrSpace.extractFeature(controlFtrId, opts.val)
+	    			};
+
+	    			if (opts.stateId != null) params.stateId = opts.stateId;
+
+	    			mc.setControlVal(params);
+	    		},
+
+	    		resetControlVal: function (opts) {
+	    			var params = {};
+	    			if (opts.stateId != null) params.stateId = opts.stateId;
+	    			if (opts.ftrId != null) params.ftrId = opts.ftrId;
+
+	    			mc.resetControlVal(params);
+	    		}
+	    	};
+
+	    	return that;
+	    };
+	}
     

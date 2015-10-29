@@ -14,7 +14,7 @@ var qm = require('qminer');
 //describe('Movies test, old', function () {
 //	it('should survive', function () {
 describe('Movies Tests', function () {
-    
+
     it('should pass', function () {
         qm.delLock();
         // add store.addTrigger method
@@ -210,7 +210,7 @@ describe('Movies Tests', function () {
 
         // loading in larger dataset
         var filename = "./sandbox/movies/movies_data.txt"
-        assert.equal(qm.load.jsonFile(Movies, filename), 167, "qm.load.jsonFile(Movies, filename)");
+        assert.equal(Movies.loadJson(filename), 167, "Movies.loadJson(Movies, filename)");
 
         // check update and add counts
         assert.equal(PeopleAdd, 3138, "PeopleAdd");

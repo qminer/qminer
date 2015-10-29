@@ -274,7 +274,6 @@ void TNodeJsSvmModel::ClrModel() {
 
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Classification
-v8::Persistent<v8::Function> TNodeJsSVC::constructor;
 
 void TNodeJsSVC::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -296,7 +295,6 @@ void TNodeJsSVC::Init(v8::Handle<v8::Object> exports) {
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
 
-	constructor.Reset(Isolate, tpl->GetFunction());
 	exports->Set(v8::String::NewFromUtf8(Isolate, "SVC"), tpl->GetFunction());
 }
 
@@ -359,7 +357,6 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Regression
-v8::Persistent<v8::Function> TNodeJsSVR::constructor;
 
 void TNodeJsSVR::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -381,7 +378,6 @@ void TNodeJsSVR::Init(v8::Handle<v8::Object> exports) {
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
 
-	constructor.Reset(Isolate, tpl->GetFunction());
 	exports->Set(v8::String::NewFromUtf8(Isolate, "SVR"), tpl->GetFunction());
 }
 
@@ -1472,6 +1468,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 
 	// Add all methods, getters and setters here.
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "fitAsync", _fitAsync);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "update", _update);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "futureStates", _futureStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "pastStates", _pastStates);
@@ -1574,7 +1571,7 @@ void TNodeJsStreamStory::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	EAssertR(Args.Length() == 1, "hmc.fit expects 1 argument!");
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 	v8::Local<v8::Object> ArgObj = Args[0]->ToObject();
 
 	EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "observations", TNodeJsFltVV::GetClassId()), "Missing field observations or invalid class!");
@@ -1591,11 +1588,18 @@ void TNodeJsStreamStory::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "batchV", TNodeJsBoolV::GetClassId()), "Invalid class of field batchV!");
 		const TNodeJsBoolV* BatchEndJsV = TNodeJsUtil::GetUnwrapFld<TNodeJsBoolV>(ArgObj, "batchV");
 		const TBoolV& BatchEndV = BatchEndJsV->Vec;
-		JsMChain->StreamStory->InitBatches(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV, BatchEndV);
+		JsStreamStory->StreamStory->InitBatches(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV, BatchEndV);
 	} else {
-		JsMChain->StreamStory->Init(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV);
+		JsStreamStory->StreamStory->Init(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV);
 	}
 
+	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsStreamStory::fitAsync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsAsyncUtil::ExecuteOnWorker(new TFitAsync(Args));
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 

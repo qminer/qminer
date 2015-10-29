@@ -61,8 +61,10 @@
     * @param {module:qm.Base} base
     * @returns {module:qm.Store} Store with Iris dataset.
     */
-    exports.loadIrisSync = function (_base) {
+    exports.loadIrisSync = function (_base, callback) {
 
+    	if (callback == null) callback = function (e) { if (e != null) console.log(e.stack); }
+    	
         var finished = false;
         var options = {
             file: __dirname + '/data/iris.csv',

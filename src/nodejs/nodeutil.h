@@ -14,6 +14,7 @@
 
 #include <node.h>
 #include <node_object_wrap.h>
+#include <uv.h>
 #include "base.h"
 
 #define JsDeclareProperty(Function) \
@@ -241,6 +242,7 @@ public:
     		v8::Handle<v8::Value> ArgV[]);
 
     static void ExecuteVoid(const v8::Handle<v8::Function>& Fun);
+    static void ExecuteErr(const v8::Handle<v8::Function>& Fun, const PExcept& Except);
 
     template <class TVal>
 	static bool ExecuteBool(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg);
@@ -290,7 +292,7 @@ public:
 
 	template <class TClass>
 	static TClass* Unwrap(v8::Handle<v8::Object> Arg) { return node::ObjectWrap::Unwrap<TClass>(Arg); }
-	
+
 private:
 	/// returns the internal C++ windows timestamp from a double representation
 	/// of a UNIX timestamp
@@ -433,6 +435,108 @@ TClass* TNodeJsUtil::UnwrapCheckWatcher(v8::Handle<v8::Object> Arg) {
 	return Obj;
 }
 
+//////////////////////////////////////////////////////
+// Node - Asynchronous Utilities
+class TNodeJsAsyncUtil {
+private:
+	template <class TTask>
+	struct TMainData {
+		TTask* Task;
+		bool DelTask;
+
+		TMainData(TTask* Task, const bool& DelTask);
+	};
+
+	template <class TTask>
+	struct TWorkerData {
+		TTask* Task;
+		TWorkerData(TTask* Task);
+	};
+
+	template <typename THandle>
+	static void DelHandle(uv_handle_t* Handle);
+
+	template <class TTask>
+	static void OnMain(uv_async_t* UvAsync);
+
+
+
+	template <class TTask>
+	static void OnWorker(uv_work_t* UvReq);
+
+	template <class TTask>
+	static void AfterOnWorker(uv_work_t* UvReq, int Status);
+
+public:
+	template <class TTask>
+	static void ExecuteOnMain(TTask* Task, const bool& DelData=true);
+
+	template <class TTask>
+	static void ExecuteOnWorker(TTask* Task);
+};
+
+template <typename THandle>
+void TNodeJsAsyncUtil::DelHandle(uv_handle_t* Handle) {
+	THandle* Async = (THandle*) Handle;
+	delete Async;
+}
+
+template <class TTask>
+TNodeJsAsyncUtil::TMainData<TTask>::TMainData(TTask* _Task, const bool& _DelTask):
+		Task(_Task),
+		DelTask(_DelTask) {}
+
+template <class TTask>
+TNodeJsAsyncUtil::TWorkerData<TTask>::TWorkerData(TTask* _Task):
+		Task(_Task) {}
+
+template <class TTask>
+void TNodeJsAsyncUtil::OnMain(uv_async_t* UvAsync) {
+	TMainData<TTask>* Data = static_cast<TMainData<TTask>*>(UvAsync->data);
+
+	TTask::Run(*Data->Data);
+
+	// clean up
+	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
+
+	if (Data->DelTask) { delete Data->Data; }
+	delete Data;
+}
+
+template <class TTask>
+void TNodeJsAsyncUtil::OnWorker(uv_work_t* UvReq) {
+	TWorkerData<TTask>* Data = static_cast<TWorkerData<TTask>*>(UvReq->data);
+	TTask::Run(*Data->Task);
+}
+
+template <class TTask>
+void TNodeJsAsyncUtil::AfterOnWorker(uv_work_t* UvReq, int Status) {
+	TWorkerData<TTask>* Data = static_cast<TWorkerData<TTask>*>(UvReq->data);
+
+	TTask::AfterRun(*Data->Task);
+
+	delete Data->Task;
+	delete Data;
+	delete UvReq;
+}
+
+
+template <class TTask>
+void TNodeJsAsyncUtil::ExecuteOnMain(TTask* Task, const bool& DelTask) {
+	uv_async_t* UvAsync = new uv_async_t;
+	UvAsync->data = new TMainData<TTask>(Task, DelTask);
+
+	uv_async_init(uv_default_loop(), UvAsync, OnMain<TTask>);
+	uv_async_send(UvAsync);
+}
+
+template <class TTask>
+void TNodeJsAsyncUtil::ExecuteOnWorker(TTask* Task) {
+	uv_work_t* UvReq = new uv_work_t;
+	UvReq->data = new TWorkerData<TTask>(Task);
+
+	uv_queue_work(uv_default_loop(), UvReq, OnWorker<TTask>, AfterOnWorker<TTask>);
+}
 
 #endif
 

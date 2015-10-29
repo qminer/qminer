@@ -104,6 +104,15 @@
 	*/
  exports.listFile = function(dirName, fileExtension, recursive) { return ['']; }
 /**
+     * Reads a buffer line by line and calls a callback for each line.
+     *
+     * @param {String|FIn|Buffer} buffer - name of the file, input stream of a Node.js buffer
+     * @param {function} onLine - a callback that gets called on each line (for example: function (line) {})
+     * @param {function} onEnd - a callback that gets returned after all the lines have been read
+     * @param {function} onError - a callback that gets called if an error occurs
+     */
+ exports.readLines = function (buffer, onLine, onEnd, onError) {}
+/**
 	* Input file stream.
 	* @classdesc Used for reading files.
 	* @class
@@ -150,6 +159,14 @@
 	* @returns {string} Content of the file.
 	*/
  exports.FIn.prototype.readAll = function() { return ''; }
+/**
+	* Closes the input stream.
+	*/
+ exports.FIn.prototype.close = function() { return ''; }
+/**
+	* Checks if the input stream is closed.
+	*/
+ exports.FIn.prototype.isClosed = function() { return ''; }
 /**
 	* Output file stream.
 	* @classdesc Used for writing files.

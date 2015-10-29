@@ -1704,11 +1704,17 @@ void TNodeJsSpMat::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    EAssertR(Args.Length() == 1 && Args[0]->IsObject(), "Expected TJsNodeFOut object");
+    EAssertR(Args.Length() <= 2 && Args[0]->IsObject(), "Expected TJsNodeFOut object");
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
     PSOut SOut = JsFOut->SOut;
-    JsSpMat->Mat.Save(*SOut);
+
+	bool SaveMatlab = TNodeJsUtil::GetArgBool(Args, 1, false);
+	if (SaveMatlab) {
+		TLAMisc::SaveMatlabSpMat(JsSpMat->Mat, *SOut);		
+	} else  {
+		JsSpMat->Mat.Save(*SOut);
+	}
 
     Args.GetReturnValue().Set(Args[0]);
 }

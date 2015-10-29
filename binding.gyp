@@ -45,10 +45,10 @@
             # operating system specific parameters
             ['OS == "linux"', {
                 'libraries': [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ],
-                 # GCC flags
+                # GCC flags
                 'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
                 'cflags_cc': [ '-std=c++0x', '-frtti', '-fexceptions' ],
-                'cflags': [ '-g', '-fexceptions', '-frtti', '-Wall', '-Wno-deprecated-declarations', '-fopenmp' ],
+                'cflags': [ '-Wno-deprecated-declarations', '-fopenmp' ]
             }],
             ['OS == "win"', {
                 'msbuild_toolset': 'v120',

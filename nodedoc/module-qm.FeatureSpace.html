@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">FeatureSpace</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-2361">qminerdoc.<wbr>js:2361</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-2365">qminerdoc.<wbr>js:2365</a></p>
             <div class="symbol-classdesc">
               <p>Represents the feature space. It contains any of the <a href="module-qm.html#~FeatureExtractors">module:qm~FeatureExtractors</a>.</p>
             </div>
@@ -62,16 +62,16 @@
                     <dt><a href="module-qm.FeatureSpace.html#addFeatureExtractor">addFeatureExtractor(obj)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.FeatureSpace.html#extractMatrix">extractMatrix(rs)</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#extractMatrix">extractMatrix(rs[, featureExtractorId])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.FeatureSpace.html#extractSparseMatrix">extractSparseMatrix(rs)</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#extractSparseMatrix">extractSparseMatrix(rs[, featureExtractorId])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.FeatureSpace.html#extractSparseVector">extractSparseVector(rec)</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#extractSparseVector">extractSparseVector(rec[, featureExtractorId])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.FeatureSpace.html#extractVector">extractVector(rec)</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#extractVector">extractVector(rec[, featureExtractorId])</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -277,7 +277,7 @@ base.close();</code></pre>
                   <p><code><a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></code>&nbsp;Self.</p>
                 </dd>
               </dl>
-              <h3 id="extractMatrix"><span class="symbol-name">extractMatrix</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <h3 id="extractMatrix"><span class="symbol-name">extractMatrix</span><span class="signature"><span class="signature-params">(rs[, featureExtractorId])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.</p>
               <section>
                 <h4>
@@ -315,7 +315,7 @@ base.close();</code></pre>
                 </div>
               </section>
               <section>
-                <h4>Parameter</h4>
+                <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -340,6 +340,20 @@ base.close();</code></pre>
                         <p>The given record set.</p>
                       </td>
                     </tr>
+                    <tr>
+                      <td>
+                        <p>featureExtractorId</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>when given, only use specified feature extractor.</p>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </section>
@@ -349,7 +363,7 @@ base.close();</code></pre>
                   <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;The dense matrix, where the i-th column is the feature vector of the i-th record in rs.</p>
                 </dd>
               </dl>
-              <h3 id="extractSparseMatrix"><span class="symbol-name">extractSparseMatrix</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
+              <h3 id="extractSparseMatrix"><span class="symbol-name">extractSparseMatrix</span><span class="signature"><span class="signature-params">(rs[, featureExtractorId])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
               <p>Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.</p>
               <section>
                 <h4>
@@ -384,7 +398,7 @@ base.close();</code></pre>
                 </div>
               </section>
               <section>
-                <h4>Parameter</h4>
+                <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -409,6 +423,20 @@ base.close();</code></pre>
                         <p>The given record set.</p>
                       </td>
                     </tr>
+                    <tr>
+                      <td>
+                        <p>featureExtractorId</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>when given, only use specified feature extractor</p>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </section>
@@ -418,7 +446,7 @@ base.close();</code></pre>
                   <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.</p>
                 </dd>
               </dl>
-              <h3 id="extractSparseVector"><span class="symbol-name">extractSparseVector</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseVector.html">module:la.SparseVector</a></span></span></h3>
+              <h3 id="extractSparseVector"><span class="symbol-name">extractSparseVector</span><span class="signature"><span class="signature-params">(rec[, featureExtractorId])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseVector.html">module:la.SparseVector</a></span></span></h3>
               <p>Creates a sparse feature vector from the given record.</p>
               <section>
                 <h4>
@@ -459,7 +487,7 @@ base.close();</code></pre>
                 </div>
               </section>
               <section>
-                <h4>Parameter</h4>
+                <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -484,6 +512,20 @@ base.close();</code></pre>
                         <p>The given record.</p>
                       </td>
                     </tr>
+                    <tr>
+                      <td>
+                        <p>featureExtractorId</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>when given, only use specified feature extractor.</p>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </section>
@@ -493,7 +535,7 @@ base.close();</code></pre>
                   <p><code><a href="module-la.SparseVector.html">module:la.SparseVector</a></code>&nbsp;The sparse feature vector gained from rec.</p>
                 </dd>
               </dl>
-              <h3 id="extractVector"><span class="symbol-name">extractVector</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <h3 id="extractVector"><span class="symbol-name">extractVector</span><span class="signature"><span class="signature-params">(rec[, featureExtractorId])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Creates a feature vector from the given record.</p>
               <section>
                 <h4>
@@ -534,7 +576,7 @@ base.close();</code></pre>
                 </div>
               </section>
               <section>
-                <h4>Parameter</h4>
+                <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -557,6 +599,20 @@ base.close();</code></pre>
                       </td>
                       <td>
                         <p>The given record.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>featureExtractorId</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>when given, only use specified feature extractor.</p>
                       </td>
                     </tr>
                   </tbody>
