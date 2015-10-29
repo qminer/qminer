@@ -279,7 +279,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 			// add diff aggregator that subtracts Histogram1 with 2h window from Histogram2 with 6h window
 			var aggrJson3 = {
 				name: 'DiffAggr',
-				type: 'onlineHistogramDiff',
+				type: 'onlineVecDiff',
 				storeX: 'Rpm',
 				storeY: 'Rpm',
 				inAggrX: 'Histogram2',
@@ -298,7 +298,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 			store.push({ Time: '2015-06-10T04:18:30.0', ClusterId: 2 });
 
 			var tmp1 = hist1.saveJson();
-			console.log(JSON.stringify(tmp1));
+			//console.log(JSON.stringify(tmp1));
 			assert.equal(tmp1.counts.length, 5);
 			assert.equal(tmp1.counts[0], 1);
 			assert.equal(tmp1.counts[1], 0);
@@ -308,7 +308,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
 			// just the last three
 			var tmp2 = hist2.saveJson();
-			console.log(JSON.stringify(tmp2));
+			//console.log(JSON.stringify(tmp2));
 			assert.equal(tmp2.counts[0], 3);
 			assert.equal(tmp2.counts[1], 1);
 			assert.equal(tmp2.counts[2], 2);
@@ -317,7 +317,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 						
 			// difference
 			var tmp3 = diff.saveJson();
-			console.log(JSON.stringify(tmp3));
+			//console.log(JSON.stringify(tmp3));
 			assert.equal(tmp3.diff[0], 2);
 			assert.equal(tmp3.diff[1], 1);
 			assert.equal(tmp3.diff[2], 1);
@@ -325,7 +325,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 			assert.equal(tmp3.diff[4], 0);
 			
 			// show distribution for expected values
-			console.log(diff);
+			//console.log(diff);
 			
 		} finally {
 			base.close();
