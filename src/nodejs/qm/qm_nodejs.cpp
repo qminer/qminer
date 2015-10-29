@@ -3613,8 +3613,8 @@ void TNodeJsFtrSpace::filter(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() > 0, "fsp.filter: Expecting vector as parameter");
-	QmAssertR(Args[0]->IsObject(), "fsp.filter: Expecting vector as parameter");
+	QmAssertR(Args.Length() > 0, "FeatureSpace.filter: Expecting vector as parameter");
+	QmAssertR(Args[0]->IsObject(), "FeatureSpace.filter: Expecting vector as parameter");
 
     TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
     QmAssertR(TNodeJsUtil::IsArgWrapObj(Args, 0,
@@ -3644,22 +3644,20 @@ void TNodeJsFtrSpace::filter(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         }
 
         const int VecDim = KeepOffsetP ? JsFtrSpace->FtrSpace->GetDim() : (MxFtrN - MnFtrN);
-        Args.GetReturnValue().Set(
-            TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(NewSpV, VecDim)));
+        Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(NewSpV, VecDim)));
     }
     else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId())) {
         const TFltV& Vec = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject())->Vec;
-        int DimN = JsFtrSpace->FtrSpace->GetFtrExtDim(FtrExtN);
 
-        // filter				
-        TFltV NewVec;
-        if (KeepOffsetP) {
-            NewVec.Gen(Vec.Len());
-        }
-        else {
-            NewVec.Gen(DimN);
-        }
+        // get dimensionality of the feature extractor
+        int DimN = JsFtrSpace->FtrSpace->GetFtrExtDim(FtrExtN);
+        // get offset of the feature extractor
         int VecOffset = JsFtrSpace->FtrSpace->GetMnFtrN(FtrExtN);
+        // make sure input vector has enough elements
+        QmAssertR(Vec.Len() >= VecOffset + DimN, "FeatureSpace.filter: input vector dimensionality to small");
+        // prepare place for new vector
+        TFltV NewVec(KeepOffsetP ? Vec.Len() : DimN);
+        // load part belonging to the give feature extractor
         int NewVecOffset = KeepOffsetP ? JsFtrSpace->FtrSpace->GetMnFtrN(FtrExtN) : 0;
         for (int FtrN = 0; FtrN < DimN; FtrN++) {
             NewVec[FtrN + NewVecOffset] = Vec[FtrN + VecOffset];
