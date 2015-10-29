@@ -917,10 +917,11 @@ public:
 
 
 ///////////////////////////////
-/// Histogram-difference stream aggregate.
-/// Provides difference in distributions, connects to an online histogram stream aggregate
-/// that implements TStreamAggrOut::IFltVec
-class THistogramDiff : public TStreamAggr, public TStreamAggrOut::IFltVec {
+/// Vector-difference stream aggregate.
+/// Provides difference of two vector, usually distributions, 
+/// connects to an online stream aggregates
+/// that implement TStreamAggrOut::IFltVec
+class TVecDiff : public TStreamAggr, public TStreamAggrOut::IFltVec {
 private:
 	// input
 	TWPt<TStreamAggr> InAggrX, InAggrY;
@@ -930,7 +931,7 @@ private:
 
 protected:
 	void OnAddRec(const TRec& Rec) {} // do nothing
-	THistogramDiff(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	TVecDiff(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	// did we finish initialization
@@ -945,7 +946,7 @@ public:
 	/// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
 	/// stream aggregator type name 
-	static TStr GetType() { return "onlineHistogramDiff"; }
+	static TStr GetType() { return "onlineVecDiff"; }
 	/// stream aggregator type name 
 	TStr Type() const { return GetType(); }
 };
