@@ -345,7 +345,7 @@ describe('Feature Space Tests', function () {
             assert.equal(vec.at(0), 1);
             assert.equal(vec.at(3), 1);
         })
-        it.skip('should return a sparse vector for the first record in store: text', function () {
+        it('should return a sparse vector for the first record in store: text', function () {
             var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", field: "Text" });
             var vec = ftr.extractSparseVector(Store[0]);
             assert.equal(vec.dim, 0);
