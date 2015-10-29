@@ -1605,11 +1605,6 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 	// compute the initial centroids
 	const int Docs = BowDocWgtBs->GetDocs();
 
-	//=========================================
-	// TODO remove
-	printf("Initializing: NDocs: %d\n", Docs);
-	//=========================================
-
 	switch (InitType) {
 		case TBowClustInitScheme::tbcMean: {
 			// the first centroid is the global mean
@@ -1664,8 +1659,6 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 				throw TExcept::New("The initialization parameter must be greater then 1 to perform KMeans++");
 			}
 
-			printf("KMeans++\n");
-
 			// collect all the IDs into a single list
 			TIntV CentroidIdV;
 
@@ -1684,8 +1677,6 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 			const int Cent1Id = AllDIdV[Cent1IdIdx];	AllDIdV.Del(Cent1IdIdx);
 
 			CentroidIdV.Add(Cent1Id);
-
-			printf("Generated initial centorid, now generating others ...\n");
 
 			// for each data point x compute S(x), the similarity between x and the nearest center
 			// that has already been chosen until InitParam centers have been found
@@ -1719,8 +1710,6 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 				// probability distribution where a point x is chosen with probability
 				// proportional to S(x)^2
 
-				printf("Computing norm ...");
-
 				// normalize the weights
 				double NormL1 = TLinAlg::NormL1(DWgtV);
 				if (NormL1 == 0) {
@@ -1736,8 +1725,6 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 
 					continue;
 				}
-
-				printf("Normalizing ...");
 
 				// everything is OK => go on
 				TLinAlg::NormalizeL1(DWgtV);
@@ -1762,15 +1749,11 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 				CentroidIdV.Add(NewCentId);	AllDIdV.Del(NewCentIdx);
 			}
 
-			printf("Constructing results ...");
-
 			// place the results into DIdVV
 			for (int i = 0; i < CentroidIdV.Len(); i++) {
 				TIntV DIdV;	DIdV.Add(CentroidIdV[i]);
 				DIdVV.Add(DIdV);
 			}
-
-			printf("Done!");
 
 			break;
 		}
