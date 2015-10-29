@@ -1765,10 +1765,13 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 			printf("Constructing results ...");
 
 			// place the results into DIdVV
-			for (int i = 0; i < InitParam; i++) {
+			for (int i = 0; i < CentroidIdV.Len(); i++) {
 				TIntV DIdV;	DIdV.Add(CentroidIdV[i]);
 				DIdVV.Add(DIdV);
 			}
+
+			printf("Done!");
+
 			break;
 		}
 		default: {
