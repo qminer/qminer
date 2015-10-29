@@ -1097,6 +1097,7 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "print", _print);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
     NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setRowDim", _setRowDim);
 
     // Properties 
     tpl->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
@@ -1732,4 +1733,11 @@ void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
+void TNodeJsSpMat::setRowDim(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
 
+	TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
+	int Rows = TNodeJsUtil::GetArgInt32(Args, 0, -1);
+	JsSpMat->Rows = Rows;
+}
