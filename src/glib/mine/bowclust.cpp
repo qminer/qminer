@@ -1605,6 +1605,11 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 	// compute the initial centroids
 	const int Docs = BowDocWgtBs->GetDocs();
 
+	//=========================================
+	// TODO remove
+	printf("Initializing: NDocs: %d\n", Docs);
+	//=========================================
+
 	switch (InitType) {
 		case TBowClustInitScheme::tbcMean: {
 			// the first centroid is the global mean
@@ -1658,6 +1663,8 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 				TNotify::OnNotify(Notify, TNotifyType::ntWarn, "The initialization parameter must be greater then 1 to perform KMeans++");
 				throw TExcept::New("The initialization parameter must be greater then 1 to perform KMeans++");
 			}
+
+			printf("KMeans++\n");
 
 			// collect all the IDs into a single list
 			TIntV CentroidIdV;
