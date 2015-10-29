@@ -210,14 +210,13 @@ public:
 // Online M2(X,Y) (covariance)
 class TCov {
 private:	
-    TFlt MaX, MaY; // current computed MA value        
-    TFlt Cov;
+	TFlt MaX, MaY; // current computed MA value        
+	TFlt Cov;
 	TUInt64 TmMSecs; // timestamp of current WMA	
-    TFlt pNo;
+	TFlt pNo;
 public:
 	TCov() { };
-    TCov(const PJsonVal& ParamVal) { TCov(); };
-
+	TCov(const PJsonVal& ParamVal) { TCov(); };
 	void Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV, const int& N);	
 	double GetCov() const { return (pNo > 1) ? (Cov / (pNo - 1)) : 0; }
@@ -707,16 +706,18 @@ class TOnlineHistogram {
 private:
 	TFltV Counts; ///< Number of occurrences
 	TFltV Bounds; ///< Interval bounds (Bounds.Len() == Counts.Len() + 1)
-private:
-	TOnlineHistogram() { };
-	void Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf);
 public:	
+	/// Constructs uninitialized object
+	TOnlineHistogram() {};
 	/// Constructs given bin parameters
 	TOnlineHistogram(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf) { Init(LBound, UBound, Bins, AddNegInf, AddPosInf); }
 	/// Constructs given JSON arguments
 	TOnlineHistogram(const PJsonVal& ParamVal);
 	/// Constructs from stream
 	TOnlineHistogram(TSIn& SIn) : Counts(SIn), Bounds(SIn) {}
+
+	/// Initializes the object, resets current content is present
+	void Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf);
 
 	/// Loads the model from stream
 	void Load(TSIn& SIn) { *this = TOnlineHistogram(SIn); }
@@ -744,6 +745,29 @@ public:
 	void Print() const;
 	/// Returns a JSON representation of the model
 	PJsonVal SaveJson() const;
+};
+
+/////////////////////////////////////////////////
+/// Chi square
+class TChiSquare {
+private:	       
+	double Chi2, P, Alpha;
+	int DegreesOfFreedom;
+	TUInt64 TmMSecs; // timestamp of current WMA
+public:
+	TChiSquare() { };
+	void Init(const double& _Alpha, const int& _Dof);
+	TChiSquare(const PJsonVal& ParamVal);
+	void Update(const TFltV& OutValVX, const TFltV& OutValVY, const int Dof);
+	/// Return Chi2 value
+	double GetChi2() const { return Chi2; }
+	/// Return P value
+	double GetP() const { return P; }
+	int GetDof() const {return DegreesOfFreedom;}
+	double GetAlpha() const {return Alpha;}
+	uint64 GetTmMSecs() const { return TmMSecs; }
+	/// Prints the model
+	void Print() const;
 };
 
 }
