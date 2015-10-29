@@ -87,7 +87,9 @@ public:
 	static void SaveCsvTFltV(const TFltV& Vec, TSOut& SOut);
 	// Dumps sparse vector to file so Matlab can read it
 	static void SaveMatlabTFltIntKdV(const TIntFltKdV& SpV, const int& ColN, TSOut& SOut);
-	// Dumps sparse matrix to file so Matlab can read it
+	/// Dumps sparse matrix to file so Matlab can read it
+	static void SaveMatlabSpMat(const TVec<TIntFltKdV>& SpMat, TSOut& SOut);
+	/// Dumps sparse matrix to file so Matlab can read it
 	static void SaveMatlabSpMat(const TTriple<TIntV, TIntV, TFltV>& SpMat, TSOut& SOut);
 	// Dumps vector to file so Matlab can read it
 	static void SaveMatlabTFltV(const TFltV& m, const TStr& FName);
