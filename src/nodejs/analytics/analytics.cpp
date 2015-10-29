@@ -1559,17 +1559,12 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 		const int NHistBins = ClustJson->IsObjKey("histogramBins") ? ClustJson->GetObjInt("histogramBins") : 20;
 
 		const TClustering::PDnsKMeans KMeans = GetClust(ClustJson, Rnd);
+		const TMc::PStateIdentifier StateIdentifier = new TMc::TStateIdentifier(KMeans, NHistBins, Sample, Rnd, Verbose);
+		const TMc::PTransitionModeler MChain = new TMc::TCtModeler(TimeUnit, DeltaTm, Verbose);
+		const TMc::PHierarch Hierarch = new TMc::THierarch(NPastStates + 1, Verbose);
 
-		// state identifier
-		TMc::PStateIdentifier StateIdentifier = new TMc::TStateIdentifier(KMeans, NHistBins, Sample, Rnd, Verbose);
-		// Markov chain
-		TMc::PMChain MChain = new TMc::TCtMChain(TimeUnit, DeltaTm, Verbose);
-		// create the model
-		TMc::PHierarch Hierarch = new TMc::THierarch(NPastStates + 1, Verbose);
 		// finish
-		TMc::PStreamStory StreamStory = new TMc::TStreamStory(StateIdentifier, MChain, Hierarch, Rnd, Verbose);
-
-		return new TNodeJsStreamStory(StreamStory);
+		return new TNodeJsStreamStory(new TMc::TStreamStory(StateIdentifier, MChain, Hierarch, Rnd, Verbose));
 	}
 }
 
@@ -1687,68 +1682,27 @@ void TNodeJsStreamStory::probsAtTime(const v8::FunctionCallbackInfo<v8::Value>& 
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	const double Level = TNodeJsUtil::GetArgFlt(Args, 0);
-	const int StartState = TNodeJsUtil::GetArgInt32(Args, 1);
-	const double StartTm = TNodeJsUtil::GetArgFlt(Args, 2);
-	const double EndTm = TNodeJsUtil::GetArgFlt(Args, 3);
-	const double DeltaTm = TNodeJsUtil::GetArgFlt(Args, 4);
+	const int StartStateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const double Level = TNodeJsUtil::GetArgFlt(Args, 1);
+	const double Time = TNodeJsUtil::GetArgFlt(Args, 2);
 
-	TVec<TFltV> FutProbV, PastProbV;
-	TIntV StateIdV;
-	JsMChain->StreamStory->GetProbVOverTm(Level, StartState, StartTm, EndTm, DeltaTm, StateIdV, FutProbV, PastProbV);
+	TIntV StateIdV; TFltV ProbV;
+	JsStreamStory->StreamStory->GetProbVAtTime(StartStateId, Level, Time, StateIdV, ProbV);
 
-	v8::Local<v8::Array> TimeArr = v8::Array::New(Isolate, FutProbV.Len() + PastProbV.Len());
-
-	double Tm = -DeltaTm*PastProbV.Len();
-	for (int i = 0; i < PastProbV.Len(); i++) {
-		const TFltV& ProbV = PastProbV[PastProbV.Len()-1-i];
+	v8::Local<v8::Array> Result = v8::Array::New(Isolate, StateIdV.Len());
+	for (int i = 0; i < StateIdV.Len(); i++) {
+		const int& StateId = StateIdV[i];
+		const double Prob = ProbV[i];
 
 		v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
-		v8::Local<v8::Array> ProbArr = v8::Array::New(Isolate, FutProbV[0].Len());
-
-		for (int j = 0; j < ProbV.Len(); j++) {
-			v8::Local<v8::Object> ProbObj = v8::Object::New(Isolate);
-
-			ProbObj->Set(v8::String::NewFromUtf8(Isolate, "stateId"), v8::Integer::New(Isolate, StateIdV[j]));
-			ProbObj->Set(v8::String::NewFromUtf8(Isolate, "prob"), v8::Number::New(Isolate, ProbV[j]));
-
-			ProbArr->Set(j, ProbObj);
-		}
-
-		StateObj->Set(v8::String::NewFromUtf8(Isolate, "time"), v8::Number::New(Isolate, Tm));
-		StateObj->Set(v8::String::NewFromUtf8(Isolate, "probs"), ProbArr);
-
-		TimeArr->Set(i, StateObj);
-
-		Tm += DeltaTm;
+		StateObj->Set(v8::String::NewFromUtf8(Isolate, "stateId"), v8::Integer::New(Isolate, StateId));
+		StateObj->Set(v8::String::NewFromUtf8(Isolate, "prob"), v8::Number::New(Isolate, Prob));
+		Result->Set(i, StateObj);
 	}
 
-	for (int i = 0; i < FutProbV.Len(); i++) {
-		const TFltV& ProbV = FutProbV[i];
-
-		v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
-		v8::Local<v8::Array> ProbArr = v8::Array::New(Isolate, FutProbV[0].Len());
-
-		for (int j = 0; j < ProbV.Len(); j++) {
-			v8::Local<v8::Object> ProbObj = v8::Object::New(Isolate);
-
-			ProbObj->Set(v8::String::NewFromUtf8(Isolate, "stateId"), v8::Integer::New(Isolate, StateIdV[j]));
-			ProbObj->Set(v8::String::NewFromUtf8(Isolate, "prob"), v8::Number::New(Isolate, ProbV[j]));
-
-			ProbArr->Set(j, ProbObj);
-		}
-
-		StateObj->Set(v8::String::NewFromUtf8(Isolate, "time"), v8::Number::New(Isolate, Tm));
-		StateObj->Set(v8::String::NewFromUtf8(Isolate, "probs"), ProbArr);
-
-		TimeArr->Set(PastProbV.Len() + i, StateObj);
-
-		Tm += DeltaTm;
-	}
-
-	Args.GetReturnValue().Set(TimeArr);
+	Args.GetReturnValue().Set(Result);
 }
 
 void TNodeJsStreamStory::histStates(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -2150,15 +2104,15 @@ void TNodeJsStreamStory::getTimeUnit(const v8::FunctionCallbackInfo<v8::Value>& 
 
 	const uint64 TimeUnit = JsStreamStory->StreamStory->GetTimeUnit();
 
-	if (TimeUnit == TMc::TCtMChain::TU_SECOND) {
+	if (TimeUnit == TMc::TCtModeler::TU_SECOND) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "second"));
-	} else if (TimeUnit == TMc::TCtMChain::TU_MINUTE) {
+	} else if (TimeUnit == TMc::TCtModeler::TU_MINUTE) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "minute"));
-	} else if (TimeUnit == TMc::TCtMChain::TU_HOUR) {
+	} else if (TimeUnit == TMc::TCtModeler::TU_HOUR) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "hour"));
-	} else if (TimeUnit == TMc::TCtMChain::TU_DAY) {
+	} else if (TimeUnit == TMc::TCtModeler::TU_DAY) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "day"));
-	} else if (TimeUnit == TMc::TCtMChain::TU_MONTH) {
+	} else if (TimeUnit == TMc::TCtModeler::TU_MONTH) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "month"));
 	} else {
 		throw TExcept::New("Invalid time unit!", "TNodeJsStreamStory::getTimeUnit");
@@ -2400,15 +2354,15 @@ void TNodeJsStreamStory::WrapHistogram(const v8::FunctionCallbackInfo<v8::Value>
 
 uint64 TNodeJsStreamStory::GetTmUnit(const TStr& TimeUnitStr) {
 	if (TimeUnitStr == "second") {
-		return TMc::TCtMChain::TU_SECOND;
+		return TMc::TCtModeler::TU_SECOND;
 	} else if (TimeUnitStr == "minute") {
-		return TMc::TCtMChain::TU_MINUTE;
+		return TMc::TCtModeler::TU_MINUTE;
 	} else if (TimeUnitStr == "hour") {
-		return TMc::TCtMChain::TU_HOUR;
+		return TMc::TCtModeler::TU_HOUR;
 	} else if (TimeUnitStr == "day") {
-		return TMc::TCtMChain::TU_DAY;
+		return TMc::TCtModeler::TU_DAY;
 	} else if (TimeUnitStr == "month") {
-		return TMc::TCtMChain::TU_MONTH;
+		return TMc::TCtModeler::TU_MONTH;
 	} else {
 		throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TNodeJsStreamStory::GetTmUnit");
 	}

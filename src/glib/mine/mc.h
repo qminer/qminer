@@ -22,76 +22,6 @@ namespace {
 	typedef PDnsKMeans PClust;
 }
 
-class TAvgLink {
-public:
-	static void JoinClusts(TFltVV& DistMat, const TIntV& ItemCountV, const int& i,
-			const int& j);
-};
-
-class TCompleteLink {
-public:
-	static void JoinClusts(TFltVV& DistMat, const TIntV& ItemCountV, const int& i,
-			const int& j);
-};
-
-class TSingleLink {
-public:
-	static void JoinClusts(TFltVV& DistMat, const TIntV& ItemCountV, const int& i,
-			const int& j);
-};
-
-template <class TLink>
-class TAggClust {
-public:
-	static void MakeDendro(const TFltVV& X, TIntIntFltTrV& MergeV, const PNotify& Notify) {
-		const int NInst = X.GetCols();
-
-		Notify->OnNotifyFmt(TNotifyType::ntInfo, "%s\n", TStrUtil::GetStr(X, ", ", "%.3f").CStr());
-
-		TFltVV ClustDistVV;	TEuclDist::GetDist2(X,X, ClustDistVV);
-		TIntV ItemCountV;	TLAUtil::Ones(NInst, ItemCountV);//TVector::Ones(NInst);
-
-//		TFullMatrix ClustDistMat(ClustDistVV, true);	// TODO remove TFullMatrix
-
-		for (int k = 0; k < NInst-1; k++) {
-			// find active <i,j> with minimum distance
-			int MnI = -1;
-			int MnJ = -1;
-			double MnDist = TFlt::PInf;
-
-			// find clusters with min distance
-			for (int i = 0; i < NInst; i++) {
-				if (ItemCountV[i] == 0) { continue; }
-
-				for (int j = i+1; j < NInst; j++) {
-					if (i == j || ItemCountV[j] == 0) { continue; }
-
-					if (ClustDistVV(i,j) < MnDist) {
-						MnDist = ClustDistVV(i,j);
-						MnI = i;
-						MnJ = j;
-					}
-				}
-			}
-
-			double Dist = sqrt(MnDist < 0 ? 0 : MnDist);
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Merging clusters %d, %d, distance: %.3f", MnI, MnJ, Dist);
-			// merge
-			MergeV.Add(TIntIntFltTr(MnI, MnJ, Dist));
-
-			TLink::JoinClusts(ClustDistVV, ItemCountV, MnI, MnJ);
-
-			// update counts
-			ItemCountV[MnI] = ItemCountV[MnI] + ItemCountV[MnJ];
-			ItemCountV[MnJ] = 0;
-		}
-	}
-};
-
-typedef TAggClust<TAvgLink> TAlAggClust;
-typedef TAggClust<TCompleteLink> TClAggClust;
-typedef TAggClust<TCompleteLink> TSlAggClust;
-
 //////////////////////////////////////////////////
 // Histogram class
 class THistogram {
@@ -113,7 +43,6 @@ public:
 	const TFltV& GetBinStartV() const { return BinStartV; }
 	const TIntV& GetCountV() const { return CountV; }
 	const TInt64& GetTotalCount() const { return TotalCount; }
-
 
 	bool Empty() const { return TotalCount == 0; }
 };
@@ -174,7 +103,6 @@ public:
 	// assign methods
 	// assign instances to centroids
 	int Assign(const TFltV& Inst) const;
-
 	// assign instances to centroids, instances should be in the columns of the matrix
 	void Assign(const TFltVV& InstMat, TIntV& AssignV) const;
 
@@ -186,8 +114,8 @@ public:
 	double GetDist(const int& CentroidId, const TFltV& Pt) const;
 
 	// returns the coordinates of a "joined" centroid
-	TVector GetJoinedCentroid(const TIntV& CentroidIdV) const;
-	TVector GetJoinedControlCentroid(const TIntV& CentroidIdV) const;
+	void GetJoinedCentroid(const TIntV& CentroidIdV, TFltV& Centroid) const;
+	void GetJoinedControlCentroid(const TIntV& CentroidIdV, TFltV& Centroid) const;
 
 	// cluster statistics
 	// returns the means distance of all the points assigned to centroid CentroidIdx
@@ -371,14 +299,86 @@ private:
 };
 
 /////////////////////////////////////////////////////////////////
+// Intensity Modeler
+class TBernoulliIntens {
+private:
+	static const double MIN_PROB;
+
+	typedef TVVec<TLogReg> TLogRegVV;
+
+	int NStates;
+
+	TLogRegVV LogRegVV;
+	TBoolVV HasJumpedVV;
+	TBoolVV EmptyVV;
+	double DeltaTm;
+
+public:
+	TBernoulliIntens();
+	TBernoulliIntens(const int& NStates, const double& DeltaTm, const double& RegFact,
+			const TBoolVV& HasJumpedV, const bool Verbose=false);
+	TBernoulliIntens(TSIn& SIn);
+
+	void Save(TSOut& SOut) const;
+	void Fit(const int& RowN, const int& ColN, const TFltVV& X, const TFltV& y,
+			const double& Eps=1e-3);
+
+	void GetQMat(const TStateFtrVV& StateFtrVV, TFltVV& QMat) const;
+	void GetQMatRow(const int& RowN, const TFltV& FtrV, TFltV& IntensV) const;
+};
+
+/////////////////////////////////////////////////////////////////
+// Discrete time Markov chain
+class TDtMChain {
+public:
+	static void GetProbVV(const TFltVV& PMat, const int& Steps, TFltVV& ProbVV);
+};
+
+/////////////////////////////////////////////////////////////////
+// Continuous time Markov chain
+class TCtMChain {
+public:
+	/// get a model where states are aggregated
+	static void GetAggrQMat(const TFltVV& QMat, const TStateSetV& AggrStateV, TFltVV& AggrQMat);
+
+	/// get the reverse time model
+	static void GetRevQMat(const TFltVV& QMat, TFltVV& RevQMat);
+
+	/// returns the stationary distribution
+	static void GetStatDistV(const TFltVV& QMat, TFltV& StatDistV);
+	static void GetHoldingTmV(const TFltVV& QMat, TFltV& HoldingTmV);
+
+	// probabilities from intensities
+	/// returns the transition probability matrix for a infinitely small
+	/// time step Dt
+	static void GetProbVV(const TFltVV& QMat, const double& Dt, TFltVV& ProbVV);
+	static void GetFutProbVV(const TFltVV& QMat, const double& DeltaTm, const double& Tm,
+			TFltVV& ProbVV);
+	static void GetProbVV(const TFltVV& QMat, const double& DeltaTm, const double& Tm,
+			TFltVV& ProbVV);
+
+	// jump probabilities
+	static void GetJumpV(const TFltVV& QMat, const int& CurrStateId, TFltV& JumpV);
+	/// returns a jump matrix for the given transition rate matrix
+	/// when the process decides to jump the jump matrix describes to
+	/// which state it will jump with which probability
+	static void GetJumpVV(const TFltVV& QMat, TFltVV& JumpVV);
+
+	// hitting times
+	static double HitTmPdf(const TFltVV& QMat, const int& StateId, const int& TargetStateId,
+			const double& DeltaTm, const double& TotalTm, const int& PdfBins, TFltV& TmV,
+			TFltV& HitProbV);
+};
+
+/////////////////////////////////////////////////////////////////
 // Markov Chain
-class TMChain;
-typedef TPt<TMChain> PMChain;
-class TMChain {
+class TTransitionModeler;
+typedef TPt<TTransitionModeler> PTransitionModeler;
+class TTransitionModeler {
 private:
 	TCRef CRef;
 public:
-	friend class TPt<TMChain>;
+	friend class TPt<TTransitionModeler>;
 protected:
 	int NStates;
 	int CurrStateId;
@@ -394,18 +394,18 @@ protected:
 	PNotify Notify;
 
 	// constructors
-	TMChain(const bool& Verbose);
-	TMChain(TSIn& SIn);
+	TTransitionModeler(const bool& Verbose);
+	TTransitionModeler(TSIn& SIn);
 
 	// destructor
-	virtual ~TMChain() {}
+	virtual ~TTransitionModeler() {}
 
 public:
 	// save / load
 	// saves the model to the output stream
 	virtual void Save(TSOut& SOut) const;
 	// loads the model from the output stream
-	static PMChain Load(TSIn& SIn);
+	static PTransitionModeler Load(TSIn& SIn);
 
 	// initializes the markov chain
 	void Init(const TFltVV& FtrVV, const int& NStates, const TIntV& StateAssignV,
@@ -434,10 +434,9 @@ public:
 			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
 			const int& NFutStates) const = 0;
 
-	virtual void GetProbVOverTm(const double& Height, const int& StateId, const double& StartTm,
-			const double EndTm, const double& DeltaTm, const TStateSetV& StateSetV,
-			const TStateFtrVV& StateFtrVV, const TStateIdV& StateIdV, TVec<TFltV>& FutProbVV,
-			TVec<TFltV>& PastProbVV) const = 0;
+	virtual void GetProbVAtTime(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			const TStateIdV& StateIdV, const int& StartStateId, const double& Tm,
+			TFltV& ProbV) const = 0;
 
 	virtual bool PredictOccurenceTime(const TStateFtrVV& StateFtrVV, const TStateSetV& StateSetV,
 			const TStateIdV& StateIdV, const int& CurrStateId, const int& TargetStateId,
@@ -449,7 +448,6 @@ public:
 			TFltV& StatDist) const = 0;
 
 	// returns a vector of state sizes
-//	virtual void GetStateSizeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltV& StateSizeV) const = 0;
 	virtual void GetTransitionVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
 			TFltVV& TransVV) const = 0;
 	virtual void GetModel(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
@@ -495,49 +493,14 @@ protected:
 	virtual void GetPastProbVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
 			const double& Tm, TFltVV& ProbVV) const = 0;
 
-	static void GetFutureProbVOverTm(const TFltVV& PMat, const int& StateIdx,
-			const int& Steps, TVec<TFltV>& ProbVV, const PNotify& Notify,
-			const bool IncludeT0=true);
-
 	virtual void InitIntensities(const TFltVV& FtrV, const TUInt64V& TmV, const TIntV& AssignV,
 			const TBoolV& EndsBatchV) = 0;
 	virtual const TStr GetType() const = 0;
 };
 
-class TBernoulliIntens {
-private:
-	static const double MIN_PROB;
-
-	TLogReg LogReg;
-	double DeltaTm;
-	bool HasJumped;
-public:
-	TBernoulliIntens():
-		LogReg(0, true, false),
-		DeltaTm(0),
-		HasJumped(false) {}
-	TBernoulliIntens(const double& _DeltaTm, const double& RegFact, const bool& _HasJumped, const bool Verbose=false):
-		LogReg(RegFact, true, Verbose),
-		DeltaTm(_DeltaTm),
-		HasJumped(_HasJumped) {}
-	TBernoulliIntens(TSIn& SIn): LogReg(SIn), DeltaTm(TFlt(SIn)), HasJumped(TBool(SIn)) {}
-
-	void Save(TSOut& SOut) const { LogReg.Save(SOut); TFlt(DeltaTm).Save(SOut); TBool(HasJumped).Save(SOut); }
-	void Fit(const TFltVV& X, const TFltV& y, const double& Eps=1e-3) { LogReg.Fit(X, y, Eps); }
-	double Predict(const TFltV& x) const {
-		double Prob = LogReg.Predict(x);
-
-		if (HasJumped && Prob < MIN_PROB) {
-			Prob = MIN_PROB;
-		}
-
-		return Prob / DeltaTm;
-	}
-};
-
 /////////////////////////////////////////////////////////////////
 // Continous time Markov Chain
-class TCtMChain: public TMChain {
+class TCtModeler: public TTransitionModeler {
 	typedef TFltV TLabelV;
 	typedef TVec<TFltV> TFtrVV;
 	typedef TFltVV TJumpFtrMat;
@@ -547,7 +510,6 @@ class TCtMChain: public TMChain {
 	typedef TVVec<TJumpFtrMat> TJumpFtrMatMat;
 
 	typedef TBernoulliIntens TIntensModel;
-	typedef TVVec<TIntensModel> TIntensModelMat;
 public:
 	static const uint64 TU_SECOND;
 	static const uint64 TU_MINUTE;
@@ -556,11 +518,10 @@ public:
 	static const uint64 TU_MONTH;
 
 private:
-
 	static const double MIN_STAY_TM;
 	static const double HIDDEN_STATE_INTENSITY;
 
-	TIntensModelMat IntensModelMat;
+	TIntensModel IntensModel;
 	// stores how many jump from the hidden state to the specified state occurred
 	TIntV HiddenStateJumpCountV;
 
@@ -570,8 +531,8 @@ private:
 	uint64 PrevJumpTm;
 
 public:
-	TCtMChain(const uint64& TimeUnit, const double& DeltaTm, const bool& Verbose=false);
-	TCtMChain(TSIn& SIn);
+	TCtModeler(const uint64& TimeUnit, const double& DeltaTm, const bool& Verbose=false);
+	TCtModeler(TSIn& SIn);
 
     // saves the model to the output stream
 	void Save(TSOut& SOut) const;
@@ -585,10 +546,9 @@ public:
 			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
 			const int& NFutStates) const;
 
-	void GetProbVOverTm(const double& Height, const int& StateId, const double& StartTm,
-			const double EndTm, const double& DeltaTm, const TStateSetV& StateSetV,
-			const TStateFtrVV& StateFtrVV, const TStateIdV& StateIdV, TVec<TFltV>& FutProbVV,
-			TVec<TFltV>& PastProbVV) const;
+	void GetProbVAtTime(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+			const TStateIdV& StateIdV, const int& StartStateId, const double& Tm,
+			TFltV& ProbV) const;
 
 	// approximates the probability of jumping into the target state in the prespecified
 	// time horizon
@@ -630,7 +590,7 @@ protected:
 	const TStr GetType() const { return "continuous"; }
 
 private:
-	TVector GetStateIntensV(const int StateId, const TFltV& FtrV) const;
+	void GetStateIntensV(const int StateId, const TFltV& FtrV, TFltV& IntensV) const;
 
 	// returns the intensity matrix (Q-matrix)
 	void GetQMatrix(const TStateFtrVV& StateFtrVV, TFltVV& QMat) const;
@@ -641,34 +601,14 @@ private:
 	void GetRevQMatrix(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
 			TFltVV& RevQMat) const;
 
-	// returns a vector of holding times
-	// a holding time is the expected time that the process will stay in state i
-	// it is an exponential random variable of parameter -q_ii, so its expected value
-	// is -1/q_ii
-	void GetHoldingTimeV(const TFltVV& QMat, TFltV& HoldingTmV) const;
-
 	bool IsHiddenStateId(const int& StateId) const { return HasHiddenState && StateId == GetHiddenStateId(); }
 
 	static void GetNextStateProbV(const TFltVV& QMat, const TStateIdV& StateIdV,
 			const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates,
 			const PNotify& Notify);
 
-	// returns the stationary distribution
-	static void GetStatDist(const TFltVV& QMat, TFltV& StatDistV, const PNotify& Notify);
-
-	static void GetProbMat(const TFltVV& QMat, const double& Dt, TFltVV& ProbV);
-
 	static void GetFutureProbVV(const TFltVV& QMat, const double& Tm,
 			const double& DeltaTm, TFltVV& ProbVV, const bool HasHiddenState=false);
-
-	static double PredictOccurenceTime(const TFltVV& QMat, const int& CurrStateIdx,
-			const int& TargetStateIdx, const double& DeltaTm, const double& HorizonTm,
-			const int& PdfBins, TFltV& TmV, TFltV& HitProbV);
-
-	// returns a jump matrix for the given transition rate matrix
-	// when the process decides to jump the jump matrix describes to
-	// which state it will jump with which probability
-	static void GetJumpMatrix(const TFltVV& QMat, TFltVV& JumpMat);
 };
 
 /////////////////////////////////////////////////////////////////
@@ -696,7 +636,7 @@ public:
 	void Save(TSOut& SOut) const;
 
 	void Init(const PStateIdentifier& StateIdentifier, const PHierarch& Hierarch,
-			const PMChain& MChain);
+			const PTransitionModeler& MChain);
 
 	const TFltPr& GetStateCoords(const int& StateId) const;
 	void GetStateRadiusV(const TFltV& ProbV, TFltV& SizeV) const;
@@ -708,7 +648,7 @@ private:
 	void InitStateCoordV(const PStateIdentifier& StateIdentifier,
 			const PHierarch& Hierarch);
 	void RefineStateCoordV(const PStateIdentifier& StateIdentifier,
-			const PHierarch& Hierarch, const PMChain& MChain);
+			const PHierarch& Hierarch, const PTransitionModeler& MChain);
 
 	static double GetUIStateRaduis(const double& Prob);
 	static bool NodesOverlap(const int& StartId, const int& EndId, const TFltPrV& CoordV,
@@ -762,7 +702,7 @@ public:
 	class TCallback;	// declaration in the helper classes section
 private:
 	PStateIdentifier StateIdentifier;
-    PMChain MChain;
+	PTransitionModeler MChain;
     PHierarch Hierarch;
     PStateAssist StateAssist;
     PUiHelper UiHelper;
@@ -779,7 +719,7 @@ private:
 public:
     // constructors
     TStreamStory();
-    TStreamStory(const PStateIdentifier& Clust, const PMChain& MChain, const PHierarch& Hierarch,
+    TStreamStory(const PStateIdentifier& Clust, const PTransitionModeler& MChain, const PHierarch& Hierarch,
     		const TRnd& Rnd=TRnd(0), const bool& Verbose=true);
     TStreamStory(TSIn& SIn);
 
@@ -823,9 +763,8 @@ public:
 	void GetPrevStateProbV(const double& Height, const int& StateId,
 			TIntFltPrV& StateIdProbV) const;
 
-	void GetProbVOverTm(const double& Height, const int& StateId, const double StartTm,
-			const double EndTm, const double& DeltaTm, TStateIdV& StateIdV,
-			TVec<TFltV>& FutProbV, TVec<TFltV>& PastProbV) const;
+	void GetProbVAtTime(const int& StartStateId, const double& Level, const double& Time,
+			TIntV& StateIdV, TFltV& ProbV) const;
 
 	void GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const;
 
