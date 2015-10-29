@@ -207,7 +207,7 @@ private:
 		~TRealLines();
 
 		static void Run(TRealLines& Data);
-		static void RunAfter(const TRealLines& Data);
+		static void AfterRun(const TRealLines& Data);
 	};
 //
 //	struct TLineCallback {

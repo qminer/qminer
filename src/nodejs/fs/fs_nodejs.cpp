@@ -279,7 +279,7 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 }
 
 void TNodeJsFs::readLinesAsync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	TNodeJsAsyncUtil::ExecuteOnWorker(TRealLines::Run, new TRealLines(Args), TRealLines::RunAfter);
+	TNodeJsAsyncUtil::ExecuteOnWorker(new TRealLines(Args));
 }
 
 TNodeJsFs::TRealLines::TRealLines(const v8::FunctionCallbackInfo<v8::Value>& Args):
@@ -336,7 +336,7 @@ void TNodeJsFs::TRealLines::Run(TRealLines& Data) {
 }
 
 
-void TNodeJsFs::TRealLines::RunAfter(const TRealLines& Data) {
+void TNodeJsFs::TRealLines::AfterRun(const TRealLines& Data) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
