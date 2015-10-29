@@ -233,12 +233,9 @@ describe('Feature Space Tests', function () {
             var vec = ftr.extractVector(Store[0]);
             assert.equal(vec.length, 0);
         })
-        it.skip('should return a vector for the first record in store: dateWindow', function () {
+        it('should return a vector for the first record in store: dateWindow', function () {
             var ftr = new qm.FeatureSpace(base, { type: "dateWindow", source: "FtrSpaceTest", field: "Date", window: 1, unit: "12hours" });
-            console.log('Here!');
             var vec = ftr.extractVector(Store[0]);
-            console.log('There!');
-            console.log(vec);
             vec.print();
         })
         it('should return a vector for the first record in store: jsfunc', function () {
