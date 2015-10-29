@@ -84,7 +84,7 @@
 * @property {module:qm~StreamAggregateMerger} mer - The merger type.
 * @property {module:qm~StreamAggregateHistogram} hist - The online histogram type.
 * @property {module:qm~StreamAggregateSlottedHistogram} slotted-hist - The online slotted-histogram type.
-* @property {module:qm~StreamAggregateHistogramDiff} hist-diff - The difference of two online histograms type.
+* @property {module:qm~StreamAggregateVecDiff} vec-diff - The difference of two vectors (e.g. online histograms) type.
 */
 /**
 * @typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesWindow
@@ -861,18 +861,18 @@
 * base.close();
 */
 /**
-* @typedef {module:qm.StreamAggr} StreamAggregateHistogramDiff
-* This stream aggregator represents difference between two online histograms. 
+* @typedef {module:qm.StreamAggr} StreamAggregateVecDiff
+* This stream aggregator represents difference between two vectors (e.g. online histograms). 
 *
 * It implements the following methods:
 * <br>{@link module:qm.StreamAggr#getFloatLength} returns the number of bins.
 * <br>{@link module:qm.StreamAggr#getFloatAt} returns the count for a bin index.
 * <br>{@link module:qm.StreamAggr#getFloatVector} returns the vector of counts, the length is equal to the number of bins.
-
+*
 * @property {string} name - The given name of the stream aggregator.
-* @property {string} type - The type for the stream aggregator. It must be equal to <b>'onlineHistogram'</b>.
-* @property {string} storeX - The name of the store from which it takes the data for the first histogram.
-* @property {string} storeY - The name of the store from which it takes the data for the second histogram.
+* @property {string} type - The type for the stream aggregator. It must be equal to <b>'onlineVecDiff'</b>.
+* @property {string} storeX - The name of the store from which it takes the data for the first vector.
+* @property {string} storeY - The name of the store from which it takes the data for the second vector.
 * @property {string} inAggrX - The name of the first stream aggregator to which it connects and gets data.
 * @property {string} inAggrY - The name of the second stream aggregator to which it connects and gets data.
 * @example
@@ -949,7 +949,7 @@
 * // add diff aggregator that subtracts Histogram1 with 2h window from Histogram2 with 6h window
 * var aggrJson3 = {
 * 	name: 'DiffAggr',
-* 	type: 'onlineHistogramDiff',
+* 	type: 'onlineVecDiff',
 * 	storeX: 'Rpm',
 * 	storeY: 'Rpm',
 * 	inAggrX: 'Histogram2',
