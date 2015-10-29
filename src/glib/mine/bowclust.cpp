@@ -1737,20 +1737,22 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 
 				double RndVal = (double) rand() / RAND_MAX;
 
-				int DIdx = -1;
+				int DIdN = -1;
 				double WgtSum = 0;
 
 				// pick the new centroid
 				do {
-					DIdx++;
+					DIdN++;
 
-					if (DIdx >= DWgtV.Len()) { break; }
+					if (DIdN >= DWgtV.Len()) { break; }
 
-					WgtSum += DWgtV[DIdx];
+					WgtSum += DWgtV[DIdN];
 				} while (WgtSum <= RndVal);
 
+				printf("Adding a new centroid to the centroid ID vector ...");
+
 				// create a new centroid
-				const int NewCentIdx = DIdx;
+				const int NewCentIdx = DIdN;
 				const int NewCentId = AllDIdV[NewCentIdx];
 				CentroidIdV.Add(NewCentId);	AllDIdV.Del(NewCentIdx);
 			}
