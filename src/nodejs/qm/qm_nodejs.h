@@ -1260,7 +1260,7 @@ public:
 	TQm::TRec Rec;
 	TInt Fq;
 	// C++ constructors	
-	TNodeJsRec(PNodeJsBaseWatcher _Watcher, const TQm::TRec& _Rec, const TInt& _Fq = 0) : Watcher(_Watcher), Rec(_Rec), Fq(_Fq) {}
+	TNodeJsRec(PNodeJsBaseWatcher _Watcher, const TQm::TRec& _Rec, const TInt& _Fq = 1) : Watcher(_Watcher), Rec(_Rec), Fq(_Fq) {}
 	// Not typical (records have multiple templates), simpler objects get this method from TNodeJsUtil
 	static v8::Local<v8::Object> NewInstance(TNodeJsRec* Obj);
 	
