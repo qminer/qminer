@@ -1585,6 +1585,9 @@ public:
 	 * @returns {HMC} - returns itself
 	 */
 	JsDeclareFunction(fit);
+
+	JsDeclareFunction(fitAsync);
+
 	//!- `hmc.update(ftrVec, recTm)` TODO write documentation
 	JsDeclareFunction(update);
 
@@ -1839,6 +1842,24 @@ public:
 			const double& Prob, const TFltV& ProbV, const TFltV& TmV);
 
 private:
+	struct TFitAsync {
+		TNodeJsStreamStory* JsStreamStory;
+		TNodeJsFltVV* JsObservFtrs;
+		TNodeJsFltVV* JsControlFtrs;
+		TNodeJsFltV* JsRecTmV;
+		TNodeJsBoolV* JsBatchEndJsV;
+
+		v8::Persistent<v8::Function> Callback;
+
+		bool HasError;
+
+		TFitAsync(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		~TFitAsync() { Callback.Reset(); }
+
+		static void Run(TFitAsync& Data);
+		static void AfterRun(const TFitAsync& Data);
+	};
+
 	void SetParams(const PJsonVal& ParamVal);
 	void InitCallbacks();
 
