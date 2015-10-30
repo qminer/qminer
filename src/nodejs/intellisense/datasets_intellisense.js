@@ -64,11 +64,8 @@ exports = {}; require.modules.qminer_datasets = exports;
     * @param {module:qm.Base} base
     * @returns {module:qm.Store} Store with Iris dataset.
     */
-    exports.loadIrisSync = function (_base, callback) {
+    exports.loadIrisSync = function (_base) {
 
-    	if (callback == null) callback = function (e) { if (e != null) console.log(e.stack); }
-    	
-        var finished = false;
         var options = {
             file: __dirname + '/data/iris.csv',
             store: 'Iris',
@@ -76,19 +73,9 @@ exports = {}; require.modules.qminer_datasets = exports;
         }
 
         console.log('Loading dataset ' + options.store + ' ...');
-        _base.loadCSV(options, function (err) {
-            if (err) return callback(err);
-            
-            var Iris = _base.store(options.store);
-            console.log(options.store + ' dataset loaded')
+        _base.loadCSV(options);
+        console.log(options.store + ' dataset loaded');
 
-            finished = true;
-        })
-
-        // Used deasync module to turn this function into sync. 
-        while (finished == false) {
-            require('deasync').runLoopOnce();
-        }
         return _base.store(options.store);
     }
     

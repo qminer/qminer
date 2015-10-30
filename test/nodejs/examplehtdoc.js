@@ -1,7 +1,6 @@
 describe('example tests for the htdoc.js file', function () {
-describe("String-string hashmap, number 1", function () {
+describe("String-string hashmap , number 1", function () {
 it("should make test number 1", function () {
- this.timeout(10000); 
 
 	 // create a new hashtable
 	 ht = require('qminer').ht;
@@ -25,9 +24,8 @@ it("should make test number 1", function () {
 	
 });
 });
-describe("String-Integer hashmap, number 2", function () {
+describe("String-Integer hashmap , number 2", function () {
 it("should make test number 2", function () {
- this.timeout(10000); 
 
 	 // create a new hashtable
 	 ht = require('qminer').ht;
@@ -51,9 +49,8 @@ it("should make test number 2", function () {
 	
 });
 });
-describe("String-Float hashmap, number 3", function () {
+describe("String-Float hashmap , number 3", function () {
 it("should make test number 3", function () {
- this.timeout(10000); 
 
 	 // create a new hashtable
 	 ht = require('qminer').ht;
@@ -77,9 +74,8 @@ it("should make test number 3", function () {
 	
 });
 });
-describe("Int-string hashmap, number 4", function () {
+describe("Int-string hashmap , number 4", function () {
 it("should make test number 4", function () {
- this.timeout(10000); 
 
 	 // create a new hashtable
 	 ht = require('qminer').ht;
@@ -103,9 +99,8 @@ it("should make test number 4", function () {
 	
 });
 });
-describe("Integer-Integer hashmap, number 5", function () {
+describe("Integer-Integer hashmap , number 5", function () {
 it("should make test number 5", function () {
- this.timeout(10000); 
 
 	 // create a new hashtable
 	 ht = require('qminer').ht;
@@ -129,9 +124,8 @@ it("should make test number 5", function () {
 	
 });
 });
-describe("Integer-Float hashmap, number 6", function () {
+describe("Integer-Float hashmap , number 6", function () {
 it("should make test number 6", function () {
- this.timeout(10000); 
 
 	 // create a new hashtable
 	 ht = require('qminer').ht;
