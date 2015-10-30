@@ -490,16 +490,12 @@ public:
 	// wrapped C++ objects
 	TIntFltKdV Vec;
 	TInt Dim;
+
 	// C++ constructor
 	TNodeJsSpVec() : Dim(-1) { }
-	TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1) : Vec(IntFltKdV), Dim(Dim) {		
-		EAssertR((Dim == -1) || TLAMisc::GetMaxDimIdx(IntFltKdV) < Dim,		    
-		    "TNodeJsSpVec::New inconsistent dim parameter (maximal index >= dim!)");}
+	TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1);
+
 public:
-	//! **Functions and properties:**
-	//! 
-	//!- `spVec = la.newSpVec(dim)` -- creates an empty sparse vector `spVec`, where `dim` is an optional (-1 by default) integer parameter that sets the dimension
-	//!- `spVec = la.newSpVec(nestedArr, dim)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `dim` is optional and sets the dimension
 	static TNodeJsSpVec* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 	/**

@@ -1,5 +1,6 @@
 // import libraries
 var qm = require('qminer.js');
+var la = qm.la;
 var analytics = qm.analytics;
 var fs = qm.fs;
 
@@ -43,16 +44,15 @@ var base = new qm.Base({
 	]
 });
 
-// Prepare shortcuts to people and movies store
-var people = base.store("People");
-var movies = base.store("Movies");
-
 // We are, we start by loading in the dataset.
 console.log("Movies", "Loading and indexing input data")
-movies.loadJson("./movies.json");
+base.store("Movies").loadJson("./movies.json");
+// Prepare shortcuts to set of all people and all movies
+var people = base.store("People").allRecords;
+var movies = base.store("Movies").allRecords;
 console.log("Loaded " + movies.length + " movies and " + people.length + " people.");
 
-// Declare the features we will use to build genre classification models
+// Declare the features we will use to detect movie genres
 var genreFeatures = [
     { type: "constant", source: "Movies" },
     { type: "text", source: "Movies", field: "Title" },
@@ -62,26 +62,27 @@ var genreFeatures = [
 ];
 // Create and initialize feature matrix
 var genreFeatureSpace = new qm.FeatureSpace(base, genreFeatures);
-genreFeatureSpace.updateRecords(movies.recs);
-var genreFeatureMatrix = genreFeatureSpace.extractSparseMatrix(movies.recs);
-
+genreFeatureSpace.updateRecords(movies);
+var genreFeatureMatrix = genreFeatureSpace.extractSparseMatrix(movies);
+console.log("Dimensionality of feature space: " + genreFeatureSpace.dim);
+// Create and initialize label matrix for training
+var labelFeatures = [{ type: "multinomial", source: "Movies", field: "Genres" }]
+var genreLabelSpace = new qm.FeatureSpace(base, labelFeatures);
+genreLabelSpace.updateRecords(movies);
+var genreLabelMatrix = genreLabelSpace.extractMatrix(movies);
+console.log("Dimensionality of label space: " + genreLabelSpace.dims);
 // We will use one-vs-all model for gener classification
 var genreModel = new analytics.OneVsAll({
 	model: analytics.SVC,
-	modelParam: { c: 10, maxTime: 12000 },
-	cats: 2
+	modelParam: { c: 10 },
+	cats: genreLabelMatrix.rows,
+	verbose: true
 });
-
 // Create a model for the Genres field, using all the movies as training set.
-// Since the target field is discrete the underlaying model will be based on classification.
-var genreModel = analytics.newBatchModel(Movies.recs, genreFeatures, Movies.field("Genres"));
-// Serialize the model to disk so we can use it later
-var genreOut = fs.openWrite("./sandbox/movies/genre.dat");
+console.log("Training genre models");
+genreModel.fit(genreFeatureMatrix, genreLabelMatrix);
 
-genreModel.save(genreOut);
-genreOut.close();
-
-// Declare the features we will use to build the rating regression model
+// Declare the features we will use to predict movie rating
 var ratingFeatures = [
     { type: "constant", source: "Movies" },
     { type: "text", source: "Movies", field: "Title" },
@@ -90,22 +91,20 @@ var ratingFeatures = [
     { type: "multinomial", source: { store: "Movies", join: "Actor" }, field: "Name" },
     { type: "multinomial", source: { store: "Movies", join: "Director" }, field: "Name" }
 ];
-// Create a model for the Rating field, using all the movies as training set.
-// Since the target field is numeric the underlaying model will be based on regression.
-var ratingModel = analytics.newBatchModel(Movies.recs, ratingFeatures, Movies.field("Rating"));
-// Serialize the model to disk so we can use it later
-var ratingOut = fs.openWrite("./sandbox/movies/rating.dat");
-
-ratingModel.save(ratingOut);
-ratingOut.close();
-
-// Load the models for genres and rating from disk
-var genreModel = analytics.loadBatchModel(base, fs.openRead("./sandbox/movies/genre.dat"));
-var ratingModel = analytics.loadBatchModel(base, fs.openRead("./sandbox/movies/rating.dat"));
-
+// Create and initialize feature matrix
+var ratingFeatureSpace = new qm.FeatureSpace(base, ratingFeatures);
+// Create and initialize vector with target ratings
+ratingFeatureSpace.updateRecords(movies);
+var ratingFeatureMatrix = ratingFeatureSpace.extractSparseMatrix(movies);
+// Create and initialize vector with ratings for trainings
+var ratingVector = movies.getVector("Rating");
+// We will use regression model for predicting ratings
+var ratingModel = new analytics.SVR();
+// Train regression
+ratingModel.fit(ratingFeatureMatrix, ratingVector);
 
 // Test de-serialized models on two new movies
-var newHorrorMovie = Movies.newRecord({
+var newHorrorMovie = base.store("Movies").newRecord({
     "Title":"Unnatural Selection",
     "Plot":"When corpses are found with internal organs missing, Liz Shaw and P.R.O.B.E. " +
            "investigate a defunct government project from the 1970s that aimed to predict " +
@@ -134,9 +133,15 @@ var newHorrorMovie = Movies.newRecord({
         {"Name":"Rayner Kathryn", "Gender":"Female"}
     ]
 });
-console.log(JSON.stringify(genreModel.predict(newHorrorMovie)));
-console.log(JSON.stringify(ratingModel.predict(newHorrorMovie)) + " vs. " + newHorrorMovie.Rating);
-var newComedyMovie = Movies.newRecord({
+// apply genre model
+var newHorrorMovieGenreVector = genreFeatureSpace.extractSparseVector(newHorrorMovie);
+console.log("Top genre: " + genreLabelSpace.getFeature(genreModel.predict(newHorrorMovieGenreVector)));
+// apply rating model
+var newHorrorMovieRatingVector = ratingFeatureSpace.extractSparseVector(newHorrorMovie);
+console.log("Predicted rating: " + ratingModel.predict(newHorrorMovieRatingVector).toFixed(1));
+console.log("True rating:      " + newHorrorMovie.Rating);
+
+var newComedyMovie = base.store("Movies").newRecord({
     "Title":"Die Feuerzangenbowle",
     "Plot":"Hans Pfeiffer and some of his friends are drinking \"Feuerzangenbowle\". Talking " +
            "about their school-time they discover that Hans never was at a regular school and " +
@@ -173,5 +178,10 @@ var newComedyMovie = Movies.newRecord({
         {"Name":"Wurtz Anneliese", "Gender":"Female"}
     ]
 });
-//console.log(JSON.stringify(genreModel.predict(newComedyMovie)));
-console.log(JSON.stringify(ratingModel.predict(newComedyMovie)) + " vs. " + newHorrorMovie.Rating);
+// apply genre model
+var newComedyMovieGenreVector = genreFeatureSpace.extractSparseVector(newComedyMovie);
+console.log("Top genre: " + genreLabelSpace.getFeature(genreModel.predict(newComedyMovieGenreVector)));
+// apply rating model
+var newComedyMovieRatingVector = ratingFeatureSpace.extractSparseVector(newComedyMovie);
+console.log("Predicted rating: " + ratingModel.predict(newComedyMovieRatingVector).toFixed(1));
+console.log("True rating:      " + newComedyMovie.Rating);

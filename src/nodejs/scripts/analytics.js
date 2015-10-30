@@ -22,23 +22,75 @@ module.exports = exports = function (pathPrefix) {
     var qm_util = require(__dirname + '/qm_util.js');
 
     //!STARTJSDOC
-    exports.preprocessing = new function() {
-        this.binarize = function (y, labelId) {
+
+    ///////////////////////////////////////////////////
+    /////////////   DATA PREPROCESSING   //////////////
+    ///////////////////////////////////////////////////
+
+    /**
+    * Preprocessing
+    * @namespace
+    * @desc Preprocessing functions for preparing labels in formats accepted
+    * by learning moduls in qm.analytics.
+    */
+    var preprocessing = preprocessing || {};
+    // namespacing: http://addyosmani.com/blog/essential-js-namespacing/
+
+    /**
+    * Transforming arrays with labels to vector appropriate for binary classifiers.
+    * @class
+    * @classdesc
+    * Transform given array of labels into binary vector with different
+    * numeric value for elements when label matches specified label and
+    * for other elements. By default, these values are +1 for matching
+    * labels, and -1 for the rest.
+    * @param {Array} y - labels
+    * @param {(string | number)} positiveLabel - positive label
+    * @param {number} [positiveId = 1] - value when matching positive label
+    * @param {number} [negativeId = -1] - value when not matching positive label
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create binarizer with 'b' as positive label
+    * var binarizer = new analytics.preprocessing.Binarizer('b');
+    * // get vector with binarized labels
+    * var bins = binarizer.transform(['a','b','a','c']);
+    */
+    preprocessing.Binarizer = function (positiveLabel, positiveId, negativeId) {
+        if (positiveLabel == undefined) { throw "Binarizer needs positive label"; }
+
+        this.positiveLabel = positiveLabel;
+        this.positiveId = (positiveId == undefined) ? 1 : positiveId;
+        this.negativeId = (negativeId == undefined) ? -1 : negativeId;
+
+        this.fit = function () {
+            // do nothing
+        }
+
+        /**
+        * Transform given array of labels to binary numeric vector.
+        * @param {(Array<number> | Array<string> | module:la.Vector | module:la.StrVector)} y - labels
+        * @return {modul:la.Vector} binarized vector
+        */
+        this.transform = function (y) {
             var target = new la.Vector();
             for (var i = 0; i < y.length; i++) {
-                target.push(y[i] === labelId ? 1 : -1);
-            }
-            return target;
-        };
-
-        this.applyModel = function (model, X) {
-            var target = new la.Vector();
-            for (var i = 0; i < X.cols; i++) {
-                target.push(model.decisionFunction(X[i]));
+                target.push(y[i] === this.positiveLabel ? this.positiveId : this.negativeId);
             }
             return target;
         }
     };
+
+    preprocessing.applyModel = function (model, X) {
+        var target = new la.Vector();
+        for (var i = 0; i < X.cols; i++) {
+            target.push(model.decisionFunction(X[i]));
+        }
+        return target;
+    }
+
+    // Exports preprocessing namespace
+    exports.preprocessing = preprocessing;
 
     /**
     * SVM model.
@@ -289,7 +341,11 @@ module.exports = exports = function (pathPrefix) {
                     console.log("Fitting label", (cat + 1), "/", cats);
                 };
                 // prepare targert vector for current category
-                var target = exports.preprocessing.binarize(y, cat);
+                var target = (y instanceof la.Matrix) ?
+                    // we have a special bianary vector for each category, make it into -1/+1
+                    (new exports.preprocessing.Binarizer(1)).transform(y.getRow(cat)) :
+                    // we have a vector with label for each element, get out -1/+1 vector
+                    (new exports.preprocessing.Binarizer(cat)).transform(y);
                 // get the model
                 var catModel = new model(modelParam);
                 models.push(catModel.fit(X, target));
@@ -373,13 +429,13 @@ module.exports = exports = function (pathPrefix) {
     * @example <caption>Batch classification example</caption>
     * // import metrics module
     * var analytics = require('qminer').analytics;
-    * 
+    *
     * // true and predicted lables
     * var true_lables = [0, 1, 0, 0, 1];
     * var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
-    * 
+    *
     * // compute ROC curve
-    * var roc = analytics.metrics.rocCurve(true_lables, pred_prob); 
+    * var roc = analytics.metrics.rocCurve(true_lables, pred_prob);
     * @example <caption>Online classification example</caption>
     * // import analytics module
     * var analytics = require('qminer').analytics;
@@ -459,7 +515,7 @@ module.exports = exports = function (pathPrefix) {
             all: function () { return this.TP + this.FP + this.TN + this.FN; },
             precision: function () { return (this.FP == 0) ? 1 : this.TP / (this.TP + this.FP); },
             recall: function () { return (this.FN == 0) ? 1 : this.TP / (this.TP + this.FN); },
-            f1: function () { return ((this.precision() + this.recall()) == 0) ? 0 :  
+            f1: function () { return ((this.precision() + this.recall()) == 0) ? 0 :
                 2 * this.precision() * this.recall() / (this.precision() + this.recall()); },
             accuracy: function () { return (this.TP + this.TN) / this.all(); }
         };
@@ -507,29 +563,23 @@ module.exports = exports = function (pathPrefix) {
             if (argumentType !== "Array" && argumentType !== "Vector") {
                 throw new TypeError('input param must be of type "Array" or "Vector", but is ' + argumentType + ' instead');
             }
-            // check if binary
-            for (var j = 0; j < arguments[i].length; j++) {
-                if (arguments[i][j] !== 0 && arguments[i][j] !== 1) {
-                    throw new TypeError('input values must be binary (0 or 1)');
-                }
-            }
         }
     };
 
     /**
-    * Accuracy score is the proportion of true results (both true positives and true negatives) 
-    * among the total number of cases examined. 
+    * Accuracy score is the proportion of true results (both true positives and true negatives)
+    * among the total number of cases examined.
     * Formula: (tp + tn) / (tp + fp + fn + tn).
     * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
     * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables
     * @returns {number} Accuracy value
-    */ 
+    */
     metrics.accuracyScore = function (yTrue, yPred) {
         return new metrics.ClassificationScore(yTrue, yPred).scores.accuracy();
     };
 
     /**
-    * Precision score is defined as the proportion of the true positives against all the 
+    * Precision score is defined as the proportion of the true positives against all the
     * positive results (both true positives and false positives).
     * Formula: tp / (tp + fp).
     * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
@@ -552,9 +602,9 @@ module.exports = exports = function (pathPrefix) {
     };
 
     /**
-    * The F1 score can be interpreted as a weighted average of the precision and recall, where 
-    * an F1 score reaches its best value at 1 and worst score at 0. The relative contribution of 
-    * precision and recall to the F1 score are equal. 
+    * The F1 score can be interpreted as a weighted average of the precision and recall, where
+    * an F1 score reaches its best value at 1 and worst score at 0. The relative contribution of
+    * precision and recall to the F1 score are equal.
     * Formula: 2 * (precision * recall) / (precision + recall)
     * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
     * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables
@@ -569,7 +619,7 @@ module.exports = exports = function (pathPrefix) {
     * @class
     * @classdesc used for computing ROC curve and other related measures such as AUC
     * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lable(s) of binary classification in range {-1, 1} or {0, 1}.
-    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities 
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
     * @example
     * // import metrics module
     * var metrics = require('qminer').analytics.metrics;
@@ -671,11 +721,11 @@ module.exports = exports = function (pathPrefix) {
             var perm = this.predictions.sortPerm(false);
             // maintaining the results as we go along
             var TP = 0, FP = 0, ROC = [[0, 0]];
-            
+
             // check input samples
             if (this.allNegatives == 0) throw new Error('No positive samples in yTrue, true positive value should be meaningless.');
             if (this.allNegatives == this.length) throw new Error('No negative samples in yTrue, false positive value should be meaningless.');
-            
+
             // for figuring out when to dump a new ROC sample
             var unique = 1;
             for (var i = 1; i < perm.perm.length; i++) {
@@ -881,14 +931,14 @@ module.exports = exports = function (pathPrefix) {
     * @example
     * // import metrics module
     * var metrics = require('qminer').analytics.metrics;
-    * 
+    *
     * // true and predicted lables
     * var true_lables = [0, 1, 0, 0, 1];
     * var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
-    * 
+    *
     * // compute ROC curve
     * var roc = metrics.rocCurve(true_lables, pred_prob); // output: [ [ 0, 0 ], [0, 0.5], [[ 0.34, 1 ],], [ 0.67, 0 ], [ 1, 1 ] ]
-    */  
+    */
     metrics.rocCurve = function (yTrue, yPred, sample) {
         return new metrics.PredictionCurve(yTrue, yPred).roc(sample);
     };
@@ -902,14 +952,14 @@ module.exports = exports = function (pathPrefix) {
     * @example
     * // import metrics module
     * var metrics = require('qminer').analytics.metrics;
-    * 
+    *
     * // true and predicted lables
     * var true_lables = [0, 1, 0, 0, 1];
     * var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
-    * 
+    *
     * // compute ROC curve
     * var auc = metrics.rocAucScore(true_lables, pred_prob); // output: 0.92
-    */  
+    */
     metrics.rocAucScore = function (yTrue, yPred, sample) {
         return new metrics.PredictionCurve(yTrue, yPred).auc(sample);
     };
@@ -920,7 +970,7 @@ module.exports = exports = function (pathPrefix) {
     * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
     * @param {number} [sample=10] - Desired number of samples in output
     * @returns {module:la.Matrix} Precision-recall pairs
-    */  
+    */
     metrics.precisionRecallCurve = function (yTrue, yPred, sample) {
         return new metrics.PredictionCurve(yTrue, yPred).precisionRecallCurve(sample);
     };
@@ -930,7 +980,7 @@ module.exports = exports = function (pathPrefix) {
     * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
     * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
     * @returns {number} Break-even point score
-    */                                      
+    */
     metrics.breakEventPointScore = function (yTrue, yPred) {
         return new metrics.PredictionCurve(yTrue, yPred).breakEvenPoint();
     };
@@ -1025,7 +1075,7 @@ module.exports = exports = function (pathPrefix) {
     /**
     * Create new (online) mean error instance.
     * @class
-    * @classdesc Online Mean Error (ME) instance 
+    * @classdesc Online Mean Error (ME) instance
     * @extends module:analytics~createOnlineMetric
     */
     metrics.MeanError = function () {
@@ -1048,7 +1098,7 @@ module.exports = exports = function (pathPrefix) {
     /**
     * Create new (online) mean absolute error instance.
     * @class
-    * @classdesc Online Mean Absolute Error (MAE) instance 
+    * @classdesc Online Mean Absolute Error (MAE) instance
     * @extends module:analytics~createOnlineMetric
     */
     metrics.MeanAbsoluteError = function () {
@@ -1071,7 +1121,7 @@ module.exports = exports = function (pathPrefix) {
     /**
     * Create new (online) mean square error instance.
     * @class
-    * @classdesc Online Mean Square Error (MSE) instance 
+    * @classdesc Online Mean Square Error (MSE) instance
     * @extends module:analytics~createOnlineMetric
     */
     metrics.MeanSquareError = function () {
@@ -1094,7 +1144,7 @@ module.exports = exports = function (pathPrefix) {
     /**
     * Create new (online) root mean square error instance.
     * @class
-    * @classdesc Online Root Mean Square Error (RMSE) instance 
+    * @classdesc Online Root Mean Square Error (RMSE) instance
     * @extends module:analytics~createOnlineMetric
     */
     metrics.RootMeanSquareError = function () {
@@ -1117,7 +1167,7 @@ module.exports = exports = function (pathPrefix) {
     /**
     * Create new (online) mean absolute percentage error instance.
     * @class
-    * @classdesc Online Mean Absolute Percentage Error (MAPE) instance 
+    * @classdesc Online Mean Absolute Percentage Error (MAPE) instance
     * @extends module:analytics~createOnlineMetric
     */
     metrics.MeanAbsolutePercentageError = function () {
@@ -1142,7 +1192,7 @@ module.exports = exports = function (pathPrefix) {
     /**
     * Create new (online) R Square instance. This statistic measures how successful the fit is in explaining the variation of the data. Best possible score is 1.0, lower values are worse.
     * @class
-    * @classdesc Online R Squared (R2) score instance 
+    * @classdesc Online R Squared (R2) score instance
     * @extends module:analytics~createOnlineMetric
     */
     metrics.R2Score = function () {
@@ -1159,7 +1209,7 @@ module.exports = exports = function (pathPrefix) {
                 this.sumTrue += yTrue;
                 this.sumTrue2 += yTrue * yTrue;
                 this.mean = this.sumTrue / this.count;
-                //calculate R squared score 
+                //calculate R squared score
                 this.sse += (yTrue - yPred) * (yTrue - yPred);
                 this.sst = this.sumTrue2 - this.count * this.mean * this.mean;
                 if (this.sst == 0.0) {
@@ -2054,10 +2104,10 @@ module.exports = exports = function (pathPrefix) {
 	    	//===================================================
 	    	// CONSTRUCTOR
 	    	//===================================================
-	    	
+
 	    	if (opts == null) throw new Error('Missing parameters!');
 	    	if (opts.base == null) throw new Error('Missing parameter base!');
-	
+
 	    	// create model and feature space
 	    	var mc;
 	    	var base = opts.base;
@@ -2066,7 +2116,7 @@ module.exports = exports = function (pathPrefix) {
 	    	var id;
 	    	var active = false;
 	    	var online = false;
-	
+
 	    	if (opts.base != null && opts.config != null) {
 	    		mc = new exports._StreamStory(opts.config);
 	    		if (opts.obsFields != null && opts.contrFields != null) {
@@ -2093,55 +2143,55 @@ module.exports = exports = function (pathPrefix) {
 	    	else {
 	    		throw new Error('Missing parameters (base and config) or fname!');
 	    	}
-	
+
 	    	//===================================================
 	    	// FEATURE HELPER FUNCTIONS
 	    	//===================================================
-	    	
-	    	
+
+
 	    	function getFtrNames(ftrSpace) {
 	    		var names = [];
-	
+
 	    		var dims = ftrSpace.dims;
 	    		for (var i = 0; i < dims.length; i++) {
 	    			var ftrDesc = ftrSpace.getFeature(i);
 	    			var match = ftrDesc.match(/\[\w*\]$/)[0];	// remove Numeric[ ]
-					
+
 	    			if (match != null)
 	    				names.push(match.substring(1, match.length-1));
 	    			else
 	    				names.push(ftrDesc);
 				}
-	
+
 	    		return names;
 	    	}
-	    	
+
 	    	function getFtrCount(ftrSpace) {
 	    		return ftrSpace.dims.length
 	    	}
-	
+
 	    	function getObsFtrCount() {
 	    		return getFtrCount(obsFtrSpace);
 			}
-	    	
+
 	    	function getContrFtrCount() {
 	    		return getFtrCount(controlFtrSpace);
 			}
-	
+
 	    	function getObsFtrNames() {
 	    		return getFtrNames(obsFtrSpace);
 	    	}
-	
+
 	    	function getControlFtrNames() {
 	    		return getFtrNames(controlFtrSpace);
 	    	}
-	
+
 	    	function getFtrDescriptions(stateId) {
 	    		var observations = [];
 	    		var controls = [];
-	
+
 	    		var obsFtrCount = getObsFtrCount();
-	    		
+
 				var coords = mc.fullCoords(stateId);
 				var obsFtrNames = getObsFtrNames();
 				var invObsCoords = obsFtrSpace.invertFeatureVector(coords);
@@ -2153,7 +2203,7 @@ module.exports = exports = function (pathPrefix) {
 						bounds: getFtrBounds(i)
 					});
 				}
-	
+
 				var controlCoords = mc.fullCoords(stateId, false);
 				var contrFtrNames = getControlFtrNames();
 				var invControlCoords = controlFtrSpace.invertFeatureVector(controlCoords);
@@ -2165,14 +2215,14 @@ module.exports = exports = function (pathPrefix) {
 						bounds: getFtrBounds(i + obsFtrCount)
 					});
 				}
-	
+
 				return {
 					observations: observations,
 					controls: controls,
 					isBottom: mc.isLeaf(stateId)
 				};
 	    	}
-	
+
 	    	function getFtrCoord(stateId, ftrIdx) {
 	    		if (ftrIdx < obsFtrSpace.dims.length) {
 	    			return obsFtrSpace.invertFeatureVector(mc.fullCoords(stateId))[ftrIdx];
@@ -2180,11 +2230,11 @@ module.exports = exports = function (pathPrefix) {
 	    			return controlFtrSpace.invertFeatureVector(mc.fullCoords(stateId, false))[ftrIdx - obsFtrSpace.dims.length];
 	    		}
 	    	}
-	    	
+
 	    	function getFtrBounds(ftrId) {
 	    		var obsFtrCount = getObsFtrCount();
 	    		var bounds = mc.getFtrBounds(ftrId);
-	    		
+
 	    		if (ftrId < obsFtrCount) {
 	    			return {
 	    				min: obsFtrSpace.invertFeature(ftrId, bounds.min),
@@ -2197,15 +2247,15 @@ module.exports = exports = function (pathPrefix) {
 	    			}
 	    		}
 	    	}
-	    	
+
 	    	//===================================================
 	    	// HISTOGRAM
 	    	//===================================================
-	    	
-	    	
+
+
 	    	function toServerHistogram(hist, ftrId) {
 	    		var nObsFtrs = getObsFtrCount();
-	    		
+
     			if (ftrId < nObsFtrs) {
 	    			for (var i = 0; i < hist.binStartV.length; i++) {
 	    				hist.binStartV[i] = obsFtrSpace.invertFeature(ftrId, hist.binStartV[i]);
@@ -2218,88 +2268,88 @@ module.exports = exports = function (pathPrefix) {
 
     			return hist;
 	    	}
-	    	
+
 	    	//===================================================
 	    	// PUBLIC METHODS
 	    	//===================================================
-	    	
+
 	    	// public methods
 	    	var that = {
 	    		getId: function () {
 	    			return id;
 	    		},
-	    		
+
 	    		setId: function (modelId) {
 	    			id = modelId;
 	    		},
-	    		
+
 	    		isActive: function () {
 	    			return active;
 	    		},
-	    		
+
 	    		setActive: function (act) {
 	    			active = act;
 	    		},
-	    		
+
 	    		isOnline: function () {
 	    			return online;
 	    		},
-	    		
+
 	    		setOnline: function (isOnline) {
 	    			online = isOnline;
 	    		},
-	    		
+
 	    		/**
 	    		 * Creates a new model out of the record set.
 	    		 */
 	    		fit: function (opts) {
-	    			if (opts.recSet == null && opts.recV == null) 
+	    			if (opts.recSet == null && opts.recV == null)
 	    				throw new Error('StreamStory.fit: missing parameters recSet or recV');
-	    			
+
 	    			var batchEndV = opts.batchEndV;
 	    			var timeField = opts.timeField;
-	    			
+
 	    			var obsColMat;
 	    			var contrColMat;
 	    			var timeV;
-	    			
+
 	    			if (opts.recV != null) {
 	    				var recV = opts.recV;
 	    				var nInst = recV.length;
-	    				
+
 	    				log.info('Updating feature spaces ...');
 	    				for (var i = 0; i < nInst; i++) {
 	    					var rec = recV[i];
 	    					obsFtrSpace.updateRecord(rec);
 							controlFtrSpace.updateRecord(rec);
 	    				}
-	    				
+
 	    				obsColMat = new la.Matrix({rows: obsFtrSpace.dim, cols: nInst});
 	    				contrColMat = new la.Matrix({rows: controlFtrSpace.dim, cols: nInst});
 	    				timeV = new la.Vector({ vals: nInst });
-	    				
+
 	    				for (var i = 0; i < nInst; i++) {
 	    					var rec = recV[i];
 	    					var obsFtrV = obsFtrSpace.extractVector(rec);
 	    					var contrFtrV = controlFtrSpace.extractVector(rec);
 	    					var time = rec[timeField].getTime();
-	    					
+
 	    					obsColMat.setCol(i, obsFtrV);
 	    					contrColMat.setCol(i, contrFtrV);
 	    					timeV[i] = time;
 	    				}
 	    			} else {
 	    				var recSet = opts.recSet;
-	    				
+
 	    				log.info('Updating feature spaces ...');
 	    				obsFtrSpace.updateRecords(recSet);
 		    			controlFtrSpace.updateRecords(recSet);
-		    			
+
 		    			obsColMat = obsFtrSpace.extractMatrix(recSet);
 		    			contrColMat = controlFtrSpace.extractMatrix(recSet);
 		    			timeV = recSet.getVector(timeField);
 	    			}
-	
+
 	    			log.info('Creating model ...');
 	    			mc.fit({
 	    				observations: obsColMat,
@@ -2308,45 +2358,45 @@ module.exports = exports = function (pathPrefix) {
 	    				batchV: batchEndV
 	    			});
 	    			log.info('Done!');
-	
+
 	    			return that;
 	    		},
-	
+
 	    		/**
 	    		 * Adds a new record. Doesn't update the models statistics.
 	    		 */
 	    		update: function (rec) {
 	    			if (rec == null) return;
-	
+
 	    			var obsFtrVec = obsFtrSpace.extractVector(rec);
 	    			var contFtrVec = controlFtrSpace.extractVector(rec);
 	    			var timestamp = rec.time.getTime();
-	
+
 	    			mc.update(obsFtrVec, contFtrVec, timestamp);
 	    		},
-	
+
 	    		/**
 	    		 * Saves the feature space and model into the specified files.
 	    		 */
 	    		save: function (mcFName) {
 	    			try {
 	    				console.log('Saving Markov chain ...');
-	
+
 	    				var fout = new fs.FOut(mcFName);
-	
+
 		    			mc.save(fout);
 		    			obsFtrSpace.save(fout);
 		    			controlFtrSpace.save(fout);
-	
+
 		    			fout.flush();
 		    			fout.close();
-	
+
 		    			console.log('Done!');
 	    			} catch (e) {
 	    				console.log('Failed to save the model!!' + e.message);
 	    			}
 	    		},
-	
+
 	    		/**
 	    		 * Returns the state used in the visualization.
 	    		 */
@@ -2354,21 +2404,21 @@ module.exports = exports = function (pathPrefix) {
 	    			log.debug('Fetching visualization ...');
 	    			return mc.toJSON();
 	    		},
-	
+
 	    		/**
 	    		 * Returns the hierarchical Markov chain model.
 	    		 */
 	    		getModel: function () {
 	    			return mc;
 	    		},
-	
+
 	    		/**
 	    		 * Returns the feature space.
 	    		 */
 	    		getFtrSpace: function () {
 	    			return { observations: obsFtrSpace, controls: controlFtrSpace };
 	    		},
-	
+
 	    		/**
 	    		 * Returns the current state at the specified height. If the height is not specified it
 	    		 * returns the current states through the hierarchy.
@@ -2376,45 +2426,45 @@ module.exports = exports = function (pathPrefix) {
 	    		currState: function (height) {
 	    			return mc.currState(height);
 	    		},
-	
+
 	    		/**
 	    		 * Returns the most likely future states.
 	    		 */
 	    		futureStates: function (level, state, time) {
 	    			return mc.futureStates(level, state, time);
 	    		},
-	
+
 	    		/**
 	    		 * Returns the most likely future states.
 	    		 */
 	    		pastStates: function (level, state, time) {
 	    			return mc.pastStates(level, state, time);
 	    		},
-	    		
+
 	    		getFtrDesc: function (ftrId) {
 	    			var nObsFtrs = getObsFtrCount();
-	    			
+
 	    			if (ftrId == null) {
 	    				var n = nObsFtrs + getContrFtrCount();
-	    				
+
 	    				var obsFtrs = [];
 	        			var contrFtrs = [];
-	    				
+
 	    				for (var i = 0; i < n; i++) {
 	    					var ftrDesc = that.getFtrDesc(i);
-	    					
+
 	    					if (i < nObsFtrs) {
 	    						obsFtrs.push(ftrDesc);
 	    					} else {
 	    						contrFtrs.push(ftrDesc);
 	    					}
 	    				}
-	    				
+
 	    				return {
 	        				observation: obsFtrs,
 	        				control: contrFtrs
 	        			}
-	    			} 
+	    			}
 	    			else {
 	    				if (ftrId < nObsFtrs) {
 	    					var ftrNames = getObsFtrNames();
@@ -2431,7 +2481,7 @@ module.exports = exports = function (pathPrefix) {
 	    				}
 	    			}
 	    		},
-	
+
 	    		/**
 	    		 * Returns state details as a Javascript object.
 	    		 */
@@ -2442,9 +2492,9 @@ module.exports = exports = function (pathPrefix) {
 	    			var isLeaf = mc.isLeaf(stateId);
 	    			var stateNm = mc.getStateName(stateId);
 	    			var wgts = mc.getStateWgtV(stateId);
-	
+
 	    			var features = getFtrDescriptions(stateId);
-	
+
 	    			return {
 	    				id: stateId,
 	    				name: stateNm.length > 0 ? stateNm : null,
@@ -2456,7 +2506,7 @@ module.exports = exports = function (pathPrefix) {
 	    				featureWeights: wgts
 	    			};
 	    		},
-	
+
 	    		/**
 	    		 * Returns a histogram for the desired feature in the desired state.
 	    		 */
@@ -2464,83 +2514,83 @@ module.exports = exports = function (pathPrefix) {
 	    			var hist = mc.histogram(stateId, ftrId);
 	    			return toServerHistogram(hist, ftrId);
 	    		},
-	    		
+
 	    		transitionHistogram: function (sourceId, targetId, ftrId) {
 	    			var hist = mc.transitionHistogram(sourceId, targetId, ftrId);
 	    			return toServerHistogram(hist, ftrId);
 	    		},
-	
+
 	    		/**
 	    		 * Callback when the current state changes.
 	    		 */
 	    		onStateChanged: function (callback) {
 	    			mc.onStateChanged(callback);
 	    		},
-	
+
 	    		/**
 	    		 * Callback when an anomaly is detected.
 	    		 */
 	    		onAnomaly: function (callback) {
 	    			mc.onAnomaly(callback);
 	    		},
-	
+
 	    		onOutlier: function (callback) {
 	    			mc.onOutlier(function (ftrV) {
 	    				var invFtrV = obsFtrSpace.invertFeatureVector(ftrV);
-	
+
 	    				var features = [];
 	    				for (var i = 0; i < invFtrV.length; i++) {
 	    					features.push({name: obsFtrSpace.getFeature(i), value: invFtrV.at(i)});
 	    				}
-	
+
 	    				callback(features);
 	    			});
 	    		},
-	
+
 	    		onPrediction: function (callback) {
 	    			mc.onPrediction(callback);
 	    		},
-	
+
 	    		/**
 	    		 * Returns the distribution of features accross the states on the
 	    		 * specified height.
 	    		 */
 	    		getFtrDist: function (height, ftrIdx) {
 	    			var stateIds = mc.stateIds(height);
-	
+
 	    			var result = [];
 	    			for (var i = 0; i < stateIds.length; i++) {
 	    				var stateId = stateIds[i];
 	    				var coord = getFtrCoord(stateId, ftrIdx);
 	    				result.push({ state: stateId, value: coord });
 	    			}
-	
+
 	    			return result;
 	    		},
-	
+
 	    		setControlVal: function (opts) {
 	    			if (opts.ftrId == null) throw new Error('Missing parameter ftrId!');
 	    			var controlFtrId = opts.ftrId - getObsFtrCount();
-	    			    			
+
 	    			var params = {
 	    				ftrId: opts.ftrId,
 	    				val: controlFtrSpace.extractFeature(controlFtrId, opts.val)
 	    			};
-	    			
+
 	    			if (opts.stateId != null) params.stateId = opts.stateId;
-	    			
+
 	    			mc.setControlVal(params);
 	    		},
-	    		
+
 	    		resetControlVal: function (opts) {
 	    			var params = {};
 	    			if (opts.stateId != null) params.stateId = opts.stateId;
 	    			if (opts.ftrId != null) params.ftrId = opts.ftrId;
-	    			
+
 	    			mc.resetControlVal(params);
 	    		}
 	    	};
-	
+
 	    	return that;
 	    };
 	}

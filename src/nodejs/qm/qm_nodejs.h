@@ -1260,7 +1260,7 @@ public:
 	TQm::TRec Rec;
 	TInt Fq;
 	// C++ constructors	
-	TNodeJsRec(PNodeJsBaseWatcher _Watcher, const TQm::TRec& _Rec, const TInt& _Fq = 0) : Watcher(_Watcher), Rec(_Rec), Fq(_Fq) {}
+	TNodeJsRec(PNodeJsBaseWatcher _Watcher, const TQm::TRec& _Rec, const TInt& _Fq = 1) : Watcher(_Watcher), Rec(_Rec), Fq(_Fq) {}
 	// Not typical (records have multiple templates), simpler objects get this method from TNodeJsUtil
 	static v8::Local<v8::Object> NewInstance(TNodeJsRec* Obj);
 	
@@ -3112,6 +3112,7 @@ public:
 	/**
 	* Creates a sparse feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
 	* @returns {module:la.SparseVector} The sparse feature vector gained from rec.
 	* @example
 	* // import qm module
@@ -3152,6 +3153,7 @@ public:
 	/**
 	* Creates a feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
 	* @returns {module:la.Vector} The feature vector gained from rec.
 	* @example
 	* // import qm module
@@ -3198,91 +3200,10 @@ public:
 	JsDeclareFunction(extractFeature);
     
 	/**
-	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
-	* @param {(module:la.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
-	* @returns {module:la.Vector} The inverse of ftr as vector.
-	* @example
-	* // import qm module
-	* var qm = require('qminer');
-	* // create a new base containing one store
-	* var base = new qm.Base({
-	*    mode: "createClean",
-	*    schema: [{
-	*        name: "TheWitcherSaga",
-	*        fields: [
-	*            { name: "Title", type: "string" },
-	*            { name: "YearOfRelease", type: "int" },
-	*            { name: "EnglishEdition", type: "bool" }
-	*        ]
-	*    }]
-	* });
-	* // put some records in the store
-	* base.store("TheWitcherSaga").push({ Title: "Blood of Elves", YearOfRelease: 1994, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "Time of Contempt", YearOfRelease: 1995, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "Baptism of Fire", YearOfRelease: 1996, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "The Swallow's Tower", YearOfRelease: 1997, EnglishEdition: false });
-	* base.store("TheWitcherSaga").push({ Title: "Lady of the Lake", YearOfRelease: 1999, EnglishEdition: false });
-	* base.store("TheWitcherSaga").push({ Title: "Season of Storms", YearOfRelease: 2013, EnglishEdition: false });
-	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
-	* // for update, look the method updateRecords in feature space
-	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "TheWitcherSaga", field: "YearOfRelease", normalize: true });
-	* ftr.updateRecords(base.store("TheWitcherSaga").allRecords);
-	* // get a feature vector for the second record
-	* // because of the numeric feature extractor having normalize: true and of the records update of feature space, the values
-	* // are not equal to those of the records, i.e. the value 1995 is now 0.105263 
-	* var ftrVec = ftr.extractVector(base.store("TheWitcherSaga")[1]);
-	* // get the inverse of the feature vector
-	* // the function returns the values to their first value, i.e. 0.105263 returns to 1995
-	* var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]
-	* base.close();
-	*/
-	//# exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) { return Object.create(require('qminer').la.Vector.prototype); };
-	JsDeclareFunction(invertFeatureVector);
-
-	/**
-	* Calculates the inverse of a single feature using a specific feature extractor.
-	* @param {number} idx - The index of the specific feature extractor.
-	* @param {Object} val - The value to be inverted.
-	* @returns {Object} The inverse of val using the feature extractor with index idx.
-	* @example
-	* // import qm module
-	* var qm = require('qminer');
-	* // create a new base containing one store
-	* var base = new qm.Base({
-	*    mode: "createClean",
-	*    schema: [{
-	*        name: "TheWitcherSaga",
-	*        fields: [
-	*            { name: "Title", type: "string" },
-	*            { name: "YearOfRelease", type: "int" },
-	*            { name: "EnglishEdition", type: "bool" }
-	*        ]
-	*    }]
-	* });
-	* // put some records in the store
-	* base.store("TheWitcherSaga").push({ Title: "Blood of Elves", YearOfRelease: 1994, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "Time of Contempt", YearOfRelease: 1995, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "Baptism of Fire", YearOfRelease: 1996, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "The Swallow's Tower", YearOfRelease: 1997, EnglishEdition: false });
-	* base.store("TheWitcherSaga").push({ Title: "Lady of the Lake", YearOfRelease: 1999, EnglishEdition: false });
-	* base.store("TheWitcherSaga").push({ Title: "Season of Storms", YearOfRelease: 2013, EnglishEdition: false });
-	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
-	* // for update, look the method updateRecords in feature space
-	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "TheWitcherSaga", field: "YearOfRelease", normalize: true });
-	* ftr.updateRecords(base.store("TheWitcherSaga").allRecords);
-	* // because of the numeric feature extractor having normalize: true and of the records update of feature space, 
-	* // the values are not equal to those of the records 
-	* // invert the value 0 using the numeric feature extractor
-	* var inverse = ftr.invertFeature(0, 0); // returns the value 1994
-	* base.close();
-	*/
-	//# exports.FeatureSpace.prototype.invertFeature = function (idx, val) {};
-	JsDeclareFunction(invertFeature);
-
-	/**
 	* Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.
 	* @param {module:qm.RecordSet} rs - The given record set.
-	* @returns {module:la.SparseMatrix} The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor
+    * @returns {module:la.SparseMatrix} The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.
 	* @example
 	* // import qm module
 	* var qm = require("qminer");
@@ -3316,6 +3237,8 @@ public:
 	/**
 	* Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.
 	* @param {module:qm.RecordSet} rs - The given record set.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
+
 	* @returns {module:la.Matrix} The dense matrix, where the i-th column is the feature vector of the i-th record in rs.
 	* @example
 	* // import qm module
@@ -3419,7 +3342,89 @@ public:
 	*/
 	//# exports.FeatureSpace.prototype.getFeature = function (idx) { return ''; };
 	JsDeclareFunction(getFeature);
-    
+
+    	/**
+	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
+	* @param {(module:la.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
+	* @returns {module:la.Vector} The inverse of ftr as vector.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        name: "TheWitcherSaga",
+	*        fields: [
+	*            { name: "Title", type: "string" },
+	*            { name: "YearOfRelease", type: "int" },
+	*            { name: "EnglishEdition", type: "bool" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the store
+	* base.store("TheWitcherSaga").push({ Title: "Blood of Elves", YearOfRelease: 1994, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Time of Contempt", YearOfRelease: 1995, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Baptism of Fire", YearOfRelease: 1996, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "The Swallow's Tower", YearOfRelease: 1997, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Lady of the Lake", YearOfRelease: 1999, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Season of Storms", YearOfRelease: 2013, EnglishEdition: false });
+	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
+	* // for update, look the method updateRecords in feature space
+	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "TheWitcherSaga", field: "YearOfRelease", normalize: true });
+	* ftr.updateRecords(base.store("TheWitcherSaga").allRecords);
+	* // get a feature vector for the second record
+	* // because of the numeric feature extractor having normalize: true and of the records update of feature space, the values
+	* // are not equal to those of the records, i.e. the value 1995 is now 0.105263 
+	* var ftrVec = ftr.extractVector(base.store("TheWitcherSaga")[1]);
+	* // get the inverse of the feature vector
+	* // the function returns the values to their first value, i.e. 0.105263 returns to 1995
+	* var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]
+	* base.close();
+	*/
+	//# exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) { return Object.create(require('qminer').la.Vector.prototype); };
+	JsDeclareFunction(invertFeatureVector);
+
+	/**
+	* Calculates the inverse of a single feature using a specific feature extractor.
+	* @param {number} idx - The index of the specific feature extractor.
+	* @param {Object} val - The value to be inverted.
+	* @returns {Object} The inverse of val using the feature extractor with index idx.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        name: "TheWitcherSaga",
+	*        fields: [
+	*            { name: "Title", type: "string" },
+	*            { name: "YearOfRelease", type: "int" },
+	*            { name: "EnglishEdition", type: "bool" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the store
+	* base.store("TheWitcherSaga").push({ Title: "Blood of Elves", YearOfRelease: 1994, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Time of Contempt", YearOfRelease: 1995, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Baptism of Fire", YearOfRelease: 1996, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "The Swallow's Tower", YearOfRelease: 1997, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Lady of the Lake", YearOfRelease: 1999, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Season of Storms", YearOfRelease: 2013, EnglishEdition: false });
+	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
+	* // for update, look the method updateRecords in feature space
+	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "TheWitcherSaga", field: "YearOfRelease", normalize: true });
+	* ftr.updateRecords(base.store("TheWitcherSaga").allRecords);
+	* // because of the numeric feature extractor having normalize: true and of the records update of feature space, 
+	* // the values are not equal to those of the records 
+	* // invert the value 0 using the numeric feature extractor
+	* var inverse = ftr.invertFeature(0, 0); // returns the value 1994
+	* base.close();
+	*/
+	//# exports.FeatureSpace.prototype.invertFeature = function (idx, val) {};
+	JsDeclareFunction(invertFeature);
+
 	/**
 	* Filters the vector to keep only the elements from the feature extractor.
 	* @param {(module:la.Vector | module:la.SparseVector)} vec - The vector from where the function filters the elements.

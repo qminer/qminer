@@ -255,7 +255,8 @@ public:
     int GetFtr(const TTm& Val) const;
     void AddFtr(const TTm& Val, TIntFltKdV& SpV, int& Offset) const;
     void AddFtr(const TTm& Val, TFltV& FullV, int& Offset) const;
-    
+
+    bool IsInit() const { return InitP; }
     int GetDim() const { return EndUnit - StartUnit + WndSize; }
 };
 

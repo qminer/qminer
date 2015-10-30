@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -85,16 +85,17 @@ describe("PCA test", function () {
         it.skip("should return the model parameters after using fit", function () {
             var pca = new analytics.PCA();
             var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+            matrix.print();
             pca.fit(matrix);
             var model = pca.getModel();
             assert.eqtol(model.lambda[0], 1);
             assert.eqtol(model.lambda[1], 0);
-            assert.eqtol(model.mu[0], -0.5);
-            assert.eqtol(model.mu[1], 0.5);
-            //assert.eqtol(model.P.at(0, 0), 0.707106781186547);
-            //assert.eqtol(model.P.at(1, 0), -0.707106781186547);
-            assert.eqtol(model.P.at(0, 1), 0);
-            assert.eqtol(model.P.at(1, 1), 0);
+            assert.eqtol(model.mu[0], 0.5);
+            assert.eqtol(model.mu[1], -0.5);
+            assert.eqtol(model.P.at(0, 0), 0.707106781186547);
+            assert.eqtol(model.P.at(1, 0), 0.707106781186547);
+            assert.eqtol(model.P.at(0, 1), 0.707106781186547);
+            assert.eqtol(model.P.at(1, 1), -0.707106781186547);
         });
     });
 });

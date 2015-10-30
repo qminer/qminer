@@ -1016,8 +1016,8 @@ PJsonVal TOnlineHistogram::SaveJson() const {
 
 TChiSquare::TChiSquare(const PJsonVal& ParamVal) {
 	EAssertR(ParamVal->IsObjKey("degreesOfFreedom"), "TChiSquare: degreesOfFreedom key missing!");
-	// degrees of freedom
-	TFlt Dof = ParamVal->GetObjNum("degreesOfFreedom");
+	// degrees of freedom	
+	int Dof = ParamVal->GetObjInt("degreesOfFreedom");
 	Init(Alpha, Dof);
 }
 

@@ -2388,37 +2388,6 @@ exports.datasets= require('qminer_datasets');
 	*/
  exports.FeatureSpace.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); };
 /**
-	* Clears the feature space.
-	* @returns {module:qm.FeatureSpace} Self. 
-	* @example
-	* // import qm module
-	* var qm = require('qminer');
-	* // create a new base containing one store
-	* var base = new qm.Base({
-	*    mode: "createClean",
-	*    schema: [{
-	*        name: "Runners",
-	*        fields: [
-	*            { name: "ID", type: "int", primary: true },
-	*            { name: "Name", type: "string" },
-	*            { name: "BestTime", type: "float" }
-	*        ]
-	*    }]
-	* });
-	* // put some records in the "Runners" store
-	* base.store("Runners").push({ ID: 110020, Name: "Eric Ericsson", BestTime: 134.33 });
-	* base.store("Runners").push({ ID: 123307, Name: "Fred Friedrich", BestTime: 101.11 });
-	* base.store("Runners").push({ ID: 767201, Name: "Appel Banana", BestTime: 1034.56 });
-	* // create a feature space
-	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "Runners", field: "BestTime" });
-	* // update the feature space
-	* ftr.updateRecords(base.store("Runners").allRecords);
-	* // clear the feature space (return the feature space to it's default values)
-	* ftr.clear();
-	* base.close();
-	*/
- exports.FeatureSpace.prototype.clear = function () { return Object.create(require('qminer').FeatureSpace.prototype); };
-/**
 	* Adds a new feature extractor to the feature space.
 	* @param {Object} obj - The added feature extractor. It must be given as a JSON object.
 	* @returns {module:qm.FeatureSpace} Self.
@@ -2546,6 +2515,7 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Creates a sparse feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
 	* @returns {module:la.SparseVector} The sparse feature vector gained from rec.
 	* @example
 	* // import qm module
@@ -2584,6 +2554,7 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Creates a feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
 	* @returns {module:la.Vector} The feature vector gained from rec.
 	* @example
 	* // import qm module
@@ -2626,87 +2597,10 @@ exports.datasets= require('qminer_datasets');
 	 * @param {Number} val - value to extract
 	 */
 /**
-	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
-	* @param {(module:la.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
-	* @returns {module:la.Vector} The inverse of ftr as vector.
-	* @example
-	* // import qm module
-	* var qm = require('qminer');
-	* // create a new base containing one store
-	* var base = new qm.Base({
-	*    mode: "createClean",
-	*    schema: [{
-	*        name: "TheWitcherSaga",
-	*        fields: [
-	*            { name: "Title", type: "string" },
-	*            { name: "YearOfRelease", type: "int" },
-	*            { name: "EnglishEdition", type: "bool" }
-	*        ]
-	*    }]
-	* });
-	* // put some records in the store
-	* base.store("TheWitcherSaga").push({ Title: "Blood of Elves", YearOfRelease: 1994, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "Time of Contempt", YearOfRelease: 1995, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "Baptism of Fire", YearOfRelease: 1996, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "The Swallow's Tower", YearOfRelease: 1997, EnglishEdition: false });
-	* base.store("TheWitcherSaga").push({ Title: "Lady of the Lake", YearOfRelease: 1999, EnglishEdition: false });
-	* base.store("TheWitcherSaga").push({ Title: "Season of Storms", YearOfRelease: 2013, EnglishEdition: false });
-	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
-	* // for update, look the method updateRecords in feature space
-	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "TheWitcherSaga", field: "YearOfRelease", normalize: true });
-	* ftr.updateRecords(base.store("TheWitcherSaga").allRecords);
-	* // get a feature vector for the second record
-	* // because of the numeric feature extractor having normalize: true and of the records update of feature space, the values
-	* // are not equal to those of the records, i.e. the value 1995 is now 0.105263 
-	* var ftrVec = ftr.extractVector(base.store("TheWitcherSaga")[1]);
-	* // get the inverse of the feature vector
-	* // the function returns the values to their first value, i.e. 0.105263 returns to 1995
-	* var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]
-	* base.close();
-	*/
- exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) { return Object.create(require('qminer').la.Vector.prototype); };
-/**
-	* Calculates the inverse of a single feature using a specific feature extractor.
-	* @param {number} idx - The index of the specific feature extractor.
-	* @param {Object} val - The value to be inverted.
-	* @returns {Object} The inverse of val using the feature extractor with index idx.
-	* @example
-	* // import qm module
-	* var qm = require('qminer');
-	* // create a new base containing one store
-	* var base = new qm.Base({
-	*    mode: "createClean",
-	*    schema: [{
-	*        name: "TheWitcherSaga",
-	*        fields: [
-	*            { name: "Title", type: "string" },
-	*            { name: "YearOfRelease", type: "int" },
-	*            { name: "EnglishEdition", type: "bool" }
-	*        ]
-	*    }]
-	* });
-	* // put some records in the store
-	* base.store("TheWitcherSaga").push({ Title: "Blood of Elves", YearOfRelease: 1994, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "Time of Contempt", YearOfRelease: 1995, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "Baptism of Fire", YearOfRelease: 1996, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "The Swallow's Tower", YearOfRelease: 1997, EnglishEdition: false });
-	* base.store("TheWitcherSaga").push({ Title: "Lady of the Lake", YearOfRelease: 1999, EnglishEdition: false });
-	* base.store("TheWitcherSaga").push({ Title: "Season of Storms", YearOfRelease: 2013, EnglishEdition: false });
-	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
-	* // for update, look the method updateRecords in feature space
-	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "TheWitcherSaga", field: "YearOfRelease", normalize: true });
-	* ftr.updateRecords(base.store("TheWitcherSaga").allRecords);
-	* // because of the numeric feature extractor having normalize: true and of the records update of feature space, 
-	* // the values are not equal to those of the records 
-	* // invert the value 0 using the numeric feature extractor
-	* var inverse = ftr.invertFeature(0, 0); // returns the value 1994
-	* base.close();
-	*/
- exports.FeatureSpace.prototype.invertFeature = function (idx, val) {};
-/**
 	* Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.
 	* @param {module:qm.RecordSet} rs - The given record set.
-	* @returns {module:la.SparseMatrix} The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor
+    * @returns {module:la.SparseMatrix} The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.
 	* @example
 	* // import qm module
 	* var qm = require("qminer");
@@ -2738,6 +2632,8 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.
 	* @param {module:qm.RecordSet} rs - The given record set.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
+    
 	* @returns {module:la.Matrix} The dense matrix, where the i-th column is the feature vector of the i-th record in rs.
 	* @example
 	* // import qm module
@@ -2837,6 +2733,84 @@ exports.datasets= require('qminer_datasets');
 	*/
  exports.FeatureSpace.prototype.getFeature = function (idx) { return ''; };
 /**
+	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
+	* @param {(module:la.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
+	* @returns {module:la.Vector} The inverse of ftr as vector.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        name: "TheWitcherSaga",
+	*        fields: [
+	*            { name: "Title", type: "string" },
+	*            { name: "YearOfRelease", type: "int" },
+	*            { name: "EnglishEdition", type: "bool" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the store
+	* base.store("TheWitcherSaga").push({ Title: "Blood of Elves", YearOfRelease: 1994, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Time of Contempt", YearOfRelease: 1995, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Baptism of Fire", YearOfRelease: 1996, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "The Swallow's Tower", YearOfRelease: 1997, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Lady of the Lake", YearOfRelease: 1999, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Season of Storms", YearOfRelease: 2013, EnglishEdition: false });
+	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
+	* // for update, look the method updateRecords in feature space
+	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "TheWitcherSaga", field: "YearOfRelease", normalize: true });
+	* ftr.updateRecords(base.store("TheWitcherSaga").allRecords);
+	* // get a feature vector for the second record
+	* // because of the numeric feature extractor having normalize: true and of the records update of feature space, the values
+	* // are not equal to those of the records, i.e. the value 1995 is now 0.105263 
+	* var ftrVec = ftr.extractVector(base.store("TheWitcherSaga")[1]);
+	* // get the inverse of the feature vector
+	* // the function returns the values to their first value, i.e. 0.105263 returns to 1995
+	* var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]
+	* base.close();
+	*/
+ exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) { return Object.create(require('qminer').la.Vector.prototype); };
+/**
+	* Calculates the inverse of a single feature using a specific feature extractor.
+	* @param {number} idx - The index of the specific feature extractor.
+	* @param {Object} val - The value to be inverted.
+	* @returns {Object} The inverse of val using the feature extractor with index idx.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        name: "TheWitcherSaga",
+	*        fields: [
+	*            { name: "Title", type: "string" },
+	*            { name: "YearOfRelease", type: "int" },
+	*            { name: "EnglishEdition", type: "bool" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the store
+	* base.store("TheWitcherSaga").push({ Title: "Blood of Elves", YearOfRelease: 1994, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Time of Contempt", YearOfRelease: 1995, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Baptism of Fire", YearOfRelease: 1996, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "The Swallow's Tower", YearOfRelease: 1997, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Lady of the Lake", YearOfRelease: 1999, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Season of Storms", YearOfRelease: 2013, EnglishEdition: false });
+	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
+	* // for update, look the method updateRecords in feature space
+	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "TheWitcherSaga", field: "YearOfRelease", normalize: true });
+	* ftr.updateRecords(base.store("TheWitcherSaga").allRecords);
+	* // because of the numeric feature extractor having normalize: true and of the records update of feature space, 
+	* // the values are not equal to those of the records 
+	* // invert the value 0 using the numeric feature extractor
+	* var inverse = ftr.invertFeature(0, 0); // returns the value 1994
+	* base.close();
+	*/
+ exports.FeatureSpace.prototype.invertFeature = function (idx, val) {};
+/**
 	* Filters the vector to keep only the elements from the feature extractor.
 	* @param {(module:la.Vector | module:la.SparseVector)} vec - The vector from where the function filters the elements.
 	* @param {number} idx - The index of the feature extractor.
@@ -2896,12 +2870,12 @@ exports.datasets= require('qminer_datasets');
 
     /**
     * The parameter given to {@link module:qm.Base#loadCSV}.
-    * @typedef {object} BaseLoadCSVParam
-    * @property {string} BaseLoadCSVParam.file - The name of the input file.
-    * @property {string} BaseLoadCSVParam.store - Name of the store which will be created.
-    * @property {module:qm.Base} BaseLoadCSVParam.base - QMiner base object that creates the store.
-    * @property {string} [BaseLoadCSVParam.delimiter = ','] - Optional delimiter.
-    * @property {string} [BaseLoadCSVParam.quote = '"'] - Optional character to escape values that contain a delimiter.
+    * @typedef {object} baseLoadCSVParam
+    * @property {string} baseLoadCSVParam.file - The name of the input file.
+    * @property {string} baseLoadCSVParam.store - Name of the store which will be created.
+    * @property {module:qm.Base} baseLoadCSVParam.base - QMiner base object that creates the store.
+    * @property {string} [baseLoadCSVParam.delimiter = ','] - Optional delimiter.
+    * @property {string} [baseLoadCSVParam.quote = '"'] - Optional character to escape values that contain a delimiter.
     */
 
     /**

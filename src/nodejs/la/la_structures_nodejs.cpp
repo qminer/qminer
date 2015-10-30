@@ -809,6 +809,22 @@ void TNodeJsSpVec::Init(v8::Handle<v8::Object> exports) {
 		tpl->GetFunction());
 }
 
+TNodeJsSpVec::TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim) : Vec(IntFltKdV), Dim(Dim) {
+    // dimension checks
+    if (Dim != -1) {
+        // we provided dimensionality, check they match
+        const int CalcDim = TLAMisc::GetMaxDimIdx(IntFltKdV);
+        if (Dim == 0 && CalcDim == 0) {
+            // both are zero, should be fine
+        } else if (TLAMisc::GetMaxDimIdx(IntFltKdV) >= Dim) {
+            // largest index is biggern then the dimensionality, not good
+            throw TExcept::New(TStr::Fmt(
+                "TNodeJsSpVec::New inconsistent dim parameter (maximal index %d >= dim %d)",
+                TLAMisc::GetMaxDimIdx(IntFltKdV), Dim));
+        }
+    }
+}
+
 TNodeJsSpVec* TNodeJsSpVec::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// parse arguments
 	int Dim = -1;
