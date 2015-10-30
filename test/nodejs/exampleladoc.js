@@ -477,8 +477,20 @@ it("should make test number 34", function () {
 	
 });
 });
-describe("Returns a string displaying rows, columns and number of non-zero elements of sparse matrix., number 35", function () {
+describe("Sets the row dimension, number 35", function () {
 it("should make test number 35", function () {
+
+	 // import the modules
+	 var la = require('qminer').la;
+	 // create an empty matrix
+	 var mat = new la.SparseMatrix();
+	 mat.setRowDim(2);
+	 mat.rows // prints 2
+	
+});
+});
+describe("Returns a string displaying rows, columns and number of non-zero elements of sparse matrix., number 36", function () {
+it("should make test number 36", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -489,8 +501,8 @@ it("should make test number 35", function () {
     
 });
 });
-describe("Prints the sparse vector on-screen., number 36", function () {
-it("should make test number 36", function () {
+describe("Prints the sparse vector on-screen., number 37", function () {
+it("should make test number 37", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -501,8 +513,8 @@ it("should make test number 36", function () {
 	
 });
 });
-describe("Prints the matrix on-screen., number 37", function () {
-it("should make test number 37", function () {
+describe("Prints the matrix on-screen., number 38", function () {
+it("should make test number 38", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -516,8 +528,8 @@ it("should make test number 37", function () {
 	
 });
 });
-describe("Prints the vector on-screen., number 38", function () {
-it("should make test number 38", function () {
+describe("Prints the vector on-screen., number 39", function () {
+it("should make test number 39", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -530,8 +542,8 @@ it("should make test number 38", function () {
     
 });
 });
-describe("Copies the vector into a JavaScript array of numbers., number 39", function () {
-it("should make test number 39", function () {
+describe("Copies the vector into a JavaScript array of numbers., number 40", function () {
+it("should make test number 40", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -542,8 +554,8 @@ it("should make test number 39", function () {
     
 });
 });
-describe("Copies the matrix into a JavaScript array of arrays of numbers., number 40", function () {
-it("should make test number 40", function () {
+describe("Copies the matrix into a JavaScript array of arrays of numbers., number 41", function () {
+it("should make test number 41", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -554,8 +566,8 @@ it("should make test number 40", function () {
     
 });
 });
-describe("Copies the vector into a JavaScript array of numbers., number 41", function () {
-it("should make test number 41", function () {
+describe("Copies the vector into a JavaScript array of numbers., number 42", function () {
+it("should make test number 42", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -566,8 +578,8 @@ it("should make test number 41", function () {
     
 });
 });
-describe("Returns a vector with all entries set to 1.0., number 42", function () {
-it("should make test number 42", function () {
+describe("Returns a vector with all entries set to 1.0., number 43", function () {
+it("should make test number 43", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -576,8 +588,8 @@ it("should make test number 42", function () {
     
 });
 });
-describe("Constructs a matrix by concatenating a doubly-nested array of matrices., number 43", function () {
-it("should make test number 43", function () {
+describe("Constructs a matrix by concatenating a doubly-nested array of matrices., number 44", function () {
+it("should make test number 44", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -596,8 +608,8 @@ it("should make test number 43", function () {
     
 });
 });
-describe("Generates an integer vector given range, number 44", function () {
-it("should make test number 44", function () {
+describe("Generates an integer vector given range, number 45", function () {
+it("should make test number 45", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -607,8 +619,8 @@ it("should make test number 44", function () {
     
 });
 });
-describe("returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input., number 45", function () {
-it("should make test number 45", function () {
+describe("returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input., number 46", function () {
+it("should make test number 46", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -620,8 +632,8 @@ it("should make test number 45", function () {
     
 });
 });
-describe("computes and returns the pairwise squared euclidean distances between columns of `X1` and `X2` (`mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2`)., number 46", function () {
-it("should make test number 46", function () {
+describe("computes and returns the pairwise squared euclidean distances between columns of `X1` and `X2` (`mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2`)., number 47", function () {
+it("should make test number 47", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -635,8 +647,8 @@ it("should make test number 46", function () {
     
 });
 });
-describe("Vector - array of doubles, number 47", function () {
-it("should make test number 47", function () {
+describe("Vector - array of doubles, number 48", function () {
+it("should make test number 48", function () {
 
  var la = require('qminer').la;
  // create a new empty vector
@@ -646,8 +658,8 @@ it("should make test number 47", function () {
 
 });
 });
-describe("Changes the vector by removing and adding elements., number 48", function () {
-it("should make test number 48", function () {
+describe("Changes the vector by removing and adding elements., number 49", function () {
+it("should make test number 49", function () {
 
 	 var la = require('qminer').la;
 	 // create a new vector
@@ -657,8 +669,8 @@ it("should make test number 48", function () {
 	
 });
 });
-describe("Sorts the vector (in place operation)., number 49", function () {
-it("should make test number 49", function () {
+describe("Sorts the vector (in place operation)., number 50", function () {
+it("should make test number 50", function () {
 
 	 var la = require('qminer').la;
 	 // create a new vector
@@ -670,8 +682,8 @@ it("should make test number 49", function () {
 	
 });
 });
-describe("Sorts the vector and returns the sorted vector as well as the permutation, number 50", function () {
-it("should make test number 50", function () {
+describe("Sorts the vector and returns the sorted vector as well as the permutation, number 51", function () {
+it("should make test number 51", function () {
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -683,8 +695,8 @@ it("should make test number 50", function () {
 	
 });
 });
-describe("Deletes elements with sprecific index or more., number 51", function () {
-it("should make test number 51", function () {
+describe("Deletes elements with sprecific index or more., number 52", function () {
+it("should make test number 52", function () {
 
 	 var la = require('qminer').la;
 	 // create a new vector
@@ -694,8 +706,8 @@ it("should make test number 51", function () {
 	
 });
 });
-describe("Creates a dense matrix A by multiplying two vectors x and y: A = x y^T., number 52", function () {
-it("should make test number 52", function () {
+describe("Creates a dense matrix A by multiplying two vectors x and y: A = x y^T., number 53", function () {
+it("should make test number 53", function () {
 
 	 var la = require('qminer').la;
 	 // create two vectors
@@ -706,8 +718,8 @@ it("should make test number 52", function () {
 	
 });
 });
-describe("Returns the cosine between the two vectors., number 53", function () {
-it("should make test number 53", function () {
+describe("Returns the cosine between the two vectors., number 54", function () {
+it("should make test number 54", function () {
 
 	 var la = require('qminer').la;
 	 // create two vectors
@@ -718,8 +730,8 @@ it("should make test number 53", function () {
 	
 });
 });
-describe("Returns the vector as string., number 54", function () {
-it("should make test number 54", function () {
+describe("Returns the vector as string., number 55", function () {
+it("should make test number 55", function () {
 
 	 var la = require('qminer').la;
 	 // create a new vector
@@ -729,8 +741,8 @@ it("should make test number 54", function () {
 	
 });
 });
-describe("Saves the vector as output stream (binary serialization)., number 55", function () {
-it("should make test number 55", function () {
+describe("Saves the vector as output stream (binary serialization)., number 56", function () {
+it("should make test number 56", function () {
 
 	 // import fs module
 	 var fs = require('qminer').fs;
@@ -744,8 +756,8 @@ it("should make test number 55", function () {
 	
 });
 });
-describe("Loads the vector from input stream (binary deserialization)., number 56", function () {
-it("should make test number 56", function () {
+describe("Loads the vector from input stream (binary deserialization)., number 57", function () {
+it("should make test number 57", function () {
 
 	 // import fs module
 	 var fs = require('qminer').fs;
@@ -759,8 +771,8 @@ it("should make test number 56", function () {
 	
 });
 });
-describe("Saves the vector as output stream (ascii serialization)., number 57", function () {
-it("should make test number 57", function () {
+describe("Saves the vector as output stream (ascii serialization)., number 58", function () {
+it("should make test number 58", function () {
 
 	 // import fs module
 	 var fs = require('qminer').fs;
@@ -774,8 +786,8 @@ it("should make test number 57", function () {
 	
 });
 });
-describe("Loads the vector from input stream (ascii deserialization)., number 58", function () {
-it("should make test number 58", function () {
+describe("Loads the vector from input stream (ascii deserialization)., number 59", function () {
+it("should make test number 59", function () {
 
 	 // import fs module
 	 var fs = require('qminer').fs;
@@ -789,8 +801,8 @@ it("should make test number 58", function () {
 	
 });
 });
-describe("Vector - array of strings, number 59", function () {
-it("should make test number 59", function () {
+describe("Vector - array of strings, number 60", function () {
+it("should make test number 60", function () {
 
  var la = require('qminer').la;
  // create a new empty vector
@@ -800,8 +812,8 @@ it("should make test number 59", function () {
 
 });
 });
-describe("Changes the vector by removing and adding elements., number 60", function () {
-it("should make test number 60", function () {
+describe("Changes the vector by removing and adding elements., number 61", function () {
+it("should make test number 61", function () {
 
 	 var la = require('qminer').la;
 	 // create a new vector
@@ -811,8 +823,8 @@ it("should make test number 60", function () {
 	
 });
 });
-describe("Sorts the vector (in place operation)., number 61", function () {
-it("should make test number 61", function () {
+describe("Sorts the vector (in place operation)., number 62", function () {
+it("should make test number 62", function () {
 
 	 var la = require('qminer').la;
 	 // create a new vector
@@ -824,8 +836,8 @@ it("should make test number 61", function () {
 	
 });
 });
-describe("Deletes elements with sprecific index or more., number 62", function () {
-it("should make test number 62", function () {
+describe("Deletes elements with sprecific index or more., number 63", function () {
+it("should make test number 63", function () {
 
 	 var la = require('qminer').la;
 	 // create a new vector
@@ -835,8 +847,8 @@ it("should make test number 62", function () {
 	
 });
 });
-describe("Returns the vector as string., number 63", function () {
-it("should make test number 63", function () {
+describe("Returns the vector as string., number 64", function () {
+it("should make test number 64", function () {
 
 	 var la = require('qminer').la;
 	 // create a new vector
@@ -846,8 +858,8 @@ it("should make test number 63", function () {
 	
 });
 });
-describe("Saves the vector as output stream (binary serialization)., number 64", function () {
-it("should make test number 64", function () {
+describe("Saves the vector as output stream (binary serialization)., number 65", function () {
+it("should make test number 65", function () {
 
 	 // import fs module
 	 var fs = require('qminer').fs;
@@ -861,8 +873,8 @@ it("should make test number 64", function () {
 	
 });
 });
-describe("Loads the vector from input stream (binary deserialization)., number 65", function () {
-it("should make test number 65", function () {
+describe("Loads the vector from input stream (binary deserialization)., number 66", function () {
+it("should make test number 66", function () {
 
 	 // import fs module
 	 var fs = require('qminer').fs;
@@ -876,8 +888,8 @@ it("should make test number 65", function () {
 	
 });
 });
-describe("Saves the vector as output stream (ascii serialization)., number 66", function () {
-it("should make test number 66", function () {
+describe("Saves the vector as output stream (ascii serialization)., number 67", function () {
+it("should make test number 67", function () {
 
 	 // import fs module
 	 var fs = require('qminer').fs;
@@ -891,8 +903,8 @@ it("should make test number 66", function () {
 	
 });
 });
-describe("Loads the vector from input stream (ascii deserialization)., number 67", function () {
-it("should make test number 67", function () {
+describe("Loads the vector from input stream (ascii deserialization)., number 68", function () {
+it("should make test number 68", function () {
 
 	 // import fs module
 	 var fs = require('qminer').fs;
@@ -906,8 +918,8 @@ it("should make test number 67", function () {
 	
 });
 });
-describe("Vector - array of integers, number 68", function () {
-it("should make test number 68", function () {
+describe("Vector - array of integers, number 69", function () {
+it("should make test number 69", function () {
 
  var la = require('qminer').la;
  // create a new empty vector
@@ -917,8 +929,8 @@ it("should make test number 68", function () {
 
 });
 });
-describe("Changes the vector by removing and adding elements., number 69", function () {
-it("should make test number 69", function () {
+describe("Changes the vector by removing and adding elements., number 70", function () {
+it("should make test number 70", function () {
 
 	 var la = require('qminer').la;
 	 // create a new vector
@@ -928,8 +940,8 @@ it("should make test number 69", function () {
 	
 });
 });
-describe("Sorts the vector (in place operation)., number 70", function () {
-it("should make test number 70", function () {
+describe("Sorts the vector (in place operation)., number 71", function () {
+it("should make test number 71", function () {
 
 	 var la = require('qminer').la;
 	 // create a new vector
@@ -941,8 +953,8 @@ it("should make test number 70", function () {
 	
 });
 });
-describe("Deletes elements with sprecific index or more., number 71", function () {
-it("should make test number 71", function () {
+describe("Deletes elements with sprecific index or more., number 72", function () {
+it("should make test number 72", function () {
 
 	 var la = require('qminer').la;
 	 // create a new vector
@@ -952,8 +964,8 @@ it("should make test number 71", function () {
 	
 });
 });
-describe("Returns the vector as string., number 72", function () {
-it("should make test number 72", function () {
+describe("Returns the vector as string., number 73", function () {
+it("should make test number 73", function () {
 
 	 var la = require('qminer').la;
 	 // create a new vector
@@ -963,8 +975,8 @@ it("should make test number 72", function () {
 	
 });
 });
-describe("Saves the vector as output stream (binary serialization)., number 73", function () {
-it("should make test number 73", function () {
+describe("Saves the vector as output stream (binary serialization)., number 74", function () {
+it("should make test number 74", function () {
 
 	 // import fs module
 	 var fs = require('qminer').fs;
@@ -978,8 +990,8 @@ it("should make test number 73", function () {
 	
 });
 });
-describe("Loads the vector from input stream (binary deserialization)., number 74", function () {
-it("should make test number 74", function () {
+describe("Loads the vector from input stream (binary deserialization)., number 75", function () {
+it("should make test number 75", function () {
 
 	 // import fs module
 	 var fs = require('qminer').fs;
@@ -993,8 +1005,8 @@ it("should make test number 74", function () {
 	
 });
 });
-describe("Saves the vector as output stream (ascii serialization)., number 75", function () {
-it("should make test number 75", function () {
+describe("Saves the vector as output stream (ascii serialization)., number 76", function () {
+it("should make test number 76", function () {
 
 	 // import fs module
 	 var fs = require('qminer').fs;
@@ -1008,8 +1020,8 @@ it("should make test number 75", function () {
 	
 });
 });
-describe("Loads the vector from input stream (ascii deserialization)., number 76", function () {
-it("should make test number 76", function () {
+describe("Loads the vector from input stream (ascii deserialization)., number 77", function () {
+it("should make test number 77", function () {
 
 	 // import fs module
 	 var fs = require('qminer').fs;
@@ -1023,8 +1035,8 @@ it("should make test number 76", function () {
 	
 });
 });
-describe("Vector - array of boolean, number 77", function () {
-it("should make test number 77", function () {
+describe("Vector - array of boolean, number 78", function () {
+it("should make test number 78", function () {
 
  var la = require('qminer').la;
  // create a new empty vector
@@ -1034,8 +1046,8 @@ it("should make test number 77", function () {
 
 });
 });
-describe("Changes the vector by removing and adding elements., number 78", function () {
-it("should make test number 78", function () {
+describe("Changes the vector by removing and adding elements., number 79", function () {
+it("should make test number 79", function () {
 
 	 var la = require('qminer').la;
 	 // create a new vector
@@ -1045,8 +1057,8 @@ it("should make test number 78", function () {
 	
 });
 });
-describe("Sorts the vector (in place operation)., number 79", function () {
-it("should make test number 79", function () {
+describe("Sorts the vector (in place operation)., number 80", function () {
+it("should make test number 80", function () {
 
 	 var la = require('qminer').la;
 	 // create a new vector
@@ -1058,8 +1070,8 @@ it("should make test number 79", function () {
 	
 });
 });
-describe("Deletes elements with sprecific index or more., number 80", function () {
-it("should make test number 80", function () {
+describe("Deletes elements with sprecific index or more., number 81", function () {
+it("should make test number 81", function () {
 
 	 var la = require('qminer').la;
 	 // create a new vector
@@ -1069,8 +1081,8 @@ it("should make test number 80", function () {
 	
 });
 });
-describe("Returns the vector as string., number 81", function () {
-it("should make test number 81", function () {
+describe("Returns the vector as string., number 82", function () {
+it("should make test number 82", function () {
 
 	 var la = require('qminer').la;
 	 // create a new vector
@@ -1080,8 +1092,8 @@ it("should make test number 81", function () {
 	
 });
 });
-describe("Saves the vector as output stream (binary serialization)., number 82", function () {
-it("should make test number 82", function () {
+describe("Saves the vector as output stream (binary serialization)., number 83", function () {
+it("should make test number 83", function () {
 
 	 // import fs module
 	 var fs = require('qminer').fs;
@@ -1095,8 +1107,8 @@ it("should make test number 82", function () {
 	
 });
 });
-describe("Loads the vector from input stream (binary deserialization)., number 83", function () {
-it("should make test number 83", function () {
+describe("Loads the vector from input stream (binary deserialization)., number 84", function () {
+it("should make test number 84", function () {
 
 	 // import fs module
 	 var fs = require('qminer').fs;
@@ -1110,8 +1122,8 @@ it("should make test number 83", function () {
 	
 });
 });
-describe("Saves the vector as output stream (ascii serialization)., number 84", function () {
-it("should make test number 84", function () {
+describe("Saves the vector as output stream (ascii serialization)., number 85", function () {
+it("should make test number 85", function () {
 
 	 // import fs module
 	 var fs = require('qminer').fs;
@@ -1125,8 +1137,8 @@ it("should make test number 84", function () {
 	
 });
 });
-describe("Loads the vector from input stream (ascii deserialization)., number 85", function () {
-it("should make test number 85", function () {
+describe("Loads the vector from input stream (ascii deserialization)., number 86", function () {
+it("should make test number 86", function () {
 
 	 // import fs module
 	 var fs = require('qminer').fs;

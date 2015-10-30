@@ -2408,6 +2408,37 @@
 	*/
  exports.FeatureSpace.prototype.save = function (fout) { return Object.create(require(&#x27;qminer&#x27;).fs.FOut.prototype); };
 /**
+	* Clears the feature space.
+	* @returns {module:qm.FeatureSpace} Self. 
+	* @example
+	* // import qm module
+	* var qm = require(&#x27;qminer&#x27;);
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: &quot;createClean&quot;,
+	*    schema: [{
+	*        name: &quot;Runners&quot;,
+	*        fields: [
+	*            { name: &quot;ID&quot;, type: &quot;int&quot;, primary: true },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
+	*            { name: &quot;BestTime&quot;, type: &quot;float&quot; }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the &quot;Runners&quot; store
+	* base.store(&quot;Runners&quot;).push({ ID: 110020, Name: &quot;Eric Ericsson&quot;, BestTime: 134.33 });
+	* base.store(&quot;Runners&quot;).push({ ID: 123307, Name: &quot;Fred Friedrich&quot;, BestTime: 101.11 });
+	* base.store(&quot;Runners&quot;).push({ ID: 767201, Name: &quot;Appel Banana&quot;, BestTime: 1034.56 });
+	* // create a feature space
+	* var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Runners&quot;, field: &quot;BestTime&quot; });
+	* // update the feature space
+	* ftr.updateRecords(base.store(&quot;Runners&quot;).allRecords);
+	* // clear the feature space (return the feature space to it&#x27;s default values)
+	* ftr.clear();
+	* base.close();
+	*/
+ exports.FeatureSpace.prototype.clear = function () { return Object.create(require(&#x27;qminer&#x27;).FeatureSpace.prototype); };
+/**
 	* Adds a new feature extractor to the feature space.
 	* @param {Object} obj - The added feature extractor. It must be given as a JSON object.
 	* @returns {module:qm.FeatureSpace} Self.
@@ -2653,7 +2684,7 @@
 	* Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.
 	* @param {module:qm.RecordSet} rs - The given record set.
     * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
-    
+
 	* @returns {module:la.Matrix} The dense matrix, where the i-th column is the feature vector of the i-th record in rs.
 	* @example
 	* // import qm module
@@ -2890,12 +2921,12 @@
 
     /**
     * The parameter given to {@link module:qm.Base#loadCSV}.
-    * @typedef {object} baseLoadCSVParam
-    * @property {string} baseLoadCSVParam.file - The name of the input file.
-    * @property {string} baseLoadCSVParam.store - Name of the store which will be created.
-    * @property {module:qm.Base} baseLoadCSVParam.base - QMiner base object that creates the store.
-    * @property {string} [baseLoadCSVParam.delimiter = &#x27;,&#x27;] - Optional delimiter.
-    * @property {string} [baseLoadCSVParam.quote = &#x27;&quot;&#x27;] - Optional character to escape values that contain a delimiter.
+    * @typedef {object} BaseLoadCSVParam
+    * @property {string} BaseLoadCSVParam.file - The name of the input file.
+    * @property {string} BaseLoadCSVParam.store - Name of the store which will be created.
+    * @property {module:qm.Base} BaseLoadCSVParam.base - QMiner base object that creates the store.
+    * @property {string} [BaseLoadCSVParam.delimiter = &#x27;,&#x27;] - Optional delimiter.
+    * @property {string} [BaseLoadCSVParam.quote = &#x27;&quot;&#x27;] - Optional character to escape values that contain a delimiter.
     */
 
     /**

@@ -719,6 +719,18 @@ exports = {}; require.modules.qminer_la = exports;
 	* mat.load(fin);
 	*/
  exports.SparseMatrix.prototype.load = function (FIn) { return Object.create(require('qminer').fs.FIn.prototype); }
+/**
+	* Sets the row dimension
+	* @param {number} rowDim - Row dimension
+	* @example
+	* // import the modules
+	* var la = require('qminer').la;
+	* // create an empty matrix
+	* var mat = new la.SparseMatrix();
+	* mat.setRowDim(2);
+	* mat.rows // prints 2
+	*/
+ exports.SparseMatrix.prototype.setRowDim = function (dim) { }
 
 
     /**
