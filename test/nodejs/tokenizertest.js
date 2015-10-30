@@ -127,6 +127,13 @@ describe("Tokenizer tests", function () {
             assert.equal(sentences[0], "It's alright");
             assert.equal(sentences[1], " Don't worry");
         });
+        it("should return sentences of text using extra contractions", function () {
+            var tokenizer = new analytics.Tokenizer({ type: "simple" });
+            var text = "Listen, my idea was better. Please, don't take this personally...";
+            var sentences = tokenizer.getSentences(text);
+            assert.equal(sentences[0], "Listen, my idea was better");
+            assert.equal(sentences[1], " Please, don't take this personally");
+        });
         it("should throw an exception if input is not a string", function () {
             var tokenizer = new analytics.Tokenizer({ type: "simple" });
             var array = new la.Vector([1, 2]);
