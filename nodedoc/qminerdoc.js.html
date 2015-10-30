@@ -2408,6 +2408,37 @@
 	*/
  exports.FeatureSpace.prototype.save = function (fout) { return Object.create(require(&#x27;qminer&#x27;).fs.FOut.prototype); };
 /**
+	* Clears the feature space.
+	* @returns {module:qm.FeatureSpace} Self. 
+	* @example
+	* // import qm module
+	* var qm = require(&#x27;qminer&#x27;);
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: &quot;createClean&quot;,
+	*    schema: [{
+	*        name: &quot;Runners&quot;,
+	*        fields: [
+	*            { name: &quot;ID&quot;, type: &quot;int&quot;, primary: true },
+	*            { name: &quot;Name&quot;, type: &quot;string&quot; },
+	*            { name: &quot;BestTime&quot;, type: &quot;float&quot; }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the &quot;Runners&quot; store
+	* base.store(&quot;Runners&quot;).push({ ID: 110020, Name: &quot;Eric Ericsson&quot;, BestTime: 134.33 });
+	* base.store(&quot;Runners&quot;).push({ ID: 123307, Name: &quot;Fred Friedrich&quot;, BestTime: 101.11 });
+	* base.store(&quot;Runners&quot;).push({ ID: 767201, Name: &quot;Appel Banana&quot;, BestTime: 1034.56 });
+	* // create a feature space
+	* var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Runners&quot;, field: &quot;BestTime&quot; });
+	* // update the feature space
+	* ftr.updateRecords(base.store(&quot;Runners&quot;).allRecords);
+	* // clear the feature space (return the feature space to it&#x27;s default values)
+	* ftr.clear();
+	* base.close();
+	*/
+ exports.FeatureSpace.prototype.clear = function () { return Object.create(require(&#x27;qminer&#x27;).FeatureSpace.prototype); };
+/**
 	* Adds a new feature extractor to the feature space.
 	* @param {Object} obj - The added feature extractor. It must be given as a JSON object.
 	* @returns {module:qm.FeatureSpace} Self.
@@ -2653,7 +2684,7 @@
 	* Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.
 	* @param {module:qm.RecordSet} rs - The given record set.
     * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
-    
+
 	* @returns {module:la.Matrix} The dense matrix, where the i-th column is the feature vector of the i-th record in rs.
 	* @example
 	* // import qm module
@@ -2883,19 +2914,19 @@
 	*/
  exports.FeatureSpace.prototype.extractStrings = function (rec) {return [&#x27;&#x27;]; }; 
 
-    
+
     //==================================================================
     // BASE
     //==================================================================
 
     /**
     * The parameter given to {@link module:qm.Base#loadCSV}.
-    * @typedef {object} baseLoadCSVParam
-    * @property {string} baseLoadCSVParam.file - The name of the input file.
-    * @property {string} baseLoadCSVParam.store - Name of the store which will be created.
-    * @property {module:qm.Base} baseLoadCSVParam.base - QMiner base object that creates the store.
-    * @property {string} [baseLoadCSVParam.delimiter = &#x27;,&#x27;] - Optional delimiter.
-    * @property {string} [baseLoadCSVParam.quote = &#x27;&quot;&#x27;] - Optional character to escape values that contain a delimiter.
+    * @typedef {object} BaseLoadCSVParam
+    * @property {string} BaseLoadCSVParam.file - The name of the input file.
+    * @property {string} BaseLoadCSVParam.store - Name of the store which will be created.
+    * @property {module:qm.Base} BaseLoadCSVParam.base - QMiner base object that creates the store.
+    * @property {string} [BaseLoadCSVParam.delimiter = &#x27;,&#x27;] - Optional delimiter.
+    * @property {string} [BaseLoadCSVParam.quote = &#x27;&quot;&#x27;] - Optional character to escape values that contain a delimiter.
     */
 
     /**
@@ -2910,43 +2941,43 @@
     	if (opts.quote == null) opts.quote = &#x27;&quot;&#x27;;
     	if (opts.ignoreFields == null) opts.ignoreFields = [];
     	if (opts.file == null) throw new Error(&#x27;Missing parameter file!&#x27;);
-    	
+
     	if (callback == null) callback = function (e) { if (e != null) console.log(e.stack); }
-    	
+
     	try {
     		var base = this;
-    		
+
 	    	var fname = opts.file;
 			var storeName = opts.store;
-	
+
 			var fieldTypes = null;
 			var store = null;
 			var buff = [];
-	
+
 			var ignoreFields = {};
 			for (var i = 0; i &amp;lt; opts.ignoreFields.length; i++)
 				ignoreFields[opts.ignoreFields] = null;
-			
+
 			// read the CSV file and fill the store
 			var headers = null;
-			
+
 			function transformLine(line) {
 				var transformed = {};
-				
+
 				for (var i = 0; i &amp;lt; line.length; i++) {
 					var header = headers[i];
 					var value = line[i];
-					
+
 					if (fieldTypes != null &amp;amp;&amp;amp; fieldTypes[header] != null) {
 						transformed[header] = fieldTypes[header] == &#x27;float&#x27; ? parseFloat(value) : value;
 					} else {
 						transformed[header] = (isNaN(value) || value.length == 0) ? value : parseFloat(value);
 					}
 				}
-				
+
 				return transformed;
 			}
-			
+
     		function initFieldTypes(data) {
     			if (fieldTypes == null) fieldTypes = {};
 
@@ -2965,11 +2996,11 @@
 
     				}
     			}
-    			
+
     			if (fieldTypesInitialized())
     				console.log(&#x27;Fields initialized: &#x27; + JSON.stringify(fieldTypes));
     		}
-			
+
     		function fieldTypesInitialized() {
     			if (fieldTypes == null) return false;
 
@@ -2983,7 +3014,7 @@
 
     			return true;
     		}
-			
+
 			function getUninitializedFlds() {
     			var result = [];
 
@@ -2997,7 +3028,7 @@
 
     			return result;
     		}
-			
+
 			function createStore(rec) {
     			try {
 	    			var storeDef = {
@@ -3012,12 +3043,12 @@
 							&quot;null&quot;: true,
 	    				});
 	    			}
-	    			
+
 	    			console.log(&#x27;Creating store with definition &#x27; + JSON.stringify(storeDef) + &#x27; ...&#x27;);
 
 	    			base.createStore(storeDef);
 	    			store = base.store(storeName);
-	    				    			
+
 	    			// insert all the record in the buffer into the store
 	    			buff.forEach(function (data) {
 	    				store.push(data);
@@ -3026,15 +3057,15 @@
 					callback(e);
     			}
     		}
-			
+
 			var storeCreated = false;
 			var line = 0;
 			console.log(&#x27;Saving CSV to store &#x27; + storeName + &#x27; &#x27; + fname + &#x27; ...&#x27;);
-			
+
 			var fin = new fs.FIn(fname);
 			fs.readCsvLines(fin, {
-				onLine: function (lineArr) {					
-					try {						
+				onLine: function (lineArr) {
+					try {
 						if (line++ == 0) {	// the first line are the headers
 							headers = [];
 							for (var i = 0; i &amp;lt; lineArr.length; i++) {
@@ -3045,17 +3076,17 @@
 						else {
 							if (line % 1000 == 0)
 								console.log(line + &#x27;&#x27;);
-							
+
 							var data = transformLine(lineArr);
-														
+
 							if (fieldTypes == null)
 								initFieldTypes(data);
-							
+
 							if (store == null &amp;amp;&amp;amp; fieldTypesInitialized())
 								createStore(data);
 							else if (!fieldTypesInitialized())
 								initFieldTypes(data);
-							
+
 							if (store != null) {
 								store.push(data);
 							} else
@@ -3069,7 +3100,7 @@
 				onEnd: function () {
 					// finished
 					console.log(&#x27;Finished!&#x27;);
-					
+
 					if (callback != null) {
 			   			if (!fieldTypesInitialized()) {
 				   			var fieldNames = getUninitializedFlds();
@@ -3081,20 +3112,20 @@
 				   		}
 			   		}
 				}
-			});	
-			
+			});
+
 			fin.close();
     	} catch (e) {
 			callback(e);
     	}
     };
-    
+
     /**
-     * Loads the store from a CSV file. 
+     * Loads the store from a CSV file.
      * @param {module:qm~baseLoadCSVParam} opts - Options object.
      * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
      */
-    
+
     //==================================================================
     // STORE
     //==================================================================
@@ -3121,7 +3152,6 @@
         return util.inspect(this, { depth: d, &#x27;customInspect&#x27;: false });
     }
 
-    // loading data into stores
     /**
      * Load given file line by line, parse each line to JSON and push it to the store.
      *
@@ -3153,7 +3183,7 @@
 
     /**
      * Stores the record set as a CSV file.
-     * 
+     *
      * @param {Object} opts - arguments
      * @property {String} opts.fname - name of the output file
      * @property {Boolean} [opts.includeHeaders] - indicates wether to include the header in the first line
@@ -3163,27 +3193,27 @@
     	if (opts == null || opts.fname == null) throw new Error(&#x27;Missing parameter fname!&#x27;);
     	if (opts.includeHeaders == null) opts.includeHeaders = true;
     	if (opts.timestampType == null) opts.timestampType = &#x27;timestamp&#x27;;
-    	
+
     	// read field descriptions
     	var fields = this.store.fields;
     	var fieldDesc = [];
     	for (var i = 0; i &amp;lt; fields.length; i++) {
     		var desc = fields[i];
     		var type = desc.type;
-    		
+
     		if (type != &#x27;float&#x27; &amp;amp;&amp;amp; type != &#x27;int&#x27; &amp;amp;&amp;amp; type != &#x27;bool&#x27; &amp;amp;&amp;amp; type != &#x27;datetime&#x27; &amp;amp;&amp;amp;
     				type != &#x27;string&#x27;)
     			throw new Error(&#x27;Invalid field type: &#x27; + type);
     		if (desc.internal) continue;
-    		
+
     		fieldDesc.push({name: desc.name, type: desc.type});
     	}
-    	
+
     	var nFields = fieldDesc.length;
     	var useTimestamp = opts.timestampType != &#x27;ISO&#x27;;
-    	
+
     	var fout = new fs.FOut(opts.fname);
-    	
+
     	// write the headers
     	if (opts.includeHeaders) {
     		var headerLine = &#x27;&#x27;;
@@ -3194,7 +3224,7 @@
     		}
     		fout.writeLine(headerLine);
     	}
-    	
+
     	// write the lines
     	var len = this.length;
     	var recN = 0;
@@ -3203,7 +3233,7 @@
     		for (var i = 0; i &amp;lt; nFields; i++) {
     			var fldVal = rec[fieldDesc[i].name];
     			var type = fieldDesc[i].type;
-    			
+
     			if (fldVal != null) {
 	    			if (type == &#x27;float&#x27; || type == &#x27;int&#x27; || type == &#x27;bool&#x27;) {
 	    				line += fldVal;
@@ -3215,17 +3245,17 @@
 	    				throw new Error(&#x27;Invalid type of field: &#x27; + type);
 	    			}
     			}
-    			
+
     			if (i &amp;lt; nFields - 1)
     				line += &#x27;,&#x27;;
     		}
-    		
+
     		if (recN++ &amp;lt; len - 1)
     			fout.writeLine(line);
     		else
     			fout.write(line);
     	});
-    	
+
     	fout.flush();
     	fout.close();
     }
@@ -3337,6 +3367,18 @@
     //==================================================================
     // EXPORTS
     //==================================================================
+
+    // deprecated, here for backwards compatibility
+    exports.load = function () {
+        var _obj = {};
+        _obj.jsonFileLimit = function (store, file, limit) {
+            return store.loadJson(file, limit);
+        }
+        _obj.jsonFile = function (store, file) {
+            return store.loadJson(file);
+        }
+        return _obj;
+    }();
 
     exports.delLock = function () {
         if (nodefs.existsSync(&#x27;lock&#x27;)) {

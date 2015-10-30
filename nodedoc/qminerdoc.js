@@ -2884,7 +2884,7 @@
 	*/
  exports.FeatureSpace.prototype.extractStrings = function (rec) {return ['']; }; 
 
-    
+
     //==================================================================
     // BASE
     //==================================================================
@@ -2911,43 +2911,43 @@
     	if (opts.quote == null) opts.quote = '"';
     	if (opts.ignoreFields == null) opts.ignoreFields = [];
     	if (opts.file == null) throw new Error('Missing parameter file!');
-    	
+
     	if (callback == null) callback = function (e) { if (e != null) console.log(e.stack); }
-    	
+
     	try {
     		var base = this;
-    		
+
 	    	var fname = opts.file;
 			var storeName = opts.store;
-	
+
 			var fieldTypes = null;
 			var store = null;
 			var buff = [];
-	
+
 			var ignoreFields = {};
 			for (var i = 0; i < opts.ignoreFields.length; i++)
 				ignoreFields[opts.ignoreFields] = null;
-			
+
 			// read the CSV file and fill the store
 			var headers = null;
-			
+
 			function transformLine(line) {
 				var transformed = {};
-				
+
 				for (var i = 0; i < line.length; i++) {
 					var header = headers[i];
 					var value = line[i];
-					
+
 					if (fieldTypes != null && fieldTypes[header] != null) {
 						transformed[header] = fieldTypes[header] == 'float' ? parseFloat(value) : value;
 					} else {
 						transformed[header] = (isNaN(value) || value.length == 0) ? value : parseFloat(value);
 					}
 				}
-				
+
 				return transformed;
 			}
-			
+
     		function initFieldTypes(data) {
     			if (fieldTypes == null) fieldTypes = {};
 
@@ -2966,11 +2966,11 @@
 
     				}
     			}
-    			
+
     			if (fieldTypesInitialized())
     				console.log('Fields initialized: ' + JSON.stringify(fieldTypes));
     		}
-			
+
     		function fieldTypesInitialized() {
     			if (fieldTypes == null) return false;
 
@@ -2984,7 +2984,7 @@
 
     			return true;
     		}
-			
+
 			function getUninitializedFlds() {
     			var result = [];
 
@@ -2998,7 +2998,7 @@
 
     			return result;
     		}
-			
+
 			function createStore(rec) {
     			try {
 	    			var storeDef = {
@@ -3013,12 +3013,12 @@
 							"null": true,
 	    				});
 	    			}
-	    			
+
 	    			console.log('Creating store with definition ' + JSON.stringify(storeDef) + ' ...');
 
 	    			base.createStore(storeDef);
 	    			store = base.store(storeName);
-	    				    			
+
 	    			// insert all the record in the buffer into the store
 	    			buff.forEach(function (data) {
 	    				store.push(data);
@@ -3027,15 +3027,15 @@
 					callback(e);
     			}
     		}
-			
+
 			var storeCreated = false;
 			var line = 0;
 			console.log('Saving CSV to store ' + storeName + ' ' + fname + ' ...');
-			
+
 			var fin = new fs.FIn(fname);
 			fs.readCsvLines(fin, {
-				onLine: function (lineArr) {					
-					try {						
+				onLine: function (lineArr) {
+					try {
 						if (line++ == 0) {	// the first line are the headers
 							headers = [];
 							for (var i = 0; i < lineArr.length; i++) {
@@ -3046,17 +3046,17 @@
 						else {
 							if (line % 1000 == 0)
 								console.log(line + '');
-							
+
 							var data = transformLine(lineArr);
-														
+
 							if (fieldTypes == null)
 								initFieldTypes(data);
-							
+
 							if (store == null && fieldTypesInitialized())
 								createStore(data);
 							else if (!fieldTypesInitialized())
 								initFieldTypes(data);
-							
+
 							if (store != null) {
 								store.push(data);
 							} else
@@ -3070,7 +3070,7 @@
 				onEnd: function () {
 					// finished
 					console.log('Finished!');
-					
+
 					if (callback != null) {
 			   			if (!fieldTypesInitialized()) {
 				   			var fieldNames = getUninitializedFlds();
@@ -3082,20 +3082,20 @@
 				   		}
 			   		}
 				}
-			});	
-			
+			});
+
 			fin.close();
     	} catch (e) {
 			callback(e);
     	}
     };
-    
+
     /**
-     * Loads the store from a CSV file. 
+     * Loads the store from a CSV file.
      * @param {module:qm~baseLoadCSVParam} opts - Options object.
      * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
      */
-    
+
     //==================================================================
     // STORE
     //==================================================================
@@ -3122,7 +3122,6 @@
         return util.inspect(this, { depth: d, 'customInspect': false });
     }
 
-    // loading data into stores
     /**
      * Load given file line by line, parse each line to JSON and push it to the store.
      *
@@ -3154,7 +3153,7 @@
 
     /**
      * Stores the record set as a CSV file.
-     * 
+     *
      * @param {Object} opts - arguments
      * @property {String} opts.fname - name of the output file
      * @property {Boolean} [opts.includeHeaders] - indicates wether to include the header in the first line
@@ -3164,27 +3163,27 @@
     	if (opts == null || opts.fname == null) throw new Error('Missing parameter fname!');
     	if (opts.includeHeaders == null) opts.includeHeaders = true;
     	if (opts.timestampType == null) opts.timestampType = 'timestamp';
-    	
+
     	// read field descriptions
     	var fields = this.store.fields;
     	var fieldDesc = [];
     	for (var i = 0; i < fields.length; i++) {
     		var desc = fields[i];
     		var type = desc.type;
-    		
+
     		if (type != 'float' && type != 'int' && type != 'bool' && type != 'datetime' &&
     				type != 'string')
     			throw new Error('Invalid field type: ' + type);
     		if (desc.internal) continue;
-    		
+
     		fieldDesc.push({name: desc.name, type: desc.type});
     	}
-    	
+
     	var nFields = fieldDesc.length;
     	var useTimestamp = opts.timestampType != 'ISO';
-    	
+
     	var fout = new fs.FOut(opts.fname);
-    	
+
     	// write the headers
     	if (opts.includeHeaders) {
     		var headerLine = '';
@@ -3195,7 +3194,7 @@
     		}
     		fout.writeLine(headerLine);
     	}
-    	
+
     	// write the lines
     	var len = this.length;
     	var recN = 0;
@@ -3204,7 +3203,7 @@
     		for (var i = 0; i < nFields; i++) {
     			var fldVal = rec[fieldDesc[i].name];
     			var type = fieldDesc[i].type;
-    			
+
     			if (fldVal != null) {
 	    			if (type == 'float' || type == 'int' || type == 'bool') {
 	    				line += fldVal;
@@ -3216,17 +3215,17 @@
 	    				throw new Error('Invalid type of field: ' + type);
 	    			}
     			}
-    			
+
     			if (i < nFields - 1)
     				line += ',';
     		}
-    		
+
     		if (recN++ < len - 1)
     			fout.writeLine(line);
     		else
     			fout.write(line);
     	});
-    	
+
     	fout.flush();
     	fout.close();
     }
@@ -3338,6 +3337,18 @@
     //==================================================================
     // EXPORTS
     //==================================================================
+
+    // deprecated, here for backwards compatibility
+    exports.load = function () {
+        var _obj = {};
+        _obj.jsonFileLimit = function (store, file, limit) {
+            return store.loadJson(file, limit);
+        }
+        _obj.jsonFile = function (store, file) {
+            return store.loadJson(file);
+        }
+        return _obj;
+    }();
 
     exports.delLock = function () {
         if (nodefs.existsSync('lock')) {
