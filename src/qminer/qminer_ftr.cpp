@@ -198,6 +198,7 @@ void TFtrSpace::Clr() {
 	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
 		FtrExtV[FtrExtN]->Clr();
 	}
+	Init();
 }
 
 bool TFtrSpace::Update(const TRec& Rec) {
@@ -232,80 +233,69 @@ bool TFtrSpace::Update(const PRecSet& RecSet) {
     return UpdateDimP;
 }
 
-void TFtrSpace::GetSpV(const TRec& Rec, TIntFltKdV& SpV) const {
+void TFtrSpace::GetSpV(const TRec& Rec, TIntFltKdV& SpV, const int& FtrExtN) const {
 	int Offset = 0;
-	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
+    if (FtrExtN < 0) {
+        for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
+            FtrExtV[FtrExtN]->AddSpV(Rec, SpV, Offset);
+        }
+    } else {
+		EAssert(FtrExtN < FtrExtV.Len());
 		FtrExtV[FtrExtN]->AddSpV(Rec, SpV, Offset);
-	}
+    }
 }
 
-void TFtrSpace::GetFullV(const TRec& Rec, TFltV& FullV, const int FtrN) const {
+void TFtrSpace::GetFullV(const TRec& Rec, TFltV& FullV, const int& FtrExtN) const {
     // create empty full vector
 	int Offset = 0;
-	if (FtrN < 0) {
+	if (FtrExtN < 0) {
 		FullV.Gen(GetDim()); FullV.PutAll(0.0);
 		for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
 			FtrExtV[FtrExtN]->AddFullV(Rec, FullV, Offset);
 		}
 	} else {
-		EAssert(FtrN < FtrExtV.Len());
-		FullV.Gen(FtrExtV[FtrN]->GetDim());
-		FtrExtV[FtrN]->AddFullV(Rec, FullV, Offset);
+		EAssert(FtrExtN < FtrExtV.Len());
+		FullV.Gen(FtrExtV[FtrExtN]->GetDim());
+		FtrExtV[FtrExtN]->AddFullV(Rec, FullV, Offset);
 	}
 }
 
-double TFtrSpace::GetSingleFtr(const int& FtrExtN, const double& Val) const {
-	const PFtrExt& FtrExt = FtrExtV[FtrExtN];
-	return FtrExt->GetVal(Val);
-}
-
-void TFtrSpace::InvertFullV(const TFltV& FullV, TFltV& InvertV) const {
-	int Offset = 0;
-	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
-		const PFtrExt FtrExt = FtrExtV[FtrExtN];
-
-		TFltV InvV;	FtrExt->InvFullV(FullV, Offset, InvV);
-		InvertV.AddV(InvV);
-	}
-}
-
-double TFtrSpace::InvertFtr(const int& FtrExtN, const TFlt& FtrVal) const {
-	const PFtrExt FtrExt = FtrExtV[FtrExtN];
-
-	TFltV FtrV, InvV;
-	FtrV.Add(FtrVal);
-
-	int Offset = 0;
-	FtrExt->InvFullV(FtrV, Offset, InvV);
-
-	return InvV[0];
-}
-
-void TFtrSpace::GetSpVV(const PRecSet& RecSet, TVec<TIntFltKdV>& SpVV) const {
+void TFtrSpace::GetSpVV(const PRecSet& RecSet, TVec<TIntFltKdV>& SpVV, const int& FtrExtN) const {
     TEnv::Logger->OnStatusFmt("Creating sparse feature vectors from %d records", RecSet->GetRecs());
-	for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
-		if (RecN % 10000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
-		SpVV.Add(TIntFltKdV()); GetSpV(RecSet->GetRec(RecN), SpVV.Last());
-	}
+    for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
+        if (RecN % 10000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
+        SpVV.Add(TIntFltKdV()); GetSpV(RecSet->GetRec(RecN), SpVV.Last(), FtrExtN);
+    }
 }
 
-void TFtrSpace::GetFullVV(const PRecSet& RecSet, TVec<TFltV>& FullVV) const {
+void TFtrSpace::GetFullVV(const PRecSet& RecSet, TVec<TFltV>& FullVV, const int& FtrExtN) const {
     TEnv::Logger->OnStatusFmt("Creating full feature vectors from %d records", RecSet->GetRecs());
-	for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
-		if (RecN % 10000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
-		FullVV.Add(TFltV()); GetFullV(RecSet->GetRec(RecN), FullVV.Last());
-	}
+    for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
+        if (RecN % 10000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
+        FullVV.Add(TFltV()); GetFullV(RecSet->GetRec(RecN), FullVV.Last(), FtrExtN);
+    }
 }
 
-void TFtrSpace::GetFullVV(const PRecSet& RecSet, TFltVV& FullVV) const {
+void TFtrSpace::GetFullVV(const PRecSet& RecSet, TFltVV& FullVV, const int& FtrExtN) const {
     TEnv::Logger->OnStatusFmt("Creating full feature vectors from %d records", RecSet->GetRecs());
-	FullVV.Gen(GetDim(), RecSet->GetRecs());
-	TFltV Temp(GetDim());
-	for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
-		if (RecN % 10000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
-		GetFullV(RecSet->GetRec(RecN), Temp);
-		FullVV.SetCol(RecN, Temp);
-	}
+    if (FtrExtN < 0) {
+        FullVV.Gen(GetDim(), RecSet->GetRecs());
+        TFltV Temp(GetDim());
+        for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
+            if (RecN % 10000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
+            GetFullV(RecSet->GetRec(RecN), Temp);
+            FullVV.SetCol(RecN, Temp);
+        }
+    } else {
+        EAssert(FtrExtN < FtrExtV.Len());
+        FullVV.Gen(FtrExtV[FtrExtN]->GetDim(), RecSet->GetRecs());
+        TFltV Temp(FtrExtV[FtrExtN]->GetDim());
+        for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
+            if (RecN % 10000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
+            GetFullV(RecSet->GetRec(RecN), Temp, FtrExtN);
+            FullVV.SetCol(RecN, Temp);
+        }
+    }
 }
 	
 void TFtrSpace::GetCentroidSpV(const PRecSet& RecSet, 
@@ -333,6 +323,40 @@ void TFtrSpace::GetCentroidV(const PRecSet& RecSet,
 		TLinAlg::AddVec(1.0, RecSpV, CentroidV, CentroidV);
 	}
 	if (NormalizeP) { TLinAlg::Normalize(CentroidV); }
+}
+
+double TFtrSpace::GetSingleFtr(const int& FtrExtN, const double& Val) const {
+	const PFtrExt& FtrExt = FtrExtV[FtrExtN];
+	return FtrExt->GetVal(Val);
+}
+
+void TFtrSpace::InvertFullV(const TFltV& FullV, TFltV& InvertV) const {
+	int Offset = 0;
+	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
+		const PFtrExt& FtrExt = FtrExtV[FtrExtN];
+
+		TFltV InvV;	FtrExt->InvFullV(FullV, Offset, InvV);
+		InvertV.AddV(InvV);
+	}
+}
+
+double TFtrSpace::InvertFtr(const int& FtrExtN, const TFlt& FtrVal) const {
+	const PFtrExt FtrExt = FtrExtV[FtrExtN];
+
+	TFltV FtrV, InvV;
+	FtrV.Add(FtrVal);
+
+	int Offset = 0;
+	FtrExt->InvFullV(FtrV, Offset, InvV);
+
+	return InvV[0];
+}
+
+void TFtrSpace::ExtractStrV(const int& DimN, const PJsonVal& RecVal, TStrV &StrV) const {
+    QmAssertR(DimN < DimV.Len(), "Dimension out of bounds!");
+    PStore Store = FtrExtV[DimN]->GetFtrStore();
+    TRec Rec(Store, RecVal);
+    FtrExtV[DimN]->ExtractStrV(Rec, StrV);
 }
 
 int TFtrSpace::GetDim() const {
@@ -386,11 +410,12 @@ int TFtrSpace::GetMxFtrN(const int& FtrExtN) const {
     return MxFtrN;
 }
 
-void TFtrSpace::ExtractStrV(const int& DimN, const PJsonVal& RecVal, TStrV &StrV) const {
-    QmAssertR(DimN < DimV.Len(), "Dimension out of bounds!");
-    PStore Store = FtrExtV[DimN]->GetFtrStore();
-    TRec Rec(Store, RecVal);
-    FtrExtV[DimN]->ExtractStrV(Rec, StrV);
+bool TFtrSpace::IsStartStore(const uint& StoreId) const {
+	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
+		const PFtrExt& FtrExt = FtrExtV[FtrExtN];
+        if (!FtrExt->IsStartStore(StoreId)) { return false; }
+    }
+    return true;
 }
 
 PBowDocBs TFtrSpace::MakeBowDocBs(const PRecSet& FtrRecSet) {
@@ -617,6 +642,12 @@ void TNumeric::Save(TSOut& SOut) const {
     FtrGen.Save(SOut);
     FieldId.Save(SOut);
     FieldDesc.Save(SOut);
+}
+
+TStr TNumeric::GetNm() const {
+	const TWPt<TStore>& Store = GetFtrStore();
+	const TStr& FieldNm = Store->GetFieldNm(FieldId);
+	return TStr::Fmt("Numeric[%s]", FieldNm.CStr());
 }
 
 bool TNumeric::Update(const TRec& Rec) {
@@ -1961,11 +1992,15 @@ bool TDateWnd::Update(const TRec& Rec) {
 }
 
 void TDateWnd::AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const {
-    FtrGen.AddFtr(TTm::GetTmFromMSecs(GetVal(Rec)), SpV, Offset);
+    if (FtrGen.IsInit()) {
+        FtrGen.AddFtr(TTm::GetTmFromMSecs(GetVal(Rec)), SpV, Offset);
+    }
 }
 
 void TDateWnd::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
-    FtrGen.AddFtr(TTm::GetTmFromMSecs(GetVal(Rec)), FullV, Offset);
+    if (FtrGen.IsInit()) {
+        FtrGen.AddFtr(TTm::GetTmFromMSecs(GetVal(Rec)), FullV, Offset);
+    }
 }
 
 void TDateWnd::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {

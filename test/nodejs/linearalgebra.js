@@ -593,16 +593,6 @@ describe('IntVector Test', function () {
             })
         });
 
-        // should throw an exception. Currently TODO in la_nodejs.h - the test will be skipped until the TODO is addressed.
-        describe.skip('Push "Float" Test', function () {
-            var vec = new IVector();
-            it('should return an exception when trying to push a floating number, 3.2', function () {
-                assert.throws(function () {
-                    vec.intV.push(3.2);
-                });
-            })
-        });
-
         describe('At Test', function () {
             var vec = new IVector();
             it('should return the values at position 0 (-1) and at position 1 (6)', function () {

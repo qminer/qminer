@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
- 
+
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js');     //adds assert.run function
 var qm = require('qminer');
@@ -26,8 +26,8 @@ function TStore() {
         ]
     }]);
     // adding two persons
-    this.base.store("People").push({ "Name": "Carolina Fortuna", "Gender": "Female", $fq: 5 });
-    this.base.store("People").push({ "Name": "Blaz Fortuna", "Gender": "Male", $fq: 3 });
+    this.base.store("People").push({ "Name": "Carolina Fortuna", "Gender": "Female" });
+    this.base.store("People").push({ "Name": "Blaz Fortuna", "Gender": "Male" });
 
     this.close = function () {
         this.base.close();
@@ -78,14 +78,14 @@ describe('Records Tests', function () {
     });
 
     describe('Fq Test', function () {
-        it.skip('should return the frequency of the record', function () {
-            assert.equal(rec.$fq, 5);
+        it('should return the frequency of the record', function () {
+            assert.equal(rec.$fq, 1);
         })
     });
 
     describe('Store Test', function () {
-        it.skip('should return the store the record belongs to', function () {
-            assert.equal(rec.$store, "People");
+        it('should return the store the record belongs to', function () {
+            assert.equal(rec.$store.name, "People");
         })
     });
 });

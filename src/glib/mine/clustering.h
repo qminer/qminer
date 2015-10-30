@@ -136,4 +136,80 @@ protected:
 	const TStr GetType() const { return "dpmeans"; }
 };
 
+///////////////////////////////////////////
+// Agglomerative clustering - average link
+class TAvgLink {
+public:
+	static void JoinClusts(TFltVV& DistMat, const TIntV& ItemCountV, const int& i,
+			const int& j);
+};
+
+///////////////////////////////////////////
+// Agglomerative clustering - complete link
+class TCompleteLink {
+public:
+	static void JoinClusts(TFltVV& DistMat, const TIntV& ItemCountV, const int& i,
+			const int& j);
+};
+
+///////////////////////////////////////////
+// Agglomerative clustering - single link
+class TSingleLink {
+public:
+	static void JoinClusts(TFltVV& DistMat, const TIntV& ItemCountV, const int& i,
+			const int& j);
+};
+
+///////////////////////////////////////////
+// Agglomerative clustering
+template <class TDist, class TLink>
+class TAggClust {
+public:
+	static void MakeDendro(const TFltVV& X, TIntIntFltTrV& MergeV, const PNotify& Notify) {
+		const int NInst = X.GetCols();
+
+		Notify->OnNotifyFmt(TNotifyType::ntInfo, "%s\n", TStrUtil::GetStr(X, ", ", "%.3f").CStr());
+
+		TFltVV ClustDistVV;	TDist::GetDist2(X,X, ClustDistVV);
+		TIntV ItemCountV;	TLAUtil::Ones(NInst, ItemCountV);//TVector::Ones(NInst);
+
+		for (int k = 0; k < NInst-1; k++) {
+			// find active <i,j> with minimum distance
+			int MnI = -1;
+			int MnJ = -1;
+			double MnDist = TFlt::PInf;
+
+			// find clusters with min distance
+			for (int i = 0; i < NInst; i++) {
+				if (ItemCountV[i] == 0) { continue; }
+
+				for (int j = i+1; j < NInst; j++) {
+					if (i == j || ItemCountV[j] == 0) { continue; }
+
+					if (ClustDistVV(i,j) < MnDist) {
+						MnDist = ClustDistVV(i,j);
+						MnI = i;
+						MnJ = j;
+					}
+				}
+			}
+
+			double Dist = sqrt(MnDist < 0 ? 0 : MnDist);
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Merging clusters %d, %d, distance: %.3f", MnI, MnJ, Dist);
+			// merge
+			MergeV.Add(TIntIntFltTr(MnI, MnJ, Dist));
+
+			TLink::JoinClusts(ClustDistVV, ItemCountV, MnI, MnJ);
+
+			// update counts
+			ItemCountV[MnI] = ItemCountV[MnI] + ItemCountV[MnJ];
+			ItemCountV[MnJ] = 0;
+		}
+	}
+};
+
+typedef TAggClust<TDist::TEuclDist, TAvgLink> TAlAggClust;
+typedef TAggClust<TDist::TEuclDist, TCompleteLink> TClAggClust;
+typedef TAggClust<TDist::TEuclDist, TCompleteLink> TSlAggClust;
+
 }

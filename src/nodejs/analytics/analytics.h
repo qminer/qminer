@@ -118,7 +118,6 @@ private:
 //# exports.SVC = function(arg) { return Object.create(require('qminer').analytics.SVC.prototype); };
 
 class TNodeJsSVC : public TNodeJsSvmModel {
-	static v8::Persistent <v8::Function> constructor;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
 
@@ -310,7 +309,6 @@ public:
 //# exports.SVR = function(arg) { return Object.create(require('qminer').analytics.SVR.prototype); };
 
 class TNodeJsSVR : public TNodeJsSvmModel {
-	static v8::Persistent <v8::Function> constructor;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
     
@@ -1587,6 +1585,9 @@ public:
 	 * @returns {HMC} - returns itself
 	 */
 	JsDeclareFunction(fit);
+
+	JsDeclareFunction(fitAsync);
+
 	//!- `hmc.update(ftrVec, recTm)` TODO write documentation
 	JsDeclareFunction(update);
 
@@ -1615,12 +1616,12 @@ public:
 	/**
 	 * Returns the probability distribution of past and future states over time.
 	 *
-	 * @param {Number} level - the level on which we want the distributions
-	 * @param {Number} state - the state we are starting from
-	 * @param {Number} dt - the time step (lower dt => more distributions will be returned)
-	 * @returns {Array} - array of probability distributions over time
+	 * @param {Number} stateId - ID if the starting state
+	 * @param {Number} height - the hieght
+	 * @param {Number} time - the time at which we want the probabilities
+	 * @returns {Array} - array of state ids and their probabilities
 	 */
-	JsDeclareFunction(probsOverTime);
+	JsDeclareFunction(probsAtTime);
 
 	/**
 	 * Returns information about previous states.
@@ -1841,6 +1842,24 @@ public:
 			const double& Prob, const TFltV& ProbV, const TFltV& TmV);
 
 private:
+	struct TFitAsync {
+		TNodeJsStreamStory* JsStreamStory;
+		TNodeJsFltVV* JsObservFtrs;
+		TNodeJsFltVV* JsControlFtrs;
+		TNodeJsFltV* JsRecTmV;
+		TNodeJsBoolV* JsBatchEndJsV;
+
+		v8::Persistent<v8::Function> Callback;
+
+		bool HasError;
+
+		TFitAsync(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		~TFitAsync() { Callback.Reset(); }
+
+		static void Run(TFitAsync& Data);
+		static void AfterRun(const TFitAsync& Data);
+	};
+
 	void SetParams(const PJsonVal& ParamVal);
 	void InitCallbacks();
 

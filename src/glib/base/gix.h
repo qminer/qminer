@@ -1030,7 +1030,7 @@ TBlobPt TGix<TKey, TItem, TGixMerger>::StoreItemSet(const TBlobPt& KeyId) {
 	EAssert(ItemSetCache.Get(KeyId, ItemSet));
 	ItemSet->Def();
 	if (ItemSet->Empty()) {
-		// itemset is empty after all deletes were processes => remove it
+		// itemset is empty after all deletes were processed => remove it
 		ItemSetBlobBs->DelBlob(KeyId);
 		KeyIdH.DelKey(ItemSet->GetKey());
 		return TBlobPt(); // return NULL pointer

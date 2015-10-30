@@ -18,7 +18,7 @@ for (var i = 0; i < fileNames.length; i++) {
 
 // constructs the it('should something', function () { ... }) test
 var constructIt = function (describe, str, i) {
-    var test = 'describe("'+ describe + ', number ' + i +'", function () {\nit("should make test number ' + i + '", function () {\n this.timeout(10000); \n';
+    var test = 'describe("'+ describe + ', number ' + i +'", function () {\nit("should make test number ' + i + '", function () {\n';
     test += str + "\n});\n});\n";
     return test;
 }

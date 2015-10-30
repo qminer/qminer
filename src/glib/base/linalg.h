@@ -87,7 +87,9 @@ public:
 	static void SaveCsvTFltV(const TFltV& Vec, TSOut& SOut);
 	// Dumps sparse vector to file so Matlab can read it
 	static void SaveMatlabTFltIntKdV(const TIntFltKdV& SpV, const int& ColN, TSOut& SOut);
-	// Dumps sparse matrix to file so Matlab can read it
+	/// Dumps sparse matrix to file so Matlab can read it
+	static void SaveMatlabSpMat(const TVec<TIntFltKdV>& SpMat, TSOut& SOut);
+	/// Dumps sparse matrix to file so Matlab can read it
 	static void SaveMatlabSpMat(const TTriple<TIntV, TIntV, TFltV>& SpMat, TSOut& SOut);
 	// Dumps vector to file so Matlab can read it
 	static void SaveMatlabTFltV(const TFltV& m, const TStr& FName);
@@ -248,8 +250,8 @@ public:
 		}
 	}
 
-	template <class TType, class TSizeTy, bool ColMajor>
-	static void SubMat(const TVVec<TType, TSizeTy, ColMajor>& Mat, const TVec<TSizeTy, TSizeTy>& ColIdxV,
+	template <class TType, class TVecVal, class TSizeTy, bool ColMajor>
+	static void SubMat(const TVVec<TType, TSizeTy, ColMajor>& Mat, const TVec<TVecVal, TSizeTy>& ColIdxV,
 			TVVec<TType, TSizeTy, ColMajor>& SubMat) {
 
 		if (SubMat.Empty()) { SubMat.Gen(Mat.GetRows(), ColIdxV.Len()); }
@@ -461,7 +463,7 @@ public:
 class TSparseColMatrix : public TMatrix {
 public:
 	// number of rows and columns of matrix
-	int RowN, ColN;
+	TInt RowN, ColN;
 	// vector of sparse columns
 	TVec<TIntFltKdV> ColSpVV;
 protected:
@@ -478,21 +480,22 @@ protected:
 	// Result = A' * B
 	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const;
 
+    void Init();
 	int PGetRows() const { return RowN; }
 	int PGetCols() const { return ColN; }
 
 public:
-	TSparseColMatrix() : TMatrix() {}
-	TSparseColMatrix(const int& _RowN, const int& _ColN) : RowN(_RowN), ColN(_ColN), ColSpVV() {}
-	TSparseColMatrix(TVec<TIntFltKdV> _ColSpVV) : TMatrix(), ColSpVV(_ColSpVV) {}
-	TSparseColMatrix(TVec<TIntFltKdV> _ColSpVV, const int& _RowN, const int& _ColN) :
+	TSparseColMatrix(): TMatrix() {}
+	TSparseColMatrix(const int& _RowN, const int& _ColN): RowN(_RowN), ColN(_ColN), ColSpVV() {}
+	TSparseColMatrix(const TVec<TIntFltKdV>& _ColSpVV): TMatrix(), ColSpVV(_ColSpVV) { Init(); }
+	TSparseColMatrix(const TVec<TIntFltKdV>& _ColSpVV, const int& _RowN, const int& _ColN) :
 		TMatrix(), RowN(_RowN), ColN(_ColN), ColSpVV(_ColSpVV) {}
 
 	void Save(TSOut& SOut) {
-		SOut.Save(RowN); SOut.Save(ColN); ColSpVV.Save(SOut);
+        RowN.Save(SOut); ColN.Save(SOut); ColSpVV.Save(SOut);
 	}
 	void Load(TSIn& SIn) {
-		SIn.Load(RowN); SIn.Load(ColN); ColSpVV = TVec<TIntFltKdV>(SIn);
+        RowN.Load(SIn); ColN.Load(SIn); ColSpVV = TVec<TIntFltKdV>(SIn);
 	}
 };
 
@@ -502,7 +505,7 @@ public:
 class TSparseRowMatrix : public TMatrix {
 public:
 	// number of rows and columns of matrix
-	int RowN, ColN;
+	TInt RowN, ColN;
 	// vector of sparse rows
 	TVec<TIntFltKdV> RowSpVV;
 protected:
@@ -519,22 +522,23 @@ protected:
 	// Result = A' * B
 	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const { FailR("Not implemented yet"); } // TODO
 
+    void Init();
 	int PGetRows() const { return RowN; }
 	int PGetCols() const { return ColN; }
 
 public:
-	TSparseRowMatrix() : TMatrix() {}
-	TSparseRowMatrix(TVec<TIntFltKdV> _RowSpVV) : TMatrix(), RowSpVV(_RowSpVV) {}
-	TSparseRowMatrix(TVec<TIntFltKdV> _RowSpVV, const int& _RowN, const int& _ColN) :
+	TSparseRowMatrix(): TMatrix() {}
+	TSparseRowMatrix(const TVec<TIntFltKdV>& _RowSpVV): TMatrix(), RowSpVV(_RowSpVV) { Init(); }
+	TSparseRowMatrix(const TVec<TIntFltKdV>& _RowSpVV, const int& _RowN, const int& _ColN):
 		TMatrix(), RowN(_RowN), ColN(_ColN), RowSpVV(_RowSpVV) {}
 	// loads Matlab sparse matrix format: row, column, value.
 	//   Indexes start with 1.
 	TSparseRowMatrix(const TStr& MatlabMatrixFNm);
 	void Save(TSOut& SOut) {
-		SOut.Save(RowN); SOut.Save(ColN); RowSpVV.Save(SOut);
+		RowN.Save(SOut); ColN.Save(SOut); RowSpVV.Save(SOut);
 	}
 	void Load(TSIn& SIn) {
-		SIn.Load(RowN); SIn.Load(ColN); RowSpVV = TVec<TIntFltKdV>(SIn);
+		RowN.Load(SIn); ColN.Load(SIn); RowSpVV = TVec<TIntFltKdV>(SIn);
 	}
 };
 
@@ -544,7 +548,7 @@ public:
 class TFullColMatrix : public TMatrix {
 public:
 	// number of rows and columns of matrix
-	int RowN, ColN;
+	TInt RowN, ColN;
 	// vector of sparse columns
 	TVec<TFltV> ColV;
 protected:
@@ -565,13 +569,13 @@ protected:
 	int PGetCols() const { return ColN; }
 
 public:
-	TFullColMatrix() : TMatrix() {}
+	TFullColMatrix(): TMatrix() {}
 	// loads matrix saved in matlab with command:
 	//  save -ascii Matrix.dat M
 	TFullColMatrix(const TStr& MatlabMatrixFNm);
 	TFullColMatrix(TVec<TFltV>& RowVV);
-	void Save(TSOut& SOut) { SOut.Save(RowN); SOut.Save(ColN);  ColV.Save(SOut); }
-	void Load(TSIn& SIn) { SIn.Load(RowN); SIn.Load(ColN); ColV.Load(SIn); }
+	void Save(TSOut& SOut) { RowN.Save(SOut); ColN.Save(SOut);  ColV.Save(SOut); }
+	void Load(TSIn& SIn) { RowN.Load(SIn); ColN.Load(SIn); ColV.Load(SIn); }
 };
 
 ///////////////////////////////////////////////////////////////////////

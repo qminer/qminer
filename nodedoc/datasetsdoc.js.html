@@ -94,7 +94,6 @@
     */
     exports.loadIrisSync = function (_base) {
 
-        var finished = false;
         var options = {
             file: __dirname + &#x27;/data/iris.csv&#x27;,
             store: &#x27;Iris&#x27;,
@@ -102,19 +101,9 @@
         }
 
         console.log(&#x27;Loading dataset &#x27; + options.store + &#x27; ...&#x27;);
-        _base.loadCSV(options, function (err) {
-            if (err) return callback(err);
-            
-            var Iris = _base.store(options.store);
-            console.log(options.store + &#x27; dataset loaded&#x27;)
+        _base.loadCSV(options);
+        console.log(options.store + &#x27; dataset loaded&#x27;);
 
-            finished = true;
-        })
-
-        // Used deasync module to turn this function into sync. 
-        while (finished == false) {
-            require(&#x27;deasync&#x27;).runLoopOnce();
-        }
         return _base.store(options.store);
     }
     

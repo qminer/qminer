@@ -1,7 +1,6 @@
 describe('example tests for the fsdoc.js file', function () {
 describe("File-system module., number 1", function () {
 it("should make test number 1", function () {
- this.timeout(10000); 
 
  // import module
  var fs = require('qminer').fs;
@@ -19,7 +18,6 @@ it("should make test number 1", function () {
 });
 describe("Input file stream., number 2", function () {
 it("should make test number 2", function () {
- this.timeout(10000); 
 
 	 // import module
 	 var fs = require('qminer').fs;
@@ -32,7 +30,6 @@ it("should make test number 2", function () {
 });
 describe("Output file stream., number 3", function () {
 it("should make test number 3", function () {
- this.timeout(10000); 
 
 	 // import module
 	 var fs = require('qminer').fs;

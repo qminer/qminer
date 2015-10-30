@@ -24,6 +24,10 @@
  * If using a custom vector/matrix type that is not available in LinAlg,
  * Make sure it implements the TMatrix interface and LA:AddVec and LA:DotProduct.
  */
+
+#ifndef __KMPP_H
+#define __KMPP_H
+
 template<class V, class LA, class M>
 class TKMeans {
 protected:
@@ -550,3 +554,6 @@ int TKMeans<V, LA, M>::SelectCentroidCenter(double potential,
 	// i is the lucky winner
 	return i;
 }
+
+
+#endif
