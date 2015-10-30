@@ -8,14 +8,9 @@
 var nodefs = require('fs');
 var util = require('util');
 
-// typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'.
-// Empty argument is supported as well (the first binary that the bindings finds will be used)
-module.exports = exports = function (pathPrefix) {
-    pathPrefix = pathPrefix || '';
-
-    var qm = require('bindings')(pathPrefix + '/qm.node');
+module.exports = exports = function (pathQmBinary) {    
+    var qm = require(pathQmBinary); // This loads only c++ functions of qm
     var fs = qm.fs;
-
     exports = qm;
     
     //!STARTJSDOC
