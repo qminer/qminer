@@ -198,6 +198,7 @@ void TFtrSpace::Clr() {
 	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
 		FtrExtV[FtrExtN]->Clr();
 	}
+	Init();
 }
 
 bool TFtrSpace::Update(const TRec& Rec) {
@@ -1991,11 +1992,15 @@ bool TDateWnd::Update(const TRec& Rec) {
 }
 
 void TDateWnd::AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const {
-    FtrGen.AddFtr(TTm::GetTmFromMSecs(GetVal(Rec)), SpV, Offset);
+    if (FtrGen.IsInit()) {
+        FtrGen.AddFtr(TTm::GetTmFromMSecs(GetVal(Rec)), SpV, Offset);
+    }
 }
 
 void TDateWnd::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
-    FtrGen.AddFtr(TTm::GetTmFromMSecs(GetVal(Rec)), FullV, Offset);
+    if (FtrGen.IsInit()) {
+        FtrGen.AddFtr(TTm::GetTmFromMSecs(GetVal(Rec)), FullV, Offset);
+    }
 }
 
 void TDateWnd::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {

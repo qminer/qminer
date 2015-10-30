@@ -5,20 +5,17 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
-// typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
-module.exports = exports = function (pathPrefix) {
-    pathPrefix = pathPrefix || '';
-    var sget = require('sget');
-    var qm = require('bindings')(pathPrefix + '/qm.node');
+ 
+module.exports = exports = function (pathQmBinary) {    
+    var qm = require(pathQmBinary); // This loads only c++ functions of qm
     var fs = qm.fs;
     var la = qm.la;
-    var assert = require('assert');
-
-    exports = qm.analytics;
-
-    var la = require(__dirname + '/la.js')(pathPrefix);
     var stat = qm.statistics;
-
+    exports = qm.analytics;
+    
+    var sget = require('sget');    
+    var assert = require('assert');
+    
     var qm_util = require(__dirname + '/qm_util.js');
 
     //!STARTJSDOC

@@ -1853,74 +1853,11 @@ private:
 
 		bool HasError;
 
-		TFitAsync(const v8::FunctionCallbackInfo<v8::Value>& Args):
-				JsStreamStory(nullptr),
-				JsObservFtrs(nullptr),
-				JsControlFtrs(nullptr),
-				JsRecTmV(nullptr),
-				JsBatchEndJsV(nullptr),
-				Callback(),
-				HasError(false) {
-
-			v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-			v8::HandleScope HandleScope(Isolate);
-
-			EAssertR(Args.Length() == 2, "hmc.fit expects 2 arguments!");
-
-			JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-			v8::Local<v8::Object> ArgObj = Args[0]->ToObject();
-
-			EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "observations", TNodeJsFltVV::GetClassId()), "Missing field observations or invalid class!");
-			EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "controls", TNodeJsFltVV::GetClassId()), "Missing field controls or invalid class!");
-			EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "times", TNodeJsFltV::GetClassId()), "Missing field times or invalid class!");
-
-			JsObservFtrs = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(ArgObj, "observations");
-			JsControlFtrs = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(ArgObj, "controls");
-			JsRecTmV = TNodeJsUtil::GetUnwrapFld<TNodeJsFltV>(ArgObj, "times");
-
-			if (!TNodeJsUtil::IsFldNull(ArgObj, "batchV")) {
-				EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "batchV", TNodeJsBoolV::GetClassId()), "Invalid class of field batchV!");
-				JsBatchEndJsV = TNodeJsUtil::GetUnwrapFld<TNodeJsBoolV>(ArgObj, "batchV");
-			}
-
-			Callback.Reset(Isolate, TNodeJsUtil::GetArgFun(Args, 1));
-		}
-
+		TFitAsync(const v8::FunctionCallbackInfo<v8::Value>& Args);
 		~TFitAsync() { Callback.Reset(); }
 
-		static void Run(TFitAsync& Data) {
-			try {
-				TNodeJsStreamStory* JsStreamStory = Data.JsStreamStory;
-				TNodeJsFltVV* JsObservFtrs = Data.JsObservFtrs;
-				TNodeJsFltVV* JsControlFtrs = Data.JsControlFtrs;
-				TNodeJsFltV* JsRecTmV = Data.JsRecTmV;
-				TNodeJsBoolV* JsBatchEndJsV = Data.JsBatchEndJsV;
-
-				TUInt64V RecTmV;	TNodeJsUtil::GetCppTmMSecsV(JsRecTmV->Vec, RecTmV);
-
-				if (JsBatchEndJsV != nullptr) {
-					const TBoolV& BatchEndV = JsBatchEndJsV->Vec;
-					JsStreamStory->StreamStory->InitBatches(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV, BatchEndV);
-				} else {
-					JsStreamStory->StreamStory->Init(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV);
-				}
-			} catch (const PExcept& Except) {
-				Data.HasError = true;
-			}
-		}
-
-		static void AfterRun(const TFitAsync& Data) {
-			v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-			v8::HandleScope HandleScope(Isolate);
-
-			v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Data.Callback);
-
-			if (Data.HasError) {
-				TNodeJsUtil::ExecuteErr(Callback, TExcept::New("Exception while fitting model!"));
-			} else {
-				TNodeJsUtil::ExecuteVoid(Callback);
-			}
-		}
+		static void Run(TFitAsync& Data);
+		static void AfterRun(const TFitAsync& Data);
 	};
 
 	void SetParams(const PJsonVal& ParamVal);

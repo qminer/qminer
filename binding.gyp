@@ -210,6 +210,16 @@
                 'src/glib/misc/',
                 '<(LIN_ALG_INCLUDE)'
             ],
+        },
+        {
+            # needed for publishing binaries with node-pre-gyp
+            'target_name': 'action_after_build',
+            'type': 'none',
+            'dependencies': [ 'qm' ],
+            'copies': [{
+                'files': [ '<(PRODUCT_DIR)/qm.node' ],
+                'destination': './out/'
+            }]
         }
     ]
 }

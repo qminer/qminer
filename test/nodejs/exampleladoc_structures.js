@@ -1,15 +1,13 @@
 describe('example tests for the ladoc_structures.js file', function () {
-describe("Linear algebra module, number 1", function () {
+describe("Linear algebra module., number 1", function () {
 it("should make test number 1", function () {
- this.timeout(10000); 
 
  // import module, create a random matrix and a vector, multiply. find svd of the matrix
 
 });
 });
-describe("Matrix clas, number 2", function () {
+describe("Matrix class, number 2", function () {
 it("should make test number 2", function () {
- this.timeout(10000); 
 
  // import la module
  var la = require('qminer').la;
@@ -20,9 +18,8 @@ it("should make test number 2", function () {
 
 });
 });
-describe("Sets an element or a block of matrix, number 3", function () {
+describe("Sets an element or a block of matrix., number 3", function () {
 it("should make test number 3", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -37,9 +34,8 @@ it("should make test number 3", function () {
 	
 });
 });
-describe("Right-hand side multiplication of matrix with parameter, number 4", function () {
+describe("Right-hand side multiplication of matrix with parameter., number 4", function () {
 it("should make test number 4", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -52,9 +48,8 @@ it("should make test number 4", function () {
 	
 });
 });
-describe("Matrix transpose and right-hand side multiplication of matrix with parameter, number 5", function () {
+describe("Matrix transpose and right-hand side multiplication of matrix with parameter., number 5", function () {
 it("should make test number 5", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -67,9 +62,8 @@ it("should make test number 5", function () {
 	
 });
 });
-describe("Addition of two matrices, number 6", function () {
+describe("Addition of two matrices., number 6", function () {
 it("should make test number 6", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -84,9 +78,8 @@ it("should make test number 6", function () {
 	
 });
 });
-describe("Substraction of two matrices, number 7", function () {
+describe("Substraction of two matrices., number 7", function () {
 it("should make test number 7", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -101,9 +94,8 @@ it("should make test number 7", function () {
 	
 });
 });
-describe("Transposes matrix, number 8", function () {
+describe("Transposes matrix., number 8", function () {
 it("should make test number 8", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -117,9 +109,8 @@ it("should make test number 8", function () {
 	
 });
 });
-describe("Solves the linear system, number 9", function () {
+describe("Solves the linear system., number 9", function () {
 it("should make test number 9", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -132,9 +123,8 @@ it("should make test number 9", function () {
 	
 });
 });
-describe("Returns the matrix as string, number 10", function () {
+describe("Returns the matrix as string., number 10", function () {
 it("should make test number 10", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -145,9 +135,8 @@ it("should make test number 10", function () {
 	
 });
 });
-describe("Sets the column of the matrix, number 11", function () {
+describe("Sets the column of the matrix., number 11", function () {
 it("should make test number 11", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -164,9 +153,8 @@ it("should make test number 11", function () {
 	
 });
 });
-describe("Sets the row of matrix, number 12", function () {
+describe("Sets the row of matrix., number 12", function () {
 it("should make test number 12", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -183,9 +171,8 @@ it("should make test number 12", function () {
 	
 });
 });
-describe("Returns the diagonal elements of matrix, number 13", function () {
+describe("Returns the diagonal elements of matrix., number 13", function () {
 it("should make test number 13", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -196,9 +183,8 @@ it("should make test number 13", function () {
 	
 });
 });
-describe("Saves the matrix as output stream, number 14", function () {
+describe("Saves the matrix as output stream., number 14", function () {
 it("should make test number 14", function () {
- this.timeout(10000); 
 
 	 // import the modules
 	 var fs = require('qminer').fs;
@@ -212,9 +198,8 @@ it("should make test number 14", function () {
 	
 });
 });
-describe("Loads the matrix from input stream, number 15", function () {
+describe("Loads the matrix from input stream., number 15", function () {
 it("should make test number 15", function () {
- this.timeout(10000); 
 
 	 // import the modules
 	 var fs = require('qminer').fs;
@@ -228,9 +213,8 @@ it("should make test number 15", function () {
 	
 });
 });
-describe("Sparse Vecto, number 16", function () {
+describe("Sparse Vector, number 16", function () {
 it("should make test number 16", function () {
- this.timeout(10000); 
 
  // import la module
  var la = require('qminer').la;
@@ -241,9 +225,8 @@ it("should make test number 16", function () {
 
 });
 });
-describe("Returns an element of the sparse vector, number 17", function () {
+describe("Returns an element of the sparse vector., number 17", function () {
 it("should make test number 17", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -254,9 +237,8 @@ it("should make test number 17", function () {
 	
 });
 });
-describe("Puts a new element in sparse vector, number 18", function () {
+describe("Puts a new element in sparse vector., number 18", function () {
 it("should make test number 18", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -267,9 +249,8 @@ it("should make test number 18", function () {
 	
 });
 });
-describe("Returns the sum of all values in sparse vector, number 19", function () {
+describe("Returns the sum of all values in sparse vector., number 19", function () {
 it("should make test number 19", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -280,9 +261,8 @@ it("should make test number 19", function () {
 	
 });
 });
-describe("Returns the inner product of the parameter and the sparse vector, number 20", function () {
+describe("Returns the inner product of the parameter and the sparse vector., number 20", function () {
 it("should make test number 20", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -294,9 +274,8 @@ it("should make test number 20", function () {
 	
 });
 });
-describe("Multiplies the sparse vector with a scalar, number 21", function () {
+describe("Multiplies the sparse vector with a scalar., number 21", function () {
 it("should make test number 21", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -307,9 +286,8 @@ it("should make test number 21", function () {
 	
 });
 });
-describe("Returns the string representation, number 22", function () {
+describe("Returns the string representation., number 22", function () {
 it("should make test number 22", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -320,9 +298,8 @@ it("should make test number 22", function () {
 	
 });
 });
-describe("Sparse Matri, number 23", function () {
+describe("Sparse Matrix, number 23", function () {
 it("should make test number 23", function () {
- this.timeout(10000); 
 
  // import la module
  var la = require('qminer').la;
@@ -333,9 +310,8 @@ it("should make test number 23", function () {
 
 });
 });
-describe("Returns an element of the sparse matrix at the given location, number 24", function () {
+describe("Returns an element of the sparse matrix at the given location., number 24", function () {
 it("should make test number 24", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -346,9 +322,8 @@ it("should make test number 24", function () {
 	
 });
 });
-describe("Puts an element in sparse matrix, number 25", function () {
+describe("Puts an element in sparse matrix., number 25", function () {
 it("should make test number 25", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -359,9 +334,8 @@ it("should make test number 25", function () {
 	
 });
 });
-describe("Returns the column of the sparse matrix, number 26", function () {
+describe("Returns the column of the sparse matrix., number 26", function () {
 it("should make test number 26", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -372,9 +346,8 @@ it("should make test number 26", function () {
 	
 });
 });
-describe("Sets a column in sparse matrix, number 27", function () {
+describe("Sets a column in sparse matrix., number 27", function () {
 it("should make test number 27", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -387,9 +360,8 @@ it("should make test number 27", function () {
 	
 });
 });
-describe("Attaches a column to the sparse matrix, number 28", function () {
+describe("Attaches a column to the sparse matrix., number 28", function () {
 it("should make test number 28", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -407,9 +379,8 @@ it("should make test number 28", function () {
 	
 });
 });
-describe("Returns the sum of two matrices, number 29", function () {
+describe("Returns the sum of two matrices., number 29", function () {
 it("should make test number 29", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -426,9 +397,8 @@ it("should make test number 29", function () {
 	
 });
 });
-describe("Returns the difference of two matrices, number 30", function () {
+describe("Returns the difference of two matrices., number 30", function () {
 it("should make test number 30", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -445,9 +415,8 @@ it("should make test number 30", function () {
 	
 });
 });
-describe("Returns the transposed sparse matrix, number 31", function () {
+describe("Returns the transposed sparse matrix., number 31", function () {
 it("should make test number 31", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -461,9 +430,8 @@ it("should make test number 31", function () {
 	
 });
 });
-describe("Prints sparse matrix on screen, number 32", function () {
+describe("Prints sparse matrix on screen., number 32", function () {
 it("should make test number 32", function () {
- this.timeout(10000); 
 
 	 // import la module
 	 var la = require('qminer').la;
@@ -479,9 +447,8 @@ it("should make test number 32", function () {
 	
 });
 });
-describe("Saves the sparse matrix as output stream, number 33", function () {
+describe("Saves the sparse matrix as output stream., number 33", function () {
 it("should make test number 33", function () {
- this.timeout(10000); 
 
 	 // import the modules
 	 var fs = require('qminer').fs;
@@ -495,9 +462,8 @@ it("should make test number 33", function () {
 	
 });
 });
-describe("Loads the sparse matrix from input stream, number 34", function () {
+describe("Loads the sparse matrix from input stream., number 34", function () {
 it("should make test number 34", function () {
- this.timeout(10000); 
 
 	 // import the modules
 	 var fs = require('qminer').fs;
@@ -511,9 +477,8 @@ it("should make test number 34", function () {
 	
 });
 });
-describe("Returns a string displaying rows, columns and number of non-zero elements of sparse matrix, number 35", function () {
+describe("Returns a string displaying rows, columns and number of non-zero elements of sparse matrix., number 35", function () {
 it("should make test number 35", function () {
- this.timeout(10000); 
 
      // import la module
      var la = require('qminer').la;
@@ -524,9 +489,8 @@ it("should make test number 35", function () {
     
 });
 });
-describe("Prints the sparse vector on-screen, number 36", function () {
+describe("Prints the sparse vector on-screen., number 36", function () {
 it("should make test number 36", function () {
- this.timeout(10000); 
 
      // import la module
      var la = require('qminer').la;
@@ -537,9 +501,8 @@ it("should make test number 36", function () {
 	
 });
 });
-describe("Prints the matrix on-screen, number 37", function () {
+describe("Prints the matrix on-screen., number 37", function () {
 it("should make test number 37", function () {
- this.timeout(10000); 
 
      // import la module
      var la = require('qminer').la;
@@ -553,9 +516,8 @@ it("should make test number 37", function () {
 	
 });
 });
-describe("Prints the vector on-screen, number 38", function () {
+describe("Prints the vector on-screen., number 38", function () {
 it("should make test number 38", function () {
- this.timeout(10000); 
 
      // import la module
      var la = require('qminer').la;
@@ -568,9 +530,8 @@ it("should make test number 38", function () {
     
 });
 });
-describe("Copies the vector into a JavaScript array of numbers, number 39", function () {
+describe("Copies the vector into a JavaScript array of numbers., number 39", function () {
 it("should make test number 39", function () {
- this.timeout(10000); 
 
      // import la module
      var la = require('qminer').la;
@@ -581,9 +542,8 @@ it("should make test number 39", function () {
     
 });
 });
-describe("Copies the matrix into a JavaScript array of arrays of numbers, number 40", function () {
+describe("Copies the matrix into a JavaScript array of arrays of numbers., number 40", function () {
 it("should make test number 40", function () {
- this.timeout(10000); 
 
      // import la module
      var la = require('qminer').la;
@@ -594,9 +554,8 @@ it("should make test number 40", function () {
     
 });
 });
-describe("Copies the vector into a JavaScript array of numbers, number 41", function () {
+describe("Copies the vector into a JavaScript array of numbers., number 41", function () {
 it("should make test number 41", function () {
- this.timeout(10000); 
 
      // import la module
      var la = require('qminer').la;
@@ -607,9 +566,8 @@ it("should make test number 41", function () {
     
 });
 });
-describe("Returns a vector with all entries set to 1.0, number 42", function () {
+describe("Returns a vector with all entries set to 1.0., number 42", function () {
 it("should make test number 42", function () {
- this.timeout(10000); 
 
      // import la module
      var la = require('qminer').la;
@@ -618,9 +576,8 @@ it("should make test number 42", function () {
     
 });
 });
-describe("Constructs a matrix by concatenating a doubly-nested array of matrices, number 43", function () {
+describe("Constructs a matrix by concatenating a doubly-nested array of matrices., number 43", function () {
 it("should make test number 43", function () {
- this.timeout(10000); 
 
      // import la module
      var la = require('qminer').la;
@@ -639,9 +596,8 @@ it("should make test number 43", function () {
     
 });
 });
-describe("Generates an integer vector given rang, number 44", function () {
+describe("Generates an integer vector given range, number 44", function () {
 it("should make test number 44", function () {
- this.timeout(10000); 
 
      // import la module
      var la = require('qminer').la;
@@ -651,9 +607,8 @@ it("should make test number 44", function () {
     
 });
 });
-describe("returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input, number 45", function () {
+describe("returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input., number 45", function () {
 it("should make test number 45", function () {
- this.timeout(10000); 
 
      // import la module
      var la = require('qminer').la;
@@ -665,9 +620,8 @@ it("should make test number 45", function () {
     
 });
 });
-describe("computes and returns the pairwise squared euclidean distances between columns of `X1` and `X2` (`mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2`), number 46", function () {
+describe("computes and returns the pairwise squared euclidean distances between columns of `X1` and `X2` (`mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2`)., number 46", function () {
 it("should make test number 46", function () {
- this.timeout(10000); 
 
      // import la module
      var la = require('qminer').la;
