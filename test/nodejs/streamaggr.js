@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -192,7 +192,7 @@ describe('Stream Aggregator Tests', function () {
 
             //aggr.onAdd({ Name: "John", Gendre: "Male" }); // doesn't digest a JSON record
             assert.equal(aggr.saveJson().val, 4);
-        })        
+        })
         it('should throw an exception if the onAdd function is not defined', function () {
             assert.throws(function () {
                 var aggr = new qm.StreamAggr(base, new function () {
@@ -350,7 +350,7 @@ describe('Time Series Window Buffer Tests', function () {
             assert.throws(function () {
                 var sa = store.addStreamAggr(aggr);
             });
-        })        
+        })
     });
     describe('Adding Records Tests', function () {
         it('should update the time and value of the stream aggregate', function () {
@@ -995,7 +995,7 @@ describe('MovingWindowBufferMin Tests', function () {
             };
             var min = store.addStreamAggr(aggr);
             assert.equal(min.init, false);
-        })        
+        })
         it('should throw an exception if a key value is missing', function () {
             var aggr = {
                 name: 'MinAggr',
@@ -1283,7 +1283,7 @@ describe('MovingWindowBufferMax Tests', function () {
                 inAggr: 'TimeSeriesWindowAggr'
             };
             var max = store.addStreamAggr(aggr);
-            assert.equal(max.init, false);            
+            assert.equal(max.init, false);
         })
     });
 });
@@ -1326,7 +1326,7 @@ describe('MovingAverage Tests', function () {
             };
             var ma = store.addStreamAggr(aggr);
             assert.equal(ma.init, false);
-        })        
+        })
         it('should throw an exception if some key values are missing', function () {
             var aggr = {
                 name: 'AverageAggr',
@@ -1827,8 +1827,8 @@ describe('EMA Tests', function () {
                 interval: 3000,
                 initWindow: 1000
             };
-            var ema = store.addStreamAggr(aggr); 
-            assert.equal(ema.init, false);                
+            var ema = store.addStreamAggr(aggr);
+            assert.equal(ema.init, false);
         })
     });
 });
@@ -2656,7 +2656,7 @@ describe('Merger Tests', function () {
             };
             var merger = new qm.StreamAggr(base, aggr);
             assert.equal(merger.name, 'MergerAggr');
-        })        
+        })
         it('should throw an exception if a key-value is not given', function () {
             var aggr = {
                 name: 'MergerAggr',
@@ -2830,7 +2830,7 @@ describe('Merger Tests', function () {
     });
 });
 
-describe('Online Histogram Tests', function () {    
+describe('Online Histogram Tests', function () {
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -2900,7 +2900,7 @@ describe('Online Histogram Tests', function () {
                 var aggr = store.addStreamAggr(copyJson);
             }, /TypeError/);
             var copyJson = JSON.parse(JSON.stringify(aggrJson));
-            
+
             delete copyJson.name;
             delete copyJson.bins;
             delete copyJson.addNegInf;
@@ -2955,18 +2955,18 @@ describe('Online Histogram Tests', function () {
             store.push({ Time: '2015-06-10T14:13:33.4', Value: 0 });
             store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
             store.push({ Time: '2015-06-10T14:13:38.4', Value: 10 });
-            
+
             assert.equal(aggr.saveJson().counts[0], 1);
             assert.equal(aggr.saveJson().counts[1], 1);
             assert.equal(aggr.saveJson().counts[2], 2);
             assert.equal(aggr.saveJson().counts[3], 0);
             assert.equal(aggr.saveJson().counts[4], 1);
 
-            // check that the interface is OK 
+            // check that the interface is OK
             assert(aggr.getFloatLength() == 5);
             assert(aggr.getFloatAt(2) == 2);
             assert(aggr.getFloatVector()[4] == 1);
-        });        
+        });
     });
 });
 
@@ -2991,7 +2991,7 @@ describe('ChiSquare Tests', function () {
                     { name: "Time", type: "datetime" }
                 ]
             }]
-        }); 
+        });
         store = base.store('Dice');
 
         // create a new time series stream aggregator for the 'Dice' store, that takes the expected values of throwing a dice
@@ -3052,9 +3052,9 @@ describe('ChiSquare Tests', function () {
     });
     afterEach(function () {
         base.close();
-    }); 
+    });
     it('should create an chi square test aggregator', function () {
-        
+
         // add ChiSquare aggregator that connects with Histogram1 with expected values and Histogram2 with actual values
         aggr = {
             name: 'ChiAggr',
@@ -3066,7 +3066,7 @@ describe('ChiSquare Tests', function () {
             degreesOfFreedom: 2
         }
         var chi = store.addStreamAggr(aggr);
-        
+
         // add some values
         // simulating throwing a dice
         store.push({ Time: '2015-06-10T14:13:30.0', Expected: 1, Observed: 1 });
@@ -3089,21 +3089,6 @@ describe('ChiSquare Tests', function () {
         store.push({ Time: '2015-06-10T14:13:53.0', Expected: 4, Observed: 6 });
         store.push({ Time: '2015-06-10T14:13:54.0', Expected: 5, Observed: 6 });
         store.push({ Time: '2015-06-10T14:13:55.0', Expected: 6, Observed: 6 });
-
-        // show distribution for expected values
-        console.log(hist1);
-
-        // show distribution for observed values
-        console.log(hist2);
-
-        // show the P-value. A small P value is evidence that the data are not sampled from the distribution you expected.
-        // If P-value is smaller than some expected value (e.g. 0.005), then the null null hypothesis fails.
-        console.log("P = " + chi.getFloat());
-
-        // print out the aggregator
-        console.log(chi);
     });    
-    
+
 });
-
-

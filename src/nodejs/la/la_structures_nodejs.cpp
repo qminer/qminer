@@ -817,7 +817,7 @@ TNodeJsSpVec::TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim) : Vec(In
         if (Dim == 0 && CalcDim == 0) {
             // both are zero, should be fine
         } else if (TLAMisc::GetMaxDimIdx(IntFltKdV) >= Dim) {
-            // largest index is biggern then the dimensionality, not good
+            // largest index is bigger than the dimensionality, not good
             throw TExcept::New(TStr::Fmt(
                 "TNodeJsSpVec::New inconsistent dim parameter (maximal index %d >= dim %d)",
                 TLAMisc::GetMaxDimIdx(IntFltKdV), Dim));
