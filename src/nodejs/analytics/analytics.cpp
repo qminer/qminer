@@ -2372,7 +2372,7 @@ void TNodeJsStreamStory::TFitAsync::Run(TFitAsync& Data) {
 	}
 }
 
-void TNodeJsStreamStory::TFitAsync::AfterRun(TFitAsync& Data) {
+void TNodeJsStreamStory::TFitAsync::AfterRun(const TFitAsync& Data) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
