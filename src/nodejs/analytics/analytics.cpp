@@ -2372,6 +2372,19 @@ void TNodeJsStreamStory::TFitAsync::Run(TFitAsync& Data) {
 	}
 }
 
+void TNodeJsStreamStory::TFitAsync::AfterRun(TFitAsync& Data) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Data.Callback);
+
+	if (Data.HasError) {
+		TNodeJsUtil::ExecuteErr(Callback, TExcept::New("Exception while fitting model!"));
+	} else {
+		TNodeJsUtil::ExecuteVoid(Callback);
+	}
+}
+
 void TNodeJsStreamStory::SetParams(const PJsonVal& ParamVal) {
 	if (ParamVal->IsObjKey("verbose"))
 		StreamStory->SetVerbose(ParamVal->GetObjBool("verbose"));
