@@ -194,31 +194,21 @@ public:
 	JsDeclareFunction(readLinesAsync);
 
 private:
-	struct TRealLines {
+	class TRealLines: public TAsyncTask {
+	private:
 		PSIn SIn;
 		int Offset;
 		int Limit;
 		TStrV LineV;
-//		v8::Persistent<v8::Function> OnLine;
 		v8::Persistent<v8::Function> OnEnd;
 		bool HasError;
-
+	public:
 		TRealLines(const v8::FunctionCallbackInfo<v8::Value>& Args);
 		~TRealLines();
-
-		static void Run(TRealLines& Data);
-		static void AfterRun(const TRealLines& Data);
+	protected:
+		void Run();
+		void AfterRun();
 	};
-//
-//	struct TLineCallback {
-//		TStrV LineV;
-//		v8::Persistent<v8::Function>& Callback;
-//
-//		TLineCallback(const int& BatchSize, v8::Persistent<v8::Function>& Callback);
-//		~TLineCallback() {}
-//
-//		static void Run(const TLineCallback& Data);
-//	};
 };
 
 ///////////////////////////////

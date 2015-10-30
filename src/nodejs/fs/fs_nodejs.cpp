@@ -313,21 +313,18 @@ TNodeJsFs::TRealLines::TRealLines(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	OnEnd.Reset(Isolate, TNodeJsUtil::GetArgFun(Args, 2));
 }
 
-void TNodeJsFs::TRealLines::Run(TRealLines& Data) {
-	const int& Offset = Data.Offset;
-	const int& Limit = Data.Limit;
-
+void TNodeJsFs::TRealLines::Run() {
 	int Line = -1;
 	TStr LineStr;
-	while (Data.SIn->GetNextLn(LineStr)) {
+	while (SIn->GetNextLn(LineStr)) {
 		try {
 			Line++;
 
 			if (Line < Offset) { continue; }
 
-			Data.LineV.Add(LineStr);
+			LineV.Add(LineStr);
 		} catch (...) {
-			Data.HasError = true;
+			HasError = true;
 			break;
 		}
 
@@ -336,16 +333,15 @@ void TNodeJsFs::TRealLines::Run(TRealLines& Data) {
 }
 
 
-void TNodeJsFs::TRealLines::AfterRun(const TRealLines& Data) {
+void TNodeJsFs::TRealLines::AfterRun() {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Data.OnEnd);
+	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnEnd);
 
-	if (Data.HasError) {
+	if (HasError) {
 		TNodeJsUtil::ExecuteErr(Callback, TExcept::New("Exception while reading lines!"));
 	} else {
-		const TStrV& LineV = Data.LineV;
 		const int& Len = LineV.Len();
 
 		v8::Local<v8::Array> JsStrV = v8::Array::New(Isolate, Len);

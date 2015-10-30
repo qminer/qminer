@@ -437,6 +437,16 @@ TClass* TNodeJsUtil::UnwrapCheckWatcher(v8::Handle<v8::Object> Arg) {
 
 //////////////////////////////////////////////////////
 // Node - Asynchronous Utilities
+class TAsyncTask {
+	friend class TNodeJsAsyncUtil;
+public:
+	virtual ~TAsyncTask() {}
+
+protected:
+	virtual void Run() = 0;
+	virtual void AfterRun() = 0;
+};
+
 class TNodeJsAsyncUtil {
 private:
 	template <class TTask>
@@ -447,11 +457,11 @@ private:
 		TMainData(TTask* Task, const bool& DelTask);
 	};
 
-	template <class TTask>
-	struct TWorkerData {
-		TTask* Task;
-		TWorkerData(TTask* Task);
-	};
+//	template <class TTask>
+//	struct TWorkerData {
+//		TTask* Task;
+//		TWorkerData(TTask* Task);
+//	};
 
 	template <typename THandle>
 	static void DelHandle(uv_handle_t* Handle);
@@ -461,18 +471,18 @@ private:
 
 
 
-	template <class TTask>
+//	template <class TTask>
 	static void OnWorker(uv_work_t* UvReq);
 
-	template <class TTask>
+//	template <class TTask>
 	static void AfterOnWorker(uv_work_t* UvReq, int Status);
 
 public:
 	template <class TTask>
 	static void ExecuteOnMain(TTask* Task, const bool& DelData=true);
 
-	template <class TTask>
-	static void ExecuteOnWorker(TTask* Task);
+//	template <class TTask>
+	static void ExecuteOnWorker(TAsyncTask* Task);
 };
 
 template <typename THandle>
@@ -486,9 +496,9 @@ TNodeJsAsyncUtil::TMainData<TTask>::TMainData(TTask* _Task, const bool& _DelTask
 		Task(_Task),
 		DelTask(_DelTask) {}
 
-template <class TTask>
-TNodeJsAsyncUtil::TWorkerData<TTask>::TWorkerData(TTask* _Task):
-		Task(_Task) {}
+//template <class TTask>
+//TNodeJsAsyncUtil::TWorkerData<TTask>::TWorkerData(TTask* _Task):
+//		Task(_Task) {}
 
 template <class TTask>
 void TNodeJsAsyncUtil::OnMain(uv_async_t* UvAsync) {
@@ -503,20 +513,20 @@ void TNodeJsAsyncUtil::OnMain(uv_async_t* UvAsync) {
 	delete Data;
 }
 
-template <class TTask>
 void TNodeJsAsyncUtil::OnWorker(uv_work_t* UvReq) {
-	TWorkerData<TTask>* Data = static_cast<TWorkerData<TTask>*>(UvReq->data);
-	TTask::Run(*Data->Task);
+	TAsyncTask* Task = static_cast<TAsyncTask*>(UvReq->data);
+	Task->Run();
+//	TTask::Run(*Data->Task);
 }
 
-template <class TTask>
 void TNodeJsAsyncUtil::AfterOnWorker(uv_work_t* UvReq, int Status) {
-	TWorkerData<TTask>* Data = static_cast<TWorkerData<TTask>*>(UvReq->data);
+	TAsyncTask* Task = static_cast<TAsyncTask*>(UvReq->data);
 
-	TTask::AfterRun(*Data->Task);
+	Task->AfterRun();
+//	TTask::AfterRun(*Data->Task);
 
-	delete Data->Task;
-	delete Data;
+//	delete Data->Task;
+	delete Task;
 	delete UvReq;
 }
 
@@ -530,12 +540,11 @@ void TNodeJsAsyncUtil::ExecuteOnMain(TTask* Task, const bool& DelTask) {
 	uv_async_send(UvAsync);
 }
 
-template <class TTask>
-void TNodeJsAsyncUtil::ExecuteOnWorker(TTask* Task) {
+void TNodeJsAsyncUtil::ExecuteOnWorker(TAsyncTask* Task) {
 	uv_work_t* UvReq = new uv_work_t;
-	UvReq->data = new TWorkerData<TTask>(Task);
+	UvReq->data = Task;
 
-	uv_queue_work(uv_default_loop(), UvReq, OnWorker<TTask>, AfterOnWorker<TTask>);
+	uv_queue_work(uv_default_loop(), UvReq, OnWorker, AfterOnWorker);
 }
 
 #endif
