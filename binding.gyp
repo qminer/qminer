@@ -218,7 +218,7 @@
             'dependencies': [ 'qm' ],
             'copies': [{
                 'files': [ '<(PRODUCT_DIR)/qm.node' ],
-                'destination': './out/Release'
+                'destination': './out/'
             }]
         }
     ]
