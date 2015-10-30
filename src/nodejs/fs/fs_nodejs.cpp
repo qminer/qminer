@@ -313,18 +313,21 @@ TNodeJsFs::TRealLines::TRealLines(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	OnEnd.Reset(Isolate, TNodeJsUtil::GetArgFun(Args, 2));
 }
 
-void TNodeJsFs::TRealLines::Run() {
+void TNodeJsFs::TRealLines::Run(TRealLines& Data) {
+	const int& Offset = Data.Offset;
+	const int& Limit = Data.Limit;
+
 	int Line = -1;
 	TStr LineStr;
-	while (SIn->GetNextLn(LineStr)) {
+	while (Data.SIn->GetNextLn(LineStr)) {
 		try {
 			Line++;
 
 			if (Line < Offset) { continue; }
 
-			LineV.Add(LineStr);
+			Data.LineV.Add(LineStr);
 		} catch (...) {
-			HasError = true;
+			Data.HasError = true;
 			break;
 		}
 
@@ -333,15 +336,16 @@ void TNodeJsFs::TRealLines::Run() {
 }
 
 
-void TNodeJsFs::TRealLines::AfterRun() {
+void TNodeJsFs::TRealLines::AfterRun(const TRealLines& Data) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnEnd);
+	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Data.OnEnd);
 
-	if (HasError) {
+	if (Data.HasError) {
 		TNodeJsUtil::ExecuteErr(Callback, TExcept::New("Exception while reading lines!"));
 	} else {
+		const TStrV& LineV = Data.LineV;
 		const int& Len = LineV.Len();
 
 		v8::Local<v8::Array> JsStrV = v8::Array::New(Isolate, Len);
@@ -362,27 +366,6 @@ TNodeJsFs::TRealLines::~TRealLines() {
 
 	OnEnd.Reset();
 }
-
-//TNodeJsFs::TLineCallback::TLineCallback(const int& BatchSize, v8::Persistent<v8::Function>& _Callback):
-//		LineV(BatchSize),
-//		Callback(_Callback) {}
-//
-//void TNodeJsFs::TLineCallback::Run(const TLineCallback& Data) {
-//	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-//	v8::HandleScope HandleScope(Isolate);
-//
-//	const TStrV& LineV = Data.LineV;
-//	const int& Len = LineV.Len();
-//
-//	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Data.Callback);
-//	v8::Local<v8::Array> JsStrV = v8::Array::New(Isolate, Len);
-//
-//	for (int i = 0; i < Len; i++) {
-//		JsStrV->Set(i, v8::String::NewFromUtf8(Isolate, LineV[i].CStr()));
-//	}
-//
-//	TNodeJsUtil::ExecuteVoid(Callback, JsStrV);
-//}
 
 ///////////////////////////////
 // NodeJs-FIn

@@ -1842,8 +1842,7 @@ public:
 			const double& Prob, const TFltV& ProbV, const TFltV& TmV);
 
 private:
-	class TFitAsync: public TAsyncTask {
-	private:
+	struct TFitAsync {
 		TNodeJsStreamStory* JsStreamStory;
 		TNodeJsFltVV* JsObservFtrs;
 		TNodeJsFltVV* JsControlFtrs;
@@ -1854,7 +1853,6 @@ private:
 
 		bool HasError;
 
-	public:
 		TFitAsync(const v8::FunctionCallbackInfo<v8::Value>& Args):
 				JsStreamStory(nullptr),
 				JsObservFtrs(nullptr),
@@ -1890,9 +1888,14 @@ private:
 
 		~TFitAsync() { Callback.Reset(); }
 
-	protected:
-		void Run() {
+		static void Run(TFitAsync& Data) {
 			try {
+				TNodeJsStreamStory* JsStreamStory = Data.JsStreamStory;
+				TNodeJsFltVV* JsObservFtrs = Data.JsObservFtrs;
+				TNodeJsFltVV* JsControlFtrs = Data.JsControlFtrs;
+				TNodeJsFltV* JsRecTmV = Data.JsRecTmV;
+				TNodeJsBoolV* JsBatchEndJsV = Data.JsBatchEndJsV;
+
 				TUInt64V RecTmV;	TNodeJsUtil::GetCppTmMSecsV(JsRecTmV->Vec, RecTmV);
 
 				if (JsBatchEndJsV != nullptr) {
@@ -1902,18 +1905,17 @@ private:
 					JsStreamStory->StreamStory->Init(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV);
 				}
 			} catch (const PExcept& Except) {
-//				Data.HasError = true;
-				HasError = true;
+				Data.HasError = true;
 			}
 		}
 
-		void AfterRun() {
+		static void AfterRun(const TFitAsync& Data) {
 			v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 			v8::HandleScope HandleScope(Isolate);
 
-			v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Callback);
+			v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Data.Callback);
 
-			if (HasError) {
+			if (Data.HasError) {
 				TNodeJsUtil::ExecuteErr(Callback, TExcept::New("Exception while fitting model!"));
 			} else {
 				TNodeJsUtil::ExecuteVoid(Callback);
