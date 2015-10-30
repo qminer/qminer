@@ -26,12 +26,12 @@ module.exports = exports = function (pathPrefix) {
 
     /**
     * The parameter given to {@link module:qm.Base#loadCSV}.
-    * @typedef {object} baseLoadCSVParam
-    * @property {string} baseLoadCSVParam.file - The name of the input file.
-    * @property {string} baseLoadCSVParam.store - Name of the store which will be created.
-    * @property {module:qm.Base} baseLoadCSVParam.base - QMiner base object that creates the store.
-    * @property {string} [baseLoadCSVParam.delimiter = ','] - Optional delimiter.
-    * @property {string} [baseLoadCSVParam.quote = '"'] - Optional character to escape values that contain a delimiter.
+    * @typedef {object} BaseLoadCSVParam
+    * @property {string} BaseLoadCSVParam.file - The name of the input file.
+    * @property {string} BaseLoadCSVParam.store - Name of the store which will be created.
+    * @property {module:qm.Base} BaseLoadCSVParam.base - QMiner base object that creates the store.
+    * @property {string} [BaseLoadCSVParam.delimiter = ','] - Optional delimiter.
+    * @property {string} [BaseLoadCSVParam.quote = '"'] - Optional character to escape values that contain a delimiter.
     */
 
     /**

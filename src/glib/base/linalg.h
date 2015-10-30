@@ -250,8 +250,8 @@ public:
 		}
 	}
 
-	template <class TType, class TSizeTy, bool ColMajor>
-	static void SubMat(const TVVec<TType, TSizeTy, ColMajor>& Mat, const TVec<TSizeTy, TSizeTy>& ColIdxV,
+	template <class TType, class TVecVal, class TSizeTy, bool ColMajor>
+	static void SubMat(const TVVec<TType, TSizeTy, ColMajor>& Mat, const TVec<TVecVal, TSizeTy>& ColIdxV,
 			TVVec<TType, TSizeTy, ColMajor>& SubMat) {
 
 		if (SubMat.Empty()) { SubMat.Gen(Mat.GetRows(), ColIdxV.Len()); }
