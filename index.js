@@ -7,12 +7,14 @@
  */
 
 process.env['QMINER_HOME'] = __dirname + "/src/glib/bin/";
-module.exports = exports = require('./src/nodejs/scripts/qm.js')(); // core functionality
-exports.analytics = require('./src/nodejs/scripts/analytics.js')(); // includes additional JS implementations
-exports.fs = require('./src/nodejs/scripts/fs.js')(); // includes additional JS implementations
-exports.ht = require('./src/nodejs/scripts/ht.js')(); // includes additional JS implementations
-exports.la = require('./src/nodejs/scripts/la.js')(); // includes additional JS implementations
-exports.snap = require('./src/nodejs/scripts/snap.js')(); // includes additional JS implementations
-exports.statistics = require('./src/nodejs/scripts/statistics.js')();
-exports.datasets = require('./src/nodejs/datasets/datasets.js')(); // includes additional JS implementations
+var pathQmBinary = __dirname + '/out/qm.node';
+	
+module.exports = exports = require('./src/nodejs/scripts/qm.js')(pathQmBinary);
+exports.analytics = require('./src/nodejs/scripts/analytics.js')(pathQmBinary);
+exports.fs = require('./src/nodejs/scripts/fs.js')(pathQmBinary);
+exports.ht = require('./src/nodejs/scripts/ht.js')(pathQmBinary);
+exports.la = require('./src/nodejs/scripts/la.js')(pathQmBinary);
+exports.snap = require('./src/nodejs/scripts/snap.js')(pathQmBinary);
+exports.statistics = require('./src/nodejs/scripts/statistics.js')(pathQmBinary);
+exports.datasets = require('./src/nodejs/datasets/datasets.js')(pathQmBinary);
 exports.qm_util = require('./src/nodejs/scripts/qm_util.js');

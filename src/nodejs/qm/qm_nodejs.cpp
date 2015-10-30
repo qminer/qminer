@@ -33,6 +33,10 @@ void TNodeJsQm::Init(v8::Handle<v8::Object> exports) {
 	TQm::TEnv::Init();
     // default to no output
     TQm::TEnv::InitLogger(0, "std");
+
+	// load unicode
+	TStr UnicodeFNm = TPath::Combine(TQm::TEnv::QMinerFPath, "UnicodeDef.Bin");
+	if (!TUnicodeDef::IsDef()) { TUnicodeDef::Load(UnicodeFNm); }
 }
 
 void TNodeJsQm::config(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -426,10 +430,7 @@ TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>&
 	uint64 IndexCache = (uint64)Val->GetObjInt("indexCache", 1024) * (uint64)TInt::Mega;
 	uint64 StoreCache = (uint64)Val->GetObjInt("storeCache", 1024) * (uint64)TInt::Mega;
 
-    // load unicode
-	TStr UnicodeFNm = Val->GetObjStr("unicode", TQm::TEnv::QMinerFPath + "./UnicodeDef.Bin");
-	if (!TUnicodeDef::IsDef()) { TUnicodeDef::Load(UnicodeFNm); }
-	// Load Stopword Files
+    // Load Stopword Files
 	TStr StopWordsPath = Val->GetObjStr("stopwords", TQm::TEnv::QMinerFPath + "resources/stopwords/");
 	TSwSet::LoadSwDir(StopWordsPath);
 
@@ -3172,6 +3173,7 @@ void TNodeJsFtrSpace::Init(v8::Handle<v8::Object> exports) {
 
 	// Add all methods, getters and setters here.
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "clear", _clear);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "addFeatureExtractor", _addFeatureExtractor);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "updateRecord", _updateRecord);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "updateRecords", _updateRecords);
@@ -3329,6 +3331,21 @@ void TNodeJsFtrSpace::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::save");
 	}
 }
+
+void TNodeJsFtrSpace::clear(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 0, "Should get no argument!");
+
+	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+
+	// clears the feature space
+	JsFtrSpace->FtrSpace->Clr();
+
+	Args.GetReturnValue().Set(Args.Holder());
+}
+
 
 void TNodeJsFtrSpace::addFeatureExtractor(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();

@@ -2056,12 +2056,6 @@
             if (argumentType !== "Array" && argumentType !== "Vector") {
                 throw new TypeError('input param must be of type "Array" or "Vector", but is ' + argumentType + ' instead');
             }
-            // check if binary
-            for (var j = 0; j < arguments[i].length; j++) {
-                if (arguments[i][j] !== 0 && arguments[i][j] !== 1) {
-                    throw new TypeError('input values must be binary (0 or 1)');
-                }
-            }
         }
     };
 
