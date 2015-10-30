@@ -2535,6 +2535,7 @@
 /**
 	* Creates a sparse feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
 	* @returns {module:la.SparseVector} The sparse feature vector gained from rec.
 	* @example
 	* // import qm module
@@ -2573,6 +2574,7 @@
 /**
 	* Creates a feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
 	* @returns {module:la.Vector} The feature vector gained from rec.
 	* @example
 	* // import qm module
@@ -2615,87 +2617,10 @@
 	 * @param {Number} val - value to extract
 	 */
 /**
-	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
-	* @param {(module:la.Vector | Array.&amp;lt;Object&gt;)} ftr - The feature vector or an array with feature values.
-	* @returns {module:la.Vector} The inverse of ftr as vector.
-	* @example
-	* // import qm module
-	* var qm = require(&#x27;qminer&#x27;);
-	* // create a new base containing one store
-	* var base = new qm.Base({
-	*    mode: &quot;createClean&quot;,
-	*    schema: [{
-	*        name: &quot;TheWitcherSaga&quot;,
-	*        fields: [
-	*            { name: &quot;Title&quot;, type: &quot;string&quot; },
-	*            { name: &quot;YearOfRelease&quot;, type: &quot;int&quot; },
-	*            { name: &quot;EnglishEdition&quot;, type: &quot;bool&quot; }
-	*        ]
-	*    }]
-	* });
-	* // put some records in the store
-	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Blood of Elves&quot;, YearOfRelease: 1994, EnglishEdition: true });
-	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Time of Contempt&quot;, YearOfRelease: 1995, EnglishEdition: true });
-	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Baptism of Fire&quot;, YearOfRelease: 1996, EnglishEdition: true });
-	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;The Swallow&#x27;s Tower&quot;, YearOfRelease: 1997, EnglishEdition: false });
-	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Lady of the Lake&quot;, YearOfRelease: 1999, EnglishEdition: false });
-	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Season of Storms&quot;, YearOfRelease: 2013, EnglishEdition: false });
-	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
-	* // for update, look the method updateRecords in feature space
-	* var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;TheWitcherSaga&quot;, field: &quot;YearOfRelease&quot;, normalize: true });
-	* ftr.updateRecords(base.store(&quot;TheWitcherSaga&quot;).allRecords);
-	* // get a feature vector for the second record
-	* // because of the numeric feature extractor having normalize: true and of the records update of feature space, the values
-	* // are not equal to those of the records, i.e. the value 1995 is now 0.105263 
-	* var ftrVec = ftr.extractVector(base.store(&quot;TheWitcherSaga&quot;)[1]);
-	* // get the inverse of the feature vector
-	* // the function returns the values to their first value, i.e. 0.105263 returns to 1995
-	* var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]
-	* base.close();
-	*/
- exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) { return Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype); };
-/**
-	* Calculates the inverse of a single feature using a specific feature extractor.
-	* @param {number} idx - The index of the specific feature extractor.
-	* @param {Object} val - The value to be inverted.
-	* @returns {Object} The inverse of val using the feature extractor with index idx.
-	* @example
-	* // import qm module
-	* var qm = require(&#x27;qminer&#x27;);
-	* // create a new base containing one store
-	* var base = new qm.Base({
-	*    mode: &quot;createClean&quot;,
-	*    schema: [{
-	*        name: &quot;TheWitcherSaga&quot;,
-	*        fields: [
-	*            { name: &quot;Title&quot;, type: &quot;string&quot; },
-	*            { name: &quot;YearOfRelease&quot;, type: &quot;int&quot; },
-	*            { name: &quot;EnglishEdition&quot;, type: &quot;bool&quot; }
-	*        ]
-	*    }]
-	* });
-	* // put some records in the store
-	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Blood of Elves&quot;, YearOfRelease: 1994, EnglishEdition: true });
-	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Time of Contempt&quot;, YearOfRelease: 1995, EnglishEdition: true });
-	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Baptism of Fire&quot;, YearOfRelease: 1996, EnglishEdition: true });
-	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;The Swallow&#x27;s Tower&quot;, YearOfRelease: 1997, EnglishEdition: false });
-	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Lady of the Lake&quot;, YearOfRelease: 1999, EnglishEdition: false });
-	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Season of Storms&quot;, YearOfRelease: 2013, EnglishEdition: false });
-	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
-	* // for update, look the method updateRecords in feature space
-	* var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;TheWitcherSaga&quot;, field: &quot;YearOfRelease&quot;, normalize: true });
-	* ftr.updateRecords(base.store(&quot;TheWitcherSaga&quot;).allRecords);
-	* // because of the numeric feature extractor having normalize: true and of the records update of feature space, 
-	* // the values are not equal to those of the records 
-	* // invert the value 0 using the numeric feature extractor
-	* var inverse = ftr.invertFeature(0, 0); // returns the value 1994
-	* base.close();
-	*/
- exports.FeatureSpace.prototype.invertFeature = function (idx, val) {};
-/**
 	* Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.
 	* @param {module:qm.RecordSet} rs - The given record set.
-	* @returns {module:la.SparseMatrix} The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor
+    * @returns {module:la.SparseMatrix} The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.
 	* @example
 	* // import qm module
 	* var qm = require(&quot;qminer&quot;);
@@ -2727,6 +2652,8 @@
 /**
 	* Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.
 	* @param {module:qm.RecordSet} rs - The given record set.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
+    
 	* @returns {module:la.Matrix} The dense matrix, where the i-th column is the feature vector of the i-th record in rs.
 	* @example
 	* // import qm module
@@ -2826,6 +2753,84 @@
 	*/
  exports.FeatureSpace.prototype.getFeature = function (idx) { return &#x27;&#x27;; };
 /**
+	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
+	* @param {(module:la.Vector | Array.&amp;lt;Object&gt;)} ftr - The feature vector or an array with feature values.
+	* @returns {module:la.Vector} The inverse of ftr as vector.
+	* @example
+	* // import qm module
+	* var qm = require(&#x27;qminer&#x27;);
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: &quot;createClean&quot;,
+	*    schema: [{
+	*        name: &quot;TheWitcherSaga&quot;,
+	*        fields: [
+	*            { name: &quot;Title&quot;, type: &quot;string&quot; },
+	*            { name: &quot;YearOfRelease&quot;, type: &quot;int&quot; },
+	*            { name: &quot;EnglishEdition&quot;, type: &quot;bool&quot; }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the store
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Blood of Elves&quot;, YearOfRelease: 1994, EnglishEdition: true });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Time of Contempt&quot;, YearOfRelease: 1995, EnglishEdition: true });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Baptism of Fire&quot;, YearOfRelease: 1996, EnglishEdition: true });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;The Swallow&#x27;s Tower&quot;, YearOfRelease: 1997, EnglishEdition: false });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Lady of the Lake&quot;, YearOfRelease: 1999, EnglishEdition: false });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Season of Storms&quot;, YearOfRelease: 2013, EnglishEdition: false });
+	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
+	* // for update, look the method updateRecords in feature space
+	* var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;TheWitcherSaga&quot;, field: &quot;YearOfRelease&quot;, normalize: true });
+	* ftr.updateRecords(base.store(&quot;TheWitcherSaga&quot;).allRecords);
+	* // get a feature vector for the second record
+	* // because of the numeric feature extractor having normalize: true and of the records update of feature space, the values
+	* // are not equal to those of the records, i.e. the value 1995 is now 0.105263 
+	* var ftrVec = ftr.extractVector(base.store(&quot;TheWitcherSaga&quot;)[1]);
+	* // get the inverse of the feature vector
+	* // the function returns the values to their first value, i.e. 0.105263 returns to 1995
+	* var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]
+	* base.close();
+	*/
+ exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) { return Object.create(require(&#x27;qminer&#x27;).la.Vector.prototype); };
+/**
+	* Calculates the inverse of a single feature using a specific feature extractor.
+	* @param {number} idx - The index of the specific feature extractor.
+	* @param {Object} val - The value to be inverted.
+	* @returns {Object} The inverse of val using the feature extractor with index idx.
+	* @example
+	* // import qm module
+	* var qm = require(&#x27;qminer&#x27;);
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: &quot;createClean&quot;,
+	*    schema: [{
+	*        name: &quot;TheWitcherSaga&quot;,
+	*        fields: [
+	*            { name: &quot;Title&quot;, type: &quot;string&quot; },
+	*            { name: &quot;YearOfRelease&quot;, type: &quot;int&quot; },
+	*            { name: &quot;EnglishEdition&quot;, type: &quot;bool&quot; }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the store
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Blood of Elves&quot;, YearOfRelease: 1994, EnglishEdition: true });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Time of Contempt&quot;, YearOfRelease: 1995, EnglishEdition: true });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Baptism of Fire&quot;, YearOfRelease: 1996, EnglishEdition: true });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;The Swallow&#x27;s Tower&quot;, YearOfRelease: 1997, EnglishEdition: false });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Lady of the Lake&quot;, YearOfRelease: 1999, EnglishEdition: false });
+	* base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Season of Storms&quot;, YearOfRelease: 2013, EnglishEdition: false });
+	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
+	* // for update, look the method updateRecords in feature space
+	* var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;TheWitcherSaga&quot;, field: &quot;YearOfRelease&quot;, normalize: true });
+	* ftr.updateRecords(base.store(&quot;TheWitcherSaga&quot;).allRecords);
+	* // because of the numeric feature extractor having normalize: true and of the records update of feature space, 
+	* // the values are not equal to those of the records 
+	* // invert the value 0 using the numeric feature extractor
+	* var inverse = ftr.invertFeature(0, 0); // returns the value 1994
+	* base.close();
+	*/
+ exports.FeatureSpace.prototype.invertFeature = function (idx, val) {};
+/**
 	* Filters the vector to keep only the elements from the feature extractor.
 	* @param {(module:la.Vector | module:la.SparseVector)} vec - The vector from where the function filters the elements.
 	* @param {number} idx - The index of the feature extractor.
@@ -2892,6 +2897,12 @@
     * @property {string} [baseLoadCSVParam.delimiter = &#x27;,&#x27;] - Optional delimiter.
     * @property {string} [baseLoadCSVParam.quote = &#x27;&quot;&#x27;] - Optional character to escape values that contain a delimiter.
     */
+
+    /**
+     * Loads the store from a CSV file.
+     * @param {module:qm~baseLoadCSVParam} opts - Options object.
+     * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
+     */
     exports.Base.prototype.loadCSV = function (opts, callback) {
     	console.log(&#x27;Loading CSV file ...&#x27;);
 
@@ -3110,6 +3121,32 @@
         return util.inspect(this, { depth: d, &#x27;customInspect&#x27;: false });
     }
 
+    // loading data into stores
+    /**
+     * Load given file line by line, parse each line to JSON and push it to the store.
+     *
+     * @param {String} file - Name of the json line file
+     * @param {Number} [limit] - Maximal number of records to load from file
+     */
+    exports.Store.prototype.loadJson = function (file, limit) {
+        var fin = fs.openRead(file);
+        var count = 0;
+        while (!fin.eof) {
+            var line = fin.readLine();
+            if (line == &quot;&quot;) { continue; }
+            try {
+                var rec = JSON.parse(line);
+                this.push(rec);
+                // count, GC and report
+                count++;
+                if (limit != undefined &amp;amp;&amp;amp; count == limit) { break; }
+            } catch (err) {
+                console.log(&quot;Error parsing [&quot; + line + &quot;]: &quot; + err)
+            }
+        }
+        return count;
+    }
+
     //==================================================================
     // RECORD SET
     //==================================================================
@@ -3300,52 +3337,6 @@
     //==================================================================
     // EXPORTS
     //==================================================================
-
-    // loading data into stores
-    exports.load = function () {
-        var _obj = {};
-
-        //#- &#x60;num = qm.load.jsonFileLimit(store, fileName, limit)&#x60; -- load file &#x60;fileName&#x60;
-        //#   line by line, parsing each line as JSON and adding it as record to &#x60;store&#x60;.
-        //#   When &#x60;limit != -1&#x60; only first first &#x60;limit&#x60; lines are loaded. Returns &#x60;num&#x60;:
-        //#   the number of lines loaded.
-        _obj.jsonFileLimit = function (store, file, limit) {
-            var fin = fs.openRead(file);
-            var count = 0;
-            while (!fin.eof) {
-                var line = fin.readLine();
-                if (line == &quot;&quot;) { continue; }
-                try {
-                    var rec = JSON.parse(line);
-                    store.push(rec);
-                    // count, GC and report
-                    count++;
-                    if (count % 1000 == 0) {
-                        store.base.garbageCollect();
-                    }
-                    if (count % 10000 == 0) {
-                        console.log(&quot;  &quot; + count + &quot; records&quot;);
-                    }
-                    if (count == limit) {
-                        break;
-                    }
-                } catch (err) {
-                    console.log(&quot;Error parsing [&quot; + line + &quot;]: &quot; + err)
-                }
-            }
-            console.log(&quot;Loaded &quot; + count + &quot; records to &quot; + store.name);
-            return count;
-        }
-
-        //#- &#x60;num = qm.load.jsonFile(store, fileName)&#x60; -- load file &#x60;fileName&#x60; line by line,
-        //#   parsing each line as JSON and adding it as record to &#x60;store&#x60;. Returns &#x60;num&#x60;:
-        //#   the number of lines loaded.
-        _obj.jsonFile = function (store, file) {
-            return _obj.jsonFileLimit(store, file, -1);
-        }
-
-        return _obj;
-    }();
 
     exports.delLock = function () {
         if (nodefs.existsSync(&#x27;lock&#x27;)) {

@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
- 
+
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js');     //adds assert.run function
 var qm = require('qminer');
@@ -509,7 +509,7 @@ describe("Two Store Tests", function () {
 
     describe('Movies Fields Test', function () {
         it('should return the number of fields', function () {
-            var arr = table.base.store("Movies").fields;            
+            var arr = table.base.store("Movies").fields;
             // it also returns internal fields that are created for index joins (2 additional fields)
             assert.equal(arr.length, 7);
         })
@@ -633,7 +633,7 @@ describe("Two Store Tests", function () {
     describe('Importing Test', function () {
         it('should import the movies in the movies_data.txt', function () {
             var filename = "./sandbox/movies/movies_data.txt"
-            assert.equal(qm.load.jsonFile(table.base.store("Movies"), filename), 167);
+            assert.equal(table.base.store("Movies").loadJson(filename), 167);
         })
     })
 
@@ -865,24 +865,24 @@ describe('Query Tests', function () {
 //describe('Load CSV tests', function () {
 //	var fout = null;
 //	var base = null;
-//	
+//
 //	beforeEach(function () {
 //		base = new qm.Base({ mode: 'createClean' });
 //    });
 //    afterEach(function () {
 //    	base.close();
 //    });
-//	
+//
 //	describe('Creating load CSV test ...', function () {
 //		it('should create a full store with correct types', function () {
 //			// generate a CSV file
 //			var headers = ['A', 'B', 'C', 'D'];
 //			var types = ['string', 'float', 'float', 'string'];
-//			
+//
 //			var table = [];
-//			
+//
 //			var n = 100;
-//			
+//
 //			fout = new fs.FOut('test.csv', false);
 //			fout.writeLine(headers.join(','));
 //			for (var i = 0; i < n; i++) {
@@ -895,48 +895,48 @@ describe('Query Tests', function () {
 //						row.push(i);
 //					}
 //				}
-//				
+//
 //				table.push(row);
 //				fout.write(row.join(','));
-//				
+//
 //				if (i < n - 1)
 //					fout.write('\n');
 //			}
-//			
+//
 //			fout.flush();
 //			fout.close();
-//			
+//
 //			// read the CSV file into a store
-//			
+//
 //			base.loadCSV({file: 'test.csv', store: 'test'}, function (err, store) {
 //				if (err != null) {
 //					assert.fail(0, 0, 'Exception while loading CSV file! ' + err, ',');
 //				} else {
 //					assert(store != null, 'Store is not defined!');
-//					
+//
 //					// check if the fields are correct
 //					var fields = store.fields;
-//					
+//
 //					assert.equal(fields.length, headers.length, 'Invalid number of fields generated!');
-//					
+//
 //					for (var i = 0; i < fields.length; i++) {
 //						var field = fields[i];
-//						
+//
 //						assert.equal(field.name, headers[i], 'Invalid name of field!');
 //						assert.equal(field.type, types[i], 'Invalid type of field!');
 //					}
-//										
+//
 //					// check if the values are correct
 //					for (var i = 0; i < store.length; i++) {
 //						var rec = store[i];
 //						for (var j = 0; j < headers.length; j++) {
 //							var val = rec[headers[j]];
-//							
+//
 //							assert.equal(val, table[i][j], 'Value mismatch!');
 //						}
 //					}
 //				}
-//				
+//
 //				fs.del('test.csv');
 //				assert(!fs.exists('test.csv'), 'The test CSV file could not be deleted!');
 //			});
