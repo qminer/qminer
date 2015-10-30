@@ -2325,6 +2325,8 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
 
 	// get field
 	const TStr FieldNm = TNodeJsUtil::GetArgStr(Args, 0);
+    QmAssertR(JsRecSet->RecSet->GetStore()->IsFieldNm(FieldNm),
+        "RecordSet.filterByField: invalid field name " + FieldNm);
 	const int FieldId = JsRecSet->RecSet->GetStore()->GetFieldId(FieldNm);
 	const TQm::TFieldDesc& Desc = JsRecSet->RecSet->GetStore()->GetFieldDesc(FieldId);
 	// parse filter according to field type
