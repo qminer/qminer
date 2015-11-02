@@ -44,11 +44,23 @@
         'conditions': [
             # operating system specific parameters
             ['OS == "linux"', {
-                'libraries': [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ],
+                "link_settings": {
+                    "libraries": [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ],
+                },
                 # GCC flags
                 'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
                 'cflags_cc': [ '-std=c++0x', '-frtti', '-fexceptions' ],
-                'cflags': [ '-Wno-deprecated-declarations', '-fopenmp' ]
+                'cflags': [ '-Wno-deprecated-declarations', '-fopenmp' ],
+                # additional flags for ARM
+                'conditions': [
+                    ['target_arch == "arm"', {
+                        "link_settings": {                    
+                            "ldflags": [ '-Wl,--allow-multiple-definition' ]
+                        },
+                        'cflags!': [ '-g' ],
+                        'cflags': [ '-fsigned-char' ],
+                    }]
+                ]
             }],
             ['OS == "win"', {
                 'msbuild_toolset': 'v120',
