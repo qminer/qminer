@@ -202,12 +202,14 @@
                 'src/glib/base/base.h',
                 'src/glib/base/base.cpp',
                 'src/glib/mine/mine.h',
-                'src/glib/mine/mine.cpp'
+                'src/glib/mine/mine.cpp',
+                'src/third_party/sole/sole.cpp',
             ],
             'include_dirs': [
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
+                'src/third_party/sole/',
                 '<(LIN_ALG_INCLUDE)'
             ],
         },
