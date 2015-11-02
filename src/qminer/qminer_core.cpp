@@ -4572,7 +4572,7 @@ void TStreamAggr::Init() {
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal) :
-Base(_Base), AggrNm(ParamVal->IsObjKey("name") ? ParamVal->GetObjStr("name") : "sa" + TGuid::GenGuid().GetHex()), Guid(TGuid::GenGuid()) {
+Base(_Base), AggrNm(ParamVal->GetObjStr("name", TGuid::GenSafeGuid())), Guid(TGuid::GenGuid()) {
 	TValidNm::AssertValidNm(AggrNm);
 }
 

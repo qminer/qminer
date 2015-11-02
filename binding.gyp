@@ -44,11 +44,23 @@
         'conditions': [
             # operating system specific parameters
             ['OS == "linux"', {
-                'libraries': [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ],
+                "link_settings": {
+                    "libraries": [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ],
+                },
                 # GCC flags
                 'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
                 'cflags_cc': [ '-std=c++0x', '-frtti', '-fexceptions' ],
-                'cflags': [ '-Wno-deprecated-declarations', '-fopenmp' ]
+                'cflags': [ '-Wno-deprecated-declarations', '-fopenmp' ],
+                # additional flags for ARM
+                'conditions': [
+                    ['target_arch == "arm"', {
+                        "link_settings": {                    
+                            "ldflags": [ '-Wl,--allow-multiple-definition' ]
+                        },
+                        'cflags!': [ '-g' ],
+                        'cflags': [ '-fsigned-char' ],
+                    }]
+                ]
             }],
             ['OS == "win"', {
                 'msbuild_toolset': 'v120',
@@ -202,12 +214,14 @@
                 'src/glib/base/base.h',
                 'src/glib/base/base.cpp',
                 'src/glib/mine/mine.h',
-                'src/glib/mine/mine.cpp'
+                'src/glib/mine/mine.cpp',
+                'src/third_party/sole/sole.cpp',
             ],
             'include_dirs': [
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
+                'src/third_party/sole/',
                 '<(LIN_ALG_INCLUDE)'
             ],
         },
