@@ -80,6 +80,10 @@ For more detailed installation check the following instructions:
 [QMiner](http://qminer.ijs.si/) is developed by [AILab](http://ailab.ijs.si/) at 
 [Jozef Stefan Institute](http://www.ijs.si/), [Quintelligence](http://quintelligence.com) and other contributors.
 
-Parts of the library were developed under [XLike](http://www.xlike.org/) and [Mobis](https://sites.google.com/site/mobiseuprojecteu/) FP7 projects and [Optimum](http://www.optimumproject.eu/) and [Sophocles](http://sophocles.eu/) H2020 project.
+The authors would like to acknowledge funding from the European Union Seventh Framework Programme, under Grant Agreements 288342 ([XLike](http://www.xlike.org/)), 317534 ([Sophocles](http://sophocles.eu/)), 318452 ([Mobis](https://sites.google.com/site/mobiseuprojecteu/)), 600074 ([NRG4Cast](http://nrg4cast.org)), 619437 ([Sunseed](http://sunseed-fp7.eu)) and 612329 ([ProaSense](http://www.proasense.eu)).
+
+This project has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 636160-2 ([Optimum](http://www.optimumproject.eu/)).
+
+![](http://ailab.ijs.si/~blazf/eu.png)
 
 Thanks to [Deleaker](http://deleaker.com) for supporting open-source projects.
