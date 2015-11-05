@@ -1043,6 +1043,8 @@ void TVizMapFactory::MakeFlat(PSVMTrainSet Set,
         const int& MxStep, const int& MxSecs, const double& MnDiff, 
         const bool& RndStartPos, PNotify Notify) {
 
+	printf("TrainSet in MakeFlat: %d, %d\n", Set->Dim(), Set->Len());
+
     const int Len = Set->Len();
     //const int Dim = Set->Dim();
     const int EqN = (Len*(Len - 1))/2;
@@ -1122,6 +1124,8 @@ void TVizMapFactory::MakeFlat(PSVMTrainSet Set,
     for (int i = 0; i < Len; i++) {
         DocPointV.Add(TFltV::GetV(x[i], y[i]));
     }
+	printf("DocPointV in MakeFlat: %d, %d\n", DocPointV.Len(), DocPointV[0].Len());
+
 }
 
 void TVizMapFactory::NormalizePoints(TVec<TFltV>& PointV) {

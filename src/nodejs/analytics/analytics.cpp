@@ -2725,3 +2725,64 @@ void TNodeJsTokenizer::getParagraphs(const v8::FunctionCallbackInfo<v8::Value>& 
 
 	Args.GetReturnValue().Set(TNodeJsUtil::GetStrArr(ParagraphV));
 }
+
+/////////////////////////////////////////////
+// JsVisual
+void TNodeJsMDS::Init(v8::Handle<v8::Object> exports) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsMDS>);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer.
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+	// Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "fitTransform", _fitTransform);
+
+	// properties
+	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsMDS* TNodeJsMDS::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (Args.Length() > 0 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+		// load the model from the input stream
+		TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+		return new TNodeJsMDS(*JsFIn->SIn);
+	}
+	else {
+		return new TNodeJsMDS();
+	}
+}
+
+void TNodeJsMDS::fitTransform(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "MDS.fitTransform: expecting 1 argument!");
+	PSVMTrainSet TrainSet;
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
+		const TFltVV& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0)->Mat;
+		TrainSet = TRefDenseTrainSet::New(Mat, TFltV(Mat.GetCols()));
+	}
+	else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
+		const TVec<TIntFltKdV>& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0)->Mat;
+		TrainSet = TRefSparseTrainSet::New(Mat, TFltV(Mat[0].Len()));
+	}
+	else {
+		throw TExcept::New("MDS.fitTransform: argument not a sparse or dense matrix!");
+	}
+	TVec<TFltV> Temp;
+	printf("TrainSet: %d, %d\n", TrainSet->Dim(), TrainSet->Len());
+	TVizMapFactory::MakeFlat(TrainSet, TVizDistType::vdtEucl, Temp, 1000, 60, 1e-6, true, TQm::TEnv::Logger);
+	TFltVV Result(Temp.Len(), Temp[0].Len());
+	for (int RowN = 0; RowN < Temp.Len(); RowN++) {
+		for (int ColN = 0; ColN < Temp[0].Len(); ColN++) {
+			Result(RowN, ColN) = Temp[RowN][ColN];
+		}
+	}
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
+}
