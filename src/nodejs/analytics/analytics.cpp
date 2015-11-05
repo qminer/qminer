@@ -1201,7 +1201,7 @@ TNodeJsLogReg* TNodeJsLogReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Val
 			const double Lambda = ArgJson->IsObjKey("lambda") ? ArgJson->GetObjNum("lambda") : 1;
 			const bool IncludeIntercept = ArgJson->IsObjKey("intercept") ? ArgJson->GetObjBool("intercept") : false;
 
-			return new TNodeJsLogReg(TRegression::TLogReg(Lambda, IncludeIntercept));
+			return new TNodeJsLogReg(TClassification::TLogReg(Lambda, IncludeIntercept));
 		}
 		else {
 			throw TExcept::New("new LogReg: wrong arguments in constructor!");
@@ -1481,6 +1481,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getFtrBounds", _getFtrBounds);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "stateIds", _stateIds);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateWgtV", _getStateWgtV);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getClassifyTree", _getClassifyTree);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTransitionModel", _getTransitionModel);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onStateChanged", _onStateChanged);
@@ -1900,6 +1901,18 @@ void TNodeJsStreamStory::getStateWgtV(const v8::FunctionCallbackInfo<v8::Value>&
 	}
 
 	Args.GetReturnValue().Set(JsWgtV);
+}
+
+void TNodeJsStreamStory::getClassifyTree(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const PJsonVal TreeJson = JsStreamStory->StreamStory->GetStateClassifyTree(StateId);
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, TreeJson));
 }
 
 void TNodeJsStreamStory::onStateChanged(const v8::FunctionCallbackInfo<v8::Value>& Args) {

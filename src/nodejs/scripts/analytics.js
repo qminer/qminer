@@ -2145,7 +2145,6 @@ module.exports = exports = function (pathQmBinary) {
 	    	// FEATURE HELPER FUNCTIONS
 	    	//===================================================
 
-
 	    	function getFtrNames(ftrSpace) {
 	    		var names = [];
 
@@ -2226,6 +2225,16 @@ module.exports = exports = function (pathQmBinary) {
 	    		} else {
 	    			return controlFtrSpace.invertFeatureVector(mc.fullCoords(stateId, false))[ftrIdx - obsFtrSpace.dims.length];
 	    		}
+	    	}
+	    	
+	    	function invertFeature(ftrId, val) {
+	    		var nObsFtrs = getObsFtrCount();
+
+    			if (ftrId < nObsFtrs) {
+	    			return obsFtrSpace.invertFeature(ftrId, val);
+    			} else {
+    				return controlFtrSpace.invertFeature(ftrId - nObsFtrs, val);
+    			}
 	    	}
 
 	    	function getFtrBounds(ftrId) {
@@ -2524,7 +2533,35 @@ module.exports = exports = function (pathQmBinary) {
 	    			var isLeaf = mc.isLeaf(stateId);
 	    			var stateNm = mc.getStateName(stateId);
 	    			var wgts = mc.getStateWgtV(stateId);
+	    			var classifyTree = mc.getClassifyTree(stateId);
 
+	    			(function annotateDecisionTree(node) {
+	        			var features = node.features;
+	        			var children = node.children;
+	        			var cutFtr = node.cut;
+	        			
+	        			var names = getObsFtrNames();
+	        			
+	        			for (var i = 0; i < features.length; i++) {
+	        				var val = features[i];
+	        				features[i] = {
+	        					name: names[i],
+	        					value: invertFeature(i, val)
+	        				}
+	        			}
+	        			
+	        			if (cutFtr != null) {
+	        				node.cut = {
+	        					name: names[cutFtr.id],
+	        					value: invertFeature(cutFtr.id, cutFtr.value)
+	        				}
+	        			}
+	        			
+	        			for (var i = 0; i < children.length; i++) {
+	        				annotateDecisionTree(children[i]);
+	        			}
+	        		})(classifyTree);
+	    			
 	    			var features = getFtrDescriptions(stateId);
 
 	    			return {
@@ -2535,7 +2572,8 @@ module.exports = exports = function (pathQmBinary) {
 	    				features: features,
 	    				futureStates: futureStates,
 	    				pastStates: pastStates,
-	    				featureWeights: wgts
+	    				featureWeights: wgts,
+	    				classifyTree: classifyTree
 	    			};
 	    		},
 

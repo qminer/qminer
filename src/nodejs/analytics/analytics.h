@@ -1263,9 +1263,9 @@ public:
 	static const TStr GetClassId() { return "LogReg"; }
 
 private:
-	TRegression::TLogReg LogReg;
+	TClassification::TLogReg LogReg;
 
-	TNodeJsLogReg(const TRegression::TLogReg& _LogReg): LogReg(_LogReg) {}
+	TNodeJsLogReg(const TClassification::TLogReg& _LogReg): LogReg(_LogReg) {}
 
 	static TNodeJsLogReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
@@ -1696,6 +1696,15 @@ public:
 	 * @returns {Array} - An array of weights.
 	 */
 	JsDeclareFunction(getStateWgtV);
+
+	/**
+	 * Returns a JSON representation of a decision tree, which classifies
+	 * this state against other states
+	 *
+	 * @param {Number} stateId
+	 * @returns {Object}
+	 */
+	JsDeclareFunction(getClassifyTree);
 
 	/**
 	 * Sets a callback function which is fired when the model changes states. An array of current states

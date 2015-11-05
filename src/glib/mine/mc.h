@@ -8,7 +8,7 @@
 
 namespace TMc {
 
-using namespace TRegression;
+using namespace TClassification;
 using namespace TDist;
 using namespace TClustering;
 
@@ -671,6 +671,7 @@ public:
 	friend class TPt<TStateAssist>;
 private:
 	TVec<TLogReg> ClassifyV;
+	TVec<TDecisionTree> DecisionTreeV;
 	TFltPrV FtrBoundV;
 
 	TRnd Rnd;
@@ -690,6 +691,7 @@ public:
 
 	const TFltPr& GetFtrBounds(const int& FtrId) const;
 	void GetSuggestFtrs(const int& StateId, TFltV& WgtV) const;
+	PJsonVal GetStateClassifyTree(const int& StateId) const;
 };
 
 class TStreamStory;
@@ -773,7 +775,9 @@ public:
 	void GetTransitionHistogram(const int& SourceId, const int& TargetId, const int& FtrId,
 			TFltV& BinStartV, TFltV& ProbV) const;
 
+	// state explanations
 	void GetStateWgtV(const int& StateId, TFltV& WgtV) const;
+	PJsonVal GetStateClassifyTree(const int& StateId) const;
 
 	// stores the transition model for the current height into Mat
 	void GetTransitionModel(const double& Height, TFltVV& Mat) const;

@@ -706,8 +706,10 @@ void THierarch::UpdateHistory(const int& CurrLeafId) {
 }
 
 void THierarch::GetStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const {
-	for (int i = 0; i < HierarchV.Len(); i++) {
-		StateIdHeightPrV.Add(TIntFltPr(i, GetStateHeight(i)));
+	const int NStates = GetStates();
+
+	for (int StateId = 0; StateId < NStates; StateId++) {
+		StateIdHeightPrV.Add(TIntFltPr(StateId, GetStateHeight(StateId)));
 	}
 }
 
@@ -2210,6 +2212,7 @@ void TUiHelper::GetMoveDir(const TFltPr& Pos1, const TFltPr& Pos2, TFltPr& Dir) 
 // State assistant
 TStateAssist::TStateAssist(const bool _Verbose):
 		ClassifyV(),
+		DecisionTreeV(),
 		FtrBoundV(),
 		Rnd(1),
 		Verbose(_Verbose),
@@ -2217,6 +2220,7 @@ TStateAssist::TStateAssist(const bool _Verbose):
 
 TStateAssist::TStateAssist(TSIn& SIn):
 		ClassifyV(SIn),
+		DecisionTreeV(SIn),
 		FtrBoundV(SIn),
 		Rnd(SIn),
 		Verbose(TBool(SIn)) {
@@ -2226,6 +2230,7 @@ TStateAssist::TStateAssist(TSIn& SIn):
 
 void TStateAssist::Save(TSOut& SOut) const {
 	ClassifyV.Save(SOut);
+	DecisionTreeV.Save(SOut);
 	FtrBoundV.Save(SOut);
 	Rnd.Save(SOut);
 	TBool(Verbose).Save(SOut);
@@ -2234,6 +2239,9 @@ void TStateAssist::Save(TSOut& SOut) const {
 void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
 		const PStateIdentifier& Clust, const PHierarch& Hierarch) {
 	InitFtrBounds(ObsFtrVV, ContrFtrVV);
+
+	ClassifyV.Clr();
+	DecisionTreeV.Clr();
 
 	const int Dim = ObsFtrVV.GetRows();
 
@@ -2249,10 +2257,11 @@ void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
 		const double Height = StateIdHeightPr.Val2;
 
 		ClassifyV.Add(TLogReg(1, true));
+		DecisionTreeV.Add(TDecisionTree());
 
 		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Computing state assist for state %d ...", StateId);
 
-		TStateIdV StateIdV; TStateSetV StateSetV;
+		TStateIdV StateIdV; TStateSetV StateSetV; TIntSet TargetStateSet;
 		Hierarch->GetStateSetsAtHeight(Height, StateIdV, StateSetV);
 
 		const int NStates = StateIdV.Len();
@@ -2267,6 +2276,10 @@ void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
 		for (int StateN = 0; StateN < NStates; StateN++) {
 			const TIntSet StateSet(StateSetV[StateN]);
 			TIntV& StateFtrIdxV = StateIdFtrIdxVV[StateN];
+
+			if (StateIdV[StateN] == StateId) {
+				TargetStateSet = StateSet;
+			}
 
 			AssignV.FindAllSatisfy([&](const TInt& Id) { return StateSet.IsKey(Id); }, StateFtrIdxV);
 
@@ -2307,6 +2320,7 @@ void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
 		// construct a feature matrix
 		TFltVV InstanceVV(Dim, TargetIdxV.Len() + NonTargetIdxV.Len());
 		TFltV y(TargetIdxV.Len() + NonTargetIdxV.Len());
+
 		for (int ColIdx = 0; ColIdx < TargetIdxV.Len(); ColIdx++) {
 			const TInt& TargetColN = TargetIdxV[ColIdx];
 			const TInt& NonTargetColN = NonTargetIdxV[ColIdx];
@@ -2323,8 +2337,16 @@ void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
 			y[NonTargetColIdx] = 0;
 		}
 
+		TFltV DecisionTreeY(AssignV.Len());
+		for (int ColN = 0; ColN < ObsFtrVV.GetCols(); ColN++) {
+			DecisionTreeY[ColN] = TargetStateSet.IsKey(AssignV[ColN]) ? 1 : 0;
+		}
+
 		// fit a model
+		Notify->OnNotify(TNotifyType::ntInfo, "Building a logistic regression model ...");
 		ClassifyV.Last().Fit(InstanceVV, y);
+		Notify->OnNotify(TNotifyType::ntInfo, "Building a decision tree ...");
+		DecisionTreeV.Last().Fit(ObsFtrVV, DecisionTreeY, Notify);
 	}
 }
 
@@ -2368,6 +2390,11 @@ void TStateAssist::GetSuggestFtrs(const int& StateId, TFltV& WgtV) const {
 
 	const TLogReg& Classify = ClassifyV[StateId];
 	Classify.GetWgtV(WgtV);
+}
+
+PJsonVal TStateAssist::GetStateClassifyTree(const int& StateId) const {
+	EAssertR(0 <= StateId && StateId < DecisionTreeV.Len(), "Invalid StateId!");
+	return DecisionTreeV[StateId].GetJson();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -2712,6 +2739,15 @@ void TStreamStory::GetStateWgtV(const int& StateId, TFltV& WgtV) const {
 		StateAssist->GetSuggestFtrs(StateId, WgtV);
 	} catch (const PExcept& Except) {
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "TStreamStory::GetStateWgtV: Failed to fetch weight vector for state %d: %s", StateId, Except->GetMsgStr().CStr());
+		throw Except;
+	}
+}
+
+PJsonVal TStreamStory::GetStateClassifyTree(const int& StateId) const {
+	try {
+		return StateAssist->GetStateClassifyTree(StateId);
+	} catch (const PExcept& Except) {
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "TStreamStory::GetStateClassifyTree: Exceptino while fetching classification tree for state %d: %s", StateId, Except->GetMsgStr().CStr());
 		throw Except;
 	}
 }
