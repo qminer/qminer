@@ -427,7 +427,7 @@ $windows({
     }
     else if (rc != ERROR_SUCCESS)
     {
-        return ("cannot get network adapter list"), false;
+        return /*("cannot get network adapter list"),*/ false;
     }
 
     bool found = false, gotten = false;
@@ -451,10 +451,10 @@ $windows({
     delete [] reinterpret_cast<char*>(pAdapterInfo);
 
     if( !gotten )
-        return ("cannot get network adapter list"), false;
+        return /*("cannot get network adapter list"),*/ false;
 
     if (!found)
-        return ("no Ethernet adapter found"), false;
+        return /*("no Ethernet adapter found"),*/ false;
 
     return true;
 })
@@ -462,7 +462,7 @@ $windows({
 $bsd({
     struct ifaddrs* ifaphead;
     int rc = getifaddrs(&ifaphead);
-    if (rc) return ("cannot get network adapter list"), false;
+    if (rc) return /*("cannot get network adapter list"),*/ false;
 
     bool foundAdapter = false;
     for (struct ifaddrs* ifap = ifaphead; ifap; ifap = ifap->ifa_next)
@@ -482,14 +482,14 @@ $bsd({
         }
     }
     freeifaddrs(ifaphead);
-    if (!foundAdapter) return ("cannot determine MAC address (no suitable network adapter found)"), false;
+    if (!foundAdapter) return /*("cannot determine MAC address (no suitable network adapter found)"),*/ false;
     return true;
 })
 
 $osx({
     struct ifaddrs* ifaphead;
     int rc = getifaddrs(&ifaphead);
-    if (rc) return ("cannot get network adapter list"), false;
+    if (rc) return /*("cannot get network adapter list"),*/ false;
 
     bool foundAdapter = false;
     for (struct ifaddrs* ifap = ifaphead; ifap; ifap = ifap->ifa_next)
@@ -509,7 +509,7 @@ $osx({
         }
     }
     freeifaddrs(ifaphead);
-    if (!foundAdapter) return ("cannot determine MAC address (no suitable network adapter found)"), false;
+    if (!foundAdapter) return /*("cannot determine MAC address (no suitable network adapter found)"),*/ false;
     return true;
 })
 
@@ -517,12 +517,12 @@ $linux({
     struct ifreq ifr;
 
     int s = socket(PF_INET, SOCK_DGRAM, 0);
-    if (s == -1) return ("cannot open socket"), false;
+    if (s == -1) return /*("cannot open socket"),*/ false;
 
     std::strcpy(ifr.ifr_name, "eth0");
     int rc = ioctl(s, SIOCGIFHWADDR, &ifr);
     close(s);
-    if (rc < 0) return ("cannot get MAC address"), false;
+    if (rc < 0) return /*("cannot get MAC address"),*/ false;
     struct sockaddr* sa = reinterpret_cast<struct sockaddr*>(&ifr.ifr_addr);
     _node.resize( sizeof(sa->sa_data) );
     std::memcpy(_node.data(), sa->sa_data, _node.size() );
@@ -532,13 +532,13 @@ $linux({
 $unix({
     char name[MAXHOSTNAMELEN];
     if (gethostname(name, sizeof(name)))
-        return ("cannot get host name"), false;
+        return /*("cannot get host name"),*/ false;
 
     struct hostent* pHost = gethostbyname(name);
-    if (!pHost) return ("cannot get host IP address"), false;
+    if (!pHost) return /*("cannot get host IP address"),*/ false;
 
     int s = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (s == -1) return ("cannot open socket"), false;
+    if (s == -1) return /*("cannot open socket"),*/ false;
 
     struct arpreq ar;
     std::memset(&ar, 0, sizeof(ar));
@@ -547,7 +547,7 @@ $unix({
     std::memcpy(&pAddr->sin_addr, *pHost->h_addr_list, sizeof(struct in_addr));
     int rc = ioctl(s, SIOCGARP, &ar);
     close(s);
-    if (rc < 0) return ("cannot get MAC address"), false;
+    if (rc < 0) return /*("cannot get MAC address"),*/ false;
     _node.resize( sizeof(ar.arp_ha.sa_data) );
     std::memcpy(_node.data(), ar.arp_ha.sa_data, _node.size());
     return true;

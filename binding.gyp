@@ -45,7 +45,7 @@
             # operating system specific parameters
             ['OS == "linux"', {
                 "link_settings": {
-                    "libraries": [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ],
+                    "libraries": [ '-lrt', '-fopenmp', '<(LIN_ALG_LIB)' ],
                 },
                 # GCC flags
                 'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
