@@ -50,7 +50,7 @@ public:
 };
 
 // LIBSVM for Eps-Support Vector Regression for sparse input
-inline TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV,
+static TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV,
         const double& Eps, const double& Cost) {
         // Asserts for input arguments
     EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
@@ -91,7 +91,7 @@ inline TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV
 
     const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
     // TODO Propagate LIBSVM's error message
-    if (error_msg != NULL) { printf("[LIBSVM] %s\n", error_msg); }
+    // if (error_msg != NULL) { printf("[LIBSVM] %s\n", error_msg); }
     EAssertR(error_msg == NULL, "Invalid LIBSVM parameters.");
 
     svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
@@ -118,7 +118,7 @@ inline TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV
 }
 
 // LIBSVM for Eps-Support Vector Regression for TFltVV input
-inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
+static TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
         const double& Eps, const double& Cost) {
 
     // Asserts for input arguments
@@ -170,14 +170,13 @@ inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
 
     const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
     // TODO Propagate LIBSVM's error message
-    if (error_msg != NULL) { printf("[LIBSVM] %s\n", error_msg); }
+    // if (error_msg != NULL) { printf("[LIBSVM] %s\n", error_msg); }
     EAssertR(error_msg == NULL, "Invalid LIBSVM parameters.");
 
     svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
 
     TFltV WgtV(svm_model->l);
     TFlt Bias = svm_model->rho[0];
-    printf("svl_model->l = %d\n", svm_model->l);
     EAssertR(TLinAlg::Norm(WgtV) == 0.0, "Expected a zero weight vector.");
     for (int Idx = 0; Idx < svm_model->l; ++Idx) {
         svm_node_t* SV = svm_model->SV[Idx];
@@ -197,7 +196,7 @@ inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
 }
 
 // LIBSVM for C-Support Vector Classification for sparse input
-inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV,
+static TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV,
         const double& Cost) {
 
     // Asserts for input arguments
@@ -241,7 +240,7 @@ inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& 
 
     const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
     // TODO Propagate LIBSVM's error message
-    if (error_msg != NULL) { printf("[LIBSVM] %s\n", error_msg); }
+    // if (error_msg != NULL) { printf("[LIBSVM] %s\n", error_msg); }
     EAssertR(error_msg == NULL, "Invalid LIBSVM parameters.");
 
     svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
@@ -268,7 +267,7 @@ inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& 
 }
 
 // Use LIBSVM for C-Support Vector Classification
-inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV,
+static TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV,
         const double& Cost) {
 
     // Asserts for input arguments
@@ -323,7 +322,7 @@ inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV,
 
     const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
     // TODO Propagate LIBSVM's error message
-    if (error_msg != NULL) { printf("[LIBSVM] %s\n", error_msg); }
+    // if (error_msg != NULL) { printf("[LIBSVM] %s\n", error_msg); }
     EAssertR(error_msg == NULL, "Invalid LIBSVM parameters.");
 
     svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
