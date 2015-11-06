@@ -9,14 +9,9 @@ QMiner is an analytics platform for large-scale real-time streams containing str
 unstructured data. It is designed for scaling to millions of instances on high-end commodity 
 hardware, providing efficient storage, retrieval and analytics mechanisms with real-time response.
 
-**[Main project homepage](http://qminer.ijs.si/)**
-
-**[Mailing list](https://groups.google.com/forum/#!forum/qminer)**
-
+**[Project homepage](http://qminer.ijs.si/)**
 
 ### Install 
-
-**Install:**
 
 	npm install qminer
 
@@ -32,7 +27,7 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 + [Windows](https://github.com/qminer/qminer/wiki/Installation-on-Windows)
 + [Mac OS X](https://github.com/qminer/qminer/wiki/Installation-on-Mac-OSX)
 
-## Documentation
+### Documentation
 
 + [Examples](https://github.com/qminer/qminer/wiki/Example)
 + [Architecture](https://github.com/qminer/qminer/wiki/Architecture)
@@ -42,6 +37,7 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
   + [`analytics` module](https://rawgit.com/qminer/qminer/master/nodedoc/module-analytics.html)
 + [C++ Documentation](http://agava.ijs.si/~blazf/qminer/)
 + [Roadmap](https://github.com/qminer/qminer/wiki/Roadmap)
++ [Mailing list](https://groups.google.com/forum/#!forum/qminer)**
 
 ## Acknowledgments
 
