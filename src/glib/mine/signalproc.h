@@ -238,6 +238,18 @@ private:
 public:
 	TBuffer(const int& BufferLen_): BufferLen(BufferLen_), 
         NextValN(0), ValV(BufferLen_, 0) { }
+
+	// serialization
+	void Load(TSIn& SIn) {
+		BufferLen.Load(SIn);
+		NextValN.Load(SIn);
+		ValV.Load(SIn);
+	}
+	void Save(TSOut& SOut) const {
+		BufferLen.Save(SOut);
+		NextValN.Save(SOut);
+		ValV.Save(SOut);
+	}
     
     /// add new value to the buffer
     void Update(const TVal& Val){
