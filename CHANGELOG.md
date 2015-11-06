@@ -1,5 +1,19 @@
 # QMiner Change Log
 
+### 6 Nov 2015
+
+**New version: 3.2.0**
+
+**non-breaking with new features**
+
+Feature:
+- Added build time to flags (`require(‘qminer’).flags`)
+
+Other:
+- no longer depends on `libuuid` on Linux and Mac OSX, now we include `sole` library to handle this task.
+- can build on ARM v7 (RaspberryPi 2)
+
+
 ### 30 Oct 2015
 
 **New version: 3.1.0**

@@ -182,6 +182,9 @@ void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo
 
 	v8::Handle<v8::Object> JsObj = v8::Object::New(Isolate);
 
+	TStr BuildTime = TStr(__DATE__) + " " + TStr(__TIME__);
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "buildTime")), v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, BuildTime.CStr())));
+
 #ifdef GLib_WIN
 	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "win")), v8::Boolean::New(Isolate, true));
 #else

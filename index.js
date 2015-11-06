@@ -10,6 +10,8 @@ process.env['QMINER_HOME'] = __dirname + "/src/glib/bin/";
 var pathQmBinary = __dirname + '/out/qm.node';
 	
 module.exports = exports = require('./src/nodejs/scripts/qm.js')(pathQmBinary);
+exports.path = require('path').normalize(pathQmBinary);
+exports.version = require(__dirname + '/package.json').version;
 exports.analytics = require('./src/nodejs/scripts/analytics.js')(pathQmBinary);
 exports.fs = require('./src/nodejs/scripts/fs.js')(pathQmBinary);
 exports.ht = require('./src/nodejs/scripts/ht.js')(pathQmBinary);
