@@ -1,9 +1,11 @@
 QMiner
 ======
 
-| Linux | Mac | Windows |
-| -------- | --- | ---  |
-| [![Build Status](https://travis-ci.org/qminer/qminer.svg?branch=master)](https://travis-ci.org/qminer/qminer) | [![Build Status](https://travis-ci.org/qminer/qminer.svg?branch=osx-binaries)](https://travis-ci.org/qminer/qminer) | [![Build status](https://ci.appveyor.com/api/projects/status/3klwdwgr2aqavtr2?svg=true)](https://ci.appveyor.com/project/rupnikj/qminer-19v7t) |
+[![NPM Version][npm-image]][npm-url]
+[![NPM Downloads][downloads-image]][downloads-url]
+[![Linux Build][travis-linux-image]][travis-linux-url]
+[![Linux Build][travis-mac-image]][travis-mac-url]
+[![Windows Build][appveyor-image]][appveyor-url]
 
 QMiner is an analytics platform for large-scale real-time streams containing structured and
 unstructured data. It is designed for scaling to millions of instances on high-end commodity 
@@ -51,3 +53,14 @@ This project has received funding from the European Union's Horizon 2020 researc
 ![](http://ailab.ijs.si/~blazf/eu.png)
 
 Thanks to [Deleaker](http://deleaker.com) for supporting open-source projects.
+
+[npm-image]: https://img.shields.io/npm/v/qminer.svg
+[npm-url]: https://npmjs.org/package/qminer
+[downloads-image]: https://img.shields.io/npm/dm/qminer.svg
+[downloads-url]: https://npmjs.org/package/qminer
+[travis-linux-image]: https://img.shields.io/travis/qminer/qminer/master.svg?label=linux
+[travis-linux-url]: https://travis-ci.org/qminer/qminer
+[travis-mac-image]: https://img.shields.io/travis/qminer/qminer/osx-binaries.svg?label=mac
+[travis-mac-url]: https://travis-ci.org/qminer/qminer
+[appveyor-image]: https://img.shields.io/appveyor/ci/rupnikj/qminer/master.svg?label=windows
+[appveyor-url]: https://ci.appveyor.com/project/rupnikj/qminer
