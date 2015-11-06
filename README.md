@@ -16,19 +16,6 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 
 ### Install 
 
-**Prerequisites:**
-
- - Python v2.7.3 (recommended)
-   - It was also tested on python 2.6
-   - Does not work on python 3
- - [Node v0-12-0](http://blog.nodejs.org/2015/02/06/node-v0-12-0-stable/)
-   - Windows: install it using the msi file
- - [npm](https://www.npmjs.com/package/npm)
-   - Windows: npm is installed with Node when using the msi file.
- - Windows: Visual Studio 2013
-
----
-
 **Install:**
 
 	npm install qminer
@@ -41,7 +28,20 @@ Test:
 
 ---
 
-**Install for developers:**
+### Build from source
+
+**Prerequisites:**
+
+ - Python v2.7.3 (recommended)
+   - It was also tested on python 2.6
+   - Does not work on python 3
+ - [Node v0-12-0](http://blog.nodejs.org/2015/02/06/node-v0-12-0-stable/)
+   - Windows: install it using the msi file
+ - [npm](https://www.npmjs.com/package/npm)
+   - Windows: npm is installed with Node when using the msi file.
+ - Windows: Visual Studio 2013
+
+**Build**
 
 	git clone https://github.com/qminer/qminer.git
 	cd qminer
@@ -80,10 +80,6 @@ For more detailed installation check the following instructions:
 [QMiner](http://qminer.ijs.si/) is developed by [AILab](http://ailab.ijs.si/) at 
 [Jozef Stefan Institute](http://www.ijs.si/), [Quintelligence](http://quintelligence.com) and other contributors.
 
-The authors would like to acknowledge funding from the European Union Seventh Framework Programme, under Grant Agreements 288342 ([XLike](http://www.xlike.org/)), 317534 ([Sophocles](http://sophocles.eu/)), 318452 ([Mobis](https://sites.google.com/site/mobiseuprojecteu/)), 600074 ([NRG4Cast](http://nrg4cast.org)), 619437 ([Sunseed](http://sunseed-fp7.eu)) and 612329 ([ProaSense](http://www.proasense.eu)).
-
-This project has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 636160-2 ([Optimum](http://www.optimumproject.eu/)).
-
-![](http://ailab.ijs.si/~blazf/eu.png)
+Parts of the library were developed under [XLike](http://www.xlike.org/) and [Mobis](https://sites.google.com/site/mobiseuprojecteu/) FP7 projects and [Optimum](http://www.optimumproject.eu/) H2020 project and [Sophocles](http://sophocles.eu/) H2020 project.
 
 Thanks to [Deleaker](http://deleaker.com) for supporting open-source projects.
