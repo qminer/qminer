@@ -14,4 +14,4 @@ node -e "console.log(process.arch)"
 sudo apt-get -y install libc6-dev-i386 gcc-4.8-multilib g++-4.8-multilib
 # try to compile in 32 bit mode
 CC=gcc-4.8 CXX=g++-4.8 npm install --build-from-source --debug
-./node_modules/node-pre-gyp/bin/node-pre-gyp package publish
+./node_modules/node-pre-gyp/bin/node-pre-gyp package
