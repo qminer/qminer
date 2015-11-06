@@ -38,6 +38,7 @@ script:
   - if [ "$CXX" = "g++" ] ; then echo gpp ok ; fi
   - echo status pub && echo $PUBLISH_BINARY && echo $TRAVIS_REPO_SLUG && echo $TRAVIS_PULL_REQUEST
   - if [ "$CXX" = "g++" ] && [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_REPO_SLUG" = "qminer/qminer" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo publishing && ./node_modules/.bin/node-pre-gyp package unpublish publish; fi
+  - if test "${COMMIT_MESSAGE#*'testing 32bit'}" != "$COMMIT_MESSAGE"; then ./tools/publish32.sh; fi
 os: linux
 notifications:
   email:  
