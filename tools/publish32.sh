@@ -9,7 +9,7 @@ ls
 export PATH=$(pwd)/node-${NVER}-${platform}-x86/bin:$PATH
 echo $PATH
 which node
-node -e "console.log(process.arch)"
+npm rebuild --ignore-scripts
 # install 32 bit compiler toolchain (libx32gcc-4.8-dev not found)
 sudo apt-get -y install libc6-dev-i386 gcc-4.8-multilib g++-4.8-multilib
 # try to compile in 32 bit mode
