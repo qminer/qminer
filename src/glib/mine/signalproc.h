@@ -216,7 +216,8 @@ private:
 	TFlt pNo;
 public:
 	TCov() { };
-	TCov(const PJsonVal& ParamVal) { TCov(); };
+    TCov(const PJsonVal& ParamVal) { };
+
 	void Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV, const int& N);	
 	double GetCov() const { return (pNo > 1) ? (Cov / (pNo - 1)) : 0; }
@@ -763,7 +764,7 @@ public:
 	double GetChi2() const { return Chi2; }
 	/// Return P value
 	double GetP() const { return P; }
-	double GetDof() const {return DegreesOfFreedom;}
+	int GetDof() const {return DegreesOfFreedom;}
 	double GetAlpha() const {return Alpha;}
 	uint64 GetTmMSecs() const { return TmMSecs; }
 	/// Prints the model

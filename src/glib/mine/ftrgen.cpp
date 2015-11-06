@@ -273,6 +273,7 @@ void TBagOfWords::Clr() {
         // if hashing, allocate the document counts and set to zero
         DocFqV.Gen(HashDim); DocFqV.PutAll(0);
         OldDocFqV.Gen(HashDim); OldDocFqV.PutAll(0.0);
+        if (IsStoreHashWords()) { HashWordV.Clr(); }
     } else {
         // if normal vector space, just forget the existing tokens and document counts
         TokenSet.Clr(); DocFqV.Clr(); OldDocFqV.Clr();

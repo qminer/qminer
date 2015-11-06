@@ -1410,7 +1410,7 @@ TSlottedHistogram::TSlottedHistogram(const uint64 _Period, const uint64 _Slot, c
 	SlotGran = _Slot;
 	Bins = _Bins;
 	uint64 Slots = PeriodLen / SlotGran;
-	Dat.Gen(Slots);
+	Dat.Gen((int)Slots);
 	for (int i = 0; i < Dat.Len(); i++) {
 		Dat[i] = TSignalProc::TOnlineHistogram(0, Bins, Bins, false, false);
 	}
@@ -1471,7 +1471,7 @@ void TSlottedHistogram::GetStats(const uint64 TsMin, const uint64 TsMax, TFltV& 
 void TOnlineSlottedHistogram::OnAddRec(const TRec& Rec) {
 	if (BufferedP) {
 		LastTm = InAggrValBuffer->GetInTmMSecs();
-		Model->Add(InAggrValBuffer->GetInTmMSecs(), InAggrValBuffer->GetInFlt());
+		Model->Add(InAggrValBuffer->GetInTmMSecs(), (int)InAggrValBuffer->GetInFlt());
 		TFltV ForgetV;
 		TUInt64V ForgetTmV;
 		InAggrValBuffer->GetOutFltV(ForgetV);
@@ -1481,7 +1481,7 @@ void TOnlineSlottedHistogram::OnAddRec(const TRec& Rec) {
 		}
 	} else {
 		LastTm = InAggrVal->GetTmMSecs();
-		Model->Add(InAggrVal->GetTmMSecs(), InAggrVal->GetFlt());
+		Model->Add(InAggrVal->GetTmMSecs(), (int)InAggrVal->GetFlt());
 	}
 }
 
@@ -1560,10 +1560,10 @@ void TOnlineSlottedHistogram::SaveState(TSOut& SOut) const {
 };
 
 ///////////////////////////////
-/// Histogram-difference stream aggregate
+/// Vector-difference stream aggregate
 
 /// constructor
-THistogramDiff::THistogramDiff(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+TVecDiff::TVecDiff(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
 	// parse out input aggregate
 	TStr InStoreNmX = ParamVal->GetObjStr("storeX");
 	TStr InStoreNmY = ParamVal->GetObjStr("storeY");
@@ -1585,12 +1585,12 @@ THistogramDiff::THistogramDiff(const TWPt<TBase>& Base, const PJsonVal& ParamVal
 }
 
 /// factory method
-PStreamAggr THistogramDiff::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
-	return new THistogramDiff(Base, ParamVal);
+PStreamAggr TVecDiff::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+	return new TVecDiff(Base, ParamVal);
 }
 
 /// returns the vector of frequencies
-void THistogramDiff::GetFltV(TFltV& ValV) const {
+void TVecDiff::GetFltV(TFltV& ValV) const {
 	TFltV ValV1, ValV2;
 	InAggrValX->GetFltV(ValV1);
 	InAggrValY->GetFltV(ValV2);
@@ -1600,7 +1600,7 @@ void THistogramDiff::GetFltV(TFltV& ValV) const {
 }
 
 /// serialization to JSon
-PJsonVal THistogramDiff::SaveJson(const int& Limit) const {
+PJsonVal TVecDiff::SaveJson(const int& Limit) const {
 	PJsonVal Res = TJsonVal::NewObj();
 	Res->AddToObj("name", GetAggrNm());
 	Res->AddToObj("aggr1", InAggrX->SaveJson(Limit));

@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
- 
+
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
 var qm = require('qminer');
@@ -186,7 +186,7 @@ describe('Feature Space Tests', function () {
             assert.equal(vec.length, 1);
             assert.ok(0 <= vec[0] <= 1.0);
         })
-        it('should return a vector for the first record in store: numeric', function () {        	
+        it('should return a vector for the first record in store: numeric', function () {
         	var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
             var vec = ftr.extractVector(Store[0]);
             assert.equal(vec.length, 1);
@@ -233,12 +233,9 @@ describe('Feature Space Tests', function () {
             var vec = ftr.extractVector(Store[0]);
             assert.equal(vec.length, 0);
         })
-        it.skip('should return a vector for the first record in store: dateWindow', function () {
+        it('should return a vector for the first record in store: dateWindow', function () {
             var ftr = new qm.FeatureSpace(base, { type: "dateWindow", source: "FtrSpaceTest", field: "Date", window: 1, unit: "12hours" });
-            console.log('Here!');
             var vec = ftr.extractVector(Store[0]);
-            console.log('There!');
-            console.log(vec);
             vec.print();
         })
         it('should return a vector for the first record in store: jsfunc', function () {
@@ -348,12 +345,12 @@ describe('Feature Space Tests', function () {
             assert.equal(vec.at(0), 1);
             assert.equal(vec.at(3), 1);
         })
-        it.skip('should return a sparse vector for the first record in store: text', function () {
+        it('should return a sparse vector for the first record in store: text', function () {
             var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", field: "Text" });
             var vec = ftr.extractSparseVector(Store[0]);
             assert.equal(vec.dim, 0);
         })
-        it.skip('should return a sparse vector for the first record in store: pair', function () {
+        it('should return a sparse vector for the first record in store: pair', function () {
             var ftr = new qm.FeatureSpace(base, {
                 type: "pair", source: "FtrSpaceTest",
                 first: { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
@@ -1084,7 +1081,7 @@ describe('Feature Space Tests', function () {
             assert.equal(out_vec.length, 3);
             assert.equal(out_vec.at(0), 1);
         })
-        it.skip('should throw an exception if the vector length is less than the start index of the extractor', function () {
+        it('should throw an exception if the vector length is less than the start index of the extractor', function () {
             var ftr = new qm.FeatureSpace(base, [
                 { type: "numeric", source: "FtrSpaceTest", field: "Value" },
                 { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
@@ -1187,7 +1184,7 @@ describe('Feature Space Tests', function () {
             assert.eqtol(ftr.extractVector(Store[0]).at(0), -1, 0.0000001);
             assert.eqtol(ftr.extractVector(Store[1]).at(0), 0, 0.0000001);
             assert.eqtol(ftr.extractVector(Store[2]).at(0), 1, 0.0000001);
-			
+
             for (var i = 3; i < 11; i++){
             	ftr.updateRecord(Store[i]);
 			}
@@ -1667,7 +1664,7 @@ describe('Feature Space Tests', function () {
             ftr.updateRecord(Store[14]);
 
             assert.equal(ftr.extractVector(Store[11]).length, 15);
-           
+
             assert.eqtol(ftr.extractVector(Store[11]).at(0), Math.log(4));
             assert.eqtol(ftr.extractVector(Store[11]).at(1), Math.log(4));
             assert.eqtol(ftr.extractVector(Store[11]).at(2), Math.log(4));

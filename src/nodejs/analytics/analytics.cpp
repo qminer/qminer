@@ -274,7 +274,6 @@ void TNodeJsSvmModel::ClrModel() {
 
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Classification
-v8::Persistent<v8::Function> TNodeJsSVC::constructor;
 
 void TNodeJsSVC::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -296,7 +295,6 @@ void TNodeJsSVC::Init(v8::Handle<v8::Object> exports) {
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
 
-	constructor.Reset(Isolate, tpl->GetFunction());
 	exports->Set(v8::String::NewFromUtf8(Isolate, "SVC"), tpl->GetFunction());
 }
 
@@ -365,7 +363,6 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Regression
-v8::Persistent<v8::Function> TNodeJsSVR::constructor;
 
 void TNodeJsSVR::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -387,7 +384,6 @@ void TNodeJsSVR::Init(v8::Handle<v8::Object> exports) {
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
 
-	constructor.Reset(Isolate, tpl->GetFunction());
 	exports->Set(v8::String::NewFromUtf8(Isolate, "SVR"), tpl->GetFunction());
 }
 
@@ -1484,6 +1480,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 
 	// Add all methods, getters and setters here.
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "fitAsync", _fitAsync);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "update", _update);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "futureStates", _futureStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "pastStates", _pastStates);
@@ -1571,17 +1568,12 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 		const int NHistBins = ClustJson->IsObjKey("histogramBins") ? ClustJson->GetObjInt("histogramBins") : 20;
 
 		const TClustering::PDnsKMeans KMeans = GetClust(ClustJson, Rnd);
+		const TMc::PStateIdentifier StateIdentifier = new TMc::TStateIdentifier(KMeans, NHistBins, Sample, Rnd, Verbose);
+		const TMc::PTransitionModeler MChain = new TMc::TCtModeler(TimeUnit, DeltaTm, Verbose);
+		const TMc::PHierarch Hierarch = new TMc::THierarch(NPastStates + 1, Verbose);
 
-		// state identifier
-		TMc::PStateIdentifier StateIdentifier = new TMc::TStateIdentifier(KMeans, NHistBins, Sample, Rnd, Verbose);
-		// Markov chain
-		TMc::PMChain MChain = new TMc::TCtMChain(TimeUnit, DeltaTm, Verbose);
-		// create the model
-		TMc::PHierarch Hierarch = new TMc::THierarch(NPastStates + 1, Verbose);
 		// finish
-		TMc::PStreamStory StreamStory = new TMc::TStreamStory(StateIdentifier, MChain, Hierarch, Rnd, Verbose);
-
-		return new TNodeJsStreamStory(StreamStory);
+		return new TNodeJsStreamStory(new TMc::TStreamStory(StateIdentifier, MChain, Hierarch, Rnd, Verbose));
 	}
 }
 
@@ -1591,7 +1583,7 @@ void TNodeJsStreamStory::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	EAssertR(Args.Length() == 1, "hmc.fit expects 1 argument!");
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 	v8::Local<v8::Object> ArgObj = Args[0]->ToObject();
 
 	EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "observations", TNodeJsFltVV::GetClassId()), "Missing field observations or invalid class!");
@@ -1608,11 +1600,18 @@ void TNodeJsStreamStory::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "batchV", TNodeJsBoolV::GetClassId()), "Invalid class of field batchV!");
 		const TNodeJsBoolV* BatchEndJsV = TNodeJsUtil::GetUnwrapFld<TNodeJsBoolV>(ArgObj, "batchV");
 		const TBoolV& BatchEndV = BatchEndJsV->Vec;
-		JsMChain->StreamStory->InitBatches(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV, BatchEndV);
+		JsStreamStory->StreamStory->InitBatches(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV, BatchEndV);
 	} else {
-		JsMChain->StreamStory->Init(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV);
+		JsStreamStory->StreamStory->Init(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV);
 	}
 
+	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsStreamStory::fitAsync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsAsyncUtil::ExecuteOnWorker(new TFitAsync(Args));
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
@@ -2121,15 +2120,15 @@ void TNodeJsStreamStory::getTimeUnit(const v8::FunctionCallbackInfo<v8::Value>& 
 
 	const uint64 TimeUnit = JsStreamStory->StreamStory->GetTimeUnit();
 
-	if (TimeUnit == TMc::TCtMChain::TU_SECOND) {
+	if (TimeUnit == TMc::TCtModeler::TU_SECOND) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "second"));
-	} else if (TimeUnit == TMc::TCtMChain::TU_MINUTE) {
+	} else if (TimeUnit == TMc::TCtModeler::TU_MINUTE) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "minute"));
-	} else if (TimeUnit == TMc::TCtMChain::TU_HOUR) {
+	} else if (TimeUnit == TMc::TCtModeler::TU_HOUR) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "hour"));
-	} else if (TimeUnit == TMc::TCtMChain::TU_DAY) {
+	} else if (TimeUnit == TMc::TCtModeler::TU_DAY) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "day"));
-	} else if (TimeUnit == TMc::TCtMChain::TU_MONTH) {
+	} else if (TimeUnit == TMc::TCtModeler::TU_MONTH) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "month"));
 	} else {
 		throw TExcept::New("Invalid time unit!", "TNodeJsStreamStory::getTimeUnit");
@@ -2331,6 +2330,73 @@ void TNodeJsStreamStory::OnPrediction(const uint64& RecTm, const int& CurrStateI
 	}
 }
 
+TNodeJsStreamStory::TFitAsync::TFitAsync(const v8::FunctionCallbackInfo<v8::Value>& Args):
+		JsStreamStory(nullptr),
+		JsObservFtrs(nullptr),
+		JsControlFtrs(nullptr),
+		JsRecTmV(nullptr),
+		JsBatchEndJsV(nullptr),
+		Callback(),
+		HasError(false) {
+
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 2, "hmc.fit expects 2 arguments!");
+
+	JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	v8::Local<v8::Object> ArgObj = Args[0]->ToObject();
+
+	EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "observations", TNodeJsFltVV::GetClassId()), "Missing field observations or invalid class!");
+	EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "controls", TNodeJsFltVV::GetClassId()), "Missing field controls or invalid class!");
+	EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "times", TNodeJsFltV::GetClassId()), "Missing field times or invalid class!");
+
+	JsObservFtrs = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(ArgObj, "observations");
+	JsControlFtrs = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(ArgObj, "controls");
+	JsRecTmV = TNodeJsUtil::GetUnwrapFld<TNodeJsFltV>(ArgObj, "times");
+
+	if (!TNodeJsUtil::IsFldNull(ArgObj, "batchV")) {
+		EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "batchV", TNodeJsBoolV::GetClassId()), "Invalid class of field batchV!");
+		JsBatchEndJsV = TNodeJsUtil::GetUnwrapFld<TNodeJsBoolV>(ArgObj, "batchV");
+	}
+
+	Callback.Reset(Isolate, TNodeJsUtil::GetArgFun(Args, 1));
+}
+
+void TNodeJsStreamStory::TFitAsync::Run(TFitAsync& Data) {
+	try {
+		TNodeJsStreamStory* JsStreamStory = Data.JsStreamStory;
+		TNodeJsFltVV* JsObservFtrs = Data.JsObservFtrs;
+		TNodeJsFltVV* JsControlFtrs = Data.JsControlFtrs;
+		TNodeJsFltV* JsRecTmV = Data.JsRecTmV;
+		TNodeJsBoolV* JsBatchEndJsV = Data.JsBatchEndJsV;
+
+		TUInt64V RecTmV;	TNodeJsUtil::GetCppTmMSecsV(JsRecTmV->Vec, RecTmV);
+
+		if (JsBatchEndJsV != nullptr) {
+			const TBoolV& BatchEndV = JsBatchEndJsV->Vec;
+			JsStreamStory->StreamStory->InitBatches(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV, BatchEndV);
+		} else {
+			JsStreamStory->StreamStory->Init(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV);
+		}
+	} catch (const PExcept& Except) {
+		Data.HasError = true;
+	}
+}
+
+void TNodeJsStreamStory::TFitAsync::AfterRun(const TFitAsync& Data) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Data.Callback);
+
+	if (Data.HasError) {
+		TNodeJsUtil::ExecuteErr(Callback, TExcept::New("Exception while fitting model!"));
+	} else {
+		TNodeJsUtil::ExecuteVoid(Callback);
+	}
+}
+
 void TNodeJsStreamStory::SetParams(const PJsonVal& ParamVal) {
 	if (ParamVal->IsObjKey("verbose"))
 		StreamStory->SetVerbose(ParamVal->GetObjBool("verbose"));
@@ -2371,15 +2437,15 @@ void TNodeJsStreamStory::WrapHistogram(const v8::FunctionCallbackInfo<v8::Value>
 
 uint64 TNodeJsStreamStory::GetTmUnit(const TStr& TimeUnitStr) {
 	if (TimeUnitStr == "second") {
-		return TMc::TCtMChain::TU_SECOND;
+		return TMc::TCtModeler::TU_SECOND;
 	} else if (TimeUnitStr == "minute") {
-		return TMc::TCtMChain::TU_MINUTE;
+		return TMc::TCtModeler::TU_MINUTE;
 	} else if (TimeUnitStr == "hour") {
-		return TMc::TCtMChain::TU_HOUR;
+		return TMc::TCtModeler::TU_HOUR;
 	} else if (TimeUnitStr == "day") {
-		return TMc::TCtMChain::TU_DAY;
+		return TMc::TCtModeler::TU_DAY;
 	} else if (TimeUnitStr == "month") {
-		return TMc::TCtMChain::TU_MONTH;
+		return TMc::TCtModeler::TU_MONTH;
 	} else {
 		throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TNodeJsStreamStory::GetTmUnit");
 	}

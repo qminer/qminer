@@ -1,5 +1,53 @@
 # QMiner Change Log
 
+### 6 Nov 2015
+
+**New version: 3.2.0**
+
+**non-breaking with new features**
+
+Feature:
+- Added build time to flags (`require(‘qminer’).flags`)
+
+Other:
+- no longer depends on `libuuid` on Linux and Mac OSX, now we include `sole` library to handle this task.
+- can build on ARM v7 (RaspberryPi 2)
+
+
+### 30 Oct 2015
+
+**New version: 3.1.0**
+
+**non-breaking with new features and bug fixes**
+
+Features:
+- `TNodeJsUtil::ExecuteJson` — execute JS function that returns JSON.
+- ChiSquare stream aggregator - takes two IFltVec stream aggregates on the input and performs ChiSquare test
+- A new aggregator `TOnlineSlottedHistogram` was added that accumulates data from equivalent historical periods. For instance the same hours of the day or the same minutes of the hour.
+- A new aggregator `TVecDiff` was added that subtracts one vectors from another. This is useful e.g. when we have histogram for the last 2 hours and another histogram for the whole history. This new aggregate will output the difference in distributions.
+- JS Sparse matrix can save itself to text format supported by Matlab
+- Feature space can use only one of the extractors in extract* methods (given as second argument)
+- OneVsAll can get binary matrix as target label
+- `clustering.h` now has agglomerative approach
+- Added async methods (`fitAsnyc` on StreamStory)
+- Helper async methods available in `TNodeJsAsyncUtil`
+
+Bug fixes:
+- CI does not fail if same version was already published
+- Movies example now works
+- TSparseColMatrix and TSparseRowMatrix now compute dimensions
+- Bag of words feature generator clears word hash table on Clr()
+- Added checks for feature space and record compatibility
+- Fixed issue #187
+- Undid skipped tests for fresh date, text feature extractor, prop hazards
+
+Other:
+- Added some C++ unit tests, removed old obsolete files.
+- Example tests for examples that work over http server (currently only for stream aggregate example)
+- Removed deasync dependency
+- Documented analytics.preprocessing
+
+
 ### 23 Oct 2015
 
 **New version: 3.0.0**

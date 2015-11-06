@@ -161,7 +161,7 @@ describe('HazardModel Tests', function () {
                 var prediction = hazard.predict(test);
                 assert(prediction > 0);
             })
-            it.skip('should throw an exception if the length of vector is greater than of models', function () {
+            it('should throw an exception if the length of vector is greater than of models', function () {
                 var hazard = new analytics.PropHazards();
                 var mat = new la.Matrix([[1, 1], [1, -1]]);
                 var vec = new la.Vector([3, 3]);
@@ -171,7 +171,7 @@ describe('HazardModel Tests', function () {
                     var prediction = hazard.predict(test);
                 });
             })
-            it.skip('should throw an exception if the length of vector is lesser than of models', function () {
+            it('should throw an exception if the length of vector is lesser than of models', function () {
                 var hazard = new analytics.PropHazards();
                 var mat = new la.Matrix([[1, 1], [1, -1]]);
                 var vec = new la.Vector([3, 3]);

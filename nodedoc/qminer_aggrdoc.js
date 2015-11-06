@@ -83,7 +83,8 @@
 * @property {module:qm~StreamAggregateResampler} res - The resampler type.
 * @property {module:qm~StreamAggregateMerger} mer - The merger type.
 * @property {module:qm~StreamAggregateHistogram} hist - The online histogram type.
-* @property {module:qm~StreamAggregateChiSquare} chi - The chi square test.
+* @property {module:qm~StreamAggregateSlottedHistogram} slotted-hist - The online slotted-histogram type.
+* @property {module:qm~StreamAggregateVecDiff} vec-diff - The difference of two vectors (e.g. online histograms) type.
 */
 /**
 * @typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesWindow
@@ -795,150 +796,166 @@
 * base.close();
 */
 /**
-* @typedef {module:qm.StreamAggr} StreamAggregateChiSquare
-* This stream aggregator represents a ChiSquare test. It can connect to online histogram aggregate {@link module:qm~StreamAggregateHistogram}).
-* The aggregate computes value for Chi2 and P-Value.
+* @typedef {module:qm.StreamAggr} StreamAggregateSlottedHistogram
+* This stream aggregator represents an online slotted histogram. It can connect to a buffered aggregate (such as {@link module:qm~StreamAggregateTimeSeriesWindow})
+* or a time series (such as {@link module:qm~StreamAggregateEMA}). 
+* It maps historical values into single period (e.g. into hours of the week). 
+* The aggregate defines an ordered set of points p(0), ..., p(n) that define n bins. Infinites at both ends are NOT allowed.
+* A new measurement is tested for inclusion in the left-closed right-opened intervals [p(i), p(i+1)) and the corresponding
+* bin counter is increased for the appropriate bin (or decreased if the point is outgoing from the buffer).
 
 * It implements the following methods:
-* <br>{@link module:qm.StreamAggr#getFloat} returns the P-Value.
+* <br>{@link module:qm.StreamAggr#getFloatLength} returns the number of bins.
+* <br>{@link module:qm.StreamAggr#getFloatAt} returns the count for a bin index.
+* <br>{@link module:qm.StreamAggr#getFloatVector} returns the vector of counts, the length is equal to the number of bins.
 
 * @property {string} name - The given name of the stream aggregator.
 * @property {string} type - The type for the stream aggregator. It must be equal to <b>'onlineHistogram'</b>.
-* @property {string} storeX - The name of the store that holds histogram with expected distribution.
-* @property {string} storeY - The name of the store that holds histogram with observed distribution.
-* @property {string} inAggrX - The name of the stream aggregator histogram whith expected distribuition, to which it connects and gets data.
-* @property {string} inAggrY - The name of the stream aggregator histogram whith observed distribuition, to which it connects and gets data.
-* @property {string} degreesOfFreedom - measure of the amount of variability involved in the research, which is determined by the number of categories you are examinin.
+* @property {string} store - The name of the store from which it takes the data.
+* @property {string} inAggr - The name of the stream aggregator to which it connects and gets data.
+* @property {number} period - Cycle length in msec.
+* @property {number} window - Window length that is reported when aggregate is queried.
+* @property {number} bins - The number of bins - input data is expected to be withing interval [0, bins-1].
+* @property {number} granularity - Storage granularity in msec. History is stored in slots with this length. Number of slots=period/granularity
 * @example
 * // import the qm module
 * var qm = require('qminer');
-* 
-* var store = undefined
-*
 * // create a base with a simple store
-* // the store records results of throwing a dice
-* // Since changes for each nomber are 1/6, the expacted values have uniform distribution
-* // Field Observed records the actual values
 * var base = new qm.Base({
 *    mode: "createClean",
 *    schema: [
 *    {
-*        name: "Dice",
+*        name: "Heat",
 *        fields: [
-*		{ name: "Expected", type: "float" },
-*		{ name: "Observed", type: "float" },
-*		{ name: "Time", type: "datetime" }
+*            { name: "Celcius", type: "float" },
+*            { name: "Time", type: "datetime" }
 *        ]
 *    }]
 * });
 *
-* store = base.store('Dice');
-* 
-* // create a new time series stream aggregator for the 'Dice' store, that takes the expected values of throwing a dice
-* // and the timestamp from the 'Time' field. The size of the window is 1 day.
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // and the timestamp from the 'Time' field. The size of the window is 4 weeks.
 * var timeser = {
-*     name: 'TimeSeries1',
-*     type: 'timeSeriesWinBuf',
-*     store: 'Dice',
-*     timestamp: 'Time',
-*     value: 'Expected',
-*     winsize: 86400000 // one day in miliseconds
+*    name: 'TimeSeriesBuffer',
+*    type: 'timeSeriesWinBuf',
+*    store: 'Heat',
+*    timestamp: 'Time',
+*    value: 'Celcius',
+*    winsize: 2419200000 // 4 weeks
 * };
+* var timeSeries = base.store("Heat").addStreamAggr(timeser);
 *
-* var timeSeries1 = base.store("Dice").addStreamAggr(timeser);
-* 
-* // create a new time series stream aggregator for the 'Dice' store, that takes the actual values of throwing a dice
-* // and the timestamp from the 'Time' field. The size of the window is 1 day.
-* timeser = {
-*     name: 'TimeSeries2',
-*     type: 'timeSeriesWinBuf',
-*     store: 'Dice',
-*     timestamp: 'Time',
-*     value: 'Observed',
-*     winsize: 86400000 // one day in miliseconds
+* // add a slotted-histogram aggregator, that is connected with the 'TimeSeriesAggr' aggregator
+* // it will present accumulated histogram for the last 2 hours (window) of the week (period) for the last 4 weeks (see aggregate above)
+* var aggrJson = {
+*    name: 'Histogram',
+*    type: 'onlineSlottedHistogram',
+*    store: 'Heat',
+*    inAggr: 'TimeSeriesBuffer',
+*    period: 604800000, // 1 week
+*    window: 7200000, // 2h
+*    bins: 5, // 5 possible clusters
+*    granularity: 300000  // 5 min
 * };
+* var hist = base.store("Heat").addStreamAggr(aggrJson);
+* base.close();
+*/
+/**
+* @typedef {module:qm.StreamAggr} StreamAggregateVecDiff
+* This stream aggregator represents difference between two vectors (e.g. online histograms). 
+*
+* It implements the following methods:
+* <br>{@link module:qm.StreamAggr#getFloatLength} returns the number of bins.
+* <br>{@link module:qm.StreamAggr#getFloatAt} returns the count for a bin index.
+* <br>{@link module:qm.StreamAggr#getFloatVector} returns the vector of counts, the length is equal to the number of bins.
+*
+* @property {string} name - The given name of the stream aggregator.
+* @property {string} type - The type for the stream aggregator. It must be equal to <b>'onlineVecDiff'</b>.
+* @property {string} storeX - The name of the store from which it takes the data for the first vector.
+* @property {string} storeY - The name of the store from which it takes the data for the second vector.
+* @property {string} inAggrX - The name of the first stream aggregator to which it connects and gets data.
+* @property {string} inAggrY - The name of the second stream aggregator to which it connects and gets data.
+* @example
+* // import the qm module
+* var qm = require('qminer');
+* // create a base with a simple store
+* // the store records results of clustering
+* var base = new qm.Base({
+* mode: "createClean",
+* schema: [
+* {
+* 	name: "Rpm",
+* 	fields: [
+* 		{ name: "ClusterId", type: "float" },
+* 		{ name: "Time", type: "datetime" }
+* 	]
+* }]
+* });		
 * 
-* var timeSeries2 = base.store("Dice").addStreamAggr(timeser);
+* var store = base.store('Rpm');
+* 
+* // create a new time series stream aggregator for the 'Rpm' store that takes the recorded cluster id
+* // and the timestamp from the 'Time' field. The size of the window is 4 weeks.
+* var timeser1 = {
+* 	name: 'TimeSeries1',
+* 	type: 'timeSeriesWinBuf',
+* 	store: 'Rpm',
+* 	timestamp: 'Time',
+* 	value: 'ClusterId',
+* 	winsize: 7200000 // 2 hours
+* };
+* var timeSeries1 = base.store("Rpm").addStreamAggr(timeser1);
 * 
 * // add a histogram aggregator, that is connected with the 'TimeSeries1' aggregator
-* var aggrJson = {
-*     name: 'Histogram1',
-*     type: 'onlineHistogram',
-*     store: 'Dice',
-*     inAggr: 'TimeSeries1',
-*     lowerBound: 1,
-*     upperBound: 6,
-*     bins: 6,
-*     addNegInf: false,
-*     addPosInf: false
+* var aggrJson1 = {
+* 	name: 'Histogram1',
+* 	type: 'onlineHistogram',
+* 	store: 'Rpm',
+* 	inAggr: 'TimeSeries1',
+* 	lowerBound: 0,
+* 	upperBound: 5,
+* 	bins: 5,
+* 	addNegInf: false,
+* 	addPosInf: false
 * };
-*
-* var hist1 = base.store("Dice").addStreamAggr(aggrJson);
+* var hist1 = base.store("Rpm").addStreamAggr(aggrJson1);
 * 
-* // add a histogram aggregator, that is connected with the 'TimeSeries2' aggregator
-* var aggrJson = {
-*     name: 'Histogram2',
-*     type: 'onlineHistogram',
-*     store: 'Dice',
-*     inAggr: 'TimeSeries2',
-*     lowerBound: 1,
-*     upperBound: 6,
-*     bins: 6,
-*     addNegInf: false,
-*     addPosInf: false
+* // create a new time series stream aggregator for the 'Rpm' store that takes the recorded cluster id
+* // and the timestamp from the 'Time' field. 
+* var timeser2 = {
+* 	name: 'TimeSeries2',
+* 	type: 'timeSeriesWinBuf',
+* 	store: 'Rpm',
+* 	timestamp: 'Time',
+* 	value: 'ClusterId',
+* 	winsize: 21600000 // 6 hours
 * };
-*
-* var hist2 = base.store("Dice").addStreamAggr(aggrJson);
-*
-* // add ChiSquare aggregator that connects with Histogram1 with expected values and Histogram2 with actual values
-* aggr = {
-*     name: 'ChiAggr',
-*     type: 'chiSquare',
-*     storeX: 'Dice',
-*     storeY: 'Dice',
-*     inAggrX: 'Histogram1',
-*     inAggrY: 'Histogram2',
-*     degreesOfFreedom: 2
-* };
-*
-* var chi = store.addStreamAggr(aggr);
+* var timeSeries2 = base.store("Rpm").addStreamAggr(timeser2);
 * 
-* // add some values
-* // simulating throwing a dice
-* store.push({ Time: '2015-06-10T14:13:30.0', Expected: 1, Observed: 1 });
-* store.push({ Time: '2015-06-10T14:13:31.0', Expected: 2, Observed: 2 });
-* store.push({ Time: '2015-06-10T14:13:32.0', Expected: 3, Observed: 3 });
-* store.push({ Time: '2015-06-10T14:13:33.0', Expected: 4, Observed: 4 });
-* store.push({ Time: '2015-06-10T14:13:34.0', Expected: 5, Observed: 5 });
-* store.push({ Time: '2015-06-10T14:13:35.0', Expected: 6, Observed: 5 });
-*
-* store.push({ Time: '2015-06-10T14:13:41.0', Expected: 1, Observed: 5 });
-* store.push({ Time: '2015-06-10T14:13:41.0', Expected: 2, Observed: 5 });
-* store.push({ Time: '2015-06-10T14:13:42.0', Expected: 3, Observed: 5 });
-* store.push({ Time: '2015-06-10T14:13:43.0', Expected: 4, Observed: 5 });
-* store.push({ Time: '2015-06-10T14:13:44.0', Expected: 5, Observed: 6 });
-* store.push({ Time: '2015-06-10T14:13:45.0', Expected: 6, Observed: 6 });
-*
-* store.push({ Time: '2015-06-10T14:13:50.0', Expected: 1, Observed: 6 });
-* store.push({ Time: '2015-06-10T14:13:51.0', Expected: 2, Observed: 6 });
-* store.push({ Time: '2015-06-10T14:13:52.0', Expected: 3, Observed: 6 });
-* store.push({ Time: '2015-06-10T14:13:53.0', Expected: 4, Observed: 6 });
-* store.push({ Time: '2015-06-10T14:13:54.0', Expected: 5, Observed: 6 });
-* store.push({ Time: '2015-06-10T14:13:55.0', Expected: 6, Observed: 6 });
-*
-* // show distribution for expected values
-* console.log(hist1);
-*
-* // show distribution for observed values
-* console.log(hist2);
-*
-* // show the P-value. A small P value is evidence that the data are not sampled from the distribution you expected.
-* // If P-value is smaller than some expected value (e.g. 0.005), then the null null hypothesis fails.
-* console.log("P = " + chi.getFloat());
-*
-* // print out the aggregator
-* console.log(chi);
-*
+* // add a histogram aggregator, that is connected with the 'TimeSeries1' aggregator
+* var aggrJson2 = {
+* 	name: 'Histogram2',
+* 	type: 'onlineHistogram',
+* 	store: 'Rpm',
+* 	inAggr: 'TimeSeries2',
+* 	lowerBound: 0,
+* 	upperBound: 5,
+* 	bins: 5,
+* 	addNegInf: false,
+* 	addPosInf: false
+* };
+* var hist2 = base.store("Rpm").addStreamAggr(aggrJson2);
+* 
+* // add diff aggregator that subtracts Histogram1 with 2h window from Histogram2 with 6h window
+* var aggrJson3 = {
+* 	name: 'DiffAggr',
+* 	type: 'onlineVecDiff',
+* 	storeX: 'Rpm',
+* 	storeY: 'Rpm',
+* 	inAggrX: 'Histogram2',
+* 	inAggrY: 'Histogram1'
+* }
+* var diff = store.addStreamAggr(aggrJson3);
 * base.close();
 */
 /**
