@@ -147,7 +147,6 @@
                 'src/third_party/Snap/snap-adv',
                 'src/third_party/Snap/snap-exp',
                 'src/third_party/Snap/qlib-core',
-                'src/third_party/libsvm',
                 '<(LIN_ALG_INCLUDE)'
             ],
             'dependencies': [
@@ -218,8 +217,8 @@
             'target_name': 'libsvm',
             'type': 'static_library',
             'sources': [
-                'src/third_party/libsvm/libsvm.h',
-                'src/third_party/libsvm/libsvm.cpp'
+                'src/third_party/libsvm/svm.h',
+                'src/third_party/libsvm/svm.cpp'
             ],
             'include_dirs': [
                 'src/third_party/libsvm/'
