@@ -10,6 +10,7 @@ env:
     - CXXFLAGS=-std=c++0x CXX=g++ CC=gcc
     - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1
 before_install:
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -qq
   - sudo apt-get update -qq
   - sudo apt-get install -qq uuid-dev
   - sudo apt-get install build-essential
