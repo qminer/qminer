@@ -45,11 +45,11 @@
             # operating system specific parameters
             ['OS == "linux"', {
                 "link_settings": {
-                    "libraries": [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ],
+                    "libraries": [ '-lrt', '-fopenmp', '<(LIN_ALG_LIB)' ],
                 },
                 # GCC flags
                 'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
-                'cflags_cc': [ '-std=c++0x', '-frtti', '-fexceptions' ],
+                'cflags_cc': [ '-std=c++11', '-frtti', '-fexceptions' ],
                 'cflags': [ '-Wno-deprecated-declarations', '-fopenmp' ],
                 # additional flags for ARM
                 'conditions': [
