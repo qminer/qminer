@@ -15,7 +15,7 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 
 	npm install qminer
 
-**Test:**
+**Test**
 
 	node -e "require('qminer'); console.log('OK')"
 
@@ -30,14 +30,14 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 ### Documentation
 
 + [Examples](https://github.com/qminer/qminer/wiki/Example)
-+ [Architecture](https://github.com/qminer/qminer/wiki/Architecture)
 + [JavaScript API](https://rawgit.com/qminer/qminer/master/nodedoc/index.html)
   + [`qm` module](https://rawgit.com/qminer/qminer/master/nodedoc/module-qm.html)
   + [`la` module](https://rawgit.com/qminer/qminer/master/nodedoc/module-la.html)
   + [`analytics` module](https://rawgit.com/qminer/qminer/master/nodedoc/module-analytics.html)
 + [C++ Documentation](http://agava.ijs.si/~blazf/qminer/)
++ [Architecture](https://github.com/qminer/qminer/wiki/Architecture)
 + [Roadmap](https://github.com/qminer/qminer/wiki/Roadmap)
-+ [Mailing list](https://groups.google.com/forum/#!forum/qminer)**
++ [Mailing list](https://groups.google.com/forum/#!forum/qminer)
 
 ## Acknowledgments
 
