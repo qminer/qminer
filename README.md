@@ -20,48 +20,17 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 
 	npm install qminer
 
-Test:
+**Test:**
 
-	npm install mocha -g
-	cd node_modules/qminer/test/nodejs
-	mocha *.js
+	node -e "require('qminer'); console.log('OK')"
 
 ---
 
 ### Build from source
 
-**Prerequisites:**
-
- - Python v2.7.3 (recommended)
-   - It was also tested on python 2.6
-   - Does not work on python 3
- - [Node v0-12-0](http://blog.nodejs.org/2015/02/06/node-v0-12-0-stable/)
-   - Windows: install it using the msi file
- - [npm](https://www.npmjs.com/package/npm)
-   - Windows: npm is installed with Node when using the msi file.
- - Windows: Visual Studio 2013
-
-**Build**
-
-	git clone https://github.com/qminer/qminer.git
-	cd qminer
-	npm install
-
-For debug build use: `npm install --debug`
-
-Run tests for developers: 
-
-	npm install mocha -g
-	cd test/nodejs
-	mocha *.js
-
----
-
-For more detailed installation check the following instructions:
-- [Linux installation](https://github.com/qminer/qminer/wiki/Installation-on-Linux)
-- [Windows quick install](https://github.com/qminer/qminer/wiki/Quick-Installation-on-Windows)
-- [Windows using node-gyp](https://github.com/qminer/qminer/wiki/Installation-on-Windows)
-- [Mac OS X installation](https://github.com/qminer/qminer/wiki/Installation-on-Mac-OSX)
++ [Linux](https://github.com/qminer/qminer/wiki/Installation-on-Linux)
++ [Windows](https://github.com/qminer/qminer/wiki/Installation-on-Windows)
++ [Mac OS X](https://github.com/qminer/qminer/wiki/Installation-on-Mac-OSX)
 
 ## Documentation
 
@@ -73,13 +42,16 @@ For more detailed installation check the following instructions:
   + [`analytics` module](https://rawgit.com/qminer/qminer/master/nodedoc/module-analytics.html)
 + [C++ Documentation](http://agava.ijs.si/~blazf/qminer/)
 + [Roadmap](https://github.com/qminer/qminer/wiki/Roadmap)
-+ [History](https://github.com/qminer/qminer/wiki/History)
 
 ## Acknowledgments
 
 [QMiner](http://qminer.ijs.si/) is developed by [AILab](http://ailab.ijs.si/) at 
 [Jozef Stefan Institute](http://www.ijs.si/), [Quintelligence](http://quintelligence.com) and other contributors.
 
-Parts of the library were developed under [XLike](http://www.xlike.org/) and [Mobis](https://sites.google.com/site/mobiseuprojecteu/) FP7 projects and [Optimum](http://www.optimumproject.eu/) H2020 project and [Sophocles](http://sophocles.eu/) H2020 project.
+The authors would like to acknowledge funding from the European Union Seventh Framework Programme, under Grant Agreements 288342 ([XLike](http://www.xlike.org/)), 611346 ([XLime](http://xlime.eu)), 611875 ([Symphony](http://projectsymphony.eu)), 317534 ([Sophocles](http://sophocles.eu/)), 318452 ([Mobis](https://sites.google.com/site/mobiseuprojecteu/)), 600074 ([NRG4Cast](http://nrg4cast.org)), 619437 ([Sunseed](http://sunseed-fp7.eu)), 632840 ([FI-Impact](http://fi-impact.net/home/)) and 612329 ([ProaSense](http://www.proasense.eu)).
+
+This project has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 636160-2 ([Optimum](http://www.optimumproject.eu/)).
+
+![](http://ailab.ijs.si/~blazf/eu.png)
 
 Thanks to [Deleaker](http://deleaker.com) for supporting open-source projects.
