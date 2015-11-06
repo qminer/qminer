@@ -16,19 +16,6 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 
 ### Install 
 
-**Prerequisites:**
-
- - Python v2.7.3 (recommended)
-   - It was also tested on python 2.6
-   - Does not work on python 3
- - [Node v0-12-0](http://blog.nodejs.org/2015/02/06/node-v0-12-0-stable/)
-   - Windows: install it using the msi file
- - [npm](https://www.npmjs.com/package/npm)
-   - Windows: npm is installed with Node when using the msi file.
- - Windows: Visual Studio 2013
-
----
-
 **Install:**
 
 	npm install qminer
@@ -41,7 +28,20 @@ Test:
 
 ---
 
-**Install for developers:**
+### Build from source
+
+**Prerequisites:**
+
+ - Python v2.7.3 (recommended)
+   - It was also tested on python 2.6
+   - Does not work on python 3
+ - [Node v0-12-0](http://blog.nodejs.org/2015/02/06/node-v0-12-0-stable/)
+   - Windows: install it using the msi file
+ - [npm](https://www.npmjs.com/package/npm)
+   - Windows: npm is installed with Node when using the msi file.
+ - Windows: Visual Studio 2013
+
+**Build**
 
 	git clone https://github.com/qminer/qminer.git
 	cd qminer
