@@ -8,7 +8,7 @@
 
 
 var pathQmBinary = __dirname + '/out/qm.node';
-var foundBinary = fs.existsSync(pathQmBinary);
+var foundBinary = require('fs').existsSync(pathQmBinary);
 
 if (foundBinary) {
     // we're not in tonic environment
