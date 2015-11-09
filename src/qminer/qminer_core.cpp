@@ -4607,6 +4607,7 @@ bool TStreamAggrBase::IsStreamAggr(const TStr& StreamAggrNm) const {
 }
 
 const PStreamAggr& TStreamAggrBase::GetStreamAggr(const TStr& StreamAggrNm) const {
+	QmAssertR(IsStreamAggr(StreamAggrNm), TStr::Fmt("Aggregate not found: %s", StreamAggrNm.CStr()));
 	return StreamAggrH.GetDat(StreamAggrNm);
 }
 
@@ -4615,6 +4616,7 @@ const PStreamAggr& TStreamAggrBase::GetStreamAggr(const int& StreamAggrId) const
 }
 
 void TStreamAggrBase::AddStreamAggr(const PStreamAggr& StreamAggr) {
+	QmAssertR(!IsStreamAggr(StreamAggr->GetAggrNm()), TStr::Fmt("Aggregate with this name already exists: %s", StreamAggr->GetAggrNm().CStr()));
 	StreamAggrH.AddDat(StreamAggr->GetAggrNm(), StreamAggr);
 }
 
