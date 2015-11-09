@@ -15,11 +15,21 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 
 ### Prerequisites
 
-**Windows x64**
-- node.js **x64 v0.12.7** available at https://nodejs.org/download/release/v0.12.7/x64/node-v0.12.7-x64.msi 
+**Windows 7/8/8.1/10 x64**
+- node.js **x64 v0.12** available at https://nodejs.org/download/release/v0.12.7/x64/node-v0.12.7-x64.msi 
 - Visual C++ Redistributable Packages for Visual Studio 2013 available at https://www.microsoft.com/en-us/download/details.aspx?id=40784 - download **vcredist_x64.exe**`
 - to test that you have the correct version of node check if the following command executed from CMD prints `OK`.
 
+```
+node -e "if (process.version.substr(0,5) == 'v0.12' && process.arch == 'x64') { console.log('OK'); }"
+```
+**Ubuntu 14.04 x64**
+- node.js **x64 v0.12** download and install:
+```
+wget http://nodejs.org/dist/v0.12.0/node-v0.12.0-linux-x64.tar.gz
+sudo tar -C /usr/local --strip-components 1 -xzf node-v0.12.0-linux-x64.tar.gz
+```
+- to test that you have the correct version of node check if the following command executed from CMD prints `OK`.
 ```
 node -e "if (process.version.substr(0,5) == 'v0.12' && process.arch == 'x64') { console.log('OK'); }"
 ```
