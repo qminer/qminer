@@ -1372,7 +1372,6 @@ TChiSquare::TChiSquare(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStre
     // parse out input aggregate
     TStr InStoreNmX = ParamVal->GetObjStr("storeX");
     TStr InStoreNmY = ParamVal->GetObjStr("storeY");
-    printf("%s",InStoreNmX.CStr());
     TStr InAggrNmX = ParamVal->GetObjStr("inAggrX");
     TStr InAggrNmY = ParamVal->GetObjStr("inAggrY");
     PStreamAggr _InAggrX = Base->GetStreamAggr(InStoreNmX, InAggrNmX);
@@ -1397,7 +1396,6 @@ PJsonVal TChiSquare::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
 	Val->AddToObj("P", ChiSquare.GetP());
 	Val->AddToObj("Chi2", ChiSquare.GetChi2());
-	Val->AddToObj("Time", TTm::GetTmFromMSecs(ChiSquare.GetTmMSecs()).GetWebLogDateTimeStr(true, "T"));
 	return Val;
 }
 
@@ -1567,7 +1565,6 @@ TVecDiff::TVecDiff(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamA
 	// parse out input aggregate
 	TStr InStoreNmX = ParamVal->GetObjStr("storeX");
 	TStr InStoreNmY = ParamVal->GetObjStr("storeY");
-	printf("%s", InStoreNmX.CStr());
 	TStr InAggrNmX = ParamVal->GetObjStr("inAggrX");
 	TStr InAggrNmY = ParamVal->GetObjStr("inAggrY");
 	PStreamAggr _InAggrX = Base->GetStreamAggr(InStoreNmX, InAggrNmX);
