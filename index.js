@@ -34,7 +34,7 @@ if (foundBinary) {
         try {
             module.exports = exports = require(
              '/app/available_modules/node-0.12/qminer-try/'
-             + require('child_process').execSync('ls -t ./ | head -n1', {encoding : 'utf8'}).trim()
+             + require('child_process').execSync('ls -t /app/available_modules/node-0.12/qminer-try/ | head -n1', { encoding: 'utf8' }).trim()
              + '/qminer-try/index.js');
             foundtry = true;
         } catch (e) {
