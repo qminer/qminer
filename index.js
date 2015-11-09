@@ -6,17 +6,30 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-process.env['QMINER_HOME'] = __dirname + "/src/glib/bin/";
-var pathQmBinary = __dirname + '/out/qm.node';
-	
-module.exports = exports = require('./src/nodejs/scripts/qm.js')(pathQmBinary);
-exports.path = require('path').normalize(pathQmBinary);
-exports.version = require(__dirname + '/package.json').version;
-exports.analytics = require('./src/nodejs/scripts/analytics.js')(pathQmBinary);
-exports.fs = require('./src/nodejs/scripts/fs.js')(pathQmBinary);
-exports.ht = require('./src/nodejs/scripts/ht.js')(pathQmBinary);
-exports.la = require('./src/nodejs/scripts/la.js')(pathQmBinary);
-exports.snap = require('./src/nodejs/scripts/snap.js')(pathQmBinary);
-exports.statistics = require('./src/nodejs/scripts/statistics.js')(pathQmBinary);
-exports.datasets = require('./src/nodejs/datasets/datasets.js')(pathQmBinary);
-exports.qm_util = require('./src/nodejs/scripts/qm_util.js');
+// check if we're in tonic environment
+var foundtry = false;
+if (process.platform == 'linux' && process.arch == 'x64' && process.versions.modules == '14' && process.version.substr(0, 5) == 'v0.12') {
+    var moduleStr = 'qminer-try';
+    try { require.resolve(moduleStr); foundtry = true; } catch (e) { }    
+}
+
+if (foundtry) {
+    module.exports = exports = require('qminer-try');
+} else {
+    // we're not in tonic environment
+    process.env['QMINER_HOME'] = __dirname + "/src/glib/bin/";
+    var pathQmBinary = __dirname + '/out/qm.node';
+
+    module.exports = exports = require('./src/nodejs/scripts/qm.js')(pathQmBinary);
+    exports.path = require('path').normalize(pathQmBinary);
+    exports.version = require(__dirname + '/package.json').version;
+    exports.analytics = require('./src/nodejs/scripts/analytics.js')(pathQmBinary);
+    exports.fs = require('./src/nodejs/scripts/fs.js')(pathQmBinary);
+    exports.ht = require('./src/nodejs/scripts/ht.js')(pathQmBinary);
+    exports.la = require('./src/nodejs/scripts/la.js')(pathQmBinary);
+    exports.snap = require('./src/nodejs/scripts/snap.js')(pathQmBinary);
+    exports.statistics = require('./src/nodejs/scripts/statistics.js')(pathQmBinary);
+    exports.datasets = require('./src/nodejs/datasets/datasets.js')(pathQmBinary);
+    exports.qm_util = require('./src/nodejs/scripts/qm_util.js');
+
+}
