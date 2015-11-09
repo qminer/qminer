@@ -1,6 +1,6 @@
 {
   "name": "qminer",
-  "version": "3.0.0",
+  "version": "3.2.0",
   "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
   "license": "BSD-2-Clause-FreeBSD",
   "author": "Blaz Fortuna <blaz@blazfortuna.com>",
@@ -91,7 +91,6 @@
     "node": "0.12.7"
   },
   "dependencies": {
-    "bindings": "~1.2.1",
     "sget": "~0.1.5",
     "node-pre-gyp": "0.6.x"
   },
@@ -99,9 +98,9 @@
     "node-pre-gyp"
   ],
   "devDependencies": {
-    "jsdoc": "^3.3.0-beta3",
-    "mustache": "^1.1.0",
-    "mocha": "^1.17.1",
+    "jsdoc": "~3.3.0-beta3",
+    "mustache": "~2.2.0",
+    "mocha": "2.1.x",
     "aws-sdk": "~2.0.0-rc.15"
   },
   "scripts": {
@@ -110,7 +109,7 @@
   },
   "binary": {
     "module_name": "qm",
-    "module_path": "./out/Release",
+    "module_path": "./out",
     "host": "https://node-qminer-binary.s3.amazonaws.com"
   },
   "keywords": [

@@ -5,20 +5,17 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
-// typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
-module.exports = exports = function (pathPrefix) {
-    pathPrefix = pathPrefix || '';
-    var sget = require('sget');
-    var qm = require('bindings')(pathPrefix + '/qm.node');
+ 
+module.exports = exports = function (pathQmBinary) {    
+    var qm = require(pathQmBinary); // This loads only c++ functions of qm
     var fs = qm.fs;
     var la = qm.la;
-    var assert = require('assert');
-
-    exports = qm.analytics;
-
-    var la = require(__dirname + '/la.js')(pathPrefix);
     var stat = qm.statistics;
-
+    exports = qm.analytics;
+    
+    var sget = require('sget');    
+    var assert = require('assert');
+    
     var qm_util = require(__dirname + '/qm_util.js');
 
     //!STARTJSDOC
@@ -2268,6 +2265,65 @@ module.exports = exports = function (pathPrefix) {
 
     			return hist;
 	    	}
+	    	
+	    	//===================================================
+	    	// PREPROCESSING
+	    	//===================================================
+	    	
+    		function preprocessFit(opts) {
+    			if (opts.recSet == null && opts.recV == null) 
+    				throw new Error('StreamStory.fit: missing parameters recSet or recV');
+    			
+    			var batchEndV = opts.batchEndV;
+    			var timeField = opts.timeField;
+    			
+    			var obsColMat;
+    			var contrColMat;
+    			var timeV;
+    			
+    			if (opts.recV != null) {
+    				var recV = opts.recV;
+    				var nInst = recV.length;
+    				
+    				log.info('Updating feature spaces ...');
+    				for (var i = 0; i < nInst; i++) {
+    					var rec = recV[i];
+    					obsFtrSpace.updateRecord(rec);
+						controlFtrSpace.updateRecord(rec);
+    				}
+    				
+    				obsColMat = new la.Matrix({rows: obsFtrSpace.dim, cols: nInst});
+    				contrColMat = new la.Matrix({rows: controlFtrSpace.dim, cols: nInst});
+    				timeV = new la.Vector({ vals: nInst });
+    				
+    				for (var i = 0; i < nInst; i++) {
+    					var rec = recV[i];
+    					var obsFtrV = obsFtrSpace.extractVector(rec);
+    					var contrFtrV = controlFtrSpace.extractVector(rec);
+    					var time = rec[timeField].getTime();
+    					
+    					obsColMat.setCol(i, obsFtrV);
+    					contrColMat.setCol(i, contrFtrV);
+    					timeV[i] = time;
+    				}
+    			} else {
+    				var recSet = opts.recSet;
+    				
+    				log.info('Updating feature spaces ...');
+    				obsFtrSpace.updateRecords(recSet);
+	    			controlFtrSpace.updateRecords(recSet);
+	    			
+	    			obsColMat = obsFtrSpace.extractMatrix(recSet);
+	    			contrColMat = controlFtrSpace.extractMatrix(recSet);
+	    			timeV = recSet.getVector(timeField);
+    			}
+    			
+    			return {
+    				obsColMat: obsColMat,
+    				contrColMat: contrColMat,
+    				timeV: timeV
+    			}
+    		}
 
 	    	//===================================================
 	    	// PUBLIC METHODS
@@ -2308,60 +2364,36 @@ module.exports = exports = function (pathPrefix) {
 
 	    			var batchEndV = opts.batchEndV;
 	    			var timeField = opts.timeField;
-
-	    			var obsColMat;
-	    			var contrColMat;
-	    			var timeV;
-
-	    			if (opts.recV != null) {
-	    				var recV = opts.recV;
-	    				var nInst = recV.length;
-
-	    				log.info('Updating feature spaces ...');
-	    				for (var i = 0; i < nInst; i++) {
-	    					var rec = recV[i];
-	    					obsFtrSpace.updateRecord(rec);
-							controlFtrSpace.updateRecord(rec);
-	    				}
-
-	    				obsColMat = new la.Matrix({rows: obsFtrSpace.dim, cols: nInst});
-	    				contrColMat = new la.Matrix({rows: controlFtrSpace.dim, cols: nInst});
-	    				timeV = new la.Vector({ vals: nInst });
-
-	    				for (var i = 0; i < nInst; i++) {
-	    					var rec = recV[i];
-	    					var obsFtrV = obsFtrSpace.extractVector(rec);
-	    					var contrFtrV = controlFtrSpace.extractVector(rec);
-	    					var time = rec[timeField].getTime();
-
-	    					obsColMat.setCol(i, obsFtrV);
-	    					contrColMat.setCol(i, contrFtrV);
-	    					timeV[i] = time;
-	    				}
-	    			} else {
-	    				var recSet = opts.recSet;
-
-	    				log.info('Updating feature spaces ...');
-	    				obsFtrSpace.updateRecords(recSet);
-		    			controlFtrSpace.updateRecords(recSet);
-
-		    			obsColMat = obsFtrSpace.extractMatrix(recSet);
-		    			contrColMat = controlFtrSpace.extractMatrix(recSet);
-		    			timeV = recSet.getVector(timeField);
-	    			}
-
+	    			
+	    			var data = preprocessFit(opts);
+	
 	    			log.info('Creating model ...');
 	    			mc.fit({
-	    				observations: obsColMat,
-	    				controls: contrColMat,
-	    				times: timeV,
+	    				observations: data.obsColMat,
+	    				controls: data.contrColMat,
+	    				times: data.timeV,
 	    				batchV: batchEndV
 	    			});
 	    			log.info('Done!');
 
 	    			return that;
 	    		},
-
+	    		
+	    		fitAsync: function (opts, callback) {
+	    			var batchEndV = opts.batchEndV;
+	    			var timeField = opts.timeField;
+	    			
+	    			var data = preprocessFit(opts);
+	
+	    			log.info('Creating model asynchronously ...');
+	    			mc.fitAsync({
+	    				observations: data.obsColMat,
+	    				controls: data.contrColMat,
+	    				times: data.timeV,
+	    				batchV: batchEndV
+	    			}, callback);
+	    		},
+	
 	    		/**
 	    		 * Adds a new record. Doesn't update the models statistics.
 	    		 */

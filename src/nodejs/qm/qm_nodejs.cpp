@@ -33,6 +33,10 @@ void TNodeJsQm::Init(v8::Handle<v8::Object> exports) {
 	TQm::TEnv::Init();
     // default to no output
     TQm::TEnv::InitLogger(0, "std");
+
+	// load unicode
+	TStr UnicodeFNm = TPath::Combine(TQm::TEnv::QMinerFPath, "UnicodeDef.Bin");
+	if (!TUnicodeDef::IsDef()) { TUnicodeDef::Load(UnicodeFNm); }
 }
 
 void TNodeJsQm::config(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -177,6 +181,9 @@ void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo
 	v8::HandleScope HandleScope(Isolate);
 
 	v8::Handle<v8::Object> JsObj = v8::Object::New(Isolate);
+
+	TStr BuildTime = TStr(__DATE__) + " " + TStr(__TIME__);
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "buildTime")), v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, BuildTime.CStr())));
 
 #ifdef GLib_WIN
 	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "win")), v8::Boolean::New(Isolate, true));
@@ -426,10 +433,7 @@ TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>&
 	uint64 IndexCache = (uint64)Val->GetObjInt("indexCache", 1024) * (uint64)TInt::Mega;
 	uint64 StoreCache = (uint64)Val->GetObjInt("storeCache", 1024) * (uint64)TInt::Mega;
 
-    // load unicode
-	TStr UnicodeFNm = Val->GetObjStr("unicode", TQm::TEnv::QMinerFPath + "./UnicodeDef.Bin");
-	if (!TUnicodeDef::IsDef()) { TUnicodeDef::Load(UnicodeFNm); }
-	// Load Stopword Files
+    // Load Stopword Files
 	TStr StopWordsPath = Val->GetObjStr("stopwords", TQm::TEnv::QMinerFPath + "resources/stopwords/");
 	TSwSet::LoadSwDir(StopWordsPath);
 

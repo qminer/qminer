@@ -62,6 +62,9 @@
                     <dt><a href="module-qm.FeatureSpace.html#addFeatureExtractor">addFeatureExtractor(obj)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.FeatureSpace.html#clear">clear()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.FeatureSpace.html#extractMatrix">extractMatrix(rs[, featureExtractorId])</a></dt>
                     <dd>
                     </dd>
@@ -71,13 +74,13 @@
                     <dt><a href="module-qm.FeatureSpace.html#extractSparseVector">extractSparseVector(rec[, featureExtractorId])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.FeatureSpace.html#extractVector">extractVector(rec[, featureExtractorId])</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.FeatureSpace.html#extractVector">extractVector(rec[, featureExtractorId])</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.FeatureSpace.html#filter">filter(vec, idx[, keepOffset])</a></dt>
                     <dd>
                     </dd>
@@ -90,13 +93,13 @@
                     <dt><a href="module-qm.FeatureSpace.html#invertFeature">invertFeature(idx, val)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.FeatureSpace.html#invertFeatureVector">invertFeatureVector(ftr)</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.FeatureSpace.html#invertFeatureVector">invertFeatureVector(ftr)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.FeatureSpace.html#save">save(fout)</a></dt>
                     <dd>
                     </dd>
@@ -270,6 +273,46 @@ base.close();</code></pre>
                     </tr>
                   </tbody>
                 </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="clear"><span class="symbol-name">clear</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></span></span></h3>
+              <p>Clears the feature space.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a new base containing one store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [{
+       name: &quot;Runners&quot;,
+       fields: [
+           { name: &quot;ID&quot;, type: &quot;int&quot;, primary: true },
+           { name: &quot;Name&quot;, type: &quot;string&quot; },
+           { name: &quot;BestTime&quot;, type: &quot;float&quot; }
+       ]
+   }]
+});
+// put some records in the &quot;Runners&quot; store
+base.store(&quot;Runners&quot;).push({ ID: 110020, Name: &quot;Eric Ericsson&quot;, BestTime: 134.33 });
+base.store(&quot;Runners&quot;).push({ ID: 123307, Name: &quot;Fred Friedrich&quot;, BestTime: 101.11 });
+base.store(&quot;Runners&quot;).push({ ID: 767201, Name: &quot;Appel Banana&quot;, BestTime: 1034.56 });
+// create a feature space
+var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Runners&quot;, field: &quot;BestTime&quot; });
+// update the feature space
+ftr.updateRecords(base.store(&quot;Runners&quot;).allRecords);
+// clear the feature space (return the feature space to it&#x27;s default values)
+ftr.clear();
+base.close();</code></pre>
+                </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>

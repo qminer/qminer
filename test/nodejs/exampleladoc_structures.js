@@ -477,8 +477,20 @@ it("should make test number 34", function () {
 	
 });
 });
-describe("Returns a string displaying rows, columns and number of non-zero elements of sparse matrix., number 35", function () {
+describe("Sets the row dimension, number 35", function () {
 it("should make test number 35", function () {
+
+	 // import the modules
+	 var la = require('qminer').la;
+	 // create an empty matrix
+	 var mat = new la.SparseMatrix();
+	 mat.setRowDim(2);
+	 mat.rows // prints 2
+	
+});
+});
+describe("Returns a string displaying rows, columns and number of non-zero elements of sparse matrix., number 36", function () {
+it("should make test number 36", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -489,8 +501,8 @@ it("should make test number 35", function () {
     
 });
 });
-describe("Prints the sparse vector on-screen., number 36", function () {
-it("should make test number 36", function () {
+describe("Prints the sparse vector on-screen., number 37", function () {
+it("should make test number 37", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -501,8 +513,8 @@ it("should make test number 36", function () {
 	
 });
 });
-describe("Prints the matrix on-screen., number 37", function () {
-it("should make test number 37", function () {
+describe("Prints the matrix on-screen., number 38", function () {
+it("should make test number 38", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -516,8 +528,8 @@ it("should make test number 37", function () {
 	
 });
 });
-describe("Prints the vector on-screen., number 38", function () {
-it("should make test number 38", function () {
+describe("Prints the vector on-screen., number 39", function () {
+it("should make test number 39", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -530,8 +542,8 @@ it("should make test number 38", function () {
     
 });
 });
-describe("Copies the vector into a JavaScript array of numbers., number 39", function () {
-it("should make test number 39", function () {
+describe("Copies the vector into a JavaScript array of numbers., number 40", function () {
+it("should make test number 40", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -542,8 +554,8 @@ it("should make test number 39", function () {
     
 });
 });
-describe("Copies the matrix into a JavaScript array of arrays of numbers., number 40", function () {
-it("should make test number 40", function () {
+describe("Copies the matrix into a JavaScript array of arrays of numbers., number 41", function () {
+it("should make test number 41", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -554,8 +566,8 @@ it("should make test number 40", function () {
     
 });
 });
-describe("Copies the vector into a JavaScript array of numbers., number 41", function () {
-it("should make test number 41", function () {
+describe("Copies the vector into a JavaScript array of numbers., number 42", function () {
+it("should make test number 42", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -566,8 +578,8 @@ it("should make test number 41", function () {
     
 });
 });
-describe("Returns a vector with all entries set to 1.0., number 42", function () {
-it("should make test number 42", function () {
+describe("Returns a vector with all entries set to 1.0., number 43", function () {
+it("should make test number 43", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -576,8 +588,8 @@ it("should make test number 42", function () {
     
 });
 });
-describe("Constructs a matrix by concatenating a doubly-nested array of matrices., number 43", function () {
-it("should make test number 43", function () {
+describe("Constructs a matrix by concatenating a doubly-nested array of matrices., number 44", function () {
+it("should make test number 44", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -596,8 +608,8 @@ it("should make test number 43", function () {
     
 });
 });
-describe("Generates an integer vector given range, number 44", function () {
-it("should make test number 44", function () {
+describe("Generates an integer vector given range, number 45", function () {
+it("should make test number 45", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -607,8 +619,8 @@ it("should make test number 44", function () {
     
 });
 });
-describe("returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input., number 45", function () {
-it("should make test number 45", function () {
+describe("returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input., number 46", function () {
+it("should make test number 46", function () {
 
      // import la module
      var la = require('qminer').la;
@@ -620,8 +632,8 @@ it("should make test number 45", function () {
     
 });
 });
-describe("computes and returns the pairwise squared euclidean distances between columns of `X1` and `X2` (`mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2`)., number 46", function () {
-it("should make test number 46", function () {
+describe("computes and returns the pairwise squared euclidean distances between columns of `X1` and `X2` (`mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2`)., number 47", function () {
+it("should make test number 47", function () {
 
      // import la module
      var la = require('qminer').la;
