@@ -13,6 +13,17 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 
 **[Project homepage](http://qminer.ijs.si/)**
 
+### Prerequisites
+
+**Windows x64**
+- node.js **x64 v0.12.7** available at https://nodejs.org/download/release/v0.12.7/x64/node-v0.12.7-x64.msi 
+- Visual C++ Redistributable Packages for Visual Studio 2013 available at https://www.microsoft.com/en-us/download/details.aspx?id=40784 - download **vcredist_x64.exe**`
+- to test that you have the correct version of node check if the following command executed from CMD prints `OK`.
+
+```
+node -e "if (process.version.substr(0,5) == 'v0.12' && process.arch == 'x64') { console.log('OK'); }"
+```
+
 ### Install 
 
 	npm install qminer
