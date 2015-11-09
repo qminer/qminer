@@ -6,16 +6,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-// check if we're in tonic environment
-var foundtry = false;
-if (process.platform == 'linux' && process.arch == 'x64' && process.versions.modules == '14' && process.version.substr(0, 5) == 'v0.12') {
-    var moduleStr = 'qminer-try';
-    try { require.resolve(moduleStr); foundtry = true; } catch (e) { }    
-}
 
-if (foundtry) {
-    module.exports = exports = require('qminer-try');
-} else {
+var pathQmBinary = __dirname + '/out/qm.node';
+var foundBinary = fs.existsSync(pathQmBinary);
+
+if (foundBinary) {
     // we're not in tonic environment
     process.env['QMINER_HOME'] = __dirname + "/src/glib/bin/";
     var pathQmBinary = __dirname + '/out/qm.node';
@@ -32,4 +27,10 @@ if (foundtry) {
     exports.datasets = require('./src/nodejs/datasets/datasets.js')(pathQmBinary);
     exports.qm_util = require('./src/nodejs/scripts/qm_util.js');
 
+} else {
+    // check if we're in tonic environment
+    if (process.platform == 'linux' && process.arch == 'x64' && process.versions.modules == '14' && process.version.substr(0, 5) == 'v0.12') {
+        var moduleStr = 'qminer-try';
+        try { module.exports = exports = require('qminer-try'); foundtry = true; } catch (e) { throw new Error('qminer binary not found!'); }
+    }
 }
