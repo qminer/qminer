@@ -48,7 +48,7 @@ node -e "if (process.version.substr(0,5) == 'v0.12' && process.arch == 'x64') { 
 
 + [Linux](https://github.com/qminer/qminer/wiki/Installation-on-Linux)
 + [Mac OS X](https://github.com/qminer/qminer/wiki/Installation-on-Mac-OSX)
-+ [Windows](https://github.com/qminer/qminer/wiki/Installation-on-Windows)
++ [Windows](https://github.com/qminer/qminer/wiki/Developing-on-Windows)
 
 ### Documentation
 
