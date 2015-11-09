@@ -470,13 +470,21 @@ protected:
 	/// Default error when accessing wrong field-type combination
 	PExcept FieldError(const int& FieldId, const TStr& TypeStr) const;
 
-	/// Should be called after record RecId added; executes OnAdd event in all register triggers
+public:
+	/// Should be called after record RecId added; executes OnAdd event in all registered triggers
 	void OnAdd(const uint64& RecId);
-	/// Should be called after record RecId updated; executes OnUpdate event in all register triggers
+	/// Should be called after record Rec added; executes OnAdd event in all registered triggers
+	void OnAdd(const TRec& Rec);
+	/// Should be called after record RecId updated; executes OnUpdate event in all registered triggers
 	void OnUpdate(const uint64& RecId);
-	/// Should be called before record RecId deleted; executes OnDelete event in all register triggers
+	/// Should be called after record Rec updated; executes OnUpdate event in all registered triggers
+	void OnUpdate(const TRec& Rec);
+	/// Should be called before record RecId deleted; executes OnDelete event in all registered triggers
 	void OnDelete(const uint64& RecId);
+	/// Should be called before record Rec deleted; executes OnDelete event in all registered triggers
+	void OnDelete(const TRec& Rec);
 
+protected:
 	/// Helper function for handling string and vector pools
 	void StrVToIntV(const TStrV& StrV, TStrHash<TInt, TBigStrPool>& WordH, TIntV& IntV);
 	/// Helper function for handling string and vector pools
