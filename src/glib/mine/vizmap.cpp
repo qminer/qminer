@@ -1038,7 +1038,7 @@ void TVizMapFactory::CG(const TMatrix& Matrix, const TFltV& b,
     }
 }
 
-void TVizMapFactory::MakeFlat(PSVMTrainSet Set, 
+void TVizMapFactory::MakeFlat(const PSVMTrainSet& Set, 
         const TVizDistType& DistType, TVec<TFltV>& DocPointV, 
         const int& MxStep, const int& MxSecs, const double& MnDiff, 
         const bool& RndStartPos, PNotify Notify) {
