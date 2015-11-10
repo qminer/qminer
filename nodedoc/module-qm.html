@@ -246,13 +246,13 @@
                 <dt><a href="module-qm.html#~StreamAggregateHistogram">StreamAggregateHistogram</a></dt>
                 <dd>
                 </dd>
-                <dt><a href="module-qm.html#~StreamAggregateHistogramDiff">StreamAggregateHistogramDiff</a></dt>
-                <dd>
-                </dd>
                 <dt><a href="module-qm.html#~StreamAggregateMax">StreamAggregateMax</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~StreamAggregateMerger">StreamAggregateMerger</a></dt>
+                <dd>
+                </dd>
+                <dt><a href="module-qm.html#~StreamAggregateMin">StreamAggregateMin</a></dt>
                 <dd>
                 </dd>
         </dl>
@@ -260,9 +260,6 @@
 
                     <div class="summary-column">
         <dl class="dl-summary-callout">
-                <dt><a href="module-qm.html#~StreamAggregateMin">StreamAggregateMin</a></dt>
-                <dd>
-                </dd>
                 <dt><a href="module-qm.html#~StreamAggregateMovingAverage">StreamAggregateMovingAverage</a></dt>
                 <dd>
                 </dd>
@@ -273,6 +270,9 @@
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~StreamAggregateMovingVariance">StreamAggregateMovingVariance</a></dt>
+                <dd>
+                </dd>
+                <dt><a href="module-qm.html#~StreamAggregateRecordBuffer">StreamAggregateRecordBuffer</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~StreamAggregateResampler">StreamAggregateResampler</a></dt>
@@ -288,6 +288,9 @@
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~StreamAggregateTimeSeriesWindow">StreamAggregateTimeSeriesWindow</a></dt>
+                <dd>
+                </dd>
+                <dt><a href="module-qm.html#~StreamAggregateVecDiff">StreamAggregateVecDiff</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~StreamAggregators">StreamAggregators</a></dt>
@@ -4626,158 +4629,6 @@ It implements the following methods:
         
     </dl>
 
-                <h3 id="~StreamAggregateHistogramDiff"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateHistogramDiff</span><small class="property-type">
-            &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-        <p>This stream aggregator represents difference between two online histograms. </p>
-<p>It implements the following methods:
-<br><a href="module-qm.StreamAggr.html#getFloatLength">module:qm.StreamAggr#getFloatLength</a> returns the number of bins.
-<br><a href="module-qm.StreamAggr.html#getFloatAt">module:qm.StreamAggr#getFloatAt</a> returns the count for a bin index.
-<br><a href="module-qm.StreamAggr.html#getFloatVector">module:qm.StreamAggr#getFloatVector</a> returns the vector of counts, the length is equal to the number of bins.</p>
-
-        <section>
-        <h4>
-            Example
-        </h4>
-                <div>
-    <pre class="prettyprint"><code>// import the qm modulevar qm = require(&#x27;qminer&#x27;);// create a base with a simple store// the store records results of clusteringvar base = new qm.Base({mode: &quot;createClean&quot;,schema: [{	name: &quot;Rpm&quot;,	fields: [		{ name: &quot;ClusterId&quot;, type: &quot;float&quot; },		{ name: &quot;Time&quot;, type: &quot;datetime&quot; }	]}]});		var store = base.store(&#x27;Rpm&#x27;);// create a new time series stream aggregator for the &#x27;Rpm&#x27; store that takes the recorded cluster id// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 4 weeks.var timeser1 = {	name: &#x27;TimeSeries1&#x27;,	type: &#x27;timeSeriesWinBuf&#x27;,	store: &#x27;Rpm&#x27;,	timestamp: &#x27;Time&#x27;,	value: &#x27;ClusterId&#x27;,	winsize: 7200000 // 2 hours};var timeSeries1 = base.store(&quot;Rpm&quot;).addStreamAggr(timeser1);// add a histogram aggregator, that is connected with the &#x27;TimeSeries1&#x27; aggregatorvar aggrJson1 = {	name: &#x27;Histogram1&#x27;,	type: &#x27;onlineHistogram&#x27;,	store: &#x27;Rpm&#x27;,	inAggr: &#x27;TimeSeries1&#x27;,	lowerBound: 0,	upperBound: 5,	bins: 5,	addNegInf: false,	addPosInf: false};var hist1 = base.store(&quot;Rpm&quot;).addStreamAggr(aggrJson1);// create a new time series stream aggregator for the &#x27;Rpm&#x27; store that takes the recorded cluster id// and the timestamp from the &#x27;Time&#x27; field. var timeser2 = {	name: &#x27;TimeSeries2&#x27;,	type: &#x27;timeSeriesWinBuf&#x27;,	store: &#x27;Rpm&#x27;,	timestamp: &#x27;Time&#x27;,	value: &#x27;ClusterId&#x27;,	winsize: 21600000 // 6 hours};var timeSeries2 = base.store(&quot;Rpm&quot;).addStreamAggr(timeser2);// add a histogram aggregator, that is connected with the &#x27;TimeSeries1&#x27; aggregatorvar aggrJson2 = {	name: &#x27;Histogram2&#x27;,	type: &#x27;onlineHistogram&#x27;,	store: &#x27;Rpm&#x27;,	inAggr: &#x27;TimeSeries2&#x27;,	lowerBound: 0,	upperBound: 5,	bins: 5,	addNegInf: false,	addPosInf: false};var hist2 = base.store(&quot;Rpm&quot;).addStreamAggr(aggrJson2);// add diff aggregator that subtracts Histogram1 with 2h window from Histogram2 with 6h windowvar aggrJson3 = {	name: &#x27;DiffAggr&#x27;,	type: &#x27;onlineHistogramDiff&#x27;,	storeX: &#x27;Rpm&#x27;,	storeY: &#x27;Rpm&#x27;,	inAggrX: &#x27;Histogram2&#x27;,	inAggrY: &#x27;Histogram1&#x27;}var diff = store.addStreamAggr(aggrJson3);base.close();</code></pre>
-</div>
-
-    </section>
-
-    
-        <section>
-        <h4>Properties</h4>
-            <table class="jsdoc-details-table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Optional</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-                <tr>
-        <td>
-            <p>name</p>
-        </td>
-        <td>
-                <p>string</p>
-        </td>
-        <td>
-                <p>&nbsp;</p>
-        </td>
-        <td>
-                <p>The given name of the stream aggregator.</p>
-        </td>
-</tr>
-
-                <tr>
-        <td>
-            <p>type</p>
-        </td>
-        <td>
-                <p>string</p>
-        </td>
-        <td>
-                <p>&nbsp;</p>
-        </td>
-        <td>
-                <p>The type for the stream aggregator. It must be equal to <b>'onlineHistogram'</b>.</p>
-        </td>
-</tr>
-
-                <tr>
-        <td>
-            <p>storeX</p>
-        </td>
-        <td>
-                <p>string</p>
-        </td>
-        <td>
-                <p>&nbsp;</p>
-        </td>
-        <td>
-                <p>The name of the store from which it takes the data for the first histogram.</p>
-        </td>
-</tr>
-
-                <tr>
-        <td>
-            <p>storeY</p>
-        </td>
-        <td>
-                <p>string</p>
-        </td>
-        <td>
-                <p>&nbsp;</p>
-        </td>
-        <td>
-                <p>The name of the store from which it takes the data for the second histogram.</p>
-        </td>
-</tr>
-
-                <tr>
-        <td>
-            <p>inAggrX</p>
-        </td>
-        <td>
-                <p>string</p>
-        </td>
-        <td>
-                <p>&nbsp;</p>
-        </td>
-        <td>
-                <p>The name of the first stream aggregator to which it connects and gets data.</p>
-        </td>
-</tr>
-
-                <tr>
-        <td>
-            <p>inAggrY</p>
-        </td>
-        <td>
-                <p>string</p>
-        </td>
-        <td>
-                <p>&nbsp;</p>
-        </td>
-        <td>
-                <p>The name of the second stream aggregator to which it connects and gets data.</p>
-        </td>
-</tr>
-
-        </tbody>
-</table>
-
-    </section>
-
-
-    <dl class="dl-compact">
-        
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        
-        
-        
-        
-        
-    </dl>
-
                 <h3 id="~StreamAggregateMax"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateMax</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents the maximum moving window buffer. It monitors the maximal value in the connected stream aggregator. 
@@ -5704,6 +5555,110 @@ It implements the following methods:
         
     </dl>
 
+                <h3 id="~StreamAggregateRecordBuffer"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateRecordBuffer</span><small class="property-type">
+            &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+        <p>This stream aggregator represents record buffer. It stores the values inside a moving window.
+It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a>, <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a>.</p>
+
+        <section>
+        <h4>
+            Example
+        </h4>
+                <div>
+    <pre class="prettyprint"><code>// import the qm modulevar qm = require(&#x27;qminer&#x27;);// create a base with a simple storevar base = new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Heat&quot;,       fields: [           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series stream aggregator for the &#x27;Heat&#x27; store. The size of the window is 3 records.var aggr = {   name: &#x27;Delay&#x27;,   type: &#x27;recordBuffer&#x27;,   size: 3};base.store(&quot;Heat&quot;).addStreamAggr(aggr);base.close();</code></pre>
+</div>
+
+    </section>
+
+    
+        <section>
+        <h4>Properties</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>StreamAggregateTimeSeriesWindow.name</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The given name of the stream aggregator.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>StreamAggregateTimeSeriesWindow.type</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The type of the stream aggregator. It must be equal to <b>'recordBuffer'</b>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>StreamAggregateTimeSeriesWindow.size</p>
+        </td>
+        <td>
+                <p>number</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The size of the window.</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+
+    <dl class="dl-compact">
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+    </dl>
+
                 <h3 id="~StreamAggregateResampler"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateResampler</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents the resampler window buffer. It creates new values that are interpolated by using the values from an existing store.
@@ -6479,6 +6434,158 @@ It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.htm
         
     </dl>
 
+                <h3 id="~StreamAggregateVecDiff"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateVecDiff</span><small class="property-type">
+            &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+        <p>This stream aggregator represents difference between two vectors (e.g. online histograms). </p>
+<p>It implements the following methods:
+<br><a href="module-qm.StreamAggr.html#getFloatLength">module:qm.StreamAggr#getFloatLength</a> returns the number of bins.
+<br><a href="module-qm.StreamAggr.html#getFloatAt">module:qm.StreamAggr#getFloatAt</a> returns the count for a bin index.
+<br><a href="module-qm.StreamAggr.html#getFloatVector">module:qm.StreamAggr#getFloatVector</a> returns the vector of counts, the length is equal to the number of bins.</p>
+
+        <section>
+        <h4>
+            Example
+        </h4>
+                <div>
+    <pre class="prettyprint"><code>// import the qm modulevar qm = require(&#x27;qminer&#x27;);// create a base with a simple store// the store records results of clusteringvar base = new qm.Base({mode: &quot;createClean&quot;,schema: [{	name: &quot;Rpm&quot;,	fields: [		{ name: &quot;ClusterId&quot;, type: &quot;float&quot; },		{ name: &quot;Time&quot;, type: &quot;datetime&quot; }	]}]});		var store = base.store(&#x27;Rpm&#x27;);// create a new time series stream aggregator for the &#x27;Rpm&#x27; store that takes the recorded cluster id// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 4 weeks.var timeser1 = {	name: &#x27;TimeSeries1&#x27;,	type: &#x27;timeSeriesWinBuf&#x27;,	store: &#x27;Rpm&#x27;,	timestamp: &#x27;Time&#x27;,	value: &#x27;ClusterId&#x27;,	winsize: 7200000 // 2 hours};var timeSeries1 = base.store(&quot;Rpm&quot;).addStreamAggr(timeser1);// add a histogram aggregator, that is connected with the &#x27;TimeSeries1&#x27; aggregatorvar aggrJson1 = {	name: &#x27;Histogram1&#x27;,	type: &#x27;onlineHistogram&#x27;,	store: &#x27;Rpm&#x27;,	inAggr: &#x27;TimeSeries1&#x27;,	lowerBound: 0,	upperBound: 5,	bins: 5,	addNegInf: false,	addPosInf: false};var hist1 = base.store(&quot;Rpm&quot;).addStreamAggr(aggrJson1);// create a new time series stream aggregator for the &#x27;Rpm&#x27; store that takes the recorded cluster id// and the timestamp from the &#x27;Time&#x27; field. var timeser2 = {	name: &#x27;TimeSeries2&#x27;,	type: &#x27;timeSeriesWinBuf&#x27;,	store: &#x27;Rpm&#x27;,	timestamp: &#x27;Time&#x27;,	value: &#x27;ClusterId&#x27;,	winsize: 21600000 // 6 hours};var timeSeries2 = base.store(&quot;Rpm&quot;).addStreamAggr(timeser2);// add a histogram aggregator, that is connected with the &#x27;TimeSeries1&#x27; aggregatorvar aggrJson2 = {	name: &#x27;Histogram2&#x27;,	type: &#x27;onlineHistogram&#x27;,	store: &#x27;Rpm&#x27;,	inAggr: &#x27;TimeSeries2&#x27;,	lowerBound: 0,	upperBound: 5,	bins: 5,	addNegInf: false,	addPosInf: false};var hist2 = base.store(&quot;Rpm&quot;).addStreamAggr(aggrJson2);// add diff aggregator that subtracts Histogram1 with 2h window from Histogram2 with 6h windowvar aggrJson3 = {	name: &#x27;DiffAggr&#x27;,	type: &#x27;onlineVecDiff&#x27;,	storeX: &#x27;Rpm&#x27;,	storeY: &#x27;Rpm&#x27;,	inAggrX: &#x27;Histogram2&#x27;,	inAggrY: &#x27;Histogram1&#x27;}var diff = store.addStreamAggr(aggrJson3);base.close();</code></pre>
+</div>
+
+    </section>
+
+    
+        <section>
+        <h4>Properties</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>name</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The given name of the stream aggregator.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>type</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The type for the stream aggregator. It must be equal to <b>'onlineVecDiff'</b>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>storeX</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the store from which it takes the data for the first vector.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>storeY</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the store from which it takes the data for the second vector.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>inAggrX</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the first stream aggregator to which it connects and gets data.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>inAggrY</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the second stream aggregator to which it connects and gets data.</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+
+    <dl class="dl-compact">
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+    </dl>
+
                 <h3 id="~StreamAggregators"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregators</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>Stream aggregator types.</p>
@@ -6509,6 +6616,21 @@ It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.htm
         </td>
         <td>
                 <p>The time series type.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>recordBuffer</p>
+        </td>
+        <td>
+                <p><a href="module-qm.html#~StreamAggregateRecordBuffer">module:qm~StreamAggregateRecordBuffer</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The record buffer type.</p>
         </td>
 </tr>
 
@@ -6709,16 +6831,16 @@ It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.htm
 
                 <tr>
         <td>
-            <p>hist-diff</p>
+            <p>vec-diff</p>
         </td>
         <td>
-                <p><a href="module-qm.html#~StreamAggregateHistogramDiff">module:qm~StreamAggregateHistogramDiff</a></p>
+                <p><a href="module-qm.html#~StreamAggregateVecDiff">module:qm~StreamAggregateVecDiff</a></p>
         </td>
         <td>
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The difference of two online histograms type.</p>
+                <p>The difference of two vectors (e.g. online histograms) type.</p>
         </td>
 </tr>
 

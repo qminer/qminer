@@ -93,8 +93,38 @@ it("should make test number 3", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateSum, number 4", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateRecordBuffer, number 4", function () {
 it("should make test number 4", function () {
+ this.timeout(10000); 
+
+ // import the qm module
+ var qm = require('qminer');
+ // create a base with a simple store
+ var base = new qm.Base({
+    mode: "createClean",
+    schema: [
+    {
+        name: "Heat",
+        fields: [
+            { name: "Celcius", type: "float" },
+            { name: "Time", type: "datetime" }
+        ]
+    }]
+ });
+
+ // create a new time series stream aggregator for the 'Heat' store. The size of the window is 3 records.
+ var aggr = {
+    name: 'Delay',
+    type: 'recordBuffer',
+    size: 3
+ };
+ base.store("Heat").addStreamAggr(aggr);
+ base.close();
+
+});
+});
+describe("@typedef {module:qm.StreamAggr} StreamAggregateSum, number 5", function () {
+it("should make test number 5", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -136,8 +166,8 @@ it("should make test number 4", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMin, number 5", function () {
-it("should make test number 5", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMin, number 6", function () {
+it("should make test number 6", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -179,8 +209,8 @@ it("should make test number 5", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMax, number 6", function () {
-it("should make test number 6", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMax, number 7", function () {
+it("should make test number 7", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -222,8 +252,8 @@ it("should make test number 6", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesTick, number 7", function () {
-it("should make test number 7", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesTick, number 8", function () {
+it("should make test number 8", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -255,8 +285,8 @@ it("should make test number 7", function () {
 
 });
 });
-describe("@typedef {module:qmStreamAggr} StreamAggregateMovingAverage, number 8", function () {
-it("should make test number 8", function () {
+describe("@typedef {module:qmStreamAggr} StreamAggregateMovingAverage, number 9", function () {
+it("should make test number 9", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -298,8 +328,8 @@ it("should make test number 8", function () {
 
 });
 });
-describe("@typedef {module:qmStreamAggr} StreamAggregateEMA, number 9", function () {
-it("should make test number 9", function () {
+describe("@typedef {module:qmStreamAggr} StreamAggregateEMA, number 10", function () {
+it("should make test number 10", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -345,8 +375,8 @@ it("should make test number 9", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingVariance, number 10", function () {
-it("should make test number 10", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingVariance, number 11", function () {
+it("should make test number 11", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -388,8 +418,8 @@ it("should make test number 10", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingCovariance, number 11", function () {
-it("should make test number 11", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingCovariance, number 12", function () {
+it("should make test number 12", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -443,8 +473,8 @@ it("should make test number 11", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingCorrelation, number 12", function () {
-it("should make test number 12", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingCorrelation, number 13", function () {
+it("should make test number 13", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -523,8 +553,8 @@ it("should make test number 12", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateResampler, number 13", function () {
-it("should make test number 13", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateResampler, number 14", function () {
+it("should make test number 14", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -569,8 +599,8 @@ it("should make test number 13", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMerger, number 14", function () {
-it("should make test number 14", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMerger, number 15", function () {
+it("should make test number 15", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -620,8 +650,8 @@ it("should make test number 14", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateHistogram, number 15", function () {
-it("should make test number 15", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateHistogram, number 16", function () {
+it("should make test number 16", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -668,8 +698,8 @@ it("should make test number 15", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateSlottedHistogram, number 16", function () {
-it("should make test number 16", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateSlottedHistogram, number 17", function () {
+it("should make test number 17", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -716,8 +746,8 @@ it("should make test number 16", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateHistogramDiff, number 17", function () {
-it("should make test number 17", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateVecDiff, number 18", function () {
+it("should make test number 18", function () {
  this.timeout(10000); 
 
  // import the qm module
@@ -793,7 +823,7 @@ it("should make test number 17", function () {
  // add diff aggregator that subtracts Histogram1 with 2h window from Histogram2 with 6h window
  var aggrJson3 = {
  	name: 'DiffAggr',
- 	type: 'onlineHistogramDiff',
+ 	type: 'onlineVecDiff',
  	storeX: 'Rpm',
  	storeY: 'Rpm',
  	inAggrX: 'Histogram2',
@@ -804,8 +834,8 @@ it("should make test number 17", function () {
 
 });
 });
-describe("Returns the value of the specific stream aggregator. For return values see {@link module:qm~StreamAggregators}., number 18", function () {
-it("should make test number 18", function () {
+describe("Returns the value of the specific stream aggregator. For return values see {@link module:qm~StreamAggregators}., number 19", function () {
+it("should make test number 19", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -852,8 +882,8 @@ it("should make test number 18", function () {
 	
 });
 });
-describe("Returns the timestamp value of the newest record in buffer., number 19", function () {
-it("should make test number 19", function () {
+describe("Returns the timestamp value of the newest record in buffer., number 20", function () {
+it("should make test number 20", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -899,8 +929,8 @@ it("should make test number 19", function () {
 	
 });
 });
-describe("Gets the length of the vector containing the values of the stream aggregator., number 20", function () {
-it("should make test number 20", function () {
+describe("Gets the length of the vector containing the values of the stream aggregator., number 21", function () {
+it("should make test number 21", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -938,8 +968,8 @@ it("should make test number 20", function () {
 	
 });
 });
-describe("Returns the value of the vector containing the values of the stream aggregator at a specific index., number 21", function () {
-it("should make test number 21", function () {
+describe("Returns the value of the vector containing the values of the stream aggregator at a specific index., number 22", function () {
+it("should make test number 22", function () {
  this.timeout(10000); 
  
 	 // import qm module
@@ -977,8 +1007,8 @@ it("should make test number 21", function () {
 	
 });
 });
-describe("Gets the whole vector of values of the stream aggregator., number 22", function () {
-it("should make test number 22", function () {
+describe("Gets the whole vector of values of the stream aggregator., number 23", function () {
+it("should make test number 23", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1016,8 +1046,8 @@ it("should make test number 22", function () {
 	
 });
 });
-describe("Gets the length of the timestamp vector of the stream aggregator., number 23", function () {
-it("should make test number 23", function () {
+describe("Gets the length of the timestamp vector of the stream aggregator., number 24", function () {
+it("should make test number 24", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1058,8 +1088,8 @@ it("should make test number 23", function () {
 	
 });
 });
-describe("Gets the timestamp from the timestamp vector of the stream aggregator at the specific index., number 24", function () {
-it("should make test number 24", function () {
+describe("Gets the timestamp from the timestamp vector of the stream aggregator at the specific index., number 25", function () {
+it("should make test number 25", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1098,8 +1128,8 @@ it("should make test number 24", function () {
 	
 });
 });
-describe("Gets the vector containing the timestamps of the stream aggregator., number 25", function () {
-it("should make test number 25", function () {
+describe("Gets the vector containing the timestamps of the stream aggregator., number 26", function () {
+it("should make test number 26", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1136,8 +1166,8 @@ it("should make test number 25", function () {
 	
 });
 });
-describe("Gets the value of the newest record added to the stream aggregator., number 26", function () {
-it("should make test number 26", function () {
+describe("Gets the value of the newest record added to the stream aggregator., number 27", function () {
+it("should make test number 27", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1175,8 +1205,8 @@ it("should make test number 26", function () {
 	
 });
 });
-describe("Gets the timestamp of the newest record added to the stream aggregator., number 27", function () {
-it("should make test number 27", function () {
+describe("Gets the timestamp of the newest record added to the stream aggregator., number 28", function () {
+it("should make test number 28", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1214,8 +1244,8 @@ it("should make test number 27", function () {
 	
 });
 });
-describe("Gets a vector containing the values that are leaving the stream aggregator., number 28", function () {
-it("should make test number 28", function () {
+describe("Gets a vector containing the values that are leaving the stream aggregator., number 29", function () {
+it("should make test number 29", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1255,8 +1285,8 @@ it("should make test number 28", function () {
 	
 });
 });
-describe("Gets a vector containing the timestamps that are leaving the stream aggregator., number 29", function () {
-it("should make test number 29", function () {
+describe("Gets a vector containing the timestamps that are leaving the stream aggregator., number 30", function () {
+it("should make test number 30", function () {
  this.timeout(10000); 
 
 	 // import qm module
@@ -1297,8 +1327,8 @@ it("should make test number 29", function () {
 	
 });
 });
-describe("Gets the number of records in the stream aggregator., number 30", function () {
-it("should make test number 30", function () {
+describe("Gets the number of records in the stream aggregator., number 31", function () {
+it("should make test number 31", function () {
  this.timeout(10000); 
 
 	 // import qm module

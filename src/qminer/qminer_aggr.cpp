@@ -491,6 +491,8 @@ void TRecBuffer::SaveState(TSOut& SOut) const {
 PJsonVal TRecBuffer::SaveJson(const int& Limit) const {
     PJsonVal JsonVal = TJsonVal::NewObj();
     if (!Buffer.Empty()) {
+		QmAssertR(Store->IsRecId(Buffer.GetOldest()), "TRecBuffer GetOldest returned invalid record id");
+		QmAssertR(Store->IsRecId(Buffer.GetNewest()), "TRecBuffer GetNewest returned invalid record id");
         const TRec& OldestRec = Store->GetRec(Buffer.GetOldest());
         const TRec& NewestRec = Store->GetRec(Buffer.GetNewest());
         JsonVal->AddToObj("oldest", OldestRec.GetJson(GetBase(), true, false, false, false, true));
