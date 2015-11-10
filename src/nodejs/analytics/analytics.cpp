@@ -324,6 +324,9 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 					TIntV(), TSVMLearnParam::Lin(JsModel->MxTime, JsModel->Verbose ? 2 : 0));
 				JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
 			}
+			else if (JsModel->Algorithm == "LIBSVM") {
+				JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost);
+			}
 			else {
 				throw TExcept::New("SVC.fit: unknown algorithm " + JsModel->Algorithm);
 			}
@@ -340,6 +343,9 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				PSVMModel SvmModel = TSVMModel::NewClsLinear(TrainSet, JsModel->SvmCost, JsModel->SvmUnbalance,
 					TIntV(), TSVMLearnParam::Lin(JsModel->MxTime, JsModel->Verbose ? 2 : 0));
 				JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
+			}
+			else if (JsModel->Algorithm == "LIBSVM") {
+				JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost);
 			}
 			else {
 				throw TExcept::New("SVC.fit: unknown algorithm " + JsModel->Algorithm);
@@ -408,6 +414,9 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 					TIntV(), TSVMLearnParam::Lin(JsModel->MxTime, JsModel->Verbose ? 2 : 0));
 				JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
 			}
+			else if (JsModel->Algorithm == "LIBSVM") {
+				JsModel->Model = TSvm::LibSvmSolveRegression(VecV, ClsV, JsModel->SvmEps, JsModel->SvmCost);
+			}
 			else {
 				throw TExcept::New("SVR.fit: unknown algorithm " + JsModel->Algorithm);
 			}
@@ -424,6 +433,9 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				PSVMModel SvmModel = TSVMModel::NewRegLinear(TrainSet, JsModel->SvmEps, JsModel->SvmCost,
 					TIntV(), TSVMLearnParam::Lin(JsModel->MxTime, JsModel->Verbose ? 2 : 0));
 				JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
+			}
+			else if (JsModel->Algorithm == "LIBSVM") {
+				JsModel->Model = TSvm::LibSvmSolveRegression(VecV, ClsV, JsModel->SvmEps, JsModel->SvmCost);
 			}
 			else {
 				throw TExcept::New("SVR.fit: unknown algorithm " + JsModel->Algorithm);

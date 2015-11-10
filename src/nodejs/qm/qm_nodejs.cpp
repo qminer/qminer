@@ -667,6 +667,7 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getVector", _getVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getMatrix", _getMatrix);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "cell", _cell);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "triggerOnAddCallbacks", _triggerOnAddCallbacks);
 
 	// Properties 
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "name"), _name);
@@ -1413,6 +1414,27 @@ void TNodeJsStore::cell(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	}
 
 	Args.GetReturnValue().Set(TNodeJsStore::Field(JsStore->Store, RecId, FieldId));
+}
+
+void TNodeJsStore::triggerOnAddCallbacks(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());
+	TWPt<TQm::TStore> Store = JsStore->Store;
+	QmAssertR((Args.Length() == 1) || (Args.Length() == 0 && Store->GetRecs() > 0), "Store.triggerOnAddCallbacks: at most one argument expected!");
+
+	if (Args.Length() == 1) {
+		if (Args[0]->IsInt32()) {
+			int RecId = TNodeJsUtil::GetArgInt32(Args, 0);
+			Store->OnAdd(RecId);
+		} else {
+			TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+			Store->OnAdd(JsRec->Rec);
+		}
+	} else {
+		Store->OnAdd(Store->GetLastRecId());
+	}
 }
 
 void TNodeJsStore::name(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {

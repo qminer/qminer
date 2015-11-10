@@ -752,12 +752,10 @@ public:
 /// Chi square
 class TChiSquare {
 private:	       
-	double Chi2, P, Alpha;
-	int DegreesOfFreedom;
-	TUInt64 TmMSecs; // timestamp of current WMA
+	TFlt Chi2, P;
+	TInt DegreesOfFreedom;
 public:
-	TChiSquare() { };
-	void Init(const double& _Alpha, const int& _Dof);
+	TChiSquare() : P(TFlt::PInf) { }
 	TChiSquare(const PJsonVal& ParamVal);
 	void Update(const TFltV& OutValVX, const TFltV& OutValVY, const int Dof);
 	/// Return Chi2 value
@@ -765,8 +763,6 @@ public:
 	/// Return P value
 	double GetP() const { return P; }
 	int GetDof() const {return DegreesOfFreedom;}
-	double GetAlpha() const {return Alpha;}
-	uint64 GetTmMSecs() const { return TmMSecs; }
 	/// Prints the model
 	void Print() const;
 };

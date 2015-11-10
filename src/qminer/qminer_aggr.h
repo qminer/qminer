@@ -742,7 +742,7 @@ public:
 /// Chi square stream aggregate.
 /// Updates a chi square model, connects to an online histogram stream aggregate
 /// that implements TStreamAggrOut::IFltVec
-class TChiSquare : public TStreamAggr, public TStreamAggrOut::IFltTm {
+class TChiSquare : public TStreamAggr, public TStreamAggrOut::IFlt {
 private:
 	// input
 	TWPt<TStreamAggr> InAggrX, InAggrY;
@@ -759,8 +759,6 @@ public:
 	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
 	// get current P value
 	double GetFlt() const { return ChiSquare.GetP(); }
-	// get time	
-	uint64 GetTmMSecs() const { return ChiSquare.GetTmMSecs(); }
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggrX->GetAggrNm()); 
         InAggrNmV.Add(InAggrY->GetAggrNm());}
 	// serialization to JSon
@@ -926,8 +924,6 @@ private:
 	// input
 	TWPt<TStreamAggr> InAggrX, InAggrY;
 	TWPt<TStreamAggrOut::IFltVec> InAggrValX, InAggrValY;
-	// indicator
-	TSignalProc::TChiSquare ChiSquare;
 
 protected:
 	void OnAddRec(const TRec& Rec) {} // do nothing
@@ -936,6 +932,8 @@ public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	// did we finish initialization
 	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
+	void LoadState(TSIn& SIn) { /* do nothing, there is not state */ }
+	void SaveState(TSOut& SOut) const { /* do nothing, there is not state */ }
 	
 	/// returns the number of bins 
 	int GetFltLen() const { return InAggrValX->GetFltLen(); }

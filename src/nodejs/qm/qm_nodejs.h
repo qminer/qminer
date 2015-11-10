@@ -709,6 +709,7 @@ private:
 	/**
 	* Adds a record to the store.
 	* @param {Object} rec - The added record. The record must be a JSON object corresponding to the store schema.
+	* @param {boolean} [triggerEvents=true] - If true, all stream aggregate callbacks onAdd will be called after the record is inserted. If false, no stream aggregate will be updated.
 	* @returns {number} The ID of the added record.
 	* @example
 	* // import qm module
@@ -738,7 +739,7 @@ private:
 	* base.store("Supervillians").push({ Name: "Lex Luthor", Superpowers: ["expert engineer", "genius-level intellect", "money"] }); // returns 0
 	* base.close();	
 	*/
-	//# exports.Store.prototype.push = function (rec) { return 0; }
+	//# exports.Store.prototype.push = function (rec, triggerEvents) { return 0; }
 	JsDeclareFunction(push);
 
 	/**
@@ -1145,6 +1146,13 @@ private:
 	*/
 	//# exports.Store.prototype.cell = function (recId, fieldName) {};
 	JsDeclareFunction(cell);
+
+	/**
+	* Calls onAdd callback on all stream aggregates
+	* @param {(module:qm.Record | number)} [arg=this.last] - The record or recordId which will be passed to onAdd callbacks. If the record or recordId is not provided, the last record will be used. Throws exception if cannot be provided.
+	*/
+	//# exports.Store.prototype.triggerOnAddCallbacks = function (arg) {};
+	JsDeclareFunction(triggerOnAddCallbacks);
 
 	/**
 	* Gives the name of the store.
