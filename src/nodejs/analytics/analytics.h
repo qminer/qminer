@@ -30,8 +30,7 @@ class TNodeJsSvmModel : public node::ObjectWrap {
 	friend class TNodeJsSVC;
 	friend class TNodeJsSVR;
 public:
-    static const TStr GetClassId() { return "SvmModel"; }
-    
+	static const TStr GetClassId() { return "SvmModel"; }
 private:
     // parameters
 	TStr Algorithm;	
@@ -45,13 +44,13 @@ private:
 	bool Verbose;
 	PNotify Notify;
 
-    // model
+	// model
 	TSvm::TLinModel Model;
 
 	TNodeJsSvmModel(const PJsonVal& ParamVal);
 	TNodeJsSvmModel(TSIn& SIn);
-    
-    static TNodeJsSvmModel* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+	static TNodeJsSvmModel* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
 	//- `params = svmModel.getParams()` -- returns the parameters of this model as a Javascript object

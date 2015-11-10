@@ -1625,7 +1625,41 @@ describe('TimeSeriesTick Tests', function () {
             var tick = store.addStreamAggr(aggr);
             assert.equal(tick.init, false);
         })
-    })
+    });
+    describe('Manual stream aggr triggers', function () {
+        it('should correctly not be updated when we call store.push(rec,false)', function () {
+            var aggr = {
+                name: 'TickAggr',
+                type: 'timeSeriesTick',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+            };
+            var tick = store.addStreamAggr(aggr);            
+            store.push({ Value: 1, Time: "2015-01-01" }, true);
+            assert(tick.val.Val == 1);
+            store.push({ Value: 2, Time: "2015-01-01" }, false);
+            assert(tick.val.Val == 1);            
+        });
+        it('should be updated when we call store.triggerOnAddCallbacks()', function () {
+            var aggr = {
+                name: 'TickAggr',
+                type: 'timeSeriesTick',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+            };
+            var tick = store.addStreamAggr(aggr);
+            store.push({ Value: 2, Time: "2015-01-01" }, false);
+            store.triggerOnAddCallbacks();
+            assert(tick.val.Val == 2);
+            store.push({ Value: 3, Time: "2015-01-01" }, false);
+            store.triggerOnAddCallbacks(store.last);
+            assert(tick.val.Val == 3);
+            store.triggerOnAddCallbacks(store.first.$id);
+            assert(tick.val.Val == 2);
+        });
+    });
 })
 
 describe('EMA Tests', function () {
