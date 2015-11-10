@@ -330,27 +330,5 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 		} finally {
 			base.close();
 		}
-		
-		var base2 = new qm.Base({
-			mode: "open"
-		});		
-		try {
-			var store2 = base2.store('Rpm');
-        
-			// get diff aggregator that subtracts Histogram1 with 2h window from Histogram2 with 6h window
-			var diff = store2.getStreamAggr("DiffAggr");
-						
-			// difference
-			var tmp3 = diff.saveJson();
-			console.log(JSON.stringify(tmp3));
-			assert.equal(tmp3.diff[0], 2);
-			assert.equal(tmp3.diff[1], 1);
-			assert.equal(tmp3.diff[2], 1);
-			assert.equal(tmp3.diff[3], 0);
-			assert.equal(tmp3.diff[4], 0);
-			
-		} finally {
-			base2.close();
-		}
 	});
 });
