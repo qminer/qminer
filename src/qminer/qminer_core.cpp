@@ -386,20 +386,32 @@ PExcept TStore::FieldError(const int& FieldId, const TStr& TypeStr) const {
 }
 
 void TStore::OnAdd(const uint64& RecId) {
+	OnAdd(GetRec(RecId));
+}
+
+void TStore::OnAdd(const TRec& Rec) {
 	for (int TriggerN = 0; TriggerN < TriggerV.Len(); TriggerN++) {
-		TriggerV[TriggerN]->OnAdd(GetRec(RecId));
+		TriggerV[TriggerN]->OnAdd(Rec);
 	}
 }
 
 void TStore::OnUpdate(const uint64& RecId) {
+	OnUpdate(GetRec(RecId));	
+}
+
+void TStore::OnUpdate(const TRec& Rec) {
 	for (int TriggerN = 0; TriggerN < TriggerV.Len(); TriggerN++) {
-		TriggerV[TriggerN]->OnUpdate(GetRec(RecId));
+		TriggerV[TriggerN]->OnUpdate(Rec);
 	}
 }
 
 void TStore::OnDelete(const uint64& RecId) {
+	OnDelete(GetRec(RecId));
+}
+
+void TStore::OnDelete(const TRec& Rec) {
 	for (int TriggerN = 0; TriggerN < TriggerV.Len(); TriggerN++) {
-		TriggerV[TriggerN]->OnDelete(GetRec(RecId));
+		TriggerV[TriggerN]->OnDelete(Rec);
 	}
 }
 
