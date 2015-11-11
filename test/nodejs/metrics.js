@@ -142,7 +142,11 @@ describe('Regression Metrics Tests', function () {
             var fin = new qm.fs.FIn('me.bin');
             me2.load(fin);
 
+            var fin = new qm.fs.FIn('me.bin');
+            var me3 = new analytics.metrics.MeanError(fin);
+
             assert.equal(me.getError(), me2.getError());
+            assert.equal(me.getError(), me3.getError())
         });
         it('should throw an exception if input parameters are not of type number', function () {
             var me = new analytics.metrics.MeanError()

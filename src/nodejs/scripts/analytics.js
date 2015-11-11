@@ -1048,7 +1048,7 @@ module.exports = exports = function (pathPrefix) {
     * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanError = function (FIn) {
+    metrics.MeanError = function (fin) {
         function metric() {
             this.name = "Mean Error"
             this.shortName = "ME"
@@ -1081,7 +1081,7 @@ module.exports = exports = function (pathPrefix) {
     * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanAbsoluteError = function (FIn) {
+    metrics.MeanAbsoluteError = function (fin) {
         function metric() {
             this.name = "Mean Absolute Error"
             this.shortName = "MAE"
@@ -1114,7 +1114,7 @@ module.exports = exports = function (pathPrefix) {
     * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanSquareError = function (FIn) {
+    metrics.MeanSquareError = function (fin) {
         function metric() {
             this.name = "Mean Square Error"
             this.shortName = "MSE"
@@ -1147,7 +1147,7 @@ module.exports = exports = function (pathPrefix) {
     * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.RootMeanSquareError = function (FIn) {
+    metrics.RootMeanSquareError = function (fin) {
         function metric() {
             this.name = "Root Mean Square Error"
             this.shortName = "RMSE"
@@ -1180,7 +1180,7 @@ module.exports = exports = function (pathPrefix) {
     * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanAbsolutePercentageError = function (FIn) {
+    metrics.MeanAbsolutePercentageError = function (fin) {
         function metric() {
             this.name = "Mean Absolute Percentage Error"
             this.shortName = "MAPE"
@@ -1215,7 +1215,7 @@ module.exports = exports = function (pathPrefix) {
     * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.R2Score = function (FIn) {
+    metrics.R2Score = function (fin) {
         function metric() {
             this.name = "R2 Score"
             this.shortName = "R2"
