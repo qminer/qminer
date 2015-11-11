@@ -1346,16 +1346,17 @@ TSizeTy TVec<TVal, TSizeTy>::GetPivotValN(const TSizeTy& LValN, const TSizeTy& R
 template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::Partition(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc, TRnd& Rnd){
   TSizeTy PivotValN=GetPivotValN(MnLValN, MxRValN, Rnd);
+  Assert(MnLValN <= PivotValN && PivotValN <= MxRValN);
   Swap(PivotValN, MnLValN);
   TVal PivotVal=ValT[MnLValN];
   TSizeTy LValN=MnLValN-1;  TSizeTy RValN=MxRValN+1;
   forever {
     if (Asc){
-      do {RValN--;} while (/*ValT[RValN]*/operator[](RValN)>PivotVal);	// TODO debugging, remove operator
-      do {LValN++;} while (/*ValT[LValN]*/operator[](LValN)<PivotVal);	// TODO debugging, remove operator
+      do {RValN--;} while (ValT[RValN]>PivotVal);
+      do {LValN++;} while (ValT[LValN]<PivotVal);
     } else {
-      do {RValN--;} while (/*ValT[RValN]*/operator[](RValN)<PivotVal);	// TODO debugging, remove operator
-      do {LValN++;} while (/*ValT[LValN]*/operator[](LValN)>PivotVal);	// TODO debugging, remove operator
+      do {RValN--;} while (ValT[RValN]<PivotVal);
+      do {LValN++;} while (ValT[LValN]>PivotVal);
     }
     if (LValN<RValN){Swap(LValN, RValN);}
     else {return RValN;}
