@@ -166,9 +166,10 @@
 				'<(LIN_EIGEN_INCLUDE)'
             ],
             'dependencies': [
+                'libsvm',
                 'glib',
                 'snap_lib',
-                'qminer'
+                'qminer',
             ],
         },
         {
@@ -230,6 +231,18 @@
                 'src/third_party/sole/',
                 '<(LIN_ALG_INCLUDE)',
 				'<(LIN_EIGEN_INCLUDE)'
+            ],
+        },
+        {
+            # libsvm
+            'target_name': 'libsvm',
+            'type': 'static_library',
+            'sources': [
+                'src/third_party/libsvm/svm.h',
+                'src/third_party/libsvm/svm.cpp'
+            ],
+            'include_dirs': [
+                'src/third_party/libsvm/'
             ],
         },
         {
