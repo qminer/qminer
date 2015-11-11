@@ -49,13 +49,7 @@ public:
 
 //////////////////////////////////////////////////
 // State Identifier
-class TStateIdentifier;
-typedef TPt<TStateIdentifier> PStateIdentifier;
 class TStateIdentifier {
-private:
-  TCRef CRef;
-public:
-  friend class TPt<TStateIdentifier>;
 private:
   	const static int MX_ITER;
 
@@ -176,13 +170,7 @@ public:
 
 ////////////////////////////////////////////
 // Hierarchy modeler
-class THierarch;
-typedef TPt<THierarch> PHierarch;
 class THierarch {
-private:
-	TCRef CRef;
-public:
-	friend class TPt<THierarch>;
 private:
     // a vector which describes the hierarchy. each state has its own index
     // and the value at index i is the index of i-ths parent
@@ -214,9 +202,9 @@ public:
 	// saves the model to the output stream
 	void Save(TSOut& SOut) const;
 	// loads the model from the output stream
-	static PHierarch Load(TSIn& SIn);
+	static THierarch* Load(TSIn& SIn);
 
-	void Init(const int& CurrLeafId, const PStateIdentifier& StateIdentifier);
+	void Init(const int& CurrLeafId, const TStateIdentifier& StateIdentifier);
 	void UpdateHistory(const int& CurrLeafId);
 
 	const TFltV& GetUniqueHeightV() const { return UniqueHeightV; }
@@ -372,13 +360,7 @@ public:
 
 /////////////////////////////////////////////////////////////////
 // Markov Chain
-class TTransitionModeler;
-typedef TPt<TTransitionModeler> PTransitionModeler;
 class TTransitionModeler {
-private:
-	TCRef CRef;
-public:
-	friend class TPt<TTransitionModeler>;
 protected:
 	int NStates;
 	int CurrStateId;
@@ -397,15 +379,15 @@ protected:
 	TTransitionModeler(const bool& Verbose);
 	TTransitionModeler(TSIn& SIn);
 
+public:
 	// destructor
 	virtual ~TTransitionModeler() {}
 
-public:
 	// save / load
 	// saves the model to the output stream
 	virtual void Save(TSOut& SOut) const;
 	// loads the model from the output stream
-	static PTransitionModeler Load(TSIn& SIn);
+	static TTransitionModeler* Load(TSIn& SIn);
 
 	// initializes the markov chain
 	void Init(const TFltVV& FtrVV, const int& NStates, const TIntV& StateAssignV,
@@ -613,13 +595,7 @@ private:
 
 /////////////////////////////////////////////////////////////////
 // UI helper
-class TUiHelper;
-typedef TPt<TUiHelper> PUiHelper;
 class TUiHelper {
-private:
-	TCRef CRef;
-public:
-	friend class TPt<TUiHelper>;
 private:
 	static const double STEP_FACTOR;
 	static const double INIT_RADIUS_FACTOR;
@@ -635,8 +611,8 @@ public:
 
 	void Save(TSOut& SOut) const;
 
-	void Init(const PStateIdentifier& StateIdentifier, const PHierarch& Hierarch,
-			const PTransitionModeler& MChain);
+	void Init(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch,
+			const TTransitionModeler& MChain);
 
 	const TFltPr& GetStateCoords(const int& StateId) const;
 	void GetStateRadiusV(const TFltV& ProbV, TFltV& SizeV) const;
@@ -645,10 +621,10 @@ private:
 	TFltPr& GetModStateCoords(const int& StateId);
 
 	// computes the coordinates (in 2D) of each state
-	void InitStateCoordV(const PStateIdentifier& StateIdentifier,
-			const PHierarch& Hierarch);
-	void RefineStateCoordV(const PStateIdentifier& StateIdentifier,
-			const PHierarch& Hierarch, const PTransitionModeler& MChain);
+	void InitStateCoordV(const TStateIdentifier& StateIdentifier,
+			const THierarch& Hierarch);
+	void RefineStateCoordV(const TStateIdentifier& StateIdentifier,
+			const THierarch& Hierarch, const TTransitionModeler& MChain);
 
 	static double GetUIStateRaduis(const double& Prob);
 	static bool NodesOverlap(const int& StartId, const int& EndId, const TFltPrV& CoordV,
@@ -662,13 +638,7 @@ private:
 
 ////////////////////////////////////////////////
 // State assistant
-class TStateAssist;
-typedef TPt<TStateAssist> PStateAssist;
 class TStateAssist {
-private:
-	TCRef CRef;
-public:
-	friend class TPt<TStateAssist>;
 private:
 	TVec<TLogReg> ClassifyV;
 	TVec<TDecisionTree> DecisionTreeV;
@@ -685,8 +655,11 @@ public:
 
 	void Save(TSOut& SOut) const;
 
-	void Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const PStateIdentifier& Clust,
-			const PHierarch& Hierarch);
+	void Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TStateIdentifier& Clust,
+			const THierarch& Hierarch, const bool& MultiThread=true);
+	void InitSingle(const TFltVV& ObsFtrVV, const int& StateId, const double& Height,
+			const THierarch& Hierarch, const TIntV& AssignV, const TRnd& Rnd, TLogReg& LogReg,
+			TDecisionTree& Tree);
 	void InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV);
 
 	const TFltPr& GetFtrBounds(const int& FtrId) const;
@@ -694,20 +667,15 @@ public:
 	PJsonVal GetStateClassifyTree(const int& StateId) const;
 };
 
-class TStreamStory;
-	typedef TPt<TStreamStory> PStreamStory;
-class TStreamStory{
-private:
-	TCRef CRef;
+class TStreamStory {
 public:
-  	friend class TPt<TStreamStory>;
 	class TCallback;	// declaration in the helper classes section
 private:
-	PStateIdentifier StateIdentifier;
-	PTransitionModeler MChain;
-    PHierarch Hierarch;
-    PStateAssist StateAssist;
-    PUiHelper UiHelper;
+	TStateIdentifier* StateIdentifier;
+	TTransitionModeler* MChain;
+    THierarch* Hierarch;
+    TStateAssist* StateAssist;
+    TUiHelper* UiHelper;
 
     TFltV PrevObsFtrV, PrevContrFtrV;
     uint64 PrevRecTm;
@@ -721,11 +689,11 @@ private:
 public:
     // constructors
     TStreamStory();
-    TStreamStory(const PStateIdentifier& Clust, const PTransitionModeler& MChain, const PHierarch& Hierarch,
+    TStreamStory(TStateIdentifier* Clust, TTransitionModeler* MChain, THierarch* Hierarch,
     		const TRnd& Rnd=TRnd(0), const bool& Verbose=true);
     TStreamStory(TSIn& SIn);
 
-    ~TStreamStory() {}
+    ~TStreamStory();
 
     // saves the model to the output stream
 	void Save(TSOut& SOut) const;
@@ -735,9 +703,11 @@ public:
 
 	// update methods
 	// initializes the model
-	void Init(TFltVV& ObservVV, const TFltVV& ControlVV, const TUInt64V& RecTmV);
+	void Init(TFltVV& ObservVV, const TFltVV& ControlVV, const TUInt64V& RecTmV,
+			const bool& MultiThread=true);
 	void InitBatches(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV,
-			const TUInt64V& RecTmV, const TBoolV& BatchEndV);
+			const TUInt64V& RecTmV, const TBoolV& BatchEndV,
+			const bool& MultiThread=true);
 	void InitClust(TFltVV& ObsFtrVV, const TFltVV& FtrVV,
 			TIntV& AssignV);	// TODO add const
 	void InitMChain(const TFltVV& FtrVV, const TIntV& AssignV, const TUInt64V& RecTmV,
@@ -745,7 +715,7 @@ public:
 	void InitHierarch();
 	void InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlMat,
 			const TUInt64V& RecTmV, const TBoolV& BatchEndV);
-	void InitStateAssist(TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV);	// TODO add const
+	void InitStateAssist(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const bool& MultiThread);
 
 	void OnAddRec(const uint64& RecTm, const TFltV& ObsFtrV, const TFltV& ContrFtrV);
 

@@ -69,7 +69,7 @@ void TNodeJsFs::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_METHOD(exports, "rmdir", _rmdir);
     NODE_SET_METHOD(exports, "listFile", _listFile);
     NODE_SET_METHOD(exports, "readLines", _readLines);
-    NODE_SET_METHOD(exports, "readLinesAsync", _readLinesAsync);
+    NODE_SET_METHOD(exports, "readCsvAsync", _readCsvAsync);
 }
 
 void TNodeJsFs::openRead(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -278,17 +278,22 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
-void TNodeJsFs::readLinesAsync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	TNodeJsAsyncUtil::ExecuteOnWorker(new TRealLines(Args));
-}
-
-TNodeJsFs::TRealLines::TRealLines(const v8::FunctionCallbackInfo<v8::Value>& Args):
-		HasError(false) {
+void TNodeJsFs::readCsvAsync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 3, "TNodeJsFs::readLinesAsync: Invalid number of arguments!");
-	EAssertR(!TNodeJsUtil::IsArgNull(Args, 0), "TNodeJsFs::readLinesAsync: Buffer is null or undefined!");
+	TNodeJsAsyncUtil::ExecuteOnWorker(new TReadCsv(Args));
+
+    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+TNodeJsFs::TReadCsv::TReadCsv(const v8::FunctionCallbackInfo<v8::Value>& Args):
+			HasError(false) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 4, "TNodeJsFs::readCsvLinesAsync: Invalid number of arguments!");
+	EAssertR(!TNodeJsUtil::IsArgNull(Args, 0), "TNodeJsFs::readCsvLinesAsync: Buffer is null or undefined!");
 
 	if (TNodeJsUtil::IsArgStr(Args, 0)) {	// Read from file
 		const TStr FNm = TNodeJsUtil::GetArgStr(Args, 0);
@@ -309,62 +314,90 @@ TNodeJsFs::TRealLines::TRealLines(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	PJsonVal OptsJson = TNodeJsUtil::GetArgJson(Args, 1);
 	Offset = OptsJson->GetObjInt("offset", 0);
 	Limit = OptsJson->GetObjInt("limit", TInt::Mx);
+	BatchSize = OptsJson->GetObjInt("batchSize", 1000);
 
-	OnEnd.Reset(Isolate, TNodeJsUtil::GetArgFun(Args, 2));
+	OnLine.Reset(Isolate, TNodeJsUtil::GetArgFun(Args, 2));
+	OnEnd.Reset(Isolate, TNodeJsUtil::GetArgFun(Args, 3));
 }
 
-void TNodeJsFs::TRealLines::Run(TRealLines& Data) {
-	const int& Offset = Data.Offset;
-	const int& Limit = Data.Limit;
+TNodeJsFs::TReadCsv::~TReadCsv() {
+	OnEnd.Reset();
+}
 
-	int Line = -1;
-	TStr LineStr;
-	while (Data.SIn->GetNextLn(LineStr)) {
+void TNodeJsFs::TReadCsv::Run(TReadCsv& Task) {
+	TSsParser SsParser(Task.SIn, ',', true, false, false);
+
+	TReadLinesCallback* Callback = new TReadLinesCallback(Task.BatchSize, &Task.OnLine);
+
+	int LineN = -1;
+	while (SsParser.Next()) {
 		try {
-			Line++;
+			if (++LineN < Task.Offset) { continue; }
 
-			if (Line < Offset) { continue; }
+			TVec<TStrV>& CsvLineV = Callback->CsvLineV;
 
-			Data.LineV.Add(LineStr);
+			CsvLineV.Add(TStrV());
+
+			const int NFlds = SsParser.Len();
+			for (int FldN = 0; FldN < NFlds; FldN++) {
+				CsvLineV.Last().Add(SsParser[FldN]);
+			}
+
+			if (LineN - Task.Offset + 1 >= Task.Limit) { break; }
+
+			if (CsvLineV.Len() >= Task.BatchSize) {
+				TNodeJsAsyncUtil::ExecuteOnMainAndWait(Callback, true);
+				Callback = new TReadLinesCallback(Task.BatchSize, &Task.OnLine);
+			}
 		} catch (...) {
-			Data.HasError = true;
+			Task.HasError = true;
 			break;
 		}
+	}
 
-		if (Line - Offset + 1 >= Limit) { break; }
+	if (!Task.HasError && !Callback->CsvLineV.Empty()) {
+		TNodeJsAsyncUtil::ExecuteOnMainAndWait(Callback, true);
+	} else {
+		delete Callback;
 	}
 }
 
-
-void TNodeJsFs::TRealLines::AfterRun(const TRealLines& Data) {
+void TNodeJsFs::TReadCsv::AfterRun(const TReadCsv& Task) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Data.OnEnd);
+	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Task.OnEnd);
 
-	if (Data.HasError) {
-		TNodeJsUtil::ExecuteErr(Callback, TExcept::New("Exception while reading lines!"));
+	if (Task.HasError) {
+		TNodeJsUtil::ExecuteErr(Callback, TExcept::New("Exception while parsing CSV!"));
 	} else {
-		const TStrV& LineV = Data.LineV;
-		const int& Len = LineV.Len();
+		TNodeJsUtil::ExecuteVoid(Callback);
+	}
+}
 
-		v8::Local<v8::Array> JsStrV = v8::Array::New(Isolate, Len);
+void TNodeJsFs::TReadLinesCallback::Run(const TReadLinesCallback& Task) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
 
-		for (int i = 0; i < Len; i++) {
-			JsStrV->Set(i, v8::String::NewFromUtf8(Isolate, LineV[i].CStr()));
+	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, *Task.OnLine);
+
+	const TVec<TStrV>& CsvLineV = Task.CsvLineV;
+	const int TotalLines = CsvLineV.Len();
+
+	v8::Local<v8::Array> LinesArr = v8::Array::New(Isolate, TotalLines);
+	for (int LineN = 0; LineN < TotalLines; LineN++) {
+		const TStrV& LineV = CsvLineV[LineN];
+		const int NFlds = LineV.Len();
+
+		v8::Local<v8::Array> LineArr = v8::Array::New(Isolate, NFlds);
+		for (int FldN = 0; FldN < NFlds; FldN++) {
+			LineArr->Set(FldN, v8::String::NewFromUtf8(Isolate, LineV[FldN].CStr()));
 		}
 
-		const int ArgC = 2;
-		v8::Handle<v8::Value> ArgV[ArgC] = { v8::Undefined(Isolate), JsStrV };
-		TNodeJsUtil::ExecuteVoid(Callback, ArgC, ArgV);
+		LinesArr->Set(LineN, LineArr);
 	}
-}
 
-TNodeJsFs::TRealLines::~TRealLines() {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	OnEnd.Reset();
+	TNodeJsUtil::ExecuteVoid(Callback, LinesArr);
 }
 
 ///////////////////////////////

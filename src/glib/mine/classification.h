@@ -48,70 +48,145 @@ private:
 };
 
 ///////////////////////////////////////////
-// Information Gain Criterion
-class TInfoGain {
+// Decision Tree - stopping criteria
+class TDtSplitCriteria;
+	typedef TPt<TDtSplitCriteria> PDtSplitCriteria;
+class TDtSplitCriteria {
+private:
+	TCRef CRef;
 public:
-	static double GetScore(const int& LeftLen, const int& RightLen, const int& LeftPosN,
-			const int& RightPosN);
+  	friend class TPt<TDtSplitCriteria>;
+public:
+  	virtual ~TDtSplitCriteria() {}
+
+  	static PDtSplitCriteria Load(TSIn& SIn);
+  	virtual void Save(TSOut& SOut) const;
+
+	virtual double GetScore(const int& LeftLen, const int& RightLen, const int& LeftPosN,
+			const int& RightPosN) const = 0;
+protected:
+	virtual const TStr GetType() const = 0;
 };
 
 ///////////////////////////////////////////
-// Gain Ratio Criterion
-class TGainRatio {
+// Information Gain Criterion
+class TInfoGain: public TDtSplitCriteria {
 public:
-	static double GetScore(const int& LeftLen, const int& RightLen, const int& LeftPosN,
-			const int& RightPosN) {
+	TInfoGain(): TDtSplitCriteria() {}
+	static PDtSplitCriteria New() { return new TInfoGain; }
 
-		const double InfoGain = TInfoGain::GetScore(LeftLen, RightLen, LeftPosN, RightPosN);
-		return InfoGain / TSpecFunc::Entropy(double(LeftLen) / (LeftLen + RightLen));
-	}
+	virtual double GetScore(const int& LeftLen, const int& RightLen, const int& LeftPosN,
+			const int& RightPosN) const;
+
+protected:
+	virtual const TStr GetType() const { return "InfoGain"; }
+};
+
+/////////////////////////////////////////////
+//// Gain Ratio Criterion
+class TGainRatio: public TInfoGain {
+public:
+	double GetScore(const int& LeftLen, const int& RightLen, const int& LeftPosN,
+			const int& RightPosN) const;
+protected:
+	const TStr GetType() const { return "GainRatio"; }
+};
+
+///////////////////////////////////////////
+// Decision Tree - prunning
+class TDtPruneCriteria;
+	typedef TPt<TDtPruneCriteria> PDtPruneCriteria;
+class TDtPruneCriteria {
+private:
+	TCRef CRef;
+public:
+  	friend class TPt<TDtPruneCriteria>;
+public:
+  	TDtPruneCriteria() {}
+  	virtual ~TDtPruneCriteria() {}
+
+  	static PDtPruneCriteria Load(TSIn& SIn);
+  	virtual void Save(TSOut& SOut) const;
+
+  	virtual bool ShouldPrune(const bool& IsLeaf, const int& NExamples, const double& Class1Prob) const = 0;
+
+protected:
+  	virtual const TStr GetType() const = 0;
+};
+
+class TDtMinExamplesPrune: public TDtPruneCriteria {
+private:
+	TInt MinExamples;
+public:
+	TDtMinExamplesPrune(const int& _MinExamples):
+		TDtPruneCriteria(),
+		MinExamples(_MinExamples) {}
+	static PDtPruneCriteria New(const int& MinExamples) { return new TDtMinExamplesPrune(MinExamples); }
+	TDtMinExamplesPrune(TSIn& SIn): MinExamples(SIn) {}
+
+	void Save(TSOut& SOut) const;
+
+	bool ShouldPrune(const bool& IsLeaf, const int& NExamples, const double& Class1Prob) const;
+
+protected:
+	const TStr GetType() const { return "byExamples"; }
+};
+
+///////////////////////////////////////////
+// Decision Tree - prunning
+class TDtGrowCriteria;
+	typedef TPt<TDtGrowCriteria> PDtGrowCriteria;
+class TDtGrowCriteria {
+private:
+	TCRef CRef;
+public:
+  	friend class TPt<TDtGrowCriteria>;
+private:
+  	TFlt MinClassProb;
+  	TInt MinExamples;
+public:
+  	TDtGrowCriteria(const double& _MinClassProb=0, const int& _MinExamples=0):
+  		MinClassProb(_MinClassProb),
+		MinExamples(_MinExamples) {}
+  	TDtGrowCriteria(TSIn& SIn):
+  		MinClassProb(SIn),
+		MinExamples(SIn) {}
+  	static PDtGrowCriteria New(const double& MinClassProb=0, const int& MinExamples=0) { return new TDtGrowCriteria(MinClassProb, MinExamples); }
+  	virtual ~TDtGrowCriteria() {}
+
+  	static PDtGrowCriteria Load(TSIn& SIn);
+  	virtual void Save(TSOut& SOut) const;
+
+  	virtual bool ShouldGrow(const int& NExamples, const double& Class1Prob) const
+  		{ return NExamples > MinExamples && Class1Prob >= MinClassProb && (1 - Class1Prob) >= MinClassProb; }
+
+protected:
+  	virtual const TStr GetType() const { return "default"; }
 };
 
 ///////////////////////////////////////////
 // Decision Tree
 class TDecisionTree {
 private:
-	typedef TFltIntIntTr TFtrClassInstNTr;
-	typedef TVec<TFltIntIntTr> TFtrClassInstNTrV;
-	typedef TVec<TFtrClassInstNTrV> TFtrClassInstNTrVV;
-
-	class THistogram {
-	private:
-		TFltV BinV;
-	public:
-		THistogram();
-		THistogram(const int& Bins);
-		THistogram(TSIn& SIn);
-
-		void Save(TSOut& SOut) const;
-
-		PJsonVal GetJson() const;
-
-		void Set(const int& BinN, const double& Val);
-		double Get(const int& BinN) const;
-	};
-
 	class TNode {
+	private:
 		TNode* Left;
 		TNode* Right;
+
+		TDecisionTree* Tree;
 
 		int CutFtrN;
 		double CutFtrVal;
 
 		int NExamples;
 
-		THistogram ClassHist;
-		THistogram FtrHist;
+		TFltV ClassHist;
+		TFltV FtrHist;
 
 	public:
-		TNode();
-		TNode(const TFltVV& FtrVV, const TFltV& ClassV, const TIntV& NodeInstNV,
-				const PNotify& Notify);
-		TNode(TSIn& SIn);
-		TNode(const TNode& Node);
-		~TNode();
-
-		TNode& operator=(const TNode& Node);
+		TNode(TDecisionTree* Tree);
+		TNode(TDecisionTree* Tree, TSIn& SIn);
+		~TNode() { CleanUp(); }
 
 		void Save(TSOut& SOut) const;
 
@@ -119,34 +194,45 @@ private:
 
 		PJsonVal GetJson() const;
 
+		void Fit(const TFltVV& FtrVV, const TFltV& ClassV, const TIntV& NodeInstNV);
 		bool Prune();
+		void CopyNode(const TNode& Node);
 
 	private:
-		void Grow(const TFltVV& FtrVV, const TFltV& ClassV, const TIntV& NodeInstNV,
-				const PNotify& Notify);
+		bool CanSplitNumFtr(const TFltIntPrV& ValClassPrV, const int& TotalPos,
+				double& CutVal, double& Score) const;
 
-		bool CanSplitNumFtr(TFltIntPrV& ValClassPrV, double& CutVal, double& Score) const;
-		void CalcStats(const TFltVV& FtrVV, const TFltV& ClassV, const TIntV& NodeInstNV,
-				const PNotify& Notify);
-		bool IsLeaf() const { return Left == nullptr && Right == nullptr; }
+		bool HasLeft() const { return Left != nullptr; }
+		bool HasRight() const { return Right != nullptr; }
+		bool IsLeaf() const { return !HasLeft() && !HasRight(); }
+
+		bool ShouldGrow() const;
 		bool ShouldPrune() const;
 
-		static void CopyNode(const TNode& Node, TNode& Copy);
 		void CleanUp();
 	};
 
 	TNode* Root;
 
+	PDtSplitCriteria SplitCriteria;
+	PDtPruneCriteria PruneCriteria;
+	PDtGrowCriteria GrowCriteria;
+
 public:
-	TDecisionTree();
+	TDecisionTree(const PDtSplitCriteria& SplitCriteria=TInfoGain::New(),
+			const PDtPruneCriteria& PruneCriteria=TDtMinExamplesPrune::New(1),
+			const PDtGrowCriteria& GrowCriteria=TDtGrowCriteria::New());
 	TDecisionTree(TSIn& SIn);
 	TDecisionTree(const TDecisionTree& Other);
 #ifdef GLib_CPP11
 	TDecisionTree(TDecisionTree&& Other);
 #endif
-	~TDecisionTree();
+	~TDecisionTree() { CleanUp(); }
 
-	TDecisionTree& operator=(const TDecisionTree& Tree);
+	TDecisionTree& operator =(const TDecisionTree& Tree);
+#ifdef GLib_CPP11
+	TDecisionTree& operator =(TDecisionTree&& Tree);
+#endif
 
 	void Save(TSOut& SOut) const;
 
@@ -159,6 +245,12 @@ private:
 	void Grow(const TFltVV& FtrVV, const TFltV& ClassV, const PNotify& Notify);
 	void Prune(const PNotify& Notify);
 
+	double GetSplitScore(const int& LeftLen, const int& RightLen, const int& LeftPosN,
+			const int& RightPosN) const;
+	bool ShouldPrune(const bool& IsLeaf, const int& NExamples, const double& Class1Prob) const;
+	bool ShouldGrow(const int& NExamples, const double& Class1Prob) const;
+
+	bool HasRoot() const { return Root != nullptr; }
 	void CleanUp();
 };
 

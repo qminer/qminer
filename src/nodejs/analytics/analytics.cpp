@@ -1508,7 +1508,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 		tpl->GetFunction());
 }
 
-TNodeJsStreamStory::TNodeJsStreamStory(const TMc::PStreamStory& _StreamStory):
+TNodeJsStreamStory::TNodeJsStreamStory(TMc::TStreamStory* _StreamStory):
 		StreamStory(_StreamStory) {
 	InitCallbacks();
 }
@@ -1523,6 +1523,7 @@ TNodeJsStreamStory::~TNodeJsStreamStory() {
 	AnomalyCallback.Reset();
 	OutlierCallback.Reset();
 	PredictionCallback.Reset();
+	delete StreamStory;
 }
 
 TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1556,10 +1557,9 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 		const double Sample = ClustJson->IsObjKey("sample") ? ClustJson->GetObjNum("sample") : 1;
 		const int NHistBins = ClustJson->IsObjKey("histogramBins") ? ClustJson->GetObjInt("histogramBins") : 20;
 
-		const TClustering::PDnsKMeans KMeans = GetClust(ClustJson, Rnd);
-		const TMc::PStateIdentifier StateIdentifier = new TMc::TStateIdentifier(KMeans, NHistBins, Sample, Rnd, Verbose);
-		const TMc::PTransitionModeler MChain = new TMc::TCtModeler(TimeUnit, DeltaTm, Verbose);
-		const TMc::PHierarch Hierarch = new TMc::THierarch(NPastStates + 1, Verbose);
+		TMc::TStateIdentifier* StateIdentifier = new TMc::TStateIdentifier(GetClust(ClustJson, Rnd), NHistBins, Sample, Rnd, Verbose);
+		TMc::TTransitionModeler* MChain = new TMc::TCtModeler(TimeUnit, DeltaTm, Verbose);
+		TMc::THierarch* Hierarch = new TMc::THierarch(NPastStates + 1, Verbose);
 
 		// finish
 		return new TNodeJsStreamStory(new TMc::TStreamStory(StateIdentifier, MChain, Hierarch, Rnd, Verbose));
@@ -1589,9 +1589,9 @@ void TNodeJsStreamStory::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "batchV", TNodeJsBoolV::GetClassId()), "Invalid class of field batchV!");
 		const TNodeJsBoolV* BatchEndJsV = TNodeJsUtil::GetUnwrapFld<TNodeJsBoolV>(ArgObj, "batchV");
 		const TBoolV& BatchEndV = BatchEndJsV->Vec;
-		JsStreamStory->StreamStory->InitBatches(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV, BatchEndV);
+		JsStreamStory->StreamStory->InitBatches(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV, BatchEndV, false);
 	} else {
-		JsStreamStory->StreamStory->Init(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV);
+		JsStreamStory->StreamStory->Init(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV, false);
 	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
@@ -2362,6 +2362,14 @@ TNodeJsStreamStory::TFitAsync::TFitAsync(const v8::FunctionCallbackInfo<v8::Valu
 	}
 
 	Callback.Reset(Isolate, TNodeJsUtil::GetArgFun(Args, 1));
+	SsHolder.Reset(Isolate, Args.Holder());
+	ArgHolder.Reset(Isolate, ArgObj);
+}
+
+TNodeJsStreamStory::TFitAsync::~TFitAsync() {
+	Callback.Reset();
+	SsHolder.Reset();
+	ArgHolder.Reset();
 }
 
 void TNodeJsStreamStory::TFitAsync::Run(TFitAsync& Data) {

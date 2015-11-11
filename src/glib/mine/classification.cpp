@@ -176,11 +176,28 @@ double TLogReg::PredictWithoutIntercept(const TFltV& x) const {
 	return 1 / (1 + TMath::Power(TMath::E, -TLinAlg::DotProduct(WgtV, x)));
 }
 
+///////////////////////////////////////////
+// Decision Tree - Splitting criteria
+PDtSplitCriteria TDtSplitCriteria::Load(TSIn& SIn) {
+	const TStr Type(SIn);
+
+	if (Type == "InfoGain") {
+		return new TInfoGain();
+	} else if (Type == "GainRatio") {
+		return new TGainRatio();
+	} else {
+		throw TExcept::New("Invalid type: " + Type);
+	}
+}
+
+void TDtSplitCriteria::Save(TSOut& SOut) const {
+	GetType().Save(SOut);
+}
 
 ///////////////////////////////////////////
 // Information Gain
 double TInfoGain::GetScore(const int& LeftLen, const int& RightLen, const int& LeftPosN,
-		const int& RightPosN) {
+		const int& RightPosN) const {
 
 	const double EntS = TSpecFunc::Entropy(double(LeftPosN + RightPosN) / (LeftLen + RightLen));
 	const double EntLeft = TSpecFunc::Entropy(double(LeftPosN) / LeftLen);
@@ -192,61 +209,76 @@ double TInfoGain::GetScore(const int& LeftLen, const int& RightLen, const int& L
 	return EntS - ProbLeft*EntLeft - ProbRight*EntRight;
 }
 
+/////////////////////////////////////////////
+//// Gain Ratio
+double TGainRatio::GetScore(const int& LeftLen, const int& RightLen, const int& LeftPosN,
+		const int& RightPosN) const {
+
+	const double InfoGain = TInfoGain::GetScore(LeftLen, RightLen, LeftPosN, RightPosN);
+	return InfoGain / TSpecFunc::Entropy(double(LeftLen) / (LeftLen + RightLen));
+}
+
 ///////////////////////////////////////////
-// Decision Tree - Histogram
-TDecisionTree::THistogram::THistogram():
-		BinV() {}
+// Decision Tree - prunning
+PDtPruneCriteria TDtPruneCriteria::Load(TSIn& SIn) {
+	const TStr Type(SIn);
 
-TDecisionTree::THistogram::THistogram(const int& Bins):
-		BinV(Bins) {}
-
-TDecisionTree::THistogram::THistogram(TSIn& SIn):
-		BinV(SIn) {}
-
-void TDecisionTree::THistogram::Save(TSOut& SOut) const {
-	BinV.Save(SOut);
+	if (Type == "byExamples") {
+		return new TDtMinExamplesPrune(SIn);
+	} else {
+		throw TExcept::New("Invalid type: " + Type);
+	}
 }
 
-PJsonVal TDecisionTree::THistogram::GetJson() const {
-	return TJsonVal::NewArr(BinV);
+void TDtPruneCriteria::Save(TSOut& SOut) const {
+	GetType().Save(SOut);
 }
 
-void TDecisionTree::THistogram::Set(const int& BinN, const double& Val) {
-	EAssert(BinN < BinV.Len());
-	BinV[BinN] = Val;
+///////////////////////////////////////////
+// Decision Tree - prunning by the numbre of examples
+void TDtMinExamplesPrune::Save(TSOut& SOut) const {
+	TDtPruneCriteria::Save(SOut);
+	MinExamples.Save(SOut);
 }
 
-double TDecisionTree::THistogram::Get(const int& BinN) const {
-	EAssert(BinN < BinV.Len());
-	return BinV[BinN];
+bool TDtMinExamplesPrune::ShouldPrune(const bool& IsLeaf, const int& NExamples, const double& Class1Prob) const {
+	return IsLeaf && NExamples < 1;
+}
+
+///////////////////////////////////////////
+// Decision Tree - growing
+PDtGrowCriteria TDtGrowCriteria::Load(TSIn& SIn) {
+	const TStr Type(SIn);
+
+	if (Type == "default") {
+		return new TDtGrowCriteria(SIn);
+	} else {
+		throw TExcept::New("Invalid type: " + Type);
+	}
+}
+
+void TDtGrowCriteria::Save(TSOut& SOut) const {
+	GetType().Save(SOut);
+	MinClassProb.Save(SOut);
+	MinExamples.Save(SOut);
 }
 
 ///////////////////////////////////////////
 // Decision Tree - Node
-TDecisionTree::TNode::TNode(const TFltVV& FtrVV, const TFltV& ClassV, const TIntV& NodeInstNV,
-			const PNotify& Notify):
+TDecisionTree::TNode::TNode(TDecisionTree* _Tree):
 		Left(nullptr),
 		Right(nullptr),
-		CutFtrN(-1),
-		CutFtrVal(TFlt::NInf),
-		NExamples(0),
-		ClassHist(),
-		FtrHist() {
-	Grow(FtrVV, ClassV, NodeInstNV, Notify);
-}
-
-TDecisionTree::TNode::TNode():
-		Left(nullptr),
-		Right(nullptr),
+		Tree(_Tree),
 		CutFtrN(-1),
 		CutFtrVal(TFlt::NInf),
 		NExamples(0),
 		ClassHist(),
 		FtrHist() {}
 
-TDecisionTree::TNode::TNode(TSIn& SIn):
+TDecisionTree::TNode::TNode(TDecisionTree* _Tree, TSIn& SIn):
 		Left(nullptr),
 		Right(nullptr),
+		Tree(_Tree),
 		CutFtrN(TInt(SIn)),
 		CutFtrVal(TFlt(SIn)),
 		NExamples(TInt(SIn)),
@@ -256,27 +288,32 @@ TDecisionTree::TNode::TNode(TSIn& SIn):
 	const TBool HasLeft(SIn);
 	const TBool HasRight(SIn);
 
-	if (HasLeft) { Left = new TNode(SIn); }
-	if (HasRight) { Right = new TNode(SIn); }
+	if (HasLeft) { Left = new TNode(Tree, SIn); }
+	if (HasRight) { Right = new TNode(Tree, SIn); }
 }
 
-TDecisionTree::TNode::TNode(const TNode& Node):
-		Left(nullptr),
-		Right(nullptr) {
-	CopyNode(Node, *this);
-}
+//TDecisionTree::TNode::TNode(const TDecisionTree* _Tree, const TNode& Node):
+//		Left(),
+//		Right(),
+//		Tree(_Tree) {
+////	printf("Node: copy constructor called\n");
+//	CopyNode(Node, *this);
+//}
 
-TDecisionTree::TNode::~TNode() {
-	CleanUp();
-}
+//TDecisionTree::TNode::~TNode() {
+////	printf("Node: destructor called\n");
+//	CleanUp();
+//}
 
-TDecisionTree::TNode& TDecisionTree::TNode::operator =(const TNode& Node) {
-	if (this != &Node) {
-		CopyNode(Node, *this);
-	}
-
-	return *this;
-}
+//TDecisionTree::TNode& TDecisionTree::TNode::operator =(const TNode& Node) {
+//	printf("Node: copy called\n");
+//
+//	if (this != &Node) {
+//		CopyNode(Node, *this);
+//	}
+//
+//	return *this;
+//}
 
 void TDecisionTree::TNode::Save(TSOut& SOut) const {
 	TInt(CutFtrN).Save(SOut);
@@ -286,19 +323,19 @@ void TDecisionTree::TNode::Save(TSOut& SOut) const {
 	FtrHist.Save(SOut);
 
 	// save children
-	const TBool HasLeft = Left != nullptr;
-	const TBool HasRight = Right != nullptr;
+	const TBool SaveLeft = HasLeft();
+	const TBool SaveRight = HasRight();
 
-	HasLeft.Save(SOut);
-	HasRight.Save(SOut);
+	SaveLeft.Save(SOut);
+	SaveRight.Save(SOut);
 
-	if (HasLeft) { Left->Save(SOut); }
-	if (HasRight) { Right->Save(SOut); }
+	if (SaveLeft) { Left->Save(SOut); }
+	if (SaveRight) { Right->Save(SOut); }
 }
 
 double TDecisionTree::TNode::Predict(const TFltV& FtrV) const {
 	if (IsLeaf()) {
-		return ClassHist.Get(1);
+		return ClassHist[1];
 	} else if (FtrV[CutFtrN] <= CutFtrVal) {
 		return Left->Predict(FtrV);
 	} else {
@@ -309,13 +346,11 @@ double TDecisionTree::TNode::Predict(const TFltV& FtrV) const {
 PJsonVal TDecisionTree::TNode::GetJson() const {
 	PJsonVal RootJson = TJsonVal::NewObj();
 
-	const bool IsLeaf = Left == nullptr && Right == nullptr;
-
 	RootJson->AddToObj("examples", NExamples);
-	RootJson->AddToObj("classes", ClassHist.GetJson());
-	RootJson->AddToObj("features", FtrHist.GetJson());
+	RootJson->AddToObj("classes", TJsonVal::NewArr(ClassHist));
+	RootJson->AddToObj("features", TJsonVal::NewArr(FtrHist));
 
-	if (!IsLeaf) {
+	if (!IsLeaf()) {
 		PJsonVal CutJson = TJsonVal::NewObj();
 		CutJson->AddToObj("id", CutFtrN);
 		CutJson->AddToObj("value", CutFtrVal);
@@ -324,10 +359,10 @@ PJsonVal TDecisionTree::TNode::GetJson() const {
 
 	PJsonVal ChildrenJson = TJsonVal::NewArr();
 
-	if (Left != nullptr) {
+	if (HasLeft()) {
 		ChildrenJson->AddToArr(Left->GetJson());
 	}
-	if (Right != nullptr) {
+	if (HasRight()) {
 		ChildrenJson->AddToArr(Right->GetJson());
 	}
 
@@ -336,124 +371,157 @@ PJsonVal TDecisionTree::TNode::GetJson() const {
 	return RootJson;
 }
 
+void TDecisionTree::TNode::Fit(const TFltVV& FtrVV, const TFltV& ClassV, const TIntV& InstNV) {
+	EAssert(!InstNV.Empty());
+
+	const int Dim = FtrVV.GetRows();
+
+	NExamples = InstNV.Len();
+
+	ClassHist.Gen(2);
+	FtrHist.Gen(Dim);
+
+	{
+		int TotalPos = 0;
+		double BestScore = TFlt::NInf, CutVal = TFlt::NInf, Score = TFlt::NInf;
+
+		for (int i = 0; i < NExamples; i++) {
+			AssertR(0 <= InstNV[i] && InstNV[i] < FtrVV.GetCols(), "Invalid instance index: " + TInt::GetStr(InstNV[i]) + "!");
+			TotalPos += ClassV[InstNV[i]];
+		}
+
+		ClassHist[0] = 1 - double(TotalPos) / NExamples;
+		ClassHist[1] = 1 - ClassHist[0];
+
+		TFltIntPrV ValClassPrV(NExamples);
+
+		// get the best score and cut value
+		int InstN;
+		for (int FtrN = 0; FtrN < Dim; FtrN++) {
+			double FtrSum = 0;
+
+			for (int i = 0; i < NExamples; i++) {
+				InstN = InstNV[i];
+
+				AssertR(0 <= InstN && InstN < FtrVV.GetCols(), "Invalid instance index: " + TInt::GetStr(InstN) + "!");
+
+				ValClassPrV[i].Val1 = FtrVV(FtrN, InstN);
+				ValClassPrV[i].Val2 = ClassV[InstN];
+				FtrSum += FtrVV(FtrN, InstN);
+			}
+
+			ValClassPrV.Sort(true);	// have to sort to speed up the calculation
+
+			if (CanSplitNumFtr(ValClassPrV, TotalPos, CutVal, Score) && Score > BestScore) {
+				BestScore = Score;
+				CutFtrN = FtrN;
+				CutFtrVal = CutVal;
+			}
+
+			FtrHist[FtrN] = FtrSum / NExamples;
+		}
+	}
+
+	// cut the dataset into left and right and build the tree recursively
+	if (ShouldGrow() && CutFtrN >= 0) {
+		EAssert(CutFtrN < Dim);
+
+		int NInstLeft = 0;
+
+		for (int i = 0; i < NExamples; i++) {
+			AssertR(0 <= InstNV[i] && InstNV[i] < FtrVV.GetCols(), "Invalid instance index: " + TInt::GetStr(InstNV[i]) + "!");
+			if (FtrVV(CutFtrN, InstNV[i]) <= CutFtrVal) {
+				NInstLeft++;
+			}
+		}
+
+		TIntV LeftInstNV(NInstLeft, 0);
+		TIntV RightInstNV(NExamples - NInstLeft, 0);
+
+		int InstN;
+		for (int i = 0; i < NExamples; i++) {
+			InstN = InstNV[i];
+			AssertR(0 <= InstN && InstN < FtrVV.GetCols(), "Invalid instance index: " + TInt::GetStr(InstN) + "!");
+			if (FtrVV(CutFtrN, InstN) <= CutFtrVal) {
+				LeftInstNV.Add(InstN);
+			} else {
+				RightInstNV.Add(InstN);
+			}
+		}
+
+		Left = new TNode(Tree);
+		Right = new TNode(Tree);
+
+		Left->Fit(FtrVV, ClassV, LeftInstNV);
+		Right->Fit(FtrVV, ClassV, RightInstNV);
+	}
+}
+
 bool TDecisionTree::TNode::Prune() {
 	bool PruneLeft = false;
 	bool PruneRight = false;
 
-	if (Left != nullptr) {
+	if (HasLeft()) {
 		PruneLeft = Left->Prune();
 	}
-	if (Right != nullptr) {
+	if (HasRight()) {
 		PruneRight = Right->Prune();
 	}
 
 	if (PruneLeft && PruneRight) {
-		delete Left;	Left = nullptr;
-		delete Right;	Right = nullptr;
+		CleanUp();
 	}
 
 	bool PruneMe = ShouldPrune();
 	return PruneMe;
 }
 
-void TDecisionTree::TNode::Grow(const TFltVV& FtrVV, const TFltV& ClassV, const TIntV& NodeInstNV,
-		const PNotify& Notify) {
-	const int NInst = NodeInstNV.Len();
+void TDecisionTree::TNode::CopyNode(const TNode& Node) {
+	CleanUp();
 
-	EAssert(!NodeInstNV.Empty());
+	CutFtrN = Node.CutFtrN;
+	CutFtrVal = Node.CutFtrVal;
+	NExamples = Node.NExamples;
+	ClassHist = Node.ClassHist;
+	FtrHist = Node.FtrHist;
 
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Creating a node with %d instances ...", NodeInstNV.Len());
-
-	const int Dim = FtrVV.GetRows();
-
-	CutFtrN = -1;
-
-	TFltIntPrV ValClassPrV(NInst);
-
-	// get the best score and cut value
-	double BestScore = TFlt::NInf, CutVal, Score;
-	for (int FtrN = 0; FtrN < Dim; FtrN++) {
-		for (int i = 0; i < NInst; i++) {
-			const int InstN = NodeInstNV[i];
-			ValClassPrV[i].Val1 = FtrVV(FtrN, InstN);
-			ValClassPrV[i].Val2 = ClassV[InstN];
-		}
-
-
-		if (CanSplitNumFtr(ValClassPrV, CutVal, Score) && Score > BestScore) {
-			BestScore = Score;
-			CutFtrN = FtrN;
-			CutFtrVal = CutVal;
-		}
+	if (Node.HasLeft()) {
+		Left = new TNode(Tree);
+		Left->CopyNode(*Node.Left);
 	}
-
-	// cut the dataset into left and right and build the tree recursively
-	if (CutFtrN >= 0) {
-		int NInstLeft = 0;
-		for (int i = 0; i < NInst; i++) {
-			if (FtrVV(CutFtrN, NodeInstNV[i]) <= CutFtrVal) {
-				NInstLeft++;
-			}
-		}
-
-		TIntV LeftInstNV(NInstLeft, 0), RightInstNV(NInst - NInstLeft, 0);
-
-		int CurrInstN;
-		for (int i = 0; i < NInst; i++) {
-			CurrInstN = NodeInstNV[i];
-			if (FtrVV(CutFtrN, CurrInstN) <= CutFtrVal) {
-				LeftInstNV.Add(CurrInstN);
-			} else {
-				RightInstNV.Add(CurrInstN);
-			}
-		}
-
-		// get the dimension of the new matrices
-		Left = new TNode(FtrVV, ClassV, LeftInstNV, Notify);
-		Right = new TNode(FtrVV, ClassV, RightInstNV, Notify);
+	if (Node.HasRight()) {
+		Right = new TNode(Tree);
+		Right->CopyNode(*Node.Right);
 	}
-
-	CalcStats(FtrVV, ClassV, NodeInstNV, Notify);
 }
 
-bool TDecisionTree::TNode::CanSplitNumFtr(TFltIntPrV& ValClassPrV, double& CutVal, double& Score) const {
+bool TDecisionTree::TNode::CanSplitNumFtr(const TFltIntPrV& ValClassPrV, const int& TotalPos,
+		double& CutVal, double& Score) const {
 	const int NInst = ValClassPrV.Len();
 
-	ValClassPrV.Sort(true);
-
-	// count the total number of positive instances
-	int TotalPos = 0;
-	for (int i = 0; i < NInst; i++) {
-		TotalPos += ValClassPrV[i].Val2;
-	}
-
 	Score = TFlt::NInf;
-
 	int PosS0 = 0;	// the number of positive instances in the left set
-
-	int PosS1, S0Len, S1Len;
-	double CurrScore;
 
 	for (int CutN = 0; CutN < NInst-1; CutN++) {
 		const TFltIntPr& FtrValClassPr = ValClassPrV[CutN];
 		const TFltIntPr& NextFtrValClassPr = ValClassPrV[CutN+1];
 
-		const double CurrVal = FtrValClassPr.Val1;
-		const double NextVal = NextFtrValClassPr.Val1;
+		const double& CurrVal = FtrValClassPr.Val1;
+		const double& NextVal = NextFtrValClassPr.Val1;
 
-		const int CurrClass = FtrValClassPr.Val2;
-		const int NextClass = NextFtrValClassPr.Val2;
+		const int& CurrClass = FtrValClassPr.Val2;
+		const int& NextClass = NextFtrValClassPr.Val2;
 
 		PosS0 += CurrClass;
 
 		// the cut point always occurs on the boundary between two classes
 		// so if the class doesn't change there is not need to check
 		if (CurrVal != NextVal && CurrClass != NextClass) {
-			S0Len = CutN + 1;
-			S1Len = NInst - S0Len;
-			PosS1 = TotalPos - PosS0;
+			const int S0Len = CutN + 1;
+			const int S1Len = NInst - S0Len;
+			const int PosS1 = TotalPos - PosS0;
 
-			CurrScore = TInfoGain::GetScore(S0Len, S1Len, PosS0, PosS1);
+			const double CurrScore = Tree->GetSplitScore(S0Len, S1Len, PosS0, PosS1);
 
 			if (CurrScore > Score) {
 				Score = CurrScore;
@@ -465,61 +533,12 @@ bool TDecisionTree::TNode::CanSplitNumFtr(TFltIntPrV& ValClassPrV, double& CutVa
 	return Score != TFlt::NInf;
 }
 
-void TDecisionTree::TNode::CalcStats(const TFltVV& FtrVV, const TFltV& ClassV, const TIntV& NodeInstNV,
-		const PNotify& Notify) {
-	Notify->OnNotify(TNotifyType::ntInfo, "Calculating statistics ...");
-
-	const int NInst = NodeInstNV.Len();
-	const int Dim = FtrVV.GetRows();
-
-	ClassHist = THistogram(2);
-	FtrHist = THistogram(Dim);
-
-	EAssert(Dim > 0);
-
-	for (int FtrN = 0; FtrN < Dim; FtrN++) {
-		double FtrSum = 0;
-
-		for (int i = 0; i < NInst; i++) {
-			FtrSum += FtrVV(FtrN, NodeInstNV[i]);
-		}
-
-		FtrHist.Set(FtrN, FtrSum / NInst);
-	}
-
-	double Prob1 = 0;
-	for (int i = 0; i < NInst; i++) {
-		Prob1 += ClassV[NodeInstNV[i]];
-	}
-
-	Prob1 /= NInst;
-	ClassHist.Set(0, 1 - Prob1);
-	ClassHist.Set(1, Prob1);
-
-	NExamples = NInst;
+bool TDecisionTree::TNode::ShouldGrow() const {
+	return Tree->ShouldGrow(NExamples, ClassHist[1]);
 }
 
 bool TDecisionTree::TNode::ShouldPrune() const {
-	return IsLeaf() && NExamples < 1;
-}
-
-void TDecisionTree::TNode::CopyNode(const TNode& Node, TNode& Copy) {
-	Copy.CleanUp();
-
-	Copy.CutFtrN = Node.CutFtrN;
-	Copy.CutFtrVal = Node.CutFtrVal;
-	Copy.NExamples = Node.NExamples;
-	Copy.ClassHist = Node.ClassHist;
-	Copy.FtrHist = Node.FtrHist;
-
-	if (Node.Left != nullptr) {
-		Copy.Left = new TNode();
-		CopyNode(*Node.Left, *Copy.Left);
-	}
-	if (Node.Right != nullptr) {
-		Copy.Right = new TNode();
-		CopyNode(*Node.Right, *Copy.Right);
-	}
+	return Tree->ShouldPrune(IsLeaf(), NExamples, ClassHist[1]);
 }
 
 void TDecisionTree::TNode::CleanUp() {
@@ -530,64 +549,96 @@ void TDecisionTree::TNode::CleanUp() {
 	Right = nullptr;
 }
 
-
 ///////////////////////////////////////////
 // Decision Tree
-TDecisionTree::TDecisionTree(): Root(nullptr) {}
+TDecisionTree::TDecisionTree(const PDtSplitCriteria& _SplitCriteria, const PDtPruneCriteria& _PruneCriteria,
+			const PDtGrowCriteria& _GrowCriteria):
+		Root(nullptr),
+		SplitCriteria(_SplitCriteria),
+		PruneCriteria(_PruneCriteria),
+		GrowCriteria(_GrowCriteria) {}
 
-TDecisionTree::TDecisionTree(TSIn& SIn): Root(nullptr) {
-	const TBool HasRoot(SIn);
+TDecisionTree::TDecisionTree(TSIn& SIn):
+		Root(nullptr),
+		SplitCriteria(TDtSplitCriteria::Load(SIn)),
+		PruneCriteria(TDtPruneCriteria::Load(SIn)),
+		GrowCriteria(TDtGrowCriteria::Load(SIn)) {
 
-	if (HasRoot) {
-		Root = new TNode(SIn);
+	const TBool LoadRoot(SIn);
+	if (LoadRoot) {
+		Root = new TNode(this, SIn);
 	}
 }
 
 TDecisionTree::TDecisionTree(const TDecisionTree& Other):
-		Root(nullptr) {
+		Root(nullptr),
+		SplitCriteria(Other.SplitCriteria),
+		PruneCriteria(Other.PruneCriteria),
+		GrowCriteria(Other.GrowCriteria) {
 
-	if (Other.Root != nullptr) {
-		Root = new TNode(*Other.Root);
+	if (Other.HasRoot()) {
+		Root = new TNode(this);
+		Root->CopyNode(*Other.Root);
 	}
 }
 
-#ifdef GLib_CPP11
-TDecisionTree::TDecisionTree(TDecisionTree&& Tree) {
-	CleanUp();
-	Root = Tree.Root;
-	Tree.Root = nullptr;
-}
-#endif
-
-TDecisionTree::~TDecisionTree() {
-	CleanUp();
+TDecisionTree::TDecisionTree(TDecisionTree&& Other):
+		Root(nullptr),
+		SplitCriteria(),
+		PruneCriteria(),
+		GrowCriteria() {
+	std::swap(Root, Other.Root);
+	std::swap(SplitCriteria, Other.SplitCriteria);
+	std::swap(PruneCriteria, Other.PruneCriteria);
+	std::swap(GrowCriteria, Other.GrowCriteria);
 }
 
 TDecisionTree& TDecisionTree::operator =(const TDecisionTree& Tree) {
 	if (this != &Tree) {
 		CleanUp();
 
-		if (Tree.Root != nullptr) {
-			Root = new TNode(*Tree.Root);
+		SplitCriteria = Tree.SplitCriteria;
+		PruneCriteria = Tree.PruneCriteria;
+		GrowCriteria = Tree.GrowCriteria;
+
+		if (Tree.HasRoot()) {
+			Root = new TNode(this);
+			Root->CopyNode(*Tree.Root);
 		}
 	}
 
 	return *this;
 }
 
-void TDecisionTree::Save(TSOut& SOut) const {
-	const TBool HasRoot = Root != nullptr;
+#ifdef GLib_CPP11
+TDecisionTree& TDecisionTree::operator =(TDecisionTree&& Tree) {
+	printf("Tree: move operator called: this == %s, that == %s\n", TUInt64(this).GetStr().CStr(), TUInt64(&Tree).GetStr().CStr());
+	if (this != &Tree) {
+		std::swap(Root, Tree.Root);
+		std::swap(SplitCriteria, Tree.SplitCriteria);
+		std::swap(PruneCriteria, Tree.PruneCriteria);
+		std::swap(GrowCriteria, Tree.GrowCriteria);
+	}
 
-	HasRoot.Save(SOut);
-	if (HasRoot) {
+	return *this;
+}
+#endif
+
+void TDecisionTree::Save(TSOut& SOut) const {
+	SplitCriteria->Save(SOut);
+	PruneCriteria->Save(SOut);
+	GrowCriteria->Save(SOut);
+
+	const TBool SaveRoot = HasRoot();
+
+	SaveRoot.Save(SOut);
+	if (SaveRoot) {
 		Root->Save(SOut);
 	}
 }
 
 void TDecisionTree::Fit(const TFltVV& FtrVV, const TFltV& ClassV, const PNotify& Notify) {
-	const int NInst = FtrVV.GetCols();
-
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Building a decision tree on %d instances ...", NInst);
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Building a decision tree on %d instances ...", FtrVV.GetCols());
 
 	Grow(FtrVV, ClassV, Notify);
 	Prune(Notify);
@@ -596,31 +647,46 @@ void TDecisionTree::Fit(const TFltVV& FtrVV, const TFltV& ClassV, const PNotify&
 }
 
 double TDecisionTree::Predict(const TFltV& FtrV) const {
-	EAssert(Root != nullptr);
+	EAssert(HasRoot());
 	return Root->Predict(FtrV);
 }
 
 PJsonVal TDecisionTree::GetJson() const {
-	if (Root == nullptr) { return TJsonVal::NewObj(); }
+	if (!HasRoot()) { return TJsonVal::NewObj(); }
 	return Root->GetJson();
 }
 
 void TDecisionTree::Grow(const TFltVV& FtrVV, const TFltV& ClassV, const PNotify& Notify) {
 	CleanUp();
-	TIntV InstNV(FtrVV.GetCols());	TLAUtil::Range(FtrVV.GetCols(), InstNV);
-	Root = new TNode(FtrVV, ClassV, InstNV, Notify);
+	const int NInst = FtrVV.GetCols();
+
+	TIntV RangeV(NInst);	TLAUtil::Range(NInst, RangeV);
+
+	Root = new TNode(this);
+	Root->Fit(FtrVV, ClassV, RangeV);
 }
 
 void TDecisionTree::Prune(const PNotify& Notify) {
-	if (Root != nullptr) {
-		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Prunning ...");
+	if (HasRoot()) {
+//		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Prunning ...");
 		Root->Prune();
 	}
 }
 
+double TDecisionTree::GetSplitScore(const int& LeftLen, const int& RightLen, const int& LeftPosN,
+			const int& RightPosN) const {
+	return SplitCriteria->GetScore(LeftLen, RightLen, LeftPosN, RightPosN);
+}
+
+bool TDecisionTree::ShouldPrune(const bool& IsLeaf, const int& NExamples, const double& Class1Prob) const {
+	return PruneCriteria->ShouldPrune(IsLeaf, NExamples, Class1Prob);
+}
+
+bool TDecisionTree::ShouldGrow(const int& NExamples, const double& Class1Prob) const {
+	return GrowCriteria->ShouldGrow(NExamples, Class1Prob);
+}
+
 void TDecisionTree::CleanUp() {
-	if (Root != nullptr) {
-		delete Root;
-		Root = nullptr;
-	}
+	if (HasRoot()) { delete Root; }
+	Root = nullptr;
 }

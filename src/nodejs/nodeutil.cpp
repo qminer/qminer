@@ -590,6 +590,22 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& Ar
 	}
 }
 
+void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun,
+		const v8::Local<v8::Object>& Arg1, const v8::Local<v8::Object>& Arg2) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
+
+	const int ArgC = 2;
+	v8::Handle<v8::Value> ArgV[ArgC] = { Arg1, Arg2 };
+	Fun->Call(Isolate->GetCurrentContext()->Global(), 2, ArgV);
+
+	if (TryCatch.HasCaught()) {
+		v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+		throw TExcept::New("Exception while executing VOID: " + TStr(*Msg));
+	}
+}
+
 void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);

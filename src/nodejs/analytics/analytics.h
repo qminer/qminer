@@ -1559,14 +1559,14 @@ public:
 private:
 	const static double DEFAULT_DELTA_TM;
 
-	TMc::PStreamStory StreamStory;
+	TMc::TStreamStory* StreamStory;
 
 	v8::Persistent<v8::Function> StateChangedCallback;
 	v8::Persistent<v8::Function> AnomalyCallback;
 	v8::Persistent<v8::Function> OutlierCallback;
 	v8::Persistent<v8::Function> PredictionCallback;
 
-	TNodeJsStreamStory(const TMc::PStreamStory& McModel);
+	TNodeJsStreamStory(TMc::TStreamStory* McModel);
 	TNodeJsStreamStory(PSIn& SIn);
 
 	~TNodeJsStreamStory();
@@ -1851,7 +1851,8 @@ public:
 			const double& Prob, const TFltV& ProbV, const TFltV& TmV);
 
 private:
-	struct TFitAsync {
+	class TFitAsync {
+	private:
 		TNodeJsStreamStory* JsStreamStory;
 		TNodeJsFltVV* JsObservFtrs;
 		TNodeJsFltVV* JsControlFtrs;
@@ -1859,11 +1860,14 @@ private:
 		TNodeJsBoolV* JsBatchEndJsV;
 
 		v8::Persistent<v8::Function> Callback;
+		v8::Persistent<v8::Object> SsHolder;
+		v8::Persistent<v8::Object> ArgHolder;
 
 		bool HasError;
 
+	public:
 		TFitAsync(const v8::FunctionCallbackInfo<v8::Value>& Args);
-		~TFitAsync() { Callback.Reset(); }
+		~TFitAsync();
 
 		static void Run(TFitAsync& Data);
 		static void AfterRun(const TFitAsync& Data);
