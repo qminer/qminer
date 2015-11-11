@@ -2836,20 +2836,24 @@ void TNodeJsMDS::fitTransform(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TVec<TFltV> Temp;
 	TFltV DummyClsV;
 	PSVMTrainSet TrainSet;
+	// algorithm parameters
+	int MxStep = 100, MxSecs = 60, MnDiff = 1e-6;
+	bool RndStartPos = true;
+	PNotify Noty = TQm::TEnv::Logger;
 	if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
 		const TFltVV& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0)->Mat;
 		printf("Dense: %d, %d\n", Mat.GetRows(), Mat.GetCols());
 		DummyClsV.Gen(Mat.GetCols());
 		TrainSet = TRefDenseTrainSet::New(Mat, DummyClsV);
 		printf("TrainSet: %d, %d\n", TrainSet->Dim(), TrainSet->Len());
-		TVizMapFactory::MakeFlat(TrainSet, TVizDistType::vdtEucl, Temp, 1000, 60, 1e-6, true, TQm::TEnv::Logger);
+		TVizMapFactory::MakeFlat(TrainSet, TVizDistType::vdtEucl, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
 	}
 	else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
 		const TVec<TIntFltKdV>& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0)->Mat;
 		DummyClsV.Gen(Mat.Len());
 		TrainSet = TRefSparseTrainSet::New(Mat, DummyClsV);
 		printf("TrainSet: %d, %d\n", TrainSet->Dim(), TrainSet->Len());
-		TVizMapFactory::MakeFlat(TrainSet, TVizDistType::vdtEucl, Temp, 1000, 60, 1e-6, true, TQm::TEnv::Logger);
+		TVizMapFactory::MakeFlat(TrainSet, TVizDistType::vdtEucl, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
 	}
 	else {
 		throw TExcept::New("MDS.fitTransform: argument not a sparse or dense matrix!");
