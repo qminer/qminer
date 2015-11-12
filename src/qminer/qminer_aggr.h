@@ -186,14 +186,20 @@ namespace TStreamAggrs {
 // Delays record Ids for a given amount of new records.
 class TRecBuffer : public TStreamAggr {
 private:
-	TSignalProc::TBuffer<TRec> Buffer;
+	TSignalProc::TBuffer<TUInt64> Buffer;
+	TWPt<TStore> Store;
 	
 protected:
-	void OnAddRec(const TRec& Rec) { Buffer.Update(Rec); }
+	void OnAddRec(const TRec& Rec);
 
     TRecBuffer(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+	/// Load stream aggregate state from stream
+	void LoadState(TSIn& SIn);
+	/// Save state of stream aggregate to stream
+	void SaveState(TSOut& SOut) const;
 
 	// did we finish initialization
 	bool IsInit() const { return Buffer.IsInit(); }

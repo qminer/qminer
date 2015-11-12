@@ -272,6 +272,9 @@
                 <dt><a href="module-qm.html#~StreamAggregateMovingVariance">StreamAggregateMovingVariance</a></dt>
                 <dd>
                 </dd>
+                <dt><a href="module-qm.html#~StreamAggregateRecordBuffer">StreamAggregateRecordBuffer</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="module-qm.html#~StreamAggregateResampler">StreamAggregateResampler</a></dt>
                 <dd>
                 </dd>
@@ -5552,6 +5555,110 @@ It implements the following methods:
         
     </dl>
 
+                <h3 id="~StreamAggregateRecordBuffer"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateRecordBuffer</span><small class="property-type">
+            &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+        <p>This stream aggregator represents record buffer. It stores the values inside a moving window.
+It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a>, <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a>.</p>
+
+        <section>
+        <h4>
+            Example
+        </h4>
+                <div>
+    <pre class="prettyprint"><code>// import the qm modulevar qm = require(&#x27;qminer&#x27;);// create a base with a simple storevar base = new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Heat&quot;,       fields: [           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series stream aggregator for the &#x27;Heat&#x27; store. The size of the window is 3 records.var aggr = {   name: &#x27;Delay&#x27;,   type: &#x27;recordBuffer&#x27;,   size: 3};base.store(&quot;Heat&quot;).addStreamAggr(aggr);base.close();</code></pre>
+</div>
+
+    </section>
+
+    
+        <section>
+        <h4>Properties</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>StreamAggregateTimeSeriesWindow.name</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The given name of the stream aggregator.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>StreamAggregateTimeSeriesWindow.type</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The type of the stream aggregator. It must be equal to <b>'recordBuffer'</b>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>StreamAggregateTimeSeriesWindow.size</p>
+        </td>
+        <td>
+                <p>number</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The size of the window.</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+
+    <dl class="dl-compact">
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+    </dl>
+
                 <h3 id="~StreamAggregateResampler"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateResampler</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents the resampler window buffer. It creates new values that are interpolated by using the values from an existing store.
@@ -6509,6 +6616,21 @@ It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.htm
         </td>
         <td>
                 <p>The time series type.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>recordBuffer</p>
+        </td>
+        <td>
+                <p><a href="module-qm.html#~StreamAggregateRecordBuffer">module:qm~StreamAggregateRecordBuffer</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The record buffer type.</p>
         </td>
 </tr>
 

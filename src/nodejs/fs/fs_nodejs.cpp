@@ -447,8 +447,9 @@ void TNodeJsFIn::readLine(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsFIn::readJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
-    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args.This());
+
+	TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args.This());
+	EAssertR(!JsFIn->SIn.Empty(), "Input stream is closed!");
     TStr JsonStr = TStr(*JsFIn->SIn);
     PJsonVal JsonVal = TJsonVal::GetValFromStr(JsonStr);
     
