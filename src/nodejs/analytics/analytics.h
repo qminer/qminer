@@ -14,6 +14,7 @@
 #include "fs_nodejs.h"
 #include "la_nodejs.h"
 #include "qminer_ftr.h"
+#include "../../glib/mine/mine.h"
 
 /**
  * Analytics module.
@@ -2041,6 +2042,25 @@ public:
 	//!- `arr = tokenizer.getParagraphs(string)` -- breaks text into paragraphs and returns them as an array of strings.
 	JsDeclareFunction(getParagraphs);
 };
+
+class TNodeJsMDS : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "MDS"; }
+
+private:
+	TFltVV MDS;
+
+	TNodeJsMDS() {}
+	TNodeJsMDS(TSIn& SIn) : MDS(SIn) {}
+
+	static TNodeJsMDS* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+	JsDeclareFunction(fitTransform);
+};
+
 
 #endif /* ANALYTICS_H_ */
 
