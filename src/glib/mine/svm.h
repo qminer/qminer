@@ -10,6 +10,7 @@
 #define	SVM_H
 
 #include "../base/base.h"
+#include "libsvm.h"
 
 namespace TSvm {
 
@@ -47,6 +48,304 @@ public:
         return TLinAlg::DotProduct(Mat, ColN, WgtV) + Bias;
     }
 };
+
+// LIBSVM for Eps-Support Vector Regression for sparse input
+static TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV,
+        const double& Eps, const double& Cost) {
+        // Asserts for input arguments
+    EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
+
+    svm_parameter_t svm_parameter;
+    svm_parameter.svm_type = EPSILON_SVR;
+    svm_parameter.kernel_type = LINEAR;
+    svm_parameter.C = Cost;
+    svm_parameter.eps = Eps;
+    // cache_size is only needed for kernel functions
+    svm_parameter.cache_size = 100;
+    svm_parameter.eps = 1e-3;
+    //  svm_parameter.p = 0.1;
+    svm_parameter.shrinking = 0;
+    svm_parameter.probability = 0;
+
+    const int n = VecV.Len();
+
+    svm_problem_t svm_problem;
+    svm_problem.l = n;
+    svm_problem.y = (double *)malloc(n*sizeof(double));
+
+    svm_problem.x = (svm_node_t **)malloc(n*sizeof(svm_node_t *));
+    int N = 0, prevN = 0;
+    for (int Idx = 0; Idx < VecV.Len(); ++Idx) { N += (VecV[Idx].Len() + 1); }
+    svm_node_t* x_space = (svm_node_t *)malloc(N*sizeof(svm_node_t));
+    N = 0;
+    for (int Idx = 0; Idx < VecV.Len(); ++Idx) {
+        prevN = N;
+        svm_problem.y[Idx] = TargetV[Idx];
+        for (int Jdx = 0; Jdx < VecV[Idx].Len(); ++Jdx) {
+            x_space[N].index = VecV[Idx][Jdx].Key+1;
+            x_space[N++].value = VecV[Idx][Jdx].Dat;
+        }
+        x_space[N++].index = -1;
+        svm_problem.x[Idx] = &x_space[prevN];
+    }
+
+    const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
+    // TODO Propagate LIBSVM's error message
+    // if (error_msg != NULL) { printf("[LIBSVM] %s\n", error_msg); }
+    EAssertR(error_msg == NULL, "Invalid LIBSVM parameters.");
+
+    svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
+
+    TFltV WgtV(svm_model->l);
+    TFlt Bias = svm_model->rho[0];
+    EAssertR(TLinAlg::Norm(WgtV) == 0.0, "Expected a zero weight vector.");
+    for (int Idx = 0; Idx < svm_model->l; ++Idx) {
+        svm_node_t* SV = svm_model->SV[Idx];
+        while (SV->index != -1) {
+            WgtV[SV->index - 1] += svm_model->sv_coef[0][Idx] * SV->value;
+            ++SV;
+        }
+    }
+
+    svm_free_and_destroy_model(&svm_model);
+    svm_destroy_param(&svm_parameter);
+    free(svm_problem.y);
+    free(svm_problem.x);
+    free(x_space);
+    free(svm_model);
+
+    return TLinModel(WgtV, Bias);
+}
+
+// LIBSVM for Eps-Support Vector Regression for TFltVV input
+static TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
+        const double& Eps, const double& Cost) {
+
+    // Asserts for input arguments
+    EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
+
+    svm_parameter_t svm_parameter;
+    svm_parameter.svm_type = EPSILON_SVR;
+    svm_parameter.kernel_type = LINEAR;
+    svm_parameter.C = Cost;
+    svm_parameter.eps = Eps;
+    svm_parameter.nr_weight = 0;
+    svm_parameter.weight = NULL;
+    svm_parameter.weight_label = NULL;
+    // cache_size is only needed for kernel functions
+    svm_parameter.cache_size = 100;
+    svm_parameter.eps = 1e-3;
+    //  svm_parameter.p = 0.1;
+    svm_parameter.shrinking = 0;
+    svm_parameter.probability = 0;
+
+    const int DimN = VecV.GetXDim(); // Number of features
+    const int AllN = VecV.GetYDim(); // Number of examples
+
+    // svm_parameter.gamma = 1.0/DimN;
+
+    EAssertR(TargetV.Len() == AllN, "Dimension mismatch.");
+
+    svm_problem_t svm_problem;
+    svm_problem.l = AllN;
+    svm_problem.y = (double *)malloc(AllN*sizeof(double));
+
+    svm_problem.x = (svm_node_t **)malloc(AllN*sizeof(svm_node_t *));
+    svm_node_t* x_space = (svm_node_t *)malloc((AllN*(DimN+1))*sizeof(svm_node_t));
+    int N = 0, prevN = 0;
+    for (int Idx = 0; Idx < AllN; ++Idx) { // # of examples
+        prevN = N;
+        svm_problem.y[Idx] = TargetV[Idx];
+        for (int Jdx = 0; Jdx < DimN; ++Jdx) { // # of features
+            if (VecV.At(Jdx, Idx) != 0.0) {
+                x_space[N].index = Jdx+1;
+                x_space[N].value = VecV.At(Jdx, Idx);
+                ++N;
+            }
+        }
+        x_space[N].index = -1;
+        ++N;
+        svm_problem.x[Idx] = &x_space[prevN];
+    }
+
+    const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
+    // TODO Propagate LIBSVM's error message
+    // if (error_msg != NULL) { printf("[LIBSVM] %s\n", error_msg); }
+    EAssertR(error_msg == NULL, "Invalid LIBSVM parameters.");
+
+    svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
+
+    TFltV WgtV(svm_model->l);
+    TFlt Bias = svm_model->rho[0];
+    EAssertR(TLinAlg::Norm(WgtV) == 0.0, "Expected a zero weight vector.");
+    for (int Idx = 0; Idx < svm_model->l; ++Idx) {
+        svm_node_t* SV = svm_model->SV[Idx];
+        while (SV->index != -1) {
+            WgtV[SV->index - 1] += svm_model->sv_coef[0][Idx] * SV->value;
+            ++SV;
+        }
+    }
+
+    svm_free_and_destroy_model(&svm_model);
+    svm_destroy_param(&svm_parameter);
+    free(svm_problem.y);
+    free(svm_problem.x);
+    free(x_space);
+
+    return TLinModel(WgtV, Bias);
+}
+
+// LIBSVM for C-Support Vector Classification for sparse input
+static TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV,
+        const double& Cost) {
+
+    // Asserts for input arguments
+    EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
+
+    svm_parameter_t svm_parameter;
+    svm_parameter.svm_type = C_SVC;
+    svm_parameter.kernel_type = LINEAR;
+    svm_parameter.C = Cost;
+    svm_parameter.nr_weight = 0;
+    svm_parameter.weight = NULL;
+    svm_parameter.weight_label = NULL;
+    // cache_size is only needed for kernel functions
+    svm_parameter.cache_size = 100;
+    svm_parameter.eps = 1e-3;
+    //  svm_parameter.p = 0.1;
+    svm_parameter.shrinking = 0;
+    svm_parameter.probability = 0;
+
+    const int n = VecV.Len();
+
+    svm_problem_t svm_problem;
+    svm_problem.l = n;
+    svm_problem.y = (double *)malloc(n*sizeof(double));
+
+    svm_problem.x = (svm_node_t **)malloc(n*sizeof(svm_node_t *));
+    int N = 0, prevN = 0;
+    for (int Idx = 0; Idx < VecV.Len(); ++Idx) { N += (VecV[Idx].Len() + 1); }
+    svm_node_t* x_space = (svm_node_t *)malloc(N*sizeof(svm_node_t));
+    N = 0;
+    for (int Idx = 0; Idx < VecV.Len(); ++Idx) {
+        prevN = N;
+        svm_problem.y[Idx] = TargetV[Idx];
+        for (int Jdx = 0; Jdx < VecV[Idx].Len(); ++Jdx) {
+            x_space[N].index = VecV[Idx][Jdx].Key+1;
+            x_space[N++].value = VecV[Idx][Jdx].Dat;
+        }
+        x_space[N++].index = -1;
+        svm_problem.x[Idx] = &x_space[prevN];
+    }
+
+    const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
+    // TODO Propagate LIBSVM's error message
+    // if (error_msg != NULL) { printf("[LIBSVM] %s\n", error_msg); }
+    EAssertR(error_msg == NULL, "Invalid LIBSVM parameters.");
+
+    svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
+
+    TFltV WgtV(svm_model->l);
+    TFlt Bias = svm_model->rho[0];
+    EAssertR(TLinAlg::Norm(WgtV) == 0.0, "Expected a zero weight vector.");
+    for (int Idx = 0; Idx < svm_model->l; ++Idx) {
+        svm_node_t* SV = svm_model->SV[Idx];
+        while (SV->index != -1) {
+            WgtV[SV->index - 1] += svm_model->sv_coef[0][Idx] * SV->value;
+            ++SV;
+        }
+    }
+
+    svm_free_and_destroy_model(&svm_model);
+    svm_destroy_param(&svm_parameter);
+    free(svm_problem.y);
+    free(svm_problem.x);
+    free(x_space);
+    free(svm_model);
+
+    return TLinModel(WgtV, Bias);
+}
+
+// Use LIBSVM for C-Support Vector Classification
+static TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV,
+        const double& Cost) {
+
+    // Asserts for input arguments
+    EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
+
+    svm_parameter_t svm_parameter;
+    svm_parameter.svm_type = C_SVC;
+    // svm_parameter.kernel_type = RBF;
+  	// svm_parameter.degree = 3;
+    // svm_parameter.coef0 = 0;
+    // svm_parameter.nu = 0.5;
+    svm_parameter.kernel_type = LINEAR;
+    svm_parameter.C = Cost;
+    svm_parameter.nr_weight = 0;
+    svm_parameter.weight = NULL;
+    svm_parameter.weight_label = NULL;
+    // cache_size is only needed for kernel functions
+    svm_parameter.cache_size = 100;
+    svm_parameter.eps = 1e-3;
+    // svm_parameter.p = 0.1;
+    svm_parameter.shrinking = 0;
+    svm_parameter.probability = 0;
+
+    const int DimN = VecV.GetXDim(); // Number of features
+    const int AllN = VecV.GetYDim(); // Number of examples
+
+    // svm_parameter.gamma = 1.0/DimN;
+
+    EAssertR(TargetV.Len() == AllN, "Dimension mismatch.");
+
+    svm_problem_t svm_problem;
+    svm_problem.l = AllN;
+    svm_problem.y = (double *)malloc(AllN*sizeof(double));
+
+    svm_problem.x = (svm_node_t **)malloc(AllN*sizeof(svm_node_t *));
+    svm_node_t* x_space = (svm_node_t *)malloc((AllN*(DimN+1))*sizeof(svm_node_t));
+    int N = 0, prevN = 0;
+    for (int Idx = 0; Idx < AllN; ++Idx) { // # of examples
+        prevN = N;
+        svm_problem.y[Idx] = TargetV[Idx];
+        for (int Jdx = 0; Jdx < DimN; ++Jdx) { // # of features
+            if (VecV.At(Jdx, Idx) != 0.0) { // Store non-zero entries only
+                x_space[N].index = Jdx+1;
+                x_space[N].value = VecV.At(Jdx, Idx);
+                ++N;
+            }
+        }
+        x_space[N].index = -1;
+        ++N;
+        svm_problem.x[Idx] = &x_space[prevN];
+    }
+
+    const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
+    // TODO Propagate LIBSVM's error message
+    // if (error_msg != NULL) { printf("[LIBSVM] %s\n", error_msg); }
+    EAssertR(error_msg == NULL, "Invalid LIBSVM parameters.");
+
+    svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
+
+    TFltV WgtV(DimN);
+    TFlt Bias = svm_model->rho[0];
+    EAssertR(TLinAlg::Norm(WgtV) == 0.0, "Expected a zero weight vector.");
+    for (int Idx = 0; Idx < svm_model->l; ++Idx) {
+        svm_node_t* SV = svm_model->SV[Idx];
+        while (SV->index != -1) {
+            WgtV[SV->index - 1] += svm_model->sv_coef[0][Idx] * SV->value;
+            ++SV;
+        }
+    }
+
+    svm_free_and_destroy_model(&svm_model);
+    svm_destroy_param(&svm_parameter);
+    free(svm_problem.y);
+    free(svm_problem.x);
+    free(x_space);
+
+    return TLinModel(WgtV, Bias);
+}
 
 template <class TVecV>
 TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,

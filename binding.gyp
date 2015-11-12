@@ -2,7 +2,9 @@
     'variables': {
         'LIN_ALG_BLAS%': 'NBLAS',
         'LIN_ALG_LAPACKE%': 'NLAPACKE',
+        'LIN_ALG_EIGEN%': 'NEIGEN',
         'LIN_ALG_INCLUDE%': 'src/glib/base/',
+        'LIN_EIGEN_INCLUDE%': 'src/third_party/eigen/',
         #full path to lapack or openblas libraries
         'LIN_ALG_LIB%': '',
         #64 bit indexing for BLAS
@@ -26,6 +28,7 @@
         'defines': [
             '<(LIN_ALG_BLAS)',
             '<(LIN_ALG_LAPACKE)',
+            '<(LIN_ALG_EIGEN)',
             '<(INDEX_64)',
             '<(INTEL)'
         ],
@@ -159,12 +162,14 @@
                 'src/third_party/Snap/snap-adv',
                 'src/third_party/Snap/snap-exp',
                 'src/third_party/Snap/qlib-core',
-                '<(LIN_ALG_INCLUDE)'
+                '<(LIN_ALG_INCLUDE)',
+                '<(LIN_EIGEN_INCLUDE)'
             ],
             'dependencies': [
+                'libsvm',
                 'glib',
                 'snap_lib',
-                'qminer'
+                'qminer',
             ],
         },
         {
@@ -186,7 +191,8 @@
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
-                '<(LIN_ALG_INCLUDE)'
+                '<(LIN_ALG_INCLUDE)',
+                '<(LIN_EIGEN_INCLUDE)'
             ],
         },
         {
@@ -203,7 +209,8 @@
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
-                '<(LIN_ALG_INCLUDE)'
+                '<(LIN_ALG_INCLUDE)',
+				'<(LIN_EIGEN_INCLUDE)'
             ],
         },
         {
@@ -222,7 +229,20 @@
                 'src/glib/mine/',
                 'src/glib/misc/',
                 'src/third_party/sole/',
-                '<(LIN_ALG_INCLUDE)'
+                '<(LIN_ALG_INCLUDE)',
+                '<(LIN_EIGEN_INCLUDE)'
+            ],
+        },
+        {
+            # libsvm
+            'target_name': 'libsvm',
+            'type': 'static_library',
+            'sources': [
+                'src/third_party/libsvm/svm.h',
+                'src/third_party/libsvm/svm.cpp'
+            ],
+            'include_dirs': [
+                'src/third_party/libsvm/'
             ],
         },
         {

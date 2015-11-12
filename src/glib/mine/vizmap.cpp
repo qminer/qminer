@@ -1043,7 +1043,6 @@ void TVizMapFactory::MakeFlat(const PSVMTrainSet& Set,
         const int& MxStep, const int& MxSecs, const double& MnDiff, 
         const bool& RndStartPos, PNotify Notify) {
 
-	printf("TrainSet in MakeFlat: %d, %d\n", Set->Dim(), Set->Len());
 
     const int Len = Set->Len();
     //const int Dim = Set->Dim();
@@ -1070,6 +1069,7 @@ void TVizMapFactory::MakeFlat(const PSVMTrainSet& Set,
     // main loop
     int Step = 0; TTm StartTm = TTm::GetCurUniTm();
     int PrevTimeSec = 0;
+
     forever {
         // preparing matrix
         b.PutAll(0.0); z.PutAll(0.0);

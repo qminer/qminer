@@ -924,8 +924,6 @@ private:
 	// input
 	TWPt<TStreamAggr> InAggrX, InAggrY;
 	TWPt<TStreamAggrOut::IFltVec> InAggrValX, InAggrValY;
-	// indicator
-	TSignalProc::TChiSquare ChiSquare;
 
 protected:
 	void OnAddRec(const TRec& Rec) {} // do nothing
@@ -934,6 +932,8 @@ public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	// did we finish initialization
 	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
+	void LoadState(TSIn& SIn) { /* do nothing, there is not state */ }
+	void SaveState(TSOut& SOut) const { /* do nothing, there is not state */ }
 	
 	/// returns the number of bins 
 	int GetFltLen() const { return InAggrValX->GetFltLen(); }
