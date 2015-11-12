@@ -1217,7 +1217,6 @@ void TNodeJsVec<TVal, TAux>::push(const v8::FunctionCallbackInfo<v8::Value>& Arg
 			v8::String::NewFromUtf8(Isolate, "Expected 1 argument, 0 given.")));
 	}
 	else if (!Args[0]->IsNumber() && !Args[0]->IsString() && !Args[0]->IsBoolean()) {
-		// TODO: int vector should not silently pass and truncate non-integer values!
 		Isolate->ThrowException(v8::Exception::TypeError(
 			v8::String::NewFromUtf8(Isolate, "Expected number, string or boolean")));
 	}

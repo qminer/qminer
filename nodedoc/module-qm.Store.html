@@ -131,13 +131,16 @@
                     <dt><a href="module-qm.Store.html#key">key(keyName)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Store.html#map">map(callback)</a></dt>
+                    <dt><a href="module-qm.Store.html#loadJson">loadJson(file[, limit])</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Store.html#map">map(callback)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.Store.html#newRecord">newRecord(json)</a></dt>
                     <dd>
                     </dd>
@@ -308,7 +311,7 @@ base.close();</code></pre>
                         <p>opts</p>
                       </td>
                       <td>
-                        <p><a href="module-qm.html#~baseLoadCSVParam">module:qm~baseLoadCSVParam</a></p>
+                        <p>module:qm~baseLoadCSVParam</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -1045,6 +1048,53 @@ base.close();</code></pre>
                 <dd>
                   <p><code>Object</code>&nbsp;The JSON object containing the details of the key.</p>
                 </dd>
+              </dl>
+              <h3 id="loadJson"><span class="symbol-name">loadJson</span><span class="signature"><span class="signature-params">(file[, limit])</span></span></h3>
+              <p>Load given file line by line, parse each line to JSON and push it to the store.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>file</p>
+                      </td>
+                      <td>
+                        <p>String</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Name of the json line file</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>limit</p>
+                      </td>
+                      <td>
+                        <p>Number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Maximal number of records to load from file</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
               </dl>
               <h3 id="map"><span class="symbol-name">map</span><span class="signature"><span class="signature-params">(callback)</span>&nbsp;&rarr; <span class="signature-returns"> Array of Object</span></span></h3>
               <p>Creates an array of function outputs created from the store records.</p>

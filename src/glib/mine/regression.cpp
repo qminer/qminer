@@ -296,8 +296,12 @@ void TPropHazards::Fit(const TFltVV& _X, const TFltV& t, const double& Eps) {
 }
 
 double TPropHazards::Predict(const TFltV& x) const {
+    // check we even have a model
 	if (WgtV.Empty()) { return 0; }
-
+    // check dimensionality
+    EAssert((x.Len() + 1) == WgtV.Len());
+    
+    // apply the model
 	double Pred = WgtV[0];
 	for (int i = 1; i < WgtV.Len(); i++) {
 		Pred += x[i-1]*WgtV[i];

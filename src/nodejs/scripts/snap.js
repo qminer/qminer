@@ -5,13 +5,11 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
-// typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
-module.exports = exports = function (pathPrefix) {
-    pathPrefix = pathPrefix || '';
-    exports = require('bindings')(pathPrefix + '/qm.node').snap;
 
-
-    var fs = require('bindings')(pathPrefix + '/qm.node').fs;
+module.exports = exports = function (pathQmBinary) {    
+    var qm = require(pathQmBinary); // This loads only c++ functions of qm
+    exports = qm.snap;
+    var fs = qm.fs;
 
     exports.UndirectedGraph.prototype.nodes3 = function () {
         return (this.nodes * 3);

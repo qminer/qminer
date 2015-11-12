@@ -597,8 +597,26 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun) {
 	v8::TryCatch TryCatch;
 	Fun->Call(Isolate->GetCurrentContext()->Global(), 0, nullptr);
 	if (TryCatch.HasCaught()) {
-		TryCatch.ReThrow();
-		return;
+		v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+		throw TExcept::New("Exception while executin JSON: " + TStr(*Msg));
+	}
+}
+
+void TNodeJsUtil::ExecuteErr(const v8::Handle<v8::Function>& Fun, const PExcept& Except) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
+
+	const TStr& Msg = Except->GetMsgStr();
+	v8::Local<v8::String> V8Msg = v8::String::NewFromUtf8(Isolate, Msg.CStr());
+	v8::Local<v8::Value> Err = v8::Exception::Error(V8Msg);
+
+	const int ArgC = 1;
+	v8::Handle<v8::Value> ArgV[ArgC] = { Err };
+	Fun->Call(Isolate->GetCurrentContext()->Global(), ArgC, ArgV);
+	if (TryCatch.HasCaught()) {
+		v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+		throw TExcept::New("Exception while executin JSON: " + TStr(*Msg));
 	}
 }
 

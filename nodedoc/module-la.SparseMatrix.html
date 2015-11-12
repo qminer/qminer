@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">SparseMatrix</span></h1>
-            <p class="source-link">Source: <a href="ladoc.js.html#source-line-484">ladoc.<wbr>js:484</a></p>
+            <p class="source-link">Source: <a href="ladoc.js.html#source-line-492">ladoc.<wbr>js:492</a></p>
             <div class="symbol-classdesc">
               <p>Represents a sparse matrix.</p>
             </div>
@@ -119,6 +119,9 @@
                     <dd>
                     </dd>
                     <dt><a href="module-la.SparseMatrix.html#setCol">setCol(colIdx, spVec)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#setRowDim">setRowDim(rowDim)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-la.SparseMatrix.html#toString">toString()</a></dt>
@@ -914,6 +917,52 @@ mat.setCol(2, vec); // returns mat with the third column changed</code></pre>
                 <dd>
                   <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Self.</p>
                 </dd>
+              </dl>
+              <h3 id="setRowDim"><span class="symbol-name">setRowDim</span><span class="signature"><span class="signature-params">(rowDim)</span></span></h3>
+              <p>Sets the row dimension</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the modules
+var la = require(&#x27;qminer&#x27;).la;
+// create an empty matrix
+var mat = new la.SparseMatrix();
+mat.setRowDim(2);
+mat.rows // prints 2</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>rowDim</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Row dimension</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
               </dl>
               <h3 id="toString"><span class="symbol-name">toString</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
               <p>Returns a string displaying rows, columns and number of non-zero elements of sparse matrix.</p>

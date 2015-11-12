@@ -44,11 +44,23 @@
         'conditions': [
             # operating system specific parameters
             ['OS == "linux"', {
-                'libraries': [ '-lrt', '-luuid', '-fopenmp', '<(LIN_ALG_LIB)' ],
+                "link_settings": {
+                    "libraries": [ '-lrt', '-fopenmp', '<(LIN_ALG_LIB)' ],
+                },
                 # GCC flags
                 'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
                 'cflags_cc': [ '-std=c++0x', '-frtti', '-fexceptions' ],
-                'cflags': [ '-Wno-deprecated-declarations', '-fopenmp' ]
+                'cflags': [ '-Wno-deprecated-declarations', '-fopenmp' ],
+                # additional flags for ARM
+                'conditions': [
+                    ['target_arch == "arm"', {
+                        "link_settings": {                    
+                            "ldflags": [ '-Wl,--allow-multiple-definition' ]
+                        },
+                        'cflags!': [ '-g' ],
+                        'cflags': [ '-fsigned-char' ],
+                    }]
+                ]
             }],
             ['OS == "win"', {
                 'msbuild_toolset': 'v120',
@@ -150,9 +162,10 @@
                 '<(LIN_ALG_INCLUDE)'
             ],
             'dependencies': [
+                'libsvm',
                 'glib',
                 'snap_lib',
-                'qminer'
+                'qminer',
             ],
         },
         {
@@ -202,23 +215,37 @@
                 'src/glib/base/base.h',
                 'src/glib/base/base.cpp',
                 'src/glib/mine/mine.h',
-                'src/glib/mine/mine.cpp'
+                'src/glib/mine/mine.cpp',
+                'src/third_party/sole/sole.cpp',
             ],
             'include_dirs': [
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
+                'src/third_party/sole/',
                 '<(LIN_ALG_INCLUDE)'
+            ],
+        },
+        {
+            # libsvm
+            'target_name': 'libsvm',
+            'type': 'static_library',
+            'sources': [
+                'src/third_party/libsvm/svm.h',
+                'src/third_party/libsvm/svm.cpp'
+            ],
+            'include_dirs': [
+                'src/third_party/libsvm/'
             ],
         },
         {
             # needed for publishing binaries with node-pre-gyp
             'target_name': 'action_after_build',
             'type': 'none',
-            'dependencies': [ '<(module_name)' ],
+            'dependencies': [ 'qm' ],
             'copies': [{
-                'files': [ '<(PRODUCT_DIR)/<(module_name).node' ],
-                'destination': '<(module_path)'
+                'files': [ '<(PRODUCT_DIR)/qm.node' ],
+                'destination': './out/'
             }]
         }
     ]

@@ -2388,6 +2388,37 @@ exports.datasets= require('qminer_datasets');
 	*/
  exports.FeatureSpace.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); };
 /**
+	* Clears the feature space.
+	* @returns {module:qm.FeatureSpace} Self. 
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        name: "Runners",
+	*        fields: [
+	*            { name: "ID", type: "int", primary: true },
+	*            { name: "Name", type: "string" },
+	*            { name: "BestTime", type: "float" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the "Runners" store
+	* base.store("Runners").push({ ID: 110020, Name: "Eric Ericsson", BestTime: 134.33 });
+	* base.store("Runners").push({ ID: 123307, Name: "Fred Friedrich", BestTime: 101.11 });
+	* base.store("Runners").push({ ID: 767201, Name: "Appel Banana", BestTime: 1034.56 });
+	* // create a feature space
+	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "Runners", field: "BestTime" });
+	* // update the feature space
+	* ftr.updateRecords(base.store("Runners").allRecords);
+	* // clear the feature space (return the feature space to it's default values)
+	* ftr.clear();
+	* base.close();
+	*/
+ exports.FeatureSpace.prototype.clear = function () { return Object.create(require('qminer').FeatureSpace.prototype); };
+/**
 	* Adds a new feature extractor to the feature space.
 	* @param {Object} obj - The added feature extractor. It must be given as a JSON object.
 	* @returns {module:qm.FeatureSpace} Self.
@@ -2515,6 +2546,7 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Creates a sparse feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
 	* @returns {module:la.SparseVector} The sparse feature vector gained from rec.
 	* @example
 	* // import qm module
@@ -2553,6 +2585,7 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Creates a feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
 	* @returns {module:la.Vector} The feature vector gained from rec.
 	* @example
 	* // import qm module
@@ -2595,87 +2628,10 @@ exports.datasets= require('qminer_datasets');
 	 * @param {Number} val - value to extract
 	 */
 /**
-	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
-	* @param {(module:la.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
-	* @returns {module:la.Vector} The inverse of ftr as vector.
-	* @example
-	* // import qm module
-	* var qm = require('qminer');
-	* // create a new base containing one store
-	* var base = new qm.Base({
-	*    mode: "createClean",
-	*    schema: [{
-	*        name: "TheWitcherSaga",
-	*        fields: [
-	*            { name: "Title", type: "string" },
-	*            { name: "YearOfRelease", type: "int" },
-	*            { name: "EnglishEdition", type: "bool" }
-	*        ]
-	*    }]
-	* });
-	* // put some records in the store
-	* base.store("TheWitcherSaga").push({ Title: "Blood of Elves", YearOfRelease: 1994, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "Time of Contempt", YearOfRelease: 1995, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "Baptism of Fire", YearOfRelease: 1996, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "The Swallow's Tower", YearOfRelease: 1997, EnglishEdition: false });
-	* base.store("TheWitcherSaga").push({ Title: "Lady of the Lake", YearOfRelease: 1999, EnglishEdition: false });
-	* base.store("TheWitcherSaga").push({ Title: "Season of Storms", YearOfRelease: 2013, EnglishEdition: false });
-	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
-	* // for update, look the method updateRecords in feature space
-	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "TheWitcherSaga", field: "YearOfRelease", normalize: true });
-	* ftr.updateRecords(base.store("TheWitcherSaga").allRecords);
-	* // get a feature vector for the second record
-	* // because of the numeric feature extractor having normalize: true and of the records update of feature space, the values
-	* // are not equal to those of the records, i.e. the value 1995 is now 0.105263 
-	* var ftrVec = ftr.extractVector(base.store("TheWitcherSaga")[1]);
-	* // get the inverse of the feature vector
-	* // the function returns the values to their first value, i.e. 0.105263 returns to 1995
-	* var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]
-	* base.close();
-	*/
- exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) { return Object.create(require('qminer').la.Vector.prototype); };
-/**
-	* Calculates the inverse of a single feature using a specific feature extractor.
-	* @param {number} idx - The index of the specific feature extractor.
-	* @param {Object} val - The value to be inverted.
-	* @returns {Object} The inverse of val using the feature extractor with index idx.
-	* @example
-	* // import qm module
-	* var qm = require('qminer');
-	* // create a new base containing one store
-	* var base = new qm.Base({
-	*    mode: "createClean",
-	*    schema: [{
-	*        name: "TheWitcherSaga",
-	*        fields: [
-	*            { name: "Title", type: "string" },
-	*            { name: "YearOfRelease", type: "int" },
-	*            { name: "EnglishEdition", type: "bool" }
-	*        ]
-	*    }]
-	* });
-	* // put some records in the store
-	* base.store("TheWitcherSaga").push({ Title: "Blood of Elves", YearOfRelease: 1994, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "Time of Contempt", YearOfRelease: 1995, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "Baptism of Fire", YearOfRelease: 1996, EnglishEdition: true });
-	* base.store("TheWitcherSaga").push({ Title: "The Swallow's Tower", YearOfRelease: 1997, EnglishEdition: false });
-	* base.store("TheWitcherSaga").push({ Title: "Lady of the Lake", YearOfRelease: 1999, EnglishEdition: false });
-	* base.store("TheWitcherSaga").push({ Title: "Season of Storms", YearOfRelease: 2013, EnglishEdition: false });
-	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
-	* // for update, look the method updateRecords in feature space
-	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "TheWitcherSaga", field: "YearOfRelease", normalize: true });
-	* ftr.updateRecords(base.store("TheWitcherSaga").allRecords);
-	* // because of the numeric feature extractor having normalize: true and of the records update of feature space, 
-	* // the values are not equal to those of the records 
-	* // invert the value 0 using the numeric feature extractor
-	* var inverse = ftr.invertFeature(0, 0); // returns the value 1994
-	* base.close();
-	*/
- exports.FeatureSpace.prototype.invertFeature = function (idx, val) {};
-/**
 	* Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.
 	* @param {module:qm.RecordSet} rs - The given record set.
-	* @returns {module:la.SparseMatrix} The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor
+    * @returns {module:la.SparseMatrix} The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.
 	* @example
 	* // import qm module
 	* var qm = require("qminer");
@@ -2707,6 +2663,8 @@ exports.datasets= require('qminer_datasets');
 /**
 	* Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.
 	* @param {module:qm.RecordSet} rs - The given record set.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
+
 	* @returns {module:la.Matrix} The dense matrix, where the i-th column is the feature vector of the i-th record in rs.
 	* @example
 	* // import qm module
@@ -2806,6 +2764,84 @@ exports.datasets= require('qminer_datasets');
 	*/
  exports.FeatureSpace.prototype.getFeature = function (idx) { return ''; };
 /**
+	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
+	* @param {(module:la.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
+	* @returns {module:la.Vector} The inverse of ftr as vector.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        name: "TheWitcherSaga",
+	*        fields: [
+	*            { name: "Title", type: "string" },
+	*            { name: "YearOfRelease", type: "int" },
+	*            { name: "EnglishEdition", type: "bool" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the store
+	* base.store("TheWitcherSaga").push({ Title: "Blood of Elves", YearOfRelease: 1994, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Time of Contempt", YearOfRelease: 1995, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Baptism of Fire", YearOfRelease: 1996, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "The Swallow's Tower", YearOfRelease: 1997, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Lady of the Lake", YearOfRelease: 1999, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Season of Storms", YearOfRelease: 2013, EnglishEdition: false });
+	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
+	* // for update, look the method updateRecords in feature space
+	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "TheWitcherSaga", field: "YearOfRelease", normalize: true });
+	* ftr.updateRecords(base.store("TheWitcherSaga").allRecords);
+	* // get a feature vector for the second record
+	* // because of the numeric feature extractor having normalize: true and of the records update of feature space, the values
+	* // are not equal to those of the records, i.e. the value 1995 is now 0.105263 
+	* var ftrVec = ftr.extractVector(base.store("TheWitcherSaga")[1]);
+	* // get the inverse of the feature vector
+	* // the function returns the values to their first value, i.e. 0.105263 returns to 1995
+	* var inverse = ftr.invertFeatureVector(ftrVec); // returns a vector [1995]
+	* base.close();
+	*/
+ exports.FeatureSpace.prototype.invertFeatureVector = function (ftr) { return Object.create(require('qminer').la.Vector.prototype); };
+/**
+	* Calculates the inverse of a single feature using a specific feature extractor.
+	* @param {number} idx - The index of the specific feature extractor.
+	* @param {Object} val - The value to be inverted.
+	* @returns {Object} The inverse of val using the feature extractor with index idx.
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        name: "TheWitcherSaga",
+	*        fields: [
+	*            { name: "Title", type: "string" },
+	*            { name: "YearOfRelease", type: "int" },
+	*            { name: "EnglishEdition", type: "bool" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the store
+	* base.store("TheWitcherSaga").push({ Title: "Blood of Elves", YearOfRelease: 1994, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Time of Contempt", YearOfRelease: 1995, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "Baptism of Fire", YearOfRelease: 1996, EnglishEdition: true });
+	* base.store("TheWitcherSaga").push({ Title: "The Swallow's Tower", YearOfRelease: 1997, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Lady of the Lake", YearOfRelease: 1999, EnglishEdition: false });
+	* base.store("TheWitcherSaga").push({ Title: "Season of Storms", YearOfRelease: 2013, EnglishEdition: false });
+	* // create a feature space with the numeric feature extractor and update the feature space with the records in store
+	* // for update, look the method updateRecords in feature space
+	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "TheWitcherSaga", field: "YearOfRelease", normalize: true });
+	* ftr.updateRecords(base.store("TheWitcherSaga").allRecords);
+	* // because of the numeric feature extractor having normalize: true and of the records update of feature space, 
+	* // the values are not equal to those of the records 
+	* // invert the value 0 using the numeric feature extractor
+	* var inverse = ftr.invertFeature(0, 0); // returns the value 1994
+	* base.close();
+	*/
+ exports.FeatureSpace.prototype.invertFeature = function (idx, val) {};
+/**
 	* Filters the vector to keep only the elements from the feature extractor.
 	* @param {(module:la.Vector | module:la.SparseVector)} vec - The vector from where the function filters the elements.
 	* @param {number} idx - The index of the feature extractor.
@@ -2858,20 +2894,26 @@ exports.datasets= require('qminer_datasets');
 	*/
  exports.FeatureSpace.prototype.extractStrings = function (rec) {return ['']; }; 
 
-    
+
     //==================================================================
     // BASE
     //==================================================================
 
     /**
     * The parameter given to {@link module:qm.Base#loadCSV}.
-    * @typedef {object} baseLoadCSVParam
-    * @property {string} baseLoadCSVParam.file - The name of the input file.
-    * @property {string} baseLoadCSVParam.store - Name of the store which will be created.
-    * @property {module:qm.Base} baseLoadCSVParam.base - QMiner base object that creates the store.
-    * @property {string} [baseLoadCSVParam.delimiter = ','] - Optional delimiter.
-    * @property {string} [baseLoadCSVParam.quote = '"'] - Optional character to escape values that contain a delimiter.
+    * @typedef {object} BaseLoadCSVParam
+    * @property {string} BaseLoadCSVParam.file - The name of the input file.
+    * @property {string} BaseLoadCSVParam.store - Name of the store which will be created.
+    * @property {module:qm.Base} BaseLoadCSVParam.base - QMiner base object that creates the store.
+    * @property {string} [BaseLoadCSVParam.delimiter = ','] - Optional delimiter.
+    * @property {string} [BaseLoadCSVParam.quote = '"'] - Optional character to escape values that contain a delimiter.
     */
+
+    /**
+     * Loads the store from a CSV file.
+     * @param {module:qm~baseLoadCSVParam} opts - Options object.
+     * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
+     */
     exports.Base.prototype.loadCSV = function (opts, callback) {
     	console.log('Loading CSV file ...');
 
@@ -2879,43 +2921,43 @@ exports.datasets= require('qminer_datasets');
     	if (opts.quote == null) opts.quote = '"';
     	if (opts.ignoreFields == null) opts.ignoreFields = [];
     	if (opts.file == null) throw new Error('Missing parameter file!');
-    	
+
     	if (callback == null) callback = function (e) { if (e != null) console.log(e.stack); }
-    	
+
     	try {
     		var base = this;
-    		
+
 	    	var fname = opts.file;
 			var storeName = opts.store;
-	
+
 			var fieldTypes = null;
 			var store = null;
 			var buff = [];
-	
+
 			var ignoreFields = {};
 			for (var i = 0; i < opts.ignoreFields.length; i++)
 				ignoreFields[opts.ignoreFields] = null;
-			
+
 			// read the CSV file and fill the store
 			var headers = null;
-			
+
 			function transformLine(line) {
 				var transformed = {};
-				
+
 				for (var i = 0; i < line.length; i++) {
 					var header = headers[i];
 					var value = line[i];
-					
+
 					if (fieldTypes != null && fieldTypes[header] != null) {
 						transformed[header] = fieldTypes[header] == 'float' ? parseFloat(value) : value;
 					} else {
 						transformed[header] = (isNaN(value) || value.length == 0) ? value : parseFloat(value);
 					}
 				}
-				
+
 				return transformed;
 			}
-			
+
     		function initFieldTypes(data) {
     			if (fieldTypes == null) fieldTypes = {};
 
@@ -2934,11 +2976,11 @@ exports.datasets= require('qminer_datasets');
 
     				}
     			}
-    			
+
     			if (fieldTypesInitialized())
     				console.log('Fields initialized: ' + JSON.stringify(fieldTypes));
     		}
-			
+
     		function fieldTypesInitialized() {
     			if (fieldTypes == null) return false;
 
@@ -2952,7 +2994,7 @@ exports.datasets= require('qminer_datasets');
 
     			return true;
     		}
-			
+
 			function getUninitializedFlds() {
     			var result = [];
 
@@ -2966,7 +3008,7 @@ exports.datasets= require('qminer_datasets');
 
     			return result;
     		}
-			
+
 			function createStore(rec) {
     			try {
 	    			var storeDef = {
@@ -2981,12 +3023,12 @@ exports.datasets= require('qminer_datasets');
 							"null": true,
 	    				});
 	    			}
-	    			
+
 	    			console.log('Creating store with definition ' + JSON.stringify(storeDef) + ' ...');
 
 	    			base.createStore(storeDef);
 	    			store = base.store(storeName);
-	    				    			
+
 	    			// insert all the record in the buffer into the store
 	    			buff.forEach(function (data) {
 	    				store.push(data);
@@ -2995,15 +3037,15 @@ exports.datasets= require('qminer_datasets');
 					callback(e);
     			}
     		}
-			
+
 			var storeCreated = false;
 			var line = 0;
 			console.log('Saving CSV to store ' + storeName + ' ' + fname + ' ...');
-			
+
 			var fin = new fs.FIn(fname);
 			fs.readCsvLines(fin, {
-				onLine: function (lineArr) {					
-					try {						
+				onLine: function (lineArr) {
+					try {
 						if (line++ == 0) {	// the first line are the headers
 							headers = [];
 							for (var i = 0; i < lineArr.length; i++) {
@@ -3014,17 +3056,17 @@ exports.datasets= require('qminer_datasets');
 						else {
 							if (line % 1000 == 0)
 								console.log(line + '');
-							
+
 							var data = transformLine(lineArr);
-														
+
 							if (fieldTypes == null)
 								initFieldTypes(data);
-							
+
 							if (store == null && fieldTypesInitialized())
 								createStore(data);
 							else if (!fieldTypesInitialized())
 								initFieldTypes(data);
-							
+
 							if (store != null) {
 								store.push(data);
 							} else
@@ -3038,7 +3080,7 @@ exports.datasets= require('qminer_datasets');
 				onEnd: function () {
 					// finished
 					console.log('Finished!');
-					
+
 					if (callback != null) {
 			   			if (!fieldTypesInitialized()) {
 				   			var fieldNames = getUninitializedFlds();
@@ -3050,20 +3092,20 @@ exports.datasets= require('qminer_datasets');
 				   		}
 			   		}
 				}
-			});	
-			
+			});
+
 			fin.close();
     	} catch (e) {
 			callback(e);
     	}
     };
-    
+
     /**
-     * Loads the store from a CSV file. 
+     * Loads the store from a CSV file.
      * @param {module:qm~baseLoadCSVParam} opts - Options object.
      * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
      */
-    
+
     //==================================================================
     // STORE
     //==================================================================
@@ -3090,13 +3132,38 @@ exports.datasets= require('qminer_datasets');
         return util.inspect(this, { depth: d, 'customInspect': false });
     }
 
+    /**
+     * Load given file line by line, parse each line to JSON and push it to the store.
+     *
+     * @param {String} file - Name of the json line file
+     * @param {Number} [limit] - Maximal number of records to load from file
+     */
+    exports.Store.prototype.loadJson = function (file, limit) {
+        var fin = fs.openRead(file);
+        var count = 0;
+        while (!fin.eof) {
+            var line = fin.readLine();
+            if (line == "") { continue; }
+            try {
+                var rec = JSON.parse(line);
+                this.push(rec);
+                // count, GC and report
+                count++;
+                if (limit != undefined && count == limit) { break; }
+            } catch (err) {
+                console.log("Error parsing [" + line + "]: " + err)
+            }
+        }
+        return count;
+    }
+
     //==================================================================
     // RECORD SET
     //==================================================================
 
     /**
      * Stores the record set as a CSV file.
-     * 
+     *
      * @param {Object} opts - arguments
      * @property {String} opts.fname - name of the output file
      * @property {Boolean} [opts.includeHeaders] - indicates wether to include the header in the first line
@@ -3106,27 +3173,27 @@ exports.datasets= require('qminer_datasets');
     	if (opts == null || opts.fname == null) throw new Error('Missing parameter fname!');
     	if (opts.includeHeaders == null) opts.includeHeaders = true;
     	if (opts.timestampType == null) opts.timestampType = 'timestamp';
-    	
+
     	// read field descriptions
     	var fields = this.store.fields;
     	var fieldDesc = [];
     	for (var i = 0; i < fields.length; i++) {
     		var desc = fields[i];
     		var type = desc.type;
-    		
+
     		if (type != 'float' && type != 'int' && type != 'bool' && type != 'datetime' &&
     				type != 'string')
     			throw new Error('Invalid field type: ' + type);
     		if (desc.internal) continue;
-    		
+
     		fieldDesc.push({name: desc.name, type: desc.type});
     	}
-    	
+
     	var nFields = fieldDesc.length;
     	var useTimestamp = opts.timestampType != 'ISO';
-    	
+
     	var fout = new fs.FOut(opts.fname);
-    	
+
     	// write the headers
     	if (opts.includeHeaders) {
     		var headerLine = '';
@@ -3137,7 +3204,7 @@ exports.datasets= require('qminer_datasets');
     		}
     		fout.writeLine(headerLine);
     	}
-    	
+
     	// write the lines
     	var len = this.length;
     	var recN = 0;
@@ -3146,7 +3213,7 @@ exports.datasets= require('qminer_datasets');
     		for (var i = 0; i < nFields; i++) {
     			var fldVal = rec[fieldDesc[i].name];
     			var type = fieldDesc[i].type;
-    			
+
     			if (fldVal != null) {
 	    			if (type == 'float' || type == 'int' || type == 'bool') {
 	    				line += fldVal;
@@ -3158,17 +3225,17 @@ exports.datasets= require('qminer_datasets');
 	    				throw new Error('Invalid type of field: ' + type);
 	    			}
     			}
-    			
+
     			if (i < nFields - 1)
     				line += ',';
     		}
-    		
+
     		if (recN++ < len - 1)
     			fout.writeLine(line);
     		else
     			fout.write(line);
     	});
-    	
+
     	fout.flush();
     	fout.close();
     }
@@ -3281,49 +3348,15 @@ exports.datasets= require('qminer_datasets');
     // EXPORTS
     //==================================================================
 
-    // loading data into stores
+    // deprecated, here for backwards compatibility
     exports.load = function () {
         var _obj = {};
-
-        //#- `num = qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName`
-        //#   line by line, parsing each line as JSON and adding it as record to `store`.
-        //#   When `limit != -1` only first first `limit` lines are loaded. Returns `num`:
-        //#   the number of lines loaded.
         _obj.jsonFileLimit = function (store, file, limit) {
-            var fin = fs.openRead(file);
-            var count = 0;
-            while (!fin.eof) {
-                var line = fin.readLine();
-                if (line == "") { continue; }
-                try {
-                    var rec = JSON.parse(line);
-                    store.push(rec);
-                    // count, GC and report
-                    count++;
-                    if (count % 1000 == 0) {
-                        store.base.garbageCollect();
-                    }
-                    if (count % 10000 == 0) {
-                        console.log("  " + count + " records");
-                    }
-                    if (count == limit) {
-                        break;
-                    }
-                } catch (err) {
-                    console.log("Error parsing [" + line + "]: " + err)
-                }
-            }
-            console.log("Loaded " + count + " records to " + store.name);
-            return count;
+            return store.loadJson(file, limit);
         }
-
-        //#- `num = qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line,
-        //#   parsing each line as JSON and adding it as record to `store`. Returns `num`:
-        //#   the number of lines loaded.
         _obj.jsonFile = function (store, file) {
-            return _obj.jsonFileLimit(store, file, -1);
+            return store.loadJson(file);
         }
-
         return _obj;
     }();
 

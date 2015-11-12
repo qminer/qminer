@@ -69,6 +69,7 @@ void TNodeJsFs::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_METHOD(exports, "rmdir", _rmdir);
     NODE_SET_METHOD(exports, "listFile", _listFile);
     NODE_SET_METHOD(exports, "readLines", _readLines);
+    NODE_SET_METHOD(exports, "readLinesAsync", _readLinesAsync);
 }
 
 void TNodeJsFs::openRead(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -235,7 +236,7 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    EAssertR(Args.Length() == 4, "TNodeJsFs::readLines: Invalid number of arguments!");
+    EAssertR(Args.Length() == 3, "TNodeJsFs::readLines: Invalid number of arguments!");
     EAssertR(!TNodeJsUtil::IsArgNull(Args, 0), "TNodeJsFs::readLines: Buffer is null or undefined!");
 
     PSIn SIn;
@@ -257,7 +258,6 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     v8::Handle<v8::Function> LineCallback = TNodeJsUtil::GetArgFun(Args, 1);//TNodeJsUtil::GetFldFun(Args[1]->ToObject(), "onLine");
 	v8::Handle<v8::Function> EndCallback = TNodeJsUtil::GetArgFun(Args, 2);//TNodeJsUtil::GetFldFun(Args[1]->ToObject(), "onEnd");
-	v8::Handle<v8::Function> ErrCallback = TNodeJsUtil::GetArgFun(Args, 3);//TNodeJsUtil::GetFldFun(Args[1]->ToObject(), "onError");
 
     TStr LineStr;
     while (SIn->GetNextLn(LineStr)) {
@@ -267,7 +267,8 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     		v8::Local<v8::String> LineV8Str = v8::String::NewFromUtf8(Isolate, LineStr.CStr());
     		ContinueLoop = TNodeJsUtil::ExecuteBool(LineCallback, LineV8Str);
     	} catch (...) {
-    		TNodeJsUtil::ExecuteVoid(ErrCallback);
+    		TNodeJsUtil::ExecuteErr(EndCallback, TExcept::New("Error while reading lines!"));
+    		break;
     	}
 
     	if (!ContinueLoop) { break; }
@@ -275,6 +276,95 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsUtil::ExecuteVoid(EndCallback);
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsFs::readLinesAsync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	TNodeJsAsyncUtil::ExecuteOnWorker(new TRealLines(Args));
+}
+
+TNodeJsFs::TRealLines::TRealLines(const v8::FunctionCallbackInfo<v8::Value>& Args):
+		HasError(false) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 3, "TNodeJsFs::readLinesAsync: Invalid number of arguments!");
+	EAssertR(!TNodeJsUtil::IsArgNull(Args, 0), "TNodeJsFs::readLinesAsync: Buffer is null or undefined!");
+
+	if (TNodeJsUtil::IsArgStr(Args, 0)) {	// Read from file
+		const TStr FNm = TNodeJsUtil::GetArgStr(Args, 0);
+		SIn = TFIn::New(FNm);
+	} else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {	// Read from input stream
+		TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
+		SIn = JsFIn->SIn;
+	} else {	// Read from Node.js Buffer
+		v8::Local<v8::Object> BuffObj = Args[0]->ToObject();
+
+		EAssertR(BuffObj->HasIndexedPropertiesInExternalArrayData(), "TNodeJsFs::readLines: argument is not a buffer!");
+
+		char* Buff = node::Buffer::Data(BuffObj);
+		size_t BuffLen = node::Buffer::Length(BuffObj);
+		SIn = new TThinMIn(Buff, (int)BuffLen);
+	}
+
+	PJsonVal OptsJson = TNodeJsUtil::GetArgJson(Args, 1);
+	Offset = OptsJson->GetObjInt("offset", 0);
+	Limit = OptsJson->GetObjInt("limit", TInt::Mx);
+
+	OnEnd.Reset(Isolate, TNodeJsUtil::GetArgFun(Args, 2));
+}
+
+void TNodeJsFs::TRealLines::Run(TRealLines& Data) {
+	const int& Offset = Data.Offset;
+	const int& Limit = Data.Limit;
+
+	int Line = -1;
+	TStr LineStr;
+	while (Data.SIn->GetNextLn(LineStr)) {
+		try {
+			Line++;
+
+			if (Line < Offset) { continue; }
+
+			Data.LineV.Add(LineStr);
+		} catch (...) {
+			Data.HasError = true;
+			break;
+		}
+
+		if (Line - Offset + 1 >= Limit) { break; }
+	}
+}
+
+
+void TNodeJsFs::TRealLines::AfterRun(const TRealLines& Data) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Data.OnEnd);
+
+	if (Data.HasError) {
+		TNodeJsUtil::ExecuteErr(Callback, TExcept::New("Exception while reading lines!"));
+	} else {
+		const TStrV& LineV = Data.LineV;
+		const int& Len = LineV.Len();
+
+		v8::Local<v8::Array> JsStrV = v8::Array::New(Isolate, Len);
+
+		for (int i = 0; i < Len; i++) {
+			JsStrV->Set(i, v8::String::NewFromUtf8(Isolate, LineV[i].CStr()));
+		}
+
+		const int ArgC = 2;
+		v8::Handle<v8::Value> ArgV[ArgC] = { v8::Undefined(Isolate), JsStrV };
+		TNodeJsUtil::ExecuteVoid(Callback, ArgC, ArgV);
+	}
+}
+
+TNodeJsFs::TRealLines::~TRealLines() {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	OnEnd.Reset();
 }
 
 ///////////////////////////////
