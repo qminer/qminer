@@ -2,9 +2,9 @@
     'variables': {
         'LIN_ALG_BLAS%': 'NBLAS',
         'LIN_ALG_LAPACKE%': 'NLAPACKE',
-		'LIN_ALG_EIGEN%': 'NEIGEN',
+        'LIN_ALG_EIGEN%': 'NEIGEN',
         'LIN_ALG_INCLUDE%': 'src/glib/base/',
-		'LIN_EIGEN_INCLUDE%': 'src/third_party/eigen/',
+        'LIN_EIGEN_INCLUDE%': 'src/third_party/eigen/',
         #full path to lapack or openblas libraries
         'LIN_ALG_LIB%': '',
         #64 bit indexing for BLAS
@@ -28,7 +28,7 @@
         'defines': [
             '<(LIN_ALG_BLAS)',
             '<(LIN_ALG_LAPACKE)',
-			'<(LIN_ALG_EIGEN)',
+            '<(LIN_ALG_EIGEN)',
             '<(INDEX_64)',
             '<(INTEL)'
         ],
@@ -163,7 +163,7 @@
                 'src/third_party/Snap/snap-exp',
                 'src/third_party/Snap/qlib-core',
                 '<(LIN_ALG_INCLUDE)',
-				'<(LIN_EIGEN_INCLUDE)'
+                '<(LIN_EIGEN_INCLUDE)'
             ],
             'dependencies': [
                 'libsvm',
@@ -192,7 +192,7 @@
                 'src/glib/mine/',
                 'src/glib/misc/',
                 '<(LIN_ALG_INCLUDE)',
-				'<(LIN_EIGEN_INCLUDE)'
+                '<(LIN_EIGEN_INCLUDE)'
             ],
         },
         {
@@ -230,7 +230,7 @@
                 'src/glib/misc/',
                 'src/third_party/sole/',
                 '<(LIN_ALG_INCLUDE)',
-				'<(LIN_EIGEN_INCLUDE)'
+                '<(LIN_EIGEN_INCLUDE)'
             ],
         },
         {
