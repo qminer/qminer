@@ -529,7 +529,7 @@ private:
 
 public:
     // the ultimate MDS...
-    static void MakeFlat(PSVMTrainSet Set, const TVizDistType& DistType, 
+    static void MakeFlat(const PSVMTrainSet& Set, const TVizDistType& DistType, 
         TVec<TFltV>& DocPointV, const int& MxStep, const int& MxSecs, 
         const double& MnDiff, const bool& RndStartPos, PNotify Notify);
     static void NormalizePoints(TVec<TFltV>& PointV);
