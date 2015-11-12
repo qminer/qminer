@@ -210,7 +210,7 @@
                 'src/glib/mine/',
                 'src/glib/misc/',
                 '<(LIN_ALG_INCLUDE)',
-				'<(LIN_EIGEN_INCLUDE)'
+                '<(LIN_EIGEN_INCLUDE)'
             ],
         },
         {
