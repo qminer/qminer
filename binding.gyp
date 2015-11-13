@@ -57,8 +57,9 @@
                         "link_settings": {                    
                             "ldflags": [ '-Wl,--allow-multiple-definition' ]
                         },
-                        'cflags!': [ '-g' ],
-                        'cflags': [ '-fsigned-char' ],
+                        'cflags!': [ ], # add -g if low on memory and gcc fails in debug mode
+                        'cflags': [ '-fsigned-char' ], # add -g if you need symbols in release mode
+                        'defines': [ "ARM" ]
                     }]
                 ]
             }],
