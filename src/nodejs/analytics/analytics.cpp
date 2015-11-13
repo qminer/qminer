@@ -2849,7 +2849,7 @@ void TNodeJsMDS::fitTransform(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TFltV DummyClsV;
 	PSVMTrainSet TrainSet;
 	// algorithm parameters
-	int MxStep = 100, MxSecs = 60, MnDiff = 1e-6;
+	int MxStep = 5000, MxSecs = 500, MnDiff = 1e-4;
 	bool RndStartPos = true;
 	PNotify Noty = TQm::TEnv::Logger;
 	if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
