@@ -23,15 +23,12 @@ Feature:
 Bugfixes:
 - Sort works with multiple threads and is more robust. Sort can take TRnd as argument.
 - undefined behaviour bug (works different on ARMv7): casting double to uint64 should be: (unsigned)(int64)(double)
-- portability problem with casting char * to
+- portability problem with casting char * to double * (ARMv7 bus errors)
 
 Other:
 - qminer works on tonic: go to https://tonicdev.com/npm/qminer
 - qminer win 32bit and linux 32bit binaries are published in the cloud
 - moved logistic regression classifier to classification.h/cpp
-
-Bugfixes:
-- ARMv7 bugs
 
 ### 6 Nov 2015
 
