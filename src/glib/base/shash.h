@@ -533,7 +533,7 @@ public:
   bool IsKey(const TKey& Key, int& KeyId) const {
     KeyId = GetKeyId(Key);  return KeyId != -1; }
   bool IsKeyId(const int& KeyId) const { return ! Table.IsEmpty(KeyId); }
-  int GetRndKeyId(TRnd& Rnd = TRnd()) const { Assert(Len()>0);
+  int GetRndKeyId(TRnd& Rnd = TInt::Rnd) const { Assert(Len()>0);
     int KeyId = Rnd.GetUniDevInt(Reserved());
     while (! IsKeyId(KeyId)) { KeyId = Rnd.GetUniDevInt(Reserved()); } return KeyId; }
 

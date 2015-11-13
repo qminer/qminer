@@ -1827,7 +1827,7 @@ public:
   /// Deletes all elements of value \c DelVal from all vectors. ##TVecPool::CompactPool
   void CompactPool(const TVal& DelVal);
   /// Shuffles the order of all elements in the pool. ##TVecPool::ShuffleAll
-  void ShuffleAll(TRnd& Rnd=TRnd(0));
+  void ShuffleAll(TRnd& Rnd);
   void ShuffleAll() { TRnd Rnd; ShuffleAll(Rnd); }
   
   /// Clears the contents of the pool. ##TVecPool::Clr
