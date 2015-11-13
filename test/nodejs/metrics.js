@@ -130,6 +130,24 @@ describe('Regression Metrics Tests', function () {
             assert.equal(me.getError(), 0);
             assert.equal(me2.getError(), -1);
         });
+        it('should sucessfully load identical state as it was saved', function () {
+            var me = new analytics.metrics.MeanError();
+            var me2 = new analytics.metrics.MeanError();
+
+            me.push(1, 1);
+
+            var fout = new qm.fs.FOut('me.bin');
+            me.save(fout);
+
+            var fin = new qm.fs.FIn('me.bin');
+            me2.load(fin);
+
+            var fin = new qm.fs.FIn('me.bin');
+            var me3 = new analytics.metrics.MeanError(fin);
+
+            assert.equal(me.getError(), me2.getError());
+            assert.equal(me.getError(), me3.getError())
+        });
         it('should throw an exception if input parameters are not of type number', function () {
             var me = new analytics.metrics.MeanError()
 
