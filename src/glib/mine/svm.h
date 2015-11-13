@@ -50,7 +50,7 @@ public:
 };
 
 // LIBSVM for Eps-Support Vector Regression for sparse input
-static TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV,
+inline TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV,
         const double& Eps, const double& Cost) {
         // Asserts for input arguments
     EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
@@ -118,7 +118,7 @@ static TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV
 }
 
 // LIBSVM for Eps-Support Vector Regression for TFltVV input
-static TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
+inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
         const double& Eps, const double& Cost) {
 
     // Asserts for input arguments
@@ -196,7 +196,7 @@ static TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
 }
 
 // LIBSVM for C-Support Vector Classification for sparse input
-static TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV,
+inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV,
         const double& Cost) {
 
     // Asserts for input arguments
@@ -267,7 +267,7 @@ static TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& 
 }
 
 // Use LIBSVM for C-Support Vector Classification
-static TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV,
+inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV,
         const double& Cost) {
 
     // Asserts for input arguments

@@ -2722,6 +2722,9 @@ public:
 	/// Is the aggregate initialized. Used for aggregates, which require some time to get started.
 	virtual bool IsInit() const { return true; }
 
+	/// Reset the state of the aggregate
+	virtual void Reset() = 0;
+
 	/// Add new record to aggregate
 	virtual void OnAddRec(const TRec& Rec) = 0;
 	/// Recored already added to the aggregate is being updated
@@ -2836,6 +2839,9 @@ public:
 	int GetFirstStreamAggrId() const;
 	bool GetNextStreamAggrId(int& AggrId) const;
 	
+	/// reset all aggregates
+	void Reset();
+
 	// forward the calls to stream aggregates
 	void OnAddRec(const TRec& Rec);
 	void OnUpdateRec(const TRec& Rec);
