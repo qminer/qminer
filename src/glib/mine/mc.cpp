@@ -1764,7 +1764,7 @@ void TCtModeler::InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV,
 
 	// TODO handle hidden states
 
-	const int RegFact = 1e-3;
+	const double RegFact = 1e-3;
 
 	const int NInst = FtrVV.GetCols();
 	const int Dim = FtrVV.GetRows();
