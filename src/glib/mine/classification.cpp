@@ -514,7 +514,7 @@ bool TDecisionTree::TNode::CanSplitNumFtr(const TFltIntPrV& ValClassPrV, const i
 
 		// the cut point always occurs on the boundary between two classes
 		// so if the class doesn't change there is not need to check
-		if (FtrValClassPr.Val2 != ValClassPrV[CutN+1].Val2) {
+		if (CurrClass != ValClassPrV[CutN+1].Val2) {
 			// if the values of the attribute are the same then move
 			// to where they first change since that is where the cut will
 			// actually be performed
