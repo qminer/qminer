@@ -79,22 +79,6 @@ module.exports = exports = function (pathQmBinary) {
     	}
     }
     
-    function processCsvBatch(opts) {
-    	var processLine = processCsvLine(opts);
-    	
-    	return function (e, batch) {
-    		if (e != null) {
-    			opts.onEnd(e);
-    			return;
-    		}
-    		for (var i = 0; i < batch.length; i++) {
-    			processLine(batch[i]);
-    		}
-    		
-    		opts.onEnd();
-    	}
-    }
-    
     /**
      * Reads a buffer, containing a CSV file, line by line and calls a callback for each line.
      * The callback function accepts an array with the values of the current line.
@@ -109,16 +93,6 @@ module.exports = exports = function (pathQmBinary) {
      */
     exports.readCsvLines = function (fin, opts) {
     	exports.readLines(fin, processCsvLine(opts), opts.onEnd);
-    }
-    
-    exports.readCsvLinesAsync = function (fin, opts) {
-    	 var readerOpts = { offset: opts.skipLines };
-         if (opts.lineLimit != null) readerOpts.limit = opts.lineLimit;
-         
-         delete opts.skipLines;
-         delete opts.lineLimit;
-         
-         exports.readLinesAsync(fin, readerOpts, processCsvBatch(opts));
     }
 
     //!ENDJSDOC

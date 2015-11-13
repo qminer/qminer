@@ -119,6 +119,7 @@ void InitQm(Handle<Object> Exports) {
 	TNodeJsSA::Init(Exports);
 	TNodeJsStore::Init(Exports);
 	// the record templates are initiated elsewhere: qm.open, qm.create, base.createStore
+	TNodeJsRecByValV::Init(Exports);
 	TNodeJsRecSet::Init(Exports);
 	TNodeJsStoreIter::Init(Exports);
 	TNodeJsIndexKey::Init(Exports);

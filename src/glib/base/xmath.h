@@ -123,6 +123,7 @@ public:
 public:
   static double Entropy(const TIntV& ValV);
   static double Entropy(const TFltV& ValV);
+  static double Entropy(const double& Prob);
   static void EntropyFracDim(const TIntV& ValV, TFltV& EntropyV);
   static void EntropyFracDim(const TFltV& ValV, TFltV& EntropyV);
 public:
