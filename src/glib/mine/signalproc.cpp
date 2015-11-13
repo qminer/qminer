@@ -1022,8 +1022,8 @@ TChiSquare::TChiSquare(const PJsonVal& ParamVal): P(TFlt::PInf) {
 }
 
 void TChiSquare::Print() const {
-	printf("Chi2 = %g", Chi2);
-	printf("P = %g", P);	
+	printf("Chi2 = %g", Chi2.Val);
+	printf("P = %g", P.Val);	
 }
 
 void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY, const int Dof) {
