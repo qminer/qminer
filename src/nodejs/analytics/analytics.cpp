@@ -2338,7 +2338,7 @@ TNodeJsStreamStory::TFitAsync::TFitAsync(const v8::FunctionCallbackInfo<v8::Valu
 		JsRecTmV(nullptr),
 		JsBatchEndJsV(nullptr),
 		Callback(),
-		HasError(false) {
+		Except() {
 
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -2389,7 +2389,7 @@ void TNodeJsStreamStory::TFitAsync::Run(TFitAsync& Data) {
 			JsStreamStory->StreamStory->Init(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV);
 		}
 	} catch (const PExcept& Except) {
-		Data.HasError = true;
+		Data.Except = Except;
 	}
 }
 
@@ -2399,8 +2399,8 @@ void TNodeJsStreamStory::TFitAsync::AfterRun(const TFitAsync& Data) {
 
 	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Data.Callback);
 
-	if (Data.HasError) {
-		TNodeJsUtil::ExecuteErr(Callback, TExcept::New("Exception while fitting model!"));
+	if (!Data.Except.Empty()) {
+		TNodeJsUtil::ExecuteErr(Callback, Data.Except);
 	} else {
 		TNodeJsUtil::ExecuteVoid(Callback);
 	}

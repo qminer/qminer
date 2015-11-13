@@ -498,25 +498,31 @@ void TDecisionTree::TNode::CopyNode(const TNode& Node) {
 bool TDecisionTree::TNode::CanSplitNumFtr(const TFltIntPrV& ValClassPrV, const int& TotalPos,
 		double& CutVal, double& Score) const {
 	const int NInst = ValClassPrV.Len();
+	const int MxCutN = NInst-1;
 
 	Score = TFlt::NInf;
 	int PosS0 = 0;	// the number of positive instances in the left set
 
-	for (int CutN = 0; CutN < NInst-1; CutN++) {
+	int CutN = 0;
+	while (CutN < MxCutN) {
 		const TFltIntPr& FtrValClassPr = ValClassPrV[CutN];
-		const TFltIntPr& NextFtrValClassPr = ValClassPrV[CutN+1];
 
 		const double& CurrVal = FtrValClassPr.Val1;
-		const double& NextVal = NextFtrValClassPr.Val1;
-
 		const int& CurrClass = FtrValClassPr.Val2;
-		const int& NextClass = NextFtrValClassPr.Val2;
 
 		PosS0 += CurrClass;
 
 		// the cut point always occurs on the boundary between two classes
 		// so if the class doesn't change there is not need to check
-		if (CurrVal != NextVal && CurrClass != NextClass) {
+		if (FtrValClassPr.Val2 != ValClassPrV[CutN+1].Val2) {
+			// if the values of the attribute are the same then move
+			// to where they first change since that is where the cut will
+			// actually be performed
+			while (CutN < MxCutN && ValClassPrV[CutN+1].Val1 == CurrVal) {
+				CutN++;
+				PosS0 += ValClassPrV[CutN].Val2;
+			}
+
 			const int S0Len = CutN + 1;
 			const int S1Len = NInst - S0Len;
 			const int PosS1 = TotalPos - PosS0;
@@ -525,9 +531,11 @@ bool TDecisionTree::TNode::CanSplitNumFtr(const TFltIntPrV& ValClassPrV, const i
 
 			if (CurrScore > Score) {
 				Score = CurrScore;
-				CutVal = (CurrVal + NextVal) / 2;
+				CutVal = (CurrVal + ValClassPrV[CutN+1].Val1) / 2;
 			}
 		}
+
+		CutN++;
 	}
 
 	return Score != TFlt::NInf;
@@ -612,7 +620,7 @@ TDecisionTree& TDecisionTree::operator =(const TDecisionTree& Tree) {
 
 #ifdef GLib_CPP11
 TDecisionTree& TDecisionTree::operator =(TDecisionTree&& Tree) {
-	printf("Tree: move operator called: this == %s, that == %s\n", TUInt64(this).GetStr().CStr(), TUInt64(&Tree).GetStr().CStr());
+//	printf("Tree: move operator called: this == %s, that == %s\n", TUInt64(this).GetStr().CStr(), TUInt64(&Tree).GetStr().CStr());
 	if (this != &Tree) {
 		std::swap(Root, Tree.Root);
 		std::swap(SplitCriteria, Tree.SplitCriteria);

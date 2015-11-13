@@ -1863,7 +1863,7 @@ private:
 		v8::Persistent<v8::Object> SsHolder;
 		v8::Persistent<v8::Object> ArgHolder;
 
-		bool HasError;
+		PExcept Except;
 
 	public:
 		TFitAsync(const v8::FunctionCallbackInfo<v8::Value>& Args);

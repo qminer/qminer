@@ -2480,9 +2480,6 @@ TStreamStory::TStreamStory(TSIn& SIn):
 }
 
 TStreamStory::~TStreamStory() {
-	printf("==========================================================\n");
-	printf("StreamStory destructor called!!!!!\n");
-	printf("==========================================================\n");
 	delete StateIdentifier;
 	delete MChain;
 	delete Hierarch;
