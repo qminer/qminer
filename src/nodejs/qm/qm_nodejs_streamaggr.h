@@ -83,6 +83,7 @@
 * @typedef {module:qm.StreamAggr} StreamAggregators
 * Stream aggregator types.
 * @property {module:qm~StreamAggregateTimeSeriesWindow} timeSeries - The time series type.
+* @property {module:qm~StreamAggregateRecordBuffer} recordBuffer - The record buffer type.
 * @property {module:qm~StreamAggregateSum} sum - The sum type.
 * @property {module:qm~StreamAggregateMin} min - The minimal type.
 * @property {module:qm~StreamAggregateMax} max - The maximal type.
@@ -136,6 +137,39 @@
 *    winsize: 2000
 * };
 * base.store("Heat").addStreamAggr(aggr); 
+* base.close();
+*/
+
+/**
+* @typedef {module:qm.StreamAggr} StreamAggregateRecordBuffer
+* This stream aggregator represents record buffer. It stores the values inside a moving window.
+* It implements all the methods of <b>except</b> {@link module:qm.StreamAggr#getFloat}, {@link module:qm.StreamAggr#getTimestamp}.
+* @property {string} StreamAggregateTimeSeriesWindow.name - The given name of the stream aggregator.
+* @property {string} StreamAggregateTimeSeriesWindow.type - The type of the stream aggregator. It must be equal to <b>'recordBuffer'</b>.
+* @property {number} StreamAggregateTimeSeriesWindow.size - The size of the window.
+* @example
+* // import the qm module
+* var qm = require('qminer');
+* // create a base with a simple store
+* var base = new qm.Base({
+*    mode: "createClean",
+*    schema: [
+*    {
+*        name: "Heat",
+*        fields: [
+*            { name: "Celcius", type: "float" },
+*            { name: "Time", type: "datetime" }
+*        ]
+*    }]
+* });
+*
+* // create a new time series stream aggregator for the 'Heat' store. The size of the window is 3 records.
+* var aggr = {
+*    name: 'Delay',
+*    type: 'recordBuffer',
+*    size: 3
+* };
+* base.store("Heat").addStreamAggr(aggr);
 * base.close();
 */
 
@@ -1007,7 +1041,12 @@ public:
 
 	static TNodeJsSA* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 public:
-
+	/**
+	* Resets the state of the aggregate.
+	* @returns {module:qm.StreamAggr} Self.
+	*/
+	//# exports.StreamAggr.prototype.reset = function () { return Object.create(require('qminer').StreamAggr.prototype);  };
+	JsDeclareFunction(reset);
 
 	/**
 	* Executes the function when a new record is put in store.
@@ -1642,6 +1681,7 @@ class TNodeJsStreamAggr :
 {
 private:	
 	// callbacks
+	v8::Persistent<v8::Function> ResetFun;
 	v8::Persistent<v8::Function> OnAddFun;
 	v8::Persistent<v8::Function> OnUpdateFun;
 	v8::Persistent<v8::Function> OnDeleteFun;
@@ -1689,6 +1729,7 @@ public:
 
 	~TNodeJsStreamAggr();
 
+	void Reset();
 	void OnAddRec(const TQm::TRec& Rec);
 	void OnUpdateRec(const TQm::TRec& Rec);
 	void OnDeleteRec(const TQm::TRec& Rec);

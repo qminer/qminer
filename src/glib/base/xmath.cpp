@@ -257,6 +257,11 @@ double TSpecFunc::Entropy(const TFltV& ValV) {
   return Ent;
 }
 
+double TSpecFunc::Entropy(const double& Prob) {
+	if (Prob == 0 || Prob == 1) { return 0; }
+	return -(Prob*TMath::Log2(Prob) + (1 - Prob)*TMath::Log2(1 - Prob));
+}
+
 void TSpecFunc::EntropyFracDim(const TIntV& ValV, TFltV& EntropyV) {
   TFltV NewValV(ValV.Len());
   for (int i = 0; i < ValV.Len(); i++) { 

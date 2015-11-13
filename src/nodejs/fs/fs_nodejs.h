@@ -182,31 +182,35 @@ public:
     //# exports.readLines = function (buffer, onLine, onEnd, onError) {}
     JsDeclareFunction(readLines);
 
-    /**
-	 * Reads a buffer line by line and calls a callback for each line.
-	 *
-	 * @param {String|FIn|Buffer} buffer - name of the file, input stream of a Node.js buffer
-	 * @param {function} onLine - a callback that gets called on each line (for example: function (line) {})
-	 * @param {function} onEnd - a callback that gets returned after all the lines have been read
-	 * @param {function} onError - a callback that gets called if an error occurs
-	 */
-	//# exports.readLines = function (buffer, onLine, onEnd, onError) {}
-	JsDeclareFunction(readLinesAsync);
+    JsDeclareFunction(readCsvAsync);
+
 
 private:
-	struct TRealLines {
+	class TReadCsv {
+	private:
 		PSIn SIn;
 		int Offset;
 		int Limit;
-		TStrV LineV;
+		int BatchSize;
+		v8::Persistent<v8::Function> OnLine;
 		v8::Persistent<v8::Function> OnEnd;
 		bool HasError;
 
-		TRealLines(const v8::FunctionCallbackInfo<v8::Value>& Args);
-		~TRealLines();
+	public:
+		TReadCsv(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		~TReadCsv();
 
-		static void Run(TRealLines& Data);
-		static void AfterRun(const TRealLines& Data);
+		static void Run(TReadCsv& Task);
+		static void AfterRun(const TReadCsv& Task);
+	};
+
+	struct TReadLinesCallback {
+		TVec<TStrV> CsvLineV;
+		v8::Persistent<v8::Function>* OnLine;
+		TReadLinesCallback(const int& BatchSize, v8::Persistent<v8::Function>* _OnLine):
+			CsvLineV(BatchSize, 0),
+			OnLine(_OnLine) {}
+		static void Run(const TReadLinesCallback& Task);
 	};
 };
 

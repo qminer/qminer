@@ -477,7 +477,7 @@ void GetTreeSig(const PGraph& Graph, const int& RootNId, TIntV& Sig) {
     Sig.Add(Node.GetInDeg());
     if (--NodeCnt == 0) {
       for (int i = LastPos; i < Sig.Len(); i++) NodeCnt += Sig[i];
-      Sig.QSort(LastPos, Sig.Len()-1, false);
+      TRnd Rnd; Sig.QSort(LastPos, Sig.Len()-1, false, Rnd);
       LastPos = Sig.Len();
     }
   }
@@ -507,7 +507,7 @@ void GetTreeSig(const PGraph& Graph, const int& RootNId, TIntV& Sig, TIntPrV& No
     if (--NodeCnt == 0) {
       for (int i = LastPos; i < NodeMap.Len(); i++) {
         NodeCnt += NodeMap[i].Val1; }
-      NodeMap.QSort(LastPos, NodeMap.Len()-1, false);
+      TRnd Rnd; NodeMap.QSort(LastPos, NodeMap.Len()-1, false, Rnd);
       LastPos = NodeMap.Len();
     }
   }

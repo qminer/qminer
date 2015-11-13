@@ -987,6 +987,12 @@ private:
 	JsDeclareFunction(getStreamAggr);
 
 	/**
+	* Resets all stream aggregates.
+	*/
+	//# exports.Store.prototype.resetStreamAggregates = function () { }
+	JsDeclareFunction(resetStreamAggregates);
+
+	/**
 	* Returns an array of the stream aggregates names connected to the store.
 	* @returns {Array.<string>} An array of stream aggregates names.
 	*/
@@ -1385,6 +1391,30 @@ private:
 	JsDeclareSetProperty(getField, setField);
 	JsDeclareProperty(join);
 	JsDeclareProperty(sjoin);
+};
+
+class TNodeJsRecByValV: public node::ObjectWrap {
+	friend class TNodeJsUtil;
+private:
+	// Node framework
+	static v8::Persistent<v8::Function> Constructor;
+public:
+	// Node framework
+	static void Init(v8::Handle<v8::Object> Exports);
+	static const TStr GetClassId() { return "RecordVector"; }
+
+	TVec<TQm::TRec> RecV;
+
+	TNodeJsRecByValV(): RecV() {}
+
+	static TNodeJsRecByValV* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+private:
+	/**
+	 * Adds a new record to the vector.
+	 */
+	//# exports.RecVector.prototype.push = function (rec) {};
+	JsDeclareFunction(push);
 };
 
 ///////////////////////////////
@@ -3117,6 +3147,8 @@ public:
 	//# exports.FeatureSpace.prototype.updateRecords = function (rs) { return Object.create(require('qminer').FeatureSpace.prototype); };
 	JsDeclareFunction(updateRecords);
 
+	JsDeclareFunction(updateRecordsAsync);
+
 	/**
 	* Creates a sparse feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
@@ -3280,6 +3312,8 @@ public:
 	*/
 	//# exports.FeatureSpace.prototype.extractMatrix = function (rs) { return Object.create(require('qminer').la.Matrix.prototype); };
     JsDeclareFunction(extractMatrix);
+
+    JsDeclareFunction(extractMatrixAsync);
 
 	/**
 	* Gives the name of feature extractor at given position.
@@ -3495,6 +3529,40 @@ private:
     	v8::Handle<v8::Function> Func = v8::Handle<v8::Function>::Cast(Settings->Get(v8::String::NewFromUtf8(Isolate, "fun")));
     	return TNodeJsFuncFtrExt::NewFtrExt(Base, ParamVal, Func, Isolate);
     }
+
+	class TUpdateRecsTask {
+	private:
+		TNodeJsFtrSpace* JsFtrSpace;
+		TNodeJsRecByValV* JsRecV;
+
+		v8::Persistent<v8::Value> ArgHolder;
+		v8::Persistent<v8::Function> Callback;
+
+		bool HasErr;
+	public:
+		TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		~TUpdateRecsTask();
+
+		static void Run(TUpdateRecsTask& Task);
+		static void AfterRun(const TUpdateRecsTask& Task);
+	};
+
+    class TExtractMatrixTask {
+    private:
+    	TNodeJsFtrSpace* JsFtrSpace;
+    	TNodeJsRecByValV* JsRecV;
+    	TNodeJsFltVV* JsFtrVV;
+
+    	v8::Persistent<v8::Value> ArgHolder;
+    	v8::Persistent<v8::Function> Callback;
+    	bool HasError;
+    public:
+    	TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+    	~TExtractMatrixTask();
+
+    	static void Run(TExtractMatrixTask& Task);
+    	static void AfterRun(const TExtractMatrixTask& Task);
+    };
 };
 
 #endif

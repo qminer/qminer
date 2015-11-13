@@ -1,5 +1,35 @@
 # QMiner Change Log
 
+### 13 Nov 2015
+
+**New version: 3.3.0**
+
+**non-breaking with new features**
+
+Feature:
+- Added LIBSVM (algorithm name "LIBSVM"), currently we have SVC and SVR 
+- Changed chi2 algorithm so it computes a two sample test
+- multidimensional scaling for data visualization
+- EIGEN support (gyp updated). EIGEN will be added to qminer repository (third_party)
+- save and load in TRecBuffer. The buffer now stores record IDs as opposed to records
+- online regression metrics now have save and load
+- spread sheet parser TSsParse can take stream as input
+- added Decision Tree (split: InfoGain, GainRatio, prune: min examples threshold)
+- async reading of CSV
+- added record by value vector in qm module for async processing
+- FeatureSpace.updateRecordsAsync
+- FeatureSpace.extractMatrixAsync
+
+Bugfixes:
+- Sort works with multiple threads and is more robust. Sort can take TRnd as argument.
+- undefined behaviour bug (works different on ARMv7): casting double to uint64 should be: (unsigned)(int64)(double)
+- portability problem with casting char * to double * (ARMv7 bus errors)
+
+Other:
+- qminer works on tonic: go to https://tonicdev.com/npm/qminer
+- qminer win 32bit and linux 32bit binaries are published in the cloud
+- moved logistic regression classifier to classification.h/cpp
+
 ### 6 Nov 2015
 
 **New version: 3.2.0**

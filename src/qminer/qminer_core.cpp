@@ -4640,6 +4640,13 @@ bool TStreamAggrBase::GetNextStreamAggrId(int& AggrId) const {
 	return StreamAggrH.FNextKeyId(AggrId);
 }
 
+void TStreamAggrBase::Reset() {
+	int AggrId = GetFirstStreamAggrId();
+	while (GetNextStreamAggrId(AggrId)) {
+		GetStreamAggr(AggrId)->Reset();
+	}
+}
+
 void TStreamAggrBase::OnAddRec(const TRec& Rec) {
 	int KeyId = StreamAggrH.FFirstKeyId();
 	while (StreamAggrH.FNextKeyId(KeyId)) {

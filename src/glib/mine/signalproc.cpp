@@ -299,6 +299,15 @@ void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
 	TmMSecs = NewTmMSecs;
 }
 
+void TEma::Reset() {
+	InitP = false;
+	LastVal = TFlt::Mn;
+	Ema = 0.0;
+	TmMSecs = 0;
+	InitValV.Gen(0);
+	InitMSecsV.Gen(0);
+}
+
 /////////////////////////////////////////////////
 // Online Moving Standard M2 
 void TVar::Update(const double& InVal, const uint64& InTmMSecs, 
@@ -924,7 +933,6 @@ bool TRecLinReg::HasNaN() const {
 	return false;
 }
 
-
 void TOnlineHistogram::Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf) {
 	int TotalBins = Bins + (AddNegInf ? 1 : 0) + (AddPosInf ? 1 : 0);
 	Counts.Gen(TotalBins); // sets to zero
@@ -934,6 +942,12 @@ void TOnlineHistogram::Init(const double& LBound, const double& UBound, const in
 		Bounds.Add(LBound + ElN * (UBound - LBound) / Bins);
 	}
 	if (AddPosInf) { Bounds.Add(TFlt::PInf); }
+}
+
+void TOnlineHistogram::Reset() {
+	for (int ElN = 0; ElN < Counts.Len(); ElN++) {
+		Counts[ElN] = 0;
+	}
 }
 
 TOnlineHistogram::TOnlineHistogram(const PJsonVal& ParamVal) {
@@ -1022,8 +1036,8 @@ TChiSquare::TChiSquare(const PJsonVal& ParamVal): P(TFlt::PInf) {
 }
 
 void TChiSquare::Print() const {
-	printf("Chi2 = %g", Chi2);
-	printf("P = %g", P);	
+	printf("Chi2 = %g", Chi2.Val);
+	printf("P = %g", P.Val);	
 }
 
 void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY, const int Dof) {

@@ -1030,9 +1030,9 @@ module.exports = exports = function (pathQmBinary) {
     * be used directly.
     *
     */
-    function createOnlineMetric (updateCallback) {
+    function createOnlineMetric(callback) {
         var error = -1;
-        var calcError = new updateCallback();
+        this.metric = new callback(); // We can hide this later (just delete this)
 
         // check if input types are of correct type
         function checkPushParams() {
@@ -1056,7 +1056,7 @@ module.exports = exports = function (pathQmBinary) {
             // check if input types are of correct type
             checkPushParams(yTrue, yPred, ref_num);
             // calculate the error with provided function from the callback function
-            error = calcError.update(yTrue, yPred);
+            error = this.metric.update(yTrue, yPred);
         }
 
         /**
@@ -1066,6 +1066,31 @@ module.exports = exports = function (pathQmBinary) {
         this.getError = function () {
             return error;
         }
+
+        /**
+	    * Save metric state to provided output stream `FOut`.
+	    * @param {module:fs.FOut} FOut - The output stream.
+	    * @returns {module:fs.FOut} Provided output stream `FOut`.
+        */
+        this.save = function (fout) {
+            fout.writeJson(this.metric.state);
+            fout.flush();
+            fout.close();
+            return fout;
+        }
+
+        /**
+	    * Load metric state from provided input stream `FIn`.
+	    * @param {module:fs.FIn} FIn - The output stream.
+	    * @returns {module:fs.FIn} Provided output stream `FIn`.
+        */
+        this.load = function (fin) {
+            this.metric.state = fin.readJson();
+            error = this.metric.state.error;
+            fin.close();
+            return fin;
+        }
+
     }
 
     // MEAN ERROR (ME)
@@ -1073,22 +1098,32 @@ module.exports = exports = function (pathQmBinary) {
     * Create new (online) mean error instance.
     * @class
     * @classdesc Online Mean Error (ME) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.MeanError = function (fin) {
+        function metric() {
+            this.name = "Mean Error"
+            this.shortName = "ME"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 var err = yTrue - yPred;
-                this.sumErr += err;
-                this.count++;
-                var error = this.sumErr / this.count;
-                return error;
+                this.state.sumErr += err;
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     };
 
     // MEAN ABSOLUTE ERROR (MAE)
@@ -1096,22 +1131,32 @@ module.exports = exports = function (pathQmBinary) {
     * Create new (online) mean absolute error instance.
     * @class
     * @classdesc Online Mean Absolute Error (MAE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanAbsoluteError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.MeanAbsoluteError = function (fin) {
+        function metric() {
+            this.name = "Mean Absolute Error"
+            this.shortName = "MAE"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 var err = yTrue - yPred;
-                this.sumErr += Math.abs(err);
-                this.count++;
-                var error = this.sumErr / this.count;
-                return error;
+                this.state.sumErr += Math.abs(err);
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     }
 
     // MEAN SQUARE ERROR (MSE)
@@ -1119,22 +1164,32 @@ module.exports = exports = function (pathQmBinary) {
     * Create new (online) mean square error instance.
     * @class
     * @classdesc Online Mean Square Error (MSE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanSquareError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.MeanSquareError = function (fin) {
+        function metric() {
+            this.name = "Mean Square Error"
+            this.shortName = "MSE"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 var err = yTrue - yPred;
-                this.sumErr += (err * err);
-                this.count++;
-                var error = this.sumErr / this.count;
-                return error;
+                this.state.sumErr += (err * err);
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     }
 
     // ROOT MEAN SQUARE ERROR (RMSE)
@@ -1142,22 +1197,32 @@ module.exports = exports = function (pathQmBinary) {
     * Create new (online) root mean square error instance.
     * @class
     * @classdesc Online Root Mean Square Error (RMSE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.RootMeanSquareError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.RootMeanSquareError = function (fin) {
+        function metric() {
+            this.name = "Root Mean Square Error"
+            this.shortName = "RMSE"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 var err = yTrue - yPred;
-                this.sumErr += (err * err);
-                this.count++;
-                var error = this.sumErr / this.count;
-                return Math.sqrt(error);
+                this.state.sumErr += (err * err);
+                this.state.count++;
+                this.state.error = Math.sqrt(this.state.sumErr / this.state.count);
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     }
 
     // MEAN ABSOLUTE PERCENTAGE ERROR (MAPE)
@@ -1165,24 +1230,34 @@ module.exports = exports = function (pathQmBinary) {
     * Create new (online) mean absolute percentage error instance.
     * @class
     * @classdesc Online Mean Absolute Percentage Error (MAPE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanAbsolutePercentageError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.MeanAbsolutePercentageError = function (fin) {
+        function metric() {
+            this.name = "Mean Absolute Percentage Error"
+            this.shortName = "MAPE"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 if (yTrue != 0) { // skip if yTrue is 0, otherwise we have devision by zero in the next step.
                     var err = yTrue - yPred;
-                    this.sumErr += Math.abs(err / yTrue) * 100;
+                    this.state.sumErr += Math.abs(err / yTrue) * 100;
                 }
-                this.count++;
-                var error = this.sumErr / this.count;
-                return error;
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     }
 
     // R SQUARED SCORE (R2)
@@ -1190,33 +1265,45 @@ module.exports = exports = function (pathQmBinary) {
     * Create new (online) R Square instance. This statistic measures how successful the fit is in explaining the variation of the data. Best possible score is 1.0, lower values are worse.
     * @class
     * @classdesc Online R Squared (R2) score instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.R2Score = function () {
-        function calcError() {
-            this.sst = 0;
-            this.sse = 0;
-            this.mean = 0;
-            this.count = 0;
-            this.sumTrue = 0;
-            this.sumTrue2 = 0;
+    metrics.R2Score = function (fin) {
+        function metric() {
+            this.name = "R2 Score"
+            this.shortName = "R2"
+            this.state = {
+                sst: 0,
+                sse: 0,
+                mean: 0,
+                count: 0,
+                sumTrue: 0,
+                sumTrue2: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
-                this.count++;
-                this.sumTrue += yTrue;
-                this.sumTrue2 += yTrue * yTrue;
-                this.mean = this.sumTrue / this.count;
+                this.state.count++;
+                this.state.sumTrue += yTrue;
+                this.state.sumTrue2 += yTrue * yTrue;
+                this.state.mean = this.state.sumTrue / this.state.count;
                 //calculate R squared score
-                this.sse += (yTrue - yPred) * (yTrue - yPred);
-                this.sst = this.sumTrue2 - this.count * this.mean * this.mean;
-                if (this.sst == 0.0) {
-                    return (this.sse == 0.0) ? 1.0 : 0.0;
+                this.state.sse += (yTrue - yPred) * (yTrue - yPred);
+                this.state.sst = this.state.sumTrue2 - this.state.count * this.state.mean * this.state.mean;
+                if (this.state.sst == 0.0) {
+                    return (this.state.sse == 0.0) ? 1.0 : 0.0;
                 }
-                return 1 - this.sse / this.sst;
+                this.state.error = 1 - this.state.sse / this.state.sst;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     }
+
 
     //////////////////////////////////////////////////
     //////////// BATCH REGRESSION METRICS ////////////
@@ -2090,542 +2177,6 @@ module.exports = exports = function (pathQmBinary) {
         //this.loadLabeled
     };
 
-
-	{
-	    /**
-	     * StreamStory.
-	     * @class
-	     * @param {opts} HierarchMarkovParam - parameters. TODO typedef and describe
-	     */
-	    exports.StreamStory = function (opts) {
-	    	//===================================================
-	    	// CONSTRUCTOR
-	    	//===================================================
-
-	    	if (opts == null) throw new Error('Missing parameters!');
-	    	if (opts.base == null) throw new Error('Missing parameter base!');
-
-	    	// create model and feature space
-	    	var mc;
-	    	var base = opts.base;
-	    	var obsFtrSpace;
-	    	var controlFtrSpace;
-	    	var id;
-	    	var active = false;
-	    	var online = false;
-
-	    	if (opts.base != null && opts.config != null) {
-	    		mc = new exports._StreamStory(opts.config);
-	    		if (opts.obsFields != null && opts.contrFields != null) {
-		    		obsFtrSpace = new qm.FeatureSpace(opts.base, opts.obsFields);
-		    		controlFtrSpace = new qm.FeatureSpace(opts.base, opts.contrFields);
-	    		}
-	    		else if (opts.obsFtrSpace != null && opts.controlFtrSpace != null) {
-	    			obsFtrSpace = opts.obsFtrSpace;
-	    			controlFtrSpace = opts.controlFtrSpace;
-	    		}
-	    		else {
-	    			throw new Error('Missing feature space configuration!');
-	    		}
-	    	}
-	    	else if (opts.fname != null) {
-	    		console.log('Loading StreamStory from: ' + opts.fname);
-	    		var fin = new fs.FIn(opts.fname);
-	    		mc = new exports._StreamStory(fin);
-	    		console.log('Loading feature spaces ...');
-	    		obsFtrSpace = new qm.FeatureSpace(base, fin);
-	    		controlFtrSpace = new qm.FeatureSpace(base, fin);
-	    		console.log('Loaded!');
-	    	}
-	    	else {
-	    		throw new Error('Missing parameters (base and config) or fname!');
-	    	}
-
-	    	//===================================================
-	    	// FEATURE HELPER FUNCTIONS
-	    	//===================================================
-
-
-	    	function getFtrNames(ftrSpace) {
-	    		var names = [];
-
-	    		var dims = ftrSpace.dims;
-	    		for (var i = 0; i < dims.length; i++) {
-	    			var ftrDesc = ftrSpace.getFeature(i);
-	    			var match = ftrDesc.match(/\[\w*\]$/)[0];	// remove Numeric[ ]
-
-	    			if (match != null)
-	    				names.push(match.substring(1, match.length-1));
-	    			else
-	    				names.push(ftrDesc);
-				}
-
-	    		return names;
-	    	}
-
-	    	function getFtrCount(ftrSpace) {
-	    		return ftrSpace.dims.length
-	    	}
-
-	    	function getObsFtrCount() {
-	    		return getFtrCount(obsFtrSpace);
-			}
-
-	    	function getContrFtrCount() {
-	    		return getFtrCount(controlFtrSpace);
-			}
-
-	    	function getObsFtrNames() {
-	    		return getFtrNames(obsFtrSpace);
-	    	}
-
-	    	function getControlFtrNames() {
-	    		return getFtrNames(controlFtrSpace);
-	    	}
-
-	    	function getFtrDescriptions(stateId) {
-	    		var observations = [];
-	    		var controls = [];
-
-	    		var obsFtrCount = getObsFtrCount();
-
-				var coords = mc.fullCoords(stateId);
-				var obsFtrNames = getObsFtrNames();
-				var invObsCoords = obsFtrSpace.invertFeatureVector(coords);
-				for (var i = 0; i < invObsCoords.length; i++) {
-					observations.push({
-						name: obsFtrNames[i],
-						value: invObsCoords.at(i),
-						isControl: false,
-						bounds: getFtrBounds(i)
-					});
-				}
-
-				var controlCoords = mc.fullCoords(stateId, false);
-				var contrFtrNames = getControlFtrNames();
-				var invControlCoords = controlFtrSpace.invertFeatureVector(controlCoords);
-				for (var i = 0; i < invControlCoords.length; i++) {
-					controls.push({
-						name: contrFtrNames[i],
-						value: invControlCoords.at(i),
-						isControl: true,
-						bounds: getFtrBounds(i + obsFtrCount)
-					});
-				}
-
-				return {
-					observations: observations,
-					controls: controls,
-					isBottom: mc.isLeaf(stateId)
-				};
-	    	}
-
-	    	function getFtrCoord(stateId, ftrIdx) {
-	    		if (ftrIdx < obsFtrSpace.dims.length) {
-	    			return obsFtrSpace.invertFeatureVector(mc.fullCoords(stateId))[ftrIdx];
-	    		} else {
-	    			return controlFtrSpace.invertFeatureVector(mc.fullCoords(stateId, false))[ftrIdx - obsFtrSpace.dims.length];
-	    		}
-	    	}
-
-	    	function getFtrBounds(ftrId) {
-	    		var obsFtrCount = getObsFtrCount();
-	    		var bounds = mc.getFtrBounds(ftrId);
-
-	    		if (ftrId < obsFtrCount) {
-	    			return {
-	    				min: obsFtrSpace.invertFeature(ftrId, bounds.min),
-	    				max: obsFtrSpace.invertFeature(ftrId, bounds.max)
-	    			}
-	    		} else {
-	    			return {
-	    				min: controlFtrSpace.invertFeature(ftrId - obsFtrCount, bounds.min),
-	    				max: controlFtrSpace.invertFeature(ftrId - obsFtrCount, bounds.max)
-	    			}
-	    		}
-	    	}
-
-	    	//===================================================
-	    	// HISTOGRAM
-	    	//===================================================
-
-
-	    	function toServerHistogram(hist, ftrId) {
-	    		var nObsFtrs = getObsFtrCount();
-
-    			if (ftrId < nObsFtrs) {
-	    			for (var i = 0; i < hist.binStartV.length; i++) {
-	    				hist.binStartV[i] = obsFtrSpace.invertFeature(ftrId, hist.binStartV[i]);
-	    			}
-    			} else {
-    				for (var i = 0; i < hist.binStartV.length; i++) {
-	    				hist.binStartV[i] = controlFtrSpace.invertFeature(ftrId - nObsFtrs, hist.binStartV[i]);
-	    			}
-    			}
-
-    			return hist;
-	    	}
-	    	
-	    	//===================================================
-	    	// PREPROCESSING
-	    	//===================================================
-	    	
-    		function preprocessFit(opts) {
-    			if (opts.recSet == null && opts.recV == null) 
-    				throw new Error('StreamStory.fit: missing parameters recSet or recV');
-    			
-    			var batchEndV = opts.batchEndV;
-    			var timeField = opts.timeField;
-    			
-    			var obsColMat;
-    			var contrColMat;
-    			var timeV;
-    			
-    			if (opts.recV != null) {
-    				var recV = opts.recV;
-    				var nInst = recV.length;
-    				
-    				log.info('Updating feature spaces ...');
-    				for (var i = 0; i < nInst; i++) {
-    					var rec = recV[i];
-    					obsFtrSpace.updateRecord(rec);
-						controlFtrSpace.updateRecord(rec);
-    				}
-    				
-    				obsColMat = new la.Matrix({rows: obsFtrSpace.dim, cols: nInst});
-    				contrColMat = new la.Matrix({rows: controlFtrSpace.dim, cols: nInst});
-    				timeV = new la.Vector({ vals: nInst });
-    				
-    				for (var i = 0; i < nInst; i++) {
-    					var rec = recV[i];
-    					var obsFtrV = obsFtrSpace.extractVector(rec);
-    					var contrFtrV = controlFtrSpace.extractVector(rec);
-    					var time = rec[timeField].getTime();
-    					
-    					obsColMat.setCol(i, obsFtrV);
-    					contrColMat.setCol(i, contrFtrV);
-    					timeV[i] = time;
-    				}
-    			} else {
-    				var recSet = opts.recSet;
-    				
-    				log.info('Updating feature spaces ...');
-    				obsFtrSpace.updateRecords(recSet);
-	    			controlFtrSpace.updateRecords(recSet);
-	    			
-	    			obsColMat = obsFtrSpace.extractMatrix(recSet);
-	    			contrColMat = controlFtrSpace.extractMatrix(recSet);
-	    			timeV = recSet.getVector(timeField);
-    			}
-    			
-    			return {
-    				obsColMat: obsColMat,
-    				contrColMat: contrColMat,
-    				timeV: timeV
-    			}
-    		}
-
-	    	//===================================================
-	    	// PUBLIC METHODS
-	    	//===================================================
-
-	    	// public methods
-	    	var that = {
-	    		getId: function () {
-	    			return id;
-	    		},
-
-	    		setId: function (modelId) {
-	    			id = modelId;
-	    		},
-
-	    		isActive: function () {
-	    			return active;
-	    		},
-
-	    		setActive: function (act) {
-	    			active = act;
-	    		},
-
-	    		isOnline: function () {
-	    			return online;
-	    		},
-
-	    		setOnline: function (isOnline) {
-	    			online = isOnline;
-	    		},
-
-	    		/**
-	    		 * Creates a new model out of the record set.
-	    		 */
-	    		fit: function (opts) {
-	    			if (opts.recSet == null && opts.recV == null)
-	    				throw new Error('StreamStory.fit: missing parameters recSet or recV');
-
-	    			var batchEndV = opts.batchEndV;
-	    			var timeField = opts.timeField;
-	    			
-	    			var data = preprocessFit(opts);
-	
-	    			log.info('Creating model ...');
-	    			mc.fit({
-	    				observations: data.obsColMat,
-	    				controls: data.contrColMat,
-	    				times: data.timeV,
-	    				batchV: batchEndV
-	    			});
-	    			log.info('Done!');
-
-	    			return that;
-	    		},
-	    		
-	    		fitAsync: function (opts, callback) {
-	    			var batchEndV = opts.batchEndV;
-	    			var timeField = opts.timeField;
-	    			
-	    			var data = preprocessFit(opts);
-	
-	    			log.info('Creating model asynchronously ...');
-	    			mc.fitAsync({
-	    				observations: data.obsColMat,
-	    				controls: data.contrColMat,
-	    				times: data.timeV,
-	    				batchV: batchEndV
-	    			}, callback);
-	    		},
-	
-	    		/**
-	    		 * Adds a new record. Doesn't update the models statistics.
-	    		 */
-	    		update: function (rec) {
-	    			if (rec == null) return;
-
-	    			var obsFtrVec = obsFtrSpace.extractVector(rec);
-	    			var contFtrVec = controlFtrSpace.extractVector(rec);
-	    			var timestamp = rec.time.getTime();
-
-	    			mc.update(obsFtrVec, contFtrVec, timestamp);
-	    		},
-
-	    		/**
-	    		 * Saves the feature space and model into the specified files.
-	    		 */
-	    		save: function (mcFName) {
-	    			try {
-	    				console.log('Saving Markov chain ...');
-
-	    				var fout = new fs.FOut(mcFName);
-
-		    			mc.save(fout);
-		    			obsFtrSpace.save(fout);
-		    			controlFtrSpace.save(fout);
-
-		    			fout.flush();
-		    			fout.close();
-
-		    			console.log('Done!');
-	    			} catch (e) {
-	    				console.log('Failed to save the model!!' + e.message);
-	    			}
-	    		},
-
-	    		/**
-	    		 * Returns the state used in the visualization.
-	    		 */
-	    		getVizState: function () {
-	    			log.debug('Fetching visualization ...');
-	    			return mc.toJSON();
-	    		},
-
-	    		/**
-	    		 * Returns the hierarchical Markov chain model.
-	    		 */
-	    		getModel: function () {
-	    			return mc;
-	    		},
-
-	    		/**
-	    		 * Returns the feature space.
-	    		 */
-	    		getFtrSpace: function () {
-	    			return { observations: obsFtrSpace, controls: controlFtrSpace };
-	    		},
-
-	    		/**
-	    		 * Returns the current state at the specified height. If the height is not specified it
-	    		 * returns the current states through the hierarchy.
-	    		 */
-	    		currState: function (height) {
-	    			return mc.currState(height);
-	    		},
-
-	    		/**
-	    		 * Returns the most likely future states.
-	    		 */
-	    		futureStates: function (level, state, time) {
-	    			return mc.futureStates(level, state, time);
-	    		},
-
-	    		/**
-	    		 * Returns the most likely future states.
-	    		 */
-	    		pastStates: function (level, state, time) {
-	    			return mc.pastStates(level, state, time);
-	    		},
-
-	    		getFtrDesc: function (ftrId) {
-	    			var nObsFtrs = getObsFtrCount();
-
-	    			if (ftrId == null) {
-	    				var n = nObsFtrs + getContrFtrCount();
-
-	    				var obsFtrs = [];
-	        			var contrFtrs = [];
-
-	    				for (var i = 0; i < n; i++) {
-	    					var ftrDesc = that.getFtrDesc(i);
-
-	    					if (i < nObsFtrs) {
-	    						obsFtrs.push(ftrDesc);
-	    					} else {
-	    						contrFtrs.push(ftrDesc);
-	    					}
-	    				}
-
-	    				return {
-	        				observation: obsFtrs,
-	        				control: contrFtrs
-	        			}
-	    			}
-	    			else {
-	    				if (ftrId < nObsFtrs) {
-	    					var ftrNames = getObsFtrNames();
-	    					return {
-	    						name: ftrNames[ftrId],
-	    						bounds: getFtrBounds(ftrId)
-	    					}
-	    				} else {
-	    					var ftrNames = getControlFtrNames();
-	    					return {
-	    						name: ftrNames[ftrId - nObsFtrs],
-	    						bounds: getFtrBounds(ftrId)
-	    					}
-	    				}
-	    			}
-	    		},
-
-	    		/**
-	    		 * Returns state details as a Javascript object.
-	    		 */
-	    		stateDetails: function (stateId, height) {
-	    			var futureStates = mc.futureStates(height, stateId);
-	    			var pastStates = mc.pastStates(height, stateId);
-	    			var isTarget = mc.isTarget(stateId, height);
-	    			var isLeaf = mc.isLeaf(stateId);
-	    			var stateNm = mc.getStateName(stateId);
-	    			var wgts = mc.getStateWgtV(stateId);
-
-	    			var features = getFtrDescriptions(stateId);
-
-	    			return {
-	    				id: stateId,
-	    				name: stateNm.length > 0 ? stateNm : null,
-	    				isTarget: isTarget,
-	    				isLeaf: isLeaf,
-	    				features: features,
-	    				futureStates: futureStates,
-	    				pastStates: pastStates,
-	    				featureWeights: wgts
-	    			};
-	    		},
-
-	    		/**
-	    		 * Returns a histogram for the desired feature in the desired state.
-	    		 */
-	    		histogram: function (stateId, ftrId) {
-	    			var hist = mc.histogram(stateId, ftrId);
-	    			return toServerHistogram(hist, ftrId);
-	    		},
-
-	    		transitionHistogram: function (sourceId, targetId, ftrId) {
-	    			var hist = mc.transitionHistogram(sourceId, targetId, ftrId);
-	    			return toServerHistogram(hist, ftrId);
-	    		},
-
-	    		/**
-	    		 * Callback when the current state changes.
-	    		 */
-	    		onStateChanged: function (callback) {
-	    			mc.onStateChanged(callback);
-	    		},
-
-	    		/**
-	    		 * Callback when an anomaly is detected.
-	    		 */
-	    		onAnomaly: function (callback) {
-	    			mc.onAnomaly(callback);
-	    		},
-
-	    		onOutlier: function (callback) {
-	    			mc.onOutlier(function (ftrV) {
-	    				var invFtrV = obsFtrSpace.invertFeatureVector(ftrV);
-
-	    				var features = [];
-	    				for (var i = 0; i < invFtrV.length; i++) {
-	    					features.push({name: obsFtrSpace.getFeature(i), value: invFtrV.at(i)});
-	    				}
-
-	    				callback(features);
-	    			});
-	    		},
-
-	    		onPrediction: function (callback) {
-	    			mc.onPrediction(callback);
-	    		},
-
-	    		/**
-	    		 * Returns the distribution of features accross the states on the
-	    		 * specified height.
-	    		 */
-	    		getFtrDist: function (height, ftrIdx) {
-	    			var stateIds = mc.stateIds(height);
-
-	    			var result = [];
-	    			for (var i = 0; i < stateIds.length; i++) {
-	    				var stateId = stateIds[i];
-	    				var coord = getFtrCoord(stateId, ftrIdx);
-	    				result.push({ state: stateId, value: coord });
-	    			}
-
-	    			return result;
-	    		},
-
-	    		setControlVal: function (opts) {
-	    			if (opts.ftrId == null) throw new Error('Missing parameter ftrId!');
-	    			var controlFtrId = opts.ftrId - getObsFtrCount();
-
-	    			var params = {
-	    				ftrId: opts.ftrId,
-	    				val: controlFtrSpace.extractFeature(controlFtrId, opts.val)
-	    			};
-
-	    			if (opts.stateId != null) params.stateId = opts.stateId;
-
-	    			mc.setControlVal(params);
-	    		},
-
-	    		resetControlVal: function (opts) {
-	    			var params = {};
-	    			if (opts.stateId != null) params.stateId = opts.stateId;
-	    			if (opts.ftrId != null) params.ftrId = opts.ftrId;
-
-	    			mc.resetControlVal(params);
-	    		}
-	    	};
-
-	    	return that;
-	    };
-	}
     //!ENDJSDOC
 
     return exports;

@@ -467,18 +467,34 @@ namespace TStreamAggrs {
 
 ///////////////////////////////
 // Record Id Buffer.
+void TRecBuffer::OnAddRec(const TRec& Rec) {
+	QmAssertR(Rec.IsByRef(), "TRecBuffer::OnAddRec supports records by ref only!"); 
+	QmAssertR(Rec.GetStoreId() == Store->GetStoreId(), "TRecBuffer::OnAddRec record store id mismatch"); 
+	Buffer.Update(Rec.GetRecId());
+}
+
 TRecBuffer::TRecBuffer(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
-    TStreamAggr(Base, ParamVal), Buffer(ParamVal->GetObjInt("size")) { }
+    TStreamAggr(Base, ParamVal), Buffer(ParamVal->GetObjInt("size")), Store(Base->GetStoreByStoreNm(ParamVal->GetObjStr("store"))) { }
 
 PStreamAggr TRecBuffer::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TRecBuffer(Base, ParamVal); 
 }
 
+void TRecBuffer::LoadState(TSIn& SIn) {
+	Buffer.Load(SIn);
+}
+
+void TRecBuffer::SaveState(TSOut& SOut) const {
+	Buffer.Save(SOut);
+}
+
 PJsonVal TRecBuffer::SaveJson(const int& Limit) const {
     PJsonVal JsonVal = TJsonVal::NewObj();
     if (!Buffer.Empty()) {
-        const TRec& OldestRec = Buffer.GetOldest();
-        const TRec& NewestRec = Buffer.GetNewest();
+		QmAssertR(Store->IsRecId(Buffer.GetOldest()), "TRecBuffer GetOldest returned invalid record id");
+		QmAssertR(Store->IsRecId(Buffer.GetNewest()), "TRecBuffer GetNewest returned invalid record id");
+        const TRec& OldestRec = Store->GetRec(Buffer.GetOldest());
+        const TRec& NewestRec = Store->GetRec(Buffer.GetNewest());
         JsonVal->AddToObj("oldest", OldestRec.GetJson(GetBase(), true, false, false, false, true));
         JsonVal->AddToObj("newest", NewestRec.GetJson(GetBase(), true, false, false, false, true));    
     }
@@ -1412,6 +1428,12 @@ TSlottedHistogram::TSlottedHistogram(const uint64 _Period, const uint64 _Slot, c
 	for (int i = 0; i < Dat.Len(); i++) {
 		Dat[i] = TSignalProc::TOnlineHistogram(0, Bins, Bins, false, false);
 	}
+}
+
+void TSlottedHistogram::Reset() {
+	for (int HistN = 0; HistN < Dat.Len(); HistN++) {
+		Dat[HistN].Reset();
+	}	
 }
 
 /// Load stream aggregate state from stream
