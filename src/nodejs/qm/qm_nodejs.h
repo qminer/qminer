@@ -987,6 +987,12 @@ private:
 	JsDeclareFunction(getStreamAggr);
 
 	/**
+	* Resets all stream aggregates.
+	*/
+	//# exports.Store.prototype.resetStreamAggregates = function () { }
+	JsDeclareFunction(resetStreamAggregates);
+
+	/**
 	* Returns an array of the stream aggregates names connected to the store.
 	* @returns {Array.<string>} An array of stream aggregates names.
 	*/

@@ -1041,7 +1041,12 @@ public:
 
 	static TNodeJsSA* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 public:
-
+	/**
+	* Resets the state of the aggregate.
+	* @returns {module:qm.StreamAggr} Self.
+	*/
+	//# exports.StreamAggr.prototype.reset = function () { return Object.create(require('qminer').StreamAggr.prototype);  };
+	JsDeclareFunction(reset);
 
 	/**
 	* Executes the function when a new record is put in store.
@@ -1676,6 +1681,7 @@ class TNodeJsStreamAggr :
 {
 private:	
 	// callbacks
+	v8::Persistent<v8::Function> ResetFun;
 	v8::Persistent<v8::Function> OnAddFun;
 	v8::Persistent<v8::Function> OnUpdateFun;
 	v8::Persistent<v8::Function> OnDeleteFun;
@@ -1723,6 +1729,7 @@ public:
 
 	~TNodeJsStreamAggr();
 
+	void Reset();
 	void OnAddRec(const TQm::TRec& Rec);
 	void OnUpdateRec(const TQm::TRec& Rec);
 	void OnDeleteRec(const TQm::TRec& Rec);

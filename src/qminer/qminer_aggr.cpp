@@ -1430,6 +1430,12 @@ TSlottedHistogram::TSlottedHistogram(const uint64 _Period, const uint64 _Slot, c
 	}
 }
 
+void TSlottedHistogram::Reset() {
+	for (int HistN = 0; HistN < Dat.Len(); HistN++) {
+		Dat[HistN].Reset();
+	}	
+}
+
 /// Load stream aggregate state from stream
 void TSlottedHistogram::LoadState(TSIn& SIn) {
 	PeriodLen.Load(SIn);
