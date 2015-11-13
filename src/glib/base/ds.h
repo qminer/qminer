@@ -1828,6 +1828,7 @@ public:
   void CompactPool(const TVal& DelVal);
   /// Shuffles the order of all elements in the pool. ##TVecPool::ShuffleAll
   void ShuffleAll(TRnd& Rnd=TRnd(0));
+  void ShuffleAll() { TRnd Rnd; ShuffleAll(Rnd); }
   
   /// Clears the contents of the pool. ##TVecPool::Clr
   void Clr(bool DoDel = true) {
@@ -2181,7 +2182,8 @@ public:
     }
   }
   void CompactPool(const TVal& DelVal); // delete all elements of value DelVal from all vectors
-  void ShuffleAll(TRnd& Rnd=TRnd(0)); // shuffles all the order of elements in the Pool (does not respect vector boundaries)
+  void ShuffleAll(TRnd& Rnd); // shuffles all the order of elements in the Pool (does not respect vector boundaries)
+  void ShuffleAll() { TRnd Rnd; ShuffleAll(Rnd); }
 
   //bool HasIdMap() const { return ! IdToOffV.Empty(); }
   //void ClrIdMap() { IdToOffV.Clr(true); }
