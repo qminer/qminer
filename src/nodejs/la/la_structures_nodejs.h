@@ -358,6 +358,17 @@ private:
 	JsDeclareFunction(getColSubmatrix);
 
 	/**
+	* Gets the submatrix from the column ids.
+	* @param {number} minRow - The minimum row index.
+	* @param {number} maxRow - The maximum row index.
+	* @param {number} minCol - The minimum column index.
+	* @param {number} maxCol - The maximum column index.
+	* @returns {module:la.Matrix} The submatrix of the original matrix.
+	*/
+	//# exports.Matrix.prototype.getSubmatrix = function (minRow, maxRow, minCol, maxCol) { return Object.create(require('qminer').la.Matrix.prototype); }
+	JsDeclareFunction(getSubmatrix);
+
+	/**
 	* Returns the corresponding row of matrix as vector.
 	* @param {number} rowIdx - Row index (zero based).
 	* @returns {module:la.Vector} The rowIdx-th row of matrix.

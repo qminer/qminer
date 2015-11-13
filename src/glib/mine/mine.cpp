@@ -47,6 +47,7 @@
 
 // regression methods
 #include "regression.cpp"
+#include "classification.cpp"
 
 // clustering
 #include "clustering.cpp"

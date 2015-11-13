@@ -169,7 +169,7 @@ PSs TSs::LoadTxt(
       }
       // add value to spreadsheet
       if (AllowedColNV.Empty()||AllowedColNV.IsIn(X)){
-        Ss->CellStrVV[Y]->V.Add(ChA); 
+        Ss->CellStrVV[Y]->V.Add(ChA);
       }
       // process delimiters
       if (SIn->Eof()){
@@ -376,6 +376,11 @@ TSsParser::TSsParser(const TStr& FNm, const char& Separator, const bool& _SkipLe
  SkipLeadBlanks(_SkipLeadBlanks), SkipCmt(_SkipCmt), SkipEmptyFld(_SkipEmptyFld), LineCnt(0), /*Bf(NULL),*/ SplitCh('\t'), LineStr(), FldV(), FInPt(NULL) {
   if (TZipIn::IsZipExt(FNm.GetFExt())) { FInPt = TZipIn::New(FNm); }
   else { FInPt = TFIn::New(FNm); }
+  SplitCh = Separator;
+}
+
+TSsParser::TSsParser(PSIn& SIn, const char& Separator, const bool& _SkipLeadBlanks, const bool& _SkipCmt, const bool& _SkipEmptyFld) : SsFmt(ssfSpaceSep),
+ SkipLeadBlanks(_SkipLeadBlanks), SkipCmt(_SkipCmt), SkipEmptyFld(_SkipEmptyFld), LineCnt(0), /*Bf(NULL),*/ SplitCh('\t'), LineStr(), FldV(), FInPt(SIn) {
   SplitCh = Separator;
 }
 

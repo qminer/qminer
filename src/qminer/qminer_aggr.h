@@ -186,18 +186,25 @@ namespace TStreamAggrs {
 // Delays record Ids for a given amount of new records.
 class TRecBuffer : public TStreamAggr {
 private:
-	TSignalProc::TBuffer<TRec> Buffer;
+	TSignalProc::TBuffer<TUInt64> Buffer;
+	TWPt<TStore> Store;
 	
 protected:
-	void OnAddRec(const TRec& Rec) { Buffer.Update(Rec); }
+	void OnAddRec(const TRec& Rec);
 
     TRecBuffer(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
+	/// Load stream aggregate state from stream
+	void LoadState(TSIn& SIn);
+	/// Save state of stream aggregate to stream
+	void SaveState(TSOut& SOut) const;
+
 	// did we finish initialization
 	bool IsInit() const { return Buffer.IsInit(); }
-    
+	/// Resets the aggregate
+	void Reset() { Buffer.Reset(); }
 	// serilization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
     
@@ -233,7 +240,9 @@ public:
 
 	// did we finish initialization
 	bool IsInit() const { return InitP; }
-    
+	/// Resets the model state
+	void Reset() { InitP = false; TickVal = 0.0; TmMSecs = 0; }
+
 	// current values
 	double GetFlt() const { return TickVal; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
@@ -280,7 +289,9 @@ public:
 
 	// did we finish initialization
 	bool IsInit() const { return InitP; }
-    
+	/// Resets the model state
+	void Reset() { InitP = false; InVal = 0.0; InTmMSecs = 0; OutValV.Gen(0); OutTmMSecsV.Gen(0); AllValV.Gen(0); }
+
 	// most recent values
 	double GetInFlt() const { return InVal; }
 	uint64 GetInTmMSecs() const { return InTmMSecs; }
@@ -358,6 +369,8 @@ public:
 
 	// did we finished initialization
 	bool IsInit() const { return Signal.IsInit(); }
+	/// Resets the aggregate
+	void Reset() { Signal.Reset(); }
 	// current values
 	double GetFlt() const { return Signal.GetValue(); }
 	uint64 GetTmMSecs() const { return Signal.GetTmMSecs(); }
@@ -406,6 +419,8 @@ public:
 
 	// did we finish initialization
 	bool IsInit() const { return Ema.IsInit(); }
+	/// Resets the aggregate
+	void Reset() { Ema.Reset(); }
 	// current values
 	double GetFlt() const { return Ema.GetValue(); }
 	uint64 GetTmMSecs() const { return Ema.GetTmMSecs(); }
@@ -437,6 +452,8 @@ public:
 
 	// did we finish initialization
 	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
+	/// Resets the aggregate
+	void Reset() { Cov.Reset(); }
 	// current values
 	double GetFlt() const { return Cov.GetCov(); }
 	uint64 GetTmMSecs() const { return Cov.GetTmMSecs(); }
@@ -467,13 +484,14 @@ private:
     
 protected:
 	void OnAddRec(const TRec& Rec);    
-    
 	TCorr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
 	// did we finish initialization
 	bool IsInit() const { return  InAggrVarX->IsInit() && InAggrVarY->IsInit() && InAggrCov->IsInit(); }
+	/// Resets the aggregate
+	void Reset() { TmMSecs = 0;  Corr = 0; }
 	// current values
 	double GetFlt() const { return Corr; }
 	uint64 GetTmMSecs() const { return 0; }
@@ -560,6 +578,8 @@ private:
 public:
 	TMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal);
 
+	void Reset() { throw TQmExcept::New("TMerger::Reset() not implemented!"); }
+
 	void CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm);
 
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -643,6 +663,8 @@ private:
 	TResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
 public:
+	void Reset() { throw TQmExcept::New("TResampler::Reset() not implemented!"); }
+
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
 	/// Load stream aggregate state from stream
@@ -673,6 +695,8 @@ public:
 
 	// did we finish initialization
 	bool IsInit() const { return true; }
+	/// Reset
+	void Reset() { }
 	// retrieving vector of values from the aggregate
 	int GetFltLen() const { return FtrSpace->GetDim(); }
 	void GetFltV(TFltV& ValV) const { ValV = Vec; }
@@ -721,7 +745,8 @@ public:
 
 	/// did we finish initialization
 	bool IsInit() const { return Model.IsInit(); }
-
+	/// Resets the aggregate
+	void Reset() { Model.Reset(); }
 	/// serilization to JSon
 	PJsonVal SaveJson(const int& Limit) const { return Model.SaveJson(); }
 
@@ -757,6 +782,8 @@ public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	// did we finish initialization
 	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
+	/// Reset
+	void Reset() { ChiSquare.Reset(); }
 	// get current P value
 	double GetFlt() const { return ChiSquare.GetP(); }
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggrX->GetAggrNm()); 
@@ -846,6 +873,9 @@ public:
 	/// Virtual destructor!
 	virtual ~TSlottedHistogram() { }
 
+	/// Resets the counts to 0
+	void Reset();
+
 	/// Load stream aggregate state from stream
 	void LoadState(TSIn& SIn);
 	/// Save state of stream aggregate to stream
@@ -894,6 +924,8 @@ public:
 
 	/// did we finish initialization
 	bool IsInit() const { return true; }
+	void Reset() { Model->Reset(); }
+
 	void LoadState(TSIn& SIn);
 	void SaveState(TSOut& SOut) const;
 
@@ -932,6 +964,8 @@ public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	// did we finish initialization
 	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
+	/// resets the aggregate
+	void Reset() { }
 	void LoadState(TSIn& SIn) { /* do nothing, there is not state */ }
 	void SaveState(TSOut& SOut) const { /* do nothing, there is not state */ }
 	
