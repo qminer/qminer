@@ -747,6 +747,10 @@ public:
 	bool IsInit() const { return Model.IsInit(); }
 	/// Resets the aggregate
 	void Reset() { Model.Reset(); }
+	/// Load from stream
+	void LoadState(TSIn& SIn);
+	/// Store state into stream
+	void SaveState(TSOut& SOut) const;
 	/// serilization to JSon
 	PJsonVal SaveJson(const int& Limit) const { return Model.SaveJson(); }
 
@@ -784,6 +788,11 @@ public:
 	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
 	/// Reset
 	void Reset() { ChiSquare.Reset(); }
+	/// Load from stream
+	void LoadState(TSIn& SIn);
+	/// Store state into stream
+	void SaveState(TSOut& SOut) const;
+
 	// get current P value
 	double GetFlt() const { return ChiSquare.GetP(); }
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggrX->GetAggrNm()); 

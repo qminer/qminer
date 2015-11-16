@@ -3663,10 +3663,22 @@ describe('ChiSquare Tests', function () {
         store.push({ Time: '2015-06-10T14:13:55.0', Expected: 6, Observed: 6 });
 
         assert(chi.getFloat() < startVal);
+		var endVal = chi.getFloat();
 
+		var fout = qm.fs.openWrite("aggr.tmp");
+		chi.save(fout);
+		fout.close();
+		
         store.resetStreamAggregates();
         
         assert(chi.getFloat() == startVal);
+
+		var fin = qm.fs.openRead("aggr.tmp");
+		chi.load(fin);
+		fin.close();
+
+		assert(chi.getFloat() == endVal);
+
     });
 
 });

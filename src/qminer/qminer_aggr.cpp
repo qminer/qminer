@@ -1374,6 +1374,19 @@ TOnlineHistogram::TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& Para
 	BufferedP = (InAggrValBuffer != NULL);
 }
 
+
+/// Load from stream
+void TOnlineHistogram::LoadState(TSIn& SIn) {
+	BufferedP.Load(SIn);
+	Model.Load(SIn);
+}
+
+/// Store state into stream
+void TOnlineHistogram::SaveState(TSOut& SOut) const {
+	BufferedP.Save(SOut);
+	Model.Save(SOut);
+}
+
 ///////////////////////////////
 /// Chi square stream aggregate
 void TChiSquare::OnAddRec(const TRec& Rec) {
@@ -1413,6 +1426,17 @@ PJsonVal TChiSquare::SaveJson(const int& Limit) const {
 	Val->AddToObj("P", ChiSquare.GetP());
 	Val->AddToObj("Chi2", ChiSquare.GetChi2());
 	return Val;
+}
+
+
+/// Load from stream
+void TChiSquare::LoadState(TSIn& SIn) {
+	ChiSquare.LoadState(SIn);
+}
+
+/// Store state into stream
+void TChiSquare::SaveState(TSOut& SOut) const {
+	ChiSquare.SaveState(SOut);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////

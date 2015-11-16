@@ -632,7 +632,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 			base.close();
 		}
 	});
-	it("histogram_diff simple reset", function () {
+	it("histogram_diff - complex - reset and reload", function () {
 	    var qm = require('qminer');
 
 	    // create a base with a simple store
@@ -790,7 +790,33 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
 	        // show distribution for expected values
 	        //console.log(diff);
+			
+			/////////////////////////////////////////////////////////
+			var fout = qm.fs.openWrite("aggr.tmp");
+			hist1.save(fout);			
+			timeSeries1.save(fout);
+			hist2.save(fout);			
+			timeSeries2.save(fout);
+			diff.save(fout);			
+			fout.close();
 
+			store.resetStreamAggregates();
+				
+			var fin = qm.fs.openRead("aggr.tmp");
+			hist1.load(fin);
+			timeSeries1.load(fin);
+			hist2.load(fin);
+			timeSeries2.load(fin);
+			diff.load(fin);
+			fin.close();
+
+			var tmp1x = hist1.saveJson();
+	        var tmp2x = hist2.saveJson();
+	        var tmp3x = diff.saveJson();
+			
+			assert.equal(JSON.stringify(tmp1), JSON.stringify(tmp1x));
+			assert.equal(JSON.stringify(tmp2), JSON.stringify(tmp2x));
+			assert.equal(JSON.stringify(tmp3), JSON.stringify(tmp3x));
 	    } finally {
 	        base.close();
 	    }

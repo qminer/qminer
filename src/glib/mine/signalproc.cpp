@@ -1074,5 +1074,18 @@ void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY, const int 
 }
 
 
+/// Load from stream
+void TChiSquare::LoadState(TSIn& SIn) {
+	Chi2.Load(SIn);
+	P.Load(SIn);
+	DegreesOfFreedom.Load(SIn);
+}
+
+/// Store state into stream
+void TChiSquare::SaveState(TSOut& SOut) const {
+	Chi2.Save(SOut);
+	P.Save(SOut);
+	DegreesOfFreedom.Save(SOut);
+}
 
 }
