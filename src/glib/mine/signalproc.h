@@ -798,6 +798,11 @@ public:
 	int GetDof() const {return DegreesOfFreedom;}
 	/// Prints the model
 	void Print() const;
+
+	/// Load from stream
+	void LoadState(TSIn& SIn);
+	/// Store state into stream
+	void SaveState(TSOut& SOut) const;
 };
 
 }
