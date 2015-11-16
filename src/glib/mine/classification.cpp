@@ -394,7 +394,22 @@ PJsonVal TDecisionTree::TNode::GetJson() const {
 
 PJsonVal TDecisionTree::TNode::ExplainLabel(const int& Label) const {
 	if (IsLeaf()) {
-		return ClassHist[Label] > ClassHist[1 - Label] ? TJsonVal::NewArr() : PJsonVal();
+		if (ClassHist[Label] <= ClassHist[1 - Label]) {
+			return PJsonVal();
+		} else {
+			const double Prob = ClassHist[Label];
+
+			PJsonVal Result = TJsonVal::NewArr();
+
+			PJsonVal IntersectJson = TJsonVal::NewObj();
+			IntersectJson->AddToObj("covered", int(NExamples*Prob));
+			IntersectJson->AddToObj("purity", Prob);
+			IntersectJson->AddToObj("terms", TJsonVal::NewArr());
+
+			Result->AddToArr(IntersectJson);
+
+			return Result;
+		}
 	}
 
 	PJsonVal Result = TJsonVal::NewArr();
@@ -409,9 +424,10 @@ PJsonVal TDecisionTree::TNode::ExplainLabel(const int& Label) const {
 
 			for (int i = 0; i < LeftUnion->GetArrVals(); i++) {
 				PJsonVal IntersectJson = LeftUnion->GetArrVal(i);
+				PJsonVal TermsJson = IntersectJson->GetObjKey("terms");
 				bool HadFtr = false;
-				for (int TermN = 0; TermN < IntersectJson->GetArrVals(); TermN++) {
-					PJsonVal TermJson = IntersectJson->GetArrVal(TermN);
+				for (int TermN = 0; TermN < TermsJson->GetArrVals(); TermN++) {
+					PJsonVal TermJson = TermsJson->GetArrVal(TermN);
 
 					const int TermFtrN = TermJson->GetObjInt("ftrId");
 					if (TermFtrN == CutFtrN) {
@@ -426,7 +442,7 @@ PJsonVal TDecisionTree::TNode::ExplainLabel(const int& Label) const {
 					TermJson->AddToObj("ftrId", CutFtrN);
 					TermJson->AddToObj("le", CutFtrVal);
 					TermJson->AddToObj("gt", TFlt::NInf);
-					IntersectJson->AddToArr(TermJson);
+					TermsJson->AddToArr(TermJson);
 				}
 
 				Result->AddToArr(IntersectJson);
@@ -443,10 +459,11 @@ PJsonVal TDecisionTree::TNode::ExplainLabel(const int& Label) const {
 
 			for (int i = 0; i < RightUnion->GetArrVals(); i++) {
 				PJsonVal IntersectJson = RightUnion->GetArrVal(i);
+				PJsonVal TermsJson = IntersectJson->GetObjKey("terms");
 
 				bool HadFtr = false;
-				for (int TermN = 0; TermN < IntersectJson->GetArrVals(); TermN++) {
-					PJsonVal TermJson = IntersectJson->GetArrVal(TermN);
+				for (int TermN = 0; TermN < TermsJson->GetArrVals(); TermN++) {
+					PJsonVal TermJson = TermsJson->GetArrVal(TermN);
 
 					const int TermFtrN = TermJson->GetObjInt("ftrId");
 					if (TermFtrN == CutFtrN) {
@@ -461,7 +478,7 @@ PJsonVal TDecisionTree::TNode::ExplainLabel(const int& Label) const {
 					TermJson->AddToObj("ftrId", CutFtrN);
 					TermJson->AddToObj("le", TFlt::PInf);
 					TermJson->AddToObj("gt", CutFtrVal);
-					IntersectJson->AddToArr(TermJson);
+					TermsJson->AddToArr(TermJson);
 				}
 
 				Result->AddToArr(IntersectJson);
