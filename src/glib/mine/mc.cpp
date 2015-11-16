@@ -2252,29 +2252,30 @@ void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const 
 	ClassifyV.Clr(true);
 	DecisionTreeV.Clr(true);
 
-	PDtSplitCriteria SplitCriteria = TInfoGain::New();
-	PDtPruneCriteria PruneCriteria = TDtMinExamplesPrune::New(50);
-	PDtGrowCriteria GrowCriteria = TDtGrowCriteria::New(.01, 50);
-
 	for (int HeightN = 0; HeightN < StateIdHeightPrV.Len(); HeightN++) {
 		ClassifyV.Add(TLogReg(1, true, false));
-		DecisionTreeV.Add(TDecisionTree(SplitCriteria, PruneCriteria, GrowCriteria));
+		DecisionTreeV.Add(TDecisionTree());
 	}
 
 	if (MultiThread) {
 		int NFinished = 0;
 		const int TotalTasks = StateIdHeightPrV.Len();
 
+		TVec<TRnd> RndV;
+		for (int HeightN = 0; HeightN < StateIdHeightPrV.Len(); HeightN++) {
+			RndV.Add(TRnd(Rnd.GetUniDevInt()));
+		}
+
 		#pragma omp parallel for
 		for (int HeightN = 0; HeightN < TotalTasks; HeightN++) {
 			const TIntFltPr StateIdHeightPr = StateIdHeightPrV[HeightN];
 
 			InitSingle(ObsFtrVV, StateIdHeightPr.Val1, StateIdHeightPr.Val2, Hierarch,
-					AssignV, Rnd, ClassifyV[HeightN], DecisionTreeV[HeightN]);
+					AssignV, RndV[HeightN], ClassifyV[HeightN], DecisionTreeV[HeightN]);
 
 			#pragma omp critical
 			{
-				Notify->OnNotifyFmt(TNotifyType::ntInfo, "Finished task %d out of %d", ++NFinished, TotalTasks);
+				Notify->OnNotifyFmt(TNotifyType::ntInfo, "Finished task %d out of %d ...", ++NFinished, TotalTasks);
 			}
 		}
 	} else {
@@ -2290,99 +2291,6 @@ void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const 
 	}
 
 	Notify->OnNotify(TNotifyType::ntInfo, "State assist initialized!");
-}
-
-void TStateAssist::InitSingle(const TFltVV& ObsFtrVV, const int& StateId, const double& Height,
-		const THierarch& Hierarch, const TIntV& AssignV, const TRnd& Rnd, TLogReg& LogReg,
-		TDecisionTree& Tree) {
-	const int Dim = ObsFtrVV.GetRows();
-
-	TRnd LocalRnd(Rnd);	// the random implementation is not thread safe
-
-	TStateIdV StateIdV; TStateSetV StateSetV; TIntSet TargetStateSet;
-	Hierarch.GetStateSetsAtHeight(Height, StateIdV, StateSetV);
-
-	const int NStates = StateIdV.Len();
-	const int TrgStateIdx = StateIdV.SearchForw(StateId);
-
-	TIntV TargetIdxV, NonTargetIdxV;
-
-	EAssertR(TrgStateIdx >= 0, "Could not find the target state!");
-
-	TVec<TIntV> StateIdFtrIdxVV(NStates);
-
-	for (int StateN = 0; StateN < NStates; StateN++) {
-		const TIntSet StateSet(StateSetV[StateN]);
-		TIntV& StateFtrIdxV = StateIdFtrIdxVV[StateN];
-
-		if (StateIdV[StateN] == StateId) {
-			TargetStateSet = StateSet;
-		}
-
-		AssignV.FindAllSatisfy([&](const TInt& Id) { return StateSet.IsKey(Id); }, StateFtrIdxV);
-
-		StateFtrIdxV.Shuffle(LocalRnd);
-	}
-
-	// while there are instances select one instance from each state
-	// so that we always get instances from all the states
-	bool AllEmpty;
-	do {
-		AllEmpty = true;
-
-		for (int StateN = 0; StateN < NStates; StateN++) {
-			TIntV& IdxV = StateIdFtrIdxVV[StateN];
-
-			if (IdxV.Empty()) { continue; }
-
-			if (StateN == TrgStateIdx) {
-				TargetIdxV.Add(IdxV.Last());
-			} else {
-				NonTargetIdxV.Add(IdxV.Last());
-			}
-
-			IdxV.DelLast();
-			AllEmpty = false;
-		}
-	} while (!AllEmpty);
-
-	// truncate the larger dataset
-	if (TargetIdxV.Len() > NonTargetIdxV.Len()) {
-		TargetIdxV.Trunc(NonTargetIdxV.Len());
-	} else if (NonTargetIdxV.Len() > TargetIdxV.Len()) {
-		NonTargetIdxV.Trunc(TargetIdxV.Len());
-	}
-
-	if (TargetIdxV.Empty() || NonTargetIdxV.Empty()) { return; }
-
-	// construct a feature matrix
-	TFltVV InstanceVV(Dim, TargetIdxV.Len() + NonTargetIdxV.Len());
-	TFltV y(TargetIdxV.Len() + NonTargetIdxV.Len());
-	TFltV DecisionTreeY(AssignV.Len());
-
-	for (int ColIdx = 0; ColIdx < TargetIdxV.Len(); ColIdx++) {
-		const TInt& TargetColN = TargetIdxV[ColIdx];
-		const TInt& NonTargetColN = NonTargetIdxV[ColIdx];
-
-		const int TargetColIdx = ColIdx;
-		const int NonTargetColIdx = TargetIdxV.Len() + ColIdx;
-
-		for (int RowN = 0; RowN < Dim; RowN++) {
-			InstanceVV(RowN, TargetColIdx) = ObsFtrVV(RowN, TargetColN);
-			InstanceVV(RowN, NonTargetColIdx) = ObsFtrVV(RowN, NonTargetColN);
-		}
-
-		y[TargetColIdx] = 1;
-		y[NonTargetColIdx] = 0;
-	}
-
-	for (int ColN = 0; ColN < ObsFtrVV.GetCols(); ColN++) {
-		DecisionTreeY[ColN] = TargetStateSet.IsKey(AssignV[ColN]) ? 1 : 0;
-	}
-
-	// fit a model
-	LogReg.Fit(InstanceVV, y);
-	Tree.Fit(ObsFtrVV, DecisionTreeY, TNotify::NullNotify);
 }
 
 void TStateAssist::InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV) {
@@ -2430,6 +2338,134 @@ void TStateAssist::GetSuggestFtrs(const int& StateId, TFltV& WgtV) const {
 PJsonVal TStateAssist::GetStateClassifyTree(const int& StateId) const {
 	EAssertR(0 <= StateId && StateId < DecisionTreeV.Len(), "Invalid StateId!");
 	return DecisionTreeV[StateId].GetJson();
+}
+
+PJsonVal TStateAssist::GetStateExplain(const int& StateId) const {
+	EAssertR(0 <= StateId && StateId < DecisionTreeV.Len(), "Invalid StateId!");
+	return DecisionTreeV[StateId].ExplainPositive();
+}
+
+void TStateAssist::InitSingle(const TFltVV& ObsFtrVV, const int& StateId, const double& Height,
+		const THierarch& Hierarch, const TIntV& AssignV, TRnd& Rnd, TLogReg& LogReg,
+		TDecisionTree& Tree, const bool& Sample) {
+
+	const int NInst = ObsFtrVV.GetCols();
+	const int Dim = ObsFtrVV.GetRows();
+
+	TStateIdV StateIdV; TStateSetV StateSetV;
+	Hierarch.GetStateSetsAtHeight(Height, StateIdV, StateSetV);
+
+	const int NStates = StateIdV.Len();
+	const int TrgStateIdx = StateIdV.SearchForw(StateId);
+	EAssertR(TrgStateIdx >= 0, "Could not find the target state!");
+
+	TIntV TargetIdxV, NonTargetIdxV;
+	TVec<TIntV> StateIdFtrIdxVV(NStates);
+
+	TIntSet TargetStateSet;
+	for (int StateN = 0; StateN < NStates; StateN++) {
+		if (StateIdV[StateN] == StateId) {
+			TargetStateSet.AddKeyV(StateSetV[StateN]);
+		}
+	}
+
+	EAssert(!TargetStateSet.Empty());
+
+	if (Sample) {
+		for (int StateN = 0; StateN < NStates; StateN++) {
+			const TIntSet StateSet(StateSetV[StateN]);
+			AssignV.FindAllSatisfy([&](const TInt& StateId) { return StateSet.IsKey(StateId); }, StateIdFtrIdxVV[StateN]);
+			StateIdFtrIdxVV[StateN].Shuffle(Rnd);
+		}
+
+		// while there are instances select one instance from each state
+		// so that we always get instances from all the states
+		bool AllEmpty;
+		do {
+			AllEmpty = true;
+
+			for (int StateN = 0; StateN < NStates; StateN++) {
+				TIntV& IdxV = StateIdFtrIdxVV[StateN];
+
+				if (IdxV.Empty()) { continue; }
+
+				if (StateN == TrgStateIdx) {
+					TargetIdxV.Add(IdxV.Last());
+				} else {
+					NonTargetIdxV.Add(IdxV.Last());
+				}
+
+				IdxV.DelLast();
+				AllEmpty = false;
+			}
+		} while (!AllEmpty);
+
+		// truncate the larger dataset
+		if (TargetIdxV.Len() > NonTargetIdxV.Len()) {
+			TargetIdxV.Trunc(NonTargetIdxV.Len());
+		} else if (NonTargetIdxV.Len() > TargetIdxV.Len()) {
+			NonTargetIdxV.Trunc(TargetIdxV.Len());
+		}
+
+		if (TargetIdxV.Empty() || NonTargetIdxV.Empty()) { return; }
+
+		// construct a feature matrix
+		TFltVV FtrVV(Dim, TargetIdxV.Len() + NonTargetIdxV.Len());
+		TFltV LabelV(TargetIdxV.Len() + NonTargetIdxV.Len());
+
+		for (int ColIdx = 0; ColIdx < TargetIdxV.Len(); ColIdx++) {
+			const TInt& TargetColN = TargetIdxV[ColIdx];
+			const TInt& NonTargetColN = NonTargetIdxV[ColIdx];
+
+			const int TargetColIdx = ColIdx;
+			const int NonTargetColIdx = TargetIdxV.Len() + ColIdx;
+
+			for (int RowN = 0; RowN < Dim; RowN++) {
+				FtrVV(RowN, TargetColIdx) = ObsFtrVV(RowN, TargetColN);
+				FtrVV(RowN, NonTargetColIdx) = ObsFtrVV(RowN, NonTargetColN);
+			}
+
+			LabelV[TargetColIdx] = 1;
+			LabelV[NonTargetColIdx] = 0;
+		}
+
+		FitAssistModels(FtrVV, LabelV, LogReg, Tree);
+	} else {
+		TFltV LabelV(NInst);
+
+		int Label;
+		for (int ColN = 0; ColN < NInst; ColN++) {
+			Label = TargetStateSet.IsKey(AssignV[ColN]) ? 1 : 0;
+			LabelV[ColN] = Label;
+		}
+
+		FitAssistModels(ObsFtrVV, LabelV, LogReg, Tree);
+	}
+}
+
+void TStateAssist::FitAssistModels(const TFltVV& FtrVV, const TFltV& LabelV, TLogReg& LogReg,
+			TDecisionTree& Tree) {
+	const int NInst = FtrVV.GetCols();
+
+	{
+		int NPos = 0;
+		for (int ColN = 0; ColN < NInst; ColN++) {
+			NPos += LabelV[ColN];
+		}
+
+		const int MinExamples = TMath::Mn(50, NInst / 32);
+		const double MinPosProb = TMath::Mn((double(NPos) / NInst) / 2, .05);
+		const double MinNegProb = TMath::Mn((double(NInst - NPos) / NInst) / 2, .05);
+
+		PDtSplitCriteria SplitCriteria = TInfoGain::New();
+		PDtPruneCriteria PruneCriteria = TDtMinExamplesPrune::New(MinExamples);
+		PDtGrowCriteria GrowCriteria = TDtGrowCriteria::New(MinPosProb, MinNegProb, MinExamples);
+
+		Tree = TDecisionTree(SplitCriteria, PruneCriteria, GrowCriteria, true);
+	}
+
+	LogReg.Fit(FtrVV, LabelV);
+	Tree.Fit(FtrVV, LabelV, TNotify::NullNotify);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -2792,6 +2828,15 @@ PJsonVal TStreamStory::GetStateClassifyTree(const int& StateId) const {
 		return StateAssist->GetStateClassifyTree(StateId);
 	} catch (const PExcept& Except) {
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "TStreamStory::GetStateClassifyTree: Exceptino while fetching classification tree for state %d: %s", StateId, Except->GetMsgStr().CStr());
+		throw Except;
+	}
+}
+
+PJsonVal TStreamStory::GetStateExplain(const int& StateId) const {
+	try {
+		return StateAssist->GetStateExplain(StateId);
+	} catch (const PExcept& Except) {
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "TStreamStory::GetStateExplain: Exceptino while generating explanation for state %d: %s", StateId, Except->GetMsgStr().CStr());
 		throw Except;
 	}
 }

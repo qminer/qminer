@@ -657,14 +657,19 @@ public:
 
 	void Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TStateIdentifier& Clust,
 			const THierarch& Hierarch, const bool& MultiThread=true);
-	void InitSingle(const TFltVV& ObsFtrVV, const int& StateId, const double& Height,
-			const THierarch& Hierarch, const TIntV& AssignV, const TRnd& Rnd, TLogReg& LogReg,
-			TDecisionTree& Tree);
 	void InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV);
 
 	const TFltPr& GetFtrBounds(const int& FtrId) const;
 	void GetSuggestFtrs(const int& StateId, TFltV& WgtV) const;
 	PJsonVal GetStateClassifyTree(const int& StateId) const;
+	PJsonVal GetStateExplain(const int& StateId) const;
+
+private:
+	void InitSingle(const TFltVV& ObsFtrVV, const int& StateId, const double& Height,
+			const THierarch& Hierarch, const TIntV& AssignV, TRnd& Rnd, TLogReg& LogReg,
+			TDecisionTree& Tree, const bool& Sample=false);
+	void FitAssistModels(const TFltVV& FtrVV, const TFltV& LabelV, TLogReg& LogReg,
+			TDecisionTree& DecisionTree);
 };
 
 class TStreamStory {
@@ -748,6 +753,7 @@ public:
 	// state explanations
 	void GetStateWgtV(const int& StateId, TFltV& WgtV) const;
 	PJsonVal GetStateClassifyTree(const int& StateId) const;
+	PJsonVal GetStateExplain(const int& StateId) const;
 
 	// stores the transition model for the current height into Mat
 	void GetTransitionModel(const double& Height, TFltVV& Mat) const;

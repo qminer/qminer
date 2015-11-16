@@ -1706,6 +1706,8 @@ public:
 	 */
 	JsDeclareFunction(getClassifyTree);
 
+	JsDeclareFunction(explainState);
+
 	/**
 	 * Sets a callback function which is fired when the model changes states. An array of current states
 	 * throughout the hierarchy is passed to the callback.

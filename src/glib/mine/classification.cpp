@@ -247,6 +247,21 @@ bool TDtMinExamplesPrune::ShouldPrune(const bool& IsLeaf, const int& NExamples, 
 
 ///////////////////////////////////////////
 // Decision Tree - growing
+TDtGrowCriteria::TDtGrowCriteria(const double& _MinClassProb, const int& _MinExamples):
+		MinPosClassProb(_MinClassProb),
+		MinNegClassProb(MinPosClassProb),
+		MinExamples(_MinExamples) {}
+
+TDtGrowCriteria::TDtGrowCriteria(const double& _MinPosClassProb, const double& _MinNegClassProb, const int& _MinExamples):
+		MinPosClassProb(_MinPosClassProb),
+		MinNegClassProb(_MinNegClassProb),
+		MinExamples(_MinExamples) {}
+
+TDtGrowCriteria::TDtGrowCriteria(TSIn& SIn):
+		MinPosClassProb(SIn),
+		MinNegClassProb(SIn),
+		MinExamples(SIn) {}
+
 PDtGrowCriteria TDtGrowCriteria::Load(TSIn& SIn) {
 	const TStr Type(SIn);
 
@@ -259,8 +274,13 @@ PDtGrowCriteria TDtGrowCriteria::Load(TSIn& SIn) {
 
 void TDtGrowCriteria::Save(TSOut& SOut) const {
 	GetType().Save(SOut);
-	MinClassProb.Save(SOut);
+	MinPosClassProb.Save(SOut);
+	MinNegClassProb.Save(SOut);
 	MinExamples.Save(SOut);
+}
+
+bool TDtGrowCriteria::ShouldGrow(const int& NExamples, const double& Class1Prob) const {
+	return NExamples > MinExamples && Class1Prob > MinPosClassProb && (1 - Class1Prob) > MinNegClassProb;
 }
 
 ///////////////////////////////////////////
@@ -273,7 +293,8 @@ TDecisionTree::TNode::TNode(TDecisionTree* _Tree):
 		CutFtrVal(TFlt::NInf),
 		NExamples(0),
 		ClassHist(),
-		FtrHist() {}
+		FtrHist(),
+		CutFtrCorrFtrNPValTrV() {}
 
 TDecisionTree::TNode::TNode(TDecisionTree* _Tree, TSIn& SIn):
 		Left(nullptr),
@@ -283,7 +304,8 @@ TDecisionTree::TNode::TNode(TDecisionTree* _Tree, TSIn& SIn):
 		CutFtrVal(TFlt(SIn)),
 		NExamples(TInt(SIn)),
 		ClassHist(SIn),
-		FtrHist(SIn) {
+		FtrHist(SIn),
+		CutFtrCorrFtrNPValTrV(SIn) {
 
 	const TBool HasLeft(SIn);
 	const TBool HasRight(SIn);
@@ -292,35 +314,13 @@ TDecisionTree::TNode::TNode(TDecisionTree* _Tree, TSIn& SIn):
 	if (HasRight) { Right = new TNode(Tree, SIn); }
 }
 
-//TDecisionTree::TNode::TNode(const TDecisionTree* _Tree, const TNode& Node):
-//		Left(),
-//		Right(),
-//		Tree(_Tree) {
-////	printf("Node: copy constructor called\n");
-//	CopyNode(Node, *this);
-//}
-
-//TDecisionTree::TNode::~TNode() {
-////	printf("Node: destructor called\n");
-//	CleanUp();
-//}
-
-//TDecisionTree::TNode& TDecisionTree::TNode::operator =(const TNode& Node) {
-//	printf("Node: copy called\n");
-//
-//	if (this != &Node) {
-//		CopyNode(Node, *this);
-//	}
-//
-//	return *this;
-//}
-
 void TDecisionTree::TNode::Save(TSOut& SOut) const {
 	TInt(CutFtrN).Save(SOut);
 	TFlt(CutFtrVal).Save(SOut);
 	TInt(NExamples).Save(SOut);
 	ClassHist.Save(SOut);
 	FtrHist.Save(SOut);
+	CutFtrCorrFtrNPValTrV.Save(SOut);
 
 	// save children
 	const TBool SaveLeft = HasLeft();
@@ -352,8 +352,29 @@ PJsonVal TDecisionTree::TNode::GetJson() const {
 
 	if (!IsLeaf()) {
 		PJsonVal CutJson = TJsonVal::NewObj();
+
 		CutJson->AddToObj("id", CutFtrN);
 		CutJson->AddToObj("value", CutFtrVal);
+
+		if (Tree->IsCalcCorr()) {
+			PJsonVal FtrCorrJson = TJsonVal::NewArr();
+			for (int i = 0; i < CutFtrCorrFtrNPValTrV.Len(); i++) {
+				const TFltIntFltTr& FtrCorr = CutFtrCorrFtrNPValTrV[i];
+
+				const TFlt& Corr = FtrCorr.Val1;
+				const TInt& FtrN = FtrCorr.Val2;
+				const TFlt& PVal = FtrCorr.Val3;
+
+				PJsonVal CorrJson = TJsonVal::NewObj();
+				CorrJson->AddToObj("id", FtrN);
+				CorrJson->AddToObj("corr", Corr);
+				CorrJson->AddToObj("p", PVal);
+
+				FtrCorrJson->AddToArr(CorrJson);
+			}
+			CutJson->AddToObj("alternatives", FtrCorrJson);
+		}
+
 		RootJson->AddToObj("cut", CutJson);
 	}
 
@@ -369,6 +390,86 @@ PJsonVal TDecisionTree::TNode::GetJson() const {
 	RootJson->AddToObj("children", ChildrenJson);
 
 	return RootJson;
+}
+
+PJsonVal TDecisionTree::TNode::ExplainLabel(const int& Label) const {
+	if (IsLeaf()) {
+		return ClassHist[Label] > ClassHist[1 - Label] ? TJsonVal::NewArr() : PJsonVal();
+	}
+
+	PJsonVal Result = TJsonVal::NewArr();
+
+	if (HasLeft()) {
+		PJsonVal LeftUnion = Left->ExplainLabel(Label);
+
+		if (!LeftUnion.Empty()) {
+			if (LeftUnion->GetArrVals() == 0) {
+				LeftUnion->AddToArr(TJsonVal::NewArr());
+			}
+
+			for (int i = 0; i < LeftUnion->GetArrVals(); i++) {
+				PJsonVal IntersectJson = LeftUnion->GetArrVal(i);
+				bool HadFtr = false;
+				for (int TermN = 0; TermN < IntersectJson->GetArrVals(); TermN++) {
+					PJsonVal TermJson = IntersectJson->GetArrVal(TermN);
+
+					const int TermFtrN = TermJson->GetObjInt("ftrId");
+					if (TermFtrN == CutFtrN) {
+						HadFtr = true;
+						if (TermJson->GetObjNum("le") == TFlt::PInf) {
+							TermJson->AddToObj("le", CutFtrVal);
+						}
+					}
+				}
+				if (!HadFtr) {
+					PJsonVal TermJson = TJsonVal::NewObj();
+					TermJson->AddToObj("ftrId", CutFtrN);
+					TermJson->AddToObj("le", CutFtrVal);
+					TermJson->AddToObj("gt", TFlt::NInf);
+					IntersectJson->AddToArr(TermJson);
+				}
+
+				Result->AddToArr(IntersectJson);
+			}
+		}
+	}
+	if (HasRight()) {
+		PJsonVal RightUnion = Right->ExplainLabel(Label);
+
+		if (!RightUnion.Empty()) {
+			if (RightUnion->GetArrVals() == 0) {
+				RightUnion->AddToArr(TJsonVal::NewArr());
+			}
+
+			for (int i = 0; i < RightUnion->GetArrVals(); i++) {
+				PJsonVal IntersectJson = RightUnion->GetArrVal(i);
+
+				bool HadFtr = false;
+				for (int TermN = 0; TermN < IntersectJson->GetArrVals(); TermN++) {
+					PJsonVal TermJson = IntersectJson->GetArrVal(TermN);
+
+					const int TermFtrN = TermJson->GetObjInt("ftrId");
+					if (TermFtrN == CutFtrN) {
+						HadFtr = true;
+						if (TermJson->GetObjNum("gt") == TFlt::NInf) {
+							TermJson->AddToObj("gt", CutFtrVal);
+						}
+					}
+				}
+				if (!HadFtr) {
+					PJsonVal TermJson = TJsonVal::NewObj();
+					TermJson->AddToObj("ftrId", CutFtrN);
+					TermJson->AddToObj("le", TFlt::PInf);
+					TermJson->AddToObj("gt", CutFtrVal);
+					IntersectJson->AddToArr(TermJson);
+				}
+
+				Result->AddToArr(IntersectJson);
+			}
+		}
+	}
+
+	return Result->GetArrVals() > 0 ? Result : PJsonVal();
 }
 
 void TDecisionTree::TNode::Fit(const TFltVV& FtrVV, const TFltV& ClassV, const TIntV& InstNV) {
@@ -425,35 +526,10 @@ void TDecisionTree::TNode::Fit(const TFltVV& FtrVV, const TFltV& ClassV, const T
 	// cut the dataset into left and right and build the tree recursively
 	if (ShouldGrow() && CutFtrN >= 0) {
 		EAssert(CutFtrN < Dim);
-
-		int NInstLeft = 0;
-
-		for (int i = 0; i < NExamples; i++) {
-			AssertR(0 <= InstNV[i] && InstNV[i] < FtrVV.GetCols(), "Invalid instance index: " + TInt::GetStr(InstNV[i]) + "!");
-			if (FtrVV(CutFtrN, InstNV[i]) <= CutFtrVal) {
-				NInstLeft++;
-			}
-		}
-
-		TIntV LeftInstNV(NInstLeft, 0);
-		TIntV RightInstNV(NExamples - NInstLeft, 0);
-
-		int InstN;
-		for (int i = 0; i < NExamples; i++) {
-			InstN = InstNV[i];
-			AssertR(0 <= InstN && InstN < FtrVV.GetCols(), "Invalid instance index: " + TInt::GetStr(InstN) + "!");
-			if (FtrVV(CutFtrN, InstN) <= CutFtrVal) {
-				LeftInstNV.Add(InstN);
-			} else {
-				RightInstNV.Add(InstN);
-			}
-		}
-
-		Left = new TNode(Tree);
-		Right = new TNode(Tree);
-
-		Left->Fit(FtrVV, ClassV, LeftInstNV);
-		Right->Fit(FtrVV, ClassV, RightInstNV);
+		// the best attribute is now selected, calculate the correlation between the
+		// selected attribute and other attributes, then split the node
+		CalcCorrFtrV(FtrVV, InstNV);
+		Split(FtrVV, ClassV, InstNV);
 	}
 }
 
@@ -493,6 +569,12 @@ void TDecisionTree::TNode::CopyNode(const TNode& Node) {
 		Right = new TNode(Tree);
 		Right->CopyNode(*Node.Right);
 	}
+}
+
+void TDecisionTree::TNode::SetTree(TDecisionTree* _Tree) {
+	Tree = _Tree;
+	if (HasLeft()) { Left->SetTree(Tree); }
+	if (HasRight()) { Right->SetTree(Tree); }
 }
 
 bool TDecisionTree::TNode::CanSplitNumFtr(const TFltIntPrV& ValClassPrV, const int& TotalPos,
@@ -541,6 +623,64 @@ bool TDecisionTree::TNode::CanSplitNumFtr(const TFltIntPrV& ValClassPrV, const i
 	return Score != TFlt::NInf;
 }
 
+void TDecisionTree::TNode::CalcCorrFtrV(const TFltVV& FtrVV, const TIntV& InstNV) {
+	if (Tree->IsCalcCorr()) {
+		const int Dim = FtrVV.GetRows();
+
+		CutFtrCorrFtrNPValTrV.Gen(Dim-1, 0);
+
+		TFltV CutFtrV(NExamples), OthrFtrV(NExamples);
+		for (int i = 0; i < NExamples; i++) {
+			CutFtrV[i] = FtrVV(CutFtrN, InstNV[i]);
+		}
+
+		for (int FtrN = 0; FtrN < Dim; FtrN++) {
+			if (FtrN != CutFtrN) {
+				for (int i = 0; i < NExamples; i++) {
+					OthrFtrV[i] = FtrVV(FtrN, InstNV[i]);
+				}
+
+				TCorr Corr(CutFtrV, OthrFtrV);
+				CutFtrCorrFtrNPValTrV.Add(TFltIntFltTr(Corr.GetCorrCf(), FtrN, Corr.GetCorrCfPrb()));
+			}
+		}
+
+		CutFtrCorrFtrNPValTrV.Sort(false);
+	}
+}
+
+void TDecisionTree::TNode::Split(const TFltVV& FtrVV, const TFltV& ClassV, const TIntV& InstNV) {
+	// construct the children
+	int NInstLeft = 0;
+
+	for (int i = 0; i < NExamples; i++) {
+		AssertR(0 <= InstNV[i] && InstNV[i] < FtrVV.GetCols(), "Invalid instance index: " + TInt::GetStr(InstNV[i]) + "!");
+		if (FtrVV(CutFtrN, InstNV[i]) <= CutFtrVal) {
+			NInstLeft++;
+		}
+	}
+
+	TIntV LeftInstNV(NInstLeft, 0);
+	TIntV RightInstNV(NExamples - NInstLeft, 0);
+
+	int InstN;
+	for (int i = 0; i < NExamples; i++) {
+		InstN = InstNV[i];
+		AssertR(0 <= InstN && InstN < FtrVV.GetCols(), "Invalid instance index: " + TInt::GetStr(InstN) + "!");
+		if (FtrVV(CutFtrN, InstN) <= CutFtrVal) {
+			LeftInstNV.Add(InstN);
+		} else {
+			RightInstNV.Add(InstN);
+		}
+	}
+
+	Left = new TNode(Tree);
+	Right = new TNode(Tree);
+
+	Left->Fit(FtrVV, ClassV, LeftInstNV);
+	Right->Fit(FtrVV, ClassV, RightInstNV);
+}
+
 bool TDecisionTree::TNode::ShouldGrow() const {
 	return Tree->ShouldGrow(NExamples, ClassHist[1]);
 }
@@ -560,17 +700,19 @@ void TDecisionTree::TNode::CleanUp() {
 ///////////////////////////////////////////
 // Decision Tree
 TDecisionTree::TDecisionTree(const PDtSplitCriteria& _SplitCriteria, const PDtPruneCriteria& _PruneCriteria,
-			const PDtGrowCriteria& _GrowCriteria):
+			const PDtGrowCriteria& _GrowCriteria, const bool& _CalcCorr):
 		Root(nullptr),
 		SplitCriteria(_SplitCriteria),
 		PruneCriteria(_PruneCriteria),
-		GrowCriteria(_GrowCriteria) {}
+		GrowCriteria(_GrowCriteria),
+		CalcCorr(_CalcCorr) {}
 
 TDecisionTree::TDecisionTree(TSIn& SIn):
 		Root(nullptr),
 		SplitCriteria(TDtSplitCriteria::Load(SIn)),
 		PruneCriteria(TDtPruneCriteria::Load(SIn)),
-		GrowCriteria(TDtGrowCriteria::Load(SIn)) {
+		GrowCriteria(TDtGrowCriteria::Load(SIn)),
+		CalcCorr(SIn) {
 
 	const TBool LoadRoot(SIn);
 	if (LoadRoot) {
@@ -582,7 +724,8 @@ TDecisionTree::TDecisionTree(const TDecisionTree& Other):
 		Root(nullptr),
 		SplitCriteria(Other.SplitCriteria),
 		PruneCriteria(Other.PruneCriteria),
-		GrowCriteria(Other.GrowCriteria) {
+		GrowCriteria(Other.GrowCriteria),
+		CalcCorr(Other.CalcCorr) {
 
 	if (Other.HasRoot()) {
 		Root = new TNode(this);
@@ -590,16 +733,23 @@ TDecisionTree::TDecisionTree(const TDecisionTree& Other):
 	}
 }
 
+#ifdef GLib_CPP11
 TDecisionTree::TDecisionTree(TDecisionTree&& Other):
 		Root(nullptr),
 		SplitCriteria(),
 		PruneCriteria(),
-		GrowCriteria() {
+		GrowCriteria(),
+		CalcCorr(Other.CalcCorr) {
 	std::swap(Root, Other.Root);
 	std::swap(SplitCriteria, Other.SplitCriteria);
 	std::swap(PruneCriteria, Other.PruneCriteria);
 	std::swap(GrowCriteria, Other.GrowCriteria);
+
+	if (HasRoot()) {
+		Root->SetTree(this);
+	}
 }
+#endif
 
 TDecisionTree& TDecisionTree::operator =(const TDecisionTree& Tree) {
 	if (this != &Tree) {
@@ -608,6 +758,7 @@ TDecisionTree& TDecisionTree::operator =(const TDecisionTree& Tree) {
 		SplitCriteria = Tree.SplitCriteria;
 		PruneCriteria = Tree.PruneCriteria;
 		GrowCriteria = Tree.GrowCriteria;
+		CalcCorr = Tree.CalcCorr;
 
 		if (Tree.HasRoot()) {
 			Root = new TNode(this);
@@ -626,6 +777,11 @@ TDecisionTree& TDecisionTree::operator =(TDecisionTree&& Tree) {
 		std::swap(SplitCriteria, Tree.SplitCriteria);
 		std::swap(PruneCriteria, Tree.PruneCriteria);
 		std::swap(GrowCriteria, Tree.GrowCriteria);
+		std::swap(CalcCorr, Tree.CalcCorr);
+
+		if (HasRoot()) {
+			Root->SetTree(this);
+		}
 	}
 
 	return *this;
@@ -636,6 +792,7 @@ void TDecisionTree::Save(TSOut& SOut) const {
 	SplitCriteria->Save(SOut);
 	PruneCriteria->Save(SOut);
 	GrowCriteria->Save(SOut);
+	CalcCorr.Save(SOut);
 
 	const TBool SaveRoot = HasRoot();
 
@@ -662,6 +819,11 @@ double TDecisionTree::Predict(const TFltV& FtrV) const {
 PJsonVal TDecisionTree::GetJson() const {
 	if (!HasRoot()) { return TJsonVal::NewObj(); }
 	return Root->GetJson();
+}
+
+PJsonVal TDecisionTree::ExplainPositive() const {
+	if (!HasRoot()) { return TJsonVal::NewArr(); }
+	return Root->ExplainLabel(1);
 }
 
 void TDecisionTree::Grow(const TFltVV& FtrVV, const TFltV& ClassV, const PNotify& Notify) {

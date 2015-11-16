@@ -1482,6 +1482,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "stateIds", _stateIds);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateWgtV", _getStateWgtV);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getClassifyTree", _getClassifyTree);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "explainState", _explainState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTransitionModel", _getTransitionModel);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onStateChanged", _onStateChanged);
@@ -1913,6 +1914,18 @@ void TNodeJsStreamStory::getClassifyTree(const v8::FunctionCallbackInfo<v8::Valu
 	const PJsonVal TreeJson = JsStreamStory->StreamStory->GetStateClassifyTree(StateId);
 
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, TreeJson));
+}
+
+void TNodeJsStreamStory::explainState(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const PJsonVal ExplainJson = JsStreamStory->StreamStory->GetStateExplain(StateId);
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ExplainJson));
 }
 
 void TNodeJsStreamStory::onStateChanged(const v8::FunctionCallbackInfo<v8::Value>& Args) {
