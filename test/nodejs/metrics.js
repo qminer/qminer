@@ -138,12 +138,16 @@ describe('Regression Metrics Tests', function () {
 
             var fout = new qm.fs.FOut('me.bin');
             me.save(fout);
+            fout.flush();
+            fout.close();
 
             var fin = new qm.fs.FIn('me.bin');
             me2.load(fin);
+            fin.close();
 
             var fin = new qm.fs.FIn('me.bin');
             var me3 = new analytics.metrics.MeanError(fin);
+            fin.close();
 
             assert.equal(me.getError(), me2.getError());
             assert.equal(me.getError(), me3.getError())
