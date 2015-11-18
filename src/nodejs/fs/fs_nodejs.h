@@ -64,6 +64,34 @@ private:
 public:
     static void Init(v8::Handle<v8::Object> exports);
     
+private:
+	class TReadCsvTask: public TNodeTask {
+	private:
+		PSIn SIn;
+		int Offset;
+		int Limit;
+		int BatchSize;
+		v8::Persistent<v8::Function> OnLine;
+
+	public:
+		TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		~TReadCsvTask();
+
+		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		void Run();
+	};
+
+	struct TReadLinesCallback {
+		TVec<TStrV> CsvLineV;
+		v8::Persistent<v8::Function>* OnLine;
+		TReadLinesCallback(const int& BatchSize, v8::Persistent<v8::Function>* _OnLine):
+			CsvLineV(BatchSize, 0),
+			OnLine(_OnLine) {}
+		static void Run(const TReadLinesCallback& Task);
+	};
+
+public:
+
 	/**
 	* open file in read mode and return file input stream
 	* @param {string} fileName - File name.
@@ -182,34 +210,7 @@ public:
     //# exports.readLines = function (buffer, onLine, onEnd, onError) {}
     JsDeclareFunction(readLines);
 
-    JsDeclareFunction(readCsvAsync);
-
-
-private:
-	class TReadCsvTask: public TNodeTask {
-	private:
-		PSIn SIn;
-		int Offset;
-		int Limit;
-		int BatchSize;
-		v8::Persistent<v8::Function> OnLine;
-
-	public:
-		TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
-		~TReadCsvTask();
-
-		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
-		void Run();
-	};
-
-	struct TReadLinesCallback {
-		TVec<TStrV> CsvLineV;
-		v8::Persistent<v8::Function>* OnLine;
-		TReadLinesCallback(const int& BatchSize, v8::Persistent<v8::Function>* _OnLine):
-			CsvLineV(BatchSize, 0),
-			OnLine(_OnLine) {}
-		static void Run(const TReadLinesCallback& Task);
-	};
+    JsDeclareAsyncFunction(readCsvAsync, TReadCsvTask);
 };
 
 ///////////////////////////////

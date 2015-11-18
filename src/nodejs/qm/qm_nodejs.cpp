@@ -3311,6 +3311,75 @@ TNodeJsFtrSpace* TNodeJsFtrSpace::NewFromArgs(const v8::FunctionCallbackInfo<v8:
 	return new TNodeJsFtrSpace(FtrSpace);
 }
 
+TNodeJsFtrSpace::TUpdateRecsTask::TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
+		TNodeTask(Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 2, "Should have 1 argument!");
+
+	JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+	JsRecV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsRecByValV>(Args, 0);
+}
+
+v8::Handle<v8::Function> TNodeJsFtrSpace::TUpdateRecsTask::GetCallback(
+		const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	return TNodeJsUtil::GetArgFun(Args, 1);
+}
+
+void TNodeJsFtrSpace::TUpdateRecsTask::Run() {
+	try {
+		const TVec<TQm::TRec>& RecV = JsRecV->RecV;
+		const int Len = RecV.Len();
+		for (int RecN = 0; RecN < Len; RecN++) {
+			const TQm::TRec Rec = RecV[RecN];
+			JsFtrSpace->FtrSpace->Update(Rec);
+		}
+	} catch (const PExcept& _Except) {
+		SetExcept(_Except);
+	}
+}
+
+TNodeJsFtrSpace::TExtractMatrixTask::TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
+			TNodeTask(Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+	JsRecV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsRecByValV>(Args, 0);
+	JsFtrVV = new TNodeJsFltVV;
+}
+
+v8::Handle<v8::Function> TNodeJsFtrSpace::TExtractMatrixTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	return TNodeJsUtil::GetArgFun(Args, 1);
+}
+
+void TNodeJsFtrSpace::TExtractMatrixTask::Run() {
+	try {
+		const TVec<TQm::TRec> RecV = JsRecV->RecV;
+		const TQm::PFtrSpace& FtrSpace = JsFtrSpace->FtrSpace;
+		TFltVV& Result = JsFtrVV->Mat;
+
+		const int Len = RecV.Len();
+		const int Dim = FtrSpace->GetDim();
+
+		Result.Gen(Dim, Len);
+		TFltV FtrV(Dim);
+
+		for (int RecN = 0; RecN < Len; RecN++) {
+			const TQm::TRec& Rec = RecV[RecN];
+			FtrSpace->GetFullV(Rec, FtrV);
+			Result.SetCol(RecN, FtrV);
+		}
+	} catch (const PExcept& _Except) {
+		SetExcept(_Except);
+	}
+}
+
+v8::Local<v8::Value> TNodeJsFtrSpace::TExtractMatrixTask::WrapResult() {
+	return TNodeJsUtil::NewInstance(JsFtrVV);
+}
+
 
 void TNodeJsFtrSpace::dim(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -3448,17 +3517,6 @@ void TNodeJsFtrSpace::updateRecords(const v8::FunctionCallbackInfo<v8::Value>& A
     JsFtrSpace->FtrSpace->Update(JsRecSet->RecSet);
 
     Args.GetReturnValue().Set(Args.Holder());
-}
-
-void TNodeJsFtrSpace::updateRecordsAsync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	TUpdateRecsTask* Task = new TUpdateRecsTask(Args);
-	Task->ExtractCallback(Args);
-	TNodeJsAsyncUtil::ExecuteOnWorker(Task);
-
-	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
 void TNodeJsFtrSpace::extractSparseVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -3599,17 +3657,6 @@ void TNodeJsFtrSpace::extractMatrix(const v8::FunctionCallbackInfo<v8::Value>& A
 	}
 
     Args.GetReturnValue().Set(TNodeJsFltVV::New(Mat));
-}
-
-void TNodeJsFtrSpace::extractMatrixAsync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	TExtractMatrixTask* Task = new TExtractMatrixTask(Args);
-	Task->ExtractCallback(Args);
-	TNodeJsAsyncUtil::ExecuteOnWorker(Task);
-
-	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
 void TNodeJsFtrSpace::getFeatureExtractor(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -3763,73 +3810,4 @@ void TNodeJsFtrSpace::extractStrings(const v8::FunctionCallbackInfo<v8::Value>& 
     }
 
     Args.GetReturnValue().Set(StrArr);
-}
-
-TNodeJsFtrSpace::TUpdateRecsTask::TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
-		TNodeTask(Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	QmAssertR(Args.Length() == 2, "Should have 1 argument!");
-
-	JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-	JsRecV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsRecByValV>(Args, 0);
-}
-
-v8::Handle<v8::Function> TNodeJsFtrSpace::TUpdateRecsTask::GetCallback(
-		const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	return TNodeJsUtil::GetArgFun(Args, 1);
-}
-
-void TNodeJsFtrSpace::TUpdateRecsTask::Run() {
-	try {
-		const TVec<TQm::TRec>& RecV = JsRecV->RecV;
-		const int Len = RecV.Len();
-		for (int RecN = 0; RecN < Len; RecN++) {
-			const TQm::TRec Rec = RecV[RecN];
-			JsFtrSpace->FtrSpace->Update(Rec);
-		}
-	} catch (const PExcept& _Except) {
-		SetExcept(_Except);
-	}
-}
-
-TNodeJsFtrSpace::TExtractMatrixTask::TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
-			TNodeTask(Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-	JsRecV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsRecByValV>(Args, 0);
-	JsFtrVV = new TNodeJsFltVV;
-}
-
-v8::Handle<v8::Function> TNodeJsFtrSpace::TExtractMatrixTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	return TNodeJsUtil::GetArgFun(Args, 1);
-}
-
-void TNodeJsFtrSpace::TExtractMatrixTask::Run() {
-	try {
-		const TVec<TQm::TRec> RecV = JsRecV->RecV;
-		const TQm::PFtrSpace& FtrSpace = JsFtrSpace->FtrSpace;
-		TFltVV& Result = JsFtrVV->Mat;
-
-		const int Len = RecV.Len();
-		const int Dim = FtrSpace->GetDim();
-
-		Result.Gen(Dim, Len);
-		TFltV FtrV(Dim);
-
-		for (int RecN = 0; RecN < Len; RecN++) {
-			const TQm::TRec& Rec = RecV[RecN];
-			FtrSpace->GetFullV(Rec, FtrV);
-			Result.SetCol(RecN, FtrV);
-		}
-	} catch (const PExcept& _Except) {
-		SetExcept(_Except);
-	}
-}
-
-v8::Local<v8::Value> TNodeJsFtrSpace::TExtractMatrixTask::WrapResult() {
-	return TNodeJsUtil::NewInstance(JsFtrVV);
 }
