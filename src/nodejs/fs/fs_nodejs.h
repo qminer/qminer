@@ -186,22 +186,20 @@ public:
 
 
 private:
-	class TReadCsv {
+	class TReadCsvTask: public TNodeTask {
 	private:
 		PSIn SIn;
 		int Offset;
 		int Limit;
 		int BatchSize;
 		v8::Persistent<v8::Function> OnLine;
-		v8::Persistent<v8::Function> OnEnd;
-		bool HasError;
 
 	public:
-		TReadCsv(const v8::FunctionCallbackInfo<v8::Value>& Args);
-		~TReadCsv();
+		TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		~TReadCsvTask();
 
-		static void Run(TReadCsv& Task);
-		static void AfterRun(const TReadCsv& Task);
+		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		void Run();
 	};
 
 	struct TReadLinesCallback {

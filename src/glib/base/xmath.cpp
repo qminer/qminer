@@ -105,7 +105,7 @@ double TSpecFunc::LnComb(const int& n, const int& k){
 }
 
 double TSpecFunc::BetaCf(const double& a, const double& b, const double& x){
-  static const double MAXIT=100;
+  static const double MAXIT=200;
   static const double EPS=3.0e-7;
   static const double FPMIN=1.0e-30;
   int m,m2;

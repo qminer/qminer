@@ -711,3 +711,66 @@ PMem TNodeJsUtil::GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 uint64 TNodeJsUtil::GetTmMSecs(v8::Handle<v8::Date>& Date) {
 	return GetCppTimestamp(int64(Date->NumberValue()));
 }
+
+
+//////////////////////////////////////////////////////
+// Async Stuff
+TNodeTask::TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
+		Callback(),
+		Persistent(),
+		Except() {
+
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (Args.Length() == 0) { return; }
+
+	v8::Local<v8::Array> ArgsArr = v8::Array::New(Isolate, Args.Length());
+	for (int ArgN = 0; ArgN < Args.Length(); ArgN++) {
+		ArgsArr->Set(ArgN, Args[ArgN]);
+	}
+	Persistent.Reset(Isolate, ArgsArr);
+}
+
+TNodeTask::~TNodeTask() {
+	Callback.Reset();
+	Persistent.Reset();
+}
+
+v8::Local<v8::Value> TNodeTask::WrapResult() {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	return v8::Undefined(Isolate);
+}
+
+void TNodeTask::ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	Callback.Reset(Isolate, GetCallback(Args));
+}
+
+void TNodeTask::AfterRun() {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(!Callback.IsEmpty(), "The callback was not defined!");
+	v8::Local<v8::Function> Fun = v8::Local<v8::Function>::New(Isolate, Callback);
+
+	if (!Except.Empty()) {
+		TNodeJsUtil::ExecuteErr(Fun, Except);
+	} else {
+		const int ArgC = 2;
+		v8::Handle<v8::Value> ArgV[ArgC] = { v8::Undefined(Isolate), WrapResult() };
+		TNodeJsUtil::ExecuteVoid(Fun, ArgC, ArgV);
+	}
+}
+
+void TNodeTask::AfterRunSync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (!Except.Empty()) { throw Except; }
+
+	Args.GetReturnValue().Set(WrapResult());
+}

@@ -3516,38 +3516,30 @@ private:
     	return TNodeJsFuncFtrExt::NewFtrExt(Base, ParamVal, Func, Isolate);
     }
 
-	class TUpdateRecsTask {
+	class TUpdateRecsTask: public TNodeTask {
 	private:
 		TNodeJsFtrSpace* JsFtrSpace;
 		TNodeJsRecByValV* JsRecV;
 
-		v8::Persistent<v8::Value> ArgHolder;
-		v8::Persistent<v8::Function> Callback;
-
-		bool HasErr;
 	public:
 		TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
-		~TUpdateRecsTask();
 
-		static void Run(TUpdateRecsTask& Task);
-		static void AfterRun(const TUpdateRecsTask& Task);
+		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		void Run();
 	};
 
-    class TExtractMatrixTask {
+    class TExtractMatrixTask: public TNodeTask {
     private:
     	TNodeJsFtrSpace* JsFtrSpace;
     	TNodeJsRecByValV* JsRecV;
     	TNodeJsFltVV* JsFtrVV;
 
-    	v8::Persistent<v8::Value> ArgHolder;
-    	v8::Persistent<v8::Function> Callback;
-    	bool HasError;
     public:
     	TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
-    	~TExtractMatrixTask();
 
-    	static void Run(TExtractMatrixTask& Task);
-    	static void AfterRun(const TExtractMatrixTask& Task);
+    	v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+    	void Run();
+    	v8::Local<v8::Value> WrapResult();
     };
 };
 
