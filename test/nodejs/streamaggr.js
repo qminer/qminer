@@ -451,7 +451,7 @@ describe('Time Series Window Buffer Tests', function () {
             assert.equal(vec[0], 1);
             assert.equal(vec[1], 2);
         })
-        it('should return an empty vector', function () {
+        it('should throw an exception when calling getFloatVector in a noninitialized state', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -461,8 +461,9 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
-            var vec = sa.getFloatVector();
-            assert.equal(vec.length, 0);
+            assert.throws(function () {
+                var vec = sa.getFloatVector();
+            });
         })
         it('should return the float vector of values that are still in the window', function () {
             var aggr = {
@@ -503,7 +504,7 @@ describe('Time Series Window Buffer Tests', function () {
             var vec = sa.getFloatVector();
             assert.equal(sa.getFloatLength(), 2);
         })
-        it('should return 0 for an empty float vector', function () {
+        it('should throw an exception when calling getFloatLength in a noninitialized state', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -513,8 +514,9 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
-            var vec = sa.getFloatVector();
-            assert.equal(sa.getFloatLength(), 0);
+            assert.throws(function () {
+                var res = sa.getFloatLength();
+            });
         })
     });
     describe('GetFloatAt Tests', function () {
@@ -567,7 +569,7 @@ describe('Time Series Window Buffer Tests', function () {
             assert.equal(vec[1] - 11644473600000, new Date('2015-06-10T14:13:33.0').getTime());
 
         })
-        it('should return an empty timestamp vector', function () {
+        it('should throw an exception when calling getTimestampVector in a noninitialized state', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -577,8 +579,9 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
-            var vec = sa.getTimestampVector();
-            assert.equal(vec.length, 0);
+            assert.throws(function () {
+                var res = sa.getTimestampVector();
+            });
         })
     });
     describe('GetTimestampLength Tests', function () {
@@ -596,7 +599,7 @@ describe('Time Series Window Buffer Tests', function () {
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
             assert.equal(sa.getTimestampLength(), 2);
         })
-        it('should return 0 for an empty timestamp vector', function () {
+        it('should throw an exception when calling getTimestampLength in a noninitialized state', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -606,7 +609,9 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
-            assert.equal(sa.getTimestampLength(), 0);
+            assert.throws(function () {
+                var res = sa.getTimestampLength();
+            });
         })
     });
     describe('GetTimestampAt Tests', function () {
@@ -656,7 +661,7 @@ describe('Time Series Window Buffer Tests', function () {
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
             assert.equal(sa.getInFloat(), 2);
         })
-        it('should return 0 for an empty buffer', function () {
+        it('should throw', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -666,7 +671,9 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
-            assert.equal(sa.getInFloat(), 0);
+            assert.throws(function () {
+                var res = sa.getInFloat();
+            });
         })
     });
     describe('GetInTimestamp Tests', function () {
@@ -694,7 +701,9 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
-            assert.equal(sa.getInTimestamp(), 0);
+            assert.throws(function () {
+                var res = sa.getInTimestamp();
+            });
         })
     });
     describe('GetOutFloatVector Tests', function () {
@@ -818,7 +827,7 @@ describe('Time Series Window Buffer Tests', function () {
             store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
             assert.equal(sa.getNumberOfRecords(), 2);
         })
-        it('should return 0 if the buffer contains no records', function () {
+        it('should throw', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -827,8 +836,10 @@ describe('Time Series Window Buffer Tests', function () {
                 value: 'Value',
                 winsize: 2000
             };
-            var sa = store.addStreamAggr(aggr);;
-            assert.equal(sa.getNumberOfRecords(), 0);
+            var sa = store.addStreamAggr(aggr);
+            assert.throws(function () {
+                var res = sa.getNumberOfRecords();
+            });
         })
     });
     describe('Name Test', function () {
@@ -3358,6 +3369,7 @@ describe('Online Histogram Tests', function () {
                 addPosInf: false
             };
             var aggr = store.addStreamAggr(aggrJson);
+
             store.push({ Time: '2015-06-10T14:13:32.0', Value: -1 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 5 });
             store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });

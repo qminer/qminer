@@ -258,28 +258,43 @@ public:
 ///////////////////////////////
 // Time series window buffer.
 // Wrapper for exposing a window in a time series to signal processing aggregates 
-// TODO; use circular buffer
+// Supports two parameters: window size (in milliseconds) and delay (in milliseconds)
+// When a new record with timestamp t_new is added, the buffer will be updated
+// and the timestamps of all contained records will satisfy: 
+// t_i - t_j <= window, for all i > j, and t_new - t_i >= delay, for all i.  
+// 
+// ASSUMPTION!
+// Internally the aggregate only stores the IDs of the last and the first record in the buffer - it
+// assumes the streaming store (no holes in record IDs, increasing timestamps)
+//
+// Each time a new record commes in, a set of records (possibly empty) dropps out of the buffer. 
+// The record IDs that drop out range from [DroppedFirstRecInId,... , FirstRecInId-1]. If no records
+// get dropped, the DroppedFIrstRecInId will equal to TUInt64::Mx.
+// TODO: GetInFltV, GetInTmMSecsV (delay!). If data is not equally spaced, more than one rec can enter.
 class TWinBuf : public TStreamAggr, public TStreamAggrOut::IFltTmIO,
                 public TStreamAggrOut::IFltVec, public TStreamAggrOut::ITmVec {
 private:
-    TInt TimeFieldId;
-    TInt TickValFieldId;
-    TUInt64 WinSizeMSecs;   
-    // initialized after first value
-    TBool InitP;
-    //the newest and oldest values
-    TFlt InVal;
-    TUInt64 InTmMSecs;
-    TFltV OutValV;
-    TUInt64V OutTmMSecsV;
-    // the buffer and the time stamps
-    TFltUInt64PrV AllValV; 
+	// STORAGE ACCESS
+	TWPt<TStore> Store; /// needed to access records through IDs
+    TInt TimeFieldId; /// field ID of the timestamp field in the store (used for efficiency)
+    TInt ValFieldId; /// field ID of the value field in the store (used for efficiency)
+    
+	// ALGORITHM PARAMETERS
+	TUInt64 WinSizeMSecs; /// window size in milliseconds
+	TUInt64 DelayMSecs;  /// delay in milliseconds
+    
+	// ALGORITHM STATE
+	TUInt64 DroppedFirstRecInId; /// the oldest record that has been recently invalidated (lowest ID). RecordsIDs [DroppedFirstRecInId, ..., FirstRecInId -1] have just fallen out of the buffer.
+	TUInt64 FirstRecInId; /// the record with the oldest timestamp currently in the buffer(lowest ID)
+	TUInt64 LastRecInId; /// the record with the most recent timestamp currently in the buffer (highest ID)
 	
 protected:
+	/// Stream aggregate update function called when a record is added
 	void OnAddRec(const TRec& Rec);
-
+	/// JSON based constructor
     TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
+	/// Smart pointer JSON based constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
 	/// Load stream aggregate state from stream
@@ -287,40 +302,45 @@ public:
 	/// Save state of stream aggregate to stream
 	void SaveState(TSOut& SOut) const;
 
-	// did we finish initialization
-	bool IsInit() const { return InitP; }
+	/// did we finish initialization
+	bool IsInit() const;
 	/// Resets the model state
-	void Reset() { InitP = false; InVal = 0.0; InTmMSecs = 0; OutValV.Gen(0); OutTmMSecsV.Gen(0); AllValV.Gen(0); }
-
-	// most recent values
-	double GetInFlt() const { return InVal; }
-	uint64 GetInTmMSecs() const { return InTmMSecs; }
-    // old values that fall out of the buffer
-	void GetOutFltV(TFltV& ValV) const { ValV = OutValV; }
-	void GetOutTmMSecsV(TUInt64V& MSecsV) const { MSecsV = OutTmMSecsV; }  
+	void Reset();
+	/// most recent values
+	double GetInFlt() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return Store->GetFieldFlt(LastRecInId, ValFieldId); }
+	uint64 GetInTmMSecs() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return Store->GetFieldTmMSecs(LastRecInId, TimeFieldId); }
+    /// old values that fall out of the buffer
+	void GetOutFltV(TFltV& ValV) const;
+	/// old timestamps that fall out of the buffer
+	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
 	
-	// the oldest value that is still in the buffer
-	double GetOldestFlt() const { return AllValV[0].Val1; }
-	// the oldest timestamp that is still in the buffer
-	uint64 GetOldestTmMSecs() const { return AllValV[0].Val2; }
+	/// the oldest value that is still in the buffer
+	double GetOldestFlt() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return Store->GetFieldFlt(FirstRecInId, ValFieldId); }
+	/// the oldest timestamp that is still in the buffer
+	uint64 GetOldestTmMSecs() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return Store->GetFieldTmMSecs(FirstRecInId, TimeFieldId); }
 
-    // buffer length
-	int GetN() const { return AllValV.Len(); }
+    /// buffer length
+	int GetN() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return (int)(LastRecInId - FirstRecInId + 1); }
 
-	// IFltVec
-	int GetFltLen() const {	return AllValV.Len(); }
-	double GetFlt(const TInt& ElN) const { return AllValV[ElN].Val1; }
+	/// get float vector length (IFltVec interface)
+	int GetFltLen() const { return GetN(); }
+	/// get float vector element (IFltVec interface)
+	double GetFlt(const TInt& ElN) const { return Store->GetFieldFlt(FirstRecInId + ElN, ValFieldId); }
+	/// get float vector of all values in the buffer (IFltVec interface)
 	void GetFltV(TFltV& ValV) const;
-	// ITmVec 
-	int GetTmLen() const { return AllValV.Len(); }
-	uint64 GetTm(const TInt& ElN) const { return AllValV[ElN].Val2; }
+	/// get time vector length (ITmVec interface) 
+	int GetTmLen() const { return GetN(); }
+	/// get time vector element (ITmVec interface
+	uint64 GetTm(const TInt& ElN) const { return Store->GetFieldTmMSecs(FirstRecInId + ElN, TimeFieldId); }
+	/// get timestamp vector of all timestamps in the buffer (ITmVec interface)
 	void GetTmV(TUInt64V& MSecsV) const;
 
-	// serialization to JSon
+	/// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
     
-    // stream aggregator type name 
+    /// stream aggregator type name 
     static TStr GetType() { return "timeSeriesWinBuf"; }
+	/// stream aggregator type name 
 	TStr Type() const { return GetType(); }
 };
 

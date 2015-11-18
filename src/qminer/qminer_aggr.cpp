@@ -547,44 +547,63 @@ PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 ///////////////////////////////
 // Time series winbuf.
 void TWinBuf::OnAddRec(const TRec& Rec) {
-    // get the value and time stamp of the last record
-	InVal = Rec.GetFieldFlt(TickValFieldId);
-	InTmMSecs = Rec.GetFieldTmMSecs(TimeFieldId);
-    InitP = true;
-    // empty the former outgoing value vector
-    OutValV.Clr(true); OutTmMSecsV.Clr(true);
-    int ValLen = AllValV.Len();
-    // update the interval    
-    AllValV.Add(TFltUInt64Pr(InVal, InTmMSecs));
-    
-    // prepare the vector of elements that are going to be removed from the window
-    for (int ValN = 0; ValN < ValLen; ValN++) {
-        if ((InTmMSecs - AllValV[ValN].Val2) > WinSizeMSecs) { 
-            OutValV.Add(AllValV[ValN].Val1);
-            OutTmMSecsV.Add(AllValV[ValN].Val2);
-        } else { break; }
-    }
-    
-    // remove all the elements   
-    if (OutValV.Len() > 0) { AllValV.Del(0, OutValV.Len() - 1); }  
+	uint64 NewRecId = Rec.GetRecId();
+	uint64 NewRecTm = Rec.GetFieldTmMSecs(TimeFieldId);
+
+	// if LastRecInId is not valid, we need to find it
+	if (!Store->IsRecId(LastRecInId)) {
+		// go from the first record and see check its timestamp
+		uint64 TempRecId = Store->GetFirstRecId();
+		if (NewRecTm - Store->GetFieldTmMSecs(TempRecId, TimeFieldId) < DelayMSecs) {
+			// all records are ahead of the buffer
+			return;
+		}
+		while ((Store->IsRecId(TempRecId + 1)) &&
+			   (NewRecTm - Store->GetFieldTmMSecs(TempRecId + 1, TimeFieldId) >= DelayMSecs)) {
+			TempRecId++; 
+		}
+		LastRecInId = TempRecId;
+	}
+	// if FirstRecInId is not valid, we need to find it
+	if (!Store->IsRecId(FirstRecInId)) {
+		// go from the last record backwards
+		FirstRecInId = LastRecInId;
+		while ((Store->IsRecId(FirstRecInId - 1)) &&
+			   (Store->GetFieldTmMSecs(LastRecInId, TimeFieldId) - Store->GetFieldTmMSecs(FirstRecInId - 1, TimeFieldId) <= WinSizeMSecs)) {
+			FirstRecInId--;
+		}
+	}
+
+	// Set the dropped record index. If the FirstRecInId will move, the dropped record set will not be empty.
+	DroppedFirstRecInId = FirstRecInId;
+
+	// Increment LastRecInId as long as NewRec.time - LastRecIn.time >= delay
+	while ((Store->IsRecId(LastRecInId + 1)) &&
+		   (NewRecTm - Store->GetFieldTmMSecs(LastRecInId + 1, TimeFieldId) >= DelayMSecs)) {
+		LastRecInId++;
+	}
+	// Increment FirstRecInId as long as LastRecIn.time - FirstRecIn.time > window size
+	while ((Store->IsRecId(FirstRecInId + 1)) &&
+		   (Store->GetFieldTmMSecs(LastRecInId, TimeFieldId) - Store->GetFieldTmMSecs(FirstRecInId, TimeFieldId) > WinSizeMSecs)) {
+		FirstRecInId++; 
+	}
 }
 
 TWinBuf::TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
-        TStreamAggr(Base, ParamVal) {
-        
+TStreamAggr(Base, ParamVal) {
+	// Reset state
+	Reset();
     // parse out input and output fields
     TStr StoreNm = ParamVal->GetObjStr("store");
-	TWPt<TStore> Store = Base->GetStoreByStoreNm(StoreNm);
-    TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
+	Store = Base->GetStoreByStoreNm(StoreNm);    
+	TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
 	TimeFieldId = Store->GetFieldId(TimeFieldNm);
-    TStr TickValFieldNm = ParamVal->GetObjStr("value");
-	TickValFieldId = Store->GetFieldId(TickValFieldNm);
-	// replacing GetObjInt("winsize"); which supports only int (which is not enough)
+    TStr ValFieldNm = ParamVal->GetObjStr("value");
+	ValFieldId = Store->GetFieldId(ValFieldNm);
 	double TmD = ParamVal->GetObjNum("winsize");
 	WinSizeMSecs = (uint64)TmD;
-	// temporary warning
-	if (WinSizeMSecs < 60000) InfoLog("Warning: winsize of TWinBuf possibly not in msecs (< 60000)");
-    OutValV = TFltV(); OutTmMSecsV = TUInt64V(); AllValV = TFltUInt64PrV();
+	double Delay = ParamVal->GetObjNum("delay", 0.0);
+	DelayMSecs = (uint64)Delay;
 }
 
 PStreamAggr TWinBuf::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
@@ -592,43 +611,71 @@ PStreamAggr TWinBuf::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 }
 
 void TWinBuf::LoadState(TSIn& SIn) {
-	InitP.Load(SIn);
-	InVal.Load(SIn);
-	InTmMSecs.Load(SIn);
-	OutValV.Load(SIn);
-	OutTmMSecsV.Load(SIn);
-	AllValV.Load(SIn);
+	DroppedFirstRecInId.Load(SIn);
+	FirstRecInId.Load(SIn);
+	LastRecInId.Load(SIn);
 }
 
 void TWinBuf::SaveState(TSOut& SOut) const {
-	InitP.Save(SOut);
-	InVal.Save(SOut);
-	InTmMSecs.Save(SOut);
-	OutValV.Save(SOut);
-	OutTmMSecsV.Save(SOut);
-	AllValV.Save(SOut);
+	DroppedFirstRecInId.Save(SOut);
+	FirstRecInId.Save(SOut);
+	LastRecInId.Save(SOut);
+}
+
+bool TWinBuf::IsInit() const {
+	return LastRecInId < TUInt64::Mx;
+}
+
+void TWinBuf::Reset() {
+	DroppedFirstRecInId = TUInt64::Mx;
+	FirstRecInId = TUInt64::Mx;
+	LastRecInId = TUInt64::Mx;
+}
+
+void TWinBuf::GetOutFltV(TFltV& ValV) const {
+	if (DroppedFirstRecInId >= FirstRecInId) { ValV.Gen(0); return; }
+	int DropRecords = FirstRecInId - DroppedFirstRecInId;
+	if (ValV.Len() != DropRecords) { ValV.Gen(DropRecords); }
+	// iterate
+	for (int RecN = 0; RecN < DropRecords; RecN++) {
+		ValV[RecN] = Store->GetFieldFlt(DroppedFirstRecInId + RecN, ValFieldId);
+	}
+}
+
+void TWinBuf::GetOutTmMSecsV(TUInt64V& MSecsV) const {
+	if (DroppedFirstRecInId >= FirstRecInId) { MSecsV.Gen(0); return; }
+	int DropRecords = FirstRecInId - DroppedFirstRecInId;
+	if (MSecsV.Len() != DropRecords) { MSecsV.Gen(DropRecords); }
+	// iterate
+	for (int RecN = 0; RecN < DropRecords; RecN++) {
+		MSecsV[RecN] = Store->GetFieldTmMSecs(DroppedFirstRecInId + RecN, TimeFieldId);
+	}
 }
 
 void TWinBuf::GetFltV(TFltV& ValV) const {
+	EAssertR(IsInit(), "WinBuf not initialized yet!");
 	int Len = GetN();
-	ValV.Gen(Len);
-	for (int ElN = 0; ElN < Len; ElN++) {
-		ValV[ElN] = AllValV[ElN].Val1;
+	if (ValV.Empty()) { ValV.Gen(Len); }	
+	// iterate
+	for (int RecN = 0; RecN < Len; RecN++) {
+		ValV[RecN] = GetFlt(RecN);
 	}
 }
 
 void TWinBuf::GetTmV(TUInt64V& MSecsV) const {
+	EAssertR(IsInit(), "WinBuf not initialized yet!");
 	int Len = GetN();
 	MSecsV.Gen(Len);
-	for (int ElN = 0; ElN < Len; ElN++) {
-		MSecsV[ElN] = AllValV[ElN].Val2;
+	// iterate
+	for (int RecN = 0; RecN < Len; RecN++) {
+		MSecsV[RecN] = GetTm(RecN);
 	}
 }
 
 PJsonVal TWinBuf::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("Val", InVal);
-	Val->AddToObj("Time", TTm::GetTmFromMSecs(InTmMSecs).GetWebLogDateTimeStr(true, "T"));
+	Val->AddToObj("Val", GetInFlt());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(GetInTmMSecs()).GetWebLogDateTimeStr(true, "T"));	
 	return Val;
 }
 
