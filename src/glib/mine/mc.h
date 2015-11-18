@@ -320,6 +320,9 @@ public:
 class TDtMChain {
 public:
 	static void GetProbVV(const TFltVV& PMat, const int& Steps, TFltVV& ProbVV);
+	static void GetRevPMat(const TFltVV& PMat, TFltVV& RevPMat);
+
+	static void GetStatDistV(const TFltVV& PMat, TFltV& DistV);
 };
 
 /////////////////////////////////////////////////////////////////

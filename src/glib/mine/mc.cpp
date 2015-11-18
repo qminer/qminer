@@ -1113,6 +1113,47 @@ void TDtMChain::GetProbVV(const TFltVV& PMat, const int& Steps, TFltVV& ProbVV) 
 	TLinAlg::Pow(PMat, Steps, ProbVV);
 }
 
+void TDtMChain::GetRevPMat(const TFltVV& PMat, TFltVV& RevPMat) {
+	const int States = PMat.GetRows();
+
+	if (RevPMat.Empty()) { RevPMat.Gen(States, States); }
+	EAssert(RevPMat.GetRows() == States && RevPMat.GetCols() == States);
+
+	TFltV StatDist;	GetStatDistV(PMat, StatDist);
+
+	for (int i = 0; i < States; i++) {
+		for (int j = 0; j < States; j++) {
+			RevPMat(j,i) = StatDist[i] * PMat(i,j) / StatDist[j];
+		}
+	}
+}
+
+void TDtMChain::GetStatDistV(const TFltVV& PMat, TFltV& DistV) {
+	const int States = PMat.GetRows();
+
+	if (DistV.Empty()) { DistV.Gen(States); }
+	EAssert(DistV.Len() == States);
+
+	TFltVV PMatT;	TLinAlg::Transpose(PMat, PMatT);
+
+	TNumericalStuff::GetEigenVec(PMatT, 1, DistV);
+
+	//===========================================================
+	// TODO remove this assertion after you know this works
+	// check if the result is correct
+	TFltV PiTimesP;
+	TLinAlg::MultiplyT(PMat, DistV, PiTimesP);
+	TLinAlg::LinComb(1, DistV, -1, PiTimesP, PiTimesP);
+	const double PiQNorm = TLinAlg::Norm(PiTimesP);
+	EAssertR(PiQNorm < 1e-3, "This is not an eigenvector with eigenvalue 0");
+	//===========================================================
+
+	const double Sum = TLinAlg::SumVec(DistV);
+	for (int i = 0; i < States; i++) {
+		DistV[i] /= Sum;
+	}
+}
+
 /////////////////////////////////////////////////////////////////
 // Continuous time Markov chain
 void TCtMChain::GetAggrQMat(const TFltVV& QMat, const TStateSetV& AggrStateV,
