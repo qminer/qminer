@@ -480,7 +480,7 @@ public:
 class TNodeTask: public TAsyncTask {
 private:
 	v8::Persistent<v8::Function> Callback;
-	v8::Persistent<v8::Array> Persistent;
+	v8::Persistent<v8::Array> ArgPersist;
 	PExcept Except;
 
 public:
@@ -499,21 +499,6 @@ protected:
 	void SetExcept(const PExcept& _Except) { Except = _Except; }
 	bool HasExcept() const { return !Except.Empty(); }
 };
-
-
-//#define NODE_SYNC_ASYNC(fit, fitAsync, TTask)
-//void FitAsync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-//	v8::Handle<v8::Function> Callback = TTask::GetCallback(Args);
-//	TTask Task = new TTask(Args);
-//	Task->ExtractCallback(Args);
-//	TNodeJsAsyncUtil::ExecuteOnWorker(Task);
-//}
-//
-//void Fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-//	TTask Task(Args);
-//	Task->Run();
-//	Task->AfterRunSync(Args);
-//}
 
 
 //////////////////////////////////////////////////////

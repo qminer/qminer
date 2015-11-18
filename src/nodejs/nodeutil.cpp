@@ -717,7 +717,7 @@ uint64 TNodeJsUtil::GetTmMSecs(v8::Handle<v8::Date>& Date) {
 // Async Stuff
 TNodeTask::TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
 		Callback(),
-		Persistent(),
+		ArgPersist(),
 		Except() {
 
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -729,12 +729,12 @@ TNodeTask::TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
 	for (int ArgN = 0; ArgN < Args.Length(); ArgN++) {
 		ArgsArr->Set(ArgN, Args[ArgN]);
 	}
-	Persistent.Reset(Isolate, ArgsArr);
+	ArgPersist.Reset(Isolate, ArgsArr);
 }
 
 TNodeTask::~TNodeTask() {
 	Callback.Reset();
-	Persistent.Reset();
+	ArgPersist.Reset();
 }
 
 v8::Local<v8::Value> TNodeTask::WrapResult() {
