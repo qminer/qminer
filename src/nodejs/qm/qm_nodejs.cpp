@@ -3373,6 +3373,7 @@ void TNodeJsFtrSpace::TExtractMatrixTask::Run() {
 		}
 	} catch (const PExcept& _Except) {
 		SetExcept(_Except);
+		delete JsFtrVV;
 	}
 }
 
