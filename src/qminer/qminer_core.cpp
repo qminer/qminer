@@ -5461,6 +5461,7 @@ PJsonVal TBase::GetStats() {
 	TBlobBsStats gix_blob_stats = GetGixBlobStats();
 	res->AddToObj("gix_stats", GixStatsToJson(gix_stats));
 	res->AddToObj("gix_blob", BlobBsStatsToJson(gix_blob_stats));
+	res->AddToObj("access", GetFAccess());
 	return res;
 }
 
