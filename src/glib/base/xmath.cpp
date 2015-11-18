@@ -622,10 +622,17 @@ TCorr::TCorr(const TFltV& ValV1, const TFltV& ValV2):
   }
   // calculate correlation coefficient significance level
   double df=ValVLen-2;
-  double t=CorrCf*sqrt(df/((1.0-CorrCf+TINY)*(1.0+CorrCf+TINY)));
+
+  double tmp = df/((1.0-CorrCf+TINY)*(1.0+CorrCf+TINY));
+  if (tmp < 0.0) { tmp = 0.0; }	// must check, tmp can be something really small but negative and you get nan later
+  double t=CorrCf*sqrt(tmp);
+
   CorrCfPrb=TSpecFunc::BetaI(0.5*df,0.5,df/(df+t*t));
   // calculate Fisher's Z transformation
-  FisherZ=0.5*log((1.0+(CorrCf)+TINY)/(1.0-(CorrCf)+TINY));
+  tmp = (1.0+(CorrCf)+TINY)/(1.0-(CorrCf)+TINY);	// this can be negative, will get nan later
+  if (tmp < 0.0) { tmp = 0.0; }
+
+  FisherZ=0.5*log(tmp);
 }
 
 /////////////////////////////////////////////////
