@@ -135,8 +135,6 @@ public:
 	}
 };
 
-
-
 /////////////////////////////////////////////////
 /// Thin Input-Memory. Used to present existing TMem as TSIn. 
 /// It doesn't allocate or release any memory.
@@ -442,10 +440,6 @@ public:
 
   static void LoadTxt(const PSIn& SIn, TChA& ChA);
   void SaveTxt(const PSOut& SOut) const;
-  
-  //friend TChA operator+(const TChA& LStr, const TChA& RStr);
-  //friend TChA operator+(const TChA& LStr, const TStr& RStr);
-  //friend TChA operator+(const TChA& LStr, const char* RCStr);
 };
 
 /////////////////////////////////////////////////
@@ -943,30 +937,6 @@ public:
 };
 
 /////////////////////////////////////////////////
-// Simple-String-Pool
-//ClassTP(TSStrPool, PSStrPool)//{
-//private:
-//  TMem Bf;
-//public:
-//  TSStrPool(const int& MxLen=0): Bf(MxLen){}
-//  TSStrPool(TSStrPool& StrPool): Bf(StrPool.Bf){}
-//  TSStrPool(TSIn& SIn): Bf(SIn){}
-//  void Save(TSOut& SOut) const {Bf.Save(SOut);}
-//
-//  TSStrPool& operator=(const TSStrPool& StrPool){
-//    Bf=StrPool.Bf; return *this;}
-//
-//  int Len() const {return Bf.Len();}
-//  void Clr(){Bf.Clr();}
-//  int AddStr(const TStr& Str){
-//    if (Str.Empty()){return -1;}
-//    else {int StrId=Bf.Len(); Bf+=Str; Bf+=char(0); return StrId;}}
-//  TStr GetStr(const int& StrId) const {
-//    if (StrId==-1){return "";}
-//    else {return TStr(Bf()+StrId);}}
-//};
-
-/////////////////////////////////////////////////
 // String-Pool
 ClassTP(TStrPool, PStrPool)//{
 private:
@@ -1053,6 +1023,8 @@ public:
   TStr GetStr(const uint64& StrId) const;
 };
 
+/////////////////////////////////////////////////
+// Number Base Template
 template <class Base> class TNum{
 public:
 	Base Val;
@@ -1070,15 +1042,12 @@ public:
 	TNum operator++(Base){ TNum oldVal = Val; Val++; return oldVal; } // postfix
 	TNum operator--(Base){ TNum oldVal = Val; Val--; return oldVal; } // postfix
 	Base& operator()() { return Val; }
-	/*
-	T& operator~(){ Val = ~Val; return *this; }
-	T& operator&=(const T& Other){ Val &= Other.Val; return *this; }
-	T& operator|=(const T& Other){ Val |= Other.Val; return *this; }
-	T& operator^=(const T& Other){ Val ^= Other.Val; return *this; }
-	*/
+
 	int GetMemUsed() const { return sizeof(TNum); }
 };
-//Complex double
+
+/////////////////////////////////////////////////
+// Complex double
 template<> 
 class TNum<std::complex<double>>{
 public:
@@ -1099,7 +1068,9 @@ public:
 	std::complex<double>& operator()() { return Val; }
 	int GetMemUsed() const { return sizeof(TNum); }
 };
-//Complex float
+
+/////////////////////////////////////////////////
+// Complex float
 template<>
 class TNum<std::complex<float>>{
 public:
@@ -1343,7 +1314,6 @@ public:
 
 /////////////////////////////////////////////////
 // Integer
-// TInt{
 typedef TNum<int> TInt;
 template<>
 class TNum<int>{
@@ -1483,10 +1453,6 @@ public:
   TNum operator--(int){ TNum oldVal = Val; Val--; return oldVal; } // postfix
   TNum& operator+=(const uint& Int){ Val += Int; return *this; }
   TNum& operator-=(const uint& Int){ Val -= Int; return *this; }
-  //bool operator==(const TUInt& UInt) const {return Val==UInt.Val;}
-  //bool operator==(const uint& UInt) const {return Val==UInt;}
-  //bool operator!=(const uint& UInt) const {return Val!=UInt;}
-  //bool operator<(const TUInt& UInt) const {return Val<UInt.Val;}
   uint operator()() const {return Val;}
   uint& operator()() {return Val;}
   TNum& operator~(){ Val = ~Val; return *this; }
@@ -1550,16 +1516,10 @@ public:
 	TNum() : Val(0){}
 	TNum(const TNum& Int) : Val(Int.Val){}
 	TNum(const int64& Int) : Val(Int){}
-	/*explicit T(void* Pt) : Val(0){
-		TConv_Pt64Ints32 Conv(Pt); Val = Conv.GetUInt64();
-	}*/
 	operator int64() const { return Val; }
 	explicit TNum(TSIn& SIn){ SIn.Load(Val); }
 	void Load(TSIn& SIn){ SIn.Load(Val); }
 	void Save(TSOut& SOut) const { SOut.Save(Val); }
-	/*void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
-	void SaveXml(TSOut& SOut, const TStr& Nm) const;
-	*/
 	TNum& operator=(const TNum& Int){ Val = Int.Val; return *this; }
 	TNum& operator+=(const TNum& Int){ Val += Int.Val; return *this; }
 	TNum& operator-=(const TNum& Int){ Val -= Int.Val; return *this; }
@@ -1567,11 +1527,8 @@ public:
 	TNum& operator--(){ --Val; return *this; } // prefix
 	TNum operator++(int){ TNum oldVal = Val; Val++; return oldVal; } // postfix
 	TNum operator--(int){ TNum oldVal = Val; Val--; return oldVal; } // postfix
-int GetMemUsed() const { return sizeof(TNum); }
+    int GetMemUsed() const { return sizeof(TNum); }
 
-	//TStr GetStr() const {return TStr::Fmt("%Lu", Val);}
-	//static TStr GetStr(const T& Int){return TStr::Fmt("%Lu", Int.Val);}
-	//static TStr GetHexStr(const T& Int){return TStr::Fmt("%LX", Int.Val);}
 #ifdef GLib_WIN
 	TStr GetStr() const { return TStr::Fmt("%I64", Val); }
 	static TStr GetStr(const TNum& Int){ return TStr::Fmt("%I64", Int.Val); }
@@ -1600,8 +1557,6 @@ int GetMemUsed() const { return sizeof(TNum); }
 	return GetStr(Val/1000000000)+"."+GetStr((Val%1000000000)/100000000)+"G";}
 	else {return GetMegaStr(Val);}}*/
 };
-
-
 
 /////////////////////////////////////////////////
 // Unsigned-Integer-64Bit

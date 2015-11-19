@@ -5423,19 +5423,19 @@ int TBase::PartialFlush(int WndInMsec) {
 				xstores[i].Val2 = false; // ok, this store is clean now
 			}
 			saved += xsaved;
-			//TQm::TEnv::Logger->OnStatusFmt("Partial flush:     store %s = %d", xstores[i].Val1->GetStoreNm().CStr(), xsaved);
+			TQm::TEnv::Debug->OnStatusFmt("Partial flush:     store %s = %d", xstores[i].Val1->GetStoreNm().CStr(), xsaved);
 		}
 		if (xindex) { // save index
 			xsaved = Index->PartialFlush(slice);
 			xindex = (xsaved > 0);
 			saved += xsaved;
-			//TQm::TEnv::Logger->OnStatusFmt("Partial flush:     index = %d", xsaved);
+			TQm::TEnv::Debug->OnStatusFmt("Partial flush:     index = %d", xsaved);
 		}
 		res += saved;
-		//TQm::TEnv::Logger->OnStatusFmt("Partial flush: this loop = %d", saved);
+        TQm::TEnv::Debug->OnStatusFmt("Partial flush: this loop = %d", saved);
 	}
 	sw.Stop();
-	TQm::TEnv::Logger->OnStatusFmt("Partial flush: %d msec, res = %d", sw.GetMSecInt(), res);
+    TQm::TEnv::Debug->OnStatusFmt("Partial flush: %d msec, res = %d", sw.GetMSecInt(), res);
 
 	return res;
 }

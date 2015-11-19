@@ -3183,7 +3183,6 @@ PJsonVal TStoreImpl::GetStoreJson(const TWPt<TBase>& Base) const {
 	return Result;
 }
 
-
 /// Save part of the data, given time-window
 int TStoreImpl::PartialFlush(int WndInMsec) {
 	int slice = WndInMsec / 2;
