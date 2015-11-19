@@ -2662,9 +2662,6 @@ uint64 TStoreImpl::AddRec(const PJsonVal& RecVal, const bool& TriggerEvents) {
 				}
 			} else if (PrimaryFieldType == oftTm) {
 				const uint64 FieldVal = RecVal->GetObjTmMSecs(PrimaryField);
-//				TStr TmStr = RecVal->GetObjStr(PrimaryField);
-//				TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
-//				const uint64 FieldVal = TTm::GetMSecsFromTm(Tm);
 				if (PrimaryTmMSecsIdH.IsKey(FieldVal)) {
 					PrimaryRecId = PrimaryTmMSecsIdH.GetDat(FieldVal);
 				}
