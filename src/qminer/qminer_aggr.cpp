@@ -1376,6 +1376,19 @@ TOnlineHistogram::TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& Para
 	BufferedP = (InAggrValBuffer != NULL);
 }
 
+
+/// Load from stream
+void TOnlineHistogram::LoadState(TSIn& SIn) {
+	BufferedP.Load(SIn);
+	Model.Load(SIn);
+}
+
+/// Store state into stream
+void TOnlineHistogram::SaveState(TSOut& SOut) const {
+	BufferedP.Save(SOut);
+	Model.Save(SOut);
+}
+
 ///////////////////////////////
 /// Chi square stream aggregate
 void TChiSquare::OnAddRec(const TRec& Rec) {
@@ -1417,6 +1430,17 @@ PJsonVal TChiSquare::SaveJson(const int& Limit) const {
 	return Val;
 }
 
+
+/// Load from stream
+void TChiSquare::LoadState(TSIn& SIn) {
+	ChiSquare.LoadState(SIn);
+}
+
+/// Store state into stream
+void TChiSquare::SaveState(TSOut& SOut) const {
+	ChiSquare.SaveState(SOut);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////
 
 /// Constructor, reserves appropriate internal storage
@@ -1430,6 +1454,12 @@ TSlottedHistogram::TSlottedHistogram(const uint64 _Period, const uint64 _Slot, c
 	for (int i = 0; i < Dat.Len(); i++) {
 		Dat[i] = TSignalProc::TOnlineHistogram(0, Bins, Bins, false, false);
 	}
+}
+
+void TSlottedHistogram::Reset() {
+	for (int HistN = 0; HistN < Dat.Len(); HistN++) {
+		Dat[HistN].Reset();
+	}	
 }
 
 /// Load stream aggregate state from stream

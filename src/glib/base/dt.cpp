@@ -276,7 +276,7 @@ void TThinMIn::MoveTo(int Offset) {
 }
 
 bool TThinMIn::GetNextLnBf(TChA& LnChA) {
-	FailR("TMIn::GetNextLnBf: not implemented"); return false;
+	return GetNextLn(LnChA);
 }
 
 /////////////////////////////////////////////////

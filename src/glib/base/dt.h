@@ -1670,6 +1670,16 @@ static TStr GetHexStr(const TNum& Int){return TStr::Fmt("%llX", Int.Val);}
     else if (Val>1000000000){
       return GetStr(Val/1000000000)+"."+GetStr((Val%1000000000)/100000000)+"G";}
     else {return GetMegaStr(Val);}}*/
+
+  static uint64 GetFromBufSafe(const char * Bf) {
+    #ifdef ARM
+    uint64 Val;
+    memcpy(&Val, Bf, sizeof(uint64)); //we cannot use a cast on ARM (needs 8byte memory aligned doubles)
+    return Val;
+    #else
+    return *((uint64*)Bf);
+    #endif
+  }
 };
 
 /////////////////////////////////////////////////
@@ -1778,6 +1788,15 @@ public:
     if (fabs(Val)>100*1000000000.0){return TStr::Fmt("%.0fG", Val/1000000000.0);}
     else if (fabs(Val)>1000000000.0){return TStr::Fmt("%.1fG", Val/1000000000.0);}
     else {return GetMegaStr(Val);}}
+  static double GetFromBufSafe(const char * Bf) {
+    #ifdef ARM
+    double Val;
+    memcpy(&Val, Bf, sizeof(double)); //we cannot use a cast on ARM (needs 8byte memory aligned doubles)
+    return Val;
+    #else
+    return *((double*)Bf);
+    #endif
+  }
 };
 
 /////////////////////////////////////////////////

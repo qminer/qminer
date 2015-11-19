@@ -202,6 +202,27 @@ describe('Stream Aggregator Tests', function () {
             });
         })
     });
+    describe('Reset Tests', function () {
+        it('should reset the stream aggregate to 0', function () {
+            var aggr = new qm.StreamAggr(base, new function () {
+                var length = 0;
+                this.name = 'nameLength';
+                this.onAdd = function (rec) {
+                    length = rec.Name.length;
+                }
+                this.saveJson = function (limit) {
+                    return { val: length };
+                }
+                this.reset = function () { length = 0;}
+            });
+
+            var id1 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            aggr.onAdd(base.store('People')[0]);
+
+            aggr.reset();
+            assert.equal(aggr.saveJson().val, 0);
+        })        
+    });
     describe('OnUpdate Tests', function () {
         it('should execute the onUpdate function and return 1', function () {
             var aggr = new qm.StreamAggr(base, new function () {
@@ -363,6 +384,43 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            var json = sa.saveJson();
+            assert.equal(new Date(json.Time).getTime(), new Date('2015-06-10T14:13:32.0').getTime());
+            assert.equal(json.Val, 1);
+
+            store.push({ Time: '2015-06-10T14:17:45.0', Value: 2 });
+
+            json = sa.saveJson();
+            assert.equal(new Date(json.Time).getTime(), new Date('2015-06-10T14:17:45.0').getTime());
+            assert.equal(json.Val, 2);
+        })
+    });
+    describe('Reset Tests', function () {
+        it('should reset the stream aggregate', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            var json = sa.saveJson();
+            assert.equal(new Date(json.Time).getTime(), new Date('2015-06-10T14:13:32.0').getTime());
+            assert.equal(json.Val, 1);
+
+            store.push({ Time: '2015-06-10T14:17:45.0', Value: 2 });
+
+            json = sa.saveJson();
+            assert.equal(new Date(json.Time).getTime(), new Date('2015-06-10T14:17:45.0').getTime());
+            assert.equal(json.Val, 2);
+
+            // RESET
+            store.resetStreamAggregates();
+
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
             var json = sa.saveJson();
             assert.equal(new Date(json.Time).getTime(), new Date('2015-06-10T14:13:32.0').getTime());
@@ -895,6 +953,33 @@ describe('MovingWindowBufferSum Tests', function () {
             assert.equal(suma.getFloat(), 9);
         })
     });
+    describe('Reset Tests', function () {        
+        it('should sum up all the values except those, that are out of the window', function () {
+            var aggr = {
+                name: 'SumaAggr',
+                type: 'winBufSum',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var suma = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            assert.equal(suma.getFloat(), 9);
+
+            store.resetStreamAggregates();
+
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            assert.equal(suma.getFloat(), 9);
+
+        })
+    });
     describe('GetTimestamp Tests', function () {
         it('should return the only timestamp in buffer', function () {
             var aggr = {
@@ -1059,6 +1144,36 @@ describe('MovingWindowBufferMin Tests', function () {
             store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
 
             assert.equal(min.getFloat(), 4);
+        })
+    });
+
+    describe('Reset Tests', function () {        
+        it('should reset the buffer', function () {
+            var aggr = {
+                name: 'MinAggr',
+                type: 'winBufMin',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var min = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+
+            assert.equal(min.getFloat(), 4);
+
+            store.resetStreamAggregates();
+
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+
+            assert.equal(min.getFloat(), 4);
+
         })
     });
 
@@ -1227,6 +1342,36 @@ describe('MovingWindowBufferMax Tests', function () {
             assert.notEqual(max.getFloat(), 0);
         })
     });
+
+    describe('Reset Tests', function () {
+        
+        it('should reset the window buffer', function () {
+            var aggr = {
+                name: 'MaxAggr',
+                type: 'winBufMax',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var max = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 1 });
+
+            assert.equal(max.getFloat(), 2);
+
+            store.resetStreamAggregates();
+
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 1 });
+
+            assert.equal(max.getFloat(), 2);
+        })
+    });
     describe('GetTimestamp Tests', function () {
         it('should return the only timestamp on the window', function () {
             var aggr = {
@@ -1389,6 +1534,34 @@ describe('MovingAverage Tests', function () {
             assert.equal(ma.getFloat(), 0);
         })
     });
+
+    describe('Reset Tests', function () {        
+        it('should reset the window buffer', function () {
+            var aggr = {
+                name: 'AverageAggr',
+                type: 'ma',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var ma = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            assert.equal(ma.getFloat(), 4.5);
+
+            store.resetStreamAggregates();
+
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            assert.equal(ma.getFloat(), 4.5);
+        })        
+    });
+
     describe('GetTimestamp Tests', function () {
         it('should return the only timestamp on the window', function () {
             var aggr = {
@@ -1547,6 +1720,35 @@ describe('TimeSeriesTick Tests', function () {
             assert.equal(tick.getFloat(), 0);
         })
     });
+
+    describe('Reset Tests', function () {
+        it('should reset the buffer', function () {
+            var aggr = {
+                name: 'TickAggr',
+                type: 'timeSeriesTick',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+            };
+            var tick = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.400', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.400', Value: 5 });
+            assert.equal(tick.getFloat(), 5);
+
+            store.resetStreamAggregates();
+
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.400', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.400', Value: 5 });
+            assert.equal(tick.getFloat(), 5);
+        })
+    });
+
     describe('GetTimestamp Tests', function () {
         it('should return the default value if the buffer is empty', function () {
             var aggr = {
@@ -1774,6 +1976,51 @@ describe('EMA Tests', function () {
             assert.equal(ema.getFloat(), 0);
         })
     });
+
+    describe('GetFloat Tests', function () {
+        it('should reset the buffer and return the ema of the only record in buffer without initWindow', function () {
+            var aggr = {
+                name: 'EmaAggr',
+                type: 'ema',
+                store: 'Function',
+                inAggr: 'TickAggr',
+                emaType: 'previous',
+                interval: 3000
+            };
+            var ema = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            assert.equal(ema.getFloat(), 1);
+
+            store.resetStreamAggregates();
+
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            assert.equal(ema.getFloat(), 1);
+        })
+        it('should reset the buffer and  return the ema of the records in the buffer with initWindow', function () {
+            var aggr = {
+                name: 'EmaAggr',
+                type: 'ema',
+                store: 'Function',
+                inAggr: 'TickAggr',
+                emaType: 'previous',
+                interval: 3000,
+                initWindow: 1000
+            };
+            var ema = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 0 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 0 });
+            assert.equal(ema.getFloat(), 0);
+
+            store.resetStreamAggregates();
+
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 0 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 0 });
+            assert.equal(ema.getFloat(), 0);
+        })
+    });
+
     describe('GetTimestamp Tests', function () {
         it('should return the default timestamp if the buffer is empty', function () {
             var aggr = {
@@ -1968,6 +2215,56 @@ describe('MovingVariance Tests', function () {
             assert.equal(variance.getFloat(), 0);
         })
     });
+
+    describe('Reset Tests', function () {
+
+        it('should reset andget the variance of all the records in the buffer', function () {
+            var aggr = {
+                name: 'VarAggr',
+                type: 'variance',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var variance = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            assert.equal(variance.getFloat(), 1);
+
+            store.resetStreamAggregates();
+
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            assert.equal(variance.getFloat(), 1);
+
+        })
+        it('should reset and get the variance of all the records in the buffer, that are still in the window', function () {
+            var aggr = {
+                name: 'VarAggr',
+                type: 'variance',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var variance = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.400', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.400', Value: 5 });
+            assert.equal(variance.getFloat(), 1 / 2);
+
+            store.resetStreamAggregates();
+
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.400', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.400', Value: 5 });
+            assert.equal(variance.getFloat(), 1 / 2);
+        })
+    });
+
     describe('GetTimestamp Tests', function () {
         it('should return the timestamp of the only record in buffer', function () {
             var aggr = {
@@ -2151,6 +2448,56 @@ describe('Covariance Tests', function () {
             assert.eqtol(cov.getFloat(), 2.72222222222222); // precision gained with a Matlab function
         })
     });
+
+    describe('Reset Tests', function () {
+        it('should reset and return the covariance of the records in the buffer', function () {
+            var aggr = {
+                name: 'CovAggr',
+                type: 'covariance',
+                store: 'Function',
+                inAggrX: 'TimeSeries1',
+                inAggrY: 'TimeSeries2'
+            };
+            var cov = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3, Value2: 3 });
+            assert.eqtol(cov.getFloat(), 0.458333333333333); // precision gained with a Matlab function
+
+            store.resetStreamAggregates();
+
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3, Value2: 3 });
+            assert.eqtol(cov.getFloat(), 0.458333333333333); // precision gained with a Matlab function
+        })
+        it('should reset and return the covariance of the records that are still in the window buffer', function () {
+            var aggr = {
+                name: 'CovAggr',
+                type: 'covariance',
+                store: 'Function',
+                inAggrX: 'TimeSeries1',
+                inAggrY: 'TimeSeries2'
+            };
+            var cov = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3, Value2: 3 });
+            store.push({ Time: '2015-06-10T14:13:35.0', Value: 4, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:36.0', Value: 5, Value2: 6 });
+            assert.eqtol(cov.getFloat(), 2.72222222222222); // precision gained with a Matlab function
+
+            store.resetStreamAggregates();
+
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3, Value2: 3 });
+            store.push({ Time: '2015-06-10T14:13:35.0', Value: 4, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:36.0', Value: 5, Value2: 6 });
+            assert.eqtol(cov.getFloat(), 2.72222222222222); // precision gained with a Matlab function
+        })
+    });
+
     describe('GetTimestamp Tests', function () {
         it('should return the timestamp of the only record in the buffer', function () {
             var aggr = {
@@ -2383,6 +2730,60 @@ describe('Correlation Tests', function () {
             assert.eqtol(corr.getFloat(), 0.730448872649931);
         })
     });
+
+    describe('Reset Tests', function () {
+        it('should reset and return the correlation of the two vectors in the buffer', function () {
+            var aggr = {
+                name: 'CorrAggr',
+                type: 'correlation',
+                store: 'Function',
+                inAggrCov: 'CovAggr',
+                inAggrVarX: 'VarAggrX',
+                inAggrVarY: 'VarAggrY'
+            };
+            var corr = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3, Value2: 3 });
+            store.push({ Time: '2015-06-10T14:13:35.0', Value: 4, Value2: 2 });
+            assert.eqtol(corr.getFloat(), 0.248451997499977);
+
+            store.resetStreamAggregates();
+
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3, Value2: 3 });
+            store.push({ Time: '2015-06-10T14:13:35.0', Value: 4, Value2: 2 });
+            assert.eqtol(corr.getFloat(), 0.248451997499977);
+        })
+        it('should reset and return the correlation of the values, that are still in the window', function () {
+            var aggr = {
+                name: 'CorrAggr',
+                type: 'correlation',
+                store: 'Function',
+                inAggrCov: 'CovAggr',
+                inAggrVarX: 'VarAggrX',
+                inAggrVarY: 'VarAggrY'
+            };
+            var corr = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3, Value2: 3 });
+            store.push({ Time: '2015-06-10T14:13:35.0', Value: 4, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:36.0', Value: 5, Value2: 6 });
+            assert.eqtol(corr.getFloat(), 0.730448872649931);
+
+            store.resetStreamAggregates();
+
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2, Value2: -1 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3, Value2: 3 });
+            store.push({ Time: '2015-06-10T14:13:35.0', Value: 4, Value2: 2 });
+            store.push({ Time: '2015-06-10T14:13:36.0', Value: 5, Value2: 6 });
+            assert.eqtol(corr.getFloat(), 0.730448872649931);
+        })
+    });
+
     describe('GetTimestamp Tests', function () {
         it('should return 0 it there is only one record in the buffer', function () {
             var aggr = {
@@ -3002,6 +3403,102 @@ describe('Online Histogram Tests', function () {
             assert(aggr.getFloatVector()[4] == 1);
         });
     });
+
+    describe('Reset Tests', function () {
+        it('should reset an online buffered histogram', function () {
+            var aggrJson = {
+                name: 'Histogram',
+                type: 'onlineHistogram',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr',
+                lowerBound: 0,
+                upperBound: 10,
+                bins: 5,
+                addNegInf: false,
+                addPosInf: false
+            };
+            var aggr = store.addStreamAggr(aggrJson);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: -1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 0 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:38.4', Value: 10 });
+
+            assert.equal(aggr.saveJson().counts[0], 0);
+            assert.equal(aggr.saveJson().counts[1], 0);
+            assert.equal(aggr.saveJson().counts[2], 0);
+            assert.equal(aggr.saveJson().counts[3], 0);
+            assert.equal(aggr.saveJson().counts[4], 1);
+
+            store.resetStreamAggregates();
+
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: -1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 0 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:38.4', Value: 10 });
+
+            assert.equal(aggr.saveJson().counts[0], 0);
+            assert.equal(aggr.saveJson().counts[1], 0);
+            assert.equal(aggr.saveJson().counts[2], 0);
+            assert.equal(aggr.saveJson().counts[3], 0);
+            assert.equal(aggr.saveJson().counts[4], 1);
+        });
+        it('should reset an online histogram', function () {
+            var aggrJson = {
+                name: 'Histogram',
+                type: 'onlineHistogram',
+                store: 'Function',
+                inAggr: 'TickAggr',
+                lowerBound: 0,
+                upperBound: 10,
+                bins: 5,
+                addNegInf: false,
+                addPosInf: false
+            };
+            var aggr = store.addStreamAggr(aggrJson);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: -1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 0 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:38.4', Value: 10 });
+
+            assert.equal(aggr.saveJson().counts[0], 1);
+            assert.equal(aggr.saveJson().counts[1], 1);
+            assert.equal(aggr.saveJson().counts[2], 2);
+            assert.equal(aggr.saveJson().counts[3], 0);
+            assert.equal(aggr.saveJson().counts[4], 1);
+
+            // check that the interface is OK
+            assert(aggr.getFloatLength() == 5);
+            assert(aggr.getFloatAt(2) == 2);
+            assert(aggr.getFloatVector()[4] == 1);
+
+            store.resetStreamAggregates();
+
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: -1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.4', Value: 0 });
+            store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
+            store.push({ Time: '2015-06-10T14:13:38.4', Value: 10 });
+
+            assert.equal(aggr.saveJson().counts[0], 1);
+            assert.equal(aggr.saveJson().counts[1], 1);
+            assert.equal(aggr.saveJson().counts[2], 2);
+            assert.equal(aggr.saveJson().counts[3], 0);
+            assert.equal(aggr.saveJson().counts[4], 1);
+
+            // check that the interface is OK
+            assert(aggr.getFloatLength() == 5);
+            assert(aggr.getFloatAt(2) == 2);
+            assert(aggr.getFloatVector()[4] == 1);
+
+        });
+    });
 });
 
 describe('ChiSquare Tests', function () {
@@ -3123,6 +3620,65 @@ describe('ChiSquare Tests', function () {
         store.push({ Time: '2015-06-10T14:13:53.0', Expected: 4, Observed: 6 });
         store.push({ Time: '2015-06-10T14:13:54.0', Expected: 5, Observed: 6 });
         store.push({ Time: '2015-06-10T14:13:55.0', Expected: 6, Observed: 6 });
-    });    
+		
+		console.log("ChiSquare value: " + chi.getFloat());
+    });
+
+    it('should reset an chi square test aggregator', function () {
+
+        // add ChiSquare aggregator that connects with Histogram1 with expected values and Histogram2 with actual values
+        aggr = {
+            name: 'ChiAggr',
+            type: 'chiSquare',
+            storeX: 'Dice',
+            storeY: 'Dice',
+            inAggrX: 'Histogram1',
+            inAggrY: 'Histogram2',
+            degreesOfFreedom: 2
+        }
+        var chi = store.addStreamAggr(aggr);
+        var startVal = chi.getFloat();
+
+        // add some values
+        // simulating throwing a dice
+        store.push({ Time: '2015-06-10T14:13:30.0', Expected: 1, Observed: 1 });
+        store.push({ Time: '2015-06-10T14:13:31.0', Expected: 2, Observed: 2 });
+        store.push({ Time: '2015-06-10T14:13:32.0', Expected: 3, Observed: 3 });
+        store.push({ Time: '2015-06-10T14:13:33.0', Expected: 4, Observed: 4 });
+        store.push({ Time: '2015-06-10T14:13:34.0', Expected: 5, Observed: 5 });
+        store.push({ Time: '2015-06-10T14:13:35.0', Expected: 6, Observed: 5 });
+
+        store.push({ Time: '2015-06-10T14:13:41.0', Expected: 1, Observed: 5 });
+        store.push({ Time: '2015-06-10T14:13:41.0', Expected: 2, Observed: 5 });
+        store.push({ Time: '2015-06-10T14:13:42.0', Expected: 3, Observed: 5 });
+        store.push({ Time: '2015-06-10T14:13:43.0', Expected: 4, Observed: 5 });
+        store.push({ Time: '2015-06-10T14:13:44.0', Expected: 5, Observed: 6 });
+        store.push({ Time: '2015-06-10T14:13:45.0', Expected: 6, Observed: 6 });
+
+        store.push({ Time: '2015-06-10T14:13:50.0', Expected: 1, Observed: 6 });
+        store.push({ Time: '2015-06-10T14:13:51.0', Expected: 2, Observed: 6 });
+        store.push({ Time: '2015-06-10T14:13:52.0', Expected: 3, Observed: 6 });
+        store.push({ Time: '2015-06-10T14:13:53.0', Expected: 4, Observed: 6 });
+        store.push({ Time: '2015-06-10T14:13:54.0', Expected: 5, Observed: 6 });
+        store.push({ Time: '2015-06-10T14:13:55.0', Expected: 6, Observed: 6 });
+
+        assert(chi.getFloat() < startVal);
+		var endVal = chi.getFloat();
+
+		var fout = qm.fs.openWrite("aggr.tmp");
+		chi.save(fout);
+		fout.close();
+		
+        store.resetStreamAggregates();
+        
+        assert(chi.getFloat() == startVal);
+
+		var fin = qm.fs.openRead("aggr.tmp");
+		chi.load(fin);
+		fin.close();
+
+		assert(chi.getFloat() == endVal);
+
+    });
 
 });

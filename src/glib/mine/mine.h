@@ -51,6 +51,7 @@
 
 // regression methods
 #include "regression.h"
+#include "classification.h"
 
 // clustering
 #include "kmpp.h"
