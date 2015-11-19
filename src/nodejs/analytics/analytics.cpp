@@ -481,7 +481,7 @@ TNodeJsRidgeReg* TNodeJsRidgeReg::NewFromArgs(const v8::FunctionCallbackInfo<v8:
 		return new TNodeJsRidgeReg(TRegression::TRidgeReg(Gamma));
 	}
 	else if (Args.Length() == 1 && TNodeJsUtil::IsArgFlt(Args, 0)) {
-		printf("DEPRICATED: consider using Json object as argument!\n");
+		printf("DEPRECATED: consider using Json object as argument!\n");
 		// create new model from given gamma parameter
 		const double Gamma = TNodeJsUtil::GetArgFlt(Args, 0, 0.0);
 		return new TNodeJsRidgeReg(TRegression::TRidgeReg(Gamma));

@@ -358,7 +358,7 @@ exports = {}; require.modules.qminer_analytics = exports;
  * la = require('qminer').la;
  * analytics = require('qminer').analytics;
  * // create a new model with gamma = 1.0
- * var regmod = new analytics.RidgeReg(1.0);
+ * var regmod = new analytics.RidgeReg({ gamma: 1.0 });
  * // generate a random feature matrix
  * var A = la.randn(10,100);
  * // generate a random model
@@ -370,12 +370,12 @@ exports = {}; require.modules.qminer_analytics = exports;
  * // fit model
  * regmod.fit(A, b);
  * // compare
- * console.log('true model:');
+ * // true model
  * w.print();
- * console.log('trained model:');
+ * // trained model');
  * regmod.weights.print();
  * // cosine between the true and the estimated model should be close to 1 if the fit succeeded
- * console.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w));
+ * var cos = regmod.weights.cosine(w);
  */
  exports.RidgeReg = function(arg) {};
 /**

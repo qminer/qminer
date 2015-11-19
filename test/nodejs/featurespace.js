@@ -60,7 +60,6 @@ describe('Feature Space Tests', function () {
             assert.throws(function () {
                 var ftr = new qm.FeatureSpace(base);
             })
-            console.log("should be seen on screen: base");
         })
         it('should throw an exception, if only the feature extractor is given', function () {
             assert.throws(function () {
@@ -80,7 +79,6 @@ describe('Feature Space Tests', function () {
         it('should throw an exception, if no parameters are given', function () {
             assert.throws(function () {
                 var ftr = new qm.FeatureSpace();
-                console.log("should be seen on screen: none");
             })
         })
 
