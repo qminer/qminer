@@ -2510,13 +2510,28 @@ base.close();</code></pre>
             <p>FeatureExtractorMultinomial.field</p>
         </td>
         <td>
-                <p>string</p>
+                <p>(string or Array of String)</p>
         </td>
         <td>
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The name of the field from which to take the value.</p>
+                <p>The name of the field from which to take the key value.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>FeatureExtractorMultinomial.valueField</p>
+        </td>
+        <td>
+                <p>(string or Array of String)</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>The name of the field from which to take the numeric value. When not provided, 1.0 is used as default numeric values for non-zero elements in the vector.</p>
         </td>
 </tr>
 
