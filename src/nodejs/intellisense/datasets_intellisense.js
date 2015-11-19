@@ -46,12 +46,10 @@ exports = {}; require.modules.qminer_datasets = exports;
             base: _base
         }
 
-        console.log('Loading dataset ' + options.store + ' ...');
         _base.loadCSV(options, function (err) {
             if (err) return callback(err);
 
             var Iris = _base.store(options.store);
-            console.log(options.store + ' dataset loaded')
 
             return callback(null, Iris)
         })
@@ -70,9 +68,7 @@ exports = {}; require.modules.qminer_datasets = exports;
             base: _base
         }
 
-        console.log('Loading dataset ' + options.store + ' ...');
         _base.loadCSV(options);
-        console.log(options.store + ' dataset loaded');
 
         return _base.store(options.store);
     }

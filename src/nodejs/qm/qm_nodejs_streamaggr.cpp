@@ -698,7 +698,7 @@ void TNodeJsStreamAggr::Reset() {
 		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();	
 
 		v8::TryCatch TryCatch;
-		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+		Callback->Call(GlobalContext, 0, NULL);
 		if (TryCatch.HasCaught()) {
 			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
 			throw TQm::TQmExcept::New("Javascript exception from callback triggered in " + TStr(__FUNCTION__) + TStr(": ") + TStr(*Msg));

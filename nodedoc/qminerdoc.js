@@ -179,12 +179,12 @@
 * // Each movie has a property corresponding to the join name: 'director'. 
 * // Accessing the property returns a {@link module:qm.Record} from the store People.
 * var person = movie.director; // get the director
-* console.log(person.name); // prints 'Jim Jarmusch'
+* var personName = person.name; // get person's name ('Jim Jarmusch')
 * // Each person has a property corresponding to the join name: 'directed'. 
 * // Accessing the property returns a {@link module:qm.RecSet} from the store People.
 * var movies = person.directed; // get all the movies the person directed.
-* movies.each(function (movie) { console.log(movie.title); }); 
-* // prints: 
+* movies.each(function (movie) { var title = movie.title; });
+* // Gets the following titles:
 * //   'Broken Flowers'
 * //   'Coffee and Cigarettes'
 * base.close();
@@ -546,6 +546,7 @@
 /**
 	* Adds a record to the store.
 	* @param {Object} rec - The added record. The record must be a JSON object corresponding to the store schema.
+	* @param {boolean} [triggerEvents=true] - If true, all stream aggregate callbacks onAdd will be called after the record is inserted. If false, no stream aggregate will be updated.
 	* @returns {number} The ID of the added record.
 	* @example
 	* // import qm module
@@ -575,7 +576,7 @@
 	* base.store("Supervillians").push({ Name: "Lex Luthor", Superpowers: ["expert engineer", "genius-level intellect", "money"] }); // returns 0
 	* base.close();	
 	*/
- exports.Store.prototype.push = function (rec) { return 0; }
+ exports.Store.prototype.push = function (rec, triggerEvents) { return 0; }
 /**
 	* Creates a new record of given store. The record is not added to the store.
 	* @param {Object} json - A JSON value of the record.
@@ -800,6 +801,10 @@
 	*/
  exports.Store.prototype.getStreamAggr = function (saName) { return Object.create(require('qminer').StreamAggr.prototype); }
 /**
+	* Resets all stream aggregates.
+	*/
+ exports.Store.prototype.resetStreamAggregates = function () { }
+/**
 	* Returns an array of the stream aggregates names connected to the store.
 	* @returns {Array.<string>} An array of stream aggregates names.
 	*/
@@ -948,6 +953,11 @@
 	* base.close();
 	*/
  exports.Store.prototype.cell = function (recId, fieldName) {};
+/**
+	* Calls onAdd callback on all stream aggregates
+	* @param {(module:qm.Record | number)} [arg=this.last] - The record or recordId which will be passed to onAdd callbacks. If the record or recordId is not provided, the last record will be used. Throws exception if cannot be provided.
+	*/
+ exports.Store.prototype.triggerOnAddCallbacks = function (arg) {};
 /**
 	* Gives the name of the store.
 	*/
@@ -1104,6 +1114,10 @@
 	* Returns the store the record belongs to.
 	*/
  exports.Record.prototype.store = Object.create('qminer').Store.prototype;
+/**
+	 * Adds a new record to the vector.
+	 */
+ exports.RecVector.prototype.push = function (rec) {};
 /**
 * Record Set is a set of records.
 * <b>Factory pattern</b>: this class cannot be construced using the new keyword. This class is constructed
@@ -2905,14 +2919,20 @@
      * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
      */
     exports.Base.prototype.loadCSV = function (opts, callback) {
-    	console.log('Loading CSV file ...');
+    	// console.log('Loading CSV file ...');
 
     	if (opts.delimiter == null) opts.delimiter = ',';
     	if (opts.quote == null) opts.quote = '"';
     	if (opts.ignoreFields == null) opts.ignoreFields = [];
     	if (opts.file == null) throw new Error('Missing parameter file!');
 
-    	if (callback == null) callback = function (e) { if (e != null) console.log(e.stack); }
+    	if (callback == null) {
+            callback = function (e) {
+                if (e != null) {
+                    // console.log(e.stack);
+                }
+            }
+        }
 
     	try {
     		var base = this;
@@ -2967,8 +2987,9 @@
     				}
     			}
 
-    			if (fieldTypesInitialized())
-    				console.log('Fields initialized: ' + JSON.stringify(fieldTypes));
+    			if (fieldTypesInitialized()) {
+    				// console.log('Fields initialized: ' + JSON.stringify(fieldTypes));
+                }
     		}
 
     		function fieldTypesInitialized() {
@@ -3014,7 +3035,7 @@
 	    				});
 	    			}
 
-	    			console.log('Creating store with definition ' + JSON.stringify(storeDef) + ' ...');
+	    			// console.log('Creating store with definition ' + JSON.stringify(storeDef) + ' ...');
 
 	    			base.createStore(storeDef);
 	    			store = base.store(storeName);
@@ -3030,7 +3051,7 @@
 
 			var storeCreated = false;
 			var line = 0;
-			console.log('Saving CSV to store ' + storeName + ' ' + fname + ' ...');
+			// console.log('Saving CSV to store ' + storeName + ' ' + fname + ' ...');
 
 			var fin = new fs.FIn(fname);
 			fs.readCsvLines(fin, {
@@ -3041,12 +3062,13 @@
 							for (var i = 0; i < lineArr.length; i++) {
 								headers.push(lineArr[i].replace(/\s+/g, '_').replace(/\.|%|\(|\)|\/|-|\+/g, '')) 	// remove invalid characters
 							}
-							console.log('Headers initialized: ' + JSON.stringify(headers));
+							// console.log('Headers initialized: ' + JSON.stringify(headers));
 						}
 						else {
-							if (line % 1000 == 0)
-								console.log(line + '');
-
+							if (line % 1000 == 0) {
+								// console.log(line + '');
+                            }
+                            
 							var data = transformLine(lineArr);
 
 							if (fieldTypes == null)
@@ -3063,13 +3085,13 @@
 								buff.push(data);
 						}
 					} catch (e) {
-						console.log('Exception while reading CSV lines: ' + e.stack);
+						// console.log('Exception while reading CSV lines: ' + e.stack);
 						callback(e);
 					}
 				},
 				onEnd: function () {
 					// finished
-					console.log('Finished!');
+					// console.log('Finished!');
 
 					if (callback != null) {
 			   			if (!fieldTypesInitialized()) {
@@ -3141,7 +3163,7 @@
                 count++;
                 if (limit != undefined && count == limit) { break; }
             } catch (err) {
-                console.log("Error parsing [" + line + "]: " + err)
+                // console.log("Error parsing [" + line + "]: " + err)
             }
         }
         return count;
