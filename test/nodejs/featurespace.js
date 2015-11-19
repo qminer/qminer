@@ -1301,8 +1301,8 @@ describe('Feature Space Tests', function () {
         })
         it('should update the feature space with a new record: text', function () {
             var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", field: "Text", ngrams: [1, 1] });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
             assert.equal(ftr.extractVector(Store[11]).length, 2);
@@ -1370,10 +1370,10 @@ describe('Feature Space Tests', function () {
     describe('Tokenizer Tests', function () {
         it('should update the feature space, text: default settings', function () {
             var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", field: "Text" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1402,10 +1402,10 @@ describe('Feature Space Tests', function () {
         })
         it('should update the feature space, text: normalize-false, other default settings', function () {
             var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", normalize: false, field: "Text" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1434,10 +1434,10 @@ describe('Feature Space Tests', function () {
         })
         it('should update the feature space, text: normalize-false, ngrams[2, 3]', function () {
             var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", normalize: false, field: "Text", ngrams: [2, 3] });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet Beta, Gamma" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet Beta Omega" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a Omicron, Omicron" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet Beta, Gamma" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet Beta Omega" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a Omicron, Omicron" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1453,10 +1453,10 @@ describe('Feature Space Tests', function () {
                 type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
                 tokenizer: { type: "simple", stopwords: "none" }
             });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet Beta, Gamma" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet Beta Omega" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a Omicron, Omicron" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet Beta, Gamma" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet Beta Omega" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a Omicron, Omicron" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1483,10 +1483,10 @@ describe('Feature Space Tests', function () {
                 tokenizer: { type: "simple", stopwords: "en" }
             });
 
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1519,10 +1519,10 @@ describe('Feature Space Tests', function () {
                 tokenizer: { type: "simple", stopwords: "si" }
             });
 
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Abeceda" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Miloš zna abecedo" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Kaj pa to Miloš Abeceda?" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Miloš in Abeceda" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Abeceda" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Miloš zna abecedo" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Kaj pa to Miloš Abeceda?" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Miloš in Abeceda" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1542,10 +1542,10 @@ describe('Feature Space Tests', function () {
                 tokenizer: { type: "simple", stopwords: "es" }
             });
 
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "¿Quién se robó mi teléfono?" });         // who stole my phone
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Se robó el teléfono!" });                // he stole the phone
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Por cuánto usted vende el teléfono?" }); // for how much do you sell the phone
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "mamá tiene un nuevo teléfono." });       // mom has a new phone
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "¿Quién se robó mi teléfono?" });         // who stole my phone
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Se robó el teléfono!" });                // he stole the phone
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Por cuánto usted vende el teléfono?" }); // for how much do you sell the phone
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "mamá tiene un nuevo teléfono." });       // mom has a new phone
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1576,10 +1576,10 @@ describe('Feature Space Tests', function () {
                 tokenizer: { type: "simple", stopwords: "de" }
             });
 
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Die mein Handy gestohlen?" });           // who stole my phone
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "er habe das Handy!" });                  // he stole the phone
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Für wie viel wissen Sie das Telefon verkaufen?" }); // for how much do you sell the phone
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Mutter hat ein neues Handy." });       // mom has a new phone
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Die mein Handy gestohlen?" });           // who stole my phone
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "er habe das Handy!" });                  // he stole the phone
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Für wie viel wissen Sie das Telefon verkaufen?" }); // for how much do you sell the phone
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Mutter hat ein neues Handy." });       // mom has a new phone
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1610,10 +1610,10 @@ describe('Feature Space Tests', function () {
                 tokenizer: { type: "simple", stopwords: ["an", "a", "butterfly"] }
             });
 
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Have you seen the butterfly?" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "An elephant and a butterfly." });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Is you is or is you ain't my baby?" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "The butterfly dagger!" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Have you seen the butterfly?" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "An elephant and a butterfly." });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Is you is or is you ain't my baby?" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "The butterfly dagger!" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1643,10 +1643,10 @@ describe('Feature Space Tests', function () {
                 type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
                 tokenizer: { type: "simple", stopwords: "none", uppercase: false }
             });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "alpha Alphabeth a a" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "alpha Alphabeth a a" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1666,10 +1666,10 @@ describe('Feature Space Tests', function () {
                 type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
                 tokenizer: { type: "simple", stopwords: "none", stemmer: false }
             });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Jimmy Carr bought a car." });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "My dad sold a lot of cars." });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "The union of dads are buying cars." });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Car Cars Car, buy them!" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Jimmy Carr bought a car." });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "My dad sold a lot of cars." });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "The union of dads are buying cars." });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Car Cars Car, buy them!" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1704,10 +1704,10 @@ describe('Feature Space Tests', function () {
                 type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
                 tokenizer: { type: "simple", stopwords: "none", stemmer: true }
             });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Jimmy Carr bought a car." });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "My dad sold a lot of cars." });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "The union of dads are buying cars." });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Car Cars Car, buy them!" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Jimmy Carr bought a car." });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "My dad sold a lot of cars." });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "The union of dads are buying cars." });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Car Cars Car, buy them!" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
