@@ -13,9 +13,12 @@ using namespace TDist;
 // Distance measures
 void TEuclDist::GetDist(const TFltVV& X, const TFltVV& Y, TFltVV& D) {
 	GetDist2(X, Y, D);
+	double Val;
 	for (int RowN = 0; RowN < D.GetRows(); RowN++) {
 		for (int ColN = 0; ColN < D.GetCols(); ColN++) {
-			D.PutXY(RowN, ColN, TMath::Sqrt(D(RowN, ColN)));
+			Val = D(RowN, ColN);
+			if (Val < 0) { Val = 0; }
+			D.PutXY(RowN, ColN, TMath::Sqrt(Val));
 		}
 	}
 }
@@ -367,4 +370,40 @@ void TDpMeans::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& Not
 		AssignIdxVPtr = OldAssignIdxVPtr;
 		OldAssignIdxVPtr = Temp;
 	}
+}
+
+///////////////////////////////////////////
+// Agglomerative clustering - average link
+void TAvgLink::JoinClusts(TFltVV& DistMat, const TIntV& ItemCountV, const int& MnI, const int& MnJ) {
+	TFltV NewDistV(DistMat.GetRows());
+	for (int i = 0; i < DistMat.GetRows(); i++) {
+		NewDistV[i] = (DistMat(MnI, i)*ItemCountV[MnI] + DistMat(MnJ, i)*ItemCountV[MnJ]) / (ItemCountV[MnI] + ItemCountV[MnJ]);
+	}
+
+	DistMat.SetRow(MnI, NewDistV);
+	DistMat.SetCol(MnI, NewDistV);
+}
+
+///////////////////////////////////////////
+// Agglomerative clustering - complete link
+void TCompleteLink::JoinClusts(TFltVV& DistMat, const TIntV& ItemCountV, const int& MnI, const int& MnJ) {
+	TFltV NewDistV(DistMat.GetRows());
+	for (int i = 0; i < DistMat.GetRows(); i++) {
+		NewDistV[i] = TMath::Mx(DistMat(MnI, i), DistMat(MnJ, i));
+	}
+
+	DistMat.SetRow(MnI, NewDistV);
+	DistMat.SetCol(MnI, NewDistV);
+}
+
+///////////////////////////////////////////
+// Agglomerative clustering - single link
+void TSingleLink::JoinClusts(TFltVV& DistMat, const TIntV& ItemCountV, const int& MnI, const int& MnJ) {
+	TFltV NewDistV(DistMat.GetRows());
+	for (int i = 0; i < DistMat.GetRows(); i++) {
+		NewDistV[i] = TMath::Mn(DistMat(MnI, i), DistMat(MnJ, i));
+	}
+
+	DistMat.SetRow(MnI, NewDistV);
+	DistMat.SetCol(MnI, NewDistV);
 }

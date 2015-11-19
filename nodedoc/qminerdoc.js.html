@@ -209,12 +209,12 @@
 * // Each movie has a property corresponding to the join name: &#x27;director&#x27;. 
 * // Accessing the property returns a {@link module:qm.Record} from the store People.
 * var person = movie.director; // get the director
-* var personName = person.name; // get person&#x27;s name (&#x27;Jim Jarmusch&#x27;)
+* console.log(person.name); // prints &#x27;Jim Jarmusch&#x27;
 * // Each person has a property corresponding to the join name: &#x27;directed&#x27;. 
 * // Accessing the property returns a {@link module:qm.RecSet} from the store People.
 * var movies = person.directed; // get all the movies the person directed.
-* movies.each(function (movie) { var title = movie.title; });
-* // Gets the following titles:
+* movies.each(function (movie) { console.log(movie.title); }); 
+* // prints: 
 * //   &#x27;Broken Flowers&#x27;
 * //   &#x27;Coffee and Cigarettes&#x27;
 * base.close();

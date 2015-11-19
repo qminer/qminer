@@ -181,6 +181,37 @@ public:
      */
     //# exports.readLines = function (buffer, onLine, onEnd, onError) {}
     JsDeclareFunction(readLines);
+
+    JsDeclareFunction(readCsvAsync);
+
+
+private:
+	class TReadCsv {
+	private:
+		PSIn SIn;
+		int Offset;
+		int Limit;
+		int BatchSize;
+		v8::Persistent<v8::Function> OnLine;
+		v8::Persistent<v8::Function> OnEnd;
+		bool HasError;
+
+	public:
+		TReadCsv(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		~TReadCsv();
+
+		static void Run(TReadCsv& Task);
+		static void AfterRun(const TReadCsv& Task);
+	};
+
+	struct TReadLinesCallback {
+		TVec<TStrV> CsvLineV;
+		v8::Persistent<v8::Function>* OnLine;
+		TReadLinesCallback(const int& BatchSize, v8::Persistent<v8::Function>* _OnLine):
+			CsvLineV(BatchSize, 0),
+			OnLine(_OnLine) {}
+		static void Run(const TReadLinesCallback& Task);
+	};
 };
 
 ///////////////////////////////

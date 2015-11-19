@@ -299,6 +299,15 @@ void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
 	TmMSecs = NewTmMSecs;
 }
 
+void TEma::Reset() {
+	InitP = false;
+	LastVal = TFlt::Mn;
+	Ema = 0.0;
+	TmMSecs = 0;
+	InitValV.Gen(0);
+	InitMSecsV.Gen(0);
+}
+
 /////////////////////////////////////////////////
 // Online Moving Standard M2 
 void TVar::Update(const double& InVal, const uint64& InTmMSecs, 
@@ -924,7 +933,6 @@ bool TRecLinReg::HasNaN() const {
 	return false;
 }
 
-
 void TOnlineHistogram::Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf) {
 	int TotalBins = Bins + (AddNegInf ? 1 : 0) + (AddPosInf ? 1 : 0);
 	Counts.Gen(TotalBins); // sets to zero
@@ -934,6 +942,12 @@ void TOnlineHistogram::Init(const double& LBound, const double& UBound, const in
 		Bounds.Add(LBound + ElN * (UBound - LBound) / Bins);
 	}
 	if (AddPosInf) { Bounds.Add(TFlt::PInf); }
+}
+
+void TOnlineHistogram::Reset() {
+	for (int ElN = 0; ElN < Counts.Len(); ElN++) {
+		Counts[ElN] = 0;
+	}
 }
 
 TOnlineHistogram::TOnlineHistogram(const PJsonVal& ParamVal) {
@@ -1014,33 +1028,64 @@ PJsonVal TOnlineHistogram::SaveJson() const {
 	return Result;
 }
 
-TChiSquare::TChiSquare(const PJsonVal& ParamVal) {
+TChiSquare::TChiSquare(const PJsonVal& ParamVal): P(TFlt::PInf) {
+	// P value is set to infinity by default (null hypothesis is not rejected)
 	EAssertR(ParamVal->IsObjKey("degreesOfFreedom"), "TChiSquare: degreesOfFreedom key missing!");
-	// degrees of freedom	
-	int Dof = ParamVal->GetObjInt("degreesOfFreedom");
-	Init(Alpha, Dof);
-}
-
-void TChiSquare::Init(const double& _Alpha, const int& _Dof) {
-	Alpha = _Alpha;
-	DegreesOfFreedom = _Dof;
+	// degrees of freedom
+	DegreesOfFreedom = ParamVal->GetObjInt("degreesOfFreedom");
 }
 
 void TChiSquare::Print() const {
-	printf("Chi2 = %g", Chi2);
-	printf("P = %g", P);	
+	printf("Chi2 = %g", Chi2.Val);
+	printf("P = %g", P.Val);	
 }
 
 void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY, const int Dof) {
 	Chi2 = 0.0;	
+	EAssertR(OutValVX.Len() == OutValVY.Len(), "TChiSquare: histogram dimensions do not match!");
+	// http://www.itl.nist.gov/div898/software/dataplot/refman1/auxillar/chi2samp.htm
+	double SumR = TLinAlg::SumVec(OutValVX);
+	double SumS = TLinAlg::SumVec(OutValVY);
+	// Do nothing if zero histogram is detected
+	if (SumR <= 0.0 || SumS <= 0.0) { return; }
+	double K1 = TMath::Sqrt(SumS / SumR);
+	double K2 = 1.0 / K1;
 	for (int ValN = 0; ValN < OutValVX.Len(); ValN++) {
-		if (OutValVY[ValN] > 0) {
-			Chi2 += TMath::Sqr(OutValVX[ValN]-OutValVY[ValN])/OutValVX[ValN];
+		double Ri = OutValVX[ValN];
+		double Si = OutValVY[ValN];
+		double RpS = Ri + Si;
+		if (RpS > 0) {
+			Chi2 += TMath::Sqr(K1 * Ri - K2 * Si) / RpS;
 		}
 	}
-	P = TSpecFunc::GammaQ(0.5*(Dof),0.5*(Chi2));
+	if (Chi2 == 0.0) {
+		P = TFlt::PInf;
+	}
+	else {
+		P = TSpecFunc::GammaQ(0.5*(Dof), 0.5*(Chi2));
+	}
+
+	//for (int ValN = 0; ValN < OutValVX.Len(); ValN++) {
+	//	if (OutValVY[ValN] > 0) {
+	//		Chi2 += TMath::Sqr(OutValVX[ValN]-OutValVY[ValN])/OutValVX[ValN];
+	//	}
+	//}
+	//P = TSpecFunc::GammaQ(0.5*(Dof),0.5*(Chi2));
 }
 
 
+/// Load from stream
+void TChiSquare::LoadState(TSIn& SIn) {
+	Chi2.Load(SIn);
+	P.Load(SIn);
+	DegreesOfFreedom.Load(SIn);
+}
+
+/// Store state into stream
+void TChiSquare::SaveState(TSOut& SOut) const {
+	Chi2.Save(SOut);
+	P.Save(SOut);
+	DegreesOfFreedom.Save(SOut);
+}
 
 }

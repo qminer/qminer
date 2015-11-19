@@ -44,7 +44,8 @@ var base = new qm.Base({ mode: &#x27;createClean&#x27; });
 // Load Iris dataset in async way
 datasets.loadIris(base, function (err, store) {
     if (err) throw err;
-    // Sucessfully loaded database
+    console.log(&quot;\nSucessfully loaded database: &quot; + store.name)
+    console.log(JSON.stringify(store.first, null, 2));
     base.close();
 });</code></pre>
               </div>
@@ -58,7 +59,8 @@ var base = new qm.Base({ mode: &#x27;createClean&#x27; });
 
 // Load Iris in sync way.
 var Iris = datasets.loadIrisSync(base);
-// Sucessfully loaded database
+console.log(&quot;\nSucessfully loaded database: &quot; + Iris.name)
+console.log(JSON.stringify(Iris.first, null, 2));
 base.close();</code></pre>
               </div>
             </section>

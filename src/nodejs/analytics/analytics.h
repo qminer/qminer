@@ -14,6 +14,7 @@
 #include "fs_nodejs.h"
 #include "la_nodejs.h"
 #include "qminer_ftr.h"
+#include "../../glib/mine/mine.h"
 
 /**
  * Analytics module.
@@ -30,8 +31,7 @@ class TNodeJsSvmModel : public node::ObjectWrap {
 	friend class TNodeJsSVC;
 	friend class TNodeJsSVR;
 public:
-    static const TStr GetClassId() { return "SvmModel"; }
-    
+	static const TStr GetClassId() { return "SvmModel"; }
 private:
     // parameters
 	TStr Algorithm;	
@@ -45,13 +45,13 @@ private:
 	bool Verbose;
 	PNotify Notify;
 
-    // model
+	// model
 	TSvm::TLinModel Model;
 
 	TNodeJsSvmModel(const PJsonVal& ParamVal);
 	TNodeJsSvmModel(TSIn& SIn);
-    
-    static TNodeJsSvmModel* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+	static TNodeJsSvmModel* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
 	//- `params = svmModel.getParams()` -- returns the parameters of this model as a Javascript object
@@ -1263,9 +1263,9 @@ public:
 	static const TStr GetClassId() { return "LogReg"; }
 
 private:
-	TRegression::TLogReg LogReg;
+	TClassification::TLogReg LogReg;
 
-	TNodeJsLogReg(const TRegression::TLogReg& _LogReg): LogReg(_LogReg) {}
+	TNodeJsLogReg(const TClassification::TLogReg& _LogReg): LogReg(_LogReg) {}
 
 	static TNodeJsLogReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
@@ -1559,14 +1559,14 @@ public:
 private:
 	const static double DEFAULT_DELTA_TM;
 
-	TMc::PStreamStory StreamStory;
+	TMc::TStreamStory* StreamStory;
 
 	v8::Persistent<v8::Function> StateChangedCallback;
 	v8::Persistent<v8::Function> AnomalyCallback;
 	v8::Persistent<v8::Function> OutlierCallback;
 	v8::Persistent<v8::Function> PredictionCallback;
 
-	TNodeJsStreamStory(const TMc::PStreamStory& McModel);
+	TNodeJsStreamStory(TMc::TStreamStory* McModel);
 	TNodeJsStreamStory(PSIn& SIn);
 
 	~TNodeJsStreamStory();
@@ -1585,6 +1585,9 @@ public:
 	 * @returns {HMC} - returns itself
 	 */
 	JsDeclareFunction(fit);
+
+	JsDeclareFunction(fitAsync);
+
 	//!- `hmc.update(ftrVec, recTm)` TODO write documentation
 	JsDeclareFunction(update);
 
@@ -1693,6 +1696,15 @@ public:
 	 * @returns {Array} - An array of weights.
 	 */
 	JsDeclareFunction(getStateWgtV);
+
+	/**
+	 * Returns a JSON representation of a decision tree, which classifies
+	 * this state against other states
+	 *
+	 * @param {Number} stateId
+	 * @returns {Object}
+	 */
+	JsDeclareFunction(getClassifyTree);
 
 	/**
 	 * Sets a callback function which is fired when the model changes states. An array of current states
@@ -1839,6 +1851,28 @@ public:
 			const double& Prob, const TFltV& ProbV, const TFltV& TmV);
 
 private:
+	class TFitAsync {
+	private:
+		TNodeJsStreamStory* JsStreamStory;
+		TNodeJsFltVV* JsObservFtrs;
+		TNodeJsFltVV* JsControlFtrs;
+		TNodeJsFltV* JsRecTmV;
+		TNodeJsBoolV* JsBatchEndJsV;
+
+		v8::Persistent<v8::Function> Callback;
+		v8::Persistent<v8::Object> SsHolder;
+		v8::Persistent<v8::Object> ArgHolder;
+
+		PExcept Except;
+
+	public:
+		TFitAsync(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		~TFitAsync();
+
+		static void Run(TFitAsync& Data);
+		static void AfterRun(const TFitAsync& Data);
+	};
+
 	void SetParams(const PJsonVal& ParamVal);
 	void InitCallbacks();
 
@@ -2021,6 +2055,25 @@ public:
 	//!- `arr = tokenizer.getParagraphs(string)` -- breaks text into paragraphs and returns them as an array of strings.
 	JsDeclareFunction(getParagraphs);
 };
+
+class TNodeJsMDS : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "MDS"; }
+
+private:
+	TFltVV MDS;
+
+	TNodeJsMDS() {}
+	TNodeJsMDS(TSIn& SIn) : MDS(SIn) {}
+
+	static TNodeJsMDS* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+	JsDeclareFunction(fitTransform);
+};
+
 
 #endif /* ANALYTICS_H_ */
 

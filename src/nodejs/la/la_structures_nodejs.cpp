@@ -131,6 +131,7 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(Tpl, "colMaxIdx", _colMaxIdx);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "getCol", _getCol);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "setCol", _setCol);
+	NODE_SET_PROTOTYPE_METHOD(Tpl, "getSubmatrix", _getSubmatrix);
 	NODE_SET_PROTOTYPE_METHOD(Tpl, "getColSubmatrix", _getColSubmatrix);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "getRow", _getRow);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "setRow", _setRow);
@@ -608,6 +609,27 @@ void TNodeJsFltVV::setCol(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     }
 
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsFltVV::getSubmatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+	const int MinRows = TNodeJsUtil::GetArgInt32(Args, 0, 0);
+	const int MaxRows = TNodeJsUtil::GetArgInt32(Args, 1, JsMat->Mat.GetRows()-1);
+	const int MinCols = TNodeJsUtil::GetArgInt32(Args, 2, 0);
+	const int MaxCols = TNodeJsUtil::GetArgInt32(Args, 3, JsMat->Mat.GetCols()-1);
+
+	EAssertR(0 <= MinRows && MinRows < JsMat->Mat.GetRows(), "Matrix.getSubmatrix: minRow is not valid!");
+	EAssertR(0 <= MaxRows && MaxRows < JsMat->Mat.GetRows(), "Matrix.getSubmatrix: maxRow is not valid!");
+	EAssertR(0 <= MinCols && MinCols < JsMat->Mat.GetCols(), "Matrix.getSubmatrix: minCol is not valid!");
+	EAssertR(0 <= MaxCols && MaxCols < JsMat->Mat.GetCols(), "Matrix.getSubmatrix: maxCol is not valid!");
+
+	TFltVV Result;
+	TLAUtil::SubMat(JsMat->Mat, MinRows, MaxRows, MinCols, MaxCols, Result);
+
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
 }
 
 void TNodeJsFltVV::getColSubmatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {

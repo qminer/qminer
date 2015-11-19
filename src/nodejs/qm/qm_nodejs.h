@@ -709,6 +709,7 @@ private:
 	/**
 	* Adds a record to the store.
 	* @param {Object} rec - The added record. The record must be a JSON object corresponding to the store schema.
+	* @param {boolean} [triggerEvents=true] - If true, all stream aggregate callbacks onAdd will be called after the record is inserted. If false, no stream aggregate will be updated.
 	* @returns {number} The ID of the added record.
 	* @example
 	* // import qm module
@@ -738,7 +739,7 @@ private:
 	* base.store("Supervillians").push({ Name: "Lex Luthor", Superpowers: ["expert engineer", "genius-level intellect", "money"] }); // returns 0
 	* base.close();	
 	*/
-	//# exports.Store.prototype.push = function (rec) { return 0; }
+	//# exports.Store.prototype.push = function (rec, triggerEvents) { return 0; }
 	JsDeclareFunction(push);
 
 	/**
@@ -986,6 +987,12 @@ private:
 	JsDeclareFunction(getStreamAggr);
 
 	/**
+	* Resets all stream aggregates.
+	*/
+	//# exports.Store.prototype.resetStreamAggregates = function () { }
+	JsDeclareFunction(resetStreamAggregates);
+
+	/**
 	* Returns an array of the stream aggregates names connected to the store.
 	* @returns {Array.<string>} An array of stream aggregates names.
 	*/
@@ -1145,6 +1152,13 @@ private:
 	*/
 	//# exports.Store.prototype.cell = function (recId, fieldName) {};
 	JsDeclareFunction(cell);
+
+	/**
+	* Calls onAdd callback on all stream aggregates
+	* @param {(module:qm.Record | number)} [arg=this.last] - The record or recordId which will be passed to onAdd callbacks. If the record or recordId is not provided, the last record will be used. Throws exception if cannot be provided.
+	*/
+	//# exports.Store.prototype.triggerOnAddCallbacks = function (arg) {};
+	JsDeclareFunction(triggerOnAddCallbacks);
 
 	/**
 	* Gives the name of the store.
@@ -1377,6 +1391,30 @@ private:
 	JsDeclareSetProperty(getField, setField);
 	JsDeclareProperty(join);
 	JsDeclareProperty(sjoin);
+};
+
+class TNodeJsRecByValV: public node::ObjectWrap {
+	friend class TNodeJsUtil;
+private:
+	// Node framework
+	static v8::Persistent<v8::Function> Constructor;
+public:
+	// Node framework
+	static void Init(v8::Handle<v8::Object> Exports);
+	static const TStr GetClassId() { return "RecordVector"; }
+
+	TVec<TQm::TRec> RecV;
+
+	TNodeJsRecByValV(): RecV() {}
+
+	static TNodeJsRecByValV* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+private:
+	/**
+	 * Adds a new record to the vector.
+	 */
+	//# exports.RecVector.prototype.push = function (rec) {};
+	JsDeclareFunction(push);
 };
 
 ///////////////////////////////
@@ -3109,6 +3147,8 @@ public:
 	//# exports.FeatureSpace.prototype.updateRecords = function (rs) { return Object.create(require('qminer').FeatureSpace.prototype); };
 	JsDeclareFunction(updateRecords);
 
+	JsDeclareFunction(updateRecordsAsync);
+
 	/**
 	* Creates a sparse feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
@@ -3272,6 +3312,8 @@ public:
 	*/
 	//# exports.FeatureSpace.prototype.extractMatrix = function (rs) { return Object.create(require('qminer').la.Matrix.prototype); };
     JsDeclareFunction(extractMatrix);
+
+    JsDeclareFunction(extractMatrixAsync);
 
 	/**
 	* Gives the name of feature extractor at given position.
@@ -3487,6 +3529,40 @@ private:
     	v8::Handle<v8::Function> Func = v8::Handle<v8::Function>::Cast(Settings->Get(v8::String::NewFromUtf8(Isolate, "fun")));
     	return TNodeJsFuncFtrExt::NewFtrExt(Base, ParamVal, Func, Isolate);
     }
+
+	class TUpdateRecsTask {
+	private:
+		TNodeJsFtrSpace* JsFtrSpace;
+		TNodeJsRecByValV* JsRecV;
+
+		v8::Persistent<v8::Value> ArgHolder;
+		v8::Persistent<v8::Function> Callback;
+
+		bool HasErr;
+	public:
+		TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		~TUpdateRecsTask();
+
+		static void Run(TUpdateRecsTask& Task);
+		static void AfterRun(const TUpdateRecsTask& Task);
+	};
+
+    class TExtractMatrixTask {
+    private:
+    	TNodeJsFtrSpace* JsFtrSpace;
+    	TNodeJsRecByValV* JsRecV;
+    	TNodeJsFltVV* JsFtrVV;
+
+    	v8::Persistent<v8::Value> ArgHolder;
+    	v8::Persistent<v8::Function> Callback;
+    	bool HasError;
+    public:
+    	TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+    	~TExtractMatrixTask();
+
+    	static void Run(TExtractMatrixTask& Task);
+    	static void AfterRun(const TExtractMatrixTask& Task);
+    };
 };
 
 #endif

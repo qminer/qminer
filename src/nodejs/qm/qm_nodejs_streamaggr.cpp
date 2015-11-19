@@ -35,6 +35,7 @@ void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 	
 	// Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "reset", _reset);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onAdd", _onAdd);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onUpdate", _onUpdate);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onDelete", _onDelete);
@@ -149,6 +150,17 @@ TNodeJsSA* TNodeJsSA::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Arg
     }
 
     return new TNodeJsSA(StreamAggr);
+}
+
+void TNodeJsSA::reset(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// unwrap
+	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	JsSA->SA->Reset();
+
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsSA::onAdd(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -490,6 +502,12 @@ TNodeJsStreamAggr::TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm
 	QmAssertR(TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onAdd")), "TNodeJsStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing onAdd callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
 	QmAssertR(TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "saveJson")), "TNodeJsStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing saveJson callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
 
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "reset"))) {
+		v8::Handle<v8::Value> _ResetFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "reset"));
+		QmAssert(_ResetFun->IsFunction());
+		ResetFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_ResetFun));
+	}
+
 	v8::Handle<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onAdd"));
 	QmAssert(_OnAddFun->IsFunction());
 	OnAddFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnAddFun));
@@ -630,6 +648,7 @@ TNodeJsStreamAggr::TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm
 
 TNodeJsStreamAggr::~TNodeJsStreamAggr() {
 	// callbacks
+	ResetFun.Reset();
 	OnAddFun.Reset();
 	OnUpdateFun.Reset();
 	OnDeleteFun.Reset();
@@ -670,6 +689,22 @@ TNodeJsStreamAggr::~TNodeJsStreamAggr() {
 	LoadFun.Reset();
 }
 
+void TNodeJsStreamAggr::Reset() {
+	if (!ResetFun.IsEmpty()) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, ResetFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();	
+
+		v8::TryCatch TryCatch;
+		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+		if (TryCatch.HasCaught()) {
+			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+			throw TQm::TQmExcept::New("Javascript exception from callback triggered in " + TStr(__FUNCTION__) + TStr(": ") + TStr(*Msg));
+		}
+	}
+}
 
 void TNodeJsStreamAggr::OnAddRec(const TQm::TRec& Rec) {
 	if (!OnAddFun.IsEmpty()) {

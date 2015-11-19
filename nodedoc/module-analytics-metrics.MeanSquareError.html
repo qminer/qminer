@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>~<wbr><a href="module-analytics-metrics.html">metrics</a>.<wbr></small><span class="symbol-name">MeanSquareError</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2620">analyticsdoc.<wbr>js:2620</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2610">analyticsdoc.<wbr>js:2610</a></p>
             <div class="symbol-classdesc">
               <p>Online Mean Square Error (MSE) instance</p>
             </div>
@@ -41,11 +41,17 @@
                     <dt><a href="module-analytics-metrics.MeanSquareError.html#getError">getError()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics-metrics.MeanSquareError.html#load">load(FIn)</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
                     <dt><a href="module-analytics-metrics.MeanSquareError.html#push">push(yTrue, yPred)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-metrics.MeanSquareError.html#save">save(FOut)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -56,8 +62,37 @@
             </div>
           </section>
           <section>
-            <h2 id="MeanSquareError">new&nbsp;<span class="symbol-name">MeanSquareError</span><span class="signature"><span class="signature-params">()</span></span></h2>
+            <h2 id="MeanSquareError">new&nbsp;<span class="symbol-name">MeanSquareError</span><span class="signature"><span class="signature-params">([FIn])</span></span></h2>
             <p>Create new (online) mean square error instance.</p>
+            <section>
+              <h3>Parameter</h3>
+              <table class="jsdoc-details-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p>FIn</p>
+                    </td>
+                    <td>
+                      <p><a href="module-fs.FIn.html">module:fs.FIn</a></p>
+                    </td>
+                    <td>
+                      <p>Yes</p>
+                    </td>
+                    <td>
+                      <p>Saved state can be loaded via constructor</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
             <dl class="dl-compact">
               <dt>Extends</dt>
               <dd><a href="module-analytics-createOnlineMetric.html">module:analytics~createOnlineMetric</a></dd>
@@ -74,6 +109,45 @@
                 <dt>Returns</dt>
                 <dd>
                   <p>Error value</p>
+                </dd>
+              </dl>
+              <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(FIn)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FIn.html">module:fs.FIn</a></span></span></h3>
+              <p>Load metric state from provided input stream <code>FIn</code>.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>FIn</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The output stream.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="module-analytics-createOnlineMetric.html#load">module:analytics~createOnlineMetric#load</a></dd>
+                <dt>Returns</dt>
+                <dd>
+                  <p>Provided output stream <code>FIn</code>.</p>
                 </dd>
               </dl>
               <h3 id="push"><span class="symbol-name">push</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span></span></h3>
@@ -124,6 +198,45 @@
               <dl class="dl-compact">
                 <dt>Inherited from</dt>
                 <dd><a href="module-analytics-createOnlineMetric.html#push">module:analytics~createOnlineMetric#push</a></dd>
+              </dl>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(FOut)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Save metric state to provided output stream <code>FOut</code>.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>FOut</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The output stream.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Inherited from</dt>
+                <dd><a href="module-analytics-createOnlineMetric.html#save">module:analytics~createOnlineMetric#save</a></dd>
+                <dt>Returns</dt>
+                <dd>
+                  <p>Provided output stream <code>FOut</code>.</p>
+                </dd>
               </dl>
             </section>
           </section>

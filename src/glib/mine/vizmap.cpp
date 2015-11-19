@@ -1038,10 +1038,11 @@ void TVizMapFactory::CG(const TMatrix& Matrix, const TFltV& b,
     }
 }
 
-void TVizMapFactory::MakeFlat(PSVMTrainSet Set, 
+void TVizMapFactory::MakeFlat(const PSVMTrainSet& Set, 
         const TVizDistType& DistType, TVec<TFltV>& DocPointV, 
         const int& MxStep, const int& MxSecs, const double& MnDiff, 
         const bool& RndStartPos, PNotify Notify) {
+
 
     const int Len = Set->Len();
     //const int Dim = Set->Dim();
@@ -1068,6 +1069,7 @@ void TVizMapFactory::MakeFlat(PSVMTrainSet Set,
     // main loop
     int Step = 0; TTm StartTm = TTm::GetCurUniTm();
     int PrevTimeSec = 0;
+
     forever {
         // preparing matrix
         b.PutAll(0.0); z.PutAll(0.0);
@@ -1122,6 +1124,8 @@ void TVizMapFactory::MakeFlat(PSVMTrainSet Set,
     for (int i = 0; i < Len; i++) {
         DocPointV.Add(TFltV::GetV(x[i], y[i]));
     }
+	printf("DocPointV in MakeFlat: %d, %d\n", DocPointV.Len(), DocPointV[0].Len());
+
 }
 
 void TVizMapFactory::NormalizePoints(TVec<TFltV>& PointV) {

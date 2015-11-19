@@ -467,18 +467,34 @@ namespace TStreamAggrs {
 
 ///////////////////////////////
 // Record Id Buffer.
+void TRecBuffer::OnAddRec(const TRec& Rec) {
+	QmAssertR(Rec.IsByRef(), "TRecBuffer::OnAddRec supports records by ref only!"); 
+	QmAssertR(Rec.GetStoreId() == Store->GetStoreId(), "TRecBuffer::OnAddRec record store id mismatch"); 
+	Buffer.Update(Rec.GetRecId());
+}
+
 TRecBuffer::TRecBuffer(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
-    TStreamAggr(Base, ParamVal), Buffer(ParamVal->GetObjInt("size")) { }
+    TStreamAggr(Base, ParamVal), Buffer(ParamVal->GetObjInt("size")), Store(Base->GetStoreByStoreNm(ParamVal->GetObjStr("store"))) { }
 
 PStreamAggr TRecBuffer::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TRecBuffer(Base, ParamVal); 
 }
 
+void TRecBuffer::LoadState(TSIn& SIn) {
+	Buffer.Load(SIn);
+}
+
+void TRecBuffer::SaveState(TSOut& SOut) const {
+	Buffer.Save(SOut);
+}
+
 PJsonVal TRecBuffer::SaveJson(const int& Limit) const {
     PJsonVal JsonVal = TJsonVal::NewObj();
     if (!Buffer.Empty()) {
-        const TRec& OldestRec = Buffer.GetOldest();
-        const TRec& NewestRec = Buffer.GetNewest();
+		QmAssertR(Store->IsRecId(Buffer.GetOldest()), "TRecBuffer GetOldest returned invalid record id");
+		QmAssertR(Store->IsRecId(Buffer.GetNewest()), "TRecBuffer GetNewest returned invalid record id");
+        const TRec& OldestRec = Store->GetRec(Buffer.GetOldest());
+        const TRec& NewestRec = Store->GetRec(Buffer.GetNewest());
         JsonVal->AddToObj("oldest", OldestRec.GetJson(GetBase(), true, false, false, false, true));
         JsonVal->AddToObj("newest", NewestRec.GetJson(GetBase(), true, false, false, false, true));    
     }
@@ -1358,6 +1374,19 @@ TOnlineHistogram::TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& Para
 	BufferedP = (InAggrValBuffer != NULL);
 }
 
+
+/// Load from stream
+void TOnlineHistogram::LoadState(TSIn& SIn) {
+	BufferedP.Load(SIn);
+	Model.Load(SIn);
+}
+
+/// Store state into stream
+void TOnlineHistogram::SaveState(TSOut& SOut) const {
+	BufferedP.Save(SOut);
+	Model.Save(SOut);
+}
+
 ///////////////////////////////
 /// Chi square stream aggregate
 void TChiSquare::OnAddRec(const TRec& Rec) {
@@ -1372,7 +1401,6 @@ TChiSquare::TChiSquare(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStre
     // parse out input aggregate
     TStr InStoreNmX = ParamVal->GetObjStr("storeX");
     TStr InStoreNmY = ParamVal->GetObjStr("storeY");
-    printf("%s",InStoreNmX.CStr());
     TStr InAggrNmX = ParamVal->GetObjStr("inAggrX");
     TStr InAggrNmY = ParamVal->GetObjStr("inAggrY");
     PStreamAggr _InAggrX = Base->GetStreamAggr(InStoreNmX, InAggrNmX);
@@ -1397,8 +1425,18 @@ PJsonVal TChiSquare::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
 	Val->AddToObj("P", ChiSquare.GetP());
 	Val->AddToObj("Chi2", ChiSquare.GetChi2());
-	Val->AddToObj("Time", TTm::GetTmFromMSecs(ChiSquare.GetTmMSecs()).GetWebLogDateTimeStr(true, "T"));
 	return Val;
+}
+
+
+/// Load from stream
+void TChiSquare::LoadState(TSIn& SIn) {
+	ChiSquare.LoadState(SIn);
+}
+
+/// Store state into stream
+void TChiSquare::SaveState(TSOut& SOut) const {
+	ChiSquare.SaveState(SOut);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -1414,6 +1452,12 @@ TSlottedHistogram::TSlottedHistogram(const uint64 _Period, const uint64 _Slot, c
 	for (int i = 0; i < Dat.Len(); i++) {
 		Dat[i] = TSignalProc::TOnlineHistogram(0, Bins, Bins, false, false);
 	}
+}
+
+void TSlottedHistogram::Reset() {
+	for (int HistN = 0; HistN < Dat.Len(); HistN++) {
+		Dat[HistN].Reset();
+	}	
 }
 
 /// Load stream aggregate state from stream
@@ -1567,7 +1611,6 @@ TVecDiff::TVecDiff(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamA
 	// parse out input aggregate
 	TStr InStoreNmX = ParamVal->GetObjStr("storeX");
 	TStr InStoreNmY = ParamVal->GetObjStr("storeY");
-	printf("%s", InStoreNmX.CStr());
 	TStr InAggrNmX = ParamVal->GetObjStr("inAggrX");
 	TStr InAggrNmY = ParamVal->GetObjStr("inAggrY");
 	PStreamAggr _InAggrX = Base->GetStreamAggr(InStoreNmX, InAggrNmX);

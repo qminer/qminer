@@ -385,7 +385,7 @@
  * la = require(&#x27;qminer&#x27;).la;
  * analytics = require(&#x27;qminer&#x27;).analytics;
  * // create a new model with gamma = 1.0
- * var regmod = new analytics.RidgeReg({ gamma: 1.0 });
+ * var regmod = new analytics.RidgeReg(1.0);
  * // generate a random feature matrix
  * var A = la.randn(10,100);
  * // generate a random model
@@ -397,12 +397,12 @@
  * // fit model
  * regmod.fit(A, b);
  * // compare
- * // true model
+ * console.log(&#x27;true model:&#x27;);
  * w.print();
- * // trained model&#x27;);
+ * console.log(&#x27;trained model:&#x27;);
  * regmod.weights.print();
  * // cosine between the true and the estimated model should be close to 1 if the fit succeeded
- * var cos = regmod.weights.cosine(w);
+ * console.log(&#x27;cosine(w, regmod.weights): &#x27; + regmod.weights.cosine(w));
  */
  exports.RidgeReg = function(arg) {};
 /**

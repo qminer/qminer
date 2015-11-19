@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -97,7 +97,7 @@ public:
 	TMemBase(const void* _Bf, const int& _BfL, const bool& _Owner = true) :
 		MxBfL(_BfL), BfL(_BfL), Bf(NULL), Owner(_Owner) {
 		IAssert(BfL >= 0);
-		if (BfL > 0) { 
+		if (BfL > 0) {
 			if (Owner) {
 				Bf = new char[BfL]; IAssert(Bf != NULL); memcpy(Bf, _Bf, BfL);
 			} else {
@@ -109,8 +109,8 @@ public:
 		MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
 		Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
 	}
-	virtual ~TMemBase() { 
-		if (Owner && Bf != NULL) { 
+	virtual ~TMemBase() {
+		if (Owner && Bf != NULL) {
 			delete[] Bf; } }
 	int Len() const { return BfL; }
 	bool Empty() const { return BfL == 0; }
@@ -136,7 +136,7 @@ public:
 };
 
 /////////////////////////////////////////////////
-/// Thin Input-Memory. Used to present existing TMem as TSIn. 
+/// Thin Input-Memory. Used to present existing TMem as TSIn.
 /// It doesn't allocate or release any memory.
 class TThinMIn : public TSIn {
 protected:
@@ -217,7 +217,7 @@ public:
 	  if (this != &Src) {
 		  if (Owner && Bf != NULL) { delete[] Bf; }
 		  MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
-		  Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;		  
+		  Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
 	  }
 	  return *this;
   }
@@ -500,11 +500,11 @@ private:
   const static char EmptyStr;
   /// String
   char* Inner;
-  
-  /// Wraps the char pointer with a new string. The char pointer is NOT 
+
+  /// Wraps the char pointer with a new string. The char pointer is NOT
   /// copied and the new string becomes responsible for deleting it.
-  static TStr WrapCStr(char* CStr); 
-  
+  static TStr WrapCStr(char* CStr);
+
 public:
   /// Empty String Constructor
   TStr(): Inner(nullptr) {}
@@ -524,7 +524,7 @@ public:
   TStr(const TSStr& SStr); // KILL
   /// Stream (file) reading constructor
   explicit TStr(const PSIn& SIn);
-  
+
   /// We only delete when not empty
   ~TStr() { Clr(); }
 
@@ -546,7 +546,7 @@ public:
   void Load(TSIn& SIn, const bool& IsSmall = false);
   /// Serialize TStr to stream, when IsSmall, the string is saved as CStr,
   /// otherwise the format is first the length and then the data including last \0
-  void Save(TSOut& SOut, const bool& IsSmall = false) const;  
+  void Save(TSOut& SOut, const bool& IsSmall = false) const;
    /// Deserialize from XML File
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
   /// Serialize to XML File
@@ -576,7 +576,7 @@ public:
   bool operator!=(const char* CStr) const { return !operator==(CStr); }
   /// < (is less than comparison) TStr < TStr
   bool operator<(const TStr& Str) const;
-  
+
   /// Indexing operator, returns character at position ChN
   char operator[](const int& ChN) const { return GetCh(ChN); }
   /// Indexing operator, returns character at position ChN by reference
@@ -602,7 +602,7 @@ public:
   const TStr& GetStr() const { return *this; }
   /// Memory used by this String object
   int GetMemUsed() const;
-  
+
   /// Case insensitive comparison
   static int CmpI(const char* p, const char* r);
   /// Case insensitive comparison
@@ -625,7 +625,7 @@ public:
   TStr& ToCap();
   /// Returns string as capitalized (first char is uppercase, rest lowercase)
   TStr GetCap() const;
-  
+
   /// Replaces string with truncated (remove whitespace at start and end) (not thread safe)
   TStr& ToTrunc();
   /// Returns truncated string (remove whitespace at start and end)
@@ -671,7 +671,7 @@ public:
   /// Remove the EndStr if it occurs at the end of the string
   TStr TrimRight(const TStr& EndStr) const { return EndsWith(EndStr) ? GetSubStrSafe(0, Len() - EndStr.Len() - 1) : TStr(*this); }
 
-  /// Puts the contents to the left of LeftOfChN (exclusive) into LStr and the 
+  /// Puts the contents to the left of LeftOfChN (exclusive) into LStr and the
   /// contents on the right of RightOfChN into RStr (exclusive)
   void SplitLeftOfRightOf(TStr& LStr, const int& LeftOfChN, const int& RightOfChN, TStr& RStr) const;
   /// Split on the index, return Pair of Left/Right strings, omits the target index
@@ -1003,9 +1003,9 @@ public:
   ~TStrPool64() { Clr(true); }
   void Save(TSOut& SOut) const;
 
-  static PStrPool64 New(::TSize MxBfL = 0, ::TSize GrowBy = 16*1024*1024) { 
+  static PStrPool64 New(::TSize MxBfL = 0, ::TSize GrowBy = 16*1024*1024) {
       return PStrPool64(new TStrPool64(MxBfL, GrowBy)); }
-  static PStrPool64 Load(TSIn& SIn, bool LoadCompact = true) { 
+  static PStrPool64 Load(TSIn& SIn, bool LoadCompact = true) {
       return PStrPool64(new TStrPool64(SIn, LoadCompact)); }
 
   TStrPool64& operator=(const TStrPool64& StrPool);
@@ -1048,7 +1048,7 @@ public:
 
 /////////////////////////////////////////////////
 // Complex double
-template<> 
+template<>
 class TNum<std::complex<double>>{
 public:
 	std::complex<double> Val;
@@ -1350,7 +1350,7 @@ public:
   TNum& operator--(){ --Val; return *this; } // prefix
   TNum operator++(int){ TNum oldVal = Val; Val++; return oldVal; } // postfix
   TNum operator--(int){ TNum oldVal = Val; Val--; return oldVal; } // postfix
-  
+
   int GetMemUsed() const {return sizeof(TNum);}
 
   int GetPrimHashCd() const {return Val;}
@@ -1384,7 +1384,7 @@ public:
     IAssert(Mn<=Mx); return Val<Mn?Mn:(Val>Mx?Mx:Val);}
 
   TStr GetStr() const { return TNum::GetStr(Val); }
-  
+
   static TStr GetStr(const int& Val){ return TStr::Fmt("%d", Val); }
   static TStr GetStr(const TNum& Int){ return GetStr(Int.Val); }
   static TStr GetStr(const int& Val, const char* FmtStr);
@@ -1625,6 +1625,16 @@ static TStr GetHexStr(const TNum& Int){return TStr::Fmt("%llX", Int.Val);}
     else if (Val>1000000000){
       return GetStr(Val/1000000000)+"."+GetStr((Val%1000000000)/100000000)+"G";}
     else {return GetMegaStr(Val);}}*/
+
+  static uint64 GetFromBufSafe(const char * Bf) {
+    #ifdef ARM
+    uint64 Val;
+    memcpy(&Val, Bf, sizeof(uint64)); //we cannot use a cast on ARM (needs 8byte memory aligned doubles)
+    return Val;
+    #else
+    return *((uint64*)Bf);
+    #endif
+  }
 };
 
 /////////////////////////////////////////////////
@@ -1733,6 +1743,15 @@ public:
     if (fabs(Val)>100*1000000000.0){return TStr::Fmt("%.0fG", Val/1000000000.0);}
     else if (fabs(Val)>1000000000.0){return TStr::Fmt("%.1fG", Val/1000000000.0);}
     else {return GetMegaStr(Val);}}
+  static double GetFromBufSafe(const char * Bf) {
+    #ifdef ARM
+    double Val;
+    memcpy(&Val, Bf, sizeof(double)); //we cannot use a cast on ARM (needs 8byte memory aligned doubles)
+    return Val;
+    #else
+    return *((double*)Bf);
+    #endif
+  }
 };
 
 /////////////////////////////////////////////////

@@ -12,24 +12,10 @@ module.exports = exports = function (pathQmBinary) {
     
     //!STARTJSDOC
 
-    /**
-     * Reads a buffer, containing a CSV file, line by line and calls a callback for each line.
-     * The callback function accepts an array with the values of the current line.
-     *
-     * @param {Buffer} buffer - the Node.js buffer
-     * @param {Object} opts - options parameter
-     * @param {function} opts.onLine - a callback that gets called on each line (for example: function (lineArr) {})
-     * @param {function} opts.onEnd - a callback that gets returned after all the lines have been read
-     * @param {function} opts.onError - a callback that gets called if an error occurs
-     * @param {String} opts.delimiter - the delimiter used when parsing
-     * @param {Number} opts.lineLimit - the maximum number of lines read
-     * @param {Number} opts.skipLines - the number of lines that should be skipped before first calling the callback
-     */
-    exports.readCsvLines = function (fin, opts) {
+    function processCsvLine(opts) {
     	if (opts.delimiter == null) opts.delimiter = ',';
     	if (opts.onLine == null) throw 'Line callback missing!';
     	if (opts.onEnd == null) opts.onEnd = function () {}
-    	if (opts.onError == null) opts.onError = function () {}
     	if (opts.lineLimit == null) opts.lineLimit = Infinity;
     	if (opts.skipLines == null) opts.skipLines = 0;
     	if (opts.quote == null) opts.quote = '"';
@@ -49,10 +35,11 @@ module.exports = exports = function (pathQmBinary) {
             ), "gi");
         
         var quoteRegex = new RegExp(opts.quote, 'g');
-    	        
-    	var i = 0;
+        
+        var i = 0;
     	var line = '';
-    	exports.readLines(fin, function (batch) {    		
+    	
+    	return function (batch) {
     		line += batch;
     		
     		// if the number of delimiters is odd => the line hasn't ended, but a string field contained a line ending
@@ -86,10 +73,26 @@ module.exports = exports = function (pathQmBinary) {
 	            
 	            return ++i < opts.lineLimit;
 			} catch (e) {
-				opts.onError(e);
-				return true;
+				opts.onEnd(e);
+				return false;	// stop the loop if an error occurs
 			}
-		}, opts.onEnd, opts.onError);
+    	}
+    }
+    
+    /**
+     * Reads a buffer, containing a CSV file, line by line and calls a callback for each line.
+     * The callback function accepts an array with the values of the current line.
+     *
+     * @param {Buffer} buffer - the Node.js buffer
+     * @param {Object} opts - options parameter
+     * @param {function} opts.onLine - a callback that gets called on each line (for example: function (lineArr) {})
+     * @param {function} opts.onEnd - a callback that gets returned after all the lines have been read
+     * @param {String} opts.delimiter - the delimiter used when parsing
+     * @param {Number} opts.lineLimit - the maximum number of lines read
+     * @param {Number} opts.skipLines - the number of lines that should be skipped before first calling the callback
+     */
+    exports.readCsvLines = function (fin, opts) {
+    	exports.readLines(fin, processCsvLine(opts), opts.onEnd);
     }
 
     //!ENDJSDOC
