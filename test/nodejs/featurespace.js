@@ -26,6 +26,7 @@ describe('Feature Space Tests', function () {
             "fields": [
               { "name": "Value", "type": "float" },
               { "name": "Category", "type": "string" },
+              { "name": "Values", "type": "float_v" },
               { "name": "Categories", "type": "string_v" },
               { "name": "Date", "type": "datetime" },
               { "name": "Text", "type": "string" }
@@ -34,17 +35,17 @@ describe('Feature Space Tests', function () {
             "keys": []
         });
         Store = base.store("FtrSpaceTest");
-        Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Barclays dropped a bombshell on its investment bankers last week." });
-        Store.push({ Value: 1.1, Category: "b", Categories: ["b", "w"], Date: "2014-10-11T00:11:22", Text: "Amid a general retreat by banks from bond trading and other volatile business lines, Barclays was particularly aggressive." });
-        Store.push({ Value: 1.2, Category: "c", Categories: ["c", "e"], Date: "2014-10-12T00:11:22", Text: "In what CEO Antony Jenkins dubbed a “bold simplification,” Barclays will cut 7,000 jobs in its investment bank by 2016 and will trim the unit to 30% of the group’s risk-weighted assets." });
-        Store.push({ Value: 1.3, Category: "a", Categories: ["a", "q"], Date: "2014-10-13T00:11:22", Text: "The bank is relegating £400 billion ($676 billion) in assets to its “non-core” unit, effectively quarantining them from the rest of the business." });
-        Store.push({ Value: 1.4, Category: "b", Categories: ["b", "w"], Date: "2014-10-14T00:11:22", Text: "Just about every large lender these days has chucked a chunk of its toxic cast-offs into a so-called “bad bank,” but none with the same zeal as Barclays." });
-        Store.push({ Value: 1.5, Category: "c", Categories: ["c", "e"], Date: "2014-10-15T00:11:22", Text: "The last time we drew up the league table for bad banks, UBS was on top." });
-        Store.push({ Value: 1.6, Category: "a", Categories: ["a", "q"], Date: "2014-10-16T00:11:22", Text: "But Barclays has now taken the crown, with “non-core” assets accounting for nearly 30% of the bank’s total balance sheet." });
-        Store.push({ Value: 1.7, Category: "b", Categories: ["b", "w"], Date: "2014-10-17T00:11:22", Text: "Details about a bad bank are typically relegated deep in the depths of a bank’s financial report, while it prominently trumpets the brilliant “adjusted” results of its unsullied core business." });
-        Store.push({ Value: 1.8, Category: "c", Categories: ["c", "e"], Date: "2014-10-18T00:11:22", Text: "These assets still belong to the bank, and factor into its capital ratios and other important measures of financial soundness." });
-        Store.push({ Value: 1.9, Category: "a", Categories: ["a", "q"], Date: "2014-10-19T00:11:22", Text: "But because selling everything at once would produce a huge loss, carving out an internal bad bank is the next best option." });
-        Store.push({ Value: 2.0, Category: "b", Categories: ["b", "w"], Date: "2014-10-20T00:11:22", Text: "The Barbie doll is an icon that young girls have played with since 1959, when Barbie settled in as an American fixture in the lives of children, first in the United States and in more recent years, worldwide." });
+        Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Barclays dropped a bombshell on its investment bankers last week." });
+        Store.push({ Value: 1.1, Category: "b", Values: [1.1, 1.9], Categories: ["b", "w"], Date: "2014-10-11T00:11:22", Text: "Amid a general retreat by banks from bond trading and other volatile business lines, Barclays was particularly aggressive." });
+        Store.push({ Value: 1.2, Category: "c", Values: [1.2, 1.8], Categories: ["c", "e"], Date: "2014-10-12T00:11:22", Text: "In what CEO Antony Jenkins dubbed a “bold simplification,” Barclays will cut 7,000 jobs in its investment bank by 2016 and will trim the unit to 30% of the group’s risk-weighted assets." });
+        Store.push({ Value: 1.3, Category: "a", Values: [1.3, 1.7], Categories: ["a", "q"], Date: "2014-10-13T00:11:22", Text: "The bank is relegating £400 billion ($676 billion) in assets to its “non-core” unit, effectively quarantining them from the rest of the business." });
+        Store.push({ Value: 1.4, Category: "b", Values: [1.4, 1.6], Categories: ["b", "w"], Date: "2014-10-14T00:11:22", Text: "Just about every large lender these days has chucked a chunk of its toxic cast-offs into a so-called “bad bank,” but none with the same zeal as Barclays." });
+        Store.push({ Value: 1.5, Category: "c", Values: [1.5, 1.5], Categories: ["c", "e"], Date: "2014-10-15T00:11:22", Text: "The last time we drew up the league table for bad banks, UBS was on top." });
+        Store.push({ Value: 1.6, Category: "a", Values: [1.6, 1.4], Categories: ["a", "q"], Date: "2014-10-16T00:11:22", Text: "But Barclays has now taken the crown, with “non-core” assets accounting for nearly 30% of the bank’s total balance sheet." });
+        Store.push({ Value: 1.7, Category: "b", Values: [1.7, 1.3], Categories: ["b", "w"], Date: "2014-10-17T00:11:22", Text: "Details about a bad bank are typically relegated deep in the depths of a bank’s financial report, while it prominently trumpets the brilliant “adjusted” results of its unsullied core business." });
+        Store.push({ Value: 1.8, Category: "c", Values: [1.8, 1.2], Categories: ["c", "e"], Date: "2014-10-18T00:11:22", Text: "These assets still belong to the bank, and factor into its capital ratios and other important measures of financial soundness." });
+        Store.push({ Value: 1.9, Category: "a", Values: [1.9, 1.1], Categories: ["a", "q"], Date: "2014-10-19T00:11:22", Text: "But because selling everything at once would produce a huge loss, carving out an internal bad bank is the next best option." });
+        Store.push({ Value: 2.0, Category: "b", Values: [2.0, 1.0], Categories: ["b", "w"], Date: "2014-10-20T00:11:22", Text: "The Barbie doll is an icon that young girls have played with since 1959, when Barbie settled in as an American fixture in the lives of children, first in the United States and in more recent years, worldwide." });
 
     });
     afterEach(function () {
@@ -212,6 +213,18 @@ describe('Feature Space Tests', function () {
             assert.equal(vec[1], 0);
             assert.equal(vec[2], 0);
             assert.equal(vec[3], 1);
+            assert.equal(vec[4], 0);
+            assert.equal(vec[5], 0);
+        })
+        it('should return a vector for the first record in store: multinomial', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "FtrSpaceTest", field: "Categories", valueField: "Values", values: ["a", "b", "c", "q", "w", "e"] });
+            var vec = ftr.extractVector(Store[0]);
+
+            assert.equal(vec.length, 6);
+            assert.equal(vec[0], 1)
+            assert.equal(vec[1], 0);
+            assert.equal(vec[2], 0);
+            assert.equal(vec[3], 2);
             assert.equal(vec[4], 0);
             assert.equal(vec[5], 0);
         })
@@ -384,10 +397,11 @@ describe('Feature Space Tests', function () {
                 { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
                 { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 2 },
                 { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
-                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 }
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 },
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", valueField: "Values", values: ["a", "b", "c", "q", "w", "e"] }
             ]);
             var vec = ftr.extractSparseVector(Store[10]);
-            assert.equal(vec.dim, 16);
+            assert.equal(vec.dim, 22);
             assert.equal(vec.at(0), 2.0);
             assert.equal(vec.at(1), 0);
             assert.equal(vec.at(2), 1);
@@ -398,6 +412,9 @@ describe('Feature Space Tests', function () {
             assert.equal(vec.at(9), 0);
             assert.equal(vec.at(10), 1);
             assert.equal(vec.at(11), 0);
+            assert.equal(vec.at(10), 1);
+            assert.equal(vec.at(17), 2);
+            assert.equal(vec.at(20), 1);
         })
         it('should throw an exception, if no parameter is given', function () {
             var ftr = new qm.FeatureSpace(base, [
@@ -1223,6 +1240,21 @@ describe('Feature Space Tests', function () {
         })
         it('should update the feature space with a new record: multinomial', function () {
             var ftr = new qm.FeatureSpace(base,
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories" }
+            );
+
+            assert.equal(ftr.dim, 0);
+            ftr.updateRecord(Store[0]);
+            assert.equal(ftr.dim, 2);
+            ftr.updateRecord(Store[1]);
+            assert.equal(ftr.dim, 4);
+            ftr.updateRecord(Store[2]);
+            assert.equal(ftr.dim, 6);
+            ftr.updateRecord(Store[3]);
+            assert.equal(ftr.dim, 6);
+        })
+        it('should update the feature space with a new record: multinomial', function () {
+            var ftr = new qm.FeatureSpace(base,
                 { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] }
             );
 
@@ -1232,6 +1264,18 @@ describe('Feature Space Tests', function () {
             ftr.updateRecord(Store[0]);
             assert.eqtol(ftr.extractVector(Store[0]).at(0), 1);
             assert.eqtol(ftr.extractVector(Store[0]).at(3), 1);
+        })
+        it('should update the feature space with a new record: multinomial', function () {
+            var ftr = new qm.FeatureSpace(base,
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", valueField: "Values", values: ["a", "b", "c", "q", "w", "e"] }
+            );
+
+            assert.eqtol(ftr.extractVector(Store[0]).at(0), 1);
+            assert.eqtol(ftr.extractVector(Store[0]).at(3), 2);
+
+            ftr.updateRecord(Store[0]);
+            assert.eqtol(ftr.extractVector(Store[0]).at(0), 1);
+            assert.eqtol(ftr.extractVector(Store[0]).at(3), 2);
         })
         it('should update the feature space with a new record: multinomial, normalize', function () {
             var ftr = new qm.FeatureSpace(base,
@@ -1243,6 +1287,17 @@ describe('Feature Space Tests', function () {
             ftr.updateRecord(Store[0]);
             assert.eqtol(ftr.extractVector(Store[0]).at(0), 1 / Math.sqrt(2));
             assert.eqtol(ftr.extractVector(Store[0]).at(3), 1 / Math.sqrt(2));
+        })
+        it('should update the feature space with a new record: multinomial, normalize', function () {
+            var ftr = new qm.FeatureSpace(base,
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", valueField: "Values", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
+            );
+            assert.eqtol(ftr.extractVector(Store[0]).at(0), 1 / Math.sqrt(5));
+            assert.eqtol(ftr.extractVector(Store[0]).at(3), 2 / Math.sqrt(5));
+
+            ftr.updateRecord(Store[0]);
+            assert.eqtol(ftr.extractVector(Store[0]).at(0), 1 / Math.sqrt(5));
+            assert.eqtol(ftr.extractVector(Store[0]).at(3), 2 / Math.sqrt(5));
         })
         it('should update the feature space with a new record: text', function () {
             var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", field: "Text", ngrams: [1, 1] });
@@ -1256,8 +1311,6 @@ describe('Feature Space Tests', function () {
             assert.equal(ftr.extractVector(Store[12]).length, 2);
             assert.equal(ftr.extractVector(Store[12]).at(0), 0);
             assert.equal(ftr.extractVector(Store[12]).at(1), 1);
-
-            //ftr.extractVector(Store[13]); // C++ exception
         })
         it('should update the feature space with a new record: jsfunc', function () {
             var ftr = new qm.FeatureSpace(base, {
