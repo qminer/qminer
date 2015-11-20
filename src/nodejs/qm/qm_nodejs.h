@@ -2960,8 +2960,36 @@ public:
 	TNodeJsFtrSpace(const TWPt<TQm::TBase> Base, TSIn& SIn);
 	
 	TQm::PFtrSpace GetFtrSpace() { return FtrSpace; }
-public:
 	static TNodeJsFtrSpace* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+private:
+	class TUpdateRecsTask: public TNodeTask {
+	private:
+		TNodeJsFtrSpace* JsFtrSpace;
+		TNodeJsRecByValV* JsRecV;
+
+	public:
+		TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		void Run();
+	};
+
+    class TExtractMatrixTask: public TNodeTask {
+    private:
+    	TNodeJsFtrSpace* JsFtrSpace;
+    	TNodeJsRecByValV* JsRecV;
+    	TNodeJsFltVV* JsFtrVV;
+
+    public:
+    	TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+    	v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+    	void Run();
+    	v8::Local<v8::Value> WrapResult();
+    };
+
+public:
 
     /**
 	* Returns the dimension of the feature space.
@@ -3147,7 +3175,7 @@ public:
 	//# exports.FeatureSpace.prototype.updateRecords = function (rs) { return Object.create(require('qminer').FeatureSpace.prototype); };
 	JsDeclareFunction(updateRecords);
 
-	JsDeclareFunction(updateRecordsAsync);
+	JsDeclareAsyncFunction(updateRecordsAsync, TUpdateRecsTask);
 
 	/**
 	* Creates a sparse feature vector from the given record.
@@ -3313,7 +3341,7 @@ public:
 	//# exports.FeatureSpace.prototype.extractMatrix = function (rs) { return Object.create(require('qminer').la.Matrix.prototype); };
     JsDeclareFunction(extractMatrix);
 
-    JsDeclareFunction(extractMatrixAsync);
+    JsDeclareAsyncFunction(extractMatrixAsync, TExtractMatrixTask);
 
 	/**
 	* Gives the name of feature extractor at given position.
@@ -3529,40 +3557,6 @@ private:
     	v8::Handle<v8::Function> Func = v8::Handle<v8::Function>::Cast(Settings->Get(v8::String::NewFromUtf8(Isolate, "fun")));
     	return TNodeJsFuncFtrExt::NewFtrExt(Base, ParamVal, Func, Isolate);
     }
-
-	class TUpdateRecsTask {
-	private:
-		TNodeJsFtrSpace* JsFtrSpace;
-		TNodeJsRecByValV* JsRecV;
-
-		v8::Persistent<v8::Value> ArgHolder;
-		v8::Persistent<v8::Function> Callback;
-
-		bool HasErr;
-	public:
-		TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
-		~TUpdateRecsTask();
-
-		static void Run(TUpdateRecsTask& Task);
-		static void AfterRun(const TUpdateRecsTask& Task);
-	};
-
-    class TExtractMatrixTask {
-    private:
-    	TNodeJsFtrSpace* JsFtrSpace;
-    	TNodeJsRecByValV* JsRecV;
-    	TNodeJsFltVV* JsFtrVV;
-
-    	v8::Persistent<v8::Value> ArgHolder;
-    	v8::Persistent<v8::Function> Callback;
-    	bool HasError;
-    public:
-    	TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
-    	~TExtractMatrixTask();
-
-    	static void Run(TExtractMatrixTask& Task);
-    	static void AfterRun(const TExtractMatrixTask& Task);
-    };
 };
 
 #endif

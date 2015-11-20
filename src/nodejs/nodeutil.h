@@ -91,9 +91,8 @@
         } \
     };
 
-#define JsDeclareFunction(Function) \
-    static void Function(const v8::FunctionCallbackInfo<v8::Value>& Args); \
-    static void _ ## Function(const v8::FunctionCallbackInfo<v8::Value>& Args) { \
+#define JsDeclareInternalFunction(Function)	\
+	static void _ ## Function(const v8::FunctionCallbackInfo<v8::Value>& Args) { \
         v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
         v8::HandleScope HandleScope(Isolate); \
         try { \
@@ -103,6 +102,10 @@
             v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
         } \
     };
+
+#define JsDeclareFunction(Function) \
+    static void Function(const v8::FunctionCallbackInfo<v8::Value>& Args); \
+    JsDeclareInternalFunction(Function);
 
 #define JsDeclareSpecializedFunction(Function) \
     static void Function(const v8::FunctionCallbackInfo<v8::Value>& Args) { throw TExcept::New("Not implemented!"); } \
@@ -116,6 +119,33 @@
             v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
         } \
     };
+
+#define JsDeclareAsyncFunction(Function, TTask)	\
+	static void Function(const v8::FunctionCallbackInfo<v8::Value>& Args) {	\
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();	\
+		v8::HandleScope HandleScope(Isolate);	\
+		TTask* Task = new TTask(Args);	\
+		Task->ExtractCallback(Args);	\
+		TNodeJsAsyncUtil::ExecuteOnWorker(Task);	\
+		Args.GetReturnValue().Set(v8::Undefined(Isolate));	\
+	};	\
+	JsDeclareInternalFunction(Function);
+
+#define JsDeclareSyncFunction(Function, TTask)	\
+	static void Function(const v8::FunctionCallbackInfo<v8::Value>& Args) {	\
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();	\
+		v8::HandleScope HandleScope(Isolate);	\
+		TTask Task(Args);	\
+		Task.Run();	\
+		Task.AfterRunSync(Args);	\
+	};	\
+	JsDeclareInternalFunction(Function);
+
+#define JsDeclareSyncAsync(SyncFun, AsyncFun, Task)	\
+	JsDeclareSyncFunction(SyncFun, Task)	\
+	JsDeclareAsyncFunction(AsyncFun, Task);
+
+
 
 
 //////////////////////////////////////////////////////
@@ -438,18 +468,38 @@ TClass* TNodeJsUtil::UnwrapCheckWatcher(v8::Handle<v8::Object> Arg) {
 }
 
 //////////////////////////////////////////////////////
-// Worker thread task interface
+// Async Stuff
 class TAsyncTask {
-	friend class TNodeJsAsyncUtil;
 public:
 	virtual ~TAsyncTask() {}
 
-protected:
-	/// executed on the worker thread
 	virtual void Run() = 0;
-	/// executed after Run on the main thread
 	virtual void AfterRun() = 0;
 };
+
+class TNodeTask: public TAsyncTask {
+private:
+	v8::Persistent<v8::Function> Callback;
+	v8::Persistent<v8::Array> ArgPersist;
+	PExcept Except;
+
+public:
+	TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+	virtual ~TNodeTask();
+
+	virtual v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) = 0;
+	virtual v8::Local<v8::Value> WrapResult();
+
+	void ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+	void AfterRun();
+	void AfterRunSync(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+protected:
+	void SetExcept(const PExcept& _Except) { Except = _Except; }
+	bool HasExcept() const { return !Except.Empty(); }
+};
+
 
 //////////////////////////////////////////////////////
 // Node - Asynchronous Utilities
@@ -517,11 +567,14 @@ template <class TTask>
 void TNodeJsAsyncUtil::OnMain(uv_async_t* UvAsync) {
 	TMainData<TTask>* Task = static_cast<TMainData<TTask>*>(UvAsync->data);
 
-	TTask::Run(*Task->Task);
+	try {
+		TTask::Run(*Task->Task);
+	} catch (const PExcept& Except) {
+		printf("Exception on main thread: %s!", Except->GetMsgStr().CStr());
+	}
 
 	// clean up
 	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
-
 	delete Task;
 }
 
@@ -529,7 +582,11 @@ template <class TTask>
 void TNodeJsAsyncUtil::OnMainBlock(uv_async_t* UvAsync) {
 	TMainSemaphoreData<TTask>* Task = static_cast<TMainSemaphoreData<TTask>*>(UvAsync->data);
 
-	TTask::Run(*Task->Task);
+	try {
+		TTask::Run(*Task->Task);
+	} catch (const PExcept& Except) {
+		printf("Exception on main thread: %s!", Except->GetMsgStr().CStr());
+	}
 
 	// clean up
 	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
@@ -542,17 +599,28 @@ void TNodeJsAsyncUtil::OnMainBlock(uv_async_t* UvAsync) {
 
 template <class TTask>
 void TNodeJsAsyncUtil::OnWorker(uv_work_t* UvReq) {
-	TWorkerData<TTask>* Data = static_cast<TWorkerData<TTask>*>(UvReq->data);
-	TTask::Run(*Data->Task);
+	TWorkerData<TTask>* Task = static_cast<TWorkerData<TTask>*>(UvReq->data);
+
+	try {
+		Task->Task->Run();
+//		TTask::Run(*Task->Task);
+	} catch (const PExcept& Except) {
+		printf("Exception on worker thread: %s!", Except->GetMsgStr().CStr());
+	}
 }
 
 template <class TTask>
 void TNodeJsAsyncUtil::AfterOnWorker(uv_work_t* UvReq, int Status) {
-	TWorkerData<TTask>* Data = static_cast<TWorkerData<TTask>*>(UvReq->data);
+	TWorkerData<TTask>* Task = static_cast<TWorkerData<TTask>*>(UvReq->data);
 
-	TTask::AfterRun(*Data->Task);
+	try {
+		Task->Task->AfterRun();
+//		TTask::AfterRun(*Task->Task);
+	} catch (const PExcept& Except) {
+		printf("Exception on worker thread: %s!", Except->GetMsgStr().CStr());
+	}
 
-	delete Data;
+	delete Task;
 	delete UvReq;
 }
 
