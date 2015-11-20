@@ -493,7 +493,7 @@ TNodeJsRidgeReg* TNodeJsRidgeReg::NewFromArgs(const v8::FunctionCallbackInfo<v8:
 		return new TNodeJsRidgeReg(TRegression::TRidgeReg(Gamma));
 	}
 	else if (Args.Length() == 1 && TNodeJsUtil::IsArgFlt(Args, 0)) {
-		printf("DEPRICATED: consider using Json object as argument!\n");
+		printf("DEPRECATED: consider using Json object as argument!\n");
 		// create new model from given gamma parameter
 		const double Gamma = TNodeJsUtil::GetArgFlt(Args, 0, 0.0);
 		return new TNodeJsRidgeReg(TRegression::TRidgeReg(Gamma));
@@ -2862,7 +2862,7 @@ void TNodeJsMDS::fitTransform(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TFltV DummyClsV;
 	PSVMTrainSet TrainSet;
 	// algorithm parameters
-	int MxStep = 5000, MxSecs = 500, MnDiff = 1e-4;
+	int MxStep = 5000, MxSecs = 500; double MnDiff = 1e-4;
 	bool RndStartPos = true;
 	PNotify Noty = TQm::TEnv::Logger;
 	if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {

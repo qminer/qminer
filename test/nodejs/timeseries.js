@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-console.log(__filename)
+// console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
 var qm = require('qminer');
 var fs = qm.fs;
@@ -20,8 +20,6 @@ describe('Time series test, old', function() {
 		backward.addToProcess(process); // adds process.isArg function
 
 		var base = new qm.Base({ mode: 'createClean' });
-
-		console.log("TimeSeries", "Starting test based on time series sample");
 
 		// only report failours
 		assert.silent = !process.isArg("-verbose");

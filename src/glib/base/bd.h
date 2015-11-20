@@ -480,7 +480,6 @@ template <class TRec> class TWPt;
 
 /////////////////////////////////////////////////
 // Smart-Pointer-With-Reference-Count
-
 template <class TRec>
 class TPt{
 public:

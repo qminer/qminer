@@ -34,7 +34,7 @@
         ],
         # hack for setting xcode settings based on example from
         # http://src.chromium.org/svn/trunk/o3d/build/common.gypi
-        'target_conditions': [        
+        'target_conditions': [
             ['OS=="mac"', {
                 'xcode_settings': {
                     'MACOSX_DEPLOYMENT_TARGET': '10.7',
@@ -57,7 +57,7 @@
                 # additional flags for ARM
                 'conditions': [
                     ['target_arch == "arm"', {
-                        "link_settings": {                    
+                        "link_settings": {
                             "ldflags": [ '-Wl,--allow-multiple-definition' ]
                         },
                         'cflags!': [ ], # add -g if low on memory and gcc fails in debug mode
@@ -159,6 +159,7 @@
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
+                'src/third_party/sole/',
                 'src/third_party/Snap/snap-core',
                 'src/third_party/Snap/snap-adv',
                 'src/third_party/Snap/snap-exp',
@@ -192,6 +193,7 @@
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
+                'src/third_party/sole/',
                 '<(LIN_ALG_INCLUDE)',
                 '<(LIN_EIGEN_INCLUDE)'
             ],
@@ -206,7 +208,7 @@
             'include_dirs': [
                 'src/third_party/Snap/snap-core',
                 'src/third_party/Snap/snap-adv',
-                'src/third_party/Snap/snap-exp',                
+                'src/third_party/Snap/snap-exp',
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',

@@ -69,6 +69,7 @@ void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
 		tpl->GetFunction());
 }
+
 TNodeJsSA* TNodeJsSA::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -697,7 +698,7 @@ void TNodeJsStreamAggr::Reset() {
 		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();	
 
 		v8::TryCatch TryCatch;
-		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+		Callback->Call(GlobalContext, 0, NULL);
 		if (TryCatch.HasCaught()) {
 			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
 			throw TQm::TQmExcept::New("Javascript exception from callback triggered in " + TStr(__FUNCTION__) + TStr(": ") + TStr(*Msg));

@@ -9,7 +9,6 @@
 #ifndef _xmlser_h
 #define _xmlser_h
 
-// !bn: pobrisan 'explicit' - je pa se v bd.h - a je prov tko?
 template <class TRec>
 TPt<TRec>::TPt(TSIn& SIn):
     Addr(NULL){TBool IsNull(SIn);
