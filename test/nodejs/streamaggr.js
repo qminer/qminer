@@ -3677,17 +3677,15 @@ describe('ChiSquare Tests', function () {
     var hist2 = undefined;
     beforeEach(function () {
         // create a base with a simple store
-        // the store records results of throwing a dice
-        // Since changes for each nomber are 1/6, the expacted values have uniform distribution
-        // Field Observed records the actual values
+        // the store records results of throwing two independent fair dices        
         base = new qm.Base({
             mode: "createClean",
             schema: [
             {
                 name: "Dice",
                 fields: [
-                    { name: "Expected", type: "float" },
-                    { name: "Observed", type: "float" },
+                    { name: "Sample1", type: "float" },
+                    { name: "Sample2", type: "float" },
                     { name: "Time", type: "datetime" }
                 ]
             }]
@@ -3701,7 +3699,7 @@ describe('ChiSquare Tests', function () {
             type: 'timeSeriesWinBuf',
             store: 'Dice',
             timestamp: 'Time',
-            value: 'Expected',
+            value: 'Sample1',
             winsize: 86400000 // one day in miliseconds
         };
 
@@ -3714,7 +3712,7 @@ describe('ChiSquare Tests', function () {
             type: 'timeSeriesWinBuf',
             store: 'Dice',
             timestamp: 'Time',
-            value: 'Observed',
+            value: 'Sample2',
             winsize: 86400000 // one day in miliseconds
         };
 
@@ -3727,7 +3725,7 @@ describe('ChiSquare Tests', function () {
             store: 'Dice',
             inAggr: 'TimeSeries1',
             lowerBound: 1,
-            upperBound: 6,
+            upperBound: 7,
             bins: 6,
             addNegInf: false,
             addPosInf: false
@@ -3742,7 +3740,7 @@ describe('ChiSquare Tests', function () {
             store: 'Dice',
             inAggr: 'TimeSeries2',
             lowerBound: 1,
-            upperBound: 6,
+            upperBound: 7,
             bins: 6,
             addNegInf: false,
             addPosInf: false
@@ -3763,34 +3761,32 @@ describe('ChiSquare Tests', function () {
             storeY: 'Dice',
             inAggrX: 'Histogram1',
             inAggrY: 'Histogram2',
-            degreesOfFreedom: 2
+            degreesOfFreedom: 5
         }
         var chi = store.addStreamAggr(aggr);
 
-        // add some values
-        // simulating throwing a dice
-        store.push({ Time: '2015-06-10T14:13:30.0', Expected: 1, Observed: 1 });
-        store.push({ Time: '2015-06-10T14:13:31.0', Expected: 2, Observed: 2 });
-        store.push({ Time: '2015-06-10T14:13:32.0', Expected: 3, Observed: 3 });
-        store.push({ Time: '2015-06-10T14:13:33.0', Expected: 4, Observed: 4 });
-        store.push({ Time: '2015-06-10T14:13:34.0', Expected: 5, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:35.0', Expected: 6, Observed: 5 });
-
-        store.push({ Time: '2015-06-10T14:13:41.0', Expected: 1, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:41.0', Expected: 2, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:42.0', Expected: 3, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:43.0', Expected: 4, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:44.0', Expected: 5, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:45.0', Expected: 6, Observed: 6 });
-
-        store.push({ Time: '2015-06-10T14:13:50.0', Expected: 1, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:51.0', Expected: 2, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:52.0', Expected: 3, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:53.0', Expected: 4, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:54.0', Expected: 5, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:55.0', Expected: 6, Observed: 6 });
-		
-		console.log("ChiSquare value: " + chi.getFloat());
+        // add some values (throwing a pair of dice)
+        store.push({ Time: '2015-06-10T14:13:30.0', Sample1: 2 , Sample2: 4 }); 
+        store.push({ Time: '2015-06-10T14:13:31.0', Sample1: 2 , Sample2: 5 }); 
+        store.push({ Time: '2015-06-10T14:13:32.0', Sample1: 2 , Sample2: 2 }); 
+        store.push({ Time: '2015-06-10T14:13:33.0', Sample1: 2 , Sample2: 2 }); 
+        store.push({ Time: '2015-06-10T14:13:34.0', Sample1: 6 , Sample2: 2 }); 
+        store.push({ Time: '2015-06-10T14:13:35.0', Sample1: 3 , Sample2: 5 }); 
+        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 2 , Sample2: 3 }); 
+        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 6 , Sample2: 6 }); 
+        store.push({ Time: '2015-06-10T14:13:42.0', Sample1: 5 , Sample2: 1 }); 
+        store.push({ Time: '2015-06-10T14:13:43.0', Sample1: 2 , Sample2: 3 }); 
+        store.push({ Time: '2015-06-10T14:13:44.0', Sample1: 1 , Sample2: 4 }); 
+        store.push({ Time: '2015-06-10T14:13:45.0', Sample1: 3 , Sample2: 2 }); 
+        store.push({ Time: '2015-06-10T14:13:50.0', Sample1: 6 , Sample2: 4 }); 
+        store.push({ Time: '2015-06-10T14:13:51.0', Sample1: 3 , Sample2: 1 }); 
+        store.push({ Time: '2015-06-10T14:13:52.0', Sample1: 4 , Sample2: 1 }); 
+        store.push({ Time: '2015-06-10T14:13:53.0', Sample1: 5 , Sample2: 1 }); 
+        store.push({ Time: '2015-06-10T14:13:54.0', Sample1: 5 , Sample2: 3 }); 
+        store.push({ Time: '2015-06-10T14:13:55.0', Sample1: 4 , Sample2: 1 });
+        
+        assert(Math.abs(chi.getFloat() - 4.4666) < 0.001);
+        // todo assert correct result
     });
 
     it('should reset an chi square test aggregator', function () {
@@ -3806,42 +3802,35 @@ describe('ChiSquare Tests', function () {
             degreesOfFreedom: 2
         }
         var chi = store.addStreamAggr(aggr);
-        var startVal = chi.getFloat();
 
-        // add some values
-        // simulating throwing a dice
-        store.push({ Time: '2015-06-10T14:13:30.0', Expected: 1, Observed: 1 });
-        store.push({ Time: '2015-06-10T14:13:31.0', Expected: 2, Observed: 2 });
-        store.push({ Time: '2015-06-10T14:13:32.0', Expected: 3, Observed: 3 });
-        store.push({ Time: '2015-06-10T14:13:33.0', Expected: 4, Observed: 4 });
-        store.push({ Time: '2015-06-10T14:13:34.0', Expected: 5, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:35.0', Expected: 6, Observed: 5 });
-
-        store.push({ Time: '2015-06-10T14:13:41.0', Expected: 1, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:41.0', Expected: 2, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:42.0', Expected: 3, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:43.0', Expected: 4, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:44.0', Expected: 5, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:45.0', Expected: 6, Observed: 6 });
-
-        store.push({ Time: '2015-06-10T14:13:50.0', Expected: 1, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:51.0', Expected: 2, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:52.0', Expected: 3, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:53.0', Expected: 4, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:54.0', Expected: 5, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:55.0', Expected: 6, Observed: 6 });
-
-        assert(chi.getFloat() < startVal);
+        // add some values (throwing a pair of dice)
+        store.push({ Time: '2015-06-10T14:13:30.0', Sample1: 2, Sample2: 4 });
+        store.push({ Time: '2015-06-10T14:13:31.0', Sample1: 2, Sample2: 5 });
+        store.push({ Time: '2015-06-10T14:13:32.0', Sample1: 2, Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:33.0', Sample1: 2, Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:34.0', Sample1: 6, Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:35.0', Sample1: 3, Sample2: 5 });
+        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 2, Sample2: 3 });
+        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 6, Sample2: 6 });
+        store.push({ Time: '2015-06-10T14:13:42.0', Sample1: 5, Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:43.0', Sample1: 2, Sample2: 3 });
+        store.push({ Time: '2015-06-10T14:13:44.0', Sample1: 1, Sample2: 4 });
+        store.push({ Time: '2015-06-10T14:13:45.0', Sample1: 3, Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:50.0', Sample1: 6, Sample2: 4 });
+        store.push({ Time: '2015-06-10T14:13:51.0', Sample1: 3, Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:52.0', Sample1: 4, Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:53.0', Sample1: 5, Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:54.0', Sample1: 5, Sample2: 3 });
+        store.push({ Time: '2015-06-10T14:13:55.0', Sample1: 4, Sample2: 1 });
+        
 		var endVal = chi.getFloat();
 
 		var fout = qm.fs.openWrite("aggr.tmp");
 		chi.save(fout);
 		fout.close();
 		
-        store.resetStreamAggregates();
+        store.resetStreamAggregates();       
         
-        assert(chi.getFloat() == startVal);
-
 		var fin = qm.fs.openRead("aggr.tmp");
 		chi.load(fin);
 		fin.close();

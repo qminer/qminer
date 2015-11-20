@@ -953,8 +953,29 @@ int TNodeJsStreamAggr::GetFltLen() const {
 double TNodeJsStreamAggr::GetFlt(const TInt& ElN) const {
 	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetFlt not implemented");
 } // GetFltAtFun
+
 void TNodeJsStreamAggr::GetFltV(TFltV& ValV) const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetFltV not implemented");
+	if (!GetFltVFun.IsEmpty()) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetFltVFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+
+		v8::TryCatch TryCatch;
+		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+		if (TryCatch.HasCaught()) {
+			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+			throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsStreamAggr, name: " + GetAggrNm() + "," + TStr(*Msg));
+		}
+		QmAssertR(RetVal->IsObject() && TNodeJsUtil::IsClass(v8::Handle<v8::Object>::Cast(RetVal), TNodeJsFltV::GetClassId()), "TNodeJsStreamAggr, name: " + GetAggrNm() + ",GetFltV did not return a vector!");
+		TNodeJsFltV* JsVec = TNodeJsUtil::Unwrap<TNodeJsFltV>(v8::Handle<v8::Object>::Cast(RetVal));
+
+		ValV = JsVec->Vec;
+
+	} else {
+		throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", getFloatVector() callback is empty!");
+	}
 }
 // ITmVec
 int TNodeJsStreamAggr::GetTmLen() const {
