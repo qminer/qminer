@@ -889,7 +889,7 @@ describe('Time Series Window Buffer Tests', function () {
         assert.equal(sa.getOutFloatVector().length, 0);
         assert.equal(sa.getFloatVector().length, 0);
     });
-    it.only('should handle the case when records skip buffer variation 2', function () {
+    it('should handle the case when records skip buffer variation 2', function () {
         var aggr = {
             type: 'timeSeriesWinBuf', store: 'Function', timestamp: 'Time', value: 'Value',
             winsize: 1,

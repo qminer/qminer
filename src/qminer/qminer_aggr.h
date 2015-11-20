@@ -853,8 +853,8 @@ public:
 	/// Store state into stream
 	void SaveState(TSOut& SOut) const;
 
-	// get current P value
-	double GetFlt() const { return ChiSquare.GetP(); }
+	// get current Chi2 value
+	double GetFlt() const { return ChiSquare.GetChi2(); }
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggrX->GetAggrNm()); 
         InAggrNmV.Add(InAggrY->GetAggrNm());}
 	// serialization to JSon
