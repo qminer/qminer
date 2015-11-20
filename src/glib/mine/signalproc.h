@@ -466,7 +466,7 @@ protected:
 	TLinkedBuffer<TPair<TUInt64, TFlt>> Buff;
 
 	TBufferedInterpolator(const TStr& InterpolatorType);
-	TBufferedInterpolator(TSIn& SIn);
+	TBufferedInterpolator(const TStr& InterpolatorType, TSIn& SIn);
 
 public:
 	virtual void Save(TSOut& SOut) const;
@@ -798,6 +798,11 @@ public:
 	int GetDof() const {return DegreesOfFreedom;}
 	/// Prints the model
 	void Print() const;
+
+	/// Load from stream
+	void LoadState(TSIn& SIn);
+	/// Store state into stream
+	void SaveState(TSOut& SOut) const;
 };
 
 }

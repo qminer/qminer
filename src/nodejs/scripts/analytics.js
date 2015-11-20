@@ -5,17 +5,17 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
- 
-module.exports = exports = function (pathQmBinary) {    
+
+module.exports = exports = function (pathQmBinary) {
     var qm = require(pathQmBinary); // This loads only c++ functions of qm
     var fs = qm.fs;
     var la = qm.la;
     var stat = qm.statistics;
     exports = qm.analytics;
-    
-    var sget = require('sget');    
+
+    var sget = require('sget');
     var assert = require('assert');
-    
+
     var qm_util = require(__dirname + '/qm_util.js');
 
     //!STARTJSDOC
@@ -824,7 +824,6 @@ module.exports = exports = function (pathQmBinary) {
                 // for figuring out when to dump a new ROC sample
                 this.next = Math.floor(length / (this.sample));
                 this.counter = this.next;
-                //console.log(length, this.sample, this.next);
                 // keep last value
                 this.precision = 0; this.recall = 0;
                 // handlers
@@ -1074,8 +1073,6 @@ module.exports = exports = function (pathQmBinary) {
         */
         this.save = function (fout) {
             fout.writeJson(this.metric.state);
-            fout.flush();
-            fout.close();
             return fout;
         }
 
@@ -1087,7 +1084,6 @@ module.exports = exports = function (pathQmBinary) {
         this.load = function (fin) {
             this.metric.state = fin.readJson();
             error = this.metric.state.error;
-            fin.close();
             return fin;
         }
 
@@ -1909,11 +1905,6 @@ module.exports = exports = function (pathQmBinary) {
 			C.save(fout);
             norC2.save(fout);
             idxv.save(fout);
-            console.log({
-				iter: iter,
-				k: k,
-				verbose: verbose
-			});
             fout.writeJson({
 				iter: iter,
 				k: k,

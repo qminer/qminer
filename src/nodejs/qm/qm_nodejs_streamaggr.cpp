@@ -53,6 +53,8 @@ void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTimestampVector", _getTimestampVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getInFloat", _getInFloat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getInTimestamp", _getInTimestamp);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getInFloatVector", _getInFloatVector);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getInTimestampVector", _getInTimestampVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getOutFloatVector", _getOutFloatVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getOutTimestampVector", _getOutTimestampVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getNumberOfRecords", _getNumberOfRecords);
@@ -69,6 +71,7 @@ void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
 		tpl->GetFunction());
 }
+
 TNodeJsSA* TNodeJsSA::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -410,6 +413,46 @@ void TNodeJsSA::getInTimestamp(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 	}
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, (double)Aggr->GetInTmMSecs()));
 }
+
+void TNodeJsSA::getInFloatVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// unwrap
+	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	// try to cast as IFltTmIO
+	TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
+	if (Aggr.Empty()) {
+		throw TQm::TQmExcept::New("TNodeJsSA::getOutFltV : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+	}
+	TFltV Res;
+	Aggr->GetInFltV(Res);
+
+	Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
+}
+
+void TNodeJsSA::getInTimestampVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// unwrap
+	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	// try to cast as IFltTmIO
+	TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
+	if (Aggr.Empty()) {
+		throw TQm::TQmExcept::New("TNodeJsSA::getOutTmV : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+	}
+	TUInt64V Res;
+	Aggr->GetInTmMSecsV(Res);
+	int Len = Res.Len();
+	TFltV FltRes(Len);
+	for (int ElN = 0; ElN < Len; ElN++) {
+		FltRes[ElN] = (double)Res[ElN];
+	}
+
+	Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(FltRes));
+}
+
 void TNodeJsSA::getOutFloatVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -569,6 +612,16 @@ TNodeJsStreamAggr::TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm
 		QmAssert(_GetInTm->IsFunction());
 		GetInTmMSecsFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInTm));
 	}
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInFltV"))) {
+		v8::Handle<v8::Value> _GetInFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInFltV"));
+		QmAssert(_GetInFltV->IsFunction());
+		GetInFltVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInFltV));
+	}
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInTmV"))) {
+		v8::Handle<v8::Value> _GetInTmV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInTmV"));
+		QmAssert(_GetInTmV->IsFunction());
+		GetInTmMSecsVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInTmV));
+	}
 	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getOutFltV"))) {
 		v8::Handle<v8::Value> _GetOutFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOutFltV"));
 		QmAssert(_GetOutFltV->IsFunction());
@@ -661,6 +714,8 @@ TNodeJsStreamAggr::~TNodeJsStreamAggr() {
 	// IFltTmIO
 	GetInFltFun.Reset();
 	GetInTmMSecsFun.Reset();
+	GetInFltVFun.Reset();
+	GetInTmMSecsVFun.Reset();
 	GetOutFltVFun.Reset();
 	GetOutTmMSecsVFun.Reset();
 	GetNFun.Reset();
@@ -697,7 +752,7 @@ void TNodeJsStreamAggr::Reset() {
 		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();	
 
 		v8::TryCatch TryCatch;
-		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+		Callback->Call(GlobalContext, 0, NULL);
 		if (TryCatch.HasCaught()) {
 			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
 			throw TQm::TQmExcept::New("Javascript exception from callback triggered in " + TStr(__FUNCTION__) + TStr(": ") + TStr(*Msg));
@@ -870,6 +925,12 @@ double TNodeJsStreamAggr::GetInFlt() const {
 uint64 TNodeJsStreamAggr::GetInTmMSecs() const {
 	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetInTmMSecs not implemented");
 }
+void TNodeJsStreamAggr::GetInFltV(TFltV& ValV) const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetInFltV not implemented");
+}
+void TNodeJsStreamAggr::GetInTmMSecsV(TUInt64V& MSecsV) const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetInTmMSecsV not implemented");
+}
 void TNodeJsStreamAggr::GetOutFltV(TFltV& ValV) const {
 	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetOutFltV not implemented");
 }
@@ -893,8 +954,29 @@ int TNodeJsStreamAggr::GetFltLen() const {
 double TNodeJsStreamAggr::GetFlt(const TInt& ElN) const {
 	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetFlt not implemented");
 } // GetFltAtFun
+
 void TNodeJsStreamAggr::GetFltV(TFltV& ValV) const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetFltV not implemented");
+	if (!GetFltVFun.IsEmpty()) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetFltVFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+
+		v8::TryCatch TryCatch;
+		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+		if (TryCatch.HasCaught()) {
+			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+			throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsStreamAggr, name: " + GetAggrNm() + "," + TStr(*Msg));
+		}
+		QmAssertR(RetVal->IsObject() && TNodeJsUtil::IsClass(v8::Handle<v8::Object>::Cast(RetVal), TNodeJsFltV::GetClassId()), "TNodeJsStreamAggr, name: " + GetAggrNm() + ",GetFltV did not return a vector!");
+		TNodeJsFltV* JsVec = TNodeJsUtil::Unwrap<TNodeJsFltV>(v8::Handle<v8::Object>::Cast(RetVal));
+
+		ValV = JsVec->Vec;
+
+	} else {
+		throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", getFloatVector() callback is empty!");
+	}
 }
 // ITmVec
 int TNodeJsStreamAggr::GetTmLen() const {

@@ -31,6 +31,10 @@ for (var i = 0; i < JSFiles.length; i++) {
     }
 
     // write the describe of the file (to know in which file the test throws the error)
+    fout.write("require('qminer').la.Vector.prototype.print = function () { };");
+    fout.write("require('qminer').la.SparseVector.prototype.print = function () { };");
+    fout.write("require('qminer').la.SparseMatrix.prototype.print = function () { };");
+    fout.write("require('qminer').la.Matrix.prototype.print = function () { };");
     fout.write("describe('example tests for the " + JSFiles[i] + " file', function () {\n");
 
     var hstr = fs.readFileSync(hfile + JSFiles[i], 'ascii');
@@ -40,7 +44,7 @@ for (var i = 0; i < JSFiles.length; i++) {
     while ((match = regex.exec(hstr)) != null) {
         str = match[0];
 
-        if ((str.indexOf("IntVector") != -1 || str.indexOf("StrVector") != -1 || str.indexOf("BoolVector") != -1) && 
+        if ((str.indexOf("IntVector") != -1 || str.indexOf("StrVector") != -1 || str.indexOf("BoolVector") != -1) &&
             (str.indexOf("cosine") != -1 || str.indexOf("sortPerm") != -1 || str.indexOf("outer") != -1)) {
             continue;
         }
@@ -71,7 +75,7 @@ for (var i = 0; i < JSFiles.length; i++) {
 				var example = examples[ExpN];
 				//console.log(example);
 				if (example == '') { continue; }
-				if (example.indexOf('</caption>') != -1) { 
+				if (example.indexOf('</caption>') != -1) {
 					example = example.slice(example.indexOf('</caption>') + 10);
 				}
 				count += 1;

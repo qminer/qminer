@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-console.log(__filename)
+// console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
 var qm = require('qminer');
 var fs = qm.fs;
@@ -232,28 +232,28 @@ describe('Feature Space Tests, old', function() {
 			}
 		]);
 		ftrSpace1.updateRecords(Store.allRecords);
-		console.log(ftrSpace1.dim + " - " + JSON.stringify(ftrSpace1.dims));
-		console.log("Test new feature space");
+		//console.log(ftrSpace1.dim + " - " + JSON.stringify(ftrSpace1.dims));
+		//console.log("Test new feature space");
 		testFtrSpace(ftrSpace1);
 
-		console.log("Saving to disk");
+		//console.log("Saving to disk");
 		fs.mkdir('./sandbox/ftrSpace');
 		var fout = fs.openWrite("./sandbox/ftrSpace/fs.dat");
 		ftrSpace1.save(fout);
 		fout.close();
 
-		console.log("Load from disk");
+		//console.log("Load from disk");
 		var fin = fs.openRead("./sandbox/ftrSpace/fs.dat");
 		var ftrSpace2 = new qm.FeatureSpace(base, fin);
 
-		console.log("Test loaded feature space");
+		//console.log("Test loaded feature space");
 		testFtrSpace(ftrSpace2);
 
-		console.log("Compare output of feature spaces");
+		//console.log("Compare output of feature spaces");
 		compareFtrSpace(ftrSpace1, ftrSpace2);
 
 
-		console.log("Test n-gram features");
+		//console.log("Test n-gram features");
 
 		// Unsorted array comparison
 
@@ -407,7 +407,7 @@ describe('Feature Space Tests, old', function() {
 		assert.ok(arraysIdentical(testAnswer, trueAnswer), "hashing with tables");
 		printError(testAnswer, trueAnswer);
 
-		console.log('DONE!');
+		//console.log('DONE!');
 
 
 	})

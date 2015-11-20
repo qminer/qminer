@@ -447,18 +447,24 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
 			TWPt<TStore> JoinStore = Base->GetStoreByStoreId(JoinDesc.GetJoinStoreId());
 			// different handling for field and index joins
 			if (JoinDesc.IsFieldJoin()) {
+				// get join record JSon object
+				PJsonVal JoinRecVal = RecVal->GetObjKey(JoinDesc.GetJoinNm());
+                // make sure it's an object and not array
+                if (!JoinRecVal->IsObj()) {
+					ErrorLog("[TStoreImpl::AddJoinRec] Expected object for join " + JoinDesc.GetJoinNm());
+                    if (JoinRecVal->IsArr()) { ErrorLog("[TStoreImpl::AddJoinRec] Got array instead"); }
+					continue;
+				}
                 // first make an empty join
                 SetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId(), TUInt64::Mx);
                 SetFieldInt(RecId, JoinDesc.GetJoinFqFieldId(), 0);
-				// get join record JSon object
-				PJsonVal JoinRecVal = RecVal->GetObjKey(JoinDesc.GetJoinNm());
 				// insert join record
 				const uint64 JoinRecId = JoinStore->AddRec(JoinRecVal);
 				// get join weight (useful only for inverse index joins)
 				int JoinFq = JoinRecVal->GetObjInt("$fq", 1);
 				// make sure weight is from valid range
 				if (JoinFq < 1) {
-					ErrorLog("[TStoreImpl::AddRec] Join frequency must be positive");
+					ErrorLog("[TStoreImpl::AddJoinRec] Join frequency must be positive");
 					JoinFq = 1;
 				}
 				// mark the join
@@ -467,7 +473,7 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
 				// index joins must be in an array
 				PJsonVal JoinArrVal = RecVal->GetObjKey(JoinDesc.GetJoinNm());
 				if (!JoinArrVal->IsArr()) {
-					ErrorLog("[TStoreImpl::AddRec] Expected array for join " + JoinDesc.GetJoinNm());
+					ErrorLog("[TStoreImpl::AddJoinRec] Expected array for join " + JoinDesc.GetJoinNm());
 					continue;
 				}
 				// add join records and remember their record ids and weights
@@ -481,7 +487,7 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
 					int JoinFq = JoinRecVal->GetObjInt("$fq", 1);
 					// make sure weight is from valid range
 					if (JoinFq < 1) {
-						ErrorLog("[TStoreImpl::AddRec] Join frequency must be positive");
+						ErrorLog("[TStoreImpl::AddJoinRec] Join frequency must be positive");
 						JoinFq = 1;
 					}
 					// index the join
@@ -5438,19 +5444,19 @@ int TBase::PartialFlush(int WndInMsec) {
 				xstores[i].Val2 = false; // ok, this store is clean now
 			}
 			saved += xsaved;
-			//TQm::TEnv::Logger->OnStatusFmt("Partial flush:     store %s = %d", xstores[i].Val1->GetStoreNm().CStr(), xsaved);
+			TQm::TEnv::Debug->OnStatusFmt("Partial flush:     store %s = %d", xstores[i].Val1->GetStoreNm().CStr(), xsaved);
 		}
 		if (xindex) { // save index
 			xsaved = Index->PartialFlush(slice);
 			xindex = (xsaved > 0);
 			saved += xsaved;
-			//TQm::TEnv::Logger->OnStatusFmt("Partial flush:     index = %d", xsaved);
+			TQm::TEnv::Debug->OnStatusFmt("Partial flush:     index = %d", xsaved);
 		}
 		res += saved;
-		//TQm::TEnv::Logger->OnStatusFmt("Partial flush: this loop = %d", saved);
+        TQm::TEnv::Debug->OnStatusFmt("Partial flush: this loop = %d", saved);
 	}
 	sw.Stop();
-	TQm::TEnv::Logger->OnStatusFmt("Partial flush: %d msec, res = %d", sw.GetMSecInt(), res);
+    TQm::TEnv::Debug->OnStatusFmt("Partial flush: %d msec, res = %d", sw.GetMSecInt(), res);
 
 	return res;
 }
@@ -5468,6 +5474,7 @@ PJsonVal TBase::GetStats() {
 	TBlobBsStats gix_blob_stats = GetGixBlobStats();
 	res->AddToObj("gix_stats", GixStatsToJson(gix_stats));
 	res->AddToObj("gix_blob", BlobBsStatsToJson(gix_blob_stats));
+	res->AddToObj("access", GetFAccess());
 	return res;
 }
 
