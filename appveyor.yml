@@ -26,7 +26,7 @@ install:
 
 before_build:
   - cmd: SET ARCH=x64  
-  - nvmw use v0.12.0 x64
+  - nvmw use v0.12.7 x64
 
 build_script:
   - npm install -g mustache
@@ -40,7 +40,7 @@ build_script:
 
 after_build:
   - cmd: SET ARCH=x86
-  - nvmw use v0.12.0 x86
+  - nvmw use v0.12.7 x86
   - npm install --build-from-source --verbose --msvs_version=2013
   - cd tools
   - genExampleTests.bat
