@@ -36,7 +36,7 @@ To test that your node.js version is correct, run ```node --version``` and ```np
 ### Build from source
 
 + [Linux](https://github.com/qminer/qminer/wiki/Compiling-from-source-on-Linux)
-+ [Mac OS X](https://github.com/qminer/qminer/wiki/Compiling-from-source-on-Mac)
++ [Mac OS X](https://github.com/qminer/qminer/wiki/Compiling-from-source-on-Mac-OSX)
 + [Windows](https://github.com/qminer/qminer/wiki/Compiling-from-source-on-Windows)
 
 ### Documentation
