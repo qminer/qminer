@@ -451,7 +451,7 @@ describe('Time Series Window Buffer Tests', function () {
             assert.equal(vec[0], 1);
             assert.equal(vec[1], 2);
         })
-        it('should return an empty vector', function () {
+        it('should throw an exception when calling getFloatVector in a noninitialized state', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -461,8 +461,9 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
-            var vec = sa.getFloatVector();
-            assert.equal(vec.length, 0);
+            assert.throws(function () {
+                var vec = sa.getFloatVector();
+            });
         })
         it('should return the float vector of values that are still in the window', function () {
             var aggr = {
@@ -503,7 +504,7 @@ describe('Time Series Window Buffer Tests', function () {
             var vec = sa.getFloatVector();
             assert.equal(sa.getFloatLength(), 2);
         })
-        it('should return 0 for an empty float vector', function () {
+        it('should throw an exception when calling getFloatLength in a noninitialized state', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -513,8 +514,9 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
-            var vec = sa.getFloatVector();
-            assert.equal(sa.getFloatLength(), 0);
+            assert.throws(function () {
+                var res = sa.getFloatLength();
+            });
         })
     });
     describe('GetFloatAt Tests', function () {
@@ -567,7 +569,7 @@ describe('Time Series Window Buffer Tests', function () {
             assert.equal(vec[1] - 11644473600000, new Date('2015-06-10T14:13:33.0').getTime());
 
         })
-        it('should return an empty timestamp vector', function () {
+        it('should throw an exception when calling getTimestampVector in a noninitialized state', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -577,8 +579,9 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
-            var vec = sa.getTimestampVector();
-            assert.equal(vec.length, 0);
+            assert.throws(function () {
+                var res = sa.getTimestampVector();
+            });
         })
     });
     describe('GetTimestampLength Tests', function () {
@@ -596,7 +599,7 @@ describe('Time Series Window Buffer Tests', function () {
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
             assert.equal(sa.getTimestampLength(), 2);
         })
-        it('should return 0 for an empty timestamp vector', function () {
+        it('should throw an exception when calling getTimestampLength in a noninitialized state', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -606,7 +609,9 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
-            assert.equal(sa.getTimestampLength(), 0);
+            assert.throws(function () {
+                var res = sa.getTimestampLength();
+            });
         })
     });
     describe('GetTimestampAt Tests', function () {
@@ -656,7 +661,7 @@ describe('Time Series Window Buffer Tests', function () {
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
             assert.equal(sa.getInFloat(), 2);
         })
-        it('should return 0 for an empty buffer', function () {
+        it('should throw', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -666,7 +671,9 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
-            assert.equal(sa.getInFloat(), 0);
+            assert.throws(function () {
+                var res = sa.getInFloat();
+            });
         })
     });
     describe('GetInTimestamp Tests', function () {
@@ -694,7 +701,9 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
-            assert.equal(sa.getInTimestamp(), 0);
+            assert.throws(function () {
+                var res = sa.getInTimestamp();
+            });
         })
     });
     describe('GetOutFloatVector Tests', function () {
@@ -719,7 +728,7 @@ describe('Time Series Window Buffer Tests', function () {
             assert.equal(vec[1], 2);
             assert.equal(vec[2], 3);
         })
-        it('should return an empty vector for an empty buffer', function () {
+        it('should throw an exception for callin getOutFloatVector on an uninitialized buffer', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -729,8 +738,9 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
-            var vec = sa.getOutFloatVector();
-            assert.equal(vec.length, 0);
+            assert.throws(function () {
+                var vec = sa.getOutFloatVector();
+            });
         })
         it('should return an empty vector if all values are still in the window', function () {
             var aggr = {
@@ -769,7 +779,7 @@ describe('Time Series Window Buffer Tests', function () {
             var vec = sa.getOutTimestampVector();
             assert.equal(vec.length, 3);
         })
-        it('should return an empty vector if the buffer is empty', function () {
+        it('should return throw an exception if getOutTimestampVector on an uninitialized buffer', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -779,8 +789,9 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
-            var vec = sa.getOutTimestampVector();
-            assert.equal(vec.length, 0);
+            assert.throws(function () {
+                var vec = sa.getOutTimestampVector();
+            });
         })
         it('should return an empty vector if all records are all in the window', function () {
             var aggr = {
@@ -818,7 +829,7 @@ describe('Time Series Window Buffer Tests', function () {
             store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
             assert.equal(sa.getNumberOfRecords(), 2);
         })
-        it('should return 0 if the buffer contains no records', function () {
+        it('should throw', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -827,8 +838,10 @@ describe('Time Series Window Buffer Tests', function () {
                 value: 'Value',
                 winsize: 2000
             };
-            var sa = store.addStreamAggr(aggr);;
-            assert.equal(sa.getNumberOfRecords(), 0);
+            var sa = store.addStreamAggr(aggr);
+            assert.throws(function () {
+                var res = sa.getNumberOfRecords();
+            });
         })
     });
     describe('Name Test', function () {
@@ -859,6 +872,161 @@ describe('Time Series Window Buffer Tests', function () {
             assert.equal(sa.init, false);
         })
     });
+
+    it('should handle the case when records skip buffer', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', store: 'Function', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 1,
+        };
+        var sa = store.addStreamAggr(aggr);
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.001', Value: 1 }); // 1 value
+        store.push({ Time: '2015-06-10T00:00:00.004', Value: 4 }); // never enters the buffer
+        store.push({ Time: '2015-06-10T00:00:00.007', Value: 7 }); // empty
+
+        assert.equal(sa.getInFloatVector().length, 0);
+        assert.equal(sa.getOutFloatVector().length, 0);
+        assert.equal(sa.getFloatVector().length, 0);
+    });
+    it('should handle the case when records skip buffer variation 2', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', store: 'Function', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 1,
+        };
+        var sa = store.addStreamAggr(aggr);
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.001', Value: 1 }); // 1 value
+        store.push({ Time: '2015-06-10T00:00:00.003', Value: 3 }); // never enters the buffer, influences the buffer
+        store.push({ Time: '2015-06-10T00:00:00.006', Value: 6 }); // empty
+
+        assert.equal(sa.getInFloatVector().length, 0);
+        assert.equal(sa.getOutFloatVector().length, 1);
+        assert.equal(sa.getFloatVector().length, 0);
+    });
+    it('should handle the case when records skip buffer variation 3', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', store: 'Function', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 10,
+        };
+        var sa = store.addStreamAggr(aggr);
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.010', Value: 1 }); // 1 value
+        store.push({ Time: '2015-06-10T00:00:00.015', Value: 2 }); // never enters the buffer
+        store.push({ Time: '2015-06-10T00:00:00.016', Value: 3 }); // empty
+
+        assert.equal(sa.getInFloatVector().length, 0);
+        assert.equal(sa.getOutFloatVector().length, 0);
+        assert.equal(sa.getFloatVector().length, 0);
+    });
+    it('should handle start empty, stay empty: (Bs | I, O, Be) = (0 | 0, 0, 0): ', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 1,
+        }; var sa = store.addStreamAggr(aggr);
+
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.003', Value: 3 }); // stays empty
+
+        assert.equal(sa.getInFloatVector().length, 0);
+        assert.equal(sa.getOutFloatVector().length, 0);
+        assert.equal(sa.getFloatVector().length, 0);
+    });
+    it('should handle start empty, get insert: (Bs | I, O, Be) = (0 | 1, 0, 1): ', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 1,
+        }; var sa = store.addStreamAggr(aggr);
+
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.002', Value: 2 }); // gets insert
+
+        assert.equal(sa.getInFloatVector().length, 1);
+        assert.equal(sa.getOutFloatVector().length, 0);
+        assert.equal(sa.getFloatVector().length, 1);
+    });
+    it('should handle start nonempty, no changes: (Bs | I, O, Be) = (1 | 0, 0, 1): ', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 2,
+        }; var sa = store.addStreamAggr(aggr);
+
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.002', Value: 2 }); // now nonempty
+        store.push({ Time: '2015-06-10T00:00:00.003', Value: 3 }); // no changes
+
+        assert.equal(sa.getInFloatVector().length, 0);
+        assert.equal(sa.getOutFloatVector().length, 0);
+        assert.equal(sa.getFloatVector().length, 1);
+    });
+    it('should handle start nonempty, forget all: (Bs | I, O, Be) = (1 | 0, 1, 0): ', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 2,
+        }; var sa = store.addStreamAggr(aggr);
+
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.002', Value: 2 }); // now nonempty
+        store.push({ Time: '2015-06-10T00:00:00.006', Value: 6 }); // forget all
+
+        assert.equal(sa.getInFloatVector().length, 0);
+        assert.equal(sa.getOutFloatVector().length, 1);
+        assert.equal(sa.getFloatVector().length, 0);
+    });
+    it('should handle start nonempty, forget some: (Bs | I, O, Be) = (1 | 0, 1, 1): ', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 2,
+        }; var sa = store.addStreamAggr(aggr);
+
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.001', Value: 1 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.003', Value: 3 }); // 2 values
+        store.push({ Time: '2015-06-10T00:00:00.004', Value: 4 }); // forget one
+
+        assert.equal(sa.getInFloatVector().length, 0);
+        assert.equal(sa.getOutFloatVector().length, 1);
+        assert.equal(sa.getFloatVector().length, 1);
+    });
+    it('should handle start nonempty, insert some: (Bs | I, O, Be) = (1 | 1, 0, 1): ', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 1,
+        }; var sa = store.addStreamAggr(aggr);
+
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.001', Value: 1 }); // 1 val
+        store.push({ Time: '2015-06-10T00:00:00.002', Value: 2 }); // 2 values
+
+        assert.equal(sa.getInFloatVector().length, 1);
+        assert.equal(sa.getOutFloatVector().length, 0);
+        assert.equal(sa.getFloatVector().length, 2);
+    });
+    it('should handle start nonempty, insert some, forget some: (Bs | I, O, Be) = (1 | 1, 1, 1): ', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 1,
+        }; var sa = store.addStreamAggr(aggr);
+
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.001', Value: 1 }); // 1 val
+        store.push({ Time: '2015-06-10T00:00:00.002', Value: 2 }); // 2 values
+        store.push({ Time: '2015-06-10T00:00:00.003', Value: 3 }); // 2 values
+
+        assert.equal(sa.getInFloatVector().length, 1);
+        assert.equal(sa.getOutFloatVector().length, 1);
+        assert.equal(sa.getFloatVector().length, 2);
+    });
+
 });
 
 describe('MovingWindowBufferSum Tests', function () {
@@ -3358,6 +3526,7 @@ describe('Online Histogram Tests', function () {
                 addPosInf: false
             };
             var aggr = store.addStreamAggr(aggrJson);
+
             store.push({ Time: '2015-06-10T14:13:32.0', Value: -1 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 5 });
             store.push({ Time: '2015-06-10T14:13:33.2', Value: 3 });
@@ -3508,17 +3677,15 @@ describe('ChiSquare Tests', function () {
     var hist2 = undefined;
     beforeEach(function () {
         // create a base with a simple store
-        // the store records results of throwing a dice
-        // Since changes for each nomber are 1/6, the expacted values have uniform distribution
-        // Field Observed records the actual values
+        // the store records results of throwing two independent fair dices        
         base = new qm.Base({
             mode: "createClean",
             schema: [
             {
                 name: "Dice",
                 fields: [
-                    { name: "Expected", type: "float" },
-                    { name: "Observed", type: "float" },
+                    { name: "Sample1", type: "float" },
+                    { name: "Sample2", type: "float" },
                     { name: "Time", type: "datetime" }
                 ]
             }]
@@ -3532,7 +3699,7 @@ describe('ChiSquare Tests', function () {
             type: 'timeSeriesWinBuf',
             store: 'Dice',
             timestamp: 'Time',
-            value: 'Expected',
+            value: 'Sample1',
             winsize: 86400000 // one day in miliseconds
         };
 
@@ -3545,7 +3712,7 @@ describe('ChiSquare Tests', function () {
             type: 'timeSeriesWinBuf',
             store: 'Dice',
             timestamp: 'Time',
-            value: 'Observed',
+            value: 'Sample2',
             winsize: 86400000 // one day in miliseconds
         };
 
@@ -3558,7 +3725,7 @@ describe('ChiSquare Tests', function () {
             store: 'Dice',
             inAggr: 'TimeSeries1',
             lowerBound: 1,
-            upperBound: 6,
+            upperBound: 7,
             bins: 6,
             addNegInf: false,
             addPosInf: false
@@ -3573,7 +3740,7 @@ describe('ChiSquare Tests', function () {
             store: 'Dice',
             inAggr: 'TimeSeries2',
             lowerBound: 1,
-            upperBound: 6,
+            upperBound: 7,
             bins: 6,
             addNegInf: false,
             addPosInf: false
@@ -3594,34 +3761,32 @@ describe('ChiSquare Tests', function () {
             storeY: 'Dice',
             inAggrX: 'Histogram1',
             inAggrY: 'Histogram2',
-            degreesOfFreedom: 2
+            degreesOfFreedom: 5
         }
         var chi = store.addStreamAggr(aggr);
 
-        // add some values
-        // simulating throwing a dice
-        store.push({ Time: '2015-06-10T14:13:30.0', Expected: 1, Observed: 1 });
-        store.push({ Time: '2015-06-10T14:13:31.0', Expected: 2, Observed: 2 });
-        store.push({ Time: '2015-06-10T14:13:32.0', Expected: 3, Observed: 3 });
-        store.push({ Time: '2015-06-10T14:13:33.0', Expected: 4, Observed: 4 });
-        store.push({ Time: '2015-06-10T14:13:34.0', Expected: 5, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:35.0', Expected: 6, Observed: 5 });
-
-        store.push({ Time: '2015-06-10T14:13:41.0', Expected: 1, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:41.0', Expected: 2, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:42.0', Expected: 3, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:43.0', Expected: 4, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:44.0', Expected: 5, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:45.0', Expected: 6, Observed: 6 });
-
-        store.push({ Time: '2015-06-10T14:13:50.0', Expected: 1, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:51.0', Expected: 2, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:52.0', Expected: 3, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:53.0', Expected: 4, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:54.0', Expected: 5, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:55.0', Expected: 6, Observed: 6 });
-		
-		console.log("ChiSquare value: " + chi.getFloat());
+        // add some values (throwing a pair of dice)
+        store.push({ Time: '2015-06-10T14:13:30.0', Sample1: 2 , Sample2: 4 }); 
+        store.push({ Time: '2015-06-10T14:13:31.0', Sample1: 2 , Sample2: 5 }); 
+        store.push({ Time: '2015-06-10T14:13:32.0', Sample1: 2 , Sample2: 2 }); 
+        store.push({ Time: '2015-06-10T14:13:33.0', Sample1: 2 , Sample2: 2 }); 
+        store.push({ Time: '2015-06-10T14:13:34.0', Sample1: 6 , Sample2: 2 }); 
+        store.push({ Time: '2015-06-10T14:13:35.0', Sample1: 3 , Sample2: 5 }); 
+        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 2 , Sample2: 3 }); 
+        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 6 , Sample2: 6 }); 
+        store.push({ Time: '2015-06-10T14:13:42.0', Sample1: 5 , Sample2: 1 }); 
+        store.push({ Time: '2015-06-10T14:13:43.0', Sample1: 2 , Sample2: 3 }); 
+        store.push({ Time: '2015-06-10T14:13:44.0', Sample1: 1 , Sample2: 4 }); 
+        store.push({ Time: '2015-06-10T14:13:45.0', Sample1: 3 , Sample2: 2 }); 
+        store.push({ Time: '2015-06-10T14:13:50.0', Sample1: 6 , Sample2: 4 }); 
+        store.push({ Time: '2015-06-10T14:13:51.0', Sample1: 3 , Sample2: 1 }); 
+        store.push({ Time: '2015-06-10T14:13:52.0', Sample1: 4 , Sample2: 1 }); 
+        store.push({ Time: '2015-06-10T14:13:53.0', Sample1: 5 , Sample2: 1 }); 
+        store.push({ Time: '2015-06-10T14:13:54.0', Sample1: 5 , Sample2: 3 }); 
+        store.push({ Time: '2015-06-10T14:13:55.0', Sample1: 4 , Sample2: 1 });
+        
+        assert(Math.abs(chi.getFloat() - 4.4666) < 0.001);
+        // todo assert correct result
     });
 
     it('should reset an chi square test aggregator', function () {
@@ -3637,42 +3802,35 @@ describe('ChiSquare Tests', function () {
             degreesOfFreedom: 2
         }
         var chi = store.addStreamAggr(aggr);
-        var startVal = chi.getFloat();
 
-        // add some values
-        // simulating throwing a dice
-        store.push({ Time: '2015-06-10T14:13:30.0', Expected: 1, Observed: 1 });
-        store.push({ Time: '2015-06-10T14:13:31.0', Expected: 2, Observed: 2 });
-        store.push({ Time: '2015-06-10T14:13:32.0', Expected: 3, Observed: 3 });
-        store.push({ Time: '2015-06-10T14:13:33.0', Expected: 4, Observed: 4 });
-        store.push({ Time: '2015-06-10T14:13:34.0', Expected: 5, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:35.0', Expected: 6, Observed: 5 });
-
-        store.push({ Time: '2015-06-10T14:13:41.0', Expected: 1, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:41.0', Expected: 2, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:42.0', Expected: 3, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:43.0', Expected: 4, Observed: 5 });
-        store.push({ Time: '2015-06-10T14:13:44.0', Expected: 5, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:45.0', Expected: 6, Observed: 6 });
-
-        store.push({ Time: '2015-06-10T14:13:50.0', Expected: 1, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:51.0', Expected: 2, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:52.0', Expected: 3, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:53.0', Expected: 4, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:54.0', Expected: 5, Observed: 6 });
-        store.push({ Time: '2015-06-10T14:13:55.0', Expected: 6, Observed: 6 });
-
-        assert(chi.getFloat() < startVal);
+        // add some values (throwing a pair of dice)
+        store.push({ Time: '2015-06-10T14:13:30.0', Sample1: 2, Sample2: 4 });
+        store.push({ Time: '2015-06-10T14:13:31.0', Sample1: 2, Sample2: 5 });
+        store.push({ Time: '2015-06-10T14:13:32.0', Sample1: 2, Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:33.0', Sample1: 2, Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:34.0', Sample1: 6, Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:35.0', Sample1: 3, Sample2: 5 });
+        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 2, Sample2: 3 });
+        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 6, Sample2: 6 });
+        store.push({ Time: '2015-06-10T14:13:42.0', Sample1: 5, Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:43.0', Sample1: 2, Sample2: 3 });
+        store.push({ Time: '2015-06-10T14:13:44.0', Sample1: 1, Sample2: 4 });
+        store.push({ Time: '2015-06-10T14:13:45.0', Sample1: 3, Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:50.0', Sample1: 6, Sample2: 4 });
+        store.push({ Time: '2015-06-10T14:13:51.0', Sample1: 3, Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:52.0', Sample1: 4, Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:53.0', Sample1: 5, Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:54.0', Sample1: 5, Sample2: 3 });
+        store.push({ Time: '2015-06-10T14:13:55.0', Sample1: 4, Sample2: 1 });
+        
 		var endVal = chi.getFloat();
 
 		var fout = qm.fs.openWrite("aggr.tmp");
 		chi.save(fout);
 		fout.close();
 		
-        store.resetStreamAggregates();
+        store.resetStreamAggregates();       
         
-        assert(chi.getFloat() == startVal);
-
 		var fin = qm.fs.openRead("aggr.tmp");
 		chi.load(fin);
 		fin.close();
