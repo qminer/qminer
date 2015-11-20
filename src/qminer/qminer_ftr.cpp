@@ -1983,6 +1983,19 @@ void TPair::ExtractStrV(const TRec& _FtrRec, TStrV& StrV) const {
 
 ///////////////////////////////////////////////
 // Date Window Feature Extractor
+uint64 TDateWnd::_GetVal(const TRec& FtrRec) const {
+    // assert store
+    Assert(FtrRec.GetStoreId() == GetFtrStore()->GetStoreId());
+    // extract feature value
+    if (!FtrRec.IsDef() || FtrRec.IsFieldNull(FieldId)) {
+        return 0;
+    } else if (FieldDesc.IsTm()) {
+        return FtrRec.GetFieldTmMSecs(FieldId);
+    }
+    throw TQmExcept::New("Field type " + FieldDesc.GetFieldTypeStr() + 
+        " not supported by Numeric Feature Extractor!");
+}
+
 uint64 TDateWnd::GetVal(const TRec& FtrRec) const {
 	Assert(IsStartStore(FtrRec.GetStoreId()));
 	if (IsJoin(FtrRec.GetStoreId())) {
