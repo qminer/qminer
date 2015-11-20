@@ -728,7 +728,7 @@ describe('Time Series Window Buffer Tests', function () {
             assert.equal(vec[1], 2);
             assert.equal(vec[2], 3);
         })
-        it('should return an empty vector for an empty buffer', function () {
+        it('should throw an exception for callin getOutFloatVector on an uninitialized buffer', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -738,8 +738,9 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
-            var vec = sa.getOutFloatVector();
-            assert.equal(vec.length, 0);
+            assert.throws(function () {
+                var vec = sa.getOutFloatVector();
+            });
         })
         it('should return an empty vector if all values are still in the window', function () {
             var aggr = {
@@ -778,7 +779,7 @@ describe('Time Series Window Buffer Tests', function () {
             var vec = sa.getOutTimestampVector();
             assert.equal(vec.length, 3);
         })
-        it('should return an empty vector if the buffer is empty', function () {
+        it('should return throw an exception if getOutTimestampVector on an uninitialized buffer', function () {
             var aggr = {
                 name: 'TimeSeriesWindowAggr',
                 type: 'timeSeriesWinBuf',
@@ -788,8 +789,9 @@ describe('Time Series Window Buffer Tests', function () {
                 winsize: 2000
             };
             var sa = store.addStreamAggr(aggr);
-            var vec = sa.getOutTimestampVector();
-            assert.equal(vec.length, 0);
+            assert.throws(function () {
+                var vec = sa.getOutTimestampVector();
+            });
         })
         it('should return an empty vector if all records are all in the window', function () {
             var aggr = {
@@ -870,6 +872,161 @@ describe('Time Series Window Buffer Tests', function () {
             assert.equal(sa.init, false);
         })
     });
+
+    it('should handle the case when records skip buffer', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', store: 'Function', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 1,
+        };
+        var sa = store.addStreamAggr(aggr);
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.001', Value: 1 }); // 1 value
+        store.push({ Time: '2015-06-10T00:00:00.004', Value: 4 }); // never enters the buffer
+        store.push({ Time: '2015-06-10T00:00:00.007', Value: 7 }); // empty
+
+        assert.equal(sa.getInFloatVector().length, 0);
+        assert.equal(sa.getOutFloatVector().length, 0);
+        assert.equal(sa.getFloatVector().length, 0);
+    });
+    it.only('should handle the case when records skip buffer variation 2', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', store: 'Function', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 1,
+        };
+        var sa = store.addStreamAggr(aggr);
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.001', Value: 1 }); // 1 value
+        store.push({ Time: '2015-06-10T00:00:00.003', Value: 3 }); // never enters the buffer, influences the buffer
+        store.push({ Time: '2015-06-10T00:00:00.006', Value: 6 }); // empty
+
+        assert.equal(sa.getInFloatVector().length, 0);
+        assert.equal(sa.getOutFloatVector().length, 1);
+        assert.equal(sa.getFloatVector().length, 0);
+    });
+    it('should handle the case when records skip buffer variation 3', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', store: 'Function', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 10,
+        };
+        var sa = store.addStreamAggr(aggr);
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.010', Value: 1 }); // 1 value
+        store.push({ Time: '2015-06-10T00:00:00.015', Value: 2 }); // never enters the buffer
+        store.push({ Time: '2015-06-10T00:00:00.016', Value: 3 }); // empty
+
+        assert.equal(sa.getInFloatVector().length, 0);
+        assert.equal(sa.getOutFloatVector().length, 0);
+        assert.equal(sa.getFloatVector().length, 0);
+    });
+    it('should handle start empty, stay empty: (Bs | I, O, Be) = (0 | 0, 0, 0): ', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 1,
+        }; var sa = store.addStreamAggr(aggr);
+
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.003', Value: 3 }); // stays empty
+
+        assert.equal(sa.getInFloatVector().length, 0);
+        assert.equal(sa.getOutFloatVector().length, 0);
+        assert.equal(sa.getFloatVector().length, 0);
+    });
+    it('should handle start empty, get insert: (Bs | I, O, Be) = (0 | 1, 0, 1): ', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 1,
+        }; var sa = store.addStreamAggr(aggr);
+
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.002', Value: 2 }); // gets insert
+
+        assert.equal(sa.getInFloatVector().length, 1);
+        assert.equal(sa.getOutFloatVector().length, 0);
+        assert.equal(sa.getFloatVector().length, 1);
+    });
+    it('should handle start nonempty, no changes: (Bs | I, O, Be) = (1 | 0, 0, 1): ', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 2,
+        }; var sa = store.addStreamAggr(aggr);
+
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.002', Value: 2 }); // now nonempty
+        store.push({ Time: '2015-06-10T00:00:00.003', Value: 3 }); // no changes
+
+        assert.equal(sa.getInFloatVector().length, 0);
+        assert.equal(sa.getOutFloatVector().length, 0);
+        assert.equal(sa.getFloatVector().length, 1);
+    });
+    it('should handle start nonempty, forget all: (Bs | I, O, Be) = (1 | 0, 1, 0): ', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 2,
+        }; var sa = store.addStreamAggr(aggr);
+
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.002', Value: 2 }); // now nonempty
+        store.push({ Time: '2015-06-10T00:00:00.006', Value: 6 }); // forget all
+
+        assert.equal(sa.getInFloatVector().length, 0);
+        assert.equal(sa.getOutFloatVector().length, 1);
+        assert.equal(sa.getFloatVector().length, 0);
+    });
+    it('should handle start nonempty, forget some: (Bs | I, O, Be) = (1 | 0, 1, 1): ', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 2,
+        }; var sa = store.addStreamAggr(aggr);
+
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.001', Value: 1 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.003', Value: 3 }); // 2 values
+        store.push({ Time: '2015-06-10T00:00:00.004', Value: 4 }); // forget one
+
+        assert.equal(sa.getInFloatVector().length, 0);
+        assert.equal(sa.getOutFloatVector().length, 1);
+        assert.equal(sa.getFloatVector().length, 1);
+    });
+    it('should handle start nonempty, insert some: (Bs | I, O, Be) = (1 | 1, 0, 1): ', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 1,
+        }; var sa = store.addStreamAggr(aggr);
+
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.001', Value: 1 }); // 1 val
+        store.push({ Time: '2015-06-10T00:00:00.002', Value: 2 }); // 2 values
+
+        assert.equal(sa.getInFloatVector().length, 1);
+        assert.equal(sa.getOutFloatVector().length, 0);
+        assert.equal(sa.getFloatVector().length, 2);
+    });
+    it('should handle start nonempty, insert some, forget some: (Bs | I, O, Be) = (1 | 1, 1, 1): ', function () {
+        var aggr = {
+            type: 'timeSeriesWinBuf', timestamp: 'Time', value: 'Value',
+            winsize: 1,
+            delay: 1,
+        }; var sa = store.addStreamAggr(aggr);
+
+        store.push({ Time: '2015-06-10T00:00:00.000', Value: 0 }); // empty
+        store.push({ Time: '2015-06-10T00:00:00.001', Value: 1 }); // 1 val
+        store.push({ Time: '2015-06-10T00:00:00.002', Value: 2 }); // 2 values
+        store.push({ Time: '2015-06-10T00:00:00.003', Value: 3 }); // 2 values
+
+        assert.equal(sa.getInFloatVector().length, 1);
+        assert.equal(sa.getOutFloatVector().length, 1);
+        assert.equal(sa.getFloatVector().length, 2);
+    });
+
 });
 
 describe('MovingWindowBufferSum Tests', function () {

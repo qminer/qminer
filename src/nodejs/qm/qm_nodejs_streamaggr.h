@@ -1521,7 +1521,25 @@ public:
 	*/
 	//# exports.StreamAggr.prototype.getInTimestamp = function () { return 0; };
 	JsDeclareFunction(getInTimestamp);
-	
+
+	/**
+	* Gets a vector containing the values that are entering the stream aggregator.
+	* @returns {module:la.Vector} The vector containing the values that are entering the buffer.
+	* @example
+	* // TODO + add unit test!
+	*/
+	//# exports.StreamAggr.prototype.getInFloatVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
+	JsDeclareFunction(getInFloatVector);
+
+	/**
+	* Gets a vector containing the timestamps that are entering the stream aggregator.
+	* @returns {module:la.Vector} The vector containing the timestamps that are entering the buffer.
+	* @example
+	* // TODO + add unit test!
+	*/
+	//# exports.StreamAggr.prototype.getInTimestampVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
+	JsDeclareFunction(getInTimestampVector);
+
 	/**
 	* Gets a vector containing the values that are leaving the stream aggregator.
 	* @returns {module:la.Vector} The vector containing the values that are leaving the buffer.
@@ -1695,6 +1713,8 @@ private:
 	// IFltTmIO 
 	v8::Persistent<v8::Function> GetInFltFun;
 	v8::Persistent<v8::Function> GetInTmMSecsFun;
+	v8::Persistent<v8::Function> GetInFltVFun;
+	v8::Persistent<v8::Function> GetInTmMSecsVFun;
 	v8::Persistent<v8::Function> GetOutFltVFun;
 	v8::Persistent<v8::Function> GetOutTmMSecsVFun;
 	v8::Persistent<v8::Function> GetNFun;
@@ -1750,6 +1770,8 @@ public:
 	// IFltTmIO 
 	double GetInFlt() const;
 	uint64 GetInTmMSecs() const;
+	void GetInFltV(TFltV& ValV) const;
+	void GetInTmMSecsV(TUInt64V& MSecsV) const;
 	void GetOutFltV(TFltV& ValV) const;
 	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
 	int GetN() const;

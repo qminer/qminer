@@ -264,13 +264,18 @@ public:
 // t_i - t_j <= window, for all i > j, and t_new - t_i >= delay, for all i.  
 // 
 // ASSUMPTION!
-// Internally the aggregate only stores the IDs of the last and the first record in the buffer - it
-// assumes the streaming store (no holes in record IDs, increasing timestamps)
+// Internally the aggregate only tracks the IDs A <= B, C <= D, B <= D from which we can reconstruct:
+//  A ... B-1 forget interval
+//  B ... D-1 buffer interval
+//  C ... D-1 update interval 
+//  It may happen that B > C, which corresponds to records that skipped the buffer
+//  In that case, Skip := B - C is the number of skipped records, and
+//  A ... B-1-Skip is the forget interval
+//  C+Skip ... D-1 is the update interval
+// The IDs need not be in the store and any interval can be empty.
+// We assume the streaming store: no holes in record IDs, increasing timestamps, consistent
+// with intervals.
 //
-// Each time a new record commes in, a set of records (possibly empty) dropps out of the buffer. 
-// The record IDs that drop out range from [DroppedFirstRecInId,... , FirstRecInId-1]. If no records
-// get dropped, the DroppedFIrstRecInId will equal to TUInt64::Mx.
-// TODO: GetInFltV, GetInTmMSecsV (delay!). If data is not equally spaced, more than one rec can enter.
 class TWinBuf : public TStreamAggr, public TStreamAggrOut::IFltTmIO,
                 public TStreamAggrOut::IFltVec, public TStreamAggrOut::ITmVec {
 private:
@@ -283,11 +288,15 @@ private:
 	TUInt64 WinSizeMSecs; /// window size in milliseconds
 	TUInt64 DelayMSecs;  /// delay in milliseconds
     
+	//
 	// ALGORITHM STATE
-	TUInt64 DroppedFirstRecInId; /// the oldest record that has been recently invalidated (lowest ID). RecordsIDs [DroppedFirstRecInId, ..., FirstRecInId -1] have just fallen out of the buffer.
-	TUInt64 FirstRecInId; /// the record with the oldest timestamp currently in the buffer(lowest ID)
-	TUInt64 LastRecInId; /// the record with the most recent timestamp currently in the buffer (highest ID)
-	
+	//
+	TBool InitP; /// Has the aggregate been updated at least once?
+	TUInt64 A; // The ID of the first record to forget. The last record to forget is strictly smaller than B. If A == B, the forget interval is empty. 
+	TUInt64 B; // The ID of the first record in the buffer, or in case of empty buffer the ID of the first record after the buffer. Guaranteed to be in the store (due to NewRec). If B == D, the buffer is empty.
+	TUInt64 C; // The ID of the first record to update. If C == D, the update interval is empty.
+	TUInt64 D; // The ID of the first record after the buffer. Guaranteed to be in the store (due to NewRec). If D == B, the buffer is empty.
+
 protected:
 	/// Stream aggregate update function called when a record is added
 	void OnAddRec(const TRec& Rec);
@@ -296,58 +305,89 @@ protected:
 public:
 	/// Smart pointer JSON based constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-
+	
 	/// Load stream aggregate state from stream
 	void LoadState(TSIn& SIn);
 	/// Save state of stream aggregate to stream
 	void SaveState(TSOut& SOut) const;
 
 	/// did we finish initialization
-	bool IsInit() const;
+	bool IsInit() const { return InitP; }
 	/// Resets the model state
 	void Reset();
-	/// most recent values
-	double GetInFlt() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return Store->GetFieldFlt(LastRecInId, ValFieldId); }
-	uint64 GetInTmMSecs() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return Store->GetFieldTmMSecs(LastRecInId, TimeFieldId); }
-    /// old values that fall out of the buffer
+	/// most recent values. Only makes sense if delay = 0!
+	double GetInFlt() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); EAssertR(B < D, "WinBuf is empty!"); return Value(D - 1); }
+	/// most recent timestamps. Only makes sense if delay = 0!
+	uint64 GetInTmMSecs() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); EAssertR(B < D, "WinBuf is empty!"); return Time(D - 1); }
+    
+	/// new values that just entered the buffer (needed if delay is nonzero)
+	void GetInFltV(TFltV& ValV) const;
+	/// new timestamps that just entered the buffer (needed if delay is nonzero)
+	void GetInTmMSecsV(TUInt64V& MSecsV) const;
+	
+	/// old values that fall out of the buffer
 	void GetOutFltV(TFltV& ValV) const;
 	/// old timestamps that fall out of the buffer
 	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
 	
 	/// the oldest value that is still in the buffer
-	double GetOldestFlt() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return Store->GetFieldFlt(FirstRecInId, ValFieldId); }
+	double GetOldestFlt() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); EAssertR(B < D, "WinBuf is empty!"); return Value(B); }
 	/// the oldest timestamp that is still in the buffer
-	uint64 GetOldestTmMSecs() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return Store->GetFieldTmMSecs(FirstRecInId, TimeFieldId); }
+	uint64 GetOldestTmMSecs() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); EAssertR(B < D, "WinBuf is empty!"); return Time(B); }
 
     /// buffer length
-	int GetN() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return (int)(LastRecInId - FirstRecInId + 1); }
+	int GetN() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return (int)(D - B); }
 
 	/// get float vector length (IFltVec interface)
 	int GetFltLen() const { return GetN(); }
 	/// get float vector element (IFltVec interface)
-	double GetFlt(const TInt& ElN) const { return Store->GetFieldFlt(FirstRecInId + ElN, ValFieldId); }
+	double GetFlt(const TInt& ElN) const { return Value(B + ElN); }
 	/// get float vector of all values in the buffer (IFltVec interface)
 	void GetFltV(TFltV& ValV) const;
 	/// get time vector length (ITmVec interface) 
 	int GetTmLen() const { return GetN(); }
 	/// get time vector element (ITmVec interface
-	uint64 GetTm(const TInt& ElN) const { return Store->GetFieldTmMSecs(FirstRecInId + ElN, TimeFieldId); }
+	uint64 GetTm(const TInt& ElN) const { return Time(B + ElN); }
 	/// get timestamp vector of all timestamps in the buffer (ITmVec interface)
 	void GetTmV(TUInt64V& MSecsV) const;
-
+	
 	/// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
     
-    /// stream aggregator type name 
+	/// stream aggregator type name 
     static TStr GetType() { return "timeSeriesWinBuf"; }
 	/// stream aggregator type name 
 	TStr Type() const { return GetType(); }
+	
+	/// Test if current state is consistent with store and parameters
+	bool TestValid() const;
+	/// print state for debugging
+	void Print(const bool& PrintState = false);
+private:
+	// helper functions
+	uint64 Time(const uint64& RecId) const { return Store->GetFieldTmMSecs(RecId, TimeFieldId); }
+	double Value(const uint64& RecId) const { return Store->GetFieldFlt(RecId, ValFieldId); }
+	
+	bool InStore(const uint64& RecId) const { return Store->IsRecId(RecId); }
+	bool BeforeStore(const uint64& RecId) const { return RecId < Store->GetFirstRecId(); }
+	bool AfterStore(const uint64& RecId) const { return RecId > Store->GetLastRecId(); }
+	
+	bool InBuffer(const uint64& RecId, const uint64& LastRecTmMSecs) const {
+		return !BeforeBuffer(RecId, LastRecTmMSecs) && !AfterBuffer(RecId, LastRecTmMSecs);
+	}
+	bool BeforeBuffer(const uint64& RecId, const uint64& LastRecTmMSecs) const {
+		return  BeforeStore(RecId) || (InStore(RecId) && (Time(RecId) < LastRecTmMSecs - DelayMSecs - WinSizeMSecs));
+	}
+	bool AfterBuffer(const uint64& RecId, const uint64& LastRecTmMSecs) const {
+		return AfterStore(RecId) || (InStore(RecId) && (Time(RecId) > LastRecTmMSecs - DelayMSecs));
+	}
+	void PrintInterval(const uint64& StartId, const uint64& EndId, const TStr& Label = "", const TStr& ModCode = "39") const;
 };
 
 ///////////////////////////////////////
-// Moving Window Buffer Template
+// Windowed Stream aggregates (readers from TWinBuf) 
 template <class TSignalType>
-class TWinBuffer : public TStreamAggr, public TStreamAggrOut::IFltTm {
+class TWinAggr : public TStreamAggr, public TStreamAggrOut::IFltTm {
 private:
 	// input
 	TWPt<TStreamAggr> InAggr;
@@ -364,7 +404,7 @@ protected:
 		};
 	}
 
-	TWinBuffer(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
+	TWinAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
 		// parse out input aggregate
 		TStr InStoreNm = ParamVal->GetObjStr("store");
 		TStr InAggrNm = ParamVal->GetObjStr("inAggr");
@@ -379,7 +419,7 @@ public:
 
 	// json constructor 
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
-		return new TWinBuffer<TSignalType>(Base, ParamVal);
+		return new TWinAggr<TSignalType>(Base, ParamVal);
 	}
 
 	// Load stream aggregate state from stream
@@ -409,11 +449,11 @@ public:
 	TStr Type() const { return GetType(); }
 };
 
-typedef TWinBuffer<TSignalProc::TSum> TWinBufSum;
-typedef TWinBuffer<TSignalProc::TMin> TWinBufMin;
-typedef TWinBuffer<TSignalProc::TMax> TWinBufMax;
-typedef TWinBuffer<TSignalProc::TMa> TMa;
-typedef TWinBuffer<TSignalProc::TVar> TVar;
+typedef TWinAggr<TSignalProc::TSum> TWinBufSum;
+typedef TWinAggr<TSignalProc::TMin> TWinBufMin;
+typedef TWinAggr<TSignalProc::TMax> TWinBufMax;
+typedef TWinAggr<TSignalProc::TMa> TMa;
+typedef TWinAggr<TSignalProc::TVar> TVar;
 
 ///////////////////////////////
 // Exponential Moving Average.
@@ -827,22 +867,22 @@ public:
 /////////////////////////////
 // Moving Window Buffer Sum
 template <>
-inline TStr TWinBuffer<TSignalProc::TSum>::GetType() { return "winBufSum"; }
+inline TStr TWinAggr<TSignalProc::TSum>::GetType() { return "winBufSum"; }
 
 /////////////////////////////
 // Moving Window Buffer Min
 template <>
-inline TStr TWinBuffer<TSignalProc::TMin>::GetType() { return "winBufMin"; }
+inline TStr TWinAggr<TSignalProc::TMin>::GetType() { return "winBufMin"; }
 
 /////////////////////////////
 // Moving Window Buffer Max
 template <>
-inline TStr TWinBuffer<TSignalProc::TMax>::GetType() { return "winBufMax"; }
+inline TStr TWinAggr<TSignalProc::TMax>::GetType() { return "winBufMax"; }
 
 /////////////////////////////
 // Moving Average
 template <>
-inline void TWinBuffer<TSignalProc::TMa>::OnAddRec(const TRec& Rec) {
+inline void TWinAggr<TSignalProc::TMa>::OnAddRec(const TRec& Rec) {
 	TFltV ValV; InAggrVal->GetOutFltV(ValV);
 	TUInt64V TmMSecsV; InAggrVal->GetOutTmMSecsV(TmMSecsV);
 	if (InAggr->IsInit()) {
@@ -852,12 +892,12 @@ inline void TWinBuffer<TSignalProc::TMa>::OnAddRec(const TRec& Rec) {
 }
 
 template <>
-inline TStr TWinBuffer<TSignalProc::TMa>::GetType() { return "ma"; }
+inline TStr TWinAggr<TSignalProc::TMa>::GetType() { return "ma"; }
 
 /////////////////////////////
 // Moving Variance
 template <>
-inline void TWinBuffer<TSignalProc::TVar>::OnAddRec(const TRec& Rec) {
+inline void TWinAggr<TSignalProc::TVar>::OnAddRec(const TRec& Rec) {
 	TFltV ValV; InAggrVal->GetOutFltV(ValV);
 	TUInt64V TmMSecsV; InAggrVal->GetOutTmMSecsV(TmMSecsV);
 	if (InAggr->IsInit()) {
@@ -867,7 +907,7 @@ inline void TWinBuffer<TSignalProc::TVar>::OnAddRec(const TRec& Rec) {
 }
 
 template <>
-inline TStr TWinBuffer<TSignalProc::TVar>::GetType() { return "variance"; }
+inline TStr TWinAggr<TSignalProc::TVar>::GetType() { return "variance"; }
 
 
 
