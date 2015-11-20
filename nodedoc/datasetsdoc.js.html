@@ -33,33 +33,31 @@
     /**
     * Datasets module includes some standard toy datasets. In addition, this module also includes various
     * random sample generators that can be used to build artificial datasets of controlled size and complexity.
-    * @module datasets 
+    * @module datasets
     * @example &amp;lt;caption&gt;Asynchronous loading&amp;lt;/caption&gt;
     * var qm = require(&#x27;qminer&#x27;);
     * var datasets = qm.datasets;
-    * 
+    *
     * // Create clean base
     * var base = new qm.Base({ mode: &#x27;createClean&#x27; });
     *
     * // Load Iris dataset in async way
     * datasets.loadIris(base, function (err, store) {
     *     if (err) throw err;
-    *     console.log(&quot;\nSucessfully loaded database: &quot; + store.name)
-    *     console.log(JSON.stringify(store.first, null, 2));
+    *     // Sucessfully loaded database
     *     base.close();
     * });
-    * 
+    *
     * @example &amp;lt;caption&gt;Synchronous loading&amp;lt;/caption&gt;
     * var qm = require(&#x27;qminer&#x27;);
     * var datasets = qm.datasets;
-    * 
+    *
     * // Create clean base
     * var base = new qm.Base({ mode: &#x27;createClean&#x27; });
     *
     * // Load Iris in sync way.
     * var Iris = datasets.loadIrisSync(base);
-    * console.log(&quot;\nSucessfully loaded database: &quot; + Iris.name)
-    * console.log(JSON.stringify(Iris.first, null, 2));
+    * // Sucessfully loaded database
     * base.close();
     */
 
@@ -76,12 +74,10 @@
             base: _base
         }
 
-        console.log(&#x27;Loading dataset &#x27; + options.store + &#x27; ...&#x27;);
         _base.loadCSV(options, function (err) {
             if (err) return callback(err);
 
             var Iris = _base.store(options.store);
-            console.log(options.store + &#x27; dataset loaded&#x27;)
 
             return callback(null, Iris)
         })
@@ -100,13 +96,11 @@
             base: _base
         }
 
-        console.log(&#x27;Loading dataset &#x27; + options.store + &#x27; ...&#x27;);
         _base.loadCSV(options);
-        console.log(options.store + &#x27; dataset loaded&#x27;);
 
         return _base.store(options.store);
     }
-    
+
     // Module description
     exports.description = function () {
         return (&quot;Module includes functions to load and make datasets.&quot;);

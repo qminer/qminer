@@ -1382,11 +1382,13 @@ PStreamAggr TResampler::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 }
 
 void TResampler::LoadState(TSIn& SIn) {
+	InterpolatorV.Load(SIn);
 	InterpPointMSecs.Load(SIn);
 	UpdatedP.Load(SIn);
 }
 
 void TResampler::SaveState(TSOut& SOut) const {
+	InterpolatorV.Save(SOut);
 	InterpPointMSecs.Save(SOut);
 	UpdatedP.Save(SOut);
 }

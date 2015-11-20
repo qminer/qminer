@@ -466,7 +466,7 @@ protected:
 	TLinkedBuffer<TPair<TUInt64, TFlt>> Buff;
 
 	TBufferedInterpolator(const TStr& InterpolatorType);
-	TBufferedInterpolator(TSIn& SIn);
+	TBufferedInterpolator(const TStr& InterpolatorType, TSIn& SIn);
 
 public:
 	virtual void Save(TSOut& SOut) const;

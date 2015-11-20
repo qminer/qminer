@@ -142,23 +142,25 @@ private:
 public:
   	friend class TPt<TDtGrowCriteria>;
 private:
-  	TFlt MinClassProb;
+  	TFlt MinPosClassProb;
+  	TFlt MinNegClassProb;
   	TInt MinExamples;
 public:
-  	TDtGrowCriteria(const double& _MinClassProb=0, const int& _MinExamples=0):
-  		MinClassProb(_MinClassProb),
-		MinExamples(_MinExamples) {}
-  	TDtGrowCriteria(TSIn& SIn):
-  		MinClassProb(SIn),
-		MinExamples(SIn) {}
+  	TDtGrowCriteria(const double& MinClassProb=0, const int& MinExamples=0);
+  	TDtGrowCriteria(const double& MinPosClassProb, const double& MinNegClassProb,
+  			const int& MinExamples=0);
+  	TDtGrowCriteria(TSIn& SIn);
+
   	static PDtGrowCriteria New(const double& MinClassProb=0, const int& MinExamples=0) { return new TDtGrowCriteria(MinClassProb, MinExamples); }
+  	static PDtGrowCriteria New(const double& MinPosClassProb, const double& MinNegClassProb,
+  			const int& MinExamples=0) {
+  		return new TDtGrowCriteria(MinPosClassProb, MinNegClassProb, MinExamples); }
   	virtual ~TDtGrowCriteria() {}
 
   	static PDtGrowCriteria Load(TSIn& SIn);
   	virtual void Save(TSOut& SOut) const;
 
-  	virtual bool ShouldGrow(const int& NExamples, const double& Class1Prob) const
-  		{ return NExamples > MinExamples && Class1Prob >= MinClassProb && (1 - Class1Prob) >= MinClassProb; }
+  	virtual bool ShouldGrow(const int& NExamples, const double& Class1Prob) const;
 
 protected:
   	virtual const TStr GetType() const { return "default"; }
@@ -169,7 +171,10 @@ protected:
 class TDecisionTree {
 private:
 	class TNode {
+		friend class TDecisionTree;
 	private:
+
+
 		TNode* Left;
 		TNode* Right;
 
@@ -182,8 +187,8 @@ private:
 
 		TFltV ClassHist;
 		TFltV FtrHist;
+		TFltIntFltTrV CutFtrCorrFtrNPValTrV;
 
-	public:
 		TNode(TDecisionTree* Tree);
 		TNode(TDecisionTree* Tree, TSIn& SIn);
 		~TNode() { CleanUp(); }
@@ -193,14 +198,17 @@ private:
 		double Predict(const TFltV& FtrV) const;
 
 		PJsonVal GetJson() const;
+		PJsonVal ExplainLabel(const int& Label) const;
 
 		void Fit(const TFltVV& FtrVV, const TFltV& ClassV, const TIntV& NodeInstNV);
 		bool Prune();
 		void CopyNode(const TNode& Node);
+		void SetTree(TDecisionTree* Tree);
 
-	private:
 		bool CanSplitNumFtr(const TFltIntPrV& ValClassPrV, const int& TotalPos,
 				double& CutVal, double& Score) const;
+		void CalcCorrFtrV(const TFltVV& FtrVV, const TIntV& InstNV);
+		void Split(const TFltVV& FtrVV, const TFltV& ClassV, const TIntV& InstNV);
 
 		bool HasLeft() const { return Left != nullptr; }
 		bool HasRight() const { return Right != nullptr; }
@@ -218,10 +226,13 @@ private:
 	PDtPruneCriteria PruneCriteria;
 	PDtGrowCriteria GrowCriteria;
 
+	TBool CalcCorr;
+
 public:
 	TDecisionTree(const PDtSplitCriteria& SplitCriteria=TInfoGain::New(),
 			const PDtPruneCriteria& PruneCriteria=TDtMinExamplesPrune::New(1),
-			const PDtGrowCriteria& GrowCriteria=TDtGrowCriteria::New());
+			const PDtGrowCriteria& GrowCriteria=TDtGrowCriteria::New(),
+			const bool& CalcCorr=false);
 	TDecisionTree(TSIn& SIn);
 	TDecisionTree(const TDecisionTree& Other);
 #ifdef GLib_CPP11
@@ -240,6 +251,7 @@ public:
 	double Predict(const TFltV& FtrV) const;
 
 	PJsonVal GetJson() const;
+	PJsonVal ExplainPositive() const;
 
 private:
 	void Grow(const TFltVV& FtrVV, const TFltV& ClassV, const PNotify& Notify);
@@ -249,6 +261,7 @@ private:
 			const int& RightPosN) const;
 	bool ShouldPrune(const bool& IsLeaf, const int& NExamples, const double& Class1Prob) const;
 	bool ShouldGrow(const int& NExamples, const double& Class1Prob) const;
+	bool IsCalcCorr() const { return CalcCorr; }
 
 	bool HasRoot() const { return Root != nullptr; }
 	void CleanUp();
