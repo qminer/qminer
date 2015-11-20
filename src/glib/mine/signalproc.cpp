@@ -431,8 +431,8 @@ TBufferedInterpolator::TBufferedInterpolator(const TStr& _InterpolatorType):
 		TInterpolator(_InterpolatorType),
 		Buff() {}
 
-TBufferedInterpolator::TBufferedInterpolator(TSIn& SIn):
-		TInterpolator(SIn),
+TBufferedInterpolator::TBufferedInterpolator(const TStr& _InterpolatorType, TSIn& SIn) :
+        TInterpolator(_InterpolatorType),
 		Buff(SIn) {}
 
 void TBufferedInterpolator::Save(TSOut& SOut) const {
@@ -461,7 +461,7 @@ TPreviousPoint::TPreviousPoint():
 		TBufferedInterpolator(TPreviousPoint::GetType()) {}
 
 TPreviousPoint::TPreviousPoint(TSIn& SIn):
-		TBufferedInterpolator(SIn) {}
+    TBufferedInterpolator(GetType(), SIn) {}
 
 void TPreviousPoint::SetNextInterpTm(const uint64& Time) {
 	// TODO optimize
@@ -486,7 +486,7 @@ TCurrentPoint::TCurrentPoint():
 		TBufferedInterpolator(TCurrentPoint::GetType()) {}
 
 TCurrentPoint::TCurrentPoint(TSIn& SIn):
-		TBufferedInterpolator(SIn) {}
+    TBufferedInterpolator(GetType(), SIn) {}
 
 void TCurrentPoint::SetNextInterpTm(const uint64& Tm) {
 	// at least one past (or current time) record needs to be in the buffer
@@ -518,7 +518,7 @@ TLinear::TLinear():
 		TBufferedInterpolator(TLinear::GetType()) {}
 
 TLinear::TLinear(TSIn& SIn):
-		TBufferedInterpolator(SIn) {}
+    TBufferedInterpolator(GetType(), SIn) {}
 
 void TLinear::SetNextInterpTm(const uint64& Time) {
 	while (Buff.Len() > 1 && Buff.GetOldest(1).Val1 <= Time) {
