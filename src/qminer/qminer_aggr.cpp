@@ -695,19 +695,19 @@ void TWinBuf::Print(const bool& PrintState) {
 	int Skip = B > C ? int(B - C) : 0;
 	printf("TWinBuf: initialized:%s, window:%d, delay: %d, skip:%d\n",
 		IsInit() ? "true" : "false", int(WinSizeMSecs), int(DelayMSecs), Skip);
-	printf("\033[34m A=%" PRIu64 ", B=%" PRIu64 ", C=%" PRIu64 ", D=%" PRIu64 "\033[0m\n", A, B, C, D);
+	printf("\033[34m A=%" PRIu64 ", B=%" PRIu64 ", C=%" PRIu64 ", D=%" PRIu64 "\033[0m\n", A.Val, B.Val, C.Val, D.Val);
 
 	//if (A == 0 || B == 0 || C == 0 || D == 0) return;
 	
-	printf("Forget interval: %" PRIu64 " - %" PRIu64 "\n", A, B - 1 - Skip);
-	printf("Buffer interval: %" PRIu64 " - %" PRIu64 "\n", B, D - 1);
-	printf("Update interval: %" PRIu64 " - %" PRIu64 "\n", C + Skip, D - 1);
+	printf("Forget interval: %" PRIu64 " - %" PRIu64 "\n", A.Val, B.Val - 1 - Skip);
+	printf("Buffer interval: %" PRIu64 " - %" PRIu64 "\n", B.Val, D.Val - 1);
+	printf("Update interval: %" PRIu64 " - %" PRIu64 "\n", C.Val + Skip, D.Val - 1);
 	if (PrintState && IsInit()) {
 		uint64 LastRecId = Store->GetLastRecId();
 		PrintInterval(LastRecId, LastRecId, "Last rec:");
 		printf("Constraint: [%s - %s]\n", 
-			TTm::GetTmFromMSecs(Time(LastRecId) - DelayMSecs - WinSizeMSecs).GetWebLogTimeStr(),
-			TTm::GetTmFromMSecs(Time(LastRecId) - DelayMSecs).GetWebLogTimeStr());
+			TTm::GetTmFromMSecs(Time(LastRecId) - DelayMSecs - WinSizeMSecs).GetWebLogTimeStr().CStr(),
+			TTm::GetTmFromMSecs(Time(LastRecId) - DelayMSecs).GetWebLogTimeStr().CStr());
 		if (D > 0) {
 			PrintInterval(B, D - 1, "New buff:", "32");
 			PrintInterval(C + Skip, D - 1, "Just in: ");
@@ -729,7 +729,7 @@ void TWinBuf::Print(const bool& PrintState) {
 void TWinBuf::PrintInterval(const uint64& StartId, const uint64& EndId, const TStr& Label, const TStr& ModCode) const {
 	printf("%s [ \033[1;%sm", Label.CStr(), ModCode.CStr());
 	for (uint64 RecId = StartId; RecId <= EndId; RecId++) {
-		printf("(%g, %s), ", Value(RecId), TTm::GetTmFromMSecs(Time(RecId)).GetWebLogTimeStr());
+		printf("(%g, %s), ", Value(RecId), TTm::GetTmFromMSecs(Time(RecId)).GetWebLogTimeStr().CStr());
 	}
 	printf("\033[0m]\n");
 }
