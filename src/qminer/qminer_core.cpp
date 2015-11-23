@@ -276,8 +276,13 @@ void TFieldDesc::Save(TSOut& SOut) const {
 TStr TFieldDesc::GetFieldTypeStr() const {
 	switch (FieldType) {
 	case oftUndef: return "undefined";
+	case oftByte: return "byte";
 	case oftInt: return "int";
+	case oftInt16: return "int16";
+	case oftInt64: return "int64";
 	case oftIntV: return "int_v";
+	case oftUInt: return "uint";
+	case oftUInt16: return "uint16";
 	case oftUInt64: return "uint64";
 	case oftStr: return "string";
 	case oftStrV: return "string_v";
@@ -764,12 +769,32 @@ void TStore::SetFieldNull(const uint64& RecId, const int& FieldId) {
 	throw FieldError(FieldId, "SetNull");
 }
 
+void TStore::SetFieldByte(const uint64& RecId, const int& FieldId, const byte& Byte) {
+	throw FieldError(FieldId, "Byte");
+}
+
 void TStore::SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int) {
 	throw FieldError(FieldId, "Int");
 }
 
+void TStore::SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16) {
+	throw FieldError(FieldId, "Int16");
+}
+
+void TStore::SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64) {
+	throw FieldError(FieldId, "Int64");
+}
+
 void TStore::SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV) {
 	throw FieldError(FieldId, "IntV");
+}
+
+void TStore::SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt16) {
+	throw FieldError(FieldId, "UInt");
+}
+
+void TStore::SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16) {
+	throw FieldError(FieldId, "UInt16");
 }
 
 void TStore::SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64) {
@@ -1265,9 +1290,21 @@ TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal) :
 		if (FieldVal->IsNull()) { SetFieldNull(FieldId); continue; }
 		// otherwise get its value
 		switch (FieldDesc.GetFieldType()) {
+		case oftByte:
+			QmAssertR(FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+			SetFieldByte(FieldId, (byte)FieldVal->GetInt());
+			break;
 		case oftInt:
 			QmAssertR(FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
 			SetFieldInt(FieldId, FieldVal->GetInt());
+			break;
+		case oftInt16:
+			QmAssertR(FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+			SetFieldInt16(FieldId, (int16)FieldVal->GetInt());
+			break;
+		case oftInt64:
+			QmAssertR(FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+			SetFieldInt64(FieldId, (int64)FieldVal->GetNum());
 			break;
 		case oftIntV: {
 			QmAssertR(FieldVal->IsArr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array.");
@@ -1275,6 +1312,14 @@ TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal) :
 			SetFieldIntV(FieldId, IntV);
 			break;
 		}
+		case oftUInt:
+			QmAssertR(FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+			SetFieldUInt(FieldId, (uint)FieldVal->GetUInt64());
+			break;
+		case oftUInt16:
+			QmAssertR(FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+			SetFieldUInt16(FieldId, (uint16)FieldVal->GetUInt64());
+			break;
 		case oftUInt64:
 			QmAssertR(FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
 			SetFieldUInt64(FieldId, FieldVal->GetUInt64());
@@ -1577,6 +1622,15 @@ void TRec::SetFieldNull(const int& FieldId) {
 	}
 }
 
+void TRec::SetFieldByte(const int& FieldId, const byte& Byte) {
+	if (IsByRef()) {
+		Store->SetFieldByte(RecId, FieldId, Byte);
+	} else {
+		FieldIdPosH.AddDat(FieldId, RecVal.Len());
+		TUCh(Byte).Save(RecValOut);
+	}
+}
+
 void TRec::SetFieldInt(const int& FieldId, const int& Int) {
 	if (IsByRef()) {
 		Store->SetFieldInt(RecId, FieldId, Int);
@@ -1586,12 +1640,48 @@ void TRec::SetFieldInt(const int& FieldId, const int& Int) {
 	}
 }
 
+void TRec::SetFieldInt16(const int& FieldId, const int16& Int16) {
+	if (IsByRef()) {
+		Store->SetFieldInt16(RecId, FieldId, Int16);
+	} else {
+		FieldIdPosH.AddDat(FieldId, RecVal.Len());
+		TInt16(Int16).Save(RecValOut);
+	}
+}
+
+void TRec::SetFieldInt64(const int& FieldId, const int64& Int64) {
+	if (IsByRef()) {
+		Store->SetFieldInt64(RecId, FieldId, Int64);
+	} else {
+		FieldIdPosH.AddDat(FieldId, RecVal.Len());
+		TInt64(Int64).Save(RecValOut);
+	}
+}
+
 void TRec::SetFieldIntV(const int& FieldId, const TIntV& IntV) {
 	if (IsByRef()) {
 		Store->SetFieldIntV(RecId, FieldId, IntV);
 	} else {
 		FieldIdPosH.AddDat(FieldId, RecVal.Len());
 		IntV.Save(RecValOut);
+	}
+}
+
+void TRec::SetFieldUInt(const int& FieldId, const uint& UInt) {
+	if (IsByRef()) {
+		Store->SetFieldUInt(RecId, FieldId, UInt);
+	} else {
+		FieldIdPosH.AddDat(FieldId, RecVal.Len());
+		TUInt(UInt).Save(RecValOut);
+	}
+}
+
+void TRec::SetFieldUInt16(const int& FieldId, const uint16& UInt16) {
+	if (IsByRef()) {
+		Store->SetFieldUInt16(RecId, FieldId, UInt16);
+	} else {
+		FieldIdPosH.AddDat(FieldId, RecVal.Len());
+		TUInt16(UInt16).Save(RecValOut);
 	}
 }
 
@@ -3969,9 +4059,14 @@ TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access,
     TStr BTreeFNm = IndexFPath + "Index.BTree";
    	if (TFile::Exists(BTreeFNm) && Access != faCreate) {
         TFIn BTreeFIn(BTreeFNm);
+		BTreeIndexByteH.Load(BTreeFIn);
         BTreeIndexIntH.Load(BTreeFIn);
-        BTreeIndexUInt64H.Load(BTreeFIn);
-        BTreeIndexFltH.Load(BTreeFIn);
+		BTreeIndexInt16H.Load(BTreeFIn);
+		BTreeIndexInt64H.Load(BTreeFIn);
+        BTreeIndexUIntH.Load(BTreeFIn);
+		BTreeIndexUInt16H.Load(BTreeFIn);
+		BTreeIndexUInt64H.Load(BTreeFIn);
+		BTreeIndexFltH.Load(BTreeFIn);
     }
 	// initialize vocabularies
 	IndexVoc = _IndexVoc;
@@ -3991,9 +4086,14 @@ TIndex::~TIndex() {
 		{
             TEnv::Logger->OnStatus("Saving and closing btree index");
             TFOut BTreeFOut(IndexFPath + "Index.BTree");
-            BTreeIndexIntH.Save(BTreeFOut);
-            BTreeIndexUInt64H.Save(BTreeFOut);
-            BTreeIndexFltH.Save(BTreeFOut);
+			BTreeIndexByteH.Save(BTreeFOut);
+			BTreeIndexIntH.Save(BTreeFOut);
+			BTreeIndexInt16H.Save(BTreeFOut);
+			BTreeIndexInt64H.Save(BTreeFOut);
+            BTreeIndexUIntH.Save(BTreeFOut);
+			BTreeIndexUInt16H.Save(BTreeFOut);
+			BTreeIndexUInt64H.Save(BTreeFOut);
+			BTreeIndexFltH.Save(BTreeFOut);
         }
 		TEnv::Logger->OnStatus("Index closed");
 	} else {
@@ -4295,6 +4395,14 @@ void TIndex::IndexLinear(const uint& StoreId, const TStr& KeyNm, const double& V
 	IndexLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
 }
 
+void TIndex::IndexLinear(const int& KeyId, const byte& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// if new key, create sphere first
+	if (!BTreeIndexByteH.IsKey(KeyId)) { BTreeIndexByteH.AddDat(KeyId, PBTreeIndexUCh::New()); }
+	// index new location
+	BTreeIndexByteH.GetDat(KeyId)->AddKey(Val, RecId);
+}
 void TIndex::IndexLinear(const int& KeyId, const int& Val, const uint64& RecId) {
 	// we shouldn't modify read-only index
 	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
@@ -4303,8 +4411,40 @@ void TIndex::IndexLinear(const int& KeyId, const int& Val, const uint64& RecId) 
 	// index new location
 	BTreeIndexIntH.GetDat(KeyId)->AddKey(Val, RecId);
 }
+void TIndex::IndexLinear(const int& KeyId, const int16& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// if new key, create sphere first
+	if (!BTreeIndexInt16H.IsKey(KeyId)) { BTreeIndexInt16H.AddDat(KeyId, PBTreeIndexInt16::New()); }
+	// index new location
+	BTreeIndexInt16H.GetDat(KeyId)->AddKey(Val, RecId);
+}
+void TIndex::IndexLinear(const int& KeyId, const int64& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// if new key, create sphere first
+	if (!BTreeIndexInt64H.IsKey(KeyId)) { BTreeIndexInt64H.AddDat(KeyId, PBTreeIndexInt64::New()); }
+	// index new location
+	BTreeIndexInt64H.GetDat(KeyId)->AddKey(Val, RecId);
+}
 
 
+void TIndex::IndexLinear(const int& KeyId, const uint& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// if new key, create sphere first
+	if (!BTreeIndexUIntH.IsKey(KeyId)) { BTreeIndexUIntH.AddDat(KeyId, PBTreeIndexUInt::New()); }
+	// index new location
+	BTreeIndexUIntH.GetDat(KeyId)->AddKey(Val, RecId);
+}
+void TIndex::IndexLinear(const int& KeyId, const uint16& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// if new key, create sphere first
+	if (!BTreeIndexUInt16H.IsKey(KeyId)) { BTreeIndexUInt16H.AddDat(KeyId, PBTreeIndexUInt16::New()); }
+	// index new location
+	BTreeIndexUInt16H.GetDat(KeyId)->AddKey(Val, RecId);
+}
 void TIndex::IndexLinear(const int& KeyId, const uint64& Val, const uint64& RecId) {
 	// we shouldn't modify read-only index
 	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
@@ -4324,10 +4464,25 @@ void TIndex::IndexLinear(const int& KeyId, const double& Val, const uint64& RecI
 	BTreeIndexFltH.GetDat(KeyId)->AddKey(Val, RecId);
 }
 
+void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const byte& Val, const uint64& RecId) {
+	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
+}
 void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId) {
 	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
 }
+void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int16& Val, const uint64& RecId) {
+	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
+}
+void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int64& Val, const uint64& RecId) {
+	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
+}
 
+void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint& Val, const uint64& RecId) {
+	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
+}
+void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint16& Val, const uint64& RecId) {
+	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
+}
 void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId) {
 	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
 }
@@ -4336,13 +4491,43 @@ void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const double& 
 	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
 }
 
+void TIndex::DeleteLinear(const int& KeyId, const byte& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// delete only if index exist 
+	if (BTreeIndexByteH.IsKey(KeyId)) { BTreeIndexByteH.GetDat(KeyId)->DelKey(Val, RecId); }
+}
 void TIndex::DeleteLinear(const int& KeyId, const int& Val, const uint64& RecId) {
 	// we shouldn't modify read-only index
 	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
 	// delete only if index exist 
 	if (BTreeIndexIntH.IsKey(KeyId)) { BTreeIndexIntH.GetDat(KeyId)->DelKey(Val, RecId); }
 }
+void TIndex::DeleteLinear(const int& KeyId, const int16& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// delete only if index exist 
+	if (BTreeIndexInt16H.IsKey(KeyId)) { BTreeIndexInt16H.GetDat(KeyId)->DelKey(Val, RecId); }
+}
+void TIndex::DeleteLinear(const int& KeyId, const int64& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// delete only if index exist 
+	if (BTreeIndexInt64H.IsKey(KeyId)) { BTreeIndexInt64H.GetDat(KeyId)->DelKey(Val, RecId); }
+}
 
+void TIndex::DeleteLinear(const int& KeyId, const uint& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// delete only if index exist 
+	if (BTreeIndexUIntH.IsKey(KeyId)) { BTreeIndexUIntH.GetDat(KeyId)->DelKey(Val, RecId); }
+}
+void TIndex::DeleteLinear(const int& KeyId, const uint16& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// delete only if index exist 
+	if (BTreeIndexUInt16H.IsKey(KeyId)) { BTreeIndexUInt16H.GetDat(KeyId)->DelKey(Val, RecId); }
+}
 void TIndex::DeleteLinear(const int& KeyId, const uint64& Val, const uint64& RecId) {
 	// we shouldn't modify read-only index
 	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");

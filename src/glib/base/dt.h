@@ -1312,6 +1312,7 @@ public:
   TSInt& operator++() { ++Val; return *this; } // prefix
   TSInt& operator--() { --Val; return *this; } // prefix
 };
+typedef TSInt TInt16;
 
 /////////////////////////////////////////////////
 // Unsigned Short-Integer
@@ -1340,6 +1341,7 @@ public:
 	TUSInt& operator++() { ++Val; return *this; } // prefix
 	TUSInt& operator--() { --Val; return *this; } // prefix
 };
+typedef TUSInt TUInt16;
 
 /////////////////////////////////////////////////
 // Integer
@@ -1456,7 +1458,6 @@ public:
 /////////////////////////////////////////////////
 // Unsigned-Integer
 typedef TNum<uint> TUInt;
-typedef TNum<uint16> TUInt16;
 template<>
 class TNum<uint>{
 public:
@@ -1534,6 +1535,16 @@ int GetMemUsed() const {return sizeof(TNum);}
   static uint GetUIntFromIpStr(const TStr& IpStr, const char& SplitCh = '.');
   static TStr GetStrFromIpUInt(const uint& Ip);
   static bool IsIpv6Str(const TStr& IpStr, const char& SplitCh = ':');
+
+  static uint GetFromBufSafe(const char * Bf) {
+#ifdef ARM
+	  uint Val;
+	  memcpy(&Val, Bf, sizeof(uint)); //we cannot use a cast on ARM (needs 8byte memory aligned doubles)
+	  return Val;
+#else
+	  return *((uint*)Bf);
+#endif
+  }
 };
 
 /////////////////////////////////////////////////
@@ -1599,6 +1610,16 @@ int GetMemUsed() const { return sizeof(TNum); }
 	else if (Val>1000000000){
 	return GetStr(Val/1000000000)+"."+GetStr((Val%1000000000)/100000000)+"G";}
 	else {return GetMegaStr(Val);}}*/
+	
+	static int64 GetFromBufSafe(const char * Bf) {
+#ifdef ARM
+		int64 Val;
+		memcpy(&Val, Bf, sizeof(int64)); //we cannot use a cast on ARM (needs 8byte memory aligned doubles)
+		return Val;
+#else
+		return *((int64*)Bf);
+#endif
+	}
 };
 
 

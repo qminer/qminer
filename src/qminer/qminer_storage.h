@@ -420,7 +420,17 @@ private:
 	void SetFieldNull(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const bool& NullP) const;
 	
 	/// Fixed-length field setter
+	void SetFieldByte(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const byte& Byte);
+	/// Fixed-length field setter
 	void SetFieldInt(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int& Int);
+	/// Fixed-length field setter
+	void SetFieldInt16(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int16& Int16);
+	/// Fixed-length field setter
+	void SetFieldInt64(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int64& Int64);
+	/// Fixed-length field setter
+	void SetFieldUInt(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint& UInt);
+	/// Fixed-length field setter
+	void SetFieldUInt16(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint16& UInt16);
 	/// Fixed-length field setter
 	void SetFieldUInt64(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64);
 	/// Fixed-length field setter
@@ -440,7 +450,17 @@ private:
 		const TFieldDesc& FieldDesc, const PJsonVal& JsonVal);
 
 	/// Fixed-length field setter
+	void SetFieldByte(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const byte& Byte);
+	/// Fixed-length field setter
 	void SetFieldInt(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const int& Int);
+	/// Fixed-length field setter
+	void SetFieldInt16(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const int16& Int16);
+	/// Fixed-length field setter
+	void SetFieldInt64(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const int64& Int64);
+	/// Fixed-length field setter
+	void SetFieldUInt(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const uint& UInt);
+	/// Fixed-length field setter
+	void SetFieldUInt16(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const uint16& UInt16);
 	/// Fixed-length field setter
 	void SetFieldUInt64(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64);
 	/// Fixed-length field setter
@@ -518,9 +538,19 @@ public:
 	/// Field getter
 	bool IsFieldNull(TThinMIn& min, const int& FieldId) const;
 	/// Field getter
+	byte GetFieldByte(TThinMIn& min, const int& FieldId) const;
+	/// Field getter
 	int GetFieldInt(TThinMIn& min, const int& FieldId) const;
 	/// Field getter
+	int16 GetFieldInt16(TThinMIn& min, const int& FieldId) const;
+	/// Field getter
+	int64 GetFieldInt64(TThinMIn& min, const int& FieldId) const;
+	/// Field getter
 	void GetFieldIntV(TThinMIn& min, const int& FieldId, TIntV& IntV) const;
+	/// Field getter
+	uint GetFieldUInt(TThinMIn& min, const int& FieldId) const;
+	/// Field getter
+	uint16 GetFieldUInt16(TThinMIn& min, const int& FieldId) const;
 	/// Field getter
 	uint64 GetFieldUInt64(TThinMIn& min, const int& FieldId) const;
 	/// Field getter
@@ -547,9 +577,19 @@ public:
 	/// Field getter
 	bool IsFieldNull(const TMemBase& RecMem, const int& FieldId) const;
 	/// Field getter
+	byte GetFieldByte(const TMemBase& RecMem, const int& FieldId) const;
+	/// Field getter
 	int GetFieldInt(const TMemBase& RecMem, const int& FieldId) const;
 	/// Field getter
+	int16 GetFieldInt16(const TMemBase& RecMem, const int& FieldId) const;
+	/// Field getter
+	int64 GetFieldInt64(const TMemBase& RecMem, const int& FieldId) const;
+	/// Field getter
 	void GetFieldIntV(const TMemBase& RecMem, const int& FieldId, TIntV& IntV) const;
+	/// Field getter
+	uint GetFieldUInt(const TMemBase& RecMem, const int& FieldId) const;
+	/// Field getter
+	uint16 GetFieldUInt16(const TMemBase& RecMem, const int& FieldId) const;
 	/// Field getter
 	uint64 GetFieldUInt64(const TMemBase& RecMem, const int& FieldId) const;
 	/// Field getter
@@ -576,7 +616,17 @@ public:
 	/// Field setter
 	void SetFieldNull(char* Bf, const int& BfL, const int& FieldId, const bool& NullP);
 	/// Fixed-length field setter
+	void SetFieldByte(char* Bf, const int& BfL, const int& FieldId, const byte& Byte);
+	/// Fixed-length field setter
 	void SetFieldInt(char* Bf, const int& BfL, const int& FieldId, const int& Int);
+	/// Fixed-length field setter
+	void SetFieldInt16(char* Bf, const int& BfL, const int& FieldId, const int16& Int16);
+	/// Fixed-length field setter
+	void SetFieldInt64(char* Bf, const int& BfL, const int& FieldId, const int64& Int64);
+	/// Fixed-length field setter
+	void SetFieldUInt(char* Bf, const int& BfL, const int& FieldId, const uint& UInt);
+	/// Fixed-length field setter
+	void SetFieldUInt16(char* Bf, const int& BfL, const int& FieldId, const uint16& UInt16);
 	/// Fixed-length field setter
 	void SetFieldUInt64(char* Bf, const int& BfL, const int& FieldId, const uint64& UInt64);
 	/// Fixed-length field setter
@@ -595,9 +645,19 @@ public:
 	/// Field setter
 	void SetFieldNull(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId);
 	/// Field setter
+	void SetFieldByte(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const byte& Byte);
+	/// Field setter
 	void SetFieldInt(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const int& Int);
 	/// Field setter
+	void SetFieldInt16(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const int16& Int¸6);
+	/// Field setter
+	void SetFieldInt64(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const int64& Int64);
+	/// Field setter
 	void SetFieldIntV(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const TIntV& IntV);
+	/// Field setter
+	void SetFieldUInt(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const uint& UInt);
+	/// Field setter
+	void SetFieldUInt16(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const uint16& UInt16);
 	/// Field setter
 	void SetFieldUInt64(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const uint64& UInt64);
 	/// Field setter
@@ -862,9 +922,19 @@ public:
 	/// Check if the value of given field for a given record is NULL
 	bool IsFieldNull(const uint64& RecId, const int& FieldId) const;
 	/// Get field value using field id (default implementation throws exception)
+	byte GetFieldByte(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
 	int GetFieldInt(const uint64& RecId, const int& FieldId) const;
 	/// Get field value using field id (default implementation throws exception)
+	int16 GetFieldInt16(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	int64 GetFieldInt64(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
 	void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const;
+	/// Get field value using field id (default implementation throws exception)
+	uint GetFieldUInt(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	uint16 GetFieldUInt16(const uint64& RecId, const int& FieldId) const;
 	/// Get field value using field id (default implementation throws exception)
 	uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const;
 	/// Get field value using field id (default implementation throws exception)
@@ -891,9 +961,19 @@ public:
 	/// Set the value of given field to NULL
 	void SetFieldNull(const uint64& RecId, const int& FieldId);
 	/// Set field value using field id (default implementation throws exception)
+	void SetFieldByte(const uint64& RecId, const int& FieldId, const byte& Byte);
+	/// Set field value using field id (default implementation throws exception)
 	void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int);
 	/// Set field value using field id (default implementation throws exception)
+	void SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16);
+	/// Set field value using field id (default implementation throws exception)
+	void SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64);
+	/// Set field value using field id (default implementation throws exception)
 	void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV);
+	/// Set field value using field id (default implementation throws exception)
+	void SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt);
+	/// Set field value using field id (default implementation throws exception)
+	void SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16);
 	/// Set field value using field id (default implementation throws exception)
 	void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64);
 	/// Set field value using field id (default implementation throws exception)
@@ -1063,13 +1143,23 @@ public:
 
     /// Check if the value of given field for a given record is NULL
     bool IsFieldNull(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id (default implementation throws exception)
-    int GetFieldInt(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	byte GetFieldByte(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	int GetFieldInt(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	int16 GetFieldInt16(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+    int64 GetFieldInt64(const uint64& RecId, const int& FieldId) const;
     /// Get field value using field id (default implementation throws exception)
     void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const;
     /// Get field value using field id (default implementation throws exception)
-    uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id (default implementation throws exception)
+    uint GetFieldUInt(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	uint16 GetFieldUInt16(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
     TStr GetFieldStr(const uint64& RecId, const int& FieldId) const;
     /// Get field value using field id (default implementation throws exception)
     void GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const;
@@ -1092,11 +1182,21 @@ public:
 
     /// Set the value of given field to NULL
     void SetFieldNull(const uint64& RecId, const int& FieldId);
-    /// Set field value using field id (default implementation throws exception)
-    void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int);
+	/// Set field value using field id (default implementation throws exception)
+	void SetFieldByte(const uint64& RecId, const int& FieldId, const byte& Byte);
+	/// Set field value using field id (default implementation throws exception)
+	void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int);
+	/// Set field value using field id (default implementation throws exception)
+	void SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16);
+	/// Set field value using field id (default implementation throws exception)
+    void SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64);
     /// Set field value using field id (default implementation throws exception)
     void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV);
-    /// Set field value using field id (default implementation throws exception)
+	/// Set field value using field id (default implementation throws exception)
+	void SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt);
+	/// Set field value using field id (default implementation throws exception)
+	void SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16);
+	/// Set field value using field id (default implementation throws exception)
     void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64);
     /// Set field value using field id (default implementation throws exception)
     void SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str);

@@ -223,8 +223,13 @@ typedef TVec<TJoinSeq> TJoinSeqV;
 /// Field Type
 typedef enum { 
 	oftUndef    = -1,///< Undefined
-	oftInt		= 0, ///< Integer
+	oftByte     = 17,///< Unsigned 8-bit integer
+	oftInt		= 0, ///< 32-bit integer
+	oftInt16    = 15,///< 16-bit integer
+	oftInt64    = 16,///< 64-bit integer
 	oftIntV		= 9, ///< Vector of integers
+	oftUInt     = 13,///< Unsigned 32bit integer
+	oftUInt16   = 14,///< Unsigned 16bit integer
 	oftUInt64	= 8, ///< Unsigned 64bit integer
 	oftStr		= 1, ///< String
 	oftStrV		= 2, ///< Vector of strings
@@ -280,8 +285,13 @@ public:
 	// field data-type
 	TFieldType GetFieldType() const { return FieldType; }
 	TStr GetFieldTypeStr() const;
+	bool IsByte() const { return FieldType == oftByte; }
 	bool IsInt() const { return FieldType == oftInt; }
+	bool IsInt16() const { return FieldType == oftInt16; }
+	bool IsInt64() const { return FieldType == oftInt64; }
 	bool IsIntV() const { return FieldType == oftIntV; }
+	bool IsUInt() const { return FieldType == oftUInt; }
+	bool IsUInt16() const { return FieldType == oftUInt16; }
 	bool IsUInt64() const { return FieldType == oftUInt64; }
 	bool IsStr() const { return FieldType == oftStr; }
 	bool IsStrV() const { return FieldType == oftStrV; }
@@ -671,9 +681,19 @@ public:
 	/// Set the value of given field to NULL
 	virtual void SetFieldNull(const uint64& RecId, const int& FieldId);
 	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldByte(const uint64& RecId, const int& FieldId, const byte& Byte);
+	/// Set field value using field id (default implementation throws exception)
 	virtual void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int);
 	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64);
+	/// Set field value using field id (default implementation throws exception)
 	virtual void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16);
 	/// Set field value using field id (default implementation throws exception)
 	virtual void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64);
 	/// Set field value using field id (default implementation throws exception)
@@ -836,9 +856,19 @@ public:
 	/// Checks if field value is null
 	bool IsFieldNull(const int& FieldId) const;
 	/// Field value retrieval
+	byte GetFieldByte(const int& FieldId) const;
+	/// Field value retrieval
 	int GetFieldInt(const int& FieldId) const;
 	/// Field value retrieval
+	int16 GetFieldInt16(const int& FieldId) const;
+	/// Field value retrieval
+	int64 GetFieldInt64(const int& FieldId) const;
+	/// Field value retrieval
 	void GetFieldIntV(const int& FieldId, TIntV& IntV) const;
+	/// Field value retrieval
+	uint GetFieldUInt(const int& FieldId) const;
+	/// Field value retrieval
+	uint16 GetFieldUInt16(const int& FieldId) const;
 	/// Field value retrieval
 	uint64 GetFieldUInt64(const int& FieldId) const;
 	/// Field value retrieval
@@ -870,9 +900,19 @@ public:
 	/// Set field value to NULL
 	void SetFieldNull(const int& FieldId);
 	/// Set field value
+	void SetFieldByte(const int& FieldId, const byte& Int);
+	/// Set field value
 	void SetFieldInt(const int& FieldId, const int& Int);
 	/// Set field value
+	void SetFieldInt16(const int& FieldId, const int16& Int);
+	/// Set field value
+	void SetFieldInt64(const int& FieldId, const int64& Int);
+	/// Set field value
 	void SetFieldIntV(const int& FieldId, const TIntV& IntV);
+	/// Set field value
+	void SetFieldUInt(const int& FieldId, const uint& UInt);
+	/// Set field value
+	void SetFieldUInt16(const int& FieldId, const uint16& UInt16);
 	/// Set field value
 	void SetFieldUInt64(const int& FieldId, const uint64& UInt64);
 	/// Set field value
@@ -1515,7 +1555,7 @@ typedef enum {
 	oiktValue    = (1 << 0), ///< Index by exact value, using inverted index
 	oiktText     = (1 << 1), ///< Index as free text, using inverted index 
 	oiktLocation = (1 << 2), ///< Index as location. using geoindex 
-	oiktLinear   = (1 << 5), ///< Index as linarly ordered value using b-tree
+	oiktLinear   = (1 << 5), ///< Index as linearly ordered value using b-tree
 	oiktInternal = (1 << 3), ///< Index used internaly for joins, using inverted index
 	oiktSmall    = (1 << 4)  ///< Index uses small inverted index storage type
 } TIndexKeyType;
@@ -1529,7 +1569,12 @@ typedef enum {
 	oikstById     = 2, ///< Sort by index word id
 	oikstByFlt    = 3, ///< Sort as float
     // for Linear BTree sorting
-	oikstAsInt    = 4, ///< Sort as integer
+	oikstAsByte   = 8, ///< Sort as byte
+	oikstAsInt    = 4, ///< Sort as int
+	oikstAsInt16  = 9, ///< Sort as int16
+	oikstAsInt64  =10, ///< Sort as int64
+	oikstAsUInt   =11, ///< Sort as uint
+	oikstAsUInt16 =12, ///< Sort as uint16
 	oikstAsUInt64 = 5, ///< Sort as uint64
     oikstAsTm     = 6, ///< Sort as date-time
 	oikstAsFlt    = 7, ///< Sort as float
@@ -2407,8 +2452,13 @@ public:
 	typedef TPt<TQmGixExpItemSmall> PQmGixExpItemSmall;
 
     // b-tree definitions
-    typedef TPt<TBTreeIndex<TInt>> PBTreeIndexInt;
-    typedef TPt<TBTreeIndex<TUInt64>> PBTreeIndexUInt64;
+	typedef TPt<TBTreeIndex<TUCh>> PBTreeIndexUCh;
+	typedef TPt<TBTreeIndex<TInt>> PBTreeIndexInt;
+	typedef TPt<TBTreeIndex<TInt16>> PBTreeIndexInt16;
+	typedef TPt<TBTreeIndex<TInt64>> PBTreeIndexInt64;
+	typedef TPt<TBTreeIndex<TUInt>> PBTreeIndexUInt;
+	typedef TPt<TBTreeIndex<TUInt16>> PBTreeIndexUInt16;
+	typedef TPt<TBTreeIndex<TUInt64>> PBTreeIndexUInt64;
     typedef TPt<TBTreeIndex<TFlt>> PBTreeIndexFlt;
 
 private:    
@@ -2423,11 +2473,21 @@ private:
 
 	/// Location index (one for each key)
 	THash<TInt, PGeoIndex> GeoIndexH;
-    /// BTree index for integers (one for each key)
-    THash<TInt, PBTreeIndexInt> BTreeIndexIntH;
-    /// BTree index uint64 (one for each key)
-    THash<TInt, PBTreeIndexUInt64> BTreeIndexUInt64H;
-    /// BTree index for floats (one for each key)
+    /// BTree index for bytes (one for each key)
+    THash<TInt, PBTreeIndexUCh> BTreeIndexByteH;
+	/// BTree index for integers (one for each key)
+	THash<TInt, PBTreeIndexInt> BTreeIndexIntH;
+	/// BTree index for int16 (one for each key)
+	THash<TInt, PBTreeIndexInt16> BTreeIndexInt16H;
+	/// BTree index for inte64 (one for each key)
+	THash<TInt, PBTreeIndexInt64> BTreeIndexInt64H;
+	/// BTree index uint (one for each key)
+    THash<TInt, PBTreeIndexUInt> BTreeIndexUIntH;
+	/// BTree index uint16 (one for each key)
+	THash<TInt, PBTreeIndexUInt16> BTreeIndexUInt16H;
+	/// BTree index uint64 (one for each key)
+	THash<TInt, PBTreeIndexUInt64> BTreeIndexUInt64H;
+	/// BTree index for floats (one for each key)
     THash<TInt, PBTreeIndexFlt> BTreeIndexFltH;
 
 	/// Index Vocabulary
@@ -2560,24 +2620,54 @@ public:
     void IndexLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId);
     /// Add RecId to linear index under (Key, Val)
     void IndexLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId);
-    /// Add RecId to linear index under (Key, Val)
-    void IndexLinear(const int& KeyId, const int& Val, const uint64& RecId);
-    /// Add RecId to linear index under (Key, Val)
+	/// Add RecId to linear index under (Key, Val)
+	void IndexLinear(const int& KeyId, const byte& Val, const uint64& RecId);
+	/// Add RecId to linear index under (Key, Val)
+	void IndexLinear(const int& KeyId, const int& Val, const uint64& RecId);
+	/// Add RecId to linear index under (Key, Val)
+	void IndexLinear(const int& KeyId, const int16& Val, const uint64& RecId);
+	/// Add RecId to linear index under (Key, Val)
+    void IndexLinear(const int& KeyId, const int64& Val, const uint64& RecId);
+	/// Add RecId to linear index under (Key, Val)
+	void IndexLinear(const int& KeyId, const uint& Val, const uint64& RecId);
+	/// Add RecId to linear index under (Key, Val)
+	void IndexLinear(const int& KeyId, const uint16& Val, const uint64& RecId);
+	/// Add RecId to linear index under (Key, Val)
     void IndexLinear(const int& KeyId, const uint64& Val, const uint64& RecId);
     /// Add RecId to linear index under (Key, Val)
     void IndexLinear(const int& KeyId, const double& Val, const uint64& RecId);
 
     /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId);
-    /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId);
-    /// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const byte& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int16& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int64& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint16& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
     void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const int& KeyId, const byte& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const int& KeyId, const int& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const int& KeyId, const int16& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const int& KeyId, const int64& Val, const uint64& RecId);
     /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const int& KeyId, const int& Val, const uint64& RecId);
-    /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const int& KeyId, const uint64& Val, const uint64& RecId);
-    /// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const int& KeyId, const uint& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const int& KeyId, const uint16& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const int& KeyId, const uint64& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
     void DeleteLinear(const int& KeyId, const double& Val, const uint64& RecId);
 
 	/// Check if index opened in read-only mode
@@ -2595,11 +2685,21 @@ public:
 	/// Do geo-location nearest-neighbor search
 	PRecSet SearchGeoNn(const TWPt<TBase>& Base, const int& KeyId,
 		const TFltPr& Loc, const int& Limit) const;
+	/// Do B-Tree linear search
+	PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUChPr& RangeMinMax);
+	/// Do B-Tree linear search
+	PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TIntPr& RangeMinMax);
+	/// Do B-Tree linear search
+	PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TInt16Pr& RangeMinMax);
+	/// Do B-Tree linear search
+    PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TInt64Pr& RangeMinMax);
     /// Do B-Tree linear search
-    PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TIntPr& RangeMinMax);
-    /// Do B-Tree linear search
-    PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUInt64Pr& RangeMinMax);
-    /// Do B-Tree linear search
+    PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUIntUIntPr& RangeMinMax);
+	/// Do B-Tree linear search
+	PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUInt16Pr& RangeMinMax);
+	/// Do B-Tree linear search
+	PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUInt64Pr& RangeMinMax);
+	/// Do B-Tree linear search
     PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TFltPr& RangeMinMax);
     /// Get records ids and counts that are joined with given RecId (via given join key)
 	void GetJoinRecIdFqV(const int& JoinKeyId, const uint64& RecId, TUInt64IntKdV& JoinRecIdFqV) const;
