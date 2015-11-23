@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-console.log(__filename)
+// console.log(__filename)
 //
 // Sample unit test using standard assert JS library
 //

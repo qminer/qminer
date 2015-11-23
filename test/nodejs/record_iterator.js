@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-console.log(__filename)
+// console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js');     //adds assert.run function
 var qm = require('qminer');
 qm.delLock();

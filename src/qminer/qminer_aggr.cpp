@@ -547,44 +547,37 @@ PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 ///////////////////////////////
 // Time series winbuf.
 void TWinBuf::OnAddRec(const TRec& Rec) {
-    // get the value and time stamp of the last record
-	InVal = Rec.GetFieldFlt(TickValFieldId);
-	InTmMSecs = Rec.GetFieldTmMSecs(TimeFieldId);
-    InitP = true;
-    // empty the former outgoing value vector
-    OutValV.Clr(true); OutTmMSecsV.Clr(true);
-    int ValLen = AllValV.Len();
-    // update the interval    
-    AllValV.Add(TFltUInt64Pr(InVal, InTmMSecs));
-    
-    // prepare the vector of elements that are going to be removed from the window
-    for (int ValN = 0; ValN < ValLen; ValN++) {
-        if ((InTmMSecs - AllValV[ValN].Val2) > WinSizeMSecs) { 
-            OutValV.Add(AllValV[ValN].Val1);
-            OutTmMSecsV.Add(AllValV[ValN].Val2);
-        } else { break; }
-    }
-    
-    // remove all the elements   
-    if (OutValV.Len() > 0) { AllValV.Del(0, OutValV.Len() - 1); }  
+	InitP = true;
+
+	uint64 NewRecId = Rec.GetRecId();
+	uint64 NewRecTm = Rec.GetFieldTmMSecs(TimeFieldId);
+
+	A = B;
+	// B = first record ID in the buffer, or first record ID after the buffer (indicates an empty buffer)
+	while (BeforeBuffer(B, NewRecTm)) {
+		B++;
+	}
+	
+	C = D;
+	// D = the first record ID after the buffer
+	while (!AfterBuffer(D, NewRecTm)) {
+		D++;
+	}	
+
+	//Print(true);
 }
 
 TWinBuf::TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
-        TStreamAggr(Base, ParamVal) {
-        
-    // parse out input and output fields
+TStreamAggr(Base, ParamVal) {
+	// parse out input and output fields
     TStr StoreNm = ParamVal->GetObjStr("store");
-	TWPt<TStore> Store = Base->GetStoreByStoreNm(StoreNm);
-    TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
+	Store = Base->GetStoreByStoreNm(StoreNm);    
+	TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
 	TimeFieldId = Store->GetFieldId(TimeFieldNm);
-    TStr TickValFieldNm = ParamVal->GetObjStr("value");
-	TickValFieldId = Store->GetFieldId(TickValFieldNm);
-	// replacing GetObjInt("winsize"); which supports only int (which is not enough)
-	double TmD = ParamVal->GetObjNum("winsize");
-	WinSizeMSecs = (uint64)TmD;
-	// temporary warning
-	if (WinSizeMSecs < 60000) InfoLog("Warning: winsize of TWinBuf possibly not in msecs (< 60000)");
-    OutValV = TFltV(); OutTmMSecsV = TUInt64V(); AllValV = TFltUInt64PrV();
+    TStr ValFieldNm = ParamVal->GetObjStr("value");
+	ValFieldId = Store->GetFieldId(ValFieldNm);
+	WinSizeMSecs = ParamVal->GetObjUInt64("winsize");;
+	DelayMSecs = ParamVal->GetObjUInt64("delay", 0);
 }
 
 PStreamAggr TWinBuf::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
@@ -593,43 +586,152 @@ PStreamAggr TWinBuf::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 
 void TWinBuf::LoadState(TSIn& SIn) {
 	InitP.Load(SIn);
-	InVal.Load(SIn);
-	InTmMSecs.Load(SIn);
-	OutValV.Load(SIn);
-	OutTmMSecsV.Load(SIn);
-	AllValV.Load(SIn);
+	A.Load(SIn);
+	B.Load(SIn);
+	C.Load(SIn);
+	D.Load(SIn);
+	TestValid(); // checks if the buffer exists in store
 }
 
 void TWinBuf::SaveState(TSOut& SOut) const {
 	InitP.Save(SOut);
-	InVal.Save(SOut);
-	InTmMSecs.Save(SOut);
-	OutValV.Save(SOut);
-	OutTmMSecsV.Save(SOut);
-	AllValV.Save(SOut);
+	A.Save(SOut);
+	B.Save(SOut);
+	C.Save(SOut);
+	D.Save(SOut);
+}
+
+void TWinBuf::Reset() {
+	InitP = false;
+	A = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
+	B = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
+	C = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
+	D = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
+}
+
+void TWinBuf::GetInFltV(TFltV& ValV) const {
+	EAssertR(IsInit(), "WinBuf not initialized yet!");
+	int Skip = B > C ? int(B - C) : 0;
+	int UpdateRecords = int(D - C) - Skip;
+	if (ValV.Len() != UpdateRecords) { ValV.Gen(UpdateRecords); }
+	// iterate
+	for (int RecN = 0; RecN < UpdateRecords; RecN++) {
+		ValV[RecN] = Value(C + Skip + RecN);
+	}
+}
+
+void TWinBuf::GetInTmMSecsV(TUInt64V& MSecsV) const {
+	EAssertR(IsInit(), "WinBuf not initialized yet!");
+	int Skip = B > C ? int(B - C) : 0;
+	int UpdateRecords = int(D - C) - Skip;
+	if (MSecsV.Len() != UpdateRecords) { MSecsV.Gen(UpdateRecords); }
+	// iterate
+	for (int RecN = 0; RecN < UpdateRecords; RecN++) {
+		MSecsV[RecN] = Time(C + Skip + RecN);
+	}
+}
+
+void TWinBuf::GetOutFltV(TFltV& ValV) const {
+	EAssertR(IsInit(), "WinBuf not initialized yet!");
+	int Skip = B > C ? int(B - C) : 0;
+	int DropRecords = int(B - A) - Skip;
+	if (ValV.Len() != DropRecords) { ValV.Gen(DropRecords); }
+	// iterate
+	for (int RecN = 0; RecN < DropRecords; RecN++) {
+		ValV[RecN] = Value(A + RecN);
+	}
+}
+
+void TWinBuf::GetOutTmMSecsV(TUInt64V& MSecsV) const {
+	EAssertR(IsInit(), "WinBuf not initialized yet!");
+	int Skip = B > C ? int(B - C) : 0;
+	int DropRecords = int(B - A) - Skip;
+	if (MSecsV.Len() != DropRecords) { MSecsV.Gen(DropRecords); }
+	// iterate
+	for (int RecN = 0; RecN < DropRecords; RecN++) {
+		MSecsV[RecN] = Time(A + RecN);
+	}
 }
 
 void TWinBuf::GetFltV(TFltV& ValV) const {
+	EAssertR(IsInit(), "WinBuf not initialized yet!");
 	int Len = GetN();
-	ValV.Gen(Len);
-	for (int ElN = 0; ElN < Len; ElN++) {
-		ValV[ElN] = AllValV[ElN].Val1;
+	if (ValV.Empty()) { ValV.Gen(Len); }	
+	// iterate
+	for (int RecN = 0; RecN < Len; RecN++) {
+		ValV[RecN] = GetFlt(RecN);
 	}
 }
 
 void TWinBuf::GetTmV(TUInt64V& MSecsV) const {
+	EAssertR(IsInit(), "WinBuf not initialized yet!");
 	int Len = GetN();
 	MSecsV.Gen(Len);
-	for (int ElN = 0; ElN < Len; ElN++) {
-		MSecsV[ElN] = AllValV[ElN].Val2;
+	// iterate
+	for (int RecN = 0; RecN < Len; RecN++) {
+		MSecsV[RecN] = GetTm(RecN);
 	}
 }
 
 PJsonVal TWinBuf::SaveJson(const int& Limit) const {
+	// TODO change the returned object so that it reflects state
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("Val", InVal);
-	Val->AddToObj("Time", TTm::GetTmFromMSecs(InTmMSecs).GetWebLogDateTimeStr(true, "T"));
+	Val->AddToObj("Val", GetInFlt());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(GetInTmMSecs()).GetWebLogDateTimeStr(true, "T"));	
 	return Val;
+}
+
+bool TWinBuf::TestValid() const {
+	// non-initialized model is valid
+	if (!InitP()) { return true; }	
+	uint64 LastRecTmMSecs = Time(Store->GetLastRecId());
+	for (uint64 RecId = B; RecId < D; RecId++) {
+		if (!InBuffer(RecId, LastRecTmMSecs)) { return false; }
+	}
+	return true;
+}
+
+void TWinBuf::Print(const bool& PrintState) {
+	int Skip = B > C ? int(B - C) : 0;
+	printf("TWinBuf: initialized:%s, window:%d, delay: %d, skip:%d\n",
+		IsInit() ? "true" : "false", int(WinSizeMSecs), int(DelayMSecs), Skip);
+	printf("\033[34m A=%" PRIu64 ", B=%" PRIu64 ", C=%" PRIu64 ", D=%" PRIu64 "\033[0m\n", A.Val, B.Val, C.Val, D.Val);
+
+	//if (A == 0 || B == 0 || C == 0 || D == 0) return;
+	
+	printf("Forget interval: %" PRIu64 " - %" PRIu64 "\n", A.Val, B.Val - 1 - Skip);
+	printf("Buffer interval: %" PRIu64 " - %" PRIu64 "\n", B.Val, D.Val - 1);
+	printf("Update interval: %" PRIu64 " - %" PRIu64 "\n", C.Val + Skip, D.Val - 1);
+	if (PrintState && IsInit()) {
+		uint64 LastRecId = Store->GetLastRecId();
+		PrintInterval(LastRecId, LastRecId, "Last rec:");
+		printf("Constraint: [%s - %s]\n", 
+			TTm::GetTmFromMSecs(Time(LastRecId) - DelayMSecs - WinSizeMSecs).GetWebLogTimeStr().CStr(),
+			TTm::GetTmFromMSecs(Time(LastRecId) - DelayMSecs).GetWebLogTimeStr().CStr());
+		if (D > 0) {
+			PrintInterval(B, D - 1, "New buff:", "32");
+			PrintInterval(C + Skip, D - 1, "Just in: ");
+		} else {
+			printf("New buff: [ ]\n");
+			printf("Just in: [ ]\n");
+		}
+		if (B - Skip > 0) {
+			PrintInterval(A, B - 1 - Skip, "Just out:");
+		} else {
+			printf("Just out: [ ]\n");
+		}
+		PrintInterval(D, LastRecId, "Pending: ");
+		PrintInterval(Store->GetFirstRecId(), LastRecId, "All recs:");
+	}
+	printf("\n");
+}
+
+void TWinBuf::PrintInterval(const uint64& StartId, const uint64& EndId, const TStr& Label, const TStr& ModCode) const {
+	printf("%s [ \033[1;%sm", Label.CStr(), ModCode.CStr());
+	for (uint64 RecId = StartId; RecId <= EndId; RecId++) {
+		printf("(%g, %s), ", Value(RecId), TTm::GetTmFromMSecs(Time(RecId)).GetWebLogTimeStr().CStr());
+	}
+	printf("\033[0m]\n");
 }
 
 ///////////////////////////////

@@ -1,18 +1,18 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-console.log(__filename)
+// console.log(__filename)
 var qm = require('qminer');
 
 describe('Empty Store Tests', function () {
     var base1 = undefined;
     var base2 = undefined;
-    
+
     beforeEach(function () {
         base1 = new qm.Base({
             mode: 'createClean',
@@ -54,5 +54,5 @@ describe('Empty Store Tests', function () {
             assert(rec1.name == "Jan");
             assert(rec2.title == "Movie");
         });
-    });    
+    });
 });

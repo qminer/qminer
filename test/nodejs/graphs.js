@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
- 
-console.log(__filename)
+
+// console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js');
 var snap = require('../../').snap;
 
@@ -31,9 +31,8 @@ g.addEdge(4, 2);
 g.addEdge(5, 6);
 g.addEdge(5, 7);
 
-console.log('Edge iterator:')
 g.eachEdge(function(E){
-	console.log(E.srcId+'-'+E.dstId);
+	//console.log(E.srcId+'-'+E.dstId);
 });
 
 var m = g.adjMat();

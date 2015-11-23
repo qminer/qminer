@@ -460,7 +460,7 @@ public:
  * la = require('qminer').la;
  * analytics = require('qminer').analytics;
  * // create a new model with gamma = 1.0
- * var regmod = new analytics.RidgeReg(1.0);
+ * var regmod = new analytics.RidgeReg({ gamma: 1.0 });
  * // generate a random feature matrix
  * var A = la.randn(10,100);
  * // generate a random model
@@ -472,12 +472,12 @@ public:
  * // fit model
  * regmod.fit(A, b);
  * // compare
- * console.log('true model:');
+ * // true model
  * w.print();
- * console.log('trained model:');
+ * // trained model');
  * regmod.weights.print();
  * // cosine between the true and the estimated model should be close to 1 if the fit succeeded
- * console.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w));
+ * var cos = regmod.weights.cosine(w);
  */
 //# exports.RidgeReg = function(arg) {};
 class TNodeJsRidgeReg : public node::ObjectWrap {
@@ -1573,20 +1573,25 @@ private:
 
 	static TNodeJsStreamStory* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
-public:
-	/**
-	 * Fits the model onto the data. The data instances must be stored as column vectors in X, while their times
-	 * have to be stored in timeV. An optional parameter indicates wether the data provided is in
-	 * batches and indicates wether the instance at index i ends a batch.
-	 *
-	 * @param {Matrix} X - the column matrix containing the data instances
-	 * @param {Vector} timeV - a vector containing the sampling times of the instances
-	 * @param {BoolVector} [endsBatchV] - a vector of boolean indicating wether the current instance ends a batch
-	 * @returns {HMC} - returns itself
-	 */
-	JsDeclareFunction(fit);
+private:
+	class TFitTask: public TNodeTask {
+	private:
+		TNodeJsStreamStory* JsStreamStory;
+		TNodeJsFltVV* JsObservFtrs;
+		TNodeJsFltVV* JsControlFtrs;
+		TNodeJsFltV* JsRecTmV;
+		TNodeJsBoolV* JsBatchEndJsV;
 
-	JsDeclareFunction(fitAsync);
+	public:
+		TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		void Run();
+	};
+
+public:
+
+	JsDeclareSyncAsync(fit,fitAsync,TFitTask);
 
 	//!- `hmc.update(ftrVec, recTm)` TODO write documentation
 	JsDeclareFunction(update);
@@ -1705,6 +1710,8 @@ public:
 	 * @returns {Object}
 	 */
 	JsDeclareFunction(getClassifyTree);
+
+	JsDeclareFunction(explainState);
 
 	/**
 	 * Sets a callback function which is fired when the model changes states. An array of current states
@@ -1851,28 +1858,6 @@ public:
 			const double& Prob, const TFltV& ProbV, const TFltV& TmV);
 
 private:
-	class TFitAsync {
-	private:
-		TNodeJsStreamStory* JsStreamStory;
-		TNodeJsFltVV* JsObservFtrs;
-		TNodeJsFltVV* JsControlFtrs;
-		TNodeJsFltV* JsRecTmV;
-		TNodeJsBoolV* JsBatchEndJsV;
-
-		v8::Persistent<v8::Function> Callback;
-		v8::Persistent<v8::Object> SsHolder;
-		v8::Persistent<v8::Object> ArgHolder;
-
-		PExcept Except;
-
-	public:
-		TFitAsync(const v8::FunctionCallbackInfo<v8::Value>& Args);
-		~TFitAsync();
-
-		static void Run(TFitAsync& Data);
-		static void AfterRun(const TFitAsync& Data);
-	};
-
 	void SetParams(const PJsonVal& ParamVal);
 	void InitCallbacks();
 

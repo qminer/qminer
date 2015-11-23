@@ -74,7 +74,7 @@ console.log("Dimensionality of label space: " + genreLabelSpace.dims);
 // We will use one-vs-all model for gener classification
 var genreModel = new analytics.OneVsAll({
 	model: analytics.SVC,
-	modelParam: { c: 10 },
+	modelParam: { c: 10, algorithm: "LIBSVM" },
 	cats: genreLabelMatrix.rows,
 	verbose: true
 });
