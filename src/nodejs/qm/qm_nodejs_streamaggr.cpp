@@ -637,16 +637,6 @@ TNodeJsStreamAggr::TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm
 		QmAssert(_GetN->IsFunction());
 		GetNFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetN));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getOldestFlt"))) {
-		v8::Handle<v8::Value> _GetOldestFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOldestFlt"));
-		QmAssert(_GetOldestFlt->IsFunction());
-		GetOldestFltFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetOldestFlt));
-	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getOldestTm"))) {
-		v8::Handle<v8::Value> _GetOldestTm = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOldestTm"));
-		QmAssert(_GetOldestTm->IsFunction());
-		GetOldestTmMSecsFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetOldestTm));
-	}
 
 	// IFltVec
 	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFltLen"))) {
@@ -719,8 +709,6 @@ TNodeJsStreamAggr::~TNodeJsStreamAggr() {
 	GetOutFltVFun.Reset();
 	GetOutTmMSecsVFun.Reset();
 	GetNFun.Reset();
-	GetOldestFltFun.Reset();
-	GetOldestTmMSecsFun.Reset();
 	// IFltVec
 	GetFltLenFun.Reset();
 	GetFltAtFun.Reset();
@@ -925,6 +913,11 @@ double TNodeJsStreamAggr::GetInFlt() const {
 uint64 TNodeJsStreamAggr::GetInTmMSecs() const {
 	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetInTmMSecs not implemented");
 }
+
+bool TNodeJsStreamAggr::DelayedP() const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", DelayedP not implemented");
+}
+
 void TNodeJsStreamAggr::GetInFltV(TFltV& ValV) const {
 	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetInFltV not implemented");
 }
@@ -939,12 +932,6 @@ void TNodeJsStreamAggr::GetOutTmMSecsV(TUInt64V& MSecsV) const {
 }
 int TNodeJsStreamAggr::GetN() const {
 	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetN not implemented");
-}
-double TNodeJsStreamAggr::GetOldestFlt() const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetOldestFlt not implemented");
-}
-uint64 TNodeJsStreamAggr::GetOldestTmMSecs() const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetOldestTmMSecs not implemented");
 }
 
 // IFltVec
