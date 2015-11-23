@@ -2774,6 +2774,8 @@ namespace TStreamAggrOut {
 	public:
 		virtual double GetInFlt() const = 0;
 		virtual uint64 GetInTmMSecs() const = 0;
+		virtual void GetInFltV(TFltV& ValV) const = 0;
+		virtual void GetInTmMSecsV(TUInt64V& MSecsV) const = 0;
 		virtual void GetOutFltV(TFltV& ValV) const = 0;
 		virtual void GetOutTmMSecsV(TUInt64V& MSecsV) const = 0;
 		virtual int GetN() const = 0;

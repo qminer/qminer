@@ -1073,8 +1073,6 @@ module.exports = exports = function (pathQmBinary) {
         */
         this.save = function (fout) {
             fout.writeJson(this.metric.state);
-            fout.flush();
-            fout.close();
             return fout;
         }
 
@@ -1086,7 +1084,6 @@ module.exports = exports = function (pathQmBinary) {
         this.load = function (fin) {
             this.metric.state = fin.readJson();
             error = this.metric.state.error;
-            fin.close();
             return fin;
         }
 
