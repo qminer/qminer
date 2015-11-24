@@ -226,6 +226,8 @@
                 'src/glib/mine/mine.h',
                 'src/glib/mine/mine.cpp',
                 'src/third_party/sole/sole.cpp',
+                'src/glib/mine/avltree.h',
+                'src/glib/mine/avltree.cpp'
             ],
             'include_dirs': [
                 'src/glib/base/',

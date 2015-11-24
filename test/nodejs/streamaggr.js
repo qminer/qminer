@@ -3670,6 +3670,58 @@ describe('Online Histogram Tests', function () {
     });
 });
 
+describe('TDigest test', function () {
+    var base = undefined;
+    var store = undefined;
+    var hist1 = undefined;
+    beforeEach(function () {
+        // create a base with a simple store
+        // the store records results of throwing two independent fair dices        
+        base = new qm.Base({
+            mode: "createClean",
+            schema: [
+            {
+                name: "Dice",
+                fields: [
+                    { name: "Sample1", type: "float" },
+                    { name: "Sample2", type: "float" },
+                    { name: "Time", type: "datetime" }
+                ]
+            }]
+        });
+        store = base.store('Dice');
+
+        // create a new time series stream aggregator for the 'Dice' store, that takes the expected values of throwing a dice
+        // and the timestamp from the 'Time' field. The size of the window is 1 day.
+        var timeser = {
+            name: 'TimeSeries1',
+            type: 'timeSeriesWinBuf',
+            store: 'Dice',
+            timestamp: 'Time',
+            value: 'Sample1',
+            winsize: 86400000 // one day in miliseconds
+        };
+
+        var timeSeries1 = base.store("Dice").addStreamAggr(timeser);
+        
+        // add ChiSquare aggregator that connects with Histogram1 with expected values and Histogram2 with actual values
+        aggr = {
+            name: 'TDigest',
+            type: 'tdigest',
+            store: 'Dice',
+            inAggr: 'TimeSeries1'
+        }
+        var td = store.addStreamAggr(aggr);
+
+        // add some values (throwing a pair of dice)
+        store.push({ Time: '2015-06-10T14:13:30.0', Sample1: 1 }); 
+        store.push({ Time: '2015-06-10T14:13:31.0', Sample1: 2 }); 
+        store.push({ Time: '2015-06-10T14:13:32.0', Sample1: 3 }); 
+        store.push({ Time: '2015-06-10T14:13:33.0', Sample1: 4 }); 
+        
+    });
+});
+
 describe('ChiSquare Tests', function () {
     var base = undefined;
     var store = undefined;
