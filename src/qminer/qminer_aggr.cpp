@@ -504,7 +504,7 @@ PJsonVal TRecBuffer::SaveJson(const int& Limit) const {
 ///////////////////////////////
 // Time series tick.
 void TTimeSeriesTick::OnAddRec(const TRec& Rec) {
-	TickVal = Rec.GetFieldFlt(TickValFieldId);
+	TickVal = ValReader.GetFlt(Rec);
 	TmMSecs = Rec.GetFieldTmMSecs(TimeFieldId);
     InitP = true;
 }
@@ -519,6 +519,10 @@ TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamV
 	TimeFieldId = Store->GetFieldId(TimeFieldNm);
     TStr TickValFieldNm = ParamVal->GetObjStr("value");
 	TickValFieldId = Store->GetFieldId(TickValFieldNm);
+    ValReader = TFieldReader(Store->GetStoreId(), TickValFieldId, Store->GetFieldDesc(TickValFieldId));
+    // make sure parameters make sense
+    QmAssertR(Store->GetFieldDesc(TimeFieldId).IsTm(), "[Window buffer] field " + TimeFieldNm + " not of type 'datetime'");
+    QmAssertR(ValReader.IsFlt(), "[Window buffer] field " + TickValFieldNm + " cannot be casted to 'double'");
 }
 
 PStreamAggr TTimeSeriesTick::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
@@ -566,8 +570,7 @@ void TWinBuf::OnAddRec(const TRec& Rec) {
 	//Print(true);
 }
 
-TWinBuf::TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
-TStreamAggr(Base, ParamVal) {
+TWinBuf::TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
 	// parse out input and output fields
     TStr StoreNm = ParamVal->GetObjStr("store");
 	Store = Base->GetStoreByStoreNm(StoreNm);    
@@ -575,8 +578,12 @@ TStreamAggr(Base, ParamVal) {
 	TimeFieldId = Store->GetFieldId(TimeFieldNm);
     TStr ValFieldNm = ParamVal->GetObjStr("value");
 	ValFieldId = Store->GetFieldId(ValFieldNm);
-	WinSizeMSecs = ParamVal->GetObjUInt64("winsize");;
+    ValReader = TFieldReader(Store->GetStoreId(), ValFieldId, Store->GetFieldDesc(ValFieldId));
+    WinSizeMSecs = ParamVal->GetObjUInt64("winsize");;
 	DelayMSecs = ParamVal->GetObjUInt64("delay", 0);
+    // make sure parameters make sense
+    QmAssertR(Store->GetFieldDesc(TimeFieldId).IsTm(), "[Window buffer] field " + TimeFieldNm + " not of type 'datetime'");
+    QmAssertR(ValReader.IsFlt(), "[Window buffer] field " + ValFieldNm + " cannot be casted to 'double'");
 }
 
 PStreamAggr TWinBuf::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
