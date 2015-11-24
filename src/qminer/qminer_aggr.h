@@ -220,6 +220,7 @@ class TTimeSeriesTick : public TStreamAggr, public TStreamAggrOut::IFltTm {
 private:
 	TInt TimeFieldId;
 	TInt TickValFieldId;
+    TFieldReader ValReader;
     // initialized after first value
     TBool InitP;
 	// last value
@@ -280,23 +281,24 @@ class TWinBuf : public TStreamAggr, public TStreamAggrOut::IFltTmIO,
 	public TStreamAggrOut::IFltVec, public TStreamAggrOut::ITmVec, public TStreamAggrOut::ITm {
 private:
 	// STORAGE ACCESS
-	TWPt<TStore> Store; /// needed to access records through IDs
-    TInt TimeFieldId; /// field ID of the timestamp field in the store (used for efficiency)
-    TInt ValFieldId; /// field ID of the value field in the store (used for efficiency)
-    
+	TWPt<TStore> Store; ///< needed to access records through IDs
+    TInt TimeFieldId; ///< field ID of the timestamp field in the store (used for efficiency)
+    TInt ValFieldId; ///< field ID of the value field in the store (used for efficiency)
+    TFieldReader ValReader;
+
 	// ALGORITHM PARAMETERS
-	TUInt64 WinSizeMSecs; /// window size in milliseconds
-	TUInt64 DelayMSecs;  /// delay in milliseconds
+	TUInt64 WinSizeMSecs; ///< window size in milliseconds
+	TUInt64 DelayMSecs;  ///< delay in milliseconds
     
 	//
 	// ALGORITHM STATE
 	//
-	TBool InitP; /// Has the aggregate been updated at least once?
-	TUInt64 A; // The ID of the first record to forget. The last record to forget is strictly smaller than B. If A == B, the forget interval is empty. 
-	TUInt64 B; // The ID of the first record in the buffer, or in case of empty buffer the ID of the first record after the buffer. Guaranteed to be in the store (due to NewRec). If B == D, the buffer is empty.
-	TUInt64 C; // The ID of the first record to update. If C == D, the update interval is empty.
-	TUInt64 D; // The ID of the first record after the buffer. Guaranteed to be in the store (due to NewRec). If D == B, the buffer is empty.
-	// last timestamp
+	TBool InitP; ///< Has the aggregate been updated at least once?
+	TUInt64 A; ///< The ID of the first record to forget. The last record to forget is strictly smaller than B. If A == B, the forget interval is empty.
+	TUInt64 B; ///< The ID of the first record in the buffer, or in case of empty buffer the ID of the first record after the buffer. Guaranteed to be in the store (due to NewRec). If B == D, the buffer is empty.
+	TUInt64 C; ///< The ID of the first record to update. If C == D, the update interval is empty.
+	TUInt64 D; ///< The ID of the first record after the buffer. Guaranteed to be in the store (due to NewRec). If D == B, the buffer is empty.
+	/// last timestamp
 	TUInt64 Timestamp;
 protected:
 	/// Stream aggregate update function called when a record is added
@@ -366,7 +368,7 @@ public:
 private:
 	// helper functions
 	uint64 Time(const uint64& RecId) const { return Store->GetFieldTmMSecs(RecId, TimeFieldId); }
-	double Value(const uint64& RecId) const { return Store->GetFieldFlt(RecId, ValFieldId); }
+	double Value(const uint64& RecId) const { return ValReader.GetFlt(TRec(Store, RecId)); }
 	
 	bool InStore(const uint64& RecId) const { return Store->IsRecId(RecId); }
 	bool BeforeStore(const uint64& RecId) const { return RecId < Store->GetFirstRecId(); }

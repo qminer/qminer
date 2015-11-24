@@ -219,51 +219,6 @@ typedef TPt<TFtrSpace> PFtrSpace;
 namespace TFtrExts {
 
 ///////////////////////////////////////////////
-/// Record value reader.
-/// Utility functions for extracting basic types out of records.
-class TReader {
-private:
-    /// Store Id
-    TUInt StoreId;
-    /// Field Id
-	TIntV FieldIdV;
-    /// Field description
-    TFieldDescV FieldDescV;
-
-    /// Extract string fields out of date
-	void ParseDate(const TTm& Tm, TStrV& StrV) const;
-
-public:
-    TReader() { }
-    /// Create reader from single field
-    TReader(const uint& _StoreId, const int& FieldId, const TFieldDesc& FieldDesc):
-      StoreId(_StoreId) { FieldIdV.Add(FieldId); FieldDescV.Add(FieldDesc); }
-    /// Create reader from multiple fields
-    TReader(const uint& _StoreId, const TIntV& _FieldIdV, const TFieldDescV& _FieldDescV):
-      StoreId(_StoreId), FieldIdV(_FieldIdV), FieldDescV(_FieldDescV) { }
-
-    /// Get double from a given record
-	double GetFlt(const TRec& Rec) const;
-    /// Get string vector from a given record
-    void GetFltV(const TRec& FtrRec, TFltV& FltV) const;
-    /// Get string vector from a given record set
-    void GetFltV(const PRecSet& FtrRecSet, TFltV& FltV) const;
-    /// Get sparse vector from a given record
-    void GetNumSpV(const TRec& FtrRec, TIntFltKdV& NumSpV) const;
-    /// Get string from a given record
-    TStr GetStr(const TRec& FtrRec) const;
-    /// Get string vector from a given record
-    void GetStrV(const TRec& FtrRec, TStrV& StrV) const;
-    /// Get string vector from a given record set
-    void GetStrV(const PRecSet& FtrRecSet, TStrV& StrV) const;
-    /// Get miliseconds from a given record
-    uint64 GetTmMSecs(const TRec& FtrRec) const;
-
-    /// Generate all possibe values that can be extracted from date
-    static TStrV GetDateRange();
-};
-
-///////////////////////////////////////////////
 /// Constant feature extractor.
 class TConstant : public TFtrExt {
 private:
@@ -346,7 +301,7 @@ private:
     /// Field description
     TFieldDesc FieldDesc;
     /// Reader
-    TReader Reader;
+    TFieldReader Reader;
 
     /// Check if there is join, and forward to reader
 	double GetVal(const TRec& Rec) const;
@@ -400,7 +355,7 @@ private:
     /// Field description
     TFieldDesc FieldDesc;
     /// Reader
-    TReader Reader;
+    TFieldReader Reader;
 
     /// Check if there is join, and forward to reader
 	void GetVal(const TRec& Rec, TIntFltKdV& NumSpV) const;
@@ -453,7 +408,7 @@ private:
     /// Field description
     TFieldDesc FieldDesc;
     /// Reader
-    TReader Reader;
+    TFieldReader Reader;
 
 	TStr GetVal(const TRec& Rec) const;
 
@@ -506,14 +461,14 @@ private:
     /// Field description
     TFieldDescV FieldDescV;
     /// Reader
-    TReader Reader;
+    TFieldReader Reader;
 
 	/// Value field Id
 	TIntV ValFieldIdV;
     /// Value field description
     TFieldDescV ValFieldDescV;
     /// Reader
-    TReader ValReader;
+    TFieldReader ValReader;
 
 	void GetVal(const TRec& Rec, TStrV& StrV, TFltV& FltV) const;
         
@@ -576,7 +531,7 @@ private:
     /// Field description
     TFieldDescV FieldDescV;
     /// Reader
-    TReader Reader;
+    TFieldReader Reader;
 
  	/// How to deal with multiple instances
 	TBagOfWordsMode Mode;
@@ -755,7 +710,7 @@ private:
     /// Field description
     TFieldDesc FieldDesc;
     /// Reader
-    TReader Reader;
+    TFieldReader Reader;
 
     /// Get value from a given record
 	uint64 _GetVal(const TRec& Rec) const; 
