@@ -1657,11 +1657,21 @@ public:
 	/// Checks if key is sortable by word id in the vocabulary (GIX)
 	bool IsSortById() const { return SortType == oikstById; }
 
-    /// Check if key is sortable by integers (BTree)
-    bool IsSortAsInt() const { return SortType == oikstAsInt; }
-    /// Check if key is sortable by integers (BTree)
-    bool IsSortAsUInt64() const { return SortType == oikstAsUInt64; }
-    /// Check if key is sortable by integers (BTree)
+    /// Check if key is sortable by bytes (BTree)
+    bool IsSortAsByte() const { return SortType == oikstAsByte; }
+	/// Check if key is sortable by integers (BTree)
+	bool IsSortAsInt() const { return SortType == oikstAsInt; }
+	/// Check if key is sortable by int16 (BTree)
+	bool IsSortAsInt16() const { return SortType == oikstAsInt16; }
+	/// Check if key is sortable by int64 (BTree)
+	bool IsSortAsInt64() const { return SortType == oikstAsInt64; }
+	/// Check if key is sortable by integers (BTree)
+    bool IsSortAsUInt() const { return SortType == oikstAsUInt; }
+	/// Check if key is sortable by integers (BTree)
+	bool IsSortAsUInt16() const { return SortType == oikstAsUInt16; }
+	/// Check if key is sortable by integers (BTree)
+	bool IsSortAsUInt64() const { return SortType == oikstAsUInt64; }
+	/// Check if key is sortable by integers (BTree)
     bool IsSortAsTm() const { return SortType == oikstAsTm; }
     /// Check if key is sortable by integers (BTree)
     bool IsSortAsFlt() const { return SortType == oikstAsFlt; }
@@ -1880,8 +1890,13 @@ typedef enum {
 	oqitLeafGix      = 1, ///< Leaf inverted index query
 	oqitLeafGixSmall = 10,///< Leaf inverted index query - for small items
 	oqitGeo          = 8, ///< Geoindex query
-    oqitRangeInt     = 11,///< Range BTree integer query
-    oqitRangeUInt64  = 12,///< Range BTree uint64 query
+	oqitRangeByte    = 15,///< Range BTree byte query
+	oqitRangeInt     = 11,///< Range BTree integer query
+	oqitRangeInt16   = 16,///< Range BTree int16 query
+	oqitRangeInt64   = 17,///< Range BTree int64 query
+	oqitRangeUInt    = 18,///< Range BTree uint query
+	oqitRangeUInt16  = 19,///< Range BTree uint16 query
+	oqitRangeUInt64  = 12,///< Range BTree uint64 query
     oqitRangeFlt     = 13,///< Range BTree float query
     oqitRangeTm      = 14,///< Range BTree date-time query
 	oqitAnd          = 2, ///< AND between two or more queries
@@ -1898,9 +1913,9 @@ typedef enum {
 /// Comparison operators that can be specified between a field and a value
 typedef enum { 
 	oqctUndef    = 0,
-	oqctEqual    = 1, ///< Equalst (==)
-	oqctGreater  = 2, ///< Greater then (>)
-	oqctLess     = 3, ///< Less then (<)
+	oqctEqual    = 1, ///< Equals (==)
+	oqctGreater  = 2, ///< Greater than (>)
+	oqctLess     = 3, ///< Less than (<)
 	oqctNotEqual = 4, ///< Not equal (!=)
 	oqctWildChar = 5 ///< Wildchar string matching (* for zero or more chars, ? for exactly one char)
 } TQueryCmpType;
@@ -1935,12 +1950,24 @@ private:
 	TFlt LocRadius;
 	/// Number of nearest neighbors of search space (for location query)
 	TInt LocLimit;
+
     /// Edge parameters for range integer query
     TIntPr RangeIntMnMx;
-    /// Edge parameters for range uint64 query
-    TUInt64Pr RangeUInt64MnMx;
-    /// Edge parameters for range float query
+	/// Edge parameters for range int16 query
+	TInt16Pr RangeInt16MnMx;
+	/// Edge parameters for range int64 query
+	TInt64Pr RangeInt64MnMx;
+	/// Edge parameters for range byte query
+	TUChPr RangeUChMnMx;
+	/// Edge parameters for range uint query
+    TUIntUIntPr RangeUIntMnMx;
+	/// Edge parameters for range uint16 query
+	TUInt16Pr RangeUInt16MnMx;
+	/// Edge parameters for range uint64 query
+	TUInt64Pr RangeUInt64MnMx;
+	/// Edge parameters for range float query
     TFltPr RangeFltMnMx;
+	
 	/// List of subordinate query items.
 	/// Has exactly one element when NOT or JOIN node type
 	TQueryItemV ItemV;
@@ -2044,6 +2071,16 @@ public:
 	/// Check query type
 	bool IsRangeInt() const { return (Type == oqitRangeInt); }
 	/// Check query type
+	bool IsRangeInt16() const { return (Type == oqitRangeInt16); }
+	/// Check query type
+	bool IsRangeInt64() const { return (Type == oqitRangeInt64); }
+	/// Check query type
+	bool IsRangeByte() const { return (Type == oqitRangeByte); }
+	/// Check query type
+	bool IsRangeUInt() const { return (Type == oqitRangeUInt); }
+	/// Check query type
+	bool IsRangeUInt16() const { return (Type == oqitRangeUInt16); }
+	/// Check query type
 	bool IsRangeUInt64() const { return (Type == oqitRangeUInt64); }
 	/// Check query type
 	bool IsRangeTm() const { return (Type == oqitRangeTm); }
@@ -2092,11 +2129,22 @@ public:
 	double GetLocRadius() const { return LocRadius; }
 	/// Get location query maximal number of neighbors (for location queries)
 	int GetLocLimit() const { return LocLimit; }
-    /// Get integer range
+
+	/// Get integer range
     TIntPr GetRangeIntMinMax() const { return RangeIntMnMx; }
-    /// Get uint64 integer range
-    TUInt64Pr GetRangeUInt64MinMax() const { return RangeUInt64MnMx; }
-    /// Get float range
+	/// Get integer range
+	TInt16Pr GetRangeInt16MinMax() const { return RangeInt16MnMx; }
+	/// Get integer range
+	TInt64Pr GetRangeInt64MinMax() const { return RangeInt64MnMx; }
+	/// Get integer range
+	TUChPr GetRangeByteMinMax() const { return RangeUChMnMx; }
+	/// Get uint64 integer range
+    TUIntUIntPr GetRangeUIntMinMax() const { return RangeUIntMnMx; }
+	/// Get uint64 integer range
+	TUInt16Pr GetRangeUInt16MinMax() const { return RangeUInt16MnMx; }
+	/// Get uint64 integer range
+	TUInt64Pr GetRangeUInt64MinMax() const { return RangeUInt64MnMx; }
+	/// Get float range
     TFltPr GetRangeFltMinMax() const { return RangeFltMnMx; }
 
 	/// Get comparison type

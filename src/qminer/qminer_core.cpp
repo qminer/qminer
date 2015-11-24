@@ -3163,13 +3163,28 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
         if (KeyVal->IsObj()) {
             // key is index using btree, check field type and extract type-appropriate range
             // by default range is always (-inf, inf), unless specified explicitly
-            if (Key.IsSortAsInt()) {
-                Type = oqitRangeInt;
-                RangeIntMnMx = TIntPr(KeyVal->GetObjInt("$gt", TInt::Mn), KeyVal->GetObjInt("$lt", TInt::Mx));
-            } else if (Key.IsSortAsUInt64()) {
-                Type = oqitRangeUInt64;
-                RangeUInt64MnMx = TUInt64Pr(KeyVal->GetObjUInt64("$gt", TUInt64::Mn), KeyVal->GetObjUInt64("$lt", TUInt64::Mx));
-            } else if (Key.IsSortAsTm()) {
+			if (Key.IsSortAsInt()) {
+				Type = oqitRangeInt;
+				RangeIntMnMx = TIntPr(KeyVal->GetObjInt("$gt", TInt::Mn), KeyVal->GetObjInt("$lt", TInt::Mx));
+			} else if (Key.IsSortAsInt16()) {
+				Type = oqitRangeInt16;
+				RangeInt16MnMx = TInt16Pr(KeyVal->GetObjInt("$gt", TInt16::Mn), KeyVal->GetObjInt("$lt", TInt16::Mx));
+			} else if (Key.IsSortAsInt64()) {
+				Type = oqitRangeInt64;
+				RangeInt64MnMx = TInt64Pr(KeyVal->GetObjInt("$gt", TInt64::Mn), KeyVal->GetObjInt("$lt", TInt64::Mx));
+			} else if (Key.IsSortAsByte()) {
+                Type = oqitRangeByte;
+                RangeUChMnMx = TUChPr(KeyVal->GetObjInt("$gt", TUCh::Mn), KeyVal->GetObjInt("$lt", TUCh::Mx));
+            } else if (Key.IsSortAsUInt()) {
+                Type = oqitRangeUInt;
+                RangeUIntMnMx = TUIntUIntPr(KeyVal->GetObjUInt64("$gt", TUInt64::Mn), KeyVal->GetObjUInt64("$lt", TUInt64::Mx));
+			} else if (Key.IsSortAsUInt16()) {
+				Type = oqitRangeUInt16;
+				RangeUInt16MnMx = TUInt16Pr(KeyVal->GetObjUInt64("$gt", TUInt64::Mn), KeyVal->GetObjUInt64("$lt", TUInt64::Mx));
+			} else if (Key.IsSortAsUInt64()) {
+				Type = oqitRangeUInt64;
+				RangeUInt64MnMx = TUInt64Pr(KeyVal->GetObjUInt64("$gt", TUInt64::Mn), KeyVal->GetObjUInt64("$lt", TUInt64::Mx));
+			} else if (Key.IsSortAsTm()) {
                 Type = oqitRangeTm;
                 RangeUInt64MnMx = TUInt64Pr(TUInt64::Mn, TUInt64::Mx);
                 // check if we have lower bound
@@ -3187,13 +3202,28 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
             QmAssertR(Key.IsSortAsInt() || Key.IsSortAsUInt64() || Key.IsSortAsFlt(),
                 "Query: wrong key value for non-integer key " + KeyNm);
             // we are given exact number, make it a range query with both edges equal
-            if (Key.IsSortAsInt()) {
-                Type = oqitRangeInt;
-                RangeIntMnMx.Val1 = RangeIntMnMx.Val2 = KeyVal->GetInt();
-            } else if (Key.IsSortAsUInt64()) {
-                Type = oqitRangeUInt64;
-                RangeUInt64MnMx.Val1 = RangeUInt64MnMx.Val2 = KeyVal->GetUInt64();
-            } else if (Key.IsSortAsFlt()) {
+			if (Key.IsSortAsInt()) {
+				Type = oqitRangeInt;
+				RangeIntMnMx.Val1 = RangeIntMnMx.Val2 = KeyVal->GetInt();
+			} else if (Key.IsSortAsInt16()) {
+				Type = oqitRangeInt16;
+				RangeInt16MnMx.Val1 = RangeInt16MnMx.Val2 = (int16)KeyVal->GetInt();
+			} else if (Key.IsSortAsInt64()) {
+				Type = oqitRangeInt64;
+				RangeInt64MnMx.Val1 = RangeInt64MnMx.Val2 = KeyVal->GetInt64();
+			} else if (Key.IsSortAsByte()) {
+                Type = oqitRangeByte;
+                RangeUChMnMx.Val1 = RangeUChMnMx.Val2 = (byte)KeyVal->GetInt();
+            } else if (Key.IsSortAsUInt()) {
+                Type = oqitRangeUInt;
+                RangeUIntMnMx.Val1 = RangeUIntMnMx.Val2 = (uint)KeyVal->GetUInt64();
+			} else if (Key.IsSortAsUInt16()) {
+				Type = oqitRangeUInt16;
+				RangeUInt16MnMx.Val1 = RangeUInt16MnMx.Val2 = (uint16)KeyVal->GetUInt64();
+			} else if (Key.IsSortAsUInt64()) {
+				Type = oqitRangeUInt64;
+				RangeUInt64MnMx.Val1 = RangeUInt64MnMx.Val2 = KeyVal->GetUInt64();
+			} else if (Key.IsSortAsFlt()) {
                 Type = oqitRangeFlt;
                 RangeFltMnMx.Val1 = RangeFltMnMx.Val2 = KeyVal->GetNum();
             }
@@ -4657,15 +4687,65 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TI
     }
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
+PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TInt16Pr& RangeMinMax) {
 
+	TUInt64V RecIdV;
+	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
+	if (BTreeIndexInt16H.IsKey(KeyId)) {
+		BTreeIndexInt16H.GetDat(KeyId)->SearchRange(RangeMinMax, RecIdV);
+		RecIdV.Sort();
+	}
+	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
+}
+PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TInt64Pr& RangeMinMax) {
+
+	TUInt64V RecIdV;
+	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
+	if (BTreeIndexInt64H.IsKey(KeyId)) {
+		BTreeIndexInt64H.GetDat(KeyId)->SearchRange(RangeMinMax, RecIdV);
+		RecIdV.Sort();
+	}
+	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
+}
+PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUChPr& RangeMinMax) {
+
+	TUInt64V RecIdV;
+	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
+	if (BTreeIndexByteH.IsKey(KeyId)) {
+		BTreeIndexByteH.GetDat(KeyId)->SearchRange(RangeMinMax, RecIdV);
+		RecIdV.Sort();
+	}
+	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
+}
+
+PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUIntUIntPr& RangeMinMax) {
+
+	TUInt64V RecIdV;
+	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
+	if (BTreeIndexUIntH.IsKey(KeyId)) {
+        BTreeIndexUIntH.GetDat(KeyId)->SearchRange(RangeMinMax, RecIdV);
+        RecIdV.Sort();
+    }
+	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
+}
+PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUInt16Pr& RangeMinMax) {
+
+	TUInt64V RecIdV;
+	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
+	if (BTreeIndexUInt16H.IsKey(KeyId)) {
+		BTreeIndexUInt16H.GetDat(KeyId)->SearchRange(RangeMinMax, RecIdV);
+		RecIdV.Sort();
+	}
+	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
+}
 PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUInt64Pr& RangeMinMax) {
 
 	TUInt64V RecIdV;
 	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
 	if (BTreeIndexUInt64H.IsKey(KeyId)) {
-        BTreeIndexUInt64H.GetDat(KeyId)->SearchRange(RangeMinMax, RecIdV);
-        RecIdV.Sort();
-    }
+		BTreeIndexUInt64H.GetDat(KeyId)->SearchRange(RangeMinMax, RecIdV);
+		RecIdV.Sort();
+	}
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
 
@@ -4981,10 +5061,30 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
         // must be handled by BTree linear index
         PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeIntMinMax());
         return TPair<TBool, PRecSet>(false, RecSet);
-	} else if (QueryItem.IsRangeUInt64()) {
+	} else if (QueryItem.IsRangeInt16()) {
+		// must be handled by BTree linear index
+		PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeInt16MinMax());
+		return TPair<TBool, PRecSet>(false, RecSet);
+	} else if (QueryItem.IsRangeInt64()) {
+		// must be handled by BTree linear index
+		PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeInt64MinMax());
+		return TPair<TBool, PRecSet>(false, RecSet);
+	} else if (QueryItem.IsRangeByte()) {
+		// must be handled by BTree linear index
+		PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeByteMinMax());
+		return TPair<TBool, PRecSet>(false, RecSet);
+	} else if (QueryItem.IsRangeUInt()) {
         // must be handled by BTree linear index
-        PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeUInt64MinMax());
+        PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeUIntMinMax());
         return TPair<TBool, PRecSet>(false, RecSet);
+	} else if (QueryItem.IsRangeUInt16()) {
+		// must be handled by BTree linear index
+		PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeUInt16MinMax());
+		return TPair<TBool, PRecSet>(false, RecSet);
+	} else if (QueryItem.IsRangeUInt64()) {
+		// must be handled by BTree linear index
+		PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeUInt64MinMax());
+		return TPair<TBool, PRecSet>(false, RecSet);
 	} else if (QueryItem.IsRangeTm()) {
         // must be handled by BTree linear index
         PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeUInt64MinMax());

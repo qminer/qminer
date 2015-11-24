@@ -2424,6 +2424,12 @@ void TUCh::SaveXml(TSOut& SOut, const TStr& Nm) const {
 }
 
 /////////////////////////////////////////////////
+// Integer16
+
+const int16 TSInt::Mn = SHRT_MIN;
+const int16 TSInt::Mx = SHRT_MAX;
+
+/////////////////////////////////////////////////
 // Integer
 const int TInt::Mn=INT_MIN;
 const int TInt::Mx=INT_MAX;

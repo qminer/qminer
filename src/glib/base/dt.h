@@ -1289,6 +1289,8 @@ public:
 // Short-Integer
 class TSInt{
 public:
+  static const int16 Mn;
+  static const int16 Mx;
   int16 Val;
 public:
   TSInt(): Val(0){}
