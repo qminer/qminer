@@ -86,6 +86,8 @@
 * @property {module:qm~StreamAggregateHistogram} hist - The online histogram type.
 * @property {module:qm~StreamAggregateSlottedHistogram} slotted-hist - The online slotted-histogram type.
 * @property {module:qm~StreamAggregateVecDiff} vec-diff - The difference of two vectors (e.g. online histograms) type.
+* @property {module:qm~StreamAggregateTDigest} quantile - ...
+
 */
 /**
 * @typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesWindow

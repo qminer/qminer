@@ -1491,6 +1491,16 @@ void TOnlineHistogram::SaveState(TSOut& SOut) const {
 	Model.Save(SOut);
 }
 
+
+///////////////////////////////
+/// TDigest stream aggregate
+void TTDigest::OnAddRec(const TRec& Rec) {
+    TFlt Val; InAggrVal->GetFlt();
+	if (InAggr->IsInit()) {
+	    Model.Update(Val);
+	}
+}
+
 ///////////////////////////////
 /// Chi square stream aggregate
 void TChiSquare::OnAddRec(const TRec& Rec) {

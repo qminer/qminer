@@ -828,6 +828,40 @@ public:
 };
 
 ///////////////////////////////
+/// TDigest stream aggregate.
+class TTDigest : public TStreamAggr, public TStreamAggrOut::IFlt {
+private:
+	// input
+	TWPt<TStreamAggr> InAggr;
+	TStreamAggrOut::IFltTm* InAggrVal;
+	// indicator
+	TSignalProc::TTDigest Model;
+
+protected:
+	void OnAddRec(const TRec& Rec);
+	TTDigest();
+public:
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	// did we finish initialization
+	bool IsInit() const { return InAggr->IsInit(); }
+	/// Reset
+	void Reset() {  }
+	/// Load from stream
+	void LoadState(TSIn& SIn);
+	/// Store state into stream
+	void SaveState(TSOut& SOut) const;
+
+	// get current Quantile value
+	double GetFlt() const { return 1; }
+	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
+	// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+	// stream aggregator type name
+	static TStr GetType() { return "tdigest"; }
+	TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
 /// Chi square stream aggregate.
 /// Updates a chi square model, connects to an online histogram stream aggregate
 /// that implements TStreamAggrOut::IFltVec

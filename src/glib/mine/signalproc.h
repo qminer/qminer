@@ -9,6 +9,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#include "avltree.h"
+
 namespace TSignalProc {
 
 
@@ -777,6 +779,113 @@ public:
 	/// Returns a JSON representation of the model
 	PJsonVal SaveJson() const;
 };
+
+// TDigest
+///   Ted Dunning, Otmar Ertl
+///   https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf
+class TTDigest {
+private:
+        double _compression = 100;
+        double _count = 0;
+        AvlTree* _centroids = new AvlTree();
+public: 
+        /// Constructs uninitialized object
+        TTDigest() {};
+        TTDigest (double compression): _compression(compression) {}
+        /// Initializes the object, resets current content is present
+        void Init();   
+        void Update(const TFlt& Val);
+        inline long Size() const { return _count; }
+        
+        inline void Update(double x) {
+            int w = 1;
+            int start = _centroids->floor(x);
+            if(start == AvlTree::NIL) {
+                start = _centroids->first();
+            }
+
+            if(start == AvlTree::NIL) {
+                assert(_centroids->size() == 0);
+                _centroids->add(x, w);
+                _count += w;
+            } else {
+                double minDistance = DBL_MAX;
+                int lastNeighbor = AvlTree::NIL;
+                for(int neighbor = start; start != AvlTree::NIL; neighbor = _centroids->nextNode(neighbor)) {
+                    double z = abs(_centroids->value(neighbor) - x);
+                    if(z < minDistance) {
+                        start = neighbor;
+                        minDistance = z;
+                    } else {
+                        lastNeighbor = neighbor;
+                        break;
+                    }
+                    
+                }
+
+                int closest = AvlTree::NIL;
+                long sum = _centroids->ceilSum(start);
+                double n = 0;
+                for(int neighbor = start; neighbor != lastNeighbor; neighbor = _centroids->nextNode(neighbor)) {
+                    assert(minDistance == abs(_centroids->value(neighbor) - x));
+                    double q = _count == 1
+                        ? 0.5 
+                        : (sum + (_centroids->count(neighbor) - 1 / 2. )) / (_count - 10) 
+                    ;
+                    double k = 4 * _count * q * (1 - q) / _compression;
+
+                    if(_centroids->count(neighbor) + w <= k) {
+                        n++;
+                        if((float)rand() / RAND_MAX < 1 / n) {
+                            closest = neighbor;
+                        }
+                    }
+                    sum += _centroids->count(neighbor);
+
+                }
+
+                if(closest == AvlTree::NIL) {
+                    _centroids->add(x, w);
+                } else {
+                    _centroids->update(closest, x, w);
+                }
+                _count += w;
+
+                if(_centroids->size() > 20 * _compression) {
+                    cout << "Compress:" << _centroids->size() << endl;
+                    Compress();
+                }
+            }
+
+        }
+
+        inline void Add(double x, double w) { Add(x, w); }
+
+        inline static double Quantile(
+                double previousIndex, double index, double nextIndex,
+                double previousMean, double nextMean
+        ) {
+            const double delta = nextIndex - previousIndex;
+            const double previousWeight = (nextIndex - index) / delta;
+            const double nextWeight = (index - previousIndex) / delta;
+            return previousMean * previousWeight + nextMean * nextWeight;
+        }
+
+        inline AvlTree* Centroids() const {
+            return _centroids;
+        }
+
+        inline void Merge(TTDigest* digest) {
+            AvlTree* centroids = digest->Centroids();
+            for(int n = centroids->first(); n != AvlTree::NIL; n = centroids->nextNode(n)) {
+                Add(centroids->value(n), centroids->count(n));
+            }
+        }
+
+        void Compress();
+        double Quantile();
+};
+
 
 /////////////////////////////////////////////////
 /// Chi square
