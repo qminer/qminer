@@ -549,18 +549,17 @@ PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 void TWinBuf::OnAddRec(const TRec& Rec) {
 	InitP = true;
 
-	uint64 NewRecId = Rec.GetRecId();
-	uint64 NewRecTm = Rec.GetFieldTmMSecs(TimeFieldId);
+	Timestamp = Rec.GetFieldTmMSecs(TimeFieldId);
 
 	A = B;
 	// B = first record ID in the buffer, or first record ID after the buffer (indicates an empty buffer)
-	while (BeforeBuffer(B, NewRecTm)) {
+	while (BeforeBuffer(B, Timestamp)) {
 		B++;
 	}
 	
 	C = D;
 	// D = the first record ID after the buffer
-	while (!AfterBuffer(D, NewRecTm)) {
+	while (!AfterBuffer(D, Timestamp)) {
 		D++;
 	}	
 
@@ -590,6 +589,7 @@ void TWinBuf::LoadState(TSIn& SIn) {
 	B.Load(SIn);
 	C.Load(SIn);
 	D.Load(SIn);
+	Timestamp.Load(SIn);
 	TestValid(); // checks if the buffer exists in store
 }
 
@@ -599,6 +599,7 @@ void TWinBuf::SaveState(TSOut& SOut) const {
 	B.Save(SOut);
 	C.Save(SOut);
 	D.Save(SOut);
+	Timestamp.Save(SOut);
 }
 
 void TWinBuf::Reset() {
@@ -607,6 +608,7 @@ void TWinBuf::Reset() {
 	B = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
 	C = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
 	D = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
+	Timestamp = 0;
 }
 
 void TWinBuf::GetInFltV(TFltV& ValV) const {
@@ -1441,7 +1443,11 @@ PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
 /// Histogram stream aggregate
 void TOnlineHistogram::OnAddRec(const TRec& Rec) {
 	if (BufferedP) {
-		Model.Increment(InAggrValBuffer->GetInFlt());
+		TFltV UpdateV;
+		InAggrValBuffer->GetInFltV(UpdateV);
+		for (int ElN = 0; ElN < UpdateV.Len(); ElN++) {
+			Model.Increment(UpdateV[ElN]);
+		}
 		TFltV ForgetV;
 		InAggrValBuffer->GetOutFltV(ForgetV);
 		for (int ElN = 0; ElN < ForgetV.Len(); ElN++) {

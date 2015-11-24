@@ -2749,6 +2749,17 @@ public:
 ///////////////////////////////
 // QMiner-Stream-Aggregator-Data-Interfaces
 namespace TStreamAggrOut {
+
+#define TStreamAggrOutHelper(Interface) \
+    static Interface* Cast ## Interface(const TWPt<TStreamAggr>& Aggr) { \
+		Interface* CastAggr = dynamic_cast<Interface*>(Aggr()); \
+		if (CastAggr != NULL) { \
+			return CastAggr; \
+		} else { \
+			throw TExcept::New("Dynamic cast failed for aggregate, " + Aggr->GetAggrNm()); \
+		} \
+    };
+
 	class IInt {
 	public:
 		// retireving value from the aggregate
@@ -2763,8 +2774,10 @@ namespace TStreamAggrOut {
 
 	class ITm {
 	public:
+		TStreamAggrOutHelper(ITm);
 		// retireving value from the aggregate
 		virtual uint64 GetTmMSecs() const = 0;
+		static uint64 GetTmMSecsCast(const TWPt<TStreamAggr>& Aggr) { return CastITm(Aggr)->GetTmMSecs(); }
 	};
 	
 	// combination of numeric value and timestamp
@@ -2774,6 +2787,7 @@ namespace TStreamAggrOut {
 	public:
 		virtual double GetInFlt() const = 0;
 		virtual uint64 GetInTmMSecs() const = 0;
+		virtual bool DelayedP() const = 0;
 		virtual void GetInFltV(TFltV& ValV) const = 0;
 		virtual void GetInTmMSecsV(TUInt64V& MSecsV) const = 0;
 		virtual void GetOutFltV(TFltV& ValV) const = 0;
