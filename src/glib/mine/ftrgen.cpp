@@ -174,7 +174,8 @@ void TMultinomial::AddFtr(const TStrV& StrV, const TFltV& FltV, TIntFltKdV& SpV)
         const int FtrId = FtrGen.GetFtr(StrV[StrN]);
         // only use features we've seen during updates
         if (FtrId != -1) {
-            SpV.Add(TIntFltKd(FtrId, FltV.Empty() ? 1.0 : FltV[StrN].Val));
+            const double Val = FltV.Empty() ? 1.0 : FltV[StrN].Val;
+            if (Val > 1e-16) { SpV.Add(TIntFltKd(FtrId, Val)); }
         }
     }
     SpV.Sort();
