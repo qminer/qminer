@@ -2776,7 +2776,8 @@ protected:
 	TStr Guid;
 protected:
 	/// Create new stream aggregate from JSon parameters
-	TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): AggrNm(_AggrNm) { }
+	TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm):
+        AggrNm(_AggrNm) { TValidNm::AssertValidNm(AggrNm); }
 	/// Create new stream aggregate from JSon parameters
 	TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal);       
 
