@@ -1503,7 +1503,7 @@ void TChiSquare::OnAddRec(const TRec& Rec) {
     TFltV ValVX; InAggrValX->GetFltV(ValVX);        
     TFltV ValVY; InAggrValY->GetFltV(ValVY);
 	if (InAggrX->IsInit() && InAggrY->IsInit()) {
-		ChiSquare.Update(ValVX, ValVY, ChiSquare.GetDof());
+		ChiSquare.Update(ValVX, ValVY);
 	}
 }
 
