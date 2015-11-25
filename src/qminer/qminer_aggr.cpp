@@ -1487,13 +1487,11 @@ TOnlineHistogram::TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& Para
 
 /// Load from stream
 void TOnlineHistogram::LoadState(TSIn& SIn) {
-	BufferedP.Load(SIn);
 	Model.Load(SIn);
 }
 
 /// Store state into stream
 void TOnlineHistogram::SaveState(TSOut& SOut) const {
-	BufferedP.Save(SOut);
 	Model.Save(SOut);
 }
 
