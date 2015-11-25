@@ -779,9 +779,9 @@ describe('Many Stores Test', function () {
         base.close();
     });
 
-    describe('Creating 100 Stores Test', function () {
-        it('should create 100 stores', function () {
-            var numOfStores = 100
+    describe('Creating 254 Stores Test', function () {
+        it('should create 254 stores', function () {
+            var numOfStores = 254
 
             for (i = 0; i < numOfStores; i++) {
                 var storeDef = {
@@ -791,25 +791,26 @@ describe('Many Stores Test', function () {
                 base.createStore(storeDef);
             }
 
-            assert.equal(100, base.getStoreList().length);
+            assert.equal(254, base.getStoreList().length);
         })
     });
+    
+    // takes to long
+    //describe('Creating 1000 Stores Test', function () {
+    //    it('should create 1000 stores', function () {
+    //        var numOfStores = 1000
 
-    describe('Creating 1000 Stores Test', function () {
-        it('should create 1000 stores', function () {
-            var numOfStores = 1000
+    //        for (i = 0; i < numOfStores; i++) {
+    //            var storeDef = {
+    //                "name": "TestStore_" + i,
+    //                "fields": [{ "name": "Test", "type": "float" }]
+    //            }
+    //            base.createStore(storeDef);
+    //        }
 
-            for (i = 0; i < numOfStores; i++) {
-                var storeDef = {
-                    "name": "TestStore_" + i,
-                    "fields": [{ "name": "Test", "type": "float" }]
-                }
-                base.createStore(storeDef);
-            }
-
-            assert.equal(1000, base.getStoreList().length);
-        })
-    });
+    //        assert.equal(1000, base.getStoreList().length);
+    //    })
+    //});
 })
 
 ///////////////////////////////////////////////////////////////////////////////
