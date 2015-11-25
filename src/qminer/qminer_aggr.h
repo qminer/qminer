@@ -764,14 +764,12 @@ public:
 
 	/// Save stream aggregate to stream
 	void Save(TSOut& SOut) const;
-	/// Save state of stream aggregate to stream
+    /// Save state of stream aggregate to stream
 	void SaveState(TSOut& SOut) const;
 	/// Load stream aggregate state from stream
 	void LoadState(TSIn& SIn);
-
 	// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
-
 	// stream aggregator type name 
 	static TStr GetType() { return "ftrext"; }
 	TStr Type() const { return GetType(); }
@@ -785,7 +783,6 @@ public:
 class TOnlineHistogram : public TStreamAggr, public TStreamAggrOut::IFltVec {
 private:
 	TSignalProc::TOnlineHistogram Model;
-
 	// Input aggregate: only one aggregate is expected on input, these just
 	// provide access to different interfaces for convenience 
 	TStreamAggr* InAggr;
@@ -833,13 +830,13 @@ class TTDigest : public TStreamAggr, public TStreamAggrOut::IFlt {
 private:
 	// input
 	TWPt<TStreamAggr> InAggr;
-	TStreamAggrOut::IFltTm* InAggrVal;
+	TWPt<TStreamAggrOut::IFltVec> InAggrVal;
 	// indicator
 	TSignalProc::TTDigest Model;
 
 protected:
 	void OnAddRec(const TRec& Rec);
-	TTDigest();
+	TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	// did we finish initialization
@@ -850,9 +847,8 @@ public:
 	void LoadState(TSIn& SIn);
 	/// Store state into stream
 	void SaveState(TSOut& SOut) const;
-
-	// get current Quantile value
-	double GetFlt() const { return 1; }
+	/// get current Quantile value
+	double GetFlt() const { return Model.GetQuantile(); }
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
 	// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;

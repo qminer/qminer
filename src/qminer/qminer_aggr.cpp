@@ -1478,7 +1478,6 @@ TOnlineHistogram::TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& Para
 	BufferedP = (InAggrValBuffer != NULL);
 }
 
-
 /// Load from stream
 void TOnlineHistogram::LoadState(TSIn& SIn) {
 	BufferedP.Load(SIn);
@@ -1491,14 +1490,45 @@ void TOnlineHistogram::SaveState(TSOut& SOut) const {
 	Model.Save(SOut);
 }
 
-
 ///////////////////////////////
 /// TDigest stream aggregate
+TTDigest::TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Model(ParamVal) {
+    // parse out input aggregate
+	TStr InStoreNm = ParamVal->GetObjStr("store");
+	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltVec*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltVec interface: " + InAggrNm);
+}
+
+PStreamAggr TTDigest::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TTDigest(Base, ParamVal);
+}
+
 void TTDigest::OnAddRec(const TRec& Rec) {
-    TFlt Val; InAggrVal->GetFlt();
+    TInt Val; InAggrVal->GetFlt(Val);
 	if (InAggr->IsInit()) {
 	    Model.Update(Val);
 	}
+}
+
+PJsonVal TTDigest::SaveJson(const int& Limit) const {
+	PJsonVal Val = TJsonVal::NewObj();
+	Val->AddToObj("P", 1);
+	return Val;
+}
+
+/// Load from stream
+void TTDigest::LoadState(TSIn& SIn) {
+	Model.LoadState(SIn);
+}
+
+/// Store state into stream
+void TTDigest::SaveState(TSOut& SOut) const {
+	Model.SaveState(SOut);
 }
 
 ///////////////////////////////
@@ -1541,7 +1571,6 @@ PJsonVal TChiSquare::SaveJson(const int& Limit) const {
 	Val->AddToObj("Chi2", ChiSquare.GetChi2());
 	return Val;
 }
-
 
 /// Load from stream
 void TChiSquare::LoadState(TSIn& SIn) {
