@@ -1,6 +1,7 @@
 #ifndef AVLTREE_H
 #define AVLTREE_H
 
+using namespace std;
 class AvlTree {
 
     private:
@@ -114,11 +115,13 @@ class AvlTree {
         // O(1)
         inline void updateAggregates(int node) {
             // Updating depth
-        	int gn = depth(leftNode(node));
-        	if (leftNode(node)<rightNode(node)) {
-        		gn = rightNode(node);
+        	/*int gn = depth(leftNode(node));
+        	if (depth(leftNode(node))<depth(rightNode(node))) {
+        		gn = depth(rightNode(node));
         	}
             _depth[node] = 1 + gn;
+            */
+        	_depth[node] = 1 + max(depth(leftNode(node)), depth(rightNode(node)));
             _aggregatedCount[node] = count(node) + aggregatedCount(leftNode(node)) + aggregatedCount(rightNode(node));
         }
 
@@ -183,12 +186,13 @@ class AvlTree {
             if(node == NIL) {
                 return depth(node) == 0;
             } else {
-            	int gn = depth(leftNode(node));
-                if (leftNode(node)<rightNode(node)) {
-            	    gn = rightNode(node);
+            	/*int gn = depth(leftNode(node));
+                if (depth(leftNode(node))<depth(rightNode(node))) {
+            	    gn = depth(rightNode(node));
             	}
-                return depth(node) == 1 + gn
-                    && TFlt::Abs(depth(leftNode(node)) - depth(rightNode(node))) <= 1
+                return depth(node) == 1 + gn*/
+            	return depth(node) == 1 + max(depth(leftNode(node)), depth(rightNode(node)))
+                    && abs(depth(leftNode(node)) - depth(rightNode(node))) <= 1
                     && checkBalance(leftNode(node))
                     && checkBalance(rightNode(node))
                 ;

@@ -197,10 +197,6 @@ void AvlTree::rebalance(int node) {
             case  0:{
                     break;
             }
-            default:
-                    // We should throw an error
-                    // assert(true == false);
-            	    int a = 1;
 
         }
 
@@ -224,7 +220,7 @@ void AvlTree::rotateLeft(int node) {
     } else if(leftNode(p) == node) {
         _left[p] = r;
     } else {
-        //assert(rightNode(p) == node);
+         //assert(rightNode(p) == node);
         _right[p] = r;
     }
     _left[r] = node;

@@ -793,24 +793,23 @@ public:
         /// Constructs uninitialized object
         TTDigest() { _compression = 100; _count = 0; _centroids = new AvlTree(); };
         /// Constructs given JSON arguments
-        TTDigest(const PJsonVal& ParamVal);
+        TTDigest(const PJsonVal& ParamVal) {_compression = 100; _count = 0; _centroids = new AvlTree();};
         /// Constructs uninitialized object with compression
-        TTDigest (double compression): _compression(compression) {_compression = 100; _count = 0; _centroids = new AvlTree();}
+        TTDigest (double compression): _compression(compression) {_compression = compression; _count = 0; _centroids = new AvlTree();}
 
         /// Initializes the object, resets current content is present
         void Init();   
 
         inline long Size() { return _count; }
         void Compress();
-        inline void Update(double x) {
-            int w = 1;
+        inline void Update(double x, double w) {
             int start = _centroids->floor(x);
             if(start == AvlTree::NIL) {
                 start = _centroids->first();
             }
 
             if(start == AvlTree::NIL) {
-                //assert(_centroids->size() == 0);
+                EAssert(_centroids->size() == 0);
                 _centroids->add(x, w);
                 _count += w;
             } else {
@@ -818,7 +817,7 @@ public:
                 int lastNeighbor = AvlTree::NIL;
                 int nil = AvlTree::NIL;
                 for(int neighbor = start; start != nil; neighbor = _centroids->nextNode(neighbor)) {
-                    double z = TFlt::Abs(_centroids->value(neighbor) - x);
+                    double z = abs(_centroids->value(neighbor) - x);
                     if(z < minDistance) {
                         start = neighbor;
                         minDistance = z;
@@ -832,7 +831,7 @@ public:
                 long sum = _centroids->ceilSum(start);
                 double n = 0;
                 for(int neighbor = start; neighbor != lastNeighbor; neighbor = _centroids->nextNode(neighbor)) {
-                    //assert(minDistance == abs(_centroids->value(neighbor) - x));
+                    EAssert(minDistance == abs(_centroids->value(neighbor) - x));
                     double q = _count == 1
                         ? 0.5 
                         : (sum + (_centroids->count(neighbor) - 1 / 2. )) / (_count - 10) 
@@ -861,27 +860,21 @@ public:
                     Compress();
                 }
             }
-
+            Q = Quantile(0.5);
+            printf("Q0.5: %g\n", Q);
         }
-        inline void Add(double x, double w) const { Add(x, w); }
+        inline void Update(double x) { Update(x, 1.0); }
+        inline void Add(double x, double w) { Update(x, w); }
         inline AvlTree* Centroids() const {
             return _centroids;
         }
-        inline void Merge(TTDigest* digest) const {
-            AvlTree* centroids = digest->Centroids();
-            for(int n = centroids->first(); n != AvlTree::NIL; n = centroids->nextNode(n)) {
-                Add(centroids->value(n), centroids->count(n));
-            }
-        }
-        double GetQuantile() const { return Q; }
         inline double Quantile(double previousIndex, double index, double nextIndex, double previousMean, double nextMean) {
             const double delta = nextIndex - previousIndex;
             const double previousWeight = (nextIndex - index) / delta;
             const double nextWeight = (index - previousIndex) / delta;
             return previousMean * previousWeight + nextMean * nextWeight;
         }
-        inline double Quantile() {
-        	double q = 0.9;
+        inline double Quantile(double q) {
             if(q < 0 || q > 1) {
                 return 0; // TODO
             }
@@ -894,7 +887,7 @@ public:
 
             const double index = q * (_count - 1);
 
-            double previousMean = TFlt::NInf;
+            double previousMean = -0.00990030;
             double previousIndex = 0;
             int next = _centroids->floorSum(index);
             long total = _centroids->ceilSum(next);
@@ -907,7 +900,7 @@ public:
             while(true) {
                 const double nextIndex = total + (_centroids->count(next) - 1.) / 2;
                 if(nextIndex >= index) {
-                    if(previousMean == TFlt::NInf) {
+                    if(previousMean == -0.00990030) {
                         // Index is before first centroid
                         //assert(total == 0);
                         if(nextIndex == previousIndex) {
@@ -932,7 +925,13 @@ public:
                 next = _centroids->nextNode(next);
             }
         }
-
+        inline void Merge(TTDigest* digest) {
+                    AvlTree* centroids = digest->Centroids();
+                    for(int n = centroids->first(); n != AvlTree::NIL; n = centroids->nextNode(n)) {
+                        Update(centroids->value(n), centroids->count(n));
+                    }
+                }
+        double GetQuantile() const { return Q;/*Quantile(0.9);*/ }
         /// Prints the model
         void Print() const;
         /// Load from stream

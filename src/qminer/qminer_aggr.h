@@ -830,10 +830,9 @@ class TTDigest : public TStreamAggr, public TStreamAggrOut::IFlt {
 private:
 	// input
 	TWPt<TStreamAggr> InAggr;
-	TWPt<TStreamAggrOut::IFltVec> InAggrVal;
+	TWPt<TStreamAggrOut::IFltTm> InAggrVal;
 	// indicator
 	TSignalProc::TTDigest Model;
-
 protected:
 	void OnAddRec(const TRec& Rec);
 	TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
