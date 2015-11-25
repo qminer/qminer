@@ -784,13 +784,13 @@ public:
 ///   https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf
 class TTDigest {
 private:
-        double _compression = 100;
-        double _count = 0;
-        AvlTree* _centroids = new AvlTree();
+        double _compression;
+        double _count;
+        AvlTree* _centroids;
 public: 
         /// Constructs uninitialized object
-        TTDigest() {};
-        TTDigest (double compression): _compression(compression) {}
+        TTDigest() { _compression = 100; _count = 0; _centroids = new AvlTree(); };
+        TTDigest (double compression): _compression(compression) {_compression = 100; _count = 0; _centroids = new AvlTree();}
         /// Initializes the object, resets current content is present
         void Init();   
         void Update(const TFlt& Val);
@@ -858,7 +858,7 @@ public:
 
         }
 
-        inline void Add(double x, double w) { Add(x, w); }
+        inline void Add(double x, double w) const { Add(x, w); }
 
         inline static double Quantile(
                 double previousIndex, double index, double nextIndex,
@@ -874,7 +874,7 @@ public:
             return _centroids;
         }
 
-        inline void Merge(TTDigest* digest) {
+        inline void Merge(TTDigest* digest) const {
             AvlTree* centroids = digest->Centroids();
             for(int n = centroids->first(); n != AvlTree::NIL; n = centroids->nextNode(n)) {
                 Add(centroids->value(n), centroids->count(n));
