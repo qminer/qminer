@@ -1757,8 +1757,8 @@ public:
 	// stream aggregator type name 
 	static TStr GetType() { return "javaScript"; }
 	TStr Type() const { return GetType(); }
-	void _Save(TSOut& SOut) const;
-	void _Load(TSIn& SIn);
+	void SaveState(TSOut& SOut) const;
+	void LoadState(TSIn& SIn);
 
 	// IInt
 	int GetInt() const;

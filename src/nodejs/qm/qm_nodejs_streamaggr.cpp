@@ -569,14 +569,14 @@ TNodeJsStreamAggr::TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm
 	QmAssert(_SaveJsonFun->IsFunction());
 	SaveJsonFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_SaveJsonFun));
 
-	// StreamAggr::_Save
+	// StreamAggr::SaveState
 	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "save"))) {
 		v8::Handle<v8::Value> _Save = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "save"));
 		QmAssert(_Save->IsFunction());
 		SaveFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_Save));
 	}
 
-	// StreamAggr::_Load
+	// StreamAggr::LoadState
 	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "load"))) {
 		v8::Handle<v8::Value> _Load = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "load"));
 		QmAssert(_Load->IsFunction());
@@ -584,76 +584,79 @@ TNodeJsStreamAggr::TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm
 	}
 
 	// IInt
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInt"))) {
-		v8::Handle<v8::Value> _GetInt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInt"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInteger"))) {
+		v8::Handle<v8::Value> _GetInt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInteger"));
 		QmAssert(_GetInt->IsFunction());
 		GetIntFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInt));
 	}
 	// IFlt
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFlt"))) {
-		v8::Handle<v8::Value> _GetFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFlt"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFloat"))) {
+		v8::Handle<v8::Value> _GetFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFloat"));
 		QmAssert(_GetFlt->IsFunction());
 		GetFltFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFlt));
 	}
 	// ITm
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getTm"))) {
-		v8::Handle<v8::Value> _GetTm = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getTm"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getTimestamp"))) {
+		v8::Handle<v8::Value> _GetTm = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getTimestamp"));
 		QmAssert(_GetTm->IsFunction());
 		GetTmMSecsFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetTm));
 	}
 	// IFltTmIO
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInFlt"))) {
-		v8::Handle<v8::Value> _GetInFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInFlt"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInFloat"))) {
+		v8::Handle<v8::Value> _GetInFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInFloat"));
 		QmAssert(_GetInFlt->IsFunction());
 		GetInFltFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInFlt));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInTm"))) {
-		v8::Handle<v8::Value> _GetInTm = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInTm"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInTimestamp"))) {
+		v8::Handle<v8::Value> _GetInTm = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInTimestamp"));
 		QmAssert(_GetInTm->IsFunction());
 		GetInTmMSecsFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInTm));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInFltV"))) {
-		v8::Handle<v8::Value> _GetInFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInFltV"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInFloatVector"))) {
+		v8::Handle<v8::Value> _GetInFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInFloatVector"));
 		QmAssert(_GetInFltV->IsFunction());
 		GetInFltVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInFltV));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInTmV"))) {
-		v8::Handle<v8::Value> _GetInTmV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInTmV"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInTimestampVector"))) {
+		v8::Handle<v8::Value> _GetInTmV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInTimestampVector"));
 		QmAssert(_GetInTmV->IsFunction());
 		GetInTmMSecsVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInTmV));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getOutFltV"))) {
-		v8::Handle<v8::Value> _GetOutFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOutFltV"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getOutFloatVector"))) {
+		v8::Handle<v8::Value> _GetOutFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOutFloatVector"));
 		QmAssert(_GetOutFltV->IsFunction());
 		GetOutFltVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetOutFltV));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getOutTmV"))) {
-		v8::Handle<v8::Value> _GetOutTmV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOutTmV"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getOutTimestampVector"))) {
+		v8::Handle<v8::Value> _GetOutTmV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOutTimestampVector"));
 		QmAssert(_GetOutTmV->IsFunction());
 		GetOutTmMSecsVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetOutTmV));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getN"))) {
-		v8::Handle<v8::Value> _GetN = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getN"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getNumberOfRecords"))) {
+		v8::Handle<v8::Value> _GetN = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getNumberOfRecords"));
 		QmAssert(_GetN->IsFunction());
 		GetNFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetN));
 	}
 
 	// IFltVec
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFltLen"))) {
-		v8::Handle<v8::Value> _GetFltLen = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFltLen"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFloatLength"))) {
+		v8::Handle<v8::Value> _GetFltLen = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFloatLength"));
 		QmAssert(_GetFltLen->IsFunction());
 		GetFltLenFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFltLen));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFltAt"))) {
-		v8::Handle<v8::Value> _GetFltAt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFltAt"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFloatAt"))) {
+		v8::Handle<v8::Value> _GetFltAt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFloatAt"));
 		QmAssert(_GetFltAt->IsFunction());
 		GetFltAtFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFltAt));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFltV"))) {
-		v8::Handle<v8::Value> _GetFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFltV"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFloatVector"))) {
+		v8::Handle<v8::Value> _GetFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFloatVector"));
 		QmAssert(_GetFltV->IsFunction());
 		GetFltVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFltV));
 	}
+
+	// TODO - fix glib names and expose the interfaces TNodeJsSA
+
 	// INmFlt
 	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "isNmFlt"))) {
 		v8::Handle<v8::Value> _IsNmFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "isNmFlt"));
@@ -828,15 +831,19 @@ PJsonVal TNodeJsStreamAggr::SaveJson(const int& Limit) const {
 	}
 }
 
-void TNodeJsStreamAggr::_Save(TSOut& SOut) const {
+void TNodeJsStreamAggr::SaveState(TSOut& SOut) const {
 	if (SaveFun.IsEmpty()) {
-		throw TQm::TQmExcept::New("TNodeJsStreamAggr::_Save (called using sa.save) : stream aggregate does not implement a save callback: " + GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::SaveState (called using sa.save) : stream aggregate does not implement a save callback: " + GetAggrNm());
+	} else {
+
 	}
 }
 
-void TNodeJsStreamAggr::_Load(TSIn& SIn) {
+void TNodeJsStreamAggr::LoadState(TSIn& SIn) {
 	if (LoadFun.IsEmpty()) {
-		throw TQm::TQmExcept::New("TNodeJsStreamAggr::_Load (called using sa.load) : stream aggregate does not implement a load callback: " + GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::LoadState (called using sa.load) : stream aggregate does not implement a load callback: " + GetAggrNm());
+	} else {
+		
 	}
 }
 

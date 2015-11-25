@@ -789,16 +789,16 @@ public:
 /// TStreamAggrOut::IFltTmIO
 class TOnlineHistogram : public TStreamAggr, public TStreamAggrOut::IFltVec {
 private:
+	// STATE
 	TSignalProc::TOnlineHistogram Model;
 
+	// PARAMETERS (reconstructed from JSON)
 	// Input aggregate: only one aggregate is expected on input, these just
 	// provide access to different interfaces for convenience 
 	TStreamAggr* InAggr;
 	TStreamAggrOut::IFltTm* InAggrVal; // can be NULL if the input is a buffered aggregate (IFltTmIO)
 	TStreamAggrOut::IFltTmIO* InAggrValBuffer; // can be NULL if the input is a time series aggregate (IFltTm)
-	
 	TBool BufferedP; ///< is InAggrValBuffer not NULL?
-
 protected:
 	/// Triggered when a record is added
 	void OnAddRec(const TRec& Rec);
