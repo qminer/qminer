@@ -817,8 +817,8 @@ PJsonVal TNodeJsStreamAggr::SaveJson(const int& Limit) const {
 		v8::TryCatch TryCatch;
 		v8::Local<v8::Value> ReturnVal = Callback->Call(GlobalContext, Argc, ArgV);
 		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();
-			return TJsonVal::NewObj();
+			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+			throw TQm::TQmExcept::New("Javascript exception from callback triggered: " +  TStr(*Msg));
 		}
 		QmAssertR(ReturnVal->IsObject(), "Stream aggr JS callback: saveJson didn't return an object.");
 		PJsonVal Res = TNodeJsUtil::GetObjJson(ReturnVal->ToObject());
@@ -835,7 +835,24 @@ void TNodeJsStreamAggr::SaveState(TSOut& SOut) const {
 	if (SaveFun.IsEmpty()) {
 		throw TQm::TQmExcept::New("TNodeJsStreamAggr::SaveState (called using sa.save) : stream aggregate does not implement a save callback: " + GetAggrNm());
 	} else {
+		// create TNodeJsFOut and pass it to callback
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
 
+		PSOut POut(&SOut);
+		v8::Local<v8::Object> JsFOut = TNodeJsUtil::NewInstance<TNodeJsFOut>(new TNodeJsFOut(POut));
+		
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, SaveFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+		const unsigned Argc = 1;
+		v8::Local<v8::Value> ArgV[Argc] = { JsFOut };
+		
+		v8::TryCatch TryCatch;
+		Callback->Call(GlobalContext, Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+			throw TQm::TQmExcept::New("Javascript exception from callback triggered: " + TStr(*Msg));
+		}
 	}
 }
 
@@ -843,7 +860,23 @@ void TNodeJsStreamAggr::LoadState(TSIn& SIn) {
 	if (LoadFun.IsEmpty()) {
 		throw TQm::TQmExcept::New("TNodeJsStreamAggr::LoadState (called using sa.load) : stream aggregate does not implement a load callback: " + GetAggrNm());
 	} else {
-		
+		// create TNodeJsFOut and pass it to callback
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		PSIn PIn(&SIn);
+		v8::Local<v8::Object> JsFIn = TNodeJsUtil::NewInstance<TNodeJsFIn>(new TNodeJsFIn(PIn));
+
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, LoadFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+		const unsigned Argc = 1;
+		v8::Local<v8::Value> ArgV[Argc] = { JsFIn };
+		v8::TryCatch TryCatch;
+		Callback->Call(GlobalContext, Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+			throw TQm::TQmExcept::New("Javascript exception from callback triggered: " + TStr(*Msg));
+		}		
 	}
 }
 
