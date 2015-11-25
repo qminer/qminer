@@ -1,6 +1,7 @@
 #include "avltree.h"
 
 AvlTree::AvlTree(): _root(NIL) {
+	_n = 0;
     _depth[NIL]     = 0;
     _parent[NIL]    = 0;
     _left[NIL]      = 0;

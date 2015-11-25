@@ -5,7 +5,7 @@ class AvlTree {
 
     private:
         int       _root;
-        int       _n = 0;
+        int       _n;
         // TODO We should reallocate tables (ie allow dynamic arrays)
         int       _parent[1000];
         int       _left[1000];
