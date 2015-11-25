@@ -625,7 +625,17 @@ public:
 	/// Get field value using field id (default implementation throws exception)
 	virtual int GetFieldInt(const uint64& RecId, const int& FieldId) const;
 	/// Get field value using field id (default implementation throws exception)
+	virtual int16 GetFieldInt16(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual int64 GetFieldInt64(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual uchar GetFieldByte(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
 	virtual void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual uint GetFieldUInt(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual uint16 GetFieldUInt16(const uint64& RecId, const int& FieldId) const;
 	/// Get field value using field id (default implementation throws exception)
 	virtual uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const;
 	/// Get field value using field id (default implementation throws exception)
