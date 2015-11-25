@@ -13,7 +13,6 @@
 
 namespace TSignalProc {
 
-
 /////////////////////////////////////////////////
 // Online Moving Average
 class TMaSimple {
@@ -805,14 +804,15 @@ public:
             }
 
             if(start == AvlTree::NIL) {
-                assert(_centroids->size() == 0);
+                //assert(_centroids->size() == 0);
                 _centroids->add(x, w);
                 _count += w;
             } else {
                 double minDistance = DBL_MAX;
                 int lastNeighbor = AvlTree::NIL;
-                for(int neighbor = start; start != AvlTree::NIL; neighbor = _centroids->nextNode(neighbor)) {
-                    double z = abs(_centroids->value(neighbor) - x);
+                int nil = AvlTree::NIL;
+                for(int neighbor = start; start != nil; neighbor = _centroids->nextNode(neighbor)) {
+                    double z = TFlt::Abs(_centroids->value(neighbor) - x);
                     if(z < minDistance) {
                         start = neighbor;
                         minDistance = z;
@@ -820,14 +820,13 @@ public:
                         lastNeighbor = neighbor;
                         break;
                     }
-                    
                 }
 
                 int closest = AvlTree::NIL;
                 long sum = _centroids->ceilSum(start);
                 double n = 0;
                 for(int neighbor = start; neighbor != lastNeighbor; neighbor = _centroids->nextNode(neighbor)) {
-                    assert(minDistance == abs(_centroids->value(neighbor) - x));
+                    //assert(minDistance == abs(_centroids->value(neighbor) - x));
                     double q = _count == 1
                         ? 0.5 
                         : (sum + (_centroids->count(neighbor) - 1 / 2. )) / (_count - 10) 
@@ -852,7 +851,7 @@ public:
                 _count += w;
 
                 if(_centroids->size() > 20 * _compression) {
-                    cout << "Compress:" << _centroids->size() << endl;
+                    //cout << "Compress:" << _centroids->size() << endl;
                     Compress();
                 }
             }
