@@ -171,7 +171,10 @@ inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
 
     svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
 
+    // Make sure the WgtV is non-null, i.e., in case w=0 set WgtV to a vector
+    // composed of a sufficient number of zeros (e.g. [0, 0, ..., 0]).
     TFltV WgtV(svm_model->l);
+//printf("len=%d\n", svm_model->l); // XXX REMOVE
     TFlt Bias = svm_model->rho[0];
     EAssertR(TLinAlg::Norm(WgtV) == 0.0, "Expected a zero weight vector.");
     for (int Idx = 0; Idx < svm_model->l; ++Idx) {
