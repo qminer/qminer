@@ -4,16 +4,16 @@
 class AvlTree {
 
     private:
-        int       _root;
-        int       _n;
+        int _root;
+        int _n;
         // TODO We should reallocate tables (ie allow dynamic arrays)
-        int       _parent[1000];
-        int       _left[1000];
-        int       _right[1000];
-        char      _depth[1000];
-        int       _count[1000];
-        double    _values[1000];
-        int       _aggregatedCount[1000];
+        int _parent[1000];
+        int _left[1000];
+        int _right[1000];
+        char _depth[1000];
+        int _count[1000];
+        double _values[1000];
+        int _aggregatedCount[1000];
 
     public:
         static const int NIL = 0;
