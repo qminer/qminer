@@ -767,6 +767,52 @@ describe("Two Store Tests", function () {
 });
 
 ///////////////////////////////////////////////////////////////////////////////
+// Many Stores
+
+describe('Many Stores Test', function () {
+
+    var base = undefined;
+    beforeEach(function () {
+        base = new qm.Base({ mode: 'createClean' });
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    describe('Creating 100 Stores Test', function () {
+        it('should create 100 stores', function () {
+            var numOfStores = 100
+
+            for (i = 0; i < numOfStores; i++) {
+                var storeDef = {
+                    "name": "TestStore_" + i,
+                    "fields": [{ "name": "Test", "type": "float" }]
+                }
+                base.createStore(storeDef);
+            }
+
+            assert.equal(100, base.getStoreList().length);
+        })
+    });
+
+    describe('Creating 1000 Stores Test', function () {
+        it('should create 1000 stores', function () {
+            var numOfStores = 1000
+
+            for (i = 0; i < numOfStores; i++) {
+                var storeDef = {
+                    "name": "TestStore_" + i,
+                    "fields": [{ "name": "Test", "type": "float" }]
+                }
+                base.createStore(storeDef);
+            }
+
+            assert.equal(1000, base.getStoreList().length);
+        })
+    });
+})
+
+///////////////////////////////////////////////////////////////////////////////
 // AddTrigger
 
 describe('AddTrigger Tests', function () {
