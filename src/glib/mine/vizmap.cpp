@@ -1124,8 +1124,6 @@ void TVizMapFactory::MakeFlat(const PSVMTrainSet& Set,
     for (int i = 0; i < Len; i++) {
         DocPointV.Add(TFltV::GetV(x[i], y[i]));
     }
-	printf("DocPointV in MakeFlat: %d, %d\n", DocPointV.Len(), DocPointV[0].Len());
-
 }
 
 void TVizMapFactory::NormalizePoints(TVec<TFltV>& PointV) {
