@@ -1469,8 +1469,8 @@ void TRecSerializator::GetFieldIntV(TThinMIn& min, const int& FieldId, TIntV& In
 }
 /// Field getter
 uint64 TRecSerializator::GetFieldUInt64(TThinMIn& min, const int& FieldId) const {
-	const char* bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
-	return *((uint64*)bf);
+	const char* Bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
+	return TUInt64::GetFromBufSafe(Bf);
 }
 /// Field getter
 TStr TRecSerializator::GetFieldStr(TThinMIn& min, const int& FieldId) const {
@@ -1525,13 +1525,13 @@ bool TRecSerializator::GetFieldBool(TThinMIn& min, const int& FieldId) const {
 }
 /// Field getter
 double TRecSerializator::GetFieldFlt(TThinMIn& min, const int& FieldId) const {
-	const char* bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
-	return *((double*)bf);
+	const char* Bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
+        return TFlt::GetFromBufSafe(Bf); // do not cast (not portable to ARM)
 }
 /// Field getter
 TFltPr TRecSerializator::GetFieldFltPr(TThinMIn& min, const int& FieldId) const {
-	const char* bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
-	return TFltPr(*((double*)bf), *(((double*)bf) + 1));
+	const char* Bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
+	return TFltPr(TFlt::GetFromBufSafe(Bf), TFlt::GetFromBufSafe(Bf + sizeof(double))); // do not cast (not portable to ARM)
 }
 /// Field getter
 void TRecSerializator::GetFieldFltV(TThinMIn& min, const int& FieldId, TFltV& FltV) const {
@@ -2662,9 +2662,6 @@ uint64 TStoreImpl::AddRec(const PJsonVal& RecVal, const bool& TriggerEvents) {
 				}
 			} else if (PrimaryFieldType == oftTm) {
 				const uint64 FieldVal = RecVal->GetObjTmMSecs(PrimaryField);
-//				TStr TmStr = RecVal->GetObjStr(PrimaryField);
-//				TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
-//				const uint64 FieldVal = TTm::GetMSecsFromTm(Tm);
 				if (PrimaryTmMSecsIdH.IsKey(FieldVal)) {
 					PrimaryRecId = PrimaryTmMSecsIdH.GetDat(FieldVal);
 				}
@@ -3185,7 +3182,6 @@ PJsonVal TStoreImpl::GetStoreJson(const TWPt<TBase>& Base) const {
 
 	return Result;
 }
-
 
 /// Save part of the data, given time-window
 int TStoreImpl::PartialFlush(int WndInMsec) {

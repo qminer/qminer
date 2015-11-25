@@ -203,7 +203,8 @@ public:
 
 	// did we finish initialization
 	bool IsInit() const { return Buffer.IsInit(); }
-    
+	/// Resets the aggregate
+	void Reset() { Buffer.Reset(); }
 	// serilization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
     
@@ -219,6 +220,7 @@ class TTimeSeriesTick : public TStreamAggr, public TStreamAggrOut::IFltTm {
 private:
 	TInt TimeFieldId;
 	TInt TickValFieldId;
+    TFieldReader ValReader;
     // initialized after first value
     TBool InitP;
 	// last value
@@ -239,7 +241,9 @@ public:
 
 	// did we finish initialization
 	bool IsInit() const { return InitP; }
-    
+	/// Resets the model state
+	void Reset() { InitP = false; TickVal = 0.0; TmMSecs = 0; }
+
 	// current values
 	double GetFlt() const { return TickVal; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
@@ -255,74 +259,137 @@ public:
 ///////////////////////////////
 // Time series window buffer.
 // Wrapper for exposing a window in a time series to signal processing aggregates 
-// TODO; use circular buffer
+// Supports two parameters: window size (in milliseconds) and delay (in milliseconds)
+// When a new record with timestamp t_new is added, the buffer will be updated
+// and the timestamps of all contained records will satisfy: 
+// t_i - t_j <= window, for all i > j, and t_new - t_i >= delay, for all i.  
+// 
+// ASSUMPTION!
+// Internally the aggregate only tracks the IDs A <= B, C <= D, B <= D from which we can reconstruct:
+//  A ... B-1 forget interval
+//  B ... D-1 buffer interval
+//  C ... D-1 update interval 
+//  It may happen that B > C, which corresponds to records that skipped the buffer
+//  In that case, Skip := B - C is the number of skipped records, and
+//  A ... B-1-Skip is the forget interval
+//  C+Skip ... D-1 is the update interval
+// The IDs need not be in the store and any interval can be empty.
+// We assume the streaming store: no holes in record IDs, increasing timestamps, consistent
+// with intervals.
+//
 class TWinBuf : public TStreamAggr, public TStreamAggrOut::IFltTmIO,
-                public TStreamAggrOut::IFltVec, public TStreamAggrOut::ITmVec {
+	public TStreamAggrOut::IFltVec, public TStreamAggrOut::ITmVec, public TStreamAggrOut::ITm {
 private:
-    TInt TimeFieldId;
-    TInt TickValFieldId;
-    TUInt64 WinSizeMSecs;   
-    // initialized after first value
-    TBool InitP;
-    //the newest and oldest values
-    TFlt InVal;
-    TUInt64 InTmMSecs;
-    TFltV OutValV;
-    TUInt64V OutTmMSecsV;
-    // the buffer and the time stamps
-    TFltUInt64PrV AllValV; 
-	
-protected:
-	void OnAddRec(const TRec& Rec);
+	// STORAGE ACCESS
+	TWPt<TStore> Store; ///< needed to access records through IDs
+    TInt TimeFieldId; ///< field ID of the timestamp field in the store (used for efficiency)
+    TInt ValFieldId; ///< field ID of the value field in the store (used for efficiency)
+    TFieldReader ValReader;
 
+	// ALGORITHM PARAMETERS
+	TUInt64 WinSizeMSecs; ///< window size in milliseconds
+	TUInt64 DelayMSecs;  ///< delay in milliseconds
+    
+	//
+	// ALGORITHM STATE
+	//
+	TBool InitP; ///< Has the aggregate been updated at least once?
+	TUInt64 A; ///< The ID of the first record to forget. The last record to forget is strictly smaller than B. If A == B, the forget interval is empty.
+	TUInt64 B; ///< The ID of the first record in the buffer, or in case of empty buffer the ID of the first record after the buffer. Guaranteed to be in the store (due to NewRec). If B == D, the buffer is empty.
+	TUInt64 C; ///< The ID of the first record to update. If C == D, the update interval is empty.
+	TUInt64 D; ///< The ID of the first record after the buffer. Guaranteed to be in the store (due to NewRec). If D == B, the buffer is empty.
+	/// last timestamp
+	TUInt64 Timestamp;
+protected:
+	/// Stream aggregate update function called when a record is added
+	void OnAddRec(const TRec& Rec);
+	/// JSON based constructor
     TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
+	/// Smart pointer JSON based constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-
+	
 	/// Load stream aggregate state from stream
 	void LoadState(TSIn& SIn);
 	/// Save state of stream aggregate to stream
 	void SaveState(TSOut& SOut) const;
 
-	// did we finish initialization
+	/// did we finish initialization
 	bool IsInit() const { return InitP; }
-    
-	// most recent values
-	double GetInFlt() const { return InVal; }
-	uint64 GetInTmMSecs() const { return InTmMSecs; }
-    // old values that fall out of the buffer
-	void GetOutFltV(TFltV& ValV) const { ValV = OutValV; }
-	void GetOutTmMSecsV(TUInt64V& MSecsV) const { MSecsV = OutTmMSecsV; }  
+	/// Resets the model state
+	void Reset();
+	/// most recent values. Only makes sense if delay = 0!
+	double GetInFlt() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); EAssertR(B < D, "WinBuf is empty - GetInFlt() isn't valid! You need to reimplement OnAdd of the aggregate that is connected to WinBuf to use GetInFltV instead of GetInFlt!"); return Value(D - 1); }
+	/// most recent timestamps. Only makes sense if delay = 0!
+	uint64 GetInTmMSecs() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); EAssertR(B < D, "WinBuf is empty - GetInTmMSecs() isn't valid! You need to reimplement OnAdd of the aggregate that is connected to WinBuf to use GetInTmMSecsV instead of GetInTmMSecs!"); return Time(D - 1); }
+    /// Is the window delayed ?
+	bool DelayedP() const { return DelayMSecs > 0; }
+
+	/// new values that just entered the buffer (needed if delay is nonzero)
+	void GetInFltV(TFltV& ValV) const;
+	/// new timestamps that just entered the buffer (needed if delay is nonzero)
+	void GetInTmMSecsV(TUInt64V& MSecsV) const;
 	
-	// the oldest value that is still in the buffer
-	double GetOldestFlt() const { return AllValV[0].Val1; }
-	// the oldest timestamp that is still in the buffer
-	uint64 GetOldestTmMSecs() const { return AllValV[0].Val2; }
+	/// old values that fall out of the buffer
+	void GetOutFltV(TFltV& ValV) const;
+	/// old timestamps that fall out of the buffer
+	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
 
-    // buffer length
-	int GetN() const { return AllValV.Len(); }
+	uint64 GetTmMSecs() const { return Timestamp; }
+		
+    /// buffer length
+	int GetN() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return (int)(D - B); }
 
-	// IFltVec
-	int GetFltLen() const {	return AllValV.Len(); }
-	double GetFlt(const TInt& ElN) const { return AllValV[ElN].Val1; }
+	/// get float vector length (IFltVec interface)
+	int GetFltLen() const { return GetN(); }
+	/// get float vector element (IFltVec interface)
+	double GetFlt(const TInt& ElN) const { return Value(B + ElN); }
+	/// get float vector of all values in the buffer (IFltVec interface)
 	void GetFltV(TFltV& ValV) const;
-	// ITmVec 
-	int GetTmLen() const { return AllValV.Len(); }
-	uint64 GetTm(const TInt& ElN) const { return AllValV[ElN].Val2; }
+	/// get time vector length (ITmVec interface) 
+	int GetTmLen() const { return GetN(); }
+	/// get time vector element (ITmVec interface
+	uint64 GetTm(const TInt& ElN) const { return Time(B + ElN); }
+	/// get timestamp vector of all timestamps in the buffer (ITmVec interface)
 	void GetTmV(TUInt64V& MSecsV) const;
-
-	// serialization to JSon
+	
+	/// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
     
-    // stream aggregator type name 
+	/// stream aggregator type name 
     static TStr GetType() { return "timeSeriesWinBuf"; }
+	/// stream aggregator type name 
 	TStr Type() const { return GetType(); }
+	
+	/// Test if current state is consistent with store and parameters
+	bool TestValid() const;
+	/// print state for debugging
+	void Print(const bool& PrintState = false);
+private:
+	// helper functions
+	uint64 Time(const uint64& RecId) const { return Store->GetFieldTmMSecs(RecId, TimeFieldId); }
+	double Value(const uint64& RecId) const { return ValReader.GetFlt(TRec(Store, RecId)); }
+	
+	bool InStore(const uint64& RecId) const { return Store->IsRecId(RecId); }
+	bool BeforeStore(const uint64& RecId) const { return RecId < Store->GetFirstRecId(); }
+	bool AfterStore(const uint64& RecId) const { return RecId > Store->GetLastRecId(); }
+	
+	bool InBuffer(const uint64& RecId, const uint64& LastRecTmMSecs) const {
+		return !BeforeBuffer(RecId, LastRecTmMSecs) && !AfterBuffer(RecId, LastRecTmMSecs);
+	}
+	bool BeforeBuffer(const uint64& RecId, const uint64& LastRecTmMSecs) const {
+		return  BeforeStore(RecId) || (InStore(RecId) && (Time(RecId) < LastRecTmMSecs - DelayMSecs - WinSizeMSecs));
+	}
+	bool AfterBuffer(const uint64& RecId, const uint64& LastRecTmMSecs) const {
+		return AfterStore(RecId) || (InStore(RecId) && (Time(RecId) > LastRecTmMSecs - DelayMSecs));
+	}
+	void PrintInterval(const uint64& StartId, const uint64& EndId, const TStr& Label = "", const TStr& ModCode = "39") const;
 };
 
 ///////////////////////////////////////
-// Moving Window Buffer Template
+// Windowed Stream aggregates (readers from TWinBuf) 
 template <class TSignalType>
-class TWinBuffer : public TStreamAggr, public TStreamAggrOut::IFltTm {
+class TWinAggr : public TStreamAggr, public TStreamAggrOut::IFltTm {
 private:
 	// input
 	TWPt<TStreamAggr> InAggr;
@@ -330,16 +397,21 @@ private:
 	TSignalType Signal;
 
 protected:
-	void OnAddRec(const TRec& Rec) {
-		TFltV ValV; InAggrVal->GetOutFltV(ValV);
-		TUInt64V TmMSecsV; InAggrVal->GetOutTmMSecsV(TmMSecsV);
+	void OnAddRec(const TRec& Rec) {		
+		TFltV OutValV; InAggrVal->GetOutFltV(OutValV);
+		TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
 		if (InAggr->IsInit()) {
-			Signal.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(),
-				ValV, TmMSecsV);
+			if (!InAggrVal->DelayedP()) {
+				Signal.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(), OutValV, OutTmMSecsV);
+			} else {
+				TFltV InValV; InAggrVal->GetInFltV(InValV);
+				TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
+				Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV);
+			}
 		};
 	}
 
-	TWinBuffer(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
+	TWinAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
 		// parse out input aggregate
 		TStr InStoreNm = ParamVal->GetObjStr("store");
 		TStr InAggrNm = ParamVal->GetObjStr("inAggr");
@@ -354,7 +426,7 @@ public:
 
 	// json constructor 
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
-		return new TWinBuffer<TSignalType>(Base, ParamVal);
+		return new TWinAggr<TSignalType>(Base, ParamVal);
 	}
 
 	// Load stream aggregate state from stream
@@ -364,16 +436,18 @@ public:
 
 	// did we finished initialization
 	bool IsInit() const { return Signal.IsInit(); }
+	/// Resets the aggregate
+	void Reset() { Signal.Reset(); }
 	// current values
 	double GetFlt() const { return Signal.GetValue(); }
-	uint64 GetTmMSecs() const { return Signal.GetTmMSecs(); }
+	uint64 GetTmMSecs() const { return TStreamAggrOut::ITm::GetTmMSecsCast(InAggr); }
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm()); }
 
 	// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const {
 		PJsonVal Val = TJsonVal::NewObj();
 		Val->AddToObj("Val", Signal.GetValue());
-		Val->AddToObj("Time", TTm::GetTmFromMSecs(Signal.GetTmMSecs()).GetWebLogDateTimeStr(true, "T"));
+		Val->AddToObj("Time", TTm::GetTmFromMSecs(GetTmMSecs()).GetWebLogDateTimeStr(true, "T"));
 		return Val;
 	}
 
@@ -382,11 +456,11 @@ public:
 	TStr Type() const { return GetType(); }
 };
 
-typedef TWinBuffer<TSignalProc::TSum> TWinBufSum;
-typedef TWinBuffer<TSignalProc::TMin> TWinBufMin;
-typedef TWinBuffer<TSignalProc::TMax> TWinBufMax;
-typedef TWinBuffer<TSignalProc::TMa> TMa;
-typedef TWinBuffer<TSignalProc::TVar> TVar;
+typedef TWinAggr<TSignalProc::TSum> TWinBufSum;
+typedef TWinAggr<TSignalProc::TMin> TWinBufMin;
+typedef TWinAggr<TSignalProc::TMax> TWinBufMax;
+typedef TWinAggr<TSignalProc::TMa> TMa;
+typedef TWinAggr<TSignalProc::TVar> TVar;
 
 ///////////////////////////////
 // Exponential Moving Average.
@@ -412,6 +486,8 @@ public:
 
 	// did we finish initialization
 	bool IsInit() const { return Ema.IsInit(); }
+	/// Resets the aggregate
+	void Reset() { Ema.Reset(); }
 	// current values
 	double GetFlt() const { return Ema.GetValue(); }
 	uint64 GetTmMSecs() const { return Ema.GetTmMSecs(); }
@@ -443,6 +519,8 @@ public:
 
 	// did we finish initialization
 	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
+	/// Resets the aggregate
+	void Reset() { Cov.Reset(); }
 	// current values
 	double GetFlt() const { return Cov.GetCov(); }
 	uint64 GetTmMSecs() const { return Cov.GetTmMSecs(); }
@@ -473,13 +551,14 @@ private:
     
 protected:
 	void OnAddRec(const TRec& Rec);    
-    
 	TCorr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
 	// did we finish initialization
 	bool IsInit() const { return  InAggrVarX->IsInit() && InAggrVarY->IsInit() && InAggrCov->IsInit(); }
+	/// Resets the aggregate
+	void Reset() { TmMSecs = 0;  Corr = 0; }
 	// current values
 	double GetFlt() const { return Corr; }
 	uint64 GetTmMSecs() const { return 0; }
@@ -566,6 +645,8 @@ private:
 public:
 	TMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal);
 
+	void Reset() { throw TQmExcept::New("TMerger::Reset() not implemented!"); }
+
 	void CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm);
 
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -649,6 +730,8 @@ private:
 	TResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
 public:
+	void Reset() { throw TQmExcept::New("TResampler::Reset() not implemented!"); }
+
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
 	/// Load stream aggregate state from stream
@@ -679,6 +762,8 @@ public:
 
 	// did we finish initialization
 	bool IsInit() const { return true; }
+	/// Reset
+	void Reset() { }
 	// retrieving vector of values from the aggregate
 	int GetFltLen() const { return FtrSpace->GetDim(); }
 	void GetFltV(TFltV& ValV) const { ValV = Vec; }
@@ -727,7 +812,12 @@ public:
 
 	/// did we finish initialization
 	bool IsInit() const { return Model.IsInit(); }
-
+	/// Resets the aggregate
+	void Reset() { Model.Reset(); }
+	/// Load from stream
+	void LoadState(TSIn& SIn);
+	/// Store state into stream
+	void SaveState(TSOut& SOut) const;
 	/// serilization to JSon
 	PJsonVal SaveJson(const int& Limit) const { return Model.SaveJson(); }
 
@@ -763,8 +853,15 @@ public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	// did we finish initialization
 	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
-	// get current P value
-	double GetFlt() const { return ChiSquare.GetP(); }
+	/// Reset
+	void Reset() { ChiSquare.Reset(); }
+	/// Load from stream
+	void LoadState(TSIn& SIn);
+	/// Store state into stream
+	void SaveState(TSOut& SOut) const;
+
+	// get current Chi2 value
+	double GetFlt() const { return ChiSquare.GetChi2(); }
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggrX->GetAggrNm()); 
         InAggrNmV.Add(InAggrY->GetAggrNm());}
 	// serialization to JSon
@@ -777,47 +874,59 @@ public:
 /////////////////////////////
 // Moving Window Buffer Sum
 template <>
-inline TStr TWinBuffer<TSignalProc::TSum>::GetType() { return "winBufSum"; }
+inline TStr TWinAggr<TSignalProc::TSum>::GetType() { return "winBufSum"; }
 
 /////////////////////////////
 // Moving Window Buffer Min
 template <>
-inline TStr TWinBuffer<TSignalProc::TMin>::GetType() { return "winBufMin"; }
+inline TStr TWinAggr<TSignalProc::TMin>::GetType() { return "winBufMin"; }
 
 /////////////////////////////
 // Moving Window Buffer Max
 template <>
-inline TStr TWinBuffer<TSignalProc::TMax>::GetType() { return "winBufMax"; }
+inline TStr TWinAggr<TSignalProc::TMax>::GetType() { return "winBufMax"; }
 
 /////////////////////////////
 // Moving Average
 template <>
-inline void TWinBuffer<TSignalProc::TMa>::OnAddRec(const TRec& Rec) {
-	TFltV ValV; InAggrVal->GetOutFltV(ValV);
-	TUInt64V TmMSecsV; InAggrVal->GetOutTmMSecsV(TmMSecsV);
+inline void TWinAggr<TSignalProc::TMa>::OnAddRec(const TRec& Rec) {
+	TFltV OutValV; InAggrVal->GetOutFltV(OutValV);
+	TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
 	if (InAggr->IsInit()) {
-		Signal.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(),
-			ValV, TmMSecsV, InAggrVal->GetN());
+		if (!InAggrVal->DelayedP()) {
+			Signal.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(),
+				OutValV, OutTmMSecsV, InAggrVal->GetN());
+		} else {
+			TFltV InValV; InAggrVal->GetInFltV(InValV);
+			TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
+			Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetN());
+		}
 	}
 }
 
 template <>
-inline TStr TWinBuffer<TSignalProc::TMa>::GetType() { return "ma"; }
+inline TStr TWinAggr<TSignalProc::TMa>::GetType() { return "ma"; }
 
 /////////////////////////////
 // Moving Variance
 template <>
-inline void TWinBuffer<TSignalProc::TVar>::OnAddRec(const TRec& Rec) {
-	TFltV ValV; InAggrVal->GetOutFltV(ValV);
-	TUInt64V TmMSecsV; InAggrVal->GetOutTmMSecsV(TmMSecsV);
+inline void TWinAggr<TSignalProc::TVar>::OnAddRec(const TRec& Rec) {
+	TFltV OutValV; InAggrVal->GetOutFltV(OutValV);
+	TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
 	if (InAggr->IsInit()) {
-		Signal.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(),
-            ValV, TmMSecsV, InAggrVal->GetN());
+		if (!InAggrVal->DelayedP()) {
+			Signal.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(),
+				OutValV, OutTmMSecsV, InAggrVal->GetN());
+		} else {
+			TFltV InValV; InAggrVal->GetInFltV(InValV);
+			TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
+			Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetN());
+		}
 	}
 }
 
 template <>
-inline TStr TWinBuffer<TSignalProc::TVar>::GetType() { return "variance"; }
+inline TStr TWinAggr<TSignalProc::TVar>::GetType() { return "variance"; }
 
 
 
@@ -851,6 +960,9 @@ public:
 	static PSlottedHistogram New(const uint64 Period, const uint64 Slot, const int Bins) { return new TSlottedHistogram(Period, Slot, Bins); }
 	/// Virtual destructor!
 	virtual ~TSlottedHistogram() { }
+
+	/// Resets the counts to 0
+	void Reset();
 
 	/// Load stream aggregate state from stream
 	void LoadState(TSIn& SIn);
@@ -900,6 +1012,8 @@ public:
 
 	/// did we finish initialization
 	bool IsInit() const { return true; }
+	void Reset() { Model->Reset(); }
+
 	void LoadState(TSIn& SIn);
 	void SaveState(TSOut& SOut) const;
 
@@ -938,6 +1052,8 @@ public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	// did we finish initialization
 	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
+	/// resets the aggregate
+	void Reset() { }
 	void LoadState(TSIn& SIn) { /* do nothing, there is not state */ }
 	void SaveState(TSOut& SOut) const { /* do nothing, there is not state */ }
 	

@@ -1253,6 +1253,82 @@ public:
 	}
 };
 
+///////////////////////////////////////////////
+/// Field value reader.
+/// Utility functions for extracting and casting basic types out of records.
+class TFieldReader {
+private:
+    /// Store Id
+    TUInt StoreId;
+    /// Field Id
+	TIntV FieldIdV;
+    /// Field description
+    TFieldDescV FieldDescV;
+
+    /// Extract string fields out of date
+	void ParseDate(const TTm& Tm, TStrV& StrV) const;
+
+    /// Assert field can provide double values
+    static bool IsFlt(const TFieldDesc& FieldDesc);
+    /// Assert field can provide double values
+    static bool IsFltV(const TFieldDesc& FieldDesc);
+    /// Assert field can provide double values
+    static bool IsNumSpV(const TFieldDesc& FieldDesc);
+    /// Assert field can provide double values
+    static bool IsStr(const TFieldDesc& FieldDesc);
+    /// Assert field can provide double values
+    static bool IsStrV(const TFieldDesc& FieldDesc);
+    /// Assert field can provide double values
+    static bool IsTmMSecs(const TFieldDesc& FieldDesc);
+
+    /// Pointer to function which checks specific field for type
+	typedef bool (*TIsFun)(const TFieldDesc& FieldDesc);
+    /// Apply given function to all fields and return true of all tests pass
+    bool IsAll(TIsFun IsFun) const;
+
+public:
+    TFieldReader() { }
+    /// Create reader from single field
+    TFieldReader(const uint& _StoreId, const int& FieldId, const TFieldDesc& FieldDesc):
+      StoreId(_StoreId) { FieldIdV.Add(FieldId); FieldDescV.Add(FieldDesc); }
+    /// Create reader from multiple fields
+    TFieldReader(const uint& _StoreId, const TIntV& _FieldIdV, const TFieldDescV& _FieldDescV):
+      StoreId(_StoreId), FieldIdV(_FieldIdV), FieldDescV(_FieldDescV) { }
+
+    /// Assert field can provide double values
+    bool IsFlt() const { return IsAll(IsFlt); }
+    /// Assert field can provide double values
+    bool IsFltV() const { return IsAll(IsFltV); }
+    /// Assert field can provide double values
+    bool IsNumSpV() const { return IsAll(IsNumSpV); }
+    /// Assert field can provide double values
+    bool IsStr() const { return IsAll(IsStr); }
+    /// Assert field can provide double values
+    bool IsStrV() const { return IsAll(IsStrV); }
+    /// Assert field can provide double values
+    bool IsTmMSecs() const { return IsAll(IsTmMSecs); }
+
+    /// Get double from a given record
+	double GetFlt(const TRec& Rec) const;
+    /// Get string vector from a given record
+    void GetFltV(const TRec& FtrRec, TFltV& FltV) const;
+    /// Get string vector from a given record set
+    void GetFltV(const PRecSet& FtrRecSet, TFltV& FltV) const;
+    /// Get sparse vector from a given record
+    void GetNumSpV(const TRec& FtrRec, TIntFltKdV& NumSpV) const;
+    /// Get string from a given record
+    TStr GetStr(const TRec& FtrRec) const;
+    /// Get string vector from a given record
+    void GetStrV(const TRec& FtrRec, TStrV& StrV) const;
+    /// Get string vector from a given record set
+    void GetStrV(const PRecSet& FtrRecSet, TStrV& StrV) const;
+    /// Get miliseconds from a given record
+    uint64 GetTmMSecs(const TRec& FtrRec) const;
+
+    /// Generate all possibe values that can be extracted from date
+    static TStrV GetDateRange();
+};
+
 ///////////////////////////////
 /// Record Set. 
 /// Holds a collection of record IDs from one store.
@@ -2722,6 +2798,9 @@ public:
 	/// Is the aggregate initialized. Used for aggregates, which require some time to get started.
 	virtual bool IsInit() const { return true; }
 
+	/// Reset the state of the aggregate
+	virtual void Reset() = 0;
+
 	/// Add new record to aggregate
 	virtual void OnAddRec(const TRec& Rec) = 0;
 	/// Recored already added to the aggregate is being updated
@@ -2746,6 +2825,17 @@ public:
 ///////////////////////////////
 // QMiner-Stream-Aggregator-Data-Interfaces
 namespace TStreamAggrOut {
+
+#define TStreamAggrOutHelper(Interface) \
+    static Interface* Cast ## Interface(const TWPt<TStreamAggr>& Aggr) { \
+		Interface* CastAggr = dynamic_cast<Interface*>(Aggr()); \
+		if (CastAggr != NULL) { \
+			return CastAggr; \
+		} else { \
+			throw TExcept::New("Dynamic cast failed for aggregate, " + Aggr->GetAggrNm()); \
+		} \
+    };
+
 	class IInt {
 	public:
 		// retireving value from the aggregate
@@ -2760,8 +2850,10 @@ namespace TStreamAggrOut {
 
 	class ITm {
 	public:
+		TStreamAggrOutHelper(ITm);
 		// retireving value from the aggregate
 		virtual uint64 GetTmMSecs() const = 0;
+		static uint64 GetTmMSecsCast(const TWPt<TStreamAggr>& Aggr) { return CastITm(Aggr)->GetTmMSecs(); }
 	};
 	
 	// combination of numeric value and timestamp
@@ -2771,6 +2863,9 @@ namespace TStreamAggrOut {
 	public:
 		virtual double GetInFlt() const = 0;
 		virtual uint64 GetInTmMSecs() const = 0;
+		virtual bool DelayedP() const = 0;
+		virtual void GetInFltV(TFltV& ValV) const = 0;
+		virtual void GetInTmMSecsV(TUInt64V& MSecsV) const = 0;
 		virtual void GetOutFltV(TFltV& ValV) const = 0;
 		virtual void GetOutTmMSecsV(TUInt64V& MSecsV) const = 0;
 		virtual int GetN() const = 0;
@@ -2836,6 +2931,9 @@ public:
 	int GetFirstStreamAggrId() const;
 	bool GetNextStreamAggrId(int& AggrId) const;
 	
+	/// reset all aggregates
+	void Reset();
+
 	// forward the calls to stream aggregates
 	void OnAddRec(const TRec& Rec);
 	void OnUpdateRec(const TRec& Rec);

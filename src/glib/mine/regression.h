@@ -9,45 +9,6 @@
 namespace TRegression {
 
 ///////////////////////////////////////////
-// Logistic Regression using the Newton-Raphson method
-class TLogReg {
-private:
-	double Lambda;
-	TFltV WgtV;
-
-	bool IncludeIntercept;
-
-	bool Verbose;
-	PNotify Notify;
-
-public:
-	// default constructor, sets the regularization parameter
-	TLogReg(const double& RegFact=1, const bool IncludeIntercept=false, const bool Verbose=true);
-	TLogReg(TSIn& SIn);
-
-	void Save(TSOut& SOut) const;
-
-	// Fits the regression model. The method assumes that the instances are stored in the
-	// columns of the matrix X and the responses are stored in vector y.
-	void Fit(const TFltVV& X, const TFltV& y, const double& Eps=1e-3);
-	// returns the expected response for the given feature vector
-	double Predict(const TFltV& x) const;
-
-	void GetWgtV(TFltV& WgtV) const;
-
-	// get functions
-	const double& GetLambda() { return Lambda; }
-	const bool& GetIntercept() { return IncludeIntercept; }
-	// set functions
-	void SetLambda(const double& _Lambda) { Lambda = _Lambda; }
-	void SetIntercept(const bool& _IncludeIntercept) { IncludeIntercept = _IncludeIntercept; }
-
-	bool Initialized() const { return !WgtV.Empty(); }
-private:
-	double PredictWithoutIntercept(const TFltV& x) const;
-};
-
-///////////////////////////////////////////
 // Proportional Hazards model
 class TPropHazards {
 private:

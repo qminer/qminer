@@ -195,12 +195,12 @@ inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
 }
 
 // LIBSVM for C-Support Vector Classification for sparse input
-inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV,
-        const double& Cost) {
+inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV, const double& Cost) {
 
     // Asserts for input arguments
     EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
 
+    // load training parameters
     svm_parameter_t svm_parameter;
     svm_parameter.svm_type = C_SVC;
     svm_parameter.kernel_type = LINEAR;
@@ -215,34 +215,43 @@ inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& 
     svm_parameter.shrinking = 0;
     svm_parameter.probability = 0;
 
-    const int n = VecV.Len();
-
+    // load train data
     svm_problem_t svm_problem;
-    svm_problem.l = n;
-    svm_problem.y = (double *)malloc(n*sizeof(double));
-
-    svm_problem.x = (svm_node_t **)malloc(n*sizeof(svm_node_t *));
+    svm_problem.l = VecV.Len();
+    // reserve space for target variable
+    svm_problem.y = (double *)malloc(VecV.Len() * sizeof(double));
+    // reserve space for training vectors
+    svm_problem.x = (svm_node_t **)malloc(VecV.Len() * sizeof(svm_node_t *));
+    // compute number of nonzero elements and get dimensionalit
+    int NonZero = 0, Dim = 0;
+    for (int VecN = 0; VecN < VecV.Len(); ++VecN) {
+        NonZero += (VecV[VecN].Len() + 1);
+        if (!VecV[VecN].Empty()) {
+            Dim = TInt::GetMx(Dim, VecV[VecN].Last().Key + 1);
+        }
+    }
+    svm_node_t* x_space = (svm_node_t *)malloc(NonZero * sizeof(svm_node_t));
+    // load training data and vectors
     int N = 0, prevN = 0;
-    for (int Idx = 0; Idx < VecV.Len(); ++Idx) { N += (VecV[Idx].Len() + 1); }
-    svm_node_t* x_space = (svm_node_t *)malloc(N*sizeof(svm_node_t));
-    N = 0;
-    for (int Idx = 0; Idx < VecV.Len(); ++Idx) {
+    for (int VecN = 0; VecN < VecV.Len(); ++VecN) {
         prevN = N;
-        svm_problem.y[Idx] = TargetV[Idx];
-        for (int Jdx = 0; Jdx < VecV[Idx].Len(); ++Jdx) {
-            x_space[N].index = VecV[Idx][Jdx].Key+1;
-            x_space[N++].value = VecV[Idx][Jdx].Dat;
+        svm_problem.y[VecN] = TargetV[VecN];
+        for (int EltN = 0; EltN < VecV[VecN].Len(); ++EltN) {
+            x_space[N].index = VecV[VecN][EltN].Key+1;
+            x_space[N++].value = VecV[VecN][EltN].Dat;
         }
         x_space[N++].index = -1;
-        svm_problem.x[Idx] = &x_space[prevN];
+        svm_problem.x[VecN] = &x_space[prevN];
     }
 
     const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
     EAssertR(error_msg == NULL, error_msg);
 
+    // train the model
     svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
 
-    TFltV WgtV(svm_model->l);
+    // compute normal vector from support vectors
+    TFltV WgtV(Dim);
     TFlt Bias = svm_model->rho[0];
     EAssertR(TLinAlg::Norm(WgtV) == 0.0, "Expected a zero weight vector.");
     for (int Idx = 0; Idx < svm_model->l; ++Idx) {
@@ -264,8 +273,7 @@ inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& 
 }
 
 // Use LIBSVM for C-Support Vector Classification
-inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV,
-        const double& Cost) {
+inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV, const double& Cost) {
 
     // Asserts for input arguments
     EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
