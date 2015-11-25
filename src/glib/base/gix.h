@@ -934,7 +934,7 @@ int TGix<TKey, TItem, TGixMerger>::PartialFlush(int WndInMsec) {
 		ItemSetCache.Del(to_delete[i], false);
 	}
 
-	printf("Partial flush - %d itemsets saved to disk, scanned %d - %f.\n", cnt, cnt_all, ((double)cnt / cnt_all));
+	// printf("Partial flush - %d itemsets saved to disk, scanned %d - %f.\n", cnt, cnt_all, ((double)cnt / cnt_all));
 	return cnt;
 }
 

@@ -56,7 +56,8 @@ public:
     double DecisionFunction(const TIntFltKdV& Vec) const;
     /// ID of the rate which triggered the anomaly (0 = none, 1 = RateV[0], ...)
     int Predict(const TIntFltKdV& Vec) const;
-	/// Returns the JSON that contains the ID of the nearest neighbour and a vector of per-feature contributions to the total distance to the nearest neighbor. Returns null JSON if not initialized.
+	/// Returns the JSON that contains the ID of the nearest neighbour and a vector of per-feature
+    /// contributions to the total distance to the nearest neighbor. Returns null JSON if not initialized.
 	PJsonVal Explain(const TIntFltKdV& Vec) const;
 
     // parameters

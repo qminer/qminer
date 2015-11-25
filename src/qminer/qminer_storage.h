@@ -1230,7 +1230,7 @@ public:
     /// Check if store supports TOAST
     virtual bool CanToast() { return true; }
     /// Return max size of non-TOAST-ed record
-    virtual int GetMaxToastLen() { return PAGE_SIZE / 4; }
+    virtual int GetMaxToastLen() { return PG_PAGE_SIZE / 4; }
     /// Store value into internal storage using TOAST method
     virtual TPgBlobPt ToastVal(const TMemBase& Mem);
     /// Retrieve value that is saved using TOAST method from storage 

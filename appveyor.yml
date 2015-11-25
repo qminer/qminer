@@ -18,16 +18,15 @@ install:
   - SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
   - ECHO commit message %CM%
   - ECHO %APPVEYOR_REPO_NAME%
-  # Install nodist so we can use it to install node.js versions later
-  - cmd: git clone https://github.com/marcelklehr/nodist.git c:\nodist 2>&1
-  - cmd: SET PATH=C:\nodist\bin;%PATH%
-  - cmd: SET NODIST_PREFIX=C:\nodist
-  - cmd: nodist selfupdate
+  # Install nvmw and both node versions
+  - git clone git://github.com/hakobera/nvmw.git "%HOMEDRIVE%%HOMEPATH%\.nvmw"
+  - set "PATH=%HOMEDRIVE%%HOMEPATH%\.nvmw;%PATH%"
+  - nvmw install v0.12.7 x86
+  - nvmw install v0.12.7 x64
 
 before_build:
-  - cmd: SET ARCH=x64
-  - cmd: SET NODIST_X64=1
-  - cmd: call nodist 0.12.7
+  - cmd: SET ARCH=x64  
+  - nvmw use v0.12.7 x64
 
 build_script:
   - npm install -g mustache
@@ -41,8 +40,7 @@ build_script:
 
 after_build:
   - cmd: SET ARCH=x86
-  - cmd: SET NODIST_X64=0
-  - cmd: call nodist 0.12.7
+  - nvmw use v0.12.7 x86
   - npm install --build-from-source --verbose --msvs_version=2013
   - cd tools
   - genExampleTests.bat
