@@ -1291,6 +1291,8 @@ typedef TSInt TInt16;
 // Unsigned Short-Integer
 class TUSInt {
 public:
+	static const uint16 Mn;
+	static const uint16 Mx;
 	uint16 Val;
 public:
 	TUSInt() : Val(0) {}

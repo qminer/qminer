@@ -2430,6 +2430,12 @@ const int16 TSInt::Mn = SHRT_MIN;
 const int16 TSInt::Mx = SHRT_MAX;
 
 /////////////////////////////////////////////////
+// Usigned Integer16
+
+const uint16 TUSInt::Mn = 0;
+const uint16 TUSInt::Mx = USHRT_MAX;
+
+/////////////////////////////////////////////////
 // Integer
 const int TInt::Mn=INT_MIN;
 const int TInt::Mx=INT_MAX;

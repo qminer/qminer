@@ -681,7 +681,7 @@ public:
 	/// Set the value of given field to NULL
 	virtual void SetFieldNull(const uint64& RecId, const int& FieldId);
 	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldByte(const uint64& RecId, const int& FieldId, const byte& Byte);
+	virtual void SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte);
 	/// Set field value using field id (default implementation throws exception)
 	virtual void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int);
 	/// Set field value using field id (default implementation throws exception)
@@ -856,7 +856,7 @@ public:
 	/// Checks if field value is null
 	bool IsFieldNull(const int& FieldId) const;
 	/// Field value retrieval
-	byte GetFieldByte(const int& FieldId) const;
+	uchar GetFieldByte(const int& FieldId) const;
 	/// Field value retrieval
 	int GetFieldInt(const int& FieldId) const;
 	/// Field value retrieval
@@ -900,7 +900,7 @@ public:
 	/// Set field value to NULL
 	void SetFieldNull(const int& FieldId);
 	/// Set field value
-	void SetFieldByte(const int& FieldId, const byte& Int);
+	void SetFieldByte(const int& FieldId, const uchar& Int);
 	/// Set field value
 	void SetFieldInt(const int& FieldId, const int& Int);
 	/// Set field value
@@ -2745,7 +2745,7 @@ public:
     /// Add RecId to linear index under (Key, Val)
     void IndexLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId);
 	/// Add RecId to linear index under (Key, Val)
-	void IndexLinear(const int& KeyId, const byte& Val, const uint64& RecId);
+	void IndexLinear(const int& KeyId, const uchar& Val, const uint64& RecId);
 	/// Add RecId to linear index under (Key, Val)
 	void IndexLinear(const int& KeyId, const int& Val, const uint64& RecId);
 	/// Add RecId to linear index under (Key, Val)
@@ -2762,7 +2762,7 @@ public:
     void IndexLinear(const int& KeyId, const double& Val, const uint64& RecId);
 
     /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const byte& Val, const uint64& RecId);
+    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uchar& Val, const uint64& RecId);
 	/// Delete RecId from linear index under (Key, Val)
 	void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId);
 	/// Delete RecId from linear index under (Key, Val)
@@ -2778,7 +2778,7 @@ public:
 	/// Delete RecId from linear index under (Key, Val)
     void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId);
 	/// Delete RecId from linear index under (Key, Val)
-	void DeleteLinear(const int& KeyId, const byte& Val, const uint64& RecId);
+	void DeleteLinear(const int& KeyId, const uchar& Val, const uint64& RecId);
 	/// Delete RecId from linear index under (Key, Val)
 	void DeleteLinear(const int& KeyId, const int& Val, const uint64& RecId);
 	/// Delete RecId from linear index under (Key, Val)

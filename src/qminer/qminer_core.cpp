@@ -775,7 +775,7 @@ void TStore::SetFieldNull(const uint64& RecId, const int& FieldId) {
 	throw FieldError(FieldId, "SetNull");
 }
 
-void TStore::SetFieldByte(const uint64& RecId, const int& FieldId, const byte& Byte) {
+void TStore::SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte) {
 	throw FieldError(FieldId, "Byte");
 }
 
@@ -1298,7 +1298,7 @@ TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal) :
 		switch (FieldDesc.GetFieldType()) {
 		case oftByte:
 			QmAssertR(FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
-			SetFieldByte(FieldId, (byte)FieldVal->GetInt());
+			SetFieldByte(FieldId, (uchar)FieldVal->GetInt());
 			break;
 		case oftInt:
 			QmAssertR(FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
@@ -1628,7 +1628,7 @@ void TRec::SetFieldNull(const int& FieldId) {
 	}
 }
 
-void TRec::SetFieldByte(const int& FieldId, const byte& Byte) {
+void TRec::SetFieldByte(const int& FieldId, const uchar& Byte) {
 	if (IsByRef()) {
 		Store->SetFieldByte(RecId, FieldId, Byte);
 	} else {
@@ -3558,10 +3558,10 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
                 RangeUChMnMx = TUChPr(KeyVal->GetObjInt("$gt", TUCh::Mn), KeyVal->GetObjInt("$lt", TUCh::Mx));
             } else if (Key.IsSortAsUInt()) {
                 Type = oqitRangeUInt;
-                RangeUIntMnMx = TUIntUIntPr(KeyVal->GetObjUInt64("$gt", TUInt64::Mn), KeyVal->GetObjUInt64("$lt", TUInt64::Mx));
+                RangeUIntMnMx = TUIntUIntPr(KeyVal->GetObjUInt64("$gt", TUInt::Mn), KeyVal->GetObjUInt64("$lt", TUInt::Mx));
 			} else if (Key.IsSortAsUInt16()) {
 				Type = oqitRangeUInt16;
-				RangeUInt16MnMx = TUInt16Pr(KeyVal->GetObjUInt64("$gt", TUInt64::Mn), KeyVal->GetObjUInt64("$lt", TUInt64::Mx));
+				RangeUInt16MnMx = TUInt16Pr(KeyVal->GetObjUInt64("$gt", TUInt16::Mn), KeyVal->GetObjUInt64("$lt", TUInt16::Mx));
 			} else if (Key.IsSortAsUInt64()) {
 				Type = oqitRangeUInt64;
 				RangeUInt64MnMx = TUInt64Pr(KeyVal->GetObjUInt64("$gt", TUInt64::Mn), KeyVal->GetObjUInt64("$lt", TUInt64::Mx));
@@ -3594,7 +3594,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
 				RangeInt64MnMx.Val1 = RangeInt64MnMx.Val2 = KeyVal->GetInt64();
 			} else if (Key.IsSortAsByte()) {
                 Type = oqitRangeByte;
-                RangeUChMnMx.Val1 = RangeUChMnMx.Val2 = (byte)KeyVal->GetInt();
+                RangeUChMnMx.Val1 = RangeUChMnMx.Val2 = (uchar)KeyVal->GetInt();
             } else if (Key.IsSortAsUInt()) {
                 Type = oqitRangeUInt;
                 RangeUIntMnMx.Val1 = RangeUIntMnMx.Val2 = (uint)KeyVal->GetUInt64();
@@ -4806,7 +4806,7 @@ void TIndex::IndexLinear(const uint& StoreId, const TStr& KeyNm, const double& V
 	IndexLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
 }
 
-void TIndex::IndexLinear(const int& KeyId, const byte& Val, const uint64& RecId) {
+void TIndex::IndexLinear(const int& KeyId, const uchar& Val, const uint64& RecId) {
 	// we shouldn't modify read-only index
 	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
 	// if new key, create sphere first
@@ -4875,7 +4875,7 @@ void TIndex::IndexLinear(const int& KeyId, const double& Val, const uint64& RecI
 	BTreeIndexFltH.GetDat(KeyId)->AddKey(Val, RecId);
 }
 
-void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const byte& Val, const uint64& RecId) {
+void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uchar& Val, const uint64& RecId) {
 	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
 }
 void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId) {
@@ -4902,7 +4902,7 @@ void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const double& 
 	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
 }
 
-void TIndex::DeleteLinear(const int& KeyId, const byte& Val, const uint64& RecId) {
+void TIndex::DeleteLinear(const int& KeyId, const uchar& Val, const uint64& RecId) {
 	// we shouldn't modify read-only index
 	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
 	// delete only if index exist 

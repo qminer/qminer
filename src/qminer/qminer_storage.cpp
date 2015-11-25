@@ -815,7 +815,7 @@ void TRecSerializator::SetFieldNull(char* Bf, const int& BfL, const TFieldSerial
 
 
 void TRecSerializator::SetFieldByte(TMemBase& RecMem,
-		const TFieldSerialDesc& FieldSerialDesc, const byte& Byte) {
+		const TFieldSerialDesc& FieldSerialDesc, const uchar& Byte) {
 	SetFieldByte(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Byte);
 }
 void TRecSerializator::SetFieldInt(TMemBase& RecMem,
@@ -885,10 +885,10 @@ void TRecSerializator::SetFieldNull(char* Bf, const int& BfL, const int& FieldId
 }
 
 void TRecSerializator::SetFieldByte(char* Bf, const int& BfL,
-	const TFieldSerialDesc& FieldSerialDesc, const byte& Byte) {
+	const TFieldSerialDesc& FieldSerialDesc, const uchar& Byte) {
 
 	char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
-	*((byte*)bf) = Byte;
+	*((uchar*)bf) = Byte;
 }
 void TRecSerializator::SetFieldInt(char* Bf, const int& BfL,
 	const TFieldSerialDesc& FieldSerialDesc, const int& Int) {
@@ -981,7 +981,7 @@ void TRecSerializator::SetFixedJsonVal(char* Bf, const int& BfL,
 	switch (FieldDesc.GetFieldType()) {
 	case oftByte:
 		QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
-		SetFieldByte(Bf, BfL, FieldSerialDesc, (byte)JsonVal->GetUInt64());
+		SetFieldByte(Bf, BfL, FieldSerialDesc, (uchar)JsonVal->GetUInt64());
 		break;
 	case oftInt:
 		QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
@@ -1054,7 +1054,7 @@ void TRecSerializator::SetFixedJsonVal(char* Bf, const int& BfL,
 /////////////////////
 
 /// Fixed-length field setter
-void TRecSerializator::SetFieldByte(char* Bf, const int& BfL, const int& FieldId, const byte& Byte) {
+void TRecSerializator::SetFieldByte(char* Bf, const int& BfL, const int& FieldId, const uchar& Byte) {
 	SetFieldByte(Bf, BfL, GetFieldSerialDesc(FieldId), Byte);
 }
 /// Fixed-length field setter
@@ -1344,7 +1344,7 @@ TRecSerializator::TRecSerializator(const TWPt<TStore>& Store, const TWPt<TToaste
 		// check if field is fixed-width and if yes, what is its width
 		int FixedSize = 0; bool FixedP = true;
 		switch (FieldDesc.GetFieldType()) {
-			case oftByte: FixedSize = sizeof(byte); break;
+			case oftByte: FixedSize = sizeof(uchar); break;
 			case oftInt: FixedSize = sizeof(int); break;
 			case oftInt16: FixedSize = sizeof(int16); break;
 			case oftInt64: FixedSize = sizeof(int64); break;
@@ -1564,9 +1564,9 @@ bool TRecSerializator::IsFieldNull(TThinMIn& min, const int& FieldId) const {
 	return ((*bf & FieldSerialDesc.NullMapMask) != 0);
 }
 /// Field getter
-byte TRecSerializator::GetFieldByte(TThinMIn& min, const int& FieldId) const {
+uchar TRecSerializator::GetFieldByte(TThinMIn& min, const int& FieldId) const {
 	const char* bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
-	return *((byte*)bf);
+	return *((uchar*)bf);
 }
 /// Field getter
 int TRecSerializator::GetFieldInt(TThinMIn& min, const int& FieldId) const {
@@ -1734,7 +1734,7 @@ bool TRecSerializator::IsFieldNull(const TMemBase& RecMem, const int& FieldId) c
 	return IsFieldNull(ThinMIn, FieldId);
 }
 
-byte TRecSerializator::GetFieldByte(const TMemBase& RecMem, const int& FieldId) const {
+uchar TRecSerializator::GetFieldByte(const TMemBase& RecMem, const int& FieldId) const {
 	TThinMIn ThinMIn(RecMem);
 	return GetFieldByte(ThinMIn, FieldId);
 }
@@ -1852,7 +1852,7 @@ void TRecSerializator::SetFieldNull(const TMemBase& InRecMem, TMem& OutRecMem, c
 }
 
 void TRecSerializator::SetFieldByte(const TMemBase& InRecMem,
-		TMem& OutRecMem, const int& FieldId, const byte& Byte) {
+		TMem& OutRecMem, const int& FieldId, const uchar& Byte) {
 
 	const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
 	// copy existing serialization
@@ -2177,7 +2177,7 @@ void TRecIndexer::IndexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
 		Index->Index(Key.KeyId, FltPr, RecId);
 	} else if (Key.FieldType == oftByte && Key.IsLinear()) {
 		// index integer value using btree
-		const byte Byte = Serializator.GetFieldByte(RecMem, Key.FieldId);
+		const uchar Byte = Serializator.GetFieldByte(RecMem, Key.FieldId);
 		Index->IndexLinear(Key.KeyId, Byte, RecId);
 	} else if (Key.FieldType == oftInt && Key.IsLinear()) {
 		// index integer value using btree
@@ -2243,7 +2243,7 @@ void TRecIndexer::DeindexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
 		Index->Delete(Key.KeyId, FltPr, RecId);
 	} else if (Key.FieldType == oftByte && Key.IsLinear()) {
 		// index integer value using btree
-		const byte Byte = Serializator.GetFieldByte(RecMem, Key.FieldId);
+		const uchar Byte = Serializator.GetFieldByte(RecMem, Key.FieldId);
 		Index->DeleteLinear(Key.KeyId, Byte, RecId);
 	} else if (Key.FieldType == oftInt && Key.IsLinear()) {
 		// index integer value using btree
@@ -2324,8 +2324,8 @@ void TRecIndexer::UpdateKey(const TFieldIndexKey& Key, const TMemBase& OldRecMem
 		Index->Index(Key.KeyId, NewFltPr, RecId);
 	} else if (Key.FieldType == oftByte && Key.IsLinear()) {
 		// index byte value using btree
-		const byte OldByte = Serializator.GetFieldByte(OldRecMem, Key.FieldId);
-		const byte NewByte = Serializator.GetFieldByte(NewRecMem, Key.FieldId);
+		const uchar OldByte = Serializator.GetFieldByte(OldRecMem, Key.FieldId);
+		const uchar NewByte = Serializator.GetFieldByte(NewRecMem, Key.FieldId);
         if (OldByte == NewByte) { return; }
 		Index->DeleteLinear(Key.KeyId, OldByte, RecId);
 		Index->IndexLinear(Key.KeyId, NewByte, RecId);
@@ -3177,7 +3177,7 @@ bool TStoreImpl::IsFieldNull(const uint64& RecId, const int& FieldId) const {
 	return GetFieldSerializator(FieldId)->IsFieldNull(RecMem, FieldId);
 }
 
-byte TStoreImpl::GetFieldByte(const uint64& RecId, const int& FieldId) const {
+uchar TStoreImpl::GetFieldByte(const uint64& RecId, const int& FieldId) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
 	return GetFieldSerializator(FieldId)->GetFieldByte(RecMem, FieldId);
 }
@@ -3270,7 +3270,7 @@ void TStoreImpl::SetFieldNull(const uint64& RecId, const int& FieldId) {
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
-void TStoreImpl::SetFieldByte(const uint64& RecId, const int& FieldId, const byte& Byte) {
+void TStoreImpl::SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
 	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
  //   if (FieldId == PrimaryFieldId) {
@@ -3744,7 +3744,7 @@ bool TStorePbBlob::IsFieldNull(const uint64& RecId, const int& FieldId) const {
     return GetSerializator(FieldLocV[FieldId])->IsFieldNull(MIn, FieldId);
 }
 /// Get field value using field id (default implementation throws exception)
-byte TStorePbBlob::GetFieldByte(const uint64& RecId, const int& FieldId) const {
+uchar TStorePbBlob::GetFieldByte(const uint64& RecId, const int& FieldId) const {
     TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
     return GetSerializator(FieldLocV[FieldId])->GetFieldByte(MIn, FieldId);
 }
@@ -3851,7 +3851,7 @@ void TStorePbBlob::SetFieldNull(const uint64& RecId, const int& FieldId) {
     }
 }
 /// Set field value using field id (default implementation throws exception)
-void TStorePbBlob::SetFieldByte(const uint64& RecId, const int& FieldId, const byte& Byte) {
+void TStorePbBlob::SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte) {
     if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
         TPgBlobPt& PgPt = RecIdBlobPtH.GetDat(RecId);
         TThinMIn min = DataBlob->Get(PgPt);
