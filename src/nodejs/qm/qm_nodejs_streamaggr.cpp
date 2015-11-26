@@ -226,11 +226,10 @@ void TNodeJsSA::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// unwrap
 	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
-
     // save
 	JsSA->SA->SaveState(*JsFOut->SOut);
-
-	Args.GetReturnValue().Set(Args.Holder());
+	JsFOut->SOut->Flush();
+	Args.GetReturnValue().Set(Args[0]);
 }
 
 void TNodeJsSA::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
