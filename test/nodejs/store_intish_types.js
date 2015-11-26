@@ -14,9 +14,10 @@ var fs = qm.fs;
 //////////////////////////////////////////////////////////////////////////////////////
 // Store creation
 
+var store_name = "test_store";
 function GetStoreTemplate(field_type) {
 	var res = {
-        "name": "test_store",
+        "name": store_name,
         "fields": [
             { "name": "name", "type": "string", "primary": true },
             { "name": "val", "type": "XXXXXXX" }
@@ -49,22 +50,43 @@ function PerformTest(field_type, min, max) {
             var db = new TestStoreManager(field_type);
 			db.close();
         })	
-        it('should fill store', function () {
+        it('should fill store and iterate', function () {
+            var db = new TestStoreManager(field_type);
+			try {
+				var vals = [];
+				// fill store
+				for (var i = 0; i < records; i++) {
+					var val = Math.round(min + i * diff);
+					db.base.store(store_name).push({ name: "name" + val, val: val });
+					vals.push(val);
+				}
+				var rs = db.base.store(store_name).allRecords;
+				assert.equal(rs.length, records);				
+				for (var i = 0; i < rs.length; i++) {
+					var rec = rs[i];
+					assert.equal(rec.val, vals[i]);
+				}
+			} finally {
+				db.close();
+			}
+        })	
+        it('should fill store and query', function () {
             var db = new TestStoreManager(field_type);
 			try {
 				// fill store
 				for (var i = 0; i < records; i++) {
 					var val = Math.round(min + i * diff);
-					db.base.store("test_store").push({ name: "name" + val, val: val });
-				}			
+					db.base.store(store_name).push({ name: "name" + val, val: val });
+				}
+				assert.equal(db.base.store(store_name).allRecords.length, records);				
 				// make some queries
-				var result = db.base.search({ $from: 'test_store', val: { $gt: min} });
+				var result = db.base.search({ $from: store_name, val: { $gt: min} });
 				assert.equal(result.length, records);
-				result = db.base.search({ $from: 'test_store', val: { $gt: max} });
+				result = db.base.search({ $from: store_name, val: { $gt: max} });
 				assert.equal(result.length, 0);
-				result = db.base.search({ $from: 'test_store', val: { $lt: min} });
+				result = db.base.search({ $from: store_name, val: { $lt: min} });
 				assert.equal(result.length, 1);
-				result = db.base.search({ $from: 'test_store', val: { $lt: max} });
+				result = db.base.search({ $from: store_name, val: { $lt: max} });
 				assert.equal(result.length, records);
 			} finally {
 				db.close();
