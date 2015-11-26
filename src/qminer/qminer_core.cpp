@@ -922,9 +922,19 @@ PJsonVal TStore::GetFieldJson(const uint64& RecId, const int& FieldId) const {
 	const TFieldDesc& Desc = GetFieldDesc(FieldId);
 	if (Desc.IsInt()) {
 		return TJsonVal::NewNum((double)GetFieldInt(RecId, FieldId));
+	} else if (Desc.IsInt16()) {
+		return TJsonVal::NewNum((double)GetFieldInt16(RecId, FieldId));
+	} else if (Desc.IsInt64()) {
+		return TJsonVal::NewNum((double)GetFieldInt64(RecId, FieldId));
+	} else if (Desc.IsByte()) {
+		return TJsonVal::NewNum((double)GetFieldByte(RecId, FieldId));
 	} else if (Desc.IsIntV()) {
 		TIntV FieldIntV; GetFieldIntV(RecId, FieldId, FieldIntV);
 		return TJsonVal::NewArr(FieldIntV);
+	} else if (Desc.IsUInt()) {
+		return TJsonVal::NewNum((double)GetFieldUInt(RecId, FieldId));
+	} else if (Desc.IsUInt16()) {
+		return TJsonVal::NewNum((double)GetFieldUInt16(RecId, FieldId));
 	} else if (Desc.IsUInt64()) {
 		return TJsonVal::NewNum((double)GetFieldUInt64(RecId, FieldId));
 	} else if (Desc.IsStr()) {
@@ -957,9 +967,19 @@ TStr TStore::GetFieldText(const uint64& RecId, const int& FieldId) const {
 	const TFieldDesc& Desc = GetFieldDesc(FieldId);
 	if (Desc.IsInt()) {
 		return TInt::GetStr(GetFieldInt(RecId, FieldId));
+	} else if (Desc.IsInt16()) {
+		return TInt::GetStr(GetFieldInt16(RecId, FieldId));
+	} else if (Desc.IsInt64()) {
+		return TInt64::GetStr(GetFieldInt64(RecId, FieldId));
+	} else if (Desc.IsByte()) {
+		return TInt::GetStr(GetFieldByte(RecId, FieldId));
 	} else if (Desc.IsIntV()) {
 		TIntV FieldIntV; GetFieldIntV(RecId, FieldId, FieldIntV);
 		return TStrUtil::GetStr(FieldIntV);
+	} else if (Desc.IsUInt()) {
+		return TUInt::GetStr(GetFieldUInt(RecId, FieldId));
+	} else if (Desc.IsUInt16()) {
+		return TUInt::GetStr(GetFieldUInt16(RecId, FieldId));
 	} else if (Desc.IsUInt64()) {
 		return TUInt64::GetStr(GetFieldUInt64(RecId, FieldId));
 	} else if (Desc.IsStr()) {
@@ -1126,6 +1146,21 @@ void TStore::PrintRecSet(const TWPt<TBase>& Base, const PRecSet& RecSet, TSOut& 
 			} else if (Desc.IsInt()) {
 				const int FieldInt = GetFieldInt(RecId, FieldId);
 				SOut.PutStrFmtLn("  %s: %d", Desc.GetFieldNm().CStr(), FieldInt);
+			} else if (Desc.IsInt16()) {
+				const int FieldInt = GetFieldInt16(RecId, FieldId);
+				SOut.PutStrFmtLn("  %s: %d", Desc.GetFieldNm().CStr(), FieldInt);
+			} else if (Desc.IsInt64()) {
+				const int64 FieldInt = GetFieldInt64(RecId, FieldId);
+				SOut.PutStrFmtLn("  %s: %I64", Desc.GetFieldNm().CStr(), FieldInt);
+			} else if (Desc.IsByte()) {
+				const int FieldInt = GetFieldByte(RecId, FieldId);
+				SOut.PutStrFmtLn("  %s: %d", Desc.GetFieldNm().CStr(), FieldInt);
+			} else if (Desc.IsUInt()) {
+				const uint64 FieldInt = GetFieldUInt(RecId, FieldId);
+				SOut.PutStrFmtLn("  %s: %I64u", Desc.GetFieldNm().CStr(), FieldInt);
+			} else if (Desc.IsUInt16()) {
+				const uint64 FieldInt = GetFieldUInt16(RecId, FieldId);
+				SOut.PutStrFmtLn("  %s: %I64u", Desc.GetFieldNm().CStr(), FieldInt);
 			} else if (Desc.IsUInt64()) {
 				const uint64 FieldInt = GetFieldUInt64(RecId, FieldId);
 				SOut.PutStrFmtLn("  %s: %I64u", Desc.GetFieldNm().CStr(), FieldInt);
@@ -1175,6 +1210,21 @@ void TStore::PrintAll(const TWPt<TBase>& Base, TSOut& SOut, const bool& Includin
 			} else if (Desc.IsInt()) {
 				const int FieldInt = GetFieldInt(RecId, FieldId);
 				SOut.PutStrFmtLn("  %s: %d", Desc.GetFieldNm().CStr(), FieldInt);
+			} else if (Desc.IsInt16()) {
+				const int FieldInt = GetFieldInt16(RecId, FieldId);
+				SOut.PutStrFmtLn("  %s: %d", Desc.GetFieldNm().CStr(), FieldInt);
+			} else if (Desc.IsInt64()) {
+				const int64 FieldInt = GetFieldInt64(RecId, FieldId);
+				SOut.PutStrFmtLn("  %s: %I64", Desc.GetFieldNm().CStr(), FieldInt);
+			} else if (Desc.IsByte()) {
+				const int FieldInt = GetFieldByte(RecId, FieldId);
+				SOut.PutStrFmtLn("  %s: %d", Desc.GetFieldNm().CStr(), FieldInt);
+			} else if (Desc.IsUInt()) {
+				const uint64 FieldInt = GetFieldUInt(RecId, FieldId);
+				SOut.PutStrFmtLn("  %s: %I64u", Desc.GetFieldNm().CStr(), FieldInt);
+			} else if (Desc.IsUInt16()) {
+				const uint64 FieldInt = GetFieldUInt16(RecId, FieldId);
+				SOut.PutStrFmtLn("  %s: %I64u", Desc.GetFieldNm().CStr(), FieldInt);
 			} else if (Desc.IsUInt64()) {
 				const uint64 FieldInt = GetFieldUInt64(RecId, FieldId);
 				SOut.PutStrFmtLn("  %s: %I64u", Desc.GetFieldNm().CStr(), FieldInt);
@@ -1618,9 +1668,19 @@ PJsonVal TRec::GetFieldJson(const int& FieldId) const {
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
 	if (Desc.IsInt()) {
 		return TJsonVal::NewNum((double)GetFieldInt(FieldId));
+	} else if (Desc.IsInt16()) {
+		return TJsonVal::NewNum((double)GetFieldInt16(FieldId));
+	} else if (Desc.IsInt64()) {
+		return TJsonVal::NewNum((double)GetFieldInt64(FieldId));
+	} else if (Desc.IsByte()) {
+		return TJsonVal::NewNum((double)GetFieldByte(FieldId));
 	} else if (Desc.IsIntV()) {
 		TIntV FieldIntV; GetFieldIntV(FieldId, FieldIntV);
 		return TJsonVal::NewArr(FieldIntV);
+	} else if (Desc.IsUInt()) {
+		return TJsonVal::NewNum((double)GetFieldUInt(FieldId));
+	} else if (Desc.IsUInt16()) {
+		return TJsonVal::NewNum((double)GetFieldUInt16(FieldId));
 	} else if (Desc.IsUInt64()) {
 		return TJsonVal::NewNum((double)GetFieldUInt64(FieldId));
 	} else if (Desc.IsStr()) {
@@ -1653,11 +1713,21 @@ TStr TRec::GetFieldText(const int& FieldId) const {
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
 	if (Desc.IsInt()) {
 		return TInt::GetStr(GetFieldInt(FieldId));
+	} else if (Desc.IsInt16()) {
+		return TInt::GetStr(GetFieldInt16(FieldId));
+	} else if (Desc.IsInt64()) {
+		return TInt64::GetStr(GetFieldInt64(FieldId));
+	} else if (Desc.IsByte()) {
+		return TInt::GetStr(GetFieldByte(FieldId));
 	} else if (Desc.IsIntV()) {
 		TIntV IntV; GetFieldIntV(FieldId, IntV);
 		return TStrUtil::GetStr(IntV);
 	} else if (Desc.IsBool()) {
 		return GetFieldBool(FieldId) ? "Yes" : "No";
+	} else if (Desc.IsUInt()) {
+		return TUInt::GetStr(GetFieldUInt(FieldId));
+	} else if (Desc.IsUInt16()) {
+		return TUInt::GetStr(GetFieldUInt16(FieldId));
 	} else if (Desc.IsUInt64()) {
 		return TUInt64::GetStr(GetFieldUInt64(FieldId));
 	} else if (Desc.IsStr()) {
