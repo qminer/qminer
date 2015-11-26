@@ -1021,7 +1021,7 @@
 * base.close();
 */
 
-class TNodeJsSA : public node::ObjectWrap {
+class TNodeJsStreamAggr : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
 	// Node framework
@@ -1035,12 +1035,12 @@ public:
 	TWPt<TQm::TStreamAggr> SA;
 
 	// C++ constructors
-	TNodeJsSA() { }
-	TNodeJsSA(TWPt<TQm::TStreamAggr> _SA) : SA(_SA) { }
-	~TNodeJsSA() { }
+	TNodeJsStreamAggr() { }
+	TNodeJsStreamAggr(TWPt<TQm::TStreamAggr> _SA) : SA(_SA) { }
+	~TNodeJsStreamAggr() { }
 
 
-	static TNodeJsSA* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+	static TNodeJsStreamAggr* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 public:
 	/**
 	* Resets the state of the aggregate.
@@ -1687,7 +1687,7 @@ public:
 
 ///////////////////////////////
 // JavaScript Stream Aggregator
-class TNodeJsStreamAggr :
+class TNodeJsFuncStreamAggr :
 	public TQm::TStreamAggr,
 	public TQm::TStreamAggrOut::IInt,
 	public TQm::TStreamAggrOut::IFltTmIO,
@@ -1741,12 +1741,12 @@ private:
 	v8::Persistent<v8::Function> LoadFun;
 
 public:
-	TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
+	TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
 	static TQm::PStreamAggr New(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
-		return new TNodeJsStreamAggr(_Base, _AggrNm, TriggerVal);
+		return new TNodeJsFuncStreamAggr(_Base, _AggrNm, TriggerVal);
 	}
 
-	~TNodeJsStreamAggr();
+	~TNodeJsFuncStreamAggr();
 
 	void Reset();
 	void OnAddRec(const TQm::TRec& Rec);
