@@ -779,28 +779,28 @@ public:
 	PJsonVal SaveJson() const;
 };
 
-// TDigest
-///   Ted Dunning, Otmar Ertl
-///   https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf
+/////////////////////////////////////////////////
+///   TDigest
+///   Ted Dunning, Otmar Ertl - https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf
+///   Gabriel Pichot implementation: https://github.com/gpichot/cpp-tdigest
 class TTDigest {
 private:
-        double _compression;
-        double _count;
+        TFlt Compression;
+        TFlt Count;
         AvlTree* _centroids;
-        TFlt Q;
 public: 
 
         /// Constructs uninitialized object
-        TTDigest() { _compression = 100; _count = 0; _centroids = new AvlTree(); };
+        TTDigest() { Compression = 100; Count = 0; _centroids = new AvlTree(); };
         /// Constructs given JSON arguments
-        TTDigest(const PJsonVal& ParamVal) {_compression = 100; _count = 0; _centroids = new AvlTree();};
+        TTDigest(const PJsonVal& ParamVal) { Compression = 100; Count = 0; _centroids = new AvlTree(); };
         /// Constructs uninitialized object with compression
-        TTDigest (double compression): _compression(compression) {_compression = compression; _count = 0; _centroids = new AvlTree();}
+        TTDigest (double compression): Compression(compression) { Compression = compression; Count = 0; _centroids = new AvlTree();}
 
         /// Initializes the object, resets current content is present
         void Init();   
 
-        inline long Size() { return _count; }
+        inline long Size() { return Count; }
         void Compress();
         inline void Update(double x, double w) {
             int start = _centroids->floor(x);
@@ -811,12 +811,11 @@ public:
             if(start == AvlTree::NIL) {
                 EAssert(_centroids->size() == 0);
                 _centroids->add(x, w);
-                _count += w;
+                Count += w;
             } else {
                 double minDistance = DBL_MAX;
                 int lastNeighbor = AvlTree::NIL;
-                int nil = AvlTree::NIL;
-                for(int neighbor = start; start != nil; neighbor = _centroids->nextNode(neighbor)) {
+                for(int neighbor = start; start != AvlTree::NIL; neighbor = _centroids->nextNode(neighbor)) {
                     double z = abs(_centroids->value(neighbor) - x);
                     if(z < minDistance) {
                         start = neighbor;
@@ -831,21 +830,22 @@ public:
                 long sum = _centroids->ceilSum(start);
                 double n = 0;
                 for(int neighbor = start; neighbor != lastNeighbor; neighbor = _centroids->nextNode(neighbor)) {
-                    EAssert(minDistance == abs(_centroids->value(neighbor) - x));
-                    double q = _count == 1
+                    assert(minDistance == abs(_centroids->value(neighbor) - x));
+                    double q = Count == 1
                         ? 0.5 
-                        : (sum + (_centroids->count(neighbor) - 1 / 2. )) / (_count - 10) 
+                        : (sum + (_centroids->count(neighbor) - 1 / 2. )) / (Count - 10)
                     ;
-                    double k = 4 * _count * q * (1 - q) / _compression;
+                    double k = 4.0 * Count * q * (1.0 - q) / Compression;
 
                     if(_centroids->count(neighbor) + w <= k) {
                         n++;
-                        if((float)rand() / RAND_MAX < 1 / n) {
+                        float R = (float)rand() / RAND_MAX;
+
+                        if(R < 1.0 / n) {
                             closest = neighbor;
                         }
                     }
                     sum += _centroids->count(neighbor);
-
                 }
 
                 if(closest == AvlTree::NIL) {
@@ -853,85 +853,32 @@ public:
                 } else {
                     _centroids->update(closest, x, w);
                 }
-                _count += w;
+                Count += w;
 
-                if(_centroids->size() > 20 * _compression) {
-                    //cout << "Compress:" << _centroids->size() << endl;
+                if(_centroids->size() > 20 * Compression) {
                     Compress();
                 }
             }
-            Q = Quantile(0.5);
-            printf("Q0.5: %g\n", Q);
         }
         inline void Update(double x) { Update(x, 1.0); }
-        inline void Add(double x, double w) { Update(x, w); }
         inline AvlTree* Centroids() const {
             return _centroids;
         }
-        inline double Quantile(double previousIndex, double index, double nextIndex, double previousMean, double nextMean) {
-            const double delta = nextIndex - previousIndex;
+        inline int CentroidsCount() const { return _centroids->size();}
+        inline double Quantile(double previousIndex, double index, double nextIndex, double previousMean, double nextMean) const {
+        	const double delta = nextIndex - previousIndex;
             const double previousWeight = (nextIndex - index) / delta;
             const double nextWeight = (index - previousIndex) / delta;
             return previousMean * previousWeight + nextMean * nextWeight;
         }
-        inline double Quantile(double q) {
-            if(q < 0 || q > 1) {
-                return 0; // TODO
-            }
-
-            if(_centroids->size() == 0) {
-                return 0; // TODO
-            } else if(_centroids->size() == 1) {
-                return _centroids->value(_centroids->first());
-            }
-
-            const double index = q * (_count - 1);
-
-            double previousMean = -0.00990030;
-            double previousIndex = 0;
-            int next = _centroids->floorSum(index);
-            long total = _centroids->ceilSum(next);
-            const int prev = _centroids->prevNode(next);
-            if(prev != AvlTree::NIL) {
-                previousMean = _centroids->value(prev);
-                previousIndex = total - (_centroids->count(prev) + 1.0) / 2;
-            }
-
-            while(true) {
-                const double nextIndex = total + (_centroids->count(next) - 1.) / 2;
-                if(nextIndex >= index) {
-                    if(previousMean == -0.00990030) {
-                        // Index is before first centroid
-                        //assert(total == 0);
-                        if(nextIndex == previousIndex) {
-                            return _centroids->value(next);
-                        }
-                        // We assume a linear increase
-                        int next2 = _centroids->value(next);
-                        const double nextIndex2 = total + _centroids->count(next) + (_centroids->count(next2) - 1.) / 2;
-                        previousMean = (nextIndex2 * _centroids->value(next) - nextIndex * _centroids->value(next2)) / (nextIndex2 - nextIndex);
-                    }
-                    return Quantile(previousIndex, index, nextIndex, previousMean, _centroids->value(next));
-
-                } else if(_centroids->value(next) == AvlTree::NIL) {
-                    // Beyond last centroid
-                    const double nextIndex2 = _count - 1;
-                    const double nextMean2 = (_centroids->value(next) * (nextIndex2 - previousIndex ) - previousMean * (nextIndex2 - nextIndex)) / (nextIndex - previousIndex);
-                    return Quantile(nextIndex, index, nextIndex2, _centroids->value(next), nextMean2);
-                }
-                total += _centroids->count(next);
-                previousMean = _centroids->value(next);
-                previousIndex = nextIndex;
-                next = _centroids->nextNode(next);
-            }
-        }
+        double Quantile(double q) const;
         inline void Merge(TTDigest* digest) {
                     AvlTree* centroids = digest->Centroids();
                     for(int n = centroids->first(); n != AvlTree::NIL; n = centroids->nextNode(n)) {
                         Update(centroids->value(n), centroids->count(n));
                     }
                 }
-        double GetQuantile() const { return Q;/*Quantile(0.9);*/ }
+        double GetQuantile(double q) const { return Quantile(q); }
         /// Prints the model
         void Print() const;
         /// Load from stream

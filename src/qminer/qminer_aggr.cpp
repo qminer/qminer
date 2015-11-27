@@ -1496,12 +1496,14 @@ TTDigest::TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAg
     // parse out input aggregate
 	TStr InStoreNm = ParamVal->GetObjStr("store");
 	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+	QuantilesVal = ParamVal->GetObjNum("quantile");
 	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
 
 	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
 	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
 	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTm*>(_InAggr());
 	QmAssertR(!InAggrVal.Empty(), "TTDigest::TTDigest Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+
 }
 
 PStreamAggr TTDigest::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
@@ -1517,7 +1519,8 @@ void TTDigest::OnAddRec(const TRec& Rec) {
 
 PJsonVal TTDigest::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("P", 1);
+	Val->AddToObj("Q", Model.GetQuantile(QuantilesVal));
+	Val->AddToObj("Centroids", Model.CentroidsCount());
 	return Val;
 }
 

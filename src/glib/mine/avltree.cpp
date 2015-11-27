@@ -1,4 +1,4 @@
-#include "avltree.h"
+
 
 AvlTree::AvlTree(): _root(NIL) {
 	_n = 0;
@@ -8,7 +8,7 @@ AvlTree::AvlTree(): _root(NIL) {
     _right[NIL]     = 0;
 }
 
-int AvlTree::first(int node) const {
+TInt AvlTree::first(int node) const {
     if(node == NIL) {
         return NIL;
     }
@@ -23,7 +23,7 @@ int AvlTree::first(int node) const {
     return node;
 }
 
-int AvlTree::last(int node) const {
+TInt AvlTree::last(int node) const {
     while(true) {
         const int right = rightNode(node);
         if(right == NIL) {
@@ -34,7 +34,7 @@ int AvlTree::last(int node) const {
     return node;
 }
 
-int AvlTree::nextNode(int node) const {
+TInt AvlTree::nextNode(int node) const {
     const int right = rightNode(node);
     if(right != NIL) {
         return first(right);
@@ -48,7 +48,7 @@ int AvlTree::nextNode(int node) const {
     }
 }
 
-int AvlTree::prevNode(int node) const {
+TInt AvlTree::prevNode(int node) const {
     const int left = leftNode(node);
     if(left != NIL) {
         return last(left);
@@ -62,16 +62,19 @@ int AvlTree::prevNode(int node) const {
     }
 }
 
-bool AvlTree::add(double x, int w) {
+bool AvlTree::add(double x, TInt w) {
+	//printf("root: %f\n", _root);
     if(_root == NIL) {
         _root = ++_n;
         _values[_root] = x;
+        //printf(" x: %f", x);
         _count[_root] = w;
         _left[_root] = NIL;
         _right[_root] = NIL;
         _parent[_root] = NIL;
         // Update depth and aggregates
         updateAggregates(_root);
+        return true;
     } else {
         int node = _root;
         int parent = NIL;
@@ -91,8 +94,16 @@ bool AvlTree::add(double x, int w) {
             }
         } while(node != NIL);
 
+        //printf("%i\n", _n);
         node = ++_n;
+        //printf("node, _n %i, %i\n", node, _n);
         _values[node] = x;
+        //printf(" x: %f", x);
+        //for (int i=0; i<10; i++) {
+        //	printf("%f, ",_values[i]);
+        //}
+        //printf("\n");
+
         _count[node] = w;
         _left[node] = NIL;
         _right[node] = NIL;
@@ -123,7 +134,6 @@ int AvlTree::find(double x) const {
     }
     return NIL;
 }
-
 
 int AvlTree::floor(double x) const {
     int f = NIL;
@@ -194,9 +204,11 @@ void AvlTree::rebalance(int node) {
                     }
             case -1:
             case  1:
-            case  0:{
+            case  0:
                     break;
-            }
+            default:
+            	// We should throw an error
+            	EAssert(true == false);
 
         }
 

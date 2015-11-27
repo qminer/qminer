@@ -833,6 +833,7 @@ private:
 	TWPt<TStreamAggrOut::IFltTm> InAggrVal;
 	// indicator
 	TSignalProc::TTDigest Model;
+	TFlt QuantilesVal;
 protected:
 	void OnAddRec(const TRec& Rec);
 	TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -847,7 +848,7 @@ public:
 	/// Store state into stream
 	void SaveState(TSOut& SOut) const;
 	/// get current Quantile value
-	double GetFlt() const { return Model.GetQuantile(); }
+	double GetFlt() const { return Model.GetQuantile(QuantilesVal); }
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
 	// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;

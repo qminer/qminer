@@ -1,20 +1,24 @@
 #ifndef AVLTREE_H
 #define AVLTREE_H
 
+#include <cassert>
+#include <cmath>
+#include <iostream>
+
 using namespace std;
 class AvlTree {
 
     private:
-        int _root;
-        int _n;
+        TInt _root;
+        TInt _n;
         // TODO We should reallocate tables (ie allow dynamic arrays)
-        int _parent[1000];
-        int _left[1000];
-        int _right[1000];
-        char _depth[1000];
-        int _count[1000];
-        double _values[1000];
-        int _aggregatedCount[1000];
+        TInt _parent[10000000];
+        TInt _left[10000000];
+        TInt _right[10000000];
+        char _depth[10000000];
+        TInt _count[10000000];
+        double _values[10000000];
+        TInt _aggregatedCount[10000000];
 
     public:
         static const int NIL = 0;
@@ -26,7 +30,7 @@ class AvlTree {
         //
 
         // O(1)
-        inline int compare(int node, double x) const {
+        inline TInt compare(int node, double x) const {
             if(value(node) < x) {
                 return 1;
             } else if(value(node) == x) {
@@ -37,7 +41,7 @@ class AvlTree {
         }
     
         // O(1)
-        inline int compare(int nodeA, int nodeB) const {
+        inline TInt compare(int nodeA, TInt nodeB) const {
             return compare(nodeA, value(nodeB));
         }
 
@@ -46,11 +50,11 @@ class AvlTree {
         //
 
         // O(1)
-        inline int root() const {
+        inline TInt root() const {
             return _root;
         }
         // O(1)
-        inline int size() const {
+        inline TInt size() const {
             return _n;
         }
 
@@ -59,32 +63,32 @@ class AvlTree {
         //
 
         // O(1)
-        inline int parentNode(int node) const {
+        inline TInt parentNode(int node) const {
             return _parent[node];
         }
         // O(1)
-        inline int leftNode(int node) const {
+        inline TInt leftNode(int node) const {
             return _left[node];
         }
         // O(1)
-        inline int rightNode(int node) const {
+        inline TInt rightNode(int node) const {
             return _right[node];
         }
         // O(1)
-        inline int depth(int node) const {
+        inline TInt depth(int node) const {
             return _depth[node];
         }
         // O(1)
-        inline int count(int node) const {
+        inline TInt count(int node) const {
             return _count[node];
         }
         // O(1)
-        inline int aggregatedCount(int node) const {
+        inline TInt aggregatedCount(int node) const {
             return _aggregatedCount[node];
         }
         // O(1)
         inline double value(int node) const {
-            return _values[node];
+        	return _values[node];
         }
 
         //
@@ -92,28 +96,28 @@ class AvlTree {
         //
 
         // O(log(n))
-        int first(int node) const;
+        TInt first(int node) const;
 
         // O(log(n))
-        inline int first() const {
+        inline TInt first() const {
             return first(_root);
         }
 
         // O(log(n)) 
-        int last(int node) const;
+        TInt last(int node) const;
 
         // O(log(n))
-        int nextNode(int node) const;
+        TInt nextNode(int node) const;
 
         // O(log(n))
-        int prevNode(int node) const;
+        TInt prevNode(int node) const;
 
         //
         // Mutators
         //
 
         // O(1)
-        inline void updateAggregates(int node) {
+        inline void updateAggregates(TInt node) {
             // Updating depth
         	/*int gn = depth(leftNode(node));
         	if (depth(leftNode(node))<depth(rightNode(node))) {
@@ -122,11 +126,17 @@ class AvlTree {
             _depth[node] = 1 + gn;
             */
         	_depth[node] = 1 + max(depth(leftNode(node)), depth(rightNode(node)));
+        	//printf("\nAGG%: node(%i), count(%i), leftNode(%i), rightNode(%i), aggregatedCount(lf(%i)), aggregatedCount(rg(%i))",
+        	//		(count(node) + aggregatedCount(leftNode(node)) + aggregatedCount(rightNode(node))),
+			//		(int)node, count(node), leftNode(node), rightNode(node), aggregatedCount(leftNode(node)),
+			//		aggregatedCount(rightNode(node)));
             _aggregatedCount[node] = count(node) + aggregatedCount(leftNode(node)) + aggregatedCount(rightNode(node));
         }
 
         // O(log(n))
-        void update(int node, double x, int w) {
+        void update(int node, double x, TInt w) {
+        	//printf("node(%i), x(%f), w(%i) = ", node, x, w);
+        	//printf("%f", w * (x - value(node)) / count(node));
             _values[node] += w * (x - value(node)) / count(node);
             _count[node] += w;
             
@@ -136,7 +146,7 @@ class AvlTree {
         }
 
         // O(log(n))
-        void merge(int node, double x, int w) {
+        void merge(int node, double x, TInt w) {
             //assert(value(node) == x);
             _count[node] += w;
             
@@ -146,7 +156,7 @@ class AvlTree {
         }
 
         // O(log(n)) 
-        bool add(double x, int w);
+        bool add(double x, TInt w);
 
         // O(log(n))
         int find(double x) const;
@@ -162,7 +172,7 @@ class AvlTree {
 
     private:
         // O(1)
-        inline int balanceFactor(int node) const {
+        inline TInt balanceFactor(int node) const {
             return depth(leftNode(node)) - depth(rightNode(node));
         }
 
@@ -198,6 +208,7 @@ class AvlTree {
                 ;
             }
         }
+
         inline bool checkBalance() const {
             return checkBalance(_root);
         }
@@ -207,6 +218,10 @@ class AvlTree {
             if(node == NIL) {
                 return count(node) == 0;
             } else {
+            	//printf("\nAGG (else)%f: node(%f),count(%f), leftNode(%f), rightNode(%f), aggregatedCount(lf(%f)), aggregatedCount(rg(%f))",
+            	//        			(_count[node] + _aggregatedCount[leftNode(node)] + _aggregatedCount[rightNode(node)]),
+            	//					node, _count[node], leftNode(node), rightNode(node), _aggregatedCount[leftNode(node)],
+            	//					_aggregatedCount[rightNode(node)]);
                 return _aggregatedCount[node] == _count[node] + _aggregatedCount[leftNode(node)] + _aggregatedCount[rightNode(node)]
                     && checkAggregates(leftNode(node))
                     && checkAggregates(rightNode(node))
@@ -242,15 +257,18 @@ class AvlTree {
         void print(int node) const {
             if(node == NIL)
                 return;
-            /*
+
             cout << "Node " << node << "=> ";
             cout << "Value:" << _values[node] << " ";
-            cout << "(" << _values[leftNode(node)] << ";";
-            cout << "" << _values[rightNode(node)] << ") ";
+            cout << "n:" << node << " ";
+            cout << "ln:" << leftNode(node) << " ";
+            cout << "rn:" << rightNode(node) << " ";
+            cout << "(" << value(leftNode(node)) << ";";
+            cout << "" << value(rightNode(node)) << ") ";
             cout << "Depth: " << depth(node) << " ";
             cout << "Count: " <<_count[node] << " ";
-            cout << "Aggregate: " << _aggregatedCount[node] << endl;
-            */
+            cout << "Aggregate: " << _aggregatedCount[node] << " Integrity: "<<checkIntegrity(node)<< endl;
+
             print(leftNode(node));
             print(rightNode(node));
         }

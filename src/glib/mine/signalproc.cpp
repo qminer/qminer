@@ -1028,22 +1028,75 @@ PJsonVal TOnlineHistogram::SaveJson() const {
 	return Result;
 }
 
+double TTDigest::Quantile(double q) const {
+	if(q < 0 || q > 1) {
+		return 0; // TODO
+	}
+
+	if(_centroids->size() == 0) {
+		return 0; // TODO
+	} else if(_centroids->size() == 1) {
+		return _centroids->value(_centroids->first());
+	}
+
+	const double index = q * (Count - 1);
+
+	double previousMean = NAN;
+	double previousIndex = 0;
+	int next = _centroids->floorSum(index);
+	EAssert(next != AvlTree::NIL);
+	long total = _centroids->ceilSum(next);
+	const int prev = _centroids->prevNode(next);
+	if(prev != AvlTree::NIL) {
+		previousMean = _centroids->value(prev);
+		previousIndex = total - (_centroids->count(prev) + 1.0) / 2.0;
+	}
+
+	while(true) {
+		const double nextIndex = total + (_centroids->count(next) - 1.0) / 2.0;
+		if(nextIndex >= index) {
+			if(previousMean == NAN) {
+				// Index is before first centroid
+				EAssert(total == 0);
+				if(nextIndex == previousIndex) {
+					return _centroids->value(next);
+				}
+				// We assume a linear increase
+				int next2 = _centroids->value(next);
+				const double nextIndex2 = total + _centroids->count(next) + (_centroids->count(next2) - 1.0) / 2.0;
+				previousMean = (nextIndex2 * _centroids->value(next) - nextIndex * _centroids->value(next2)) / (nextIndex2 - nextIndex);
+			}
+			return Quantile(previousIndex, index, nextIndex, previousMean, _centroids->value(next));
+
+		} else if(_centroids->value(next) == AvlTree::NIL) {
+			// Beyond last centroid
+			const double nextIndex2 = Count - 1;
+			const double nextMean2 = (_centroids->value(next) * (nextIndex2 - previousIndex ) - previousMean * (nextIndex2 - nextIndex)) / (nextIndex - previousIndex);
+			return Quantile(nextIndex, index, nextIndex2, _centroids->value(next), nextMean2);
+		}
+		total += _centroids->count(next);
+		previousMean = _centroids->value(next);
+		previousIndex = nextIndex;
+		next = _centroids->nextNode(next);
+	}
+}
+
 void TTDigest::Compress() {
     // TODO: implement this one
 }
 
 /// Load from stream
 void TTDigest::LoadState(TSIn& SIn) {
-	Q.Load(SIn);
+
 }
 
 /// Store state into stream
 void TTDigest::SaveState(TSOut& SOut) const {
-	Q.Save(SOut);
+
 }
 
 void TTDigest::Print() const {
-	printf("Q = %g", Q.Val);
+
 }
 
 TChiSquare::TChiSquare(const PJsonVal& ParamVal): P(TFlt::PInf) {
