@@ -3760,16 +3760,16 @@ describe('TDigest test', function () {
         td = store.addStreamAggr(aggr);
         
     	// add some values (throwing a pair of dice)
-        store.push({ Time: '1', Sample1: 1 }); 
-        store.push({ Time: '2', Sample1: 2 }); 
-        store.push({ Time: '3', Sample1: 3 }); 
-        store.push({ Time: '4', Sample1: 4 });
-        store.push({ Time: '5', Sample1: 5 });
-        store.push({ Time: '6', Sample1: 6 });
-        store.push({ Time: '7', Sample1: 7 });
-        store.push({ Time: '8', Sample1: 8 });
-        store.push({ Time: '9', Sample1: 9 });
-        store.push({ Time: '10', Sample1: 10 });
+        store.push({ Time: '1', Value: 1 }); 
+        store.push({ Time: '2', Value: 2 }); 
+        store.push({ Time: '3', Value: 3 }); 
+        store.push({ Time: '4', Value: 4 });
+        store.push({ Time: '5', Value: 5 });
+        store.push({ Time: '6', Value: 6 });
+        store.push({ Time: '7', Value: 7 });
+        store.push({ Time: '8', Value: 8 });
+        store.push({ Time: '9', Value: 9 });
+        store.push({ Time: '10', Value: 10 });
         console.log(td);      
     });
 });
