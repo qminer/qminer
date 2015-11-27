@@ -251,7 +251,7 @@ var matrix = new la.Matrix([[0, 1], [-1, 0]]);
 // fit the matrix
 pca.fit(matrix);
 var model = pca.getModel();
-// use invefrseTransform on matrix
+// use inverseTransform on matrix
 var invTransform = pca.inverseTransform(matrix);</code></pre>
                 </div>
                 <div>
@@ -262,7 +262,12 @@ var analytics = require(&#x27;qminer&#x27;).analytics;
 var pca = new analytics.PCA();
 // create vector
 var vector = new la.Vector([0, -1]);
-// use invefrseTransform on vector
+// create matrix
+var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+// fit the matrix
+pca.fit(matrix);
+var model = pca.getModel();
+// use inverseTransform on vector
 var invTransform = pca.inverseTransform(vector);</code></pre>
                 </div>
               </section>
@@ -419,7 +424,7 @@ var matrix = new la.Matrix([[0, 1], [-1, 0]]);
 // fit the matrix
 pca.fit(matrix);
 var model = pca.getModel();
-// transform matrix and/or vector
+// transform matrix
 var transform = pca.transform(matrix);</code></pre>
                 </div>
                 <div>
@@ -430,8 +435,12 @@ var analytics = require(&#x27;qminer&#x27;).analytics;
 var pca = new analytics.PCA();
 // create vector you wish to transform
 var vector = new la.Vector([0, -1]);
+// create matrix
+var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+// fit the matrix
+pca.fit(matrix);
 var model = pca.getModel();
-// transform matrix and/or vector
+// transform vector
 var transform = pca.transform(vector);</code></pre>
                 </div>
               </section>

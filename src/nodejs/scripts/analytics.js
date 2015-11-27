@@ -1600,7 +1600,7 @@ module.exports = exports = function (pathQmBinary) {
         * // fit the matrix
         * pca.fit(matrix);
         * var model = pca.getModel();
-        * // transform matrix and/or vector
+        * // transform matrix
         * var transform = pca.transform(matrix);
         * @example <caption>Transforming the vector</caption>
         * // import analytics module
@@ -1609,8 +1609,12 @@ module.exports = exports = function (pathQmBinary) {
         * var pca = new analytics.PCA();
         * // create vector you wish to transform
         * var vector = new la.Vector([0, -1]);
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
         * var model = pca.getModel();
-        * // transform matrix and/or vector
+        * // transform vector
         * var transform = pca.transform(vector);
         */
         this.transform = function (x) {
@@ -1638,7 +1642,7 @@ module.exports = exports = function (pathQmBinary) {
         * // fit the matrix
         * pca.fit(matrix);
         * var model = pca.getModel();
-        * // use invefrseTransform on matrix
+        * // use inverseTransform on matrix
         * var invTransform = pca.inverseTransform(matrix);
         * @example <caption>Inverse transform of vector</caption>
         * // import analytics module
@@ -1647,7 +1651,12 @@ module.exports = exports = function (pathQmBinary) {
         * var pca = new analytics.PCA();
         * // create vector
         * var vector = new la.Vector([0, -1]);
-        * // use invefrseTransform on vector
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // use inverseTransform on vector
         * var invTransform = pca.inverseTransform(vector);
         */
         this.inverseTransform = function (x) {

@@ -1,4 +1,8 @@
-require('qminer').la.Vector.prototype.print = function () { };require('qminer').la.SparseVector.prototype.print = function () { };require('qminer').la.SparseMatrix.prototype.print = function () { };require('qminer').la.Matrix.prototype.print = function () { };describe('example tests for the datasetsdoc.js file', function () {
+require('qminer').la.Vector.prototype.print = function () { };
+require('qminer').la.SparseVector.prototype.print = function () { };
+require('qminer').la.SparseMatrix.prototype.print = function () { };
+require('qminer').la.Matrix.prototype.print = function () { };
+describe('example tests for the datasetsdoc.js file', function () {
 describe("Datasets module includes some standard toy datasets. In addition, this module also includes various, number 1", function () {
 it("should make test number 1", function () {
 

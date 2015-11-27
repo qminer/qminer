@@ -1,4 +1,8 @@
-require('qminer').la.Vector.prototype.print = function () { };require('qminer').la.SparseVector.prototype.print = function () { };require('qminer').la.SparseMatrix.prototype.print = function () { };require('qminer').la.Matrix.prototype.print = function () { };describe('example tests for the analyticsdoc.js file', function () {
+require('qminer').la.Vector.prototype.print = function () { };
+require('qminer').la.SparseVector.prototype.print = function () { };
+require('qminer').la.SparseMatrix.prototype.print = function () { };
+require('qminer').la.Matrix.prototype.print = function () { };
+describe('example tests for the analyticsdoc.js file', function () {
 describe("Analytics module., number 1", function () {
 it("should make test number 1", function () {
 
@@ -1580,7 +1584,7 @@ it("should make test number 96", function () {
          // fit the matrix
          pca.fit(matrix);
          var model = pca.getModel();
-         // transform matrix and/or vector
+         // transform matrix
          var transform = pca.transform(matrix);
         
 });
@@ -1594,8 +1598,12 @@ it("should make test number 97", function () {
          var pca = new analytics.PCA();
          // create vector you wish to transform
          var vector = new la.Vector([0, -1]);
+         // create matrix
+         var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+         // fit the matrix
+         pca.fit(matrix);
          var model = pca.getModel();
-         // transform matrix and/or vector
+         // transform vector
          var transform = pca.transform(vector);
         
 });
@@ -1612,7 +1620,7 @@ it("should make test number 98", function () {
          // fit the matrix
          pca.fit(matrix);
          var model = pca.getModel();
-         // use invefrseTransform on matrix
+         // use inverseTransform on matrix
          var invTransform = pca.inverseTransform(matrix);
         
 });
@@ -1626,7 +1634,12 @@ it("should make test number 99", function () {
          var pca = new analytics.PCA();
          // create vector
          var vector = new la.Vector([0, -1]);
-         // use invefrseTransform on vector
+         // create matrix
+         var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+         // fit the matrix
+         pca.fit(matrix);
+         var model = pca.getModel();
+         // use inverseTransform on vector
          var invTransform = pca.inverseTransform(vector);
         
 });
