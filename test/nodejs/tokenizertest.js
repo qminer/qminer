@@ -30,8 +30,8 @@ describe("Tokenizer tests", function () {
                 var tokenizer = new analytics.Tokenizer({ type: "html" });
             });
         });
-        it("should throw an exception, type Html-Unicode, because there is no base", function () {
-            assert.throws(function () {
+        it("should not throw an exception, type Html-Unicode", function () {
+            assert.doesNotThrow(function () {
                 var tokenizer = new analytics.Tokenizer({ type: "unicode" });
            });
         });
