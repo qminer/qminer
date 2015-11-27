@@ -113,10 +113,14 @@ void InitSnap(Handle<Object> Exports, const TStr& NsNm) {
 }
 
 void InitQm(Handle<Object> Exports) {
+	#ifdef WIN32
+    _setmaxstdio(2048); 
+	#endif
+
 	// QMiner package
 	TNodeJsQm::Init(Exports);
 	TNodeJsBase::Init(Exports);
-	TNodeJsSA::Init(Exports);
+	TNodeJsStreamAggr::Init(Exports);
 	TNodeJsStore::Init(Exports);
 	// the record templates are initiated elsewhere: qm.open, qm.create, base.createStore
 	TNodeJsRecByValV::Init(Exports);
