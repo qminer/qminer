@@ -695,6 +695,13 @@ module.exports = exports = function (pathPrefix) {
         /**
         * Returns the model
         * @returns {Object} The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // get your model using function getModel
+        * var model = pca.getModel();
         */
         this.getModel = function () {
             return { P: this.P, mu: this.mu, lambda: this.lambda };
@@ -704,6 +711,18 @@ module.exports = exports = function (pathPrefix) {
         * Saves the model.
         * @param {module:fs.FOut} fout - The output stream.
         * @returns {module:fs.FOut} The given output stream fout.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // save model
+        * pca.save(require('qminer').fs.openWrite('pca_test.bin')).close();
         */
         this.save = function (fout) {
             if (!this.P) {
@@ -780,8 +799,6 @@ module.exports = exports = function (pathPrefix) {
         * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
         * // fit the matrix
         * pca.fit(matrix);
-        * // get your model using function getModel
-        * var model = pca.getModel();
         */
         this.fit = function (A) {
             var rows = A.rows;
@@ -811,19 +828,27 @@ module.exports = exports = function (pathPrefix) {
         * in the eigenvector basis.
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
         * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
-        * @example
+        * @example 1
         * // import analytics module
         * var analytics = require('qminer').analytics;
         * // construct model
         * var pca = new analytics.PCA();
-        * // create matrix and vector you wish to transform
+        * // create matrix
         * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
-        * var vector = new la.Vector([0, -1]);
         * // fit the matrix
         * pca.fit(matrix);
         * var model = pca.getModel();
         * // transform matrix and/or vector
         * var transform = pca.transform(matrix);
+        * @example 2
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create vector you wish to transform
+        * var vector = new la.Vector([0, -1]);
+        * var model = pca.getModel();
+        * // transform matrix and/or vector
         * var transform = pca.transform(vector);
         */
         this.transform = function (x) {
@@ -841,19 +866,26 @@ module.exports = exports = function (pathPrefix) {
         * Reconstructs the vector in the original space, reverses centering
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
         * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
-        * @example
+        * @example 1
         * // import analytics module
         * var analytics = require('qminer').analytics;
         * // construct model
         * var pca = new analytics.PCA();
-        * // create matrix and/or vector
+        * // create matrix
         * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
-        * var vector = new la.Vector([0, -1]);
         * // fit the matrix
         * pca.fit(matrix);
         * var model = pca.getModel();
-        * // use invefrseTransform on matrix and/or vector
+        * // use invefrseTransform on matrix
         * var invTransform = pca.inverseTransform(matrix);
+        * @example 2
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create vector
+        * var vector = new la.Vector([0, -1]);
+        * // use invefrseTransform on vector
         * var invTransform = pca.inverseTransform(vector);
         */
         this.inverseTransform = function (x) {
