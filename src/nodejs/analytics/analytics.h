@@ -2025,7 +2025,7 @@ public:
  * // construct model
  * var tokenizer = new analytics.Tokenizer({ type: "simple" })
  */
-//# exports.Tokenizer = function (param) { returns Object.create(require("qminer").analytics.Tokenizer.prototype); }
+//# exports.Tokenizer = function (param) { return Object.create(require("qminer").analytics.Tokenizer.prototype); }
 class TNodeJsTokenizer : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 public:
@@ -2060,7 +2060,7 @@ public:
 	* // output:
 	* tokens = ["What", "a", "beautiful", "day"];
 	*/
-	//# exports.Tokenizer.prototype.getTokens = function (str) { returns [""]; }
+	//# exports.Tokenizer.prototype.getTokens = function (str) { return [""]; }
 	JsDeclareFunction(getTokens);
 
 	/**
@@ -2083,7 +2083,7 @@ public:
 	* // output:
 	* tokens = ["C++", " Alright", " Let's do this"];
 	*/
-	//# exports.Tokenizer.prototype.getSentences = function (str) { returns [""]; }
+	//# exports.Tokenizer.prototype.getSentences = function (str) { return [""]; }
 	JsDeclareFunction(getSentences);
 	
 	/**
@@ -2105,7 +2105,7 @@ public:
 	* // output:
 	* tokens = ["Yes", " No", " Maybe"];
 	*/
-	//# exports.Tokenizer.prototype.getParagraphs = function (str) { returns [""]; }
+	//# exports.Tokenizer.prototype.getParagraphs = function (str) { return [""]; }
 	JsDeclareFunction(getParagraphs);
 	
 };

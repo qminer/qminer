@@ -1402,13 +1402,25 @@ module.exports = exports = function (pathQmBinary) {
     exports.metrics = metrics;
 
     /**
+    * @typedef {Object} pcaParams
+    * @property {number} [k = null] - Number of eigenvectors to be computed.
+    * @property {number} [iter = 100] - Number of iterations.
+    */
+
+    /**
     * @classdesc Principal components analysis
     * @class
-    * @example
+    * @param {module:analytics~pcaParams | module:fs.FIn} [params] - The constructor parameters.
+    * @example <caption>Using default constructor</caption>
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // construct model
     * var pca = new analytics.PCA();
+    * @example <caption>Using custom constructor</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // construct model
+    * var pca = new analytics.PCA({ k: 5, iter: 50 });
     */
     exports.PCA = function (param) {
         var iter, k;
@@ -1446,6 +1458,10 @@ module.exports = exports = function (pathQmBinary) {
         * var analytics = require('qminer').analytics;
         * // construct model
         * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit matrix before getting the model
+        * pca.fit(matrix)
         * // get your model using function getModel
         * var model = pca.getModel();
         */
@@ -1512,14 +1528,14 @@ module.exports = exports = function (pathQmBinary) {
         /**
         * Gets parameters
         * @returns Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
-        * @example 1
+        * @example <caption>Using default constructor</caption>
         * // import analytics module
         * var analytics = require('qminer').analytics;
         * // construct model
         * var pca = new analytics.PCA();
         * // check the constructor parameters
         * var paramvalue = pca.getParams();
-        * @example 2
+        * @example <caption>Using custom constructor</caption>
         * // import analytics module
         * var analytics = require('qminer').analytics;
         * // construct model
@@ -1574,7 +1590,7 @@ module.exports = exports = function (pathQmBinary) {
         * in the eigenvector basis.
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
         * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
-        * @example 1
+        * @example <caption>Transforming the matrix</caption>
         * // import analytics module
         * var analytics = require('qminer').analytics;
         * // construct model
@@ -1586,7 +1602,7 @@ module.exports = exports = function (pathQmBinary) {
         * var model = pca.getModel();
         * // transform matrix and/or vector
         * var transform = pca.transform(matrix);
-        * @example 2
+        * @example <caption>Transforming the vector</caption>
         * // import analytics module
         * var analytics = require('qminer').analytics;
         * // construct model
@@ -1612,7 +1628,7 @@ module.exports = exports = function (pathQmBinary) {
         * Reconstructs the vector in the original space, reverses centering
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
         * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
-        * @example 1
+        * @example <caption>Inverse transform of matrix</caption>
         * // import analytics module
         * var analytics = require('qminer').analytics;
         * // construct model
@@ -1624,7 +1640,7 @@ module.exports = exports = function (pathQmBinary) {
         * var model = pca.getModel();
         * // use invefrseTransform on matrix
         * var invTransform = pca.inverseTransform(matrix);
-        * @example 2
+        * @example <caption>Inverse transform of vector</caption>
         * // import analytics module
         * var analytics = require('qminer').analytics;
         * // construct model

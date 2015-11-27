@@ -58,14 +58,14 @@
                     <dt><a href="module-analytics.NNet.html">NNet([params])</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.OneVsAll.html">OneVsAll([oneVsAllParam])</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.OneVsAll.html">OneVsAll([oneVsAllParam])</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-analytics.PCA.html">PCA()</a></dt>
+                    <dt><a href="module-analytics.PCA.html">PCA([params])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.PropHazards.html">PropHazards()</a></dt>
@@ -74,20 +74,23 @@
                     <dt><a href="module-analytics.RecLinReg.html">RecLinReg(param)</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="module-analytics.RidgeReg.html">RidgeReg([arg])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.Sigmoid.html">Sigmoid([arg])</a></dt>
                     <dd>
                     </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
                     <dt><a href="module-analytics.SVC.html">SVC([arg])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.SVR.html">SVR([arg])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.Tokenizer.html">Tokenizer(param)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -135,14 +138,17 @@
                     <dt><a href="module-analytics.html#~NearestNeighborADExplain">NearestNeighborADExplain</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.html#~nnetParams">nnetParams</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.html#~nnetParams">nnetParams</a></dt>
+                    <dt><a href="module-analytics.html#~oneVsAllParam">oneVsAllParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~oneVsAllParam">oneVsAllParam</a></dt>
+                    <dt><a href="module-analytics.html#~pcaParams">pcaParams</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.html#~recLinearRegParam">recLinearRegParam</a></dt>
@@ -154,13 +160,13 @@
                     <dt><a href="module-analytics.html#~ridgeRegModel">ridgeRegModel</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.html#~ridgeRegParam">ridgeRegParam</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.html#~ridgeRegParam">ridgeRegParam</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-analytics.html#~svcParam">svcParam</a></dt>
                     <dd>
                     </dd>
@@ -168,6 +174,9 @@
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.html#~svrParam">svrParam</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.html#~tokenizerParam">tokenizerParam</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -190,6 +199,7 @@
               <h3><a href="module-analytics.Sigmoid.html">Sigmoid</a></h3>
               <h3><a href="module-analytics.SVC.html">SVC</a></h3>
               <h3><a href="module-analytics.SVR.html">SVR</a></h3>
+              <h3><a href="module-analytics.Tokenizer.html">Tokenizer</a></h3>
             </section>
             <h2>Namespaces</h2>
             <section id='members-links'>
@@ -619,6 +629,55 @@
                       <td>
                         <p>If false, the console output is supressed.</p>
                         <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~pcaParams"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">pcaParams</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>k</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Number of eigenvectors to be computed.</p>
+                        <p>Defaults to <code>null</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>iter</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Number of iterations.</p>
+                        <p>Defaults to <code>100</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -1069,6 +1128,42 @@
                       <td>
                         <p>Toggle verbose output in the console.</p>
                         <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~tokenizerParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">tokenizerParam</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <section>
+                <h4>Property</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The type of the tokenizer. The different types are:
+                          <br>&quot;simple&quot; -
+                          <br>&quot;html&quot; -
+                          <br>&quot;unicode&quot; -</p>
                       </td>
                     </tr>
                   </tbody>

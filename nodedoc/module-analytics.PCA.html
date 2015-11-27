@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">PCA</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2914">analyticsdoc.<wbr>js:2914</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2998">analyticsdoc.<wbr>js:2998</a></p>
             <div class="symbol-classdesc">
               <p>Principal components analysis</p>
             </div>
@@ -44,23 +44,26 @@
                     <dt><a href="module-analytics.PCA.html#getModel">getModel()</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="module-analytics.PCA.html#getParams">getParams()</a></dt>
                     <dd>
                     </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
                     <dt><a href="module-analytics.PCA.html#inverseTransform">inverseTransform(x)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.PCA.html#save">save(fout)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.PCA.html#setParams">setParams(Object)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.PCA.html#setParams">setParams(Object)</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-analytics.PCA.html#transform">transform(x)</a></dt>
                     <dd>
                     </dd>
@@ -70,7 +73,55 @@
             </div>
           </section>
           <section>
-            <h2 id="PCA">new&nbsp;<span class="symbol-name">PCA</span><span class="signature"><span class="signature-params">()</span></span></h2>
+            <h2 id="PCA">new&nbsp;<span class="symbol-name">PCA</span><span class="signature"><span class="signature-params">([params])</span></span></h2>
+            <section>
+              <h3>
+            Examples
+        </h3>
+              <div>
+                <p>Using default constructor</p>
+                <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// construct model
+var pca = new analytics.PCA();</code></pre>
+              </div>
+              <div>
+                <p>Using custom constructor</p>
+                <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// construct model
+var pca = new analytics.PCA({ k: 5, iter: 50 });</code></pre>
+              </div>
+            </section>
+            <section>
+              <h3>Parameter</h3>
+              <table class="jsdoc-details-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p>params</p>
+                    </td>
+                    <td>
+                      <p>(<a href="module-analytics.html#~pcaParams">module:analytics~pcaParams</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
+                    </td>
+                    <td>
+                      <p>Yes</p>
+                    </td>
+                    <td>
+                      <p>The constructor parameters.</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
             <dl class="dl-compact">
             </dl>
           </section>
@@ -79,6 +130,21 @@
             <section>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(A)</span></span></h3>
               <p>Finds the eigenvectors of the variance matrix.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// construct model
+var pca = new analytics.PCA();
+// create matrix
+var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+// fit the matrix
+pca.fit(matrix);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -112,6 +178,23 @@
               </dl>
               <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Returns the model</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// construct model
+var pca = new analytics.PCA();
+// create matrix
+var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+// fit matrix before getting the model
+pca.fit(matrix)
+// get your model using function getModel
+var model = pca.getModel();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -120,6 +203,31 @@
               </dl>
               <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>Gets parameters</p>
+              <section>
+                <h4>
+            Examples
+        </h4>
+                <div>
+                  <p>Using default constructor</p>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// construct model
+var pca = new analytics.PCA();
+// check the constructor parameters
+var paramvalue = pca.getParams();</code></pre>
+                </div>
+                <div>
+                  <p>Using custom constructor</p>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// construct model
+var pca = new analytics.PCA();
+// set parameters
+pca.setParams({iter: 10, k: 5});
+// check the changed parameters
+var paramvalue = pca.getParams();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -128,6 +236,36 @@
               </dl>
               <h3 id="inverseTransform"><span class="symbol-name">inverseTransform</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
               <p>Reconstructs the vector in the original space, reverses centering</p>
+              <section>
+                <h4>
+            Examples
+        </h4>
+                <div>
+                  <p>Inverse transform of matrix</p>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// construct model
+var pca = new analytics.PCA();
+// create matrix
+var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+// fit the matrix
+pca.fit(matrix);
+var model = pca.getModel();
+// use invefrseTransform on matrix
+var invTransform = pca.inverseTransform(matrix);</code></pre>
+                </div>
+                <div>
+                  <p>Inverse transform of vector</p>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// construct model
+var pca = new analytics.PCA();
+// create vector
+var vector = new la.Vector([0, -1]);
+// use invefrseTransform on vector
+var invTransform = pca.inverseTransform(vector);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -163,8 +301,76 @@
                   <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;Returns the reconstruction</p>
                 </dd>
               </dl>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Saves the model.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// construct model
+var pca = new analytics.PCA();
+// create matrix
+var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+// fit matrix
+pca.fit(matrix);
+var model = pca.getModel();
+// save model
+pca.save(require(&#x27;qminer&#x27;).fs.openWrite(&#x27;pca_test.bin&#x27;)).close();</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fout</p>
+                      </td>
+                      <td>
+                        <p><a href="module-fs.FOut.html">module:fs.FOut</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The output stream.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The given output stream fout.</p>
+                </dd>
+              </dl>
               <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(Object)</span></span></h3>
               <p>Sets parameters</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// construct model
+var pca = new analytics.PCA();
+// set 5 eigenvectors and 10 iterations using setParams
+pca.setParams({iter: 10, k: 5});</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -198,6 +404,37 @@
               </dl>
               <h3 id="transform"><span class="symbol-name">transform</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
               <p>Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P. Recovering the data in the original space: (this.P).multiply(p), where p's rows are the coefficients in the eigenvector basis.</p>
+              <section>
+                <h4>
+            Examples
+        </h4>
+                <div>
+                  <p>Transforming the matrix</p>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// construct model
+var pca = new analytics.PCA();
+// create matrix
+var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+// fit the matrix
+pca.fit(matrix);
+var model = pca.getModel();
+// transform matrix and/or vector
+var transform = pca.transform(matrix);</code></pre>
+                </div>
+                <div>
+                  <p>Transforming the vector</p>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// construct model
+var pca = new analytics.PCA();
+// create vector you wish to transform
+var vector = new la.Vector([0, -1]);
+var model = pca.getModel();
+// transform matrix and/or vector
+var transform = pca.transform(vector);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">

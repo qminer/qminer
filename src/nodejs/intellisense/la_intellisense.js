@@ -1,8 +1,6 @@
 //intellisense start
 exports = {}; require.modules.qminer_la = exports;
 //intellisense end
-<<<<<<< HEAD
-=======
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
@@ -2507,4 +2505,3 @@ exports = {}; require.modules.qminer_la = exports;
 	*/
  exports.BoolVector.prototype.loadascii = function (fin) { return this; }
 
->>>>>>> 41faeb0655a3e1b4bab5d12c16b8ec3e6ffce5af

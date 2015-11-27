@@ -187,7 +187,6 @@ exports = {}; require.modules.qminer_fs = exports;
 	* fout.close();
 	*/
  exports.FOut = function(fileName, append) {}	
-<<<<<<< HEAD
 /**
 	* Writes a string or number or a JSON object in human readable form
 	* @param {(String | Number | Object)} arg - Argument to write
@@ -204,24 +203,6 @@ exports = {}; require.modules.qminer_fs = exports;
 	* Writes a string and adds a new line
 	* @param {String} str - String to write
 	* @returns {module:fs.FOut} Self.
-=======
-/**
-	* Writes a string or number or a JSON object in human readable form
-	* @param {(String | Number | Object)} arg - Argument to write
-	* @returns {module:fs.FOut} Self.
-	*/
- exports.FOut.prototype.write = function(arg) { return this; }
-/**
-	* Writes a string or number or a JSON object in binary form
-	* @param {(String | Number | Object)} str - Argument to write
-	* @returns {module:fs.FOut} Self.
-	*/
- exports.FOut.prototype.writeBinary = function(arg) { return this; }
-/**
-	* Writes a string and adds a new line
-	* @param {String} str - String to write
-	* @returns {module:fs.FOut} Self.
->>>>>>> 41faeb0655a3e1b4bab5d12c16b8ec3e6ffce5af
 	*/
  exports.FOut.prototype.writeLine = function(str) { return this; }
 /**

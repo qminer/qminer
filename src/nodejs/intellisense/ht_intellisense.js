@@ -1,8 +1,6 @@
 //intellisense start
 exports = {}; require.modules.qminer_ht = exports;
 //intellisense end
-<<<<<<< HEAD
-=======
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
@@ -582,4 +580,3 @@ exports = {}; require.modules.qminer_ht = exports;
 exports.StrStrMap.prototype.classDesc = function () { return 'This class wraps a C++ string-string hash table'; }
 
 
->>>>>>> 41faeb0655a3e1b4bab5d12c16b8ec3e6ffce5af
