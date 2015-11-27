@@ -831,10 +831,11 @@ public:
                 double n = 0;
                 for(int neighbor = start; neighbor != lastNeighbor; neighbor = _centroids->nextNode(neighbor)) {
                     assert(minDistance == abs(_centroids->value(neighbor) - x));
-                    double q = Count == 1
-                        ? 0.5 
-                        : (sum + (_centroids->count(neighbor) - 1 / 2. )) / (Count - 10)
-                    ;
+                    double q = 0.5;
+                    if (Count != 1.0) {
+                    	q = (sum + (_centroids->count(neighbor) - 1 / 2. )) / (Count - 10);
+                    }
+
                     double k = 4.0 * Count * q * (1.0 - q) / Compression;
 
                     if(_centroids->count(neighbor) + w <= k) {
