@@ -22,7 +22,7 @@ describe('Stream Aggregator Tests', function () {
                   name: 'People',
                   fields: [
                       { name: 'Name', type: 'string', primary: true },
-                      { name: 'Gendre', type: 'string' }
+                      { name: 'Gender', type: 'string' }
                   ],
               }
             ]
@@ -48,7 +48,7 @@ describe('Stream Aggregator Tests', function () {
                 }
             }, 'People');
 
-            var id1 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            var id1 = base.store('People').push({ Name: "John", Gender: "Male" });
             assert.equal(aggr.saveJson().val, 4);
         })
         it('should contruct a new stream aggregator for the People store by adding it', function () {
@@ -63,13 +63,54 @@ describe('Stream Aggregator Tests', function () {
                 }
             });
 
-            var id1 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            var id1 = base.store('People').push({ Name: "John", Gender: "Male" });
             assert.equal(s.saveJson().val, 4);
 
         })
     });
 
     describe('JsStreamAggr Test', function () {
+    	it('should serialize and deserialize a JS implemented stream aggregate', function () {
+    	    var s = store.addStreamAggr(new function () {
+    	        var data = {};
+    	        this.onAdd = function (rec) {
+    	            data = { Name: rec.Name, Gender: rec.Gender };
+    	        };
+    	        this.saveJson = function (limit) {
+    	            return data;
+    	        };
+    	        this.save = function (fout) {
+    	            fout.writeJson(data);
+    	        };
+    	        this.load = function (fin) {
+    	            data = fin.readJson();
+    	        };
+    	        this.reset = function () {
+    	            data = {};
+    	        };
+    	    });
+            // add a record
+    	    store.push({ Name: 'John', Gender: 'Male' });
+            // check state
+    	    var state = s.saveJson();
+    	    assert.equal(state.Name, 'John');
+    	    assert.equal(state.Gender, 'Male');
+            // save state
+    	    var fnm = 'js_aggr.bin';
+    	    var fout = qm.fs.openWrite(fnm);
+    	    s.save(fout);
+    	    fout.close();
+            // reset state
+    	    s.reset();
+    	    assert.equal(Object.keys(s.saveJson()).length, 0);
+            // load state
+    	    var fin = qm.fs.openRead(fnm);
+    	    s.load(fin);
+    	    var restoredState = s.saveJson();
+    	    assert.equal(restoredState.Name, 'John');
+    	    assert.equal(restoredState.Gender, 'Male');
+    	    fin.close();
+    	});    	
         it('should register a Js extractor, which counts record.name string length', function () {
 
             var s = store.addStreamAggr(new function () {
@@ -96,13 +137,13 @@ describe('Stream Aggregator Tests', function () {
             });
 
 
-            var id1 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            var id1 = base.store('People').push({ Name: "John", Gender: "Male" });
             assert(s.saveJson().val == 4);
 
-            var id2 = base.store('People').push({ Name: "Mary", Gendre: "Female" });
+            var id2 = base.store('People').push({ Name: "Mary", Gender: "Female" });
             assert(s.saveJson().val == 4);
 
-            var id3 = base.store('People').push({ Name: "Jim", Gendre: "Male" });
+            var id3 = base.store('People').push({ Name: "Jim", Gender: "Male" });
             assert(s.saveJson().val == 3);
             assert.throws(
             	function() {
@@ -131,9 +172,9 @@ describe('Stream Aggregator Tests', function () {
 
             assert.equal(s.saveJson().val, 0);
 
-            var id1 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            var id1 = base.store('People').push({ Name: "John", Gender: "Male" });
             assert.equal(s.saveJson().val, 1);
-            var id2 = base.store('People').push({ Name: "Mary", Gendre: "Female" });
+            var id2 = base.store('People').push({ Name: "Mary", Gender: "Female" });
             assert.equal(s.saveJson().val, 2);
 
             base.store('People').clear();
@@ -161,15 +202,15 @@ describe('Stream Aggregator Tests', function () {
             assert.equal(s.saveJson().records, 0);
             assert.equal(s.saveJson().updates, 0);
 
-            var id1 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            var id1 = base.store('People').push({ Name: "John", Gender: "Male" });
             assert.equal(s.saveJson().records, 1);
             assert.equal(s.saveJson().updates, 0);
 
-            var id2 = base.store('People').push({ Name: "Mary", Gendre: "Female" });
+            var id2 = base.store('People').push({ Name: "Mary", Gender: "Female" });
             assert.equal(s.saveJson().records, 2);
             assert.equal(s.saveJson().updates, 0);
 
-            var id2 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            var id2 = base.store('People').push({ Name: "John", Gender: "Male" });
             assert.equal(s.saveJson().records, 2);
             assert.equal(s.saveJson().updates, 1);
         })
@@ -187,10 +228,10 @@ describe('Stream Aggregator Tests', function () {
                 }
             });
 
-            var id1 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            var id1 = base.store('People').push({ Name: "John", Gender: "Male" });
             aggr.onAdd(base.store('People')[0]);
 
-            //aggr.onAdd({ Name: "John", Gendre: "Male" }); // doesn't digest a JSON record
+            //aggr.onAdd({ Name: "John", Gender: "Male" }); // doesn't digest a JSON record
             assert.equal(aggr.saveJson().val, 4);
         })
         it('should throw an exception if the onAdd function is not defined', function () {
@@ -216,7 +257,7 @@ describe('Stream Aggregator Tests', function () {
                 this.reset = function () { length = 0;}
             });
 
-            var id1 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            var id1 = base.store('People').push({ Name: "John", Gender: "Male" });
             aggr.onAdd(base.store('People')[0]);
 
             aggr.reset();
@@ -227,24 +268,24 @@ describe('Stream Aggregator Tests', function () {
         it('should execute the onUpdate function and return 1', function () {
             var aggr = new qm.StreamAggr(base, new function () {
                 var type = null;
-                this.name = 'gendreUpdateLength';
+                this.name = 'GenderUpdateLength';
                 this.onAdd = function (rec) {
                     type = null;
                 }
                 this.onUpdate = function (rec) {
-                    type = rec.Gendre == "Male" ? 0 : 1;
+                    type = rec.Gender == "Male" ? 0 : 1;
                 }
                 this.saveJson = function (limit) {
                     return { val: type };
                 }
             });
 
-            var id1 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            var id1 = base.store('People').push({ Name: "John", Gender: "Male" });
             aggr.onAdd(base.store('People')[0]);
 
             assert.equal(aggr.saveJson().val, null);
 
-            var id2 = base.store('People').push({ Name: "John", Gendre: "Female" });
+            var id2 = base.store('People').push({ Name: "John", Gender: "Female" });
             aggr.onUpdate(base.store('People')[0]);
 
             assert.equal(aggr.saveJson().val, 1);
@@ -254,9 +295,9 @@ describe('Stream Aggregator Tests', function () {
             assert.throws(function () {
                 var aggr = new qm.StreamAggr(base, new function () {
                     var type = null;
-                    this.name = 'gendreUpdateLength';
+                    this.name = 'GenderUpdateLength';
                     this.onUpdate = function (rec) {
-                        type = rec.Gendre == "Male" ? 0 : 1;
+                        type = rec.Gender == "Male" ? 0 : 1;
                     }
                     this.saveJson = function (limit) {
                         return { val: type };
@@ -278,29 +319,29 @@ describe('Stream Aggregator Tests', function () {
                     return { val: length };
                 }
             });
-            var id1 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            var id1 = base.store('People').push({ Name: "John", Gender: "Male" });
             aggr.onAdd(base.store('People')[0]);
 
             assert.equal(aggr.saveJson().val, 4);
         })
-        it('should return a JSON object containing two pairs, for name and for gendre', function () {
+        it('should return a JSON object containing two pairs, for name and for Gender', function () {
             var aggr = new qm.StreamAggr(base, new function () {
                 var length = 0;
                 var type = null;
                 this.name = 'PeopleAggr';
                 this.onAdd = function (rec) {
                     length = rec.Name.length;
-                    type = rec.Gendre == "Male" ? 0 : 1;
+                    type = rec.Gender == "Male" ? 0 : 1;
                 }
                 this.saveJson = function (limit) {
-                    return { name: length, gendre: type };
+                    return { name: length, Gender: type };
                 }
             });
-            var id1 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            var id1 = base.store('People').push({ Name: "John", Gender: "Male" });
             aggr.onAdd(base.store('People')[0]);
 
             assert.equal(aggr.saveJson().name, 4);
-            assert.equal(aggr.saveJson().gendre, 0);
+            assert.equal(aggr.saveJson().Gender, 0);
         })
     });
 
@@ -319,7 +360,7 @@ describe('Stream Aggregator Tests', function () {
                     return { deleted: numberOfDeleted };
                 }
             });
-            var id1 = base.store('People').push({ Name: "John", Gendre: "Male" });
+            var id1 = base.store('People').push({ Name: "John", Gender: "Male" });
             aggr.onDelete(base.store('People')[0]);
 
             assert.equal(aggr.saveJson().deleted, 1);
