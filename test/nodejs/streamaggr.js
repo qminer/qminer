@@ -3742,7 +3742,7 @@ describe('TDigest test', function () {
             value: 'Value',
             winsize: 1000 // one day in miliseconds
         };
-        var timeSeries1 = base.store("Dice").addStreamAggr(tick);
+        var timeSeries1 = store.addStreamAggr(tick);
     });
     afterEach(function () {
         base.close();
