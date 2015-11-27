@@ -504,7 +504,7 @@ PJsonVal TRecBuffer::SaveJson(const int& Limit) const {
 ///////////////////////////////
 // Time series tick.
 void TTimeSeriesTick::OnAddRec(const TRec& Rec) {
-	TickVal = Rec.GetFieldFlt(TickValFieldId);
+	TickVal = ValReader.GetFlt(Rec);
 	TmMSecs = Rec.GetFieldTmMSecs(TimeFieldId);
     InitP = true;
 }
@@ -519,6 +519,10 @@ TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamV
 	TimeFieldId = Store->GetFieldId(TimeFieldNm);
     TStr TickValFieldNm = ParamVal->GetObjStr("value");
 	TickValFieldId = Store->GetFieldId(TickValFieldNm);
+    ValReader = TFieldReader(Store->GetStoreId(), TickValFieldId, Store->GetFieldDesc(TickValFieldId));
+    // make sure parameters make sense
+    QmAssertR(Store->GetFieldDesc(TimeFieldId).IsTm(), "[Window buffer] field " + TimeFieldNm + " not of type 'datetime'");
+    QmAssertR(ValReader.IsFlt(), "[Window buffer] field " + TickValFieldNm + " cannot be casted to 'double'");
 }
 
 PStreamAggr TTimeSeriesTick::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
@@ -549,26 +553,24 @@ PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 void TWinBuf::OnAddRec(const TRec& Rec) {
 	InitP = true;
 
-	uint64 NewRecId = Rec.GetRecId();
-	uint64 NewRecTm = Rec.GetFieldTmMSecs(TimeFieldId);
+	Timestamp = Rec.GetFieldTmMSecs(TimeFieldId);
 
 	A = B;
 	// B = first record ID in the buffer, or first record ID after the buffer (indicates an empty buffer)
-	while (BeforeBuffer(B, NewRecTm)) {
+	while (BeforeBuffer(B, Timestamp)) {
 		B++;
 	}
 	
 	C = D;
 	// D = the first record ID after the buffer
-	while (!AfterBuffer(D, NewRecTm)) {
+	while (!AfterBuffer(D, Timestamp)) {
 		D++;
 	}	
 
 	//Print(true);
 }
 
-TWinBuf::TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
-TStreamAggr(Base, ParamVal) {
+TWinBuf::TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
 	// parse out input and output fields
     TStr StoreNm = ParamVal->GetObjStr("store");
 	Store = Base->GetStoreByStoreNm(StoreNm);    
@@ -576,8 +578,12 @@ TStreamAggr(Base, ParamVal) {
 	TimeFieldId = Store->GetFieldId(TimeFieldNm);
     TStr ValFieldNm = ParamVal->GetObjStr("value");
 	ValFieldId = Store->GetFieldId(ValFieldNm);
-	WinSizeMSecs = ParamVal->GetObjUInt64("winsize");;
+    ValReader = TFieldReader(Store->GetStoreId(), ValFieldId, Store->GetFieldDesc(ValFieldId));
+    WinSizeMSecs = ParamVal->GetObjUInt64("winsize");;
 	DelayMSecs = ParamVal->GetObjUInt64("delay", 0);
+    // make sure parameters make sense
+    QmAssertR(Store->GetFieldDesc(TimeFieldId).IsTm(), "[Window buffer] field " + TimeFieldNm + " not of type 'datetime'");
+    QmAssertR(ValReader.IsFlt(), "[Window buffer] field " + ValFieldNm + " cannot be casted to 'double'");
 }
 
 PStreamAggr TWinBuf::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
@@ -590,6 +596,7 @@ void TWinBuf::LoadState(TSIn& SIn) {
 	B.Load(SIn);
 	C.Load(SIn);
 	D.Load(SIn);
+	Timestamp.Load(SIn);
 	TestValid(); // checks if the buffer exists in store
 }
 
@@ -599,6 +606,7 @@ void TWinBuf::SaveState(TSOut& SOut) const {
 	B.Save(SOut);
 	C.Save(SOut);
 	D.Save(SOut);
+	Timestamp.Save(SOut);
 }
 
 void TWinBuf::Reset() {
@@ -607,6 +615,7 @@ void TWinBuf::Reset() {
 	B = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
 	C = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
 	D = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
+	Timestamp = 0;
 }
 
 void TWinBuf::GetInFltV(TFltV& ValV) const {
@@ -1441,7 +1450,11 @@ PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
 /// Histogram stream aggregate
 void TOnlineHistogram::OnAddRec(const TRec& Rec) {
 	if (BufferedP) {
-		Model.Increment(InAggrValBuffer->GetInFlt());
+		TFltV UpdateV;
+		InAggrValBuffer->GetInFltV(UpdateV);
+		for (int ElN = 0; ElN < UpdateV.Len(); ElN++) {
+			Model.Increment(UpdateV[ElN]);
+		}
 		TFltV ForgetV;
 		InAggrValBuffer->GetOutFltV(ForgetV);
 		for (int ElN = 0; ElN < ForgetV.Len(); ElN++) {
@@ -1480,13 +1493,11 @@ TOnlineHistogram::TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& Para
 
 /// Load from stream
 void TOnlineHistogram::LoadState(TSIn& SIn) {
-	BufferedP.Load(SIn);
 	Model.Load(SIn);
 }
 
 /// Store state into stream
 void TOnlineHistogram::SaveState(TSOut& SOut) const {
-	BufferedP.Save(SOut);
 	Model.Save(SOut);
 }
 
@@ -1540,7 +1551,7 @@ void TChiSquare::OnAddRec(const TRec& Rec) {
     TFltV ValVX; InAggrValX->GetFltV(ValVX);        
     TFltV ValVY; InAggrValY->GetFltV(ValVY);
 	if (InAggrX->IsInit() && InAggrY->IsInit()) {
-		ChiSquare.Update(ValVX, ValVY, ChiSquare.GetDof());
+		ChiSquare.Update(ValVX, ValVY);
 	}
 }
 

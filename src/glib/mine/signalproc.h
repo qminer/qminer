@@ -75,6 +75,7 @@ public:
 	void Reset() { Ma = 0.0; TmMSecs = 0; }
 	void Update(const double& InVal, const uint64& InTmMSecs,
         const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N);	
+	void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N) { throw  TExcept::New("TSignalProc::TMa, delayed Update not implemented"); }
 	double GetValue() const { return Ma; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 	void Clr() { Ma = 0; TmMSecs = 0; }
@@ -100,6 +101,8 @@ public:
 	void Reset() { Sum = 0; TmMSecs = 0; }
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
+	void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& OutValV, const TUInt64V& OutTmMSecs) { throw  TExcept::New("TSignalProc::TSum, delayed Update not implemented"); }
+
 	double GetValue() const { return Sum; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
@@ -124,6 +127,7 @@ public:
 	void Reset() { Min = TFlt::Mx; TmMSecs = 0; }
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
+	void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& OutValV, const TUInt64V& OutTmMSecs) { throw  TExcept::New("TSignalProc::TMin, delayed Update not implemented"); }
 	double GetValue() const { return Min; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
@@ -148,6 +152,7 @@ public:
 	void Reset() { Max = TFlt::Mn; TmMSecs = 0; }
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
+	void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& OutValV, const TUInt64V& OutTmMSecs) { throw  TExcept::New("TSignalProc::TMax, delayed Update not implemented"); }
 	double GetValue() const { return Max; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
@@ -213,6 +218,8 @@ public:
 	void Reset() { Ma = 0.0; M2 = 0.0; TmMSecs = 0; pNo = 1; }
 	void Update(const double& InVal, const uint64& InTmMSecs,
         const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N);
+	void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N) { throw  TExcept::New("TSignalProc::TVar, delayed Update not implemented"); }
+
 	// current status	
 	double GetValue() const { return (pNo > 1) ? (M2 / (pNo - 1)) : 0; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
@@ -892,16 +899,19 @@ public:
 /////////////////////////////////////////////////
 /// Chi square
 class TChiSquare {
-private:	       
-	TFlt Chi2, P;
+private:	     
+	// state
+	TFlt Chi2;
+	TFlt P;
+	// parameters
 	TInt DegreesOfFreedom;
 public:
 	TChiSquare() : P(TFlt::PInf) { }
 	TChiSquare(const PJsonVal& ParamVal);
 	/// Reset
-	void Reset() { P = TFlt::PInf; }
+	void Reset() { Chi2 = 0; P = TFlt::PInf; }
 	/// Compute two sample chi2 test
-	void Update(const TFltV& OutValVX, const TFltV& OutValVY, const int Dof);
+	void Update(const TFltV& OutValVX, const TFltV& OutValVY);
 	/// Return Chi2 value
 	double GetChi2() const { return Chi2; }
 	/// Return P value

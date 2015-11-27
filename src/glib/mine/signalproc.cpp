@@ -1111,7 +1111,7 @@ void TChiSquare::Print() const {
 	printf("P = %g", P.Val);	
 }
 
-void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY, const int Dof) {
+void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY) {
 	Chi2 = 0.0;	
 	EAssertR(OutValVX.Len() == OutValVY.Len(), "TChiSquare: histogram dimensions do not match!");
 	// http://www.itl.nist.gov/div898/software/dataplot/refman1/auxillar/chi2samp.htm
@@ -1133,30 +1133,21 @@ void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY, const int 
 		P = TFlt::PInf;
 	}
 	else {
-		P = TSpecFunc::GammaQ(0.5*(Dof), 0.5*(Chi2));
+		P = TSpecFunc::GammaQ(0.5*(DegreesOfFreedom), 0.5*(Chi2));
 	}
-
-	//for (int ValN = 0; ValN < OutValVX.Len(); ValN++) {
-	//	if (OutValVY[ValN] > 0) {
-	//		Chi2 += TMath::Sqr(OutValVX[ValN]-OutValVY[ValN])/OutValVX[ValN];
-	//	}
-	//}
-	//P = TSpecFunc::GammaQ(0.5*(Dof),0.5*(Chi2));
 }
 
 
 /// Load from stream
 void TChiSquare::LoadState(TSIn& SIn) {
 	Chi2.Load(SIn);
-	P.Load(SIn);
-	DegreesOfFreedom.Load(SIn);
+	P.Load(SIn);	
 }
 
 /// Store state into stream
 void TChiSquare::SaveState(TSOut& SOut) const {
 	Chi2.Save(SOut);
-	P.Save(SOut);
-	DegreesOfFreedom.Save(SOut);
+	P.Save(SOut);	
 }
 
 }
