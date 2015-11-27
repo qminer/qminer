@@ -1,9 +1,6 @@
 #ifndef AVLTREE_H
 #define AVLTREE_H
 
-#include <cmath>
-
-using namespace std;
 class AvlTree {
 
     private:
@@ -117,7 +114,11 @@ class AvlTree {
         // O(1)
         inline void updateAggregates(TInt node) {
             // Updating depth
-        	_depth[node] = 1 + max(depth(leftNode(node)), depth(rightNode(node)));
+        	TInt greater = depth(leftNode(node));
+        	if (depth(leftNode(node)) < depth(rightNode(node))) {
+        		greater = depth(rightNode(node));
+        	}
+        	_depth[node] = 1 + greater;
             _aggregatedCount[node] = count(node) + aggregatedCount(leftNode(node)) + aggregatedCount(rightNode(node));
         }
 
@@ -182,7 +183,11 @@ class AvlTree {
             if(node == NIL) {
                 return depth(node) == 0;
             } else {
-            	return depth(node) == 1 + max(depth(leftNode(node)), depth(rightNode(node)))
+            	TInt greater = depth(leftNode(node));
+            	if (depth(leftNode(node)) < depth(rightNode(node))) {
+            		greater = depth(rightNode(node));
+            	}
+            	return depth(node) == 1 + greater
                     && abs(depth(leftNode(node)) - depth(rightNode(node))) <= 1
                     && checkBalance(leftNode(node))
                     && checkBalance(rightNode(node))

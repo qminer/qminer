@@ -3714,6 +3714,8 @@ describe('Online Histogram Tests', function () {
 describe('TDigest test', function () {
     var base = undefined;
     var store = undefined;
+    var td = undefined;
+    
     beforeEach(function () {
         // create a base with a simple store
         // the store records results of throwing two independent fair dices        
@@ -3740,25 +3742,24 @@ describe('TDigest test', function () {
             value: 'Value',
             winsize: 1000 // one day in miliseconds
         };
-
         var timeSeries1 = base.store("Dice").addStreamAggr(tick);
-        
-        // add ChiSquare aggregator that connects with Histogram1 with expected values and Histogram2 with actual values
-        aggr = {
+    });
+    afterEach(function () {
+        base.close();
+    });
+    it('should create an tdigest test aggregator', function () {
+    
+    	// add TDigest stream aggregator
+        var aggr = {
             name: 'TDigest',
             type: 'tdigest',
             store: 'Processor',
             inAggr: 'TickAggr',
             quantile: 0.99
         }
-        var td = store.addStreamAggr(aggr);
-
-    });
-    afterEach(function () {
-        base.close();
-    });
-    it('should create an tdigest test aggregator', function () {
-    // add some values (throwing a pair of dice)
+        td = store.addStreamAggr(aggr);
+        
+    	// add some values (throwing a pair of dice)
         store.push({ Time: '1', Sample1: 1 }); 
         store.push({ Time: '2', Sample1: 2 }); 
         store.push({ Time: '3', Sample1: 3 }); 
