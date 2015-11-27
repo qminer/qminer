@@ -109,7 +109,8 @@
 * @property {string} StreamAggregateTimeSeriesWindow.store - The name of the store from which to takes the data.
 * @property {string} StreamAggregateTimeSeriesWindow.timestamp - The field of the store, where it takes the timestamp.
 * @property {string} StreamAggregateTimeSeriesWindow.value - The field of the store, where it takes the values.
-* @property {number} StreamAggregateTimeSeriesWindow.winsize - The size of the window, in miliseconds.
+* @property {number} StreamAggregateTimeSeriesWindow.winsize - The size of the window, in milliseconds.
+* @property {number} StreamAggregateTimeSeriesWindow.delay - Delay in milliseconds.
 * @example 
 * // import the qm module
 * var qm = require('qminer');
@@ -1717,9 +1718,7 @@ private:
 	v8::Persistent<v8::Function> GetInTmMSecsVFun;
 	v8::Persistent<v8::Function> GetOutFltVFun;
 	v8::Persistent<v8::Function> GetOutTmMSecsVFun;
-	v8::Persistent<v8::Function> GetNFun;
-	v8::Persistent<v8::Function> GetOldestFltFun;
-	v8::Persistent<v8::Function> GetOldestTmMSecsFun;
+	v8::Persistent<v8::Function> GetNFun;	
 
 	// IFltVec
 	v8::Persistent<v8::Function> GetFltLenFun;
@@ -1770,13 +1769,13 @@ public:
 	// IFltTmIO 
 	double GetInFlt() const;
 	uint64 GetInTmMSecs() const;
+	bool DelayedP() const;
+
 	void GetInFltV(TFltV& ValV) const;
 	void GetInTmMSecsV(TUInt64V& MSecsV) const;
 	void GetOutFltV(TFltV& ValV) const;
 	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
 	int GetN() const;
-	double GetOldestFlt() const;
-	uint64 GetOldestTmMSecs() const;
 
 	// IFltVec
 	int GetFltLen() const;
